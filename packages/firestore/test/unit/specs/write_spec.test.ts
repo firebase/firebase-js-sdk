@@ -17,7 +17,7 @@
 import { Query } from '../../../src/core/query';
 import { Document } from '../../../src/model/document';
 import { Code } from '../../../src/util/error';
-import { doc, mutatedDoc, path } from '../../util/helpers';
+import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -1251,8 +1251,18 @@ describeSpec('Writes:', [], () => {
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
-      const docA = mutatedDoc('collection/a', 0, 1000, { k: 'a' });
-      const docB = mutatedDoc('collection/b', 0, 2000, { k: 'b' });
+      const docA = doc(
+        'collection/a',
+        1000,
+        { k: 'a' },
+        { hasCommittedMutations: true }
+      );
+      const docB = doc(
+        'collection/b',
+        2000,
+        { k: 'b' },
+        { hasCommittedMutations: true }
+      );
 
       return client(0)
         .expectPrimaryState(true)

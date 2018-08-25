@@ -43,8 +43,10 @@ export class LocalSerializer {
   /** Decodes a remote document from storage locally to a Document. */
   fromDbRemoteDocument(remoteDoc: DbRemoteDocument): MaybeDocument {
     if (remoteDoc.document) {
-      const commitTime = this.fromDbTimestamp(remoteDoc.commitVersion);
-      return this.remoteSerializer.fromDocument(remoteDoc.document, commitTime);
+      return this.remoteSerializer.fromDocument(
+        remoteDoc.document,
+        !!remoteDoc.hasCommittedMutations
+      );
     } else if (remoteDoc.noDocument) {
       const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
       const version = this.fromDbTimestamp(remoteDoc.noDocument.readTime);
@@ -57,12 +59,12 @@ export class LocalSerializer {
   /** Encodes a document for storage locally. */
   toDbRemoteDocument(maybeDoc: MaybeDocument): DbRemoteDocument {
     if (maybeDoc instanceof Document) {
-      const commitVersion = this.toDbTimestamp(maybeDoc.commitVersion);
       const doc = this.remoteSerializer.toDocument(maybeDoc);
-      return new DbRemoteDocument(null, doc, commitVersion);
+      const hasCommittedMutations = maybeDoc.hasCommittedMutations;
+      return new DbRemoteDocument(null, doc, hasCommittedMutations);
     } else {
       const path = maybeDoc.key.path.toArray();
-      const readTime = this.toDbTimestamp(maybeDoc.remoteVersion);
+      const readTime = this.toDbTimestamp(maybeDoc.version);
       return new DbRemoteDocument(new DbNoDocument(path, readTime), null);
     }
   }
@@ -72,16 +74,12 @@ export class LocalSerializer {
     return new DbTimestamp(timestamp.seconds, timestamp.nanoseconds);
   }
 
-  private fromDbTimestamp(dbTimestamp?: DbTimestamp): SnapshotVersion {
-    if (dbTimestamp) {
-      const timestamp = new Timestamp(
-        dbTimestamp.seconds,
-        dbTimestamp.nanoseconds
-      );
-      return SnapshotVersion.fromTimestamp(timestamp);
-    } else {
-      return SnapshotVersion.MIN;
-    }
+  private fromDbTimestamp(dbTimestamp: DbTimestamp): SnapshotVersion {
+    const timestamp = new Timestamp(
+      dbTimestamp.seconds,
+      dbTimestamp.nanoseconds
+    );
+    return SnapshotVersion.fromTimestamp(timestamp);
   }
 
   /** Encodes a batch of mutations into a DbMutationBatch for local storage. */

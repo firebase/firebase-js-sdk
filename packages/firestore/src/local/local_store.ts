@@ -566,9 +566,9 @@ export class LocalStore {
             // resolution failing).
             if (
               existingDoc == null ||
-              doc.remoteVersion.isEqual(SnapshotVersion.MIN) ||
+              doc.version.isEqual(SnapshotVersion.MIN) ||
               authoritativeUpdates.has(doc.key) ||
-              doc.remoteVersion.compareTo(existingDoc.remoteVersion) >= 0
+              doc.version.compareTo(existingDoc.version) >= 0
             ) {
               documentBuffer.addEntry(doc);
             } else {
@@ -577,9 +577,9 @@ export class LocalStore {
                 'Ignoring outdated watch update for ',
                 key,
                 '. Current version:',
-                existingDoc.remoteVersion,
+                existingDoc.version,
                 ' Watch version:',
-                doc.remoteVersion
+                doc.version
               );
             }
 
@@ -1011,7 +1011,7 @@ export class LocalStore {
             ackVersion !== null,
             'ackVersions should contain every doc in the write.'
           );
-          if (!doc || doc.remoteVersion.compareTo(ackVersion!) < 0) {
+          if (!doc || doc.version.compareTo(ackVersion!) < 0) {
             doc = batch.applyToRemoteDocument(docKey, doc, batchResult);
             if (!doc) {
               assert(

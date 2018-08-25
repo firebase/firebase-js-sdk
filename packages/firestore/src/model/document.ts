@@ -23,7 +23,8 @@ import { FieldValue, JsonObject, ObjectValue } from './field_value';
 import { FieldPath } from './path';
 
 export interface DocumentOptions {
-  hasLocalMutations: boolean;
+  hasLocalMutations?: boolean;
+  hasCommittedMutations?: boolean;
 }
 
 /**
@@ -31,10 +32,7 @@ export interface DocumentOptions {
  * marker that this document does not exist at a given version.
  */
 export abstract class MaybeDocument {
-  constructor(
-    readonly key: DocumentKey,
-    readonly remoteVersion: SnapshotVersion
-  ) {}
+  constructor(readonly key: DocumentKey, readonly version: SnapshotVersion) {}
 
   static compareByKey(d1: MaybeDocument, d2: MaybeDocument): number {
     return DocumentKey.comparator(d1.key, d2.key);
@@ -47,16 +45,17 @@ export abstract class MaybeDocument {
  */
 export class Document extends MaybeDocument {
   readonly hasLocalMutations: boolean;
+  readonly hasCommittedMutations: boolean;
 
   constructor(
     key: DocumentKey,
-    remoteVersion: SnapshotVersion,
-    readonly commitVersion: SnapshotVersion,
+    version: SnapshotVersion,
     readonly data: ObjectValue,
     options: DocumentOptions
   ) {
-    super(key, remoteVersion);
-    this.hasLocalMutations = options.hasLocalMutations;
+    super(key, version);
+    this.hasLocalMutations = !!options.hasLocalMutations;
+    this.hasCommittedMutations = !!options.hasCommittedMutations;
   }
 
   field(path: FieldPath): FieldValue | undefined {
@@ -76,17 +75,18 @@ export class Document extends MaybeDocument {
     return (
       other instanceof Document &&
       this.key.isEqual(other.key) &&
-      this.remoteVersion.isEqual(other.remoteVersion) &&
-      this.commitVersion.isEqual(other.commitVersion) &&
+      this.version.isEqual(other.version) &&
       this.data.isEqual(other.data) &&
-      this.hasLocalMutations === other.hasLocalMutations
+      this.hasLocalMutations === other.hasLocalMutations &&
+      this.hasCommittedMutations === other.hasCommittedMutations
     );
   }
 
   toString(): string {
     return (
-      `Document(${this.key}, ${this.remoteVersion}, ${this.data.toString()}, ` +
-      `{hasLocalMutations: ${this.hasLocalMutations}})`
+      `Document(${this.key}, ${this.version}, ${this.data.toString()}, ` +
+      `{hasLocalMutations: ${this.hasLocalMutations}}), ` +
+      `{hasCommittedMutations: ${this.hasCommittedMutations}})`
     );
   }
 
@@ -107,18 +107,18 @@ export class Document extends MaybeDocument {
  * denotes time we know it didn't exist at.
  */
 export class NoDocument extends MaybeDocument {
-  constructor(key: DocumentKey, remoteVersion: SnapshotVersion) {
-    super(key, remoteVersion);
+  constructor(key: DocumentKey, version: SnapshotVersion) {
+    super(key, version);
   }
 
   toString(): string {
-    return `NoDocument(${this.key}, ${this.remoteVersion})`;
+    return `NoDocument(${this.key}, ${this.version})`;
   }
 
   isEqual(other: NoDocument): boolean {
     return (
       other &&
-      other.remoteVersion.isEqual(this.remoteVersion) &&
+      other.version.isEqual(this.version) &&
       other.key.isEqual(this.key)
     );
   }

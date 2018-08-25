@@ -59,7 +59,6 @@ import {
   key,
   localViewChanges,
   mapAsArray,
-  mutatedDoc,
   patchMutation,
   path,
   setMutation,
@@ -316,8 +315,12 @@ function genericLocalStoreTests(
       )
       .toContain(doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true }))
       .afterAcknowledgingMutation({ documentVersion: 1 })
-      .toReturnChanged(mutatedDoc('foo/bar', 0, 1, { foo: 'bar' }))
-      .toContain(mutatedDoc('foo/bar', 0, 1, { foo: 'bar' }))
+      .toReturnChanged(
+        doc('foo/bar', 1, { foo: 'bar' }, { hasCommittedMutations: true })
+      )
+      .toContain(
+        doc('foo/bar', 1, { foo: 'bar' }, { hasCommittedMutations: true })
+      )
       .finish();
   });
 
@@ -395,8 +398,12 @@ function genericLocalStoreTests(
       .toContain(doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true }))
       .afterReleasingQuery(query)
       .afterAcknowledgingMutation({ documentVersion: 3 })
-      .toReturnChanged(mutatedDoc('foo/bar', 0, 3, { foo: 'bar' }))
-      .toContain(mutatedDoc('foo/bar', 0, 3, { foo: 'bar' }))
+      .toReturnChanged(
+        doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
+      )
+      .toContain(
+        doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
+      )
       .finish();
   });
 
@@ -604,12 +611,16 @@ function genericLocalStoreTests(
       .afterReleasingQuery(query)
       .afterAcknowledgingMutation({ documentVersion: 2 }) // delete mutation
       .toReturnChanged(
-        doc('foo/bar', 1, { foo: 'bar' }, { hasLocalMutations: true })
+        doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true })
       )
-      .toContain(doc('foo/bar', 1, { foo: 'bar' }, { hasLocalMutations: true }))
+      .toContain(doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true }))
       .afterAcknowledgingMutation({ documentVersion: 3 }) // patch mutation
-      .toReturnChanged(mutatedDoc('foo/bar', 1, 3, { foo: 'bar' }))
-      .toContain(mutatedDoc('foo/bar', 1, 3, { foo: 'bar' }))
+      .toReturnChanged(
+        doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
+      )
+      .toContain(
+        doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
+      )
       .finish();
   });
 
@@ -630,12 +641,18 @@ function genericLocalStoreTests(
     return expectLocalStore()
       .after(setMutation('foo/bar', { foo: 'old' }))
       .afterAcknowledgingMutation({ documentVersion: 1 })
-      .toContain(mutatedDoc('foo/bar', 0, 1, { foo: 'old' }))
+      .toContain(
+        doc('foo/bar', 1, { foo: 'old' }, { hasCommittedMutations: true })
+      )
       .after(patchMutation('foo/bar', { foo: 'bar' }))
-      .toContain(doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true }))
+      .toContain(doc('foo/bar', 1, { foo: 'bar' }, { hasLocalMutations: true }))
       .afterRejectingMutation()
-      .toReturnChanged(mutatedDoc('foo/bar', 0, 1, { foo: 'old' }))
-      .toContain(mutatedDoc('foo/bar', 0, 1, { foo: 'old' }))
+      .toReturnChanged(
+        doc('foo/bar', 1, { foo: 'old' }, { hasCommittedMutations: true })
+      )
+      .toContain(
+        doc('foo/bar', 1, { foo: 'old' }, { hasCommittedMutations: true })
+      )
       .finish();
   });
 

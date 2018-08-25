@@ -523,20 +523,19 @@ export class JsonProtoSerializer {
     return {
       name: this.toName(document.key),
       fields: this.toFields(document.data),
-      updateTime: this.toTimestamp(document.remoteVersion.toTimestamp())
+      updateTime: this.toTimestamp(document.version.toTimestamp())
     };
   }
 
   fromDocument(
     document: api.Document,
-    commitVersion: SnapshotVersion
+    hasCommittedMutations?: boolean
   ): Document {
     return new Document(
       this.fromName(document.name!),
       this.fromVersion(document.updateTime!),
-      commitVersion,
       this.fromFields(document.fields || {}),
-      { hasLocalMutations: false }
+      { hasCommittedMutations: !!hasCommittedMutations }
     );
   }
 
@@ -580,17 +579,9 @@ export class JsonProtoSerializer {
     assertPresent(doc.found!.name, 'doc.found.name');
     assertPresent(doc.found!.updateTime, 'doc.found.updateTime');
     const key = this.fromName(doc.found!.name!);
-    const remoteVersion = this.fromVersion(doc.found!.updateTime!);
+    const version = this.fromVersion(doc.found!.updateTime!);
     const fields = this.fromFields(doc.found!.fields || {});
-    return new Document(
-      key,
-      remoteVersion,
-      /*commitVersion=*/ SnapshotVersion.MIN,
-      fields,
-      {
-        hasLocalMutations: false
-      }
-    );
+    return new Document(key, version, fields, {});
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -654,7 +645,7 @@ export class JsonProtoSerializer {
             document: {
               name: this.toName(doc.key),
               fields: this.toFields(doc.data),
-              updateTime: this.toVersion(doc.remoteVersion)
+              updateTime: this.toVersion(doc.version)
             },
             targetIds: watchChange.updatedTargetIds,
             removedTargetIds: watchChange.removedTargetIds
@@ -665,7 +656,7 @@ export class JsonProtoSerializer {
         return {
           documentDelete: {
             document: this.toName(doc.key),
-            readTime: this.toVersion(doc.remoteVersion),
+            readTime: this.toVersion(doc.version),
             removedTargetIds: watchChange.removedTargetIds
           }
         };
@@ -733,19 +724,11 @@ export class JsonProtoSerializer {
       );
       const entityChange = change.documentChange!;
       const key = this.fromName(entityChange.document!.name!);
-      const remoteVersion = this.fromVersion(
-        entityChange.document!.updateTime!
-      );
+      const version = this.fromVersion(entityChange.document!.updateTime!);
       const fields = this.fromFields(entityChange.document!.fields || {});
-      const doc = new Document(
-        key,
-        remoteVersion,
-        /*commitVersion=*/ SnapshotVersion.MIN,
-        fields,
-        {
-          hasLocalMutations: false
-        }
-      );
+      const doc = new Document(key, version, fields, {
+        hasLocalMutations: false
+      });
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(
@@ -932,9 +915,17 @@ export class JsonProtoSerializer {
 
   fromWriteResults(
     protos: api.WriteResult[] | undefined,
-    commitTime: string
+    commitTime?: string
   ): MutationResult[] {
-    return (protos || []).map(proto => this.fromWriteResult(proto, commitTime));
+    if (protos && protos.length > 0) {
+      assert(
+        commitTime !== undefined,
+        'Received a write result without a commit time'
+      );
+      return protos.map(proto => this.fromWriteResult(proto, commitTime!));
+    } else {
+      return [];
+    }
   }
 
   private toFieldTransform(fieldTransform: FieldTransform): api.FieldTransform {

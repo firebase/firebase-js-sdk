@@ -448,12 +448,12 @@ export class DbRemoteDocument {
      */
     public document: api.Document | null,
     /**
-     * For documents that were written to the remote document store based on
-     * a write acknowledgment, we store the commit version of the mutation. This
-     * is used to determine if the document is 'dirty' (the commit version is
-     * higher than `document.updateTime`).
+     * Documents that were written to the remote document store based on
+     * a write acknowledgment are marked with `hasCommittedMutations`. These
+     * documents are potentially inconsistent with the document's version on
+     * the backend.
      */
-    public commitVersion?: DbTimestamp
+    public hasCommittedMutations?: boolean
   ) {}
 }
 

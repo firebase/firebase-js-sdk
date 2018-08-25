@@ -852,15 +852,17 @@ export class SpecBuilder {
     if (doc instanceof Document) {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
-        remoteVersion: doc.remoteVersion.toMicroseconds(),
-        commitVersion: doc.commitVersion.toMicroseconds(),
+        version: doc.version.toMicroseconds(),
         value: doc.data.value(),
-        options: { hasLocalMutations: doc.hasLocalMutations }
+        options: {
+          hasLocalMutations: doc.hasLocalMutations,
+          hasCommittedMutations: doc.hasCommittedMutations
+        }
       };
     } else {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
-        remoteVersion: doc.remoteVersion.toMicroseconds(),
+        version: doc.version.toMicroseconds(),
         value: null
       };
     }
