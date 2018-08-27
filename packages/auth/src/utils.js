@@ -1486,6 +1486,9 @@ fireauth.util.getActiveServiceWorker = function() {
         })
         .then(function(registration) {
           return /** @type {?ServiceWorker} */ (registration.active || null);
+        })
+        .thenCatch(function(error) {
+          return null;
         });
   }
   return goog.Promise.resolve(/** @type {?ServiceWorker} */ (null));
