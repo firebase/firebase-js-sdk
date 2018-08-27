@@ -130,8 +130,9 @@ fireauth.AuthErrorWithCredential.fromPlainObject = function(response) {
       credentialInfo.email = response['email'];
     } else if (response['phoneNumber']) {
       credentialInfo.phoneNumber = response['phoneNumber'];
-    } else {
-      // Neither email nor phone number are set; return a generic error.
+    } else if (!credentialInfo.credential) {
+      // Neither email, phone number or credentials are set; return a generic
+      // error.
       return new fireauth.AuthError(code, response['message'] || undefined);
     }
 
