@@ -1459,6 +1459,7 @@ fireauth.util.setNoReferrer = function() {
 
 /** @return {?ServiceWorker} The servicerWorker controller if available. */
 fireauth.util.getServiceWorkerController = function() {
+  var navigator = goog.global['navigator'];
   return (navigator &&
           navigator.serviceWorker &&
           navigator.serviceWorker.controller) || null;
@@ -1477,6 +1478,7 @@ fireauth.util.getWorkerGlobalScope = function() {
  *     available. If no service worker is supported, it will resolve with null.
  */
 fireauth.util.getActiveServiceWorker = function() {
+  var navigator = goog.global['navigator'];
   if (navigator && navigator.serviceWorker) {
     return goog.Promise.resolve()
         .then(function() {
