@@ -51,7 +51,7 @@ import { Deferred } from '../util/promise';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Query } from './query';
 import { Transaction } from './transaction';
-import { OnlineStateSource, ListenSequenceNumber } from './types';
+import { OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
 import {
   MemorySharedClientState,

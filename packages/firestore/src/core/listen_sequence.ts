@@ -16,8 +16,9 @@
 
 import { ListenSequenceNumber } from './types';
 
-const LOG_TAG = 'ListenSequence';
-
+/**
+ * `SequenceNumberSyncer` defines the methods required to keep multiple instances of a `ListenSequence` in sync.
+ */
 export interface SequenceNumberSyncer {
   writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
   setSequenceNumberListener(
@@ -25,6 +26,12 @@ export interface SequenceNumberSyncer {
   ): void;
 }
 
+/**
+ * `ListenSequence` is a monotonic sequence. It is initialized with a minimum value to
+ * exceed. All subsequent calls to next will return increasing values. If provided with a
+ * `SequenceNumberSyncer`, it will additionally bump its next value when told of a new value, as well as write out
+ * sequence numbers that it produces via `next()`.
+ */
 export class ListenSequence {
   static readonly INVALID: ListenSequenceNumber = -1;
 
