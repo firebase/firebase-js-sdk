@@ -315,11 +315,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
 
       if (!targetRemainsActive) {
-        this.sharedClientState.clearQueryState(queryView.targetId);
-        this.remoteStore.unlisten(queryView.targetId);
         await this.localStore
           .releaseQuery(query, /*keepPersistedQueryData=*/ false)
-          .then(() => this.removeAndCleanupQuery(queryView))
+          .then(() => {
+            this.sharedClientState.clearQueryState(queryView.targetId);
+            this.remoteStore.unlisten(queryView.targetId);
+            return this.removeAndCleanupQuery(queryView);
+          })
           .then(() => this.localStore.collectGarbage())
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
@@ -882,14 +884,22 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       }
     } else if (isPrimary === false && this.isPrimary !== false) {
       this.isPrimary = false;
-      const activeQueries = await this.synchronizeQueryViewsAndRaiseSnapshots(
-        objUtils.indices(this.queryViewsByTarget)
-      );
+
+      const activeTargets: TargetId[] = [];
+
+      let p = Promise.resolve();
+      objUtils.forEachNumber(this.queryViewsByTarget, (targetId, queryView) => {
+        if (this.sharedClientState.isLocalQueryTarget(targetId)) {
+          activeTargets.push(targetId);
+        } else {
+          p = p.then(() => this.unlisten(queryView.query));
+        }
+        this.remoteStore.unlisten(queryView.targetId);
+      });
+      await p;
+
+      await this.synchronizeQueryViewsAndRaiseSnapshots(activeTargets);
       this.resetLimboDocuments();
-      for (const queryData of activeQueries) {
-        // TODO(multitab): Remove query views for non-local queries.
-        this.remoteStore.unlisten(queryData.targetId);
-      }
       await this.remoteStore.applyPrimaryState(false);
     }
   }
@@ -1038,10 +1048,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // Check that the query is still active since the query might have been
       // removed if it has been rejected by the backend.
       if (queryView) {
-        this.remoteStore.unlisten(targetId);
         await this.localStore
           .releaseQuery(queryView.query, /*keepPersistedQueryData=*/ false)
-          .then(() => this.removeAndCleanupQuery(queryView))
+          .then(() => {
+            this.remoteStore.unlisten(targetId);
+            return this.removeAndCleanupQuery(queryView);
+          })
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
     }
