@@ -22,7 +22,10 @@ import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
-import { IndexedDbQueryCache } from './indexeddb_query_cache';
+import {
+  IndexedDbQueryCache,
+  getHighestListenSequenceNumber
+} from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
@@ -31,6 +34,7 @@ import {
   DbPrimaryClient,
   DbPrimaryClientKey,
   SCHEMA_VERSION,
+  DbTargetGlobal,
   SchemaConverter
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
@@ -48,6 +52,7 @@ import { Platform } from '../platform/platform';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { ClientId } from './shared_client_state';
 import { CancelablePromise } from '../util/promise';
+import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -97,7 +102,10 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
 const ZOMBIED_CLIENTS_KEY_PREFIX = 'firestore_zombie';
 
 export class IndexedDbTransaction extends PersistenceTransaction {
-  constructor(readonly simpleDbTransaction: SimpleDbTransaction) {
+  constructor(
+    readonly simpleDbTransaction: SimpleDbTransaction,
+    readonly currentSequenceNumber
+  ) {
     super();
   }
 }
@@ -205,6 +213,8 @@ export class IndexedDbPersistence implements Persistence {
 
   private queryCache: IndexedDbQueryCache;
   private remoteDocumentCache: IndexedDbRemoteDocumentCache;
+  private webStorage?: Storage;
+  private listenSequence: ListenSequence;
 
   constructor(
     private readonly persistenceKey: string,
@@ -212,18 +222,31 @@ export class IndexedDbPersistence implements Persistence {
     platform: Platform,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    synchronizeTabs: boolean
+    private readonly multiClientParams?: {
+      sequenceNumberSyncer: SequenceNumberSyncer;
+    }
   ) {
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
     this.window = platform.window!;
-    this.allowTabSynchronization = synchronizeTabs;
+    if (multiClientParams !== undefined) {
+      this.allowTabSynchronization = true;
+    } else {
+      this.allowTabSynchronization = false;
+    }
     this.queryCache = new IndexedDbQueryCache(this.serializer);
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
     );
+    this.webStorage = this.window.localStorage;
+    if (!this.webStorage) {
+      assert(
+        process.env.USE_MOCK_PERSISTENCE === 'YES',
+        'Operating without LocalStorage is only supported with IndexedDbShim.'
+      );
+    }
   }
 
   /**
@@ -257,6 +280,25 @@ export class IndexedDbPersistence implements Persistence {
         this.attachWindowUnloadHook();
         return this.updateClientMetadataAndTryBecomePrimary().then(() =>
           this.scheduleClientMetadataAndPrimaryLeaseRefreshes()
+        );
+      })
+      .then(() => {
+        return this.simpleDb.runTransaction(
+          'readonly',
+          [DbTargetGlobal.store],
+          txn => {
+            return getHighestListenSequenceNumber(txn).next(
+              highestListenSequenceNumber => {
+                const sequenceNumberSyncer = this.multiClientParams
+                  ? this.multiClientParams.sequenceNumberSyncer
+                  : undefined;
+                this.listenSequence = new ListenSequence(
+                  highestListenSequenceNumber,
+                  sequenceNumberSyncer
+                );
+              }
+            );
+          }
         );
       })
       .then(() => {
@@ -675,7 +717,10 @@ export class IndexedDbPersistence implements Persistence {
                 );
               }
               return transactionOperation(
-                new IndexedDbTransaction(simpleDbTxn)
+                new IndexedDbTransaction(
+                  simpleDbTxn,
+                  this.listenSequence.next()
+                )
               );
             })
             .next(result => {
@@ -685,7 +730,9 @@ export class IndexedDbPersistence implements Persistence {
             });
         } else {
           return this.verifyAllowTabSynchronization(simpleDbTxn).next(() =>
-            transactionOperation(new IndexedDbTransaction(simpleDbTxn))
+            transactionOperation(
+              new IndexedDbTransaction(simpleDbTxn, this.listenSequence.next())
+            )
           );
         }
       }
@@ -874,29 +921,25 @@ export class IndexedDbPersistence implements Persistence {
    * cleanup logic in `shutdown()`.
    */
   private isClientZombied(clientId: ClientId): boolean {
-    if (this.window.localStorage === undefined) {
-      assert(
-        process.env.USE_MOCK_PERSISTENCE === 'YES',
-        'Operating without LocalStorage is only supported with IndexedDbShim.'
-      );
-      return false;
-    }
-
-    try {
-      const isZombied =
-        this.window.localStorage.getItem(
-          this.zombiedClientLocalStorageKey(clientId)
-        ) !== null;
-      log.debug(
-        LOG_TAG,
-        `Client '${clientId}' ${
-          isZombied ? 'is' : 'is not'
-        } zombied in LocalStorage`
-      );
-      return isZombied;
-    } catch (e) {
-      // Gracefully handle if LocalStorage isn't available / working.
-      log.error(LOG_TAG, 'Failed to get zombied client id.', e);
+    if (this.webStorage) {
+      try {
+        const isZombied =
+          this.webStorage.getItem(
+            this.zombiedClientLocalStorageKey(clientId)
+          ) !== null;
+        log.debug(
+          LOG_TAG,
+          `Client '${clientId}' ${
+            isZombied ? 'is' : 'is not'
+          } zombied in LocalStorage`
+        );
+        return isZombied;
+      } catch (e) {
+        // Gracefully handle if LocalStorage isn't working.
+        log.error(LOG_TAG, 'Failed to get zombied client id.', e);
+        return false;
+      }
+    } else {
       return false;
     }
   }
@@ -906,25 +949,29 @@ export class IndexedDbPersistence implements Persistence {
    * clients are ignored during primary tab selection.
    */
   private markClientZombied(): void {
-    try {
-      this.window.localStorage.setItem(
-        this.zombiedClientLocalStorageKey(this.clientId),
-        String(Date.now())
-      );
-    } catch (e) {
-      // Gracefully handle if LocalStorage isn't available / working.
-      log.error('Failed to set zombie client id.', e);
+    if (this.webStorage) {
+      try {
+        this.webStorage.setItem(
+          this.zombiedClientLocalStorageKey(this.clientId),
+          String(Date.now())
+        );
+      } catch (e) {
+        // Gracefully handle if LocalStorage isn't available / working.
+        log.error('Failed to set zombie client id.', e);
+      }
     }
   }
 
   /** Removes the zombied client entry if it exists. */
   private removeClientZombiedEntry(): void {
-    try {
-      this.window.localStorage.removeItem(
-        this.zombiedClientLocalStorageKey(this.clientId)
-      );
-    } catch (e) {
-      // Ignore
+    if (this.webStorage) {
+      try {
+        this.webStorage.removeItem(
+          this.zombiedClientLocalStorageKey(this.clientId)
+        );
+      } catch (e) {
+        // Ignore
+      }
     }
   }
 

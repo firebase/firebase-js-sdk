@@ -51,7 +51,7 @@ import { Deferred } from '../util/promise';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Query } from './query';
 import { Transaction } from './transaction';
-import { OnlineStateSource } from './types';
+import { OnlineStateSource, ListenSequenceNumber } from './types';
 import { ViewSnapshot } from './view_snapshot';
 import {
   MemorySharedClientState,
@@ -302,16 +302,6 @@ export class FirestoreClient {
     });
 
     return Promise.resolve().then(() => {
-      const persistence: IndexedDbPersistence = new IndexedDbPersistence(
-        storagePrefix,
-        this.clientId,
-        this.platform,
-        this.asyncQueue,
-        serializer,
-        settings.experimentalTabSynchronization
-      );
-      this.persistence = persistence;
-
       if (
         settings.experimentalTabSynchronization &&
         !WebStorageSharedClientState.isAvailable(this.platform)
@@ -331,6 +321,16 @@ export class FirestoreClient {
             user
           )
         : new MemorySharedClientState();
+      const persistence: IndexedDbPersistence = new IndexedDbPersistence(
+        storagePrefix,
+        this.clientId,
+        this.platform,
+        this.asyncQueue,
+        serializer,
+        { sequenceNumberSyncer: this.sharedClientState }
+      );
+      this.persistence = persistence;
+
       return persistence.start();
     });
   }

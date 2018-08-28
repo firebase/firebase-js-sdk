@@ -15,11 +15,13 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
+import { ListenSequence } from '../core/listen_sequence';
 import {
   BatchId,
   MutationBatchState,
   OnlineState,
-  TargetId
+  TargetId,
+  ListenSequenceNumber
 } from '../core/types';
 import { assert } from '../util/assert';
 import { debug, error } from '../util/log';
@@ -56,6 +58,8 @@ const QUERY_TARGET_KEY_PREFIX = 'firestore_targets';
 
 // The LocalStorage key that stores the primary tab's online state.
 const ONLINE_STATE_KEY = 'firestore_online_state';
+// The LocalStorage key that stores the last sequence number allocated.
+const SEQUENCE_NUMBER_KEY = 'firestore_sequence_number';
 
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
@@ -168,6 +172,11 @@ export interface SharedClientState {
 
   /** Changes the shared online state of all clients. */
   setOnlineState(onlineState: OnlineState): void;
+
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
+  setSequenceNumberListener(
+    cb: (sequenceNumber: ListenSequenceNumber) => void
+  ): void;
 }
 
 /**
@@ -516,6 +525,9 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly queryTargetKeyRe: RegExp;
   private started = false;
   private currentUser: User;
+  private sequenceNumberListener?: (
+    sequenceNumber: ListenSequenceNumber
+  ) => void;
 
   /**
    * Captures WebStorage events that occur before `start()` is called. These
@@ -631,6 +643,16 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.platform.window!.addEventListener('unload', () => this.shutdown());
 
     this.started = true;
+  }
+
+  setSequenceNumberListener(
+    cb: (sequenceNumber: ListenSequenceNumber) => void
+  ): void {
+    this.sequenceNumberListener = cb;
+  }
+
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {
+    this.setItem(SEQUENCE_NUMBER_KEY, JSON.stringify(sequenceNumber));
   }
 
   getAllActiveQueryTargets(): TargetIdSet {
@@ -828,6 +850,13 @@ export class WebStorageSharedClientState implements SharedClientState {
             );
             if (onlineState) {
               return this.handleOnlineStateEvent(onlineState);
+            }
+          }
+        } else if (event.key === SEQUENCE_NUMBER_KEY) {
+          if (this.sequenceNumberListener) {
+            const sequenceNumber = parseSequenceNumber(event.newValue);
+            if (sequenceNumber !== ListenSequence.INVALID) {
+              this.sequenceNumberListener(sequenceNumber);
             }
           }
         }
@@ -1052,6 +1081,21 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 }
 
+//
+function parseSequenceNumber(seqString: string | null): ListenSequenceNumber {
+  let sequenceNumber = ListenSequence.INVALID;
+  if (seqString != null) {
+    try {
+      const parsed = JSON.parse(seqString) as ListenSequenceNumber;
+      assert(typeof parsed === 'number', 'Found non-numeric sequence number');
+      sequenceNumber = parsed;
+    } catch (e) {
+      error(LOG_TAG, 'Failed to read sequence number from local storage', e);
+    }
+  }
+  return sequenceNumber;
+}
+
 /**
  * `MemorySharedClientState` is a simple implementation of SharedClientState for
  * clients using memory persistence. The state in this class remains fully
@@ -1127,4 +1171,9 @@ export class MemorySharedClientState implements SharedClientState {
   }
 
   shutdown(): void {}
+
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
+  setSequenceNumberListener(
+    cb: (sequenceNumber: ListenSequenceNumber) => void
+  ): void {}
 }

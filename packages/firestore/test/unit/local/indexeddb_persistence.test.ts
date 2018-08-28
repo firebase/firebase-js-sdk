@@ -51,6 +51,7 @@ import {
   INDEXEDDB_TEST_DATABASE_ID,
   INDEXEDDB_TEST_DATABASE_NAME,
   INDEXEDDB_TEST_SERIALIZER,
+  MOCK_SEQUENCE_NUMBER_SYNCER,
   TEST_PERSISTENCE_PREFIX
 } from './persistence_test_helpers';
 
@@ -69,7 +70,7 @@ function withDb(
       const db = (event.target as IDBOpenDBRequest).result;
       schemaConverter.createOrUpgrade(
         db,
-        new SimpleDbTransaction(request.transaction),
+        new SimpleDbTransaction(request.transaction!),
         event.oldVersion,
         schemaVersion
       );
@@ -105,13 +106,19 @@ async function withCustomPersistence(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
+  const multiClientParams = settings.experimentalTabSynchronization
+    ? {
+        sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
+      }
+    : undefined;
+
   const persistence = new IndexedDbPersistence(
     TEST_PERSISTENCE_PREFIX,
     clientId,
     platform,
     queue,
     serializer,
-    settings.experimentalTabSynchronization
+    multiClientParams
   );
 
   await fn(persistence, platform, queue);
