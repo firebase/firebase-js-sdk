@@ -37,6 +37,8 @@ export abstract class MaybeDocument {
   static compareByKey(d1: MaybeDocument, d2: MaybeDocument): number {
     return DocumentKey.comparator(d1.key, d2.key);
   }
+
+  abstract isEqual(other: MaybeDocument | null | undefined): boolean;
 }
 
 /**
@@ -71,7 +73,7 @@ export class Document extends MaybeDocument {
     return this.data.value();
   }
 
-  isEqual(other: Document | null | undefined): boolean {
+  isEqual(other: MaybeDocument | null | undefined): boolean {
     return (
       other instanceof Document &&
       this.key.isEqual(other.key) &&
@@ -115,9 +117,31 @@ export class NoDocument extends MaybeDocument {
     return `NoDocument(${this.key}, ${this.version})`;
   }
 
-  isEqual(other: NoDocument): boolean {
+  isEqual(other: MaybeDocument | null | undefined): boolean {
     return (
-      other &&
+      other instanceof NoDocument &&
+      other.version.isEqual(this.version) &&
+      other.key.isEqual(this.key)
+    );
+  }
+}
+
+/**
+ * A class representing a document whose data is unknown (e.g. a document that
+ * was updated without a known base version).
+ */
+export class UnknownDocument extends MaybeDocument {
+  constructor(key: DocumentKey, version: SnapshotVersion) {
+    super(key, version);
+  }
+
+  toString(): string {
+    return `UnknownDocument(${this.key}, ${this.version})`;
+  }
+
+  isEqual(other: MaybeDocument | null | undefined): boolean {
+    return (
+      other instanceof UnknownDocument &&
       other.version.isEqual(this.version) &&
       other.key.isEqual(this.key)
     );

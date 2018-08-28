@@ -426,6 +426,14 @@ export class DbNoDocument {
 }
 
 /**
+ * Represents a document that is know to exist but whose data is unknwon.
+ * Stored in IndexedDb as part of a DbRemoteDocument object.
+ */
+export class DbUnknownDocument {
+  constructor(public path: string[], public readTime: DbTimestamp) {}
+}
+
+/**
  * An object to be stored in the 'remoteDocuments' store in IndexedDb. It
  * represents either a cached document (if it exists) or a cached "no-document"
  * (if it is known to not exist).
@@ -437,6 +445,12 @@ export class DbRemoteDocument {
   static store = 'remoteDocuments';
 
   constructor(
+    /**
+     * Set to an instance of DbUnknownDocument if the data for a document is
+     * not known, but yet we no the document exist (e.g. it had a successful
+     * update applied to it)
+     */
+    public unknownDocument: DbUnknownDocument | null,
     /**
      * Set to an instance of a DbNoDocument if it is known that no document
      * exists.

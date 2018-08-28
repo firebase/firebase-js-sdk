@@ -38,6 +38,7 @@ import {
   patchMutation,
   setMutation,
   transformMutation,
+  unknownDoc,
   version,
   wrap,
   wrapObject
@@ -467,8 +468,6 @@ describe('Mutation', () => {
   }
 
   it('transitions versions correctly', () => {
-    const deletedV0 = deletedDoc('collection/key', 0);
-
     const docV3 = doc('collection/key', 3, {});
     const deletedV3 = deletedDoc('collection/key', 3);
 
@@ -482,6 +481,8 @@ describe('Mutation', () => {
       /*transformResults=*/ null
     );
     const transformResult = new MutationResult(version(7), []);
+    const docV7Unknown = unknownDoc('collection/key', 7);
+    const docV7Deleted = deletedDoc('collection/key', 7);
     const docV7Committed = doc(
       'collection/key',
       7,
@@ -494,15 +495,20 @@ describe('Mutation', () => {
     assertVersionTransitions(set, null, mutationResult, docV7Committed);
 
     assertVersionTransitions(patch, docV3, mutationResult, docV7Committed);
-    assertVersionTransitions(patch, deletedV3, mutationResult, deletedV3);
-    assertVersionTransitions(patch, null, mutationResult, null);
+    assertVersionTransitions(patch, deletedV3, mutationResult, docV7Unknown);
+    assertVersionTransitions(patch, null, mutationResult, docV7Unknown);
 
     assertVersionTransitions(transform, docV3, transformResult, docV7Committed);
-    assertVersionTransitions(transform, deletedV3, transformResult, deletedV3);
-    assertVersionTransitions(transform, null, transformResult, null);
+    assertVersionTransitions(
+      transform,
+      deletedV3,
+      transformResult,
+      docV7Unknown
+    );
+    assertVersionTransitions(transform, null, transformResult, docV7Unknown);
 
-    assertVersionTransitions(deleter, docV3, mutationResult, deletedV0);
-    assertVersionTransitions(deleter, deletedV3, mutationResult, deletedV0);
-    assertVersionTransitions(deleter, null, mutationResult, deletedV0);
+    assertVersionTransitions(deleter, docV3, mutationResult, docV7Deleted);
+    assertVersionTransitions(deleter, deletedV3, mutationResult, docV7Deleted);
+    assertVersionTransitions(deleter, null, mutationResult, docV7Deleted);
   });
 });

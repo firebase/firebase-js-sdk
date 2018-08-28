@@ -18,7 +18,12 @@ import * as api from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import {
+  Document,
+  MaybeDocument,
+  NoDocument,
+  UnknownDocument
+} from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { JsonProtoSerializer } from '../remote/serializer';
@@ -30,7 +35,8 @@ import {
   DbQuery,
   DbRemoteDocument,
   DbTarget,
-  DbTimestamp
+  DbTimestamp,
+  DbUnknownDocument
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
@@ -51,6 +57,10 @@ export class LocalSerializer {
       const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
       const version = this.fromDbTimestamp(remoteDoc.noDocument.readTime);
       return new NoDocument(key, version);
+    } else if (remoteDoc.unknownDocument) {
+      const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
+      const version = this.fromDbTimestamp(remoteDoc.unknownDocument.readTime);
+      return new UnknownDocument(key, version);
     } else {
       return fail('Unexpected DbRemoteDocument');
     }
@@ -61,11 +71,27 @@ export class LocalSerializer {
     if (maybeDoc instanceof Document) {
       const doc = this.remoteSerializer.toDocument(maybeDoc);
       const hasCommittedMutations = maybeDoc.hasCommittedMutations;
-      return new DbRemoteDocument(null, doc, hasCommittedMutations);
-    } else {
+      return new DbRemoteDocument(null, null, doc, hasCommittedMutations);
+    } else if (maybeDoc instanceof NoDocument) {
       const path = maybeDoc.key.path.toArray();
       const readTime = this.toDbTimestamp(maybeDoc.version);
-      return new DbRemoteDocument(new DbNoDocument(path, readTime), null);
+      return new DbRemoteDocument(
+        null,
+        new DbNoDocument(path, readTime),
+        null,
+        /* hasCommittedMutations= */ false
+      );
+    } else if (maybeDoc instanceof UnknownDocument) {
+      const path = maybeDoc.key.path.toArray();
+      const readTime = this.toDbTimestamp(maybeDoc.version);
+      return new DbRemoteDocument(
+        new DbUnknownDocument(path, readTime),
+        null,
+        null,
+        /* hasCommittedMutations= */ false
+      );
+    } else {
+      return fail('Unexpected MaybeDocumment');
     }
   }
 

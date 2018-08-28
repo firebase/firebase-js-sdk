@@ -19,7 +19,12 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { assert } from '../util/assert';
 import * as misc from '../util/misc';
 
-import { Document, MaybeDocument, NoDocument } from './document';
+import {
+  Document,
+  MaybeDocument,
+  NoDocument,
+  UnknownDocument
+} from './document';
 import { DocumentKey } from './document_key';
 import { FieldValue, ObjectValue } from './field_value';
 import { FieldPath } from './path';
@@ -221,7 +226,7 @@ export abstract class Mutation {
   abstract applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
     mutationResult: MutationResult
-  ): MaybeDocument | null;
+  ): MaybeDocument;
 
   /**
    * Applies this mutation to the given MaybeDocument or null for the purposes
@@ -290,7 +295,7 @@ export class SetMutation extends Mutation {
   applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
     mutationResult: MutationResult
-  ): MaybeDocument | null {
+  ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
     assert(
@@ -363,13 +368,15 @@ export class PatchMutation extends Mutation {
   applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
     mutationResult: MutationResult
-  ): MaybeDocument | null {
+  ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
     assert(
       mutationResult.transformResults == null,
       'Transform results received by PatchMutation.'
     );
+
+    const version = mutationResult.version;
 
     // TODO(mcg): Relax enforcement of this precondition
     //
@@ -378,10 +385,9 @@ export class PatchMutation extends Mutation {
     // patch, so we use the precondition to prevent incorrectly putting a
     // partial document into our cache.
     if (!this.precondition.isValidFor(maybeDoc)) {
-      return maybeDoc;
+      return new UnknownDocument(this.key, version);
     }
 
-    const version = mutationResult.version;
     const newData = this.patchDocument(maybeDoc);
     return new Document(this.key, version, newData, {
       hasCommittedMutations: true
@@ -470,7 +476,7 @@ export class TransformMutation extends Mutation {
   applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
     mutationResult: MutationResult
-  ): MaybeDocument | null {
+  ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
     assert(
@@ -485,7 +491,7 @@ export class TransformMutation extends Mutation {
     // patch, so we use the precondition to prevent incorrectly putting a
     // partial document into our cache.
     if (!this.precondition.isValidFor(maybeDoc)) {
-      return maybeDoc;
+      return new UnknownDocument(this.key, mutationResult.version);
     }
 
     const doc = this.requireDocument(maybeDoc);
@@ -646,7 +652,7 @@ export class DeleteMutation extends Mutation {
   applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
     mutationResult: MutationResult
-  ): MaybeDocument | null {
+  ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
     assert(
@@ -658,7 +664,7 @@ export class DeleteMutation extends Mutation {
     // document the server has accepted the mutation so the precondition must
     // have held.
 
-    return new NoDocument(this.key, SnapshotVersion.MIN);
+    return new NoDocument(this.key, mutationResult.version);
   }
 
   applyToLocalView(
