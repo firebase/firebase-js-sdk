@@ -1054,9 +1054,47 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query, { added: [docC] })
         .client(0)
         .runTimer(TimerId.ClientMetadataRefresh)
+        // Client 0 recovers from its lease loss and applies the updates from
+        // client 1
         .expectPrimaryState(false)
         .expectEvents(query, { added: [docB, docC] })
     );
+  });
+
+  specTest('Query bounces between primaries', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'b' });
+    const docC = doc('collection/c', 3000, { key: 'c' });
+
+    // Client 0 listens to a query. Client 1 is the primary when the query is
+    // first listened to, then the query switches to client 0 and back to client
+    // 1.
+    return client(1)
+      .expectPrimaryState(true)
+      .client(0)
+      .userListens(query)
+      .client(1)
+      .expectListen(query)
+      .watchAcksFull(query, 1000, docA)
+      .client(0)
+      .expectEvents(query, { added: [docA] })
+      .client(2)
+      .stealPrimaryLease()
+      .expectListen(query, 'resume-token-1000')
+      .client(1)
+      .runTimer(TimerId.ClientMetadataRefresh)
+      .expectPrimaryState(false)
+      .client(2)
+      .watchAcksFull(query, 2000, docB)
+      .client(0)
+      .expectEvents(query, { added: [docB] })
+      .client(1)
+      .stealPrimaryLease()
+      .expectListen(query, 'resume-token-2000')
+      .watchAcksFull(query, 2000, docC)
+      .client(0)
+      .expectEvents(query, { added: [docC] });
   });
 
   specTest(
