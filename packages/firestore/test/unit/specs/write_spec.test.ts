@@ -882,40 +882,6 @@ describeSpec('Writes:', [], () => {
         .expectEvents(query, {
           metadata: [docA]
         })
-    );
-  });
-
-  specTest('Writes are held during primary failover', ['multi-client'], () => {
-    const query1 = Query.atPath(path('collection'));
-    const query2 = Query.atPath(path('collection/doc'));
-    const docV1 = doc(
-      'collection/doc',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
-    const docV1Committed = doc(
-      'collection/doc',
-      2000,
-      { v: 1 },
-      { hasCommittedMutations: true }
-    );
-    const docV1Acknowledged = doc('collection/doc', 2000, { v: 1 });
-    return (
-      client(0)
-        .userListens(query1)
-        .userSets('collection/doc', { v: 1 })
-        .expectEvents(query1, {
-          hasPendingWrites: true,
-          added: [docV1],
-          fromCache: true
-        })
-        .watchAcksFull(query1, 1000)
-        .expectEvents(query1, {
-          hasPendingWrites: true
-        })
-        .writeAcks('collection/doc', 2000)
-        // Start a new client. DocV1 still has pending writes.
         .client(1)
         .expectUserCallbacks({
           acknowledged: ['collection/a']

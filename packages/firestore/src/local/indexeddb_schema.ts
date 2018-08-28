@@ -450,7 +450,7 @@ export class DbRemoteDocument {
      * not known, but yet we no the document exist (e.g. it had a successful
      * update applied to it)
      */
-    public unknownDocument: DbUnknownDocument | null,
+    public unknownDocument: DbUnknownDocument | null | undefined,
     /**
      * Set to an instance of a DbNoDocument if it is known that no document
      * exists.
@@ -467,7 +467,7 @@ export class DbRemoteDocument {
      * documents are potentially inconsistent with the document's version on
      * the backend.
      */
-    public hasCommittedMutations?: boolean
+    public hasCommittedMutations: boolean | undefined
   ) {}
 }
 

@@ -499,6 +499,7 @@ export class TransformMutation extends Mutation {
       maybeDoc,
       mutationResult.transformResults!
     );
+
     const version = mutationResult.version;
     const newData = this.transformObject(doc.data, transformResults);
     return new Document(this.key, version, newData, {

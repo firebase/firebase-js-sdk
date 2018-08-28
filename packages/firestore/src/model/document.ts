@@ -38,6 +38,8 @@ export abstract class MaybeDocument {
     return DocumentKey.comparator(d1.key, d2.key);
   }
 
+  abstract hasPendingWrites(): boolean;
+
   abstract isEqual(other: MaybeDocument | null | undefined): boolean;
 }
 
@@ -92,6 +94,10 @@ export class Document extends MaybeDocument {
     );
   }
 
+  hasPendingWrites(): boolean {
+    return this.hasLocalMutations || this.hasCommittedMutations;
+  }
+
   static compareByField(field: FieldPath, d1: Document, d2: Document): number {
     const v1 = d1.field(field);
     const v2 = d2.field(field);
@@ -117,6 +123,10 @@ export class NoDocument extends MaybeDocument {
     return `NoDocument(${this.key}, ${this.version})`;
   }
 
+  hasPendingWrites(): boolean {
+    return false;
+  }
+
   isEqual(other: MaybeDocument | null | undefined): boolean {
     return (
       other instanceof NoDocument &&
@@ -137,6 +147,10 @@ export class UnknownDocument extends MaybeDocument {
 
   toString(): string {
     return `UnknownDocument(${this.key}, ${this.version})`;
+  }
+
+  hasPendingWrites(): boolean {
+    return true;
   }
 
   isEqual(other: MaybeDocument | null | undefined): boolean {
