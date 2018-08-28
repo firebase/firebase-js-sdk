@@ -811,7 +811,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     await Promise.all(queriesProcessed);
     this.syncEngineListener!.onWatchChange(newSnaps);
     this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-    // TODO(multitab): Multitab garbage collection
     if (this.isPrimary) {
       await this.localStore
         .collectGarbage()
