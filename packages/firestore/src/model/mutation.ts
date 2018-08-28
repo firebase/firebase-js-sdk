@@ -376,8 +376,6 @@ export class PatchMutation extends Mutation {
       'Transform results received by PatchMutation.'
     );
 
-    const version = mutationResult.version;
-
     // TODO(mcg): Relax enforcement of this precondition
     //
     // We shouldn't actually enforce the precondition since it already passed on
@@ -385,11 +383,11 @@ export class PatchMutation extends Mutation {
     // patch, so we use the precondition to prevent incorrectly putting a
     // partial document into our cache.
     if (!this.precondition.isValidFor(maybeDoc)) {
-      return new UnknownDocument(this.key, version);
+      return new UnknownDocument(this.key, mutationResult.version);
     }
 
     const newData = this.patchDocument(maybeDoc);
-    return new Document(this.key, version, newData, {
+    return new Document(this.key, mutationResult.version, newData, {
       hasCommittedMutations: true
     });
   }

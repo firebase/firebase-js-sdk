@@ -447,8 +447,8 @@ export class DbRemoteDocument {
   constructor(
     /**
      * Set to an instance of DbUnknownDocument if the data for a document is
-     * not known, but yet we no the document exist (e.g. it had a successful
-     * update applied to it)
+     * not known, but it is known that a document exist at the specified version
+     * (e.g. it had a successful update applied to it)
      */
     public unknownDocument: DbUnknownDocument | null | undefined,
     /**

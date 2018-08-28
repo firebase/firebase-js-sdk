@@ -82,7 +82,7 @@ describeSpec('Listens:', [], () => {
 
   specTest("Doesn't include unknown documents in cached result", [], () => {
     const query1 = Query.atPath(path('collection'));
-    const docA = doc(
+    const existingDoc = doc(
       'collection/exists',
       0,
       { key: 'a' },
@@ -93,7 +93,7 @@ describeSpec('Listens:', [], () => {
       .userPatches('collection/unknown', { key: 'b' })
       .userListens(query1)
       .expectEvents(query1, {
-        added: [docA],
+        added: [existingDoc],
         fromCache: true,
         hasPendingWrites: true
       });
@@ -378,13 +378,12 @@ describeSpec('Listens:', [], () => {
 
     return (
       spec()
-        // Disable GC so the cache persists across listens.
-        .withGCEnabled(false)
         .userListens(query1)
         .watchAcksFull(query1, 1000, docAv1)
         .expectEvents(query1, { added: [docAv1] })
         .userDeletes('collection/a')
         .expectEvents(query1, { removed: [docAv1] })
+        // We have a unacknowledged delete and ignore the Watch update.
         .watchSends({ affects: [query1] }, docAv2)
         .watchSnapshots(2000)
         // The write stream acks our delete at version 4000.

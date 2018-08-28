@@ -71,14 +71,14 @@ export class LocalSerializer {
     if (maybeDoc instanceof Document) {
       const doc = this.remoteSerializer.toDocument(maybeDoc);
       const hasCommittedMutations = maybeDoc.hasCommittedMutations;
-      return new DbRemoteDocument(null, null, doc, hasCommittedMutations);
+      return new DbRemoteDocument(/* unknownDocument= */null, /* noDocument= */null, doc, hasCommittedMutations);
     } else if (maybeDoc instanceof NoDocument) {
       const path = maybeDoc.key.path.toArray();
       const readTime = this.toDbTimestamp(maybeDoc.version);
       return new DbRemoteDocument(
-        null,
+        /* unknownDocument= */null,
         new DbNoDocument(path, readTime),
-        null,
+          /* document= */null,
         /* hasCommittedMutations= */ false
       );
     } else if (maybeDoc instanceof UnknownDocument) {
@@ -86,8 +86,8 @@ export class LocalSerializer {
       const readTime = this.toDbTimestamp(maybeDoc.version);
       return new DbRemoteDocument(
         new DbUnknownDocument(path, readTime),
-        null,
-        null,
+          /* noDocument= */null,
+          /* document= */null,
         /* hasCommittedMutations= */ false
       );
     } else {

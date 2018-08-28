@@ -38,6 +38,10 @@ export abstract class MaybeDocument {
     return DocumentKey.comparator(d1.key, d2.key);
   }
 
+  /**
+   * Whether this document had a local mutation applied that has not yet been
+   * acknowledged by Watch.
+   */
   abstract hasPendingWrites(): boolean;
 
   abstract isEqual(other: MaybeDocument | null | undefined): boolean;
@@ -137,8 +141,8 @@ export class NoDocument extends MaybeDocument {
 }
 
 /**
- * A class representing a document whose data is unknown (e.g. a document that
- * was updated without a known base version).
+ * A class representing an existing document whose data is unknown (e.g. a
+ * document that was updated without a known base document).
  */
 export class UnknownDocument extends MaybeDocument {
   constructor(key: DocumentKey, version: SnapshotVersion) {
