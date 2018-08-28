@@ -25,7 +25,7 @@ import {
   DocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
-import { MaybeDocument, UnknownDocument } from '../model/document';
+import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import {
@@ -50,7 +50,6 @@ import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId, SharedClientState } from './shared_client_state';
-import { Document } from '../model/document';
 
 const LOG_TAG = 'LocalStore';
 
