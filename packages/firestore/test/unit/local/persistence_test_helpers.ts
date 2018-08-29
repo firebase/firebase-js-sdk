@@ -46,10 +46,8 @@ import { LocalSerializer } from '../../../src/local/local_serializer';
 const LOCAL_STORAGE_PREFIX = 'firestore_';
 
 export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
-  setSequenceNumberListener: (
-    cb: (sequenceNumber: ListenSequenceNumber) => void
-  ) => void {},
-  writeSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}
+  sequenceNumberHandler: null,
+  updateSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}
 };
 
 /** The Database ID used by most tests that access IndexedDb. */

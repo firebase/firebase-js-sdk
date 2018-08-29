@@ -18,15 +18,13 @@ import { expect } from 'chai';
 import { ListenSequence } from '../../../src/core/listen_sequence';
 import { ListenSequenceNumber } from '../../../src/core/types';
 
-type SequenceNumberCallback = (sequenceNumber: ListenSequenceNumber) => void;
-
 describe('ListenSequence', () => {
   it('writes the new sequence number to the syncer', () => {
     const writtenNumbers: ListenSequenceNumber[] = [];
     const producedNumbers: ListenSequenceNumber[] = [];
     const syncParams = {
-      setSequenceNumberListener: (cb: SequenceNumberCallback) => void {},
-      writeSequenceNumber: (sequenceNumber: ListenSequenceNumber): void => {
+      sequenceNumberHandler: null,
+      updateSequenceNumber: (sequenceNumber: ListenSequenceNumber): void => {
         writtenNumbers.push(sequenceNumber);
       }
     };
@@ -38,18 +36,15 @@ describe('ListenSequence', () => {
   });
 
   it('bumps the next value based on notifications from the syncer', () => {
-    let remoteSequenceNumber: SequenceNumberCallback;
     const syncParams = {
-      setSequenceNumberListener: (cb: SequenceNumberCallback): void => {
-        remoteSequenceNumber = cb;
-      },
-      writeSequenceNumber: (sequenceNumber: ListenSequenceNumber): void => {}
+      sequenceNumberHandler: null as ((sequenceNumber: ListenSequenceNumber) => void) | null,
+      updateSequenceNumber: (sequenceNumber: ListenSequenceNumber): void => {}
     };
     const listenSequence = new ListenSequence(0, syncParams);
-    remoteSequenceNumber!(5);
+    syncParams.sequenceNumberHandler!(5);
     expect(listenSequence.next()).to.equal(6);
     expect(listenSequence.next()).to.equal(7);
-    remoteSequenceNumber!(18);
+    syncParams.sequenceNumberHandler!(18);
     expect(listenSequence.next()).to.equal(19);
   });
 });

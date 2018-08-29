@@ -20,10 +20,8 @@ import { ListenSequenceNumber } from './types';
  * `SequenceNumberSyncer` defines the methods required to keep multiple instances of a `ListenSequence` in sync.
  */
 export interface SequenceNumberSyncer {
-  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
-  setSequenceNumberListener(
-    cb: (sequenceNumber: ListenSequenceNumber) => void
-  ): void;
+  updateSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
+  sequenceNumberHandler: ((sequenceNumber: ListenSequenceNumber) => void) | null;
 }
 
 /**
@@ -44,11 +42,9 @@ export class ListenSequence {
     sequenceNumberSyncer?: SequenceNumberSyncer
   ) {
     if (sequenceNumberSyncer) {
-      sequenceNumberSyncer.setSequenceNumberListener(sequenceNumber =>
-        this.setPreviousValue(sequenceNumber)
-      );
+      sequenceNumberSyncer.sequenceNumberHandler = sequenceNumber => this.setPreviousValue(sequenceNumber);
       this.writeNewSequenceNumber = sequenceNumber =>
-        sequenceNumberSyncer.writeSequenceNumber(sequenceNumber);
+        sequenceNumberSyncer.updateSequenceNumber(sequenceNumber);
     }
   }
 

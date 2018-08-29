@@ -84,6 +84,7 @@ export type ClientId = string;
 export interface SharedClientState {
   syncEngine: SharedClientStateSyncer | null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null;
+  sequenceNumberHandler: ((sequenceNumber: ListenSequenceNumber) => void) | null;
 
   /** Registers the Mutation Batch ID of a newly pending mutation. */
   addPendingMutation(batchId: BatchId): void;
@@ -173,10 +174,7 @@ export interface SharedClientState {
   /** Changes the shared online state of all clients. */
   setOnlineState(onlineState: OnlineState): void;
 
-  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
-  setSequenceNumberListener(
-    cb: (sequenceNumber: ListenSequenceNumber) => void
-  ): void;
+  updateSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
 }
 
 /**
@@ -515,6 +513,7 @@ export class LocalClientState implements ClientState {
 export class WebStorageSharedClientState implements SharedClientState {
   syncEngine: SharedClientStateSyncer | null = null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
+  sequenceNumberHandler: ((sequenceNumber: ListenSequenceNumber) => void) | null = null;
 
   private readonly storage: Storage;
   private readonly localClientStorageKey: string;
@@ -525,9 +524,6 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly queryTargetKeyRe: RegExp;
   private started = false;
   private currentUser: User;
-  private sequenceNumberListener?: (
-    sequenceNumber: ListenSequenceNumber
-  ) => void;
 
   /**
    * Captures WebStorage events that occur before `start()` is called. These
@@ -645,13 +641,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.started = true;
   }
 
-  setSequenceNumberListener(
-    cb: (sequenceNumber: ListenSequenceNumber) => void
-  ): void {
-    this.sequenceNumberListener = cb;
-  }
-
-  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {
+  updateSequenceNumber(sequenceNumber: ListenSequenceNumber): void {
     this.setItem(SEQUENCE_NUMBER_KEY, JSON.stringify(sequenceNumber));
   }
 
@@ -853,12 +843,12 @@ export class WebStorageSharedClientState implements SharedClientState {
             }
           }
         } else if (event.key === SEQUENCE_NUMBER_KEY) {
-          if (this.sequenceNumberListener) {
+          if (this.sequenceNumberHandler) {
             const sequenceNumber = fromLocalStorageSequenceNumber(
               event.newValue
             );
             if (sequenceNumber !== ListenSequence.INVALID) {
-              this.sequenceNumberListener(sequenceNumber);
+              this.sequenceNumberHandler(sequenceNumber);
             }
           }
         }
@@ -1110,6 +1100,7 @@ export class MemorySharedClientState implements SharedClientState {
 
   syncEngine: SharedClientStateSyncer | null = null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
+  sequenceNumberHandler: ((sequenceNumber: ListenSequenceNumber) => void) | null = null;
 
   addPendingMutation(batchId: BatchId): void {
     // No op.
@@ -1175,8 +1166,5 @@ export class MemorySharedClientState implements SharedClientState {
 
   shutdown(): void {}
 
-  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
-  setSequenceNumberListener(
-    cb: (sequenceNumber: ListenSequenceNumber) => void
-  ): void {}
+  updateSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
 }

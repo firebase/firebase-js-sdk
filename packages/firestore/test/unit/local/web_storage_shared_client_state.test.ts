@@ -844,15 +844,13 @@ describe('WebStorageSharedClientState', () => {
     }
 
     it('writes out new sequence numbers', () => {
-      sharedClientState.writeSequenceNumber(1);
+      sharedClientState.updateSequenceNumber(1);
       assertSequenceNumber(1);
     });
 
     it('notifies on new sequence numbers', async () => {
       const sequenceNumbers: ListenSequenceNumber[] = [];
-      sharedClientState.setSequenceNumberListener(sequenceNumber => {
-        sequenceNumbers.push(sequenceNumber);
-      });
+      sharedClientState.sequenceNumberHandler = sequenceNumber => sequenceNumbers.push(sequenceNumber);
       writeToLocalStorage(sequenceNumberKey(), '1');
       await queue.drain();
       expect(sequenceNumbers).to.deep.equal([1]);
