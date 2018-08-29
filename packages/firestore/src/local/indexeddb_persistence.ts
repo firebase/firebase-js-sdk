@@ -241,7 +241,10 @@ export class IndexedDbPersistence implements Persistence {
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
     );
     this.webStorage = this.window.localStorage;
-    assert(!!this.webStorage, 'Operating without LocalStorage is not supported.');
+    assert(
+      !!this.webStorage,
+      'Operating without LocalStorage is not supported.'
+    );
   }
 
   /**
@@ -918,9 +921,8 @@ export class IndexedDbPersistence implements Persistence {
   private isClientZombied(clientId: ClientId): boolean {
     try {
       const isZombied =
-        this.webStorage.getItem(
-          this.zombiedClientLocalStorageKey(clientId)
-        ) !== null;
+        this.webStorage.getItem(this.zombiedClientLocalStorageKey(clientId)) !==
+        null;
       log.debug(
         LOG_TAG,
         `Client '${clientId}' ${
