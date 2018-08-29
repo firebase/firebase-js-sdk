@@ -854,7 +854,7 @@ export class WebStorageSharedClientState implements SharedClientState {
           }
         } else if (event.key === SEQUENCE_NUMBER_KEY) {
           if (this.sequenceNumberListener) {
-            const sequenceNumber = parseSequenceNumber(event.newValue);
+            const sequenceNumber = fromLocalStorageSequenceNumber(event.newValue);
             if (sequenceNumber !== ListenSequence.INVALID) {
               this.sequenceNumberListener(sequenceNumber);
             }
@@ -1081,12 +1081,11 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 }
 
-//
-function parseSequenceNumber(seqString: string | null): ListenSequenceNumber {
+function fromLocalStorageSequenceNumber(seqString: string | null): ListenSequenceNumber {
   let sequenceNumber = ListenSequence.INVALID;
   if (seqString != null) {
     try {
-      const parsed = JSON.parse(seqString) as ListenSequenceNumber;
+      const parsed = JSON.parse(seqString);
       assert(typeof parsed === 'number', 'Found non-numeric sequence number');
       sequenceNumber = parsed;
     } catch (e) {
