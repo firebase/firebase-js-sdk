@@ -21,7 +21,7 @@ import { ListenSequenceNumber } from '../../../src/core/types';
 type SequenceNumberCallback = (sequenceNumber: ListenSequenceNumber) => void;
 
 describe('ListenSequence', () => {
-  it('writes the new sequence number to local storage', () => {
+  it('writes the new sequence number to the syncer', () => {
     const writtenNumbers: ListenSequenceNumber[] = [];
     const producedNumbers: ListenSequenceNumber[] = [];
     const syncParams = {
@@ -37,7 +37,7 @@ describe('ListenSequence', () => {
     expect(writtenNumbers).to.deep.equal(producedNumbers);
   });
 
-  it('bumps the next value based on local storage writes', () => {
+  it('bumps the next value based on notifications from the syncer', () => {
     let remoteSequenceNumber: SequenceNumberCallback;
     const syncParams = {
       setSequenceNumberListener: (cb: SequenceNumberCallback): void => {
