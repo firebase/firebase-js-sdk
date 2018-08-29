@@ -854,7 +854,9 @@ export class WebStorageSharedClientState implements SharedClientState {
           }
         } else if (event.key === SEQUENCE_NUMBER_KEY) {
           if (this.sequenceNumberListener) {
-            const sequenceNumber = fromLocalStorageSequenceNumber(event.newValue);
+            const sequenceNumber = fromLocalStorageSequenceNumber(
+              event.newValue
+            );
             if (sequenceNumber !== ListenSequence.INVALID) {
               this.sequenceNumberListener(sequenceNumber);
             }
@@ -1081,7 +1083,9 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 }
 
-function fromLocalStorageSequenceNumber(seqString: string | null): ListenSequenceNumber {
+function fromLocalStorageSequenceNumber(
+  seqString: string | null
+): ListenSequenceNumber {
   let sequenceNumber = ListenSequence.INVALID;
   if (seqString != null) {
     try {
