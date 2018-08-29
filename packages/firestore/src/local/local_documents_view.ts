@@ -27,7 +27,6 @@ import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
-import { fail } from '../util/assert';
 
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
