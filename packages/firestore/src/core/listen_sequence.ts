@@ -41,14 +41,14 @@ export class ListenSequence {
 
   constructor(
     private previousValue: ListenSequenceNumber,
-    syncParams?: SequenceNumberSyncer
+    sequenceNumberSyncer?: SequenceNumberSyncer
   ) {
-    if (syncParams) {
-      syncParams.setSequenceNumberListener(sequenceNumber =>
+    if (sequenceNumberSyncer) {
+      sequenceNumberSyncer.setSequenceNumberListener(sequenceNumber =>
         this.setPreviousValue(sequenceNumber)
       );
       this.writeNewSequenceNumber = sequenceNumber =>
-        syncParams.writeSequenceNumber(sequenceNumber);
+        sequenceNumberSyncer.writeSequenceNumber(sequenceNumber);
     }
   }
 

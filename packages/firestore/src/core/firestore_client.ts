@@ -321,7 +321,7 @@ export class FirestoreClient {
             user
           )
         : new MemorySharedClientState();
-      const persistence: IndexedDbPersistence = new IndexedDbPersistence(
+      this.persistence = new IndexedDbPersistence(
         storagePrefix,
         this.clientId,
         this.platform,
@@ -329,9 +329,7 @@ export class FirestoreClient {
         serializer,
         { sequenceNumberSyncer: this.sharedClientState }
       );
-      this.persistence = persistence;
-
-      return persistence.start();
+      return this.persistence.start();
     });
   }
 
