@@ -21,7 +21,9 @@ import { ListenSequenceNumber } from './types';
  */
 export interface SequenceNumberSyncer {
   updateSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
-  sequenceNumberHandler: ((sequenceNumber: ListenSequenceNumber) => void) | null;
+  sequenceNumberHandler:
+    | ((sequenceNumber: ListenSequenceNumber) => void)
+    | null;
 }
 
 /**
@@ -42,7 +44,8 @@ export class ListenSequence {
     sequenceNumberSyncer?: SequenceNumberSyncer
   ) {
     if (sequenceNumberSyncer) {
-      sequenceNumberSyncer.sequenceNumberHandler = sequenceNumber => this.setPreviousValue(sequenceNumber);
+      sequenceNumberSyncer.sequenceNumberHandler = sequenceNumber =>
+        this.setPreviousValue(sequenceNumber);
       this.writeNewSequenceNumber = sequenceNumber =>
         sequenceNumberSyncer.updateSequenceNumber(sequenceNumber);
     }

@@ -850,7 +850,8 @@ describe('WebStorageSharedClientState', () => {
 
     it('notifies on new sequence numbers', async () => {
       const sequenceNumbers: ListenSequenceNumber[] = [];
-      sharedClientState.sequenceNumberHandler = sequenceNumber => sequenceNumbers.push(sequenceNumber);
+      sharedClientState.sequenceNumberHandler = sequenceNumber =>
+        sequenceNumbers.push(sequenceNumber);
       writeToLocalStorage(sequenceNumberKey(), '1');
       await queue.drain();
       expect(sequenceNumbers).to.deep.equal([1]);

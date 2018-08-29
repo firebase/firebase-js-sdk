@@ -84,7 +84,9 @@ export type ClientId = string;
 export interface SharedClientState {
   syncEngine: SharedClientStateSyncer | null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null;
-  sequenceNumberHandler: ((sequenceNumber: ListenSequenceNumber) => void) | null;
+  sequenceNumberHandler:
+    | ((sequenceNumber: ListenSequenceNumber) => void)
+    | null;
 
   /** Registers the Mutation Batch ID of a newly pending mutation. */
   addPendingMutation(batchId: BatchId): void;
@@ -513,7 +515,9 @@ export class LocalClientState implements ClientState {
 export class WebStorageSharedClientState implements SharedClientState {
   syncEngine: SharedClientStateSyncer | null = null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
-  sequenceNumberHandler: ((sequenceNumber: ListenSequenceNumber) => void) | null = null;
+  sequenceNumberHandler:
+    | ((sequenceNumber: ListenSequenceNumber) => void)
+    | null = null;
 
   private readonly storage: Storage;
   private readonly localClientStorageKey: string;
@@ -1100,7 +1104,9 @@ export class MemorySharedClientState implements SharedClientState {
 
   syncEngine: SharedClientStateSyncer | null = null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
-  sequenceNumberHandler: ((sequenceNumber: ListenSequenceNumber) => void) | null = null;
+  sequenceNumberHandler:
+    | ((sequenceNumber: ListenSequenceNumber) => void)
+    | null = null;
 
   addPendingMutation(batchId: BatchId): void {
     // No op.
