@@ -207,7 +207,7 @@ export class Precondition {
  * have no explicit update time, we use the commitTime of the WriteResponse for
  * Delete mutations.
  *
- * If due to precondition mismatches an acknowledged mutation can't be applied
+ * If a mutation is acknowledged by the backend but fails the precondition check
  * locally, we return an `UnknownDocument` and rely on Watch to send us the
  * updated version.
  *
