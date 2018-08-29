@@ -213,7 +213,7 @@ export class IndexedDbPersistence implements Persistence {
 
   private queryCache: IndexedDbQueryCache;
   private remoteDocumentCache: IndexedDbRemoteDocumentCache;
-  private webStorage?: Storage;
+  private readonly webStorage: Storage;
   private listenSequence: ListenSequence;
 
   constructor(
@@ -241,12 +241,7 @@ export class IndexedDbPersistence implements Persistence {
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
     );
     this.webStorage = this.window.localStorage;
-    if (!this.webStorage) {
-      assert(
-        process.env.USE_MOCK_PERSISTENCE === 'YES',
-        'Operating without LocalStorage is only supported with IndexedDbShim.'
-      );
-    }
+    assert(!!this.webStorage, 'Operating without LocalStorage is not supported.');
   }
 
   /**
@@ -921,25 +916,21 @@ export class IndexedDbPersistence implements Persistence {
    * cleanup logic in `shutdown()`.
    */
   private isClientZombied(clientId: ClientId): boolean {
-    if (this.webStorage) {
-      try {
-        const isZombied =
-          this.webStorage.getItem(
-            this.zombiedClientLocalStorageKey(clientId)
-          ) !== null;
-        log.debug(
-          LOG_TAG,
-          `Client '${clientId}' ${
-            isZombied ? 'is' : 'is not'
-          } zombied in LocalStorage`
-        );
-        return isZombied;
-      } catch (e) {
-        // Gracefully handle if LocalStorage isn't working.
-        log.error(LOG_TAG, 'Failed to get zombied client id.', e);
-        return false;
-      }
-    } else {
+    try {
+      const isZombied =
+        this.webStorage.getItem(
+          this.zombiedClientLocalStorageKey(clientId)
+        ) !== null;
+      log.debug(
+        LOG_TAG,
+        `Client '${clientId}' ${
+          isZombied ? 'is' : 'is not'
+        } zombied in LocalStorage`
+      );
+      return isZombied;
+    } catch (e) {
+      // Gracefully handle if LocalStorage isn't working.
+      log.error(LOG_TAG, 'Failed to get zombied client id.', e);
       return false;
     }
   }
@@ -949,29 +940,25 @@ export class IndexedDbPersistence implements Persistence {
    * clients are ignored during primary tab selection.
    */
   private markClientZombied(): void {
-    if (this.webStorage) {
-      try {
-        this.webStorage.setItem(
-          this.zombiedClientLocalStorageKey(this.clientId),
-          String(Date.now())
-        );
-      } catch (e) {
-        // Gracefully handle if LocalStorage isn't available / working.
-        log.error('Failed to set zombie client id.', e);
-      }
+    try {
+      this.webStorage.setItem(
+        this.zombiedClientLocalStorageKey(this.clientId),
+        String(Date.now())
+      );
+    } catch (e) {
+      // Gracefully handle if LocalStorage isn't available / working.
+      log.error('Failed to set zombie client id.', e);
     }
   }
 
   /** Removes the zombied client entry if it exists. */
   private removeClientZombiedEntry(): void {
-    if (this.webStorage) {
-      try {
-        this.webStorage.removeItem(
-          this.zombiedClientLocalStorageKey(this.clientId)
-        );
-      } catch (e) {
-        // Ignore
-      }
+    try {
+      this.webStorage.removeItem(
+        this.zombiedClientLocalStorageKey(this.clientId)
+      );
+    } catch (e) {
+      // Ignore
     }
   }
 
