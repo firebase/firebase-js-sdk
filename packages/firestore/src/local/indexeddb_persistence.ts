@@ -211,6 +211,9 @@ export class IndexedDbPersistence implements Persistence {
   private readonly webStorage: Storage;
   private listenSequence: ListenSequence;
 
+  // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
+  // is still experimental. When multi-client is switched to always on, `multiClientParams` will
+  // no longer be optional.
   constructor(
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
