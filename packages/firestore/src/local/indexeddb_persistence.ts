@@ -185,11 +185,6 @@ export class IndexedDbPersistence implements Persistence {
   private networkEnabled = true;
   private dbName: string;
 
-  /**
-   * Set to an Error object if we encounter an unrecoverable error. All further
-   * transactions will be failed with this error.
-   */
-  private persistenceError: Error | null;
   /** Our window.unload handler, if registered. */
   private windowUnloadHandler: (() => void) | null;
   private inForeground = false;
@@ -226,10 +221,15 @@ export class IndexedDbPersistence implements Persistence {
       sequenceNumberSyncer: SequenceNumberSyncer;
     }
   ) {
+    if (!IndexedDbPersistence.isAvailable()) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        UNSUPPORTED_PLATFORM_ERROR_MSG
+      );
+    }
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
-    this.window = platform.window!;
     if (multiClientParams !== undefined) {
       this.allowTabSynchronization = true;
     } else {
@@ -240,11 +240,15 @@ export class IndexedDbPersistence implements Persistence {
       this.serializer,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
     );
-    this.webStorage = this.window.localStorage;
-    assert(
-      !!this.webStorage,
-      'Operating without LocalStorage is not supported.'
-    );
+    if (!!platform.window && !!platform.window.localStorage) {
+      this.window = platform.window;
+      this.webStorage = this.window.localStorage;
+    } else {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        'IndexedDB persistence is only available on platforms that support LocalStorage.'
+      );
+    }
   }
 
   /**
@@ -253,14 +257,6 @@ export class IndexedDbPersistence implements Persistence {
    * @return {Promise<void>} Whether persistence was enabled.
    */
   start(): Promise<void> {
-    if (!IndexedDbPersistence.isAvailable()) {
-      this.persistenceError = new FirestoreError(
-        Code.UNIMPLEMENTED,
-        UNSUPPORTED_PLATFORM_ERROR_MSG
-      );
-      return Promise.reject(this.persistenceError);
-    }
-
     assert(!this.started, 'IndexedDbPersistence double-started!');
     assert(this.window !== null, "Expected 'window' to be defined");
 
@@ -681,10 +677,6 @@ export class IndexedDbPersistence implements Persistence {
   ): Promise<T> {
     // TODO(multitab): Consider removing `requirePrimaryLease` and exposing
     // three different write modes (readonly, readwrite, readwrite_primary).
-    if (this.persistenceError) {
-      return Promise.reject(this.persistenceError);
-    }
-
     log.debug(LOG_TAG, 'Starting transaction:', action);
 
     // Do all transactions as readwrite against all object stores, since we
