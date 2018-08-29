@@ -482,18 +482,18 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batch: MutationBatch
   ): PersistencePromise<void> {
-    const { done, removedDocuments } = removeMutationBatch(
+    return removeMutationBatch(
       (transaction as IndexedDbTransaction).simpleDbTransaction,
       this.userId,
       batch
-    );
-    this.removeCachedMutationKeys(batch.batchId);
-    if (this.garbageCollector !== null) {
-      for (const key of removedDocuments) {
-        this.garbageCollector.addPotentialGarbageKey(key);
+    ).next(removedDocuments => {
+      this.removeCachedMutationKeys(batch.batchId);
+      if (this.garbageCollector !== null) {
+        for (const key of removedDocuments) {
+          this.garbageCollector.addPotentialGarbageKey(key);
+        }
       }
-    }
-    return done;
+    });
   }
 
   removeCachedMutationKeys(batchId: BatchId): void {
@@ -587,7 +587,7 @@ export function removeMutationBatch(
   txn: SimpleDbTransaction,
   userId: string,
   batch: MutationBatch
-): { removedDocuments: DocumentKey[]; done: PersistencePromise<void> } {
+): PersistencePromise<DocumentKey[]> {
   const mutationStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
     DbMutationBatch.store
   );
@@ -624,10 +624,7 @@ export function removeMutationBatch(
     promises.push(indexTxn.delete(indexKey));
     removedDocuments.push(mutation.key);
   }
-  return {
-    done: PersistencePromise.waitFor(promises),
-    removedDocuments
-  };
+  return PersistencePromise.waitFor(promises).next(() => removedDocuments);
 }
 
 function convertStreamToken(token: ProtoByteString): string {

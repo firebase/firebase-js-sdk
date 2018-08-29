@@ -138,8 +138,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
               );
               const batch = this.serializer.fromDbMutationBatch(dbBatch);
 
-              const { done } = removeMutationBatch(txn, queue.userId, batch);
-              return done;
+              return removeMutationBatch(txn, queue.userId, batch).next();
             });
           });
       });
