@@ -580,8 +580,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
 /**
  * Delete a mutation batch and the associated document mutations.
- * @return done, A PersistencePromise that signals when the deletion has completed, and removedDocuments, the document
- *         mutations that were removed.
+ * @return A PersistencePromise of the document mutations that were removed.
  */
 export function removeMutationBatch(
   txn: SimpleDbTransaction,
