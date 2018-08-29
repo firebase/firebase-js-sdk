@@ -128,6 +128,8 @@ export class NoDocument extends MaybeDocument {
   }
 
   hasPendingWrites(): boolean {
+    // We currently don't raise `hasPendingWrites` for deleted documents, even
+    // if Watch hasn't caught up to the deleted version yet.
     return false;
   }
 

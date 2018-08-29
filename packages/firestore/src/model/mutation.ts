@@ -84,8 +84,14 @@ export class FieldTransform {
 export class MutationResult {
   constructor(
     /**
-     * The version at which the mutation was committed, either extracted from
-     * the mutation's updateTime or from the backend commit time (for deletes).
+     * The version at which the mutation was committed:
+     *
+     * - For most operations, this is the updateTime in the WriteResult.
+     * - For deletes, the commitTime of the WriteResponse (because deletes are
+     *   not stored and have no updateTime).
+     *
+     * Note that these versions can be different: No-op writes will not change
+     * the updateTime even though the commitTime advances.
      */
     readonly version: SnapshotVersion,
     /**
@@ -174,8 +180,10 @@ export class Precondition {
  * create, replace, delete, and update subsets of documents.
  *
  * Mutations not only act on the value of the document but also it version.
- * In the case of Set, Patch, and Transform mutations we preserve the existing
- * version. In the case of Delete mutations, we reset the version to 0.
+ *
+ * For local mutations (mutations that haven't been committed yet), we preserve
+ * the existing version for Set, Patch, and Transform mutations. For Delete
+ * mutations, we reset the version to 0.
  *
  * Here's the expected transition table.
  *
@@ -193,6 +201,15 @@ export class Precondition {
  * DeleteMutation     Document(v3)          NoDocument(v0)
  * DeleteMutation     NoDocument(v3)        NoDocument(v0)
  * DeleteMutation     null                  NoDocument(v0)
+ *
+ * For acknowledged mutations, we use the updateTime of the WriteResponse as
+ * the resulting version for Set, Patch, and Transform mutations. As deletes
+ * have no explicit update time, we use the commitTime of the WriteResponse for
+ * Delete mutations.
+ *
+ * If due to precondition mismatches an acknowledged mutation can't be applied
+ * locally, we return an `UnknownDocument` and rely on Watch to send us the
+ * updated version.
  *
  * Note that TransformMutations don't create Documents (in the case of being
  * applied to a NoDocument), even though they would on the backend. This is
@@ -214,8 +231,9 @@ export abstract class Mutation {
 
   /**
    * Applies this mutation to the given MaybeDocument or null for the purposes
-   * of computing a new remote document. Both the input and returned documents
-   * can be null.
+   * of computing a new remote document. If the input document doesn't match the
+   * expected state (e.g. it is null or outdated), an `UnknownDocument` can be
+   * returned.
    *
    * @param maybeDoc The document to mutate. The input document can be null if
    *     the client has no knowledge of the pre-mutation state of the document.
@@ -376,13 +394,11 @@ export class PatchMutation extends Mutation {
       'Transform results received by PatchMutation.'
     );
 
-    // TODO(mcg): Relax enforcement of this precondition
-    //
-    // We shouldn't actually enforce the precondition since it already passed on
-    // the backend, but we may not have a local version of the document to
-    // patch, so we use the precondition to prevent incorrectly putting a
-    // partial document into our cache.
     if (!this.precondition.isValidFor(maybeDoc)) {
+      // Since the mutation was not rejected, we know that the  precondition
+      // matched on the backend. We therefore must not have the expected version
+      // of the document in our cache and return an UnknownDocument with the
+      // known updateTime.
       return new UnknownDocument(this.key, mutationResult.version);
     }
 
@@ -482,13 +498,11 @@ export class TransformMutation extends Mutation {
       'Transform results missing for TransformMutation.'
     );
 
-    // TODO(mcg): Relax enforcement of this precondition
-    //
-    // We shouldn't actually enforce the precondition since it already passed on
-    // the backend, but we may not have a local version of the document to
-    // patch, so we use the precondition to prevent incorrectly putting a
-    // partial document into our cache.
     if (!this.precondition.isValidFor(maybeDoc)) {
+      // Since the mutation was not rejected, we know that the  precondition
+      // matched on the backend. We therefore must not have the expected version
+      // of the document in our cache and return an UnknownDocument with the
+      // known updateTime.
       return new UnknownDocument(this.key, mutationResult.version);
     }
 
