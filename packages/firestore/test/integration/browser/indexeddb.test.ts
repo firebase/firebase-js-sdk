@@ -19,7 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 
 import { isPersistenceAvailable, withTestDb } from '../util/helpers';
 
-describe.only('where persistence is unsupported, enablePersistence', () => {
+describe('where persistence is unsupported, enablePersistence', () => {
   // Only test on platforms where persistence is *not* available (e.g. Edge,
   // Node.JS).
   if (isPersistenceAvailable()) {
