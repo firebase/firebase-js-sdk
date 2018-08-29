@@ -168,12 +168,10 @@ export class LocalDocumentsView {
               baseDoc,
               batch.localWriteTime
             );
-            if (!mutatedDoc || mutatedDoc instanceof NoDocument) {
-              results = results.remove(key);
-            } else if (mutatedDoc instanceof Document) {
+            if (mutatedDoc instanceof Document) {
               results = results.insert(key, mutatedDoc);
             } else {
-              fail('Unknown MaybeDocument: ' + mutatedDoc);
+              results = results.remove(key);
             }
           }
         }
