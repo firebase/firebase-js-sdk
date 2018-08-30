@@ -156,7 +156,7 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * TODO(multitab): Remove `experimentalTabSynchronization` section when
  * multi-tab is no longer optional.
  */
-type MultiClientParams = {
+export type MultiClientParams = {
   sequenceNumberSyncer: SequenceNumberSyncer;
 };
 export class IndexedDbPersistence implements Persistence {
