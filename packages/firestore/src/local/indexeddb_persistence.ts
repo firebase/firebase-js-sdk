@@ -176,6 +176,33 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
+  static async createIndexedDbPersistence(
+    persistenceKey: string,
+    clientId: ClientId,
+    platform: Platform,
+    queue: AsyncQueue,
+    serializer: JsonProtoSerializer
+  ): Promise<IndexedDbPersistence> {
+    const persistence = new IndexedDbPersistence(persistenceKey, clientId, platform, queue, serializer);
+    await persistence.start();
+    return persistence;
+  }
+
+  static async createMultiClientIndexedDbPersistence(
+    persistenceKey: string,
+    clientId: ClientId,
+    platform: Platform,
+    queue: AsyncQueue,
+    serializer: JsonProtoSerializer,
+    multiClientParams: {
+      sequenceNumberSyncer: SequenceNumberSyncer;
+    }
+  ): Promise<IndexedDbPersistence> {
+    const persistence = new IndexedDbPersistence(persistenceKey, clientId, platform, queue, serializer, multiClientParams);
+    await persistence.start();
+    return persistence;
+  }
+
   private readonly document: Document | null;
   private readonly window: Window;
 
@@ -214,7 +241,7 @@ export class IndexedDbPersistence implements Persistence {
   // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
   // is still experimental. When multi-client is switched to always on, `multiClientParams` will
   // no longer be optional.
-  constructor(
+  private constructor(
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
     platform: Platform,
