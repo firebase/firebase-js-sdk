@@ -496,7 +496,7 @@ export class LocalStore {
                 'Ignoring outdated watch update for ',
                 key,
                 '. Current version:',
-                existingDoc!.version,
+                existingDoc.version,
                 ' Watch version:',
                 doc.version
               );

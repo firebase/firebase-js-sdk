@@ -119,7 +119,7 @@ export class Document extends MaybeDocument {
  * denotes time we know it didn't exist at.
  */
 export class NoDocument extends MaybeDocument {
-  private readonly hasCommittedMutations: boolean;
+  readonly hasCommittedMutations: boolean;
 
   constructor(
     key: DocumentKey,

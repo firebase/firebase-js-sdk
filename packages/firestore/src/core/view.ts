@@ -103,8 +103,8 @@ export class View {
    * Computes the initial set of document changes based on the provided
    * documents.
    *
-   * Unlike `computeDocChanges`, documents that already have committed mutation
-   * don't raise `hasPendingWrites`. This distinction allows us  to only raise
+   * Unlike `computeDocChanges`, documents with committed mutations don't raise
+   * `hasPendingWrites`. This distinction allows us to only raise
    * `hasPendingWrite` events for documents that changed during the lifetime of
    * the View.
    *
@@ -294,9 +294,9 @@ export class View {
     };
   }
 
-  private shouldWaitForRemoteVersion(oldDoc, newDoc) {
+  private shouldWaitForRemoteVersion(oldDoc, newDoc) : boolean {
     // We suppress the initial change event for documents that were
-    // modified as part of write acknowledgment (e.g. when the value of
+    // modified as part of a write acknowledgment (e.g. when the value of
     // a server transform is applied) as Watch will send us the same
     // document again.
     // By suppressing the event, we only raise two user visible events
