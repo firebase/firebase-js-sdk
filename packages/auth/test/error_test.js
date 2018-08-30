@@ -250,6 +250,26 @@ function testAuthErrorWithCredential_toPlainObject() {
   assertObjectEquals(
       errorObject3,
       error3.toPlainObject());
+
+  // AuthErrorWithCredential with just a credential and no email or phoneNumber.
+  var credential4 = fireauth.FacebookAuthProvider.credential('ACCESS_TOKEN');
+  var error4 = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        credential: credential4
+      },
+      'This credential is already associated with a different user account.');
+  var errorObject4 = {
+    'code': 'auth/credential-already-in-use',
+    'message': 'This credential is already associated with a different user ' +
+        'account.',
+    'providerId': 'facebook.com',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'signInMethod': fireauth.FacebookAuthProvider['FACEBOOK_SIGN_IN_METHOD']
+  };
+  assertObjectEquals(
+      errorObject4,
+      error4.toPlainObject());
 }
 
 
@@ -329,6 +349,36 @@ function testAuthErrorWithCredential_fromPlainObject() {
   assertObjectEquals(
       error3,
       fireauth.AuthErrorWithCredential.fromPlainObject(errorObject3NoPrefix));
+
+  // AuthErrorWithCredential with just a credential
+  var credential4 = fireauth.FacebookAuthProvider.credential('ACCESS_TOKEN');
+  var error4 = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        credential: credential4
+      },
+      'This credential is already associated with a different user account.');
+  var errorObject4 = {
+    'code': 'auth/credential-already-in-use',
+    'message': 'This credential is already associated with a different user ' +
+        'account.',
+    'providerId': 'facebook.com',
+    'oauthAccessToken': 'ACCESS_TOKEN'
+  };
+  var errorObject4NoPrefix = {
+    'code': 'credential-already-in-use',
+    'message': 'This credential is already associated with a different user ' +
+        'account.',
+    'providerId': 'facebook.com',
+    'oauthAccessToken': 'ACCESS_TOKEN'
+  };
+  assertObjectEquals(
+      error4,
+      fireauth.AuthErrorWithCredential.fromPlainObject(errorObject4));
+  // If the error code prefix is missing.
+  assertObjectEquals(
+      error4,
+      fireauth.AuthErrorWithCredential.fromPlainObject(errorObject4NoPrefix));
 }
 
 
