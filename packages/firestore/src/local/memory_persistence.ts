@@ -15,7 +15,6 @@
  */
 
 import { User } from '../auth/user';
-import { assert } from '../util/assert';
 import { debug } from '../util/log';
 
 import { MemoryMutationQueue } from './memory_mutation_queue';
