@@ -321,13 +321,16 @@ export class FirestoreClient {
             user
           )
         : new MemorySharedClientState();
+      const multiClientParams = settings.experimentalTabSynchronization
+        ? { sequenceNumberSyncer: this.sharedClientState }
+        : undefined;
       this.persistence = new IndexedDbPersistence(
         storagePrefix,
         this.clientId,
         this.platform,
         this.asyncQueue,
         serializer,
-        { sequenceNumberSyncer: this.sharedClientState }
+        multiClientParams
       );
       return this.persistence.start();
     });
