@@ -183,7 +183,13 @@ export class IndexedDbPersistence implements Persistence {
     queue: AsyncQueue,
     serializer: JsonProtoSerializer
   ): Promise<IndexedDbPersistence> {
-    const persistence = new IndexedDbPersistence(persistenceKey, clientId, platform, queue, serializer);
+    const persistence = new IndexedDbPersistence(
+      persistenceKey,
+      clientId,
+      platform,
+      queue,
+      serializer
+    );
     await persistence.start();
     return persistence;
   }
@@ -198,7 +204,14 @@ export class IndexedDbPersistence implements Persistence {
       sequenceNumberSyncer: SequenceNumberSyncer;
     }
   ): Promise<IndexedDbPersistence> {
-    const persistence = new IndexedDbPersistence(persistenceKey, clientId, platform, queue, serializer, multiClientParams);
+    const persistence = new IndexedDbPersistence(
+      persistenceKey,
+      clientId,
+      platform,
+      queue,
+      serializer,
+      multiClientParams
+    );
     await persistence.start();
     return persistence;
   }

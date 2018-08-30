@@ -112,7 +112,7 @@ export async function testIndexedDbPersistence(
         platform,
         queue,
         serializer,
-      { sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER }
+        { sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER }
       )
     : IndexedDbPersistence.createIndexedDbPersistence(
         TEST_PERSISTENCE_PREFIX,

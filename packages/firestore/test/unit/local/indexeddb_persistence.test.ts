@@ -107,29 +107,26 @@ async function withCustomPersistence(
     new SharedFakeWebStorage()
   );
   if (settings.experimentalTabSynchronization) {
-
   } else {
-
   }
-  const persistence = await (
-    settings.experimentalTabSynchronization
-      ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
-          TEST_PERSISTENCE_PREFIX,
-          clientId,
-          platform,
-          queue,
-          serializer,{
-            sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
-          }
-        )
-      : IndexedDbPersistence.createIndexedDbPersistence(
-          TEST_PERSISTENCE_PREFIX,
-          clientId,
-          platform,
-          queue,
-          serializer
-        )
-  );
+  const persistence = await (settings.experimentalTabSynchronization
+    ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
+        TEST_PERSISTENCE_PREFIX,
+        clientId,
+        platform,
+        queue,
+        serializer,
+        {
+          sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
+        }
+      )
+    : IndexedDbPersistence.createIndexedDbPersistence(
+        TEST_PERSISTENCE_PREFIX,
+        clientId,
+        platform,
+        queue,
+        serializer
+      ));
 
   await fn(persistence, platform, queue);
   await persistence.shutdown();
@@ -621,7 +618,9 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   it('rejects access when synchronization is disabled', async () => {
     await withPersistence('clientA', async db1 => {
-      await expect(withPersistence('clientB', db2 => Promise.resolve())).to.eventually.be.rejectedWith(
+      await expect(
+        withPersistence('clientB', db2 => Promise.resolve())
+      ).to.eventually.be.rejectedWith(
         'There is another tab open with offline persistence enabled.'
       );
     });
@@ -629,8 +628,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   it('grants access when synchronization is enabled', async () => {
     return withMultiClientPersistence('clientA', async db1 => {
-      await withMultiClientPersistence('clientB', async db2 => {
-      });
+      await withMultiClientPersistence('clientB', async db2 => {});
     });
   });
 });
