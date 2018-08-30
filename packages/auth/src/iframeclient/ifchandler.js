@@ -404,11 +404,12 @@ fireauth.iframeclient.OAuthUrlBuilder.getAuthFrameworksForApp_ =
  *     request.
  * @param {?string=} opt_clientVersion The optional client version string.
  * @param {?string=} opt_endpointId The endpoint ID (staging, test Gaia, etc).
+ * @param {?Object=} opt_AuthConfig The Auth Config, used in custom auth server
  * @constructor
  * @implements {fireauth.OAuthSignInHandler}
  */
 fireauth.iframeclient.IfcHandler = function(authDomain, apiKey, appName,
-    opt_clientVersion, opt_endpointId) {
+    opt_clientVersion, opt_endpointId, opt_AuthConfig) {
   /** @private {string} The Auth domain. */
   this.authDomain_ = authDomain;
   /** @private {string} The API key. */
@@ -419,6 +420,8 @@ fireauth.iframeclient.IfcHandler = function(authDomain, apiKey, appName,
   this.clientVersion_ = opt_clientVersion || null;
   /** @private {?string} The Auth endpoint ID. */
   this.endpointId_ = opt_endpointId || null;
+  /** @private {?Object} The Auth Config, used in custom auth server */
+  this.authConfig_ = opt_AuthConfig || null;
   // Delay RPC handler and iframe URL initialization until needed to ensure
   // logged frameworks are propagated to the iframe.
   /** @private {?string} The full client version string. */
@@ -698,7 +701,7 @@ fireauth.iframeclient.IfcHandler.prototype.getRpcHandler_ = function() {
     this.rpcHandler_ = new fireauth.RpcHandler(
         this.apiKey_,
         // Get the client Auth endpoint used.
-        fireauth.constants.getEndpointConfig(this.endpointId_),
+        (this.authConfig_ || fireauth.constants.getEndpointConfig(this.endpointId_)),
         this.fullClientVersion_);
   }
   return this.rpcHandler_;

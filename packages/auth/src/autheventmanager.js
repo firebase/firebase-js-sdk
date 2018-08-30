@@ -46,15 +46,18 @@ goog.require('goog.array');
  * @param {string} apiKey The API key for sending backend Auth requests.
  * @param {string} appName The App ID for the Auth instance that triggered this
  *     request.
+ * @param {?Object=} opt_authConfig The Auth Config, used in custom auth server
  * @constructor
  */
-fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
+fireauth.AuthEventManager = function(authDomain, apiKey, appName, opt_authConfig) {
   /** @private {string} The Auth domain. */
   this.authDomain_ = authDomain;
   /** @private {string} The browser API key. */
   this.apiKey_ = apiKey;
   /** @private {string} The App name. */
   this.appName_ = appName;
+  /** @private {?Object} The Auth Config, used in custom auth server */
+  this.authConfig_ = opt_authConfig || null;
   /**
    * @private {!Array<!fireauth.AuthEventHandler>} List of subscribed handlers.
    */
@@ -106,7 +109,8 @@ fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
       fireauth.AuthEventManager.instantiateOAuthSignInHandler(
           this.authDomain_, this.apiKey_, this.appName_,
           firebase.SDK_VERSION || null,
-          fireauth.constants.clientEndpoint);
+          fireauth.constants.clientEndpoint,
+          this.authConfig_);
 };
 
 
@@ -134,11 +138,12 @@ fireauth.AuthEventManager.prototype.getPopupAuthEventProcessor = function() {
  *     request.
  * @param {?string} version The SDK client version.
  * @param {?string=} opt_endpointId The endpoint ID (staging, test Gaia, etc).
+ * @param {?Object=} opt_authConfig The Auth Config, used in custom auth server
  * @return {!fireauth.OAuthSignInHandler} The OAuth sign in handler depending
  *     on the current environment.
  */
 fireauth.AuthEventManager.instantiateOAuthSignInHandler =
-    function(authDomain, apiKey, appName, version, opt_endpointId) {
+    function(authDomain, apiKey, appName, version, opt_endpointId, opt_authConfig) {
   // This assumes that android/iOS file environment must be a Cordova
   // environment which is not true. This is the best way currently available
   // to instantiate this synchronously without waiting for checkIfCordova to
@@ -149,7 +154,7 @@ fireauth.AuthEventManager.instantiateOAuthSignInHandler =
           authDomain, apiKey, appName, version, undefined, undefined,
           opt_endpointId) :
       new fireauth.iframeclient.IfcHandler(
-          authDomain, apiKey, appName, version, opt_endpointId);
+          authDomain, apiKey, appName, version, opt_endpointId, opt_authConfig);
 };
 
 
@@ -593,14 +598,15 @@ fireauth.AuthEventManager.getKey_ = function(apiKey, appName) {
  * @param {string} apiKey The API key for sending backend Auth requests.
  * @param {string} appName The Auth instance that initiated the Auth event
  *     manager.
+ * @param {?Object=} opt_authConfig The Auth Config, used in custom auth server
  * @return {!fireauth.AuthEventManager} the requested manager instance.
  */
-fireauth.AuthEventManager.getManager = function(authDomain, apiKey, appName) {
+fireauth.AuthEventManager.getManager = function(authDomain, apiKey, appName, opt_authConfig) {
   // Construct storage key.
   var key = fireauth.AuthEventManager.getKey_(apiKey, appName);
   if (!fireauth.AuthEventManager.manager_[key]) {
     fireauth.AuthEventManager.manager_[key] =
-        new fireauth.AuthEventManager(authDomain, apiKey, appName);
+        new fireauth.AuthEventManager(authDomain, apiKey, appName, opt_authConfig);
   }
   return fireauth.AuthEventManager.manager_[key];
 };
