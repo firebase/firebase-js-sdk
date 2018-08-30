@@ -446,7 +446,7 @@ describe('QueryListener', () => {
       { type: ChangeType.Modified, doc: doc2Modified }
     ]);
     expect(snap3.docChanges).to.deep.equal([
-      { type: ChangeType.Metadata, doc: doc1Acknowledged },
+      { type: ChangeType.Modified, doc: doc1Acknowledged },
       { type: ChangeType.Metadata, doc: doc2Acknowledged }
     ]);
 
