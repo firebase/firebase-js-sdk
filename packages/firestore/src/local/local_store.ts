@@ -955,6 +955,7 @@ export class LocalStore {
           // is committed. b/33446471 will remove this reliance.
           this.sharedClientState.updateMutationState(
             batchResult.batch.batchId,
+            SnapshotVersion.MIN, // TODO: Replace with batch version from commit
             'acknowledged'
           );
         });

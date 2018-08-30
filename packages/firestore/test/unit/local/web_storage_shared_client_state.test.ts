@@ -46,10 +46,13 @@ import { PlatformSupport } from '../../../src/platform/platform';
 import * as objUtils from '../../../src/util/obj';
 import { targetIdSet } from '../../../src/model/collections';
 import { SortedSet } from '../../../src/util/sorted_set';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { version } from '../../util/helpers';
 
 const AUTHENTICATED_USER = new User('test');
 const UNAUTHENTICATED_USER = User.UNAUTHENTICATED;
 const TEST_ERROR = new FirestoreError('internal', 'Test Error');
+const TEST_SNAPSHOT_VERSION = version(42);
 
 function mutationKey(user: User, batchId: BatchId): string {
   if (user.isAuthenticated()) {
@@ -91,10 +94,18 @@ interface TestSharedClientState {
  */
 class TestSharedClientSyncer implements SharedClientStateSyncer {
   private mutationState: {
-    [batchId: number]: { state: MutationBatchState; error?: FirestoreError };
+    [batchId: number]: {
+      snapshotVersion: SnapshotVersion;
+      state: MutationBatchState;
+      error?: FirestoreError;
+    };
   } = {};
   private queryState: {
-    [targetId: number]: { state: QueryTargetState; error?: FirestoreError };
+    [targetId: number]: {
+      snapshotVersion: SnapshotVersion;
+      state: QueryTargetState;
+      error?: FirestoreError;
+    };
   } = {};
   private activeTargets = targetIdSet();
   private onlineState = OnlineState.Unknown;
@@ -113,18 +124,20 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
 
   async applyBatchState(
     batchId: BatchId,
+    snapshotVersion: SnapshotVersion,
     state: MutationBatchState,
     error?: FirestoreError
   ): Promise<void> {
-    this.mutationState[batchId] = { state, error };
+    this.mutationState[batchId] = { snapshotVersion, state, error };
   }
 
   async applyTargetState(
     targetId: TargetId,
+    snapshotVersion: SnapshotVersion,
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {
-    this.queryState[targetId] = { state, error };
+    this.queryState[targetId] = { snapshotVersion, state, error };
   }
 
   async getActiveClients(): Promise<ClientId[]> {
@@ -148,6 +161,14 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
   applyOnlineStateChange(onlineState: OnlineState): void {
     this.onlineState = onlineState;
   }
+}
+
+function verifySnapshotVersion(
+  actual: { seconds: number; nanos: number },
+  expected: SnapshotVersion
+): void {
+  expect(actual.seconds).to.equal(expected.toTimestamp().seconds);
+  expect(actual.nanos).to.equal(expected.toTimestamp().nanoseconds);
 }
 
 describe('WebStorageSharedClientState', () => {
@@ -247,9 +268,15 @@ describe('WebStorageSharedClientState', () => {
 
       expect(actual.state).to.equal(mutationBatchState);
 
-      const expectedMembers = ['state'];
+      const expectedMembers = ['state', 'snapshotVersion'];
 
-      if (mutationBatchState === 'rejected') {
+      if (mutationBatchState === 'pending') {
+        verifySnapshotVersion(actual.snapshotVersion, SnapshotVersion.MIN);
+      } else if (mutationBatchState === 'acknowledged') {
+        verifySnapshotVersion(actual.snapshotVersion, TEST_SNAPSHOT_VERSION);
+      } else if (mutationBatchState === 'rejected') {
+        verifySnapshotVersion(actual.snapshotVersion, SnapshotVersion.MIN);
+
         expectedMembers.push('error');
         expect(actual.error.code).to.equal(err!.code);
         expect(actual.error.message).to.equal(err!.message);
@@ -275,7 +302,11 @@ describe('WebStorageSharedClientState', () => {
     it('with an acknowledged batch', () => {
       sharedClientState.addPendingMutation(0);
       assertBatchState(0, 'pending');
-      sharedClientState.updateMutationState(0, 'acknowledged');
+      sharedClientState.updateMutationState(
+        0,
+        TEST_SNAPSHOT_VERSION,
+        'acknowledged'
+      );
       // The entry is garbage collected immediately.
       assertNoBatchState(0);
     });
@@ -283,7 +314,12 @@ describe('WebStorageSharedClientState', () => {
     it('with a rejected batch', () => {
       sharedClientState.addPendingMutation(0);
       assertBatchState(0, 'pending');
-      sharedClientState.updateMutationState(0, 'rejected', TEST_ERROR);
+      sharedClientState.updateMutationState(
+        0,
+        TEST_SNAPSHOT_VERSION,
+        'rejected',
+        TEST_ERROR
+      );
       // The entry is garbage collected immediately.
       assertNoBatchState(0);
     });
@@ -301,8 +337,15 @@ describe('WebStorageSharedClientState', () => {
         const actual = JSON.parse(localStorage.getItem(targetKey(targetId))!);
         expect(actual.state).to.equal(queryTargetState);
 
-        const expectedMembers = ['state'];
-        if (queryTargetState === 'rejected') {
+        const expectedMembers = ['state', 'snapshotVersion'];
+
+        if (queryTargetState === 'pending') {
+          verifySnapshotVersion(actual.snapshotVersion, SnapshotVersion.MIN);
+        } else if (queryTargetState === 'acknowledged') {
+          verifySnapshotVersion(actual.snapshotVersion, TEST_SNAPSHOT_VERSION);
+        } else if (queryTargetState === 'rejected') {
+          verifySnapshotVersion(actual.snapshotVersion, SnapshotVersion.MIN);
+
           expectedMembers.push('error');
           expect(actual.error.code).to.equal(err!.code);
           expect(actual.error.message).to.equal(err!.message);
@@ -338,7 +381,11 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.updateQueryState(0, 'not-current');
+      sharedClientState.updateQueryState(
+        0,
+        TEST_SNAPSHOT_VERSION,
+        'not-current'
+      );
       assertTargetState(0, 'not-current');
     });
 
@@ -346,9 +393,13 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.updateQueryState(0, 'not-current');
+      sharedClientState.updateQueryState(
+        0,
+        TEST_SNAPSHOT_VERSION,
+        'not-current'
+      );
       assertTargetState(0, 'not-current');
-      sharedClientState.updateQueryState(0, 'current');
+      sharedClientState.updateQueryState(0, TEST_SNAPSHOT_VERSION, 'current');
       assertTargetState(0, 'current');
     });
 
@@ -356,13 +407,18 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.addLocalQueryTarget(0);
       assertClientState([0]);
       assertTargetState(0, 'pending');
-      sharedClientState.updateQueryState(0, 'rejected', TEST_ERROR);
+      sharedClientState.updateQueryState(
+        0,
+        SnapshotVersion.MIN,
+        'rejected',
+        TEST_ERROR
+      );
       assertTargetState(0, 'rejected', TEST_ERROR);
     });
 
     it('garbage collects entry', () => {
       sharedClientState.addLocalQueryTarget(0);
-      sharedClientState.updateQueryState(0, 'current');
+      sharedClientState.updateQueryState(0, TEST_SNAPSHOT_VERSION, 'current');
       assertTargetState(0, 'current');
       sharedClientState.removeLocalQueryTarget(0);
       assertTargetState(0, 'current');
@@ -561,6 +617,7 @@ describe('WebStorageSharedClientState', () => {
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
+            SnapshotVersion.MIN,
             'pending'
           ).toLocalStorageJSON()
         );
@@ -577,6 +634,7 @@ describe('WebStorageSharedClientState', () => {
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
+            TEST_SNAPSHOT_VERSION,
             'acknowledged'
           ).toLocalStorageJSON()
         );
@@ -593,6 +651,7 @@ describe('WebStorageSharedClientState', () => {
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
+            TEST_SNAPSHOT_VERSION,
             'rejected',
             TEST_ERROR
           ).toLocalStorageJSON()
@@ -614,6 +673,7 @@ describe('WebStorageSharedClientState', () => {
           new MutationMetadata(
             UNAUTHENTICATED_USER,
             1,
+            SnapshotVersion.MIN,
             'pending'
           ).toLocalStorageJSON()
         );
@@ -632,12 +692,18 @@ describe('WebStorageSharedClientState', () => {
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
+            SnapshotVersion.MIN,
             'pending'
           ).toLocalStorageJSON()
         );
         writeToLocalStorage(
           mutationKey(otherUser, 1),
-          new MutationMetadata(otherUser, 2, 'pending').toLocalStorageJSON()
+          new MutationMetadata(
+            otherUser,
+            2,
+            SnapshotVersion.MIN,
+            'pending'
+          ).toLocalStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.mutationCount).to.equal(1);
@@ -652,6 +718,7 @@ describe('WebStorageSharedClientState', () => {
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
+            TEST_SNAPSHOT_VERSION,
             'invalid' as any // tslint:disable-line:no-any
           ).toLocalStorageJSON()
         );
@@ -759,6 +826,7 @@ describe('WebStorageSharedClientState', () => {
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
+            TEST_SNAPSHOT_VERSION,
             'not-current'
           ).toLocalStorageJSON()
         );
@@ -776,6 +844,7 @@ describe('WebStorageSharedClientState', () => {
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
+            TEST_SNAPSHOT_VERSION,
             'current'
           ).toLocalStorageJSON()
         );
@@ -793,6 +862,7 @@ describe('WebStorageSharedClientState', () => {
           targetKey(1),
           new QueryTargetMetadata(
             firstClientTargetId,
+            SnapshotVersion.MIN,
             'rejected',
             TEST_ERROR
           ).toLocalStorageJSON()
@@ -816,6 +886,7 @@ describe('WebStorageSharedClientState', () => {
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
+            TEST_SNAPSHOT_VERSION,
             'invalid' as any // tslint:disable-line:no-any
           ).toLocalStorageJSON()
         );
