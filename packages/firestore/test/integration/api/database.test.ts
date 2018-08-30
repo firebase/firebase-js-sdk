@@ -24,10 +24,13 @@ import {
   apiDescribe,
   withTestCollection,
   withTestDb,
+  withTestDbs,
   withTestDoc,
   withTestDocAndInitialData
 } from '../util/helpers';
 import { query } from '../../util/api_helpers';
+import { fail } from '../../../src/util/assert';
+import { Code } from '../../../src/util/error';
 
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldValue = firebase.firestore!.FieldValue;
@@ -105,6 +108,30 @@ apiDescribe('Database', persistence => {
         expect(snapshot.data()).to.equal(undefined);
         expect(snapshot.get('foo')).to.equal(undefined);
       });
+    });
+  });
+
+  (persistence ? it : it.skip)('can update an unknown document', () => {
+    return withTestDbs(persistence, 2, async ([reader, writer]) => {
+      const writerRef = writer.collection('collection').doc();
+      const readerRef = reader.collection('collection').doc(writerRef.id);
+      await writerRef.set({ a: 'a' });
+      await readerRef.update({ b: 'b' });
+      await writerRef
+        .get({ source: 'cache' })
+        .then(doc => expect(doc.exists).to.be.true);
+      await readerRef
+        .get({ source: 'cache' })
+        .then(
+          () => fail('Expected cache miss'),
+          err => expect(err.code).to.be.equal(Code.UNAVAILABLE)
+        );
+      await writerRef
+        .get()
+        .then(doc => expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' }));
+      await readerRef
+        .get()
+        .then(doc => expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' }));
     });
   });
 

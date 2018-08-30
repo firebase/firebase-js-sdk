@@ -33,7 +33,6 @@ import {
   updateMapping,
   version
 } from '../../util/helpers';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 
 describe('View', () => {
   it('adds documents based on query', () => {
@@ -45,10 +44,7 @@ describe('View', () => {
     const doc2 = doc('rooms/eros/messages/2', 0, { text: 'msg2' });
     const doc3 = doc('rooms/other/messages/1', 0, { text: 'msg3' });
 
-    const changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2, doc3),
-      SnapshotVersion.MIN
-    );
+    const changes = view.computeDocChanges(documentUpdates(doc1, doc2, doc3));
     const snapshot = view.applyChanges(
       changes,
       true,
@@ -79,10 +75,7 @@ describe('View', () => {
     applyDocChanges(view, doc1, doc2);
 
     // delete doc2, add doc3
-    const changes = view.computeDocChanges(
-      documentUpdates(doc2.key, doc3),
-      SnapshotVersion.MIN
-    );
+    const changes = view.computeDocChanges(documentUpdates(doc2.key, doc3));
     const snapshot = view.applyChanges(changes, true, ackTarget(doc1, doc3))
       .snapshot!;
 
@@ -191,10 +184,7 @@ describe('View', () => {
     applyDocChanges(view, doc1, doc3);
 
     // add doc2, which should push out doc3
-    const changes = view.computeDocChanges(
-      documentUpdates(doc2),
-      SnapshotVersion.MIN
-    );
+    const changes = view.computeDocChanges(documentUpdates(doc2));
     const snapshot = view.applyChanges(
       changes,
       true,
@@ -231,15 +221,11 @@ describe('View', () => {
     // doc3 will be added
     // doc4 will be added + removed = nothing
     doc2 = doc('rooms/eros/messages/2', 1, { num: 5 });
-    let changes = view.computeDocChanges(
-      documentUpdates(doc2, doc3, doc4),
-      SnapshotVersion.MIN
-    );
+    let changes = view.computeDocChanges(documentUpdates(doc2, doc3, doc4));
     expect(changes.needsRefill).to.equal(true);
     // Verify that all the docs still match.
     changes = view.computeDocChanges(
       documentUpdates(doc1, doc2, doc3, doc4),
-      SnapshotVersion.MIN,
       changes
     );
     const snapshot = view.applyChanges(
@@ -265,14 +251,11 @@ describe('View', () => {
     const doc3 = doc('rooms/eros/msgs/2', 0, {});
     const view = new View(query, documentKeySet());
 
-    let changes = view.computeDocChanges(
-      documentUpdates(doc1),
-      SnapshotVersion.MIN
-    );
+    let changes = view.computeDocChanges(documentUpdates(doc1));
     let viewChange = view.applyChanges(changes, true);
     expect(viewChange.limboChanges).to.deep.equal([]);
 
-    changes = view.computeDocChanges(documentUpdates(), SnapshotVersion.MIN);
+    changes = view.computeDocChanges(documentUpdates());
     viewChange = view.applyChanges(changes, true, ackTarget());
     expect(viewChange.limboChanges).to.deep.equal(
       limboChanges({ added: [doc1] })
@@ -287,10 +270,7 @@ describe('View', () => {
       limboChanges({ removed: [doc1] })
     );
 
-    changes = view.computeDocChanges(
-      documentUpdates(doc2),
-      SnapshotVersion.MIN
-    );
+    changes = view.computeDocChanges(documentUpdates(doc2));
     viewChange = view.applyChanges(
       changes,
       true,
@@ -319,10 +299,7 @@ describe('View', () => {
     // query.
     const view = new View(query, keySet(doc1.key, doc2.key));
 
-    const changes = view.computeDocChanges(
-      documentUpdates(),
-      SnapshotVersion.MIN
-    );
+    const changes = view.computeDocChanges(documentUpdates());
     const change = view.applyChanges(changes, true, ackTarget());
     expect(change.limboChanges).to.deep.equal([]);
   });
@@ -334,29 +311,19 @@ describe('View', () => {
     const view = new View(query, documentKeySet());
 
     // Start with a full view.
-    let changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2),
-      SnapshotVersion.MIN
-    );
+    let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
     view.applyChanges(changes, true);
 
     // Remove one of the docs.
-    changes = view.computeDocChanges(
-      documentUpdates(doc1.key),
-      SnapshotVersion.MIN
-    );
+    changes = view.computeDocChanges(documentUpdates(doc1.key));
     expect(changes.documentSet.size).to.equal(1);
     expect(changes.needsRefill).to.equal(true);
     expect(changes.changeSet.getChanges().length).to.equal(1);
     // Refill it with just the one doc remaining.
-    changes = view.computeDocChanges(
-      documentUpdates(doc2),
-      SnapshotVersion.MIN,
-      changes
-    );
+    changes = view.computeDocChanges(documentUpdates(doc2), changes);
     expect(changes.documentSet.size).to.equal(1);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(1);
@@ -373,10 +340,7 @@ describe('View', () => {
     const view = new View(query, documentKeySet());
 
     // Start with a full view.
-    let changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2, doc3),
-      SnapshotVersion.MIN
-    );
+    let changes = view.computeDocChanges(documentUpdates(doc1, doc2, doc3));
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
@@ -384,17 +348,13 @@ describe('View', () => {
 
     // Move one of the docs.
     doc2 = doc(doc2.key.toString(), 1, { order: 2000 });
-    changes = view.computeDocChanges(
-      documentUpdates(doc2),
-      SnapshotVersion.MIN
-    );
+    changes = view.computeDocChanges(documentUpdates(doc2));
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(true);
     expect(changes.changeSet.getChanges().length).to.equal(1);
     // Refill it with all three current docs.
     changes = view.computeDocChanges(
       documentUpdates(doc1, doc2, doc3),
-      SnapshotVersion.MIN,
       changes
     );
     expect(changes.documentSet.size).to.equal(2);
@@ -416,8 +376,7 @@ describe('View', () => {
 
     // Start with a full view.
     let changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2, doc3, doc4, doc5),
-      SnapshotVersion.MIN
+      documentUpdates(doc1, doc2, doc3, doc4, doc5)
     );
     expect(changes.documentSet.size).to.equal(3);
     expect(changes.needsRefill).to.equal(false);
@@ -426,10 +385,7 @@ describe('View', () => {
 
     // Move one of the docs.
     doc1 = doc(doc1.key.toString(), 1, { order: 3 });
-    changes = view.computeDocChanges(
-      documentUpdates(doc1),
-      SnapshotVersion.MIN
-    );
+    changes = view.computeDocChanges(documentUpdates(doc1));
     expect(changes.documentSet.size).to.equal(3);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(1);
@@ -449,8 +405,7 @@ describe('View', () => {
 
     // Start with a full view.
     let changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2, doc3, doc4, doc5),
-      SnapshotVersion.MIN
+      documentUpdates(doc1, doc2, doc3, doc4, doc5)
     );
     expect(changes.documentSet.size).to.equal(3);
     expect(changes.needsRefill).to.equal(false);
@@ -459,10 +414,7 @@ describe('View', () => {
 
     // Move one of the docs.
     doc4 = doc(doc4.key.toString(), 1, { order: 6 });
-    changes = view.computeDocChanges(
-      documentUpdates(doc4),
-      SnapshotVersion.MIN
-    );
+    changes = view.computeDocChanges(documentUpdates(doc4));
     expect(changes.documentSet.size).to.equal(3);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(0);
@@ -476,10 +428,7 @@ describe('View', () => {
     const view = new View(query, documentKeySet());
 
     // Start with a full view.
-    let changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2),
-      SnapshotVersion.MIN
-    );
+    let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
@@ -487,10 +436,7 @@ describe('View', () => {
 
     // Add a doc that is past the limit.
     const doc3 = doc('rooms/eros/msgs/2', 0, {});
-    changes = view.computeDocChanges(
-      documentUpdates(doc3),
-      SnapshotVersion.MIN
-    );
+    changes = view.computeDocChanges(documentUpdates(doc3));
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(0);
@@ -503,20 +449,14 @@ describe('View', () => {
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const view = new View(query, documentKeySet());
 
-    let changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2),
-      SnapshotVersion.MIN
-    );
+    let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
     view.applyChanges(changes, true);
 
     // Remove one of the docs.
-    changes = view.computeDocChanges(
-      documentUpdates(doc2.key),
-      SnapshotVersion.MIN
-    );
+    changes = view.computeDocChanges(documentUpdates(doc2.key));
     expect(changes.documentSet.size).to.equal(1);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(1);
@@ -530,10 +470,7 @@ describe('View', () => {
     const view = new View(query, documentKeySet());
 
     // Start with a full view.
-    let changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2),
-      SnapshotVersion.MIN
-    );
+    let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
@@ -541,10 +478,7 @@ describe('View', () => {
 
     // Remove a doc that isn't even in the results.
     const doc3 = doc('rooms/eros/msgs/2', 0, {});
-    changes = view.computeDocChanges(
-      documentUpdates(doc3.key),
-      SnapshotVersion.MIN
-    );
+    changes = view.computeDocChanges(documentUpdates(doc3.key));
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(0);
@@ -557,18 +491,12 @@ describe('View', () => {
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const view = new View(query, documentKeySet());
     // Start with a full view.
-    let changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2),
-      SnapshotVersion.MIN
-    );
+    let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     view.applyChanges(changes, true);
     expect(changes.mutatedKeys).to.deep.equal(keySet());
 
     const doc3 = doc('rooms/eros/msgs/2', 0, {}, { hasLocalMutations: true });
-    changes = view.computeDocChanges(
-      documentUpdates(doc3),
-      SnapshotVersion.MIN
-    );
+    changes = view.computeDocChanges(documentUpdates(doc3));
     expect(changes.mutatedKeys).to.deep.equal(keySet(doc3.key));
   });
 
@@ -581,18 +509,12 @@ describe('View', () => {
       const doc2 = doc('rooms/eros/msgs/1', 0, {}, { hasLocalMutations: true });
       const view = new View(query, documentKeySet());
       // Start with a full view.
-      let changes = view.computeDocChanges(
-        documentUpdates(doc1, doc2),
-        SnapshotVersion.MIN
-      );
+      let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
       view.applyChanges(changes, true);
       expect(changes.mutatedKeys).to.deep.equal(keySet(doc2.key));
 
       const doc2prime = doc('rooms/eros/msgs/1', 0, {});
-      changes = view.computeDocChanges(
-        documentUpdates(doc2prime),
-        SnapshotVersion.MIN
-      );
+      changes = view.computeDocChanges(documentUpdates(doc2prime));
       view.applyChanges(changes, true);
       expect(changes.mutatedKeys).to.deep.equal(keySet());
     }
@@ -604,18 +526,12 @@ describe('View', () => {
     const doc2 = doc('rooms/eros/msgs/1', 0, {}, { hasLocalMutations: true });
     const view = new View(query, documentKeySet());
     // Start with a full view.
-    let changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2),
-      SnapshotVersion.MIN
-    );
+    let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     view.applyChanges(changes, true);
     expect(changes.mutatedKeys).to.deep.equal(keySet(doc2.key));
 
     const doc3 = doc('rooms/eros/msgs/3', 0, {});
-    changes = view.computeDocChanges(
-      documentUpdates(doc3),
-      SnapshotVersion.MIN
-    );
+    changes = view.computeDocChanges(documentUpdates(doc3));
     expect(changes.mutatedKeys.size).to.equal(1);
   });
 
@@ -625,18 +541,11 @@ describe('View', () => {
     const doc2 = doc('rooms/eros/msgs/1', 0, {}, { hasLocalMutations: true });
     const view = new View(query, documentKeySet());
     // Start with a full view.
-    let changes = view.computeDocChanges(
-      documentUpdates(doc1, doc2),
-      SnapshotVersion.MIN
-    );
+    let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
     expect(changes.mutatedKeys).to.deep.equal(keySet(doc2.key));
 
     const doc3 = doc('rooms/eros/msgs/3', 0, {});
-    changes = view.computeDocChanges(
-      documentUpdates(doc3),
-      SnapshotVersion.MIN,
-      changes
-    );
+    changes = view.computeDocChanges(documentUpdates(doc3), changes);
     expect(changes.mutatedKeys).to.deep.equal(keySet(doc2.key));
   });
 });

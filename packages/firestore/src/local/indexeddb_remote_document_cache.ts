@@ -106,7 +106,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       }
 
       if (this.keepDocumentChangeLog) {
-        // TODO(multitab): GC the documentChanges store.
         promises.push(
           documentChangesStore(transaction).put({
             changes: this.serializer.toDbResourcePaths(changedKeys)
@@ -197,12 +196,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             this.getEntry(transaction, key).next(maybeDoc => {
               changedDocs = changedDocs.insert(
                 key,
-                maybeDoc ||
-                  new NoDocument(
-                    key,
-                    SnapshotVersion.forDeletedDoc(),
-                    SnapshotVersion.MIN
-                  )
+                maybeDoc || new NoDocument(key, SnapshotVersion.forDeletedDoc())
               );
             })
           );

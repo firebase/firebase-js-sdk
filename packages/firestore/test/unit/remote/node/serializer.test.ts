@@ -751,13 +751,11 @@ describe('Serializer', () => {
     const proto = {
       name: s.toName(d.key),
       fields: s.toFields(d.data),
-      updateTime: s.toVersion(d.remoteVersion)
+      updateTime: s.toVersion(d.version)
     };
     const serialized = s.toDocument(d);
     expect(serialized).to.deep.equal(proto);
-    expect(s.fromDocument(serialized, SnapshotVersion.MIN).isEqual(d)).to.equal(
-      true
-    );
+    expect(s.fromDocument(serialized).isEqual(d)).to.equal(true);
   });
 
   describe('to/from RelationFilter', () => {

@@ -19,7 +19,12 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { assert } from '../util/assert';
 import * as misc from '../util/misc';
 
-import { Document, MaybeDocument, NoDocument } from './document';
+import {
+  Document,
+  MaybeDocument,
+  NoDocument,
+  UnknownDocument
+} from './document';
 import { DocumentKey } from './document_key';
 import { FieldValue, ObjectValue } from './field_value';
 import { FieldPath } from './path';
@@ -79,9 +84,16 @@ export class FieldTransform {
 export class MutationResult {
   constructor(
     /**
-     * The version at which the mutation was committed or null for a delete.
+     * The version at which the mutation was committed:
+     *
+     * - For most operations, this is the updateTime in the WriteResult.
+     * - For deletes, the commitTime of the WriteResponse (because deletes are
+     *   not stored and have no updateTime).
+     *
+     * Note that these versions can be different: No-op writes will not change
+     * the updateTime even though the commitTime advances.
      */
-    readonly version: SnapshotVersion | null,
+    readonly version: SnapshotVersion,
     /**
      * The resulting fields returned from the backend after a
      * TransformMutation has been committed. Contains one FieldValue for each
@@ -141,7 +153,7 @@ export class Precondition {
     if (this.updateTime !== undefined) {
       return (
         maybeDoc instanceof Document &&
-        maybeDoc.remoteVersion.isEqual(this.updateTime)
+        maybeDoc.version.isEqual(this.updateTime)
       );
     } else if (this.exists !== undefined) {
       if (this.exists) {
@@ -168,8 +180,10 @@ export class Precondition {
  * create, replace, delete, and update subsets of documents.
  *
  * Mutations not only act on the value of the document but also it version.
- * In the case of Set, Patch, and Transform mutations we preserve the existing
- * version. In the case of Delete mutations, we reset the version to 0.
+ *
+ * For local mutations (mutations that haven't been committed yet), we preserve
+ * the existing version for Set, Patch, and Transform mutations. For Delete
+ * mutations, we reset the version to 0.
  *
  * Here's the expected transition table.
  *
@@ -187,6 +201,15 @@ export class Precondition {
  * DeleteMutation     Document(v3)          NoDocument(v0)
  * DeleteMutation     NoDocument(v3)        NoDocument(v0)
  * DeleteMutation     null                  NoDocument(v0)
+ *
+ * For acknowledged mutations, we use the updateTime of the WriteResponse as
+ * the resulting version for Set, Patch, and Transform mutations. As deletes
+ * have no explicit update time, we use the commitTime of the WriteResponse for
+ * Delete mutations.
+ *
+ * If a mutation is acknowledged by the backend but fails the precondition check
+ * locally, we return an `UnknownDocument` and rely on Watch to send us the
+ * updated version.
  *
  * Note that TransformMutations don't create Documents (in the case of being
  * applied to a NoDocument), even though they would on the backend. This is
@@ -208,21 +231,20 @@ export abstract class Mutation {
 
   /**
    * Applies this mutation to the given MaybeDocument or null for the purposes
-   * of computing a new remote document. Both the input and returned documents
-   * can be null.
+   * of computing a new remote document. If the input document doesn't match the
+   * expected state (e.g. it is null or outdated), an `UnknownDocument` can be
+   * returned.
    *
    * @param maybeDoc The document to mutate. The input document can be null if
    *     the client has no knowledge of the pre-mutation state of the document.
-   * @param commitVersion The commit version of the mutation batch.
    * @param mutationResult The result of applying the mutation from the backend.
    * @return The mutated document. The returned document may be null, but only
    *     if maybeDoc was null and the mutation would not create a new document.
    */
   abstract applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
-    commitVersion: SnapshotVersion,
     mutationResult: MutationResult
-  ): MaybeDocument | null;
+  ): MaybeDocument;
 
   /**
    * Applies this mutation to the given MaybeDocument or null for the purposes
@@ -266,7 +288,7 @@ export abstract class Mutation {
     maybeDoc: MaybeDocument | null
   ): SnapshotVersion {
     if (maybeDoc instanceof Document) {
-      return maybeDoc.remoteVersion;
+      return maybeDoc.version;
     } else {
       return SnapshotVersion.MIN;
     }
@@ -290,9 +312,8 @@ export class SetMutation extends Mutation {
 
   applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
-    commitVersion: SnapshotVersion,
     mutationResult: MutationResult
-  ): MaybeDocument | null {
+  ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
     assert(
@@ -304,9 +325,9 @@ export class SetMutation extends Mutation {
     // document the server has accepted the mutation so the precondition must
     // have held.
 
-    const version = Mutation.getPostMutationVersion(maybeDoc);
-    return new Document(this.key, version, commitVersion, this.value, {
-      hasLocalMutations: false
+    const version = mutationResult.version;
+    return new Document(this.key, version, this.value, {
+      hasCommittedMutations: true
     });
   }
 
@@ -322,15 +343,9 @@ export class SetMutation extends Mutation {
     }
 
     const version = Mutation.getPostMutationVersion(maybeDoc);
-    return new Document(
-      this.key,
-      version,
-      /*commitVersion=*/ SnapshotVersion.MIN,
-      this.value,
-      {
-        hasLocalMutations: true
-      }
-    );
+    return new Document(this.key, version, this.value, {
+      hasLocalMutations: true
+    });
   }
 
   isEqual(other: Mutation): boolean {
@@ -370,9 +385,8 @@ export class PatchMutation extends Mutation {
 
   applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
-    commitVersion: SnapshotVersion,
     mutationResult: MutationResult
-  ): MaybeDocument | null {
+  ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
     assert(
@@ -380,20 +394,17 @@ export class PatchMutation extends Mutation {
       'Transform results received by PatchMutation.'
     );
 
-    // TODO(mcg): Relax enforcement of this precondition
-    //
-    // We shouldn't actually enforce the precondition since it already passed on
-    // the backend, but we may not have a local version of the document to
-    // patch, so we use the precondition to prevent incorrectly putting a
-    // partial document into our cache.
     if (!this.precondition.isValidFor(maybeDoc)) {
-      return maybeDoc;
+      // Since the mutation was not rejected, we know that the  precondition
+      // matched on the backend. We therefore must not have the expected version
+      // of the document in our cache and return an UnknownDocument with the
+      // known updateTime.
+      return new UnknownDocument(this.key, mutationResult.version);
     }
 
-    const remoteVersion = Mutation.getPostMutationVersion(maybeDoc);
     const newData = this.patchDocument(maybeDoc);
-    return new Document(this.key, remoteVersion, commitVersion, newData, {
-      hasLocalMutations: false
+    return new Document(this.key, mutationResult.version, newData, {
+      hasCommittedMutations: true
     });
   }
 
@@ -410,15 +421,9 @@ export class PatchMutation extends Mutation {
 
     const version = Mutation.getPostMutationVersion(maybeDoc);
     const newData = this.patchDocument(maybeDoc);
-    return new Document(
-      this.key,
-      version,
-      /*commitVersion=*/ SnapshotVersion.MIN,
-      newData,
-      {
-        hasLocalMutations: true
-      }
-    );
+    return new Document(this.key, version, newData, {
+      hasLocalMutations: true
+    });
   }
 
   isEqual(other: Mutation): boolean {
@@ -484,9 +489,8 @@ export class TransformMutation extends Mutation {
 
   applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
-    commitVersion: SnapshotVersion,
     mutationResult: MutationResult
-  ): MaybeDocument | null {
+  ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
     assert(
@@ -494,14 +498,12 @@ export class TransformMutation extends Mutation {
       'Transform results missing for TransformMutation.'
     );
 
-    // TODO(mcg): Relax enforcement of this precondition
-    //
-    // We shouldn't actually enforce the precondition since it already passed on
-    // the backend, but we may not have a local version of the document to
-    // patch, so we use the precondition to prevent incorrectly putting a
-    // partial document into our cache.
     if (!this.precondition.isValidFor(maybeDoc)) {
-      return maybeDoc;
+      // Since the mutation was not rejected, we know that the  precondition
+      // matched on the backend. We therefore must not have the expected version
+      // of the document in our cache and return an UnknownDocument with the
+      // known updateTime.
+      return new UnknownDocument(this.key, mutationResult.version);
     }
 
     const doc = this.requireDocument(maybeDoc);
@@ -509,9 +511,11 @@ export class TransformMutation extends Mutation {
       maybeDoc,
       mutationResult.transformResults!
     );
+
+    const version = mutationResult.version;
     const newData = this.transformObject(doc.data, transformResults);
-    return new Document(this.key, doc.remoteVersion, commitVersion, newData, {
-      hasLocalMutations: false
+    return new Document(this.key, version, newData, {
+      hasCommittedMutations: true
     });
   }
 
@@ -532,15 +536,9 @@ export class TransformMutation extends Mutation {
       baseDoc
     );
     const newData = this.transformObject(doc.data, transformResults);
-    return new Document(
-      this.key,
-      doc.remoteVersion,
-      SnapshotVersion.MIN,
-      newData,
-      {
-        hasLocalMutations: true
-      }
-    );
+    return new Document(this.key, doc.version, newData, {
+      hasLocalMutations: true
+    });
   }
 
   isEqual(other: Mutation): boolean {
@@ -666,9 +664,8 @@ export class DeleteMutation extends Mutation {
 
   applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,
-    commitVersion: SnapshotVersion,
     mutationResult: MutationResult
-  ): MaybeDocument | null {
+  ): MaybeDocument {
     this.verifyKeyMatches(maybeDoc);
 
     assert(
@@ -680,7 +677,9 @@ export class DeleteMutation extends Mutation {
     // document the server has accepted the mutation so the precondition must
     // have held.
 
-    return new NoDocument(this.key, SnapshotVersion.MIN, commitVersion);
+    return new NoDocument(this.key, mutationResult.version, {
+      hasCommittedMutations: true
+    });
   }
 
   applyToLocalView(
@@ -700,11 +699,7 @@ export class DeleteMutation extends Mutation {
         'Can only apply mutation to document with same key'
       );
     }
-    return new NoDocument(
-      this.key,
-      SnapshotVersion.forDeletedDoc(),
-      /*commitVersion=*/ SnapshotVersion.MIN
-    );
+    return new NoDocument(this.key, SnapshotVersion.forDeletedDoc());
   }
 
   isEqual(other: Mutation): boolean {

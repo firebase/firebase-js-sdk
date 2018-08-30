@@ -17,7 +17,7 @@
 import { Query } from '../../../src/core/query';
 import { Document } from '../../../src/model/document';
 import { Code } from '../../../src/util/error';
-import { doc, mutatedDoc, path } from '../../util/helpers';
+import { doc, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -133,15 +133,15 @@ describeSpec('Writes:', [], () => {
   );
 
   specTest(
-    "Doesn't raise 'hasPendingWrites' for acknowledged write and new listen",
+    "Doesn't raise 'hasPendingWrites' for committed write and new listen",
     [],
     () => {
       const query1 = Query.atPath(path('collection'));
-      const modifiedDoc = mutatedDoc(
+      const modifiedDoc = doc(
         'collection/doc',
-        /* remoteVersion= */ 0,
-        /* commitVersion= */ 1000,
-        { v: 1 }
+        1000,
+        { v: 1 },
+        { hasCommittedMutations: true }
       );
       return spec()
         .withGCEnabled(false)
@@ -307,17 +307,17 @@ describeSpec('Writes:', [], () => {
       { local: 5, remote: 2 },
       { hasLocalMutations: true }
     );
-    const docV3 = mutatedDoc(
+    const docV3 = doc(
       'collection/doc',
-      /* remoteVersion= */ 3000,
-      /* commitVersion= */ 5000,
-      { local: 1, remote: 3 }
+      3000,
+      { local: 1, remote: 3 },
+      { hasCommittedMutations: true }
     );
-    const docV4 = mutatedDoc(
+    const docV4 = doc(
       'collection/doc',
-      /* remoteVersion= */ 4000,
-      /* commitVersion= */ 5000,
-      { local: 1, remote: 4 }
+      4000,
+      { local: 1, remote: 4 },
+      { hasCommittedMutations: true }
     );
     const docV5Acknowledged = doc('collection/doc', /* remoteVersion= */ 5000, {
       local: 5,
@@ -911,7 +911,6 @@ describeSpec('Writes:', [], () => {
         { hasLocalMutations: true }
       );
       const remoteDoc = doc('collection/a', 1000, { v: 1 });
-      const committedDoc = mutatedDoc('collection/a', 0, 1000, { v: 1 });
       return client(0)
         .becomeVisible()
         .userListens(query)
@@ -941,7 +940,7 @@ describeSpec('Writes:', [], () => {
           acknowledged: ['collection/a']
         })
         .expectEvents(query, {
-          metadata: [committedDoc]
+          metadata: [remoteDoc]
         });
     }
   );
@@ -1042,7 +1041,12 @@ describeSpec('Writes:', [], () => {
       { v: 1 },
       { hasLocalMutations: true }
     );
-    const docV1Committed = mutatedDoc('collection/doc', 0, 2000, { v: 1 });
+    const docV1Committed = doc(
+      'collection/doc',
+      2000,
+      { v: 1 },
+      { hasCommittedMutations: true }
+    );
     const docV1Acknowledged = doc('collection/doc', 2000, { v: 1 });
     return (
       client(0)
@@ -1074,7 +1078,7 @@ describeSpec('Writes:', [], () => {
         .watchCurrents(query1, 'resume-token-2000')
         .watchCurrents(query2, 'resume-token-2000')
         .watchSnapshots(2000)
-        .expectEvents(query2, { metadata: [docV1Acknowledged] })
+        .expectEvents(query2, {})
         .client(0)
         // The old primary doesn't yet know that client 1 has stolen the
         // primary lease.
@@ -1450,8 +1454,18 @@ describeSpec('Writes:', [], () => {
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
-      const docA = mutatedDoc('collection/a', 0, 1000, { k: 'a' });
-      const docB = mutatedDoc('collection/b', 0, 2000, { k: 'b' });
+      const docA = doc(
+        'collection/a',
+        1000,
+        { k: 'a' },
+        { hasCommittedMutations: true }
+      );
+      const docB = doc(
+        'collection/b',
+        2000,
+        { k: 'b' },
+        { hasCommittedMutations: true }
+      );
 
       return client(0)
         .expectPrimaryState(true)

@@ -17,7 +17,6 @@
 import { BatchId, MutationBatchState, TargetId } from '../core/types';
 import { FirestoreError } from '../util/error';
 import { ClientId } from './shared_client_state';
-import { SnapshotVersion } from '../core/snapshot_version';
 
 /** The different states of a watch target. */
 export type QueryTargetState = 'not-current' | 'current' | 'rejected';
@@ -35,7 +34,6 @@ export interface SharedClientStateSyncer {
   /** Applies a mutation state to an existing batch.  */
   applyBatchState(
     batchId: BatchId,
-    snapshotVersion: SnapshotVersion,
     state: MutationBatchState,
     error?: FirestoreError
   ): Promise<void>;
@@ -43,7 +41,6 @@ export interface SharedClientStateSyncer {
   /** Applies a query target change from a different tab. */
   applyTargetState(
     targetId: TargetId,
-    snapshotVersion: SnapshotVersion,
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void>;

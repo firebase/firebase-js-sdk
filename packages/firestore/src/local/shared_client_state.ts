@@ -34,7 +34,6 @@ import {
 import { AsyncQueue } from '../util/async_queue';
 import { Platform } from '../platform/platform';
 import { TargetIdSet, targetIdSet } from '../model/collections';
-import { SnapshotVersion } from '../core/snapshot_version';
 
 const LOG_TAG = 'SharedClientState';
 
@@ -92,7 +91,6 @@ export interface SharedClientState {
    */
   updateMutationState(
     batchId: BatchId,
-    snapshotVersion: SnapshotVersion,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
   ): void;
@@ -107,6 +105,9 @@ export interface SharedClientState {
   /** Removes the Query Target ID association from the local client. */
   removeLocalQueryTarget(targetId: TargetId): void;
 
+  /** Checks whether the target is associated with the local client. */
+  isLocalQueryTarget(targetId: TargetId): boolean;
+
   /**
    * Processes an update to a query target.
    *
@@ -115,7 +116,6 @@ export interface SharedClientState {
    */
   updateQueryState(
     targetId: TargetId,
-    snapshotVersion: SnapshotVersion,
     state: QueryTargetState,
     error?: FirestoreError
   ): void;
@@ -176,7 +176,6 @@ export interface SharedClientState {
  * encoded as part of the key.
  */
 interface MutationMetadataSchema {
-  snapshotVersionMicros: number;
   state: MutationBatchState;
   error?: { code: string; message: string }; // Only set when state === 'rejected'
 }
@@ -190,7 +189,6 @@ export class MutationMetadata {
   constructor(
     readonly user: User,
     readonly batchId: BatchId,
-    readonly snapshotVersion: SnapshotVersion,
     readonly state: MutationBatchState,
     readonly error?: FirestoreError
   ) {
@@ -215,7 +213,6 @@ export class MutationMetadata {
       typeof mutationBatch === 'object' &&
       ['pending', 'acknowledged', 'rejected'].indexOf(mutationBatch.state) !==
         -1 &&
-      isSafeInteger(mutationBatch.snapshotVersionMicros) &&
       (mutationBatch.error === undefined ||
         typeof mutationBatch.error === 'object');
 
@@ -237,7 +234,6 @@ export class MutationMetadata {
       return new MutationMetadata(
         user,
         batchId,
-        SnapshotVersion.fromMicroseconds(mutationBatch.snapshotVersionMicros),
         mutationBatch.state,
         firestoreError
       );
@@ -252,7 +248,6 @@ export class MutationMetadata {
 
   toLocalStorageJSON(): string {
     const batchMetadata: MutationMetadataSchema = {
-      snapshotVersionMicros: this.snapshotVersion.toMicroseconds(),
       state: this.state
     };
 
@@ -272,7 +267,6 @@ export class MutationMetadata {
  * serialization. The TargetId is omitted as it is encoded as part of the key.
  */
 interface QueryTargetStateSchema {
-  snapshotVersionMicros: number;
   state: QueryTargetState;
   error?: { code: string; message: string }; // Only set when state === 'rejected'
 }
@@ -285,7 +279,6 @@ interface QueryTargetStateSchema {
 export class QueryTargetMetadata {
   constructor(
     readonly targetId: TargetId,
-    readonly snapshotVersion: SnapshotVersion,
     readonly state: QueryTargetState,
     readonly error?: FirestoreError
   ) {
@@ -307,7 +300,6 @@ export class QueryTargetMetadata {
 
     let validData =
       typeof targetState === 'object' &&
-      isSafeInteger(targetState.snapshotVersionMicros) &&
       ['not-current', 'current', 'rejected'].indexOf(targetState.state) !==
         -1 &&
       (targetState.error === undefined ||
@@ -330,7 +322,6 @@ export class QueryTargetMetadata {
     if (validData) {
       return new QueryTargetMetadata(
         targetId,
-        SnapshotVersion.fromMicroseconds(targetState.snapshotVersionMicros),
         targetState.state,
         firestoreError
       );
@@ -345,7 +336,6 @@ export class QueryTargetMetadata {
 
   toLocalStorageJSON(): string {
     const targetState: QueryTargetStateSchema = {
-      snapshotVersionMicros: this.snapshotVersion.toMicroseconds(),
       state: this.state
     };
 
@@ -584,8 +574,6 @@ export class WebStorageSharedClientState implements SharedClientState {
     return !!(platform.window && platform.window.localStorage != null);
   }
 
-  // TOOD(multitab): Register the mutations that are already pending at client
-  // startup.
   async start(): Promise<void> {
     assert(!this.started, 'WebStorageSharedClientState already started');
     assert(
@@ -667,16 +655,15 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   addPendingMutation(batchId: BatchId): void {
-    this.persistMutationState(batchId, SnapshotVersion.MIN, 'pending');
+    this.persistMutationState(batchId, 'pending');
   }
 
   updateMutationState(
     batchId: BatchId,
-    snapshotVersion: SnapshotVersion,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
   ): void {
-    this.persistMutationState(batchId, snapshotVersion, state, error);
+    this.persistMutationState(batchId, state, error);
 
     // Once a final mutation result is observed by other clients, they no longer
     // access the mutation's metadata entry. Since LocalStorage replays events
@@ -716,17 +703,20 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.persistClientState();
   }
 
+  isLocalQueryTarget(targetId: TargetId): boolean {
+    return this.localClientState.activeTargetIds.has(targetId);
+  }
+
   clearQueryState(targetId: TargetId): void {
     this.removeItem(this.toLocalStorageQueryTargetMetadataKey(targetId));
   }
 
   updateQueryState(
     targetId: TargetId,
-    snapshotVersion: SnapshotVersion,
     state: QueryTargetState,
     error?: FirestoreError
   ): void {
-    this.persistQueryTargetState(targetId, snapshotVersion, state, error);
+    this.persistQueryTargetState(targetId, state, error);
   }
 
   handleUserChange(
@@ -776,14 +766,14 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private handleLocalStorageEvent(event: StorageEvent): void {
     if (event.storageArea === this.storage) {
-      // TODO(multitab): This assert will likely become invalid as we add garbage
-      // collection.
-      assert(
-        event.key !== this.localClientStorageKey,
-        'Received LocalStorage notification for local change.'
-      );
-
       debug(LOG_TAG, 'EVENT', event.key, event.newValue);
+
+      if (event.key === this.localClientStorageKey) {
+        error(
+          'Received LocalStorage notification for local change. Another client might have garbage-collected our state'
+        );
+        return;
+      }
 
       this.queue.enqueueAndForget(async () => {
         if (!this.started) {
@@ -858,14 +848,12 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private persistMutationState(
     batchId: BatchId,
-    snapshotVersion: SnapshotVersion,
     state: MutationBatchState,
     error?: FirestoreError
   ): void {
     const mutationState = new MutationMetadata(
       this.currentUser,
       batchId,
-      snapshotVersion,
       state,
       error
     );
@@ -888,17 +876,11 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private persistQueryTargetState(
     targetId: TargetId,
-    snapshotVersion: SnapshotVersion,
     state: QueryTargetState,
     error?: FirestoreError
   ): void {
     const targetKey = this.toLocalStorageQueryTargetMetadataKey(targetId);
-    const targetMetadata = new QueryTargetMetadata(
-      targetId,
-      snapshotVersion,
-      state,
-      error
-    );
+    const targetMetadata = new QueryTargetMetadata(targetId, state, error);
     this.setItem(targetKey, targetMetadata.toLocalStorageJSON());
   }
 
@@ -1008,7 +990,6 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     return this.syncEngine!.applyBatchState(
       mutationBatch.batchId,
-      mutationBatch.snapshotVersion,
       mutationBatch.state,
       mutationBatch.error
     );
@@ -1019,7 +1000,6 @@ export class WebStorageSharedClientState implements SharedClientState {
   ): Promise<void> {
     return this.syncEngine!.applyTargetState(
       targetMetadata.targetId,
-      targetMetadata.snapshotVersion,
       targetMetadata.state,
       targetMetadata.error
     );
@@ -1090,7 +1070,6 @@ export class MemorySharedClientState implements SharedClientState {
 
   updateMutationState(
     batchId: BatchId,
-    snapshotVersion: SnapshotVersion,
     state: 'acknowledged' | 'rejected',
     error?: FirestoreError
   ): void {
@@ -1104,7 +1083,6 @@ export class MemorySharedClientState implements SharedClientState {
 
   updateQueryState(
     targetId: TargetId,
-    snapshotVersion: SnapshotVersion,
     state: QueryTargetState,
     error?: FirestoreError
   ): void {
@@ -1113,6 +1091,10 @@ export class MemorySharedClientState implements SharedClientState {
 
   removeLocalQueryTarget(targetId: TargetId): void {
     this.localState.removeQueryTarget(targetId);
+  }
+
+  isLocalQueryTarget(targetId: TargetId): boolean {
+    return this.localState.activeTargetIds.has(targetId);
   }
 
   clearQueryState(targetId: TargetId): void {

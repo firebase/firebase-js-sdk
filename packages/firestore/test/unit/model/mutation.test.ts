@@ -34,11 +34,11 @@ import {
   doc,
   field,
   key,
-  mutatedDoc,
   mutationResult,
   patchMutation,
   setMutation,
   transformMutation,
+  unknownDoc,
   version,
   wrap,
   wrapObject
@@ -198,15 +198,9 @@ describe('Mutation', () => {
       foo: { bar: '<server-timestamp>' },
       baz: 'baz-value'
     }).set(field('foo.bar'), new ServerTimestampValue(timestamp, null));
-    const expectedDoc = new Document(
-      key('collection/key'),
-      /* remoteVersion=*/ version(0),
-      /* commitVersion=*/ version(0),
-      data,
-      {
-        hasLocalMutations: true
-      }
-    );
+    const expectedDoc = new Document(key('collection/key'), version(0), data, {
+      hasLocalMutations: true
+    });
 
     expect(transformedDoc).to.deep.equal(expectedDoc);
   });
@@ -383,17 +377,15 @@ describe('Mutation', () => {
     ]);
     const transformedDoc = transform.applyToRemoteDocument(
       baseDoc,
-      mutationResult.version!,
       mutationResult
     );
 
     expect(transformedDoc).to.deep.equal(
-      mutatedDoc(
+      doc(
         'collection/key',
-        0,
         1,
         { foo: { bar: timestamp.toDate() }, baz: 'baz-value' },
-        { hasLocalMutations: false }
+        { hasCommittedMutations: true }
       )
     );
   });
@@ -410,17 +402,15 @@ describe('Mutation', () => {
     const mutationResult = new MutationResult(version(1), [null, null]);
     const transformedDoc = transform.applyToRemoteDocument(
       baseDoc,
-      mutationResult.version!,
       mutationResult
     );
 
     expect(transformedDoc).to.deep.equal(
-      mutatedDoc(
+      doc(
         'collection/key',
-        0,
         1,
         { array1: [1, 2, 3], array2: ['b'] },
-        { hasLocalMutations: false }
+        { hasCommittedMutations: true }
       )
     );
   });
@@ -438,18 +428,13 @@ describe('Mutation', () => {
 
     const docSet = setMutation('collection/key', { foo: 'new-bar' });
     const setResult = mutationResult(4);
-    const setDoc = docSet.applyToRemoteDocument(
-      baseDoc,
-      setResult.version!,
-      setResult
-    );
+    const setDoc = docSet.applyToRemoteDocument(baseDoc, setResult);
     expect(setDoc).to.deep.equal(
-      mutatedDoc(
+      doc(
         'collection/key',
-        0,
         4,
         { foo: 'new-bar' },
-        { hasLocalMutations: false }
+        { hasCommittedMutations: true }
       )
     );
   });
@@ -459,19 +444,14 @@ describe('Mutation', () => {
 
     const mutation = patchMutation('collection/key', { foo: 'new-bar' });
     const result = mutationResult(5);
-    const patchedDoc = mutation.applyToRemoteDocument(
-      baseDoc,
-      result.version!,
-      result
-    );
+    const patchedDoc = mutation.applyToRemoteDocument(baseDoc, result);
     expect(patchedDoc).to.deep.equal(
-      mutatedDoc(
+      doc(
         'collection/key',
-        0,
         5,
         { foo: 'new-bar' },
         {
-          hasLocalMutations: false
+          hasCommittedMutations: true
         }
       )
     );
@@ -483,20 +463,12 @@ describe('Mutation', () => {
     mutationResult: MutationResult,
     expected: MaybeDocument | null
   ): void {
-    const actual = mutation.applyToRemoteDocument(
-      base,
-      mutationResult.version!,
-      mutationResult
-    );
+    const actual = mutation.applyToRemoteDocument(base, mutationResult);
     expect(actual).to.deep.equal(expected);
   }
 
   it('transitions versions correctly', () => {
-    const docV0Committed = mutatedDoc('collection/key', 0, 7, {});
-    const deletedV0 = deletedDoc('collection/key', 0, 7);
-
     const docV3 = doc('collection/key', 3, {});
-    const docV3Committed = mutatedDoc('collection/key', 3, 7, {});
     const deletedV3 = deletedDoc('collection/key', 3);
 
     const set = setMutation('collection/key', {});
@@ -509,21 +481,34 @@ describe('Mutation', () => {
       /*transformResults=*/ null
     );
     const transformResult = new MutationResult(version(7), []);
+    const docV7Unknown = unknownDoc('collection/key', 7);
+    const docV7Deleted = deletedDoc('collection/key', 7);
+    const docV7Committed = doc(
+      'collection/key',
+      7,
+      {},
+      { hasCommittedMutations: true }
+    );
 
-    assertVersionTransitions(set, docV3, mutationResult, docV3Committed);
-    assertVersionTransitions(set, deletedV3, mutationResult, docV0Committed);
-    assertVersionTransitions(set, null, mutationResult, docV0Committed);
+    assertVersionTransitions(set, docV3, mutationResult, docV7Committed);
+    assertVersionTransitions(set, deletedV3, mutationResult, docV7Committed);
+    assertVersionTransitions(set, null, mutationResult, docV7Committed);
 
-    assertVersionTransitions(patch, docV3, mutationResult, docV3Committed);
-    assertVersionTransitions(patch, deletedV3, mutationResult, deletedV3);
-    assertVersionTransitions(patch, null, mutationResult, null);
+    assertVersionTransitions(patch, docV3, mutationResult, docV7Committed);
+    assertVersionTransitions(patch, deletedV3, mutationResult, docV7Unknown);
+    assertVersionTransitions(patch, null, mutationResult, docV7Unknown);
 
-    assertVersionTransitions(transform, docV3, transformResult, docV3Committed);
-    assertVersionTransitions(transform, deletedV3, transformResult, deletedV3);
-    assertVersionTransitions(transform, null, transformResult, null);
+    assertVersionTransitions(transform, docV3, transformResult, docV7Committed);
+    assertVersionTransitions(
+      transform,
+      deletedV3,
+      transformResult,
+      docV7Unknown
+    );
+    assertVersionTransitions(transform, null, transformResult, docV7Unknown);
 
-    assertVersionTransitions(deleter, docV3, mutationResult, deletedV0);
-    assertVersionTransitions(deleter, deletedV3, mutationResult, deletedV0);
-    assertVersionTransitions(deleter, null, mutationResult, deletedV0);
+    assertVersionTransitions(deleter, docV3, mutationResult, docV7Deleted);
+    assertVersionTransitions(deleter, deletedV3, mutationResult, docV7Deleted);
+    assertVersionTransitions(deleter, null, mutationResult, docV7Deleted);
   });
 });

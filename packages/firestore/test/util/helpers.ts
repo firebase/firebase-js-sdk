@@ -53,7 +53,8 @@ import {
   Document,
   DocumentOptions,
   MaybeDocument,
-  NoDocument
+  NoDocument,
+  UnknownDocument
 } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
@@ -111,57 +112,29 @@ export function ref(dbIdStr: string, keyStr: string): DocumentKeyReference {
 
 export function doc(
   keyStr: string,
-  remoteVersion: TestSnapshotVersion,
+  ver: TestSnapshotVersion,
   json: JsonObject<AnyJs>,
-  options: DocumentOptions = {
-    hasLocalMutations: false
-  }
+  options: DocumentOptions = {}
 ): Document {
-  return new Document(
-    key(keyStr),
-    version(remoteVersion),
-    version(0),
-    wrapObject(json),
-    options
-  );
-}
-
-export function mutatedDoc(
-  keyStr: string,
-  remoteVersion: TestSnapshotVersion,
-  commitVersion: TestSnapshotVersion,
-  json: JsonObject<AnyJs>,
-  options: DocumentOptions = {
-    hasLocalMutations: false
-  }
-): Document {
-  return new Document(
-    key(keyStr),
-    version(remoteVersion),
-    version(commitVersion),
-    wrapObject(json),
-    options
-  );
+  return new Document(key(keyStr), version(ver), wrapObject(json), options);
 }
 
 export function deletedDoc(
   keyStr: string,
-  remoteVersion: TestSnapshotVersion,
-  commitVersion: TestSnapshotVersion = 0
+  ver: TestSnapshotVersion
 ): NoDocument {
-  return new NoDocument(
-    key(keyStr),
-    version(remoteVersion),
-    version(commitVersion)
-  );
+  return new NoDocument(key(keyStr), version(ver));
+}
+
+export function unknownDoc(
+  keyStr: string,
+  ver: TestSnapshotVersion
+): UnknownDocument {
+  return new UnknownDocument(key(keyStr), version(ver));
 }
 
 export function removedDoc(keyStr: string): NoDocument {
-  return new NoDocument(
-    key(keyStr),
-    SnapshotVersion.forDeletedDoc(),
-    SnapshotVersion.MIN
-  );
+  return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
 }
 
 export function wrap(value: AnyJs): FieldValue {
@@ -303,7 +276,7 @@ export function docAddedRemoteEvent(
       queryData(targetId, QueryPurpose.Listen, doc.key.toString())
   });
   aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.remoteVersion);
+  return aggregator.createRemoteEvent(doc.version);
 }
 
 export function docUpdateRemoteEvent(
@@ -327,7 +300,7 @@ export function docUpdateRemoteEvent(
       queryData(targetId, QueryPurpose.Listen, doc.key.toString())
   });
   aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.remoteVersion);
+  return aggregator.createRemoteEvent(doc.version);
 }
 
 export function updateMapping(
@@ -476,11 +449,7 @@ export function documentUpdates(
     } else if (docOrKey instanceof DocumentKey) {
       changes = changes.insert(
         docOrKey,
-        new NoDocument(
-          docOrKey,
-          SnapshotVersion.forDeletedDoc(),
-          SnapshotVersion.MIN
-        )
+        new NoDocument(docOrKey, SnapshotVersion.forDeletedDoc())
       );
     }
   }
@@ -494,10 +463,7 @@ export function applyDocChanges(
   view: View,
   ...docsOrKeys: Array<Document | DocumentKey>
 ): ViewChange {
-  const changes = view.computeDocChanges(
-    documentUpdates(...docsOrKeys),
-    SnapshotVersion.MIN
-  );
+  const changes = view.computeDocChanges(documentUpdates(...docsOrKeys));
   return view.applyChanges(changes, true);
 }
 

@@ -39,7 +39,6 @@ import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { LocalSerializer } from '../../../src/local/local_serializer';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 
 /** The prefix used by the keys that Firestore writes to Local Storage. */
 const LOCAL_STORAGE_PREFIX = 'firestore_';
@@ -122,7 +121,6 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   constructor(private readonly activeClients: ClientId[]) {}
   async applyBatchState(
     batchId: BatchId,
-    snapshotVersion: SnapshotVersion,
     state: MutationBatchState,
     error?: FirestoreError
   ): Promise<void> {}
@@ -136,7 +134,6 @@ class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   }
   async applyTargetState(
     targetId: TargetId,
-    snapshotVersion: SnapshotVersion,
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {}

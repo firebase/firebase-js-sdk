@@ -50,6 +50,7 @@ import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
+
 const LOG_TAG = 'LocalStore';
 
 /** The result of a write to the local store. */
@@ -476,40 +477,18 @@ export class LocalStore {
         changedDocKeys = changedDocKeys.add(key);
         promises.push(
           documentBuffer.getEntry(txn, key).next(existingDoc => {
-            let shouldApplyUpdate = false;
-
             // If a document update isn't authoritative, make sure we don't
             // apply an old document version to the remote cache. We make an
             // exception for SnapshotVersion.MIN which can happen for
             // manufactured events (e.g. in the case of a limbo document
             // resolution failing).
-
-            if (authoritativeUpdates.has(doc.key)) {
-              shouldApplyUpdate = true;
-            } else if (existingDoc === null) {
-              shouldApplyUpdate = true;
-            } else if (doc.remoteVersion.isEqual(SnapshotVersion.MIN)) {
-              shouldApplyUpdate = true;
-            } else if (
-              doc.remoteVersion.compareTo(existingDoc.remoteVersion) >= 0
-            ) {
-              shouldApplyUpdate = true;
-            }
-
-            // Even for authoritative updates, we suppress the update if the
-            // existing has a local edit with a higher commit version than the
-            // remote document. This prevents flicker as Watch catches up to a
-            // document version that includes our local edit.
             if (
-              existingDoc != null &&
-              existingDoc.commitVersion.compareTo(existingDoc.remoteVersion) >
-                0 &&
-              existingDoc.commitVersion.compareTo(doc.remoteVersion) > 0
+              existingDoc == null ||
+              doc.version.isEqual(SnapshotVersion.MIN) ||
+              (authoritativeUpdates.has(doc.key) &&
+                !existingDoc.hasPendingWrites) ||
+              doc.version.compareTo(existingDoc.version) >= 0
             ) {
-              shouldApplyUpdate = false;
-            }
-
-            if (shouldApplyUpdate) {
               documentBuffer.addEntry(doc);
             } else {
               log.debug(
@@ -517,9 +496,9 @@ export class LocalStore {
                 'Ignoring outdated watch update for ',
                 key,
                 '. Current version:',
-                existingDoc!.remoteVersion,
+                existingDoc!.version,
                 ' Watch version:',
-                doc.remoteVersion
+                doc.version
               );
             }
 
@@ -811,7 +790,7 @@ export class LocalStore {
             ackVersion !== null,
             'ackVersions should contain every doc in the write.'
           );
-          if (!doc || doc.remoteVersion.compareTo(ackVersion!) < 0) {
+          if (!doc || doc.version.compareTo(ackVersion!) < 0) {
             doc = batch.applyToRemoteDocument(docKey, doc, batchResult);
             if (!doc) {
               assert(

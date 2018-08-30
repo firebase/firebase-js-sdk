@@ -245,10 +245,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         .remoteDocumentKeys(queryData.targetId)
         .then(remoteKeys => {
           const view = new View(query, remoteKeys);
-          const viewDocChanges = view.computeDocChanges(
-            docs,
-            SnapshotVersion.MIN
-          );
+          const viewDocChanges = view.computeInitialChanges(docs);
           const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
             queryData.targetId,
             current && this.onlineState !== OnlineState.Offline
@@ -318,11 +315,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
 
       if (!targetRemainsActive) {
-        this.sharedClientState.clearQueryState(queryView.targetId);
-        this.remoteStore.unlisten(queryView.targetId);
         await this.localStore
           .releaseQuery(query, /*keepPersistedQueryData=*/ false)
-          .then(() => this.removeAndCleanupQuery(queryView))
+          .then(() => {
+            this.sharedClientState.clearQueryState(queryView.targetId);
+            this.remoteStore.unlisten(queryView.targetId);
+            return this.removeAndCleanupQuery(queryView);
+          })
           .then(() => this.localStore.collectGarbage())
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
@@ -352,10 +351,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       .then(result => {
         this.sharedClientState.addPendingMutation(result.batchId);
         this.addMutationCallback(result.batchId, userCallback);
-        return this.emitNewSnapsAndNotifyLocalStore(
-          result.changes,
-          SnapshotVersion.MIN
-        );
+        return this.emitNewSnapsAndNotifyLocalStore(result.changes);
       })
       .then(() => {
         return this.remoteStore.fillWritePipeline();
@@ -465,11 +461,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             }
           }
         );
-        return this.emitNewSnapsAndNotifyLocalStore(
-          changes,
-          remoteEvent.snapshotVersion,
-          remoteEvent
-        );
+        return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
@@ -515,12 +507,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.assertSubscribed('rejectListens()');
 
     // PORTING NOTE: Multi-tab only.
-    this.sharedClientState.updateQueryState(
-      targetId,
-      SnapshotVersion.MIN,
-      'rejected',
-      err
-    );
+    this.sharedClientState.updateQueryState(targetId, 'rejected', err);
 
     const limboResolution = this.limboResolutionsByTarget[targetId];
     const limboKey = limboResolution && limboResolution.key;
@@ -542,11 +529,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       documentUpdates = documentUpdates.insert(
         limboKey,
-        new NoDocument(
-          limboKey,
-          SnapshotVersion.forDeletedDoc(),
-          SnapshotVersion.MIN
-        )
+        new NoDocument(limboKey, SnapshotVersion.forDeletedDoc())
       );
       const resolvedLimboDocuments = documentKeySet().add(limboKey);
       const event = new RemoteEvent(
@@ -571,7 +554,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // PORTING NOTE: Multi-tab only
   async applyBatchState(
     batchId: BatchId,
-    snapshotVersion: SnapshotVersion,
     batchState: MutationBatchState,
     error?: FirestoreError
   ): Promise<void> {
@@ -605,7 +587,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       fail(`Unknown batchState: ${batchState}`);
     }
 
-    await this.emitNewSnapsAndNotifyLocalStore(documents, snapshotVersion);
+    await this.emitNewSnapsAndNotifyLocalStore(documents);
   }
 
   applySuccessfulWrite(
@@ -624,15 +606,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
-        this.sharedClientState.updateMutationState(
-          batchId,
-          mutationBatchResult.commitVersion,
-          'acknowledged'
-        );
-        return this.emitNewSnapsAndNotifyLocalStore(
-          changes,
-          mutationBatchResult.commitVersion
-        );
+        this.sharedClientState.updateMutationState(batchId, 'acknowledged');
+        return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
@@ -649,16 +624,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .rejectBatch(batchId)
       .then(changes => {
-        this.sharedClientState.updateMutationState(
-          batchId,
-          SnapshotVersion.MIN,
-          'rejected',
-          error
-        );
-        return this.emitNewSnapsAndNotifyLocalStore(
-          changes,
-          SnapshotVersion.MIN
-        );
+        this.sharedClientState.updateMutationState(batchId, 'rejected', error);
+        return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
   }
@@ -791,7 +758,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   private async emitNewSnapsAndNotifyLocalStore(
     changes: MaybeDocumentMap,
-    snapshotVersion: SnapshotVersion,
     remoteEvent?: RemoteEvent
   ): Promise<void> {
     const newSnaps: ViewSnapshot[] = [];
@@ -799,15 +765,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const queriesProcessed: Array<Promise<void>> = [];
 
     this.queryViewsByQuery.forEach((_, queryView) => {
-      const targetChange =
-        remoteEvent && remoteEvent.targetChanges[queryView.targetId];
       queriesProcessed.push(
         Promise.resolve()
           .then(() => {
-            const viewDocChanges = queryView.view.computeDocChanges(
-              changes,
-              snapshotVersion
-            );
+            const viewDocChanges = queryView.view.computeDocChanges(changes);
             if (!viewDocChanges.needsRefill) {
               return viewDocChanges;
             }
@@ -815,14 +776,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             // to re-run the query against the local store to make sure we
             // didn't lose any good docs that had been past the limit.
             return this.localStore.executeQuery(queryView.query).then(docs => {
-              return queryView.view.computeDocChanges(
-                docs,
-                snapshotVersion,
-                viewDocChanges
-              );
+              return queryView.view.computeDocChanges(docs, viewDocChanges);
             });
           })
           .then((viewDocChanges: ViewDocumentChanges) => {
+            const targetChange =
+              remoteEvent && remoteEvent.targetChanges[queryView.targetId];
             const viewChange = queryView.view.applyChanges(
               viewDocChanges,
               /* updateLimboDocuments= */ this.isPrimary === true,
@@ -836,7 +795,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
                 if (this.isPrimary) {
                   this.sharedClientState.updateQueryState(
                     queryView.targetId,
-                    snapshotVersion,
                     viewChange.snapshot.fromCache ? 'not-current' : 'current'
                   );
                 }
@@ -856,7 +814,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     await Promise.all(queriesProcessed);
     this.syncEngineListener!.onWatchChange(newSnaps);
     this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-    // TODO(multitab): Multitab garbage collection
     if (this.isPrimary) {
       await this.localStore
         .collectGarbage()
@@ -901,10 +858,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         result.removedBatchIds,
         result.addedBatchIds
       );
-      await this.emitNewSnapsAndNotifyLocalStore(
-        result.affectedDocuments,
-        SnapshotVersion.MIN
-      );
+      await this.emitNewSnapsAndNotifyLocalStore(result.affectedDocuments);
     }
 
     await this.remoteStore.handleCredentialChange();
@@ -931,14 +885,22 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       }
     } else if (isPrimary === false && this.isPrimary !== false) {
       this.isPrimary = false;
-      const activeQueries = await this.synchronizeQueryViewsAndRaiseSnapshots(
-        objUtils.indices(this.queryViewsByTarget)
-      );
+
+      const activeTargets: TargetId[] = [];
+
+      let p = Promise.resolve();
+      objUtils.forEachNumber(this.queryViewsByTarget, (targetId, queryView) => {
+        if (this.sharedClientState.isLocalQueryTarget(targetId)) {
+          activeTargets.push(targetId);
+        } else {
+          p = p.then(() => this.unlisten(queryView.query));
+        }
+        this.remoteStore.unlisten(queryView.targetId);
+      });
+      await p;
+
+      await this.synchronizeQueryViewsAndRaiseSnapshots(activeTargets);
       this.resetLimboDocuments();
-      for (const queryData of activeQueries) {
-        // TODO(multitab): Remove query views for non-local queries.
-        this.remoteStore.unlisten(queryData.targetId);
-      }
       await this.remoteStore.applyPrimaryState(false);
     }
   }
@@ -1018,7 +980,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // PORTING NOTE: Multi-tab only
   async applyTargetState(
     targetId: TargetId,
-    snapshotVersion: SnapshotVersion,
     state: QueryTargetState,
     error?: FirestoreError
   ): Promise<void> {
@@ -1040,7 +1001,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           );
           return this.emitNewSnapsAndNotifyLocalStore(
             changes,
-            snapshotVersion,
             synthesizedRemoteEvent
           );
         }
@@ -1089,10 +1049,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // Check that the query is still active since the query might have been
       // removed if it has been rejected by the backend.
       if (queryView) {
-        this.remoteStore.unlisten(targetId);
         await this.localStore
           .releaseQuery(queryView.query, /*keepPersistedQueryData=*/ false)
-          .then(() => this.removeAndCleanupQuery(queryView))
+          .then(() => {
+            this.remoteStore.unlisten(targetId);
+            return this.removeAndCleanupQuery(queryView);
+          })
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
     }

@@ -392,11 +392,7 @@ export class WatchChangeAggregator {
           this.removeDocumentFromTarget(
             targetId,
             key,
-            new NoDocument(
-              key,
-              /*remoteVersion=*/ SnapshotVersion.forDeletedDoc(),
-              /*commitVersion=*/ SnapshotVersion.MIN
-            )
+            new NoDocument(key, SnapshotVersion.forDeletedDoc())
           );
         } else {
           assert(
@@ -444,11 +440,7 @@ export class WatchChangeAggregator {
             this.removeDocumentFromTarget(
               targetId,
               key,
-              new NoDocument(
-                key,
-                snapshotVersion,
-                /*commitVersion=*/ SnapshotVersion.MIN
-              )
+              new NoDocument(key, snapshotVersion)
             );
           }
         }

@@ -91,7 +91,6 @@ import {
   fieldPathFromArgument,
   UserDataConverter
 } from './user_data_converter';
-import { SnapshotVersion } from '../core/snapshot_version';
 
 // The objects that are a part of this API are exposed to third-parties as
 // compiled javascript so we want to flag our private members with a leading
@@ -1229,11 +1228,11 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
   }
 
   get metadata(): firestore.SnapshotMetadata {
-    return new SnapshotMetadata(
-      this._document !== null &&
-        this._document.hasPendingWrites(SnapshotVersion.MIN),
-      this._fromCache
-    );
+    // We currently don't raise `hasPendingWrites` for deleted documents, even
+    // if Watch hasn't caught up to the deleted version yet.
+    const hasPendingWrites =
+      this._document instanceof Document && this._document.hasPendingWrites;
+    return new SnapshotMetadata(hasPendingWrites, this._fromCache);
   }
 
   isEqual(other: firestore.DocumentSnapshot): boolean {

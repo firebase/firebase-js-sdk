@@ -18,7 +18,12 @@ import * as api from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import {
+  Document,
+  MaybeDocument,
+  NoDocument,
+  UnknownDocument
+} from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { JsonProtoSerializer } from '../remote/serializer';
@@ -30,7 +35,8 @@ import {
   DbQuery,
   DbRemoteDocument,
   DbTarget,
-  DbTimestamp
+  DbTimestamp,
+  DbUnknownDocument
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
@@ -42,15 +48,21 @@ export class LocalSerializer {
 
   /** Decodes a remote document from storage locally to a Document. */
   fromDbRemoteDocument(remoteDoc: DbRemoteDocument): MaybeDocument {
-    const commitTime = remoteDoc.commitVersion
-      ? this.fromDbTimestamp(remoteDoc.commitVersion)
-      : SnapshotVersion.MIN;
     if (remoteDoc.document) {
-      return this.remoteSerializer.fromDocument(remoteDoc.document, commitTime);
+      return this.remoteSerializer.fromDocument(
+        remoteDoc.document,
+        !!remoteDoc.hasCommittedMutations
+      );
     } else if (remoteDoc.noDocument) {
       const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
       const version = this.fromDbTimestamp(remoteDoc.noDocument.readTime);
-      return new NoDocument(key, version, commitTime);
+      return new NoDocument(key, version, {
+        hasCommittedMutations: !!remoteDoc.hasCommittedMutations
+      });
+    } else if (remoteDoc.unknownDocument) {
+      const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
+      const version = this.fromDbTimestamp(remoteDoc.unknownDocument.readTime);
+      return new UnknownDocument(key, version);
     } else {
       return fail('Unexpected DbRemoteDocument');
     }
@@ -58,20 +70,36 @@ export class LocalSerializer {
 
   /** Encodes a document for storage locally. */
   toDbRemoteDocument(maybeDoc: MaybeDocument): DbRemoteDocument {
-    const commitVersion = maybeDoc.commitVersion
-      ? this.toDbTimestamp(maybeDoc.commitVersion)
-      : new DbTimestamp(0, 0);
     if (maybeDoc instanceof Document) {
       const doc = this.remoteSerializer.toDocument(maybeDoc);
-      return new DbRemoteDocument(null, doc, commitVersion);
-    } else {
-      const path = maybeDoc.key.path.toArray();
-      const readTime = this.toDbTimestamp(maybeDoc.remoteVersion);
+      const hasCommittedMutations = maybeDoc.hasCommittedMutations;
       return new DbRemoteDocument(
-        new DbNoDocument(path, readTime),
-        null,
-        commitVersion
+        /* unknownDocument= */ null,
+        /* noDocument= */ null,
+        doc,
+        hasCommittedMutations
       );
+    } else if (maybeDoc instanceof NoDocument) {
+      const path = maybeDoc.key.path.toArray();
+      const readTime = this.toDbTimestamp(maybeDoc.version);
+      const hasCommittedMutations = maybeDoc.hasCommittedMutations;
+      return new DbRemoteDocument(
+        /* unknownDocument= */ null,
+        new DbNoDocument(path, readTime),
+        /* document= */ null,
+        hasCommittedMutations
+      );
+    } else if (maybeDoc instanceof UnknownDocument) {
+      const path = maybeDoc.key.path.toArray();
+      const readTime = this.toDbTimestamp(maybeDoc.version);
+      return new DbRemoteDocument(
+        new DbUnknownDocument(path, readTime),
+        /* noDocument= */ null,
+        /* document= */ null,
+        /* hasCommittedMutations= */ true
+      );
+    } else {
+      return fail('Unexpected MaybeDocumment');
     }
   }
 

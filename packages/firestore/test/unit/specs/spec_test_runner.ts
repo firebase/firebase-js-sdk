@@ -84,6 +84,7 @@ import { Deferred, sequence } from '../../../src/util/promise';
 import {
   deletedDoc,
   deleteMutation,
+  doc,
   filter,
   key,
   orderBy,
@@ -92,8 +93,7 @@ import {
   setMutation,
   TestSnapshotVersion,
   version,
-  expectFirestoreError,
-  mutatedDoc
+  expectFirestoreError
 } from '../../util/helpers';
 import {
   ClientId,
@@ -720,14 +720,13 @@ abstract class TestRunner {
       });
     } else if (watchEntity.doc) {
       const document = watchEntity.doc.value
-        ? mutatedDoc(
+        ? doc(
             watchEntity.doc.key,
-            watchEntity.doc.remoteVersion,
-            watchEntity.doc.commitVersion || 0,
+            watchEntity.doc.version,
             watchEntity.doc.value,
             watchEntity.doc.options
           )
-        : deletedDoc(watchEntity.doc.key, watchEntity.doc.remoteVersion);
+        : deletedDoc(watchEntity.doc.key, watchEntity.doc.version);
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
@@ -1144,15 +1143,13 @@ abstract class TestRunner {
     type: ChangeType,
     change: SpecDocument
   ): DocumentViewChange {
-    const options = change.options || { hasLocalMutations: false };
     return {
       type,
-      doc: mutatedDoc(
+      doc: doc(
         change.key,
-        change.remoteVersion,
-        change.commitVersion || 0,
+        change.version,
         change.value || {},
-        options
+        change.options || {}
       )
     };
   }
@@ -1502,8 +1499,7 @@ export interface SpecQuery {
  */
 export interface SpecDocument {
   key: string;
-  remoteVersion: TestSnapshotVersion;
-  commitVersion?: TestSnapshotVersion;
+  version: TestSnapshotVersion;
   value: JsonObject<AnyJs> | null;
   options?: DocumentOptions;
 }

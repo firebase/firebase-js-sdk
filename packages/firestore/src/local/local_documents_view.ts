@@ -98,8 +98,7 @@ export class LocalDocumentsView {
                 if (!maybeDoc) {
                   maybeDoc = new NoDocument(
                     key,
-                    SnapshotVersion.forDeletedDoc(),
-                    SnapshotVersion.MIN
+                    SnapshotVersion.forDeletedDoc()
                   );
                 }
                 results = results.insert(key, maybeDoc);

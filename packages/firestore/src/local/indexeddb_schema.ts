@@ -426,9 +426,22 @@ export class DbNoDocument {
 }
 
 /**
- * An object to be stored in the 'remoteDocuments' store in IndexedDb. It
- * represents either a cached document (if it exists) or a cached "no-document"
- * (if it is known to not exist).
+ * Represents a document that is known to exist but whose data is unknown.
+ * Stored in IndexedDb as part of a DbRemoteDocument object.
+ */
+export class DbUnknownDocument {
+  constructor(public path: string[], public readTime: DbTimestamp) {}
+}
+
+/**
+ * An object to be stored in the 'remoteDocuments' store in IndexedDb.
+ * It represents either:
+ *
+ * - A complete document.
+ * - A "no document" representing a document that is known not to exist (at
+ * some version).
+ * - An "unknown document" representing a document that is known to exist (at
+ * some version) but whose contents are unknown.
  *
  * Note: This is the persisted equivalent of a MaybeDocument and could perhaps
  * be made more general if necessary.
@@ -437,6 +450,12 @@ export class DbRemoteDocument {
   static store = 'remoteDocuments';
 
   constructor(
+    /**
+     * Set to an instance of DbUnknownDocument if the data for a document is
+     * not known, but it is known that a document exists at the specified
+     * version (e.g. it had a successful update applied to it)
+     */
+    public unknownDocument: DbUnknownDocument | null | undefined,
     /**
      * Set to an instance of a DbNoDocument if it is known that no document
      * exists.
@@ -448,12 +467,12 @@ export class DbRemoteDocument {
      */
     public document: api.Document | null,
     /**
-     * For documents that were written to the remote document store based on
-     * a write acknowledgment, the commit version of the write. This is used
-     * to determine if the document is 'dirty' (the commit version is higher
-     * then the last version sent to us by Watch).
+     * Documents that were written to the remote document store based on
+     * a write acknowledgment are marked with `hasCommittedMutations`. These
+     * documents are potentially inconsistent with the backend's copy and use
+     * the write's commit version as their document version.
      */
-    public commitVersion?: DbTimestamp
+    public hasCommittedMutations: boolean | undefined
   ) {}
 }
 

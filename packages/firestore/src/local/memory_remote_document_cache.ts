@@ -91,11 +91,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       changedDocs = changedDocs.insert(
         key,
         this.docs.get(key) ||
-          new NoDocument(
-            key,
-            SnapshotVersion.forDeletedDoc(),
-            SnapshotVersion.MIN
-          )
+          new NoDocument(key, SnapshotVersion.forDeletedDoc())
       );
     });
 

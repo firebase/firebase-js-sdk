@@ -61,7 +61,6 @@ import {
 import { AutoId } from '../util/misc';
 import { PersistenceSettings } from '../api/database';
 import { assert } from '../util/assert';
-import { SnapshotVersion } from './snapshot_version';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -503,8 +502,7 @@ export class FirestoreClient {
 
         const view = new View(query, remoteKeys);
         const viewDocChanges: ViewDocumentChanges = view.computeDocChanges(
-          docs,
-          SnapshotVersion.MIN
+          docs
         );
         return view.applyChanges(
           viewDocChanges,
