@@ -156,6 +156,9 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * TODO(multitab): Remove `experimentalTabSynchronization` section when
  * multi-tab is no longer optional.
  */
+type MultiClientParams = {
+  sequenceNumberSyncer: SequenceNumberSyncer;
+};
 export class IndexedDbPersistence implements Persistence {
   static getStore<Key extends IDBValidKey, Value>(
     txn: PersistenceTransaction,
@@ -200,9 +203,7 @@ export class IndexedDbPersistence implements Persistence {
     platform: Platform,
     queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    multiClientParams: {
-      sequenceNumberSyncer: SequenceNumberSyncer;
-    }
+    multiClientParams: MultiClientParams
   ): Promise<IndexedDbPersistence> {
     const persistence = new IndexedDbPersistence(
       persistenceKey,
@@ -260,9 +261,7 @@ export class IndexedDbPersistence implements Persistence {
     platform: Platform,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    private readonly multiClientParams?: {
-      sequenceNumberSyncer: SequenceNumberSyncer;
-    }
+    private readonly multiClientParams?: MultiClientParams
   ) {
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(

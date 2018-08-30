@@ -1153,10 +1153,10 @@ class MemoryTestRunner extends TestRunner {
     return new MemorySharedClientState();
   }
 
-  protected async initPersistence(
+  protected initPersistence(
     serializer: JsonProtoSerializer
   ): Promise<Persistence> {
-    return new MemoryPersistence(this.clientId);
+    return Promise.resolve(new MemoryPersistence(this.clientId));
   }
 }
 

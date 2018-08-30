@@ -106,9 +106,6 @@ async function withCustomPersistence(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
-  if (settings.experimentalTabSynchronization) {
-  } else {
-  }
   const persistence = await (settings.experimentalTabSynchronization
     ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
         TEST_PERSISTENCE_PREFIX,
