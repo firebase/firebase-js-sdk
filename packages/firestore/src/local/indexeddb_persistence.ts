@@ -327,6 +327,10 @@ export class IndexedDbPersistence implements Persistence {
       })
       .then(() => {
         this._started = true;
+      })
+      .catch(reason => {
+        this.simpleDb && this.simpleDb.close();
+        return Promise.reject(reason);
       });
   }
 

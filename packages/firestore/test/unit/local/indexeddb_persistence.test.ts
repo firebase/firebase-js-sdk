@@ -106,19 +106,29 @@ async function withCustomPersistence(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
-  const multiClientParams = settings.experimentalTabSynchronization
-    ? {
-        sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
-      }
-    : undefined;
+  if (settings.experimentalTabSynchronization) {
 
-  const persistence = new IndexedDbPersistence(
-    TEST_PERSISTENCE_PREFIX,
-    clientId,
-    platform,
-    queue,
-    serializer,
-    multiClientParams
+  } else {
+
+  }
+  const persistence = await (
+    settings.experimentalTabSynchronization
+      ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
+          TEST_PERSISTENCE_PREFIX,
+          clientId,
+          platform,
+          queue,
+          serializer,{
+            sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
+          }
+        )
+      : IndexedDbPersistence.createIndexedDbPersistence(
+          TEST_PERSISTENCE_PREFIX,
+          clientId,
+          platform,
+          queue,
+          serializer
+        )
   );
 
   await fn(persistence, platform, queue);
@@ -555,7 +565,6 @@ describe('IndexedDb: canActAsPrimary', () => {
       return withPersistence(
         'thatClient',
         async (thatPersistence, thatPlatform, thatQueue) => {
-          await thatPersistence.start();
           thatPlatform.raiseVisibilityEvent(thatVisibility);
           thatPersistence.setNetworkEnabled(thatNetwork);
           await thatQueue.drain();
@@ -567,7 +576,6 @@ describe('IndexedDb: canActAsPrimary', () => {
           await withPersistence(
             'thisClient',
             async (thisPersistence, thisPlatform, thisQueue) => {
-              await thisPersistence.start();
               thisPlatform.raiseVisibilityEvent(thisVisibility);
               thisPersistence.setNetworkEnabled(thisNetwork);
               await thisQueue.drain();
@@ -588,7 +596,6 @@ describe('IndexedDb: canActAsPrimary', () => {
 
   it('is eligible when only client', () => {
     return withPersistence('clientA', async (persistence, platform, queue) => {
-      await persistence.start();
       platform.raiseVisibilityEvent('hidden');
       persistence.setNetworkEnabled(false);
       await queue.drain();
@@ -612,22 +619,17 @@ describe('IndexedDb: allowTabSynchronization', () => {
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
-  it('rejects access when synchronization is disabled', () => {
-    return withPersistence('clientA', async db1 => {
-      await db1.start();
-      await withPersistence('clientB', async db2 => {
-        await expect(db2.start()).to.eventually.be.rejectedWith(
-          'There is another tab open with offline persistence enabled.'
-        );
-      });
+  it('rejects access when synchronization is disabled', async () => {
+    await withPersistence('clientA', async db1 => {
+      await expect(withPersistence('clientB', db2 => Promise.resolve())).to.eventually.be.rejectedWith(
+        'There is another tab open with offline persistence enabled.'
+      );
     });
   });
 
   it('grants access when synchronization is enabled', async () => {
     return withMultiClientPersistence('clientA', async db1 => {
-      await db1.start();
       await withMultiClientPersistence('clientB', async db2 => {
-        await db2.start();
       });
     });
   });

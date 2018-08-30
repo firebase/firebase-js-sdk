@@ -54,11 +54,7 @@ export class MemoryPersistence implements Persistence {
 
   private _started = false;
 
-  constructor(private readonly clientId: ClientId) {}
-
-  async start(): Promise<void> {
-    // No durable state to read on startup.
-    assert(!this._started, 'MemoryPersistence double-started!');
+  constructor(private readonly clientId: ClientId) {
     this._started = true;
   }
 
