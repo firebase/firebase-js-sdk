@@ -207,6 +207,7 @@ export class View {
       while (newDocumentSet.size > this.query.limit!) {
         const oldDoc = newDocumentSet.last();
         newDocumentSet = newDocumentSet.delete(oldDoc!.key);
+        newMutatedKeys = newMutatedKeys.delete(oldDoc!.key);
         changeSet.track({ type: ChangeType.Removed, doc: oldDoc! });
       }
     }
