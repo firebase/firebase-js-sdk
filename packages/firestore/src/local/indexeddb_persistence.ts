@@ -156,6 +156,9 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * TODO(multitab): Remove `experimentalTabSynchronization` section when
  * multi-tab is no longer optional.
  */
+export type MultiClientParams = {
+  sequenceNumberSyncer: SequenceNumberSyncer;
+};
 export class IndexedDbPersistence implements Persistence {
   static getStore<Key extends IDBValidKey, Value>(
     txn: PersistenceTransaction,
@@ -175,6 +178,44 @@ export class IndexedDbPersistence implements Persistence {
    * appended to the prefix provided to the IndexedDbPersistence constructor.
    */
   static MAIN_DATABASE = 'main';
+
+  static async createIndexedDbPersistence(
+    persistenceKey: string,
+    clientId: ClientId,
+    platform: Platform,
+    queue: AsyncQueue,
+    serializer: JsonProtoSerializer
+  ): Promise<IndexedDbPersistence> {
+    const persistence = new IndexedDbPersistence(
+      persistenceKey,
+      clientId,
+      platform,
+      queue,
+      serializer
+    );
+    await persistence.start();
+    return persistence;
+  }
+
+  static async createMultiClientIndexedDbPersistence(
+    persistenceKey: string,
+    clientId: ClientId,
+    platform: Platform,
+    queue: AsyncQueue,
+    serializer: JsonProtoSerializer,
+    multiClientParams: MultiClientParams
+  ): Promise<IndexedDbPersistence> {
+    const persistence = new IndexedDbPersistence(
+      persistenceKey,
+      clientId,
+      platform,
+      queue,
+      serializer,
+      multiClientParams
+    );
+    await persistence.start();
+    return persistence;
+  }
 
   private readonly document: Document | null;
   private readonly window: Window;
@@ -214,15 +255,13 @@ export class IndexedDbPersistence implements Persistence {
   // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
   // is still experimental. When multi-client is switched to always on, `multiClientParams` will
   // no longer be optional.
-  constructor(
+  private constructor(
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
     platform: Platform,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    private readonly multiClientParams?: {
-      sequenceNumberSyncer: SequenceNumberSyncer;
-    }
+    private readonly multiClientParams?: MultiClientParams
   ) {
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(
@@ -259,7 +298,7 @@ export class IndexedDbPersistence implements Persistence {
    *
    * @return {Promise<void>} Whether persistence was enabled.
    */
-  start(): Promise<void> {
+  private start(): Promise<void> {
     assert(!this.started, 'IndexedDbPersistence double-started!');
     assert(this.window !== null, "Expected 'window' to be defined");
 
@@ -300,6 +339,10 @@ export class IndexedDbPersistence implements Persistence {
       })
       .then(() => {
         this._started = true;
+      })
+      .catch(reason => {
+        this.simpleDb && this.simpleDb.close();
+        return Promise.reject(reason);
       });
   }
 

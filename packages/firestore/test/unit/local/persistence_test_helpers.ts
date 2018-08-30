@@ -105,24 +105,27 @@ export async function testIndexedDbPersistence(
     useProto3Json: true
   });
   const platform = PlatformSupport.getPlatform();
-  const persistence = new IndexedDbPersistence(
-    TEST_PERSISTENCE_PREFIX,
-    clientId,
-    platform,
-    queue,
-    serializer,
-    options.synchronizeTabs
-      ? { sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER }
-      : undefined
-  );
-  await persistence.start();
-  return persistence;
+  return options.synchronizeTabs
+    ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
+        TEST_PERSISTENCE_PREFIX,
+        clientId,
+        platform,
+        queue,
+        serializer,
+        { sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER }
+      )
+    : IndexedDbPersistence.createIndexedDbPersistence(
+        TEST_PERSISTENCE_PREFIX,
+        clientId,
+        platform,
+        queue,
+        serializer
+      );
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryPersistence(): Promise<MemoryPersistence> {
   const persistence = new MemoryPersistence(AutoId.newId());
-  await persistence.start();
   return persistence;
 }
 

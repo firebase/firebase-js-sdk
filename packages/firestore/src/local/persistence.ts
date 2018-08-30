@@ -89,13 +89,6 @@ export interface Persistence {
   readonly started: boolean;
 
   /**
-   * Starts persistent storage, opening the database or similar.
-   *
-   * Throws an exception if the database could not be opened.
-   */
-  start(): Promise<void>;
-
-  /**
    * Releases any resources held during eager shutdown.
    *
    * @param deleteData Whether to delete the persisted data. This causes

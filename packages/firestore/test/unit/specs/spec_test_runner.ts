@@ -1153,12 +1153,10 @@ class MemoryTestRunner extends TestRunner {
     return new MemorySharedClientState();
   }
 
-  protected async initPersistence(
+  protected initPersistence(
     serializer: JsonProtoSerializer
   ): Promise<Persistence> {
-    const persistence = new MemoryPersistence(this.clientId);
-    await persistence.start();
-    return persistence;
+    return Promise.resolve(new MemoryPersistence(this.clientId));
   }
 }
 
@@ -1177,10 +1175,10 @@ class IndexedDbTestRunner extends TestRunner {
     );
   }
 
-  protected async initPersistence(
+  protected initPersistence(
     serializer: JsonProtoSerializer
   ): Promise<Persistence> {
-    const persistence = new IndexedDbPersistence(
+    return IndexedDbPersistence.createMultiClientIndexedDbPersistence(
       TEST_PERSISTENCE_PREFIX,
       this.clientId,
       this.platform,
@@ -1188,8 +1186,6 @@ class IndexedDbTestRunner extends TestRunner {
       serializer,
       { sequenceNumberSyncer: this.sharedClientState }
     );
-    await persistence.start();
-    return persistence;
   }
 
   static destroyPersistence(): Promise<void> {
