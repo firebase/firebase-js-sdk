@@ -41,6 +41,31 @@ describeSpec('Limits:', [], () => {
       });
   });
 
+  specTest(
+    "Documents outside of limit don't raise hasPendingWrites",
+    [],
+    () => {
+      const query1 = Query.atPath(path('collection')).withLimit(2);
+      const doc1 = doc('collection/a', 1000, { key: 'a' });
+      const doc2 = doc('collection/b', 1000, { key: 'b' });
+
+      return spec()
+        .withGCEnabled(false)
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, doc1, doc2)
+        .expectEvents(query1, {
+          added: [doc1, doc2]
+        })
+        .userUnlistens(query1)
+        .userSets('collection/c', { key: 'c' })
+        .userListens(query1, 'resume-token-1000')
+        .expectEvents(query1, {
+          added: [doc1, doc2],
+          fromCache: true
+        });
+    }
+  );
+
   specTest('Deleted Document in limbo in full limit query', [], () => {
     const query = Query.atPath(path('collection')).withLimit(2);
     const doc1 = doc('collection/a', 1000, { key: 'a' });
