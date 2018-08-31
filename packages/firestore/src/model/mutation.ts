@@ -156,11 +156,7 @@ export class Precondition {
         maybeDoc.version.isEqual(this.updateTime)
       );
     } else if (this.exists !== undefined) {
-      if (this.exists) {
-        return maybeDoc instanceof Document;
-      } else {
-        return maybeDoc === null || maybeDoc instanceof NoDocument;
-      }
+      return this.exists === maybeDoc instanceof Document;
     } else {
       assert(this.isNone, 'Precondition should be empty');
       return true;
