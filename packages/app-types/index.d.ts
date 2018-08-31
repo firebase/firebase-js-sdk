@@ -52,7 +52,7 @@ export class FirebaseApp {
   delete(): Promise<void>;
 }
 
-export interface FirebaseNamespace {
+export default interface FirebaseNamespace {
   /**
    * Create (and initialize) a FirebaseApp.
    *
