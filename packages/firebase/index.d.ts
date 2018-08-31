@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 type NextFn<T> = (value: T) => void;
 type ErrorFn<E = Error> = (error: E) => void;
 type CompleteFn = () => void;
@@ -37,9 +36,7 @@ type Unsubscribe = () => void;
 export interface User extends UserInfo {
   delete(): Promise<any>;
   emailVerified: boolean;
-  getIdTokenResult(
-    forceRefresh?: boolean
-  ): Promise<auth.IdTokenResult>;
+  getIdTokenResult(forceRefresh?: boolean): Promise<auth.IdTokenResult>;
   getIdToken(forceRefresh?: boolean): Promise<any>;
   isAnonymous: boolean;
   linkAndRetrieveDataWithCredential(
@@ -58,17 +55,13 @@ export interface User extends UserInfo {
   reauthenticateAndRetrieveDataWithCredential(
     credential: auth.AuthCredential
   ): Promise<any>;
-  reauthenticateWithCredential(
-    credential: auth.AuthCredential
-  ): Promise<any>;
+  reauthenticateWithCredential(credential: auth.AuthCredential): Promise<any>;
   reauthenticateWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: auth.ApplicationVerifier
   ): Promise<any>;
   reauthenticateWithPopup(provider: auth.AuthProvider): Promise<any>;
-  reauthenticateWithRedirect(
-    provider: auth.AuthProvider
-  ): Promise<any>;
+  reauthenticateWithRedirect(provider: auth.AuthProvider): Promise<any>;
   refreshToken: string;
   reload(): Promise<any>;
   sendEmailVerification(
@@ -78,9 +71,7 @@ export interface User extends UserInfo {
   unlink(providerId: string): Promise<any>;
   updateEmail(newEmail: string): Promise<any>;
   updatePassword(newPassword: string): Promise<any>;
-  updatePhoneNumber(
-    phoneCredential: auth.AuthCredential
-  ): Promise<any>;
+  updatePhoneNumber(phoneCredential: auth.AuthCredential): Promise<any>;
   updateProfile(profile: {
     displayName: string | null;
     photoURL: string | null;
@@ -196,16 +187,12 @@ export namespace auth {
     languageCode: string | null;
     settings: auth.AuthSettings;
     onAuthStateChanged(
-      nextOrObserver:
-        | Observer<any>
-        | ((a: User | null) => any),
+      nextOrObserver: Observer<any> | ((a: User | null) => any),
       error?: (a: auth.Error) => any,
       completed?: Unsubscribe
     ): Unsubscribe;
     onIdTokenChanged(
-      nextOrObserver:
-        | Observer<any>
-        | ((a: User | null) => any),
+      nextOrObserver: Observer<any> | ((a: User | null) => any),
       error?: (a: auth.Error) => any,
       completed?: Unsubscribe
     ): Unsubscribe;
@@ -223,9 +210,7 @@ export namespace auth {
     ): Promise<any>;
     signInAnonymously(): Promise<any>;
     signInAnonymouslyAndRetrieveData(): Promise<any>;
-    signInWithCredential(
-      credential: auth.AuthCredential
-    ): Promise<any>;
+    signInWithCredential(credential: auth.AuthCredential): Promise<any>;
     signInWithCustomToken(token: string): Promise<any>;
     signInAndRetrieveDataWithCustomToken(token: string): Promise<any>;
     signInWithEmailAndPassword(email: string, password: string): Promise<any>;
@@ -264,10 +249,7 @@ export namespace auth {
     static PROVIDER_ID: string;
     static EMAIL_PASSWORD_SIGN_IN_METHOD: string;
     static EMAIL_LINK_SIGN_IN_METHOD: string;
-    static credential(
-      email: string,
-      password: string
-    ): auth.AuthCredential;
+    static credential(email: string, password: string): auth.AuthCredential;
     static credentialWithLink(
       email: string,
       emailLink: string
@@ -290,9 +272,7 @@ export namespace auth {
   class FacebookAuthProvider_Instance implements auth.AuthProvider {
     addScope(scope: string): auth.AuthProvider;
     providerId: string;
-    setCustomParameters(
-      customOAuthParameters: Object
-    ): auth.AuthProvider;
+    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
   }
 
   class GithubAuthProvider extends GithubAuthProvider_Instance {
@@ -303,9 +283,7 @@ export namespace auth {
   class GithubAuthProvider_Instance implements auth.AuthProvider {
     addScope(scope: string): auth.AuthProvider;
     providerId: string;
-    setCustomParameters(
-      customOAuthParameters: Object
-    ): auth.AuthProvider;
+    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
   }
 
   class GoogleAuthProvider extends GoogleAuthProvider_Instance {
@@ -319,9 +297,7 @@ export namespace auth {
   class GoogleAuthProvider_Instance implements auth.AuthProvider {
     addScope(scope: string): auth.AuthProvider;
     providerId: string;
-    setCustomParameters(
-      customOAuthParameters: Object
-    ): auth.AuthProvider;
+    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
   }
 
   interface IdTokenResult {
@@ -353,8 +329,7 @@ export namespace auth {
   }
 
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
-  class RecaptchaVerifier_Instance
-    implements auth.ApplicationVerifier {
+  class RecaptchaVerifier_Instance implements auth.ApplicationVerifier {
     constructor(
       container: any | string,
       parameters?: Object | null,
@@ -369,16 +344,11 @@ export namespace auth {
   class TwitterAuthProvider extends TwitterAuthProvider_Instance {
     static PROVIDER_ID: string;
     static TWITTER_SIGN_IN_METHOD: string;
-    static credential(
-      token: string,
-      secret: string
-    ): auth.AuthCredential;
+    static credential(token: string, secret: string): auth.AuthCredential;
   }
   class TwitterAuthProvider_Instance implements auth.AuthProvider {
     providerId: string;
-    setCustomParameters(
-      customOAuthParameters: Object
-    ): auth.AuthProvider;
+    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
   }
 
   type UserCredential = {
@@ -408,9 +378,7 @@ export namespace database {
     child(path: string): database.DataSnapshot;
     exists(): boolean;
     exportVal(): any;
-    forEach(
-      action: (a: database.DataSnapshot) => boolean | void
-    ): boolean;
+    forEach(action: (a: database.DataSnapshot) => boolean | void): boolean;
     getPriority(): string | number | null;
     hasChild(path: string): boolean;
     hasChildren(): boolean;
@@ -523,9 +491,7 @@ export namespace database {
     update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
   }
 
-  interface ThenableReference
-    extends database.Reference,
-      PromiseLike<any> {}
+  interface ThenableReference extends database.Reference, PromiseLike<any> {}
 
   function enableLogging(
     logger?: boolean | ((a: string) => any),
