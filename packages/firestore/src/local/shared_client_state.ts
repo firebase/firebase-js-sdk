@@ -59,7 +59,7 @@ const QUERY_TARGET_KEY_PREFIX = 'firestore_targets';
 // The LocalStorage key that stores the primary tab's online state.
 const ONLINE_STATE_KEY = 'firestore_online_state';
 // The LocalStorage key that stores the last sequence number allocated.
-const SEQUENCE_NUMBER_KEY = 'firestore_sequence_number';
+const SEQUENCE_NUMBER_KEY_PREFIX = 'firestore_sequence_number';
 
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
@@ -521,6 +521,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private readonly storage: Storage;
   private readonly localClientStorageKey: string;
+  private readonly sequenceNumberKey: string;
   private readonly activeClients: { [key: string]: ClientState } = {};
   private readonly storageListener = this.handleLocalStorageEvent.bind(this);
   private readonly clientStateKeyRe: RegExp;
@@ -553,6 +554,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.localClientStorageKey = this.toLocalStorageClientStateKey(
       this.localClientId
     );
+    this.sequenceNumberKey = `${SEQUENCE_NUMBER_KEY_PREFIX}_${this.persistenceKey}`;
     this.activeClients[this.localClientId] = new LocalClientState();
 
     // Escape the special characters mentioned here:
@@ -646,7 +648,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 
   updateSequenceNumber(sequenceNumber: ListenSequenceNumber): void {
-    this.setItem(SEQUENCE_NUMBER_KEY, JSON.stringify(sequenceNumber));
+    this.setItem(this.sequenceNumberKey, JSON.stringify(sequenceNumber));
   }
 
   getAllActiveQueryTargets(): TargetIdSet {
@@ -846,7 +848,7 @@ export class WebStorageSharedClientState implements SharedClientState {
               return this.handleOnlineStateEvent(onlineState);
             }
           }
-        } else if (event.key === SEQUENCE_NUMBER_KEY) {
+        } else if (event.key === this.sequenceNumberKey) {
           if (this.sequenceNumberHandler) {
             const sequenceNumber = fromLocalStorageSequenceNumber(
               event.newValue
