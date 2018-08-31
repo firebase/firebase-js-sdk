@@ -294,7 +294,7 @@ export class View {
     };
   }
 
-  private shouldWaitForRemoteVersion(oldDoc, newDoc) : boolean {
+  private shouldWaitForRemoteVersion(oldDoc, newDoc): boolean {
     // We suppress the initial change event for documents that were
     // modified as part of a write acknowledgment (e.g. when the value of
     // a server transform is applied) as Watch will send us the same
@@ -358,8 +358,8 @@ export class View {
         docChanges.documentSet,
         oldDocs,
         changes,
+        docChanges.mutatedKeys,
         newSyncState === SyncState.Local,
-        !docChanges.mutatedKeys.isEmpty(),
         syncStateChanged,
         /* excludesMetadataChanges= */ false
       );
@@ -512,8 +512,8 @@ export class View {
     return ViewSnapshot.fromInitialDocuments(
       this.query,
       this.documentSet,
-      this.syncState === SyncState.Local,
-      !this.mutatedKeys.isEmpty()
+      this.mutatedKeys,
+      this.syncState === SyncState.Local
     );
   }
 }
