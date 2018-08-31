@@ -71,7 +71,7 @@ function targetKey(targetId: TargetId): string {
 }
 
 function onlineStateKey(): string {
-  return 'firestore_online_state';
+  return `firestore_online_state_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}`;
 }
 
 function sequenceNumberKey(): string {
