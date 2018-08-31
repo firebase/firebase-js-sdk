@@ -75,7 +75,7 @@ function onlineStateKey(): string {
 }
 
 function sequenceNumberKey(): string {
-  return 'firestore_sequence_number';
+  return `firestore_sequence_number_${TEST_PERSISTENCE_PREFIX}`;
 }
 
 interface TestSharedClientState {
