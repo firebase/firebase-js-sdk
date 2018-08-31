@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 type NextFn<T> = (value: T) => void;
 type ErrorFn<E = Error> = (error: E) => void;
 type CompleteFn = () => void;
@@ -30,8 +31,6 @@ interface Observer<T, E = Error> {
   error: ErrorFn<E>;
   complete: CompleteFn;
 }
-
-export var SDK_VERSION: string;
 
 type Unsubscribe = () => void;
 
@@ -96,25 +95,6 @@ interface UserInfo {
   providerId: string;
   uid: string;
 }
-
-export function app(name?: string): app.App;
-
-export var apps: (app.App | null)[];
-
-export function auth(app?: app.App): auth.Auth;
-
-export function database(app?: app.App): database.Database;
-
-export function initializeApp(options: Object, name?: string): app.App;
-
-export function messaging(app?: app.App): messaging.Messaging;
-
-export function storage(app?: app.App): storage.Storage;
-
-export function firestore(app?: app.App): firestore.Firestore;
-
-export function functions(app?: app.App): functions.Functions;
-
 
 export namespace app {
   interface App {
@@ -2041,97 +2021,15 @@ export namespace firestore {
   }
 }
 
-declare namespace firebaseNamespace {
-
-  var SDK_VERSION: string;
-
-  type Unsubscribe = () => void;
-
-  interface User extends UserInfo {
-    delete(): Promise<void>;
-    emailVerified: boolean;
-    getIdTokenResult(
-      forceRefresh?: boolean
-    ): Promise<auth.IdTokenResult>;
-    getIdToken(forceRefresh?: boolean): Promise<string>;
-    isAnonymous: boolean;
-    linkAndRetrieveDataWithCredential(
-      credential: auth.AuthCredential
-    ): Promise<auth.UserCredential>;
-    linkWithCredential(
-      credential: auth.AuthCredential
-    ): Promise<User>;
-    linkWithPhoneNumber(
-      phoneNumber: string,
-      applicationVerifier: auth.ApplicationVerifier
-    ): Promise<auth.ConfirmationResult>;
-    linkWithPopup(
-      provider: auth.AuthProvider
-    ): Promise<auth.UserCredential>;
-    linkWithRedirect(provider: auth.AuthProvider): Promise<void>;
-    metadata: auth.UserMetadata;
-    phoneNumber: string | null;
-    providerData: (UserInfo | null)[];
-    reauthenticateAndRetrieveDataWithCredential(
-      credential: auth.AuthCredential
-    ): Promise<auth.UserCredential>;
-    reauthenticateWithCredential(
-      credential: auth.AuthCredential
-    ): Promise<void>;
-    reauthenticateWithPhoneNumber(
-      phoneNumber: string,
-      applicationVerifier: auth.ApplicationVerifier
-    ): Promise<auth.ConfirmationResult>;
-    reauthenticateWithPopup(
-      provider: auth.AuthProvider
-    ): Promise<auth.UserCredential>;
-    reauthenticateWithRedirect(
-      provider: auth.AuthProvider
-    ): Promise<void>;
-    refreshToken: string;
-    reload(): Promise<void>;
-    sendEmailVerification(
-      actionCodeSettings?: auth.ActionCodeSettings | null
-    ): Promise<void>;
-    toJSON(): Object;
-    unlink(providerId: string): Promise<User>;
-    updateEmail(newEmail: string): Promise<void>;
-    updatePassword(newPassword: string): Promise<void>;
-    updatePhoneNumber(
-      phoneCredential: auth.AuthCredential
-    ): Promise<void>;
-    updateProfile(profile: {
-      displayName: string | null;
-      photoURL: string | null;
-    }): Promise<void>;
-  }
-
-  interface UserInfo {
-    displayName: string | null;
-    email: string | null;
-    phoneNumber: string | null;
-    photoURL: string | null;
-    providerId: string;
-    uid: string;
-  }
-
-  function app(name?: string): app.App;
-
-  var apps: (app.App | null)[];
-
-  function auth(app?: app.App): auth.Auth;
-
-  function database(app?: app.App): database.Database;
-
-  function initializeApp(options: Object, name?: string): app.App;
-
-  function messaging(app?: app.App): messaging.Messaging;
-
-  function storage(app?: app.App): storage.Storage;
-
-  function firestore(app?: app.App): firestore.Firestore;
-
-  function functions(app?: app.App): functions.Functions;
-}
-
-export default firebaseNamespace;
+export default {
+  SDK_VERSION: string,
+  app: (name?: string) => app.App,
+  apps: <app.App | null>[],
+  auth: (app?: app.App) => auth.Auth,
+  database: (app?: app.App) => database.Database,
+  initializeApp: (options: Object, name?: string) => app.App,
+  messaging: (app?: app.App) => messaging.Messaging,
+  storage: (app?: app.App) => storage.Storage,
+  firestore: (app?: app.App) => firestore.Firestore,
+  functions: (app?: app.App) => functions.Functions
+};
