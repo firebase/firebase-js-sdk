@@ -54,8 +54,10 @@ const MUTATION_BATCH_KEY_PREFIX = 'firestore_mutations';
 //     firestore_targets_<persistence_prefix>_<target_id>
 const QUERY_TARGET_KEY_PREFIX = 'firestore_targets';
 
-// The LocalStorage key that stores the primary tab's online state.
-const ONLINE_STATE_KEY = 'firestore_online_state';
+// The LocalStorage prefix that stores the primary tab's online state. The
+// format of the key is:
+//     firestore_online_state_<persistence_prefix>
+const ONLINE_STATE_KEY_PREFIX = 'firestore_online_state';
 
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
@@ -511,6 +513,8 @@ export class WebStorageSharedClientState implements SharedClientState {
   private readonly localClientStorageKey: string;
   private readonly activeClients: { [key: string]: ClientState } = {};
   private readonly storageListener = this.handleLocalStorageEvent.bind(this);
+  private readonly escapedPersistenceKey: string;
+  private readonly onlineStateKey: string;
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
   private readonly queryTargetKeyRe: RegExp;
@@ -526,7 +530,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   constructor(
     private readonly queue: AsyncQueue,
     private readonly platform: Platform,
-    private readonly persistenceKey: string,
+    persistenceKey: string,
     private readonly localClientId: ClientId,
     initialUser: User
   ) {
@@ -536,6 +540,13 @@ export class WebStorageSharedClientState implements SharedClientState {
         'LocalStorage is not available on this platform.'
       );
     }
+    // Escape the special characters mentioned here:
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
+    this.escapedPersistenceKey = persistenceKey.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&'
+    );
+
     this.storage = this.platform.window!.localStorage;
     this.currentUser = initialUser;
     this.localClientStorageKey = this.toLocalStorageClientStateKey(
@@ -543,22 +554,21 @@ export class WebStorageSharedClientState implements SharedClientState {
     );
     this.activeClients[this.localClientId] = new LocalClientState();
 
-    // Escape the special characters mentioned here:
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
-    const escapedPersistenceKey = persistenceKey.replace(
-      /[.*+?^${}()|[\]\\]/g,
-      '\\$&'
-    );
-
     this.clientStateKeyRe = new RegExp(
-      `^${CLIENT_STATE_KEY_PREFIX}_${escapedPersistenceKey}_([^_]*)$`
+      `^${CLIENT_STATE_KEY_PREFIX}_${this.escapedPersistenceKey}_([^_]*)$`
     );
     this.mutationBatchKeyRe = new RegExp(
-      `^${MUTATION_BATCH_KEY_PREFIX}_${escapedPersistenceKey}_(\\d+)(?:_(.*))?$`
+      `^${MUTATION_BATCH_KEY_PREFIX}_${
+        this.escapedPersistenceKey
+      }_(\\d+)(?:_(.*))?$`
     );
     this.queryTargetKeyRe = new RegExp(
-      `^${QUERY_TARGET_KEY_PREFIX}_${escapedPersistenceKey}_(\\d+)$`
+      `^${QUERY_TARGET_KEY_PREFIX}_${this.escapedPersistenceKey}_(\\d+)$`
     );
+
+    this.onlineStateKey = `${ONLINE_STATE_KEY_PREFIX}_${
+      this.escapedPersistenceKey
+    }`;
 
     // Rather than adding the storage observer during start(), we add the
     // storage observer during initialization. This ensures that we collect
@@ -612,7 +622,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Check if there is an existing online state and call the callback handler
     // if applicable.
-    const onlineStateJSON = this.storage.getItem(ONLINE_STATE_KEY);
+    const onlineStateJSON = this.storage.getItem(this.onlineStateKey);
     if (onlineStateJSON) {
       const onlineState = this.fromLocalStorageOnlineState(onlineStateJSON);
       if (onlineState) {
@@ -821,7 +831,7 @@ export class WebStorageSharedClientState implements SharedClientState {
               return this.handleQueryTargetEvent(queryTargetMetadata);
             }
           }
-        } else if (event.key === ONLINE_STATE_KEY) {
+        } else if (event.key === this.onlineStateKey) {
           if (event.newValue !== null) {
             const onlineState = this.fromLocalStorageOnlineState(
               event.newValue
@@ -871,7 +881,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       clientId: this.localClientId,
       onlineState: OnlineState[onlineState]
     };
-    this.storage.setItem(ONLINE_STATE_KEY, JSON.stringify(entry));
+    this.storage.setItem(this.onlineStateKey, JSON.stringify(entry));
   }
 
   private persistQueryTargetState(
@@ -891,18 +901,22 @@ export class WebStorageSharedClientState implements SharedClientState {
       `Client key cannot contain '_', but was '${clientId}'`
     );
 
-    return `${CLIENT_STATE_KEY_PREFIX}_${this.persistenceKey}_${clientId}`;
+    return `${CLIENT_STATE_KEY_PREFIX}_${
+      this.escapedPersistenceKey
+    }_${clientId}`;
   }
 
   /** Assembles the key for a query state in LocalStorage */
   private toLocalStorageQueryTargetMetadataKey(targetId: TargetId): string {
-    return `${QUERY_TARGET_KEY_PREFIX}_${this.persistenceKey}_${targetId}`;
+    return `${QUERY_TARGET_KEY_PREFIX}_${
+      this.escapedPersistenceKey
+    }_${targetId}`;
   }
 
   /** Assembles the key for a mutation batch in LocalStorage */
   private toLocalStorageMutationBatchKey(batchId: BatchId): string {
     let mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${
-      this.persistenceKey
+      this.escapedPersistenceKey
     }_${batchId}`;
 
     if (this.currentUser.isAuthenticated()) {
