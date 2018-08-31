@@ -622,12 +622,12 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Check if there is an existing online state and call the callback handler
     // if applicable.
-    const onlineStateJSON = this.storage.getItem(this.onlineStateKey);
-    if (onlineStateJSON) {
-      const onlineState = this.fromLocalStorageOnlineState(onlineStateJSON);
-      if (onlineState) {
-        this.handleOnlineStateEvent(onlineState);
-      }
+    const onlineState = this.fromLocalStorageOnlineState(
+      this.onlineStateKey,
+      this.storage.getItem(this.onlineStateKey)
+    );
+    if (onlineState) {
+      this.handleOnlineStateEvent(onlineState);
     }
 
     for (const event of this.earlyEvents) {
@@ -795,6 +795,30 @@ export class WebStorageSharedClientState implements SharedClientState {
           return;
         }
 
+        const mutationMetadata = this.fromLocalStorageMutationMetadata(
+          event.key,
+          event.newValue
+        );
+        if (mutationMetadata) {
+          return this.handleMutationBatchEvent(mutationMetadata);
+        }
+
+        const queryTargetMetadata = this.fromLocalStorageQueryTargetMetadata(
+          event.key,
+          event.newValue
+        );
+        if (queryTargetMetadata) {
+          return this.handleQueryTargetEvent(queryTargetMetadata);
+        }
+
+        const onlineState = this.fromLocalStorageOnlineState(
+          event.key,
+          event.newValue
+        );
+        if (onlineState) {
+          return this.handleOnlineStateEvent(onlineState);
+        }
+
         if (this.clientStateKeyRe.test(event.key)) {
           if (event.newValue != null) {
             const clientState = this.fromLocalStorageClientState(
@@ -810,35 +834,6 @@ export class WebStorageSharedClientState implements SharedClientState {
           } else {
             const clientId = this.fromLocalStorageClientStateKey(event.key)!;
             return this.handleClientStateEvent(clientId, null);
-          }
-        } else if (this.mutationBatchKeyRe.test(event.key)) {
-          if (event.newValue !== null) {
-            const mutationMetadata = this.fromLocalStorageMutationMetadata(
-              event.key,
-              event.newValue
-            );
-            if (mutationMetadata) {
-              return this.handleMutationBatchEvent(mutationMetadata);
-            }
-          }
-        } else if (this.queryTargetKeyRe.test(event.key)) {
-          if (event.newValue !== null) {
-            const queryTargetMetadata = this.fromLocalStorageQueryTargetMetadata(
-              event.key,
-              event.newValue
-            );
-            if (queryTargetMetadata) {
-              return this.handleQueryTargetEvent(queryTargetMetadata);
-            }
-          }
-        } else if (event.key === this.onlineStateKey) {
-          if (event.newValue !== null) {
-            const onlineState = this.fromLocalStorageOnlineState(
-              event.newValue
-            );
-            if (onlineState) {
-              return this.handleOnlineStateEvent(onlineState);
-            }
           }
         }
       });
@@ -954,18 +949,21 @@ export class WebStorageSharedClientState implements SharedClientState {
    */
   private fromLocalStorageMutationMetadata(
     key: string,
-    value: string
+    value: string | null
   ): MutationMetadata | null {
-    const match = this.mutationBatchKeyRe.exec(key);
-    assert(match !== null, `Cannot parse mutation batch key '${key}'`);
+    const match = value !== null && this.mutationBatchKeyRe.exec(key);
 
-    const batchId = Number(match![1]);
-    const userId = match![2] !== undefined ? match![2] : null;
-    return MutationMetadata.fromLocalStorageEntry(
-      new User(userId),
-      batchId,
-      value
-    );
+    if (match) {
+      const batchId = Number(match![1]);
+      const userId = match![2] !== undefined ? match![2] : null;
+      return MutationMetadata.fromLocalStorageEntry(
+        new User(userId),
+        batchId,
+        value!
+      );
+    }
+
+    return null;
   }
 
   /**
@@ -974,21 +972,28 @@ export class WebStorageSharedClientState implements SharedClientState {
    */
   private fromLocalStorageQueryTargetMetadata(
     key: string,
-    value: string
+    value: string | null
   ): QueryTargetMetadata | null {
-    const match = this.queryTargetKeyRe.exec(key);
-    assert(match !== null, `Cannot parse query target key '${key}'`);
+    const match = value !== null && this.queryTargetKeyRe.exec(key);
 
-    const targetId = Number(match![1]);
-    return QueryTargetMetadata.fromLocalStorageEntry(targetId, value);
+    if (match) {
+      const targetId = Number(match![1]);
+      return QueryTargetMetadata.fromLocalStorageEntry(targetId, value!);
+    }
+
+    return null;
   }
 
   /**
    * Parses an online state from LocalStorage. Returns 'null' if the value
    * could not be parsed.
    */
-  private fromLocalStorageOnlineState(value: string): SharedOnlineState | null {
-    return SharedOnlineState.fromLocalStorageEntry(value);
+  private fromLocalStorageOnlineState(
+    key: string,
+    value: string | null
+  ): SharedOnlineState | null {
+    const match = value !== null && key === this.onlineStateKey;
+    return match ? SharedOnlineState.fromLocalStorageEntry(value!) : null;
   }
 
   private async handleMutationBatchEvent(
