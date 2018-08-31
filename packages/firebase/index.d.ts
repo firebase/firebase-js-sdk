@@ -13,130 +13,124 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-declare namespace firebase {
-  type NextFn<T> = (value: T) => void;
-  type ErrorFn<E = Error> = (error: E) => void;
-  type CompleteFn = () => void;
 
-  interface FirebaseError {
-    code: string;
-    message: string;
-    name: string;
-    stack?: string;
-  }
+type NextFn<T> = (value: T) => void;
+type ErrorFn<E = Error> = (error: E) => void;
+type CompleteFn = () => void;
 
-  interface Observer<T, E = Error> {
-    next: NextFn<T>;
-    error: ErrorFn<E>;
-    complete: CompleteFn;
-  }
-
-  var SDK_VERSION: string;
-
-  type Unsubscribe = () => void;
-
-  interface User extends firebase.UserInfo {
-    delete(): Promise<void>;
-    emailVerified: boolean;
-    getIdTokenResult(
-      forceRefresh?: boolean
-    ): Promise<firebase.auth.IdTokenResult>;
-    getIdToken(forceRefresh?: boolean): Promise<string>;
-    isAnonymous: boolean;
-    linkAndRetrieveDataWithCredential(
-      credential: firebase.auth.AuthCredential
-    ): Promise<firebase.auth.UserCredential>;
-    linkWithCredential(
-      credential: firebase.auth.AuthCredential
-    ): Promise<firebase.User>;
-    linkWithPhoneNumber(
-      phoneNumber: string,
-      applicationVerifier: firebase.auth.ApplicationVerifier
-    ): Promise<firebase.auth.ConfirmationResult>;
-    linkWithPopup(
-      provider: firebase.auth.AuthProvider
-    ): Promise<firebase.auth.UserCredential>;
-    linkWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
-    metadata: firebase.auth.UserMetadata;
-    phoneNumber: string | null;
-    providerData: (firebase.UserInfo | null)[];
-    reauthenticateAndRetrieveDataWithCredential(
-      credential: firebase.auth.AuthCredential
-    ): Promise<firebase.auth.UserCredential>;
-    reauthenticateWithCredential(
-      credential: firebase.auth.AuthCredential
-    ): Promise<void>;
-    reauthenticateWithPhoneNumber(
-      phoneNumber: string,
-      applicationVerifier: firebase.auth.ApplicationVerifier
-    ): Promise<firebase.auth.ConfirmationResult>;
-    reauthenticateWithPopup(
-      provider: firebase.auth.AuthProvider
-    ): Promise<firebase.auth.UserCredential>;
-    reauthenticateWithRedirect(
-      provider: firebase.auth.AuthProvider
-    ): Promise<void>;
-    refreshToken: string;
-    reload(): Promise<void>;
-    sendEmailVerification(
-      actionCodeSettings?: firebase.auth.ActionCodeSettings | null
-    ): Promise<void>;
-    toJSON(): Object;
-    unlink(providerId: string): Promise<firebase.User>;
-    updateEmail(newEmail: string): Promise<void>;
-    updatePassword(newPassword: string): Promise<void>;
-    updatePhoneNumber(
-      phoneCredential: firebase.auth.AuthCredential
-    ): Promise<void>;
-    updateProfile(profile: {
-      displayName: string | null;
-      photoURL: string | null;
-    }): Promise<void>;
-  }
-
-  interface UserInfo {
-    displayName: string | null;
-    email: string | null;
-    phoneNumber: string | null;
-    photoURL: string | null;
-    providerId: string;
-    uid: string;
-  }
-
-  function app(name?: string): firebase.app.App;
-
-  var apps: (firebase.app.App | null)[];
-
-  function auth(app?: firebase.app.App): firebase.auth.Auth;
-
-  function database(app?: firebase.app.App): firebase.database.Database;
-
-  function initializeApp(options: Object, name?: string): firebase.app.App;
-
-  function messaging(app?: firebase.app.App): firebase.messaging.Messaging;
-
-  function storage(app?: firebase.app.App): firebase.storage.Storage;
-
-  function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
-
-  function functions(app?: firebase.app.App): firebase.functions.Functions;
+interface FirebaseError {
+  code: string;
+  message: string;
+  name: string;
+  stack?: string;
 }
 
-declare namespace firebase.app {
+interface Observer<T, E = Error> {
+  next: NextFn<T>;
+  error: ErrorFn<E>;
+  complete: CompleteFn;
+}
+
+export var SDK_VERSION: string;
+
+type Unsubscribe = () => void;
+
+export interface User extends UserInfo {
+  delete(): Promise<any>;
+  emailVerified: boolean;
+  getIdTokenResult(
+    forceRefresh?: boolean
+  ): Promise<auth.IdTokenResult>;
+  getIdToken(forceRefresh?: boolean): Promise<any>;
+  isAnonymous: boolean;
+  linkAndRetrieveDataWithCredential(
+    credential: auth.AuthCredential
+  ): Promise<any>;
+  linkWithCredential(credential: auth.AuthCredential): Promise<any>;
+  linkWithPhoneNumber(
+    phoneNumber: string,
+    applicationVerifier: auth.ApplicationVerifier
+  ): Promise<any>;
+  linkWithPopup(provider: auth.AuthProvider): Promise<any>;
+  linkWithRedirect(provider: auth.AuthProvider): Promise<any>;
+  metadata: auth.UserMetadata;
+  phoneNumber: string | null;
+  providerData: (UserInfo | null)[];
+  reauthenticateAndRetrieveDataWithCredential(
+    credential: auth.AuthCredential
+  ): Promise<any>;
+  reauthenticateWithCredential(
+    credential: auth.AuthCredential
+  ): Promise<any>;
+  reauthenticateWithPhoneNumber(
+    phoneNumber: string,
+    applicationVerifier: auth.ApplicationVerifier
+  ): Promise<any>;
+  reauthenticateWithPopup(provider: auth.AuthProvider): Promise<any>;
+  reauthenticateWithRedirect(
+    provider: auth.AuthProvider
+  ): Promise<any>;
+  refreshToken: string;
+  reload(): Promise<any>;
+  sendEmailVerification(
+    actionCodeSettings?: auth.ActionCodeSettings | null
+  ): Promise<any>;
+  toJSON(): Object;
+  unlink(providerId: string): Promise<any>;
+  updateEmail(newEmail: string): Promise<any>;
+  updatePassword(newPassword: string): Promise<any>;
+  updatePhoneNumber(
+    phoneCredential: auth.AuthCredential
+  ): Promise<any>;
+  updateProfile(profile: {
+    displayName: string | null;
+    photoURL: string | null;
+  }): Promise<any>;
+}
+
+interface UserInfo {
+  displayName: string | null;
+  email: string | null;
+  phoneNumber: string | null;
+  photoURL: string | null;
+  providerId: string;
+  uid: string;
+}
+
+export function app(name?: string): app.App;
+
+export var apps: (app.App | null)[];
+
+export function auth(app?: app.App): auth.Auth;
+
+export function database(app?: app.App): database.Database;
+
+export function initializeApp(options: Object, name?: string): app.App;
+
+export function messaging(app?: app.App): messaging.Messaging;
+
+export function storage(app?: app.App): storage.Storage;
+
+export function firestore(app?: app.App): firestore.Firestore;
+
+export function functions(app?: app.App): functions.Functions;
+
+
+export namespace app {
   interface App {
-    auth(): firebase.auth.Auth;
-    database(url?: string): firebase.database.Database;
+    auth(): auth.Auth;
+    database(): database.Database;
     delete(): Promise<any>;
-    messaging(): firebase.messaging.Messaging;
+    messaging(): messaging.Messaging;
     name: string;
     options: Object;
-    storage(url?: string): firebase.storage.Storage;
-    firestore(): firebase.firestore.Firestore;
-    functions(region?: string): firebase.functions.Functions;
+    storage(url?: string): storage.Storage;
+    firestore(): firestore.Firestore;
+    functions(): functions.Functions;
   }
 }
 
-declare namespace firebase.functions {
+export namespace functions {
   export interface HttpsCallableResult {
     readonly data: any;
   }
@@ -171,14 +165,8 @@ declare namespace firebase.functions {
   }
 }
 
-declare namespace firebase.auth {
-  interface ActionCodeInfo {
-    data: {
-      email?: string | null;
-      fromEmail?: string | null;
-    };
-    operation: string;
-  }
+export namespace auth {
+  interface ActionCodeInfo {}
 
   type ActionCodeSettings = {
     android?: {
@@ -200,7 +188,7 @@ declare namespace firebase.auth {
 
   interface ApplicationVerifier {
     type: string;
-    verify(): Promise<string>;
+    verify(): Promise<any>;
   }
 
   interface AuthSettings {
@@ -208,84 +196,74 @@ declare namespace firebase.auth {
   }
 
   interface Auth {
-    app: firebase.app.App;
-    applyActionCode(code: string): Promise<void>;
-    checkActionCode(code: string): Promise<firebase.auth.ActionCodeInfo>;
-    confirmPasswordReset(code: string, newPassword: string): Promise<void>;
+    app: app.App;
+    applyActionCode(code: string): Promise<any>;
+    checkActionCode(code: string): Promise<any>;
+    confirmPasswordReset(code: string, newPassword: string): Promise<any>;
     createUserAndRetrieveDataWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<firebase.auth.UserCredential>;
+    ): Promise<any>;
     createUserWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<firebase.auth.UserCredential>;
-    currentUser: firebase.User | null;
-    fetchProvidersForEmail(email: string): Promise<Array<string>>;
-    fetchSignInMethodsForEmail(email: string): Promise<Array<string>>;
+    ): Promise<any>;
+    currentUser: User | null;
+    fetchProvidersForEmail(email: string): Promise<any>;
+    fetchSignInMethodsForEmail(email: string): Promise<any>;
     isSignInWithEmailLink(emailLink: string): boolean;
-    getRedirectResult(): Promise<firebase.auth.UserCredential>;
+    getRedirectResult(): Promise<any>;
     languageCode: string | null;
-    settings: firebase.auth.AuthSettings;
+    settings: auth.AuthSettings;
     onAuthStateChanged(
       nextOrObserver:
-        | firebase.Observer<any>
-        | ((a: firebase.User | null) => any),
-      error?: (a: firebase.auth.Error) => any,
-      completed?: firebase.Unsubscribe
-    ): firebase.Unsubscribe;
+        | Observer<any>
+        | ((a: User | null) => any),
+      error?: (a: auth.Error) => any,
+      completed?: Unsubscribe
+    ): Unsubscribe;
     onIdTokenChanged(
       nextOrObserver:
-        | firebase.Observer<any>
-        | ((a: firebase.User | null) => any),
-      error?: (a: firebase.auth.Error) => any,
-      completed?: firebase.Unsubscribe
-    ): firebase.Unsubscribe;
+        | Observer<any>
+        | ((a: User | null) => any),
+      error?: (a: auth.Error) => any,
+      completed?: Unsubscribe
+    ): Unsubscribe;
     sendSignInLinkToEmail(
       email: string,
-      actionCodeSettings: firebase.auth.ActionCodeSettings
-    ): Promise<void>;
+      actionCodeSettings: auth.ActionCodeSettings
+    ): Promise<any>;
     sendPasswordResetEmail(
       email: string,
-      actionCodeSettings?: firebase.auth.ActionCodeSettings | null
-    ): Promise<void>;
-    setPersistence(persistence: firebase.auth.Auth.Persistence): Promise<void>;
+      actionCodeSettings?: auth.ActionCodeSettings | null
+    ): Promise<any>;
+    setPersistence(persistence: auth.Auth.Persistence): Promise<any>;
     signInAndRetrieveDataWithCredential(
-      credential: firebase.auth.AuthCredential
-    ): Promise<firebase.auth.UserCredential>;
-    signInAnonymously(): Promise<firebase.auth.UserCredential>;
-    signInAnonymouslyAndRetrieveData(): Promise<firebase.auth.UserCredential>;
+      credential: auth.AuthCredential
+    ): Promise<any>;
+    signInAnonymously(): Promise<any>;
+    signInAnonymouslyAndRetrieveData(): Promise<any>;
     signInWithCredential(
-      credential: firebase.auth.AuthCredential
-    ): Promise<firebase.User>;
-    signInWithCustomToken(token: string): Promise<firebase.auth.UserCredential>;
-    signInAndRetrieveDataWithCustomToken(
-      token: string
-    ): Promise<firebase.auth.UserCredential>;
-    signInWithEmailAndPassword(
-      email: string,
-      password: string
-    ): Promise<firebase.auth.UserCredential>;
+      credential: auth.AuthCredential
+    ): Promise<any>;
+    signInWithCustomToken(token: string): Promise<any>;
+    signInAndRetrieveDataWithCustomToken(token: string): Promise<any>;
+    signInWithEmailAndPassword(email: string, password: string): Promise<any>;
     signInAndRetrieveDataWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<firebase.auth.UserCredential>;
+    ): Promise<any>;
     signInWithPhoneNumber(
       phoneNumber: string,
-      applicationVerifier: firebase.auth.ApplicationVerifier
-    ): Promise<firebase.auth.ConfirmationResult>;
-    signInWithEmailLink(
-      email: string,
-      emailLink?: string
-    ): Promise<firebase.auth.UserCredential>;
-    signInWithPopup(
-      provider: firebase.auth.AuthProvider
-    ): Promise<firebase.auth.UserCredential>;
-    signInWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
-    signOut(): Promise<void>;
-    updateCurrentUser(user: firebase.User | null): Promise<void>;
-    useDeviceLanguage(): void;
-    verifyPasswordResetCode(code: string): Promise<string>;
+      applicationVerifier: auth.ApplicationVerifier
+    ): Promise<any>;
+    signInWithEmailLink(email: string, emailLink?: string): Promise<any>;
+    signInWithPopup(provider: auth.AuthProvider): Promise<any>;
+    signInWithRedirect(provider: auth.AuthProvider): Promise<any>;
+    signOut(): Promise<any>;
+    updateCurrentUser(user: User | null): Promise<any>;
+    useDeviceLanguage(): any;
+    verifyPasswordResetCode(code: string): Promise<any>;
   }
 
   interface AuthCredential {
@@ -298,7 +276,7 @@ declare namespace firebase.auth {
   }
 
   interface ConfirmationResult {
-    confirm(verificationCode: string): Promise<firebase.auth.UserCredential>;
+    confirm(verificationCode: string): Promise<any>;
     verificationId: string;
   }
 
@@ -309,13 +287,13 @@ declare namespace firebase.auth {
     static credential(
       email: string,
       password: string
-    ): firebase.auth.AuthCredential;
+    ): auth.AuthCredential;
     static credentialWithLink(
       email: string,
       emailLink: string
-    ): firebase.auth.AuthCredential;
+    ): auth.AuthCredential;
   }
-  class EmailAuthProvider_Instance implements firebase.auth.AuthProvider {
+  class EmailAuthProvider_Instance implements auth.AuthProvider {
     providerId: string;
   }
 
@@ -327,27 +305,27 @@ declare namespace firebase.auth {
   class FacebookAuthProvider extends FacebookAuthProvider_Instance {
     static PROVIDER_ID: string;
     static FACEBOOK_SIGN_IN_METHOD: string;
-    static credential(token: string): firebase.auth.AuthCredential;
+    static credential(token: string): auth.AuthCredential;
   }
-  class FacebookAuthProvider_Instance implements firebase.auth.AuthProvider {
-    addScope(scope: string): firebase.auth.AuthProvider;
+  class FacebookAuthProvider_Instance implements auth.AuthProvider {
+    addScope(scope: string): auth.AuthProvider;
     providerId: string;
     setCustomParameters(
       customOAuthParameters: Object
-    ): firebase.auth.AuthProvider;
+    ): auth.AuthProvider;
   }
 
   class GithubAuthProvider extends GithubAuthProvider_Instance {
     static PROVIDER_ID: string;
     static GITHUB_SIGN_IN_METHOD: string;
-    static credential(token: string): firebase.auth.AuthCredential;
+    static credential(token: string): auth.AuthCredential;
   }
-  class GithubAuthProvider_Instance implements firebase.auth.AuthProvider {
-    addScope(scope: string): firebase.auth.AuthProvider;
+  class GithubAuthProvider_Instance implements auth.AuthProvider {
+    addScope(scope: string): auth.AuthProvider;
     providerId: string;
     setCustomParameters(
       customOAuthParameters: Object
-    ): firebase.auth.AuthProvider;
+    ): auth.AuthProvider;
   }
 
   class GoogleAuthProvider extends GoogleAuthProvider_Instance {
@@ -356,14 +334,14 @@ declare namespace firebase.auth {
     static credential(
       idToken?: string | null,
       accessToken?: string | null
-    ): firebase.auth.AuthCredential;
+    ): auth.AuthCredential;
   }
-  class GoogleAuthProvider_Instance implements firebase.auth.AuthProvider {
-    addScope(scope: string): firebase.auth.AuthProvider;
+  class GoogleAuthProvider_Instance implements auth.AuthProvider {
+    addScope(scope: string): auth.AuthProvider;
     providerId: string;
     setCustomParameters(
       customOAuthParameters: Object
-    ): firebase.auth.AuthProvider;
+    ): auth.AuthProvider;
   }
 
   interface IdTokenResult {
@@ -383,29 +361,29 @@ declare namespace firebase.auth {
     static credential(
       verificationId: string,
       verificationCode: string
-    ): firebase.auth.AuthCredential;
+    ): auth.AuthCredential;
   }
-  class PhoneAuthProvider_Instance implements firebase.auth.AuthProvider {
-    constructor(auth?: firebase.auth.Auth | null);
+  class PhoneAuthProvider_Instance implements auth.AuthProvider {
+    constructor(auth?: auth.Auth | null);
     providerId: string;
     verifyPhoneNumber(
       phoneNumber: string,
-      applicationVerifier: firebase.auth.ApplicationVerifier
-    ): Promise<string>;
+      applicationVerifier: auth.ApplicationVerifier
+    ): Promise<any>;
   }
 
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
   class RecaptchaVerifier_Instance
-    implements firebase.auth.ApplicationVerifier {
+    implements auth.ApplicationVerifier {
     constructor(
       container: any | string,
       parameters?: Object | null,
-      app?: firebase.app.App | null
+      app?: app.App | null
     );
-    clear(): void;
-    render(): Promise<number>;
+    clear(): any;
+    render(): Promise<any>;
     type: string;
-    verify(): Promise<string>;
+    verify(): Promise<any>;
   }
 
   class TwitterAuthProvider extends TwitterAuthProvider_Instance {
@@ -414,20 +392,20 @@ declare namespace firebase.auth {
     static credential(
       token: string,
       secret: string
-    ): firebase.auth.AuthCredential;
+    ): auth.AuthCredential;
   }
-  class TwitterAuthProvider_Instance implements firebase.auth.AuthProvider {
+  class TwitterAuthProvider_Instance implements auth.AuthProvider {
     providerId: string;
     setCustomParameters(
       customOAuthParameters: Object
-    ): firebase.auth.AuthProvider;
+    ): auth.AuthProvider;
   }
 
   type UserCredential = {
-    additionalUserInfo?: firebase.auth.AdditionalUserInfo | null;
-    credential: firebase.auth.AuthCredential | null;
+    additionalUserInfo?: auth.AdditionalUserInfo | null;
+    credential: auth.AuthCredential | null;
     operationType?: string | null;
-    user: firebase.User | null;
+    user: User | null;
   };
 
   interface UserMetadata {
@@ -436,7 +414,7 @@ declare namespace firebase.auth {
   }
 }
 
-declare namespace firebase.auth.Auth {
+export namespace auth.Auth {
   type Persistence = string;
   var Persistence: {
     LOCAL: Persistence;
@@ -445,13 +423,13 @@ declare namespace firebase.auth.Auth {
   };
 }
 
-declare namespace firebase.database {
+export namespace database {
   interface DataSnapshot {
-    child(path: string): firebase.database.DataSnapshot;
+    child(path: string): database.DataSnapshot;
     exists(): boolean;
     exportVal(): any;
     forEach(
-      action: (a: firebase.database.DataSnapshot) => boolean | void
+      action: (a: database.DataSnapshot) => boolean | void
     ): boolean;
     getPriority(): string | number | null;
     hasChild(path: string): boolean;
@@ -459,16 +437,16 @@ declare namespace firebase.database {
     key: string | null;
     numChildren(): number;
     val(): any;
-    ref: firebase.database.Reference;
+    ref: database.Reference;
     toJSON(): Object | null;
   }
 
   interface Database {
-    app: firebase.app.App;
+    app: app.App;
     goOffline(): any;
     goOnline(): any;
-    ref(path?: string): firebase.database.Reference;
-    refFromURL(url: string): firebase.database.Reference;
+    ref(path?: string): database.Reference;
+    refFromURL(url: string): database.Reference;
   }
 
   interface OnDisconnect {
@@ -494,55 +472,55 @@ declare namespace firebase.database {
     endAt(
       value: number | string | boolean | null,
       key?: string
-    ): firebase.database.Query;
+    ): database.Query;
     equalTo(
       value: number | string | boolean | null,
       key?: string
-    ): firebase.database.Query;
-    isEqual(other: firebase.database.Query | null): boolean;
-    limitToFirst(limit: number): firebase.database.Query;
-    limitToLast(limit: number): firebase.database.Query;
+    ): database.Query;
+    isEqual(other: database.Query | null): boolean;
+    limitToFirst(limit: number): database.Query;
+    limitToLast(limit: number): database.Query;
     off(
       eventType?: EventType,
-      callback?: (a: firebase.database.DataSnapshot, b?: string | null) => any,
+      callback?: (a: database.DataSnapshot, b?: string | null) => any,
       context?: Object | null
     ): any;
     on(
       eventType: EventType,
-      callback: (a: firebase.database.DataSnapshot | null, b?: string) => any,
+      callback: (a: database.DataSnapshot | null, b?: string) => any,
       cancelCallbackOrContext?: Object | null,
       context?: Object | null
-    ): (a: firebase.database.DataSnapshot | null, b?: string) => any;
+    ): (a: database.DataSnapshot | null, b?: string) => any;
     once(
       eventType: EventType,
-      successCallback?: (a: firebase.database.DataSnapshot, b?: string) => any,
+      successCallback?: (a: database.DataSnapshot, b?: string) => any,
       failureCallbackOrContext?: Object | null,
       context?: Object | null
     ): Promise<DataSnapshot>;
-    orderByChild(path: string): firebase.database.Query;
-    orderByKey(): firebase.database.Query;
-    orderByPriority(): firebase.database.Query;
-    orderByValue(): firebase.database.Query;
-    ref: firebase.database.Reference;
+    orderByChild(path: string): database.Query;
+    orderByKey(): database.Query;
+    orderByPriority(): database.Query;
+    orderByValue(): database.Query;
+    ref: database.Reference;
     startAt(
       value: number | string | boolean | null,
       key?: string
-    ): firebase.database.Query;
+    ): database.Query;
     toJSON(): Object;
     toString(): string;
   }
 
-  interface Reference extends firebase.database.Query {
-    child(path: string): firebase.database.Reference;
+  interface Reference extends database.Query {
+    child(path: string): database.Reference;
     key: string | null;
-    onDisconnect(): firebase.database.OnDisconnect;
-    parent: firebase.database.Reference | null;
+    onDisconnect(): database.OnDisconnect;
+    parent: database.Reference | null;
     push(
       value?: any,
       onComplete?: (a: Error | null) => any
-    ): firebase.database.ThenableReference;
+    ): database.ThenableReference;
     remove(onComplete?: (a: Error | null) => any): Promise<any>;
-    root: firebase.database.Reference;
+    root: database.Reference;
     set(value: any, onComplete?: (a: Error | null) => any): Promise<any>;
     setPriority(
       priority: string | number | null,
@@ -558,7 +536,7 @@ declare namespace firebase.database {
       onComplete?: (
         a: Error | null,
         b: boolean,
-        c: firebase.database.DataSnapshot | null
+        c: database.DataSnapshot | null
       ) => any,
       applyLocally?: boolean
     ): Promise<any>;
@@ -566,7 +544,7 @@ declare namespace firebase.database {
   }
 
   interface ThenableReference
-    extends firebase.database.Reference,
+    extends database.Reference,
       PromiseLike<any> {}
 
   function enableLogging(
@@ -575,24 +553,24 @@ declare namespace firebase.database {
   ): any;
 }
 
-declare namespace firebase.database.ServerValue {
+export namespace database.ServerValue {
   var TIMESTAMP: Object;
 }
 
-declare namespace firebase.messaging {
+export namespace messaging {
   interface Messaging {
     deleteToken(token: string): Promise<boolean>;
     getToken(): Promise<string | null>;
     onMessage(
-      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
-      error?: firebase.ErrorFn,
-      completed?: firebase.CompleteFn
-    ): firebase.Unsubscribe;
+      nextOrObserver: NextFn<any> | Observer<any>,
+      error?: ErrorFn,
+      completed?: CompleteFn
+    ): Unsubscribe;
     onTokenRefresh(
-      nextOrObserver: firebase.NextFn<any> | firebase.Observer<any>,
-      error?: firebase.ErrorFn,
-      completed?: firebase.CompleteFn
-    ): firebase.Unsubscribe;
+      nextOrObserver: NextFn<any> | Observer<any>,
+      error?: ErrorFn,
+      completed?: CompleteFn
+    ): Unsubscribe;
     requestPermission(): Promise<void>;
     setBackgroundMessageHandler(
       callback: (payload: any) => Promise<any> | void
@@ -604,8 +582,8 @@ declare namespace firebase.messaging {
   function isSupported(): boolean;
 }
 
-declare namespace firebase.storage {
-  interface FullMetadata extends firebase.storage.UploadMetadata {
+export namespace storage {
+  interface FullMetadata extends storage.UploadMetadata {
     bucket: string;
     /**
      * @deprecated
@@ -624,26 +602,26 @@ declare namespace firebase.storage {
 
   interface Reference {
     bucket: string;
-    child(path: string): firebase.storage.Reference;
+    child(path: string): storage.Reference;
     delete(): Promise<any>;
     fullPath: string;
     getDownloadURL(): Promise<any>;
     getMetadata(): Promise<any>;
     name: string;
-    parent: firebase.storage.Reference | null;
+    parent: storage.Reference | null;
     put(
       data: any | any | any,
-      metadata?: firebase.storage.UploadMetadata
-    ): firebase.storage.UploadTask;
+      metadata?: storage.UploadMetadata
+    ): storage.UploadTask;
     putString(
       data: string,
-      format?: firebase.storage.StringFormat,
-      metadata?: firebase.storage.UploadMetadata
-    ): firebase.storage.UploadTask;
-    root: firebase.storage.Reference;
-    storage: firebase.storage.Storage;
+      format?: storage.StringFormat,
+      metadata?: storage.UploadMetadata
+    ): storage.UploadTask;
+    root: storage.Reference;
+    storage: storage.Storage;
     toString(): string;
-    updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
+    updateMetadata(metadata: storage.SettableMetadata): Promise<any>;
   }
 
   interface SettableMetadata {
@@ -658,11 +636,11 @@ declare namespace firebase.storage {
   }
 
   interface Storage {
-    app: firebase.app.App;
+    app: app.App;
     maxOperationRetryTime: number;
     maxUploadRetryTime: number;
-    ref(path?: string): firebase.storage.Reference;
-    refFromURL(url: string): firebase.storage.Reference;
+    ref(path?: string): storage.Reference;
+    refFromURL(url: string): storage.Reference;
     setMaxOperationRetryTime(time: number): any;
     setMaxUploadRetryTime(time: number): any;
   }
@@ -689,7 +667,7 @@ declare namespace firebase.storage {
     SUCCESS: TaskState;
   };
 
-  interface UploadMetadata extends firebase.storage.SettableMetadata {
+  interface UploadMetadata extends storage.SettableMetadata {
     md5Hash?: string | null;
   }
 
@@ -697,16 +675,16 @@ declare namespace firebase.storage {
     cancel(): boolean;
     catch(onRejected: (a: Error) => any): Promise<any>;
     on(
-      event: firebase.storage.TaskEvent,
-      nextOrObserver?: firebase.Observer<any> | null | ((a: Object) => any),
+      event: storage.TaskEvent,
+      nextOrObserver?: Observer<any> | null | ((a: Object) => any),
       error?: ((a: Error) => any) | null,
-      complete?: (firebase.Unsubscribe) | null
+      complete?: (Unsubscribe) | null
     ): Function;
     pause(): boolean;
     resume(): boolean;
-    snapshot: firebase.storage.UploadTaskSnapshot;
+    snapshot: storage.UploadTaskSnapshot;
     then(
-      onFulfilled?: ((a: firebase.storage.UploadTaskSnapshot) => any) | null,
+      onFulfilled?: ((a: storage.UploadTaskSnapshot) => any) | null,
       onRejected?: ((a: Error) => any) | null
     ): Promise<any>;
   }
@@ -719,15 +697,15 @@ declare namespace firebase.storage {
      * future release.
      */
     downloadURL: string | null;
-    metadata: firebase.storage.FullMetadata;
-    ref: firebase.storage.Reference;
-    state: firebase.storage.TaskState;
-    task: firebase.storage.UploadTask;
+    metadata: storage.FullMetadata;
+    ref: storage.Reference;
+    state: storage.TaskState;
+    task: storage.UploadTask;
     totalBytes: number;
   }
 }
 
-declare namespace firebase.firestore {
+export namespace firestore {
   /**
    * Document data (for use with `DocumentReference.set()`) consists of fields
    * mapped to values.
@@ -769,27 +747,6 @@ declare namespace firebase.firestore {
     timestampsInSnapshots?: boolean;
   }
 
-  // TODO(multitab): Uncomment when multi-tab is released publicly.
-  // /**
-  //  * Settings that can be passed to Firestore.enablePersistence() to configure
-  //  * Firestore persistence.
-  //  */
-  // export interface PersistenceSettings {
-  //   /**
-  //    * Whether to synchronize the in-memory state of multiple tabs. Setting this
-  //    * to 'true' in all open tabs enables shared access to local persistence,
-  //    * shared execution of queries and latency-compensated local document updates
-  //    * across all connected instances.
-  //    *
-  //    * To enable this mode, `experimentalTabSynchronization:true` needs to be set
-  //    * globally in all active tabs. If omitted or set to 'false',
-  //    * `enablePersistence()` will fail in all but the first tab.
-  //    *
-  //    * NOTE: This mode is not yet recommended for production use.
-  //    */
-  //   experimentalTabSynchronization?: boolean;
-  // }
-
   export type LogLevel = 'debug' | 'error' | 'silent';
 
   export function setLogLevel(logLevel: LogLevel): void;
@@ -828,29 +785,6 @@ declare namespace firebase.firestore {
      * storage.
      */
     enablePersistence(): Promise<void>;
-
-    // TODO(multitab): Uncomment when multi-tab is released publicly.
-    // /**
-    //  * Attempts to enable persistent storage, if possible.
-    //  *
-    //  * Must be called before any other methods (other than settings()).
-    //  *
-    //  * If this fails, enablePersistence() will reject the promise it returns.
-    //  * Note that even after this failure, the firestore instance will remain
-    //  * usable, however offline persistence will be disabled.
-    //  *
-    //  * There are several reasons why this can fail, which can be identified by
-    //  * the `code` on the error.
-    //  *
-    //  *   * failed-precondition: The app is already open in another browser tab.
-    //  *   * unimplemented: The browser is incompatible with the offline
-    //  *     persistence implementation.
-    //  *
-    //  * @param settings Optional settings object to configure persistence.
-    //  * @return A promise that represents successfully enabling persistent
-    //  * storage.
-    //  */
-    // enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
     /**
      * Gets a `CollectionReference` instance that refers to the collection at
@@ -897,7 +831,7 @@ declare namespace firebase.firestore {
     /**
      * The `FirebaseApp` associated with this `Firestore` instance.
      */
-    app: firebase.app.App;
+    app: app.App;
 
     /**
      * Re-enables use of the network for this Firestore instance after a prior
@@ -1603,9 +1537,10 @@ declare namespace firebase.firestore {
 
   /**
    * Filter conditions in a `Query.where()` clause are specified using the
-   * strings '<', '<=', '==', '>=', '>', and 'array-contains'.
+   * strings '<', '<=', '==', '>=', and '>'.
    */
-  export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>' | 'array-contains';
+  // TODO(array-features): Add 'array-contains' once backend support lands.
+  export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>';
 
   /**
    * A `Query` refers to a Query which you can read or listen to. You can also
@@ -1985,7 +1920,8 @@ declare namespace firebase.firestore {
      * @param elements The elements to union into the array.
      * @return The FieldValue sentinel for use in a call to set() or update().
      */
-    static arrayUnion(...elements: any[]): FieldValue;
+    // TODO(array-features): Expose this once backend support lands.
+    //static arrayUnion(...elements: any[]): FieldValue;
 
     /**
      * Returns a special value that can be used with set() or update() that tells
@@ -1997,7 +1933,8 @@ declare namespace firebase.firestore {
      * @param elements The elements to remove from the array.
      * @return The FieldValue sentinel for use in a call to set() or update().
      */
-    static arrayRemove(...elements: any[]): FieldValue;
+    // TODO(array-features): Expose this once backend support lands.
+    //static arrayRemove(...elements: any[]): FieldValue;
 
     /**
      * Returns true if this `FieldValue` is equal to the provided one.
@@ -2095,7 +2032,7 @@ declare namespace firebase.firestore {
     | 'unauthenticated';
 
   /** An error returned by a Firestore operation. */
-  // TODO(b/63008957): FirestoreError should extend firebase.FirebaseError
+  // TODO(b/63008957): FirestoreError should extend FirebaseError
   export interface FirestoreError {
     code: FirestoreErrorCode;
     message: string;
@@ -2104,5 +2041,97 @@ declare namespace firebase.firestore {
   }
 }
 
-export = firebase;
-export as namespace firebase;
+declare namespace firebaseNamespace {
+
+  var SDK_VERSION: string;
+
+  type Unsubscribe = () => void;
+
+  interface User extends UserInfo {
+    delete(): Promise<void>;
+    emailVerified: boolean;
+    getIdTokenResult(
+      forceRefresh?: boolean
+    ): Promise<auth.IdTokenResult>;
+    getIdToken(forceRefresh?: boolean): Promise<string>;
+    isAnonymous: boolean;
+    linkAndRetrieveDataWithCredential(
+      credential: auth.AuthCredential
+    ): Promise<auth.UserCredential>;
+    linkWithCredential(
+      credential: auth.AuthCredential
+    ): Promise<User>;
+    linkWithPhoneNumber(
+      phoneNumber: string,
+      applicationVerifier: auth.ApplicationVerifier
+    ): Promise<auth.ConfirmationResult>;
+    linkWithPopup(
+      provider: auth.AuthProvider
+    ): Promise<auth.UserCredential>;
+    linkWithRedirect(provider: auth.AuthProvider): Promise<void>;
+    metadata: auth.UserMetadata;
+    phoneNumber: string | null;
+    providerData: (UserInfo | null)[];
+    reauthenticateAndRetrieveDataWithCredential(
+      credential: auth.AuthCredential
+    ): Promise<auth.UserCredential>;
+    reauthenticateWithCredential(
+      credential: auth.AuthCredential
+    ): Promise<void>;
+    reauthenticateWithPhoneNumber(
+      phoneNumber: string,
+      applicationVerifier: auth.ApplicationVerifier
+    ): Promise<auth.ConfirmationResult>;
+    reauthenticateWithPopup(
+      provider: auth.AuthProvider
+    ): Promise<auth.UserCredential>;
+    reauthenticateWithRedirect(
+      provider: auth.AuthProvider
+    ): Promise<void>;
+    refreshToken: string;
+    reload(): Promise<void>;
+    sendEmailVerification(
+      actionCodeSettings?: auth.ActionCodeSettings | null
+    ): Promise<void>;
+    toJSON(): Object;
+    unlink(providerId: string): Promise<User>;
+    updateEmail(newEmail: string): Promise<void>;
+    updatePassword(newPassword: string): Promise<void>;
+    updatePhoneNumber(
+      phoneCredential: auth.AuthCredential
+    ): Promise<void>;
+    updateProfile(profile: {
+      displayName: string | null;
+      photoURL: string | null;
+    }): Promise<void>;
+  }
+
+  interface UserInfo {
+    displayName: string | null;
+    email: string | null;
+    phoneNumber: string | null;
+    photoURL: string | null;
+    providerId: string;
+    uid: string;
+  }
+
+  function app(name?: string): app.App;
+
+  var apps: (app.App | null)[];
+
+  function auth(app?: app.App): auth.Auth;
+
+  function database(app?: app.App): database.Database;
+
+  function initializeApp(options: Object, name?: string): app.App;
+
+  function messaging(app?: app.App): messaging.Messaging;
+
+  function storage(app?: app.App): storage.Storage;
+
+  function firestore(app?: app.App): firestore.Firestore;
+
+  function functions(app?: app.App): functions.Functions;
+}
+
+export default firebaseNamespace;
