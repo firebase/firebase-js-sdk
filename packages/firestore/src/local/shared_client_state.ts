@@ -554,7 +554,9 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.localClientStorageKey = this.toLocalStorageClientStateKey(
       this.localClientId
     );
-    this.sequenceNumberKey = `${SEQUENCE_NUMBER_KEY_PREFIX}_${this.persistenceKey}`;
+    this.sequenceNumberKey = `${SEQUENCE_NUMBER_KEY_PREFIX}_${
+      this.persistenceKey
+    }`;
     this.activeClients[this.localClientId] = new LocalClientState();
 
     // Escape the special characters mentioned here:
