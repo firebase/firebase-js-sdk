@@ -862,13 +862,12 @@ export class WebStorageSharedClientState implements SharedClientState {
             }
           }
         } else if (event.key === this.sequenceNumberKey) {
-          if (this.sequenceNumberHandler) {
-            const sequenceNumber = fromLocalStorageSequenceNumber(
-              event.newValue
-            );
-            if (sequenceNumber !== ListenSequence.INVALID) {
-              this.sequenceNumberHandler(sequenceNumber);
-            }
+          assert(!!this.sequenceNumberHandler, 'Missing sequenceNumberHandler');
+          const sequenceNumber = fromLocalStorageSequenceNumber(
+            event.newValue
+          );
+          if (sequenceNumber !== ListenSequence.INVALID) {
+            this.sequenceNumberHandler!(sequenceNumber);
           }
         }
       });

@@ -20,7 +20,10 @@ import { ListenSequenceNumber } from './types';
  * `SequenceNumberSyncer` defines the methods required to keep multiple instances of a `ListenSequence` in sync.
  */
 export interface SequenceNumberSyncer {
+  // Notify the syncer that a new sequence number has been used.
   writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
+  // Setting this property allows the syncer to notify when a sequence number has been used, and
+  // and lets the ListenSequence adjust its internal previous value accordingly.
   sequenceNumberHandler:
     | ((sequenceNumber: ListenSequenceNumber) => void)
     | null;
