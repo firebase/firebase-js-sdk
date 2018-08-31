@@ -15,7 +15,6 @@
  */
 
 import { User } from '../auth/user';
-import { assert } from '../util/assert';
 import { debug } from '../util/log';
 
 import { MemoryMutationQueue } from './memory_mutation_queue';
@@ -31,6 +30,8 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
+import { ListenSequenceNumber } from '../core/types';
+import { ListenSequence } from '../core/listen_sequence';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -52,11 +53,7 @@ export class MemoryPersistence implements Persistence {
 
   private _started = false;
 
-  constructor(private readonly clientId: ClientId) {}
-
-  async start(): Promise<void> {
-    // No durable state to read on startup.
-    assert(!this._started, 'MemoryPersistence double-started!');
+  constructor(private readonly clientId: ClientId) {
     this._started = true;
   }
 
@@ -109,7 +106,9 @@ export class MemoryPersistence implements Persistence {
     ) => PersistencePromise<T>
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
-    return transactionOperation(new MemoryTransaction()).toPromise();
+    return transactionOperation(
+      new MemoryTransaction(ListenSequence.INVALID)
+    ).toPromise();
   }
 }
 
@@ -117,4 +116,6 @@ export class MemoryPersistence implements Persistence {
  * Memory persistence is not actually transactional, but future implementations
  * may have transaction-scoped state.
  */
-export class MemoryTransaction implements PersistenceTransaction {}
+export class MemoryTransaction implements PersistenceTransaction {
+  constructor(readonly currentSequenceNumber: ListenSequenceNumber) {}
+}

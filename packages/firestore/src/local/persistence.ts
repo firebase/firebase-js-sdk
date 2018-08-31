@@ -21,6 +21,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
+import { ListenSequenceNumber } from '../core/types';
 
 /**
  * Opaque interface representing a persistence transaction.
@@ -29,7 +30,9 @@ import { ClientId } from './shared_client_state';
  * pass it to your callback. You then pass it to any method that operates
  * on persistence.
  */
-export abstract class PersistenceTransaction {}
+export abstract class PersistenceTransaction {
+  readonly currentSequenceNumber: ListenSequenceNumber;
+}
 
 /**
  * Callback type for primary state notifications. This callback can be
@@ -84,13 +87,6 @@ export interface Persistence {
    * Whether or not this persistence instance has been started.
    */
   readonly started: boolean;
-
-  /**
-   * Starts persistent storage, opening the database or similar.
-   *
-   * Throws an exception if the database could not be opened.
-   */
-  start(): Promise<void>;
 
   /**
    * Releases any resources held during eager shutdown.

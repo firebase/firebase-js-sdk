@@ -15,6 +15,8 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { ListenSequenceNumber } from '../../../src/core/types';
+import { SequenceNumberSyncer } from '../../../src/core/listen_sequence';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { SimpleDb } from '../../../src/local/simple_db';
@@ -42,6 +44,11 @@ import { LocalSerializer } from '../../../src/local/local_serializer';
 
 /** The prefix used by the keys that Firestore writes to Local Storage. */
 const LOCAL_STORAGE_PREFIX = 'firestore_';
+
+export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
+  sequenceNumberHandler: null,
+  writeSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}
+};
 
 /** The Database ID used by most tests that access IndexedDb. */
 export const INDEXEDDB_TEST_DATABASE_ID = new DatabaseId('test-project');
@@ -98,22 +105,27 @@ export async function testIndexedDbPersistence(
     useProto3Json: true
   });
   const platform = PlatformSupport.getPlatform();
-  const persistence = new IndexedDbPersistence(
-    TEST_PERSISTENCE_PREFIX,
-    clientId,
-    platform,
-    queue,
-    serializer,
-    !!options.synchronizeTabs
-  );
-  await persistence.start();
-  return persistence;
+  return options.synchronizeTabs
+    ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
+        TEST_PERSISTENCE_PREFIX,
+        clientId,
+        platform,
+        queue,
+        serializer,
+        { sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER }
+      )
+    : IndexedDbPersistence.createIndexedDbPersistence(
+        TEST_PERSISTENCE_PREFIX,
+        clientId,
+        platform,
+        queue,
+        serializer
+      );
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryPersistence(): Promise<MemoryPersistence> {
   const persistence = new MemoryPersistence(AutoId.newId());
-  await persistence.start();
   return persistence;
 }
 
