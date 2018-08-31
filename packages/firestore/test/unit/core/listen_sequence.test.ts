@@ -24,7 +24,7 @@ describe('ListenSequence', () => {
     const producedNumbers: ListenSequenceNumber[] = [];
     const syncParams = {
       sequenceNumberHandler: null,
-      updateSequenceNumber: (sequenceNumber: ListenSequenceNumber): void => {
+      writeSequenceNumber: (sequenceNumber: ListenSequenceNumber): void => {
         writtenNumbers.push(sequenceNumber);
       }
     };
@@ -40,7 +40,7 @@ describe('ListenSequence', () => {
       sequenceNumberHandler: null as
         | ((sequenceNumber: ListenSequenceNumber) => void)
         | null,
-      updateSequenceNumber: (sequenceNumber: ListenSequenceNumber): void => {}
+      writeSequenceNumber: (sequenceNumber: ListenSequenceNumber): void => {}
     };
     const listenSequence = new ListenSequence(0, syncParams);
     syncParams.sequenceNumberHandler!(5);

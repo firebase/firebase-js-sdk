@@ -47,7 +47,7 @@ const LOCAL_STORAGE_PREFIX = 'firestore_';
 
 export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
   sequenceNumberHandler: null,
-  updateSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}
+  writeSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}
 };
 
 /** The Database ID used by most tests that access IndexedDb. */

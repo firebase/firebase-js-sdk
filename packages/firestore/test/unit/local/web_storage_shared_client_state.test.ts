@@ -844,7 +844,7 @@ describe('WebStorageSharedClientState', () => {
     }
 
     it('writes out new sequence numbers', () => {
-      sharedClientState.updateSequenceNumber(1);
+      sharedClientState.writeSequenceNumber(1);
       assertSequenceNumber(1);
     });
 

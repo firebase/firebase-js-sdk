@@ -179,7 +179,7 @@ export interface SharedClientState {
   /** Changes the shared online state of all clients. */
   setOnlineState(onlineState: OnlineState): void;
 
-  updateSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
 }
 
 /**
@@ -660,7 +660,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.started = true;
   }
 
-  updateSequenceNumber(sequenceNumber: ListenSequenceNumber): void {
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {
     this.setItem(this.sequenceNumberKey, JSON.stringify(sequenceNumber));
   }
 
@@ -1191,5 +1191,5 @@ export class MemorySharedClientState implements SharedClientState {
 
   shutdown(): void {}
 
-  updateSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
 }
