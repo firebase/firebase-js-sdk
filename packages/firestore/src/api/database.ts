@@ -597,7 +597,11 @@ export class Transaction implements firestore.Transaction {
         } else if (doc instanceof Document) {
           return new DocumentSnapshot(this._firestore, ref._key, doc, false);
         } else {
-          throw fail('MaybeDocument is neither Document nor NoDocument');
+          throw fail(
+            `BatchGetDocumentsRequest returned unexpected document type: ${
+              doc.constructor.name
+            }`
+          );
         }
       });
   }
