@@ -15,11 +15,13 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
+import { ListenSequence } from '../core/listen_sequence';
 import {
   BatchId,
   MutationBatchState,
   OnlineState,
-  TargetId
+  TargetId,
+  ListenSequenceNumber
 } from '../core/types';
 import { assert } from '../util/assert';
 import { debug, error } from '../util/log';
@@ -58,6 +60,9 @@ const QUERY_TARGET_KEY_PREFIX = 'firestore_targets';
 // format of the key is:
 //     firestore_online_state_<persistence_prefix>
 const ONLINE_STATE_KEY_PREFIX = 'firestore_online_state';
+// The LocalStorage key prefix for the key that stores the last sequence number allocated. The key
+// looks like 'firestore_sequence_number_<persistence_prefix>'.
+const SEQUENCE_NUMBER_KEY_PREFIX = 'firestore_sequence_number';
 
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
@@ -82,6 +87,9 @@ export type ClientId = string;
 export interface SharedClientState {
   syncEngine: SharedClientStateSyncer | null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null;
+  sequenceNumberHandler:
+    | ((sequenceNumber: ListenSequenceNumber) => void)
+    | null;
 
   /** Registers the Mutation Batch ID of a newly pending mutation. */
   addPendingMutation(batchId: BatchId): void;
@@ -170,6 +178,8 @@ export interface SharedClientState {
 
   /** Changes the shared online state of all clients. */
   setOnlineState(onlineState: OnlineState): void;
+
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
 }
 
 /**
@@ -508,9 +518,13 @@ export class LocalClientState implements ClientState {
 export class WebStorageSharedClientState implements SharedClientState {
   syncEngine: SharedClientStateSyncer | null = null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
+  sequenceNumberHandler:
+    | ((sequenceNumber: ListenSequenceNumber) => void)
+    | null = null;
 
   private readonly storage: Storage;
   private readonly localClientStorageKey: string;
+  private readonly sequenceNumberKey: string;
   private readonly activeClients: { [key: string]: ClientState } = {};
   private readonly storageListener = this.handleLocalStorageEvent.bind(this);
   private readonly escapedPersistenceKey: string;
@@ -552,6 +566,9 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.localClientStorageKey = this.toLocalStorageClientStateKey(
       this.localClientId
     );
+    this.sequenceNumberKey = `${SEQUENCE_NUMBER_KEY_PREFIX}_${
+      this.escapedPersistenceKey
+    }`;
     this.activeClients[this.localClientId] = new LocalClientState();
 
     this.clientStateKeyRe = new RegExp(
@@ -641,6 +658,10 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.platform.window!.addEventListener('unload', () => this.shutdown());
 
     this.started = true;
+  }
+
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {
+    this.setItem(this.sequenceNumberKey, JSON.stringify(sequenceNumber));
   }
 
   getAllActiveQueryTargets(): TargetIdSet {
@@ -839,6 +860,12 @@ export class WebStorageSharedClientState implements SharedClientState {
             if (onlineState) {
               return this.handleOnlineStateEvent(onlineState);
             }
+          }
+        } else if (event.key === this.sequenceNumberKey) {
+          assert(!!this.sequenceNumberHandler, 'Missing sequenceNumberHandler');
+          const sequenceNumber = fromLocalStorageSequenceNumber(event.newValue);
+          if (sequenceNumber !== ListenSequence.INVALID) {
+            this.sequenceNumberHandler!(sequenceNumber);
           }
         }
       });
@@ -1066,6 +1093,22 @@ export class WebStorageSharedClientState implements SharedClientState {
   }
 }
 
+function fromLocalStorageSequenceNumber(
+  seqString: string | null
+): ListenSequenceNumber {
+  let sequenceNumber = ListenSequence.INVALID;
+  if (seqString != null) {
+    try {
+      const parsed = JSON.parse(seqString);
+      assert(typeof parsed === 'number', 'Found non-numeric sequence number');
+      sequenceNumber = parsed;
+    } catch (e) {
+      error(LOG_TAG, 'Failed to read sequence number from local storage', e);
+    }
+  }
+  return sequenceNumber;
+}
+
 /**
  * `MemorySharedClientState` is a simple implementation of SharedClientState for
  * clients using memory persistence. The state in this class remains fully
@@ -1077,6 +1120,9 @@ export class MemorySharedClientState implements SharedClientState {
 
   syncEngine: SharedClientStateSyncer | null = null;
   onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
+  sequenceNumberHandler:
+    | ((sequenceNumber: ListenSequenceNumber) => void)
+    | null = null;
 
   addPendingMutation(batchId: BatchId): void {
     // No op.
@@ -1141,4 +1187,6 @@ export class MemorySharedClientState implements SharedClientState {
   }
 
   shutdown(): void {}
+
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
 }

@@ -301,17 +301,7 @@ export class FirestoreClient {
       useProto3Json: true
     });
 
-    return Promise.resolve().then(() => {
-      const persistence: IndexedDbPersistence = new IndexedDbPersistence(
-        storagePrefix,
-        this.clientId,
-        this.platform,
-        this.asyncQueue,
-        serializer,
-        settings.experimentalTabSynchronization
-      );
-      this.persistence = persistence;
-
+    return Promise.resolve().then(async () => {
       if (
         settings.experimentalTabSynchronization &&
         !WebStorageSharedClientState.isAvailable(this.platform)
@@ -322,16 +312,32 @@ export class FirestoreClient {
         );
       }
 
-      this.sharedClientState = settings.experimentalTabSynchronization
-        ? new WebStorageSharedClientState(
-            this.asyncQueue,
-            this.platform,
-            storagePrefix,
-            this.clientId,
-            user
-          )
-        : new MemorySharedClientState();
-      return persistence.start();
+      if (settings.experimentalTabSynchronization) {
+        this.sharedClientState = new WebStorageSharedClientState(
+          this.asyncQueue,
+          this.platform,
+          storagePrefix,
+          this.clientId,
+          user
+        );
+        this.persistence = await IndexedDbPersistence.createMultiClientIndexedDbPersistence(
+          storagePrefix,
+          this.clientId,
+          this.platform,
+          this.asyncQueue,
+          serializer,
+          { sequenceNumberSyncer: this.sharedClientState }
+        );
+      } else {
+        this.sharedClientState = new MemorySharedClientState();
+        this.persistence = await IndexedDbPersistence.createIndexedDbPersistence(
+          storagePrefix,
+          this.clientId,
+          this.platform,
+          this.asyncQueue,
+          serializer
+        );
+      }
     });
   }
 
@@ -344,7 +350,7 @@ export class FirestoreClient {
     this.garbageCollector = new EagerGarbageCollector();
     this.persistence = new MemoryPersistence(this.clientId);
     this.sharedClientState = new MemorySharedClientState();
-    return this.persistence.start();
+    return Promise.resolve();
   }
 
   /**

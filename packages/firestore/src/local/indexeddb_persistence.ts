@@ -22,7 +22,10 @@ import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
-import { IndexedDbQueryCache } from './indexeddb_query_cache';
+import {
+  IndexedDbQueryCache,
+  getHighestListenSequenceNumber
+} from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
@@ -31,6 +34,7 @@ import {
   DbPrimaryClient,
   DbPrimaryClientKey,
   SCHEMA_VERSION,
+  DbTargetGlobal,
   SchemaConverter
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
@@ -48,6 +52,7 @@ import { Platform } from '../platform/platform';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { ClientId } from './shared_client_state';
 import { CancelablePromise } from '../util/promise';
+import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -97,7 +102,10 @@ const UNSUPPORTED_PLATFORM_ERROR_MSG =
 const ZOMBIED_CLIENTS_KEY_PREFIX = 'firestore_zombie';
 
 export class IndexedDbTransaction extends PersistenceTransaction {
-  constructor(readonly simpleDbTransaction: SimpleDbTransaction) {
+  constructor(
+    readonly simpleDbTransaction: SimpleDbTransaction,
+    readonly currentSequenceNumber
+  ) {
     super();
   }
 }
@@ -148,6 +156,9 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * TODO(multitab): Remove `experimentalTabSynchronization` section when
  * multi-tab is no longer optional.
  */
+export type MultiClientParams = {
+  sequenceNumberSyncer: SequenceNumberSyncer;
+};
 export class IndexedDbPersistence implements Persistence {
   static getStore<Key extends IDBValidKey, Value>(
     txn: PersistenceTransaction,
@@ -168,6 +179,44 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
+  static async createIndexedDbPersistence(
+    persistenceKey: string,
+    clientId: ClientId,
+    platform: Platform,
+    queue: AsyncQueue,
+    serializer: JsonProtoSerializer
+  ): Promise<IndexedDbPersistence> {
+    const persistence = new IndexedDbPersistence(
+      persistenceKey,
+      clientId,
+      platform,
+      queue,
+      serializer
+    );
+    await persistence.start();
+    return persistence;
+  }
+
+  static async createMultiClientIndexedDbPersistence(
+    persistenceKey: string,
+    clientId: ClientId,
+    platform: Platform,
+    queue: AsyncQueue,
+    serializer: JsonProtoSerializer,
+    multiClientParams: MultiClientParams
+  ): Promise<IndexedDbPersistence> {
+    const persistence = new IndexedDbPersistence(
+      persistenceKey,
+      clientId,
+      platform,
+      queue,
+      serializer,
+      multiClientParams
+    );
+    await persistence.start();
+    return persistence;
+  }
+
   private readonly document: Document | null;
   private readonly window: Window;
 
@@ -177,11 +226,6 @@ export class IndexedDbPersistence implements Persistence {
   private networkEnabled = true;
   private dbName: string;
 
-  /**
-   * Set to an Error object if we encounter an unrecoverable error. All further
-   * transactions will be failed with this error.
-   */
-  private persistenceError: Error | null;
   /** Our window.unload handler, if registered. */
   private windowUnloadHandler: (() => void) | null;
   private inForeground = false;
@@ -205,25 +249,44 @@ export class IndexedDbPersistence implements Persistence {
 
   private queryCache: IndexedDbQueryCache;
   private remoteDocumentCache: IndexedDbRemoteDocumentCache;
+  private readonly webStorage: Storage;
+  private listenSequence: ListenSequence;
 
-  constructor(
+  // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
+  // is still experimental. When multi-client is switched to always on, `multiClientParams` will
+  // no longer be optional.
+  private constructor(
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
     platform: Platform,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    synchronizeTabs: boolean
+    private readonly multiClientParams?: MultiClientParams
   ) {
+    if (!IndexedDbPersistence.isAvailable()) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        UNSUPPORTED_PLATFORM_ERROR_MSG
+      );
+    }
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
-    this.window = platform.window!;
-    this.allowTabSynchronization = synchronizeTabs;
+    this.allowTabSynchronization = multiClientParams !== undefined;
     this.queryCache = new IndexedDbQueryCache(this.serializer);
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
     );
+    if (platform.window && platform.window.localStorage) {
+      this.window = platform.window;
+      this.webStorage = this.window.localStorage;
+    } else {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        'IndexedDB persistence is only available on platforms that support LocalStorage.'
+      );
+    }
   }
 
   /**
@@ -231,15 +294,7 @@ export class IndexedDbPersistence implements Persistence {
    *
    * @return {Promise<void>} Whether persistence was enabled.
    */
-  start(): Promise<void> {
-    if (!IndexedDbPersistence.isAvailable()) {
-      this.persistenceError = new FirestoreError(
-        Code.UNIMPLEMENTED,
-        UNSUPPORTED_PLATFORM_ERROR_MSG
-      );
-      return Promise.reject(this.persistenceError);
-    }
-
+  private start(): Promise<void> {
     assert(!this.started, 'IndexedDbPersistence double-started!');
     assert(this.window !== null, "Expected 'window' to be defined");
 
@@ -260,7 +315,30 @@ export class IndexedDbPersistence implements Persistence {
         );
       })
       .then(() => {
+        return this.simpleDb.runTransaction(
+          'readonly',
+          [DbTargetGlobal.store],
+          txn => {
+            return getHighestListenSequenceNumber(txn).next(
+              highestListenSequenceNumber => {
+                const sequenceNumberSyncer = this.multiClientParams
+                  ? this.multiClientParams.sequenceNumberSyncer
+                  : undefined;
+                this.listenSequence = new ListenSequence(
+                  highestListenSequenceNumber,
+                  sequenceNumberSyncer
+                );
+              }
+            );
+          }
+        );
+      })
+      .then(() => {
         this._started = true;
+      })
+      .catch(reason => {
+        this.simpleDb && this.simpleDb.close();
+        return Promise.reject(reason);
       });
   }
 
@@ -641,10 +719,6 @@ export class IndexedDbPersistence implements Persistence {
   ): Promise<T> {
     // TODO(multitab): Consider removing `requirePrimaryLease` and exposing
     // three different write modes (readonly, readwrite, readwrite_primary).
-    if (this.persistenceError) {
-      return Promise.reject(this.persistenceError);
-    }
-
     log.debug(LOG_TAG, 'Starting transaction:', action);
 
     // Do all transactions as readwrite against all object stores, since we
@@ -675,7 +749,10 @@ export class IndexedDbPersistence implements Persistence {
                 );
               }
               return transactionOperation(
-                new IndexedDbTransaction(simpleDbTxn)
+                new IndexedDbTransaction(
+                  simpleDbTxn,
+                  this.listenSequence.next()
+                )
               );
             })
             .next(result => {
@@ -685,7 +762,9 @@ export class IndexedDbPersistence implements Persistence {
             });
         } else {
           return this.verifyAllowTabSynchronization(simpleDbTxn).next(() =>
-            transactionOperation(new IndexedDbTransaction(simpleDbTxn))
+            transactionOperation(
+              new IndexedDbTransaction(simpleDbTxn, this.listenSequence.next())
+            )
           );
         }
       }
@@ -874,19 +953,10 @@ export class IndexedDbPersistence implements Persistence {
    * cleanup logic in `shutdown()`.
    */
   private isClientZombied(clientId: ClientId): boolean {
-    if (this.window.localStorage === undefined) {
-      assert(
-        process.env.USE_MOCK_PERSISTENCE === 'YES',
-        'Operating without LocalStorage is only supported with IndexedDbShim.'
-      );
-      return false;
-    }
-
     try {
       const isZombied =
-        this.window.localStorage.getItem(
-          this.zombiedClientLocalStorageKey(clientId)
-        ) !== null;
+        this.webStorage.getItem(this.zombiedClientLocalStorageKey(clientId)) !==
+        null;
       log.debug(
         LOG_TAG,
         `Client '${clientId}' ${
@@ -895,7 +965,7 @@ export class IndexedDbPersistence implements Persistence {
       );
       return isZombied;
     } catch (e) {
-      // Gracefully handle if LocalStorage isn't available / working.
+      // Gracefully handle if LocalStorage isn't working.
       log.error(LOG_TAG, 'Failed to get zombied client id.', e);
       return false;
     }
@@ -907,7 +977,7 @@ export class IndexedDbPersistence implements Persistence {
    */
   private markClientZombied(): void {
     try {
-      this.window.localStorage.setItem(
+      this.webStorage.setItem(
         this.zombiedClientLocalStorageKey(this.clientId),
         String(Date.now())
       );
@@ -920,7 +990,7 @@ export class IndexedDbPersistence implements Persistence {
   /** Removes the zombied client entry if it exists. */
   private removeClientZombiedEntry(): void {
     try {
-      this.window.localStorage.removeItem(
+      this.webStorage.removeItem(
         this.zombiedClientLocalStorageKey(this.clientId)
       );
     } catch (e) {

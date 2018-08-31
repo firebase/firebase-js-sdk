@@ -25,9 +25,8 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
+import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { LocalSerializer } from './local_serializer';
-import { IndexedDbTransaction } from './indexeddb_persistence';
 
 /**
  * Schema Version for the Web client:
@@ -122,13 +121,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       DbMutationBatch.store
     );
 
-    const indexedDbTransaction = new IndexedDbTransaction(txn);
     return queuesStore.loadAll().next(queues => {
       return PersistencePromise.forEach(queues, queue => {
-        const mutationQueue = new IndexedDbMutationQueue(
-          queue.userId,
-          this.serializer
-        );
         const range = IDBKeyRange.bound(
           [queue.userId, BATCHID_UNKNOWN],
           [queue.userId, queue.lastAcknowledgedBatchId]
@@ -143,15 +137,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
                 `Cannot process batch ${dbBatch.batchId} from unexpected user`
               );
               const batch = this.serializer.fromDbMutationBatch(dbBatch);
-              return mutationQueue.removeMutationBatch(
-                indexedDbTransaction,
-                batch
-              );
+
+              return removeMutationBatch(txn, queue.userId, batch).next();
             });
-          })
-          .next(() =>
-            mutationQueue.performConsistencyCheck(indexedDbTransaction)
-          );
+          });
       });
     });
   }

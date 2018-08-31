@@ -25,6 +25,7 @@ import {
 } from '../../../src/local/shared_client_state';
 import {
   BatchId,
+  ListenSequenceNumber,
   MutationBatchState,
   OnlineState,
   TargetId
@@ -71,6 +72,10 @@ function targetKey(targetId: TargetId): string {
 
 function onlineStateKey(): string {
   return `firestore_online_state_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}`;
+}
+
+function sequenceNumberKey(): string {
+  return `firestore_sequence_number_${TEST_PERSISTENCE_PREFIX}`;
 }
 
 interface TestSharedClientState {
@@ -823,6 +828,37 @@ describe('WebStorageSharedClientState', () => {
         expect(clientState.targetIds.size).to.equal(1);
         expect(clientState.targetState[firstClientTargetId]).to.be.undefined;
       });
+    });
+  });
+
+  describe('syncs sequence numbers', () => {
+    beforeEach(() => {
+      return sharedClientState.start();
+    });
+
+    function assertSequenceNumber(expected: ListenSequenceNumber): void {
+      const sequenceNumberString = localStorage.getItem(sequenceNumberKey());
+      expect(sequenceNumberString).to.not.be.null;
+      const actual = JSON.parse(sequenceNumberString!) as ListenSequenceNumber;
+      expect(actual).to.equal(expected);
+    }
+
+    it('writes out new sequence numbers', () => {
+      sharedClientState.writeSequenceNumber(1);
+      assertSequenceNumber(1);
+    });
+
+    it('notifies on new sequence numbers', async () => {
+      const sequenceNumbers: ListenSequenceNumber[] = [];
+      sharedClientState.sequenceNumberHandler = sequenceNumber =>
+        sequenceNumbers.push(sequenceNumber);
+      writeToLocalStorage(sequenceNumberKey(), '1');
+      await queue.drain();
+      expect(sequenceNumbers).to.deep.equal([1]);
+      writeToLocalStorage(sequenceNumberKey(), '2');
+      writeToLocalStorage(sequenceNumberKey(), '3');
+      await queue.drain();
+      expect(sequenceNumbers).to.deep.equal([1, 2, 3]);
     });
   });
 });

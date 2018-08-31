@@ -379,7 +379,7 @@ abstract class TestRunner {
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
   private persistence: Persistence;
-  private sharedClientState: SharedClientState;
+  protected sharedClientState: SharedClientState;
   private useGarbageCollection: boolean;
   private numClients: number;
   private databaseInfo: DatabaseInfo;
@@ -422,10 +422,10 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
+    this.sharedClientState = this.getSharedClientState();
     this.persistence = await this.initPersistence(this.serializer);
     const garbageCollector = this.getGarbageCollector();
 
-    this.sharedClientState = this.getSharedClientState();
     this.localStore = new LocalStore(
       this.persistence,
       this.user,
@@ -471,11 +471,11 @@ abstract class TestRunner {
     this.remoteStore.syncEngine = this.syncEngine;
     this.sharedClientState.syncEngine = this.syncEngine;
     this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
-
     this.eventManager = new EventManager(this.syncEngine);
 
-    await this.localStore.start();
     await this.sharedClientState.start();
+
+    await this.localStore.start();
     await this.remoteStore.start();
 
     await this.persistence.setPrimaryStateListener(isPrimary =>
@@ -1153,12 +1153,10 @@ class MemoryTestRunner extends TestRunner {
     return new MemorySharedClientState();
   }
 
-  protected async initPersistence(
+  protected initPersistence(
     serializer: JsonProtoSerializer
   ): Promise<Persistence> {
-    const persistence = new MemoryPersistence(this.clientId);
-    await persistence.start();
-    return persistence;
+    return Promise.resolve(new MemoryPersistence(this.clientId));
   }
 }
 
@@ -1177,19 +1175,17 @@ class IndexedDbTestRunner extends TestRunner {
     );
   }
 
-  protected async initPersistence(
+  protected initPersistence(
     serializer: JsonProtoSerializer
   ): Promise<Persistence> {
-    const persistence = new IndexedDbPersistence(
+    return IndexedDbPersistence.createMultiClientIndexedDbPersistence(
       TEST_PERSISTENCE_PREFIX,
       this.clientId,
       this.platform,
       this.queue,
       serializer,
-      /*synchronizeTabs=*/ true
+      { sequenceNumberSyncer: this.sharedClientState }
     );
-    await persistence.start();
-    return persistence;
   }
 
   static destroyPersistence(): Promise<void> {
