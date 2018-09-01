@@ -33,49 +33,63 @@ interface Observer<T, E = Error> {
 
 type Unsubscribe = () => void;
 
-export interface User extends UserInfo {
-  delete(): Promise<any>;
+interface User extends UserInfo {
+  delete(): Promise<void>;
   emailVerified: boolean;
-  getIdTokenResult(forceRefresh?: boolean): Promise<auth.IdTokenResult>;
-  getIdToken(forceRefresh?: boolean): Promise<any>;
+  getIdTokenResult(
+    forceRefresh?: boolean
+  ): Promise<auth.IdTokenResult>;
+  getIdToken(forceRefresh?: boolean): Promise<string>;
   isAnonymous: boolean;
   linkAndRetrieveDataWithCredential(
     credential: auth.AuthCredential
-  ): Promise<any>;
-  linkWithCredential(credential: auth.AuthCredential): Promise<any>;
+  ): Promise<auth.UserCredential>;
+  linkWithCredential(
+    credential: auth.AuthCredential
+  ): Promise<User>;
   linkWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: auth.ApplicationVerifier
-  ): Promise<any>;
-  linkWithPopup(provider: auth.AuthProvider): Promise<any>;
-  linkWithRedirect(provider: auth.AuthProvider): Promise<any>;
+  ): Promise<auth.ConfirmationResult>;
+  linkWithPopup(
+    provider: auth.AuthProvider
+  ): Promise<auth.UserCredential>;
+  linkWithRedirect(provider: auth.AuthProvider): Promise<void>;
   metadata: auth.UserMetadata;
   phoneNumber: string | null;
   providerData: (UserInfo | null)[];
   reauthenticateAndRetrieveDataWithCredential(
     credential: auth.AuthCredential
-  ): Promise<any>;
-  reauthenticateWithCredential(credential: auth.AuthCredential): Promise<any>;
+  ): Promise<auth.UserCredential>;
+  reauthenticateWithCredential(
+    credential: auth.AuthCredential
+  ): Promise<void>;
   reauthenticateWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: auth.ApplicationVerifier
-  ): Promise<any>;
-  reauthenticateWithPopup(provider: auth.AuthProvider): Promise<any>;
-  reauthenticateWithRedirect(provider: auth.AuthProvider): Promise<any>;
+  ): Promise<auth.ConfirmationResult>;
+  reauthenticateWithPopup(
+    provider: auth.AuthProvider
+  ): Promise<auth.UserCredential>;
+  reauthenticateWithRedirect(
+    provider: auth.AuthProvider
+  ): Promise<void>;
   refreshToken: string;
-  reload(): Promise<any>;
+  reload(): Promise<void>;
   sendEmailVerification(
     actionCodeSettings?: auth.ActionCodeSettings | null
-  ): Promise<any>;
+  ): Promise<void>;
   toJSON(): Object;
-  unlink(providerId: string): Promise<any>;
-  updateEmail(newEmail: string): Promise<any>;
-  updatePassword(newPassword: string): Promise<any>;
-  updatePhoneNumber(phoneCredential: auth.AuthCredential): Promise<any>;
+  unlink(providerId: string): Promise<User>;
+  updateEmail(newEmail: string): Promise<void>;
+  updatePassword(newPassword: string): Promise<void>;
+  updatePhoneNumber(
+    phoneCredential: auth.AuthCredential
+  ): Promise<void>;
   updateProfile(profile: {
     displayName: string | null;
     photoURL: string | null;
-  }): Promise<any>;
+  }): Promise<void>;
 }
 
 interface UserInfo {
@@ -90,14 +104,14 @@ interface UserInfo {
 export namespace app {
   interface App {
     auth(): auth.Auth;
-    database(): database.Database;
+    database(url?: string): database.Database;
     delete(): Promise<any>;
     messaging(): messaging.Messaging;
     name: string;
     options: Object;
     storage(url?: string): storage.Storage;
     firestore(): firestore.Firestore;
-    functions(): functions.Functions;
+    functions(region?: string): functions.Functions;
   }
 }
 
@@ -137,7 +151,13 @@ export namespace functions {
 }
 
 export namespace auth {
-  interface ActionCodeInfo {}
+  interface ActionCodeInfo {
+    data: {
+      email?: string | null;
+      fromEmail?: string | null;
+    };
+    operation: string;
+  }
 
   type ActionCodeSettings = {
     android?: {
@@ -159,7 +179,7 @@ export namespace auth {
 
   interface ApplicationVerifier {
     type: string;
-    verify(): Promise<any>;
+    verify(): Promise<string>;
   }
 
   interface AuthSettings {
@@ -168,67 +188,83 @@ export namespace auth {
 
   interface Auth {
     app: app.App;
-    applyActionCode(code: string): Promise<any>;
-    checkActionCode(code: string): Promise<any>;
-    confirmPasswordReset(code: string, newPassword: string): Promise<any>;
+    applyActionCode(code: string): Promise<void>;
+    checkActionCode(code: string): Promise<auth.ActionCodeInfo>;
+    confirmPasswordReset(code: string, newPassword: string): Promise<void>;
     createUserAndRetrieveDataWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<any>;
+    ): Promise<auth.UserCredential>;
     createUserWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<any>;
+    ): Promise<auth.UserCredential>;
     currentUser: User | null;
-    fetchProvidersForEmail(email: string): Promise<any>;
-    fetchSignInMethodsForEmail(email: string): Promise<any>;
+    fetchProvidersForEmail(email: string): Promise<Array<string>>;
+    fetchSignInMethodsForEmail(email: string): Promise<Array<string>>;
     isSignInWithEmailLink(emailLink: string): boolean;
-    getRedirectResult(): Promise<any>;
+    getRedirectResult(): Promise<auth.UserCredential>;
     languageCode: string | null;
     settings: auth.AuthSettings;
     onAuthStateChanged(
-      nextOrObserver: Observer<any> | ((a: User | null) => any),
+      nextOrObserver:
+        | Observer<any>
+        | ((a: User | null) => any),
       error?: (a: auth.Error) => any,
       completed?: Unsubscribe
     ): Unsubscribe;
     onIdTokenChanged(
-      nextOrObserver: Observer<any> | ((a: User | null) => any),
+      nextOrObserver:
+        | Observer<any>
+        | ((a: User | null) => any),
       error?: (a: auth.Error) => any,
       completed?: Unsubscribe
     ): Unsubscribe;
     sendSignInLinkToEmail(
       email: string,
       actionCodeSettings: auth.ActionCodeSettings
-    ): Promise<any>;
+    ): Promise<void>;
     sendPasswordResetEmail(
       email: string,
       actionCodeSettings?: auth.ActionCodeSettings | null
-    ): Promise<any>;
-    setPersistence(persistence: auth.Auth.Persistence): Promise<any>;
+    ): Promise<void>;
+    setPersistence(persistence: auth.Auth.Persistence): Promise<void>;
     signInAndRetrieveDataWithCredential(
       credential: auth.AuthCredential
-    ): Promise<any>;
-    signInAnonymously(): Promise<any>;
-    signInAnonymouslyAndRetrieveData(): Promise<any>;
-    signInWithCredential(credential: auth.AuthCredential): Promise<any>;
-    signInWithCustomToken(token: string): Promise<any>;
-    signInAndRetrieveDataWithCustomToken(token: string): Promise<any>;
-    signInWithEmailAndPassword(email: string, password: string): Promise<any>;
+    ): Promise<auth.UserCredential>;
+    signInAnonymously(): Promise<auth.UserCredential>;
+    signInAnonymouslyAndRetrieveData(): Promise<auth.UserCredential>;
+    signInWithCredential(
+      credential: auth.AuthCredential
+    ): Promise<User>;
+    signInWithCustomToken(token: string): Promise<auth.UserCredential>;
+    signInAndRetrieveDataWithCustomToken(
+      token: string
+    ): Promise<auth.UserCredential>;
+    signInWithEmailAndPassword(
+      email: string,
+      password: string
+    ): Promise<auth.UserCredential>;
     signInAndRetrieveDataWithEmailAndPassword(
       email: string,
       password: string
-    ): Promise<any>;
+    ): Promise<auth.UserCredential>;
     signInWithPhoneNumber(
       phoneNumber: string,
       applicationVerifier: auth.ApplicationVerifier
-    ): Promise<any>;
-    signInWithEmailLink(email: string, emailLink?: string): Promise<any>;
-    signInWithPopup(provider: auth.AuthProvider): Promise<any>;
-    signInWithRedirect(provider: auth.AuthProvider): Promise<any>;
-    signOut(): Promise<any>;
-    updateCurrentUser(user: User | null): Promise<any>;
-    useDeviceLanguage(): any;
-    verifyPasswordResetCode(code: string): Promise<any>;
+    ): Promise<auth.ConfirmationResult>;
+    signInWithEmailLink(
+      email: string,
+      emailLink?: string
+    ): Promise<auth.UserCredential>;
+    signInWithPopup(
+      provider: auth.AuthProvider
+    ): Promise<auth.UserCredential>;
+    signInWithRedirect(provider: auth.AuthProvider): Promise<void>;
+    signOut(): Promise<void>;
+    updateCurrentUser(user: User | null): Promise<void>;
+    useDeviceLanguage(): void;
+    verifyPasswordResetCode(code: string): Promise<string>;
   }
 
   interface AuthCredential {
@@ -241,7 +277,7 @@ export namespace auth {
   }
 
   interface ConfirmationResult {
-    confirm(verificationCode: string): Promise<any>;
+    confirm(verificationCode: string): Promise<auth.UserCredential>;
     verificationId: string;
   }
 
@@ -249,7 +285,10 @@ export namespace auth {
     static PROVIDER_ID: string;
     static EMAIL_PASSWORD_SIGN_IN_METHOD: string;
     static EMAIL_LINK_SIGN_IN_METHOD: string;
-    static credential(email: string, password: string): auth.AuthCredential;
+    static credential(
+      email: string,
+      password: string
+    ): auth.AuthCredential;
     static credentialWithLink(
       email: string,
       emailLink: string
@@ -272,7 +311,9 @@ export namespace auth {
   class FacebookAuthProvider_Instance implements auth.AuthProvider {
     addScope(scope: string): auth.AuthProvider;
     providerId: string;
-    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
+    setCustomParameters(
+      customOAuthParameters: Object
+    ): auth.AuthProvider;
   }
 
   class GithubAuthProvider extends GithubAuthProvider_Instance {
@@ -283,7 +324,9 @@ export namespace auth {
   class GithubAuthProvider_Instance implements auth.AuthProvider {
     addScope(scope: string): auth.AuthProvider;
     providerId: string;
-    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
+    setCustomParameters(
+      customOAuthParameters: Object
+    ): auth.AuthProvider;
   }
 
   class GoogleAuthProvider extends GoogleAuthProvider_Instance {
@@ -297,7 +340,9 @@ export namespace auth {
   class GoogleAuthProvider_Instance implements auth.AuthProvider {
     addScope(scope: string): auth.AuthProvider;
     providerId: string;
-    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
+    setCustomParameters(
+      customOAuthParameters: Object
+    ): auth.AuthProvider;
   }
 
   interface IdTokenResult {
@@ -325,30 +370,36 @@ export namespace auth {
     verifyPhoneNumber(
       phoneNumber: string,
       applicationVerifier: auth.ApplicationVerifier
-    ): Promise<any>;
+    ): Promise<string>;
   }
 
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
-  class RecaptchaVerifier_Instance implements auth.ApplicationVerifier {
+  class RecaptchaVerifier_Instance
+    implements auth.ApplicationVerifier {
     constructor(
       container: any | string,
       parameters?: Object | null,
       app?: app.App | null
     );
-    clear(): any;
-    render(): Promise<any>;
+    clear(): void;
+    render(): Promise<number>;
     type: string;
-    verify(): Promise<any>;
+    verify(): Promise<string>;
   }
 
   class TwitterAuthProvider extends TwitterAuthProvider_Instance {
     static PROVIDER_ID: string;
     static TWITTER_SIGN_IN_METHOD: string;
-    static credential(token: string, secret: string): auth.AuthCredential;
+    static credential(
+      token: string,
+      secret: string
+    ): auth.AuthCredential;
   }
   class TwitterAuthProvider_Instance implements auth.AuthProvider {
     providerId: string;
-    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
+    setCustomParameters(
+      customOAuthParameters: Object
+    ): auth.AuthProvider;
   }
 
   type UserCredential = {
@@ -378,7 +429,9 @@ export namespace database {
     child(path: string): database.DataSnapshot;
     exists(): boolean;
     exportVal(): any;
-    forEach(action: (a: database.DataSnapshot) => boolean | void): boolean;
+    forEach(
+      action: (a: database.DataSnapshot) => boolean | void
+    ): boolean;
     getPriority(): string | number | null;
     hasChild(path: string): boolean;
     hasChildren(): boolean;
@@ -491,7 +544,9 @@ export namespace database {
     update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
   }
 
-  interface ThenableReference extends database.Reference, PromiseLike<any> {}
+  interface ThenableReference
+    extends database.Reference,
+      PromiseLike<any> {}
 
   function enableLogging(
     logger?: boolean | ((a: string) => any),
@@ -693,6 +748,27 @@ export namespace firestore {
     timestampsInSnapshots?: boolean;
   }
 
+  // TODO(multitab): Uncomment when multi-tab is released publicly.
+  // /**
+  //  * Settings that can be passed to Firestore.enablePersistence() to configure
+  //  * Firestore persistence.
+  //  */
+  // export interface PersistenceSettings {
+  //   /**
+  //    * Whether to synchronize the in-memory state of multiple tabs. Setting this
+  //    * to 'true' in all open tabs enables shared access to local persistence,
+  //    * shared execution of queries and latency-compensated local document updates
+  //    * across all connected instances.
+  //    *
+  //    * To enable this mode, `experimentalTabSynchronization:true` needs to be set
+  //    * globally in all active tabs. If omitted or set to 'false',
+  //    * `enablePersistence()` will fail in all but the first tab.
+  //    *
+  //    * NOTE: This mode is not yet recommended for production use.
+  //    */
+  //   experimentalTabSynchronization?: boolean;
+  // }
+
   export type LogLevel = 'debug' | 'error' | 'silent';
 
   export function setLogLevel(logLevel: LogLevel): void;
@@ -731,6 +807,29 @@ export namespace firestore {
      * storage.
      */
     enablePersistence(): Promise<void>;
+
+    // TODO(multitab): Uncomment when multi-tab is released publicly.
+    // /**
+    //  * Attempts to enable persistent storage, if possible.
+    //  *
+    //  * Must be called before any other methods (other than settings()).
+    //  *
+    //  * If this fails, enablePersistence() will reject the promise it returns.
+    //  * Note that even after this failure, the firestore instance will remain
+    //  * usable, however offline persistence will be disabled.
+    //  *
+    //  * There are several reasons why this can fail, which can be identified by
+    //  * the `code` on the error.
+    //  *
+    //  *   * failed-precondition: The app is already open in another browser tab.
+    //  *   * unimplemented: The browser is incompatible with the offline
+    //  *     persistence implementation.
+    //  *
+    //  * @param settings Optional settings object to configure persistence.
+    //  * @return A promise that represents successfully enabling persistent
+    //  * storage.
+    //  */
+    // enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
     /**
      * Gets a `CollectionReference` instance that refers to the collection at
@@ -1483,10 +1582,9 @@ export namespace firestore {
 
   /**
    * Filter conditions in a `Query.where()` clause are specified using the
-   * strings '<', '<=', '==', '>=', and '>'.
+   * strings '<', '<=', '==', '>=', '>', and 'array-contains'.
    */
-  // TODO(array-features): Add 'array-contains' once backend support lands.
-  export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>';
+  export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>' | 'array-contains';
 
   /**
    * A `Query` refers to a Query which you can read or listen to. You can also
@@ -1866,8 +1964,7 @@ export namespace firestore {
      * @param elements The elements to union into the array.
      * @return The FieldValue sentinel for use in a call to set() or update().
      */
-    // TODO(array-features): Expose this once backend support lands.
-    //static arrayUnion(...elements: any[]): FieldValue;
+    static arrayUnion(...elements: any[]): FieldValue;
 
     /**
      * Returns a special value that can be used with set() or update() that tells
@@ -1879,8 +1976,7 @@ export namespace firestore {
      * @param elements The elements to remove from the array.
      * @return The FieldValue sentinel for use in a call to set() or update().
      */
-    // TODO(array-features): Expose this once backend support lands.
-    //static arrayRemove(...elements: any[]): FieldValue;
+    static arrayRemove(...elements: any[]): FieldValue;
 
     /**
      * Returns true if this `FieldValue` is equal to the provided one.
@@ -1987,15 +2083,17 @@ export namespace firestore {
   }
 }
 
-export default {
-  SDK_VERSION: string,
-  app: (name?: string) => app.App,
-  apps: <app.App | null>[],
-  auth: (app?: app.App) => auth.Auth,
-  database: (app?: app.App) => database.Database,
-  initializeApp: (options: Object, name?: string) => app.App,
-  messaging: (app?: app.App) => messaging.Messaging,
-  storage: (app?: app.App) => storage.Storage,
-  firestore: (app?: app.App) => firestore.Firestore,
-  functions: (app?: app.App) => functions.Functions
-};
+namespace firebase {
+  const SDK_VERSION: string;
+  function app(name?: string): app.App;
+  const apps: (app.App | null)[];
+  function auth(app?: app.App): auth.Auth;
+  function database(app?: app.App): database.Database;
+  function initializeApp(options: Object, name?: string): app.App;
+  function messaging(app?: app.App): messaging.Messaging;
+  function storage(app?: app.App): storage.Storage;
+  function firestore(app?: app.App): firestore.Firestore;
+  function functions(app?: app.App): functions.Functions;
+}
+
+export default firebase;
