@@ -33,7 +33,7 @@ interface Observer<T, E = Error> {
 
 type Unsubscribe = () => void;
 
-interface User extends UserInfo {
+export interface User extends UserInfo {
   delete(): Promise<void>;
   emailVerified: boolean;
   getIdTokenResult(forceRefresh?: boolean): Promise<auth.IdTokenResult>;
