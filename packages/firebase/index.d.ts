@@ -36,24 +36,18 @@ type Unsubscribe = () => void;
 interface User extends UserInfo {
   delete(): Promise<void>;
   emailVerified: boolean;
-  getIdTokenResult(
-    forceRefresh?: boolean
-  ): Promise<auth.IdTokenResult>;
+  getIdTokenResult(forceRefresh?: boolean): Promise<auth.IdTokenResult>;
   getIdToken(forceRefresh?: boolean): Promise<string>;
   isAnonymous: boolean;
   linkAndRetrieveDataWithCredential(
     credential: auth.AuthCredential
   ): Promise<auth.UserCredential>;
-  linkWithCredential(
-    credential: auth.AuthCredential
-  ): Promise<User>;
+  linkWithCredential(credential: auth.AuthCredential): Promise<User>;
   linkWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: auth.ApplicationVerifier
   ): Promise<auth.ConfirmationResult>;
-  linkWithPopup(
-    provider: auth.AuthProvider
-  ): Promise<auth.UserCredential>;
+  linkWithPopup(provider: auth.AuthProvider): Promise<auth.UserCredential>;
   linkWithRedirect(provider: auth.AuthProvider): Promise<void>;
   metadata: auth.UserMetadata;
   phoneNumber: string | null;
@@ -61,9 +55,7 @@ interface User extends UserInfo {
   reauthenticateAndRetrieveDataWithCredential(
     credential: auth.AuthCredential
   ): Promise<auth.UserCredential>;
-  reauthenticateWithCredential(
-    credential: auth.AuthCredential
-  ): Promise<void>;
+  reauthenticateWithCredential(credential: auth.AuthCredential): Promise<void>;
   reauthenticateWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: auth.ApplicationVerifier
@@ -71,9 +63,7 @@ interface User extends UserInfo {
   reauthenticateWithPopup(
     provider: auth.AuthProvider
   ): Promise<auth.UserCredential>;
-  reauthenticateWithRedirect(
-    provider: auth.AuthProvider
-  ): Promise<void>;
+  reauthenticateWithRedirect(provider: auth.AuthProvider): Promise<void>;
   refreshToken: string;
   reload(): Promise<void>;
   sendEmailVerification(
@@ -83,9 +73,7 @@ interface User extends UserInfo {
   unlink(providerId: string): Promise<User>;
   updateEmail(newEmail: string): Promise<void>;
   updatePassword(newPassword: string): Promise<void>;
-  updatePhoneNumber(
-    phoneCredential: auth.AuthCredential
-  ): Promise<void>;
+  updatePhoneNumber(phoneCredential: auth.AuthCredential): Promise<void>;
   updateProfile(profile: {
     displayName: string | null;
     photoURL: string | null;
@@ -207,16 +195,12 @@ export namespace auth {
     languageCode: string | null;
     settings: auth.AuthSettings;
     onAuthStateChanged(
-      nextOrObserver:
-        | Observer<any>
-        | ((a: User | null) => any),
+      nextOrObserver: Observer<any> | ((a: User | null) => any),
       error?: (a: auth.Error) => any,
       completed?: Unsubscribe
     ): Unsubscribe;
     onIdTokenChanged(
-      nextOrObserver:
-        | Observer<any>
-        | ((a: User | null) => any),
+      nextOrObserver: Observer<any> | ((a: User | null) => any),
       error?: (a: auth.Error) => any,
       completed?: Unsubscribe
     ): Unsubscribe;
@@ -234,9 +218,7 @@ export namespace auth {
     ): Promise<auth.UserCredential>;
     signInAnonymously(): Promise<auth.UserCredential>;
     signInAnonymouslyAndRetrieveData(): Promise<auth.UserCredential>;
-    signInWithCredential(
-      credential: auth.AuthCredential
-    ): Promise<User>;
+    signInWithCredential(credential: auth.AuthCredential): Promise<User>;
     signInWithCustomToken(token: string): Promise<auth.UserCredential>;
     signInAndRetrieveDataWithCustomToken(
       token: string
@@ -257,9 +239,7 @@ export namespace auth {
       email: string,
       emailLink?: string
     ): Promise<auth.UserCredential>;
-    signInWithPopup(
-      provider: auth.AuthProvider
-    ): Promise<auth.UserCredential>;
+    signInWithPopup(provider: auth.AuthProvider): Promise<auth.UserCredential>;
     signInWithRedirect(provider: auth.AuthProvider): Promise<void>;
     signOut(): Promise<void>;
     updateCurrentUser(user: User | null): Promise<void>;
@@ -285,10 +265,7 @@ export namespace auth {
     static PROVIDER_ID: string;
     static EMAIL_PASSWORD_SIGN_IN_METHOD: string;
     static EMAIL_LINK_SIGN_IN_METHOD: string;
-    static credential(
-      email: string,
-      password: string
-    ): auth.AuthCredential;
+    static credential(email: string, password: string): auth.AuthCredential;
     static credentialWithLink(
       email: string,
       emailLink: string
@@ -311,9 +288,7 @@ export namespace auth {
   class FacebookAuthProvider_Instance implements auth.AuthProvider {
     addScope(scope: string): auth.AuthProvider;
     providerId: string;
-    setCustomParameters(
-      customOAuthParameters: Object
-    ): auth.AuthProvider;
+    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
   }
 
   class GithubAuthProvider extends GithubAuthProvider_Instance {
@@ -324,9 +299,7 @@ export namespace auth {
   class GithubAuthProvider_Instance implements auth.AuthProvider {
     addScope(scope: string): auth.AuthProvider;
     providerId: string;
-    setCustomParameters(
-      customOAuthParameters: Object
-    ): auth.AuthProvider;
+    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
   }
 
   class GoogleAuthProvider extends GoogleAuthProvider_Instance {
@@ -340,9 +313,7 @@ export namespace auth {
   class GoogleAuthProvider_Instance implements auth.AuthProvider {
     addScope(scope: string): auth.AuthProvider;
     providerId: string;
-    setCustomParameters(
-      customOAuthParameters: Object
-    ): auth.AuthProvider;
+    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
   }
 
   interface IdTokenResult {
@@ -374,8 +345,7 @@ export namespace auth {
   }
 
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
-  class RecaptchaVerifier_Instance
-    implements auth.ApplicationVerifier {
+  class RecaptchaVerifier_Instance implements auth.ApplicationVerifier {
     constructor(
       container: any | string,
       parameters?: Object | null,
@@ -390,16 +360,11 @@ export namespace auth {
   class TwitterAuthProvider extends TwitterAuthProvider_Instance {
     static PROVIDER_ID: string;
     static TWITTER_SIGN_IN_METHOD: string;
-    static credential(
-      token: string,
-      secret: string
-    ): auth.AuthCredential;
+    static credential(token: string, secret: string): auth.AuthCredential;
   }
   class TwitterAuthProvider_Instance implements auth.AuthProvider {
     providerId: string;
-    setCustomParameters(
-      customOAuthParameters: Object
-    ): auth.AuthProvider;
+    setCustomParameters(customOAuthParameters: Object): auth.AuthProvider;
   }
 
   type UserCredential = {
@@ -429,9 +394,7 @@ export namespace database {
     child(path: string): database.DataSnapshot;
     exists(): boolean;
     exportVal(): any;
-    forEach(
-      action: (a: database.DataSnapshot) => boolean | void
-    ): boolean;
+    forEach(action: (a: database.DataSnapshot) => boolean | void): boolean;
     getPriority(): string | number | null;
     hasChild(path: string): boolean;
     hasChildren(): boolean;
@@ -544,9 +507,7 @@ export namespace database {
     update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
   }
 
-  interface ThenableReference
-    extends database.Reference,
-      PromiseLike<any> {}
+  interface ThenableReference extends database.Reference, PromiseLike<any> {}
 
   function enableLogging(
     logger?: boolean | ((a: string) => any),
