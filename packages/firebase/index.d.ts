@@ -2044,7 +2044,7 @@ export namespace firestore {
   }
 }
 
-namespace firebase {
+declare namespace firebase {
   const SDK_VERSION: string;
   function app(name?: string): app.App;
   const apps: (app.App | null)[];
