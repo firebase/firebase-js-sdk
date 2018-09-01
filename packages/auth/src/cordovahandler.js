@@ -171,12 +171,12 @@ fireauth.CordovaHandler.prototype.initializeAndWait = function() {
   }
   this.isReady_ = fireauth.util.checkIfCordova().then(function() {
     // Check all dependencies installed.
-    // https://github.com/nordnet/cordova-universal-links-plugin
+    // https://www.npmjs.com/package/cordova-universal-links-plugin-fix
     var subscribe = fireauth.util.getObjectRef(
         'universalLinks.subscribe', goog.global);
     if (typeof subscribe !== 'function') {
       throw fireauth.CordovaHandler.getError_(
-          'cordova-universal-links-plugin is not installed');
+          'cordova-universal-links-plugin-fix is not installed');
     }
     // https://www.npmjs.com/package/cordova-plugin-buildinfo
     var appIdentifier =
