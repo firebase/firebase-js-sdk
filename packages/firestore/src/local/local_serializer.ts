@@ -133,6 +133,7 @@ export class LocalSerializer {
       query,
       dbTarget.targetId,
       QueryPurpose.Listen,
+      dbTarget.lastListenSequenceNumber,
       version,
       dbTarget.resumeToken
     );
@@ -178,7 +179,7 @@ export class LocalSerializer {
       queryData.query.canonicalId(),
       dbTimestamp,
       resumeToken,
-      0,
+      queryData.sequenceNumber,
       queryProto
     );
   }

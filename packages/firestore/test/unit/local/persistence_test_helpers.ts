@@ -93,11 +93,11 @@ export async function testIndexedDbPersistence(
   options: {
     dontPurgeData?: boolean;
     synchronizeTabs?: boolean;
-  } = {}
+  } = {},
+  prefix = `${TEST_PERSISTENCE_PREFIX}/`
 ): Promise<IndexedDbPersistence> {
   const queue = new AsyncQueue();
   const clientId = AutoId.newId();
-  const prefix = `${TEST_PERSISTENCE_PREFIX}/`;
   if (!options.dontPurgeData) {
     await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   }

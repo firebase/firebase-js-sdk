@@ -246,7 +246,14 @@ export function queryData(
   queryPurpose: QueryPurpose,
   path: string
 ): QueryData {
-  return new QueryData(query(path)._query, targetId, queryPurpose);
+  // Arbitrary value.
+  const sequenceNumber = 0;
+  return new QueryData(
+    query(path)._query,
+    targetId,
+    queryPurpose,
+    sequenceNumber
+  );
 }
 
 export function docAddedRemoteEvent(
