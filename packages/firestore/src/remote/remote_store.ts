@@ -248,7 +248,7 @@ export class RemoteStore implements TargetMetadataProvider {
     if (objUtils.isEmpty(this.listenTargets)) {
       if (this.watchStream.isOpen()) {
         this.watchStream.markIdle();
-      } else {
+      } else if (this.canUseNetwork()) {
         // Revert to OnlineState.Unknown if the watch stream is not open and we
         // have no listeners, since without any listens to send we cannot
         // confirm if the stream is healthy and upgrade to OnlineState.Online.

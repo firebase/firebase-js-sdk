@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
 import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
@@ -28,6 +31,8 @@ import {
   withTestDocAndInitialData
 } from '../util/helpers';
 import { query } from '../../util/api_helpers';
+
+chai.use(chaiAsPromised);
 
 const Timestamp = firebase.firestore.Timestamp;
 
@@ -856,26 +861,25 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('can get documents while offline', () => {
-    return withTestDoc(persistence, docRef => {
+  it('can get documents while offline', async () => {
+    await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
 
-      return firestore.disableNetwork().then(() => {
-        const writePromise = docRef.set({ foo: 'bar' });
+      await firestore.disableNetwork();
+      await expect(docRef.get()).to.eventually.be.rejectedWith(
+        'Failed to get document because the client is offline.'
+      );
 
-        return docRef
-          .get()
-          .then(doc => {
-            expect(doc.metadata.fromCache).to.be.true;
-            return firestore.enableNetwork();
-          })
-          .then(() => writePromise)
-          .then(() => docRef.get())
-          .then(doc => {
-            expect(doc.metadata.fromCache).to.be.false;
-            expect(doc.data()).to.deep.equal({ foo: 'bar' });
-          });
-      });
+      const writePromise = docRef.set({ foo: 'bar' });
+      const doc = await docRef.get();
+      expect(doc.metadata.fromCache).to.be.true;
+
+      await firestore.enableNetwork();
+      await writePromise;
+
+      const doc2 = await docRef.get();
+      expect(doc2.metadata.fromCache).to.be.false;
+      expect(doc2.data()).to.deep.equal({ foo: 'bar' });
     });
   });
 
