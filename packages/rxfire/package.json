@@ -90,5 +90,6 @@
     "/rxfire-storage.js.map",
     "/rxfire-database.js",
     "/rxfire-database.js.map"
-  ]
+  ],
+  "sideEffects": false
 }
