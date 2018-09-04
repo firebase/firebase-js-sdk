@@ -59,7 +59,7 @@ export class LocalSerializer {
       return new NoDocument(key, version);
     } else if (remoteDoc.unknownDocument) {
       const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
-      const version = this.fromDbTimestamp(remoteDoc.unknownDocument.readTime);
+      const version = this.fromDbTimestamp(remoteDoc.unknownDocument.version);
       return new UnknownDocument(key, version);
     } else {
       return fail('Unexpected DbRemoteDocument');

@@ -430,7 +430,7 @@ export class DbNoDocument {
  * Stored in IndexedDb as part of a DbRemoteDocument object.
  */
 export class DbUnknownDocument {
-  constructor(public path: string[], public readTime: DbTimestamp) {}
+  constructor(public path: string[], public version: DbTimestamp) {}
 }
 
 /**
