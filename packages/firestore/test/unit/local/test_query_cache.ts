@@ -81,7 +81,7 @@ export class TestQueryCache {
   getHighestSequenceNumber(): Promise<ListenSequenceNumber> {
     return this.persistence.runTransaction(
       'getHighestSequenceNumber',
-      false,
+      'readonly',
       txn => {
         return this.cache.getHighestSequenceNumber(txn);
       }
