@@ -375,6 +375,8 @@ abstract class TestRunner {
     [targetId: number]: { query: SpecQuery; resumeToken: string };
   };
 
+  private networkEnabled = true;
+
   private datastore: Datastore;
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
@@ -603,7 +605,7 @@ abstract class TestRunner {
       );
     }
 
-    if (this.isPrimaryClient) {
+    if (this.isPrimaryClient && this.networkEnabled) {
       // Open should always have happened after a listen
       await this.connection.waitForWatchOpen();
     }
@@ -851,6 +853,7 @@ abstract class TestRunner {
   }
 
   private async doDisableNetwork(): Promise<void> {
+    this.networkEnabled = false;
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
     await this.remoteStore.fillWritePipeline();
@@ -862,6 +865,7 @@ abstract class TestRunner {
   }
 
   private async doEnableNetwork(): Promise<void> {
+    this.networkEnabled = true;
     await this.syncEngine.enableNetwork();
   }
 
@@ -1020,7 +1024,7 @@ abstract class TestRunner {
   }
 
   private async validateActiveTargets(): Promise<void> {
-    if (!this.isPrimaryClient) {
+    if (!this.isPrimaryClient || !this.networkEnabled) {
       expect(this.connection.activeTargets).to.be.empty;
       return;
     }
