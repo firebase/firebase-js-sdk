@@ -53,16 +53,6 @@ export class TestMutationQueue {
       .then(batches => batches.length);
   }
 
-  getHighestAcknowledgedBatchId(): Promise<BatchId> {
-    return this.persistence.runTransaction(
-      'getHighestAcknowledgedBatchId',
-      false,
-      txn => {
-        return this.queue.getHighestAcknowledgedBatchId(txn);
-      }
-    );
-  }
-
   acknowledgeBatch(
     batch: MutationBatch,
     streamToken: ProtoByteString
@@ -122,18 +112,6 @@ export class TestMutationQueue {
       false,
       txn => {
         return this.queue.getAllMutationBatches(txn);
-      }
-    );
-  }
-
-  getAllMutationBatchesThroughBatchId(
-    batchId: BatchId
-  ): Promise<MutationBatch[]> {
-    return this.persistence.runTransaction(
-      'getAllMutationBatchesThroughBatchId',
-      false,
-      txn => {
-        return this.queue.getAllMutationBatchesThroughBatchId(txn, batchId);
       }
     );
   }

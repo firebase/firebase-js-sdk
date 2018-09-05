@@ -674,7 +674,9 @@ export class DeleteMutation extends Mutation {
     // document the server has accepted the mutation so the precondition must
     // have held.
 
-    return new NoDocument(this.key, mutationResult.version);
+    return new NoDocument(this.key, mutationResult.version, {
+      hasCommittedMutations: true
+    });
   }
 
   applyToLocalView(

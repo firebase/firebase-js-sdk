@@ -593,9 +593,21 @@ export class Transaction implements firestore.Transaction {
         }
         const doc = docs[0];
         if (doc instanceof NoDocument) {
-          return new DocumentSnapshot(this._firestore, ref._key, null, false);
+          return new DocumentSnapshot(
+            this._firestore,
+            ref._key,
+            null,
+            /* fromCache= */ false,
+            /* hasPendingWrites= */ false
+          );
         } else if (doc instanceof Document) {
-          return new DocumentSnapshot(this._firestore, ref._key, doc, false);
+          return new DocumentSnapshot(
+            this._firestore,
+            ref._key,
+            doc,
+            /* fromCache= */ false,
+            /* hasPendingWrites= */ false
+          );
         } else {
           throw fail(
             `BatchGetDocumentsRequest returned unexpected document type: ${
@@ -1044,7 +1056,8 @@ export class DocumentReference implements firestore.DocumentReference {
               this.firestore,
               this._key,
               doc,
-              snapshot.fromCache
+              snapshot.fromCache,
+              snapshot.hasPendingWrites
             )
           );
         }
@@ -1086,7 +1099,8 @@ export class DocumentReference implements firestore.DocumentReference {
                   this.firestore,
                   this._key,
                   doc,
-                  /*fromCache=*/ true
+                  /*fromCache=*/ true,
+                  doc instanceof Document ? doc.hasLocalMutations : false
                 )
               );
             }, reject);
@@ -1177,7 +1191,8 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     private _firestore: Firestore,
     private _key: DocumentKey,
     public _document: Document | null,
-    private _fromCache: boolean
+    private _fromCache: boolean,
+    private _hasPendingWrites: boolean
   ) {}
 
   data(
@@ -1232,10 +1247,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
   }
 
   get metadata(): firestore.SnapshotMetadata {
-    return new SnapshotMetadata(
-      this._document !== null && this._document.hasLocalMutations,
-      this._fromCache
-    );
+    return new SnapshotMetadata(this._hasPendingWrites, this._fromCache);
   }
 
   isEqual(other: firestore.DocumentSnapshot): boolean {
@@ -1303,9 +1315,10 @@ export class QueryDocumentSnapshot extends DocumentSnapshot
     firestore: Firestore,
     key: DocumentKey,
     document: Document,
-    fromCache: boolean
+    fromCache: boolean,
+    hasPendingWrites: boolean
   ) {
-    super(firestore, key, document, fromCache);
+    super(firestore, key, document, fromCache, hasPendingWrites);
   }
 
   data(options?: SnapshotOptions): firestore.DocumentData {
@@ -1949,7 +1962,8 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       this._firestore,
       doc.key,
       doc,
-      this.metadata.fromCache
+      this.metadata.fromCache,
+      this._snapshot.mutatedKeys.has(doc.key)
     );
   }
 }
@@ -2137,7 +2151,8 @@ export function changesFromSnapshot(
         firestore,
         change.doc.key,
         change.doc,
-        snapshot.fromCache
+        snapshot.fromCache,
+        snapshot.mutatedKeys.has(change.doc.key)
       );
       assert(
         change.type === ChangeType.Added,
@@ -2168,7 +2183,8 @@ export function changesFromSnapshot(
           firestore,
           change.doc.key,
           change.doc,
-          snapshot.fromCache
+          snapshot.fromCache,
+          snapshot.mutatedKeys.has(change.doc.key)
         );
         let oldIndex = -1;
         let newIndex = -1;

@@ -64,7 +64,6 @@ import {
 } from '../../util/helpers';
 
 import * as persistenceHelpers from './persistence_test_helpers';
-import { MemorySharedClientState } from '../../../src/local/shared_client_state';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
@@ -278,8 +277,7 @@ function genericLocalStoreTests(
     localStore = new LocalStore(
       persistence,
       User.UNAUTHENTICATED,
-      new EagerGarbageCollector(),
-      new MemorySharedClientState()
+      new EagerGarbageCollector()
     );
     return localStore.start();
   });
@@ -294,8 +292,7 @@ function genericLocalStoreTests(
     localStore = new LocalStore(
       persistence,
       User.UNAUTHENTICATED,
-      new NoOpGarbageCollector(),
-      new MemorySharedClientState()
+      new NoOpGarbageCollector()
     );
     return localStore.start();
   }
@@ -355,9 +352,11 @@ function genericLocalStoreTests(
           )
           // Last seen version is zero, so this ack must be held.
           .afterAcknowledgingMutation({ documentVersion: 1 })
-          .toReturnChanged()
+          .toReturnChanged(
+            doc('foo/bar', 1, { foo: 'bar' }, { hasCommittedMutations: true })
+          )
           .toContain(
-            doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
+            doc('foo/bar', 1, { foo: 'bar' }, { hasCommittedMutations: true })
           )
           .after(setMutation('bar/baz', { bar: 'baz' }))
           .toReturnChanged(
@@ -437,9 +436,11 @@ function genericLocalStoreTests(
         )
         .afterAcknowledgingMutation({ documentVersion: 3 })
         // We haven't seen the remote event yet
-        .toReturnChanged()
+        .toReturnChanged(
+          doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
+        )
         .toContain(
-          doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true })
+          doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
         )
         .after(docUpdateRemoteEvent(doc('foo/bar', 3, { it: 'changed' }), [2]))
         .toReturnChanged(doc('foo/bar', 3, { it: 'changed' }))
@@ -484,7 +485,14 @@ function genericLocalStoreTests(
         )
       )
       .afterAcknowledgingMutation({ documentVersion: 2 })
-      .toReturnChanged()
+      .toReturnChanged(
+        doc(
+          'foo/bar',
+          2,
+          { foo: 'bar', it: 'base' },
+          { hasCommittedMutations: true }
+        )
+      )
       .after(
         docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'bar', it: 'base' }), [2])
       )

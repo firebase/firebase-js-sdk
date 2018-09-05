@@ -99,6 +99,21 @@ describeSpec('Listens:', [], () => {
       });
   });
 
+  specTest("Doesn't raise 'hasPendingWrites' for deletes", [], () => {
+    const query1 = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 0, { key: 'a' });
+
+    return spec()
+      .userListens(query1)
+      .watchAcksFull(query1, 1000, docA)
+      .expectEvents(query1, { added: [docA] })
+      .userDeletes('collection/a')
+      .expectEvents(query1, { removed: [docA] })
+      .writeAcks('collection/a', 2000)
+      .watchSends({ affects: [query1] }, deletedDoc('collection/a', 2000))
+      .watchSnapshots(2000);
+  });
+
   specTest(
     'Ensure correct query results with latency-compensated deletes',
     [],
@@ -373,7 +388,7 @@ describeSpec('Listens:', [], () => {
     const query1 = Query.atPath(path('collection'));
     const docAv1 = doc('collection/a', 1000, { v: '1' });
     const docAv2 = doc('collection/a', 2000, { v: '2' });
-    const docAv3 = doc('collection/a', 4000, { v: '3' });
+    const docAv3 = doc('collection/a', 3000, { v: '3' });
     const docAv5 = doc('collection/a', 5000, { v: '5' });
 
     return (

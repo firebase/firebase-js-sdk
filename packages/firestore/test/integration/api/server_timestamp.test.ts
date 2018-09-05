@@ -131,7 +131,10 @@ apiDescribe('Server Timestamps', persistence => {
       docRef = doc;
 
       accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
-      unsubscribe = docRef.onSnapshot(accumulator.storeEvent);
+      unsubscribe = docRef.onSnapshot(
+        { includeMetadataChanges: true },
+        accumulator.storeEvent
+      );
 
       // wait for initial null snapshot to avoid potential races.
       return accumulator
@@ -182,6 +185,7 @@ apiDescribe('Server Timestamps', persistence => {
   it('work via transaction update()', () => {
     return withTestSetup(() => {
       return writeInitialData()
+        .then(() => accumulator.awaitRemoteEvent())
         .then(() =>
           docRef.firestore.runTransaction(async txn => {
             txn.update(docRef, updateData);

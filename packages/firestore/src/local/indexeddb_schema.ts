@@ -39,11 +39,9 @@ import { IndexedDbTransaction } from './indexeddb_persistence';
  *    to limbo resolution. Addresses
  *    https://github.com/firebase/firebase-ios-sdk/issues/1548
  * 4. Multi-Tab Support.
- * 5. Removal of held write acks (not yet active).
+ * 5. Removal of held write acks.
  */
-export const SCHEMA_VERSION = 4;
-// TODO(mrschmidt): As SCHEMA_VERSION becomes 5, uncomment the assert in
-// `createOrUpgrade`.
+export const SCHEMA_VERSION = 5;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -62,10 +60,12 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    // assert(
-    //   fromVersion < toVersion && fromVersion >= 0 && toVersion <= SCHEMA_VERSION,
-    //   `Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
-    // );
+    assert(
+      fromVersion < toVersion &&
+        fromVersion >= 0 &&
+        toVersion <= SCHEMA_VERSION,
+      `Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
+    );
 
     if (fromVersion < 1 && toVersion >= 1) {
       createPrimaryClientStore(db);

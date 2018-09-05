@@ -21,7 +21,7 @@ import {
   query,
   querySnapshot
 } from '../../util/api_helpers';
-import { expectEqual, expectNotEqual } from '../../util/helpers';
+import { expectEqual, expectNotEqual, keys } from '../../util/helpers';
 
 describe('CollectionReference', () => {
   it('support equality checking with isEqual()', () => {
@@ -80,32 +80,43 @@ describe('Query', () => {
 describe('QuerySnapshot', () => {
   it('support equality checking with isEqual()', () => {
     expectEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
-      querySnapshot('bar', {}, { a: { a: 1 } }, true, false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+      querySnapshot('bar', {}, { a: { a: 1 } }, keys(), false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
-      querySnapshot('foo', { b: { b: 1 } }, { a: { a: 1 } }, true, false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+      querySnapshot(
+        'foo',
+        { b: { b: 1 } },
+        { a: { a: 1 } },
+        keys(),
+        false,
+        false
+      )
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
-      querySnapshot('foo', {}, { a: { b: 1 } }, true, false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+      querySnapshot('foo', {}, { a: { b: 1 } }, keys(), false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, false, false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, true, true, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/b'), false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, true, false, true)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), true, false)
+    );
+    expectNotEqual(
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, true)
     );
   });
 });
@@ -124,20 +135,20 @@ describe('SnapshotMetadata', () => {
 
   it('from QuerySnapshot support equality checking with isEqual()', () => {
     expectEqual(
-      querySnapshot('foo', {}, {}, true, true, false).metadata,
-      querySnapshot('foo', {}, {}, true, true, false).metadata
+      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
+      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata
     );
     expectNotEqual(
-      querySnapshot('foo', {}, {}, true, true, false).metadata,
-      querySnapshot('foo', {}, {}, false, true, false).metadata
+      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
+      querySnapshot('foo', {}, {}, keys(), true, false).metadata
     );
     expectNotEqual(
-      querySnapshot('foo', {}, {}, true, true, false).metadata,
-      querySnapshot('foo', {}, {}, true, false, false).metadata
+      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
+      querySnapshot('foo', {}, {}, keys('foo/a'), false, false).metadata
     );
     expectNotEqual(
-      querySnapshot('foo', {}, {}, true, true, false).metadata,
-      querySnapshot('foo', {}, {}, false, false, false).metadata
+      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
+      querySnapshot('foo', {}, {}, keys(), false, false).metadata
     );
   });
 });

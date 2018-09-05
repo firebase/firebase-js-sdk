@@ -429,8 +429,7 @@ abstract class TestRunner {
     this.localStore = new LocalStore(
       this.persistence,
       this.user,
-      garbageCollector,
-      this.sharedClientState
+      garbageCollector
     );
 
     this.connection = new MockConnection(this.queue);

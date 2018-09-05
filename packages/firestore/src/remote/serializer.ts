@@ -726,9 +726,7 @@ export class JsonProtoSerializer {
       const key = this.fromName(entityChange.document!.name!);
       const version = this.fromVersion(entityChange.document!.updateTime!);
       const fields = this.fromFields(entityChange.document!.fields || {});
-      const doc = new Document(key, version, fields, {
-        hasLocalMutations: false
-      });
+      const doc = new Document(key, version, fields, {});
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(

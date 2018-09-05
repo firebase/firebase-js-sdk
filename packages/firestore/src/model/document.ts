@@ -42,7 +42,7 @@ export abstract class MaybeDocument {
    * Whether this document had a local mutation applied that has not yet been
    * acknowledged by Watch.
    */
-  abstract hasPendingWrites(): boolean;
+  abstract get hasPendingWrites(): boolean;
 
   abstract isEqual(other: MaybeDocument | null | undefined): boolean;
 }
@@ -98,7 +98,7 @@ export class Document extends MaybeDocument {
     );
   }
 
-  hasPendingWrites(): boolean {
+  get hasPendingWrites(): boolean {
     return this.hasLocalMutations || this.hasCommittedMutations;
   }
 
@@ -119,18 +119,23 @@ export class Document extends MaybeDocument {
  * denotes time we know it didn't exist at.
  */
 export class NoDocument extends MaybeDocument {
-  constructor(key: DocumentKey, version: SnapshotVersion) {
+  readonly hasCommittedMutations: boolean;
+
+  constructor(
+    key: DocumentKey,
+    version: SnapshotVersion,
+    options?: DocumentOptions
+  ) {
     super(key, version);
+    this.hasCommittedMutations = !!(options && options.hasCommittedMutations);
   }
 
   toString(): string {
     return `NoDocument(${this.key}, ${this.version})`;
   }
 
-  hasPendingWrites(): boolean {
-    // We currently don't raise `hasPendingWrites` for deleted documents, even
-    // if Watch hasn't caught up to the deleted version yet.
-    return false;
+  get hasPendingWrites(): boolean {
+    return this.hasCommittedMutations;
   }
 
   isEqual(other: MaybeDocument | null | undefined): boolean {
@@ -155,7 +160,7 @@ export class UnknownDocument extends MaybeDocument {
     return `UnknownDocument(${this.key}, ${this.version})`;
   }
 
-  hasPendingWrites(): boolean {
+  get hasPendingWrites(): boolean {
     return true;
   }
 

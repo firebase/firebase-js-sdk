@@ -360,8 +360,7 @@ export class FirestoreClient {
         this.localStore = new LocalStore(
           this.persistence,
           user,
-          this.garbageCollector,
-          this.sharedClientState
+          this.garbageCollector
         );
         const serializer = this.platform.newSerializer(
           this.databaseInfo.databaseId

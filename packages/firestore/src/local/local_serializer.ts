@@ -56,7 +56,9 @@ export class LocalSerializer {
     } else if (remoteDoc.noDocument) {
       const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
       const version = this.fromDbTimestamp(remoteDoc.noDocument.readTime);
-      return new NoDocument(key, version);
+      return new NoDocument(key, version, {
+        hasCommittedMutations: !!remoteDoc.hasCommittedMutations
+      });
     } else if (remoteDoc.unknownDocument) {
       const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
       const version = this.fromDbTimestamp(remoteDoc.unknownDocument.version);
@@ -80,11 +82,12 @@ export class LocalSerializer {
     } else if (maybeDoc instanceof NoDocument) {
       const path = maybeDoc.key.path.toArray();
       const readTime = this.toDbTimestamp(maybeDoc.version);
+      const hasCommittedMutations = maybeDoc.hasCommittedMutations;
       return new DbRemoteDocument(
         /* unknownDocument= */ null,
         new DbNoDocument(path, readTime),
         /* document= */ null,
-        /* hasCommittedMutations= */ false
+        hasCommittedMutations
       );
     } else if (maybeDoc instanceof UnknownDocument) {
       const path = maybeDoc.key.path.toArray();
@@ -93,7 +96,7 @@ export class LocalSerializer {
         new DbUnknownDocument(path, readTime),
         /* noDocument= */ null,
         /* document= */ null,
-        /* hasCommittedMutations= */ false
+        /* hasCommittedMutations= */ true
       );
     } else {
       return fail('Unexpected MaybeDocumment');

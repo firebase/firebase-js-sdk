@@ -129,7 +129,7 @@ export function deletedDoc(
 export function unknownDoc(
   keyStr: string,
   ver: TestSnapshotVersion
-): NoDocument {
+): UnknownDocument {
   return new UnknownDocument(key(keyStr), version(ver));
 }
 
