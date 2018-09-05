@@ -216,20 +216,25 @@ describeSpec('Offline:', [], () => {
     }
   );
 
-  specTest('Queries return from cache when network disabled', [], () => {
-    const query = Query.atPath(path('collection'));
-    return (
-      spec()
-        .disableNetwork()
-        .userListens(query)
-        .expectEvents(query, { fromCache: true })
-        .userUnlistens(query)
+  // TODO(b/114055812): This shouldn't really need to be marked eager-gc
+  specTest(
+    'Queries return from cache when network disabled',
+    ['eager-gc'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      return (
+        spec()
+          .disableNetwork()
+          .userListens(query)
+          .expectEvents(query, { fromCache: true })
+          .userUnlistens(query)
 
-        // There was once a bug where removing the last listener accidentally
-        // reverted us to OnlineState.Unknown, so make sure it works a second time
-        .userListens(query)
-        .expectEvents(query, { fromCache: true })
-        .userUnlistens(query)
-    );
-  });
+          // There was once a bug where removing the last listener accidentally
+          // reverted us to OnlineState.Unknown, so make sure it works a second time
+          .userListens(query)
+          .expectEvents(query, { fromCache: true })
+          .userUnlistens(query)
+      );
+    }
+  );
 });
