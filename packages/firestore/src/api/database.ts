@@ -201,10 +201,6 @@ class FirestoreConfig {
   persistence: boolean;
 }
 
-// TODO(multitab): Replace with Firestore.PersistenceSettings
-// tslint:disable-next-line:no-any The definition for these settings is private
-export type _PersistenceSettings = any;
-
 /**
  * Encapsulates the settings that can be used to configure Firestore
  * persistence.
@@ -213,7 +209,10 @@ export class PersistenceSettings {
   /** Whether to enable multi-tab synchronization. */
   experimentalTabSynchronization: boolean;
 
-  constructor(readonly enabled: boolean, settings?: _PersistenceSettings) {
+  constructor(
+    readonly enabled: boolean,
+    settings?: firestore.PersistenceSettings
+  ) {
     assert(
       enabled || !settings,
       'Can only provide PersistenceSettings with persistence enabled'
@@ -327,7 +326,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this._firestoreClient!.disableNetwork();
   }
 
-  enablePersistence(settings?: _PersistenceSettings): Promise<void> {
+  enablePersistence(settings?: firestore.PersistenceSettings): Promise<void> {
     if (this._firestoreClient) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,

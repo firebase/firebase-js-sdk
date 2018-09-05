@@ -1,4 +1,10 @@
-# Unreleased
+# Unreleased (0.8.0)
+- [feature] Access to offline persistence is no longer limited to a single tab.
+  You can opt into this new experimental mode by invoking `enablePersistence()`
+  with `{experimentalTabSynchronization: true}`. All tabs accessing persistence
+  must use the same setting for this flag.
+
+# 0.7.1
 - [fixed] Fixed a regression that prevented use of Firestore on ReactNative's
   Expo platform (#1138).
 
