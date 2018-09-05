@@ -377,6 +377,8 @@ abstract class TestRunner {
     [targetId: number]: { query: SpecQuery; resumeToken: string };
   };
 
+  private networkEnabled = true;
+
   private datastore: Datastore;
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
@@ -431,8 +433,7 @@ abstract class TestRunner {
     this.localStore = new LocalStore(
       this.persistence,
       this.user,
-      garbageCollector,
-      this.sharedClientState
+      garbageCollector
     );
 
     this.connection = new MockConnection(this.queue);
@@ -606,7 +607,7 @@ abstract class TestRunner {
       );
     }
 
-    if (this.isPrimaryClient) {
+    if (this.isPrimaryClient && this.networkEnabled) {
       // Open should always have happened after a listen
       await this.connection.waitForWatchOpen();
     }
@@ -722,10 +723,14 @@ abstract class TestRunner {
         });
       });
     } else if (watchEntity.doc) {
-      const [key, version, data] = watchEntity.doc;
-      const document = data
-        ? doc(key, version, data)
-        : deletedDoc(key, version);
+      const document = watchEntity.doc.value
+        ? doc(
+            watchEntity.doc.key,
+            watchEntity.doc.version,
+            watchEntity.doc.value,
+            watchEntity.doc.options
+          )
+        : deletedDoc(watchEntity.doc.key, watchEntity.doc.version);
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
@@ -850,6 +855,7 @@ abstract class TestRunner {
   }
 
   private async doDisableNetwork(): Promise<void> {
+    this.networkEnabled = false;
     // Make sure to execute all writes that are currently queued. This allows us
     // to assert on the total number of requests sent before shutdown.
     await this.remoteStore.fillWritePipeline();
@@ -861,6 +867,7 @@ abstract class TestRunner {
   }
 
   private async doEnableNetwork(): Promise<void> {
+    this.networkEnabled = true;
     await this.syncEngine.enableNetwork();
   }
 
@@ -1019,7 +1026,7 @@ abstract class TestRunner {
   }
 
   private async validateActiveTargets(): Promise<void> {
-    if (!this.isPrimaryClient) {
+    if (!this.isPrimaryClient || !this.networkEnabled) {
       expect(this.connection.activeTargets).to.be.empty;
       return;
     }
@@ -1143,11 +1150,15 @@ abstract class TestRunner {
     type: ChangeType,
     change: SpecDocument
   ): DocumentViewChange {
-    const options = change.splice(3);
-    const docOptions: DocumentOptions = {
-      hasLocalMutations: options.indexOf('local') !== -1
+    return {
+      type,
+      doc: doc(
+        change.key,
+        change.version,
+        change.value || {},
+        change.options || {}
+      )
     };
-    return { type, doc: doc(change[0], change[1], change[2]!, docOptions) };
   }
 }
 
@@ -1489,11 +1500,12 @@ export interface SpecQuery {
  * Doc options are:
  *   'local': document has local modifications
  */
-export type SpecDocument = [
-  string,
-  TestSnapshotVersion,
-  JsonObject<AnyJs> | null
-];
+export interface SpecDocument {
+  key: string;
+  version: TestSnapshotVersion;
+  value: JsonObject<AnyJs> | null;
+  options?: DocumentOptions;
+}
 
 export interface SpecExpectation {
   query: SpecQuery;

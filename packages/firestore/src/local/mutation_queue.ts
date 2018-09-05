@@ -43,15 +43,6 @@ export interface MutationQueue extends GarbageSource {
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean>;
 
   /**
-   * Returns the highest batchId that has been acknowledged. If no batches have
-   * been acknowledged or if there are no batches in the queue this can return
-   * BATCHID_UNKNOWN.
-   */
-  getHighestAcknowledgedBatchId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<BatchId>;
-
-  /**
    * Acknowledges the given batch.
    */
   acknowledgeBatch(
@@ -118,24 +109,6 @@ export interface MutationQueue extends GarbageSource {
   // provide that cheaply, we should replace this.
   getAllMutationBatches(
     transaction: PersistenceTransaction
-  ): PersistencePromise<MutationBatch[]>;
-
-  /**
-   * Finds all mutations with a batchId less than or equal to the given batchId.
-   *
-   * Generally the caller should be asking for the next unacknowledged batchId
-   * and the number of acknowledged batches should be very small when things are
-   * functioning well.
-   *
-   * @param batchId The batch to search through.
-   *
-   * @return an Array containing all batches with matching batchIds.
-   */
-  // TODO(mcg): This should really return an enumerator and the caller should be
-  // adjusted to only loop through these once.
-  getAllMutationBatchesThroughBatchId(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
   ): PersistencePromise<MutationBatch[]>;
 
   /**

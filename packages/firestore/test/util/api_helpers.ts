@@ -36,6 +36,7 @@ import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/field_value';
 import { AnyJs } from '../../src/util/misc';
 import { doc, key, path as pathFrom } from './helpers';
+import { DocumentKeySet } from '../../src/model/collections';
 
 /**
  * A mock Firestore. Will not work for integration test.
@@ -68,10 +69,17 @@ export function documentSnapshot(
       firestore(),
       key(path),
       doc(path, 1, data),
-      fromCache
+      fromCache,
+      /* hasPendingWrites= */ false
     );
   } else {
-    return new DocumentSnapshot(firestore(), key(path), null, fromCache);
+    return new DocumentSnapshot(
+      firestore(),
+      key(path),
+      null,
+      fromCache,
+      /* hasPendingWrites= */ false
+    );
   }
 }
 
@@ -87,7 +95,7 @@ export function query(path: string): Query {
  *     document, with the key being the document id, and the value being the document contents.
  * @param docsToAdd Specifies data to be added into the query snapshot as of now. Each entry maps
  *     to a document, with the key being the document id, and the value being the document contents.
- * @param hasPendingWrites Whether the query snapshot has pending writes.
+ * @param mutatedKeys The list of document with pending writes.
  * @param fromCache Whether the query snapshot is cache result.
  * @param syncStateChanged Whether the sync state has changed.
  * @return A query snapshot that consists of both sets of documents.
@@ -96,7 +104,7 @@ export function querySnapshot(
   path: string,
   oldDocs: { [key: string]: JsonObject<AnyJs> },
   docsToAdd: { [key: string]: JsonObject<AnyJs> },
-  hasPendingWrites: boolean,
+  mutatedKeys: DocumentKeySet,
   fromCache: boolean,
   syncStateChanged: boolean
 ): QuerySnapshot {
@@ -117,10 +125,10 @@ export function querySnapshot(
     newDocuments,
     oldDocuments,
     documentChanges,
+    mutatedKeys,
     fromCache,
-    hasPendingWrites,
     syncStateChanged,
-    /* excludesMetadataChanges= */ false
+    false
   );
   return new QuerySnapshot(firestore(), query, viewSnapshot);
 }

@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
 import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
 
@@ -24,10 +27,15 @@ import {
   apiDescribe,
   withTestCollection,
   withTestDb,
+  withTestDbs,
   withTestDoc,
   withTestDocAndInitialData
 } from '../util/helpers';
 import { query } from '../../util/api_helpers';
+import { fail } from '../../../src/util/assert';
+import { Code } from '../../../src/util/error';
+
+chai.use(chaiAsPromised);
 
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldValue = firebase.firestore!.FieldValue;
@@ -105,6 +113,30 @@ apiDescribe('Database', persistence => {
         expect(snapshot.data()).to.equal(undefined);
         expect(snapshot.get('foo')).to.equal(undefined);
       });
+    });
+  });
+
+  (persistence ? it : it.skip)('can update an unknown document', () => {
+    return withTestDbs(persistence, 2, async ([reader, writer]) => {
+      const writerRef = writer.collection('collection').doc();
+      const readerRef = reader.collection('collection').doc(writerRef.id);
+      await writerRef.set({ a: 'a' });
+      await readerRef.update({ b: 'b' });
+      await writerRef
+        .get({ source: 'cache' })
+        .then(doc => expect(doc.exists).to.be.true);
+      await readerRef
+        .get({ source: 'cache' })
+        .then(
+          () => fail('Expected cache miss'),
+          err => expect(err.code).to.be.equal(Code.UNAVAILABLE)
+        );
+      await writerRef
+        .get()
+        .then(doc => expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' }));
+      await readerRef
+        .get()
+        .then(doc => expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' }));
     });
   });
 
@@ -857,26 +889,25 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('can get documents while offline', () => {
-    return withTestDoc(persistence, docRef => {
+  it('can get documents while offline', async () => {
+    await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
 
-      return firestore.disableNetwork().then(() => {
-        const writePromise = docRef.set({ foo: 'bar' });
+      await firestore.disableNetwork();
+      await expect(docRef.get()).to.eventually.be.rejectedWith(
+        'Failed to get document because the client is offline.'
+      );
 
-        return docRef
-          .get()
-          .then(doc => {
-            expect(doc.metadata.fromCache).to.be.true;
-            return firestore.enableNetwork();
-          })
-          .then(() => writePromise)
-          .then(() => docRef.get())
-          .then(doc => {
-            expect(doc.metadata.fromCache).to.be.false;
-            expect(doc.data()).to.deep.equal({ foo: 'bar' });
-          });
-      });
+      const writePromise = docRef.set({ foo: 'bar' });
+      const doc = await docRef.get();
+      expect(doc.metadata.fromCache).to.be.true;
+
+      await firestore.enableNetwork();
+      await writePromise;
+
+      const doc2 = await docRef.get();
+      expect(doc2.metadata.fromCache).to.be.false;
+      expect(doc2.data()).to.deep.equal({ foo: 'bar' });
     });
   });
 

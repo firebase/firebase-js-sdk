@@ -219,7 +219,7 @@ describe('PersistencePromise', () => {
     await PersistencePromise.forEach(['a', 'b', 'c'], el => {
       result += el;
       return PersistencePromise.resolve();
-    }).toPromise;
+    }).toPromise();
     expect(result).to.equal('abc');
   });
 });

@@ -79,7 +79,7 @@ export class EventsAccumulator<
     if (!snapshot.metadata.hasPendingWrites) {
       return snapshot;
     } else {
-      return await this.awaitLocalEvent();
+      return await this.awaitRemoteEvent();
     }
   }
 
