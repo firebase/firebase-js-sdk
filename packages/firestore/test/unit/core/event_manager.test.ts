@@ -33,6 +33,7 @@ import {
   applyDocChanges,
   doc,
   documentUpdates,
+  keys,
   path
 } from '../../util/helpers';
 
@@ -208,7 +209,7 @@ describe('QueryListener', () => {
       docChanges: [change1, change4],
       fromCache: snap2.fromCache,
       syncStateChanged: true,
-      hasPendingWrites: snap2.hasPendingWrites
+      mutatedKeys: keys()
     };
     expect(otherEvents).to.deep.equal([expectedSnap2]);
   });
@@ -395,7 +396,7 @@ describe('QueryListener', () => {
         docChanges: [change3],
         fromCache: snap2.fromCache,
         syncStateChanged: snap2.syncStateChanged,
-        hasPendingWrites: snap2.hasPendingWrites
+        mutatedKeys: snap2.mutatedKeys
       };
       expect(filteredEvents).to.deep.equal([snap1, expectedSnap2]);
     }
@@ -489,7 +490,7 @@ describe('QueryListener', () => {
       ],
       fromCache: false,
       syncStateChanged: true,
-      hasPendingWrites: false
+      mutatedKeys: keys()
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
@@ -524,7 +525,7 @@ describe('QueryListener', () => {
       docChanges: [{ type: ChangeType.Added, doc: doc1 }],
       fromCache: true,
       syncStateChanged: true,
-      hasPendingWrites: false
+      mutatedKeys: keys()
     };
     const expectedSnap2 = {
       query,
@@ -533,7 +534,7 @@ describe('QueryListener', () => {
       docChanges: [{ type: ChangeType.Added, doc: doc2 }],
       fromCache: true,
       syncStateChanged: false,
-      hasPendingWrites: false
+      mutatedKeys: keys()
     };
     expect(events).to.deep.equal([expectedSnap1, expectedSnap2]);
   });
@@ -559,7 +560,7 @@ describe('QueryListener', () => {
       docChanges: [],
       fromCache: true,
       syncStateChanged: true,
-      hasPendingWrites: false
+      mutatedKeys: keys()
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
@@ -584,7 +585,7 @@ describe('QueryListener', () => {
       docChanges: [],
       fromCache: true,
       syncStateChanged: true,
-      hasPendingWrites: false
+      mutatedKeys: keys()
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
