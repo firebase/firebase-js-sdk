@@ -75,7 +75,10 @@ function processIndividualChange(
       }
       break;
     case 'modified':
-      if (combined[change.oldIndex] == null || combined[change.oldIndex].doc.id == change.doc.id) {
+      if (
+        combined[change.oldIndex] == null ||
+        combined[change.oldIndex].doc.id == change.doc.id
+      ) {
         // When an item changes position we first remove it
         // and then add it's new position
         if (change.oldIndex !== change.newIndex) {
@@ -87,7 +90,10 @@ function processIndividualChange(
       }
       break;
     case 'removed':
-      if (combined[change.oldIndex] && combined[change.oldIndex].doc.id == change.doc.id) {
+      if (
+        combined[change.oldIndex] &&
+        combined[change.oldIndex].doc.id == change.doc.id
+      ) {
         combined.splice(change.oldIndex, 1);
       }
       break;
