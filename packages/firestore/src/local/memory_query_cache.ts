@@ -16,7 +16,7 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId } from '../core/types';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { ObjectMap } from '../util/obj_map';
@@ -40,6 +40,8 @@ export class MemoryQueryCache implements QueryCache {
   private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
   /** The highest numbered target ID encountered. */
   private highestTargetId: TargetId = 0;
+  /** The highest sequence number encountered. */
+  private highestSequenceNumber: ListenSequenceNumber = 0;
   /**
    * A ordered bidirectional mapping between documents and the remote target
    * IDs.
@@ -54,6 +56,12 @@ export class MemoryQueryCache implements QueryCache {
     transaction: PersistenceTransaction
   ): PersistencePromise<SnapshotVersion> {
     return PersistencePromise.resolve(this.lastRemoteSnapshotVersion);
+  }
+
+  getHighestSequenceNumber(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<ListenSequenceNumber> {
+    return PersistencePromise.resolve(this.highestSequenceNumber);
   }
 
   allocateTargetId(
@@ -72,6 +80,9 @@ export class MemoryQueryCache implements QueryCache {
     if (lastRemoteSnapshotVersion) {
       this.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion;
     }
+    if (highestListenSequenceNumber > this.highestSequenceNumber) {
+      this.highestSequenceNumber = highestListenSequenceNumber;
+    }
     return PersistencePromise.resolve();
   }
 
@@ -81,7 +92,9 @@ export class MemoryQueryCache implements QueryCache {
     if (targetId > this.highestTargetId) {
       this.highestTargetId = targetId;
     }
-    // TODO(GC): track sequence number
+    if (queryData.sequenceNumber > this.highestSequenceNumber) {
+      this.highestSequenceNumber = queryData.sequenceNumber;
+    }
   }
 
   addQueryData(

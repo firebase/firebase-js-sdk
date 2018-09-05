@@ -157,9 +157,7 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
 
 describe('WebStorageSharedClientState', () => {
   if (!WebStorageSharedClientState.isAvailable(PlatformSupport.getPlatform())) {
-    console.warn(
-      'No WebStorage. Skipping WebStorageSharedClientState tests.'
-    );
+    console.warn('No WebStorage. Skipping WebStorageSharedClientState tests.');
     return;
   }
 
@@ -264,8 +262,8 @@ describe('WebStorageSharedClientState', () => {
     }
 
     function assertNoBatchState(batchId: BatchId): void {
-      expect(webStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))).to
-        .be.null;
+      expect(webStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))).to.be
+        .null;
     }
 
     beforeEach(() => {
@@ -527,10 +525,7 @@ describe('WebStorageSharedClientState', () => {
       await verifyState([3, 4], OnlineState.Unknown);
 
       // We ignore the newly added target.
-      writeToWebStorage(
-        secondaryClientStateKey,
-        JSON.stringify(invalidState)
-      );
+      writeToWebStorage(secondaryClientStateKey, JSON.stringify(invalidState));
       await verifyState([3, 4], OnlineState.Unknown);
     });
   });
@@ -681,10 +676,7 @@ describe('WebStorageSharedClientState', () => {
     async function withClientState(
       fn: () => Promise<void>
     ): Promise<TestSharedClientState> {
-      writeToWebStorage(
-        firstClientStorageKey,
-        firstClient.toWebStorageJSON()
-      );
+      writeToWebStorage(firstClientStorageKey, firstClient.toWebStorageJSON());
       await fn();
       await queue.drain();
       return clientSyncer.sharedClientState;

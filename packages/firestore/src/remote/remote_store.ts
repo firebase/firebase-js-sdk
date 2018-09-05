@@ -442,7 +442,8 @@ export class RemoteStore implements TargetMetadataProvider {
       const requestQueryData = new QueryData(
         queryData.query,
         targetId,
-        QueryPurpose.ExistenceFilterMismatch
+        QueryPurpose.ExistenceFilterMismatch,
+        queryData.sequenceNumber
       );
       this.sendWatchRequest(requestQueryData);
     });

@@ -459,7 +459,8 @@ export class LocalStore {
             const oldQueryData = queryData;
             queryData = queryData.copy({
               resumeToken,
-              snapshotVersion: remoteEvent.snapshotVersion
+              snapshotVersion: remoteEvent.snapshotVersion,
+              sequenceNumber: txn.currentSequenceNumber
             });
             this.queryDataByTarget[targetId] = queryData;
 
@@ -527,7 +528,7 @@ export class LocalStore {
             );
             return this.queryCache.setTargetsMetadata(
               txn,
-              /*highestSequenceNumber=*/ 0,
+              txn.currentSequenceNumber,
               remoteVersion
             );
           });
@@ -653,7 +654,12 @@ export class LocalStore {
             return PersistencePromise.resolve();
           } else {
             return this.queryCache.allocateTargetId(txn).next(targetId => {
-              queryData = new QueryData(query, targetId, QueryPurpose.Listen);
+              queryData = new QueryData(
+                query,
+                targetId,
+                QueryPurpose.Listen,
+                txn.currentSequenceNumber
+              );
               return this.queryCache.addQueryData(txn, queryData);
             });
           }
