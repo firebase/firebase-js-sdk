@@ -234,8 +234,9 @@ export abstract class Mutation {
    * @param maybeDoc The document to mutate. The input document can be null if
    *     the client has no knowledge of the pre-mutation state of the document.
    * @param mutationResult The result of applying the mutation from the backend.
-   * @return The mutated document. The returned document may be null, but only
-   *     if maybeDoc was null and the mutation would not create a new document.
+   * @return The mutated document. The returned document may be an
+   *     UnknownDocument if the mutation could not be applied to the locally
+   *     cached base document.
    */
   abstract applyToRemoteDocument(
     maybeDoc: MaybeDocument | null,

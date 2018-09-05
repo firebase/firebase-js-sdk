@@ -75,7 +75,13 @@ export class Transaction {
       );
     }
     return this.datastore.lookup(keys).then(docs => {
-      docs.forEach(doc => this.recordVersion(doc));
+      docs.forEach(doc => {
+        if (doc instanceof NoDocument || doc instanceof Document) {
+          this.recordVersion(doc);
+        } else {
+          fail('Document in a transaction was a ' + doc.constructor.name);
+        }
+      });
       return docs;
     });
   }
