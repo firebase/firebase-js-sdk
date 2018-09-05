@@ -25,6 +25,7 @@ import {
 } from '../../../src/local/shared_client_state';
 import {
   BatchId,
+  ListenSequenceNumber,
   MutationBatchState,
   OnlineState,
   TargetId
@@ -70,7 +71,11 @@ function targetKey(targetId: TargetId): string {
 }
 
 function onlineStateKey(): string {
-  return 'firestore_online_state';
+  return `firestore_online_state_${persistenceHelpers.TEST_PERSISTENCE_PREFIX}`;
+}
+
+function sequenceNumberKey(): string {
+  return `firestore_sequence_number_${TEST_PERSISTENCE_PREFIX}`;
 }
 
 interface TestSharedClientState {
@@ -168,7 +173,8 @@ describe('WebStorageSharedClientState', () => {
   let previousAddEventListener;
   let previousRemoveEventListener;
 
-  let localStorageCallbacks = [];
+  // tslint:disable-next-line:no-any
+  let localStorageCallbacks: Array<(this, event) => any> = [];
 
   function writeToLocalStorage(key: string, value: string | null): void {
     for (const callback of localStorageCallbacks) {
@@ -225,7 +231,7 @@ describe('WebStorageSharedClientState', () => {
         `firestore_clients_${
           persistenceHelpers.TEST_PERSISTENCE_PREFIX
         }_${primaryClientId}`
-      )
+      )!
     );
 
     expect(Object.keys(actual)).to.have.members(['activeTargetIds']);
@@ -241,7 +247,7 @@ describe('WebStorageSharedClientState', () => {
       err?: FirestoreError
     ): void {
       const actual = JSON.parse(
-        localStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))
+        localStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))!
       );
 
       expect(actual.state).to.equal(mutationBatchState);
@@ -250,8 +256,8 @@ describe('WebStorageSharedClientState', () => {
 
       if (mutationBatchState === 'rejected') {
         expectedMembers.push('error');
-        expect(actual.error.code).to.equal(err.code);
-        expect(actual.error.message).to.equal(err.message);
+        expect(actual.error.code).to.equal(err!.code);
+        expect(actual.error.message).to.equal(err!.message);
       }
 
       expect(Object.keys(actual)).to.have.members(expectedMembers);
@@ -297,14 +303,14 @@ describe('WebStorageSharedClientState', () => {
       if (queryTargetState === 'pending') {
         expect(localStorage.getItem(targetKey(targetId))).to.be.null;
       } else {
-        const actual = JSON.parse(localStorage.getItem(targetKey(targetId)));
+        const actual = JSON.parse(localStorage.getItem(targetKey(targetId))!);
         expect(actual.state).to.equal(queryTargetState);
 
         const expectedMembers = ['state'];
         if (queryTargetState === 'rejected') {
           expectedMembers.push('error');
-          expect(actual.error.code).to.equal(err.code);
-          expect(actual.error.message).to.equal(err.message);
+          expect(actual.error.code).to.equal(err!.code);
+          expect(actual.error.message).to.equal(err!.message);
         }
         expect(Object.keys(actual)).to.have.members(expectedMembers);
       }
@@ -600,7 +606,7 @@ describe('WebStorageSharedClientState', () => {
         expect(clientState.mutationCount).to.equal(1);
         expect(clientState.mutationState[1].state).to.equal('rejected');
 
-        const firestoreError = clientState.mutationState[1].error;
+        const firestoreError = clientState.mutationState[1].error!;
         expect(firestoreError.code).to.equal('internal');
         expect(firestoreError.message).to.equal('Test Error');
       });
@@ -802,8 +808,8 @@ describe('WebStorageSharedClientState', () => {
           'rejected'
         );
 
-        const firestoreError =
-          clientState.targetState[firstClientTargetId].error;
+        const firestoreError = clientState.targetState[firstClientTargetId]
+          .error!;
         expect(firestoreError.code).to.equal('internal');
         expect(firestoreError.message).to.equal('Test Error');
       });
@@ -822,6 +828,37 @@ describe('WebStorageSharedClientState', () => {
         expect(clientState.targetIds.size).to.equal(1);
         expect(clientState.targetState[firstClientTargetId]).to.be.undefined;
       });
+    });
+  });
+
+  describe('syncs sequence numbers', () => {
+    beforeEach(() => {
+      return sharedClientState.start();
+    });
+
+    function assertSequenceNumber(expected: ListenSequenceNumber): void {
+      const sequenceNumberString = localStorage.getItem(sequenceNumberKey());
+      expect(sequenceNumberString).to.not.be.null;
+      const actual = JSON.parse(sequenceNumberString!) as ListenSequenceNumber;
+      expect(actual).to.equal(expected);
+    }
+
+    it('writes out new sequence numbers', () => {
+      sharedClientState.writeSequenceNumber(1);
+      assertSequenceNumber(1);
+    });
+
+    it('notifies on new sequence numbers', async () => {
+      const sequenceNumbers: ListenSequenceNumber[] = [];
+      sharedClientState.sequenceNumberHandler = sequenceNumber =>
+        sequenceNumbers.push(sequenceNumber);
+      writeToLocalStorage(sequenceNumberKey(), '1');
+      await queue.drain();
+      expect(sequenceNumbers).to.deep.equal([1]);
+      writeToLocalStorage(sequenceNumberKey(), '2');
+      writeToLocalStorage(sequenceNumberKey(), '3');
+      await queue.drain();
+      expect(sequenceNumbers).to.deep.equal([1, 2, 3]);
     });
   });
 });

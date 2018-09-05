@@ -25,7 +25,7 @@ export interface TransformOperation {
    * optionally using the provided localWriteTime.
    */
   applyToLocalView(
-    previousValue: FieldValue,
+    previousValue: FieldValue | null,
     localWriteTime: Timestamp
   ): FieldValue;
 
@@ -34,8 +34,8 @@ export interface TransformOperation {
    * by the server, potentially using the server-provided transformResult.
    */
   applyToRemoteDocument(
-    previousValue: FieldValue,
-    transformResult: FieldValue
+    previousValue: FieldValue | null,
+    transformResult: FieldValue | null
   ): FieldValue;
 
   isEqual(other: TransformOperation): boolean;
@@ -47,17 +47,17 @@ export class ServerTimestampTransform implements TransformOperation {
   static instance = new ServerTimestampTransform();
 
   applyToLocalView(
-    previousValue: FieldValue,
+    previousValue: FieldValue | null,
     localWriteTime: Timestamp
   ): FieldValue {
     return new ServerTimestampValue(localWriteTime!, previousValue);
   }
 
   applyToRemoteDocument(
-    previousValue: FieldValue,
-    transformResult: FieldValue
+    previousValue: FieldValue | null,
+    transformResult: FieldValue | null
   ): FieldValue {
-    return transformResult;
+    return transformResult!;
   }
 
   isEqual(other: TransformOperation): boolean {
@@ -70,15 +70,15 @@ export class ArrayUnionTransformOperation implements TransformOperation {
   constructor(readonly elements: FieldValue[]) {}
 
   applyToLocalView(
-    previousValue: FieldValue,
+    previousValue: FieldValue | null,
     localWriteTime: Timestamp
   ): FieldValue {
     return this.apply(previousValue);
   }
 
   applyToRemoteDocument(
-    previousValue: FieldValue,
-    transformResult: FieldValue
+    previousValue: FieldValue | null,
+    transformResult: FieldValue | null
   ): FieldValue {
     // The server just sends null as the transform result for array operations,
     // so we have to calculate a result the same as we do for local
@@ -86,7 +86,7 @@ export class ArrayUnionTransformOperation implements TransformOperation {
     return this.apply(previousValue);
   }
 
-  private apply(previousValue: FieldValue): FieldValue {
+  private apply(previousValue: FieldValue | null): FieldValue {
     const result = coercedFieldValuesArray(previousValue);
     for (const toUnion of this.elements) {
       if (!result.find(element => element.isEqual(toUnion))) {
@@ -109,15 +109,15 @@ export class ArrayRemoveTransformOperation implements TransformOperation {
   constructor(readonly elements: FieldValue[]) {}
 
   applyToLocalView(
-    previousValue: FieldValue,
+    previousValue: FieldValue | null,
     localWriteTime: Timestamp
   ): FieldValue {
     return this.apply(previousValue);
   }
 
   applyToRemoteDocument(
-    previousValue: FieldValue,
-    transformResult: FieldValue
+    previousValue: FieldValue | null,
+    transformResult: FieldValue | null
   ): FieldValue {
     // The server just sends null as the transform result for array operations,
     // so we have to calculate a result the same as we do for local
@@ -125,7 +125,7 @@ export class ArrayRemoveTransformOperation implements TransformOperation {
     return this.apply(previousValue);
   }
 
-  private apply(previousValue: FieldValue): FieldValue {
+  private apply(previousValue: FieldValue | null): FieldValue {
     let result = coercedFieldValuesArray(previousValue);
     for (const toRemove of this.elements) {
       result = result.filter(element => !element.isEqual(toRemove));

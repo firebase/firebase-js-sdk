@@ -100,10 +100,32 @@ fireauth.storage.IndexedDB = function(
   /** @public {string} The storage type identifier. */
   this.type = fireauth.storage.Storage.Type.INDEXEDDB;
   /**
+   * @private {?goog.Promise<void>} The pending polling promise for syncing
+   *     unprocessed indexedDB external changes.
+   */
+  this.poll_ = null;
+  /**
+   * @private {?number} The poll timer ID for syncing external indexedDB
+   *     changes.
+   */
+  this.pollTimerId_ = null;
+  /**
    * @private {?fireauth.messagechannel.Receiver} The messageChannel receiver if
    *     running from a serviceworker.
    */
   this.receiver_ = null;
+  /**
+   * @private {?fireauth.messagechannel.Sender} The messageChannel sender to
+   *     send keyChanged messages to the service worker from the client.
+   */
+  this.sender_ = null;
+  /**
+   * @private {boolean} Whether the service worker has a receiver for the
+   *     keyChanged events.
+   */
+  this.serviceWorkerReceiverAvailable_ = false;
+  /** @private {?ServiceWorker} The current active service worker. */
+  this.activeServiceWorker_ = null;
   var scope = this;
   if (fireauth.util.getWorkerGlobalScope()) {
     this.receiver_ = fireauth.messagechannel.Receiver.getInstance(
@@ -128,6 +150,34 @@ fireauth.storage.IndexedDB = function(
         };
       });
     });
+    // Used to inform sender that service worker what events it supports.
+    this.receiver_.subscribe('ping', function(origin, request) {
+      return goog.Promise.resolve(['keyChanged']);
+    });
+  } else {
+    // Get active service worker when its available.
+    fireauth.util.getActiveServiceWorker()
+        .then(function(sw) {
+          scope.activeServiceWorker_ = sw;
+          if (sw) {
+            // Initialize the sender.
+            scope.sender_ = new fireauth.messagechannel.Sender(
+                new fireauth.messagechannel.WorkerClientPostMessager(sw));
+            // Ping the service worker to check what events they can handle.
+            // Use long timeout.
+            scope.sender_.send('ping', null, true)
+                .then(function(results) {
+                  // Check if keyChanged is supported.
+                  if (results[0]['fulfilled'] &&
+                      goog.array.contains(results[0]['value'], 'keyChanged')) {
+                    scope.serviceWorkerReceiverAvailable_ = true;
+                  }
+                })
+                .thenCatch(function(error) {
+                  // Ignore error.
+                });
+          }
+        });
   }
 };
 
@@ -413,12 +463,18 @@ fireauth.storage.IndexedDB.prototype.set = function(key, value) {
  * @private
  */
 fireauth.storage.IndexedDB.prototype.notifySW_ = function(key) {
-  if (fireauth.util.getServiceWorkerController()) {
-    var sender = new fireauth.messagechannel.Sender(
-        new fireauth.messagechannel.WorkerClientPostMessager(
-            /** @type {!ServiceWorker} */ (
-                fireauth.util.getServiceWorkerController())));
-    return sender.send('keyChanged', {'key': key})
+  // If sender is available.
+  // Run some sanity check to confirm no sw change occurred.
+  // For now, we support one service worker per page.
+  if (this.sender_ &&
+      this.activeServiceWorker_ &&
+      fireauth.util.getServiceWorkerController() ===
+      this.activeServiceWorker_) {
+    return this.sender_.send(
+        'keyChanged',
+        {'key': key},
+        // Use long timeout if receiver is known to be available.
+        this.serviceWorkerReceiverAvailable_)
         .then(function(responses) {
           // Return nothing.
         })
@@ -588,29 +644,30 @@ fireauth.storage.IndexedDB.prototype.startListeners_ = function() {
   var self = this;
   // Stop any previous listeners.
   this.stopListeners_();
-  // Repeat sync every fireauth.storage.IndexedDB.POLLING_DELAY_ ms.
   var repeat = function() {
-    self.poll_ =
-        goog.Timer.promise(fireauth.storage.IndexedDB.POLLING_DELAY_)
-        .then(goog.bind(self.sync_, self))
-        .then(function(keys) {
-          // If keys modified, call listeners.
-          if (keys.length > 0) {
-            goog.array.forEach(
-                self.storageListeners_,
-                function(listener) {
-                  listener(keys);
-                });
-          }
-        })
-        .then(repeat)
-        .thenCatch(function(error) {
-          // Do not repeat if cancelled externally.
-          if (error.message != fireauth.storage.IndexedDB.STOP_ERROR_) {
-            repeat();
-          }
-        });
-    return self.poll_;
+    self.pollTimerId_ = setTimeout(
+        function() {
+          self.poll_ = self.sync_()
+              .then(function(keys) {
+                // If keys modified, call listeners.
+                if (keys.length > 0) {
+                  goog.array.forEach(
+                      self.storageListeners_,
+                      function(listener) {
+                        listener(keys);
+                      });
+                }
+              })
+              .then(function() {
+                repeat();
+              })
+              .thenCatch(function(error) {
+                if (error.message != fireauth.storage.IndexedDB.STOP_ERROR_) {
+                  repeat();
+                }
+              });
+        },
+        fireauth.storage.IndexedDB.POLLING_DELAY_);
   };
   repeat();
 };
@@ -624,5 +681,10 @@ fireauth.storage.IndexedDB.prototype.stopListeners_ = function() {
   if (this.poll_) {
     // Cancel polling function.
     this.poll_.cancel(fireauth.storage.IndexedDB.STOP_ERROR_);
+  }
+  // Clear any pending polling timer.
+  if (this.pollTimerId_) {
+    clearTimeout(this.pollTimerId_);
+    this.pollTimerId_ = null;
   }
 };

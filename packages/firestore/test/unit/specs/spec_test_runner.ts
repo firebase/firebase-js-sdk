@@ -102,12 +102,17 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import {
-  createOrUpgradeDb,
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION
+  SCHEMA_VERSION,
+  SchemaConverter
 } from '../../../src/local/indexeddb_schema';
 import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
+import {
+  INDEXEDDB_TEST_DATABASE_NAME,
+  INDEXEDDB_TEST_SERIALIZER,
+  TEST_PERSISTENCE_PREFIX
+} from '../local/persistence_test_helpers';
 
 class MockConnection implements Connection {
   watchStream: StreamBridge<
@@ -376,7 +381,7 @@ abstract class TestRunner {
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
   private persistence: Persistence;
-  private sharedClientState: SharedClientState;
+  protected sharedClientState: SharedClientState;
   private useGarbageCollection: boolean;
   private numClients: number;
   private databaseInfo: DatabaseInfo;
@@ -419,14 +424,10 @@ abstract class TestRunner {
   }
 
   async start(): Promise<void> {
+    this.sharedClientState = this.getSharedClientState();
     this.persistence = await this.initPersistence(this.serializer);
-    await this.init();
-  }
-
-  private async init(): Promise<void> {
     const garbageCollector = this.getGarbageCollector();
 
-    this.sharedClientState = this.getSharedClientState();
     this.localStore = new LocalStore(
       this.persistence,
       this.user,
@@ -472,11 +473,11 @@ abstract class TestRunner {
     this.remoteStore.syncEngine = this.syncEngine;
     this.sharedClientState.syncEngine = this.syncEngine;
     this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
-
     this.eventManager = new EventManager(this.syncEngine);
 
-    await this.localStore.start();
     await this.sharedClientState.start();
+
+    await this.localStore.start();
     await this.remoteStore.start();
 
     await this.persistence.setPrimaryStateListener(isPrimary =>
@@ -876,13 +877,14 @@ abstract class TestRunner {
   }
 
   private async doRestart(): Promise<void> {
-    // Reinitialize everything, except the persistence.
+    // Reinitialize everything.
     // No local store to shutdown.
     await this.remoteStore.shutdown();
+    await this.persistence.shutdown(/* deleteData= */ false);
 
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
-    await this.queue.enqueue(() => this.init());
+    await this.queue.enqueue(() => this.start());
   }
 
   private async doApplyClientState(state: SpecClientState): Promise<void> {
@@ -1073,7 +1075,7 @@ abstract class TestRunner {
     const expectedQuery = this.parseQuery(expected.query);
     expect(actual.query).to.deep.equal(expectedQuery);
     if (expected.errorCode) {
-      expectFirestoreError(actual.error);
+      expectFirestoreError(actual.error!);
     } else {
       const expectedChanges: DocumentViewChange[] = [];
       if (expected.removed) {
@@ -1146,7 +1148,7 @@ abstract class TestRunner {
     const docOptions: DocumentOptions = {
       hasLocalMutations: options.indexOf('local') !== -1
     };
-    return { type, doc: doc(change[0], change[1], change[2], docOptions) };
+    return { type, doc: doc(change[0], change[1], change[2]!, docOptions) };
   }
 }
 
@@ -1155,12 +1157,10 @@ class MemoryTestRunner extends TestRunner {
     return new MemorySharedClientState();
   }
 
-  protected async initPersistence(
+  protected initPersistence(
     serializer: JsonProtoSerializer
   ): Promise<Persistence> {
-    const persistence = new MemoryPersistence(this.clientId);
-    await persistence.start();
-    return persistence;
+    return Promise.resolve(new MemoryPersistence(this.clientId));
   }
 }
 
@@ -1169,36 +1169,31 @@ class MemoryTestRunner extends TestRunner {
  * enabled for the platform.
  */
 class IndexedDbTestRunner extends TestRunner {
-  static TEST_DB_NAME = 'firestore/[DEFAULT]/specs';
   protected getSharedClientState(): SharedClientState {
     return new WebStorageSharedClientState(
       this.queue,
       this.platform,
-      IndexedDbTestRunner.TEST_DB_NAME,
+      TEST_PERSISTENCE_PREFIX,
       this.clientId,
       this.user
     );
   }
 
-  protected async initPersistence(
+  protected initPersistence(
     serializer: JsonProtoSerializer
   ): Promise<Persistence> {
-    const persistence = new IndexedDbPersistence(
-      IndexedDbTestRunner.TEST_DB_NAME,
+    return IndexedDbPersistence.createMultiClientIndexedDbPersistence(
+      TEST_PERSISTENCE_PREFIX,
       this.clientId,
       this.platform,
       this.queue,
       serializer,
-      /*synchronizeTabs=*/ true
+      { sequenceNumberSyncer: this.sharedClientState }
     );
-    await persistence.start();
-    return persistence;
   }
 
   static destroyPersistence(): Promise<void> {
-    return SimpleDb.delete(
-      IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE
-    );
+    return SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME);
   }
 }
 
@@ -1248,7 +1243,7 @@ export async function runSpec(
     return runners[clientIndex];
   };
 
-  let lastStep = null;
+  let lastStep: SpecStep | null = null;
   let count = 0;
   try {
     await sequence(steps, async step => {
@@ -1461,9 +1456,10 @@ export type SpecClientState = {
  * Note that the last parameter is really of type ...string (spread operator)
  * The filter is based of a list of keys to match in the existence filter
  */
-export interface SpecWatchFilter extends Array<TargetId[] | string> {
+export interface SpecWatchFilter
+  extends Array<TargetId[] | string | undefined> {
   '0': TargetId[];
-  '1'?: string;
+  '1': string | undefined;
 }
 
 /**
@@ -1545,9 +1541,9 @@ async function writePrimaryClientToIndexedDb(
   clientId: ClientId
 ): Promise<void> {
   const db = await SimpleDb.openOrCreate(
-    IndexedDbTestRunner.TEST_DB_NAME + IndexedDbPersistence.MAIN_DATABASE,
+    INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
-    createOrUpgradeDb
+    new SchemaConverter(INDEXEDDB_TEST_SERIALIZER)
   );
   await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
     const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(

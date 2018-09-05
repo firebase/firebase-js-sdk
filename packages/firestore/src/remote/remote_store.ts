@@ -109,7 +109,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private watchStream: PersistentListenStream;
   private writeStream: PersistentWriteStream;
-  private watchChangeAggregator: WatchChangeAggregator = null;
+  private watchChangeAggregator: WatchChangeAggregator | null = null;
 
   /**
    * Set to true by enableNetwork() and false by disableNetwork() and indicates
@@ -272,7 +272,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * from watch so we wait for the ack to process any messages from this target.
    */
   private sendWatchRequest(queryData: QueryData): void {
-    this.watchChangeAggregator.recordPendingTargetRequest(queryData.targetId);
+    this.watchChangeAggregator!.recordPendingTargetRequest(queryData.targetId);
     this.watchStream.watch(queryData);
   }
 
@@ -282,7 +282,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * messages from this target.
    */
   private sendUnwatchRequest(targetId: TargetId): void {
-    this.watchChangeAggregator.recordPendingTargetRequest(targetId);
+    this.watchChangeAggregator!.recordPendingTargetRequest(targetId);
     this.watchStream.unwatch(targetId);
   }
 
@@ -337,7 +337,8 @@ export class RemoteStore implements TargetMetadataProvider {
 
     // If we still need the watch stream, retry the connection.
     if (this.shouldStartWatchStream()) {
-      this.onlineStateTracker.handleWatchStreamFailure(error);
+      this.onlineStateTracker.handleWatchStreamFailure(error!);
+
       this.startWatchStream();
     } else {
       // No need to restart watch stream because there are no active targets.
@@ -365,15 +366,15 @@ export class RemoteStore implements TargetMetadataProvider {
     }
 
     if (watchChange instanceof DocumentWatchChange) {
-      this.watchChangeAggregator.handleDocumentChange(watchChange);
+      this.watchChangeAggregator!.handleDocumentChange(watchChange);
     } else if (watchChange instanceof ExistenceFilterChange) {
-      this.watchChangeAggregator.handleExistenceFilter(watchChange);
+      this.watchChangeAggregator!.handleExistenceFilter(watchChange);
     } else {
       assert(
         watchChange instanceof WatchTargetChange,
         'Expected watchChange to be an instance of WatchTargetChange'
       );
-      this.watchChangeAggregator.handleTargetChange(watchChange);
+      this.watchChangeAggregator!.handleTargetChange(watchChange);
     }
 
     if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
@@ -396,7 +397,7 @@ export class RemoteStore implements TargetMetadataProvider {
       !snapshotVersion.isEqual(SnapshotVersion.MIN),
       "Can't raise event for unknown SnapshotVersion"
     );
-    const remoteEvent = this.watchChangeAggregator.createRemoteEvent(
+    const remoteEvent = this.watchChangeAggregator!.createRemoteEvent(
       snapshotVersion
     );
 
@@ -460,7 +461,7 @@ export class RemoteStore implements TargetMetadataProvider {
         // A watched target might have been removed already.
         if (objUtils.contains(this.listenTargets, targetId)) {
           delete this.listenTargets[targetId];
-          this.watchChangeAggregator.removeTarget(targetId);
+          this.watchChangeAggregator!.removeTarget(targetId);
           return this.syncEngine.rejectListen(targetId, error);
         }
       });

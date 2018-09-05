@@ -27,7 +27,7 @@ describeSpec('Listens:', [], () => {
   // Obviously this test won't hold with offline persistence enabled.
   specTest(
     'Contents of query are cleared when listen is removed.',
-    ['no-lru'],
+    ['eager-gc'],
     'Explicitly tests eager GC behavior',
     () => {
       const query = Query.atPath(path('collection'));
@@ -228,7 +228,7 @@ describeSpec('Listens:', [], () => {
   // This would only happen when we use a resume token, but omitted for brevity.
   specTest(
     'Will gracefully handle watch stream reverting snapshots (with restart)',
-    [],
+    ['durable-persistence'],
     () => {
       const query = Query.atPath(path('collection'));
       const docAv1 = doc('collection/a', 1000, { v: 'v1000' });
@@ -570,34 +570,38 @@ describeSpec('Listens:', [], () => {
     );
   });
 
-  specTest('Omits global resume tokens for a short while', [], () => {
-    const query = Query.atPath(path('collection'));
-    const docA = doc('collection/a', 1000, { key: 'a' });
+  specTest(
+    'Omits global resume tokens for a short while',
+    ['durable-persistence'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
 
-    return (
-      spec()
-        .withGCEnabled(false)
-        .userListens(query)
-        .watchAcksFull(query, 1000, docA)
-        .expectEvents(query, { added: [docA] })
+      return (
+        spec()
+          .withGCEnabled(false)
+          .userListens(query)
+          .watchAcksFull(query, 1000, docA)
+          .expectEvents(query, { added: [docA] })
 
-        // One millisecond later, watch sends an updated resume token but the
-        // user doesn't manage to unlisten before restart.
-        .watchSnapshots(2000, [], 'resume-token-2000')
-        .restart()
+          // One millisecond later, watch sends an updated resume token but the
+          // user doesn't manage to unlisten before restart.
+          .watchSnapshots(2000, [], 'resume-token-2000')
+          .restart()
 
-        .userListens(query, 'resume-token-1000')
-        .expectEvents(query, { added: [docA], fromCache: true })
-        .watchAcks(query)
-        .watchCurrents(query, 'resume-token-3000')
-        .watchSnapshots(3000)
-        .expectEvents(query, { fromCache: false })
-    );
-  });
+          .userListens(query, 'resume-token-1000')
+          .expectEvents(query, { added: [docA], fromCache: true })
+          .watchAcks(query)
+          .watchCurrents(query, 'resume-token-3000')
+          .watchSnapshots(3000)
+          .expectEvents(query, { fromCache: false })
+      );
+    }
+  );
 
   specTest(
     'Persists global resume tokens if the snapshot is old enough',
-    [],
+    ['durable-persistence'],
     () => {
       const initialVersion = 1000;
       const minutesLater = 5 * 60 * 1e6 + initialVersion;
@@ -1050,9 +1054,47 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query, { added: [docC] })
         .client(0)
         .runTimer(TimerId.ClientMetadataRefresh)
+        // Client 0 recovers from its lease loss and applies the updates from
+        // client 1
         .expectPrimaryState(false)
         .expectEvents(query, { added: [docB, docC] })
     );
+  });
+
+  specTest('Query bounces between primaries', ['multi-client'], () => {
+    const query = Query.atPath(path('collection'));
+    const docA = doc('collection/a', 1000, { key: 'a' });
+    const docB = doc('collection/b', 2000, { key: 'b' });
+    const docC = doc('collection/c', 3000, { key: 'c' });
+
+    // Client 0 listens to a query. Client 1 is the primary when the query is
+    // first listened to, then the query switches to client 0 and back to client
+    // 1.
+    return client(1)
+      .expectPrimaryState(true)
+      .client(0)
+      .userListens(query)
+      .client(1)
+      .expectListen(query)
+      .watchAcksFull(query, 1000, docA)
+      .client(0)
+      .expectEvents(query, { added: [docA] })
+      .client(2)
+      .stealPrimaryLease()
+      .expectListen(query, 'resume-token-1000')
+      .client(1)
+      .runTimer(TimerId.ClientMetadataRefresh)
+      .expectPrimaryState(false)
+      .client(2)
+      .watchAcksFull(query, 2000, docB)
+      .client(0)
+      .expectEvents(query, { added: [docB] })
+      .client(1)
+      .stealPrimaryLease()
+      .expectListen(query, 'resume-token-2000')
+      .watchAcksFull(query, 2000, docC)
+      .client(0)
+      .expectEvents(query, { added: [docC] });
   });
 
   specTest(

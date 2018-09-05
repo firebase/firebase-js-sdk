@@ -252,7 +252,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           );
           const viewChange = view.applyChanges(
             viewDocChanges,
-            /* updateLimboDocuments= */ this.isPrimary,
+            /* updateLimboDocuments= */ this.isPrimary === true,
             synthesizedTargetChange
           );
           assert(
@@ -315,11 +315,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
 
       if (!targetRemainsActive) {
-        this.sharedClientState.clearQueryState(queryView.targetId);
-        this.remoteStore.unlisten(queryView.targetId);
         await this.localStore
           .releaseQuery(query, /*keepPersistedQueryData=*/ false)
-          .then(() => this.removeAndCleanupQuery(queryView))
+          .then(() => {
+            this.sharedClientState.clearQueryState(queryView.targetId);
+            this.remoteStore.unlisten(queryView.targetId);
+            return this.removeAndCleanupQuery(queryView);
+          })
           .then(() => this.localStore.collectGarbage())
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
@@ -679,20 +681,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         queryView.targetId
       );
       this.limboDocumentRefs.removeReferencesForId(queryView.targetId);
-      let p = PersistencePromise.resolve();
-      limboKeys.forEach(limboKey => {
-        p = p.next(() => {
-          return this.limboDocumentRefs
-            .containsKey(null, limboKey)
-            .next(isReferenced => {
-              if (!isReferenced) {
-                // We removed the last reference for this key
-                this.removeLimboTarget(limboKey);
-              }
-            });
-        });
-      });
-      await p.toPromise();
+      await PersistencePromise.forEach(limboKeys.toArray(), limboKey => {
+        return this.limboDocumentRefs
+          .containsKey(null, limboKey)
+          .next(isReferenced => {
+            if (!isReferenced) {
+              // We removed the last reference for this key
+              this.removeLimboTarget(limboKey);
+            }
+          });
+      }).toPromise();
     }
   }
 
@@ -785,7 +783,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
               remoteEvent && remoteEvent.targetChanges[queryView.targetId];
             const viewChange = queryView.view.applyChanges(
               viewDocChanges,
-              /* updateLimboDocuments= */ this.isPrimary,
+              /* updateLimboDocuments= */ this.isPrimary === true,
               targetChange
             );
             return this.updateTrackedLimbos(
@@ -813,9 +811,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     });
 
     await Promise.all(queriesProcessed);
-    this.syncEngineListener.onWatchChange(newSnaps);
+    this.syncEngineListener!.onWatchChange(newSnaps);
     this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-    // TODO(multitab): Multitab garbage collection
     if (this.isPrimary) {
       await this.localStore
         .collectGarbage()
@@ -887,14 +884,22 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       }
     } else if (isPrimary === false && this.isPrimary !== false) {
       this.isPrimary = false;
-      const activeQueries = await this.synchronizeQueryViewsAndRaiseSnapshots(
-        objUtils.indices(this.queryViewsByTarget)
-      );
+
+      const activeTargets: TargetId[] = [];
+
+      let p = Promise.resolve();
+      objUtils.forEachNumber(this.queryViewsByTarget, (targetId, queryView) => {
+        if (this.sharedClientState.isLocalQueryTarget(targetId)) {
+          activeTargets.push(targetId);
+        } else {
+          p = p.then(() => this.unlisten(queryView.query));
+        }
+        this.remoteStore.unlisten(queryView.targetId);
+      });
+      await p;
+
+      await this.synchronizeQueryViewsAndRaiseSnapshots(activeTargets);
       this.resetLimboDocuments();
-      for (const queryData of activeQueries) {
-        // TODO(multitab): Remove query views for non-local queries.
-        this.remoteStore.unlisten(queryData.targetId);
-      }
       await this.remoteStore.applyPrimaryState(false);
     }
   }
@@ -944,13 +949,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           }
         } else {
           assert(
-            this.isPrimary,
+            this.isPrimary === true,
             'A secondary tab should never have an active query without an active view.'
           );
           // For queries that never executed on this client, we need to
           // allocate the query in LocalStore and initialize a new View.
           const query = await this.localStore.getQueryForTarget(targetId);
-          queryData = await this.localStore.allocateQuery(query);
+          assert(!!query, `Query data for target ${targetId} not found`);
+          queryData = await this.localStore.allocateQuery(query!);
           await this.initializeViewAndComputeSnapshot(
             queryData,
             /*current=*/ false
@@ -1004,7 +1010,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             queryView.query,
             /*keepPersistedQueryData=*/ true
           );
-          this.syncEngineListener!.onWatchError(queryView.query, error);
+          this.syncEngineListener!.onWatchError(queryView.query, error!);
           break;
         }
         default:
@@ -1029,7 +1035,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       const query = await this.localStore.getQueryForTarget(targetId);
       assert(!!query, `Query data for active target ${targetId} not found`);
-      const queryData = await this.localStore.allocateQuery(query);
+      const queryData = await this.localStore.allocateQuery(query!);
       await this.initializeViewAndComputeSnapshot(
         queryData,
         /*current=*/ false
@@ -1042,10 +1048,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // Check that the query is still active since the query might have been
       // removed if it has been rejected by the backend.
       if (queryView) {
-        this.remoteStore.unlisten(targetId);
         await this.localStore
           .releaseQuery(queryView.query, /*keepPersistedQueryData=*/ false)
-          .then(() => this.removeAndCleanupQuery(queryView))
+          .then(() => {
+            this.remoteStore.unlisten(targetId);
+            return this.removeAndCleanupQuery(queryView);
+          })
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
     }

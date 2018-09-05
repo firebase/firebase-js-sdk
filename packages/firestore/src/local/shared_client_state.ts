@@ -15,11 +15,13 @@
  */
 
 import { Code, FirestoreError } from '../util/error';
+import { ListenSequence } from '../core/listen_sequence';
 import {
   BatchId,
   MutationBatchState,
   OnlineState,
-  TargetId
+  TargetId,
+  ListenSequenceNumber
 } from '../core/types';
 import { assert } from '../util/assert';
 import { debug, error } from '../util/log';
@@ -54,8 +56,13 @@ const MUTATION_BATCH_KEY_PREFIX = 'firestore_mutations';
 //     firestore_targets_<persistence_prefix>_<target_id>
 const QUERY_TARGET_KEY_PREFIX = 'firestore_targets';
 
-// The LocalStorage key that stores the primary tab's online state.
-const ONLINE_STATE_KEY = 'firestore_online_state';
+// The LocalStorage prefix that stores the primary tab's online state. The
+// format of the key is:
+//     firestore_online_state_<persistence_prefix>
+const ONLINE_STATE_KEY_PREFIX = 'firestore_online_state';
+// The LocalStorage key prefix for the key that stores the last sequence number allocated. The key
+// looks like 'firestore_sequence_number_<persistence_prefix>'.
+const SEQUENCE_NUMBER_KEY_PREFIX = 'firestore_sequence_number';
 
 /**
  * A randomly-generated key assigned to each Firestore instance at startup.
@@ -79,7 +86,10 @@ export type ClientId = string;
  */
 export interface SharedClientState {
   syncEngine: SharedClientStateSyncer | null;
-  onlineStateHandler: (onlineState: OnlineState) => void;
+  onlineStateHandler: ((onlineState: OnlineState) => void) | null;
+  sequenceNumberHandler:
+    | ((sequenceNumber: ListenSequenceNumber) => void)
+    | null;
 
   /** Registers the Mutation Batch ID of a newly pending mutation. */
   addPendingMutation(batchId: BatchId): void;
@@ -104,6 +114,9 @@ export interface SharedClientState {
 
   /** Removes the Query Target ID association from the local client. */
   removeLocalQueryTarget(targetId: TargetId): void;
+
+  /** Checks whether the target is associated with the local client. */
+  isLocalQueryTarget(targetId: TargetId): boolean;
 
   /**
    * Processes an update to a query target.
@@ -165,6 +178,8 @@ export interface SharedClientState {
 
   /** Changes the shared online state of all clients. */
   setOnlineState(onlineState: OnlineState): void;
+
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void;
 }
 
 /**
@@ -213,7 +228,7 @@ export class MutationMetadata {
       (mutationBatch.error === undefined ||
         typeof mutationBatch.error === 'object');
 
-    let firestoreError = undefined;
+    let firestoreError: FirestoreError | undefined = undefined;
 
     if (validData && mutationBatch.error) {
       validData =
@@ -302,7 +317,7 @@ export class QueryTargetMetadata {
       (targetState.error === undefined ||
         typeof targetState.error === 'object');
 
-    let firestoreError = undefined;
+    let firestoreError: FirestoreError | undefined = undefined;
 
     if (validData && targetState.error) {
       validData =
@@ -502,12 +517,18 @@ export class LocalClientState implements ClientState {
 // TODO(multitab): Rename all usages of LocalStorage to WebStorage to better differentiate from LocalClient.
 export class WebStorageSharedClientState implements SharedClientState {
   syncEngine: SharedClientStateSyncer | null = null;
-  onlineStateHandler: (onlineState: OnlineState) => void | null = null;
+  onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
+  sequenceNumberHandler:
+    | ((sequenceNumber: ListenSequenceNumber) => void)
+    | null = null;
 
   private readonly storage: Storage;
   private readonly localClientStorageKey: string;
+  private readonly sequenceNumberKey: string;
   private readonly activeClients: { [key: string]: ClientState } = {};
   private readonly storageListener = this.handleLocalStorageEvent.bind(this);
+  private readonly escapedPersistenceKey: string;
+  private readonly onlineStateKey: string;
   private readonly clientStateKeyRe: RegExp;
   private readonly mutationBatchKeyRe: RegExp;
   private readonly queryTargetKeyRe: RegExp;
@@ -523,7 +544,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   constructor(
     private readonly queue: AsyncQueue,
     private readonly platform: Platform,
-    private readonly persistenceKey: string,
+    persistenceKey: string,
     private readonly localClientId: ClientId,
     initialUser: User
   ) {
@@ -533,29 +554,38 @@ export class WebStorageSharedClientState implements SharedClientState {
         'LocalStorage is not available on this platform.'
       );
     }
-    this.storage = this.platform.window.localStorage;
-    this.currentUser = initialUser;
-    this.localClientStorageKey = this.toLocalStorageClientStateKey(
-      this.localClientId
-    );
-    this.activeClients[this.localClientId] = new LocalClientState();
-
     // Escape the special characters mentioned here:
     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions
-    const escapedPersistenceKey = persistenceKey.replace(
+    this.escapedPersistenceKey = persistenceKey.replace(
       /[.*+?^${}()|[\]\\]/g,
       '\\$&'
     );
 
+    this.storage = this.platform.window!.localStorage;
+    this.currentUser = initialUser;
+    this.localClientStorageKey = this.toLocalStorageClientStateKey(
+      this.localClientId
+    );
+    this.sequenceNumberKey = `${SEQUENCE_NUMBER_KEY_PREFIX}_${
+      this.escapedPersistenceKey
+    }`;
+    this.activeClients[this.localClientId] = new LocalClientState();
+
     this.clientStateKeyRe = new RegExp(
-      `^${CLIENT_STATE_KEY_PREFIX}_${escapedPersistenceKey}_([^_]*)$`
+      `^${CLIENT_STATE_KEY_PREFIX}_${this.escapedPersistenceKey}_([^_]*)$`
     );
     this.mutationBatchKeyRe = new RegExp(
-      `^${MUTATION_BATCH_KEY_PREFIX}_${escapedPersistenceKey}_(\\d+)(?:_(.*))?$`
+      `^${MUTATION_BATCH_KEY_PREFIX}_${
+        this.escapedPersistenceKey
+      }_(\\d+)(?:_(.*))?$`
     );
     this.queryTargetKeyRe = new RegExp(
-      `^${QUERY_TARGET_KEY_PREFIX}_${escapedPersistenceKey}_(\\d+)$`
+      `^${QUERY_TARGET_KEY_PREFIX}_${this.escapedPersistenceKey}_(\\d+)$`
     );
+
+    this.onlineStateKey = `${ONLINE_STATE_KEY_PREFIX}_${
+      this.escapedPersistenceKey
+    }`;
 
     // Rather than adding the storage observer during start(), we add the
     // storage observer during initialization. This ensures that we collect
@@ -563,16 +593,14 @@ export class WebStorageSharedClientState implements SharedClientState {
     // respective start() calls). Otherwise, we might for example miss a
     // mutation that is added after LocalStore's start() processed the existing
     // mutations but before we observe WebStorage events.
-    this.platform.window.addEventListener('storage', this.storageListener);
+    this.platform.window!.addEventListener('storage', this.storageListener);
   }
 
   /** Returns 'true' if LocalStorage is available in the current environment. */
   static isAvailable(platform: Platform): boolean {
-    return platform.window && platform.window.localStorage != null;
+    return !!(platform.window && platform.window.localStorage != null);
   }
 
-  // TOOD(multitab): Register the mutations that are already pending at client
-  // startup.
   async start(): Promise<void> {
     assert(!this.started, 'WebStorageSharedClientState already started');
     assert(
@@ -586,7 +614,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Retrieve the list of existing clients to backfill the data in
     // SharedClientState.
-    const existingClients = await this.syncEngine.getActiveClients();
+    const existingClients = await this.syncEngine!.getActiveClients();
 
     for (const clientId of existingClients) {
       if (clientId === this.localClientId) {
@@ -611,7 +639,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Check if there is an existing online state and call the callback handler
     // if applicable.
-    const onlineStateJSON = this.storage.getItem(ONLINE_STATE_KEY);
+    const onlineStateJSON = this.storage.getItem(this.onlineStateKey);
     if (onlineStateJSON) {
       const onlineState = this.fromLocalStorageOnlineState(onlineStateJSON);
       if (onlineState) {
@@ -627,9 +655,13 @@ export class WebStorageSharedClientState implements SharedClientState {
 
     // Register a window unload hook to remove the client metadata entry from
     // LocalStorage even if `shutdown()` was not called.
-    this.platform.window.addEventListener('unload', () => this.shutdown());
+    this.platform.window!.addEventListener('unload', () => this.shutdown());
 
     this.started = true;
+  }
+
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {
+    this.setItem(this.sequenceNumberKey, JSON.stringify(sequenceNumber));
   }
 
   getAllActiveQueryTargets(): TargetIdSet {
@@ -702,6 +734,10 @@ export class WebStorageSharedClientState implements SharedClientState {
     this.persistClientState();
   }
 
+  isLocalQueryTarget(targetId: TargetId): boolean {
+    return this.localClientState.activeTargetIds.has(targetId);
+  }
+
   clearQueryState(targetId: TargetId): void {
     this.removeItem(this.toLocalStorageQueryTargetMetadataKey(targetId));
   }
@@ -734,7 +770,10 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   shutdown(): void {
     if (this.started) {
-      this.platform.window.removeEventListener('storage', this.storageListener);
+      this.platform.window!.removeEventListener(
+        'storage',
+        this.storageListener
+      );
       this.removeItem(this.localClientStorageKey);
       this.started = false;
     }
@@ -758,18 +797,22 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   private handleLocalStorageEvent(event: StorageEvent): void {
     if (event.storageArea === this.storage) {
-      // TODO(multitab): This assert will likely become invalid as we add garbage
-      // collection.
-      assert(
-        event.key !== this.localClientStorageKey,
-        'Received LocalStorage notification for local change.'
-      );
-
       debug(LOG_TAG, 'EVENT', event.key, event.newValue);
+
+      if (event.key === this.localClientStorageKey) {
+        error(
+          'Received LocalStorage notification for local change. Another client might have garbage-collected our state'
+        );
+        return;
+      }
 
       this.queue.enqueueAndForget(async () => {
         if (!this.started) {
           this.earlyEvents.push(event);
+          return;
+        }
+
+        if (event.key === null) {
           return;
         }
 
@@ -786,7 +829,7 @@ export class WebStorageSharedClientState implements SharedClientState {
               );
             }
           } else {
-            const clientId = this.fromLocalStorageClientStateKey(event.key);
+            const clientId = this.fromLocalStorageClientStateKey(event.key)!;
             return this.handleClientStateEvent(clientId, null);
           }
         } else if (this.mutationBatchKeyRe.test(event.key)) {
@@ -809,7 +852,7 @@ export class WebStorageSharedClientState implements SharedClientState {
               return this.handleQueryTargetEvent(queryTargetMetadata);
             }
           }
-        } else if (event.key === ONLINE_STATE_KEY) {
+        } else if (event.key === this.onlineStateKey) {
           if (event.newValue !== null) {
             const onlineState = this.fromLocalStorageOnlineState(
               event.newValue
@@ -817,6 +860,12 @@ export class WebStorageSharedClientState implements SharedClientState {
             if (onlineState) {
               return this.handleOnlineStateEvent(onlineState);
             }
+          }
+        } else if (event.key === this.sequenceNumberKey) {
+          assert(!!this.sequenceNumberHandler, 'Missing sequenceNumberHandler');
+          const sequenceNumber = fromLocalStorageSequenceNumber(event.newValue);
+          if (sequenceNumber !== ListenSequence.INVALID) {
+            this.sequenceNumberHandler!(sequenceNumber);
           }
         }
       });
@@ -859,7 +908,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       clientId: this.localClientId,
       onlineState: OnlineState[onlineState]
     };
-    this.storage.setItem(ONLINE_STATE_KEY, JSON.stringify(entry));
+    this.storage.setItem(this.onlineStateKey, JSON.stringify(entry));
   }
 
   private persistQueryTargetState(
@@ -879,18 +928,22 @@ export class WebStorageSharedClientState implements SharedClientState {
       `Client key cannot contain '_', but was '${clientId}'`
     );
 
-    return `${CLIENT_STATE_KEY_PREFIX}_${this.persistenceKey}_${clientId}`;
+    return `${CLIENT_STATE_KEY_PREFIX}_${
+      this.escapedPersistenceKey
+    }_${clientId}`;
   }
 
   /** Assembles the key for a query state in LocalStorage */
   private toLocalStorageQueryTargetMetadataKey(targetId: TargetId): string {
-    return `${QUERY_TARGET_KEY_PREFIX}_${this.persistenceKey}_${targetId}`;
+    return `${QUERY_TARGET_KEY_PREFIX}_${
+      this.escapedPersistenceKey
+    }_${targetId}`;
   }
 
   /** Assembles the key for a mutation batch in LocalStorage */
   private toLocalStorageMutationBatchKey(batchId: BatchId): string {
     let mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${
-      this.persistenceKey
+      this.escapedPersistenceKey
     }_${batchId}`;
 
     if (this.currentUser.isAuthenticated()) {
@@ -919,7 +972,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   ): RemoteClientState | null {
     const clientId = this.fromLocalStorageClientStateKey(key);
     assert(clientId !== null, `Cannot parse client state key '${key}'`);
-    return RemoteClientState.fromLocalStorageEntry(clientId, value);
+    return RemoteClientState.fromLocalStorageEntry(clientId!, value);
   }
 
   /**
@@ -933,8 +986,8 @@ export class WebStorageSharedClientState implements SharedClientState {
     const match = this.mutationBatchKeyRe.exec(key);
     assert(match !== null, `Cannot parse mutation batch key '${key}'`);
 
-    const batchId = Number(match[1]);
-    const userId = match[2] !== undefined ? match[2] : null;
+    const batchId = Number(match![1]);
+    const userId = match![2] !== undefined ? match![2] : null;
     return MutationMetadata.fromLocalStorageEntry(
       new User(userId),
       batchId,
@@ -953,7 +1006,7 @@ export class WebStorageSharedClientState implements SharedClientState {
     const match = this.queryTargetKeyRe.exec(key);
     assert(match !== null, `Cannot parse query target key '${key}'`);
 
-    const targetId = Number(match[1]);
+    const targetId = Number(match![1]);
     return QueryTargetMetadata.fromLocalStorageEntry(targetId, value);
   }
 
@@ -976,7 +1029,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       return;
     }
 
-    return this.syncEngine.applyBatchState(
+    return this.syncEngine!.applyBatchState(
       mutationBatch.batchId,
       mutationBatch.state,
       mutationBatch.error
@@ -986,7 +1039,7 @@ export class WebStorageSharedClientState implements SharedClientState {
   private handleQueryTargetEvent(
     targetMetadata: QueryTargetMetadata
   ): Promise<void> {
-    return this.syncEngine.applyTargetState(
+    return this.syncEngine!.applyTargetState(
       targetMetadata.targetId,
       targetMetadata.state,
       targetMetadata.error
@@ -1022,7 +1075,7 @@ export class WebStorageSharedClientState implements SharedClientState {
       }
     });
 
-    return this.syncEngine.applyActiveTargetsChange(
+    return this.syncEngine!.applyActiveTargetsChange(
       addedTargets,
       removedTargets
     );
@@ -1035,9 +1088,25 @@ export class WebStorageSharedClientState implements SharedClientState {
     // within 5 seconds, it is considered inactive and we don't emit an online
     // state event.
     if (this.activeClients[onlineState.clientId]) {
-      this.onlineStateHandler(onlineState.onlineState);
+      this.onlineStateHandler!(onlineState.onlineState);
     }
   }
+}
+
+function fromLocalStorageSequenceNumber(
+  seqString: string | null
+): ListenSequenceNumber {
+  let sequenceNumber = ListenSequence.INVALID;
+  if (seqString != null) {
+    try {
+      const parsed = JSON.parse(seqString);
+      assert(typeof parsed === 'number', 'Found non-numeric sequence number');
+      sequenceNumber = parsed;
+    } catch (e) {
+      error(LOG_TAG, 'Failed to read sequence number from local storage', e);
+    }
+  }
+  return sequenceNumber;
 }
 
 /**
@@ -1050,7 +1119,10 @@ export class MemorySharedClientState implements SharedClientState {
   private queryState: { [targetId: number]: QueryTargetState } = {};
 
   syncEngine: SharedClientStateSyncer | null = null;
-  onlineStateHandler: (onlineState: OnlineState) => void | null = null;
+  onlineStateHandler: ((onlineState: OnlineState) => void) | null = null;
+  sequenceNumberHandler:
+    | ((sequenceNumber: ListenSequenceNumber) => void)
+    | null = null;
 
   addPendingMutation(batchId: BatchId): void {
     // No op.
@@ -1079,6 +1151,10 @@ export class MemorySharedClientState implements SharedClientState {
 
   removeLocalQueryTarget(targetId: TargetId): void {
     this.localState.removeQueryTarget(targetId);
+  }
+
+  isLocalQueryTarget(targetId: TargetId): boolean {
+    return this.localState.activeTargetIds.has(targetId);
   }
 
   clearQueryState(targetId: TargetId): void {
@@ -1111,4 +1187,6 @@ export class MemorySharedClientState implements SharedClientState {
   }
 
   shutdown(): void {}
+
+  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
 }

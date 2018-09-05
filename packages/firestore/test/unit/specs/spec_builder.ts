@@ -631,7 +631,9 @@ export class SpecBuilder {
     resumeToken?: string
   ): this {
     this.nextStep();
-    const targetIds = targets && targets.map(query => this.getTargetId(query));
+    const targetIds = targets
+      ? targets.map(query => this.getTargetId(query))
+      : [];
     this.currentStep = {
       watchSnapshot: { version, targetIds, resumeToken }
     };

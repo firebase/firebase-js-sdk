@@ -43,7 +43,7 @@ const plugins = [
   commonjs()
 ];
 
-const external = [...Object.keys(pkg.dependencies || {}), 'rxjs/operators'];
+const external = [...Object.keys(pkg.peerDependencies || {}), 'rxjs/operators'];
 
 /**
  * Global UMD Build
@@ -75,11 +75,11 @@ const componentBuilds = components
           globals: {
             rxfire: GLOBAL_NAME,
             rxjs: 'rxjs',
-            'rxjs/operators': 'rxjs.operators'
+            'rxjs/operators': 'rxjs/operators'
           }
         },
         plugins: [...plugins, uglify()],
-        external: ['firebase', 'rxjs', 'rxjs/operators']
+        external
       }
     ];
   })

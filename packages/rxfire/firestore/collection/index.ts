@@ -75,17 +75,21 @@ function processIndividualChange(
       }
       break;
     case 'modified':
-      // When an item changes position we first remove it
-      // and then add it's new position
-      if (change.oldIndex !== change.newIndex) {
-        combined.splice(change.oldIndex, 1);
-        combined.splice(change.newIndex, 0, change);
-      } else {
-        combined[change.newIndex] = change;
+      if (combined[change.oldIndex] == null || combined[change.oldIndex].doc.id == change.doc.id) {
+        // When an item changes position we first remove it
+        // and then add it's new position
+        if (change.oldIndex !== change.newIndex) {
+          combined.splice(change.oldIndex, 1);
+          combined.splice(change.newIndex, 0, change);
+        } else {
+          combined[change.newIndex] = change;
+        }
       }
       break;
     case 'removed':
-      combined.splice(change.oldIndex, 1);
+      if (combined[change.oldIndex] && combined[change.oldIndex].doc.id == change.doc.id) {
+        combined.splice(change.oldIndex, 1);
+      }
       break;
   }
   return combined;

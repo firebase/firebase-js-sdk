@@ -298,16 +298,14 @@ export class LocalStore {
             highestAck
           );
         } else {
-          return PersistencePromise.resolve([]);
+          return PersistencePromise.resolve([] as MutationBatch[]);
         }
       })
-      .next(ackedBatches => {
-        if (ackedBatches.length > 0) {
-          return this.mutationQueue.removeMutationBatches(txn, ackedBatches);
-        } else {
-          return PersistencePromise.resolve();
-        }
-      });
+      .next(ackedBatches =>
+        PersistencePromise.forEach(ackedBatches, batch =>
+          this.mutationQueue.removeMutationBatch(txn, batch)
+        )
+      );
   }
 
   /* Accept locally generated Mutations and commit them to storage. */
@@ -346,9 +344,12 @@ export class LocalStore {
           .lookupMutationKeys(txn, batchId)
           .next(keys => {
             if (keys) {
-              return this.localDocuments.getDocuments(txn, keys);
+              return this.localDocuments.getDocuments(
+                txn,
+                keys
+              ) as PersistencePromise<MaybeDocumentMap | null>;
             } else {
-              return PersistencePromise.resolve(null);
+              return PersistencePromise.resolve<MaybeDocumentMap | null>(null);
             }
           });
       }
@@ -885,7 +886,7 @@ export class LocalStore {
       writesToRelease = this.queryCache
         .getLastRemoteSnapshotVersion(txn)
         .next(lastRemoteVersion => {
-          const toRelease = [];
+          const toRelease: MutationBatchResult[] = [];
           for (const batchResult of this.heldBatchResults) {
             if (batchResult.commitVersion.compareTo(lastRemoteVersion) > 0) {
               break;
@@ -985,10 +986,9 @@ export class LocalStore {
         affectedDocs = affectedDocs.add(key);
       }
     }
-
-    return this.mutationQueue
-      .removeMutationBatches(txn, batches)
-      .next(() => affectedDocs);
+    return PersistencePromise.forEach(batches, batch =>
+      this.mutationQueue.removeMutationBatch(txn, batch)
+    ).next(() => affectedDocs);
   }
 
   private applyWriteToRemoteDocuments(
@@ -1039,7 +1039,7 @@ export class LocalStore {
       return this.persistence.runTransaction('Get query data', false, txn => {
         return this.queryCache
           .getQueryDataForTarget(txn, targetId)
-          .next(queryData => queryData.query);
+          .next(queryData => (queryData ? queryData.query : null));
       });
     }
   }

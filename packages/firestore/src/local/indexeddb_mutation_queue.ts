@@ -41,8 +41,11 @@ import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbStore } from './simple_db';
-import { IndexedDbPersistence } from './indexeddb_persistence';
+import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import {
+  IndexedDbPersistence,
+  IndexedDbTransaction
+} from './indexeddb_persistence';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -221,7 +224,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
     batchId: BatchId
   ): PersistencePromise<DocumentKeySet | null> {
     if (this.documentKeysByBatchId[batchId]) {
-      return PersistencePromise.resolve(this.documentKeysByBatchId[batchId]);
+      return PersistencePromise.resolve<DocumentKeySet | null>(
+        this.documentKeysByBatchId[batchId]
+      );
     } else {
       return this.lookupMutationBatch(transaction, batchId).next(batch => {
         if (batch) {
@@ -324,7 +329,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           .get(batchId)
           .next(mutation => {
             if (!mutation) {
-              fail(
+              throw fail(
                 'Dangling document-mutation reference found: ' +
                   indexKey +
                   ' which points to ' +
@@ -454,7 +459,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           .get(batchId)
           .next(mutation => {
             if (mutation === null) {
-              fail(
+              throw fail(
                 'Dangling document-mutation reference found, ' +
                   'which points to ' +
                   batchId
@@ -473,47 +478,22 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return PersistencePromise.waitFor(promises).next(() => results);
   }
 
-  removeMutationBatches(
+  removeMutationBatch(
     transaction: PersistenceTransaction,
-    batches: MutationBatch[]
+    batch: MutationBatch
   ): PersistencePromise<void> {
-    const mutationStore = mutationsStore(transaction);
-    const indexTxn = documentMutationsStore(transaction);
-    const promises: Array<PersistencePromise<void>> = [];
-
-    for (const batch of batches) {
-      const range = IDBKeyRange.only(batch.batchId);
-      let numDeleted = 0;
-      const removePromise = mutationStore.iterate(
-        { range },
-        (key, value, control) => {
-          numDeleted++;
-          return control.delete();
-        }
-      );
-      promises.push(
-        removePromise.next(() => {
-          assert(
-            numDeleted === 1,
-            'Dangling document-mutation reference found: Missing batch ' +
-              batch.batchId
-          );
-        })
-      );
-      for (const mutation of batch.mutations) {
-        const indexKey = DbDocumentMutation.key(
-          this.userId,
-          mutation.key.path,
-          batch.batchId
-        );
-        this.removeCachedMutationKeys(batch.batchId);
-        promises.push(indexTxn.delete(indexKey));
-        if (this.garbageCollector !== null) {
-          this.garbageCollector.addPotentialGarbageKey(mutation.key);
+    return removeMutationBatch(
+      (transaction as IndexedDbTransaction).simpleDbTransaction,
+      this.userId,
+      batch
+    ).next(removedDocuments => {
+      this.removeCachedMutationKeys(batch.batchId);
+      if (this.garbageCollector !== null) {
+        for (const key of removedDocuments) {
+          this.garbageCollector.addPotentialGarbageKey(key);
         }
       }
-    }
-    return PersistencePromise.waitFor(promises);
+    });
   }
 
   removeCachedMutationKeys(batchId: BatchId): void {
@@ -596,6 +576,54 @@ export class IndexedDbMutationQueue implements MutationQueue {
         );
       });
   }
+}
+
+/**
+ * Delete a mutation batch and the associated document mutations.
+ * @return A PersistencePromise of the document mutations that were removed.
+ */
+export function removeMutationBatch(
+  txn: SimpleDbTransaction,
+  userId: string,
+  batch: MutationBatch
+): PersistencePromise<DocumentKey[]> {
+  const mutationStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+    DbMutationBatch.store
+  );
+  const indexTxn = txn.store<DbDocumentMutationKey, DbDocumentMutation>(
+    DbDocumentMutation.store
+  );
+  const promises: Array<PersistencePromise<void>> = [];
+
+  const range = IDBKeyRange.only(batch.batchId);
+  let numDeleted = 0;
+  const removePromise = mutationStore.iterate(
+    { range },
+    (key, value, control) => {
+      numDeleted++;
+      return control.delete();
+    }
+  );
+  promises.push(
+    removePromise.next(() => {
+      assert(
+        numDeleted === 1,
+        'Dangling document-mutation reference found: Missing batch ' +
+          batch.batchId
+      );
+    })
+  );
+  const removedDocuments: DocumentKey[] = [];
+  for (const mutation of batch.mutations) {
+    const indexKey = DbDocumentMutation.key(
+      userId,
+      mutation.key.path,
+      batch.batchId
+    );
+    promises.push(indexTxn.delete(indexKey));
+    removedDocuments.push(mutation.key);
+  }
+  return PersistencePromise.waitFor(promises).next(() => removedDocuments);
 }
 
 function convertStreamToken(token: ProtoByteString): string {

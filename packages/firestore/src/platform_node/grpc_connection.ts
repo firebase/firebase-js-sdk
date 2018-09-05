@@ -172,7 +172,7 @@ export class GrpcConnection implements Connection {
     token: Token | null
   ): Promise<Resp[]> {
     const rpc = this.getRpcCallable(rpcName, token) as ReadableRpc<Req, Resp>;
-    const results = [];
+    const results: Resp[] = [];
     const responseDeferred = new Deferred<Resp[]>();
 
     log.debug(
@@ -181,7 +181,7 @@ export class GrpcConnection implements Connection {
       request
     );
     const stream = rpc(request);
-    stream.on('data', response => {
+    stream.on('data', (response: Resp) => {
       log.debug(LOG_TAG, `RPC ${rpcName} received result:`, response);
       results.push(response);
     });

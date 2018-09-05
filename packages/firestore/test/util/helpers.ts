@@ -161,8 +161,8 @@ export function keys(
   return keys;
 }
 
-export function path(path: string): ResourcePath {
-  return new ResourcePath(splitPath(path, '/'));
+export function path(path: string, offset?: number): ResourcePath {
+  return new ResourcePath(splitPath(path, '/'), offset);
 }
 
 export function field(path: string): FieldPath {
@@ -317,10 +317,7 @@ export function updateMapping(
     modifiedDocuments = modifiedDocuments.add(k);
   });
   removed.forEach(docOrKey => {
-    const k =
-      docOrKey instanceof Document || docOrKey instanceof NoDocument
-        ? docOrKey.key
-        : key(docOrKey);
+    const k = docOrKey instanceof MaybeDocument ? docOrKey.key : key(docOrKey);
     removedDocuments = removedDocuments.add(k);
   });
 

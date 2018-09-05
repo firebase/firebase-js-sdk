@@ -61,7 +61,7 @@ describeSpec('Offline:', [], () => {
 
   specTest(
     'Removing all listeners delays "Offline" status on next listen',
-    ['no-lru'],
+    ['eager-gc'],
     'Marked as no-lru because when a listen is re-added, it gets a new target id rather than reusing one',
     () => {
       const query = Query.atPath(path('collection'));

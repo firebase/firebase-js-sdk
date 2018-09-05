@@ -106,7 +106,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       }
 
       if (this.keepDocumentChangeLog) {
-        // TODO(multitab): GC the documentChanges store.
         promises.push(
           documentChangesStore(transaction).put({
             changes: this.serializer.toDbResourcePaths(changedKeys)
@@ -188,7 +187,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         changedKeys = changedKeys.unionWith(
           this.serializer.fromDbResourcePaths(documentChange.changes)
         );
-        this._lastProcessedDocumentChangeId = documentChange.id;
+        this._lastProcessedDocumentChangeId = documentChange.id!;
       })
       .next(() => {
         const documentPromises: Array<PersistencePromise<void>> = [];

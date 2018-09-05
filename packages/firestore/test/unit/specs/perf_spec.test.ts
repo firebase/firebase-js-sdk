@@ -16,6 +16,7 @@
 
 import { Query } from '../../../src/core/query';
 import { doc, filter, orderBy, path } from '../../util/helpers';
+import { Document } from '../../../src/model/document';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
@@ -79,7 +80,7 @@ describeSpec(
 
       const query = Query.atPath(path(`collection`)).addOrderBy(orderBy('v'));
       const steps = spec().withGCEnabled(false);
-      const docs = [];
+      const docs: Document[] = [];
 
       for (let i = 0; i < cachedDocumentCount; ++i) {
         steps.userSets(`collection/${i}`, { v: i });
@@ -187,7 +188,7 @@ describeSpec(
           .expectEvents(query, {});
 
         for (let i = 1; i <= STEP_COUNT; ++i) {
-          const docs = [];
+          const docs: Document[] = [];
 
           for (let j = 0; j < documentsPerStep; ++j) {
             docs.push(
@@ -220,7 +221,7 @@ describeSpec(
           const collPath = `collection/${i}/coll`;
           const query = Query.atPath(path(collPath)).addOrderBy(orderBy('v'));
 
-          const docs = [];
+          const docs: Document[] = [];
           for (let j = 0; j < documentsPerStep; ++j) {
             docs.push(doc(`${collPath}/${j}`, ++currentVersion, { v: j }));
           }
@@ -257,7 +258,7 @@ describeSpec(
           val: -1
         });
 
-        const queries = [];
+        const queries: Query[] = [];
 
         // Create `queriesPerStep` listens, each against collPath but with a
         // unique query constraint.

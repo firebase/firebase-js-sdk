@@ -27,12 +27,16 @@ export class BrowserPlatform implements Platform {
 
   readonly emptyByteString = '';
 
-  readonly document = document;
-
-  readonly window = window;
-
   constructor() {
     this.base64Available = typeof atob !== 'undefined';
+  }
+
+  get document(): Document | null {
+    return typeof document !== 'undefined' ? document : null;
+  }
+
+  get window(): Window | null {
+    return typeof window !== 'undefined' ? window : null;
   }
 
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {

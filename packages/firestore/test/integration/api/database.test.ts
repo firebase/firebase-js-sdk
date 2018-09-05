@@ -34,7 +34,8 @@ import { query } from '../../util/api_helpers';
 
 chai.use(chaiAsPromised);
 
-const Timestamp = firebase.firestore.Timestamp;
+const Timestamp = firebase.firestore!.Timestamp;
+const FieldValue = firebase.firestore!.FieldValue;
 
 apiDescribe('Database', persistence => {
   it('can set a document', () => {
@@ -144,8 +145,8 @@ apiDescribe('Database', persistence => {
         updated: false
       };
       const mergeData = {
-        time: firebase.firestore.FieldValue.serverTimestamp(),
-        nested: { time: firebase.firestore.FieldValue.serverTimestamp() }
+        time: FieldValue.serverTimestamp(),
+        nested: { time: FieldValue.serverTimestamp() }
       };
       return doc
         .set(initialData)
@@ -168,8 +169,8 @@ apiDescribe('Database', persistence => {
         nested: { untouched: true, foo: 'bar' }
       };
       const mergeData = {
-        foo: firebase.firestore.FieldValue.delete(),
-        nested: { foo: firebase.firestore.FieldValue.delete() }
+        foo: FieldValue.delete(),
+        nested: { foo: FieldValue.delete() }
       };
       const finalData = {
         untouched: true,
@@ -195,11 +196,11 @@ apiDescribe('Database', persistence => {
         nested: { untouched: true, foo: 'bar' }
       };
       const mergeData = {
-        foo: firebase.firestore.FieldValue.delete(),
-        inner: { foo: firebase.firestore.FieldValue.delete() },
+        foo: FieldValue.delete(),
+        inner: { foo: FieldValue.delete() },
         nested: {
-          untouched: firebase.firestore.FieldValue.delete(),
-          foo: firebase.firestore.FieldValue.delete()
+          untouched: FieldValue.delete(),
+          foo: FieldValue.delete()
         }
       };
       const finalData = {
@@ -228,9 +229,9 @@ apiDescribe('Database', persistence => {
         nested: { untouched: true, foo: 'bar' }
       };
       const mergeData = {
-        foo: firebase.firestore.FieldValue.serverTimestamp(),
-        inner: { foo: firebase.firestore.FieldValue.serverTimestamp() },
-        nested: { foo: firebase.firestore.FieldValue.serverTimestamp() }
+        foo: FieldValue.serverTimestamp(),
+        inner: { foo: FieldValue.serverTimestamp() },
+        nested: { foo: FieldValue.serverTimestamp() }
       };
       return doc
         .set(initialData)
@@ -314,7 +315,7 @@ apiDescribe('Database', persistence => {
     const finalData = { desc: 'Description', owner: 'Sebastian' };
     return withTestDocAndInitialData(persistence, initialData, async docRef => {
       await docRef.set(
-        { desc: firebase.firestore.FieldValue.delete(), owner: 'Sebastian' },
+        { desc: FieldValue.delete(), owner: 'Sebastian' },
         { mergeFields: ['owner'] }
       );
       const result = await docRef.get();
@@ -331,7 +332,7 @@ apiDescribe('Database', persistence => {
     return withTestDocAndInitialData(persistence, initialData, async docRef => {
       await docRef.set(
         {
-          desc: firebase.firestore.FieldValue.serverTimestamp(),
+          desc: FieldValue.serverTimestamp(),
           owner: 'Sebastian'
         },
         { mergeFields: ['owner'] }
@@ -407,7 +408,7 @@ apiDescribe('Database', persistence => {
         owner: { name: 'Jonny', email: 'abc@xyz.com' }
       };
       const updateData = {
-        'owner.email': firebase.firestore.FieldValue.delete()
+        'owner.email': FieldValue.delete()
       };
       const finalData = {
         desc: 'Description',
@@ -425,7 +426,7 @@ apiDescribe('Database', persistence => {
   });
 
   it('can update nested fields', () => {
-    const FieldPath = firebase.firestore.FieldPath;
+    const FieldPath = firebase.firestore!.FieldPath;
 
     return withTestDoc(persistence, doc => {
       const initialData = {
@@ -773,7 +774,7 @@ apiDescribe('Database', persistence => {
       return withTestDb(persistence, async otherFirestore => {
         const docRef = firestore.doc('foo/bar');
         expect(docRef.isEqual(firestore.doc('foo/bar'))).to.be.true;
-        expect(docRef.collection('baz').parent.isEqual(docRef)).to.be.true;
+        expect(docRef.collection('baz').parent!.isEqual(docRef)).to.be.true;
 
         expect(firestore.doc('foo/BAR').isEqual(docRef)).to.be.false;
 

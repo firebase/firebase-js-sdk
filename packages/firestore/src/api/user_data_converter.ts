@@ -339,20 +339,22 @@ export class UserDataConverter {
       fieldMask = new FieldMask(context.fieldMask);
       fieldTransforms = context.fieldTransforms;
     } else {
-      const validatedFieldPaths = [];
+      const validatedFieldPaths: FieldPath[] = [];
 
       for (const stringOrFieldPath of fieldPaths) {
-        let fieldPath;
+        let fieldPath: FieldPath;
 
         if (stringOrFieldPath instanceof ExternalFieldPath) {
-          fieldPath = stringOrFieldPath as ExternalFieldPath;
+          fieldPath = stringOrFieldPath._internalPath;
         } else if (typeof stringOrFieldPath === 'string') {
           fieldPath = fieldPathFromDotSeparatedString(
             methodName,
             stringOrFieldPath
           );
         } else {
-          fail('Expected stringOrFieldPath to be a string or a FieldPath');
+          throw fail(
+            'Expected stringOrFieldPath to be a string or a FieldPath'
+          );
         }
 
         if (!context.contains(fieldPath)) {
@@ -693,7 +695,7 @@ export class UserDataConverter {
         methodName,
         FieldPath.EMPTY_PATH
       );
-      return this.parseData(element, context.childContextForArray(i));
+      return this.parseData(element, context.childContextForArray(i))!;
     });
   }
 }

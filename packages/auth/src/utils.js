@@ -1459,6 +1459,7 @@ fireauth.util.setNoReferrer = function() {
 
 /** @return {?ServiceWorker} The servicerWorker controller if available. */
 fireauth.util.getServiceWorkerController = function() {
+  var navigator = goog.global['navigator'];
   return (navigator &&
           navigator.serviceWorker &&
           navigator.serviceWorker.controller) || null;
@@ -1470,3 +1471,26 @@ fireauth.util.getWorkerGlobalScope = function() {
   return fireauth.util.isWorker() ? /** @type {!WorkerGlobalScope} */ (self) :
       null;
 };
+
+/**
+ * @return {!goog.Promise<?ServiceWorker>} A promise that resolves with the
+ *     service worker. This will resolve only when a service worker becomes
+ *     available. If no service worker is supported, it will resolve with null.
+ */
+fireauth.util.getActiveServiceWorker = function() {
+  var navigator = goog.global['navigator'];
+  if (navigator && navigator.serviceWorker) {
+    return goog.Promise.resolve()
+        .then(function() {
+          return navigator.serviceWorker.ready;
+        })
+        .then(function(registration) {
+          return /** @type {?ServiceWorker} */ (registration.active || null);
+        })
+        .thenCatch(function(error) {
+          return null;
+        });
+  }
+  return goog.Promise.resolve(/** @type {?ServiceWorker} */ (null));
+};
+
