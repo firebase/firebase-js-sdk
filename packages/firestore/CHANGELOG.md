@@ -5,7 +5,7 @@
 - [changed] Eliminated superfluous update events for locally cached documents
   that are known to lag behind the server version. Instead, we buffer these
   events until the client has caught up with the server.
-  
+
 # 0.7.1
 - [fixed] Fixed a regression that prevented use of Firestore on ReactNative's
   Expo platform (#1138).
