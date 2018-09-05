@@ -73,7 +73,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     // Add two change batches and remove the first one.
     await persistence.runTransaction(
       'removeDocumentChangesThroughChangeId',
-      true,
+      'readwrite',
       txn => {
         const cache = persistence.getRemoteDocumentCache() as IndexedDbRemoteDocumentCache;
         return cache
@@ -85,7 +85,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     // We removed the first batch, there should be a single batch remaining.
     const remainingChangeCount = await persistence.runTransaction(
       'verify',
-      true,
+      'readonly',
       txn => {
         const store = IndexedDbPersistence.getStore<
           DbRemoteDocumentChangesKey,
