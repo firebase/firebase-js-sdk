@@ -1,7 +1,10 @@
 # Unreleased (0.8.1)
-- [changed] The internal handling for locally updated documents that haven't yet 
-  been read back from Firestore has changed. This can lead to slight behavior 
+- [changed] Changed the internal handling for locally updated documents that
+  haven't yet been read back from Firestore. This can lead to slight behavior
   changes and may affect the `SnapshotMetadata.hasPendingWrites` metadata flag.
+- [changed] Eliminated superfluous update events for locally cached documents
+  that are known to lag behind the server version. Instead, we buffer these
+  events until the client has caught up with the server.
   
 # 0.7.1
 - [fixed] Fixed a regression that prevented use of Firestore on ReactNative's
