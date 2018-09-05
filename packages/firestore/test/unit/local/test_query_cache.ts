@@ -16,7 +16,7 @@
 
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { TargetId } from '../../../src/core/types';
+import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryCache } from '../../../src/local/query_cache';
 import { QueryData } from '../../../src/local/query_data';
@@ -66,6 +66,16 @@ export class TestQueryCache {
       false,
       txn => {
         return this.cache.getLastRemoteSnapshotVersion(txn);
+      }
+    );
+  }
+
+  getHighestSequenceNumber(): Promise<ListenSequenceNumber> {
+    return this.persistence.runTransaction(
+      'getHighestSequenceNumber',
+      false,
+      txn => {
+        return this.cache.getHighestSequenceNumber(txn);
       }
     );
   }
@@ -125,7 +135,7 @@ export class TestQueryCache {
   }
 
   setTargetsMetadata(
-    highestListenSequenceNumber: number,
+    highestListenSequenceNumber: ListenSequenceNumber,
     lastRemoteSnapshotVersion?: SnapshotVersion
   ): Promise<void> {
     return this.persistence.runTransaction('setTargetsMetadata', true, txn =>

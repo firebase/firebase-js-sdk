@@ -86,6 +86,14 @@ export class IndexedDbQueryCache implements QueryCache {
     });
   }
 
+  getHighestSequenceNumber(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<ListenSequenceNumber> {
+    return getHighestListenSequenceNumber(
+      (transaction as IndexedDbTransaction).simpleDbTransaction
+    );
+  }
+
   setTargetsMetadata(
     transaction: PersistenceTransaction,
     highestListenSequenceNumber: number,
@@ -95,6 +103,9 @@ export class IndexedDbQueryCache implements QueryCache {
       metadata.highestListenSequenceNumber = highestListenSequenceNumber;
       if (lastRemoteSnapshotVersion) {
         metadata.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion.toTimestamp();
+      }
+      if (highestListenSequenceNumber > metadata.highestListenSequenceNumber) {
+        metadata.highestListenSequenceNumber = highestListenSequenceNumber;
       }
       return this.saveMetadata(transaction, metadata);
     });
@@ -165,13 +176,17 @@ export class IndexedDbQueryCache implements QueryCache {
     queryData: QueryData,
     metadata: DbTargetGlobal
   ): boolean {
+    let updated = false;
     if (queryData.targetId > metadata.highestTargetId) {
       metadata.highestTargetId = queryData.targetId;
-      return true;
+      updated = true;
     }
 
-    // TODO(GC): add sequence number check
-    return false;
+    if (queryData.sequenceNumber > metadata.highestListenSequenceNumber) {
+      metadata.highestListenSequenceNumber = queryData.sequenceNumber;
+      updated = true;
+    }
+    return updated;
   }
 
   getQueryCount(
