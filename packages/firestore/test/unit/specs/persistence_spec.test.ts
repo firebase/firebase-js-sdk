@@ -110,7 +110,14 @@ describeSpec('Persistence:', [], () => {
         .userListens(query)
         // Version is 0 since we never received a server version via watch.
         .expectEvents(query, {
-          added: [doc('collection/key', 0, { foo: 'bar' })],
+          added: [
+            doc(
+              'collection/key',
+              1000,
+              { foo: 'bar' },
+              { hasCommittedMutations: true }
+            )
+          ],
           fromCache: true
         })
     );

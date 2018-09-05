@@ -429,8 +429,7 @@ abstract class TestRunner {
     this.localStore = new LocalStore(
       this.persistence,
       this.user,
-      garbageCollector,
-      this.sharedClientState
+      garbageCollector
     );
 
     this.connection = new MockConnection(this.queue);
@@ -720,10 +719,14 @@ abstract class TestRunner {
         });
       });
     } else if (watchEntity.doc) {
-      const [key, version, data] = watchEntity.doc;
-      const document = data
-        ? doc(key, version, data)
-        : deletedDoc(key, version);
+      const document = watchEntity.doc.value
+        ? doc(
+            watchEntity.doc.key,
+            watchEntity.doc.version,
+            watchEntity.doc.value,
+            watchEntity.doc.options
+          )
+        : deletedDoc(watchEntity.doc.key, watchEntity.doc.version);
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
@@ -1140,11 +1143,15 @@ abstract class TestRunner {
     type: ChangeType,
     change: SpecDocument
   ): DocumentViewChange {
-    const options = change.splice(3);
-    const docOptions: DocumentOptions = {
-      hasLocalMutations: options.indexOf('local') !== -1
+    return {
+      type,
+      doc: doc(
+        change.key,
+        change.version,
+        change.value || {},
+        change.options || {}
+      )
     };
-    return { type, doc: doc(change[0], change[1], change[2]!, docOptions) };
   }
 }
 
@@ -1486,11 +1493,12 @@ export interface SpecQuery {
  * Doc options are:
  *   'local': document has local modifications
  */
-export type SpecDocument = [
-  string,
-  TestSnapshotVersion,
-  JsonObject<AnyJs> | null
-];
+export interface SpecDocument {
+  key: string;
+  version: TestSnapshotVersion;
+  value: JsonObject<AnyJs> | null;
+  options?: DocumentOptions;
+}
 
 export interface SpecExpectation {
   query: SpecQuery;

@@ -245,7 +245,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         .remoteDocumentKeys(queryData.targetId)
         .then(remoteKeys => {
           const view = new View(query, remoteKeys);
-          const viewDocChanges = view.computeDocChanges(docs);
+          const viewDocChanges = view.computeInitialChanges(docs);
           const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
             queryData.targetId,
             current && this.onlineState !== OnlineState.Offline
@@ -606,6 +606,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
+        this.sharedClientState.updateMutationState(batchId, 'acknowledged');
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));

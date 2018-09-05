@@ -69,12 +69,6 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
   }
 
-  getHighestAcknowledgedBatchId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<BatchId> {
-    return PersistencePromise.resolve(this.highestAcknowledgedBatchId);
-  }
-
   acknowledgeBatch(
     transaction: PersistenceTransaction,
     batch: MutationBatch,
@@ -201,28 +195,6 @@ export class MemoryMutationQueue implements MutationQueue {
   ): PersistencePromise<MutationBatch[]> {
     return PersistencePromise.resolve(
       this.getAllLiveMutationBatchesBeforeIndex(this.mutationQueue.length)
-    );
-  }
-
-  getAllMutationBatchesThroughBatchId(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
-  ): PersistencePromise<MutationBatch[]> {
-    const count = this.mutationQueue.length;
-
-    let endIndex = this.indexOfBatchId(batchId);
-    if (endIndex < 0) {
-      endIndex = 0;
-    } else if (endIndex >= count) {
-      endIndex = count;
-    } else {
-      // The endIndex is in the queue so increment to pull everything in the
-      // queue including it.
-      endIndex++;
-    }
-
-    return PersistencePromise.resolve(
-      this.getAllLiveMutationBatchesBeforeIndex(endIndex)
     );
   }
 
