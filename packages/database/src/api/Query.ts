@@ -263,11 +263,7 @@ export class Query {
    * @param {(function(!DataSnapshot, ?string=))=} callback
    * @param {Object=} context
    */
-  off(
-    eventType?: string,
-    callback?: SnapshotCallback,
-    context?: Object
-  ): void {
+  off(eventType?: string, callback?: SnapshotCallback, context?: Object): void {
     validateArgCount('Query.off', 0, 3, arguments.length);
     validateEventType('Query.off', 1, eventType, true);
     validateCallback('Query.off', 2, callback, true);
