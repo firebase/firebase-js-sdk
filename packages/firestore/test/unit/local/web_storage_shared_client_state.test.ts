@@ -157,13 +157,11 @@ class TestSharedClientSyncer implements SharedClientStateSyncer {
 
 describe('WebStorageSharedClientState', () => {
   if (!WebStorageSharedClientState.isAvailable(PlatformSupport.getPlatform())) {
-    console.warn(
-      'No LocalStorage. Skipping WebStorageSharedClientState tests.'
-    );
+    console.warn('No WebStorage. Skipping WebStorageSharedClientState tests.');
     return;
   }
 
-  const localStorage = window.localStorage;
+  const webStorage = window.localStorage;
 
   let queue: AsyncQueue;
   let primaryClientId;
@@ -174,10 +172,10 @@ describe('WebStorageSharedClientState', () => {
   let previousRemoveEventListener;
 
   // tslint:disable-next-line:no-any
-  let localStorageCallbacks: Array<(this, event) => any> = [];
+  let webStorageCallbacks: Array<(this, event) => any> = [];
 
-  function writeToLocalStorage(key: string, value: string | null): void {
-    for (const callback of localStorageCallbacks) {
+  function writeToWebStorage(key: string, value: string | null): void {
+    for (const callback of webStorageCallbacks) {
       callback({
         key,
         storageArea: window.localStorage,
@@ -188,17 +186,17 @@ describe('WebStorageSharedClientState', () => {
 
   beforeEach(() => {
     clearWebStorage();
-    localStorageCallbacks = [];
+    webStorageCallbacks = [];
 
     previousAddEventListener = window.addEventListener;
     previousRemoveEventListener = window.removeEventListener;
 
     // We capture the listener here so that we can invoke it from the local
-    // client. If we directly relied on LocalStorage listeners, we would not
+    // client. If we directly relied on WebStorage listeners, we would not
     // receive events for local writes.
     window.addEventListener = (type, callback) => {
       if (type === 'storage') {
-        localStorageCallbacks.push(callback);
+        webStorageCallbacks.push(callback);
       }
     };
     window.removeEventListener = () => {};
@@ -227,7 +225,7 @@ describe('WebStorageSharedClientState', () => {
 
   function assertClientState(activeTargetIds: TargetId[]): void {
     const actual = JSON.parse(
-      localStorage.getItem(
+      webStorage.getItem(
         `firestore_clients_${
           persistenceHelpers.TEST_PERSISTENCE_PREFIX
         }_${primaryClientId}`
@@ -247,7 +245,7 @@ describe('WebStorageSharedClientState', () => {
       err?: FirestoreError
     ): void {
       const actual = JSON.parse(
-        localStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))!
+        webStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))!
       );
 
       expect(actual.state).to.equal(mutationBatchState);
@@ -264,8 +262,8 @@ describe('WebStorageSharedClientState', () => {
     }
 
     function assertNoBatchState(batchId: BatchId): void {
-      expect(localStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))).to
-        .be.null;
+      expect(webStorage.getItem(mutationKey(AUTHENTICATED_USER, batchId))).to.be
+        .null;
     }
 
     beforeEach(() => {
@@ -301,9 +299,9 @@ describe('WebStorageSharedClientState', () => {
       err?: FirestoreError
     ): void {
       if (queryTargetState === 'pending') {
-        expect(localStorage.getItem(targetKey(targetId))).to.be.null;
+        expect(webStorage.getItem(targetKey(targetId))).to.be.null;
       } else {
-        const actual = JSON.parse(localStorage.getItem(targetKey(targetId))!);
+        const actual = JSON.parse(webStorage.getItem(targetKey(targetId))!);
         expect(actual.state).to.equal(queryTargetState);
 
         const expectedMembers = ['state'];
@@ -372,7 +370,7 @@ describe('WebStorageSharedClientState', () => {
       sharedClientState.removeLocalQueryTarget(0);
       assertTargetState(0, 'current');
       sharedClientState.clearQueryState(0);
-      expect(localStorage.getItem(targetKey(0))).to.be.null;
+      expect(webStorage.getItem(targetKey(0))).to.be.null;
     });
   });
 
@@ -431,23 +429,20 @@ describe('WebStorageSharedClientState', () => {
       const oldState = new LocalClientState();
       oldState.addQueryTarget(5);
 
-      writeToLocalStorage(
-        secondaryClientStateKey,
-        oldState.toLocalStorageJSON()
-      );
+      writeToWebStorage(secondaryClientStateKey, oldState.toWebStorageJSON());
       await verifyState([3, 4, 5], OnlineState.Unknown);
 
       const updatedState = new LocalClientState();
       updatedState.addQueryTarget(5);
       updatedState.addQueryTarget(6);
 
-      writeToLocalStorage(
+      writeToWebStorage(
         secondaryClientStateKey,
-        updatedState.toLocalStorageJSON()
+        updatedState.toWebStorageJSON()
       );
       await verifyState([3, 4, 5, 6], OnlineState.Unknown);
 
-      writeToLocalStorage(secondaryClientStateKey, null);
+      writeToWebStorage(secondaryClientStateKey, null);
       await verifyState([3, 4], OnlineState.Unknown);
     });
 
@@ -457,12 +452,9 @@ describe('WebStorageSharedClientState', () => {
 
       // Ensure that client is considered active
       const oldState = new LocalClientState();
-      writeToLocalStorage(
-        secondaryClientStateKey,
-        oldState.toLocalStorageJSON()
-      );
+      writeToWebStorage(secondaryClientStateKey, oldState.toWebStorageJSON());
 
-      writeToLocalStorage(
+      writeToWebStorage(
         onlineStateKey(),
         JSON.stringify({
           onlineState: 'Unknown',
@@ -471,7 +463,7 @@ describe('WebStorageSharedClientState', () => {
       );
       await verifyState([3, 4], OnlineState.Unknown);
 
-      writeToLocalStorage(
+      writeToWebStorage(
         onlineStateKey(),
         JSON.stringify({
           onlineState: 'Offline',
@@ -480,7 +472,7 @@ describe('WebStorageSharedClientState', () => {
       );
       await verifyState([3, 4], OnlineState.Offline);
 
-      writeToLocalStorage(
+      writeToWebStorage(
         onlineStateKey(),
         JSON.stringify({
           onlineState: 'Online',
@@ -495,7 +487,7 @@ describe('WebStorageSharedClientState', () => {
       await verifyState([3, 4], OnlineState.Unknown);
 
       // The secondary client is inactive and its online state is ignored.
-      writeToLocalStorage(
+      writeToWebStorage(
         onlineStateKey(),
         JSON.stringify({
           onlineState: 'Online',
@@ -507,12 +499,9 @@ describe('WebStorageSharedClientState', () => {
 
       // Ensure that client is considered active
       const oldState = new LocalClientState();
-      writeToLocalStorage(
-        secondaryClientStateKey,
-        oldState.toLocalStorageJSON()
-      );
+      writeToWebStorage(secondaryClientStateKey, oldState.toWebStorageJSON());
 
-      writeToLocalStorage(
+      writeToWebStorage(
         onlineStateKey(),
         JSON.stringify({
           onlineState: 'Online',
@@ -536,10 +525,7 @@ describe('WebStorageSharedClientState', () => {
       await verifyState([3, 4], OnlineState.Unknown);
 
       // We ignore the newly added target.
-      writeToLocalStorage(
-        secondaryClientStateKey,
-        JSON.stringify(invalidState)
-      );
+      writeToWebStorage(secondaryClientStateKey, JSON.stringify(invalidState));
       await verifyState([3, 4], OnlineState.Unknown);
     });
   });
@@ -561,13 +547,13 @@ describe('WebStorageSharedClientState', () => {
 
     it('for pending mutation', () => {
       return withUser(AUTHENTICATED_USER, async () => {
-        writeToLocalStorage(
+        writeToWebStorage(
           mutationKey(AUTHENTICATED_USER, 1),
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
             'pending'
-          ).toLocalStorageJSON()
+          ).toWebStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.mutationCount).to.equal(1);
@@ -577,13 +563,13 @@ describe('WebStorageSharedClientState', () => {
 
     it('for acknowledged mutation', () => {
       return withUser(AUTHENTICATED_USER, async () => {
-        writeToLocalStorage(
+        writeToWebStorage(
           mutationKey(AUTHENTICATED_USER, 1),
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
             'acknowledged'
-          ).toLocalStorageJSON()
+          ).toWebStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.mutationCount).to.equal(1);
@@ -593,14 +579,14 @@ describe('WebStorageSharedClientState', () => {
 
     it('for rejected mutation', () => {
       return withUser(AUTHENTICATED_USER, async () => {
-        writeToLocalStorage(
+        writeToWebStorage(
           mutationKey(AUTHENTICATED_USER, 1),
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
             'rejected',
             TEST_ERROR
-          ).toLocalStorageJSON()
+          ).toWebStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.mutationCount).to.equal(1);
@@ -614,13 +600,13 @@ describe('WebStorageSharedClientState', () => {
 
     it('handles unauthenticated user', () => {
       return withUser(UNAUTHENTICATED_USER, async () => {
-        writeToLocalStorage(
+        writeToWebStorage(
           mutationKey(UNAUTHENTICATED_USER, 1),
           new MutationMetadata(
             UNAUTHENTICATED_USER,
             1,
             'pending'
-          ).toLocalStorageJSON()
+          ).toWebStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.mutationCount).to.equal(1);
@@ -632,17 +618,17 @@ describe('WebStorageSharedClientState', () => {
       return withUser(AUTHENTICATED_USER, async () => {
         const otherUser = new User('foobar');
 
-        writeToLocalStorage(
+        writeToWebStorage(
           mutationKey(AUTHENTICATED_USER, 1),
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
             'pending'
-          ).toLocalStorageJSON()
+          ).toWebStorageJSON()
         );
-        writeToLocalStorage(
+        writeToWebStorage(
           mutationKey(otherUser, 1),
-          new MutationMetadata(otherUser, 2, 'pending').toLocalStorageJSON()
+          new MutationMetadata(otherUser, 2, 'pending').toWebStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.mutationCount).to.equal(1);
@@ -652,13 +638,13 @@ describe('WebStorageSharedClientState', () => {
 
     it('ignores invalid data', () => {
       return withUser(AUTHENTICATED_USER, async () => {
-        writeToLocalStorage(
+        writeToWebStorage(
           mutationKey(AUTHENTICATED_USER, 1),
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
             'invalid' as any // tslint:disable-line:no-any
-          ).toLocalStorageJSON()
+          ).toWebStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.mutationCount).to.equal(0);
@@ -690,10 +676,7 @@ describe('WebStorageSharedClientState', () => {
     async function withClientState(
       fn: () => Promise<void>
     ): Promise<TestSharedClientState> {
-      writeToLocalStorage(
-        firstClientStorageKey,
-        firstClient.toLocalStorageJSON()
-      );
+      writeToWebStorage(firstClientStorageKey, firstClient.toWebStorageJSON());
       await fn();
       await queue.drain();
       return clientSyncer.sharedClientState;
@@ -703,9 +686,9 @@ describe('WebStorageSharedClientState', () => {
       let clientState = await withClientState(async () => {
         // Add a target that only exists in the second client
         secondClientState.addQueryTarget(secondClientTargetId);
-        writeToLocalStorage(
+        writeToWebStorage(
           secondClientStorageKey,
-          secondClientState.toLocalStorageJSON()
+          secondClientState.toWebStorageJSON()
         );
       });
 
@@ -714,9 +697,9 @@ describe('WebStorageSharedClientState', () => {
       clientState = await withClientState(async () => {
         // Add a target that already exist in the first client
         secondClientState.addQueryTarget(firstClientTargetId);
-        writeToLocalStorage(
+        writeToWebStorage(
           secondClientStorageKey,
-          secondClientState.toLocalStorageJSON()
+          secondClientState.toWebStorageJSON()
         );
       });
 
@@ -727,9 +710,9 @@ describe('WebStorageSharedClientState', () => {
       let clientState = await withClientState(async () => {
         secondClientState.addQueryTarget(firstClientTargetId);
         secondClientState.addQueryTarget(secondClientTargetId);
-        writeToLocalStorage(
+        writeToWebStorage(
           secondClientStorageKey,
-          secondClientState.toLocalStorageJSON()
+          secondClientState.toWebStorageJSON()
         );
       });
 
@@ -738,9 +721,9 @@ describe('WebStorageSharedClientState', () => {
       clientState = await withClientState(async () => {
         // Remove a target that also exists in the first client
         secondClientState.removeQueryTarget(firstClientTargetId);
-        writeToLocalStorage(
+        writeToWebStorage(
           secondClientStorageKey,
-          secondClientState.toLocalStorageJSON()
+          secondClientState.toWebStorageJSON()
         );
       });
 
@@ -749,9 +732,9 @@ describe('WebStorageSharedClientState', () => {
       clientState = await withClientState(async () => {
         // Remove a target that only exists in the second client
         secondClientState.removeQueryTarget(secondClientTargetId);
-        writeToLocalStorage(
+        writeToWebStorage(
           secondClientStorageKey,
-          secondClientState.toLocalStorageJSON()
+          secondClientState.toWebStorageJSON()
         );
       });
 
@@ -760,12 +743,12 @@ describe('WebStorageSharedClientState', () => {
 
     it('for not-current target', () => {
       return withClientState(async () => {
-        writeToLocalStorage(
+        writeToWebStorage(
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
             'not-current'
-          ).toLocalStorageJSON()
+          ).toWebStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.targetIds.size).to.equal(1);
@@ -777,12 +760,12 @@ describe('WebStorageSharedClientState', () => {
 
     it('for current target', () => {
       return withClientState(async () => {
-        writeToLocalStorage(
+        writeToWebStorage(
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
             'current'
-          ).toLocalStorageJSON()
+          ).toWebStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.targetIds.size).to.equal(1);
@@ -794,13 +777,13 @@ describe('WebStorageSharedClientState', () => {
 
     it('for errored target', () => {
       return withClientState(async () => {
-        writeToLocalStorage(
+        writeToWebStorage(
           targetKey(1),
           new QueryTargetMetadata(
             firstClientTargetId,
             'rejected',
             TEST_ERROR
-          ).toLocalStorageJSON()
+          ).toWebStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.targetIds.size).to.equal(1);
@@ -817,12 +800,12 @@ describe('WebStorageSharedClientState', () => {
 
     it('ignores invalid data', () => {
       return withClientState(async () => {
-        writeToLocalStorage(
+        writeToWebStorage(
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
             'invalid' as any // tslint:disable-line:no-any
-          ).toLocalStorageJSON()
+          ).toWebStorageJSON()
         );
       }).then(clientState => {
         expect(clientState.targetIds.size).to.equal(1);
@@ -837,7 +820,7 @@ describe('WebStorageSharedClientState', () => {
     });
 
     function assertSequenceNumber(expected: ListenSequenceNumber): void {
-      const sequenceNumberString = localStorage.getItem(sequenceNumberKey());
+      const sequenceNumberString = webStorage.getItem(sequenceNumberKey());
       expect(sequenceNumberString).to.not.be.null;
       const actual = JSON.parse(sequenceNumberString!) as ListenSequenceNumber;
       expect(actual).to.equal(expected);
@@ -852,11 +835,11 @@ describe('WebStorageSharedClientState', () => {
       const sequenceNumbers: ListenSequenceNumber[] = [];
       sharedClientState.sequenceNumberHandler = sequenceNumber =>
         sequenceNumbers.push(sequenceNumber);
-      writeToLocalStorage(sequenceNumberKey(), '1');
+      writeToWebStorage(sequenceNumberKey(), '1');
       await queue.drain();
       expect(sequenceNumbers).to.deep.equal([1]);
-      writeToLocalStorage(sequenceNumberKey(), '2');
-      writeToLocalStorage(sequenceNumberKey(), '3');
+      writeToWebStorage(sequenceNumberKey(), '2');
+      writeToWebStorage(sequenceNumberKey(), '3');
       await queue.drain();
       expect(sequenceNumbers).to.deep.equal([1, 2, 3]);
     });

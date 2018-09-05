@@ -548,7 +548,7 @@ export class LocalStore {
               );
               return this.queryCache.setTargetsMetadata(
                 txn,
-                /*highestSequenceNumber=*/ 0,
+                txn.currentSequenceNumber,
                 remoteVersion
               );
             });
@@ -664,7 +664,7 @@ export class LocalStore {
   allocateQuery(query: Query): Promise<QueryData> {
     return this.persistence.runTransaction(
       'Allocate query',
-      'readwrite',
+      'readonly',
       txn => {
         let queryData: QueryData;
         return this.queryCache
@@ -678,7 +678,12 @@ export class LocalStore {
               return PersistencePromise.resolve();
             } else {
               return this.queryCache.allocateTargetId(txn).next(targetId => {
-                queryData = new QueryData(query, targetId, QueryPurpose.Listen);
+                queryData = new QueryData(
+                  query,
+                  targetId,
+                  QueryPurpose.Listen,
+                  txn.currentSequenceNumber
+                );
                 return this.queryCache.addQueryData(txn, queryData);
               });
             }

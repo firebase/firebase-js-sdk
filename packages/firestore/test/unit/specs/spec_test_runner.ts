@@ -114,6 +114,8 @@ import {
   TEST_PERSISTENCE_PREFIX
 } from '../local/persistence_test_helpers';
 
+const ARBITRARY_SEQUENCE_NUMBER = 2;
+
 class MockConnection implements Connection {
   watchStream: StreamBridge<
     api.ListenRequest,
@@ -1055,6 +1057,7 @@ abstract class TestRunner {
           this.parseQuery(expected.query),
           targetId,
           QueryPurpose.Listen,
+          ARBITRARY_SEQUENCE_NUMBER,
           SnapshotVersion.MIN,
           expected.resumeToken
         )

@@ -16,7 +16,7 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId } from '../core/types';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 
 import { GarbageSource } from './garbage_source';
@@ -44,6 +44,14 @@ export interface QueryCache extends GarbageSource {
   getLastRemoteSnapshotVersion(
     transaction: PersistenceTransaction
   ): PersistencePromise<SnapshotVersion>;
+
+  /**
+   * @return The highest sequence number observed, including any that might be
+   *         persisted on-disk.
+   */
+  getHighestSequenceNumber(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<ListenSequenceNumber>;
 
   /**
    * Set the highest listen sequence number and optionally updates the

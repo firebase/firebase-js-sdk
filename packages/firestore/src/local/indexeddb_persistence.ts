@@ -728,7 +728,7 @@ export class IndexedDbPersistence implements Persistence {
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
     return this.simpleDb.runTransaction(
-      mode == 'readonly' ? 'readonly' : 'readwrite',
+      mode === 'readonly' ? 'readonly' : 'readwrite',
       ALL_STORES,
       simpleDbTxn => {
         if (mode === 'readwrite-primary') {
