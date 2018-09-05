@@ -27,7 +27,6 @@ import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
-import { fail } from '../util/assert';
 
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
@@ -168,12 +167,10 @@ export class LocalDocumentsView {
               baseDoc,
               batch.localWriteTime
             );
-            if (!mutatedDoc || mutatedDoc instanceof NoDocument) {
-              results = results.remove(key);
-            } else if (mutatedDoc instanceof Document) {
+            if (mutatedDoc instanceof Document) {
               results = results.insert(key, mutatedDoc);
             } else {
-              fail('Unknown MaybeDocument: ' + mutatedDoc);
+              results = results.remove(key);
             }
           }
         }

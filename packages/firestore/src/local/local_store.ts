@@ -49,7 +49,7 @@ import { QueryData, QueryPurpose } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { ClientId, SharedClientState } from './shared_client_state';
+import { ClientId } from './shared_client_state';
 
 const LOG_TAG = 'LocalStore';
 
@@ -153,18 +153,6 @@ export class LocalStore {
   /** Maps a targetID to data about its query. */
   private queryDataByTarget = {} as { [targetId: number]: QueryData };
 
-  /**
-   * A heldBatchResult is a mutation batch result (from a write acknowledgement)
-   * that arrived before the watch stream got notified of a snapshot that
-   * includes the write. So we "hold" it until the watch stream catches up. It
-   * ensures that the local write remains visible (latency compensation) and
-   * doesn't temporarily appear reverted because the watch stream is slower than
-   * the write stream and so wasn't reflecting it.
-   *
-   * NOTE: Eventually we want to move this functionality into the remote store.
-   */
-  private heldBatchResults: MutationBatchResult[] = [];
-
   constructor(
     /** Manages our in-memory or durable persistence. */
     private persistence: Persistence,
@@ -174,15 +162,7 @@ export class LocalStore {
      * cached (e.g. if they are no longer retained by the above reference sets
      * and the garbage collector is performing eager collection).
      */
-    private garbageCollector: GarbageCollector,
-    /**
-     * SharedClientState to notify of acknowledged writes.
-     *
-     * TODO(mrschmidt): When we get rid of held write acks, the SyncEngine can
-     * notify SharedClientState of all write acknowledgements and LocalStore
-     * should no longer need access to SharedClientState.
-     */
-    private sharedClientState: SharedClientState
+    private garbageCollector: GarbageCollector
   ) {
     assert(
       persistence.started,
@@ -277,35 +257,7 @@ export class LocalStore {
   private startMutationQueue(
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
-    return this.mutationQueue
-      .start(txn)
-      .next(() => {
-        // If we have any leftover mutation batch results from a prior run,
-        // just drop them.
-        // TODO(http://b/33446471): We probably need to repopulate
-        // heldBatchResults or similar instead, but that is not
-        // straightforward since we're not persisting the write ack versions.
-        this.heldBatchResults = [];
-        return this.mutationQueue.getHighestAcknowledgedBatchId(txn);
-      })
-      .next(highestAck => {
-        // TODO(mikelehen): This is the only usage of
-        // getAllMutationBatchesThroughBatchId(). Consider removing it in
-        // favor of a getAcknowledgedBatches() method.
-        if (highestAck !== BATCHID_UNKNOWN) {
-          return this.mutationQueue.getAllMutationBatchesThroughBatchId(
-            txn,
-            highestAck
-          );
-        } else {
-          return PersistencePromise.resolve([] as MutationBatch[]);
-        }
-      })
-      .next(ackedBatches =>
-        PersistencePromise.forEach(ackedBatches, batch =>
-          this.mutationQueue.removeMutationBatch(txn, batch)
-        )
-      );
+    return this.mutationQueue.start(txn);
   }
 
   /* Accept locally generated Mutations and commit them to storage. */
@@ -374,35 +326,18 @@ export class LocalStore {
     batchResult: MutationBatchResult
   ): Promise<MaybeDocumentMap> {
     return this.persistence.runTransaction('Acknowledge batch', true, txn => {
-      let affected: DocumentKeySet;
+      const affected = batchResult.batch.keys();
+      const documentBuffer = new RemoteDocumentChangeBuffer(
+        this.remoteDocuments
+      );
       return this.mutationQueue
         .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
-        .next(() => this.shouldHoldBatchResult(txn, batchResult.commitVersion))
-        .next(shouldHoldBatchResult => {
-          if (shouldHoldBatchResult) {
-            this.heldBatchResults.push(batchResult);
-            affected = documentKeySet();
-            return PersistencePromise.resolve();
-          } else {
-            const documentBuffer = new RemoteDocumentChangeBuffer(
-              this.remoteDocuments
-            );
-            return this.releaseBatchResults(
-              txn,
-              [batchResult],
-              documentBuffer
-            ).next(promisedAffectedKeys => {
-              affected = promisedAffectedKeys;
-              return documentBuffer.apply(txn);
-            });
-          }
-        })
-        .next(() => {
-          return this.mutationQueue.performConsistencyCheck(txn);
-        })
-        .next(() => {
-          return this.localDocuments.getDocuments(txn, affected);
-        });
+        .next(() =>
+          this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
+        )
+        .next(() => documentBuffer.apply(txn))
+        .next(() => this.mutationQueue.performConsistencyCheck(txn))
+        .next(() => this.localDocuments.getDocuments(txn, affected));
     });
   }
 
@@ -414,32 +349,15 @@ export class LocalStore {
    */
   rejectBatch(batchId: BatchId): Promise<MaybeDocumentMap> {
     return this.persistence.runTransaction('Reject batch', true, txn => {
-      let toReject: MutationBatch;
       let affectedKeys: DocumentKeySet;
       return this.mutationQueue
         .lookupMutationBatch(txn, batchId)
-        .next((promisedToReject: MutationBatch | null) => {
-          assert(
-            promisedToReject != null,
-            'Attempt to reject nonexistent batch!'
-          );
-          toReject = promisedToReject!;
-
-          return this.mutationQueue
-            .getHighestAcknowledgedBatchId(txn)
-            .next(lastAcked => {
-              assert(
-                batchId > lastAcked,
-                "Acknowledged batches can't be rejected."
-              );
-              return toReject;
-            });
+        .next((batch: MutationBatch | null) => {
+          assert(batch !== null, 'Attempt to reject nonexistent batch!');
+          affectedKeys = batch!.keys();
+          return this.mutationQueue.removeMutationBatch(txn, batch!);
         })
         .next(() => {
-          return this.removeMutationBatch(txn, toReject);
-        })
-        .next(promisedAffectedKeys => {
-          affectedKeys = promisedAffectedKeys;
           return this.mutationQueue.performConsistencyCheck(txn);
         })
         .next(() => {
@@ -567,7 +485,8 @@ export class LocalStore {
             if (
               existingDoc == null ||
               doc.version.isEqual(SnapshotVersion.MIN) ||
-              authoritativeUpdates.has(doc.key) ||
+              (authoritativeUpdates.has(doc.key) &&
+                !existingDoc.hasPendingWrites) ||
               doc.version.compareTo(existingDoc.version) >= 0
             ) {
               documentBuffer.addEntry(doc);
@@ -615,18 +534,10 @@ export class LocalStore {
         promises.push(updateRemoteVersion);
       }
 
-      let releasedWriteKeys: DocumentKeySet;
       return PersistencePromise.waitFor(promises)
-        .next(() => this.releaseHeldBatchResults(txn, documentBuffer))
-        .next(promisedReleasedWriteKeys => {
-          releasedWriteKeys = promisedReleasedWriteKeys;
-          return documentBuffer.apply(txn);
-        })
+        .next(() => documentBuffer.apply(txn))
         .next(() => {
-          return this.localDocuments.getDocuments(
-            txn,
-            changedDocKeys.unionWith(releasedWriteKeys)
-          );
+          return this.localDocuments.getDocuments(txn, changedDocKeys);
         });
     });
   }
@@ -795,18 +706,6 @@ export class LocalStore {
             } else {
               return PersistencePromise.resolve();
             }
-          })
-          .next(() => {
-            // If this was the last watch target, then we won't get any more
-            // watch snapshots, so we should release any held batch results.
-            if (objUtils.isEmpty(this.queryDataByTarget)) {
-              const documentBuffer = new RemoteDocumentChangeBuffer(
-                this.remoteDocuments
-              );
-              return this.releaseHeldBatchResults(txn, documentBuffer).next(
-                () => documentBuffer.apply(txn)
-              );
-            }
           });
       }
     );
@@ -871,126 +770,6 @@ export class LocalStore {
     this.persistence.setNetworkEnabled(networkEnabled);
   }
 
-  private releaseHeldBatchResults(
-    txn: PersistenceTransaction,
-    documentBuffer: RemoteDocumentChangeBuffer
-  ): PersistencePromise<DocumentKeySet> {
-    let writesToRelease: PersistencePromise<MutationBatchResult[]>;
-
-    if (objUtils.isEmpty(this.queryDataByTarget)) {
-      // We always release all writes when there are no active watch targets.
-      writesToRelease = PersistencePromise.resolve(
-        this.heldBatchResults.slice()
-      );
-    } else {
-      writesToRelease = this.queryCache
-        .getLastRemoteSnapshotVersion(txn)
-        .next(lastRemoteVersion => {
-          const toRelease: MutationBatchResult[] = [];
-          for (const batchResult of this.heldBatchResults) {
-            if (batchResult.commitVersion.compareTo(lastRemoteVersion) > 0) {
-              break;
-            }
-            toRelease.push(batchResult);
-          }
-          return toRelease;
-        });
-    }
-
-    return writesToRelease.next(toRelease => {
-      if (toRelease.length === 0) {
-        return PersistencePromise.resolve(documentKeySet());
-      } else {
-        this.heldBatchResults.splice(0, toRelease.length);
-        return this.releaseBatchResults(txn, toRelease, documentBuffer);
-      }
-    });
-  }
-
-  private isRemoteUpToVersion(
-    txn: PersistenceTransaction,
-    version: SnapshotVersion
-  ): PersistencePromise<boolean> {
-    return this.queryCache
-      .getLastRemoteSnapshotVersion(txn)
-      .next(lastRemoteVersion => {
-        return (
-          version.compareTo(lastRemoteVersion) <= 0 ||
-          objUtils.isEmpty(this.queryDataByTarget)
-        );
-      });
-  }
-
-  private shouldHoldBatchResult(
-    txn: PersistenceTransaction,
-    batchVersion: SnapshotVersion
-  ): PersistencePromise<boolean> {
-    // Check if watcher isn't up to date or prior results are already held.
-    if (this.heldBatchResults.length > 0) {
-      return PersistencePromise.resolve(true);
-    }
-
-    return this.isRemoteUpToVersion(txn, batchVersion).next(
-      remoteSynced => !remoteSynced
-    );
-  }
-
-  private releaseBatchResults(
-    txn: PersistenceTransaction,
-    batchResults: MutationBatchResult[],
-    documentBuffer: RemoteDocumentChangeBuffer
-  ): PersistencePromise<DocumentKeySet> {
-    let promiseChain = PersistencePromise.resolve();
-    for (const batchResult of batchResults) {
-      promiseChain = promiseChain
-        .next(() =>
-          this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
-        )
-        .next(() => {
-          // HACK: This should happen in SyncEngine and outside of the
-          // transaction boundary, but we currently don't expose the Batch ID
-          // for released batches outside of LocalStore. Due to the way that
-          // we lock the IndexedDb store, secondary clients will however NOT be
-          // able to act upon these notifications until after this transaction
-          // is committed. b/33446471 will remove this reliance.
-          this.sharedClientState.updateMutationState(
-            batchResult.batch.batchId,
-            'acknowledged'
-          );
-        });
-    }
-    return promiseChain.next(() => {
-      return this.removeMutationBatches(
-        txn,
-        batchResults.map(result => result.batch)
-      );
-    });
-  }
-
-  private removeMutationBatch(
-    txn: PersistenceTransaction,
-    batch: MutationBatch
-  ): PersistencePromise<DocumentKeySet> {
-    return this.removeMutationBatches(txn, [batch]);
-  }
-
-  /** Removes all the mutation batches named in the given array. */
-  private removeMutationBatches(
-    txn: PersistenceTransaction,
-    batches: MutationBatch[]
-  ): PersistencePromise<DocumentKeySet> {
-    let affectedDocs = documentKeySet();
-    for (const batch of batches) {
-      for (const mutation of batch.mutations) {
-        const key = mutation.key;
-        affectedDocs = affectedDocs.add(key);
-      }
-    }
-    return PersistencePromise.forEach(batches, batch =>
-      this.mutationQueue.removeMutationBatch(txn, batch)
-    ).next(() => affectedDocs);
-  }
-
   private applyWriteToRemoteDocuments(
     txn: PersistenceTransaction,
     batchResult: MutationBatchResult,
@@ -1028,7 +807,9 @@ export class LocalStore {
           }
         });
     });
-    return promiseChain;
+    return promiseChain.next(() =>
+      this.mutationQueue.removeMutationBatch(txn, batch)
+    );
   }
 
   // PORTING NOTE: Multi-tab only.

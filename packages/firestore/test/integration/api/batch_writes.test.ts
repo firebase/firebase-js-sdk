@@ -267,6 +267,10 @@ apiDescribe('Database batch writes', persistence => {
             const when = serverSnap.docs[0].data()['when'];
             expect(when).to.be.an.instanceof(Timestamp);
             expect(serverSnap.docs[1].data()['when']).to.deep.equal(when);
+            const docChanges = serverSnap.docChanges({
+              includeMetadataChanges: true
+            });
+            expect(docChanges[0].type).to.equal('modified');
             unsubscribe();
           });
       }
