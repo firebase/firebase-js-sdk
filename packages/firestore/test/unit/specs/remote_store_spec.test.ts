@@ -78,7 +78,7 @@ describeSpec('Remote store:', [], () => {
         // target counts.
         .watchStreamCloses(Code.UNAVAILABLE)
         .expectEvents(query, { fromCache: true })
-        // This should work now.
+
         .watchAcksFull(query, 1001, doc1)
         .expectEvents(query, { added: [doc1] })
     );
