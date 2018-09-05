@@ -115,14 +115,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => empty);
   }
 
-  getHighestAcknowledgedBatchId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<BatchId> {
-    return this.getMutationQueueMetadata(transaction).next(metadata => {
-      return metadata.lastAcknowledgedBatchId;
-    });
-  }
-
   acknowledgeBatch(
     transaction: PersistenceTransaction,
     batch: MutationBatch,
@@ -274,19 +266,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
   getAllMutationBatches(
     transaction: PersistenceTransaction
   ): PersistencePromise<MutationBatch[]> {
-    return this.getAllMutationBatchesThroughBatchId(
-      transaction,
-      Number.POSITIVE_INFINITY
-    );
-  }
-
-  getAllMutationBatchesThroughBatchId(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
-  ): PersistencePromise<MutationBatch[]> {
     const range = IDBKeyRange.bound(
       [this.userId, BATCHID_UNKNOWN],
-      [this.userId, batchId]
+      [this.userId, Number.POSITIVE_INFINITY]
     );
     return mutationsStore(transaction)
       .loadAll(DbMutationBatch.userMutationsIndex, range)

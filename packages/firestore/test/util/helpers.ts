@@ -53,7 +53,8 @@ import {
   Document,
   DocumentOptions,
   MaybeDocument,
-  NoDocument
+  NoDocument,
+  UnknownDocument
 } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
@@ -113,9 +114,7 @@ export function doc(
   keyStr: string,
   ver: TestSnapshotVersion,
   json: JsonObject<AnyJs>,
-  options: DocumentOptions = {
-    hasLocalMutations: false
-  }
+  options: DocumentOptions = {}
 ): Document {
   return new Document(key(keyStr), version(ver), wrapObject(json), options);
 }
@@ -125,6 +124,13 @@ export function deletedDoc(
   ver: TestSnapshotVersion
 ): NoDocument {
   return new NoDocument(key(keyStr), version(ver));
+}
+
+export function unknownDoc(
+  keyStr: string,
+  ver: TestSnapshotVersion
+): UnknownDocument {
+  return new UnknownDocument(key(keyStr), version(ver));
 }
 
 export function removedDoc(keyStr: string): NoDocument {

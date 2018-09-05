@@ -17,12 +17,13 @@
 import { ParsedSetData, ParsedUpdateData } from '../api/user_data_converter';
 import { SnapshotVersion } from './snapshot_version';
 import { documentVersionMap } from '../model/collections';
-import { NoDocument } from '../model/document';
+import { NoDocument, Document } from '../model/document';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { Datastore } from '../remote/datastore';
 import { Code, FirestoreError } from '../util/error';
+import { fail } from '../util/assert';
 
 /**
  * Internal transaction object responsible for accumulating the mutations to
@@ -37,11 +38,17 @@ export class Transaction {
   constructor(private datastore: Datastore) {}
 
   private recordVersion(doc: MaybeDocument): void {
-    let docVersion = doc.version;
-    if (doc instanceof NoDocument) {
+    let docVersion: SnapshotVersion;
+
+    if (doc instanceof Document) {
+      docVersion = doc.version;
+    } else if (doc instanceof NoDocument) {
       // For deleted docs, we must use baseVersion 0 when we overwrite them.
       docVersion = SnapshotVersion.forDeletedDoc();
+    } else {
+      throw fail('Document in a transaction was a ' + doc.constructor.name);
     }
+
     const existingVersion = this.readVersions.get(doc.key);
     if (existingVersion !== null) {
       if (!docVersion.isEqual(existingVersion)) {
@@ -68,7 +75,13 @@ export class Transaction {
       );
     }
     return this.datastore.lookup(keys).then(docs => {
-      docs.forEach(doc => this.recordVersion(doc));
+      docs.forEach(doc => {
+        if (doc instanceof NoDocument || doc instanceof Document) {
+          this.recordVersion(doc);
+        } else {
+          fail('Document in a transaction was a ' + doc.constructor.name);
+        }
+      });
       return docs;
     });
   }
