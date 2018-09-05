@@ -52,5 +52,5 @@
     "rollup-plugin-uglify": "3.0.0",
     "typescript": "2.8.1"
   },
-  "typings": "dist/index.d.ts"
+  "typings": "index.d.ts"
 }
