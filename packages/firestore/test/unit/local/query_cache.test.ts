@@ -54,12 +54,7 @@ describe('IndexedDbQueryCache', () => {
   genericQueryCacheTests(() => persistencePromise);
 
   it('persists metadata across restarts', async () => {
-    await (await persistencePromise).shutdown(/* deleteData= */ true);
-    const testPrefix = 'test-queryCache-restarts';
-    const db1 = await persistenceHelpers.testIndexedDbPersistence(
-      {},
-      testPrefix
-    );
+    const db1 = await persistencePromise;
 
     const queryCache1 = new TestQueryCache(db1, db1.getQueryCache());
     expect(await queryCache1.getHighestSequenceNumber()).to.equal(0);
@@ -84,10 +79,9 @@ describe('IndexedDbQueryCache', () => {
     );
     await db1.shutdown(/* deleteData= */ false);
 
-    const db2 = await persistenceHelpers.testIndexedDbPersistence(
-      { dontPurgeData: true },
-      testPrefix
-    );
+    const db2 = await persistenceHelpers.testIndexedDbPersistence({
+      dontPurgeData: true
+    });
     const queryCache2 = new TestQueryCache(db2, db2.getQueryCache());
     expect(await queryCache2.getHighestSequenceNumber()).to.equal(
       originalSequenceNumber
