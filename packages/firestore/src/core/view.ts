@@ -112,8 +112,6 @@ export class View {
    * @return A new set of docs, changes, and refill flag.
    */
   computeInitialChanges(docs: MaybeDocumentMap): ViewDocumentChanges {
-    // TODO: Call this directly from the constructor and use
-    // `computeInitialSnapshot` to generate first view snapshot.
     assert(
       this.documentSet.size === 0,
       'computeInitialChanges called when docs are aleady present'
@@ -222,7 +220,7 @@ export class View {
         if (oldDoc && newDoc) {
           const docsEqual = oldDoc.data.isEqual(newDoc.data);
           if (!docsEqual) {
-            if (!this.shouldWaitForRemoteVersion(oldDoc, newDoc)) {
+            if (!this.shouldWaitForSyncedDocument(oldDoc, newDoc)) {
               changeSet.track({
                 type: ChangeType.Modified,
                 doc: newDoc
@@ -294,16 +292,17 @@ export class View {
     };
   }
 
-  private shouldWaitForRemoteVersion(oldDoc, newDoc): boolean {
-    // We suppress the initial change event for documents that were
-    // modified as part of a write acknowledgment (e.g. when the value of
-    // a server transform is applied) as Watch will send us the same
-    // document again.
-    // By suppressing the event, we only raise two user visible events
-    // (one with `hasPendingWrites` and the final state of the document)
-    // instead of three (one with `hasPendingWrites`, the modified
-    // document with `hasPendingWrites` and the final state of the
-    // document).
+  private shouldWaitForSyncedDocument(
+    oldDoc: Document,
+    newDoc: Document
+  ): boolean {
+    // We suppress the initial change event for documents that were modified as
+    // part of a write acknowledgment (e.g. when the value of a server transform
+    // is applied) as Watch will send us the same document again.
+    // By suppressing the event, we only raise two user visible events (one with
+    // `hasPendingWrites` and the final state of the document) instead of three
+    // (one with `hasPendingWrites`, the modified document with
+    // `hasPendingWrites` and the final state of the document).
     return (
       oldDoc.hasLocalMutations &&
       newDoc.hasCommittedMutations &&

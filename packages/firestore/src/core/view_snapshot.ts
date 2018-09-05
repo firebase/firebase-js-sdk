@@ -174,15 +174,15 @@ export class ViewSnapshot {
     );
   }
 
-  get hasPendingWrites() : boolean {
+  get hasPendingWrites(): boolean {
     return !this.mutatedKeys.isEmpty();
   }
 
   isEqual(other: ViewSnapshot): boolean {
     if (
       this.fromCache !== other.fromCache ||
-      this.hasPendingWrites !== other.hasPendingWrites ||
       this.syncStateChanged !== other.syncStateChanged ||
+      !this.mutatedKeys.isEqual(other.mutatedKeys) ||
       !this.query.isEqual(other.query) ||
       !this.docs.isEqual(other.docs) ||
       !this.oldDocs.isEqual(other.oldDocs)

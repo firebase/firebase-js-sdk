@@ -95,7 +95,7 @@ export function query(path: string): Query {
  *     document, with the key being the document id, and the value being the document contents.
  * @param docsToAdd Specifies data to be added into the query snapshot as of now. Each entry maps
  *     to a document, with the key being the document id, and the value being the document contents.
- * @param mutatedKes The list of document with pending writes.
+ * @param mutatedKeys The list of document with pending writes.
  * @param fromCache Whether the query snapshot is cache result.
  * @param syncStateChanged Whether the sync state has changed.
  * @return A query snapshot that consists of both sets of documents.
@@ -104,7 +104,7 @@ export function querySnapshot(
   path: string,
   oldDocs: { [key: string]: JsonObject<AnyJs> },
   docsToAdd: { [key: string]: JsonObject<AnyJs> },
-  mutatedKes: DocumentKeySet,
+  mutatedKeys: DocumentKeySet,
   fromCache: boolean,
   syncStateChanged: boolean
 ): QuerySnapshot {
@@ -125,7 +125,7 @@ export function querySnapshot(
     newDocuments,
     oldDocuments,
     documentChanges,
-    mutatedKes,
+    mutatedKeys,
     fromCache,
     syncStateChanged,
     false

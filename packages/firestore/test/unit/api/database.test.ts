@@ -80,39 +80,43 @@ describe('Query', () => {
 describe('QuerySnapshot', () => {
   it('support equality checking with isEqual()', () => {
     expectEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('coll/a'), false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('coll/a'), false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('coll/a'), false, false),
-      querySnapshot('bar', {}, { a: { a: 1 } }, keys('coll/a'), false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+      querySnapshot('bar', {}, { a: { a: 1 } }, keys(), false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('coll/a'), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
       querySnapshot(
         'foo',
         { b: { b: 1 } },
         { a: { a: 1 } },
-        keys('coll/a'),
+        keys(),
         false,
         false
       )
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('coll/a'), false, false),
-      querySnapshot('foo', {}, { a: { b: 1 } }, keys('coll/a'), false, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false),
+      querySnapshot('foo', {}, { a: { b: 1 } }, keys(), false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('coll/a'), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
       querySnapshot('foo', {}, { a: { a: 1 } }, keys(), false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('coll/a'), false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('coll/a'), true, false)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/b'), false, false)
     );
     expectNotEqual(
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('coll/a'), false, false),
-      querySnapshot('foo', {}, { a: { a: 1 } }, keys('coll/a'), false, true)
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), true, false)
+    );
+    expectNotEqual(
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, false),
+      querySnapshot('foo', {}, { a: { a: 1 } }, keys('foo/a'), false, true)
     );
   });
 });
@@ -131,19 +135,19 @@ describe('SnapshotMetadata', () => {
 
   it('from QuerySnapshot support equality checking with isEqual()', () => {
     expectEqual(
-      querySnapshot('foo', {}, {}, keys('coll/a'), true, false).metadata,
-      querySnapshot('foo', {}, {}, keys('coll/a'), true, false).metadata
+      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
+      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata
     );
     expectNotEqual(
-      querySnapshot('foo', {}, {}, keys('coll/a'), true, false).metadata,
+      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
       querySnapshot('foo', {}, {}, keys(), true, false).metadata
     );
     expectNotEqual(
-      querySnapshot('foo', {}, {}, keys('coll/a'), true, false).metadata,
-      querySnapshot('foo', {}, {}, keys('coll/a'), false, false).metadata
+      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
+      querySnapshot('foo', {}, {}, keys('foo/a'), false, false).metadata
     );
     expectNotEqual(
-      querySnapshot('foo', {}, {}, keys('coll/a'), true, false).metadata,
+      querySnapshot('foo', {}, {}, keys('foo/a'), true, false).metadata,
       querySnapshot('foo', {}, {}, keys(), false, false).metadata
     );
   });

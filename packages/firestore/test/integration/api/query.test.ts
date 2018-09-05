@@ -28,7 +28,7 @@ import {
 } from '../util/helpers';
 import { Deferred } from '../../util/promise';
 import { querySnapshot } from '../../util/api_helpers';
-import {keys} from '../../util/helpers';
+import { keys } from '../../util/helpers';
 
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldPath = firebase.firestore!.FieldPath;

@@ -37,12 +37,18 @@ export class Transaction {
 
   constructor(private datastore: Datastore) {}
 
-  private recordVersion(doc: NoDocument | Document): void {
-    let docVersion = doc.version;
-    if (doc instanceof NoDocument) {
+  private recordVersion(doc: MaybeDocument): void {
+    let docVersion: SnapshotVersion;
+
+    if (doc instanceof Document) {
+      docVersion = doc.version;
+    } else if (doc instanceof NoDocument) {
       // For deleted docs, we must use baseVersion 0 when we overwrite them.
       docVersion = SnapshotVersion.forDeletedDoc();
+    } else {
+      throw fail('Document in a transaction was a ' + doc.constructor.name);
     }
+
     const existingVersion = this.readVersions.get(doc.key);
     if (existingVersion !== null) {
       if (!docVersion.isEqual(existingVersion)) {
@@ -69,13 +75,7 @@ export class Transaction {
       );
     }
     return this.datastore.lookup(keys).then(docs => {
-      docs.forEach(doc => {
-        if (doc instanceof NoDocument || doc instanceof Document) {
-          this.recordVersion(doc);
-        } else {
-          fail('Document in a transaction was a ' + doc.constructor.name);
-        }
-      });
+      docs.forEach(doc => this.recordVersion(doc));
       return docs;
     });
   }
