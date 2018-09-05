@@ -1,4 +1,12 @@
-# Unreleased
+# Unreleased (0.8.0)
+- [feature] Access to offline persistence is no longer limited to a single tab. 
+  You can opt into this new experimental feature by calling `enablePersistence()`
+  with `{experimentalTabSynchronization:true}` in all browser tabs.
+- [changed] The internal handling for locally updated documents that haven't been
+  read back from Firestore has changed. This can lead to slight behavior changes
+  for the `hasPendingWrites` flag of `SnapshotMetadata`.
+  
+# 0.7.1
 - [fixed] Fixed a regression that prevented use of Firestore on ReactNative's
   Expo platform (#1138).
 
