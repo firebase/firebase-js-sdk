@@ -68,20 +68,20 @@ export interface Query {
   limitToLast(limit: number): Query;
   off(
     eventType?: EventType,
-    callback?: (a: DataSnapshot, b?: string | null) => any,
-    context?: Object | null
-  ): any;
+    callback?: (a: DataSnapshot, b?: string) => any,
+    context?: Object
+  ): void;
   on(
     eventType: EventType,
-    callback: (a: DataSnapshot | null, b?: string) => any,
-    cancelCallbackOrContext?: Object | null,
-    context?: Object | null
-  ): (a: DataSnapshot | null, b?: string) => any;
+    callback: (a: DataSnapshot, b?: string) => any,
+    cancelCallbackOrContext?: ((a: Error) => any) | Object,
+    context?: Object
+  ): (a: DataSnapshot, b?: string) => any;
   once(
     eventType: EventType,
     successCallback?: (a: DataSnapshot, b?: string) => any,
-    failureCallbackOrContext?: Object | null,
-    context?: Object | null
+    cancelCallbackOrContext?: ((a: Error) => void) | Object,
+    context?: Object
   ): Promise<DataSnapshot>;
   orderByChild(path: string): Query;
   orderByKey(): Query;

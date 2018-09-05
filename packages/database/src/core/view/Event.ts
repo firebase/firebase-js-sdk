@@ -65,7 +65,7 @@ export class DataEvent implements Event {
       | ' child_removed',
     public eventRegistration: EventRegistration,
     public snapshot: DataSnapshot,
-    public prevName?: string | null
+    public prevName?: string
   ) {}
 
   /**
