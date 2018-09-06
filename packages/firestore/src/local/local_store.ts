@@ -664,7 +664,7 @@ export class LocalStore {
   allocateQuery(query: Query): Promise<QueryData> {
     return this.persistence.runTransaction(
       'Allocate query',
-      'readonly',
+      'readwrite',
       txn => {
         let queryData: QueryData;
         return this.queryCache
