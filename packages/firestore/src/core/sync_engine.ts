@@ -69,6 +69,7 @@ import { ClientId, SharedClientState } from '../local/shared_client_state';
 import { SortedSet } from '../util/sorted_set';
 import * as objUtils from '../util/obj';
 import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
+import { ListenSequence } from './listen_sequence';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -742,7 +743,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const query = Query.atPath(key.path);
       this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
       this.remoteStore.listen(
-        new QueryData(query, limboTargetId, QueryPurpose.LimboResolution)
+        new QueryData(
+          query,
+          limboTargetId,
+          QueryPurpose.LimboResolution,
+          ListenSequence.INVALID
+        )
       );
       this.limboTargetsByKey = this.limboTargetsByKey.insert(
         key,

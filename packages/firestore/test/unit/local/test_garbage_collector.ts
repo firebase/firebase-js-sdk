@@ -27,7 +27,7 @@ export class TestGarbageCollector {
 
   collectGarbage(): Promise<DocumentKey[]> {
     return this.persistence
-      .runTransaction('garbageCollect', true, txn => {
+      .runTransaction('garbageCollect', 'readwrite-primary', txn => {
         return this.gc.collectGarbage(txn);
       })
       .then(garbage => {

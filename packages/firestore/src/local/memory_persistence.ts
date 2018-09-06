@@ -100,7 +100,7 @@ export class MemoryPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    requirePrimaryLease: boolean,
+    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
