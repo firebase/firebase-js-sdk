@@ -721,8 +721,6 @@ export class IndexedDbPersistence implements Persistence {
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    // TODO(multitab): Consider removing `requirePrimaryLease` and exposing
-    // three different write modes (readonly, readwrite, readwrite_primary).
     log.debug(LOG_TAG, 'Starting transaction:', action);
 
     // Do all transactions as readwrite against all object stores, since we
