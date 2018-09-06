@@ -32,19 +32,27 @@ export class TestRemoteDocumentCache {
   ) {}
 
   addEntries(maybeDocuments: MaybeDocument[]): Promise<void> {
-    return this.persistence.runTransaction('addEntry', true, txn => {
-      return this.cache.addEntries(txn, maybeDocuments);
-    });
+    return this.persistence.runTransaction(
+      'addEntry',
+      'readwrite-primary',
+      txn => {
+        return this.cache.addEntries(txn, maybeDocuments);
+      }
+    );
   }
 
   removeEntry(documentKey: DocumentKey): Promise<void> {
-    return this.persistence.runTransaction('removeEntry', true, txn => {
-      return this.cache.removeEntry(txn, documentKey);
-    });
+    return this.persistence.runTransaction(
+      'removeEntry',
+      'readwrite-primary',
+      txn => {
+        return this.cache.removeEntry(txn, documentKey);
+      }
+    );
   }
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('getEntry', false, txn => {
+    return this.persistence.runTransaction('getEntry', 'readonly', txn => {
       return this.cache.getEntry(txn, documentKey);
     });
   }
@@ -52,7 +60,7 @@ export class TestRemoteDocumentCache {
   getDocumentsMatchingQuery(query: Query): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'getDocumentsMatchingQuery',
-      false,
+      'readonly',
       txn => {
         return this.cache.getDocumentsMatchingQuery(txn, query);
       }
@@ -62,7 +70,7 @@ export class TestRemoteDocumentCache {
   getNextDocumentChanges(): Promise<MaybeDocumentMap> {
     return this.persistence.runTransaction(
       'getNextDocumentChanges',
-      false,
+      'readonly',
       txn => {
         return this.cache.getNewDocumentChanges(txn);
       }

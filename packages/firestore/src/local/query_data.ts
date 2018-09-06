@@ -16,7 +16,7 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ProtoByteString, TargetId } from '../core/types';
+import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
 import { emptyByteString } from '../platform/platform';
 
 /** An enumeration of the different purposes we have for queries. */
@@ -47,6 +47,8 @@ export class QueryData {
     readonly targetId: TargetId,
     /** The purpose of the query. */
     readonly purpose: QueryPurpose,
+    /** The sequence number of the last transaction during which this query data was modified */
+    readonly sequenceNumber: ListenSequenceNumber,
     /** The latest snapshot version seen for this target. */
     readonly snapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
     /**
@@ -65,11 +67,15 @@ export class QueryData {
   copy(overwrite: {
     resumeToken?: ProtoByteString;
     snapshotVersion?: SnapshotVersion;
+    sequenceNumber?: ListenSequenceNumber;
   }): QueryData {
     return new QueryData(
       this.query,
       this.targetId,
       this.purpose,
+      overwrite.sequenceNumber === undefined
+        ? this.sequenceNumber
+        : overwrite.sequenceNumber,
       overwrite.snapshotVersion === undefined
         ? this.snapshotVersion
         : overwrite.snapshotVersion,
@@ -83,6 +89,7 @@ export class QueryData {
     return (
       this.targetId === other.targetId &&
       this.purpose === other.purpose &&
+      this.sequenceNumber === other.sequenceNumber &&
       this.snapshotVersion.isEqual(other.snapshotVersion) &&
       this.resumeToken === other.resumeToken &&
       this.query.isEqual(other.query)

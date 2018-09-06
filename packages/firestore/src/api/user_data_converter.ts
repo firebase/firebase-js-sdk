@@ -539,15 +539,25 @@ export class UserDataConverter {
 
   private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
     let result = new SortedMap<string, FieldValue>(primitiveComparator);
-    objUtils.forEach(obj, (key: string, val: AnyJs) => {
-      const parsedValue = this.parseData(
-        val,
-        context.childContextForField(key)
-      );
-      if (parsedValue != null) {
-        result = result.insert(key, parsedValue);
+
+    if (objUtils.isEmpty(obj)) {
+      // If we encounter an empty object, we explicitly add it to the update
+      // mask to ensure that the server creates a map entry.
+      if (context.path && context.path.length > 0) {
+        context.fieldMask.push(context.path);
       }
-    });
+    } else {
+      objUtils.forEach(obj, (key: string, val: AnyJs) => {
+        const parsedValue = this.parseData(
+          val,
+          context.childContextForField(key)
+        );
+        if (parsedValue != null) {
+          result = result.insert(key, parsedValue);
+        }
+      });
+    }
+
     return new ObjectValue(result);
   }
 
@@ -581,12 +591,12 @@ export class UserDataConverter {
     // Sentinels are only supported with writes, and not within arrays.
     if (!isWrite(context.dataSource)) {
       throw context.createError(
-        `${value.methodName}() can only be used with update() and set()`
+        `${value._methodName}() can only be used with update() and set()`
       );
     }
     if (context.path === null) {
       throw context.createError(
-        `${value.methodName}() is not currently supported inside arrays`
+        `${value._methodName}() is not currently supported inside arrays`
       );
     }
 
@@ -618,7 +628,7 @@ export class UserDataConverter {
       );
     } else if (value instanceof ArrayUnionFieldValueImpl) {
       const parsedElements = this.parseArrayTransformElements(
-        value.methodName,
+        value._methodName,
         value._elements
       );
       const arrayUnion = new ArrayUnionTransformOperation(parsedElements);
@@ -627,7 +637,7 @@ export class UserDataConverter {
       );
     } else if (value instanceof ArrayRemoveFieldValueImpl) {
       const parsedElements = this.parseArrayTransformElements(
-        value.methodName,
+        value._methodName,
         value._elements
       );
       const arrayRemove = new ArrayRemoveTransformOperation(parsedElements);

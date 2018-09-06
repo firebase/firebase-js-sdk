@@ -167,16 +167,18 @@ export interface Persistence {
    *
    * @param action A description of the action performed by this transaction,
    * used for logging.
-   * @param requirePrimaryLease Whether this transaction can only be executed
-   * by the primary client. If the primary lease cannot be acquired, the
-   * transactionOperation will not be run, and the returned promise will be
-   * rejected with a FAILED_PRECONDITION error.
+   * @param mode The underlying mode of the IndexedDb transaction. Can be
+   * 'readonly`, 'readwrite' or 'readwrite-primary'. Transactions marked
+   * 'readwrite-primary' can only be executed by the primary client. In this
+   * mode, the transactionOperation will not be run if the primary lease cannot
+   * be acquired and the returned promise will be rejected with a
+   * FAILED_PRECONDITION error.
    * @param transactionOperation The operation to run inside a transaction.
    * @return A promise that is resolved once the transaction completes.
    */
   runTransaction<T>(
     action: string,
-    requirePrimaryLease: boolean,
+    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>

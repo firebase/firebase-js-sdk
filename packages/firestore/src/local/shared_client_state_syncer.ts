@@ -26,11 +26,6 @@ export type QueryTargetState = 'not-current' | 'current' | 'rejected';
  * perform on a cooperating synchronization engine.
  */
 export interface SharedClientStateSyncer {
-  // TODO(multitab): Consider different names for these methods that convey
-  // that these method are used in multi-tab to load existing batches from
-  // persistence (a possible name for `applyBatchState` could be
-  // `applyBatchFromPersistence`).
-
   /** Applies a mutation state to an existing batch.  */
   applyBatchState(
     batchId: BatchId,
