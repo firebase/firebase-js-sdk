@@ -272,7 +272,6 @@ export class View {
       }
     );
     if (this.query.hasLimit()) {
-      // TODO(klimt): Make DocumentSet size be constant time.
       while (newDocumentSet.size > this.query.limit!) {
         const oldDoc = newDocumentSet.last();
         newDocumentSet = newDocumentSet.delete(oldDoc!.key);
