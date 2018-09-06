@@ -38,6 +38,7 @@ import {
   patchMutation,
   setMutation,
   transformMutation,
+  unknownDoc,
   version,
   wrap,
   wrapObject
@@ -382,9 +383,9 @@ describe('Mutation', () => {
     expect(transformedDoc).to.deep.equal(
       doc(
         'collection/key',
-        0,
+        1,
         { foo: { bar: timestamp.toDate() }, baz: 'baz-value' },
-        { hasLocalMutations: false }
+        { hasCommittedMutations: true }
       )
     );
   });
@@ -407,9 +408,9 @@ describe('Mutation', () => {
     expect(transformedDoc).to.deep.equal(
       doc(
         'collection/key',
-        0,
+        1,
         { array1: [1, 2, 3], array2: ['b'] },
-        { hasLocalMutations: false }
+        { hasCommittedMutations: true }
       )
     );
   });
@@ -429,7 +430,12 @@ describe('Mutation', () => {
     const setResult = mutationResult(4);
     const setDoc = docSet.applyToRemoteDocument(baseDoc, setResult);
     expect(setDoc).to.deep.equal(
-      doc('collection/key', 0, { foo: 'new-bar' }, { hasLocalMutations: false })
+      doc(
+        'collection/key',
+        4,
+        { foo: 'new-bar' },
+        { hasCommittedMutations: true }
+      )
     );
   });
 
@@ -442,10 +448,10 @@ describe('Mutation', () => {
     expect(patchedDoc).to.deep.equal(
       doc(
         'collection/key',
-        0,
+        5,
         { foo: 'new-bar' },
         {
-          hasLocalMutations: false
+          hasCommittedMutations: true
         }
       )
     );
@@ -462,9 +468,6 @@ describe('Mutation', () => {
   }
 
   it('transitions versions correctly', () => {
-    const docV0 = doc('collection/key', 0, {});
-    const deletedV0 = deletedDoc('collection/key', 0);
-
     const docV3 = doc('collection/key', 3, {});
     const deletedV3 = deletedDoc('collection/key', 3);
 
@@ -478,21 +481,34 @@ describe('Mutation', () => {
       /*transformResults=*/ null
     );
     const transformResult = new MutationResult(version(7), []);
+    const docV7Unknown = unknownDoc('collection/key', 7);
+    const docV7Deleted = deletedDoc('collection/key', 7);
+    const docV7Committed = doc(
+      'collection/key',
+      7,
+      {},
+      { hasCommittedMutations: true }
+    );
 
-    assertVersionTransitions(set, docV3, mutationResult, docV3);
-    assertVersionTransitions(set, deletedV3, mutationResult, docV0);
-    assertVersionTransitions(set, null, mutationResult, docV0);
+    assertVersionTransitions(set, docV3, mutationResult, docV7Committed);
+    assertVersionTransitions(set, deletedV3, mutationResult, docV7Committed);
+    assertVersionTransitions(set, null, mutationResult, docV7Committed);
 
-    assertVersionTransitions(patch, docV3, mutationResult, docV3);
-    assertVersionTransitions(patch, deletedV3, mutationResult, deletedV3);
-    assertVersionTransitions(patch, null, mutationResult, null);
+    assertVersionTransitions(patch, docV3, mutationResult, docV7Committed);
+    assertVersionTransitions(patch, deletedV3, mutationResult, docV7Unknown);
+    assertVersionTransitions(patch, null, mutationResult, docV7Unknown);
 
-    assertVersionTransitions(transform, docV3, transformResult, docV3);
-    assertVersionTransitions(transform, deletedV3, transformResult, deletedV3);
-    assertVersionTransitions(transform, null, transformResult, null);
+    assertVersionTransitions(transform, docV3, transformResult, docV7Committed);
+    assertVersionTransitions(
+      transform,
+      deletedV3,
+      transformResult,
+      docV7Unknown
+    );
+    assertVersionTransitions(transform, null, transformResult, docV7Unknown);
 
-    assertVersionTransitions(deleter, docV3, mutationResult, deletedV0);
-    assertVersionTransitions(deleter, deletedV3, mutationResult, deletedV0);
-    assertVersionTransitions(deleter, null, mutationResult, deletedV0);
+    assertVersionTransitions(deleter, docV3, mutationResult, docV7Deleted);
+    assertVersionTransitions(deleter, deletedV3, mutationResult, docV7Deleted);
+    assertVersionTransitions(deleter, null, mutationResult, docV7Deleted);
   });
 });

@@ -69,6 +69,7 @@ import { ClientId, SharedClientState } from '../local/shared_client_state';
 import { SortedSet } from '../util/sorted_set';
 import * as objUtils from '../util/obj';
 import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
+import { ListenSequence } from './listen_sequence';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -245,7 +246,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         .remoteDocumentKeys(queryData.targetId)
         .then(remoteKeys => {
           const view = new View(query, remoteKeys);
-          const viewDocChanges = view.computeDocChanges(docs);
+          const viewDocChanges = view.computeInitialChanges(docs);
           const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
             queryData.targetId,
             current && this.onlineState !== OnlineState.Offline
@@ -606,6 +607,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return this.localStore
       .acknowledgeBatch(mutationBatchResult)
       .then(changes => {
+        this.sharedClientState.updateMutationState(batchId, 'acknowledged');
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
       .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
@@ -741,7 +743,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const query = Query.atPath(key.path);
       this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
       this.remoteStore.listen(
-        new QueryData(query, limboTargetId, QueryPurpose.LimboResolution)
+        new QueryData(
+          query,
+          limboTargetId,
+          QueryPurpose.LimboResolution,
+          ListenSequence.INVALID
+        )
       );
       this.limboTargetsByKey = this.limboTargetsByKey.insert(
         key,

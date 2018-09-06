@@ -23,7 +23,8 @@ import { FieldValue, JsonObject, ObjectValue } from './field_value';
 import { FieldPath } from './path';
 
 export interface DocumentOptions {
-  hasLocalMutations: boolean;
+  hasLocalMutations?: boolean;
+  hasCommittedMutations?: boolean;
 }
 
 /**
@@ -36,6 +37,14 @@ export abstract class MaybeDocument {
   static compareByKey(d1: MaybeDocument, d2: MaybeDocument): number {
     return DocumentKey.comparator(d1.key, d2.key);
   }
+
+  /**
+   * Whether this document had a local mutation applied that has not yet been
+   * acknowledged by Watch.
+   */
+  abstract get hasPendingWrites(): boolean;
+
+  abstract isEqual(other: MaybeDocument | null | undefined): boolean;
 }
 
 /**
@@ -44,6 +53,7 @@ export abstract class MaybeDocument {
  */
 export class Document extends MaybeDocument {
   readonly hasLocalMutations: boolean;
+  readonly hasCommittedMutations: boolean;
 
   constructor(
     key: DocumentKey,
@@ -52,7 +62,8 @@ export class Document extends MaybeDocument {
     options: DocumentOptions
   ) {
     super(key, version);
-    this.hasLocalMutations = options.hasLocalMutations;
+    this.hasLocalMutations = !!options.hasLocalMutations;
+    this.hasCommittedMutations = !!options.hasCommittedMutations;
   }
 
   field(path: FieldPath): FieldValue | undefined {
@@ -68,21 +79,27 @@ export class Document extends MaybeDocument {
     return this.data.value();
   }
 
-  isEqual(other: Document | null | undefined): boolean {
+  isEqual(other: MaybeDocument | null | undefined): boolean {
     return (
       other instanceof Document &&
       this.key.isEqual(other.key) &&
       this.version.isEqual(other.version) &&
       this.data.isEqual(other.data) &&
-      this.hasLocalMutations === other.hasLocalMutations
+      this.hasLocalMutations === other.hasLocalMutations &&
+      this.hasCommittedMutations === other.hasCommittedMutations
     );
   }
 
   toString(): string {
     return (
       `Document(${this.key}, ${this.version}, ${this.data.toString()}, ` +
-      `{hasLocalMutations: ${this.hasLocalMutations}})`
+      `{hasLocalMutations: ${this.hasLocalMutations}}), ` +
+      `{hasCommittedMutations: ${this.hasCommittedMutations}})`
     );
+  }
+
+  get hasPendingWrites(): boolean {
+    return this.hasLocalMutations || this.hasCommittedMutations;
   }
 
   static compareByField(field: FieldPath, d1: Document, d2: Document): number {
@@ -102,17 +119,54 @@ export class Document extends MaybeDocument {
  * denotes time we know it didn't exist at.
  */
 export class NoDocument extends MaybeDocument {
-  constructor(key: DocumentKey, version: SnapshotVersion) {
+  readonly hasCommittedMutations: boolean;
+
+  constructor(
+    key: DocumentKey,
+    version: SnapshotVersion,
+    options?: DocumentOptions
+  ) {
     super(key, version);
+    this.hasCommittedMutations = !!(options && options.hasCommittedMutations);
   }
 
   toString(): string {
     return `NoDocument(${this.key}, ${this.version})`;
   }
 
-  isEqual(other: NoDocument): boolean {
+  get hasPendingWrites(): boolean {
+    return this.hasCommittedMutations;
+  }
+
+  isEqual(other: MaybeDocument | null | undefined): boolean {
     return (
-      other &&
+      other instanceof NoDocument &&
+      other.version.isEqual(this.version) &&
+      other.key.isEqual(this.key)
+    );
+  }
+}
+
+/**
+ * A class representing an existing document whose data is unknown (e.g. a
+ * document that was updated without a known base document).
+ */
+export class UnknownDocument extends MaybeDocument {
+  constructor(key: DocumentKey, version: SnapshotVersion) {
+    super(key, version);
+  }
+
+  toString(): string {
+    return `UnknownDocument(${this.key}, ${this.version})`;
+  }
+
+  get hasPendingWrites(): boolean {
+    return true;
+  }
+
+  isEqual(other: MaybeDocument | null | undefined): boolean {
+    return (
+      other instanceof UnknownDocument &&
       other.version.isEqual(this.version) &&
       other.key.isEqual(this.key)
     );

@@ -527,12 +527,15 @@ export class JsonProtoSerializer {
     };
   }
 
-  fromDocument(document: api.Document): Document {
+  fromDocument(
+    document: api.Document,
+    hasCommittedMutations?: boolean
+  ): Document {
     return new Document(
       this.fromName(document.name!),
       this.fromVersion(document.updateTime!),
       this.fromFields(document.fields || {}),
-      { hasLocalMutations: false }
+      { hasCommittedMutations: !!hasCommittedMutations }
     );
   }
 
@@ -578,7 +581,7 @@ export class JsonProtoSerializer {
     const key = this.fromName(doc.found!.name!);
     const version = this.fromVersion(doc.found!.updateTime!);
     const fields = this.fromFields(doc.found!.fields || {});
-    return new Document(key, version, fields, { hasLocalMutations: false });
+    return new Document(key, version, fields, {});
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -723,9 +726,7 @@ export class JsonProtoSerializer {
       const key = this.fromName(entityChange.document!.name!);
       const version = this.fromVersion(entityChange.document!.updateTime!);
       const fields = this.fromFields(entityChange.document!.fields || {});
-      const doc = new Document(key, version, fields, {
-        hasLocalMutations: false
-      });
+      const doc = new Document(key, version, fields, {});
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(
@@ -893,11 +894,14 @@ export class JsonProtoSerializer {
     }
   }
 
-  private fromWriteResult(proto: api.WriteResult): MutationResult {
+  private fromWriteResult(
+    proto: api.WriteResult,
+    commitTime: string
+  ): MutationResult {
     // NOTE: Deletes don't have an updateTime.
     const version = proto.updateTime
       ? this.fromVersion(proto.updateTime)
-      : null;
+      : this.fromVersion(commitTime);
     let transformResults: fieldValue.FieldValue[] | null = null;
     if (proto.transformResults && proto.transformResults.length > 0) {
       transformResults = proto.transformResults.map(result =>
@@ -907,8 +911,19 @@ export class JsonProtoSerializer {
     return new MutationResult(version, transformResults);
   }
 
-  fromWriteResults(protos: api.WriteResult[] | undefined): MutationResult[] {
-    return (protos || []).map(proto => this.fromWriteResult(proto));
+  fromWriteResults(
+    protos: api.WriteResult[] | undefined,
+    commitTime?: string
+  ): MutationResult[] {
+    if (protos && protos.length > 0) {
+      assert(
+        commitTime !== undefined,
+        'Received a write result without a commit time'
+      );
+      return protos.map(proto => this.fromWriteResult(proto, commitTime!));
+    } else {
+      return [];
+    }
   }
 
   private toFieldTransform(fieldTransform: FieldTransform): api.FieldTransform {

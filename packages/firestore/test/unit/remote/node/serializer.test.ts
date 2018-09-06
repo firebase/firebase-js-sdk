@@ -90,6 +90,7 @@ describe('Serializer', () => {
       query,
       1,
       QueryPurpose.Listen,
+      2,
       SnapshotVersion.MIN,
       emptyResumeToken
     );
@@ -871,16 +872,21 @@ describe('Serializer', () => {
 
   it('encodes listen request labels', () => {
     const query = Query.atPath(path('collection/key'));
-    let queryData = new QueryData(query, 2, QueryPurpose.Listen);
+    let queryData = new QueryData(query, 2, QueryPurpose.Listen, 3);
 
     let result = s.toListenRequestLabels(queryData);
     expect(result).to.be.null;
 
-    queryData = new QueryData(query, 2, QueryPurpose.LimboResolution);
+    queryData = new QueryData(query, 2, QueryPurpose.LimboResolution, 3);
     result = s.toListenRequestLabels(queryData);
     expect(result).to.deep.equal({ 'goog-listen-tags': 'limbo-document' });
 
-    queryData = new QueryData(query, 2, QueryPurpose.ExistenceFilterMismatch);
+    queryData = new QueryData(
+      query,
+      2,
+      QueryPurpose.ExistenceFilterMismatch,
+      3
+    );
     result = s.toListenRequestLabels(queryData);
     expect(result).to.deep.equal({
       'goog-listen-tags': 'existence-filter-mismatch'
@@ -1184,6 +1190,7 @@ describe('Serializer', () => {
           q,
           1,
           QueryPurpose.Listen,
+          4,
           SnapshotVersion.MIN,
           new Uint8Array([1, 2, 3])
         )

@@ -21,6 +21,7 @@ import { fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
 import { Query } from './query';
+import { DocumentKeySet } from '../model/collections';
 
 export enum ChangeType {
   Added,
@@ -143,8 +144,8 @@ export class ViewSnapshot {
     readonly docs: DocumentSet,
     readonly oldDocs: DocumentSet,
     readonly docChanges: DocumentViewChange[],
+    readonly mutatedKeys: DocumentKeySet,
     readonly fromCache: boolean,
-    readonly hasPendingWrites: boolean,
     readonly syncStateChanged: boolean,
     readonly excludesMetadataChanges: boolean
   ) {}
@@ -153,8 +154,8 @@ export class ViewSnapshot {
   static fromInitialDocuments(
     query: Query,
     documents: DocumentSet,
-    fromCache: boolean,
-    hasPendingWrites: boolean
+    mutatedKeys: DocumentKeySet,
+    fromCache: boolean
   ): ViewSnapshot {
     const changes: DocumentViewChange[] = [];
     documents.forEach(doc => {
@@ -166,18 +167,22 @@ export class ViewSnapshot {
       documents,
       DocumentSet.emptySet(documents),
       changes,
+      mutatedKeys,
       fromCache,
-      hasPendingWrites,
-      /* syncStateChanged */ true,
-      /* excludesMetadataChanges= */ false
+      true,
+      false
     );
+  }
+
+  get hasPendingWrites(): boolean {
+    return !this.mutatedKeys.isEmpty();
   }
 
   isEqual(other: ViewSnapshot): boolean {
     if (
       this.fromCache !== other.fromCache ||
-      this.hasPendingWrites !== other.hasPendingWrites ||
       this.syncStateChanged !== other.syncStateChanged ||
+      !this.mutatedKeys.isEqual(other.mutatedKeys) ||
       !this.query.isEqual(other.query) ||
       !this.docs.isEqual(other.docs) ||
       !this.oldDocs.isEqual(other.oldDocs)

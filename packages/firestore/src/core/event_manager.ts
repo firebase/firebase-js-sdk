@@ -195,8 +195,8 @@ export class QueryListener {
         snap.docs,
         snap.oldDocs,
         docChanges,
+        snap.mutatedKeys,
         snap.fromCache,
-        snap.hasPendingWrites,
         snap.syncStateChanged,
         /* excludesMetadataChanges= */ true
       );
@@ -288,8 +288,8 @@ export class QueryListener {
     snap = ViewSnapshot.fromInitialDocuments(
       snap.query,
       snap.docs,
-      snap.fromCache,
-      snap.hasPendingWrites
+      snap.mutatedKeys,
+      snap.fromCache
     );
     this.raisedInitialEvent = true;
     this.queryObserver.next(snap);

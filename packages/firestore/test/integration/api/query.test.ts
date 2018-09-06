@@ -28,6 +28,7 @@ import {
 } from '../util/helpers';
 import { Deferred } from '../../util/promise';
 import { querySnapshot } from '../../util/api_helpers';
+import { keys } from '../../util/helpers';
 
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldPath = firebase.firestore!.FieldPath;
@@ -551,7 +552,7 @@ apiDescribe('Queries', persistence => {
   });
 
   it('throws custom error when using docChanges as property', () => {
-    const querySnap = querySnapshot('foo/bar', {}, {}, false, false, false);
+    const querySnap = querySnapshot('foo/bar', {}, {}, keys(), false, false);
 
     const expectedError =
       'QuerySnapshot.docChanges has been changed from a property into a method';

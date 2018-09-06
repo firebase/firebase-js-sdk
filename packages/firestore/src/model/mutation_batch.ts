@@ -184,14 +184,7 @@ export class MutationBatchResult {
     let versionMap = documentVersionMap();
     const mutations = batch.mutations;
     for (let i = 0; i < mutations.length; i++) {
-      let version = results[i].version;
-      if (version === null) {
-        // deletes don't have a version, so we substitute the commitVersion
-        // of the entire batch.
-        version = commitVersion;
-      }
-
-      versionMap = versionMap.insert(mutations[i].key, version);
+      versionMap = versionMap.insert(mutations[i].key, results[i].version);
     }
 
     return new MutationBatchResult(

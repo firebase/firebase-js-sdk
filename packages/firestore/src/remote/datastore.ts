@@ -87,7 +87,10 @@ export class Datastore {
       'Commit',
       params
     ).then(response => {
-      return this.serializer.fromWriteResults(response.writeResults);
+      return this.serializer.fromWriteResults(
+        response.writeResults,
+        response.commitTime
+      );
     });
   }
 
