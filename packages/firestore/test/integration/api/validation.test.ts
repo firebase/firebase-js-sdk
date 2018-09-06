@@ -289,6 +289,26 @@ apiDescribe('Validation:', persistence => {
     );
   });
 
+  validationIt(persistence, 'get options are validated', db => {
+    const collection = db.collection('test');
+    const doc = collection.doc();
+    const fn = () => {};
+
+    expect(() => doc.get(fn as any)).to.throw(
+      'Function DocumentReference.get() requires its first argument to be of type object, but it was: a function'
+    );
+    expect(() => doc.get({ abc: 'cache' } as any)).to.throw(
+      `Unknown option 'abc' passed to function DocumentReference.get(). Available options: source`
+    );
+
+    expect(() => collection.get(fn as any)).to.throw(
+      'Function Query.get() requires its first argument to be of type object, but it was: a function'
+    );
+    expect(() => collection.get({ abc: 'cache' } as any)).to.throw(
+      `Unknown option 'abc' passed to function Query.get(). Available options: source`
+    );
+  });
+
   validationIt(persistence, 'Snapshot options are validated', db => {
     const docRef = db.collection('test').doc();
 
