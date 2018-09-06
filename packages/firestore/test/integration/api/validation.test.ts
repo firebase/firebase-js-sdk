@@ -123,7 +123,7 @@ apiDescribe('Validation:', persistence => {
 
       expect(() => db.settings({ host: null as any })).to.throw(
         'Function settings() requires its host option to be of type ' +
-          'string, but it was: null'
+          'non-empty string, but it was: null'
       );
     });
 
@@ -179,15 +179,23 @@ apiDescribe('Validation:', persistence => {
   });
 
   describe('Collection paths', () => {
-    validationIt(persistence, 'must be strings', db => {
+    validationIt(persistence, 'must be non-empty strings', db => {
       const baseDocRef = db.doc('foo/bar');
       expect(() => db.collection(null as any)).to.throw(
         'Function Firestore.collection() requires its first argument ' +
-          'to be of type string, but it was: null'
+          'to be of type non-empty string, but it was: null'
+      );
+      expect(() => db.collection('')).to.throw(
+        'Function Firestore.collection() requires its first argument ' +
+          'to be of type non-empty string, but it was: ""'
       );
       expect(() => baseDocRef.collection(null as any)).to.throw(
         'Function DocumentReference.collection() requires its first ' +
-          'argument to be of type string, but it was: null'
+          'argument to be of type non-empty string, but it was: null'
+      );
+      expect(() => baseDocRef.collection('')).to.throw(
+        'Function DocumentReference.collection() requires its first ' +
+          'argument to be of type non-empty string, but it was: ""'
       );
       expect(() => (baseDocRef.collection as any)('foo', 'bar')).to.throw(
         'Function DocumentReference.collection() requires 1 argument, ' +
@@ -237,15 +245,23 @@ apiDescribe('Validation:', persistence => {
       const baseCollectionRef = db.collection('foo');
       expect(() => db.doc(null as any)).to.throw(
         'Function Firestore.doc() requires its first argument to be ' +
-          'of type string, but it was: null'
+          'of type non-empty string, but it was: null'
+      );
+      expect(() => db.doc('')).to.throw(
+        'Function Firestore.doc() requires its first argument to be ' +
+          'of type non-empty string, but it was: ""'
       );
       expect(() => baseCollectionRef.doc(null as any)).to.throw(
         'Function CollectionReference.doc() requires its first ' +
-          'argument to be of type string, but it was: null'
+          'argument to be of type non-empty string, but it was: null'
+      );
+      expect(() => baseCollectionRef.doc('')).to.throw(
+        'Function CollectionReference.doc() requires its first ' +
+          'argument to be of type non-empty string, but it was: ""'
       );
       expect(() => baseCollectionRef.doc(undefined as any)).to.throw(
         'Function CollectionReference.doc() requires its first ' +
-          'argument to be of type string, but it was: undefined'
+          'argument to be of type non-empty string, but it was: undefined'
       );
       expect(() => (baseCollectionRef.doc as any)('foo', 'bar')).to.throw(
         'Function CollectionReference.doc() requires between 0 and ' +

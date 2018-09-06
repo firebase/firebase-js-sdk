@@ -149,7 +149,7 @@ class FirestoreSettings {
       this.host = DEFAULT_HOST;
       this.ssl = DEFAULT_SSL;
     } else {
-      validateNamedType('settings', 'string', 'host', settings.host);
+      validateNamedType('settings', 'non-empty string', 'host', settings.host);
       this.host = settings.host;
 
       validateNamedOptionalType('settings', 'boolean', 'ssl', settings.ssl);
@@ -425,28 +425,9 @@ follow these steps, YOUR APP MAY BREAK.`);
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
     const options = app.options as objUtils.Dict<{}>;
     if (!objUtils.contains(options, 'projectId')) {
-      // TODO(b/62673263): We can safely remove the special handling of
-      // 'firestoreId' once alpha testers have upgraded.
-      if (objUtils.contains(options, 'firestoreId')) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          '"firestoreId" is now specified as "projectId" in ' +
-            'firebase.initializeApp.'
-        );
-      }
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         '"projectId" not provided in firebase.initializeApp.'
-      );
-    }
-
-    if (objUtils.contains(options, 'firestoreOptions')) {
-      // TODO(b/62673263): We can safely remove the special handling of
-      // 'firestoreOptions' once alpha testers have upgraded.
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        '"firestoreOptions" values are now specified with ' +
-          'Firestore.settings()'
       );
     }
 
@@ -483,7 +464,7 @@ follow these steps, YOUR APP MAY BREAK.`);
 
   collection(pathString: string): firestore.CollectionReference {
     validateExactNumberOfArgs('Firestore.collection', arguments, 1);
-    validateArgType('Firestore.collection', 'string', 1, pathString);
+    validateArgType('Firestore.collection', 'non-empty string', 1, pathString);
     if (!pathString) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -497,7 +478,7 @@ follow these steps, YOUR APP MAY BREAK.`);
 
   doc(pathString: string): firestore.DocumentReference {
     validateExactNumberOfArgs('Firestore.doc', arguments, 1);
-    validateArgType('Firestore.doc', 'string', 1, pathString);
+    validateArgType('Firestore.doc', 'non-empty string', 1, pathString);
     if (!pathString) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -541,7 +522,7 @@ follow these steps, YOUR APP MAY BREAK.`);
 
   static setLogLevel(level: firestore.LogLevel): void {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
-    validateArgType('Firestore.setLogLevel', 'string', 1, level);
+    validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
     switch (level) {
       case 'debug':
         log.setLogLevel(log.LogLevel.DEBUG);
@@ -864,7 +845,12 @@ export class DocumentReference implements firestore.DocumentReference {
 
   collection(pathString: string): firestore.CollectionReference {
     validateExactNumberOfArgs('DocumentReference.collection', arguments, 1);
-    validateArgType('DocumentReference.collection', 'string', 1, pathString);
+    validateArgType(
+      'DocumentReference.collection',
+      'non-empty string',
+      1,
+      pathString
+    );
     if (!pathString) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -1332,7 +1318,7 @@ export class Query implements firestore.Query {
     value: AnyJs
   ): firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
-    validateArgType('Query.where', 'string', 2, opStr);
+    validateArgType('Query.where', 'non-empty string', 2, opStr);
     validateDefined('Query.where', 3, value);
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
@@ -1397,7 +1383,12 @@ export class Query implements firestore.Query {
     directionStr?: firestore.OrderByDirection
   ): firestore.Query {
     validateBetweenNumberOfArgs('Query.orderBy', arguments, 1, 2);
-    validateOptionalArgType('Query.orderBy', 'string', 2, directionStr);
+    validateOptionalArgType(
+      'Query.orderBy',
+      'non-empty string',
+      2,
+      directionStr
+    );
     let direction: Direction;
     if (directionStr === undefined || directionStr === 'asc') {
       direction = Direction.ASCENDING;
@@ -2035,7 +2026,12 @@ export class CollectionReference extends Query
     if (arguments.length === 0) {
       pathString = AutoId.newId();
     }
-    validateArgType('CollectionReference.doc', 'string', 1, pathString);
+    validateArgType(
+      'CollectionReference.doc',
+      'non-empty string',
+      1,
+      pathString
+    );
     if (pathString === '') {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,

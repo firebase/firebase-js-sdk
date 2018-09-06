@@ -19,6 +19,16 @@ import { Code, FirestoreError } from './error';
 import { AnyJs } from './misc';
 import * as obj from './obj';
 
+/** Types accepted by validateType() and related methods for validation. */
+export type ValidationType =
+  | 'undefined'
+  | 'object'
+  | 'function'
+  | 'boolean'
+  | 'number'
+  | 'string'
+  | 'non-empty string';
+
 /**
  * Validates the invocation of functionName has the exact number of arguments.
  *
@@ -119,7 +129,7 @@ export function validateNamedArrayAtLeastNumberOfElements<T>(
  */
 export function validateArgType(
   functionName: string,
-  type: string,
+  type: ValidationType,
   position: number,
   argument: AnyJs
 ): void {
@@ -132,7 +142,7 @@ export function validateArgType(
  */
 export function validateOptionalArgType(
   functionName: string,
-  type: string,
+  type: ValidationType,
   position: number,
   argument: AnyJs
 ): void {
@@ -147,7 +157,7 @@ export function validateOptionalArgType(
  */
 export function validateNamedType(
   functionName: string,
-  type: string,
+  type: ValidationType,
   optionName: string,
   argument: AnyJs
 ): void {
@@ -160,7 +170,7 @@ export function validateNamedType(
  */
 export function validateNamedOptionalType(
   functionName: string,
-  type: string,
+  type: ValidationType,
   optionName: string,
   argument: AnyJs
 ): void {
@@ -267,11 +277,20 @@ export function validateNamedOptionalPropertyEquals<T>(
 /** Helper to validate the type of a provided input. */
 function validateType(
   functionName: string,
-  type: string,
+  type: ValidationType,
   inputName: string,
   input: AnyJs
 ): void {
-  if (typeof input !== type || (type === 'object' && !isPlainObject(input))) {
+  let valid = false;
+  if (type === 'object') {
+    valid = isPlainObject(input);
+  } else if (type === 'non-empty string') {
+    valid = typeof input === 'string' && input !== '';
+  } else {
+    valid = typeof input === type;
+  }
+
+  if (!valid) {
     const description = valueDescription(input);
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
