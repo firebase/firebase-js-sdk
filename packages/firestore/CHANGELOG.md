@@ -1,10 +1,18 @@
-# 0.7.3 (Unreleased)
+# 0.7.4 (Unreleased)
 - [fixed] Fixed an issue where the first `get()` call made after being offline
   could incorrectly return cached data without attempting to reach the backend.
 - [changed] Changed `get()` to only make 1 attempt to reach the backend before
   returning cached data, potentially reducing delays while offline. Previously
   it would make 2 attempts, to work around a backend bug.
 
+# 0.7.3
+- [changed] Changed the internal handling for locally updated documents that
+  haven't yet been read back from Firestore. This can lead to slight behavior
+  changes and may affect the `SnapshotMetadata.hasPendingWrites` metadata flag.
+- [changed] Eliminated superfluous update events for locally cached documents
+  that are known to lag behind the server version. Instead, we buffer these
+  events until the client has caught up with the server.
+  
 # 0.7.2
 - [fixed] Fixed a regression that prevented use of Firestore on ReactNative's
   Expo platform (#1138).
