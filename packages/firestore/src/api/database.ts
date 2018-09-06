@@ -1077,16 +1077,8 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.DocumentSnapshot> {
-    if (options) {
-      validateOptionNames('DocumentReference.get', options, ['source']);
-      validateNamedOptionalPropertyEquals(
-        'DocumentReference.get',
-        'options',
-        'source',
-        options.source,
-        ['default', 'server', 'cache']
-      );
-    }
+    validateBetweenNumberOfArgs('DocumentReference.get', arguments, 0, 1);
+    validateGetOptions('DocumentReference.get', options);
     return new Promise(
       (resolve: Resolver<firestore.DocumentSnapshot>, reject: Rejecter) => {
         if (options && options.source === 'cache') {
@@ -1741,6 +1733,7 @@ export class Query implements firestore.Query {
 
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot> {
     validateBetweenNumberOfArgs('Query.get', arguments, 0, 1);
+    validateGetOptions('Query.get', options);
     return new Promise(
       (resolve: Resolver<firestore.QuerySnapshot>, reject: Rejecter) => {
         if (options && options.source === 'cache') {
@@ -2112,6 +2105,23 @@ function validateSnapshotOptions(
     ['estimate', 'previous', 'none']
   );
   return options;
+}
+
+function validateGetOptions(
+  methodName: string,
+  options: firestore.GetOptions | undefined
+): void {
+  validateOptionalArgType(methodName, 'object', 1, options);
+  if (options) {
+    validateOptionNames(methodName, options, ['source']);
+    validateNamedOptionalPropertyEquals(
+      methodName,
+      'options',
+      'source',
+      options.source,
+      ['default', 'server', 'cache']
+    );
+  }
 }
 
 function validateReference(
