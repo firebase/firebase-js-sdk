@@ -591,12 +591,12 @@ export class UserDataConverter {
     // Sentinels are only supported with writes, and not within arrays.
     if (!isWrite(context.dataSource)) {
       throw context.createError(
-        `${value.methodName}() can only be used with update() and set()`
+        `${value._methodName}() can only be used with update() and set()`
       );
     }
     if (context.path === null) {
       throw context.createError(
-        `${value.methodName}() is not currently supported inside arrays`
+        `${value._methodName}() is not currently supported inside arrays`
       );
     }
 
@@ -628,7 +628,7 @@ export class UserDataConverter {
       );
     } else if (value instanceof ArrayUnionFieldValueImpl) {
       const parsedElements = this.parseArrayTransformElements(
-        value.methodName,
+        value._methodName,
         value._elements
       );
       const arrayUnion = new ArrayUnionTransformOperation(parsedElements);
@@ -637,7 +637,7 @@ export class UserDataConverter {
       );
     } else if (value instanceof ArrayRemoveFieldValueImpl) {
       const parsedElements = this.parseArrayTransformElements(
-        value.methodName,
+        value._methodName,
         value._elements
       );
       const arrayRemove = new ArrayRemoveTransformOperation(parsedElements);
