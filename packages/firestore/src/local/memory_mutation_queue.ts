@@ -57,14 +57,6 @@ export class MemoryMutationQueue implements MutationQueue {
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
 
-  start(transaction: PersistenceTransaction): PersistencePromise<void> {
-    assert(
-      this.highestAcknowledgedBatchId < this.nextBatchId,
-      'highestAcknowledgedBatchId must be less than the nextBatchId'
-    );
-    return PersistencePromise.resolve();
-  }
-
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
   }

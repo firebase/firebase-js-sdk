@@ -78,7 +78,6 @@ function genericMutationQueueTests(): void {
       persistence,
       persistence.getMutationQueue(new User('user'))
     );
-    return mutationQueue.start();
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));

@@ -182,12 +182,9 @@ export class LocalStore {
 
   /** Performs any initial startup actions required by the local store. */
   start(): Promise<void> {
-    // TODO(multitab): Ensure that we in fact don't need the primary lease.
-    return this.persistence.runTransaction(
-      'Start LocalStore',
-      'readonly',
-      txn => this.startMutationQueue(txn)
-    );
+    // PORTING NOTE: On Web, the MutationQueue does not require an explicit
+    // start.
+    return Promise.resolve();
   }
 
   /**
@@ -212,9 +209,7 @@ export class LocalStore {
             this.garbageCollector.removeGarbageSource(this.mutationQueue);
             this.mutationQueue = this.persistence.getMutationQueue(user);
             this.garbageCollector.addGarbageSource(this.mutationQueue);
-            return this.startMutationQueue(txn);
-          })
-          .next(() => {
+
             // Recreate our LocalDocumentsView using the new
             // MutationQueue.
             this.localDocuments = new LocalDocumentsView(
@@ -258,12 +253,6 @@ export class LocalStore {
           });
       }
     );
-  }
-
-  private startMutationQueue(
-    txn: PersistenceTransaction
-  ): PersistencePromise<void> {
-    return this.mutationQueue.start(txn);
   }
 
   /* Accept locally generated Mutations and commit them to storage. */
