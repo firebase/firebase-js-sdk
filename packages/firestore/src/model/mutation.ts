@@ -449,11 +449,13 @@ export class PatchMutation extends Mutation {
 
   private patchObject(data: ObjectValue): ObjectValue {
     for (const fieldPath of this.fieldMask.fields) {
-      const newValue = this.data.field(fieldPath);
-      if (newValue !== undefined) {
-        data = data.set(fieldPath, newValue);
-      } else {
-        data = data.delete(fieldPath);
+      if (!fieldPath.isEmpty()) {
+        const newValue = this.data.field(fieldPath);
+        if (newValue !== undefined) {
+          data = data.set(fieldPath, newValue);
+        } else {
+          data = data.delete(fieldPath);
+        }
       }
     }
     return data;

@@ -539,15 +539,25 @@ export class UserDataConverter {
 
   private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
     let result = new SortedMap<string, FieldValue>(primitiveComparator);
-    objUtils.forEach(obj, (key: string, val: AnyJs) => {
-      const parsedValue = this.parseData(
-        val,
-        context.childContextForField(key)
-      );
-      if (parsedValue != null) {
-        result = result.insert(key, parsedValue);
+
+    if (objUtils.isEmpty(obj)) {
+      // If we encounter an empty object, we explicitly add it to the update
+      // mask to ensure that the server creates a map entry.
+      if (context.path && context.path.length > 0) {
+        context.fieldMask.push(context.path);
       }
-    });
+    } else {
+      objUtils.forEach(obj, (key: string, val: AnyJs) => {
+        const parsedValue = this.parseData(
+          val,
+          context.childContextForField(key)
+        );
+        if (parsedValue != null) {
+          result = result.insert(key, parsedValue);
+        }
+      });
+    }
+
     return new ObjectValue(result);
   }
 
