@@ -1034,7 +1034,8 @@ abstract class TestRunner {
     // In multi-tab mode, we cannot rely on the `waitForWatchOpen` call in
     // `doUserListen` since primary tabs may execute queries from other tabs
     // without any direct user interaction.
-    // TODO(multitab): Refactor so this is only executed after primary tab
+
+    // TODO(mrschmidt): Refactor so this is only executed after primary tab
     // change
     if (!obj.isEmpty(this.expectedActiveTargets)) {
       await this.connection.waitForWatchOpen();

@@ -149,7 +149,7 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * LocalStorage which acts as an indicator that another tab should go ahead and
  * take the primary lease immediately regardless of the current lease timestamp.
  *
- * TODO(multitab): Remove `experimentalTabSynchronization` section when
+ * TODO(b/114226234): Remove `experimentalTabSynchronization` section when
  * multi-tab is no longer optional.
  */
 export type MultiClientParams = {
@@ -563,8 +563,8 @@ export class IndexedDbPersistence implements Persistence {
               // acceptable since mixing & matching different `synchronizeTabs`
               // settings is not supported.
               //
-              // TODO(multitab): Remove this check when `synchronizeTabs` can no
-              // longer be turned off.
+              // TODO(b/114226234): Remove this check when `synchronizeTabs` can
+              // no longer be turned off.
               throw new FirestoreError(
                 Code.FAILED_PRECONDITION,
                 PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG
@@ -773,8 +773,8 @@ export class IndexedDbPersistence implements Persistence {
    * Verifies that the current tab is the primary leaseholder or alternatively
    * that the leaseholder has opted into multi-tab synchronization.
    */
-  // TODO(multitab): Remove this check when `synchronizeTabs` can no longer be
-  // turned off.
+  // TODO(b/114226234): Remove this check when `synchronizeTabs` can no longer
+  // be turned off.
   private verifyAllowTabSynchronization(
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
