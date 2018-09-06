@@ -6,6 +6,8 @@
   it would make 2 attempts, to work around a backend bug.
 - [fixed] Fixed an issue that caused us to drop empty objects from calls to
   `set(..., { merge: true })`.
+- [changed] Improved argument validation for DocumentReference.get() and
+  Query.get().
 
 # 0.7.3
 - [changed] Changed the internal handling for locally updated documents that
