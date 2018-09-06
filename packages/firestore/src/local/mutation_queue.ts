@@ -27,18 +27,9 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
 /** A queue of mutations to apply to the remote store. */
+// PORTING NOTE: On Web, the MutationQueue does not require an explicit start()
+// method.
 export interface MutationQueue extends GarbageSource {
-  /**
-   * Starts the mutation queue, performing any initial reads that might be
-   * required to establish invariants, etc.
-   *
-   * After starting, the mutation queue must guarantee that the
-   * highestAcknowledgedBatchId is less than nextBatchId. This prevents the
-   * local store from creating new batches that the mutation queue would
-   * consider erroneously acknowledged.
-   */
-  start(transaction: PersistenceTransaction): PersistencePromise<void>;
-
   /** Returns true if this queue contains no mutation batches. */
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean>;
 

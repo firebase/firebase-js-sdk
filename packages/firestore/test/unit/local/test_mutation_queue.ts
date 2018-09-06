@@ -33,12 +33,6 @@ import { AnyDuringMigration } from '../../../src/util/misc';
 export class TestMutationQueue {
   constructor(public persistence: Persistence, public queue: MutationQueue) {}
 
-  start(): Promise<void> {
-    return this.persistence.runTransaction('start', 'readonly', txn => {
-      return this.queue.start(txn);
-    });
-  }
-
   checkEmpty(): Promise<boolean> {
     return this.persistence.runTransaction('checkEmpty', 'readonly', txn => {
       return this.queue.checkEmpty(txn);
