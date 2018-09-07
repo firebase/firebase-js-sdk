@@ -262,7 +262,7 @@ function testCordovaHandler_initializeAndWait_universalLinkError() {
     universalLinks = {};
     var expectedError = new fireauth.AuthError(
         fireauth.authenum.Error.INVALID_CORDOVA_CONFIGURATION,
-        'cordova-universal-links-plugin is not installed');
+        'cordova-universal-links-plugin-fix is not installed');
     var noEvent = new fireauth.AuthEvent(
         fireauth.AuthEvent.Type.UNKNOWN,
         null,
