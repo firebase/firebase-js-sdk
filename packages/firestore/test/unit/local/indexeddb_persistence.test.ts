@@ -618,7 +618,7 @@ describe('IndexedDb: allowTabSynchronization', () => {
       await expect(
         withPersistence('clientB', db2 => Promise.resolve())
       ).to.eventually.be.rejectedWith(
-        'There is another tab open with offline persistence enabled.'
+        'Another tab has exclusive access to the persistence layer.'
       );
     });
   });

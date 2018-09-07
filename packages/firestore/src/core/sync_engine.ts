@@ -858,7 +858,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     if (userChanged) {
       const result = await this.localStore.handleUserChange(user);
-      // TODO(multitab): Consider calling this only in the primary tab.
+      // TODO(b/114226417): Consider calling this only in the primary tab.
       this.sharedClientState.handleUserChange(
         user,
         result.removedBatchIds,

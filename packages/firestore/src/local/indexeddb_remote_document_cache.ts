@@ -176,7 +176,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       /*lowerOpen=*/ true
     );
 
-    // TODO(multitab): Another client may have garbage collected the remote
+    // TODO(b/114228464): Another client may have garbage collected the remote
     // document changelog if our client was throttled for more than 30 minutes.
     // We can detect this if the `lastProcessedDocumentChangeId` entry is no
     // longer in the changelog. It is possible to recover from this state,
