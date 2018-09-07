@@ -1,4 +1,8 @@
-# 0.7.4 (Unreleased)
+# Unreleased (0.8.0)
+- [feature] Access to offline persistence is no longer limited to a single tab.
+  You can opt into this new experimental mode by invoking `enablePersistence()`
+  with `{experimentalTabSynchronization: true}`. All tabs accessing persistence
+  must use the same setting for this flag.
 - [fixed] Fixed an issue where the first `get()` call made after being offline
   could incorrectly return cached data without attempting to reach the backend.
 - [changed] Changed `get()` to only make 1 attempt to reach the backend before
