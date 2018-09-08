@@ -106,8 +106,7 @@ export const issuedAtTime = function(token) {
 };
 
 /**
- * Decodes a Firebase auth. token and checks the validity of its format. Expects a valid issued-at time and non-empty
- * signature.
+ * Decodes a Firebase auth. token and checks the validity of its format. Expects a valid issued-at time.
  *
  * Notes:
  * - May return a false negative if there's no native base64 decoding support.
@@ -121,7 +120,6 @@ export const isValidFormat = function(token) {
     claims = decoded.claims;
 
   return (
-    !!decoded.signature &&
     !!claims &&
     typeof claims === 'object' &&
     claims.hasOwnProperty('iat')
