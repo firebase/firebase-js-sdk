@@ -119,11 +119,7 @@ export const isValidFormat = function(token) {
   var decoded = decode(token),
     claims = decoded.claims;
 
-  return (
-    !!claims &&
-    typeof claims === 'object' &&
-    claims.hasOwnProperty('iat')
-  );
+  return !!claims && typeof claims === 'object' && claims.hasOwnProperty('iat');
 };
 
 /**
