@@ -24,6 +24,7 @@ export {
   apps,
   assertFails,
   assertSucceeds,
+  initializeAdminApp,
   initializeTestApp,
   loadDatabaseRules
 } from './src/api';

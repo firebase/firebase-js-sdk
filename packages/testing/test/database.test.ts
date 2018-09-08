@@ -68,7 +68,7 @@ describe('Testing Module Tests', function() {
       base64.decodeString(token.accessToken.split('.')[1], /*webSafe=*/ false)
     );
     // We add an 'iat' field.
-    expect(claims).to.deep.equal({ uid: auth.uid, iat: 0 });
+    expect(claims).to.deep.equal({ uid: auth.uid, iat: 0, sub: auth.uid });
   });
 
   it('initializeAdminApp() sets the access token to "owner"', async function() {
