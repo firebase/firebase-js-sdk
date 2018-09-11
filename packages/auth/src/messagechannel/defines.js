@@ -30,6 +30,7 @@ goog.provide('fireauth.messagechannel.utils');
  * @enum {string}
  */
 fireauth.messagechannel.Error = {
+  CONNECTION_CLOSED: 'connection_closed',
   CONNECTION_UNAVAILABLE: 'connection_unavailable',
   INVALID_RESPONSE: 'invalid_response',
   TIMEOUT: 'timeout',
@@ -53,8 +54,10 @@ fireauth.messagechannel.Status = {
  * @enum {number}
  */
 fireauth.messagechannel.TimeoutDuration = {
-  ACK: 20,
-  COMPLETION: 500
+  ACK: 50,
+  COMPLETION: 3000,
+  // Used when a handler is confirmed to be available on the other side.
+  LONG_ACK: 800
 };
 
 

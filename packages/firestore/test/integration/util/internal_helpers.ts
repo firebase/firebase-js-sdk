@@ -37,8 +37,8 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
   return new DatabaseInfo(
     new DatabaseId(DEFAULT_PROJECT_ID),
     'persistenceKey',
-    DEFAULT_SETTINGS.host,
-    DEFAULT_SETTINGS.ssl
+    DEFAULT_SETTINGS.host!,
+    !!DEFAULT_SETTINGS.ssl
   );
 }
 

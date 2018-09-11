@@ -45,8 +45,11 @@ describe('View', () => {
     const doc3 = doc('rooms/other/messages/1', 0, { text: 'msg3' });
 
     const changes = view.computeDocChanges(documentUpdates(doc1, doc2, doc3));
-    const snapshot = view.applyChanges(changes, ackTarget(doc1, doc2, doc3))
-      .snapshot!;
+    const snapshot = view.applyChanges(
+      changes,
+      true,
+      ackTarget(doc1, doc2, doc3)
+    ).snapshot!;
 
     expect(snapshot.query).to.deep.equal(query);
     expect(documentSetAsArray(snapshot.docs)).to.deep.equal([doc1, doc2]);
@@ -73,7 +76,7 @@ describe('View', () => {
 
     // delete doc2, add doc3
     const changes = view.computeDocChanges(documentUpdates(doc2.key, doc3));
-    const snapshot = view.applyChanges(changes, ackTarget(doc1, doc3))
+    const snapshot = view.applyChanges(changes, true, ackTarget(doc1, doc3))
       .snapshot!;
 
     expect(snapshot.query).to.deep.equal(query);
@@ -182,8 +185,11 @@ describe('View', () => {
 
     // add doc2, which should push out doc3
     const changes = view.computeDocChanges(documentUpdates(doc2));
-    const snapshot = view.applyChanges(changes, ackTarget(doc1, doc2, doc3))
-      .snapshot!;
+    const snapshot = view.applyChanges(
+      changes,
+      true,
+      ackTarget(doc1, doc2, doc3)
+    ).snapshot!;
 
     expect(snapshot.query).to.deep.equal(query);
     expect(documentSetAsArray(snapshot.docs)).to.deep.equal([doc1, doc2]);
@@ -224,6 +230,7 @@ describe('View', () => {
     );
     const snapshot = view.applyChanges(
       changes,
+      true,
       ackTarget(doc1, doc2, doc3, doc4)
     ).snapshot!;
 
@@ -245,17 +252,18 @@ describe('View', () => {
     const view = new View(query, documentKeySet());
 
     let changes = view.computeDocChanges(documentUpdates(doc1));
-    let viewChange = view.applyChanges(changes);
+    let viewChange = view.applyChanges(changes, true);
     expect(viewChange.limboChanges).to.deep.equal([]);
 
     changes = view.computeDocChanges(documentUpdates());
-    viewChange = view.applyChanges(changes, ackTarget());
+    viewChange = view.applyChanges(changes, true, ackTarget());
     expect(viewChange.limboChanges).to.deep.equal(
       limboChanges({ added: [doc1] })
     );
 
     viewChange = view.applyChanges(
       changes,
+      true,
       updateMapping(version(0), [doc1], [], [], /* current= */ true)
     );
     expect(viewChange.limboChanges).to.deep.equal(
@@ -265,6 +273,7 @@ describe('View', () => {
     changes = view.computeDocChanges(documentUpdates(doc2));
     viewChange = view.applyChanges(
       changes,
+      true,
       updateMapping(version(0), [doc2], [], [], /* current= */ true)
     );
     expect(viewChange.limboChanges).to.deep.equal([]);
@@ -291,7 +300,7 @@ describe('View', () => {
     const view = new View(query, keySet(doc1.key, doc2.key));
 
     const changes = view.computeDocChanges(documentUpdates());
-    const change = view.applyChanges(changes, ackTarget());
+    const change = view.applyChanges(changes, true, ackTarget());
     expect(change.limboChanges).to.deep.equal([]);
   });
 
@@ -306,7 +315,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
 
     // Remove one of the docs.
     changes = view.computeDocChanges(documentUpdates(doc1.key));
@@ -318,7 +327,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(1);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(1);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
   });
 
   it('returns needsRefill on reorder in limit query', () => {
@@ -335,7 +344,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
 
     // Move one of the docs.
     doc2 = doc(doc2.key.toString(), 1, { order: 2000 });
@@ -351,7 +360,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
   });
 
   it("doesn't need refill on reorder within limit", () => {
@@ -372,7 +381,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(3);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(3);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
 
     // Move one of the docs.
     doc1 = doc(doc1.key.toString(), 1, { order: 3 });
@@ -380,7 +389,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(3);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(1);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
   });
 
   it("doesn't need refill on reorder after limit query", () => {
@@ -401,7 +410,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(3);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(3);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
 
     // Move one of the docs.
     doc4 = doc(doc4.key.toString(), 1, { order: 6 });
@@ -409,7 +418,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(3);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(0);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
   });
 
   it("doesn't need refill for additions after the limit", () => {
@@ -423,7 +432,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
 
     // Add a doc that is past the limit.
     const doc3 = doc('rooms/eros/msgs/2', 0, {});
@@ -431,7 +440,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(0);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
   });
 
   it("doesn't need refill for deletions when not near the limit", () => {
@@ -444,14 +453,14 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
 
     // Remove one of the docs.
     changes = view.computeDocChanges(documentUpdates(doc2.key));
     expect(changes.documentSet.size).to.equal(1);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(1);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
   });
 
   it('handles applying irrelevant docs', () => {
@@ -465,7 +474,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(2);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
 
     // Remove a doc that isn't even in the results.
     const doc3 = doc('rooms/eros/msgs/2', 0, {});
@@ -473,7 +482,7 @@ describe('View', () => {
     expect(changes.documentSet.size).to.equal(2);
     expect(changes.needsRefill).to.equal(false);
     expect(changes.changeSet.getChanges().length).to.equal(0);
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
   });
 
   it('computes mutatedDocKeys', () => {
@@ -483,7 +492,7 @@ describe('View', () => {
     const view = new View(query, documentKeySet());
     // Start with a full view.
     let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
     expect(changes.mutatedKeys).to.deep.equal(keySet());
 
     const doc3 = doc('rooms/eros/msgs/2', 0, {}, { hasLocalMutations: true });
@@ -501,12 +510,12 @@ describe('View', () => {
       const view = new View(query, documentKeySet());
       // Start with a full view.
       let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
-      view.applyChanges(changes);
+      view.applyChanges(changes, true);
       expect(changes.mutatedKeys).to.deep.equal(keySet(doc2.key));
 
       const doc2prime = doc('rooms/eros/msgs/1', 0, {});
       changes = view.computeDocChanges(documentUpdates(doc2prime));
-      view.applyChanges(changes);
+      view.applyChanges(changes, true);
       expect(changes.mutatedKeys).to.deep.equal(keySet());
     }
   );
@@ -518,7 +527,7 @@ describe('View', () => {
     const view = new View(query, documentKeySet());
     // Start with a full view.
     let changes = view.computeDocChanges(documentUpdates(doc1, doc2));
-    view.applyChanges(changes);
+    view.applyChanges(changes, true);
     expect(changes.mutatedKeys).to.deep.equal(keySet(doc2.key));
 
     const doc3 = doc('rooms/eros/msgs/3', 0, {});

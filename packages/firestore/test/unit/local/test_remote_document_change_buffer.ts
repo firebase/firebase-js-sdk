@@ -35,14 +35,18 @@ export class TestRemoteDocumentChangeBuffer {
   }
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('getEntry', txn => {
+    return this.persistence.runTransaction('getEntry', 'readonly', txn => {
       return this.buffer.getEntry(txn, documentKey);
     });
   }
 
   apply(): Promise<void> {
-    return this.persistence.runTransaction('apply', txn => {
-      return this.buffer.apply(txn);
-    });
+    return this.persistence.runTransaction(
+      'apply',
+      'readwrite-primary',
+      txn => {
+        return this.buffer.apply(txn);
+      }
+    );
   }
 }

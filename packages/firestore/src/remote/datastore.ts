@@ -1,4 +1,3 @@
-import { WatchStreamListener, WriteStreamListener } from './persistent_stream';
 /**
  * Copyright 2017 Google Inc.
  *
@@ -24,7 +23,7 @@ import { Mutation, MutationResult } from '../model/mutation';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { AsyncQueue } from '../util/async_queue';
-
+import { WatchStreamListener, WriteStreamListener } from './persistent_stream';
 import { Connection } from './connection';
 import {
   PersistentListenStream,
@@ -88,7 +87,10 @@ export class Datastore {
       'Commit',
       params
     ).then(response => {
-      return this.serializer.fromWriteResults(response.writeResults);
+      return this.serializer.fromWriteResults(
+        response.writeResults,
+        response.commitTime
+      );
     });
   }
 

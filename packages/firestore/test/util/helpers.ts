@@ -53,7 +53,8 @@ import {
   Document,
   DocumentOptions,
   MaybeDocument,
-  NoDocument
+  NoDocument,
+  UnknownDocument
 } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
@@ -113,9 +114,7 @@ export function doc(
   keyStr: string,
   ver: TestSnapshotVersion,
   json: JsonObject<AnyJs>,
-  options: DocumentOptions = {
-    hasLocalMutations: false
-  }
+  options: DocumentOptions = {}
 ): Document {
   return new Document(key(keyStr), version(ver), wrapObject(json), options);
 }
@@ -125,6 +124,17 @@ export function deletedDoc(
   ver: TestSnapshotVersion
 ): NoDocument {
   return new NoDocument(key(keyStr), version(ver));
+}
+
+export function unknownDoc(
+  keyStr: string,
+  ver: TestSnapshotVersion
+): UnknownDocument {
+  return new UnknownDocument(key(keyStr), version(ver));
+}
+
+export function removedDoc(keyStr: string): NoDocument {
+  return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
 }
 
 export function wrap(value: AnyJs): FieldValue {
@@ -157,8 +167,8 @@ export function keys(
   return keys;
 }
 
-export function path(path: string): ResourcePath {
-  return new ResourcePath(splitPath(path, '/'));
+export function path(path: string, offset?: number): ResourcePath {
+  return new ResourcePath(splitPath(path, '/'), offset);
 }
 
 export function field(path: string): FieldPath {
@@ -242,7 +252,14 @@ export function queryData(
   queryPurpose: QueryPurpose,
   path: string
 ): QueryData {
-  return new QueryData(query(path)._query, targetId, queryPurpose);
+  // Arbitrary value.
+  const sequenceNumber = 0;
+  return new QueryData(
+    query(path)._query,
+    targetId,
+    queryPurpose,
+    sequenceNumber
+  );
 }
 
 export function docAddedRemoteEvent(
@@ -313,10 +330,7 @@ export function updateMapping(
     modifiedDocuments = modifiedDocuments.add(k);
   });
   removed.forEach(docOrKey => {
-    const k =
-      docOrKey instanceof Document || docOrKey instanceof NoDocument
-        ? docOrKey.key
-        : key(docOrKey);
+    const k = docOrKey instanceof MaybeDocument ? docOrKey.key : key(docOrKey);
     removedDocuments = removedDocuments.add(k);
   });
 
@@ -457,7 +471,7 @@ export function applyDocChanges(
   ...docsOrKeys: Array<Document | DocumentKey>
 ): ViewChange {
   const changes = view.computeDocChanges(documentUpdates(...docsOrKeys));
-  return view.applyChanges(changes);
+  return view.applyChanges(changes, true);
 }
 
 /**

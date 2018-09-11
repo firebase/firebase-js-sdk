@@ -36,6 +36,7 @@
     "no-debugger": true,
     "no-default-export": true,
     "no-duplicate-variable": true,
+    "no-floating-promises": true,
     "no-inferrable-types": true,
     "no-namespace": [true, "allow-declarations"],
     "no-reference": true,

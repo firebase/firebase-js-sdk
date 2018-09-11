@@ -33,6 +33,7 @@ import {
   applyDocChanges,
   doc,
   documentUpdates,
+  keys,
   path
 } from '../../util/helpers';
 
@@ -57,7 +58,7 @@ describe('EventManager', () => {
     return stub;
   }
 
-  it('handles many listenables per query', () => {
+  it('handles many listenables per query', async () => {
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const fakeListener2 = fakeQueryListener(query);
@@ -65,29 +66,29 @@ describe('EventManager', () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const eventManager = new EventManager(syncEngineSpy);
 
-    eventManager.listen(fakeListener1);
+    await eventManager.listen(fakeListener1);
     expect(syncEngineSpy.listen.calledWith(query)).to.be.true;
 
-    eventManager.listen(fakeListener2);
+    await eventManager.listen(fakeListener2);
     expect(syncEngineSpy.listen.callCount).to.equal(1);
 
-    eventManager.unlisten(fakeListener2);
+    await eventManager.unlisten(fakeListener2);
     expect(syncEngineSpy.unlisten.callCount).to.equal(0);
 
-    eventManager.unlisten(fakeListener1);
+    await eventManager.unlisten(fakeListener1);
     expect(syncEngineSpy.unlisten.calledWith(query)).to.be.true;
   });
 
-  it('handles unlisten on unknown listenable gracefully', () => {
+  it('handles unlisten on unknown listenable gracefully', async () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const eventManager = new EventManager(syncEngineSpy);
-    eventManager.unlisten(fakeListener1);
+    await eventManager.unlisten(fakeListener1);
     expect(syncEngineSpy.unlisten.callCount).to.equal(0);
   });
 
-  it('notifies listenables in the right order', () => {
+  it('notifies listenables in the right order', async () => {
     const query1 = Query.atPath(path('foo/bar'));
     const query2 = Query.atPath(path('bar/baz'));
     const eventOrder: string[] = [];
@@ -108,16 +109,16 @@ describe('EventManager', () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const eventManager = new EventManager(syncEngineSpy);
 
-    eventManager.listen(fakeListener1);
-    eventManager.listen(fakeListener2);
-    eventManager.listen(fakeListener3);
+    await eventManager.listen(fakeListener1);
+    await eventManager.listen(fakeListener2);
+    await eventManager.listen(fakeListener3);
     expect(syncEngineSpy.listen.callCount).to.equal(2);
 
     // tslint:disable-next-line:no-any mock ViewSnapshot.
     const viewSnap1: any = { query: query1 };
     // tslint:disable-next-line:no-any mock ViewSnapshot.
     const viewSnap2: any = { query: query2 };
-    eventManager.onChange([viewSnap1, viewSnap2]);
+    eventManager.onWatchChange([viewSnap1, viewSnap2]);
 
     expect(eventOrder).to.deep.equal([
       'listenable1',
@@ -126,7 +127,7 @@ describe('EventManager', () => {
     ]);
   });
 
-  it('will forward applyOnlineStateChange calls', () => {
+  it('will forward onOnlineStateChange calls', async () => {
     const query = Query.atPath(path('foo/bar'));
     const fakeListener1 = fakeQueryListener(query);
     const events: OnlineState[] = [];
@@ -137,9 +138,9 @@ describe('EventManager', () => {
     const syncEngineSpy = makeSyncEngineSpy();
     const eventManager = new EventManager(syncEngineSpy);
 
-    eventManager.listen(fakeListener1);
+    await eventManager.listen(fakeListener1);
     expect(events).to.deep.equal([OnlineState.Unknown]);
-    eventManager.applyOnlineStateChange(OnlineState.Online);
+    eventManager.onOnlineStateChange(OnlineState.Online);
     expect(events).to.deep.equal([OnlineState.Unknown, OnlineState.Online]);
   });
 });
@@ -208,7 +209,7 @@ describe('QueryListener', () => {
       docChanges: [change1, change4],
       fromCache: snap2.fromCache,
       syncStateChanged: true,
-      hasPendingWrites: snap2.hasPendingWrites
+      mutatedKeys: keys()
     };
     expect(otherEvents).to.deep.equal([expectedSnap2]);
   });
@@ -233,12 +234,54 @@ describe('QueryListener', () => {
     const snap1 = applyDocChanges(view).snapshot!;
 
     const changes = view.computeDocChanges(documentUpdates());
-    const snap2 = view.applyChanges(changes, ackTarget()).snapshot!;
+    const snap2 = view.applyChanges(changes, true, ackTarget()).snapshot!;
 
     eventListenable.onViewSnapshot(snap1); // no event
     eventListenable.onViewSnapshot(snap2); // empty event
 
     expect(events).to.deep.equal([snap2]);
+  });
+
+  it("raises 'hasPendingWrites' for pending mutation in initial snapshot", () => {
+    const events: ViewSnapshot[] = [];
+    const query = Query.atPath(path('rooms'));
+    const doc1 = doc(
+      'rooms/Eros',
+      1,
+      { name: 'Eros' },
+      { hasLocalMutations: true }
+    );
+
+    const eventListenable = queryListener(query, events);
+
+    const view = new View(query, documentKeySet());
+    const changes = view.computeInitialChanges(documentUpdates(doc1));
+    const snap1 = view.applyChanges(changes, true, ackTarget()).snapshot!;
+
+    eventListenable.onViewSnapshot(snap1);
+
+    expect(events[0].hasPendingWrites).to.be.true;
+  });
+
+  it("doesn't raise 'hasPendingWrites' for committed mutation in initial snapshot", () => {
+    const events: ViewSnapshot[] = [];
+    const query = Query.atPath(path('rooms'));
+    const doc1 = doc(
+      'rooms/Eros',
+      1,
+      { name: 'Eros' },
+      { hasCommittedMutations: true }
+    );
+
+    const eventListenable = queryListener(query, events);
+
+    const view = new View(query, documentKeySet());
+    const changes = view.computeInitialChanges(documentUpdates(doc1));
+    const snap1 = view.applyChanges(changes, true, ackTarget()).snapshot!;
+
+    eventListenable.onViewSnapshot(snap1);
+
+    expect(events[0].hasPendingWrites).to.be.false;
   });
 
   it('does not raise events for metadata changes unless specified', () => {
@@ -257,7 +300,7 @@ describe('QueryListener', () => {
     const snap1 = applyDocChanges(view, doc1).snapshot!;
 
     const changes = view.computeDocChanges(documentUpdates());
-    const snap2 = view.applyChanges(changes, ackTarget(doc1)).snapshot!;
+    const snap2 = view.applyChanges(changes, true, ackTarget(doc1)).snapshot!;
     const snap3 = applyDocChanges(view, doc2).snapshot!;
 
     filteredListener.onViewSnapshot(snap1); // local event
@@ -353,11 +396,63 @@ describe('QueryListener', () => {
         docChanges: [change3],
         fromCache: snap2.fromCache,
         syncStateChanged: snap2.syncStateChanged,
-        hasPendingWrites: snap2.hasPendingWrites
+        mutatedKeys: snap2.mutatedKeys
       };
       expect(filteredEvents).to.deep.equal([snap1, expectedSnap2]);
     }
   );
+
+  it("Suppresses write acknowledgment if Watch hasn't caught up", () => {
+    // This test verifies that we don't get three events for a ServerTimestamp
+    // mutation. We suppress the event generated by the write acknowledgement
+    // and instead wait for Watch to catch up.
+    const events: ViewSnapshot[] = [];
+    const query = Query.atPath(path('coll'));
+    const doc1 = doc('coll/a', 1, { time: 1 }, { hasLocalMutations: true });
+    // This event is suppressed
+    const doc1Committed = doc(
+      'coll/a',
+      2,
+      { time: 2 },
+      { hasCommittedMutations: true }
+    );
+    const doc1Acknowledged = doc('coll/a', 2, { time: 2 });
+    const doc2 = doc('coll/b', 1, { time: 1 }, { hasLocalMutations: true });
+    const doc2Modified = doc(
+      'coll/b',
+      2,
+      { time: 3 },
+      { hasLocalMutations: true }
+    );
+    const doc2Acknowledged = doc('coll/b', 2, { time: 3 });
+    const listener = queryListener(query, events, [], {
+      includeMetadataChanges: true
+    });
+
+    const view = new View(query, documentKeySet());
+    const snap1 = applyDocChanges(view, doc1, doc2).snapshot!;
+    const snap2 = applyDocChanges(view, doc1Committed, doc2Modified).snapshot!;
+    const snap3 = applyDocChanges(view, doc1Acknowledged, doc2Acknowledged)
+      .snapshot!;
+
+    listener.onViewSnapshot(snap1);
+    listener.onViewSnapshot(snap2);
+    listener.onViewSnapshot(snap3);
+
+    expect(snap1.docChanges).to.deep.equal([
+      { type: ChangeType.Added, doc: doc1 },
+      { type: ChangeType.Added, doc: doc2 }
+    ]);
+    expect(snap2.docChanges).to.deep.equal([
+      { type: ChangeType.Modified, doc: doc2Modified }
+    ]);
+    expect(snap3.docChanges).to.deep.equal([
+      { type: ChangeType.Modified, doc: doc1Acknowledged },
+      { type: ChangeType.Metadata, doc: doc2Acknowledged }
+    ]);
+
+    expect(events).to.deep.equal([snap1, snap2, snap3]);
+  });
 
   it('Will wait for sync if online', () => {
     const query = Query.atPath(path('rooms'));
@@ -371,11 +466,12 @@ describe('QueryListener', () => {
 
     const view = new View(query, documentKeySet());
     const changes1 = view.computeDocChanges(documentUpdates(doc1));
-    const snap1 = view.applyChanges(changes1).snapshot!;
+    const snap1 = view.applyChanges(changes1, true).snapshot!;
     const changes2 = view.computeDocChanges(documentUpdates(doc2));
-    const snap2 = view.applyChanges(changes2).snapshot!;
+    const snap2 = view.applyChanges(changes2, true).snapshot!;
     const changes3 = view.computeDocChanges(documentUpdates());
-    const snap3 = view.applyChanges(changes3, ackTarget(doc1, doc2)).snapshot!;
+    const snap3 = view.applyChanges(changes3, true, ackTarget(doc1, doc2))
+      .snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Online); // no event
     listener.onViewSnapshot(snap1); // no event
@@ -394,7 +490,7 @@ describe('QueryListener', () => {
       ],
       fromCache: false,
       syncStateChanged: true,
-      hasPendingWrites: false
+      mutatedKeys: keys()
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
@@ -411,9 +507,9 @@ describe('QueryListener', () => {
 
     const view = new View(query, documentKeySet());
     const changes1 = view.computeDocChanges(documentUpdates(doc1));
-    const snap1 = view.applyChanges(changes1).snapshot!;
+    const snap1 = view.applyChanges(changes1, true).snapshot!;
     const changes2 = view.computeDocChanges(documentUpdates(doc2));
-    const snap2 = view.applyChanges(changes2).snapshot!;
+    const snap2 = view.applyChanges(changes2, true).snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Online); // no event
     listener.onViewSnapshot(snap1); // no event
@@ -429,7 +525,7 @@ describe('QueryListener', () => {
       docChanges: [{ type: ChangeType.Added, doc: doc1 }],
       fromCache: true,
       syncStateChanged: true,
-      hasPendingWrites: false
+      mutatedKeys: keys()
     };
     const expectedSnap2 = {
       query,
@@ -438,7 +534,7 @@ describe('QueryListener', () => {
       docChanges: [{ type: ChangeType.Added, doc: doc2 }],
       fromCache: true,
       syncStateChanged: false,
-      hasPendingWrites: false
+      mutatedKeys: keys()
     };
     expect(events).to.deep.equal([expectedSnap1, expectedSnap2]);
   });
@@ -451,7 +547,7 @@ describe('QueryListener', () => {
 
     const view = new View(query, documentKeySet());
     const changes1 = view.computeDocChanges(documentUpdates());
-    const snap1 = view.applyChanges(changes1).snapshot!;
+    const snap1 = view.applyChanges(changes1, true).snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Online); // no event
     listener.onViewSnapshot(snap1); // no event
@@ -464,7 +560,7 @@ describe('QueryListener', () => {
       docChanges: [],
       fromCache: true,
       syncStateChanged: true,
-      hasPendingWrites: false
+      mutatedKeys: keys()
     };
     expect(events).to.deep.equal([expectedSnap]);
   });
@@ -477,7 +573,7 @@ describe('QueryListener', () => {
 
     const view = new View(query, documentKeySet());
     const changes1 = view.computeDocChanges(documentUpdates());
-    const snap1 = view.applyChanges(changes1).snapshot!;
+    const snap1 = view.applyChanges(changes1, true).snapshot!;
 
     listener.applyOnlineStateChange(OnlineState.Offline);
     listener.onViewSnapshot(snap1);
@@ -489,7 +585,7 @@ describe('QueryListener', () => {
       docChanges: [],
       fromCache: true,
       syncStateChanged: true,
-      hasPendingWrites: false
+      mutatedKeys: keys()
     };
     expect(events).to.deep.equal([expectedSnap]);
   });

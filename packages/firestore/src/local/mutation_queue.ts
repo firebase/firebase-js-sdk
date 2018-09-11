@@ -43,26 +43,6 @@ export interface MutationQueue extends GarbageSource {
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean>;
 
   /**
-   * Returns the next BatchId that will be assigned to a new mutation batch.
-   *
-   * Callers generally don't care about this value except to test that the
-   * mutation queue is properly maintaining the invariant that
-   * highestAcknowledgedBatchId is less than nextBatchId.
-   */
-  getNextBatchId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<BatchId>;
-
-  /**
-   * Returns the highest batchId that has been acknowledged. If no batches have
-   * been acknowledged or if there are no batches in the queue this can return
-   * BATCHID_UNKNOWN.
-   */
-  getHighestAcknowledgedBatchId(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<BatchId>;
-
-  /**
    * Acknowledges the given batch.
    */
   acknowledgeBatch(
@@ -82,18 +62,33 @@ export interface MutationQueue extends GarbageSource {
     streamToken: ProtoByteString
   ): PersistencePromise<void>;
 
-  /** Creates a new mutation batch and adds it to this mutation queue. */
+  /**
+   * Creates a new mutation batch and adds it to this mutation queue.
+   */
   addMutationBatch(
     transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch>;
 
-  /** Loads the mutation batch with the given batchId. */
+  /**
+   * Loads the mutation batch with the given batchId.
+   */
   lookupMutationBatch(
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null>;
+
+  /**
+   * Returns the document keys for the mutation batch with the given batchId.
+   * For primary clients, this method returns `null` after
+   * `removeMutationBatches()` has been called. Secondary clients return a
+   * cached result until `removeCachedMutationKeys()` is invoked.
+   */
+  lookupMutationKeys(
+    transaction: PersistenceTransaction,
+    batchId: BatchId
+  ): PersistencePromise<DocumentKeySet | null>;
 
   /**
    * Gets the first unacknowledged mutation batch after the passed in batchId
@@ -114,24 +109,6 @@ export interface MutationQueue extends GarbageSource {
   // provide that cheaply, we should replace this.
   getAllMutationBatches(
     transaction: PersistenceTransaction
-  ): PersistencePromise<MutationBatch[]>;
-
-  /**
-   * Finds all mutations with a batchId less than or equal to the given batchId.
-   *
-   * Generally the caller should be asking for the next unacknowledged batchId
-   * and the number of acknowledged batches should be very small when things are
-   * functioning well.
-   *
-   * @param batchId The batch to search through.
-   *
-   * @return an Array containing all batches with matching batchIds.
-   */
-  // TODO(mcg): This should really return an enumerator and the caller should be
-  // adjusted to only loop through these once.
-  getAllMutationBatchesThroughBatchId(
-    transaction: PersistenceTransaction,
-    batchId: BatchId
   ): PersistencePromise<MutationBatch[]>;
 
   /**
@@ -193,20 +170,29 @@ export interface MutationQueue extends GarbageSource {
   ): PersistencePromise<MutationBatch[]>;
 
   /**
-   * Removes the given mutation batches from the queue. This is useful in two
+   * Removes the given mutation batch from the queue. This is useful in two
    * circumstances:
    *
-   * + Removing applied mutations from the head of the queue
-   * + Removing rejected mutations from anywhere in the queue
+   * + Removing an applied mutation from the head of the queue
+   * + Removing a rejected mutation from anywhere in the queue
    *
-   * In both cases, the array of mutations to remove must be a contiguous range
-   * of batchIds. This is most easily accomplished by loading mutations with
-   * getAllMutationBatchesThroughBatchId()
+   * Multi-Tab Note: This operation should only be called by the primary client.
    */
-  removeMutationBatches(
+  removeMutationBatch(
     transaction: PersistenceTransaction,
-    batches: MutationBatch[]
+    batch: MutationBatch
   ): PersistencePromise<void>;
+
+  /**
+   * Clears the cached keys for a mutation batch. This method should be
+   * called by secondary clients after they process mutation updates.
+   *
+   * Note that this method does not have to be called from primary clients as
+   * the corresponding cache entries are cleared when an acknowledged or
+   * rejected batch is removed from the mutation queue.
+   */
+  // PORTING NOTE: Multi-tab only
+  removeCachedMutationKeys(batchId: BatchId): void;
 
   /**
    * Performs a consistency check, examining the mutation queue for any

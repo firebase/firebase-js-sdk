@@ -61,7 +61,7 @@ export class DocumentWatchChange {
      * The new document or NoDocument if it was deleted. Is null if the
      * document went out of view without the server sending a new document.
      */
-    public newDoc: Document | NoDocument | null
+    public newDoc: MaybeDocument | null
   ) {}
 }
 
@@ -531,7 +531,7 @@ export class WatchChangeAggregator {
   removeDocumentFromTarget(
     targetId: TargetId,
     key: DocumentKey,
-    updatedDocument?: MaybeDocument
+    updatedDocument: MaybeDocument | null
   ): void {
     if (!this.isActiveTarget(targetId)) {
       return;
@@ -647,7 +647,7 @@ export class WatchChangeAggregator {
     // resend these documents.
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     existingKeys.forEach(key => {
-      this.removeDocumentFromTarget(targetId, key);
+      this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
     });
   }
   /**

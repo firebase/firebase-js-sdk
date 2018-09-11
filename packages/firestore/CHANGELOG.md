@@ -1,4 +1,41 @@
-# Unreleased
+# Unreleased (0.8.0)
+- [feature] Access to offline persistence is no longer limited to a single tab.
+  You can opt into this new experimental mode by invoking `enablePersistence()`
+  with `{experimentalTabSynchronization: true}`. All tabs accessing persistence
+  must use the same setting for this flag.
+- [fixed] Fixed an issue where the first `get()` call made after being offline
+  could incorrectly return cached data without attempting to reach the backend.
+- [changed] Changed `get()` to only make 1 attempt to reach the backend before
+  returning cached data, potentially reducing delays while offline. Previously
+  it would make 2 attempts, to work around a backend bug.
+- [fixed] Fixed an issue that caused us to drop empty objects from calls to
+  `set(..., { merge: true })`.
+- [changed] Improved argument validation for several API methods.
+
+# 0.7.3
+- [changed] Changed the internal handling for locally updated documents that
+  haven't yet been read back from Firestore. This can lead to slight behavior
+  changes and may affect the `SnapshotMetadata.hasPendingWrites` metadata flag.
+- [changed] Eliminated superfluous update events for locally cached documents
+  that are known to lag behind the server version. Instead, we buffer these
+  events until the client has caught up with the server.
+  
+# 0.7.2
+- [fixed] Fixed a regression that prevented use of Firestore on ReactNative's
+  Expo platform (#1138).
+
+# 0.7.0
+- [fixed] Fixed `get({source: 'cache'})` to be able to return nonexistent
+  documents from cache.
+- [changed] Prepared the persistence layer to allow shared access from multiple
+  tabs. While this feature is not yet available, all schema changes are included
+  in this release. Once you upgrade, you will not be able to use an older version
+  of the Firestore SDK with persistence enabled.
+- [fixed] Fixed an issue where changes to custom authentication claims did not
+  take effect until you did a full sign-out and sign-in.
+  (firebase/firebase-ios-sdk#1499)
+
+# 0.6.1
 - [changed] Improved how Firestore handles idle queries to reduce the cost of
   re-listening within 30 minutes.
 - [changed] Improved offline performance with many outstanding writes.

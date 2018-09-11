@@ -26,7 +26,7 @@ import { AnyJs } from '../util/misc';
  */
 // tslint:disable-next-line:class-as-namespace  We use this as a base class.
 export abstract class FieldValueImpl implements firestore.FieldValue {
-  protected constructor(readonly methodName: string) {}
+  protected constructor(readonly _methodName: string) {}
 
   static delete(): FieldValueImpl {
     return DeleteFieldValueImpl.instance;

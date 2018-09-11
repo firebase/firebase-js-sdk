@@ -241,9 +241,9 @@ export abstract class PersistentStream<
    *
    * When stop returns, isStarted() and isOpen() will both return false.
    */
-  stop(): void {
+  async stop(): Promise<void> {
     if (this.isStarted()) {
-      this.close(PersistentStreamState.Initial);
+      await this.close(PersistentStreamState.Initial);
     }
   }
 
@@ -447,7 +447,7 @@ export abstract class PersistentStream<
         return this.listener!.onOpen();
       });
     });
-    this.stream.onClose((error: FirestoreError) => {
+    this.stream.onClose((error?: FirestoreError) => {
       dispatchIfNotClosed(() => {
         return this.handleStreamClose(error);
       });
@@ -502,7 +502,7 @@ export abstract class PersistentStream<
     startCloseCount: number
   ): (fn: () => Promise<void>) => void {
     return (fn: () => Promise<void>): void => {
-      this.queue.enqueue(() => {
+      this.queue.enqueueAndForget(() => {
         if (this.closeCount === startCloseCount) {
           return fn();
         } else {
@@ -730,7 +730,8 @@ export class PersistentWriteStream extends PersistentStream<
       this.backoff.reset();
 
       const results = this.serializer.fromWriteResults(
-        responseProto.writeResults
+        responseProto.writeResults,
+        responseProto.commitTime
       );
       const commitVersion = this.serializer.fromVersion(
         responseProto.commitTime!

@@ -31,6 +31,16 @@ export class NodePlatform implements Platform {
 
   readonly emptyByteString = new Uint8Array(0);
 
+  readonly document = null;
+
+  get window(): Window | null {
+    if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
+      return window;
+    }
+
+    return null;
+  }
+
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
     const protos = loadProtos();
     return Promise.resolve(new GrpcConnection(protos, databaseInfo));

@@ -20,6 +20,8 @@ import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { ClientId } from './shared_client_state';
+import { ListenSequenceNumber } from '../core/types';
 
 /**
  * Opaque interface representing a persistence transaction.
@@ -28,7 +30,21 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * pass it to your callback. You then pass it to any method that operates
  * on persistence.
  */
-export abstract class PersistenceTransaction {}
+export abstract class PersistenceTransaction {
+  readonly currentSequenceNumber: ListenSequenceNumber;
+}
+
+/**
+ * Callback type for primary state notifications. This callback can be
+ * registered with the persistence layer to get notified when we transition from
+ * primary to secondary state and vice versa.
+ *
+ * Note: Instances can only toggle between Primary and Secondary state if
+ * IndexedDB persistence is enabled and multiple clients are active. If this
+ * listener is registered with MemoryPersistence, the callback will be called
+ * exactly once marking the current instance as Primary.
+ */
+export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
 
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
@@ -73,19 +89,40 @@ export interface Persistence {
   readonly started: boolean;
 
   /**
-   * Starts persistent storage, opening the database or similar.
-   *
-   * Throws an exception if the database could not be opened.
-   */
-  start(): Promise<void>;
-
-  /**
    * Releases any resources held during eager shutdown.
    *
    * @param deleteData Whether to delete the persisted data. This causes
    * irrecoverable data loss and should only be used to delete test data.
    */
   shutdown(deleteData?: boolean): Promise<void>;
+
+  /**
+   * Registers a listener that gets called when the primary state of the
+   * instance changes. Upon registering, this listener is invoked immediately
+   * with the current primary state.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  setPrimaryStateListener(
+    primaryStateListener: PrimaryStateListener
+  ): Promise<void>;
+
+  /**
+   * Adjusts the current network state in the client's metadata, potentially
+   * affecting the primary lease.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  setNetworkEnabled(networkEnabled: boolean): void;
+
+  /**
+   * Returns the IDs of the clients that are currently active. If multi-tab
+   * is not supported, returns an array that only contains the local client's
+   * ID.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  getActiveClients(): Promise<ClientId[]>;
 
   /**
    * Returns a MutationQueue representing the persisted mutations for the
@@ -130,11 +167,18 @@ export interface Persistence {
    *
    * @param action A description of the action performed by this transaction,
    * used for logging.
+   * @param mode The underlying mode of the IndexedDb transaction. Can be
+   * 'readonly`, 'readwrite' or 'readwrite-primary'. Transactions marked
+   * 'readwrite-primary' can only be executed by the primary client. In this
+   * mode, the transactionOperation will not be run if the primary lease cannot
+   * be acquired and the returned promise will be rejected with a
+   * FAILED_PRECONDITION error.
    * @param transactionOperation The operation to run inside a transaction.
    * @return A promise that is resolved once the transaction completes.
    */
   runTransaction<T>(
     action: string,
+    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>

@@ -178,7 +178,7 @@ describe('PersistencePromise', () => {
       updates.push(
         async(1).next(x => {
           counter = counter + x;
-          return async(undefined);
+          return async<void>(undefined);
         })
       );
     }
@@ -212,5 +212,14 @@ describe('PersistencePromise', () => {
         expect(error).to.equal(error);
       })
       .toPromise();
+  });
+
+  it('executes forEach in order', async () => {
+    let result = '';
+    await PersistencePromise.forEach(['a', 'b', 'c'], el => {
+      result += el;
+      return PersistencePromise.resolve();
+    }).toPromise();
+    expect(result).to.equal('abc');
   });
 });

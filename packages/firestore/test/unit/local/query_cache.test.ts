@@ -34,6 +34,7 @@ import {
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestGarbageCollector } from './test_garbage_collector';
 import { TestQueryCache } from './test_query_cache';
+import { Timestamp } from '../../../src/api/timestamp';
 
 describe('MemoryQueryCache', () => {
   genericQueryCacheTests(persistenceHelpers.testMemoryPersistence);
@@ -51,6 +52,44 @@ describe('IndexedDbQueryCache', () => {
   });
 
   genericQueryCacheTests(() => persistencePromise);
+
+  it('persists metadata across restarts', async () => {
+    const db1 = await persistencePromise;
+
+    const queryCache1 = new TestQueryCache(db1, db1.getQueryCache());
+    expect(await queryCache1.getHighestSequenceNumber()).to.equal(0);
+
+    const originalSequenceNumber = 1234;
+    const targetId = 5;
+    const snapshotVersion = SnapshotVersion.fromTimestamp(new Timestamp(1, 2));
+    const query = Query.atPath(path('rooms'));
+    await queryCache1.addQueryData(
+      new QueryData(
+        query,
+        targetId,
+        QueryPurpose.Listen,
+        originalSequenceNumber,
+        snapshotVersion
+      )
+    );
+    // Snapshot version needs to be set separately
+    await queryCache1.setTargetsMetadata(
+      originalSequenceNumber,
+      snapshotVersion
+    );
+    await db1.shutdown(/* deleteData= */ false);
+
+    const db2 = await persistenceHelpers.testIndexedDbPersistence({
+      dontPurgeData: true
+    });
+    const queryCache2 = new TestQueryCache(db2, db2.getQueryCache());
+    expect(await queryCache2.getHighestSequenceNumber()).to.equal(
+      originalSequenceNumber
+    );
+    const actualSnapshotVersion = await queryCache2.getLastRemoteSnapshotVersion();
+    expect(snapshotVersion.isEqual(actualSnapshotVersion)).to.be.true;
+    await db2.shutdown(/* deleteData= */ true);
+  });
 });
 
 /**
@@ -70,6 +109,7 @@ function genericQueryCacheTests(
    * Creates a new QueryData object from the the given parameters, synthesizing
    * a resume token from the snapshot version.
    */
+  let previousSequenceNumber = 0;
   function testQueryData(
     query: Query,
     targetId: TargetId,
@@ -84,6 +124,7 @@ function genericQueryCacheTests(
       query,
       targetId,
       QueryPurpose.Listen,
+      ++previousSequenceNumber,
       snapshotVersion,
       resumeToken
     );
@@ -93,11 +134,12 @@ function genericQueryCacheTests(
   beforeEach(async () => {
     persistence = await persistencePromise();
     cache = new TestQueryCache(persistence, persistence.getQueryCache());
-    await cache.start();
   });
 
   afterEach(async () => {
-    persistence.shutdown(/* deleteData= */ true);
+    if (persistence.started) {
+      await persistence.shutdown(/* deleteData= */ true);
+    }
   });
 
   it('returns null for query not in cache', () => {
@@ -127,11 +169,11 @@ function genericQueryCacheTests(
     // equal canonicalIDs.
     expect(await cache.getQueryData(q2)).to.equal(null);
     expect(await cache.getQueryData(q1)).to.deep.equal(data1);
-    expect(cache.count()).to.equal(1);
+    expect(await cache.getQueryCount()).to.equal(1);
 
     const data2 = testQueryData(q2, 2, 1);
     await cache.addQueryData(data2);
-    expect(cache.count()).to.equal(2);
+    expect(await cache.getQueryCount()).to.equal(2);
 
     expect(await cache.getQueryData(q1)).to.deep.equal(data1);
     expect(await cache.getQueryData(q2)).to.deep.equal(data2);
@@ -139,12 +181,12 @@ function genericQueryCacheTests(
     await cache.removeQueryData(data1);
     expect(await cache.getQueryData(q1)).to.equal(null);
     expect(await cache.getQueryData(q2)).to.deep.equal(data2);
-    expect(cache.count()).to.equal(1);
+    expect(await cache.getQueryCount()).to.equal(1);
 
     await cache.removeQueryData(data2);
     expect(await cache.getQueryData(q1)).to.equal(null);
     expect(await cache.getQueryData(q2)).to.equal(null);
-    expect(cache.count()).to.equal(0);
+    expect(await cache.getQueryCount()).to.equal(0);
   });
 
   it('can set query to new value', async () => {
@@ -205,18 +247,18 @@ function genericQueryCacheTests(
     const key2 = key('foo/baz');
     const key3 = key('foo/blah');
 
-    cache.addMatchingKeys([key1, key2], 1);
-    cache.addMatchingKeys([key3], 2);
+    await cache.addMatchingKeys([key1, key2], 1);
+    await cache.addMatchingKeys([key3], 2);
     expect(await cache.containsKey(key1)).to.equal(true);
     expect(await cache.containsKey(key2)).to.equal(true);
     expect(await cache.containsKey(key3)).to.equal(true);
 
-    cache.removeMatchingKeysForTargetId(1);
+    await cache.removeMatchingKeysForTargetId(1);
     expect(await cache.containsKey(key1)).to.equal(false);
     expect(await cache.containsKey(key2)).to.equal(false);
     expect(await cache.containsKey(key3)).to.equal(true);
 
-    cache.removeMatchingKeysForTargetId(2);
+    await cache.removeMatchingKeysForTargetId(2);
     expect(await cache.containsKey(key1)).to.equal(false);
     expect(await cache.containsKey(key2)).to.equal(false);
     expect(await cache.containsKey(key3)).to.equal(false);
@@ -244,13 +286,13 @@ function genericQueryCacheTests(
 
     expect(await testGc.collectGarbage()).to.deep.equal([]);
 
-    cache.removeMatchingKeys([room1], rooms.targetId);
+    await cache.removeMatchingKeys([room1], rooms.targetId);
     expect(await testGc.collectGarbage()).to.deep.equal([room1]);
 
-    cache.removeQueryData(rooms);
+    await cache.removeQueryData(rooms);
     expect(await testGc.collectGarbage()).to.deep.equal([room2]);
 
-    cache.removeMatchingKeysForTargetId(halls.targetId);
+    await cache.removeMatchingKeysForTargetId(halls.targetId);
     expect(await testGc.collectGarbage()).to.deep.equal([hall1, hall2]);
   });
 
@@ -268,7 +310,7 @@ function genericQueryCacheTests(
     ]);
     expect(await cache.getMatchingKeysForTargetId(2)).to.deep.equal([key3]);
 
-    cache.addMatchingKeys([key1], 2);
+    await cache.addMatchingKeys([key1], 2);
     expect(await cache.getMatchingKeysForTargetId(1)).to.deep.equal([
       key1,
       key2
@@ -279,68 +321,91 @@ function genericQueryCacheTests(
     ]);
   });
 
-  it('can get / set highestTargetId', async () => {
-    expect(cache.getHighestTargetId()).to.deep.equal(0);
-    const queryData1 = testQueryData(QUERY_ROOMS, 1);
+  it('can allocate target ID', async () => {
+    expect(await cache.allocateTargetId()).to.deep.equal(2);
+    const queryData1 = testQueryData(QUERY_ROOMS, 2);
 
     await cache.addQueryData(queryData1);
     const key1 = key('rooms/bar');
     const key2 = key('rooms/foo');
-    await cache.addMatchingKeys([key1, key2], 1);
+    await cache.addMatchingKeys([key1, key2], 2);
 
-    const queryData2 = testQueryData(QUERY_HALLS, 2);
+    expect(await cache.allocateTargetId()).to.deep.equal(4);
+
+    const queryData2 = testQueryData(QUERY_HALLS, 4);
     await cache.addQueryData(queryData2);
     const key3 = key('halls/foo');
-    await cache.addMatchingKeys([key3], 2);
-    expect(cache.getHighestTargetId()).to.deep.equal(2);
+    await cache.addMatchingKeys([key3], 4);
+
+    expect(await cache.allocateTargetId()).to.deep.equal(6);
 
     await cache.removeQueryData(queryData2);
 
     // Target IDs never come down.
-    expect(cache.getHighestTargetId()).to.deep.equal(2);
+    expect(await cache.allocateTargetId()).to.deep.equal(8);
 
     // A query with an empty result set still counts.
     const queryData3 = testQueryData(QUERY_GARAGES, 42);
     await cache.addQueryData(queryData3);
-    expect(cache.getHighestTargetId()).to.deep.equal(42);
+    expect(await cache.allocateTargetId()).to.deep.equal(44);
 
     await cache.removeQueryData(queryData1);
-    expect(cache.getHighestTargetId()).to.deep.equal(42);
+    expect(await cache.allocateTargetId()).to.deep.equal(46);
 
     await cache.removeQueryData(queryData3);
-    expect(cache.getHighestTargetId()).to.deep.equal(42);
+    expect(await cache.allocateTargetId()).to.deep.equal(48);
 
     // Verify that the highestTargetId persists restarts.
     const otherCache = new TestQueryCache(
       persistence,
       persistence.getQueryCache()
     );
-    await otherCache.start();
-    expect(otherCache.getHighestTargetId()).to.deep.equal(42);
+    expect(await otherCache.allocateTargetId()).to.deep.equal(50);
   });
 
-  it('can get / set lastRemoteSnapshotVersion', () => {
-    expect(cache.getLastRemoteSnapshotVersion()).to.deep.equal(
+  it('can get / set targets metadata', async () => {
+    expect(await cache.getLastRemoteSnapshotVersion()).to.deep.equal(
       SnapshotVersion.MIN
     );
 
     // Can set the snapshot version.
     return cache
-      .setLastRemoteSnapshotVersion(version(42))
-      .then(() => {
-        expect(cache.getLastRemoteSnapshotVersion()).to.deep.equal(version(42));
+      .setTargetsMetadata(/* highestListenSequenceNumber= */ 0, version(42))
+      .then(async () => {
+        expect(await cache.getLastRemoteSnapshotVersion()).to.deep.equal(
+          version(42)
+        );
       })
-      .then(() => {
+      .then(async () => {
         // Verify snapshot version persists restarts.
         const otherCache = new TestQueryCache(
           persistence,
           persistence.getQueryCache()
         );
-        return otherCache.start().then(() => {
-          expect(otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
-            version(42)
-          );
-        });
+        expect(await otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
+          version(42)
+        );
       });
+  });
+
+  it('sets the highest sequence number', async () => {
+    const query1 = new QueryData(QUERY_ROOMS, 1, QueryPurpose.Listen, 10);
+    await cache.addQueryData(query1);
+    const query2 = new QueryData(QUERY_HALLS, 2, QueryPurpose.Listen, 20);
+    await cache.addQueryData(query2);
+    expect(await cache.getHighestSequenceNumber()).to.equal(20);
+
+    // Sequence numbers can never come down
+    await cache.removeQueryData(query2);
+    expect(await cache.getHighestSequenceNumber()).to.equal(20);
+
+    const query3 = new QueryData(QUERY_GARAGES, 3, QueryPurpose.Listen, 100);
+    await cache.addQueryData(query3);
+    expect(await cache.getHighestSequenceNumber()).to.equal(100);
+
+    await cache.removeQueryData(query1);
+    expect(await cache.getHighestSequenceNumber()).to.equal(100);
+    await cache.removeQueryData(query3);
+    expect(await cache.getHighestSequenceNumber()).to.equal(100);
   });
 }

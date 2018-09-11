@@ -15,17 +15,23 @@
  */
 
 import { User } from '../auth/user';
-import { assert } from '../util/assert';
 import { debug } from '../util/log';
 
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryQueryCache } from './memory_query_cache';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
 import { MutationQueue } from './mutation_queue';
-import { Persistence, PersistenceTransaction } from './persistence';
+import {
+  Persistence,
+  PersistenceTransaction,
+  PrimaryStateListener
+} from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { ClientId } from './shared_client_state';
+import { ListenSequenceNumber } from '../core/types';
+import { ListenSequence } from '../core/listen_sequence';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -47,20 +53,32 @@ export class MemoryPersistence implements Persistence {
 
   private _started = false;
 
-  async start(): Promise<void> {
-    // No durable state to read on startup.
-    assert(!this._started, 'MemoryPersistence double-started!');
+  constructor(private readonly clientId: ClientId) {
     this._started = true;
   }
 
   async shutdown(deleteData?: boolean): Promise<void> {
     // No durable state to ensure is closed on shutdown.
-    assert(this._started, 'MemoryPersistence shutdown without start!');
     this._started = false;
   }
 
   get started(): boolean {
     return this._started;
+  }
+
+  async getActiveClients(): Promise<ClientId[]> {
+    return [this.clientId];
+  }
+
+  setPrimaryStateListener(
+    primaryStateListener: PrimaryStateListener
+  ): Promise<void> {
+    // All clients using memory persistence act as primary.
+    return primaryStateListener(true);
+  }
+
+  setNetworkEnabled(networkEnabled: boolean): void {
+    // No op.
   }
 
   getMutationQueue(user: User): MutationQueue {
@@ -82,10 +100,15 @@ export class MemoryPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    operation: (transaction: PersistenceTransaction) => PersistencePromise<T>
+    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
+    transactionOperation: (
+      transaction: PersistenceTransaction
+    ) => PersistencePromise<T>
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
-    return operation(new MemoryTransaction()).toPromise();
+    return transactionOperation(
+      new MemoryTransaction(ListenSequence.INVALID)
+    ).toPromise();
   }
 }
 
@@ -93,4 +116,6 @@ export class MemoryPersistence implements Persistence {
  * Memory persistence is not actually transactional, but future implementations
  * may have transaction-scoped state.
  */
-export class MemoryTransaction implements PersistenceTransaction {}
+export class MemoryTransaction implements PersistenceTransaction {
+  constructor(readonly currentSequenceNumber: ListenSequenceNumber) {}
+}

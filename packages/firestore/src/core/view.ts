@@ -100,6 +100,56 @@ export class View {
   }
 
   /**
+   * Computes the initial set of document changes based on the provided
+   * documents.
+   *
+   * Unlike `computeDocChanges`, documents with committed mutations don't raise
+   * `hasPendingWrites`. This distinction allows us to only raise
+   * `hasPendingWrite` events for documents that changed during the lifetime of
+   * the View.
+   *
+   * @param docs The docs to apply to this view.
+   * @return A new set of docs, changes, and refill flag.
+   */
+  computeInitialChanges(docs: MaybeDocumentMap): ViewDocumentChanges {
+    assert(
+      this.documentSet.size === 0,
+      'computeInitialChanges called when docs are aleady present'
+    );
+
+    const changeSet = new DocumentChangeSet();
+    let newMutatedKeys = this.mutatedKeys;
+    let newDocumentSet = this.documentSet;
+
+    docs.inorderTraversal((key: DocumentKey, maybeDoc: MaybeDocument) => {
+      if (maybeDoc instanceof Document) {
+        if (this.query.matches(maybeDoc)) {
+          changeSet.track({ type: ChangeType.Added, doc: maybeDoc });
+          newDocumentSet = newDocumentSet.add(maybeDoc);
+          if (maybeDoc.hasLocalMutations) {
+            newMutatedKeys = newMutatedKeys.add(key);
+          }
+        }
+      }
+    });
+
+    if (this.query.hasLimit()) {
+      while (newDocumentSet.size > this.query.limit!) {
+        const oldDoc = newDocumentSet.last();
+        newDocumentSet = newDocumentSet.delete(oldDoc!.key);
+        newMutatedKeys = newMutatedKeys.delete(oldDoc!.key);
+        changeSet.track({ type: ChangeType.Removed, doc: oldDoc! });
+      }
+    }
+    return {
+      documentSet: newDocumentSet,
+      changeSet,
+      needsRefill: false,
+      mutatedKeys: newMutatedKeys
+    };
+  }
+
+  /**
    * Iterates over a set of doc changes, applies the query limit, and computes
    * what the new results should be, what the changes were, and whether we may
    * need to go back to the local cache for more results. Does not make any
@@ -153,46 +203,51 @@ export class View {
           );
           newDoc = this.query.matches(newDoc) ? newDoc : null;
         }
-        if (newDoc) {
-          newDocumentSet = newDocumentSet.add(newDoc);
-          if (newDoc.hasLocalMutations) {
-            newMutatedKeys = newMutatedKeys.add(key);
-          } else {
-            newMutatedKeys = newMutatedKeys.delete(key);
-          }
-        } else {
-          newDocumentSet = newDocumentSet.delete(key);
-          newMutatedKeys = newMutatedKeys.delete(key);
-        }
+
+        const oldDocHadPendingMutations = oldDoc
+          ? this.mutatedKeys.has(oldDoc.key)
+          : false;
+        const newDocHasPendingMutations = newDoc
+          ? newDoc.hasLocalMutations ||
+            // We only consider committed mutations for documents that were
+            // mutated during the lifetime of the view.
+            (this.mutatedKeys.has(newDoc.key) && newDoc.hasCommittedMutations)
+          : false;
+
+        let changeApplied = false;
 
         // Calculate change
         if (oldDoc && newDoc) {
           const docsEqual = oldDoc.data.isEqual(newDoc.data);
-          if (
-            !docsEqual ||
-            oldDoc.hasLocalMutations !== newDoc.hasLocalMutations
-          ) {
-            // only report a change if document actually changed
-            if (docsEqual) {
-              changeSet.track({ type: ChangeType.Metadata, doc: newDoc });
-            } else {
-              changeSet.track({ type: ChangeType.Modified, doc: newDoc });
-            }
+          if (!docsEqual) {
+            if (!this.shouldWaitForSyncedDocument(oldDoc, newDoc)) {
+              changeSet.track({
+                type: ChangeType.Modified,
+                doc: newDoc
+              });
+              changeApplied = true;
 
-            if (
-              lastDocInLimit &&
-              this.query.docComparator(newDoc, lastDocInLimit) > 0
-            ) {
-              // This doc moved from inside the limit to after the limit.
-              // That means there may be some doc in the local cache that's
-              // actually less than this one.
-              needsRefill = true;
+              if (
+                lastDocInLimit &&
+                this.query.docComparator(newDoc, lastDocInLimit) > 0
+              ) {
+                // This doc moved from inside the limit to after the limit.
+                // That means there may be some doc in the local cache that's
+                // actually less than this one.
+                needsRefill = true;
+              }
             }
+          } else if (oldDocHadPendingMutations !== newDocHasPendingMutations) {
+            changeSet.track({ type: ChangeType.Metadata, doc: newDoc });
+            changeApplied = true;
           }
         } else if (!oldDoc && newDoc) {
           changeSet.track({ type: ChangeType.Added, doc: newDoc });
+          changeApplied = true;
         } else if (oldDoc && !newDoc) {
           changeSet.track({ type: ChangeType.Removed, doc: oldDoc });
+          changeApplied = true;
+
           if (lastDocInLimit) {
             // A doc was removed from a full limit query. We'll need to
             // requery from the local cache to see if we know about some other
@@ -200,13 +255,27 @@ export class View {
             needsRefill = true;
           }
         }
+
+        if (changeApplied) {
+          if (newDoc) {
+            newDocumentSet = newDocumentSet.add(newDoc);
+            if (newDocHasPendingMutations) {
+              newMutatedKeys = newMutatedKeys.add(key);
+            } else {
+              newMutatedKeys = newMutatedKeys.delete(key);
+            }
+          } else {
+            newDocumentSet = newDocumentSet.delete(key);
+            newMutatedKeys = newMutatedKeys.delete(key);
+          }
+        }
       }
     );
     if (this.query.hasLimit()) {
-      // TODO(klimt): Make DocumentSet size be constant time.
       while (newDocumentSet.size > this.query.limit!) {
         const oldDoc = newDocumentSet.last();
         newDocumentSet = newDocumentSet.delete(oldDoc!.key);
+        newMutatedKeys = newMutatedKeys.delete(oldDoc!.key);
         changeSet.track({ type: ChangeType.Removed, doc: oldDoc! });
       }
     }
@@ -222,16 +291,38 @@ export class View {
     };
   }
 
+  private shouldWaitForSyncedDocument(
+    oldDoc: Document,
+    newDoc: Document
+  ): boolean {
+    // We suppress the initial change event for documents that were modified as
+    // part of a write acknowledgment (e.g. when the value of a server transform
+    // is applied) as Watch will send us the same document again.
+    // By suppressing the event, we only raise two user visible events (one with
+    // `hasPendingWrites` and the final state of the document) instead of three
+    // (one with `hasPendingWrites`, the modified document with
+    // `hasPendingWrites` and the final state of the document).
+    return (
+      oldDoc.hasLocalMutations &&
+      newDoc.hasCommittedMutations &&
+      !newDoc.hasLocalMutations
+    );
+  }
+
   /**
-   * Updates the view with the given ViewDocumentChanges and updates limbo docs
-   * and sync state from the given (optional) target change.
+   * Updates the view with the given ViewDocumentChanges and optionally updates
+   * limbo docs and sync state from the provided target change.
    * @param docChanges The set of changes to make to the view's docs.
+   * @param updateLimboDocuments Whether to update limbo documents based on this
+   *        change.
    * @param targetChange A target change to apply for computing limbo docs and
    *        sync state.
    * @return A new ViewChange with the given docs, changes, and sync state.
    */
+  // PORTING NOTE: The iOS/Android clients always compute limbo document changes.
   applyChanges(
     docChanges: ViewDocumentChanges,
+    updateLimboDocuments: boolean,
     targetChange?: TargetChange
   ): ViewChange {
     assert(!docChanges.needsRefill, 'Cannot apply changes that need a refill');
@@ -248,7 +339,9 @@ export class View {
     });
 
     this.applyTargetChange(targetChange);
-    const limboChanges = this.updateLimboDocuments();
+    const limboChanges = updateLimboDocuments
+      ? this.updateLimboDocuments()
+      : [];
     const synced = this.limboDocuments.size === 0 && this.current;
     const newSyncState = synced ? SyncState.Synced : SyncState.Local;
     const syncStateChanged = newSyncState !== this.syncState;
@@ -263,8 +356,8 @@ export class View {
         docChanges.documentSet,
         oldDocs,
         changes,
+        docChanges.mutatedKeys,
         newSyncState === SyncState.Local,
-        !docChanges.mutatedKeys.isEmpty(),
         syncStateChanged,
         /* excludesMetadataChanges= */ false
       );
@@ -286,12 +379,15 @@ export class View {
       // are guaranteed to get a new TargetChange that sets `current` back to
       // true once the client is back online.
       this.current = false;
-      return this.applyChanges({
-        documentSet: this.documentSet,
-        changeSet: new DocumentChangeSet(),
-        mutatedKeys: this.mutatedKeys,
-        needsRefill: false
-      });
+      return this.applyChanges(
+        {
+          documentSet: this.documentSet,
+          changeSet: new DocumentChangeSet(),
+          mutatedKeys: this.mutatedKeys,
+          needsRefill: false
+        },
+        /* updateLimboDocuments= */ false
+      );
     } else {
       // No effect, just return a no-op ViewChange.
       return { limboChanges: [] };
@@ -372,6 +468,51 @@ export class View {
       }
     });
     return changes;
+  }
+
+  /**
+   * Update the in-memory state of the current view with the state read from
+   * persistence.
+   *
+   * We update the query view whenever a client's primary status changes:
+   * - When a client transitions from primary to secondary, it can miss
+   *   LocalStorage updates and its query views may temporarily not be
+   *   synchronized with the state on disk.
+   * - For secondary to primary transitions, the client needs to update the list
+   *   of `syncedDocuments` since secondary clients update their query views
+   *   based purely on synthesized RemoteEvents.
+   *
+   * @param localDocs - The documents that match the query according to the
+   * LocalStore.
+   * @param remoteKeys - The keys of the documents that match the query
+   * according to the backend.
+   *
+   * @return The ViewChange that resulted from this synchronization.
+   */
+  // PORTING NOTE: Multi-tab only.
+  synchronizeWithPersistedState(
+    localDocs: MaybeDocumentMap,
+    remoteKeys: DocumentKeySet
+  ): ViewChange {
+    this._syncedDocuments = remoteKeys;
+    this.limboDocuments = documentKeySet();
+    const docChanges = this.computeDocChanges(localDocs);
+    return this.applyChanges(docChanges, /*updateLimboDocuments=*/ true);
+  }
+
+  /**
+   * Returns a view snapshot as if this query was just listened to. Contains
+   * a document add for every existing document and the `fromCache` and
+   * `hasPendingWrites` status of the already established view.
+   */
+  // PORTING NOTE: Multi-tab only.
+  computeInitialSnapshot(): ViewSnapshot {
+    return ViewSnapshot.fromInitialDocuments(
+      this.query,
+      this.documentSet,
+      this.mutatedKeys,
+      this.syncState === SyncState.Local
+    );
   }
 }
 

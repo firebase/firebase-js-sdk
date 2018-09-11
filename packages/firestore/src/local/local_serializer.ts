@@ -18,7 +18,12 @@ import * as api from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import {
+  Document,
+  MaybeDocument,
+  NoDocument,
+  UnknownDocument
+} from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { JsonProtoSerializer } from '../remote/serializer';
@@ -30,9 +35,12 @@ import {
   DbQuery,
   DbRemoteDocument,
   DbTarget,
-  DbTimestamp
+  DbTimestamp,
+  DbUnknownDocument
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import { documentKeySet, DocumentKeySet } from '../model/collections';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -41,12 +49,20 @@ export class LocalSerializer {
   /** Decodes a remote document from storage locally to a Document. */
   fromDbRemoteDocument(remoteDoc: DbRemoteDocument): MaybeDocument {
     if (remoteDoc.document) {
-      return this.remoteSerializer.fromDocument(remoteDoc.document);
+      return this.remoteSerializer.fromDocument(
+        remoteDoc.document,
+        !!remoteDoc.hasCommittedMutations
+      );
     } else if (remoteDoc.noDocument) {
       const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
-      const readTime = remoteDoc.noDocument.readTime;
-      const timestamp = new Timestamp(readTime.seconds, readTime.nanoseconds);
-      return new NoDocument(key, SnapshotVersion.fromTimestamp(timestamp));
+      const version = this.fromDbTimestamp(remoteDoc.noDocument.readTime);
+      return new NoDocument(key, version, {
+        hasCommittedMutations: !!remoteDoc.hasCommittedMutations
+      });
+    } else if (remoteDoc.unknownDocument) {
+      const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
+      const version = this.fromDbTimestamp(remoteDoc.unknownDocument.version);
+      return new UnknownDocument(key, version);
     } else {
       return fail('Unexpected DbRemoteDocument');
     }
@@ -56,16 +72,48 @@ export class LocalSerializer {
   toDbRemoteDocument(maybeDoc: MaybeDocument): DbRemoteDocument {
     if (maybeDoc instanceof Document) {
       const doc = this.remoteSerializer.toDocument(maybeDoc);
-      return new DbRemoteDocument(null, doc);
-    } else {
-      const path = maybeDoc.key.path.toArray();
-      const timestamp = maybeDoc.version.toTimestamp();
-      const readTime = new DbTimestamp(
-        timestamp.seconds,
-        timestamp.nanoseconds
+      const hasCommittedMutations = maybeDoc.hasCommittedMutations;
+      return new DbRemoteDocument(
+        /* unknownDocument= */ null,
+        /* noDocument= */ null,
+        doc,
+        hasCommittedMutations
       );
-      return new DbRemoteDocument(new DbNoDocument(path, readTime), null);
+    } else if (maybeDoc instanceof NoDocument) {
+      const path = maybeDoc.key.path.toArray();
+      const readTime = this.toDbTimestamp(maybeDoc.version);
+      const hasCommittedMutations = maybeDoc.hasCommittedMutations;
+      return new DbRemoteDocument(
+        /* unknownDocument= */ null,
+        new DbNoDocument(path, readTime),
+        /* document= */ null,
+        hasCommittedMutations
+      );
+    } else if (maybeDoc instanceof UnknownDocument) {
+      const path = maybeDoc.key.path.toArray();
+      const readTime = this.toDbTimestamp(maybeDoc.version);
+      return new DbRemoteDocument(
+        new DbUnknownDocument(path, readTime),
+        /* noDocument= */ null,
+        /* document= */ null,
+        /* hasCommittedMutations= */ true
+      );
+    } else {
+      return fail('Unexpected MaybeDocumment');
     }
+  }
+
+  private toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
+    const timestamp = snapshotVersion.toTimestamp();
+    return new DbTimestamp(timestamp.seconds, timestamp.nanoseconds);
+  }
+
+  private fromDbTimestamp(dbTimestamp: DbTimestamp): SnapshotVersion {
+    const timestamp = new Timestamp(
+      dbTimestamp.seconds,
+      dbTimestamp.nanoseconds
+    );
+    return SnapshotVersion.fromTimestamp(timestamp);
   }
 
   /** Encodes a batch of mutations into a DbMutationBatch for local storage. */
@@ -90,13 +138,33 @@ export class LocalSerializer {
     return new MutationBatch(dbBatch.batchId, timestamp, mutations);
   }
 
+  /*
+   * Encodes a set of document keys into an array of EncodedResourcePaths.
+   */
+  toDbResourcePaths(keys: DocumentKeySet): EncodedResourcePath[] {
+    const encodedKeys: EncodedResourcePath[] = [];
+
+    keys.forEach(key => {
+      encodedKeys.push(encode(key.path));
+    });
+
+    return encodedKeys;
+  }
+
+  /** Decodes an array of EncodedResourcePaths into a set of document keys. */
+  fromDbResourcePaths(encodedPaths: EncodedResourcePath[]): DocumentKeySet {
+    let keys = documentKeySet();
+
+    for (const documentKey of encodedPaths) {
+      keys = keys.add(new DocumentKey(decode(documentKey)));
+    }
+
+    return keys;
+  }
+
   /** Decodes a DbTarget into QueryData */
   fromDbTarget(dbTarget: DbTarget): QueryData {
-    const readTime = new Timestamp(
-      dbTarget.readTime.seconds,
-      dbTarget.readTime.nanoseconds
-    );
-    const version = SnapshotVersion.fromTimestamp(readTime);
+    const version = this.fromDbTimestamp(dbTarget.readTime);
     let query: Query;
     if (isDocumentQuery(dbTarget.query)) {
       query = this.remoteSerializer.fromDocumentsTarget(dbTarget.query);
@@ -107,6 +175,7 @@ export class LocalSerializer {
       query,
       dbTarget.targetId,
       QueryPurpose.Listen,
+      dbTarget.lastListenSequenceNumber,
       version,
       dbTarget.resumeToken
     );
@@ -121,11 +190,7 @@ export class LocalSerializer {
         ' may be stored, got ' +
         queryData.purpose
     );
-    const timestamp = queryData.snapshotVersion.toTimestamp();
-    const dbTimestamp = new DbTimestamp(
-      timestamp.seconds,
-      timestamp.nanoseconds
-    );
+    const dbTimestamp = this.toDbTimestamp(queryData.snapshotVersion);
     let queryProto: DbQuery;
     if (queryData.query.isDocumentQuery()) {
       queryProto = this.remoteSerializer.toDocumentsTarget(queryData.query);
@@ -152,7 +217,7 @@ export class LocalSerializer {
       queryData.query.canonicalId(),
       dbTimestamp,
       resumeToken,
-      0,
+      queryData.sequenceNumber,
       queryProto
     );
   }

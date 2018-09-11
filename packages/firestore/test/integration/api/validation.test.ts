@@ -27,6 +27,9 @@ import {
   withTestDb
 } from '../util/helpers';
 
+const FieldPath = firebase.firestore!.FieldPath;
+const FieldValue = firebase.firestore!.FieldValue;
+
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 // tslint:disable:no-any
 
@@ -120,7 +123,7 @@ apiDescribe('Validation:', persistence => {
 
       expect(() => db.settings({ host: null as any })).to.throw(
         'Function settings() requires its host option to be of type ' +
-          'string, but it was: null'
+          'non-empty string, but it was: null'
       );
     });
 
@@ -176,15 +179,23 @@ apiDescribe('Validation:', persistence => {
   });
 
   describe('Collection paths', () => {
-    validationIt(persistence, 'must be strings', db => {
+    validationIt(persistence, 'must be non-empty strings', db => {
       const baseDocRef = db.doc('foo/bar');
       expect(() => db.collection(null as any)).to.throw(
         'Function Firestore.collection() requires its first argument ' +
-          'to be of type string, but it was: null'
+          'to be of type non-empty string, but it was: null'
+      );
+      expect(() => db.collection('')).to.throw(
+        'Function Firestore.collection() requires its first argument ' +
+          'to be of type non-empty string, but it was: ""'
       );
       expect(() => baseDocRef.collection(null as any)).to.throw(
         'Function DocumentReference.collection() requires its first ' +
-          'argument to be of type string, but it was: null'
+          'argument to be of type non-empty string, but it was: null'
+      );
+      expect(() => baseDocRef.collection('')).to.throw(
+        'Function DocumentReference.collection() requires its first ' +
+          'argument to be of type non-empty string, but it was: ""'
       );
       expect(() => (baseDocRef.collection as any)('foo', 'bar')).to.throw(
         'Function DocumentReference.collection() requires 1 argument, ' +
@@ -234,15 +245,23 @@ apiDescribe('Validation:', persistence => {
       const baseCollectionRef = db.collection('foo');
       expect(() => db.doc(null as any)).to.throw(
         'Function Firestore.doc() requires its first argument to be ' +
-          'of type string, but it was: null'
+          'of type non-empty string, but it was: null'
+      );
+      expect(() => db.doc('')).to.throw(
+        'Function Firestore.doc() requires its first argument to be ' +
+          'of type non-empty string, but it was: ""'
       );
       expect(() => baseCollectionRef.doc(null as any)).to.throw(
         'Function CollectionReference.doc() requires its first ' +
-          'argument to be of type string, but it was: null'
+          'argument to be of type non-empty string, but it was: null'
+      );
+      expect(() => baseCollectionRef.doc('')).to.throw(
+        'Function CollectionReference.doc() requires its first ' +
+          'argument to be of type non-empty string, but it was: ""'
       );
       expect(() => baseCollectionRef.doc(undefined as any)).to.throw(
         'Function CollectionReference.doc() requires its first ' +
-          'argument to be of type string, but it was: undefined'
+          'argument to be of type non-empty string, but it was: undefined'
       );
       expect(() => (baseCollectionRef.doc as any)('foo', 'bar')).to.throw(
         'Function CollectionReference.doc() requires between 0 and ' +
@@ -283,6 +302,26 @@ apiDescribe('Validation:', persistence => {
     expect(() => collection.onSnapshot({ bad: true } as any, fn)).to.throw(
       `Unknown option 'bad' passed to function ` +
         `Query.onSnapshot(). Available options: includeMetadataChanges`
+    );
+  });
+
+  validationIt(persistence, 'get options are validated', db => {
+    const collection = db.collection('test');
+    const doc = collection.doc();
+    const fn = () => {};
+
+    expect(() => doc.get(fn as any)).to.throw(
+      'Function DocumentReference.get() requires its first argument to be of type object, but it was: a function'
+    );
+    expect(() => doc.get({ abc: 'cache' } as any)).to.throw(
+      `Unknown option 'abc' passed to function DocumentReference.get(). Available options: source`
+    );
+
+    expect(() => collection.get(fn as any)).to.throw(
+      'Function Query.get() requires its first argument to be of type object, but it was: a function'
+    );
+    expect(() => collection.get({ abc: 'cache' } as any)).to.throw(
+      `Unknown option 'abc' passed to function Query.get(). Available options: source`
     );
   });
 
@@ -350,7 +389,7 @@ apiDescribe('Validation:', persistence => {
         'a function',
         'a custom TestClass object'
       ];
-      const promises = [];
+      const promises: Array<Promise<void>> = [];
       for (let i = 0; i < badData.length; i++) {
         const error =
           'Data must be an object, but it was: ' + errorDescriptions[i];
@@ -379,7 +418,7 @@ apiDescribe('Validation:', persistence => {
           'Unsupported field value: a function',
           'Unsupported field value: a function (found in field foo.bar)'
         ];
-        const promises = [];
+        const promises: Array<Promise<void>> = [];
         for (let i = 0; i < badData.length; i++) {
           promises.push(
             expectWriteToFail(db, badData[i], errorDescriptions[i])
@@ -407,7 +446,7 @@ apiDescribe('Validation:', persistence => {
       const ref = db.collection('foo').doc();
       const ref2 = db.collection('foo').doc();
 
-      ref
+      return ref
         .set(data)
         .then(() => {
           return ref.firestore
@@ -502,7 +541,7 @@ apiDescribe('Validation:', persistence => {
       db => {
         return expectSetToFail(
           db,
-          { foo: firebase.firestore.FieldValue.delete() },
+          { foo: FieldValue.delete() },
           'FieldValue.delete() cannot be used with set() unless you pass ' +
             '{merge:true} (found in field foo)'
         );
@@ -515,7 +554,7 @@ apiDescribe('Validation:', persistence => {
       db => {
         return expectUpdateToFail(
           db,
-          { foo: { bar: firebase.firestore.FieldValue.delete() } },
+          { foo: { bar: FieldValue.delete() } },
           'FieldValue.delete() can only appear at the top level of your ' +
             'update data (found in field foo.bar)'
         );
@@ -560,44 +599,57 @@ apiDescribe('Validation:', persistence => {
   );
 
   validationIt(persistence, 'Field paths must not have empty segments', db => {
-    const badFieldPaths = ['', 'foo..baz', '.foo', 'foo.'];
-    const promises = [];
-    for (const fieldPath of badFieldPaths) {
-      const reason =
-        `Invalid field path (${fieldPath}). Paths must not be ` +
-        `empty, begin with '.', end with '.', or contain '..'`;
-      promises.push(expectFieldPathToFail(db, fieldPath, reason));
-    }
-    return Promise.all(promises);
+    const docRef = db.collection('test').doc();
+    return docRef
+      .set({ test: 1 })
+      .then(() => {
+        return docRef.get();
+      })
+      .then(snapshot => {
+        const badFieldPaths = ['', 'foo..baz', '.foo', 'foo.'];
+        const promises: Array<Promise<void>> = [];
+        for (const fieldPath of badFieldPaths) {
+          const reason =
+            `Invalid field path (${fieldPath}). Paths must not be ` +
+            `empty, begin with '.', end with '.', or contain '..'`;
+          promises.push(expectFieldPathToFail(snapshot, fieldPath, reason));
+        }
+        return Promise.all(promises);
+      });
   });
 
   validationIt(
     persistence,
     'Field paths must not have invalid segments',
     db => {
-      const badFieldPaths = [
-        'foo~bar',
-        'foo*bar',
-        'foo/bar',
-        'foo[1',
-        'foo]1',
-        'foo[1]'
-      ];
-      const promises = [];
-      for (const fieldPath of badFieldPaths) {
-        const reason =
-          `Invalid field path (${fieldPath}). Paths must not ` +
-          `contain '~', '*', '/', '[', or ']'`;
-        promises.push(expectFieldPathToFail(db, fieldPath, reason));
-      }
-      return Promise.all(promises);
+      const docRef = db.collection('test').doc();
+      return docRef
+        .set({ test: 1 })
+        .then(() => {
+          return docRef.get();
+        })
+        .then(snapshot => {
+          const badFieldPaths = [
+            'foo~bar',
+            'foo*bar',
+            'foo/bar',
+            'foo[1',
+            'foo]1',
+            'foo[1]'
+          ];
+          const promises: Array<Promise<void>> = [];
+          for (const fieldPath of badFieldPaths) {
+            const reason =
+              `Invalid field path (${fieldPath}). Paths must not ` +
+              `contain '~', '*', '/', '[', or ']'`;
+            promises.push(expectFieldPathToFail(snapshot, fieldPath, reason));
+          }
+          return Promise.all(promises);
+        });
     }
   );
 
   describe('Array transforms', () => {
-    // tslint:disable-next-line:variable-name Type alias can be capitalized.
-    const FieldValue = firebase.firestore.FieldValue;
-
     validationIt(persistence, 'fail in queries', db => {
       const collection = db.collection('test');
       expect(() =>
@@ -733,7 +785,7 @@ apiDescribe('Validation:', persistence => {
       db => {
         const collection = db.collection('collection');
         const query = collection.orderBy(
-          firebase.firestore.FieldPath.documentId()
+          firebase.firestore!.FieldPath.documentId()
         );
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
@@ -829,25 +881,21 @@ apiDescribe('Validation:', persistence => {
       db => {
         const collection = db.collection('test');
         expect(() =>
-          collection.where(firebase.firestore.FieldPath.documentId(), '>=', '')
+          collection.where(FieldPath.documentId(), '>=', '')
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
             'a valid document ID if the first parameter is ' +
             'FieldPath.documentId(), but it was an empty string.'
         );
         expect(() =>
-          collection.where(
-            firebase.firestore.FieldPath.documentId(),
-            '>=',
-            'foo/bar/baz'
-          )
+          collection.where(FieldPath.documentId(), '>=', 'foo/bar/baz')
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
             'a valid document ID if the first parameter is ' +
             'FieldPath.documentId(), but it contains a slash.'
         );
         expect(() =>
-          collection.where(firebase.firestore.FieldPath.documentId(), '>=', 1)
+          collection.where(FieldPath.documentId(), '>=', 1)
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
             'a string or a DocumentReference if the first parameter is ' +
@@ -855,11 +903,7 @@ apiDescribe('Validation:', persistence => {
         );
 
         expect(() =>
-          collection.where(
-            firebase.firestore.FieldPath.documentId(),
-            'array-contains',
-            1
-          )
+          collection.where(FieldPath.documentId(), 'array-contains', 1)
         ).to.throw(
           "Invalid Query. You can't perform array-contains queries on " +
             'FieldPath.documentId() since document IDs are not arrays.'
@@ -953,37 +997,33 @@ function expectWriteToFail(
  * they fail with the specified reason.
  */
 function expectFieldPathToFail(
-  db: firestore.FirebaseFirestore,
+  snapshot: firestore.DocumentSnapshot,
   path: string,
   reason: string
 ): Promise<void> {
   // Get an arbitrary snapshot we can use for testing.
-  const docRef = db.collection('test').doc();
-  return docRef
-    .set({ test: 1 })
-    .then(() => {
-      return docRef.get();
-    })
-    .then(snapshot => {
-      // Snapshot paths.
-      expect(() => snapshot.get(path)).to.throw(
-        'Function DocumentSnapshot.get() called with invalid data. ' + reason
-      );
+  return Promise.resolve().then(() => {
+    // Snapshot paths.
+    expect(() => snapshot.get(path)).to.throw(
+      'Function DocumentSnapshot.get() called with invalid data. ' + reason
+    );
 
-      // Query filter / order fields.
-      const coll = db.collection('test-collection');
-      // <=, etc omitted for brevity since the code path is trivially
-      // shared.
-      expect(() => coll.where(path, '==', 1)).to.throw(
-        'Function Query.where() called with invalid data. ' + reason
-      );
-      expect(() => coll.orderBy(path)).to.throw(
-        'Function Query.orderBy() called with invalid data. ' + reason
-      );
+    const db = snapshot.ref.firestore;
 
-      // Update paths.
-      const data = {} as { [field: string]: number };
-      data[path] = 1;
-      return expectUpdateToFail(db, data, reason);
-    });
+    // Query filter / order fields.
+    const coll = db.collection('test-collection');
+    // <=, etc omitted for brevity since the code path is trivially
+    // shared.
+    expect(() => coll.where(path, '==', 1)).to.throw(
+      'Function Query.where() called with invalid data. ' + reason
+    );
+    expect(() => coll.orderBy(path)).to.throw(
+      'Function Query.orderBy() called with invalid data. ' + reason
+    );
+
+    // Update paths.
+    const data = {} as { [field: string]: number };
+    data[path] = 1;
+    return expectUpdateToFail(db, data, reason);
+  });
 }

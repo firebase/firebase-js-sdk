@@ -97,9 +97,13 @@ import {
 // underscore to discourage their use.
 // tslint:disable:strip-private-property-underscore
 
+// settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
+
+// enablePersistence() defaults:
+const DEFAULT_SYNCHRONIZE_TABS = false;
 
 /** Undocumented, private additional settings not exposed in our public API. */
 interface PrivateSettings extends firestore.Settings {
@@ -145,7 +149,7 @@ class FirestoreSettings {
       this.host = DEFAULT_HOST;
       this.ssl = DEFAULT_SSL;
     } else {
-      validateNamedType('settings', 'string', 'host', settings.host);
+      validateNamedType('settings', 'non-empty string', 'host', settings.host);
       this.host = settings.host;
 
       validateNamedOptionalType('settings', 'boolean', 'ssl', settings.ssl);
@@ -195,6 +199,38 @@ class FirestoreConfig {
   firebaseApp: FirebaseApp;
   settings: FirestoreSettings;
   persistence: boolean;
+}
+
+/**
+ * Encapsulates the settings that can be used to configure Firestore
+ * persistence.
+ */
+export class PersistenceSettings {
+  /** Whether to enable multi-tab synchronization. */
+  experimentalTabSynchronization: boolean;
+
+  constructor(
+    readonly enabled: boolean,
+    settings?: firestore.PersistenceSettings
+  ) {
+    assert(
+      enabled || !settings,
+      'Can only provide PersistenceSettings with persistence enabled'
+    );
+    settings = settings || {};
+    this.experimentalTabSynchronization = objUtils.defaulted(
+      settings.experimentalTabSynchronization,
+      DEFAULT_SYNCHRONIZE_TABS
+    );
+  }
+
+  isEqual(other: PersistenceSettings): boolean {
+    return (
+      this.enabled === other.enabled &&
+      this.experimentalTabSynchronization ===
+        other.experimentalTabSynchronization
+    );
+  }
 }
 
 /**
@@ -282,15 +318,15 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   enableNetwork(): Promise<void> {
     this.ensureClientConfigured();
-    return this._firestoreClient.enableNetwork();
+    return this._firestoreClient!.enableNetwork();
   }
 
   disableNetwork(): Promise<void> {
     this.ensureClientConfigured();
-    return this._firestoreClient.disableNetwork();
+    return this._firestoreClient!.disableNetwork();
   }
 
-  enablePersistence(): Promise<void> {
+  enablePersistence(settings?: firestore.PersistenceSettings): Promise<void> {
     if (this._firestoreClient) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -300,17 +336,23 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       );
     }
 
-    return this.configureClient(/* persistence= */ true);
+    return this.configureClient(
+      new PersistenceSettings(/* enabled= */ true, settings)
+    );
   }
 
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
-      this.configureClient(/* persistence= */ false);
+      // Kick off starting the client but don't actually wait for it.
+      // tslint:disable-next-line:no-floating-promises
+      this.configureClient(new PersistenceSettings(/* enabled= */ false));
     }
     return this._firestoreClient as FirestoreClient;
   }
 
-  private configureClient(persistence: boolean): Promise<void> {
+  private configureClient(
+    persistenceSettings: PersistenceSettings
+  ): Promise<void> {
     assert(
       !!this._config.settings.host,
       'FirestoreSettings.host cannot be falsey'
@@ -376,34 +418,15 @@ follow these steps, YOUR APP MAY BREAK.`);
       this._config.credentials,
       this._queue
     );
-    return this._firestoreClient.start(persistence);
+    return this._firestoreClient.start(persistenceSettings);
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
     const options = app.options as objUtils.Dict<{}>;
     if (!objUtils.contains(options, 'projectId')) {
-      // TODO(b/62673263): We can safely remove the special handling of
-      // 'firestoreId' once alpha testers have upgraded.
-      if (objUtils.contains(options, 'firestoreId')) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          '"firestoreId" is now specified as "projectId" in ' +
-            'firebase.initializeApp.'
-        );
-      }
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         '"projectId" not provided in firebase.initializeApp.'
-      );
-    }
-
-    if (objUtils.contains(options, 'firestoreOptions')) {
-      // TODO(b/62673263): We can safely remove the special handling of
-      // 'firestoreOptions' once alpha testers have upgraded.
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        '"firestoreOptions" values are now specified with ' +
-          'Firestore.settings()'
       );
     }
 
@@ -440,7 +463,7 @@ follow these steps, YOUR APP MAY BREAK.`);
 
   collection(pathString: string): firestore.CollectionReference {
     validateExactNumberOfArgs('Firestore.collection', arguments, 1);
-    validateArgType('Firestore.collection', 'string', 1, pathString);
+    validateArgType('Firestore.collection', 'non-empty string', 1, pathString);
     if (!pathString) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -454,7 +477,7 @@ follow these steps, YOUR APP MAY BREAK.`);
 
   doc(pathString: string): firestore.DocumentReference {
     validateExactNumberOfArgs('Firestore.doc', arguments, 1);
-    validateArgType('Firestore.doc', 'string', 1, pathString);
+    validateArgType('Firestore.doc', 'non-empty string', 1, pathString);
     if (!pathString) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -498,7 +521,7 @@ follow these steps, YOUR APP MAY BREAK.`);
 
   static setLogLevel(level: firestore.LogLevel): void {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
-    validateArgType('Firestore.setLogLevel', 'string', 1, level);
+    validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
     switch (level) {
       case 'debug':
         log.setLogLevel(log.LogLevel.DEBUG);
@@ -550,9 +573,28 @@ export class Transaction implements firestore.Transaction {
         }
         const doc = docs[0];
         if (doc instanceof NoDocument) {
-          return new DocumentSnapshot(this._firestore, ref._key, null, false);
+          return new DocumentSnapshot(
+            this._firestore,
+            ref._key,
+            null,
+            /* fromCache= */ false,
+            /* hasPendingWrites= */ false
+          );
+        } else if (doc instanceof Document) {
+          return new DocumentSnapshot(
+            this._firestore,
+            ref._key,
+            doc,
+            /* fromCache= */ false,
+            /* hasPendingWrites= */ false
+          );
+        } else {
+          throw fail(
+            `BatchGetDocumentsRequest returned unexpected document type: ${
+              doc.constructor.name
+            }`
+          );
         }
-        return new DocumentSnapshot(this._firestore, ref._key, doc, false);
       });
   }
 
@@ -802,7 +844,12 @@ export class DocumentReference implements firestore.DocumentReference {
 
   collection(pathString: string): firestore.CollectionReference {
     validateExactNumberOfArgs('DocumentReference.collection', arguments, 1);
-    validateArgType('DocumentReference.collection', 'string', 1, pathString);
+    validateArgType(
+      'DocumentReference.collection',
+      'non-empty string',
+      1,
+      pathString
+    );
     if (!pathString) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -994,7 +1041,8 @@ export class DocumentReference implements firestore.DocumentReference {
               this.firestore,
               this._key,
               doc,
-              snapshot.fromCache
+              snapshot.fromCache,
+              snapshot.hasPendingWrites
             )
           );
         }
@@ -1014,29 +1062,22 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.DocumentSnapshot> {
-    validateOptionNames('DocumentReference.get', options, ['source']);
-    if (options) {
-      validateNamedOptionalPropertyEquals(
-        'DocumentReference.get',
-        'options',
-        'source',
-        options.source,
-        ['default', 'server', 'cache']
-      );
-    }
+    validateBetweenNumberOfArgs('DocumentReference.get', arguments, 0, 1);
+    validateGetOptions('DocumentReference.get', options);
     return new Promise(
       (resolve: Resolver<firestore.DocumentSnapshot>, reject: Rejecter) => {
         if (options && options.source === 'cache') {
           this.firestore
             .ensureClientConfigured()
             .getDocumentFromLocalCache(this._key)
-            .then((doc: Document) => {
+            .then(doc => {
               resolve(
                 new DocumentSnapshot(
                   this.firestore,
                   this._key,
                   doc,
-                  /*fromCache=*/ true
+                  /*fromCache=*/ true,
+                  doc instanceof Document ? doc.hasLocalMutations : false
                 )
               );
             }, reject);
@@ -1127,7 +1168,8 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     private _firestore: Firestore,
     private _key: DocumentKey,
     public _document: Document | null,
-    private _fromCache: boolean
+    private _fromCache: boolean,
+    private _hasPendingWrites: boolean
   ) {}
 
   data(
@@ -1182,10 +1224,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
   }
 
   get metadata(): firestore.SnapshotMetadata {
-    return new SnapshotMetadata(
-      this._document !== null && this._document.hasLocalMutations,
-      this._fromCache
-    );
+    return new SnapshotMetadata(this._hasPendingWrites, this._fromCache);
   }
 
   isEqual(other: firestore.DocumentSnapshot): boolean {
@@ -1253,9 +1292,10 @@ export class QueryDocumentSnapshot extends DocumentSnapshot
     firestore: Firestore,
     key: DocumentKey,
     document: Document,
-    fromCache: boolean
+    fromCache: boolean,
+    hasPendingWrites: boolean
   ) {
-    super(firestore, key, document, fromCache);
+    super(firestore, key, document, fromCache, hasPendingWrites);
   }
 
   data(options?: SnapshotOptions): firestore.DocumentData {
@@ -1277,7 +1317,7 @@ export class Query implements firestore.Query {
     value: AnyJs
   ): firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
-    validateArgType('Query.where', 'string', 2, opStr);
+    validateArgType('Query.where', 'non-empty string', 2, opStr);
     validateDefined('Query.where', 3, value);
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
@@ -1342,7 +1382,12 @@ export class Query implements firestore.Query {
     directionStr?: firestore.OrderByDirection
   ): firestore.Query {
     validateBetweenNumberOfArgs('Query.orderBy', arguments, 1, 2);
-    validateOptionalArgType('Query.orderBy', 'string', 2, directionStr);
+    validateOptionalArgType(
+      'Query.orderBy',
+      'non-empty string',
+      2,
+      directionStr
+    );
     let direction: Direction;
     if (directionStr === undefined || directionStr === 'asc') {
       direction = Direction.ASCENDING;
@@ -1678,6 +1723,7 @@ export class Query implements firestore.Query {
 
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot> {
     validateBetweenNumberOfArgs('Query.get', arguments, 0, 1);
+    validateGetOptions('Query.get', options);
     return new Promise(
       (resolve: Resolver<firestore.QuerySnapshot>, reject: Rejecter) => {
         if (options && options.source === 'cache') {
@@ -1842,11 +1888,10 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
   docChanges(
     options?: firestore.SnapshotListenOptions
   ): firestore.DocumentChange[] {
-    validateOptionNames('QuerySnapshot.docChanges', options, [
-      'includeMetadataChanges'
-    ]);
-
     if (options) {
+      validateOptionNames('QuerySnapshot.docChanges', options, [
+        'includeMetadataChanges'
+      ]);
       validateNamedOptionalType(
         'QuerySnapshot.docChanges',
         'boolean',
@@ -1855,7 +1900,9 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       );
     }
 
-    const includeMetadataChanges = options && options.includeMetadataChanges;
+    const includeMetadataChanges = !!(
+      options && options.includeMetadataChanges
+    );
 
     if (includeMetadataChanges && this._snapshot.excludesMetadataChanges) {
       throw new FirestoreError(
@@ -1898,7 +1945,8 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       this._firestore,
       doc.key,
       doc,
-      this.metadata.fromCache
+      this.metadata.fromCache,
+      this._snapshot.mutatedKeys.has(doc.key)
     );
   }
 }
@@ -1977,14 +2025,19 @@ export class CollectionReference extends Query
     if (arguments.length === 0) {
       pathString = AutoId.newId();
     }
-    validateArgType('CollectionReference.doc', 'string', 1, pathString);
+    validateArgType(
+      'CollectionReference.doc',
+      'non-empty string',
+      1,
+      pathString
+    );
     if (pathString === '') {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Document path must be a non-empty string'
       );
     }
-    const path = ResourcePath.fromString(pathString);
+    const path = ResourcePath.fromString(pathString!);
     return DocumentReference.forPath(
       this._query.path.child(path),
       this.firestore
@@ -2049,6 +2102,23 @@ function validateSnapshotOptions(
   return options;
 }
 
+function validateGetOptions(
+  methodName: string,
+  options: firestore.GetOptions | undefined
+): void {
+  validateOptionalArgType(methodName, 'object', 1, options);
+  if (options) {
+    validateOptionNames(methodName, options, ['source']);
+    validateNamedOptionalPropertyEquals(
+      methodName,
+      'options',
+      'source',
+      options.source,
+      ['default', 'server', 'cache']
+    );
+  }
+}
+
 function validateReference(
   methodName: string,
   documentRef: firestore.DocumentReference,
@@ -2086,7 +2156,8 @@ export function changesFromSnapshot(
         firestore,
         change.doc.key,
         change.doc,
-        snapshot.fromCache
+        snapshot.fromCache,
+        snapshot.mutatedKeys.has(change.doc.key)
       );
       assert(
         change.type === ChangeType.Added,
@@ -2117,7 +2188,8 @@ export function changesFromSnapshot(
           firestore,
           change.doc.key,
           change.doc,
-          snapshot.fromCache
+          snapshot.fromCache,
+          snapshot.mutatedKeys.has(change.doc.key)
         );
         let oldIndex = -1;
         let newIndex = -1;

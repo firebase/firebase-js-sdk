@@ -120,7 +120,7 @@ describe('Query', () => {
 
     // array without element.
     let document = doc('collection/1', 0, {
-      array: [{ a: 42 }, { a: [42, 43] }, { b: [42] }]
+      array: [{ a: 42 }, { a: [42, 43] }, { b: [42] }, { a: [42], b: 42 }]
     });
     expect(query.matches(document)).to.be.false;
 

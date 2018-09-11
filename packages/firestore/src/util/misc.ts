@@ -92,34 +92,6 @@ export function arrayEquals<T>(left: Array<Equatable<T>>, right: T[]): boolean {
 
   return true;
 }
-
-/**
- * Returns the largest lexicographically smaller string of equal or smaller
- * length. Returns an empty string if there is no such predecessor (if the input
- * is empty).
- *
- * Strings returned from this method can be invalid UTF-16 but this is sufficent
- * in use for indexeddb because that depends on lexicographical ordering but
- * shouldn't be used elsewhere.
- */
-export function immediatePredecessor(s: string): string {
-  // We can decrement the last character in the string and be done
-  // unless that character is 0 (0x0000), in which case we have to erase the
-  // last character.
-  const lastIndex = s.length - 1;
-  if (s.length === 0) {
-    // Special case the empty string.
-    return '';
-  } else if (s.charAt(lastIndex) === '\0') {
-    return s.substring(0, lastIndex);
-  } else {
-    return (
-      s.substring(0, lastIndex) +
-      String.fromCharCode(s.charCodeAt(lastIndex) - 1)
-    );
-  }
-}
-
 /**
  * Returns the immediate lexicographically-following string. This is useful to
  * construct an inclusive range for indexeddb iterators.

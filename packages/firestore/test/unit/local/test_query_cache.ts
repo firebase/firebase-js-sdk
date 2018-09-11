@@ -16,7 +16,7 @@
 
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { TargetId } from '../../../src/core/types';
+import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryCache } from '../../../src/local/query_cache';
 import { QueryData } from '../../../src/local/query_data';
@@ -30,71 +30,105 @@ import { DocumentKey } from '../../../src/model/document_key';
 export class TestQueryCache {
   constructor(public persistence: Persistence, public cache: QueryCache) {}
 
-  start(): Promise<void> {
-    return this.persistence.runTransaction('start', txn =>
-      this.cache.start(txn)
-    );
-  }
-
   addQueryData(queryData: QueryData): Promise<void> {
-    return this.persistence.runTransaction('addQueryData', txn => {
+    return this.persistence.runTransaction('addQueryData', 'readwrite', txn => {
       return this.cache.addQueryData(txn, queryData);
     });
   }
 
   updateQueryData(queryData: QueryData): Promise<void> {
-    return this.persistence.runTransaction('updateQueryData', txn => {
-      return this.cache.updateQueryData(txn, queryData);
-    });
+    return this.persistence.runTransaction(
+      'updateQueryData',
+      'readwrite-primary',
+      txn => {
+        return this.cache.updateQueryData(txn, queryData);
+      }
+    );
   }
 
-  count(): number {
-    return this.cache.count;
+  getQueryCount(): Promise<number> {
+    return this.persistence.runTransaction('getQueryCount', 'readonly', txn => {
+      return this.cache.getQueryCount(txn);
+    });
   }
 
   removeQueryData(queryData: QueryData): Promise<void> {
-    return this.persistence.runTransaction('addQueryData', txn => {
-      return this.cache.removeQueryData(txn, queryData);
-    });
+    return this.persistence.runTransaction(
+      'addQueryData',
+      'readwrite-primary',
+      txn => {
+        return this.cache.removeQueryData(txn, queryData);
+      }
+    );
   }
 
   getQueryData(query: Query): Promise<QueryData | null> {
-    return this.persistence.runTransaction('getQueryData', txn => {
+    return this.persistence.runTransaction('getQueryData', 'readonly', txn => {
       return this.cache.getQueryData(txn, query);
     });
   }
 
-  getLastRemoteSnapshotVersion(): SnapshotVersion {
-    return this.cache.getLastRemoteSnapshotVersion();
+  getLastRemoteSnapshotVersion(): Promise<SnapshotVersion> {
+    return this.persistence.runTransaction(
+      'getLastRemoteSnapshotVersion',
+      'readonly',
+      txn => {
+        return this.cache.getLastRemoteSnapshotVersion(txn);
+      }
+    );
   }
 
-  getHighestTargetId(): TargetId {
-    return this.cache.getHighestTargetId();
+  getHighestSequenceNumber(): Promise<ListenSequenceNumber> {
+    return this.persistence.runTransaction(
+      'getHighestSequenceNumber',
+      'readonly',
+      txn => {
+        return this.cache.getHighestSequenceNumber(txn);
+      }
+    );
+  }
+
+  allocateTargetId(): Promise<TargetId> {
+    return this.persistence.runTransaction(
+      'allocateTargetId',
+      'readwrite',
+      txn => {
+        return this.cache.allocateTargetId(txn);
+      }
+    );
   }
 
   addMatchingKeys(keys: DocumentKey[], targetId: TargetId): Promise<void> {
-    return this.persistence.runTransaction('addMatchingKeys', txn => {
-      let set = documentKeySet();
-      for (const key of keys) {
-        set = set.add(key);
+    return this.persistence.runTransaction(
+      'addMatchingKeys',
+      'readwrite-primary',
+      txn => {
+        let set = documentKeySet();
+        for (const key of keys) {
+          set = set.add(key);
+        }
+        return this.cache.addMatchingKeys(txn, set, targetId);
       }
-      return this.cache.addMatchingKeys(txn, set, targetId);
-    });
+    );
   }
 
   removeMatchingKeys(keys: DocumentKey[], targetId: TargetId): Promise<void> {
-    return this.persistence.runTransaction('removeMatchingKeys', txn => {
-      let set = documentKeySet();
-      for (const key of keys) {
-        set = set.add(key);
+    return this.persistence.runTransaction(
+      'removeMatchingKeys',
+      'readwrite-primary',
+      txn => {
+        let set = documentKeySet();
+        for (const key of keys) {
+          set = set.add(key);
+        }
+        return this.cache.removeMatchingKeys(txn, set, targetId);
       }
-      return this.cache.removeMatchingKeys(txn, set, targetId);
-    });
+    );
   }
 
   getMatchingKeysForTargetId(targetId: TargetId): Promise<DocumentKey[]> {
     return this.persistence
-      .runTransaction('getMatchingKeysForTargetId', txn => {
+      .runTransaction('getMatchingKeysForTargetId', 'readonly', txn => {
         return this.cache.getMatchingKeysForTargetId(txn, targetId);
       })
       .then(keySet => {
@@ -107,6 +141,7 @@ export class TestQueryCache {
   removeMatchingKeysForTargetId(targetId: TargetId): Promise<void> {
     return this.persistence.runTransaction(
       'removeMatchingKeysForTargetId',
+      'readwrite-primary',
       txn => {
         return this.cache.removeMatchingKeysForTargetId(txn, targetId);
       }
@@ -114,15 +149,24 @@ export class TestQueryCache {
   }
 
   containsKey(key: DocumentKey): Promise<boolean> {
-    return this.persistence.runTransaction('containsKey', txn => {
+    return this.persistence.runTransaction('containsKey', 'readonly', txn => {
       return this.cache.containsKey(txn, key);
     });
   }
 
-  setLastRemoteSnapshotVersion(version: SnapshotVersion): Promise<void> {
+  setTargetsMetadata(
+    highestListenSequenceNumber: ListenSequenceNumber,
+    lastRemoteSnapshotVersion?: SnapshotVersion
+  ): Promise<void> {
     return this.persistence.runTransaction(
-      'setLastRemoteSnapshotVersion',
-      txn => this.cache.setLastRemoteSnapshotVersion(txn, version)
+      'setTargetsMetadata',
+      'readwrite-primary',
+      txn =>
+        this.cache.setTargetsMetadata(
+          txn,
+          highestListenSequenceNumber,
+          lastRemoteSnapshotVersion
+        )
     );
   }
 }

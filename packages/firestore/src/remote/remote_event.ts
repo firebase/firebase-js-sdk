@@ -16,8 +16,15 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
-import { DocumentKeySet, MaybeDocumentMap } from '../model/collections';
+import {
+  documentKeySet,
+  DocumentKeySet,
+  maybeDocumentMap,
+  MaybeDocumentMap,
+  targetIdSet
+} from '../model/collections';
 import { SortedSet } from '../util/sorted_set';
+import { emptyByteString } from '../platform/platform';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the
@@ -49,6 +56,32 @@ export class RemoteEvent {
      */
     readonly resolvedLimboDocuments: DocumentKeySet
   ) {}
+
+  /**
+   * HACK: Views require RemoteEvents in order to determine whether the view is
+   * CURRENT, but secondary tabs don't receive remote events. So this method is
+   * used to create a synthesized RemoteEvent that can be used to apply a
+   * CURRENT status change to a View, for queries executed in a different tab.
+   */
+  // PORTING NOTE: Multi-tab only
+  static createSynthesizedRemoteEventForCurrentChange(
+    targetId: TargetId,
+    current: boolean
+  ): RemoteEvent {
+    const targetChanges = {
+      [targetId]: TargetChange.createSynthesizedTargetChangeForCurrentChange(
+        targetId,
+        current
+      )
+    };
+    return new RemoteEvent(
+      SnapshotVersion.MIN,
+      targetChanges,
+      targetIdSet(),
+      maybeDocumentMap(),
+      documentKeySet()
+    );
+  }
 }
 
 /**
@@ -90,4 +123,24 @@ export class TargetChange {
      */
     readonly removedDocuments: DocumentKeySet
   ) {}
+
+  /**
+   * HACK: Views require TargetChanges in order to determine whether the view is
+   * CURRENT, but secondary tabs don't receive remote events. So this method is
+   * used to create a synthesized TargetChanges that can be used to apply a
+   * CURRENT status change to a View, for queries executed in a different tab.
+   */
+  // PORTING NOTE: Multi-tab only
+  static createSynthesizedTargetChangeForCurrentChange(
+    targetId: TargetId,
+    current: boolean
+  ): TargetChange {
+    return new TargetChange(
+      emptyByteString(),
+      current,
+      documentKeySet(),
+      documentKeySet(),
+      documentKeySet()
+    );
+  }
 }

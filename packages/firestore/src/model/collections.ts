@@ -20,6 +20,8 @@ import { SortedSet } from '../util/sorted_set';
 
 import { Document, MaybeDocument } from './document';
 import { DocumentKey } from './document_key';
+import { primitiveComparator } from '../util/misc';
+import { TargetId } from '../core/types';
 
 /** Miscellaneous collection types / constants. */
 
@@ -51,4 +53,10 @@ export type DocumentKeySet = SortedSet<DocumentKey>;
 const EMPTY_DOCUMENT_KEY_SET = new SortedSet(DocumentKey.comparator);
 export function documentKeySet(): DocumentKeySet {
   return EMPTY_DOCUMENT_KEY_SET;
+}
+
+export type TargetIdSet = SortedSet<TargetId>;
+const EMPTY_TARGET_ID_SET = new SortedSet<TargetId>(primitiveComparator);
+export function targetIdSet(): SortedSet<TargetId> {
+  return EMPTY_TARGET_ID_SET;
 }

@@ -21,9 +21,12 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import { SimpleDbTransaction } from './simple_db';
+import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { BATCHID_UNKNOWN } from '../model/mutation_batch';
+import { removeMutationBatch } from './indexeddb_mutation_queue';
+import { LocalSerializer } from './local_serializer';
 
 /**
  * Schema Version for the Web client:
@@ -34,49 +37,113 @@ import { SnapshotVersion } from '../core/snapshot_version';
  * 3. Dropped and re-created Query Cache to deal with cache corruption related
  *    to limbo resolution. Addresses
  *    https://github.com/firebase/firebase-ios-sdk/issues/1548
+ * 4. Multi-Tab Support.
+ * 5. Removal of held write acks.
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 5;
 
-/**
- * Performs database creation and schema upgrades.
- *
- * Note that in production, this method is only ever used to upgrade the schema
- * to SCHEMA_VERSION. Different values of toVersion are only used for testing
- * and local feature development.
- */
-export function createOrUpgradeDb(
-  db: IDBDatabase,
-  txn: SimpleDbTransaction,
-  fromVersion: number,
-  toVersion: number
-): PersistencePromise<void> {
-  assert(
-    fromVersion < toVersion && fromVersion >= 0 && toVersion <= SCHEMA_VERSION,
-    'Unexpected schema upgrade from v${fromVersion} to v{toVersion}.'
-  );
+/** Performs database creation and schema upgrades. */
+export class SchemaConverter implements SimpleDbSchemaConverter {
+  constructor(private readonly serializer: LocalSerializer) {}
 
-  if (fromVersion < 1 && toVersion >= 1) {
-    createOwnerStore(db);
-    createMutationQueue(db);
-    createQueryCache(db);
-    createRemoteDocumentCache(db);
-  }
+  /**
+   * Performs database creation and schema upgrades.
+   *
+   * Note that in production, this method is only ever used to upgrade the schema
+   * to SCHEMA_VERSION. Different values of toVersion are only used for testing
+   * and local feature development.
+   */
+  createOrUpgrade(
+    db: IDBDatabase,
+    txn: SimpleDbTransaction,
+    fromVersion: number,
+    toVersion: number
+  ): PersistencePromise<void> {
+    assert(
+      fromVersion < toVersion &&
+        fromVersion >= 0 &&
+        toVersion <= SCHEMA_VERSION,
+      `Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
+    );
 
-  // Migration 2 to populate the targetGlobal object no longer needed since
-  // migration 3 unconditionally clears it.
-
-  let p = PersistencePromise.resolve();
-  if (fromVersion < 3 && toVersion >= 3) {
-    // Brand new clients don't need to drop and recreate--only clients that
-    // potentially have corrupt data.
-    if (fromVersion !== 0) {
-      dropQueryCache(db);
+    if (fromVersion < 1 && toVersion >= 1) {
+      createPrimaryClientStore(db);
+      createMutationQueue(db);
       createQueryCache(db);
+      createRemoteDocumentCache(db);
     }
-    p = p.next(() => writeEmptyTargetGlobalEntry(txn));
+
+    // Migration 2 to populate the targetGlobal object no longer needed since
+    // migration 3 unconditionally clears it.
+
+    let p = PersistencePromise.resolve();
+    if (fromVersion < 3 && toVersion >= 3) {
+      // Brand new clients don't need to drop and recreate--only clients that
+      // potentially have corrupt data.
+      if (fromVersion !== 0) {
+        dropQueryCache(db);
+        createQueryCache(db);
+      }
+      p = p.next(() => writeEmptyTargetGlobalEntry(txn));
+    }
+
+    if (fromVersion < 4 && toVersion >= 4) {
+      if (fromVersion !== 0) {
+        // Schema version 3 uses auto-generated keys to generate globally unique
+        // mutation batch IDs (this was previously ensured internally by the
+        // client). To migrate to the new schema, we have to read all mutations
+        // and write them back out. We preserve the existing batch IDs to guarantee
+        // consistency with other object stores. Any further mutation batch IDs will
+        // be auto-generated.
+        p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
+      }
+
+      p = p.next(() => {
+        createClientMetadataStore(db);
+        createRemoteDocumentChangesStore(db);
+      });
+    }
+
+    if (fromVersion < 5 && toVersion >= 5) {
+      p = p.next(() => this.removeAcknowledgedMutations(txn));
+    }
+
+    return p;
   }
 
-  return p;
+  private removeAcknowledgedMutations(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const queuesStore = txn.store<DbMutationQueueKey, DbMutationQueue>(
+      DbMutationQueue.store
+    );
+    const mutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+      DbMutationBatch.store
+    );
+
+    return queuesStore.loadAll().next(queues => {
+      return PersistencePromise.forEach(queues, queue => {
+        const range = IDBKeyRange.bound(
+          [queue.userId, BATCHID_UNKNOWN],
+          [queue.userId, queue.lastAcknowledgedBatchId]
+        );
+
+        return mutationsStore
+          .loadAll(DbMutationBatch.userMutationsIndex, range)
+          .next(dbBatches => {
+            return PersistencePromise.forEach(dbBatches, dbBatch => {
+              assert(
+                dbBatch.userId === queue.userId,
+                `Cannot process batch ${dbBatch.batchId} from unexpected user`
+              );
+              const batch = this.serializer.fromDbMutationBatch(dbBatch);
+
+              return removeMutationBatch(txn, queue.userId, batch).next();
+            });
+          });
+      });
+    });
+  }
 }
 
 // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
@@ -90,26 +157,44 @@ export class DbTimestamp {
   constructor(public seconds: number, public nanoseconds: number) {}
 }
 
-// The key for the singleton object in the 'owner' store is 'owner'.
-export type DbOwnerKey = 'owner';
+// The key for the singleton object in the DbPrimaryClient is a single string.
+export type DbPrimaryClientKey = typeof DbPrimaryClient.key;
 
 /**
  * A singleton object to be stored in the 'owner' store in IndexedDb.
  *
- * A given database can be owned by a single tab at a given time. That tab
- * must validate that it is still the owner before every write operation and
- * should regularly write an updated timestamp to prevent other tabs from
- * "stealing" ownership of the db.
+ * A given database can have a single primary tab assigned at a given time. That
+ * tab must validate that it is still holding the primary lease before every
+ * operation that requires locked access. The primary tab should regularly
+ * write an updated timestamp to this lease to prevent other tabs from
+ * "stealing" the primary lease
  */
-export class DbOwner {
-  /** Name of the IndexedDb object store. */
+export class DbPrimaryClient {
+  /**
+   * Name of the IndexedDb object store.
+   *
+   * Note that the name 'owner' is chosen to ensure backwards compatibility with
+   * older clients that only supported single locked access to the persistence
+   * layer.
+   */
   static store = 'owner';
 
-  constructor(public ownerId: string, public leaseTimestampMs: number) {}
+  /**
+   * The key string used for the single object that exists in the
+   * DbPrimaryClient store.
+   */
+  static key = 'owner';
+
+  constructor(
+    public ownerId: string,
+    /** Whether to allow shared access from multiple tabs. */
+    public allowTabSynchronization: boolean,
+    public leaseTimestampMs: number
+  ) {}
 }
 
-function createOwnerStore(db: IDBDatabase): void {
-  db.createObjectStore(DbOwner.store);
+function createPrimaryClientStore(db: IDBDatabase): void {
+  db.createObjectStore(DbPrimaryClient.store);
 }
 
 /** Object keys in the 'mutationQueues' store are userId strings. */
@@ -153,8 +238,8 @@ export class DbMutationQueue {
   ) {}
 }
 
-/** keys in the 'mutations' object store are [userId, batchId] pairs. */
-export type DbMutationBatchKey = [string, BatchId];
+/** The 'mutations' store  is keyed by batch ID. */
+export type DbMutationBatchKey = BatchId;
 
 /**
  * An object to be stored in the 'mutations' store in IndexedDb.
@@ -168,7 +253,13 @@ export class DbMutationBatch {
   static store = 'mutations';
 
   /** Keys are automatically assigned via the userId, batchId properties. */
-  static keyPath = ['userId', 'batchId'];
+  static keyPath = 'batchId';
+
+  /** The index name for lookup of mutations by user. */
+  static userMutationsIndex = 'userMutationsIndex';
+
+  /** The user mutations index is keyed by [userId, batchId] pairs. */
+  static userMutationsKeyPath = ['userId', 'batchId'];
 
   constructor(
     /**
@@ -176,8 +267,7 @@ export class DbMutationBatch {
      */
     public userId: string,
     /**
-     * An identifier for this batch, allocated by the mutation queue in a
-     * monotonically increasing manner.
+     * An identifier for this batch, allocated using an auto-generated key.
      */
     public batchId: BatchId,
     /**
@@ -206,11 +296,52 @@ function createMutationQueue(db: IDBDatabase): void {
     keyPath: DbMutationQueue.keyPath
   });
 
-  db.createObjectStore(DbMutationBatch.store, {
-    keyPath: DbMutationBatch.keyPath as KeyPath
+  const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
+    keyPath: DbMutationBatch.keyPath,
+    autoIncrement: true
   });
+  mutationBatchesStore.createIndex(
+    DbMutationBatch.userMutationsIndex,
+    DbMutationBatch.userMutationsKeyPath,
+    { unique: true }
+  );
 
   db.createObjectStore(DbDocumentMutation.store);
+}
+
+/**
+ * Upgrade function to migrate the 'mutations' store from V1 to V3. Loads
+ * and rewrites all data.
+ */
+function upgradeMutationBatchSchemaAndMigrateData(
+  db: IDBDatabase,
+  txn: SimpleDbTransaction
+): PersistencePromise<void> {
+  const v1MutationsStore = txn.store<[string, number], DbMutationBatch>(
+    DbMutationBatch.store
+  );
+  return v1MutationsStore.loadAll().next(existingMutations => {
+    db.deleteObjectStore(DbMutationBatch.store);
+
+    const mutationsStore = db.createObjectStore(DbMutationBatch.store, {
+      keyPath: DbMutationBatch.keyPath,
+      autoIncrement: true
+    });
+    mutationsStore.createIndex(
+      DbMutationBatch.userMutationsIndex,
+      DbMutationBatch.userMutationsKeyPath,
+      { unique: true }
+    );
+
+    const v3MutationsStore = txn.store<DbMutationBatchKey, DbMutationBatch>(
+      DbMutationBatch.store
+    );
+    const writeAll = existingMutations.map(mutation =>
+      v3MutationsStore.put(mutation)
+    );
+
+    return PersistencePromise.waitFor(writeAll);
+  });
 }
 
 /**
@@ -284,9 +415,22 @@ export class DbNoDocument {
 }
 
 /**
- * An object to be stored in the 'remoteDocuments' store in IndexedDb. It
- * represents either a cached document (if it exists) or a cached "no-document"
- * (if it is known to not exist).
+ * Represents a document that is known to exist but whose data is unknown.
+ * Stored in IndexedDb as part of a DbRemoteDocument object.
+ */
+export class DbUnknownDocument {
+  constructor(public path: string[], public version: DbTimestamp) {}
+}
+
+/**
+ * An object to be stored in the 'remoteDocuments' store in IndexedDb.
+ * It represents either:
+ *
+ * - A complete document.
+ * - A "no document" representing a document that is known not to exist (at
+ * some version).
+ * - An "unknown document" representing a document that is known to exist (at
+ * some version) but whose contents are unknown.
  *
  * Note: This is the persisted equivalent of a MaybeDocument and could perhaps
  * be made more general if necessary.
@@ -296,6 +440,12 @@ export class DbRemoteDocument {
 
   constructor(
     /**
+     * Set to an instance of DbUnknownDocument if the data for a document is
+     * not known, but it is known that a document exists at the specified
+     * version (e.g. it had a successful update applied to it)
+     */
+    public unknownDocument: DbUnknownDocument | null | undefined,
+    /**
      * Set to an instance of a DbNoDocument if it is known that no document
      * exists.
      */
@@ -304,7 +454,14 @@ export class DbRemoteDocument {
      * Set to an instance of a Document if there's a cached version of the
      * document.
      */
-    public document: api.Document | null
+    public document: api.Document | null,
+    /**
+     * Documents that were written to the remote document store based on
+     * a write acknowledgment are marked with `hasCommittedMutations`. These
+     * documents are potentially inconsistent with the backend's copy and use
+     * the write's commit version as their document version.
+     */
+    public hasCommittedMutations: boolean | undefined
   ) {}
 }
 
@@ -543,17 +700,107 @@ function writeEmptyTargetGlobalEntry(
 }
 
 /**
- * The list of all default IndexedDB stores used throughout the SDK. This is
- * used when creating transactions so that access across all stores is done
- * atomically.
+ * An object store to store the keys of changed documents. This is used to
+ * facilitate storing document changelogs in the Remote Document Cache.
+ *
+ * PORTING NOTE: This is used for change propagation during multi-tab syncing
+ * and not needed on iOS and Android.
  */
-export const ALL_STORES = [
+export class DbRemoteDocumentChanges {
+  /** Name of the IndexedDb object store.  */
+  static store = 'remoteDocumentChanges';
+
+  /** Keys are auto-generated via the `id` property. */
+  static keyPath = 'id';
+
+  /** The auto-generated key of this entry. */
+  id?: number;
+
+  constructor(
+    /** The keys of the changed documents. */
+    public changes: EncodedResourcePath[]
+  ) {}
+}
+
+/*
+ * The key for DbRemoteDocumentChanges, consisting of an auto-incrementing
+ * number.
+*/
+export type DbRemoteDocumentChangesKey = number;
+
+function createRemoteDocumentChangesStore(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocumentChanges.store, {
+    keyPath: 'id',
+    autoIncrement: true
+  });
+}
+
+/**
+ * A record of the metadata state of each client.
+ *
+ * PORTING NOTE: This is used to synchronize multi-tab state and does not need
+ * to be ported to iOS or Android.
+ */
+export class DbClientMetadata {
+  /** Name of the IndexedDb object store. */
+  static store = 'clientMetadata';
+
+  /** Keys are automatically assigned via the clientId properties. */
+  static keyPath = 'clientId';
+
+  constructor(
+    /** The auto-generated client id assigned at client startup. */
+    public clientId: string,
+    /** The last time this state was updated. */
+    public updateTimeMs: number,
+    /** Whether the client's network connection is enabled. */
+    public networkEnabled: boolean,
+    /** Whether this client is running in a foreground tab. */
+    public inForeground: boolean,
+    /**
+     * The last change read from the DbRemoteDocumentChanges store.
+     * Can be undefined for backwards compatibility.
+     */
+    public lastProcessedDocumentChangeId: number | undefined
+  ) {}
+}
+
+/** Object keys in the 'clientMetadata' store are clientId strings. */
+export type DbClientMetadataKey = string;
+
+function createClientMetadataStore(db: IDBDatabase): void {
+  db.createObjectStore(DbClientMetadata.store, {
+    keyPath: DbClientMetadata.keyPath
+  });
+}
+
+// Visible for testing
+export const V1_STORES = [
   DbMutationQueue.store,
   DbMutationBatch.store,
   DbDocumentMutation.store,
   DbRemoteDocument.store,
   DbTarget.store,
-  DbOwner.store,
+  DbPrimaryClient.store,
   DbTargetGlobal.store,
   DbTargetDocument.store
 ];
+
+// V2 is no longer usable (see comment at top of file)
+
+// Visible for testing
+export const V3_STORES = V1_STORES;
+
+// Visible for testing
+export const V4_STORES = [
+  ...V3_STORES,
+  DbClientMetadata.store,
+  DbRemoteDocumentChanges.store
+];
+
+/**
+ * The list of all default IndexedDB stores used throughout the SDK. This is
+ * used when creating transactions so that access across all stores is done
+ * atomically.
+ */
+export const ALL_STORES = V4_STORES;

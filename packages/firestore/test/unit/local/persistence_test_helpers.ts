@@ -14,33 +14,191 @@
  * limitations under the License.
  */
 
-import { DatabaseId } from '../../../src/core/database_info';
+import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { ListenSequenceNumber } from '../../../src/core/types';
+import { SequenceNumberSyncer } from '../../../src/core/listen_sequence';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import {
+  WebStorageSharedClientState,
+  ClientId
+} from '../../../src/local/shared_client_state';
+import {
+  BatchId,
+  MutationBatchState,
+  OnlineState,
+  TargetId
+} from '../../../src/core/types';
+import { AsyncQueue } from '../../../src/util/async_queue';
+import { User } from '../../../src/auth/user';
+import {
+  QueryTargetState,
+  SharedClientStateSyncer
+} from '../../../src/local/shared_client_state_syncer';
+import { FirestoreError } from '../../../src/util/error';
+import { AutoId } from '../../../src/util/misc';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { LocalSerializer } from '../../../src/local/local_serializer';
+
+/** The prefix used by the keys that Firestore writes to Local Storage. */
+const LOCAL_STORAGE_PREFIX = 'firestore_';
+
+export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
+  sequenceNumberHandler: null,
+  writeSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}
+};
+
+/** The Database ID used by most tests that access IndexedDb. */
+export const INDEXEDDB_TEST_DATABASE_ID = new DatabaseId('test-project');
+
+/** The DatabaseInfo used by most tests that access IndexedDb. */
+const INDEXEDDB_TEST_DATABASE_INFO = new DatabaseInfo(
+  INDEXEDDB_TEST_DATABASE_ID,
+  'PersistenceTestHelpers',
+  'host',
+  /*ssl=*/ false
+);
+
+/** The persistence prefix used for testing in IndexedBD and LocalStorage. */
+export const TEST_PERSISTENCE_PREFIX = IndexedDbPersistence.buildStoragePrefix(
+  INDEXEDDB_TEST_DATABASE_INFO
+);
+
+/**
+ * The database name used by tests that access IndexedDb. To be used in
+ * conjunction with `INDEXEDDB_TEST_DATABASE_INFO` and
+ * `INDEXEDDB_TEST_DATABASE_ID`.
+ */
+export const INDEXEDDB_TEST_DATABASE_NAME =
+  IndexedDbPersistence.buildStoragePrefix(INDEXEDDB_TEST_DATABASE_INFO) +
+  IndexedDbPersistence.MAIN_DATABASE;
+
+/**
+ * IndexedDb serializer that uses `INDEXEDDB_TEST_DATABASE_ID` as its database
+ * id.
+ */
+export const INDEXEDDB_TEST_SERIALIZER = new LocalSerializer(
+  new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
+    useProto3Json: true
+  })
+);
 
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
  * any previous contents if they existed.
  */
-export async function testIndexedDbPersistence(): Promise<
-  IndexedDbPersistence
-> {
-  const prefix = 'PersistenceTestHelpers/';
-  await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
-  const partition = new DatabaseId('project');
-  const serializer = new JsonProtoSerializer(partition, {
+export async function testIndexedDbPersistence(
+  options: {
+    dontPurgeData?: boolean;
+    synchronizeTabs?: boolean;
+  } = {}
+): Promise<IndexedDbPersistence> {
+  const queue = new AsyncQueue();
+  const clientId = AutoId.newId();
+  const prefix = `${TEST_PERSISTENCE_PREFIX}/`;
+  if (!options.dontPurgeData) {
+    await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
+  }
+  const serializer = new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
     useProto3Json: true
   });
-  const persistence = new IndexedDbPersistence(prefix, serializer);
-  await persistence.start();
-  return persistence;
+  const platform = PlatformSupport.getPlatform();
+  return options.synchronizeTabs
+    ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
+        TEST_PERSISTENCE_PREFIX,
+        clientId,
+        platform,
+        queue,
+        serializer,
+        { sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER }
+      )
+    : IndexedDbPersistence.createIndexedDbPersistence(
+        TEST_PERSISTENCE_PREFIX,
+        clientId,
+        platform,
+        queue,
+        serializer
+      );
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryPersistence(): Promise<MemoryPersistence> {
-  const persistence = new MemoryPersistence();
-  await persistence.start();
+  const persistence = new MemoryPersistence(AutoId.newId());
   return persistence;
+}
+
+class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
+  constructor(private readonly activeClients: ClientId[]) {}
+  async applyBatchState(
+    batchId: BatchId,
+    state: MutationBatchState,
+    error?: FirestoreError
+  ): Promise<void> {}
+  async applySuccessfulWrite(batchId: BatchId): Promise<void> {}
+  async rejectFailedWrite(
+    batchId: BatchId,
+    err: FirestoreError
+  ): Promise<void> {}
+  async getActiveClients(): Promise<ClientId[]> {
+    return this.activeClients;
+  }
+  async applyTargetState(
+    targetId: TargetId,
+    state: QueryTargetState,
+    error?: FirestoreError
+  ): Promise<void> {}
+  async applyActiveTargetsChange(
+    added: TargetId[],
+    removed: TargetId[]
+  ): Promise<void> {}
+  applyOnlineStateChange(onlineState: OnlineState): void {}
+}
+/**
+ * Populates Web Storage with instance data from a pre-existing client.
+ */
+export async function populateWebStorage(
+  user: User,
+  existingClientId: ClientId,
+  existingMutationBatchIds: BatchId[],
+  existingQueryTargetIds: TargetId[]
+): Promise<void> {
+  // HACK: Create a secondary client state to seed data into LocalStorage.
+  // NOTE: We don't call shutdown() on it because that would delete the data.
+  const secondaryClientState = new WebStorageSharedClientState(
+    new AsyncQueue(),
+    PlatformSupport.getPlatform(),
+    TEST_PERSISTENCE_PREFIX,
+    existingClientId,
+    user
+  );
+
+  secondaryClientState.syncEngine = new NoOpSharedClientStateSyncer([
+    existingClientId
+  ]);
+  secondaryClientState.onlineStateHandler = () => {};
+  await secondaryClientState.start();
+
+  for (const batchId of existingMutationBatchIds) {
+    secondaryClientState.addPendingMutation(batchId);
+  }
+
+  for (const targetId of existingQueryTargetIds) {
+    secondaryClientState.addLocalQueryTarget(targetId);
+  }
+}
+
+/**
+ * Removes Firestore data (by prefix match) from Local Storage.
+ */
+export function clearWebStorage(): void {
+  for (let i = 0; ; ++i) {
+    const key = window.localStorage.key(i);
+    if (key === null) {
+      break;
+    } else if (key.startsWith(LOCAL_STORAGE_PREFIX)) {
+      window.localStorage.removeItem(key);
+    }
+  }
 }

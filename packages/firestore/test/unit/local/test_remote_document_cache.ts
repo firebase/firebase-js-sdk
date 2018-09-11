@@ -17,7 +17,7 @@
 import { Query } from '../../../src/core/query';
 import { Persistence } from '../../../src/local/persistence';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { DocumentMap } from '../../../src/model/collections';
+import { DocumentMap, MaybeDocumentMap } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 
@@ -31,27 +31,49 @@ export class TestRemoteDocumentCache {
     public cache: RemoteDocumentCache
   ) {}
 
-  addEntry(maybeDocument: MaybeDocument): Promise<void> {
-    return this.persistence.runTransaction('addEntry', txn => {
-      return this.cache.addEntry(txn, maybeDocument);
-    });
+  addEntries(maybeDocuments: MaybeDocument[]): Promise<void> {
+    return this.persistence.runTransaction(
+      'addEntry',
+      'readwrite-primary',
+      txn => {
+        return this.cache.addEntries(txn, maybeDocuments);
+      }
+    );
   }
 
   removeEntry(documentKey: DocumentKey): Promise<void> {
-    return this.persistence.runTransaction('removeEntry', txn => {
-      return this.cache.removeEntry(txn, documentKey);
-    });
+    return this.persistence.runTransaction(
+      'removeEntry',
+      'readwrite-primary',
+      txn => {
+        return this.cache.removeEntry(txn, documentKey);
+      }
+    );
   }
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('getEntry', txn => {
+    return this.persistence.runTransaction('getEntry', 'readonly', txn => {
       return this.cache.getEntry(txn, documentKey);
     });
   }
 
   getDocumentsMatchingQuery(query: Query): Promise<DocumentMap> {
-    return this.persistence.runTransaction('getDocumentsMatchingQuery', txn => {
-      return this.cache.getDocumentsMatchingQuery(txn, query);
-    });
+    return this.persistence.runTransaction(
+      'getDocumentsMatchingQuery',
+      'readonly',
+      txn => {
+        return this.cache.getDocumentsMatchingQuery(txn, query);
+      }
+    );
+  }
+
+  getNextDocumentChanges(): Promise<MaybeDocumentMap> {
+    return this.persistence.runTransaction(
+      'getNextDocumentChanges',
+      'readonly',
+      txn => {
+        return this.cache.getNewDocumentChanges(txn);
+      }
+    );
   }
 }

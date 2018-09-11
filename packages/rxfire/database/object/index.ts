@@ -18,6 +18,7 @@ import { database } from 'firebase';
 import { QueryChange, ListenEvent } from '../interfaces';
 import { fromRef } from '../fromRef';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 /**
  * Get the snapshot changes of an object
@@ -25,4 +26,25 @@ import { Observable } from 'rxjs';
  */
 export function object(query: database.Query): Observable<QueryChange> {
   return fromRef(query, ListenEvent.value);
+}
+
+/**
+ * Get an array of object values, optionally with a mapped key
+ * @param query object ref or query
+ * @param keyField map the object key to a specific field
+ */
+export function objectVal<T>(
+  query: database.Query,
+  keyField?: string
+): Observable<T> {
+  return fromRef(query, ListenEvent.value).pipe(
+    map(change => changeToData(change, keyField) as T)
+  );
+}
+
+export function changeToData(change: QueryChange, keyField?: string) {
+  return {
+    ...change.snapshot.val(),
+    ...(keyField ? { [keyField]: change.snapshot.key } : null)
+  };
 }

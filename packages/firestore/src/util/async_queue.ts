@@ -50,7 +50,13 @@ export enum TimerId {
    * OnlineState.Unknown to Offline after a set timeout, rather than waiting
    * indefinitely for success or failure.
    */
-  OnlineStateTimeout = 'online_state_timeout'
+  OnlineStateTimeout = 'online_state_timeout',
+
+  /**
+   * A timer used to update the client metadata in IndexedDb, which is used
+   * to determine the primary leaseholder.
+   */
+  ClientMetadataRefresh = 'client_metadata_refresh'
 }
 
 /**
@@ -154,7 +160,7 @@ class DelayedOperation<T extends Unknown> implements CancelablePromise<T> {
   catch = this.deferred.promise.catch.bind(this.deferred.promise);
 
   private handleDelayElapsed(): void {
-    this.asyncQueue.enqueue(() => {
+    this.asyncQueue.enqueueAndForget(() => {
       if (this.timerHandle !== null) {
         this.clearTimeout();
         return this.op().then(result => {
@@ -189,6 +195,15 @@ export class AsyncQueue {
   // Flag set while there's an outstanding AsyncQueue operation, used for
   // assertion sanity-checks.
   private operationInProgress = false;
+
+  /**
+   * Adds a new operation to the queue without waiting for it to complete (i.e.
+   * we ignore the Promise result).
+   */
+  enqueueAndForget<T extends Unknown>(op: () => Promise<T>): void {
+    // tslint:disable-next-line:no-floating-promises
+    this.enqueue(op);
+  }
 
   /**
    * Adds a new operation to the queue. Returns a promise that will be resolved
@@ -239,6 +254,11 @@ export class AsyncQueue {
     op: () => Promise<T>
   ): CancelablePromise<T> {
     this.verifyNotFailed();
+
+    assert(
+      delayMs >= 0,
+      `Attempted to schedule an operation with a negative delay of ${delayMs}`
+    );
 
     // While not necessarily harmful, we currently don't expect to have multiple
     // ops with the same timer id in the queue, so defensively reject them.

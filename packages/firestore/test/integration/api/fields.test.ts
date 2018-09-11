@@ -27,8 +27,9 @@ import {
 import * as log from '../../../src/util/log';
 import { LogLevel } from '../../../src/util/log';
 
-const FieldPath = firebase.firestore.FieldPath;
-const Timestamp = firebase.firestore.Timestamp;
+const FieldPath = firebase.firestore!.FieldPath;
+const FieldValue = firebase.firestore!.FieldValue;
+const Timestamp = firebase.firestore!.Timestamp;
 
 // tslint:disable-next-line:no-any Allow custom types for testing.
 type AnyTestData = any;
@@ -370,14 +371,14 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
           expect(docSnap.get('timestamp'))
             .to.be.a('date')
             .that.deep.equals(timestamp.toDate());
-          expect(docSnap.data()['timestamp'])
+          expect(docSnap.data()!['timestamp'])
             .to.be.a('date')
             .that.deep.equals(timestamp.toDate());
 
           expect(docSnap.get('nested.timestamp2'))
             .to.be.a('date')
             .that.deep.equals(timestamp.toDate());
-          expect(docSnap.data()['nested']['timestamp2'])
+          expect(docSnap.data()!['nested']['timestamp2'])
             .to.be.a('date')
             .that.deep.equals(timestamp.toDate());
         });
@@ -404,14 +405,14 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
           expect(docSnap.get('timestamp'))
             .to.be.an.instanceof(Timestamp)
             .that.deep.equals(truncatedTimestamp);
-          expect(docSnap.data()['timestamp'])
+          expect(docSnap.data()!['timestamp'])
             .to.be.an.instanceof(Timestamp)
             .that.deep.equals(truncatedTimestamp);
 
           expect(docSnap.get('nested.timestamp2'))
             .to.be.an.instanceof(Timestamp)
             .that.deep.equals(truncatedTimestamp);
-          expect(docSnap.data()['nested']['timestamp2'])
+          expect(docSnap.data()!['nested']['timestamp2'])
             .to.be.an.instanceof(Timestamp)
             .that.deep.equals(truncatedTimestamp);
         });
@@ -425,7 +426,7 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
     const settings = { ...DEFAULT_SETTINGS };
     settings['timestampsInSnapshots'] = false;
     const testDocs = {
-      a: { timestamp: firebase.firestore.FieldValue.serverTimestamp() }
+      a: { timestamp: FieldValue.serverTimestamp() }
     };
 
     return withTestCollectionSettings(persistence, settings, testDocs, coll => {

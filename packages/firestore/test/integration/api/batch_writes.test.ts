@@ -22,7 +22,8 @@ import * as integrationHelpers from '../util/helpers';
 import firebase from '../util/firebase_export';
 
 const apiDescribe = integrationHelpers.apiDescribe;
-const Timestamp = firebase.firestore.Timestamp;
+const Timestamp = firebase.firestore!.Timestamp;
+const FieldValue = firebase.firestore!.FieldValue;
 
 apiDescribe('Database batch writes', persistence => {
   it('support empty batches', () => {
@@ -241,10 +242,10 @@ apiDescribe('Database batch writes', persistence => {
             collection.firestore
               .batch()
               .set(docA, {
-                when: firebase.firestore.FieldValue.serverTimestamp()
+                when: FieldValue.serverTimestamp()
               })
               .set(docB, {
-                when: firebase.firestore.FieldValue.serverTimestamp()
+                when: FieldValue.serverTimestamp()
               })
               .commit();
 
@@ -266,6 +267,10 @@ apiDescribe('Database batch writes', persistence => {
             const when = serverSnap.docs[0].data()['when'];
             expect(when).to.be.an.instanceof(Timestamp);
             expect(serverSnap.docs[1].data()['when']).to.deep.equal(when);
+            const docChanges = serverSnap.docChanges({
+              includeMetadataChanges: true
+            });
+            expect(docChanges[0].type).to.equal('modified');
             unsubscribe();
           });
       }
@@ -290,7 +295,7 @@ apiDescribe('Database batch writes', persistence => {
             .set(doc, { a: 1, b: 1, when: 'when' })
             .update(doc, {
               b: 2,
-              when: firebase.firestore.FieldValue.serverTimestamp()
+              when: FieldValue.serverTimestamp()
             })
             .commit();
 
@@ -333,7 +338,7 @@ apiDescribe('Database batch writes', persistence => {
           doc,
           'owner.name',
           'Sebastian',
-          new firebase.firestore.FieldPath('is.admin'),
+          new firebase.firestore!.FieldPath('is.admin'),
           true
         )
         .commit()

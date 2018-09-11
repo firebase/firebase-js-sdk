@@ -17,11 +17,8 @@
 import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
-import { BatchId } from '../../../src/core/types';
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
-import { IndexedDbMutationQueue } from '../../../src/local/indexeddb_mutation_queue';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { DbMutationBatch } from '../../../src/local/indexeddb_schema';
 import { Persistence } from '../../../src/local/persistence';
 import { documentKeySet } from '../../../src/model/collections';
 import {
@@ -67,52 +64,6 @@ describe('IndexedDbMutationQueue', () => {
   });
 
   genericMutationQueueTests();
-
-  describe('loadNextBatchIdFromDb', () => {
-    function loadNextBatchId(): Promise<BatchId> {
-      return persistence.runTransaction('loadNextBatchIdFromDb', txn => {
-        return IndexedDbMutationQueue.loadNextBatchIdFromDb(txn).next(
-          batchId => {
-            return batchId;
-          }
-        );
-      });
-    }
-
-    function addDummyBatch(userId: string, batchId: BatchId): Promise<void> {
-      return persistence.runTransaction('addDummyBatch', transaction => {
-        const store = IndexedDbPersistence.getStore<
-          [string, number],
-          DbMutationBatch
-        >(transaction, DbMutationBatch.store);
-        const localWriteTime = Date.now();
-        return store.put(
-          new DbMutationBatch(userId, batchId, localWriteTime, [])
-        );
-      });
-    }
-
-    it('returns zero when no mutations.', async () => {
-      const batchId = await loadNextBatchId();
-      expect(batchId).to.equal(0);
-    });
-
-    it('finds next id after single mutation batch', async () => {
-      await addDummyBatch('foo', 6);
-      expect(await loadNextBatchId()).to.equal(7);
-    });
-
-    it('finds max across users', async () => {
-      await addDummyBatch('fo', 5);
-      await addDummyBatch('food', 3);
-
-      await addDummyBatch('foo', 6);
-      await addDummyBatch('foo', 2);
-      await addDummyBatch('foo', 1);
-
-      expect(await loadNextBatchId()).to.equal(7);
-    });
-  });
 });
 
 /**
@@ -150,7 +101,7 @@ function genericMutationQueueTests(): void {
    * has a different batchID.
    */
   async function createBatches(count: number): Promise<MutationBatch[]> {
-    const batches = [];
+    const batches: MutationBatch[] = [];
     for (let i = 0; i < count; i++) {
       const batch = await addMutationBatch();
       batches.push(batch);
@@ -172,11 +123,11 @@ function genericMutationQueueTests(): void {
     holes: number[],
     batches: MutationBatch[]
   ): Promise<MutationBatch[]> {
-    const removed = [];
+    const removed: MutationBatch[] = [];
     for (let i = 0; i < holes.length; i++) {
       const index = holes[i] - i;
       const batch = batches[index];
-      await mutationQueue.removeMutationBatches([batch]);
+      await mutationQueue.removeMutationBatch(batch);
 
       batches.splice(index, 1);
       removed.push(batch);
@@ -195,122 +146,21 @@ function genericMutationQueueTests(): void {
     const batch2 = await addMutationBatch();
     expect(await mutationQueue.countBatches()).to.equal(2);
 
-    await mutationQueue.removeMutationBatches([batch2]);
+    await mutationQueue.removeMutationBatch(batch2);
     expect(await mutationQueue.countBatches()).to.equal(1);
 
-    await mutationQueue.removeMutationBatches([batch1]);
+    await mutationQueue.removeMutationBatch(batch1);
     expect(await mutationQueue.countBatches()).to.equal(0);
-  });
-
-  it('can acknowledge batches through batchId', async () => {
-    // Initial state of an empty queue
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      BATCHID_UNKNOWN
-    );
-
-    // Adding mutation batches should not change the highest acked batchID.
-    const batch1 = await addMutationBatch();
-    const batch2 = await addMutationBatch();
-    const batch3 = await addMutationBatch();
-    expect(batch1.batchId).to.be.greaterThan(BATCHID_UNKNOWN);
-    expect(batch2.batchId).to.be.greaterThan(batch1.batchId);
-    expect(batch3.batchId).to.be.greaterThan(batch2.batchId);
-
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      BATCHID_UNKNOWN
-    );
-
-    mutationQueue.acknowledgeBatch(batch1, emptyByteString());
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      batch1.batchId
-    );
-
-    mutationQueue.acknowledgeBatch(batch2, emptyByteString());
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      batch2.batchId
-    );
-
-    await mutationQueue.removeMutationBatches([batch1]);
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      batch2.batchId
-    );
-
-    await mutationQueue.removeMutationBatches([batch2]);
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      batch2.batchId
-    );
-
-    // Batch 3 never acknowledged.
-    await mutationQueue.removeMutationBatches([batch3]);
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      batch2.batchId
-    );
   });
 
   it('can acknowledge then remove', async () => {
     const batch1 = await addMutationBatch();
     expect(await mutationQueue.countBatches()).to.equal(1);
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      BATCHID_UNKNOWN
-    );
 
     await mutationQueue.acknowledgeBatch(batch1, emptyByteString());
-    await mutationQueue.removeMutationBatches([batch1]);
+    await mutationQueue.removeMutationBatch(batch1);
 
     expect(await mutationQueue.countBatches()).to.equal(0);
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      batch1.batchId
-    );
-  });
-
-  it('getHighestAcknowledgedBatchId() never exceeds getNextBatchId()', async () => {
-    const batch1 = await addMutationBatch();
-    const batch2 = await addMutationBatch();
-    await mutationQueue.acknowledgeBatch(batch1, emptyByteString());
-    await mutationQueue.acknowledgeBatch(batch2, emptyByteString());
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      batch2.batchId
-    );
-
-    await mutationQueue.removeMutationBatches([batch1, batch2]);
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      batch2.batchId
-    );
-
-    // Restart the queue so that nextBatchID will be reset.
-    mutationQueue = new TestMutationQueue(
-      persistence,
-      persistence.getMutationQueue(new User('user'))
-    );
-    await mutationQueue.start();
-
-    // Verify that on restart with an empty queue, nextBatchID falls to a
-    // lower value.
-    expect(await mutationQueue.getNextBatchId()).to.be.lessThan(batch2.batchId);
-
-    // As a result highestAcknowledgedBatchID must also reset lower.
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      BATCHID_UNKNOWN
-    );
-
-    // The mutation queue will reset the next batchID after all mutations
-    // are removed so adding another mutation will cause a collision.
-    const newBatch = await addMutationBatch();
-    expect(newBatch.batchId).to.equal(batch1.batchId);
-
-    // Restart the queue with one unacknowledged batch in it.
-    mutationQueue = new TestMutationQueue(
-      persistence,
-      persistence.getMutationQueue(new User('user'))
-    );
-    await mutationQueue.start();
-
-    expect(await mutationQueue.getNextBatchId()).to.equal(newBatch.batchId + 1);
-
-    // highestAcknowledgedBatchID must still be BATCHID_UNKNOWN.
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.equal(
-      BATCHID_UNKNOWN
-    );
   });
 
   it('can lookup mutation batch', async () => {
@@ -392,27 +242,6 @@ function genericMutationQueueTests(): void {
     expect(
       await mutationQueue.getNextMutationBatchAfterBatchId(batches[1].batchId)
     ).to.deep.equal(batches[2]);
-  });
-
-  it('can getAllMutationBatchesThroughBatchId()', async () => {
-    const batches = await createBatches(10);
-    await makeHolesInBatches([2, 6, 7], batches);
-
-    let found = [],
-      expected = [];
-
-    found = await mutationQueue.getAllMutationBatchesThroughBatchId(
-      batches[0].batchId - 1
-    );
-    expectEqualArrays(found, []);
-
-    for (let i = 0; i < batches.length; i++) {
-      found = await mutationQueue.getAllMutationBatchesThroughBatchId(
-        batches[i].batchId
-      );
-      expected = batches.slice(0, i + 1);
-      expectEqualArrays(found, expected, 'for index ' + i);
-    }
   });
 
   it('can getAllMutationBatchesAffectingDocumentKey()', async () => {
@@ -514,16 +343,17 @@ function genericMutationQueueTests(): void {
       await addMutationBatch('foo/baz')
     ];
 
-    await mutationQueue.removeMutationBatches([batches[0]]);
+    await mutationQueue.removeMutationBatch(batches[0]);
     expectSetToEqual(await mutationQueue.collectGarbage(gc), []);
 
-    await mutationQueue.removeMutationBatches([batches[1]]);
+    await mutationQueue.removeMutationBatch(batches[1]);
     expectSetToEqual(await mutationQueue.collectGarbage(gc), [key('foo/ba')]);
 
-    await mutationQueue.removeMutationBatches([batches[5]]);
+    await mutationQueue.removeMutationBatch(batches[5]);
     expectSetToEqual(await mutationQueue.collectGarbage(gc), [key('foo/baz')]);
 
-    await mutationQueue.removeMutationBatches([batches[2], batches[3]]);
+    await mutationQueue.removeMutationBatch(batches[2]);
+    await mutationQueue.removeMutationBatch(batches[3]);
     expectSetToEqual(await mutationQueue.collectGarbage(gc), [
       key('foo/bar'),
       key('foo/bar2')
@@ -532,7 +362,8 @@ function genericMutationQueueTests(): void {
     batches.push(await addMutationBatch('foo/bar/suffix/baz'));
     expectSetToEqual(await mutationQueue.collectGarbage(gc), []);
 
-    await mutationQueue.removeMutationBatches([batches[4], batches[6]]);
+    await mutationQueue.removeMutationBatch(batches[4]);
+    await mutationQueue.removeMutationBatch(batches[6]);
     expectSetToEqual(await mutationQueue.collectGarbage(gc), [
       key('foo/bar/suffix/baz')
     ]);
@@ -554,73 +385,59 @@ function genericMutationQueueTests(): void {
 
     await mutationQueue.acknowledgeBatch(batch1, streamToken2);
 
-    expect(await mutationQueue.getHighestAcknowledgedBatchId()).to.deep.equal(
-      batch1.batchId
-    );
     expect(await mutationQueue.getLastStreamToken()).to.deep.equal(
       streamToken2
     );
   });
 
-  it('can removeMutationBatches()', async () => {
+  it('can removeMutationBatch()', async () => {
     const batches = await createBatches(10);
-    const last = batches[batches.length - 1];
 
-    await mutationQueue.removeMutationBatches([batches[0]]);
+    await mutationQueue.removeMutationBatch(batches[0]);
     batches.splice(0, 1);
     expect(await mutationQueue.countBatches()).to.equal(9);
 
     let found;
 
-    found = await mutationQueue.getAllMutationBatchesThroughBatchId(
-      last.batchId
-    );
+    found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, batches);
     expect(found.length).to.equal(9);
 
-    await mutationQueue.removeMutationBatches([
-      batches[0],
-      batches[1],
-      batches[2]
-    ]);
+    await mutationQueue.removeMutationBatch(batches[0]);
+    await mutationQueue.removeMutationBatch(batches[1]);
+    await mutationQueue.removeMutationBatch(batches[2]);
     batches.splice(0, 3);
     expect(await mutationQueue.countBatches()).to.equal(6);
 
-    found = await mutationQueue.getAllMutationBatchesThroughBatchId(
-      last.batchId
-    );
+    found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, batches);
     expect(found.length).to.equal(6);
 
-    await mutationQueue.removeMutationBatches([batches[batches.length - 1]]);
+    await mutationQueue.removeMutationBatch(batches[batches.length - 1]);
     batches.splice(batches.length - 1, 1);
     expect(await mutationQueue.countBatches()).to.equal(5);
 
-    found = await mutationQueue.getAllMutationBatchesThroughBatchId(
-      last.batchId
-    );
+    found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, batches);
     expect(found.length).to.equal(5);
 
-    await mutationQueue.removeMutationBatches([batches[3]]);
+    await mutationQueue.removeMutationBatch(batches[3]);
     batches.splice(3, 1);
     expect(await mutationQueue.countBatches()).to.equal(4);
 
-    await mutationQueue.removeMutationBatches([batches[1]]);
+    await mutationQueue.removeMutationBatch(batches[1]);
     batches.splice(1, 1);
     expect(await mutationQueue.countBatches()).to.equal(3);
 
-    found = await mutationQueue.getAllMutationBatchesThroughBatchId(
-      last.batchId
-    );
+    found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, batches);
     expect(found.length).to.equal(3);
     expect(await mutationQueue.checkEmpty()).to.equal(false);
 
-    await mutationQueue.removeMutationBatches(batches);
-    found = await mutationQueue.getAllMutationBatchesThroughBatchId(
-      last.batchId
-    );
+    for (const batch of batches) {
+      await mutationQueue.removeMutationBatch(batch);
+    }
+    found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, []);
     expect(found.length).to.equal(0);
     expect(await mutationQueue.checkEmpty()).to.equal(true);

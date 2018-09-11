@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { User } from '../auth/user';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
@@ -51,6 +50,7 @@ import {
 import { OnlineStateTracker } from './online_state_tracker';
 import { AsyncQueue } from '../util/async_queue';
 import { DocumentKeySet } from '../model/collections';
+import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -107,11 +107,17 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private listenTargets: { [targetId: number]: QueryData } = {};
 
-  private networkEnabled = false;
-
   private watchStream: PersistentListenStream;
   private writeStream: PersistentWriteStream;
-  private watchChangeAggregator: WatchChangeAggregator = null;
+  private watchChangeAggregator: WatchChangeAggregator | null = null;
+
+  /**
+   * Set to true by enableNetwork() and false by disableNetwork() and indicates
+   * the user-preferred network state.
+   */
+  private networkEnabled = false;
+
+  private isPrimary = false;
 
   private onlineStateTracker: OnlineStateTracker;
 
@@ -152,14 +158,15 @@ export class RemoteStore implements TargetMetadataProvider {
    * Starts up the remote store, creating streams, restoring state from
    * LocalStore, etc.
    */
-  async start(): Promise<void> {
-    await this.enableNetwork();
+  start(): Promise<void> {
+    return this.enableNetwork();
   }
 
   /** Re-enables the network. Idempotent. */
   async enableNetwork(): Promise<void> {
-    if (!this.networkEnabled) {
-      this.networkEnabled = true;
+    this.networkEnabled = true;
+
+    if (this.canUseNetwork()) {
       this.writeStream.lastStreamToken = await this.localStore.getLastStreamToken();
 
       if (this.shouldStartWatchStream()) {
@@ -178,6 +185,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * enableNetwork().
    */
   async disableNetwork(): Promise<void> {
+    this.networkEnabled = false;
     await this.disableNetworkInternal();
 
     // Set the OnlineState to Offline so get()s return from cache, etc.
@@ -185,34 +193,28 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async disableNetworkInternal(): Promise<void> {
-    if (this.networkEnabled) {
-      this.networkEnabled = false;
+    await this.writeStream.stop();
+    await this.watchStream.stop();
 
-      this.writeStream.stop();
-      this.watchStream.stop();
-
-      if (this.writePipeline.length > 0) {
-        log.debug(
-          LOG_TAG,
-          `Stopping write stream with ${
-            this.writePipeline.length
-          } pending writes`
-        );
-        this.writePipeline = [];
-      }
-
-      this.cleanUpWatchStreamState();
+    if (this.writePipeline.length > 0) {
+      log.debug(
+        LOG_TAG,
+        `Stopping write stream with ${this.writePipeline.length} pending writes`
+      );
+      this.writePipeline = [];
     }
+
+    this.cleanUpWatchStreamState();
   }
 
-  shutdown(): Promise<void> {
+  async shutdown(): Promise<void> {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
-    this.disableNetworkInternal();
+    this.networkEnabled = false;
+    await this.disableNetworkInternal();
 
     // Set the OnlineState to Unknown (rather than Offline) to avoid potentially
     // triggering spurious listener events with cached data, etc.
     this.onlineStateTracker.set(OnlineState.Unknown);
-    return Promise.resolve();
   }
 
   /** Starts new listen for the given query. Uses resume token if provided */
@@ -241,8 +243,16 @@ export class RemoteStore implements TargetMetadataProvider {
     delete this.listenTargets[targetId];
     if (this.watchStream.isOpen()) {
       this.sendUnwatchRequest(targetId);
-      if (objUtils.isEmpty(this.listenTargets)) {
+    }
+
+    if (objUtils.isEmpty(this.listenTargets)) {
+      if (this.watchStream.isOpen()) {
         this.watchStream.markIdle();
+      } else if (this.canUseNetwork()) {
+        // Revert to OnlineState.Unknown if the watch stream is not open and we
+        // have no listeners, since without any listens to send we cannot
+        // confirm if the stream is healthy and upgrade to OnlineState.Online.
+        this.onlineStateTracker.set(OnlineState.Unknown);
       }
     }
   }
@@ -262,7 +272,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * from watch so we wait for the ack to process any messages from this target.
    */
   private sendWatchRequest(queryData: QueryData): void {
-    this.watchChangeAggregator.recordPendingTargetRequest(queryData.targetId);
+    this.watchChangeAggregator!.recordPendingTargetRequest(queryData.targetId);
     this.watchStream.watch(queryData);
   }
 
@@ -272,7 +282,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * messages from this target.
    */
   private sendUnwatchRequest(targetId: TargetId): void {
-    this.watchChangeAggregator.recordPendingTargetRequest(targetId);
+    this.watchChangeAggregator!.recordPendingTargetRequest(targetId);
     this.watchStream.unwatch(targetId);
   }
 
@@ -300,9 +310,7 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private canUseNetwork(): boolean {
-    // TODO(mikelehen): This could take into account isPrimary when we merge
-    // with multitab.
-    return this.networkEnabled;
+    return this.isPrimary && this.networkEnabled;
   }
 
   private cleanUpWatchStreamState(): void {
@@ -329,7 +337,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
     // If we still need the watch stream, retry the connection.
     if (this.shouldStartWatchStream()) {
-      this.onlineStateTracker.handleWatchStreamFailure(error);
+      this.onlineStateTracker.handleWatchStreamFailure(error!);
 
       this.startWatchStream();
     } else {
@@ -358,26 +366,24 @@ export class RemoteStore implements TargetMetadataProvider {
     }
 
     if (watchChange instanceof DocumentWatchChange) {
-      this.watchChangeAggregator.handleDocumentChange(watchChange);
+      this.watchChangeAggregator!.handleDocumentChange(watchChange);
     } else if (watchChange instanceof ExistenceFilterChange) {
-      this.watchChangeAggregator.handleExistenceFilter(watchChange);
+      this.watchChangeAggregator!.handleExistenceFilter(watchChange);
     } else {
       assert(
         watchChange instanceof WatchTargetChange,
         'Expected watchChange to be an instance of WatchTargetChange'
       );
-      this.watchChangeAggregator.handleTargetChange(watchChange);
+      this.watchChangeAggregator!.handleTargetChange(watchChange);
     }
 
-    if (
-      !snapshotVersion.isEqual(SnapshotVersion.MIN) &&
-      snapshotVersion.compareTo(
-        this.localStore.getLastRemoteSnapshotVersion()
-      ) >= 0
-    ) {
-      // We have received a target change with a global snapshot if the snapshot
-      // version is not equal to SnapshotVersion.MIN.
-      await this.raiseWatchSnapshot(snapshotVersion);
+    if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+      const lastRemoteSnapshotVersion = await this.localStore.getLastRemoteSnapshotVersion();
+      if (snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0) {
+        // We have received a target change with a global snapshot if the snapshot
+        // version is not equal to SnapshotVersion.MIN.
+        await this.raiseWatchSnapshot(snapshotVersion);
+      }
     }
   }
 
@@ -391,7 +397,7 @@ export class RemoteStore implements TargetMetadataProvider {
       !snapshotVersion.isEqual(SnapshotVersion.MIN),
       "Can't raise event for unknown SnapshotVersion"
     );
-    const remoteEvent = this.watchChangeAggregator.createRemoteEvent(
+    const remoteEvent = this.watchChangeAggregator!.createRemoteEvent(
       snapshotVersion
     );
 
@@ -436,7 +442,8 @@ export class RemoteStore implements TargetMetadataProvider {
       const requestQueryData = new QueryData(
         queryData.query,
         targetId,
-        QueryPurpose.ExistenceFilterMismatch
+        QueryPurpose.ExistenceFilterMismatch,
+        queryData.sequenceNumber
       );
       this.sendWatchRequest(requestQueryData);
     });
@@ -455,7 +462,7 @@ export class RemoteStore implements TargetMetadataProvider {
         // A watched target might have been removed already.
         if (objUtils.contains(this.listenTargets, targetId)) {
           delete this.listenTargets[targetId];
-          this.watchChangeAggregator.removeTarget(targetId);
+          this.watchChangeAggregator!.removeTarget(targetId);
           return this.syncEngine.rejectListen(targetId, error);
         }
       });
@@ -502,7 +509,7 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private canAddToWritePipeline(): boolean {
     return (
-      this.networkEnabled && this.writePipeline.length < MAX_PENDING_WRITES
+      this.canUseNetwork() && this.writePipeline.length < MAX_PENDING_WRITES
     );
   }
 
@@ -556,7 +563,24 @@ export class RemoteStore implements TargetMetadataProvider {
         for (const batch of this.writePipeline) {
           this.writeStream.writeMutations(batch.mutations);
         }
-      });
+      })
+      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+  }
+
+  /**
+   * Verifies the error thrown by an LocalStore operation. If a LocalStore
+   * operation fails because the primary lease has been taken by another client,
+   * we ignore the error. All other errors are re-thrown.
+   *
+   * @param err An error returned by a LocalStore operation.
+   * @return A Promise that resolves after we recovered, or the original error.
+   */
+  private ignoreIfPrimaryLeaseLoss(err: FirestoreError): void {
+    if (isPrimaryLeaseLostError(err)) {
+      log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+    } else {
+      throw err;
+    }
   }
 
   private onMutationResult(
@@ -630,7 +654,9 @@ export class RemoteStore implements TargetMetadataProvider {
       );
       this.writeStream.lastStreamToken = emptyByteString();
 
-      return this.localStore.setLastStreamToken(emptyByteString());
+      return this.localStore
+        .setLastStreamToken(emptyByteString())
+        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.
@@ -664,16 +690,30 @@ export class RemoteStore implements TargetMetadataProvider {
     return new Transaction(this.datastore);
   }
 
-  async handleUserChange(user: User): Promise<void> {
-    log.debug(LOG_TAG, 'RemoteStore changing users: uid=', user.uid);
-
-    if (this.networkEnabled) {
+  async handleCredentialChange(): Promise<void> {
+    if (this.canUseNetwork()) {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
-      this.disableNetworkInternal();
+      log.debug(LOG_TAG, 'RemoteStore restarting streams for new credential');
+      this.networkEnabled = false;
+      await this.disableNetworkInternal();
       this.onlineStateTracker.set(OnlineState.Unknown);
       await this.enableNetwork();
+    }
+  }
+
+  /**
+   * Toggles the network state when the client gains or loses its primary lease.
+   */
+  async applyPrimaryState(isPrimary: boolean): Promise<void> {
+    this.isPrimary = isPrimary;
+
+    if (isPrimary && this.networkEnabled) {
+      await this.enableNetwork();
+    } else if (!isPrimary) {
+      await this.disableNetworkInternal();
+      this.onlineStateTracker.set(OnlineState.Unknown);
     }
   }
 }
