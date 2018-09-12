@@ -25,7 +25,7 @@ import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { Query } from '../../../src/core/query';
-import { doc, path, queryData, wrapObject } from '../../util/helpers';
+import { path, wrapObject } from '../../util/helpers';
 import { QueryCache } from '../../../src/local/query_cache';
 import {
   LiveTargets,
@@ -91,7 +91,7 @@ function genericLruGarbageCollectorTests(
     documentCache = persistence.getRemoteDocumentCache();
     initialSequenceNumber = await persistence.runTransaction(
       'highest sequence number',
-      false,
+      'readwrite',
       txn => PersistencePromise.resolve(txn.currentSequenceNumber)
     );
     // TODO(gsoltis): remove cast
@@ -99,6 +99,7 @@ function genericLruGarbageCollectorTests(
       .referenceDelegate;
     referenceDelegate.setInMemoryPins(new ReferenceSet());
     garbageCollector = new LruGarbageCollector(
+      // tslint:disable-next-line:no-any
       (referenceDelegate as any) as LruDelegate
     );
   }
@@ -125,7 +126,7 @@ function genericLruGarbageCollectorTests(
   }
 
   function addNextTarget(): Promise<QueryData> {
-    return persistence.runTransaction('add query', false, txn => {
+    return persistence.runTransaction('add query', 'readwrite', txn => {
       return addNextTargetInTransaction(txn);
     });
   }
@@ -158,7 +159,7 @@ function genericLruGarbageCollectorTests(
   function markDocumentEligibleForGC(key: DocumentKey): Promise<void> {
     return persistence.runTransaction(
       'mark document eligible for GC',
-      false,
+      'readwrite',
       txn => {
         return markDocumentEligibleForGCInTransaction(txn, key);
       }
@@ -178,13 +179,13 @@ function genericLruGarbageCollectorTests(
   }
 
   function calculateTargetCount(percentile: number): Promise<number> {
-    return persistence.runTransaction('calculate target count', false, txn => {
+    return persistence.runTransaction('calculate target count', 'readwrite', txn => {
       return garbageCollector.calculateTargetCount(txn, percentile);
     });
   }
 
   function nthSequenceNumber(n: number): Promise<ListenSequenceNumber> {
-    return persistence.runTransaction('nth sequence number', false, txn => {
+    return persistence.runTransaction('nth sequence number', 'readwrite', txn => {
       return garbageCollector.nthSequenceNumber(txn, n);
     });
   }
@@ -193,7 +194,7 @@ function genericLruGarbageCollectorTests(
     upperBound: ListenSequenceNumber,
     liveTargets: LiveTargets
   ): Promise<number> {
-    return persistence.runTransaction('remove targets', false, txn => {
+    return persistence.runTransaction('remove targets', 'readwrite', txn => {
       return garbageCollector.removeTargets(txn, upperBound, liveTargets);
     });
   }
@@ -203,7 +204,7 @@ function genericLruGarbageCollectorTests(
   ): Promise<number> {
     return persistence.runTransaction(
       'remove orphaned documents',
-      false,
+      'readwrite',
       txn => {
         return garbageCollector.removeOrphanedDocuments(txn, upperBound);
       }
@@ -274,7 +275,7 @@ function genericLruGarbageCollectorTests(
   it('sequence number for multiple targets in a transaction', async () => {
     // 50 queries, 9 with one transaction, incrementing from there. Should get second sequence
     // number.
-    await persistence.runTransaction('9 targets in a batch', false, txn => {
+    await persistence.runTransaction('9 targets in a batch', 'readwrite', txn => {
       let p = PersistencePromise.resolve();
       for (let i = 0; i < 9; i++) {
         p = p.next(() => addNextTargetInTransaction(txn)).next();
@@ -289,7 +290,7 @@ function genericLruGarbageCollectorTests(
   });
 
   it('all collected targets in a single transaction', async () => {
-    await persistence.runTransaction('11 targets in a batch', false, txn => {
+    await persistence.runTransaction('11 targets in a batch', 'readwrite', txn => {
       let p = PersistencePromise.resolve();
       for (let i = 0; i < 11; i++) {
         p = p.next(() => addNextTargetInTransaction(txn)).next();
@@ -319,7 +320,7 @@ function genericLruGarbageCollectorTests(
     // Add mutated docs, then add one of them to a query target so it doesn't get GC'd.
     // Expect 3 past the initial value: the mutations not part of a query, and two queries
     const docInTarget = nextTestDocumentKey();
-    await persistence.runTransaction('mark mutations', false, txn => {
+    await persistence.runTransaction('mark mutations', 'readwrite', txn => {
       // Adding 9 doc keys in a transaction. If we remove one of them, we'll have room for two
       // actual targets.
       let p = markDocumentEligibleForGCInTransaction(txn, docInTarget);
@@ -332,7 +333,7 @@ function genericLruGarbageCollectorTests(
     for (let i = 0; i < 49; i++) {
       await addNextTarget();
     }
-    await persistence.runTransaction('target with a mutation', false, txn => {
+    await persistence.runTransaction('target with a mutation', 'readwrite', txn => {
       return addNextTargetInTransaction(txn).next(queryData => {
         const keySet = documentKeySet().add(docInTarget);
         return queryCache.addMatchingKeys(txn, keySet, queryData.targetId);
@@ -361,7 +362,7 @@ function genericLruGarbageCollectorTests(
     // Make sure we removed the even targets with targetID <= 20.
     await persistence.runTransaction(
       'verify remaining targets > 20 or odd',
-      false,
+      'readwrite',
       txn => {
         // TODO: change this once forEachTarget is added to QueryCache interface
         return (queryCache as IndexedDbQueryCache).forEachTarget(
@@ -386,7 +387,7 @@ function genericLruGarbageCollectorTests(
     // Add two documents to first target, queue a mutation on the second document
     await persistence.runTransaction(
       'add a target and add two documents to it',
-      false,
+      'readwrite',
       txn => {
         return addNextTargetInTransaction(txn).next(queryData => {
           let keySet = documentKeySet();
@@ -409,7 +410,7 @@ function genericLruGarbageCollectorTests(
     );
 
     // Add a second query and register a third document on it
-    await persistence.runTransaction('second target', false, txn => {
+    await persistence.runTransaction('second target', 'readwrite', txn => {
       return addNextTargetInTransaction(txn).next(queryData => {
         return cacheADocumentInTransaction(txn).next(docKey3 => {
           expectedRetained.add(docKey3);
@@ -420,7 +421,7 @@ function genericLruGarbageCollectorTests(
     });
 
     // cache another document and prepare a mutation on it.
-    await persistence.runTransaction('queue a mutation', false, txn => {
+    await persistence.runTransaction('queue a mutation', 'readwrite', txn => {
       return cacheADocumentInTransaction(txn).next(docKey4 => {
         mutations.push(mutation(docKey4));
         expectedRetained.add(docKey4);
@@ -431,7 +432,7 @@ function genericLruGarbageCollectorTests(
     // serve to keep the mutated documents from being GC'd while the mutations are outstanding.
     await persistence.runTransaction(
       'actually register the mutations',
-      false,
+      'readwrite',
       txn => {
         return mutationQueue.addMutationBatch(
           txn,
@@ -447,7 +448,7 @@ function genericLruGarbageCollectorTests(
     const toBeRemoved = new Set<DocumentKey>();
     await persistence.runTransaction(
       "add orphaned docs (previously mutated, then ack'd",
-      false,
+      'readwrite',
       txn => {
         let p = PersistencePromise.resolve();
         for (let i = 0; i < 5; i++) {
@@ -466,7 +467,7 @@ function genericLruGarbageCollectorTests(
     // use a large sequence number to remove as much as possible
     const removed = await removeOrphanedDocuments(1000);
     expect(removed).to.equal(toBeRemoved.size);
-    await persistence.runTransaction('verify', false, txn => {
+    await persistence.runTransaction('verify', 'readwrite', txn => {
       let p = PersistencePromise.resolve();
       toBeRemoved.forEach(docKey => {
         p = p.next(() => {
@@ -515,7 +516,7 @@ function genericLruGarbageCollectorTests(
     // be retained.
     const oldestTarget = await persistence.runTransaction(
       'Add oldest target and docs',
-      false,
+      'readwrite',
       txn => {
         return addNextTargetInTransaction(txn).next(queryData => {
           let p = PersistencePromise.resolve();
@@ -544,7 +545,7 @@ function genericLruGarbageCollectorTests(
     // This will be the document in this target that gets an update later.
     const middleTarget = await persistence.runTransaction(
       'Add middle target and docs',
-      false,
+      'readwrite',
       txn => {
         return addNextTargetInTransaction(txn).next(queryData => {
           let p = PersistencePromise.resolve();
@@ -601,7 +602,7 @@ function genericLruGarbageCollectorTests(
     let newestDocsToAddToOldest = documentKeySet();
     await persistence.runTransaction(
       'Add newest target and docs',
-      false,
+      'readwrite',
       txn => {
         return addNextTargetInTransaction(txn).next(queryData => {
           let p = PersistencePromise.resolve();
@@ -640,7 +641,7 @@ function genericLruGarbageCollectorTests(
     // 2 doc writes, add one of them to the oldest target.
     await persistence.runTransaction(
       '2 doc writes, add one of them to the oldest target',
-      false,
+      'readwrite',
       txn => {
         let keySet = documentKeySet();
         return cacheADocumentInTransaction(txn)
@@ -672,7 +673,7 @@ function genericLruGarbageCollectorTests(
     // Remove some documents from the middle target.
     await persistence.runTransaction(
       'Remove some documents from the middle target',
-      false,
+      'readwrite',
       txn => {
         return updateTargetInTransaction(txn, middleTarget).next(() =>
           queryCache.removeMatchingKeys(
@@ -689,7 +690,7 @@ function genericLruGarbageCollectorTests(
     // upperBound is the sequence number right before middleTarget is updated, then removed.
     const upperBound = await persistence.runTransaction(
       'Add a couple docs from the newest target to the oldest',
-      false,
+      'readwrite',
       txn => {
         return updateTargetInTransaction(txn, oldestTarget)
           .next(() => {
@@ -706,7 +707,7 @@ function genericLruGarbageCollectorTests(
     // Update a doc in the middle target
     await persistence.runTransaction(
       'Update a doc in the middle target',
-      false,
+      'readwrite',
       txn => {
         const doc = new Document(
           middleDocToUpdate,
@@ -721,7 +722,7 @@ function genericLruGarbageCollectorTests(
     );
 
     // Remove the middle target
-    await persistence.runTransaction('remove middle target', false, txn => {
+    await persistence.runTransaction('remove middle target', 'readwrite', txn => {
       // TODO(gsoltis): fix this cast
       return (persistence as IndexedDbPersistence).referenceDelegate.removeTarget(
         txn,
@@ -732,7 +733,7 @@ function genericLruGarbageCollectorTests(
     // Write a doc and get an ack, not part of a target
     await persistence.runTransaction(
       'Write a doc and get an ack, not part of a target',
-      false,
+      'readwrite',
       txn => {
         return cacheADocumentInTransaction(txn).next(docKey => {
           // This should be retained, it's too new to get removed.
@@ -752,7 +753,7 @@ function genericLruGarbageCollectorTests(
     expect(removed).to.equal(1);
     const docsRemoved = await removeOrphanedDocuments(upperBound);
     expect(docsRemoved).to.equal(expectedRemoved.size);
-    await persistence.runTransaction('verify results', false, txn => {
+    await persistence.runTransaction('verify results', 'readwrite', txn => {
       let p = PersistencePromise.resolve();
       expectedRemoved.forEach(key => {
         p = p.next(() => documentCache.getEntry(txn, key)).next(maybeDoc => {

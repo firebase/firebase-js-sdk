@@ -42,9 +42,7 @@ import {
   DbTargetDocument,
   DbTargetDocumentKey,
   DbMutationQueueKey,
-  DbMutationQueue,
-  DbDocumentMutationKey,
-  DbDocumentMutation
+  DbMutationQueue
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
@@ -55,7 +53,6 @@ import {
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import { Platform } from '../platform/platform';

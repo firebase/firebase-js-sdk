@@ -42,8 +42,7 @@ import { TargetIdGenerator } from '../core/target_id_generator';
 import {
   SimpleDbStore,
   SimpleDbTransaction,
-  SimpleDb,
-  IterationController
+  SimpleDb
 } from './simple_db';
 import {
   IndexedDbPersistence,
