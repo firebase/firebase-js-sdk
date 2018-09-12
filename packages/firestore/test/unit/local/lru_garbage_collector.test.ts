@@ -179,15 +179,23 @@ function genericLruGarbageCollectorTests(
   }
 
   function calculateTargetCount(percentile: number): Promise<number> {
-    return persistence.runTransaction('calculate target count', 'readwrite', txn => {
-      return garbageCollector.calculateTargetCount(txn, percentile);
-    });
+    return persistence.runTransaction(
+      'calculate target count',
+      'readwrite',
+      txn => {
+        return garbageCollector.calculateTargetCount(txn, percentile);
+      }
+    );
   }
 
   function nthSequenceNumber(n: number): Promise<ListenSequenceNumber> {
-    return persistence.runTransaction('nth sequence number', 'readwrite', txn => {
-      return garbageCollector.nthSequenceNumber(txn, n);
-    });
+    return persistence.runTransaction(
+      'nth sequence number',
+      'readwrite',
+      txn => {
+        return garbageCollector.nthSequenceNumber(txn, n);
+      }
+    );
   }
 
   function removeTargets(
@@ -275,13 +283,17 @@ function genericLruGarbageCollectorTests(
   it('sequence number for multiple targets in a transaction', async () => {
     // 50 queries, 9 with one transaction, incrementing from there. Should get second sequence
     // number.
-    await persistence.runTransaction('9 targets in a batch', 'readwrite', txn => {
-      let p = PersistencePromise.resolve();
-      for (let i = 0; i < 9; i++) {
-        p = p.next(() => addNextTargetInTransaction(txn)).next();
+    await persistence.runTransaction(
+      '9 targets in a batch',
+      'readwrite',
+      txn => {
+        let p = PersistencePromise.resolve();
+        for (let i = 0; i < 9; i++) {
+          p = p.next(() => addNextTargetInTransaction(txn)).next();
+        }
+        return p;
       }
-      return p;
-    });
+    );
     for (let i = 9; i < 50; i++) {
       await addNextTarget();
     }
@@ -290,13 +302,17 @@ function genericLruGarbageCollectorTests(
   });
 
   it('all collected targets in a single transaction', async () => {
-    await persistence.runTransaction('11 targets in a batch', 'readwrite', txn => {
-      let p = PersistencePromise.resolve();
-      for (let i = 0; i < 11; i++) {
-        p = p.next(() => addNextTargetInTransaction(txn)).next();
+    await persistence.runTransaction(
+      '11 targets in a batch',
+      'readwrite',
+      txn => {
+        let p = PersistencePromise.resolve();
+        for (let i = 0; i < 11; i++) {
+          p = p.next(() => addNextTargetInTransaction(txn)).next();
+        }
+        return p;
       }
-      return p;
-    });
+    );
     for (let i = 11; i < 50; i++) {
       await addNextTarget();
     }
@@ -333,12 +349,16 @@ function genericLruGarbageCollectorTests(
     for (let i = 0; i < 49; i++) {
       await addNextTarget();
     }
-    await persistence.runTransaction('target with a mutation', 'readwrite', txn => {
-      return addNextTargetInTransaction(txn).next(queryData => {
-        const keySet = documentKeySet().add(docInTarget);
-        return queryCache.addMatchingKeys(txn, keySet, queryData.targetId);
-      });
-    });
+    await persistence.runTransaction(
+      'target with a mutation',
+      'readwrite',
+      txn => {
+        return addNextTargetInTransaction(txn).next(queryData => {
+          const keySet = documentKeySet().add(docInTarget);
+          return queryCache.addMatchingKeys(txn, keySet, queryData.targetId);
+        });
+      }
+    );
     const expected = initialSequenceNumber + 3;
     expect(await nthSequenceNumber(10)).to.equal(expected);
   });
@@ -722,13 +742,17 @@ function genericLruGarbageCollectorTests(
     );
 
     // Remove the middle target
-    await persistence.runTransaction('remove middle target', 'readwrite', txn => {
-      // TODO(gsoltis): fix this cast
-      return (persistence as IndexedDbPersistence).referenceDelegate.removeTarget(
-        txn,
-        middleTarget
-      );
-    });
+    await persistence.runTransaction(
+      'remove middle target',
+      'readwrite',
+      txn => {
+        // TODO(gsoltis): fix this cast
+        return (persistence as IndexedDbPersistence).referenceDelegate.removeTarget(
+          txn,
+          middleTarget
+        );
+      }
+    );
 
     // Write a doc and get an ack, not part of a target
     await persistence.runTransaction(

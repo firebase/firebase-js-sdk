@@ -39,11 +39,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { TargetIdGenerator } from '../core/target_id_generator';
-import {
-  SimpleDbStore,
-  SimpleDbTransaction,
-  SimpleDb
-} from './simple_db';
+import { SimpleDbStore, SimpleDbTransaction, SimpleDb } from './simple_db';
 import {
   IndexedDbPersistence,
   IndexedDbTransaction,
