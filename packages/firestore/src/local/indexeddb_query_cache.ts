@@ -39,14 +39,25 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { TargetIdGenerator } from '../core/target_id_generator';
-import { SimpleDbStore, SimpleDbTransaction, SimpleDb } from './simple_db';
+import {
+  SimpleDbStore,
+  SimpleDbTransaction,
+  SimpleDb,
+  IterationController
+} from './simple_db';
 import {
   IndexedDbPersistence,
-  IndexedDbTransaction
+  IndexedDbTransaction,
+  SentinelRow
 } from './indexeddb_persistence';
+import { ListenSequence } from '../core/listen_sequence';
+import { LiveTargets } from './lru_garbage_collector';
 
 export class IndexedDbQueryCache implements QueryCache {
-  constructor(private serializer: LocalSerializer) {}
+  constructor(
+    private serializer: LocalSerializer,
+    private readonly db: IndexedDbPersistence
+  ) {}
 
   /** The garbage collector to notify about potential garbage keys. */
   private garbageCollector: GarbageCollector | null = null;
@@ -145,6 +156,100 @@ export class IndexedDbQueryCache implements QueryCache {
       });
   }
 
+  /**
+   * Drops any targets with sequence number less than or equal to the upper bound, excepting those
+   * present in `activeTargetIds`. Document associations for the removed targets are also removed.
+   * Returns the number of targets removed.
+   */
+  removeTargets(
+    txn: PersistenceTransaction,
+    upperBound: ListenSequenceNumber,
+    activeTargetIds: LiveTargets
+  ): PersistencePromise<number> {
+    let count = 0;
+    const promises: Array<PersistencePromise<void>> = [];
+    return targetsStore(txn)
+      .iterate((key, value) => {
+        const queryData = this.serializer.fromDbTarget(value);
+        if (
+          queryData.sequenceNumber <= upperBound &&
+          activeTargetIds[queryData.targetId] === undefined
+        ) {
+          count++;
+          promises.push(this.removeQueryData(txn, queryData));
+        }
+      })
+      .next(() => PersistencePromise.waitFor(promises))
+      .next(() => count);
+  }
+
+  /**
+   * Call provided function with each `QueryData` that we have cached.
+   */
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (q: QueryData) => void
+  ): PersistencePromise<void> {
+    return targetsStore(txn).iterate((key, value) => {
+      const queryData = this.serializer.fromDbTarget(value);
+      f(queryData);
+    });
+  }
+
+  /**
+   * Call provided function for each document in the cache that is 'orphaned'. Orphaned
+   * means not a part of any target, so the only entry in the target-document index for
+   * that document will be the sentinel row (targetId 0), which will also have the sequence
+   * number for the last time the document was accessed.
+   */
+  forEachOrphanedDocument(
+    txn: PersistenceTransaction,
+    f: (docKey: DocumentKey, sequenceNumber: ListenSequenceNumber) => void
+  ): PersistencePromise<void> {
+    const store = IndexedDbPersistence.getStore<
+      DbTargetDocumentKey,
+      SentinelRow
+    >(txn, DbTargetDocument.store);
+    let nextToReport: ListenSequenceNumber = ListenSequence.INVALID;
+    let nextPath: EncodedResourcePath.EncodedResourcePath;
+    return store
+      .iterate(
+        {
+          index: DbTargetDocument.documentTargetsIndex
+        },
+        ([targetId, docKey], { path, sequenceNumber }) => {
+          if (targetId === 0) {
+            // if nextToReport is valid, report it, this is a new key so the last one
+            // must be not be a member of any targets.
+            if (nextToReport !== ListenSequence.INVALID) {
+              f(
+                new DocumentKey(EncodedResourcePath.decode(nextPath)),
+                nextToReport
+              );
+            }
+            // set nextToReport to be this sequence number. It's the next one we might
+            // report, if we don't find any targets for this document.
+            nextToReport = sequenceNumber;
+            nextPath = path;
+          } else {
+            // set nextToReport to be invalid, we know we don't need to report this one since
+            // we found a target for it.
+            nextToReport = ListenSequence.INVALID;
+          }
+        }
+      )
+      .next(() => {
+        // Since we report sequence numbers after getting to the next key, we need to check if
+        // the last key we iterated over was an orphaned document and report it.
+        if (nextToReport !== ListenSequence.INVALID) {
+          f(
+            new DocumentKey(EncodedResourcePath.decode(nextPath)),
+            nextToReport
+          );
+        }
+      });
+  }
+
   private retrieveMetadata(
     transaction: PersistenceTransaction
   ): PersistencePromise<DbTargetGlobal> {
@@ -238,6 +343,7 @@ export class IndexedDbQueryCache implements QueryCache {
     keys.forEach(key => {
       const path = EncodedResourcePath.encode(key.path);
       promises.push(store.put(new DbTargetDocument(targetId, path)));
+      promises.push(this.db.referenceDelegate.addReference(txn, key));
     });
     return PersistencePromise.waitFor(promises);
   }
@@ -257,6 +363,7 @@ export class IndexedDbQueryCache implements QueryCache {
       if (this.garbageCollector !== null) {
         this.garbageCollector.addPotentialGarbageKey(key);
       }
+      promises.push(this.db.referenceDelegate.removeReference(txn, key));
     });
     return PersistencePromise.waitFor(promises);
   }
@@ -352,9 +459,14 @@ export class IndexedDbQueryCache implements QueryCache {
           keysOnly: true,
           range
         },
-        (key, _, control) => {
-          count++;
-          control.done();
+        ([targetId, path], _, control) => {
+          // Having a sentinel row for a document does not count as containing that document;
+          // For the query cache, containing the document means the document is part of some
+          // target.
+          if (targetId !== 0) {
+            count++;
+            control.done();
+          }
         }
       )
       .next(() => count > 0);

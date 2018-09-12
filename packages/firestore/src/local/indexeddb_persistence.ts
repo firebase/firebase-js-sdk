@@ -21,7 +21,10 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
-import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
+import {
+  IndexedDbMutationQueue,
+  mutationQueueContainsKey
+} from './indexeddb_mutation_queue';
 import {
   IndexedDbQueryCache,
   getHighestListenSequenceNumber
@@ -35,14 +38,21 @@ import {
   DbPrimaryClientKey,
   SCHEMA_VERSION,
   DbTargetGlobal,
-  SchemaConverter
+  SchemaConverter,
+  DbTargetDocument,
+  DbTargetDocumentKey,
+  DbMutationQueueKey,
+  DbMutationQueue,
+  DbDocumentMutationKey,
+  DbDocumentMutation
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
-  PrimaryStateListener
+  PrimaryStateListener,
+  ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
@@ -53,6 +63,12 @@ import { AsyncQueue, TimerId } from '../util/async_queue';
 import { ClientId } from './shared_client_state';
 import { CancelablePromise } from '../util/promise';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
+import { ReferenceSet } from './reference_set';
+import { QueryData } from './query_data';
+import { DocumentKey } from '../model/document_key';
+import { encode, EncodedResourcePath } from './encoded_resource_path';
+import { LiveTargets, LruDelegate } from './lru_garbage_collector';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -247,6 +263,7 @@ export class IndexedDbPersistence implements Persistence {
   private remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage;
   private listenSequence: ListenSequence;
+  readonly referenceDelegate: ReferenceDelegate;
 
   // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
   // is still experimental. When multi-client is switched to always on, `multiClientParams` will
@@ -265,11 +282,12 @@ export class IndexedDbPersistence implements Persistence {
         UNSUPPORTED_PLATFORM_ERROR_MSG
       );
     }
+    this.referenceDelegate = new IndexedDbLruDelegate(this);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
     this.allowTabSynchronization = multiClientParams !== undefined;
-    this.queryCache = new IndexedDbQueryCache(this.serializer);
+    this.queryCache = new IndexedDbQueryCache(this.serializer, this);
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
@@ -694,7 +712,7 @@ export class IndexedDbPersistence implements Persistence {
     return IndexedDbMutationQueue.forUser(user, this.serializer);
   }
 
-  getQueryCache(): QueryCache {
+  getQueryCache(): IndexedDbQueryCache {
     assert(
       this.started,
       'Cannot initialize QueryCache before persistence is started.'
@@ -1025,4 +1043,213 @@ function clientMetadataStore(
   return txn.store<DbClientMetadataKey, DbClientMetadata>(
     DbClientMetadata.store
   );
+}
+
+/** Provides LRU functionality for IndexedDB persistence. */
+class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
+  private additionalReferences: ReferenceSet | null;
+
+  constructor(private readonly db: IndexedDbPersistence) {}
+
+  setInMemoryPins(inMemoryPins: ReferenceSet): void {
+    this.additionalReferences = inMemoryPins;
+  }
+
+  removeTarget(
+    txn: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void> {
+    const updated = queryData.copy({
+      sequenceNumber: txn.currentSequenceNumber
+    });
+    return this.db.getQueryCache().updateQueryData(txn, updated);
+  }
+
+  addReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return this.writeSentinelKey(txn, key);
+  }
+
+  removeReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return this.writeSentinelKey(txn, key);
+  }
+
+  removeMutationReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return this.writeSentinelKey(txn, key);
+  }
+
+  onLimboDocumentUpdated(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return this.writeSentinelKey(txn, key);
+  }
+
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (q: QueryData) => void
+  ): PersistencePromise<void> {
+    return this.db.getQueryCache().forEachTarget(txn, f);
+  }
+
+  forEachOrphanedDocumentSequenceNumber(
+    txn: PersistenceTransaction,
+    f: (sequenceNumber: ListenSequenceNumber) => void
+  ): PersistencePromise<void> {
+    return this.db
+      .getQueryCache()
+      .forEachOrphanedDocument(txn, (docKey, sequenceNumber) =>
+        f(sequenceNumber)
+      );
+  }
+
+  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
+    return this.db.getQueryCache().getQueryCount(txn);
+  }
+
+  removeTargets(
+    txn: PersistenceTransaction,
+    upperBound: ListenSequenceNumber,
+    liveTargets: LiveTargets
+  ): PersistencePromise<number> {
+    return this.db.getQueryCache().removeTargets(txn, upperBound, liveTargets);
+  }
+
+  removeOrphanedDocuments(
+    txn: PersistenceTransaction,
+    upperBound: ListenSequenceNumber
+  ): PersistencePromise<number> {
+    let count = 0;
+    let p = PersistencePromise.resolve();
+    const iteration = this.db
+      .getQueryCache()
+      .forEachOrphanedDocument(txn, (docKey, sequenceNumber) => {
+        if (sequenceNumber <= upperBound) {
+          p = p.next(() => this.isPinned(txn, docKey)).next(isPinned => {
+            if (!isPinned) {
+              count++;
+              return this.removeOrphanedDocument(txn, docKey);
+            }
+          });
+        }
+      });
+    return iteration.next(() => p).next(() => count);
+  }
+
+  /**
+   * Clears a document from the cache. The document is assumed to be orphaned, so target-document
+   * associations are not queried. We remove it from the remote document cache, as well as remove
+   * its sentinel row.
+   */
+  private removeOrphanedDocument(
+    txn: PersistenceTransaction,
+    docKey: DocumentKey
+  ): PersistencePromise<void> {
+    return PersistencePromise.waitFor([
+      sentinelKeyStore(txn).delete(sentinelKey(docKey)),
+      this.db.getRemoteDocumentCache().removeEntry(txn, docKey)
+    ]);
+  }
+
+  /**
+   * Returns true if anything would prevent this document from being garbage collected, given that
+   * the document in question is not present in any targets and has a sequence number less than or
+   * equal to the upper bound for the collection run.
+   */
+  private isPinned(
+    txn: PersistenceTransaction,
+    docKey: DocumentKey
+  ): PersistencePromise<boolean> {
+    return this.additionalReferences!.containsKey(txn, docKey).next(
+      isPinned => {
+        if (isPinned) {
+          return PersistencePromise.resolve(true);
+        } else {
+          return this.mutationQueuesContainKey(txn, docKey);
+        }
+      }
+    );
+  }
+
+  /** Returns true if any mutation queue contains the given document. */
+  private mutationQueuesContainKey(
+    txn: PersistenceTransaction,
+    docKey: DocumentKey
+  ): PersistencePromise<boolean> {
+    let found = false;
+    return IndexedDbPersistence.getStore<DbMutationQueueKey, DbMutationQueue>(
+      txn,
+      DbMutationQueue.store
+    )
+      .iterateAsync(userId => {
+        return mutationQueueContainsKey(txn, userId, docKey).next(
+          containsKey => {
+            if (containsKey) {
+              found = true;
+            }
+            return PersistencePromise.resolve(!containsKey);
+          }
+        );
+      })
+      .next(() => found);
+  }
+
+  private writeSentinelKey(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return sentinelKeyStore(txn).put(
+      sentinelRow(key, txn.currentSequenceNumber)
+    );
+  }
+}
+
+/**
+ * `SentinelRow` describes the schema of rows in the DbTargetDocument store that
+ * have TargetId === 0. The sequence number is an approximation of a last-used value
+ * for the document identified by the path portion of the key.
+ */
+export type SentinelRow = {
+  targetId: TargetId;
+  path: EncodedResourcePath;
+  sequenceNumber: ListenSequenceNumber;
+};
+
+/**
+ * The sentinel key store is the same as the DbTargetDocument store, but allows for
+ * reading and writing sequence numbers as part of the value stored.
+ */
+function sentinelKeyStore(
+  txn: PersistenceTransaction
+): SimpleDbStore<DbTargetDocumentKey, SentinelRow> {
+  return IndexedDbPersistence.getStore<DbTargetDocumentKey, SentinelRow>(
+    txn,
+    DbTargetDocument.store
+  );
+}
+
+function sentinelKey(key: DocumentKey): [TargetId, EncodedResourcePath] {
+  return [0, encode(key.path)];
+}
+
+/**
+ * @return A value suitable for writing in the sentinel key store.
+ */
+function sentinelRow(
+  key: DocumentKey,
+  sequenceNumber: ListenSequenceNumber
+): SentinelRow {
+  return {
+    targetId: 0,
+    path: encode(key.path),
+    sequenceNumber
+  };
 }
