@@ -11,7 +11,8 @@
     "Firebase",
     "firebase",
     "realtime",
-    "storage"
+    "storage",
+    "performance"
   ],
   "files": [
     "**/dist/",
@@ -43,7 +44,8 @@
     "@firebase/functions": "0.4.5",
     "@firebase/messaging": "0.3.18",
     "@firebase/polyfill": "0.3.12",
-    "@firebase/storage": "0.2.14"
+    "@firebase/storage": "0.2.14",
+    "@firebase/performance": "0.0.3"
   },
   "devDependencies": {
     "git-rev-sync": "1.12.0",

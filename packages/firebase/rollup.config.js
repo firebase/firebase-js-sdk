@@ -24,6 +24,24 @@ import { uglify } from 'rollup-plugin-uglify';
 import pkg from './package.json';
 
 import appPkg from './app/package.json';
+import authPkg from './auth/package.json';
+import databasePkg from './database/package.json';
+import firestorePkg from './firestore/package.json';
+import functionsPkg from './functions/package.json';
+import messagingPkg from './messaging/package.json';
+import storagePkg from './storage/package.json';
+import performancePkg from './performance/package.json';
+
+const pkgsByName = {
+  app: appPkg,
+  auth: authPkg,
+  database: databasePkg,
+  firestore: firestorePkg,
+  functions: functionsPkg,
+  messaging: messagingPkg,
+  storage: storagePkg,
+  performance: performancePkg
+};
 
 const plugins = [
   sourcemaps(),

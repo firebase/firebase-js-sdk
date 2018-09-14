@@ -15,19 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { extractAppConfig } from './util/extract-app-config';
-import { getInstallationEntry } from './util/get-installation-entry';
+import { Logger, LogLevel } from '@firebase/logger';
+import { SERVICE_NAME } from '../constants';
 
-export async function getId(app: FirebaseApp): Promise<string> {
-  const appConfig = extractAppConfig(app);
-  const { installationEntry, registrationPromise } = await getInstallationEntry(
-    appConfig
-  );
-  if (registrationPromise) {
-    // Suppress registration errors as they are not a problem for getId.
-    registrationPromise.catch(() => {});
-  }
-
-  return installationEntry.fid;
-}
+export const consoleLogger = new Logger(SERVICE_NAME);
+consoleLogger.logLevel = LogLevel.INFO;

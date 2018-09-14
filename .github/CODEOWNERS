@@ -71,3 +71,7 @@ packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers
 # Installations
 packages/installations @mmermerkaya @andirayo @firebase/jssdk-global-approvers
 packages/installations-types @mmermerkaya @andirayo @firebase/jssdk-global-approvers
+
+# Performance Code
+packages/performance  @alikn @zijianjoy @firebase/jssdk-global-approvers
+packages/performance-types  @alikn @zijianjoy @firebase/jssdk-global-approvers
