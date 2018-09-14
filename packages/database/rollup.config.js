@@ -33,6 +33,15 @@ const external = Object.keys(
 
 export default [
   /**
+   * Node.js Build
+   */
+  {
+    input: 'index.node.ts',
+    output: [{ file: pkg.main, format: 'cjs' }],
+    plugins,
+    external
+  },
+  /**
    * Browser Builds
    */
   {
@@ -41,15 +50,6 @@ export default [
       { file: pkg.browser, format: 'cjs' },
       { file: pkg.module, format: 'es' }
     ],
-    plugins,
-    external
-  },
-  /**
-   * Node.js Build
-   */
-  {
-    input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs' }],
     plugins,
     external
   }
