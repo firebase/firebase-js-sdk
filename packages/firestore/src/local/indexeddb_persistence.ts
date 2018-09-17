@@ -1056,46 +1056,8 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     this.garbageCollector = new LruGarbageCollector(this);
   }
 
-  setInMemoryPins(inMemoryPins: ReferenceSet): void {
-    this.additionalReferences = inMemoryPins;
-  }
-
-  removeTarget(
-    txn: PersistenceTransaction,
-    queryData: QueryData
-  ): PersistencePromise<void> {
-    const updated = queryData.copy({
-      sequenceNumber: txn.currentSequenceNumber
-    });
-    return this.db.getQueryCache().updateQueryData(txn, updated);
-  }
-
-  addReference(
-    txn: PersistenceTransaction,
-    key: DocumentKey
-  ): PersistencePromise<void> {
-    return this.writeSentinelKey(txn, key);
-  }
-
-  removeReference(
-    txn: PersistenceTransaction,
-    key: DocumentKey
-  ): PersistencePromise<void> {
-    return this.writeSentinelKey(txn, key);
-  }
-
-  removeMutationReference(
-    txn: PersistenceTransaction,
-    key: DocumentKey
-  ): PersistencePromise<void> {
-    return this.writeSentinelKey(txn, key);
-  }
-
-  onLimboDocumentUpdated(
-    txn: PersistenceTransaction,
-    key: DocumentKey
-  ): PersistencePromise<void> {
-    return this.writeSentinelKey(txn, key);
+  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
+    return this.db.getQueryCache().getQueryCount(txn);
   }
 
   forEachTarget(
@@ -1116,8 +1078,22 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
       );
   }
 
-  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
-    return this.db.getQueryCache().getQueryCount(txn);
+  setInMemoryPins(inMemoryPins: ReferenceSet): void {
+    this.additionalReferences = inMemoryPins;
+  }
+
+  addReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return this.writeSentinelKey(txn, key);
+  }
+
+  removeReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return this.writeSentinelKey(txn, key);
   }
 
   removeTargets(
@@ -1128,6 +1104,57 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     return this.db
       .getQueryCache()
       .removeTargets(txn, upperBound, activeTargetIds);
+  }
+
+  removeMutationReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return this.writeSentinelKey(txn, key);
+  }
+
+  /** Returns true if any mutation queue contains the given document. */
+  private mutationQueuesContainKey(
+    txn: PersistenceTransaction,
+    docKey: DocumentKey
+  ): PersistencePromise<boolean> {
+    let found = false;
+    return IndexedDbPersistence.getStore<DbMutationQueueKey, DbMutationQueue>(
+      txn,
+      DbMutationQueue.store
+    )
+      .iterateAsync(userId => {
+        return mutationQueueContainsKey(txn, userId, docKey).next(
+          containsKey => {
+            if (containsKey) {
+              found = true;
+            }
+            return PersistencePromise.resolve(!containsKey);
+          }
+        );
+      })
+      .next(() => found);
+  }
+
+  /**
+   * Returns true if anything would prevent this document from being garbage
+   * collected, given that the document in question is not present in any
+   * targets and has a sequence number less than or equal to the upper bound for
+   * the collection run.
+   */
+  private isPinned(
+    txn: PersistenceTransaction,
+    docKey: DocumentKey
+  ): PersistencePromise<boolean> {
+    return this.additionalReferences!.containsKey(txn, docKey).next(
+      isPinned => {
+        if (isPinned) {
+          return PersistencePromise.resolve(true);
+        } else {
+          return this.mutationQueuesContainKey(txn, docKey);
+        }
+      }
+    );
   }
 
   removeOrphanedDocuments(
@@ -1166,47 +1193,21 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     ]);
   }
 
-  /**
-   * Returns true if anything would prevent this document from being garbage collected, given that
-   * the document in question is not present in any targets and has a sequence number less than or
-   * equal to the upper bound for the collection run.
-   */
-  private isPinned(
+  removeTarget(
     txn: PersistenceTransaction,
-    docKey: DocumentKey
-  ): PersistencePromise<boolean> {
-    return this.additionalReferences!.containsKey(txn, docKey).next(
-      isPinned => {
-        if (isPinned) {
-          return PersistencePromise.resolve(true);
-        } else {
-          return this.mutationQueuesContainKey(txn, docKey);
-        }
-      }
-    );
+    queryData: QueryData
+  ): PersistencePromise<void> {
+    const updated = queryData.copy({
+      sequenceNumber: txn.currentSequenceNumber
+    });
+    return this.db.getQueryCache().updateQueryData(txn, updated);
   }
 
-  /** Returns true if any mutation queue contains the given document. */
-  private mutationQueuesContainKey(
+  onLimboDocumentUpdated(
     txn: PersistenceTransaction,
-    docKey: DocumentKey
-  ): PersistencePromise<boolean> {
-    let found = false;
-    return IndexedDbPersistence.getStore<DbMutationQueueKey, DbMutationQueue>(
-      txn,
-      DbMutationQueue.store
-    )
-      .iterateAsync(userId => {
-        return mutationQueueContainsKey(txn, userId, docKey).next(
-          containsKey => {
-            if (containsKey) {
-              found = true;
-            }
-            return PersistencePromise.resolve(!containsKey);
-          }
-        );
-      })
-      .next(() => found);
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return this.writeSentinelKey(txn, key);
   }
 
   private writeSentinelKey(
