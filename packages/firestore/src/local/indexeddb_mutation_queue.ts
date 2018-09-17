@@ -551,7 +551,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
 /**
  * @return true if the mutation queue for the given user contains a pending mutation for the given key.
  */
-export function mutationQueueContainsKey(
+function mutationQueueContainsKey(
   txn: PersistenceTransaction,
   userId: string,
   key: DocumentKey
@@ -569,6 +569,25 @@ export function mutationQueueContainsKey(
       control.done();
     })
     .next(() => containsKey);
+}
+
+/** Returns true if any mutation queue contains the given document. */
+export function mutationQueuesContainKey(
+  txn: PersistenceTransaction,
+  docKey: DocumentKey
+): PersistencePromise<boolean> {
+  let found = false;
+  return mutationQueuesStore(txn).iterateAsync(userId => {
+    return mutationQueueContainsKey(txn, userId, docKey).next(
+      containsKey => {
+        if (containsKey) {
+          found = true;
+        }
+        return PersistencePromise.resolve(!containsKey);
+      }
+    );
+  })
+  .next(() => found);
 }
 
 /**

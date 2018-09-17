@@ -23,7 +23,7 @@ import * as log from '../util/log';
 
 import {
   IndexedDbMutationQueue,
-  mutationQueueContainsKey
+  mutationQueuesContainKey
 } from './indexeddb_mutation_queue';
 import {
   IndexedDbQueryCache,
@@ -40,9 +40,7 @@ import {
   DbTargetGlobal,
   SchemaConverter,
   DbTargetDocument,
-  DbTargetDocumentKey,
-  DbMutationQueueKey,
-  DbMutationQueue
+  DbTargetDocumentKey
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
@@ -1111,29 +1109,6 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     return writeSentinelKey(txn, key);
   }
 
-  /** Returns true if any mutation queue contains the given document. */
-  private mutationQueuesContainKey(
-    txn: PersistenceTransaction,
-    docKey: DocumentKey
-  ): PersistencePromise<boolean> {
-    let found = false;
-    return IndexedDbPersistence.getStore<DbMutationQueueKey, DbMutationQueue>(
-      txn,
-      DbMutationQueue.store
-    )
-      .iterateAsync(userId => {
-        return mutationQueueContainsKey(txn, userId, docKey).next(
-          containsKey => {
-            if (containsKey) {
-              found = true;
-            }
-            return PersistencePromise.resolve(!containsKey);
-          }
-        );
-      })
-      .next(() => found);
-  }
-
   /**
    * Returns true if anything would prevent this document from being garbage
    * collected, given that the document in question is not present in any
@@ -1149,7 +1124,7 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
         if (isPinned) {
           return PersistencePromise.resolve(true);
         } else {
-          return this.mutationQueuesContainKey(txn, docKey);
+          return mutationQueuesContainKey(txn, docKey);
         }
       }
     );
@@ -1229,28 +1204,29 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
         },
         ([targetId, docKey], { path, sequenceNumber }) => {
           if (targetId === 0) {
-            // if nextToReport is valid, report it, this is a new key so the last one
-            // must be not be a member of any targets.
+            // if nextToReport is valid, report it, this is a new key so the
+            // last one must not be a member of any targets.
             if (nextToReport !== ListenSequence.INVALID) {
               f(
                 new DocumentKey(decode(nextPath)),
                 nextToReport
               );
             }
-            // set nextToReport to be this sequence number. It's the next one we might
-            // report, if we don't find any targets for this document.
+            // set nextToReport to be this sequence number. It's the next one we
+            // might report, if we don't find any targets for this document.
             nextToReport = sequenceNumber;
             nextPath = path;
           } else {
-            // set nextToReport to be invalid, we know we don't need to report this one since
-            // we found a target for it.
+            // set nextToReport to be invalid, we know we don't need to report
+            // this one since we found a target for it.
             nextToReport = ListenSequence.INVALID;
           }
         }
       )
       .next(() => {
-        // Since we report sequence numbers after getting to the next key, we need to check if
-        // the last key we iterated over was an orphaned document and report it.
+        // Since we report sequence numbers after getting to the next key, we
+        // need to check if the last key we iterated over was an orphaned
+        // document and report it.
         if (nextToReport !== ListenSequence.INVALID) {
           f(
             new DocumentKey(decode(nextPath)),
