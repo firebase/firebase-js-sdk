@@ -22,7 +22,6 @@
     "@firebase/auth-types": "0.3.4"
   },
   "devDependencies": {
-    "closure-builder": "2.2.39",
     "del": "3.0.0",
     "event-stream": "^3.3.4",
     "express": "4.16.3",
