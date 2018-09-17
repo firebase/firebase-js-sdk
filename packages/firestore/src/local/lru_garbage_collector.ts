@@ -29,13 +29,13 @@ import { AnyJs } from '../util/misc';
 export interface LruDelegate {
   readonly garbageCollector: LruGarbageCollector;
 
-  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number>;
-
   /** Enumerates all the targets in the QueryCache. */
   forEachTarget(
     txn: PersistenceTransaction,
     f: (target: QueryData) => void
   ): PersistencePromise<void>;
+
+  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number>;
 
   /**
    * Enumerates sequence numbers for documents not associated with a target.
