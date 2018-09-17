@@ -97,7 +97,7 @@ export interface ReferenceDelegate {
   ): PersistencePromise<void>;
 
   /** Notify the delegate that a limbo document was updated. */
-  onLimboDocumentUpdated(
+  updateLimboDocument(
     txn: PersistenceTransaction,
     doc: DocumentKey
   ): PersistencePromise<void>;

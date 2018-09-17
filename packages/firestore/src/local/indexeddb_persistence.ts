@@ -1185,7 +1185,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     return this.db.getQueryCache().updateQueryData(txn, updated);
   }
 
-  onLimboDocumentUpdated(
+  updateLimboDocument(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
