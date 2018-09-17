@@ -42,10 +42,8 @@ import { TargetIdGenerator } from '../core/target_id_generator';
 import { SimpleDbStore, SimpleDbTransaction, SimpleDb } from './simple_db';
 import {
   IndexedDbPersistence,
-  IndexedDbTransaction,
-  SentinelRow
+  IndexedDbTransaction
 } from './indexeddb_persistence';
-import { ListenSequence } from '../core/listen_sequence';
 import { ActiveTargets } from './lru_garbage_collector';
 
 export class IndexedDbQueryCache implements QueryCache {
@@ -189,60 +187,6 @@ export class IndexedDbQueryCache implements QueryCache {
       const queryData = this.serializer.fromDbTarget(value);
       f(queryData);
     });
-  }
-
-  /**
-   * Call provided function for each document in the cache that is 'orphaned'. Orphaned
-   * means not a part of any target, so the only entry in the target-document index for
-   * that document will be the sentinel row (targetId 0), which will also have the sequence
-   * number for the last time the document was accessed.
-   */
-  forEachOrphanedDocument(
-    txn: PersistenceTransaction,
-    f: (docKey: DocumentKey, sequenceNumber: ListenSequenceNumber) => void
-  ): PersistencePromise<void> {
-    const store = IndexedDbPersistence.getStore<
-      DbTargetDocumentKey,
-      SentinelRow
-    >(txn, DbTargetDocument.store);
-    let nextToReport: ListenSequenceNumber = ListenSequence.INVALID;
-    let nextPath: EncodedResourcePath.EncodedResourcePath;
-    return store
-      .iterate(
-        {
-          index: DbTargetDocument.documentTargetsIndex
-        },
-        ([targetId, docKey], { path, sequenceNumber }) => {
-          if (targetId === 0) {
-            // if nextToReport is valid, report it, this is a new key so the last one
-            // must be not be a member of any targets.
-            if (nextToReport !== ListenSequence.INVALID) {
-              f(
-                new DocumentKey(EncodedResourcePath.decode(nextPath)),
-                nextToReport
-              );
-            }
-            // set nextToReport to be this sequence number. It's the next one we might
-            // report, if we don't find any targets for this document.
-            nextToReport = sequenceNumber;
-            nextPath = path;
-          } else {
-            // set nextToReport to be invalid, we know we don't need to report this one since
-            // we found a target for it.
-            nextToReport = ListenSequence.INVALID;
-          }
-        }
-      )
-      .next(() => {
-        // Since we report sequence numbers after getting to the next key, we need to check if
-        // the last key we iterated over was an orphaned document and report it.
-        if (nextToReport !== ListenSequence.INVALID) {
-          f(
-            new DocumentKey(EncodedResourcePath.decode(nextPath)),
-            nextToReport
-          );
-        }
-      });
   }
 
   private retrieveMetadata(

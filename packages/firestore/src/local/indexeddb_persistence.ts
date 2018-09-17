@@ -63,7 +63,7 @@ import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { ReferenceSet } from './reference_set';
 import { QueryData } from './query_data';
 import { DocumentKey } from '../model/document_key';
-import { encode, EncodedResourcePath } from './encoded_resource_path';
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import {
   ActiveTargets,
   LruDelegate,
@@ -1071,9 +1071,7 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     f: (sequenceNumber: ListenSequenceNumber) => void
   ): PersistencePromise<void> {
-    return this.db
-      .getQueryCache()
-      .forEachOrphanedDocument(txn, (docKey, sequenceNumber) =>
+    return this.forEachOrphanedDocument(txn, (docKey, sequenceNumber) =>
         f(sequenceNumber)
       );
   }
@@ -1086,14 +1084,14 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
-    return this.writeSentinelKey(txn, key);
+    return writeSentinelKey(txn, key);
   }
 
   removeReference(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
-    return this.writeSentinelKey(txn, key);
+    return writeSentinelKey(txn, key);
   }
 
   removeTargets(
@@ -1110,7 +1108,7 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
-    return this.writeSentinelKey(txn, key);
+    return writeSentinelKey(txn, key);
   }
 
   /** Returns true if any mutation queue contains the given document. */
@@ -1162,20 +1160,21 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     upperBound: ListenSequenceNumber
   ): PersistencePromise<number> {
     let count = 0;
-    let p = PersistencePromise.resolve();
-    const iteration = this.db
-      .getQueryCache()
-      .forEachOrphanedDocument(txn, (docKey, sequenceNumber) => {
+    const promises: Array<PersistencePromise<void>> = [];
+    const iteration = this.forEachOrphanedDocument(txn, (docKey, sequenceNumber) => {
         if (sequenceNumber <= upperBound) {
-          p = p.next(() => this.isPinned(txn, docKey)).next(isPinned => {
+          const p = this.isPinned(txn, docKey).next(isPinned => {
             if (!isPinned) {
               count++;
               return this.removeOrphanedDocument(txn, docKey);
             }
           });
+          promises.push(p);
         }
       });
-    return iteration.next(() => p).next(() => count);
+    // Wait for iteration first to make sure we have a chance to add all of the
+    // removal promises to the array.
+    return iteration.next(() => PersistencePromise.waitFor(promises)).next(() => count);
   }
 
   /**
@@ -1207,16 +1206,58 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
-    return this.writeSentinelKey(txn, key);
+    return writeSentinelKey(txn, key);
   }
 
-  private writeSentinelKey(
+  /**
+   * Call provided function for each document in the cache that is 'orphaned'. Orphaned
+   * means not a part of any target, so the only entry in the target-document index for
+   * that document will be the sentinel row (targetId 0), which will also have the sequence
+   * number for the last time the document was accessed.
+   */
+  private forEachOrphanedDocument(
     txn: PersistenceTransaction,
-    key: DocumentKey
+    f: (docKey: DocumentKey, sequenceNumber: ListenSequenceNumber) => void
   ): PersistencePromise<void> {
-    return sentinelKeyStore(txn).put(
-      sentinelRow(key, txn.currentSequenceNumber)
-    );
+    const store = sentinelKeyStore(txn);
+    let nextToReport: ListenSequenceNumber = ListenSequence.INVALID;
+    let nextPath: EncodedResourcePath;
+    return store
+      .iterate(
+        {
+          index: DbTargetDocument.documentTargetsIndex
+        },
+        ([targetId, docKey], { path, sequenceNumber }) => {
+          if (targetId === 0) {
+            // if nextToReport is valid, report it, this is a new key so the last one
+            // must be not be a member of any targets.
+            if (nextToReport !== ListenSequence.INVALID) {
+              f(
+                new DocumentKey(decode(nextPath)),
+                nextToReport
+              );
+            }
+            // set nextToReport to be this sequence number. It's the next one we might
+            // report, if we don't find any targets for this document.
+            nextToReport = sequenceNumber;
+            nextPath = path;
+          } else {
+            // set nextToReport to be invalid, we know we don't need to report this one since
+            // we found a target for it.
+            nextToReport = ListenSequence.INVALID;
+          }
+        }
+      )
+      .next(() => {
+        // Since we report sequence numbers after getting to the next key, we need to check if
+        // the last key we iterated over was an orphaned document and report it.
+        if (nextToReport !== ListenSequence.INVALID) {
+          f(
+            new DocumentKey(decode(nextPath)),
+            nextToReport
+          );
+        }
+      });
   }
 }
 
@@ -1225,7 +1266,7 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
  * have TargetId === 0. The sequence number is an approximation of a last-used value
  * for the document identified by the path portion of the key.
  */
-export type SentinelRow = {
+type SentinelRow = {
   targetId: TargetId;
   path: EncodedResourcePath;
   sequenceNumber: ListenSequenceNumber;
@@ -1260,4 +1301,13 @@ function sentinelRow(
     path: encode(key.path),
     sequenceNumber
   };
+}
+
+function writeSentinelKey(
+  txn: PersistenceTransaction,
+  key: DocumentKey
+): PersistencePromise<void> {
+  return sentinelKeyStore(txn).put(
+    sentinelRow(key, txn.currentSequenceNumber)
+  );
 }
