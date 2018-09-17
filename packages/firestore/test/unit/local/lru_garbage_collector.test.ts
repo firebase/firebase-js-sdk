@@ -28,7 +28,7 @@ import { Query } from '../../../src/core/query';
 import { path, wrapObject } from '../../util/helpers';
 import { QueryCache } from '../../../src/local/query_cache';
 import {
-  LiveTargets,
+  ActiveTargets,
   LruDelegate,
   LruGarbageCollector
 } from '../../../src/local/lru_garbage_collector';
@@ -197,10 +197,10 @@ function genericLruGarbageCollectorTests(
 
   function removeTargets(
     upperBound: ListenSequenceNumber,
-    liveTargets: LiveTargets
+    activeTargetIds: ActiveTargets
   ): Promise<number> {
     return persistence.runTransaction('remove targets', 'readwrite', txn => {
-      return garbageCollector.removeTargets(txn, upperBound, liveTargets);
+      return garbageCollector.removeTargets(txn, upperBound, activeTargetIds);
     });
   }
 
@@ -361,20 +361,20 @@ function genericLruGarbageCollectorTests(
   });
 
   it('remove targets up through sequence number', async () => {
-    const liveTargets: LiveTargets = {};
+    const activeTargetIds: ActiveTargets = {};
     for (let i = 0; i < 100; i++) {
       const queryData = await addNextTarget();
       // Mark odd queries as live so we can test filtering out live queries.
       const targetId = queryData.targetId;
       if (targetId % 2 === 1) {
-        liveTargets[targetId] = queryData;
+        activeTargetIds[targetId] = queryData;
       }
     }
 
     // GC up through 20th query, which is 20%.
     // Expect to have GC'd 10 targets, since every other target is live
     const upperBound = 20 + initialSequenceNumber;
-    const removed = await removeTargets(upperBound, liveTargets);
+    const removed = await removeTargets(upperBound, activeTargetIds);
     expect(removed).to.equal(10);
     // Make sure we removed the even targets with targetID <= 20.
     await persistence.runTransaction(
@@ -766,11 +766,11 @@ function genericLruGarbageCollectorTests(
     );
 
     // Finally, do the garbage collection, up to but not including the removal of middleTarget
-    const liveTargets: LiveTargets = {};
-    liveTargets[oldestTarget.targetId] = {};
+    const activeTargetIds: ActiveTargets = {};
+    activeTargetIds[oldestTarget.targetId] = {};
 
     // Expect to remove newest target
-    const removed = await removeTargets(upperBound, liveTargets);
+    const removed = await removeTargets(upperBound, activeTargetIds);
     expect(removed).to.equal(1);
     const docsRemoved = await removeOrphanedDocuments(upperBound);
     expect(docsRemoved).to.equal(expectedRemoved.size);

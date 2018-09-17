@@ -54,12 +54,13 @@ export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
  * includes being added to a target, being removed from a target, being subject to mutation, and
  * being mutated by the user.
  *
- * <p>Different implementations may do different things with each of these events. Not every
+ * Different implementations may do different things with each of these events. Not every
  * implementation needs to do something with every lifecycle hook.
  *
- * Porting note: since sequence numbers are attached to transactions in this client, the
- * ReferenceDelegate does not need to deal in transactional semantics, nor does it need to
- * track and generate sequence numbers.
+ * PORTING NOTE: since sequence numbers are attached to transactions in this
+ * client, the ReferenceDelegate does not need to deal in transactional
+ * semantics (onTransactionStarted/Committed()), nor does it need to track and
+ * generate sequence numbers (getCurrentSequenceNumber()).
  */
 export interface ReferenceDelegate {
   /**

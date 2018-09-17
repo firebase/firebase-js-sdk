@@ -46,7 +46,7 @@ import {
   SentinelRow
 } from './indexeddb_persistence';
 import { ListenSequence } from '../core/listen_sequence';
-import { LiveTargets } from './lru_garbage_collector';
+import { ActiveTargets } from './lru_garbage_collector';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(
@@ -159,7 +159,7 @@ export class IndexedDbQueryCache implements QueryCache {
   removeTargets(
     txn: PersistenceTransaction,
     upperBound: ListenSequenceNumber,
-    activeTargetIds: LiveTargets
+    activeTargetIds: ActiveTargets
   ): PersistencePromise<number> {
     let count = 0;
     const promises: Array<PersistencePromise<void>> = [];

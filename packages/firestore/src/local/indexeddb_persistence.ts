@@ -65,7 +65,7 @@ import { QueryData } from './query_data';
 import { DocumentKey } from '../model/document_key';
 import { encode, EncodedResourcePath } from './encoded_resource_path';
 import {
-  LiveTargets,
+  ActiveTargets,
   LruDelegate,
   LruGarbageCollector
 } from './lru_garbage_collector';
@@ -1123,9 +1123,9 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   removeTargets(
     txn: PersistenceTransaction,
     upperBound: ListenSequenceNumber,
-    liveTargets: LiveTargets
+    activeTargetIds: ActiveTargets
   ): PersistencePromise<number> {
-    return this.db.getQueryCache().removeTargets(txn, upperBound, liveTargets);
+    return this.db.getQueryCache().removeTargets(txn, upperBound, activeTargetIds);
   }
 
   removeOrphanedDocuments(

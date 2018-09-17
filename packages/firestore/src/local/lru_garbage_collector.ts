@@ -52,7 +52,7 @@ export interface LruDelegate {
   removeTargets(
     txn: PersistenceTransaction,
     upperBound: ListenSequenceNumber,
-    activeTargetIds: LiveTargets
+    activeTargetIds: ActiveTargets
   ): PersistencePromise<number>;
 
   /**
@@ -70,7 +70,7 @@ export interface LruDelegate {
 /**
  * Describes an object whose keys are active target ids. We do not care about the type of the values.
  */
-export type LiveTargets = {
+export type ActiveTargets = {
   [id: number]: AnyJs;
 };
 
@@ -252,9 +252,9 @@ export class LruGarbageCollector {
   removeTargets(
     txn: PersistenceTransaction,
     upperBound: ListenSequenceNumber,
-    liveTargets: LiveTargets
+    activeTargetIds: ActiveTargets
   ): PersistencePromise<number> {
-    return this.delegate.removeTargets(txn, upperBound, liveTargets);
+    return this.delegate.removeTargets(txn, upperBound, activeTargetIds);
   }
 
   /**
