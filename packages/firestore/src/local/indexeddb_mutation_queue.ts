@@ -578,7 +578,7 @@ export function mutationQueuesContainKey(
 ): PersistencePromise<boolean> {
   let found = false;
   return mutationQueuesStore(txn)
-    .iterateAsync(userId => {
+    .iterateSerial(userId => {
       return mutationQueueContainsKey(txn, userId, docKey).next(containsKey => {
         if (containsKey) {
           found = true;

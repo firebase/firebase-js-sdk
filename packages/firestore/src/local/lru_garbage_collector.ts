@@ -37,7 +37,10 @@ export interface LruDelegate {
     f: (target: QueryData) => void
   ): PersistencePromise<void>;
 
-  /** Enumerates sequence numbers for documents not associated with a target. */
+  /**
+   * Enumerates sequence numbers for documents not associated with a target.
+   * Note that this may include duplicate sequence numbers.
+   */
   forEachOrphanedDocumentSequenceNumber(
     txn: PersistenceTransaction,
     f: (sequenceNumber: ListenSequenceNumber) => void

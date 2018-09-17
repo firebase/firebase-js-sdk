@@ -499,13 +499,14 @@ export class SimpleDbStore<
   }
 
   /**
-   * Iterates over a store, but waits for the given callback to complete for each entry
-   * before iterating the next entry. This allows the callback to do asynchronous work
-   * to determine if this iteration should continue.
+   * Iterates over a store, but waits for the given callback to complete for
+   * each entry before iterating the next entry. This allows the callback to do
+   * asynchronous work to determine if this iteration should continue.
    *
-   * The provided callback should return `true` to continue iteration, and `false` otherwise.
+   * The provided callback should return `true` to continue iteration, and
+   * `false` otherwise.
    */
-  iterateAsync(
+  iterateSerial(
     callback: (k: KeyType, v: ValueType) => PersistencePromise<boolean>
   ): PersistencePromise<void> {
     const cursorRequest = this.cursor({});
