@@ -33,6 +33,8 @@ function createUnsecuredJwt(auth: object): string {
   };
   // Ensure that the auth payload has a value for 'iat'.
   (auth as any).iat = (auth as any).iat || 0;
+  // Use `uid` field as a backup when `sub` is missing.
+  (auth as any).sub = (auth as any).sub || (auth as any).uid;
   // Unsecured JWTs use the empty string as a signature.
   const signature = '';
   return [
