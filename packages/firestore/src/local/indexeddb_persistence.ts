@@ -286,7 +286,10 @@ export class IndexedDbPersistence implements Persistence {
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
     this.allowTabSynchronization = multiClientParams !== undefined;
-    this.queryCache = new IndexedDbQueryCache(this.referenceDelegate, this.serializer);
+    this.queryCache = new IndexedDbQueryCache(
+      this.referenceDelegate,
+      this.serializer
+    );
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
