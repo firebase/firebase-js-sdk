@@ -14,7 +14,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "closure-builder": "2.2.39",
+    "closure-builder": "2.3.0",
     "watch": "1.0.2"
   },
   "repository": {
