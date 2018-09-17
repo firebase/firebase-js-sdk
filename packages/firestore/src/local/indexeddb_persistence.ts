@@ -286,7 +286,7 @@ export class IndexedDbPersistence implements Persistence {
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
     this.allowTabSynchronization = multiClientParams !== undefined;
-    this.queryCache = new IndexedDbQueryCache(this, this.serializer);
+    this.queryCache = new IndexedDbQueryCache(this.referenceDelegate, this.serializer);
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
@@ -1045,7 +1045,7 @@ function clientMetadataStore(
 }
 
 /** Provides LRU functionality for IndexedDB persistence. */
-class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
+export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   private additionalReferences: ReferenceSet | null;
 
   readonly garbageCollector: LruGarbageCollector;

@@ -41,6 +41,7 @@ import { QueryData } from './query_data';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import { SimpleDbStore, SimpleDbTransaction, SimpleDb } from './simple_db';
 import {
+  IndexedDbLruDelegate,
   IndexedDbPersistence,
   IndexedDbTransaction
 } from './indexeddb_persistence';
@@ -48,7 +49,7 @@ import { ActiveTargets } from './lru_garbage_collector';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(
-    private readonly db: IndexedDbPersistence,
+    private readonly referenceDelegate: IndexedDbLruDelegate,
     private serializer: LocalSerializer
   ) {}
 
@@ -282,7 +283,7 @@ export class IndexedDbQueryCache implements QueryCache {
     keys.forEach(key => {
       const path = EncodedResourcePath.encode(key.path);
       promises.push(store.put(new DbTargetDocument(targetId, path)));
-      promises.push(this.db.referenceDelegate.addReference(txn, key));
+      promises.push(this.referenceDelegate.addReference(txn, key));
     });
     return PersistencePromise.waitFor(promises);
   }
@@ -302,7 +303,7 @@ export class IndexedDbQueryCache implements QueryCache {
       if (this.garbageCollector !== null) {
         this.garbageCollector.addPotentialGarbageKey(key);
       }
-      promises.push(this.db.referenceDelegate.removeReference(txn, key));
+      promises.push(this.referenceDelegate.removeReference(txn, key));
     });
     return PersistencePromise.waitFor(promises);
   }
