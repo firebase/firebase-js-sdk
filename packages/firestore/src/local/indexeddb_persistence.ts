@@ -1070,8 +1070,8 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     f: (sequenceNumber: ListenSequenceNumber) => void
   ): PersistencePromise<void> {
     return this.forEachOrphanedDocument(txn, (docKey, sequenceNumber) =>
-        f(sequenceNumber)
-      );
+      f(sequenceNumber)
+    );
   }
 
   setInMemoryPins(inMemoryPins: ReferenceSet): void {
@@ -1136,7 +1136,9 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<number> {
     let count = 0;
     const promises: Array<PersistencePromise<void>> = [];
-    const iteration = this.forEachOrphanedDocument(txn, (docKey, sequenceNumber) => {
+    const iteration = this.forEachOrphanedDocument(
+      txn,
+      (docKey, sequenceNumber) => {
         if (sequenceNumber <= upperBound) {
           const p = this.isPinned(txn, docKey).next(isPinned => {
             if (!isPinned) {
@@ -1146,10 +1148,13 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
           });
           promises.push(p);
         }
-      });
+      }
+    );
     // Wait for iteration first to make sure we have a chance to add all of the
     // removal promises to the array.
-    return iteration.next(() => PersistencePromise.waitFor(promises)).next(() => count);
+    return iteration
+      .next(() => PersistencePromise.waitFor(promises))
+      .next(() => count);
   }
 
   /**
@@ -1207,10 +1212,7 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
             // if nextToReport is valid, report it, this is a new key so the
             // last one must not be a member of any targets.
             if (nextToReport !== ListenSequence.INVALID) {
-              f(
-                new DocumentKey(decode(nextPath)),
-                nextToReport
-              );
+              f(new DocumentKey(decode(nextPath)), nextToReport);
             }
             // set nextToReport to be this sequence number. It's the next one we
             // might report, if we don't find any targets for this document.
@@ -1228,10 +1230,7 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
         // need to check if the last key we iterated over was an orphaned
         // document and report it.
         if (nextToReport !== ListenSequence.INVALID) {
-          f(
-            new DocumentKey(decode(nextPath)),
-            nextToReport
-          );
+          f(new DocumentKey(decode(nextPath)), nextToReport);
         }
       });
   }
@@ -1283,7 +1282,5 @@ function writeSentinelKey(
   txn: PersistenceTransaction,
   key: DocumentKey
 ): PersistencePromise<void> {
-  return sentinelKeyStore(txn).put(
-    sentinelRow(key, txn.currentSequenceNumber)
-  );
+  return sentinelKeyStore(txn).put(sentinelRow(key, txn.currentSequenceNumber));
 }

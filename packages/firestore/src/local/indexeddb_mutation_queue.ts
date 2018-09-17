@@ -577,17 +577,16 @@ export function mutationQueuesContainKey(
   docKey: DocumentKey
 ): PersistencePromise<boolean> {
   let found = false;
-  return mutationQueuesStore(txn).iterateAsync(userId => {
-    return mutationQueueContainsKey(txn, userId, docKey).next(
-      containsKey => {
+  return mutationQueuesStore(txn)
+    .iterateAsync(userId => {
+      return mutationQueueContainsKey(txn, userId, docKey).next(containsKey => {
         if (containsKey) {
           found = true;
         }
         return PersistencePromise.resolve(!containsKey);
-      }
-    );
-  })
-  .next(() => found);
+      });
+    })
+    .next(() => found);
 }
 
 /**
