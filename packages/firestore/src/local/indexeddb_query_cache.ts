@@ -50,8 +50,8 @@ import { LiveTargets } from './lru_garbage_collector';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(
-    private serializer: LocalSerializer,
-    private readonly db: IndexedDbPersistence
+    private readonly db: IndexedDbPersistence,
+    private serializer: LocalSerializer
   ) {}
 
   /** The garbage collector to notify about potential garbage keys. */

@@ -64,7 +64,11 @@ import { ReferenceSet } from './reference_set';
 import { QueryData } from './query_data';
 import { DocumentKey } from '../model/document_key';
 import { encode, EncodedResourcePath } from './encoded_resource_path';
-import { LiveTargets, LruDelegate } from './lru_garbage_collector';
+import {
+  LiveTargets,
+  LruDelegate,
+  LruGarbageCollector
+} from './lru_garbage_collector';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 
 const LOG_TAG = 'IndexedDbPersistence';
@@ -260,7 +264,7 @@ export class IndexedDbPersistence implements Persistence {
   private remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage;
   private listenSequence: ListenSequence;
-  readonly referenceDelegate: ReferenceDelegate;
+  readonly referenceDelegate: IndexedDbLruDelegate;
 
   // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
   // is still experimental. When multi-client is switched to always on, `multiClientParams` will
@@ -284,7 +288,7 @@ export class IndexedDbPersistence implements Persistence {
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
     this.allowTabSynchronization = multiClientParams !== undefined;
-    this.queryCache = new IndexedDbQueryCache(this.serializer, this);
+    this.queryCache = new IndexedDbQueryCache(this, this.serializer);
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
@@ -1046,7 +1050,11 @@ function clientMetadataStore(
 class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   private additionalReferences: ReferenceSet | null;
 
-  constructor(private readonly db: IndexedDbPersistence) {}
+  readonly garbageCollector: LruGarbageCollector;
+
+  constructor(private readonly db: IndexedDbPersistence) {
+    this.garbageCollector = new LruGarbageCollector(this);
+  }
 
   setInMemoryPins(inMemoryPins: ReferenceSet): void {
     this.additionalReferences = inMemoryPins;

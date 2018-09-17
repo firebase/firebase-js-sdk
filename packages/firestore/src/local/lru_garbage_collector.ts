@@ -27,6 +27,8 @@ import { AnyJs } from '../util/misc';
  * needs from the persistence layer.
  */
 export interface LruDelegate {
+  readonly garbageCollector: LruGarbageCollector;
+
   getTargetCount(txn: PersistenceTransaction): PersistencePromise<number>;
 
   /** Enumerates all the targets in the QueryCache. */

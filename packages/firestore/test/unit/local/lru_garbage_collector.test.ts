@@ -98,10 +98,7 @@ function genericLruGarbageCollectorTests(
     const referenceDelegate = (persistence as IndexedDbPersistence)
       .referenceDelegate;
     referenceDelegate.setInMemoryPins(new ReferenceSet());
-    garbageCollector = new LruGarbageCollector(
-      // tslint:disable-next-line:no-any
-      (referenceDelegate as any) as LruDelegate
-    );
+    garbageCollector = referenceDelegate.garbageCollector;
   }
 
   function nextQueryData(sequenceNumber: ListenSequenceNumber): QueryData {
