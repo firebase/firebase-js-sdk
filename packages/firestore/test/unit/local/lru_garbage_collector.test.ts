@@ -62,12 +62,16 @@ describe('IndexedDbLruReferenceDelegate', () => {
 function genericLruGarbageCollectorTests(
   newPersistence: () => Promise<Persistence>
 ): void {
+  // We need to initialize a few counters so that we can use them when we
+  // auto-generate things like targets and documents. Pick arbitrary values
+  // such that sequences are unlikely to overlap as we increment them.
   let previousTargetId: TargetId;
   let previousDocNum: number;
+
   beforeEach(async () => {
     previousTargetId = 500;
     previousDocNum = 10;
-    await newTestResources();
+    await initializeTestResources();
   });
 
   afterEach(async () => {
@@ -80,7 +84,8 @@ function genericLruGarbageCollectorTests(
   let initialSequenceNumber: ListenSequenceNumber;
   let mutationQueue: MutationQueue;
   let documentCache: RemoteDocumentCache;
-  async function newTestResources(): Promise<void> {
+
+  async function initializeTestResources(): Promise<void> {
     if (persistence && persistence.started) {
       await persistence.shutdown(/* deleteData= */ true);
     }
@@ -145,7 +150,7 @@ function genericLruGarbageCollectorTests(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
-    // TODO: change this once reference delegate is added to the persistence interface
+    // TODO(gsoltis): change this once reference delegate is added to the persistence interface
     return (persistence as IndexedDbPersistence).referenceDelegate.removeMutationReference(
       txn,
       key
@@ -250,7 +255,7 @@ function genericLruGarbageCollectorTests(
     ];
 
     for (const { targets, expected } of testCases) {
-      await newTestResources();
+      await initializeTestResources();
       for (let i = 0; i < targets; i++) {
         await addNextTarget();
       }
