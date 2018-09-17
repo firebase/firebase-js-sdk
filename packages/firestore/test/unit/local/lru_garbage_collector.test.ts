@@ -29,7 +29,6 @@ import { path, wrapObject } from '../../util/helpers';
 import { QueryCache } from '../../../src/local/query_cache';
 import {
   ActiveTargets,
-  LruDelegate,
   LruGarbageCollector
 } from '../../../src/local/lru_garbage_collector';
 import { ListenSequence } from '../../../src/core/listen_sequence';
@@ -241,7 +240,7 @@ function genericLruGarbageCollectorTests(
     );
   }
 
-  it('pick sequence number percentile', async () => {
+  it('picks sequence number percentile', async () => {
     const testCases: Array<{ targets: number; expected: number }> = [
       //{ targets: 0, expected: 0 },
       { targets: 10, expected: 1 },
@@ -263,104 +262,106 @@ function genericLruGarbageCollectorTests(
     }
   });
 
-  it('sequence number for no targets', async () => {
-    expect(await nthSequenceNumber(0)).to.equal(ListenSequence.INVALID);
-  });
-
-  it('sequence number for 50 targets', async () => {
-    // Add 50 queries sequentially, aim to collect 10 of them.
-    // The sequence number to collect should be 10 past the initial sequence number.
-    for (let i = 0; i < 50; i++) {
-      await addNextTarget();
-    }
-    const expected = initialSequenceNumber + 10;
-    expect(await nthSequenceNumber(10)).to.equal(expected);
-  });
-
-  it('sequence number for multiple targets in a transaction', async () => {
-    // 50 queries, 9 with one transaction, incrementing from there. Should get second sequence
-    // number.
-    await persistence.runTransaction(
-      '9 targets in a batch',
-      'readwrite',
-      txn => {
-        let p = PersistencePromise.resolve();
-        for (let i = 0; i < 9; i++) {
-          p = p.next(() => addNextTargetInTransaction(txn)).next();
-        }
-        return p;
-      }
-    );
-    for (let i = 9; i < 50; i++) {
-      await addNextTarget();
-    }
-    const expected = initialSequenceNumber + 2;
-    expect(await nthSequenceNumber(10)).to.equal(expected);
-  });
-
-  it('all collected targets in a single transaction', async () => {
-    await persistence.runTransaction(
-      '11 targets in a batch',
-      'readwrite',
-      txn => {
-        let p = PersistencePromise.resolve();
-        for (let i = 0; i < 11; i++) {
-          p = p.next(() => addNextTargetInTransaction(txn)).next();
-        }
-        return p;
-      }
-    );
-    for (let i = 11; i < 50; i++) {
-      await addNextTarget();
-    }
-    const expected = initialSequenceNumber + 1;
-    expect(await nthSequenceNumber(10)).to.equal(expected);
-  });
-
-  it('sequence number with mutation and sequential targets', async () => {
-    // Remove a mutated doc reference, marking it as eligible for GC.
-    // Then add 50 queries. Should get 10 past initial (9 queries).
-    await markADocumentEligibleForGC();
-    for (let i = 0; i < 50; i++) {
-      await addNextTarget();
-    }
-
-    const expected = initialSequenceNumber + 10;
-    expect(await nthSequenceNumber(10)).to.equal(expected);
-  });
-
-  it('sequence numbers with mutations in targets', async () => {
-    // Add mutated docs, then add one of them to a query target so it doesn't get GC'd.
-    // Expect 3 past the initial value: the mutations not part of a query, and two queries
-    const docInTarget = nextTestDocumentKey();
-    await persistence.runTransaction('mark mutations', 'readwrite', txn => {
-      // Adding 9 doc keys in a transaction. If we remove one of them, we'll have room for two
-      // actual targets.
-      let p = markDocumentEligibleForGCInTransaction(txn, docInTarget);
-      for (let i = 0; i < 8; i++) {
-        p = p.next(() => markADocumentEligibleForGCInTransaction(txn));
-      }
-      return p;
+  describe('nthSequenceNumber()', () => {
+    it('sequence number for no targets', async () => {
+      expect(await nthSequenceNumber(0)).to.equal(ListenSequence.INVALID);
     });
 
-    for (let i = 0; i < 49; i++) {
-      await addNextTarget();
-    }
-    await persistence.runTransaction(
-      'target with a mutation',
-      'readwrite',
-      txn => {
-        return addNextTargetInTransaction(txn).next(queryData => {
-          const keySet = documentKeySet().add(docInTarget);
-          return queryCache.addMatchingKeys(txn, keySet, queryData.targetId);
-        });
+    it('with 50 targets', async () => {
+      // Add 50 queries sequentially, aim to collect 10 of them.
+      // The sequence number to collect should be 10 past the initial sequence number.
+      for (let i = 0; i < 50; i++) {
+        await addNextTarget();
       }
-    );
-    const expected = initialSequenceNumber + 3;
-    expect(await nthSequenceNumber(10)).to.equal(expected);
+      const expected = initialSequenceNumber + 10;
+      expect(await nthSequenceNumber(10)).to.equal(expected);
+    });
+
+    it('with multiple targets in a transaction', async () => {
+      // 50 queries, 9 with one transaction, incrementing from there. Should get second sequence
+      // number.
+      await persistence.runTransaction(
+        '9 targets in a batch',
+        'readwrite',
+        txn => {
+          let p = PersistencePromise.resolve();
+          for (let i = 0; i < 9; i++) {
+            p = p.next(() => addNextTargetInTransaction(txn)).next();
+          }
+          return p;
+        }
+      );
+      for (let i = 9; i < 50; i++) {
+        await addNextTarget();
+      }
+      const expected = initialSequenceNumber + 2;
+      expect(await nthSequenceNumber(10)).to.equal(expected);
+    });
+
+    it('with all collected targets in a single transaction', async () => {
+      await persistence.runTransaction(
+        '11 targets in a batch',
+        'readwrite',
+        txn => {
+          let p = PersistencePromise.resolve();
+          for (let i = 0; i < 11; i++) {
+            p = p.next(() => addNextTargetInTransaction(txn)).next();
+          }
+          return p;
+        }
+      );
+      for (let i = 11; i < 50; i++) {
+        await addNextTarget();
+      }
+      const expected = initialSequenceNumber + 1;
+      expect(await nthSequenceNumber(10)).to.equal(expected);
+    });
+
+    it('with mutation and sequential targets', async () => {
+      // Remove a mutated doc reference, marking it as eligible for GC.
+      // Then add 50 queries. Should get 10 past initial (9 queries).
+      await markADocumentEligibleForGC();
+      for (let i = 0; i < 50; i++) {
+        await addNextTarget();
+      }
+
+      const expected = initialSequenceNumber + 10;
+      expect(await nthSequenceNumber(10)).to.equal(expected);
+    });
+
+    it('with mutations in targets', async () => {
+      // Add mutated docs, then add one of them to a query target so it doesn't get GC'd.
+      // Expect 3 past the initial value: the mutations not part of a query, and two queries
+      const docInTarget = nextTestDocumentKey();
+      await persistence.runTransaction('mark mutations', 'readwrite', txn => {
+        // Adding 9 doc keys in a transaction. If we remove one of them, we'll have room for two
+        // actual targets.
+        let p = markDocumentEligibleForGCInTransaction(txn, docInTarget);
+        for (let i = 0; i < 8; i++) {
+          p = p.next(() => markADocumentEligibleForGCInTransaction(txn));
+        }
+        return p;
+      });
+
+      for (let i = 0; i < 49; i++) {
+        await addNextTarget();
+      }
+      await persistence.runTransaction(
+        'target with a mutation',
+        'readwrite',
+        txn => {
+          return addNextTargetInTransaction(txn).next(queryData => {
+            const keySet = documentKeySet().add(docInTarget);
+            return queryCache.addMatchingKeys(txn, keySet, queryData.targetId);
+          });
+        }
+      );
+      const expected = initialSequenceNumber + 3;
+      expect(await nthSequenceNumber(10)).to.equal(expected);
+    });
   });
 
-  it('remove targets up through sequence number', async () => {
+  it('removes targets up through sequence number', async () => {
     const activeTargetIds: ActiveTargets = {};
     for (let i = 0; i < 100; i++) {
       const queryData = await addNextTarget();
@@ -393,7 +394,7 @@ function genericLruGarbageCollectorTests(
     );
   });
 
-  it('remove orphaned documents', async () => {
+  it('removes orphaned documents', async () => {
     // Track documents we expect to be retained so we can verify post-GC.
     // This will contain documents associated with targets that survive GC, as well
     // as any documents with pending mutations.
@@ -504,7 +505,7 @@ function genericLruGarbageCollectorTests(
     });
   });
 
-  it('remove targets then GC', async () => {
+  it('removes targets then GCs', async () => {
     // Create 3 targets, add docs to all of them
     // Leave oldest target alone, it is still live
     // Remove newest target
@@ -520,17 +521,19 @@ function genericLruGarbageCollectorTests(
     // Expect:
     // All docs in oldest target are still around
     // One blind write is gone, the first one not added to oldest target
-    // Documents removed from middle target are gone, except ones added to oldest target
-    // Documents from newest target are gone, except
+    // Documents removed from middle target are gone, except ones added to the
+    //    oldest target
+    // Documents from newest target are gone, except those added to the oldest
+    //    target
 
-    // Through the various steps, track which documents we expect to be removed vs
-    // documents we expect to be retained.
+    // Through the various steps, track which documents we expect to be removed
+    // vs documents we expect to be retained.
     const expectedRetained = new Set<DocumentKey>();
     const expectedRemoved = new Set<DocumentKey>();
 
     // Add oldest target, 5 documents, and add those documents to the target.
-    // This target will not be removed, so all documents that are part of it will
-    // be retained.
+    // This target will not be removed, so all documents that are part of it
+    // will be retained.
     const oldestTarget = await persistence.runTransaction(
       'Add oldest target and docs',
       'readwrite',
@@ -555,8 +558,8 @@ function genericLruGarbageCollectorTests(
       }
     );
 
-    // Add middle target and docs. Some docs will be removed from this target later,
-    // which we track here.
+    // Add middle target and docs. Some docs will be removed from this target
+    // later, which we track here.
     let middleDocsToRemove = documentKeySet();
     let middleDocToUpdate: DocumentKey;
     // This will be the document in this target that gets an update later.
