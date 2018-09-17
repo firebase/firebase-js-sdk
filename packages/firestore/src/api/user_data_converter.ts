@@ -15,33 +15,36 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-
-import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
+import {
+  ParseAccumulator,
+  ParseContext,
+  ParsedSetData,
+  ParsedUpdateData,
+  UserDataSource
+} from '../core/user_data';
 import { DocumentKey } from '../model/document_key';
-import { FieldValue, ObjectValue } from '../model/field_value';
 import {
   ArrayValue,
   BlobValue,
   BooleanValue,
   DoubleValue,
+  FieldValue,
   GeoPointValue,
   IntegerValue,
   NullValue,
+  ObjectValue,
   RefValue,
   StringValue,
   TimestampValue
 } from '../model/field_value';
-import {
-  FieldMask,
-  FieldTransform,
-  Mutation,
-  PatchMutation,
-  Precondition,
-  SetMutation,
-  TransformMutation
-} from '../model/mutation';
+import { FieldMask, FieldTransform } from '../model/mutation';
 import { FieldPath } from '../model/path';
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation,
+  ServerTimestampTransform
+} from '../model/transform_operation';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
@@ -57,218 +60,16 @@ import {
   fromDotSeparatedString
 } from './field_path';
 import {
+  ArrayRemoveFieldValueImpl,
+  ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
   FieldValueImpl,
-  ServerTimestampFieldValueImpl,
-  ArrayUnionFieldValueImpl,
-  ArrayRemoveFieldValueImpl
+  ServerTimestampFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
-import {
-  ServerTimestampTransform,
-  ArrayUnionTransformOperation,
-  ArrayRemoveTransformOperation
-} from '../model/transform_operation';
 
-const RESERVED_FIELD_REGEX = /^__.*__$/;
+import { Timestamp } from './timestamp';
 
-/** The result of parsing document data (e.g. for a setData call). */
-export class ParsedSetData {
-  constructor(
-    readonly data: ObjectValue,
-    readonly fieldMask: FieldMask | null,
-    readonly fieldTransforms: FieldTransform[]
-  ) {}
-
-  toMutations(key: DocumentKey, precondition: Precondition): Mutation[] {
-    const mutations = [] as Mutation[];
-    if (this.fieldMask !== null) {
-      mutations.push(
-        new PatchMutation(key, this.data, this.fieldMask, precondition)
-      );
-    } else {
-      mutations.push(new SetMutation(key, this.data, precondition));
-    }
-    if (this.fieldTransforms.length > 0) {
-      mutations.push(new TransformMutation(key, this.fieldTransforms));
-    }
-    return mutations;
-  }
-}
-
-/** The result of parsing "update" data (i.e. for an updateData call). */
-export class ParsedUpdateData {
-  constructor(
-    readonly data: ObjectValue,
-    readonly fieldMask: FieldMask,
-    readonly fieldTransforms: FieldTransform[]
-  ) {}
-
-  toMutations(key: DocumentKey, precondition: Precondition): Mutation[] {
-    const mutations = [
-      new PatchMutation(key, this.data, this.fieldMask, precondition)
-    ] as Mutation[];
-    if (this.fieldTransforms.length > 0) {
-      mutations.push(new TransformMutation(key, this.fieldTransforms));
-    }
-    return mutations;
-  }
-}
-
-/*
- * Represents what type of API method provided the data being parsed; useful
- * for determining which error conditions apply during parsing and providing
- * better error messages.
- */
-enum UserDataSource {
-  Set,
-  Update,
-  MergeSet,
-  /**
-   * Indicates the source is a where clause, cursor bound, arrayUnion()
-   * element, etc. Of note, isWrite(source) will return false.
-   */
-  Argument
-}
-
-function isWrite(dataSource: UserDataSource): boolean {
-  switch (dataSource) {
-    case UserDataSource.Set: // fall through
-    case UserDataSource.MergeSet: // fall through
-    case UserDataSource.Update:
-      return true;
-    case UserDataSource.Argument:
-      return false;
-    default:
-      throw fail(`Unexpected case for UserDataSource: ${dataSource}`);
-  }
-}
-
-/** A "context" object passed around while parsing user data. */
-class ParseContext {
-  readonly fieldTransforms: FieldTransform[];
-  readonly fieldMask: FieldPath[];
-  /**
-   * Initializes a ParseContext with the given source and path.
-   *
-   * @param dataSource Indicates what kind of API method this data came from.
-   * @param methodName The name of the method the user called to create this
-   *     ParseContext.
-   * @param path A path within the object being parsed. This could be an empty
-   *     path (in which case the context represents the root of the data being
-   *     parsed), or a nonempty path (indicating the context represents a nested
-   *     location within the data).
-   * @param arrayElement Whether or not this context corresponds to an element
-   *     of an array.
-   * @param fieldTransforms A mutable list of field transforms encountered while
-   *     parsing the data.
-   * @param fieldMask A mutable list of field paths encountered while parsing
-   *     the data.
-   *
-   * TODO(b/34871131): We don't support array paths right now, so path can be
-   * null to indicate the context represents any location within an array (in
-   * which case certain features will not work and errors will be somewhat
-   * compromised).
-   */
-  constructor(
-    readonly dataSource: UserDataSource,
-    readonly methodName: string,
-    readonly path: FieldPath | null,
-    readonly arrayElement?: boolean,
-    fieldTransforms?: FieldTransform[],
-    fieldMask?: FieldPath[]
-  ) {
-    // Minor hack: If fieldTransforms is undefined, we assume this is an
-    // external call and we need to validate the entire path.
-    if (fieldTransforms === undefined) {
-      this.validatePath();
-    }
-    this.arrayElement = arrayElement !== undefined ? arrayElement : false;
-    this.fieldTransforms = fieldTransforms || [];
-    this.fieldMask = fieldMask || [];
-  }
-
-  childContextForField(field: string): ParseContext {
-    const childPath = this.path == null ? null : this.path.child(field);
-    const context = new ParseContext(
-      this.dataSource,
-      this.methodName,
-      childPath,
-      /*arrayElement=*/ false,
-      this.fieldTransforms,
-      this.fieldMask
-    );
-    context.validatePathSegment(field);
-    return context;
-  }
-
-  childContextForFieldPath(field: FieldPath): ParseContext {
-    const childPath = this.path == null ? null : this.path.child(field);
-    const context = new ParseContext(
-      this.dataSource,
-      this.methodName,
-      childPath,
-      /*arrayElement=*/ false,
-      this.fieldTransforms,
-      this.fieldMask
-    );
-    context.validatePath();
-    return context;
-  }
-
-  childContextForArray(index: number): ParseContext {
-    // TODO(b/34871131): We don't support array paths right now; so make path
-    // null.
-    return new ParseContext(
-      this.dataSource,
-      this.methodName,
-      /*path=*/ null,
-      /*arrayElement=*/ true,
-      this.fieldTransforms,
-      this.fieldMask
-    );
-  }
-
-  createError(reason: string): Error {
-    const fieldDescription =
-      this.path === null || this.path.isEmpty()
-        ? ''
-        : ` (found in field ${this.path.toString()})`;
-    return new FirestoreError(
-      Code.INVALID_ARGUMENT,
-      `Function ${this.methodName}() called with invalid data. ` +
-        reason +
-        fieldDescription
-    );
-  }
-
-  /** Returns 'true' if 'fieldPath' was traversed when creating this context. */
-  contains(fieldPath: FieldPath): boolean {
-    return (
-      this.fieldMask.find(field => fieldPath.isPrefixOf(field)) !== undefined ||
-      this.fieldTransforms.find(transform =>
-        fieldPath.isPrefixOf(transform.field)
-      ) !== undefined
-    );
-  }
-
-  private validatePath(): void {
-    // TODO(b/34871131): Remove null check once we have proper paths for fields
-    // within arrays.
-    if (this.path === null) {
-      return;
-    }
-    for (let i = 0; i < this.path.length; i++) {
-      this.validatePathSegment(this.path.get(i));
-    }
-  }
-
-  private validatePathSegment(segment: string): void {
-    if (isWrite(this.dataSource) && RESERVED_FIELD_REGEX.test(segment)) {
-      throw this.createError('Document fields cannot begin and end with __');
-    }
-  }
-}
 /**
  * An interface that allows arbitrary pre-converting of user data. This
  * abstraction allows for, e.g.:
@@ -302,20 +103,12 @@ export class UserDataConverter {
 
   /** Parse document data from a non-merge set() call. */
   parseSetData(methodName: string, input: AnyJs): ParsedSetData {
-    const context = new ParseContext(
-      UserDataSource.Set,
-      methodName,
-      FieldPath.EMPTY_PATH
-    );
+    const accumulator = new ParseAccumulator(methodName, UserDataSource.Set);
+    const context = accumulator.rootContext();
     validatePlainObject('Data must be an object, but it was:', context, input);
 
     const updateData = this.parseData(input, context);
-
-    return new ParsedSetData(
-      updateData as ObjectValue,
-      /* fieldMask= */ null,
-      context.fieldTransforms
-    );
+    return accumulator.toSetData(updateData as ObjectValue);
   }
 
   /** Parse document data from a set() call with '{merge:true}'. */
@@ -324,21 +117,16 @@ export class UserDataConverter {
     input: AnyJs,
     fieldPaths?: Array<string | firestore.FieldPath>
   ): ParsedSetData {
-    const context = new ParseContext(
-      UserDataSource.MergeSet,
+    const accumulator = new ParseAccumulator(
       methodName,
-      FieldPath.EMPTY_PATH
+      UserDataSource.MergeSet
     );
+    const context = accumulator.rootContext();
     validatePlainObject('Data must be an object, but it was:', context, input);
 
     const updateData = this.parseData(input, context) as ObjectValue;
-    let fieldMask: FieldMask;
-    let fieldTransforms: FieldTransform[];
 
-    if (!fieldPaths) {
-      fieldMask = new FieldMask(context.fieldMask);
-      fieldTransforms = context.fieldTransforms;
-    } else {
+    if (fieldPaths) {
       const validatedFieldPaths: FieldPath[] = [];
 
       for (const stringOrFieldPath of fieldPaths) {
@@ -357,7 +145,7 @@ export class UserDataConverter {
           );
         }
 
-        if (!context.contains(fieldPath)) {
+        if (!accumulator.contains(fieldPath)) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             `Field '${fieldPath}' is specified in your field mask but missing from your input data.`
@@ -367,25 +155,19 @@ export class UserDataConverter {
         validatedFieldPaths.push(fieldPath);
       }
 
-      fieldMask = new FieldMask(validatedFieldPaths);
-      fieldTransforms = context.fieldTransforms.filter(transform =>
-        fieldMask.covers(transform.field)
+      return accumulator.toMergeData(
+        updateData,
+        new FieldMask(validatedFieldPaths)
       );
+    } else {
+      return accumulator.toMergeData(updateData);
     }
-    return new ParsedSetData(
-      updateData as ObjectValue,
-      fieldMask,
-      fieldTransforms
-    );
   }
 
   /** Parse update data from an update() call. */
   parseUpdateData(methodName: string, input: AnyJs): ParsedUpdateData {
-    const context = new ParseContext(
-      UserDataSource.Update,
-      methodName,
-      FieldPath.EMPTY_PATH
-    );
+    const accumulator = new ParseAccumulator(methodName, UserDataSource.Update);
+    const context = accumulator.rootContext();
     validatePlainObject('Data must be an object, but it was:', context, input);
 
     const fieldMaskPaths = [] as FieldPath[];
@@ -418,11 +200,9 @@ export class UserDataConverter {
     value: AnyJs,
     moreFieldsAndValues: AnyJs[]
   ): ParsedUpdateData {
-    const context = new ParseContext(
-      UserDataSource.Update,
-      methodName,
-      FieldPath.EMPTY_PATH
-    );
+    const accumulator = new ParseAccumulator(methodName, UserDataSource.Update);
+    const context = accumulator.rootContext();
+
     const keys = [fieldPathFromArgument(methodName, field)];
     const values = [value];
 
@@ -443,7 +223,6 @@ export class UserDataConverter {
       values.push(moreFieldsAndValues[i + 1]);
     }
 
-    const fieldMaskPaths = [] as FieldPath[];
     let updateData = ObjectValue.EMPTY;
 
     for (let i = 0; i < keys.length; ++i) {
@@ -452,18 +231,17 @@ export class UserDataConverter {
       const value = this.runPreConverter(values[i], childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths.push(path);
+        context.addToFieldMask(path);
       } else {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
-          fieldMaskPaths.push(path);
+          context.addToFieldMask(path);
           updateData = updateData.set(path, parsedValue);
         }
       }
     }
 
-    const mask = new FieldMask(fieldMaskPaths);
-    return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
+    return accumulator.toUpdateData(updateData);
   }
 
   /**
@@ -471,11 +249,12 @@ export class UserDataConverter {
    * bound).
    */
   parseQueryValue(methodName: string, input: AnyJs): FieldValue {
-    const context = new ParseContext(
-      UserDataSource.Argument,
+    const accumulator = new ParseAccumulator(
       methodName,
-      FieldPath.EMPTY_PATH
+      UserDataSource.Argument
     );
+    const context = accumulator.rootContext();
+
     const parsed = this.parseData(input, context);
     assert(parsed != null, 'Parsed data should not be null.');
     assert(
@@ -521,7 +300,7 @@ export class UserDataConverter {
       // If context.path is null we are inside an array and we don't support
       // field mask paths more granular than the top-level array.
       if (context.path) {
-        context.fieldMask.push(context.path);
+        context.addToFieldMask(context.path);
       }
 
       if (input instanceof Array) {
@@ -544,7 +323,7 @@ export class UserDataConverter {
       // If we encounter an empty object, we explicitly add it to the update
       // mask to ensure that the server creates a map entry.
       if (context.path && context.path.length > 0) {
-        context.fieldMask.push(context.path);
+        context.addToFieldMask(context.path);
       }
     } else {
       objUtils.forEach(obj, (key: string, val: AnyJs) => {
@@ -589,7 +368,7 @@ export class UserDataConverter {
     context: ParseContext
   ): void {
     // Sentinels are only supported with writes, and not within arrays.
-    if (!isWrite(context.dataSource)) {
+    if (!context.isWrite()) {
       throw context.createError(
         `${value._methodName}() can only be used with update() and set()`
       );
@@ -604,7 +383,7 @@ export class UserDataConverter {
       if (context.dataSource === UserDataSource.MergeSet) {
         // No transform to add for a delete, but we need to add it to our
         // fieldMask so it gets deleted.
-        context.fieldMask.push(context.path);
+        context.addToFieldMask(context.path);
       } else if (context.dataSource === UserDataSource.Update) {
         assert(
           context.path.length > 0,
@@ -623,8 +402,9 @@ export class UserDataConverter {
         );
       }
     } else if (value instanceof ServerTimestampFieldValueImpl) {
-      context.fieldTransforms.push(
-        new FieldTransform(context.path, ServerTimestampTransform.instance)
+      context.addToFieldTransforms(
+        context.path,
+        ServerTimestampTransform.instance
       );
     } else if (value instanceof ArrayUnionFieldValueImpl) {
       const parsedElements = this.parseArrayTransformElements(
@@ -696,15 +476,16 @@ export class UserDataConverter {
     methodName: string,
     elements: AnyJs[]
   ): FieldValue[] {
+    const accumulator = new ParseAccumulator(
+      methodName,
+      UserDataSource.Argument
+    );
+
     return elements.map((element, i) => {
       // Although array transforms are used with writes, the actual elements
       // being unioned or removed are not considered writes since they cannot
       // contain any FieldValue sentinels, etc.
-      const context = new ParseContext(
-        UserDataSource.Argument,
-        methodName,
-        FieldPath.EMPTY_PATH
-      );
+      const context = accumulator.rootContext();
       return this.parseData(element, context.childContextForArray(i))!;
     });
   }
