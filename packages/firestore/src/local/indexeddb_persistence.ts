@@ -1125,7 +1125,9 @@ class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     upperBound: ListenSequenceNumber,
     activeTargetIds: ActiveTargets
   ): PersistencePromise<number> {
-    return this.db.getQueryCache().removeTargets(txn, upperBound, activeTargetIds);
+    return this.db
+      .getQueryCache()
+      .removeTargets(txn, upperBound, activeTargetIds);
   }
 
   removeOrphanedDocuments(
