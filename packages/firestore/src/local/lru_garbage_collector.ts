@@ -101,7 +101,7 @@ class RollingSequenceNumberBuffer {
     bufferEntryComparator
   );
 
-  private previousIndex: number = 0;
+  private previousIndex = 0;
 
   constructor(private readonly maxElements: number) {}
 
