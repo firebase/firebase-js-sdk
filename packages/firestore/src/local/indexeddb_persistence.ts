@@ -1049,7 +1049,7 @@ function clientMetadataStore(
 
 /** Provides LRU functionality for IndexedDB persistence. */
 export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
-  private additionalReferences: ReferenceSet | null;
+  private inMemoryPins: ReferenceSet | null;
 
   readonly garbageCollector: LruGarbageCollector;
 
@@ -1078,7 +1078,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   }
 
   setInMemoryPins(inMemoryPins: ReferenceSet): void {
-    this.additionalReferences = inMemoryPins;
+    this.inMemoryPins = inMemoryPins;
   }
 
   addReference(
@@ -1122,7 +1122,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     docKey: DocumentKey
   ): PersistencePromise<boolean> {
-    return this.additionalReferences!.containsKey(txn, docKey).next(
+    return this.inMemoryPins!.containsKey(txn, docKey).next(
       isPinned => {
         if (isPinned) {
           return PersistencePromise.resolve(true);
