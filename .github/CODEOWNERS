@@ -2,7 +2,7 @@
 # Each line is a file pattern followed by one or more owners.
 
 # These owners will be the default owners for everything in the repo.
-*       @jshcrowthe @hiranya911 @mikelehen @bojeil-google @depoll
+*       @Feiyang1 @hiranya911 @mikelehen @bojeil-google @depoll
 
 # Database Code
 packages/database  @mikelehen @schmidt-sebastian
