@@ -1,5 +1,3 @@
-import { SortedSet } from '../util/sorted_set';
-
 /**
  * Copyright 2018 Google Inc.
  *
@@ -21,6 +19,7 @@ import { PersistencePromise } from './persistence_promise';
 import { ListenSequenceNumber } from '../core/types';
 import { ListenSequence } from '../core/listen_sequence';
 import { AnyJs, primitiveComparator } from '../util/misc';
+import { SortedSet } from '../util/sorted_set';
 
 /**
  * Persistence layers intending to use LRU Garbage collection should have reference delegates that
