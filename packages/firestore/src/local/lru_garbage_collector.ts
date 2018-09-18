@@ -98,8 +98,9 @@ function bufferEntryComparator(a: BufferEntry, b: BufferEntry): number {
  * them in `maxValue`.
  */
 class RollingSequenceNumberBuffer {
-  private buffer: SortedSet<BufferEntry> = new SortedSet<BufferEntry>(bufferEntryComparator);
-
+  private buffer: SortedSet<BufferEntry> = new SortedSet<BufferEntry>(
+    bufferEntryComparator
+  );
 
   private previousIndex: number = 0;
 
