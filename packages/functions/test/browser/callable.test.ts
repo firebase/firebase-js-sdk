@@ -69,8 +69,7 @@ describe('Firebase Functions > Call', () => {
   // TODO(klimt): Move this to the cross-platform tests and delete this file,
   // once instance id works there.
   it('instance id', async () => {
-
-    if(!isSupported()) {
+    if (!isSupported()) {
       // Current platform does not support messaging, skip test.
       return;
     }
