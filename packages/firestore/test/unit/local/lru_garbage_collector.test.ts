@@ -29,6 +29,7 @@ import { path, wrapObject } from '../../util/helpers';
 import { QueryCache } from '../../../src/local/query_cache';
 import {
   ActiveTargets,
+  LruDelegate,
   LruGarbageCollector
 } from '../../../src/local/lru_garbage_collector';
 import { ListenSequence } from '../../../src/core/listen_sequence';
@@ -46,9 +47,8 @@ import { User } from '../../../src/auth/user';
 import { Timestamp } from '../../../src/api/timestamp';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { ReferenceSet } from '../../../src/local/reference_set';
-import { IndexedDbQueryCache } from '../../../src/local/indexeddb_query_cache';
 
-describe('IndexedDbLruReferenceDelegate', () => {
+describe('IndexedDbLruDelegate', () => {
   if (!IndexedDbPersistence.isAvailable()) {
     console.warn('No IndexedDB. Skipping IndexedDbLruReferenceDelegate tests.');
     return;
@@ -57,6 +57,10 @@ describe('IndexedDbLruReferenceDelegate', () => {
   genericLruGarbageCollectorTests(() =>
     PersistenceTestHelpers.testIndexedDbPersistence()
   );
+});
+
+describe('MemoryLruDelegate', () => {
+  genericLruGarbageCollectorTests(() => PersistenceTestHelpers.testMemoryLruPersistence());
 });
 
 function genericLruGarbageCollectorTests(
@@ -98,11 +102,9 @@ function genericLruGarbageCollectorTests(
       'readwrite',
       txn => PersistencePromise.resolve(txn.currentSequenceNumber)
     );
-    // TODO(gsoltis): remove cast
-    const referenceDelegate = (persistence as IndexedDbPersistence)
-      .referenceDelegate;
+    const referenceDelegate = persistence.referenceDelegate;
     referenceDelegate.setInMemoryPins(new ReferenceSet());
-    garbageCollector = referenceDelegate.garbageCollector;
+    garbageCollector = (referenceDelegate as any as LruDelegate).garbageCollector;
   }
 
   function nextQueryData(sequenceNumber: ListenSequenceNumber): QueryData {
@@ -150,8 +152,7 @@ function genericLruGarbageCollectorTests(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
-    // TODO(gsoltis): change this once reference delegate is added to the persistence interface
-    return (persistence as IndexedDbPersistence).referenceDelegate.removeMutationReference(
+    return persistence.referenceDelegate.removeMutationReference(
       txn,
       key
     );
@@ -387,8 +388,7 @@ function genericLruGarbageCollectorTests(
       'verify remaining targets > 20 or odd',
       'readwrite',
       txn => {
-        // TODO: change this once forEachTarget is added to QueryCache interface
-        return (queryCache as IndexedDbQueryCache).forEachTarget(
+        return queryCache.forEachTarget(
           txn,
           queryData => {
             const targetId = queryData.targetId;
@@ -751,8 +751,7 @@ function genericLruGarbageCollectorTests(
       'remove middle target',
       'readwrite',
       txn => {
-        // TODO(gsoltis): fix this cast
-        return (persistence as IndexedDbPersistence).referenceDelegate.removeTarget(
+        return persistence.referenceDelegate.removeTarget(
           txn,
           middleTarget
         );

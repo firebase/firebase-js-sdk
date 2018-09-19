@@ -27,6 +27,7 @@ import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
 import { GarbageCollector } from './garbage_collector';
+import { MemoryPersistence } from './memory_persistence';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -56,6 +57,8 @@ export class MemoryMutationQueue implements MutationQueue {
 
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
+
+  constructor(private readonly persistence: MemoryPersistence) {}
 
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
     assert(
@@ -336,6 +339,7 @@ export class MemoryMutationQueue implements MutationQueue {
       if (this.garbageCollector !== null) {
         this.garbageCollector.addPotentialGarbageKey(key);
       }
+      // TODO(gsoltis): tell reference delegate that mutation was ack'd
 
       const ref = new DocReference(key, batch.batchId);
       references = references.delete(ref);

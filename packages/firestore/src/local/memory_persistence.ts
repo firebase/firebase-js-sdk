@@ -15,7 +15,15 @@
  */
 
 import { User } from '../auth/user';
+import { DocumentKey } from '../model/document_key';
 import { debug } from '../util/log';
+import { ObjectMap } from '../util/obj_map';
+import { encode } from './encoded_resource_path';
+import {
+  ActiveTargets,
+  LruDelegate,
+  LruGarbageCollector
+} from './lru_garbage_collector';
 
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryQueryCache } from './memory_query_cache';
@@ -24,14 +32,15 @@ import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
-  PrimaryStateListener
+  PrimaryStateListener, ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
-import { RemoteDocumentCache } from './remote_document_cache';
+import { QueryData } from './query_data';
+import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { ListenSequenceNumber } from '../core/types';
 import { ListenSequence } from '../core/listen_sequence';
+import * as obj from '../util/obj';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -49,17 +58,31 @@ export class MemoryPersistence implements Persistence {
    */
   private mutationQueues: { [user: string]: MutationQueue } = {};
   private remoteDocumentCache = new MemoryRemoteDocumentCache();
-  private queryCache = new MemoryQueryCache();
+  private readonly queryCache: MemoryQueryCache;// = new MemoryQueryCache();
+  private readonly listenSequence = new ListenSequence(0);
 
   private _started = false;
 
-  constructor(private readonly clientId: ClientId) {
-    this._started = true;
+  private _referenceDelegate: ReferenceDelegate | null;
+  get referenceDelegate(): ReferenceDelegate {
+    return this._referenceDelegate!;
   }
 
-  async shutdown(deleteData?: boolean): Promise<void> {
+  static lruPersistence(clientId: ClientId): MemoryPersistence {
+    const persistence = new MemoryPersistence(clientId);
+    persistence._referenceDelegate = new MemoryLruDelegate(persistence);
+    return persistence;
+  }
+
+  constructor(private readonly clientId: ClientId) {
+    this._started = true;
+    this.queryCache = new MemoryQueryCache(this);
+  }
+
+  shutdown(deleteData?: boolean): Promise<void> {
     // No durable state to ensure is closed on shutdown.
     this._started = false;
+    return Promise.resolve();
   }
 
   get started(): boolean {
@@ -84,17 +107,17 @@ export class MemoryPersistence implements Persistence {
   getMutationQueue(user: User): MutationQueue {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
-      queue = new MemoryMutationQueue();
+      queue = new MemoryMutationQueue(this);
       this.mutationQueues[user.toKey()] = queue;
     }
     return queue;
   }
 
-  getQueryCache(): QueryCache {
+  getQueryCache(): MemoryQueryCache {
     return this.queryCache;
   }
 
-  getRemoteDocumentCache(): RemoteDocumentCache {
+  getRemoteDocumentCache(): MemoryRemoteDocumentCache {
     return this.remoteDocumentCache;
   }
 
@@ -107,8 +130,12 @@ export class MemoryPersistence implements Persistence {
   ): Promise<T> {
     debug(LOG_TAG, 'Starting transaction:', action);
     return transactionOperation(
-      new MemoryTransaction(ListenSequence.INVALID)
+      new MemoryTransaction(this.listenSequence.next())
     ).toPromise();
+  }
+
+  mutationQueuesContainKey(transaction: PersistenceTransaction, key: DocumentKey): PersistencePromise<boolean> {
+    return or(obj.values(this.mutationQueues).map(queue => () => queue.containsKey(transaction, key)));
   }
 }
 
@@ -118,4 +145,110 @@ export class MemoryPersistence implements Persistence {
  */
 export class MemoryTransaction implements PersistenceTransaction {
   constructor(readonly currentSequenceNumber: ListenSequenceNumber) {}
+}
+
+export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
+  private additionalReferences: ReferenceSet | null;
+  private orphanedSequenceNumbers: ObjectMap<DocumentKey, ListenSequenceNumber> = new ObjectMap(k => encode(k.path));
+
+  readonly garbageCollector: LruGarbageCollector;
+
+  constructor(private readonly persistence: MemoryPersistence) {
+    this.garbageCollector = new LruGarbageCollector(this);
+  }
+
+  forEachTarget(txn: PersistenceTransaction, f: (q: QueryData) => void): PersistencePromise<void> {
+    return this.persistence.getQueryCache().forEachTarget(txn, f);
+  }
+
+  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
+    return this.persistence.getQueryCache().getTargetCount(txn);
+  }
+
+  forEachOrphanedDocumentSequenceNumber(txn: PersistenceTransaction, f: (sequenceNumber: ListenSequenceNumber) => void): PersistencePromise<void> {
+    this.orphanedSequenceNumbers.forEach((_, sequenceNumber) => f(sequenceNumber));
+    return PersistencePromise.resolve();
+  }
+
+  setInMemoryPins(inMemoryPins: ReferenceSet): void {
+    this.additionalReferences = inMemoryPins;
+  }
+
+  removeTargets(txn: PersistenceTransaction, upperBound: ListenSequenceNumber, activeTargetIds: ActiveTargets): PersistencePromise<number> {
+    return this.persistence.getQueryCache().removeTargets(txn, upperBound, activeTargetIds);
+  }
+
+  removeOrphanedDocuments(txn: PersistenceTransaction, upperBound: ListenSequenceNumber): PersistencePromise<number> {
+    let count = 0;
+    const cache = this.persistence.getRemoteDocumentCache();
+    const p = cache.forEachDocumentKey(txn, key => {
+      return this.isPinned(txn, key, upperBound).next(isPinned => {
+        if (isPinned) {
+          return PersistencePromise.resolve();
+        } else {
+          count++;
+          return cache.removeEntry(txn, key);
+        }
+      });
+    });
+    return p.next(() => count);
+  }
+
+  removeMutationReference(txn: PersistenceTransaction, key: DocumentKey): PersistencePromise<void> {
+    this.orphanedSequenceNumbers.set(key, txn.currentSequenceNumber);
+    return PersistencePromise.resolve();
+  }
+
+  removeTarget(txn: PersistenceTransaction, queryData: QueryData): PersistencePromise<void> {
+    const updated = queryData.copy({ sequenceNumber: txn.currentSequenceNumber });
+    return this.persistence.getQueryCache().updateQueryData(txn, updated);
+  }
+
+  addReference(txn: PersistenceTransaction, key: DocumentKey): PersistencePromise<void> {
+    this.orphanedSequenceNumbers.set(key, txn.currentSequenceNumber);
+    return PersistencePromise.resolve();
+  }
+
+  removeReference(txn: PersistenceTransaction, key: DocumentKey): PersistencePromise<void> {
+    this.orphanedSequenceNumbers.set(key, txn.currentSequenceNumber);
+    return PersistencePromise.resolve();
+  }
+
+  updateLimboDocument(txn: PersistenceTransaction, key: DocumentKey): PersistencePromise<void> {
+    this.orphanedSequenceNumbers.set(key, txn.currentSequenceNumber);
+    return PersistencePromise.resolve();
+  }
+
+  private isPinned(txn: PersistenceTransaction, key: DocumentKey, upperBound: ListenSequenceNumber): PersistencePromise<boolean> {
+    return or([
+      () => this.persistence.mutationQueuesContainKey(txn, key),
+      () => this.additionalReferences!.containsKey(txn, key),
+      () => this.persistence.getQueryCache().containsKey(txn, key),
+      () => {
+        const orphanedAt = this.orphanedSequenceNumbers.get(key);
+        return PersistencePromise.resolve(orphanedAt !== undefined && orphanedAt > upperBound);
+      }
+    ]);
+  }
+}
+
+/**
+ * Given an array of predicate functions that asynchronously evaluate to a
+ * boolean, implements a short-circuiting `or` between the results. Predicates
+ * will be evaluated until one of them returns `true`, then stop. The final
+ * result will be whether any of them returned `true`.
+ */
+function or(predicates: Array<() => PersistencePromise<boolean>>): PersistencePromise<boolean> {
+  let p: PersistencePromise<boolean> = PersistencePromise.resolve(false);
+  for (let i = 0; i < predicates.length; i++) {
+    const nextPredicate = predicates[i];
+    p = p.next(isTrue => {
+      if (isTrue) {
+        return PersistencePromise.resolve<boolean>(isTrue);
+      } else {
+        return nextPredicate();
+      }
+    });
+  }
+  return p;
 }

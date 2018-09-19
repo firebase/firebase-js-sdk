@@ -54,6 +54,14 @@ export interface QueryCache extends GarbageSource {
   ): PersistencePromise<ListenSequenceNumber>;
 
   /**
+   * Call provided function with each `QueryData` that we have cached.
+   */
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (q: QueryData) => void
+  ): PersistencePromise<void>;
+
+  /**
    * Set the highest listen sequence number and optionally updates the
    * snapshot version of the last consistent snapshot received from the backend
    * (see getLastRemoteSnapshotVersion() for more details).

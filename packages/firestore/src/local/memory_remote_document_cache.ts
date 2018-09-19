@@ -15,6 +15,7 @@
  */
 
 import { Query } from '../core/query';
+import { ListenSequenceNumber } from '../core/types';
 import {
   documentKeySet,
   DocumentMap,
@@ -24,6 +25,7 @@ import {
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { MemoryLruDelegate } from './memory_persistence';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -80,6 +82,16 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       }
     }
     return PersistencePromise.resolve(results);
+  }
+
+  forEachDocumentKey(transaction: PersistenceTransaction, f: (key: DocumentKey) => PersistencePromise<void>): PersistencePromise<void> {
+    const iter = this.docs.getIterator();
+    const promises: Array<PersistencePromise<void>> = [];
+    while (iter.hasNext()) {
+      const { key } = iter.getNext();
+      promises.push(f(key));
+    }
+    return PersistencePromise.waitFor(promises);
   }
 
   getNewDocumentChanges(
