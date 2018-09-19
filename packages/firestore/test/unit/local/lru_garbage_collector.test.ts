@@ -60,7 +60,9 @@ describe('IndexedDbLruDelegate', () => {
 });
 
 describe('MemoryLruDelegate', () => {
-  genericLruGarbageCollectorTests(() => PersistenceTestHelpers.testMemoryLruPersistence());
+  genericLruGarbageCollectorTests(() =>
+    PersistenceTestHelpers.testMemoryLruPersistence()
+  );
 });
 
 function genericLruGarbageCollectorTests(
@@ -104,7 +106,8 @@ function genericLruGarbageCollectorTests(
     );
     const referenceDelegate = persistence.referenceDelegate;
     referenceDelegate.setInMemoryPins(new ReferenceSet());
-    garbageCollector = (referenceDelegate as any as LruDelegate).garbageCollector;
+    garbageCollector = ((referenceDelegate as any) as LruDelegate)
+      .garbageCollector;
   }
 
   function nextQueryData(sequenceNumber: ListenSequenceNumber): QueryData {
@@ -152,10 +155,7 @@ function genericLruGarbageCollectorTests(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<void> {
-    return persistence.referenceDelegate.removeMutationReference(
-      txn,
-      key
-    );
+    return persistence.referenceDelegate.removeMutationReference(txn, key);
   }
 
   function markDocumentEligibleForGC(key: DocumentKey): Promise<void> {
@@ -388,13 +388,10 @@ function genericLruGarbageCollectorTests(
       'verify remaining targets > 20 or odd',
       'readwrite',
       txn => {
-        return queryCache.forEachTarget(
-          txn,
-          queryData => {
-            const targetId = queryData.targetId;
-            expect(targetId > 20 || targetId % 2 === 1).to.be.true;
-          }
-        );
+        return queryCache.forEachTarget(txn, queryData => {
+          const targetId = queryData.targetId;
+          expect(targetId > 20 || targetId % 2 === 1).to.be.true;
+        });
       }
     );
   });
@@ -751,10 +748,7 @@ function genericLruGarbageCollectorTests(
       'remove middle target',
       'readwrite',
       txn => {
-        return persistence.referenceDelegate.removeTarget(
-          txn,
-          middleTarget
-        );
+        return persistence.referenceDelegate.removeTarget(txn, middleTarget);
       }
     );
 

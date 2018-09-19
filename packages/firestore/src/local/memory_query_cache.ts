@@ -61,7 +61,10 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve(this.targetCount);
   }
 
-  forEachTarget(txn: PersistenceTransaction, f: (q: QueryData) => void): PersistencePromise<void> {
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (q: QueryData) => void
+  ): PersistencePromise<void> {
     this.queries.forEach((_, queryData) => f(queryData));
     return PersistencePromise.resolve();
   }
@@ -148,13 +151,22 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
-  removeTargets(transaction: PersistenceTransaction, upperBound: ListenSequenceNumber, activeTargetIds: ActiveTargets): PersistencePromise<number> {
+  removeTargets(
+    transaction: PersistenceTransaction,
+    upperBound: ListenSequenceNumber,
+    activeTargetIds: ActiveTargets
+  ): PersistencePromise<number> {
     let count = 0;
     const removals: Array<PersistencePromise<void>> = [];
     this.queries.forEach((key, queryData) => {
-      if (queryData.sequenceNumber <= upperBound && !activeTargetIds[queryData.targetId]) {
+      if (
+        queryData.sequenceNumber <= upperBound &&
+        !activeTargetIds[queryData.targetId]
+      ) {
         this.queries.delete(key);
-        removals.push(this.removeMatchingKeysForTargetId(transaction, queryData.targetId));
+        removals.push(
+          this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
+        );
         count++;
       }
     });
@@ -195,7 +207,7 @@ export class MemoryQueryCache implements QueryCache {
     if (referenceDelegate) {
       keys.forEach(key => {
         promises.push(referenceDelegate.addReference(txn, key));
-      })
+      });
     }
     return PersistencePromise.waitFor(promises);
   }
@@ -211,7 +223,7 @@ export class MemoryQueryCache implements QueryCache {
     if (referenceDelegate) {
       keys.forEach(key => {
         promises.push(referenceDelegate.removeReference(txn, key));
-      })
+      });
     }
     return PersistencePromise.waitFor(promises);
   }

@@ -84,7 +84,10 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
-  forEachDocumentKey(transaction: PersistenceTransaction, f: (key: DocumentKey) => PersistencePromise<void>): PersistencePromise<void> {
+  forEachDocumentKey(
+    transaction: PersistenceTransaction,
+    f: (key: DocumentKey) => PersistencePromise<void>
+  ): PersistencePromise<void> {
     const iter = this.docs.getIterator();
     const promises: Array<PersistencePromise<void>> = [];
     while (iter.hasNext()) {
