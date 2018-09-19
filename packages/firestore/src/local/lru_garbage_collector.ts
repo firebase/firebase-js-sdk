@@ -80,7 +80,10 @@ export type ActiveTargets = {
 // The type and comparator for the items contained in the SortedSet used in
 // place of a priority queue for the RollingSequenceNumberBuffer.
 type BufferEntry = [ListenSequenceNumber, number];
-function bufferEntryComparator([aSequence, aIndex]: BufferEntry, [bSequence, bIndex]: BufferEntry): number {
+function bufferEntryComparator(
+  [aSequence, aIndex]: BufferEntry,
+  [bSequence, bIndex]: BufferEntry
+): number {
   const seqCmp = primitiveComparator(aSequence, bSequence);
   if (seqCmp === 0) {
     // This order doesn't matter, but we can bias against churn by sorting
