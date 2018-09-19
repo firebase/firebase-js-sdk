@@ -525,19 +525,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
-    const indexKey = DbDocumentMutation.prefixForPath(this.userId, key.path);
-    const encodedPath = indexKey[1];
-    const startRange = IDBKeyRange.lowerBound(indexKey);
-    let containsKey = false;
-    return documentMutationsStore(txn)
-      .iterate({ range: startRange, keysOnly: true }, (key, value, control) => {
-        const [userID, keyPath, /*batchID*/ _] = key;
-        if (userID === this.userId && keyPath === encodedPath) {
-          containsKey = true;
-        }
-        control.done();
-      })
-      .next(() => containsKey);
+    return mutationQueueContainsKey(txn, this.userId, key);
   }
 
   // PORTING NOTE: Multi-tab only (state is held in memory in other clients).
@@ -558,6 +546,47 @@ export class IndexedDbMutationQueue implements MutationQueue {
         );
       });
   }
+}
+
+/**
+ * @return true if the mutation queue for the given user contains a pending mutation for the given key.
+ */
+function mutationQueueContainsKey(
+  txn: PersistenceTransaction,
+  userId: string,
+  key: DocumentKey
+): PersistencePromise<boolean> {
+  const indexKey = DbDocumentMutation.prefixForPath(userId, key.path);
+  const encodedPath = indexKey[1];
+  const startRange = IDBKeyRange.lowerBound(indexKey);
+  let containsKey = false;
+  return documentMutationsStore(txn)
+    .iterate({ range: startRange, keysOnly: true }, (key, value, control) => {
+      const [userID, keyPath, /*batchID*/ _] = key;
+      if (userID === userId && keyPath === encodedPath) {
+        containsKey = true;
+      }
+      control.done();
+    })
+    .next(() => containsKey);
+}
+
+/** Returns true if any mutation queue contains the given document. */
+export function mutationQueuesContainKey(
+  txn: PersistenceTransaction,
+  docKey: DocumentKey
+): PersistencePromise<boolean> {
+  let found = false;
+  return mutationQueuesStore(txn)
+    .iterateSerial(userId => {
+      return mutationQueueContainsKey(txn, userId, docKey).next(containsKey => {
+        if (containsKey) {
+          found = true;
+        }
+        return PersistencePromise.resolve(!containsKey);
+      });
+    })
+    .next(() => found);
 }
 
 /**

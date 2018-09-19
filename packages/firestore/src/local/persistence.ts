@@ -22,6 +22,9 @@ import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
 import { ListenSequenceNumber } from '../core/types';
+import { ReferenceSet } from './reference_set';
+import { QueryData } from './query_data';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * Opaque interface representing a persistence transaction.
@@ -45,6 +48,60 @@ export abstract class PersistenceTransaction {
  * exactly once marking the current instance as Primary.
  */
 export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
+
+/**
+ * A ReferenceDelegate instance handles all of the hooks into the document-reference lifecycle. This
+ * includes being added to a target, being removed from a target, being subject to mutation, and
+ * being mutated by the user.
+ *
+ * Different implementations may do different things with each of these events. Not every
+ * implementation needs to do something with every lifecycle hook.
+ *
+ * PORTING NOTE: since sequence numbers are attached to transactions in this
+ * client, the ReferenceDelegate does not need to deal in transactional
+ * semantics (onTransactionStarted/Committed()), nor does it need to track and
+ * generate sequence numbers (getCurrentSequenceNumber()).
+ */
+export interface ReferenceDelegate {
+  /**
+   * Registers a ReferenceSet of documents that should be considered 'referenced' and not eligible
+   * for removal during garbage collection.
+   */
+  setInMemoryPins(pins: ReferenceSet): void;
+
+  /** Notify the delegate that the given document was added to a target. */
+  addReference(
+    txn: PersistenceTransaction,
+    doc: DocumentKey
+  ): PersistencePromise<void>;
+
+  /** Notify the delegate that the given document was removed from a target. */
+  removeReference(
+    txn: PersistenceTransaction,
+    doc: DocumentKey
+  ): PersistencePromise<void>;
+
+  /**
+   * Notify the delegate that a target was removed. The delegate may, but is not obligated to,
+   * actually delete the target and associated data.
+   */
+  removeTarget(
+    txn: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void>;
+
+  /** Notify the delegate that a document is no longer being mutated by the user. */
+  removeMutationReference(
+    txn: PersistenceTransaction,
+    doc: DocumentKey
+  ): PersistencePromise<void>;
+
+  /** Notify the delegate that a limbo document was updated. */
+  updateLimboDocument(
+    txn: PersistenceTransaction,
+    doc: DocumentKey
+  ): PersistencePromise<void>;
+}
 
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
