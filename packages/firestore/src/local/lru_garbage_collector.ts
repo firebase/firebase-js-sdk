@@ -80,12 +80,12 @@ export type ActiveTargets = {
 // The type and comparator for the items contained in the SortedSet used in
 // place of a priority queue for the RollingSequenceNumberBuffer.
 type BufferEntry = [ListenSequenceNumber, number];
-function bufferEntryComparator(a: BufferEntry, b: BufferEntry): number {
-  const seqCmp = primitiveComparator(a[0], b[0]);
+function bufferEntryComparator([aSequence, aIndex]: BufferEntry, [bSequence, bIndex]: BufferEntry): number {
+  const seqCmp = primitiveComparator(aSequence, bSequence);
   if (seqCmp === 0) {
     // This order doesn't matter, but we can bias against churn by sorting
     // entries created earlier as less than newer entries.
-    return primitiveComparator(a[1], b[1]);
+    return primitiveComparator(aIndex, bIndex);
   } else {
     return seqCmp;
   }
@@ -122,6 +122,12 @@ class RollingSequenceNumberBuffer {
   }
 
   get maxValue(): ListenSequenceNumber {
+    // Guaranteed to be non-empty. If we decide we are not collecting any
+    // sequence numbers, nthSequenceNumber below short-circuits. If we have
+    // decided that we are collecting n sequence numbers, it's because n is some
+    // percentage of the existing sequence numbers. That means we should never
+    // be in a situation where we are collecting sequence numbers but don't
+    // actually have any.
     return this.buffer.last()![0];
   }
 }
