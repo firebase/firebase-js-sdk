@@ -106,6 +106,7 @@ function genericLruGarbageCollectorTests(
     );
     const referenceDelegate = persistence.referenceDelegate;
     referenceDelegate.setInMemoryPins(new ReferenceSet());
+    // tslint:disable-next-line:no-any
     garbageCollector = ((referenceDelegate as any) as LruDelegate)
       .garbageCollector;
   }

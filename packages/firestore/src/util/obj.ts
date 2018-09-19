@@ -58,7 +58,7 @@ export function forEachNumber<V>(
   }
 }
 
-export function values<V>(obj: Dict<V>) {
+export function values<V>(obj: Dict<V>): V[] {
   const vs: V[] = [];
   forEach(obj, (_, v) => vs.push(v));
   return vs;

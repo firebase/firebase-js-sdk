@@ -108,7 +108,7 @@ export class MemoryPersistence implements Persistence {
   getMutationQueue(user: User): MutationQueue {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
-      queue = new MemoryMutationQueue(this);
+      queue = new MemoryMutationQueue();
       this.mutationQueues[user.toKey()] = queue;
     }
     return queue;

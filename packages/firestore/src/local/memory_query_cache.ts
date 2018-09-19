@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { queryData } from '../../test/util/helpers';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
@@ -25,7 +24,7 @@ import { ObjectMap } from '../util/obj_map';
 import { GarbageCollector } from './garbage_collector';
 import { ActiveTargets } from './lru_garbage_collector';
 import { MemoryPersistence } from './memory_persistence';
-import { PersistenceTransaction, ReferenceDelegate } from './persistence';
+import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
