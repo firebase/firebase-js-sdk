@@ -605,12 +605,14 @@ export class DbTargetDocument {
      */
     public path: EncodedResourcePath,
     /**
-     *
+     * If this is a sentinel row, this should be the sequence number of the last
+     * time the document specified by `path` was used. Otherwise, it should be
+     * `undefined`.
      */
     public sequenceNumber?: ListenSequenceNumber
   ) {
     assert(
-      (targetId !== 0) !== (typeof sequenceNumber !== 'undefined'),
+      (targetId === 0) === (typeof sequenceNumber !== undefined),
       'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
     );
   }
