@@ -40,8 +40,7 @@ import {
   SCHEMA_VERSION,
   DbTargetGlobal,
   SchemaConverter,
-  DbTargetDocument,
-  DbTargetDocumentKey
+  DbTargetDocument
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
