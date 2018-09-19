@@ -476,7 +476,7 @@ export function getHighestListenSequenceNumber(
 /**
  * Helper to get a typed SimpleDbStore for the document target object store.
  */
-function documentTargetStore(
+export function documentTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
   return IndexedDbPersistence.getStore<DbTargetDocumentKey, DbTargetDocument>(

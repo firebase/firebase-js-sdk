@@ -27,7 +27,8 @@ import {
 } from './indexeddb_mutation_queue';
 import {
   IndexedDbQueryCache,
-  getHighestListenSequenceNumber
+  getHighestListenSequenceNumber,
+  documentTargetStore
 } from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
@@ -1122,15 +1123,13 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     docKey: DocumentKey
   ): PersistencePromise<boolean> {
-    return this.inMemoryPins!.containsKey(txn, docKey).next(
-      isPinned => {
-        if (isPinned) {
-          return PersistencePromise.resolve(true);
-        } else {
-          return mutationQueuesContainKey(txn, docKey);
-        }
+    return this.inMemoryPins!.containsKey(txn, docKey).next(isPinned => {
+      if (isPinned) {
+        return PersistencePromise.resolve(true);
+      } else {
+        return mutationQueuesContainKey(txn, docKey);
       }
-    );
+    });
   }
 
   removeOrphanedDocuments(
@@ -1170,7 +1169,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     docKey: DocumentKey
   ): PersistencePromise<void> {
     return PersistencePromise.waitFor([
-      sentinelKeyStore(txn).delete(sentinelKey(docKey)),
+      documentTargetStore(txn).delete(sentinelKey(docKey)),
       this.db.getRemoteDocumentCache().removeEntry(txn, docKey)
     ]);
   }
@@ -1202,7 +1201,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     f: (docKey: DocumentKey, sequenceNumber: ListenSequenceNumber) => void
   ): PersistencePromise<void> {
-    const store = sentinelKeyStore(txn);
+    const store = documentTargetStore(txn);
     let nextToReport: ListenSequenceNumber = ListenSequence.INVALID;
     let nextPath: EncodedResourcePath;
     return store
@@ -1219,7 +1218,9 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
             }
             // set nextToReport to be this sequence number. It's the next one we
             // might report, if we don't find any targets for this document.
-            nextToReport = sequenceNumber;
+            // Note that the sequence number must be defined when the targetId
+            // is 0.
+            nextToReport = sequenceNumber!;
             nextPath = path;
           } else {
             // set nextToReport to be invalid, we know we don't need to report
@@ -1239,51 +1240,26 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   }
 }
 
-/**
- * `SentinelRow` describes the schema of rows in the DbTargetDocument store that
- * have TargetId === 0. The sequence number is an approximation of a last-used value
- * for the document identified by the path portion of the key.
- */
-type SentinelRow = {
-  targetId: TargetId;
-  path: EncodedResourcePath;
-  sequenceNumber: ListenSequenceNumber;
-};
-
-/**
- * The sentinel key store is the same as the DbTargetDocument store, but allows for
- * reading and writing sequence numbers as part of the value stored.
- */
-function sentinelKeyStore(
-  txn: PersistenceTransaction
-): SimpleDbStore<DbTargetDocumentKey, SentinelRow> {
-  return IndexedDbPersistence.getStore<DbTargetDocumentKey, SentinelRow>(
-    txn,
-    DbTargetDocument.store
-  );
-}
-
 function sentinelKey(key: DocumentKey): [TargetId, EncodedResourcePath] {
   return [0, encode(key.path)];
 }
 
 /**
- * @return A value suitable for writing in the sentinel key store.
+ * @return A value suitable for writing a sentinel row in the target-document
+ * store.
  */
 function sentinelRow(
   key: DocumentKey,
   sequenceNumber: ListenSequenceNumber
-): SentinelRow {
-  return {
-    targetId: 0,
-    path: encode(key.path),
-    sequenceNumber
-  };
+): DbTargetDocument {
+  return new DbTargetDocument(0, encode(key.path), sequenceNumber);
 }
 
 function writeSentinelKey(
   txn: PersistenceTransaction,
   key: DocumentKey
 ): PersistencePromise<void> {
-  return sentinelKeyStore(txn).put(sentinelRow(key, txn.currentSequenceNumber));
+  return documentTargetStore(txn).put(
+    sentinelRow(key, txn.currentSequenceNumber)
+  );
 }
