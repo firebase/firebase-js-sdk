@@ -69,7 +69,7 @@ export class MemoryPersistence implements Persistence {
     return this._referenceDelegate!;
   }
 
-  static lruPersistence(clientId: ClientId): MemoryPersistence {
+  static createLruPersistence(clientId: ClientId): MemoryPersistence {
     const persistence = new MemoryPersistence(clientId);
     persistence._referenceDelegate = new MemoryLruDelegate(persistence);
     return persistence;

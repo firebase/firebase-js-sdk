@@ -130,7 +130,7 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
 }
 
 export async function testMemoryLruPersistence(): Promise<MemoryPersistence> {
-  return MemoryPersistence.lruPersistence(AutoId.newId());
+  return MemoryPersistence.createLruPersistence(AutoId.newId());
 }
 
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
