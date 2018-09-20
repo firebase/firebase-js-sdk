@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.7.5",
+  "version": "0.7.6",
   "main": "dist/auth.js",
   "module": "dist/auth.esm.js",
   "description": "Javascript library for Firebase Auth SDK",
