@@ -227,13 +227,12 @@ export class PersistencePromise<T> {
     predicates: Array<() => PersistencePromise<boolean>>
   ): PersistencePromise<boolean> {
     let p: PersistencePromise<boolean> = PersistencePromise.resolve(false);
-    for (let i = 0; i < predicates.length; i++) {
-      const nextPredicate = predicates[i];
+    for (const predicate of predicates) {
       p = p.next(isTrue => {
         if (isTrue) {
           return PersistencePromise.resolve<boolean>(isTrue);
         } else {
-          return nextPredicate();
+          return predicate();
         }
       });
     }
