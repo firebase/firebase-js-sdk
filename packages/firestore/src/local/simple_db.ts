@@ -15,13 +15,13 @@
  */
 
 import { assert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
-import { PersistencePromise } from './persistence_promise';
-import { SCHEMA_VERSION } from './indexeddb_schema';
 import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
-import { Code, FirestoreError } from '../util/error';
+import { SCHEMA_VERSION } from './indexeddb_schema';
+import { PersistencePromise } from './persistence_promise';
 
 const LOG_TAG = 'SimpleDb';
 

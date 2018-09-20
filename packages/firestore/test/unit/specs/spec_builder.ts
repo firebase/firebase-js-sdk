@@ -37,6 +37,7 @@ import * as objUtils from '../../../src/util/obj';
 import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion } from '../../util/helpers';
 
+import { TimerId } from '../../../src/util/async_queue';
 import { RpcError } from './spec_rpc_error';
 import {
   runSpec,
@@ -50,7 +51,6 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
-import { TimerId } from '../../../src/util/async_queue';
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.

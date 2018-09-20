@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import * as registerIndexedDBShim from 'indexeddbshim';
 import * as fs from 'fs';
+import * as registerIndexedDBShim from 'indexeddbshim';
 import * as os from 'os';
 
 import { FakeWindow, SharedFakeWebStorage } from './test_platform';

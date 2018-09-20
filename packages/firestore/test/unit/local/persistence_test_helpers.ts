@@ -14,33 +14,33 @@
  * limitations under the License.
  */
 
+import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { ListenSequenceNumber } from '../../../src/core/types';
 import { SequenceNumberSyncer } from '../../../src/core/listen_sequence';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { MemoryPersistence } from '../../../src/local/memory_persistence';
-import { SimpleDb } from '../../../src/local/simple_db';
-import { JsonProtoSerializer } from '../../../src/remote/serializer';
-import {
-  WebStorageSharedClientState,
-  ClientId
-} from '../../../src/local/shared_client_state';
 import {
   BatchId,
   MutationBatchState,
   OnlineState,
   TargetId
 } from '../../../src/core/types';
-import { AsyncQueue } from '../../../src/util/async_queue';
-import { User } from '../../../src/auth/user';
+import { ListenSequenceNumber } from '../../../src/core/types';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { LocalSerializer } from '../../../src/local/local_serializer';
+import { MemoryPersistence } from '../../../src/local/memory_persistence';
+import {
+  ClientId,
+  WebStorageSharedClientState
+} from '../../../src/local/shared_client_state';
 import {
   QueryTargetState,
   SharedClientStateSyncer
 } from '../../../src/local/shared_client_state_syncer';
+import { SimpleDb } from '../../../src/local/simple_db';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
-import { PlatformSupport } from '../../../src/platform/platform';
-import { LocalSerializer } from '../../../src/local/local_serializer';
 
 /** The prefix used by the keys that Firestore writes to Local Storage. */
 const LOCAL_STORAGE_PREFIX = 'firestore_';

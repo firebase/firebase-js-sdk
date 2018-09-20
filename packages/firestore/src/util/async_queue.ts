@@ -15,10 +15,10 @@
  */
 
 import { assert, fail } from './assert';
+import { Code, FirestoreError } from './error';
 import * as log from './log';
 import { Unknown } from './misc';
-import { Deferred, CancelablePromise } from './promise';
-import { Code, FirestoreError } from './error';
+import { CancelablePromise, Deferred } from './promise';
 
 // tslint:disable-next-line:no-any Accept any return type from setTimeout().
 type TimerHandle = any;

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -26,9 +25,12 @@ import {
 } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
+import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
 
+import { documentKeySet, DocumentKeySet } from '../model/collections';
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import {
   DbMutationBatch,
   DbNoDocument,
@@ -39,8 +41,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
-import { documentKeySet, DocumentKeySet } from '../model/collections';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

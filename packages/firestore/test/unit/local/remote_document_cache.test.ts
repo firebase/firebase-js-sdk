@@ -28,14 +28,14 @@ import {
   removedDoc
 } from '../../util/helpers';
 
-import * as persistenceHelpers from './persistence_test_helpers';
-import { TestRemoteDocumentCache } from './test_remote_document_cache';
-import { MaybeDocumentMap } from '../../../src/model/collections';
 import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
 import {
-  DbRemoteDocumentChangesKey,
-  DbRemoteDocumentChanges
+  DbRemoteDocumentChanges,
+  DbRemoteDocumentChangesKey
 } from '../../../src/local/indexeddb_schema';
+import { MaybeDocumentMap } from '../../../src/model/collections';
+import * as persistenceHelpers from './persistence_test_helpers';
+import { TestRemoteDocumentCache } from './test_remote_document_cache';
 
 // Helpers for use throughout tests.
 const DOC_PATH = 'a/b';

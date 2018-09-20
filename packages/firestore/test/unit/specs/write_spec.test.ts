@@ -19,10 +19,10 @@ import { Document } from '../../../src/model/document';
 import { Code } from '../../../src/util/error';
 import { doc, path } from '../../util/helpers';
 
+import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
-import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Writes:', [], () => {
   specTest(

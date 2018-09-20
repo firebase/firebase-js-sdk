@@ -18,9 +18,9 @@ import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
 import { doc, path } from '../../util/helpers';
 
+import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
-import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Offline:', [], () => {
   specTest('Empty queries are resolved if client goes offline', [], () => {

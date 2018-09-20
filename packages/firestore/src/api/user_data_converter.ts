@@ -51,24 +51,24 @@ import { Dict } from '../util/obj';
 import { SortedMap } from '../util/sorted_map';
 import * as typeUtils from '../util/types';
 
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation,
+  ServerTimestampTransform
+} from '../model/transform_operation';
 import { Blob } from './blob';
 import {
   FieldPath as ExternalFieldPath,
   fromDotSeparatedString
 } from './field_path';
 import {
+  ArrayRemoveFieldValueImpl,
+  ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
   FieldValueImpl,
-  ServerTimestampFieldValueImpl,
-  ArrayUnionFieldValueImpl,
-  ArrayRemoveFieldValueImpl
+  ServerTimestampFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
-import {
-  ServerTimestampTransform,
-  ArrayUnionTransformOperation,
-  ArrayRemoveTransformOperation
-} from '../model/transform_operation';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 

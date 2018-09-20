@@ -15,7 +15,6 @@
  */
 
 import { expect } from 'chai';
-import * as api from '../../../src/protos/firestore_proto_api';
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
@@ -41,11 +40,23 @@ import {
 import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { GarbageCollector } from '../../../src/local/garbage_collector';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import {
+  DbPrimaryClient,
+  DbPrimaryClientKey,
+  SCHEMA_VERSION,
+  SchemaConverter
+} from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
+import {
+  ClientId,
+  MemorySharedClientState,
+  SharedClientState,
+  WebStorageSharedClientState
+} from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -55,6 +66,7 @@ import {
   emptyByteString,
   PlatformSupport
 } from '../../../src/platform/platform';
+import * as api from '../../../src/protos/firestore_proto_api';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { Datastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
@@ -85,6 +97,7 @@ import {
   deletedDoc,
   deleteMutation,
   doc,
+  expectFirestoreError,
   filter,
   key,
   orderBy,
@@ -92,22 +105,9 @@ import {
   path,
   setMutation,
   TestSnapshotVersion,
-  version,
-  expectFirestoreError
+  version
 } from '../../util/helpers';
-import {
-  ClientId,
-  MemorySharedClientState,
-  SharedClientState,
-  WebStorageSharedClientState
-} from '../../../src/local/shared_client_state';
-import {
-  DbPrimaryClient,
-  DbPrimaryClientKey,
-  SCHEMA_VERSION,
-  SchemaConverter
-} from '../../../src/local/indexeddb_schema';
-import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
+import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
   INDEXEDDB_TEST_SERIALIZER,

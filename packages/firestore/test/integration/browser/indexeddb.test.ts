@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
 import { isPersistenceAvailable, withTestDb } from '../util/helpers';
 

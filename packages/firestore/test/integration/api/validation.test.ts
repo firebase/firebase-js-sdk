@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
 import firebase from '../util/firebase_export';
 import {
-  DEFAULT_PROJECT_ID,
   ALT_PROJECT_ID,
   apiDescribe,
+  DEFAULT_PROJECT_ID,
   withAlternateTestDb,
   withTestCollection,
   withTestDb

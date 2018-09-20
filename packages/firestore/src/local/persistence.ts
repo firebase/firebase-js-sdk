@@ -16,12 +16,12 @@
 
 import { User } from '../auth/user';
 
+import { ListenSequenceNumber } from '../core/types';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
-import { ListenSequenceNumber } from '../core/types';
 
 /**
  * Opaque interface representing a persistence transaction.
