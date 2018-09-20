@@ -209,7 +209,8 @@ describeSpec(
     );
 
     specTest(
-      'Process 100 documents from Watch and wait for snapshot, then unlisten and wait for a cached snapshot',
+      'Process 100 documents from Watch and wait for snapshot, then unlisten and wait for a ' +
+        'cached snapshot',
       [],
       () => {
         const documentsPerStep = 100;

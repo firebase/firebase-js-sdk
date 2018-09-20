@@ -800,7 +800,8 @@ export class WebStorageSharedClientState implements SharedClientState {
 
       if (event.key === this.localClientStorageKey) {
         error(
-          'Received WebStorage notification for local change. Another client might have garbage-collected our state'
+          'Received WebStorage notification for local change. Another client might have ' +
+            'garbage-collected our state'
         );
         return;
       }

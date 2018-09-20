@@ -247,14 +247,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         .then(remoteKeys => {
           const view = new View(query, remoteKeys);
           const viewDocChanges = view.computeInitialChanges(docs);
-          const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
+          const fakeTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
             queryData.targetId,
             current && this.onlineState !== OnlineState.Offline
           );
           const viewChange = view.applyChanges(
             viewDocChanges,
             /* updateLimboDocuments= */ this.isPrimary === true,
-            synthesizedTargetChange
+            fakeTargetChange
           );
           assert(
             viewChange.limboChanges.length === 0,

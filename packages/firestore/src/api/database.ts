@@ -2076,7 +2076,8 @@ function validateSetOptions(
   if (options.mergeFields !== undefined && options.merge !== undefined) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" and "mergeFields".`
+      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" ` +
+        `and "mergeFields".`
     );
   }
 

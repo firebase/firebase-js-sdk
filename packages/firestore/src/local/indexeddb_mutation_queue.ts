@@ -510,7 +510,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
         .next(() => {
           assert(
             danglingMutationReferences.length === 0,
-            'Document leak -- detected dangling mutation references when queue is empty. Dangling keys: ' +
+            'Document leak -- detected dangling mutation references when queue is empty. ' +
+              'Dangling keys: ' +
               danglingMutationReferences.map(p => p.canonicalString())
           );
         });

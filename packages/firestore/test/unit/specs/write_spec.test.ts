@@ -600,7 +600,8 @@ describeSpec('Writes:', [], () => {
   specTest(
     'Held writes are released when there are no queries left.',
     ['eager-gc'],
-    'This test expects a new target id for a new listen, but without eager gc, the same target id is reused',
+    'This test expects a new target id for a new listen, but without eager gc, the same target ' +
+      'id is reused',
     () => {
       const query = Query.atPath(path('collection'));
       const docALocal = doc(
