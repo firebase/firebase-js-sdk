@@ -22,6 +22,8 @@ import { DocumentKey } from '../model/document_key';
 import { ObjectMap } from '../util/obj_map';
 
 import { GarbageCollector } from './garbage_collector';
+import { ActiveTargets } from './lru_garbage_collector';
+import { MemoryPersistence } from './memory_persistence';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
@@ -51,6 +53,20 @@ export class MemoryQueryCache implements QueryCache {
   private targetCount = 0;
 
   private targetIdGenerator = TargetIdGenerator.forQueryCache();
+
+  constructor(private readonly persistence: MemoryPersistence) {}
+
+  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
+    return PersistencePromise.resolve(this.targetCount);
+  }
+
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (q: QueryData) => void
+  ): PersistencePromise<void> {
+    this.queries.forEach((_, queryData) => f(queryData));
+    return PersistencePromise.resolve();
+  }
 
   getLastRemoteSnapshotVersion(
     transaction: PersistenceTransaction
@@ -134,6 +150,28 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
+  removeTargets(
+    transaction: PersistenceTransaction,
+    upperBound: ListenSequenceNumber,
+    activeTargetIds: ActiveTargets
+  ): PersistencePromise<number> {
+    let count = 0;
+    const removals: Array<PersistencePromise<void>> = [];
+    this.queries.forEach((key, queryData) => {
+      if (
+        queryData.sequenceNumber <= upperBound &&
+        !activeTargetIds[queryData.targetId]
+      ) {
+        this.queries.delete(key);
+        removals.push(
+          this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
+        );
+        count++;
+      }
+    });
+    return PersistencePromise.waitFor(removals).next(() => count);
+  }
+
   getQueryCount(
     transaction: PersistenceTransaction
   ): PersistencePromise<number> {
@@ -163,7 +201,14 @@ export class MemoryQueryCache implements QueryCache {
     targetId: TargetId
   ): PersistencePromise<void> {
     this.references.addReferences(keys, targetId);
-    return PersistencePromise.resolve();
+    const referenceDelegate = this.persistence.referenceDelegate;
+    const promises: Array<PersistencePromise<void>> = [];
+    if (referenceDelegate) {
+      keys.forEach(key => {
+        promises.push(referenceDelegate.addReference(txn, key));
+      });
+    }
+    return PersistencePromise.waitFor(promises);
   }
 
   removeMatchingKeys(
@@ -172,7 +217,14 @@ export class MemoryQueryCache implements QueryCache {
     targetId: TargetId
   ): PersistencePromise<void> {
     this.references.removeReferences(keys, targetId);
-    return PersistencePromise.resolve();
+    const referenceDelegate = this.persistence.referenceDelegate;
+    const promises: Array<PersistencePromise<void>> = [];
+    if (referenceDelegate) {
+      keys.forEach(key => {
+        promises.push(referenceDelegate.removeReference(txn, key));
+      });
+    }
+    return PersistencePromise.waitFor(promises);
   }
 
   removeMatchingKeysForTargetId(

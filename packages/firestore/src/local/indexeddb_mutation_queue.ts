@@ -472,6 +472,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
       this.removeCachedMutationKeys(batch.batchId);
       if (this.garbageCollector !== null) {
         for (const key of removedDocuments) {
+          // TODO(gsoltis): tell reference delegate that mutation was ack'd
           this.garbageCollector.addPotentialGarbageKey(key);
         }
       }

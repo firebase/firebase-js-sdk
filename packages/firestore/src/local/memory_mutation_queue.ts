@@ -336,6 +336,7 @@ export class MemoryMutationQueue implements MutationQueue {
       if (this.garbageCollector !== null) {
         this.garbageCollector.addPotentialGarbageKey(key);
       }
+      // TODO(gsoltis): tell reference delegate that mutation was ack'd
 
       const ref = new DocReference(key, batch.batchId);
       references = references.delete(ref);

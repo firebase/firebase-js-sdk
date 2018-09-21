@@ -129,6 +129,10 @@ export async function testMemoryPersistence(): Promise<MemoryPersistence> {
   return persistence;
 }
 
+export async function testMemoryLruPersistence(): Promise<MemoryPersistence> {
+  return MemoryPersistence.createLruPersistence(AutoId.newId());
+}
+
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   constructor(private readonly activeClients: ClientId[]) {}
   async applyBatchState(

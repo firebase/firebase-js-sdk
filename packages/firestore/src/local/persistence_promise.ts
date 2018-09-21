@@ -216,4 +216,26 @@ export class PersistencePromise<T> {
     }
     return p;
   }
+
+  /**
+   * Given an array of predicate functions that asynchronously evaluate to a
+   * boolean, implements a short-circuiting `or` between the results. Predicates
+   * will be evaluated until one of them returns `true`, then stop. The final
+   * result will be whether any of them returned `true`.
+   */
+  static or(
+    predicates: Array<() => PersistencePromise<boolean>>
+  ): PersistencePromise<boolean> {
+    let p: PersistencePromise<boolean> = PersistencePromise.resolve(false);
+    for (const predicate of predicates) {
+      p = p.next(isTrue => {
+        if (isTrue) {
+          return PersistencePromise.resolve<boolean>(isTrue);
+        } else {
+          return predicate();
+        }
+      });
+    }
+    return p;
+  }
 }

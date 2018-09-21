@@ -145,6 +145,8 @@ export interface Persistence {
    */
   readonly started: boolean;
 
+  readonly referenceDelegate: ReferenceDelegate;
+
   /**
    * Releases any resources held during eager shutdown.
    *
