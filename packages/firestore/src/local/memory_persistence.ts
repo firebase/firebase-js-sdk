@@ -67,7 +67,6 @@ export class MemoryPersistence implements Persistence {
   // TODO(gsoltis): remove option to be null once eager delegate is implemented.
   private _referenceDelegate: ReferenceDelegate | null;
 
-
   static createLruPersistence(clientId: ClientId): MemoryPersistence {
     const persistence = new MemoryPersistence(clientId);
     persistence._referenceDelegate = new MemoryLruDelegate(persistence);
