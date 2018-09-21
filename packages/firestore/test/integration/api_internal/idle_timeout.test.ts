@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+import { TimerId } from '../../../src/util/async_queue';
+import { Deferred } from '../../util/promise';
 import { apiDescribe, withTestDb } from '../util/helpers';
 import { asyncQueue } from '../util/internal_helpers';
-import { Deferred } from '../../util/promise';
-import { TimerId } from '../../../src/util/async_queue';
 
 apiDescribe('Idle Timeout', persistence => {
   it('can write document after idle timeout', () => {

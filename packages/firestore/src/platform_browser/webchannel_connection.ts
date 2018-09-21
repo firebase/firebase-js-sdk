@@ -15,11 +15,11 @@
  */
 
 import {
+  createWebChannelTransport,
   ErrorCode,
   EventType,
   WebChannel,
-  XhrIoPool,
-  createWebChannelTransport
+  XhrIoPool
 } from '@firebase/webchannel-wrapper';
 
 import { isReactNative } from '@firebase/util';

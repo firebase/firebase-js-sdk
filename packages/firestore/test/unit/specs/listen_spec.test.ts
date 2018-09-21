@@ -18,10 +18,10 @@ import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
 import { deletedDoc, doc, filter, path } from '../../util/helpers';
 
+import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
-import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Listens:', [], () => {
   // Obviously this test won't hold with offline persistence enabled.

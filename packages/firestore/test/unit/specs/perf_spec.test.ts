@@ -15,8 +15,8 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, filter, orderBy, path } from '../../util/helpers';
 import { Document } from '../../../src/model/document';
+import { doc, filter, orderBy, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
@@ -209,7 +209,8 @@ describeSpec(
     );
 
     specTest(
-      'Process 100 documents from Watch and wait for snapshot, then unlisten and wait for a cached snapshot',
+      'Process 100 documents from Watch and wait for snapshot, then unlisten and wait for a ' +
+        'cached snapshot',
       [],
       () => {
         const documentsPerStep = 100;

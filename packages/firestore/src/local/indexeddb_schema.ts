@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
 import { BatchId } from '../core/types';
 import { TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
+import * as api from '../protos/firestore_proto_api';
 import { assert } from '../util/assert';
 
-import { encode, EncodedResourcePath } from './encoded_resource_path';
-import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
-import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
+import { encode, EncodedResourcePath } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { LocalSerializer } from './local_serializer';
+import { PersistencePromise } from './persistence_promise';
+import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
 /**
  * Schema Version for the Web client:

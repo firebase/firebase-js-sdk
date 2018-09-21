@@ -19,10 +19,10 @@ import { Document } from '../../../src/model/document';
 import { Code } from '../../../src/util/error';
 import { doc, path } from '../../util/helpers';
 
+import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
-import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Writes:', [], () => {
   specTest(
@@ -600,7 +600,8 @@ describeSpec('Writes:', [], () => {
   specTest(
     'Held writes are released when there are no queries left.',
     ['eager-gc'],
-    'This test expects a new target id for a new listen, but without eager gc, the same target id is reused',
+    'This test expects a new target id for a new listen, but without eager gc, the same target ' +
+      'id is reused',
     () => {
       const query = Query.atPath(path('collection'));
       const docALocal = doc(

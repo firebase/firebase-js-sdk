@@ -21,20 +21,24 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
+import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
+import { Platform } from '../platform/platform';
+import { AsyncQueue, TimerId } from '../util/async_queue';
+import { CancelablePromise } from '../util/promise';
 import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
 import {
-  IndexedDbQueryCache,
-  getHighestListenSequenceNumber
+  getHighestListenSequenceNumber,
+  IndexedDbQueryCache
 } from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
-  DbClientMetadataKey,
   DbClientMetadata,
+  DbClientMetadataKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION,
   DbTargetGlobal,
+  SCHEMA_VERSION,
   SchemaConverter
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
@@ -47,12 +51,8 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import { Platform } from '../platform/platform';
-import { AsyncQueue, TimerId } from '../util/async_queue';
 import { ClientId } from './shared_client_state';
-import { CancelablePromise } from '../util/promise';
-import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 const LOG_TAG = 'IndexedDbPersistence';
 

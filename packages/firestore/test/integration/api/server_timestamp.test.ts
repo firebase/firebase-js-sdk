@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
+import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
-import { EventsAccumulator } from '../util/events_accumulator';
 
 // tslint:disable-next-line:no-any Allow custom types for testing.
 type AnyTestData = any;

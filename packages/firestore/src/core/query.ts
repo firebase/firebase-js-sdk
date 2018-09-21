@@ -17,11 +17,11 @@
 import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
+  ArrayValue,
   DoubleValue,
   FieldValue,
   NullValue,
-  RefValue,
-  ArrayValue
+  RefValue
 } from '../model/field_value';
 import { FieldPath, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';

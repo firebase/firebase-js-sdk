@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { TargetId } from './types';
 import { assert } from '../util/assert';
+import { TargetId } from './types';
 
 const RESERVED_BITS = 1;
 

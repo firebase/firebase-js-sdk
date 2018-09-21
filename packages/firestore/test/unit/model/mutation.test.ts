@@ -15,8 +15,8 @@
  */
 
 import { expect } from 'chai';
-import { Timestamp } from '../../../src/api/timestamp';
 import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
+import { Timestamp } from '../../../src/api/timestamp';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import {
   ServerTimestampValue,
@@ -27,6 +27,13 @@ import {
   MutationResult,
   Precondition
 } from '../../../src/model/mutation';
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation
+} from '../../../src/model/transform_operation';
+import { AnyJs } from '../../../src/util/misc';
+import { Dict } from '../../../src/util/obj';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   DELETE_SENTINEL,
   deletedDoc,
@@ -43,13 +50,6 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
-import { addEqualityMatcher } from '../../util/equality_matcher';
-import { Dict } from '../../../src/util/obj';
-import { AnyJs } from '../../../src/util/misc';
-import {
-  ArrayRemoveTransformOperation,
-  ArrayUnionTransformOperation
-} from '../../../src/model/transform_operation';
 
 describe('Mutation', () => {
   addEqualityMatcher();

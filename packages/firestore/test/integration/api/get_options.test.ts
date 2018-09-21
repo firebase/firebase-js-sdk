@@ -18,8 +18,8 @@ import { expect } from 'chai';
 import {
   apiDescribe,
   toDataMap,
-  withTestDocAndInitialData,
-  withTestCollection
+  withTestCollection,
+  withTestDocAndInitialData
 } from '../util/helpers';
 
 apiDescribe('GetOptions', persistence => {
