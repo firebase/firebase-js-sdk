@@ -64,10 +64,9 @@ export class MemoryPersistence implements Persistence {
 
   private _started = false;
 
+  // TODO(gsoltis): remove option to be null once eager delegate is implemented.
   private _referenceDelegate: ReferenceDelegate | null;
-  get referenceDelegate(): ReferenceDelegate {
-    return this._referenceDelegate!;
-  }
+
 
   static createLruPersistence(clientId: ClientId): MemoryPersistence {
     const persistence = new MemoryPersistence(clientId);
@@ -88,6 +87,10 @@ export class MemoryPersistence implements Persistence {
 
   get started(): boolean {
     return this._started;
+  }
+
+  get referenceDelegate(): ReferenceDelegate {
+    return this._referenceDelegate!;
   }
 
   async getActiveClients(): Promise<ClientId[]> {
