@@ -47,7 +47,7 @@ let persistence: Persistence;
 
 describe('MemoryRemoteDocumentCache', () => {
   beforeEach(async () => {
-    persistence = await persistenceHelpers.testMemoryPersistence();
+    persistence = await persistenceHelpers.testMemoryEagerPersistence();
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));

@@ -251,7 +251,7 @@ class LocalStoreTester {
 
 describe('LocalStore w/ Memory Persistence', () => {
   addEqualityMatcher();
-  genericLocalStoreTests(persistenceHelpers.testMemoryPersistence);
+  genericLocalStoreTests(persistenceHelpers.testMemoryEagerPersistence);
 });
 
 describe('LocalStore w/ IndexedDB Persistence', () => {

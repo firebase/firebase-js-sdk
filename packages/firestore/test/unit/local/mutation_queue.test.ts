@@ -43,7 +43,7 @@ let persistence: Persistence;
 let mutationQueue: TestMutationQueue;
 describe('MemoryMutationQueue', () => {
   beforeEach(() => {
-    return persistenceHelpers.testMemoryPersistence().then(p => {
+    return persistenceHelpers.testMemoryEagerPersistence().then(p => {
       persistence = p;
     });
   });

@@ -37,7 +37,7 @@ import { TestQueryCache } from './test_query_cache';
 import { Timestamp } from '../../../src/api/timestamp';
 
 describe('MemoryQueryCache', () => {
-  genericQueryCacheTests(persistenceHelpers.testMemoryPersistence);
+  genericQueryCacheTests(persistenceHelpers.testMemoryEagerPersistence);
 });
 
 describe('IndexedDbQueryCache', () => {
