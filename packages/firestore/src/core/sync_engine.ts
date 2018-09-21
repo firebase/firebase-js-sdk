@@ -247,14 +247,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         .then(remoteKeys => {
           const view = new View(query, remoteKeys);
           const viewDocChanges = view.computeInitialChanges(docs);
-          const fakeTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
+          // tslint:disable-next-line:max-line-length Prettier formats this exceed 100 characters.
+          const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
             queryData.targetId,
             current && this.onlineState !== OnlineState.Offline
           );
           const viewChange = view.applyChanges(
             viewDocChanges,
             /* updateLimboDocuments= */ this.isPrimary === true,
-            fakeTargetChange
+            synthesizedTargetChange
           );
           assert(
             viewChange.limboChanges.length === 0,
