@@ -17,6 +17,8 @@
 import { User } from '../auth/user';
 import { debug } from '../util/log';
 
+import { ListenSequence } from '../core/listen_sequence';
+import { ListenSequenceNumber } from '../core/types';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryQueryCache } from './memory_query_cache';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
@@ -30,8 +32,6 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
-import { ListenSequenceNumber } from '../core/types';
-import { ListenSequence } from '../core/listen_sequence';
 
 const LOG_TAG = 'MemoryPersistence';
 

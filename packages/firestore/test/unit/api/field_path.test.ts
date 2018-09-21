@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { field, expectEqual, expectNotEqual } from '../../util/helpers';
+import { expectEqual, expectNotEqual, field } from '../../util/helpers';
 
 describe('FieldPath', () => {
   it('support equality checking with isEqual()', () => {

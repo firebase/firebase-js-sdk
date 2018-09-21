@@ -21,9 +21,9 @@ import { PersistencePromise } from '../local/persistence_promise';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { ReferenceSet } from '../local/reference_set';
 import {
-  MaybeDocumentMap,
   documentKeySet,
-  DocumentKeySet
+  DocumentKeySet,
+  MaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -41,6 +41,15 @@ import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 import { isNullOrUndefined } from '../util/types';
 
+import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
+import { ClientId, SharedClientState } from '../local/shared_client_state';
+import {
+  QueryTargetState,
+  SharedClientStateSyncer
+} from '../local/shared_client_state_syncer';
+import * as objUtils from '../util/obj';
+import { SortedSet } from '../util/sorted_set';
+import { ListenSequence } from './listen_sequence';
 import { Query } from './query';
 import { SnapshotVersion } from './snapshot_version';
 import { TargetIdGenerator } from './target_id_generator';
@@ -61,15 +70,6 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import {
-  SharedClientStateSyncer,
-  QueryTargetState
-} from '../local/shared_client_state_syncer';
-import { ClientId, SharedClientState } from '../local/shared_client_state';
-import { SortedSet } from '../util/sorted_set';
-import * as objUtils from '../util/obj';
-import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
-import { ListenSequence } from './listen_sequence';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -247,6 +247,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         .then(remoteKeys => {
           const view = new View(query, remoteKeys);
           const viewDocChanges = view.computeInitialChanges(docs);
+          // tslint:disable-next-line:max-line-length Prettier formats this exceed 100 characters.
           const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
             queryData.targetId,
             current && this.onlineState !== OnlineState.Offline

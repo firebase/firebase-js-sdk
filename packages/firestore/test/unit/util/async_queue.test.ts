@@ -16,10 +16,10 @@
 
 import { expect } from 'chai';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import { Code } from '../../../src/util/error';
 import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
 import { AnyJs } from '../../../src/util/misc';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
-import { Code } from '../../../src/util/error';
 
 describe('AsyncQueue', () => {
   // We reuse these TimerIds for generic testing.

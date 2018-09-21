@@ -21,14 +21,14 @@ import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { ObjectMap } from '../util/obj_map';
 
+import { TargetIdGenerator } from '../core/target_id_generator';
+import { assert, fail } from '../util/assert';
 import { GarbageCollector } from './garbage_collector';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
-import { assert, fail } from '../util/assert';
-import { TargetIdGenerator } from '../core/target_id_generator';
 
 export class MemoryQueryCache implements QueryCache {
   /**

@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
+import { querySnapshot } from '../../util/api_helpers';
 import { addEqualityMatcher } from '../../util/equality_matcher';
+import { keys } from '../../util/helpers';
+import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
@@ -26,9 +29,6 @@ import {
   toDataArray,
   withTestCollection
 } from '../util/helpers';
-import { Deferred } from '../../util/promise';
-import { querySnapshot } from '../../util/api_helpers';
-import { keys } from '../../util/helpers';
 
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldPath = firebase.firestore!.FieldPath;

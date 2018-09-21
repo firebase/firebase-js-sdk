@@ -15,12 +15,12 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
-import { AnyJs } from '../../src/util/misc';
-import { Platform } from '../../src/platform/platform';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { ProtoByteString } from '../../src/core/types';
+import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
+import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { assert, fail } from '../../src/util/assert';
+import { AnyJs } from '../../src/util/misc';
 
 /**
  * `Window` fake that implements the event and storage API that is used by

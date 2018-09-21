@@ -16,14 +16,6 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import {
-  EventManager,
-  ListenOptions,
-  Observer,
-  QueryListener
-} from './event_manager';
-import { SyncEngine } from './sync_engine';
-import { View, ViewDocumentChanges } from './view';
 import { EagerGarbageCollector } from '../local/eager_garbage_collector';
 import { GarbageCollector } from '../local/garbage_collector';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
@@ -47,20 +39,28 @@ import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { Deferred } from '../util/promise';
+import {
+  EventManager,
+  ListenOptions,
+  Observer,
+  QueryListener
+} from './event_manager';
+import { SyncEngine } from './sync_engine';
+import { View, ViewDocumentChanges } from './view';
 
-import { DatabaseId, DatabaseInfo } from './database_info';
-import { Query } from './query';
-import { Transaction } from './transaction';
-import { OnlineStateSource } from './types';
-import { ViewSnapshot } from './view_snapshot';
+import { PersistenceSettings } from '../api/database';
 import {
   MemorySharedClientState,
   SharedClientState,
   WebStorageSharedClientState
 } from '../local/shared_client_state';
-import { AutoId } from '../util/misc';
-import { PersistenceSettings } from '../api/database';
 import { assert } from '../util/assert';
+import { AutoId } from '../util/misc';
+import { DatabaseId, DatabaseInfo } from './database_info';
+import { Query } from './query';
+import { Transaction } from './transaction';
+import { OnlineStateSource } from './types';
+import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 

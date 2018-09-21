@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-import * as persistenceHelpers from './persistence_test_helpers';
-import {
-  WebStorageSharedClientState,
-  LocalClientState,
-  MutationMetadata,
-  ClientId,
-  SharedClientState,
-  QueryTargetMetadata
-} from '../../../src/local/shared_client_state';
+import { expect } from 'chai';
+import { User } from '../../../src/auth/user';
 import {
   BatchId,
   ListenSequenceNumber,
@@ -30,23 +23,30 @@ import {
   OnlineState,
   TargetId
 } from '../../../src/core/types';
-import { AutoId } from '../../../src/util/misc';
-import { expect } from 'chai';
-import { User } from '../../../src/auth/user';
-import { FirestoreError } from '../../../src/util/error';
 import {
-  SharedClientStateSyncer,
-  QueryTargetState
+  ClientId,
+  LocalClientState,
+  MutationMetadata,
+  QueryTargetMetadata,
+  SharedClientState,
+  WebStorageSharedClientState
+} from '../../../src/local/shared_client_state';
+import {
+  QueryTargetState,
+  SharedClientStateSyncer
 } from '../../../src/local/shared_client_state_syncer';
+import { targetIdSet } from '../../../src/model/collections';
+import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
+import { FirestoreError } from '../../../src/util/error';
+import { AutoId } from '../../../src/util/misc';
+import * as objUtils from '../../../src/util/obj';
+import { SortedSet } from '../../../src/util/sorted_set';
 import {
   clearWebStorage,
   TEST_PERSISTENCE_PREFIX
 } from './persistence_test_helpers';
-import { PlatformSupport } from '../../../src/platform/platform';
-import * as objUtils from '../../../src/util/obj';
-import { targetIdSet } from '../../../src/model/collections';
-import { SortedSet } from '../../../src/util/sorted_set';
+import * as persistenceHelpers from './persistence_test_helpers';
 
 const AUTHENTICATED_USER = new User('test');
 const UNAUTHENTICATED_USER = User.UNAUTHENTICATED;
