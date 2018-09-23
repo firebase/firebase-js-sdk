@@ -141,6 +141,7 @@ export class NoDocument extends MaybeDocument {
   isEqual(other: MaybeDocument | null | undefined): boolean {
     return (
       other instanceof NoDocument &&
+      other.hasCommittedMutations === this.hasCommittedMutations &&
       other.version.isEqual(this.version) &&
       other.key.isEqual(this.key)
     );
