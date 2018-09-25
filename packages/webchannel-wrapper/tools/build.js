@@ -50,7 +50,8 @@ closureBuilder.build(
         compilation_level: 'ADVANCED'
       }
     }
-  }, async function (errors, warnings, files, results) {
+  },
+  async function(errors, warnings, files, results) {
     const filePath = resolve(__dirname, '../src/index.js');
     const inputOptions = {
       input: filePath,
