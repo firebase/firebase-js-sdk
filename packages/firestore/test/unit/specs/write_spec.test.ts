@@ -497,7 +497,7 @@ describeSpec('Writes:', [], () => {
     );
   });
 
-  specTest('Held writes are not re-sent.', [], () => {
+  specTest('Writes are not re-sent.', [], () => {
     const query = Query.atPath(path('collection'));
     const docALocal = doc(
       'collection/a',
@@ -544,64 +544,60 @@ describeSpec('Writes:', [], () => {
     );
   });
 
-  specTest(
-    'Held writes are not re-sent after disable/enable network.',
-    [],
-    () => {
-      const query = Query.atPath(path('collection'));
-      const docALocal = doc(
-        'collection/a',
-        0,
-        { v: 1 },
-        { hasLocalMutations: true }
-      );
-      const docA = doc('collection/a', 1000, { v: 1 });
+  specTest('Writes are not re-sent after disable/enable network.', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docALocal = doc(
+      'collection/a',
+      0,
+      { v: 1 },
+      { hasLocalMutations: true }
+    );
+    const docA = doc('collection/a', 1000, { v: 1 });
 
-      return (
-        spec()
-          .userListens(query)
-          .watchAcksFull(query, 500)
-          .expectEvents(query, {})
-          .userSets('collection/a', { v: 1 })
-          .expectEvents(query, {
-            hasPendingWrites: true,
-            added: [docALocal]
-          })
-          // ack write but without a watch event.
-          .writeAcks('collection/a', 1000)
+    return (
+      spec()
+        .userListens(query)
+        .watchAcksFull(query, 500)
+        .expectEvents(query, {})
+        .userSets('collection/a', { v: 1 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          added: [docALocal]
+        })
+        // ack write but without a watch event.
+        .writeAcks('collection/a', 1000)
 
-          // handshake + write = 2 requests
-          .expectWriteStreamRequestCount(2)
+        // handshake + write = 2 requests
+        .expectWriteStreamRequestCount(2)
 
-          .disableNetwork()
-          .expectEvents(query, {
-            hasPendingWrites: true,
-            fromCache: true
-          })
+        .disableNetwork()
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          fromCache: true
+        })
 
-          // handshake + write + close = 3 requests
-          .expectWriteStreamRequestCount(3)
+        // handshake + write + close = 3 requests
+        .expectWriteStreamRequestCount(3)
 
-          .enableNetwork()
-          .expectActiveTargets({ query, resumeToken: 'resume-token-500' })
+        .enableNetwork()
+        .expectActiveTargets({ query, resumeToken: 'resume-token-500' })
 
-          // acked write should /not/ have been resent, so count should still be 3
-          .expectWriteStreamRequestCount(3)
+        // acked write should /not/ have been resent, so count should still be 3
+        .expectWriteStreamRequestCount(3)
 
-          // Finally watch catches up.
-          .watchAcksFull(query, 2000, docA)
-          .expectEvents(query, {
-            metadata: [docA]
-          })
-      );
-    }
-  );
+        // Finally watch catches up.
+        .watchAcksFull(query, 2000, docA)
+        .expectEvents(query, {
+          metadata: [docA]
+        })
+    );
+  });
 
   specTest(
-    'Held writes are released when there are no queries left.',
+    'Writes are released when there are no queries left',
     ['eager-gc'],
-    'This test expects a new target id for a new listen, but without eager gc, the same target ' +
-      'id is reused',
+    'This test verifies that committed mutations are eligible for ' +
+      'garbage collection on target removal',
     () => {
       const query = Query.atPath(path('collection'));
       const docALocal = doc(
@@ -995,7 +991,7 @@ describeSpec('Writes:', [], () => {
     }
   );
 
-  specTest('Held write is released by primary client', ['multi-client'], () => {
+  specTest('Writes are released by primary client', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
     const docALocal = doc(
       'collection/a',
