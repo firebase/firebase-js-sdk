@@ -28,7 +28,10 @@ import {
   LruGarbageCollector
 } from '../../../src/local/lru_garbage_collector';
 import { MutationQueue } from '../../../src/local/mutation_queue';
-import { Persistence, PersistenceTransaction } from '../../../src/local/persistence';
+import {
+  Persistence,
+  PersistenceTransaction
+} from '../../../src/local/persistence';
 
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { QueryCache } from '../../../src/local/query_cache';
@@ -38,7 +41,11 @@ import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { Mutation, Precondition, SetMutation } from '../../../src/model/mutation';
+import {
+  Mutation,
+  Precondition,
+  SetMutation
+} from '../../../src/model/mutation';
 import { path, wrapObject } from '../../util/helpers';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 

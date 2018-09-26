@@ -564,9 +564,7 @@ function mutationQueueContainsKey(
   const startRange = IDBKeyRange.lowerBound(indexKey);
   let containsKey = false;
   return documentMutationsStore(txn)
-    .iterate(
-      { range: startRange, keysOnly: true },
-      (key, value, control) => {
+    .iterate({ range: startRange, keysOnly: true }, (key, value, control) => {
       const [userID, keyPath, /*batchID*/ _] = key;
       if (userID === userId && keyPath === encodedPath) {
         containsKey = true;
