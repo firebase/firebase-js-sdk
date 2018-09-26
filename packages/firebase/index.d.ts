@@ -105,7 +105,7 @@ declare namespace firebase {
 
   function app(name?: string): firebase.app.App;
 
-  var apps: (firebase.app.App | null)[];
+  var apps: firebase.app.App[];
 
   function auth(app?: firebase.app.App): firebase.auth.Auth;
 
