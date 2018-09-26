@@ -23,10 +23,10 @@ import {
   CredentialsProvider,
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
+import { Firestore } from '../../../src/api/database';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from './helpers';
-import { Firestore } from '../../../src/api/database';
+import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './helpers';
 
 /** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {

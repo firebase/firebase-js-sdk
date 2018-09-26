@@ -17,6 +17,7 @@
 import { User } from '../auth/user';
 import { DocumentKey } from '../model/document_key';
 import { debug } from '../util/log';
+import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { encode } from './encoded_resource_path';
 import {
@@ -25,6 +26,8 @@ import {
   LruGarbageCollector
 } from './lru_garbage_collector';
 
+import { ListenSequence } from '../core/listen_sequence';
+import { ListenSequenceNumber } from '../core/types';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryQueryCache } from './memory_query_cache';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
@@ -39,9 +42,6 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
-import { ListenSequenceNumber } from '../core/types';
-import { ListenSequence } from '../core/listen_sequence';
-import * as obj from '../util/obj';
 
 const LOG_TAG = 'MemoryPersistence';
 

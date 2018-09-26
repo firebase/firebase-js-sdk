@@ -725,7 +725,8 @@ function genericLocalStoreTests(
         .toReturnTargetId(2)
         .after(docAddedRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
-        // Release the query so that our target count goes back to 0 and we are considered up-to-date.
+        // Release the query so that our target count goes back to 0 and we are considered
+        // up-to-date.
         .afterReleasingQuery(query)
         .after(setMutation('foo/bah', { foo: 'bah' }))
         .after(deleteMutation('foo/baz'))
@@ -766,7 +767,8 @@ function genericLocalStoreTests(
         .toReturnTargetId(2)
         .after(docAddedRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
-        // Release the query so that our target count goes back to 0 and we are considered up-to-date.
+        // Release the query so that our target count goes back to 0 and we are considered
+        // up-to-date.
         .afterReleasingQuery(query)
         .after(setMutation('foo/bah', { foo: 'bah' }))
         .after(deleteMutation('foo/baz'))

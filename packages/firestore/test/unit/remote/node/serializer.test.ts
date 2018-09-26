@@ -17,10 +17,9 @@
 import { expect } from 'chai';
 import * as Long from 'long';
 
-import * as api from '../../../../src/protos/firestore_proto_api';
 import { Blob } from '../../../../src/api/blob';
-import { GeoPoint } from '../../../../src/api/geo_point';
 import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
+import { GeoPoint } from '../../../../src/api/geo_point';
 import { Timestamp } from '../../../../src/api/timestamp';
 import { DatabaseId } from '../../../../src/core/database_info';
 import {
@@ -41,6 +40,8 @@ import {
   SetMutation
 } from '../../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
+import { loadProtos } from '../../../../src/platform_node/load_protos';
+import * as api from '../../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../../src/remote/serializer';
 import {
   DocumentWatchChange,
@@ -71,7 +72,6 @@ import {
   wrap,
   wrapObject
 } from '../../../util/helpers';
-import { loadProtos } from '../../../../src/platform_node/load_protos';
 
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');

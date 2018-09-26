@@ -18,7 +18,6 @@ import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
-import { FieldPath as ExternalFieldPath } from './field_path';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import { FirestoreClient } from '../core/firestore_client';
@@ -57,19 +56,20 @@ import {
   validateBetweenNumberOfArgs,
   validateDefined,
   validateExactNumberOfArgs,
-  validateNamedOptionalType,
   validateNamedOptionalPropertyEquals,
+  validateNamedOptionalType,
   validateNamedType,
   validateOptionalArgType,
+  validateOptionalArrayElements,
   validateOptionNames,
-  valueDescription,
-  validateOptionalArrayElements
+  valueDescription
 } from '../util/input_validation';
 import * as log from '../util/log';
 import { LogLevel } from '../util/log';
 import { AnyJs, AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
+import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
   CredentialsProvider,
@@ -2076,7 +2076,8 @@ function validateSetOptions(
   if (options.mergeFields !== undefined && options.merge !== undefined) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" and "mergeFields".`
+      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" ` +
+        `and "mergeFields".`
     );
   }
 

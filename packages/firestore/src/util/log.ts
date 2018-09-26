@@ -16,10 +16,10 @@
 
 /* tslint:disable:no-console */
 
-import { SDK_VERSION } from '../core/version';
-import { AnyJs } from './misc';
-import { PlatformSupport } from '../platform/platform';
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
+import { SDK_VERSION } from '../core/version';
+import { PlatformSupport } from '../platform/platform';
+import { AnyJs } from './misc';
 
 const logClient = new Logger('@firebase/firestore');
 

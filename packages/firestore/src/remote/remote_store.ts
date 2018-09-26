@@ -31,7 +31,11 @@ import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
+import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
+import { DocumentKeySet } from '../model/collections';
+import { AsyncQueue } from '../util/async_queue';
 import { Datastore } from './datastore';
+import { OnlineStateTracker } from './online_state_tracker';
 import {
   PersistentListenStream,
   PersistentWriteStream
@@ -41,16 +45,12 @@ import { isPermanentError } from './rpc_error';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  TargetMetadataProvider,
   WatchChange,
   WatchChangeAggregator,
-  TargetMetadataProvider,
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { OnlineStateTracker } from './online_state_tracker';
-import { AsyncQueue } from '../util/async_queue';
-import { DocumentKeySet } from '../model/collections';
-import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
 
 const LOG_TAG = 'RemoteStore';
 

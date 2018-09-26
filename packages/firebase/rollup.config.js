@@ -117,8 +117,8 @@ const componentBuilds = components
           globals: {
             '@firebase/app': GLOBAL_NAME
           },
-          intro: `try  {`,
-          outro: `} catch(err) {
+          banner: `try  {`,
+          footer: `} catch(err) {
               console.error(err);
               throw new Error(
                 'Cannot instantiate firebase-${component} - ' +

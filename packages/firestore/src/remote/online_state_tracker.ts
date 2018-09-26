@@ -15,10 +15,10 @@
  */
 
 import { OnlineState } from '../core/types';
-import * as log from '../util/log';
 import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { FirestoreError } from '../util/error';
+import * as log from '../util/log';
 import { CancelablePromise } from '../util/promise';
 
 const LOG_TAG = 'OnlineStateTracker';

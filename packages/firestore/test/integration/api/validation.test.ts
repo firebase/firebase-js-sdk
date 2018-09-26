@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
 import firebase from '../util/firebase_export';
 import {
-  DEFAULT_PROJECT_ID,
   ALT_PROJECT_ID,
   apiDescribe,
+  DEFAULT_PROJECT_ID,
   withAlternateTestDb,
   withTestCollection,
   withTestDb
@@ -311,14 +311,16 @@ apiDescribe('Validation:', persistence => {
     const fn = () => {};
 
     expect(() => doc.get(fn as any)).to.throw(
-      'Function DocumentReference.get() requires its first argument to be of type object, but it was: a function'
+      'Function DocumentReference.get() requires its first argument to be of type object, ' +
+        'but it was: a function'
     );
     expect(() => doc.get({ abc: 'cache' } as any)).to.throw(
       `Unknown option 'abc' passed to function DocumentReference.get(). Available options: source`
     );
 
     expect(() => collection.get(fn as any)).to.throw(
-      'Function Query.get() requires its first argument to be of type object, but it was: a function'
+      'Function Query.get() requires its first argument to be of type object, but it was: ' +
+        'a function'
     );
     expect(() => collection.get({ abc: 'cache' } as any)).to.throw(
       `Unknown option 'abc' passed to function Query.get(). Available options: source`
@@ -342,7 +344,8 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           snapshot.data({ serverTimestamps: 'foo' } as any)
         ).to.throw(
-          `Invalid value "foo" provided to function DocumentSnapshot.data() for option "serverTimestamps". Acceptable values: "estimate", "previous", "none"`
+          `Invalid value "foo" provided to function DocumentSnapshot.data() for option ` +
+            `"serverTimestamps". Acceptable values: "estimate", "previous", "none"`
         );
       });
   });
@@ -351,21 +354,26 @@ apiDescribe('Validation:', persistence => {
     const docRef = db.collection('test').doc();
 
     expect(() => docRef.set({}, { merge: true, mergeFields: [] })).to.throw(
-      'Invalid options passed to function DocumentReference.set(): You cannot specify both "merge" and "mergeFields".'
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
+        '"merge" and "mergeFields".'
     );
     expect(() => docRef.set({}, { merge: false, mergeFields: [] })).to.throw(
-      'Invalid options passed to function DocumentReference.set(): You cannot specify both "merge" and "mergeFields".'
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
+        '"merge" and "mergeFields".'
     );
     expect(() => docRef.set({}, { merge: 'foo' as any })).to.throw(
-      'Function DocumentReference.set() requires its merge option to be of type boolean, but it was: "foo"'
+      'Function DocumentReference.set() requires its merge option to be of type boolean, but it ' +
+        'was: "foo"'
     );
     expect(() => docRef.set({}, { mergeFields: 'foo' as any })).to.throw(
-      'Function DocumentReference.set() requires its mergeFields option to be an array, but it was: "foo"'
+      'Function DocumentReference.set() requires its mergeFields option to be an array, but it ' +
+        'was: "foo"'
     );
     expect(() =>
       docRef.set({}, { mergeFields: ['foo', false as any] })
     ).to.throw(
-      'Function DocumentReference.set() requires all mergeFields elements to be a string or a FieldPath, but the value at index 1 was: false'
+      'Function DocumentReference.set() requires all mergeFields elements to be a string or a ' +
+        'FieldPath, but the value at index 1 was: false'
     );
   });
 

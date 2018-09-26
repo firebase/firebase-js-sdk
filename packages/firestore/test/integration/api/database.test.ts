@@ -17,11 +17,14 @@
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
-import { EventsAccumulator } from '../util/events_accumulator';
+import { fail } from '../../../src/util/assert';
+import { Code } from '../../../src/util/error';
+import { query } from '../../util/api_helpers';
 import { Deferred } from '../../util/promise';
+import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -31,9 +34,6 @@ import {
   withTestDoc,
   withTestDocAndInitialData
 } from '../util/helpers';
-import { query } from '../../util/api_helpers';
-import { fail } from '../../../src/util/assert';
-import { Code } from '../../../src/util/error';
 
 chai.use(chaiAsPromised);
 
