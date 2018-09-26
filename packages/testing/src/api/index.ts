@@ -95,13 +95,11 @@ function initializeApp(
       Promise.resolve({ accessToken: accessToken });
   }
   if (projectId) {
-    (app as any)
-      .firestore()
-      .settings({
-        host: 'localhost:8080',
-        ssl: false,
-        timestampsInSnapshots: true
-      });
+    (app as any).firestore().settings({
+      host: 'localhost:8080',
+      ssl: false,
+      timestampsInSnapshots: true
+    });
   }
   return app;
 }
