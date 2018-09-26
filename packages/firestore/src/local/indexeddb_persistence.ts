@@ -16,33 +16,45 @@
 
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
+import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
+import { ListenSequenceNumber, TargetId } from '../core/types';
+import { DocumentKey } from '../model/document_key';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
+import { Platform } from '../platform/platform';
+import { AsyncQueue, TimerId } from '../util/async_queue';
+import { CancelablePromise } from '../util/promise';
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import {
   IndexedDbMutationQueue,
   mutationQueuesContainKey
 } from './indexeddb_mutation_queue';
 import {
-  IndexedDbQueryCache,
+  documentTargetStore,
   getHighestListenSequenceNumber,
-  documentTargetStore
+  IndexedDbQueryCache
 } from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
-  DbClientMetadataKey,
   DbClientMetadata,
+  DbClientMetadataKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
-  SCHEMA_VERSION,
+  DbTargetDocument,
   DbTargetGlobal,
-  SchemaConverter,
-  DbTargetDocument
+  SCHEMA_VERSION,
+  SchemaConverter
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
+import {
+  ActiveTargets,
+  LruDelegate,
+  LruGarbageCollector
+} from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
@@ -51,23 +63,11 @@ import {
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { RemoteDocumentCache } from './remote_document_cache';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import { Platform } from '../platform/platform';
-import { AsyncQueue, TimerId } from '../util/async_queue';
-import { ClientId } from './shared_client_state';
-import { CancelablePromise } from '../util/promise';
-import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
-import { ReferenceSet } from './reference_set';
 import { QueryData } from './query_data';
-import { DocumentKey } from '../model/document_key';
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
-import {
-  ActiveTargets,
-  LruDelegate,
-  LruGarbageCollector
-} from './lru_garbage_collector';
-import { ListenSequenceNumber, TargetId } from '../core/types';
+import { ReferenceSet } from './reference_set';
+import { RemoteDocumentCache } from './remote_document_cache';
+import { ClientId } from './shared_client_state';
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 const LOG_TAG = 'IndexedDbPersistence';
 

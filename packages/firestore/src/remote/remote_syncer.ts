@@ -15,10 +15,10 @@
  */
 
 import { BatchId, TargetId } from '../core/types';
+import { DocumentKeySet } from '../model/collections';
 import { MutationBatchResult } from '../model/mutation_batch';
 import { FirestoreError } from '../util/error';
 import { RemoteEvent } from './remote_event';
-import { DocumentKeySet } from '../model/collections';
 
 /**
  * An interface that describes the actions the RemoteStore needs to perform on

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
 import { Blob } from '../api/blob';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
@@ -48,12 +47,20 @@ import {
   TransformMutation
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
+import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { AnyJs } from '../util/misc';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation,
+  ServerTimestampTransform,
+  TransformOperation
+} from '../model/transform_operation';
+import { ApiClientObjectMap } from '../protos/firestore_proto_api';
 import { ExistenceFilter } from './existence_filter';
 import { mapCodeFromRpcCode, mapRpcCodeFromCode } from './rpc_error';
 import {
@@ -63,13 +70,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { ApiClientObjectMap } from '../protos/firestore_proto_api';
-import {
-  TransformOperation,
-  ServerTimestampTransform,
-  ArrayUnionTransformOperation,
-  ArrayRemoveTransformOperation
-} from '../model/transform_operation';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};

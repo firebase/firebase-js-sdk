@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-import { FieldValue, ServerTimestampValue, ArrayValue } from './field_value';
 import { Timestamp } from '../api/timestamp';
 import * as misc from '../util/misc';
+import { ArrayValue, FieldValue, ServerTimestampValue } from './field_value';
 
 /** Represents a transform within a TransformMutation. */
 export interface TransformOperation {

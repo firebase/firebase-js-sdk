@@ -15,6 +15,8 @@
  */
 
 import { expect } from 'chai';
+import * as log from '../../../src/util/log';
+import { LogLevel } from '../../../src/util/log';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -24,8 +26,6 @@ import {
   withTestCollectionSettings,
   withTestDoc
 } from '../util/helpers';
-import * as log from '../../../src/util/log';
-import { LogLevel } from '../../../src/util/log';
 
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;

@@ -31,9 +31,9 @@ import {
   version
 } from '../../util/helpers';
 
+import { Timestamp } from '../../../src/api/timestamp';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestQueryCache } from './test_query_cache';
-import { Timestamp } from '../../../src/api/timestamp';
 
 describe('MemoryQueryCache', () => {
   genericQueryCacheTests(persistenceHelpers.testMemoryEagerPersistence);

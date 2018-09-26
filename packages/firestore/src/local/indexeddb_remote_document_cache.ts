@@ -25,19 +25,19 @@ import {
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
+import { SnapshotVersion } from '../core/snapshot_version';
+import { assert } from '../util/assert';
+import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
-  DbRemoteDocumentKey,
   DbRemoteDocumentChanges,
-  DbRemoteDocumentChangesKey
+  DbRemoteDocumentChangesKey,
+  DbRemoteDocumentKey
 } from './indexeddb_schema';
-import { IndexedDbPersistence } from './indexeddb_persistence';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { SnapshotVersion } from '../core/snapshot_version';
-import { assert } from '../util/assert';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {

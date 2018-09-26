@@ -9131,6 +9131,10 @@ rollup-plugin-copy-assets@1.0.0:
   dependencies:
     fs-extra "^5.0.0"
 
+rollup-plugin-hypothetical@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.npmjs.org/rollup-plugin-hypothetical/-/rollup-plugin-hypothetical-2.1.0.tgz#7fec9a865ed7d0eac14ca6ee2b2c4088acdb1955"
+
 rollup-plugin-node-resolve@3.3.0:
   version "3.3.0"
   resolved "https://registry.npmjs.org/rollup-plugin-node-resolve/-/rollup-plugin-node-resolve-3.3.0.tgz#c26d110a36812cbefa7ce117cadcd3439aa1c713"

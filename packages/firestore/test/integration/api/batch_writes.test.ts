@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
 import { EventsAccumulator } from '../util/events_accumulator';
-import * as integrationHelpers from '../util/helpers';
 import firebase from '../util/firebase_export';
+import * as integrationHelpers from '../util/helpers';
 
 const apiDescribe = integrationHelpers.apiDescribe;
 const Timestamp = firebase.firestore!.Timestamp;

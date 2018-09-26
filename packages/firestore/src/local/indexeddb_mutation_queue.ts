@@ -29,6 +29,10 @@ import { SortedSet } from '../util/sorted_set';
 
 import * as EncodedResourcePath from './encoded_resource_path';
 import {
+  IndexedDbPersistence,
+  IndexedDbTransaction
+} from './indexeddb_persistence';
+import {
   DbDocumentMutation,
   DbDocumentMutationKey,
   DbMutationBatch,
@@ -41,10 +45,6 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import {
-  IndexedDbPersistence,
-  IndexedDbTransaction
-} from './indexeddb_persistence';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -507,7 +507,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
         .next(() => {
           assert(
             danglingMutationReferences.length === 0,
-            'Document leak -- detected dangling mutation references when queue is empty. Dangling keys: ' +
+            'Document leak -- detected dangling mutation references when queue is empty. ' +
+              'Dangling keys: ' +
               danglingMutationReferences.map(p => p.canonicalString())
           );
         });
@@ -542,7 +543,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
 }
 
 /**
- * @return true if the mutation queue for the given user contains a pending mutation for the given key.
+ * @return true if the mutation queue for the given user contains a pending
+ *         mutation for the given key.
  */
 function mutationQueueContainsKey(
   txn: PersistenceTransaction,

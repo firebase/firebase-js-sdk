@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-import { Code, FirestoreError } from '../util/error';
+import { User } from '../auth/user';
 import { ListenSequence } from '../core/listen_sequence';
 import {
   BatchId,
+  ListenSequenceNumber,
   MutationBatchState,
   OnlineState,
-  TargetId,
-  ListenSequenceNumber
+  TargetId
 } from '../core/types';
+import { TargetIdSet, targetIdSet } from '../model/collections';
+import { Platform } from '../platform/platform';
 import { assert } from '../util/assert';
+import { AsyncQueue } from '../util/async_queue';
+import { Code, FirestoreError } from '../util/error';
 import { debug, error } from '../util/log';
+import * as objUtils from '../util/obj';
 import { SortedSet } from '../util/sorted_set';
 import { isSafeInteger } from '../util/types';
-import * as objUtils from '../util/obj';
-import { User } from '../auth/user';
 import {
   QueryTargetState,
   SharedClientStateSyncer
 } from './shared_client_state_syncer';
-import { AsyncQueue } from '../util/async_queue';
-import { Platform } from '../platform/platform';
-import { TargetIdSet, targetIdSet } from '../model/collections';
 
 const LOG_TAG = 'SharedClientState';
 
@@ -800,7 +800,8 @@ export class WebStorageSharedClientState implements SharedClientState {
 
       if (event.key === this.localClientStorageKey) {
         error(
-          'Received WebStorage notification for local change. Another client might have garbage-collected our state'
+          'Received WebStorage notification for local change. Another client might have ' +
+            'garbage-collected our state'
         );
         return;
       }
