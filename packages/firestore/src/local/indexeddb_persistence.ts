@@ -17,6 +17,7 @@
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
@@ -32,9 +33,9 @@ import {
   mutationQueuesContainKey
 } from './indexeddb_mutation_queue';
 import {
+  documentTargetStore,
   getHighestListenSequenceNumber,
-  IndexedDbQueryCache,
-  documentTargetStore
+  IndexedDbQueryCache
 } from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
@@ -43,10 +44,10 @@ import {
   DbClientMetadataKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
+  DbTargetDocument,
   DbTargetGlobal,
   SCHEMA_VERSION,
-  SchemaConverter,
-  DbTargetDocument
+  SchemaConverter
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import {
@@ -54,7 +55,6 @@ import {
   LruDelegate,
   LruGarbageCollector
 } from './lru_garbage_collector';
-import { ListenSequenceNumber, TargetId } from '../core/types';
 import { MutationQueue } from './mutation_queue';
 import {
   Persistence,

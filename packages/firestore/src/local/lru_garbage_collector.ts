@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { QueryData } from './query_data';
-import { PersistenceTransaction } from './persistence';
-import { PersistencePromise } from './persistence_promise';
-import { ListenSequenceNumber } from '../core/types';
+
 import { ListenSequence } from '../core/listen_sequence';
+import { ListenSequenceNumber } from '../core/types';
 import { AnyJs, primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
+import { PersistenceTransaction } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { QueryData } from './query_data';
 
 /**
  * Persistence layers intending to use LRU Garbage collection should have reference delegates that
@@ -71,7 +72,8 @@ export interface LruDelegate {
 }
 
 /**
- * Describes an object whose keys are active target ids. We do not care about the type of the values.
+ * Describes an object whose keys are active target ids. We do not care about the type of the
+ * values.
  */
 export type ActiveTargets = {
   [id: number]: AnyJs;
