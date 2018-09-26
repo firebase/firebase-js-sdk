@@ -21,7 +21,6 @@ import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { ObjectMap } from '../util/obj_map';
 
-import { GarbageCollector } from './garbage_collector';
 import { ActiveTargets } from './lru_garbage_collector';
 import { MemoryPersistence } from './memory_persistence';
 import { PersistenceTransaction } from './persistence';
@@ -243,12 +242,8 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve(matchingKeys);
   }
 
-  setGarbageCollector(gc: GarbageCollector | null): void {
-    this.references.setGarbageCollector(gc);
-  }
-
   containsKey(
-    txn: PersistenceTransaction | null,
+    txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return this.references.containsKey(txn, key);

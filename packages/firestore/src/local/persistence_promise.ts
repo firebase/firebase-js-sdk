@@ -239,7 +239,10 @@ export class PersistencePromise<T> {
     return p;
   }
 
-  static waitForEach<K>(collection: Foreachable<K>, f: (item: K) => PersistencePromise<void>): PersistencePromise<void> {
+  static waitForEach<K>(
+    collection: Foreachable<K>,
+    f: (item: K) => PersistencePromise<void>
+  ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
     collection.forEach(item => {
       promises.push(f(item));
@@ -249,5 +252,5 @@ export class PersistencePromise<T> {
 }
 
 export type Foreachable<K> = {
-  forEach(f: (item: K) => void): void
-}
+  forEach(f: (item: K) => void): void;
+};

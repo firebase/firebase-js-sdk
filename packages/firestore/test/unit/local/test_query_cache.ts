@@ -17,8 +17,8 @@
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
-import { Persistence } from '../../../src/local/persistence';
 import { QueryCache } from '../../../src/local/query_cache';
+import { Persistence } from '../../../src/local/persistence';
 import { QueryData } from '../../../src/local/query_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';

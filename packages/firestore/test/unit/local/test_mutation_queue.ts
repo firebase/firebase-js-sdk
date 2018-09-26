@@ -17,7 +17,6 @@
 import { Timestamp } from '../../../src/api/timestamp';
 import { Query } from '../../../src/core/query';
 import { BatchId, ProtoByteString } from '../../../src/core/types';
-import { GarbageCollector } from '../../../src/local/garbage_collector';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentKeySet } from '../../../src/model/collections';
@@ -174,16 +173,6 @@ export class TestMutationQueue {
       'readwrite-primary',
       txn => {
         return this.queue.removeMutationBatch(txn, batch);
-      }
-    );
-  }
-
-  collectGarbage(gc: GarbageCollector): Promise<DocumentKeySet> {
-    return this.persistence.runTransaction(
-      'garbageCollection',
-      'readwrite-primary',
-      txn => {
-        return gc.collectGarbage(txn);
       }
     );
   }

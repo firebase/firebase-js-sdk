@@ -57,7 +57,7 @@ export class MemoryPersistence implements Persistence {
    * will make the in-memory persistence layer behave as if it were actually
    * persisting values.
    */
-  private mutationQueues: { [user: string]: MutationQueue } = {};
+  private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
   private remoteDocumentCache = new MemoryRemoteDocumentCache();
   private readonly queryCache: MemoryQueryCache; // = new MemoryQueryCache();
   private readonly listenSequence = new ListenSequence(0);
@@ -112,7 +112,7 @@ export class MemoryPersistence implements Persistence {
   getMutationQueue(user: User): MutationQueue {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
-      queue = new MemoryMutationQueue();
+      queue = new MemoryMutationQueue(this.referenceDelegate);
       this.mutationQueues[user.toKey()] = queue;
     }
     return queue;
@@ -136,9 +136,13 @@ export class MemoryPersistence implements Persistence {
     debug(LOG_TAG, 'Starting transaction:', action);
     const txn = new MemoryTransaction(this.listenSequence.next());
     this.referenceDelegate.onTransactionStarted();
-    return transactionOperation(txn).next(result => {
-      return this.referenceDelegate.onTransactionCommitted(txn).next(() => result);
-    }).toPromise();
+    return transactionOperation(txn)
+      .next(result => {
+        return this.referenceDelegate
+          .onTransactionCommitted(txn)
+          .next(() => result);
+      })
+      .toPromise();
   }
 
   mutationQueuesContainKey(
@@ -171,33 +175,50 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     this.inMemoryPins = inMemoryPins;
   }
 
-  addReference(txn: PersistenceTransaction, key: DocumentKey): PersistencePromise<void> {
+  addReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
     this.orphanedDocuments.delete(key);
     return PersistencePromise.resolve();
   }
 
-  removeReference(txn: PersistenceTransaction, key: DocumentKey): PersistencePromise<void> {
+  removeReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
     this.orphanedDocuments.add(key);
     return PersistencePromise.resolve();
   }
 
-  removeMutationReference(txn: PersistenceTransaction, key: DocumentKey): PersistencePromise<void> {
+  removeMutationReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
     this.orphanedDocuments.add(key);
     return PersistencePromise.resolve();
   }
 
-  removeTarget(txn: PersistenceTransaction, queryData: QueryData): PersistencePromise<void> {
+  removeTarget(
+    txn: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void> {
     const cache = this.persistence.getQueryCache();
-    return cache.getMatchingKeysForTargetId(txn, queryData.targetId).next(keys => {
-      keys.forEach(key => this.orphanedDocuments.add(key));
-    }).next(() => cache.removeQueryData(txn, queryData));
+    return cache
+      .getMatchingKeysForTargetId(txn, queryData.targetId)
+      .next(keys => {
+        keys.forEach(key => this.orphanedDocuments.add(key));
+      })
+      .next(() => cache.removeQueryData(txn, queryData));
   }
 
   onTransactionStarted(): void {
     this.orphanedDocuments = new Set<DocumentKey>();
   }
 
-  onTransactionCommitted(txn: PersistenceTransaction): PersistencePromise<void> {
+  onTransactionCommitted(
+    txn: PersistenceTransaction
+  ): PersistencePromise<void> {
     const cache = this.persistence.getRemoteDocumentCache();
     return PersistencePromise.waitForEach(this.orphanedDocuments, key => {
       return this.isReferenced(txn, key).next(isReferenced => {
@@ -205,10 +226,13 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
           return cache.removeEntry(txn, key);
         }
       });
-    })
+    });
   }
 
-  updateLimboDocument(txn: PersistenceTransaction, key: DocumentKey): PersistencePromise<void> {
+  updateLimboDocument(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
     return this.isReferenced(txn, key).next(isReferenced => {
       if (isReferenced) {
         this.orphanedDocuments.delete(key);
@@ -218,7 +242,10 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     });
   }
 
-  private isReferenced(txn: PersistenceTransaction, key: DocumentKey): PersistencePromise<boolean> {
+  private isReferenced(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<boolean> {
     return PersistencePromise.or([
       () => this.persistence.getQueryCache().containsKey(txn, key),
       () => this.persistence.mutationQueuesContainKey(txn, key),
@@ -244,7 +271,9 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   // it has.
   onTransactionStarted(): void {}
 
-  onTransactionCommitted(txn: PersistenceTransaction): PersistencePromise<void> {
+  onTransactionCommitted(
+    txn: PersistenceTransaction
+  ): PersistencePromise<void> {
     return PersistencePromise.resolve();
   }
 
