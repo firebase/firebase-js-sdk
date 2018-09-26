@@ -23,7 +23,6 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
-
 import { Platform } from '../platform/platform';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { CancelablePromise } from '../util/promise';
