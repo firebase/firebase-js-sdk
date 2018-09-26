@@ -239,6 +239,11 @@ export class PersistencePromise<T> {
     return p;
   }
 
+  /**
+   * Given a collection that has a `forEach` method, call the given function on
+   * each element in the collection and wait for all of the resulting
+   * concurrent PersistencePromises to resolve.
+   */
   static waitForEach<K>(
     collection: Foreachable<K>,
     f: (item: K) => PersistencePromise<void>
@@ -251,6 +256,10 @@ export class PersistencePromise<T> {
   }
 }
 
+/**
+ * Intended to match any type that has a standard `forEach` method. This allows the implementation
+ * of functions on top of collections without caring about the underlying collection type.
+ */
 export type Foreachable<K> = {
   forEach(f: (item: K) => void): void;
 };

@@ -324,7 +324,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             this.remoteStore.unlisten(queryView.targetId);
             return this.removeAndCleanupQuery(queryView);
           })
-          .then(() => this.localStore.collectGarbage())
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
     } else {
@@ -820,11 +819,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     await Promise.all(queriesProcessed);
     this.syncEngineListener!.onWatchChange(newSnaps);
     await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-    if (this.isPrimary) {
-      await this.localStore
-        .collectGarbage()
-        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
-    }
   }
 
   /**

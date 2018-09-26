@@ -615,9 +615,9 @@ export class LocalStore {
             viewChange.removedKeys,
             viewChange.targetId
           );
-          return PersistencePromise.waitForEach(viewChange.removedKeys, key => {
-            return this.persistence.referenceDelegate.removeReference(txn, key);
-          });
+          return PersistencePromise.waitForEach(viewChange.removedKeys, key =>
+            this.persistence.referenceDelegate.removeReference(txn, key)
+          );
         });
       }
     );
@@ -727,12 +727,9 @@ export class LocalStore {
           );
           delete this.queryDataByTarget[targetId];
           if (!keepPersistedQueryData) {
-            return PersistencePromise.waitForEach(removed, key => {
-              return this.persistence.referenceDelegate.removeReference(
-                txn,
-                key
-              );
-            }).next(() =>
+            return PersistencePromise.waitForEach(removed, key =>
+              this.persistence.referenceDelegate.removeReference(txn, key)
+            ).next(() =>
               this.persistence.referenceDelegate.removeTarget(
                 txn,
                 cachedQueryData
@@ -767,31 +764,6 @@ export class LocalStore {
         return this.queryCache.getMatchingKeysForTargetId(txn, targetId);
       }
     );
-  }
-
-  /**
-   * Collect garbage if necessary.
-   * Should be called periodically by Sync Engine to recover resources. The
-   * implementation must guarantee that GC won't happen in other places than
-   * this method call.
-   */
-  collectGarbage(): Promise<void> {
-    // Call collectGarbage regardless of whether isGCEnabled so the referenceSet
-    // doesn't continue to accumulate the garbage keys.
-    /*return this.persistence.runTransaction(
-      'Garbage collection',
-      'readwrite-primary',
-      txn => {
-        return this.garbageCollector.collectGarbage(txn).next(garbage => {
-          const promises = [] as Array<PersistencePromise<void>>;
-          garbage.forEach(key => {
-            promises.push(this.remoteDocuments.removeEntry(txn, key));
-          });
-          return PersistencePromise.waitFor(promises);
-        });
-      }
-    );*/
-    return Promise.resolve();
   }
 
   // PORTING NOTE: Multi-tab only.
