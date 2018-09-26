@@ -94,7 +94,13 @@ function initializeApp(
     (app as any).INTERNAL.getToken = () =>
       Promise.resolve({ accessToken: accessToken });
   }
-  (app as any).firestore().settings({ host: "localhost:8080", ssl: false, timestampsInSnapshots: true });
+  (app as any)
+    .firestore()
+    .settings({
+      host: 'localhost:8080',
+      ssl: false,
+      timestampsInSnapshots: true
+    });
   return app;
 }
 
