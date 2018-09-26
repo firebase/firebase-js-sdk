@@ -5573,6 +5573,8 @@ function testSendVerificationCode_caughtServerError() {
       fireauth.authenum.Error.MISSING_PHONE_NUMBER;
   errorMap[fireauth.RpcHandler.ServerError.QUOTA_EXCEEDED] =
       fireauth.authenum.Error.QUOTA_EXCEEDED;
+  errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
+      fireauth.authenum.Error.REJECTED_CREDENTIAL;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendVerificationCode(requestBody);
@@ -5779,6 +5781,8 @@ function testVerifyPhoneNumber_caughtServerError() {
       fireauth.authenum.Error.MISSING_SESSION_INFO;
   errorMap[fireauth.RpcHandler.ServerError.SESSION_EXPIRED] =
       fireauth.authenum.Error.CODE_EXPIRED;
+  errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
+      fireauth.authenum.Error.REJECTED_CREDENTIAL;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyPhoneNumber(requestBody);
