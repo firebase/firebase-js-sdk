@@ -1,6 +1,6 @@
 {
   // Ruler can't be specified via editorconfig
-  "editor.rulers": [80],
+  "editor.rulers": [100],
 
   "search.exclude": {
     // Exclude gulp build outputs from search results

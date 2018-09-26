@@ -16,15 +16,15 @@
 
 import { User } from '../auth/user';
 
+import { ListenSequenceNumber } from '../core/types';
+import { DocumentKey } from '../model/document_key';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
+import { QueryData } from './query_data';
+import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
-import { ListenSequenceNumber } from '../core/types';
-import { ReferenceSet } from './reference_set';
-import { QueryData } from './query_data';
-import { DocumentKey } from '../model/document_key';
 
 /**
  * Opaque interface representing a persistence transaction.

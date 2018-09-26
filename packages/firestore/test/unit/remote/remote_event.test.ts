@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-import * as objUtils from '../../../src/util/obj';
 import { expect } from 'chai';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
+import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
+import { DocumentKey } from '../../../src/model/document_key';
+import { emptyByteString } from '../../../src/platform/platform';
+import { ExistenceFilter } from '../../../src/remote/existence_filter';
 import { RemoteEvent, TargetChange } from '../../../src/remote/remote_event';
 import {
   DocumentWatchChange,
@@ -26,6 +30,7 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from '../../../src/remote/watch_change';
+import * as objUtils from '../../../src/util/obj';
 import {
   deletedDoc,
   doc,
@@ -37,11 +42,6 @@ import {
   updateMapping,
   version
 } from '../../util/helpers';
-import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
-import { DocumentKey } from '../../../src/model/document_key';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { ExistenceFilter } from '../../../src/remote/existence_filter';
-import { emptyByteString } from '../../../src/platform/platform';
 
 type TargetMap = {
   [targetId: number]: QueryData;

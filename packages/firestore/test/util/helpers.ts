@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
 import { Blob } from '../../src/api/blob';
 import { fromDotSeparatedString } from '../../src/api/field_path';
@@ -81,7 +81,7 @@ import {
 } from '../../src/remote/watch_change';
 import { assert, fail } from '../../src/util/assert';
 import { AnyJs, primitiveComparator } from '../../src/util/misc';
-import { forEach, Dict } from '../../src/util/obj';
+import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
 import { query } from './api_helpers';

@@ -15,9 +15,14 @@
  */
 
 const closureBuilder = require('closure-builder');
+const rollup = require('rollup');
+const commonjs = require('rollup-plugin-commonjs');
+const hypothetical = require('rollup-plugin-hypothetical');
+
 const glob = closureBuilder.globSupport();
 const { resolve } = require('path');
 
+// commonjs build
 closureBuilder.build({
   name: 'firebase.webchannel.wrapper',
   srcs: glob([resolve(__dirname, '../src/**/*.js')]),
@@ -28,7 +33,44 @@ closureBuilder.build({
       output_wrapper:
         "(function() {%output%}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {})",
       language_out: 'ECMASCRIPT5',
-      compilation_level: 'ADVANCED_OPTIMIZATIONS'
+      compilation_level: 'ADVANCED'
     }
   }
 });
+
+// esm build
+closureBuilder.build(
+  {
+    name: 'firebase.webchannel.wrapper',
+    srcs: glob([resolve(__dirname, '../src/**/*.js')]),
+    externs: [resolve(__dirname, '../externs/overrides.js')],
+    options: {
+      closure: {
+        language_out: 'ECMASCRIPT5',
+        compilation_level: 'ADVANCED'
+      }
+    }
+  },
+  async function(errors, warnings, files, results) {
+    const filePath = resolve(__dirname, '../src/index.js');
+    const inputOptions = {
+      input: filePath,
+      plugins: [
+        commonjs(),
+        hypothetical({
+          files: {
+            [filePath]: results // use the compiled code from memory
+          }
+        })
+      ]
+    };
+
+    const outputOptions = {
+      file: 'dist/index.esm.js',
+      format: 'es'
+    };
+
+    const bundle = await rollup.rollup(inputOptions);
+    return bundle.write(outputOptions);
+  }
+);

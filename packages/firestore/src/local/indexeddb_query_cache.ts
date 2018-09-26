@@ -17,14 +17,20 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId, ListenSequenceNumber } from '../core/types';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 
+import { TargetIdGenerator } from '../core/target_id_generator';
 import * as EncodedResourcePath from './encoded_resource_path';
 import { GarbageCollector } from './garbage_collector';
+import {
+  IndexedDbLruDelegate,
+  IndexedDbPersistence,
+  IndexedDbTransaction
+} from './indexeddb_persistence';
 import {
   DbTarget,
   DbTargetDocument,
@@ -34,18 +40,12 @@ import {
   DbTargetKey
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
+import { ActiveTargets } from './lru_garbage_collector';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
-import { TargetIdGenerator } from '../core/target_id_generator';
-import { SimpleDbStore, SimpleDbTransaction, SimpleDb } from './simple_db';
-import {
-  IndexedDbLruDelegate,
-  IndexedDbPersistence,
-  IndexedDbTransaction
-} from './indexeddb_persistence';
-import { ActiveTargets } from './lru_garbage_collector';
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(

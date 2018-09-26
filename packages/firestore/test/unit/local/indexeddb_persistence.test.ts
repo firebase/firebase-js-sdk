@@ -15,6 +15,8 @@
  */
 
 import { expect } from 'chai';
+import { PersistenceSettings } from '../../../src/api/database';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   ALL_STORES,
@@ -37,16 +39,14 @@ import {
   V3_STORES,
   V4_STORES
 } from '../../../src/local/indexeddb_schema';
-import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
-import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PlatformSupport } from '../../../src/platform/platform';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { PersistenceSettings } from '../../../src/api/database';
 import { path } from '../../util/helpers';
+import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   INDEXEDDB_TEST_DATABASE_ID,
   INDEXEDDB_TEST_DATABASE_NAME,

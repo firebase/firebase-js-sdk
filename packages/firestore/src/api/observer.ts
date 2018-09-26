@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import { AnyJs } from '../util/misc';
 import { JsonObject } from '../model/field_value';
+import { AnyJs } from '../util/misc';
 
 /**
  * Observer/Subscribe interfaces.

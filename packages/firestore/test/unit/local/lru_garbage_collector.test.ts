@@ -15,38 +15,39 @@
  */
 
 import { expect } from 'chai';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import {
-  Persistence,
-  PersistenceTransaction
-} from '../../../src/local/persistence';
-import * as PersistenceTestHelpers from './persistence_test_helpers';
-import { QueryData, QueryPurpose } from '../../../src/local/query_data';
-import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
+import { Timestamp } from '../../../src/api/timestamp';
+import { User } from '../../../src/auth/user';
+import { ListenSequence } from '../../../src/core/listen_sequence';
 import { Query } from '../../../src/core/query';
-import { path, wrapObject } from '../../util/helpers';
-import { QueryCache } from '../../../src/local/query_cache';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   ActiveTargets,
   LruDelegate,
   LruGarbageCollector
 } from '../../../src/local/lru_garbage_collector';
-import { ListenSequence } from '../../../src/core/listen_sequence';
-import { DocumentKey } from '../../../src/model/document_key';
+import { MutationQueue } from '../../../src/local/mutation_queue';
+import {
+  Persistence,
+  PersistenceTransaction
+} from '../../../src/local/persistence';
+
+import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { QueryCache } from '../../../src/local/query_cache';
+import { QueryData, QueryPurpose } from '../../../src/local/query_data';
+import { ReferenceSet } from '../../../src/local/reference_set';
+import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { documentKeySet } from '../../../src/model/collections';
+import { Document } from '../../../src/model/document';
+import { DocumentKey } from '../../../src/model/document_key';
 import {
   Mutation,
   Precondition,
   SetMutation
 } from '../../../src/model/mutation';
-import { Document } from '../../../src/model/document';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { MutationQueue } from '../../../src/local/mutation_queue';
-import { User } from '../../../src/auth/user';
-import { Timestamp } from '../../../src/api/timestamp';
-import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { ReferenceSet } from '../../../src/local/reference_set';
+import { path, wrapObject } from '../../util/helpers';
+import * as PersistenceTestHelpers from './persistence_test_helpers';
 
 describe('IndexedDbLruDelegate', () => {
   if (!IndexedDbPersistence.isAvailable()) {
