@@ -100,56 +100,6 @@ export class View {
   }
 
   /**
-   * Computes the initial set of document changes based on the provided
-   * documents.
-   *
-   * Unlike `computeDocChanges`, documents with committed mutations don't raise
-   * `hasPendingWrites`. This distinction allows us to only raise
-   * `hasPendingWrite` events for documents that changed during the lifetime of
-   * the View.
-   *
-   * @param docs The docs to apply to this view.
-   * @return A new set of docs, changes, and refill flag.
-   */
-  computeInitialChanges(docs: MaybeDocumentMap): ViewDocumentChanges {
-    assert(
-      this.documentSet.size === 0,
-      'computeInitialChanges called when docs are aleady present'
-    );
-
-    const changeSet = new DocumentChangeSet();
-    let newMutatedKeys = this.mutatedKeys;
-    let newDocumentSet = this.documentSet;
-
-    docs.inorderTraversal((key: DocumentKey, maybeDoc: MaybeDocument) => {
-      if (maybeDoc instanceof Document) {
-        if (this.query.matches(maybeDoc)) {
-          changeSet.track({ type: ChangeType.Added, doc: maybeDoc });
-          newDocumentSet = newDocumentSet.add(maybeDoc);
-          if (maybeDoc.hasLocalMutations) {
-            newMutatedKeys = newMutatedKeys.add(key);
-          }
-        }
-      }
-    });
-
-    if (this.query.hasLimit()) {
-      while (newDocumentSet.size > this.query.limit!) {
-        const oldDoc = newDocumentSet.last();
-        newDocumentSet = newDocumentSet.delete(oldDoc!.key);
-        newMutatedKeys = newMutatedKeys.delete(oldDoc!.key);
-        changeSet.track({ type: ChangeType.Removed, doc: oldDoc! });
-      }
-    }
-    return {
-      documentSet: newDocumentSet,
-      changeSet,
-      needsRefill: false,
-      mutatedKeys: newMutatedKeys
-    };
-  }
-
-  /**
    * Iterates over a set of doc changes, applies the query limit, and computes
    * what the new results should be, what the changes were, and whether we may
    * need to go back to the local cache for more results. Does not make any

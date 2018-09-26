@@ -246,7 +246,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         .remoteDocumentKeys(queryData.targetId)
         .then(remoteKeys => {
           const view = new View(query, remoteKeys);
-          const viewDocChanges = view.computeInitialChanges(docs);
+          const viewDocChanges = view.computeDocChanges(docs);
           // tslint:disable-next-line:max-line-length Prettier formats this exceed 100 characters.
           const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
             queryData.targetId,
