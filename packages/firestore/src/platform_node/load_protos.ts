@@ -28,8 +28,11 @@ export function loadProtos(): grpc.GrpcObject {
     __dirname,
     process.env.FIRESTORE_PROTO_ROOT || '../protos'
   );
-  const packageDefinition = loader.loadSync("google/firestore/v1beta1/firestore.proto", {
-    includeDirs: [root]
-  });
+  const packageDefinition = loader.loadSync(
+    'google/firestore/v1beta1/firestore.proto',
+    {
+      includeDirs: [root]
+    }
+  );
   return grpc.loadPackageDefinition(packageDefinition);
 }
