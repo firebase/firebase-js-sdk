@@ -578,7 +578,7 @@
     string-format-obj "^1.0.0"
     through2 "^2.0.0"
 
-"@grpc/proto-loader@^0.3.0":
+"@grpc/proto-loader@0.3.0":
   version "0.3.0"
   resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.3.0.tgz#c127d3859bff895f220453612ba04b923af0c584"
   dependencies:
@@ -4928,9 +4928,9 @@ growl@1.10.3:
   version "1.10.3"
   resolved "https://registry.npmjs.org/growl/-/growl-1.10.3.tgz#1926ba90cf3edfe2adb4927f5880bc22c66c790f"
 
-grpc@1.13.1:
-  version "1.13.1"
-  resolved "https://registry.npmjs.org/grpc/-/grpc-1.13.1.tgz#9b5c49d4e56309b6e3bd631f8948b7b298d88790"
+grpc@1.15.1:
+  version "1.15.1"
+  resolved "https://registry.npmjs.org/grpc/-/grpc-1.15.1.tgz#046263d9b0c440c8e36fece03e227cb3afe28514"
   dependencies:
     lodash "^4.17.5"
     nan "^2.0.0"
