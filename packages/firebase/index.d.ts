@@ -145,6 +145,7 @@ declare namespace firebase.functions {
   }
   export class Functions {
     private constructor();
+    useFunctionsEmulator(url: string): void;
     httpsCallable(name: string): HttpsCallable;
   }
   export type ErrorStatus =
