@@ -224,7 +224,7 @@ export class PersistencePromise<T> {
 
   static forEach<T>(
     all: Iterable<T>,
-    callback: (elem:T) => PersistencePromise<void>
+    callback: (elem: T) => PersistencePromise<void>
   ): PersistencePromise<void> {
     const it = all[Symbol.iterator]();
 
