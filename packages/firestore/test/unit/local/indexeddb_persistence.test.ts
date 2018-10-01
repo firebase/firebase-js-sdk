@@ -416,7 +416,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             return PersistencePromise.forEach(testMutation.mutations, write => {
               const indexKey = DbDocumentMutation.key(
                 testMutation.userId,
-                path(write.update.name, 5),
+                path(write.update!.name!, 5),
                 testMutation.batchId
               );
               return documentMutationStore.put(
