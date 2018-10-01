@@ -170,49 +170,54 @@ export class PersistencePromise<T> {
 
   static waitFor(
     // tslint:disable-next-line:no-any Accept all Promise types in waitFor().
-    all: Array<PersistencePromise<any>>
+    all: Iterable<PersistencePromise<any>>
   ): PersistencePromise<void> {
-    const expectedCount = all.length;
-    if (expectedCount === 0) {
-      return PersistencePromise.resolve();
-    }
-
-    let resolvedCount = 0;
+    const it = all[Symbol.iterator]();
     return new PersistencePromise<void>((resolve, reject) => {
-      for (const promise of all) {
-        promise.next(
+      let expectedCount = 0;
+      let resolvedCount = 0;
+
+      let result = it.next();
+      while (!result.done) {
+        ++expectedCount;
+        result.value.next(
           () => {
             ++resolvedCount;
-            if (resolvedCount === expectedCount) {
+            if (result.done && resolvedCount === expectedCount) {
               resolve();
             }
           },
           err => reject(err)
         );
+        result = it.next();
+      }
+
+      if (resolvedCount === expectedCount) {
+        resolve();
       }
     });
   }
 
-  static map<R>(all: Array<PersistencePromise<R>>): PersistencePromise<R[]> {
+  static map<R>(all: Iterable<PersistencePromise<R>>): PersistencePromise<R[]> {
     const results: R[] = [];
-    const promises: Array<PersistencePromise<void>> = [];
-    for (let i = 0; i < all.length; ++i) {
-      promises[i] = all[i].next(result => {
-        results[i] = result;
-      });
-    }
-    return PersistencePromise.waitFor(promises).next(() => {
-      return results;
-    });
+    return PersistencePromise.forEach(all, result => {
+      results.push(result);
+      return PersistencePromise.resolve();
+    }).next(() => results);
   }
 
   static forEach<T>(
-    elements: T[],
+    all: Iterable<T>,
     callback: (T) => PersistencePromise<void>
   ): PersistencePromise<void> {
+    const it = all[Symbol.iterator]();
+
     let p = PersistencePromise.resolve();
-    for (const element of elements) {
-      p = p.next(() => callback(element));
+    let result = it.next();
+    while (!result.done) {
+      const value = result.value;
+      p = p.next(() => callback(value));
+      result = it.next();
     }
     return p;
   }
