@@ -279,7 +279,6 @@ describe('PersistencePromise', () => {
     );
 
     const p = PersistencePromise.map([resolved, rejected]).toPromise();
-
     return expect(p).to.be.eventually.rejectedWith('rejected');
   });
 });
