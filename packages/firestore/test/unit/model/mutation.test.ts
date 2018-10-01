@@ -482,7 +482,9 @@ describe('Mutation', () => {
     );
     const transformResult = new MutationResult(version(7), []);
     const docV7Unknown = unknownDoc('collection/key', 7);
-    const docV7Deleted = deletedDoc('collection/key', 7);
+    const docV7Deleted = deletedDoc('collection/key', 7, {
+      hasCommittedMutations: true
+    });
     const docV7Committed = doc(
       'collection/key',
       7,
