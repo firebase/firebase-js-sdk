@@ -531,7 +531,7 @@ function genericLocalStoreTests(
       .toContain(deletedDoc('foo/bar', 0))
       .afterAcknowledgingMutation({ documentVersion: 1 })
       .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 1))
+      .toContain(deletedDoc('foo/bar', 1, { hasCommittedMutations: true }))
       .finish();
   });
 
@@ -551,7 +551,7 @@ function genericLocalStoreTests(
         .afterReleasingQuery(query)
         .afterAcknowledgingMutation({ documentVersion: 2 })
         .toReturnRemoved('foo/bar')
-        .toContain(deletedDoc('foo/bar', 2))
+        .toContain(deletedDoc('foo/bar', 2, { hasCommittedMutations: true }))
         .finish()
     );
   });
@@ -572,7 +572,7 @@ function genericLocalStoreTests(
         .afterReleasingQuery(query)
         .afterAcknowledgingMutation({ documentVersion: 2 })
         .toReturnRemoved('foo/bar')
-        .toContain(deletedDoc('foo/bar', 2))
+        .toContain(deletedDoc('foo/bar', 2, { hasCommittedMutations: true }))
         .finish()
     );
   });
@@ -685,7 +685,7 @@ function genericLocalStoreTests(
       .toContain(deletedDoc('foo/bar', 0))
       .afterAcknowledgingMutation({ documentVersion: 2 }) // delete mutation
       .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 2))
+      .toContain(deletedDoc('foo/bar', 2, { hasCommittedMutations: true }))
       .afterAcknowledgingMutation({ documentVersion: 3 }) // patch mutation
       .toReturnChanged(unknownDoc('foo/bar', 3))
       .toContain(unknownDoc('foo/bar', 3))
