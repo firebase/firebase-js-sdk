@@ -682,7 +682,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         queryView.targetId
       );
       this.limboDocumentRefs.removeReferencesForId(queryView.targetId);
-      await PersistencePromise.forEach(limboKeys.toArray(), limboKey => {
+      await PersistencePromise.forEach(limboKeys, limboKey => {
         return this.limboDocumentRefs
           .containsKey(null, limboKey)
           .next(isReferenced => {

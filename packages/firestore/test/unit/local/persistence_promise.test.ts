@@ -16,6 +16,12 @@
 
 import { expect } from 'chai';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { Deferred } from '../../../src/util/promise';
+
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+chai.use(chaiAsPromised);
 
 describe('PersistencePromise', () => {
   function async<R>(value: R): PersistencePromise<R> {
@@ -214,6 +220,17 @@ describe('PersistencePromise', () => {
       .toPromise();
   });
 
+  it('propagates error for waitFor()', () => {
+    const resolved = PersistencePromise.resolve('resolved');
+    const rejected: PersistencePromise<string> = PersistencePromise.reject(
+      new Error('rejected')
+    );
+
+    const p = PersistencePromise.waitFor([resolved, rejected]).toPromise();
+
+    return expect(p).to.be.eventually.rejectedWith('rejected');
+  });
+
   it('executes forEach in order', async () => {
     let result = '';
     await PersistencePromise.forEach(['a', 'b', 'c'], el => {
@@ -221,5 +238,47 @@ describe('PersistencePromise', () => {
       return PersistencePromise.resolve();
     }).toPromise();
     expect(result).to.equal('abc');
+  });
+
+  it('propagates error for forEach()', () => {
+    const p = PersistencePromise.forEach([true, false], success => {
+      if (success) {
+        return PersistencePromise.resolve();
+      } else {
+        return PersistencePromise.reject(new Error('rejected'));
+      }
+    }).toPromise();
+
+    return expect(p).to.be.eventually.rejectedWith('rejected');
+  });
+
+  it('maintains order for map()', async () => {
+    const deferred = new Deferred<void>();
+
+    const pending = new PersistencePromise<string>(resolve => {
+      return deferred.promise.then(() => resolve('first'));
+    });
+    const resolved = PersistencePromise.resolve('second');
+
+    const p = PersistencePromise.map([pending, resolved]).next(results => {
+      expect(results).to.deep.eq(['first', 'second']);
+      return PersistencePromise.resolve();
+    });
+
+    setImmediate(() => {
+      deferred.resolve();
+    });
+
+    await p.toPromise();
+  });
+
+  it('propagates error for map()', () => {
+    const resolved = PersistencePromise.resolve('resolved');
+    const rejected: PersistencePromise<string> = PersistencePromise.reject(
+      new Error('rejected')
+    );
+
+    const p = PersistencePromise.map([resolved, rejected]).toPromise();
+    return expect(p).to.be.eventually.rejectedWith('rejected');
   });
 });

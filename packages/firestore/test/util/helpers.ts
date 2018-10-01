@@ -121,9 +121,10 @@ export function doc(
 
 export function deletedDoc(
   keyStr: string,
-  ver: TestSnapshotVersion
+  ver: TestSnapshotVersion,
+  options: DocumentOptions = {}
 ): NoDocument {
-  return new NoDocument(key(keyStr), version(ver));
+  return new NoDocument(key(keyStr), version(ver), options);
 }
 
 export function unknownDoc(
