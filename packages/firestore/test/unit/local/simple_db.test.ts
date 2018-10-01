@@ -488,7 +488,7 @@ describe('SimpleDb', () => {
         for (let i = 0; i < 1000; ++i) {
           promises.push(store.get(i));
         }
-        return PersistencePromise.map(promises).next(() => {
+        return PersistencePromise.waitFor(promises).next(() => {
           const end = new Date().getTime();
           // tslint:disable-next-line:no-console
           console.log(`Reading: ${end - start} ms`);
