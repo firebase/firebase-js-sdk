@@ -1,4 +1,12 @@
-# Unreleased (0.8.0)
+# Unreleased
+
+# 0.8.2
+- [fixed] Fixed an issue where native ES6 module loading was not working.
+
+# 0.8.1
+- [fixed] Fixed an issue where typings are created in the wrong location.
+
+# 0.8.0
 - [feature] Access to offline persistence is no longer limited to a single tab.
   You can opt into this new experimental mode by invoking `enablePersistence()`
   with `{experimentalTabSynchronization: true}`. All tabs accessing persistence
