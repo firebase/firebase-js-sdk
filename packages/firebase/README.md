@@ -83,7 +83,7 @@ var app = firebase.initializeApp({ ... });
 If you are using ES6 imports or TypeScript:
 
 ```
-import firebase from 'firebase';
+import * as firebase from 'firebase';
 var app = firebase.initializeApp({ ... });
 ```
 
