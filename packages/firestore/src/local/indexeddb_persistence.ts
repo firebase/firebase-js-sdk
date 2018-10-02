@@ -19,14 +19,14 @@ import { DatabaseInfo } from '../core/database_info';
 import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKey } from '../model/document_key';
+import { Platform } from '../platform/platform';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
+import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
-
-import { Platform } from '../platform/platform';
-import { AsyncQueue, TimerId } from '../util/async_queue';
 import { CancelablePromise } from '../util/promise';
+
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import {
   IndexedDbMutationQueue,

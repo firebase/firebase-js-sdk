@@ -16,8 +16,9 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "request-promise": "4.2.2",
-    "@firebase/util": "0.2.2"
+    "@firebase/util": "0.2.2",
+    "request": "2.88.0",
+    "request-promise": "4.2.2"
   },
   "devDependencies": {
     "chai": "4.1.2",

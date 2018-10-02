@@ -226,6 +226,7 @@ fireauth.RpcHandler.ServerError = {
   PASSWORD_LOGIN_DISABLED: 'PASSWORD_LOGIN_DISABLED',
   QUOTA_EXCEEDED: 'QUOTA_EXCEEDED',
   RESET_PASSWORD_EXCEED_LIMIT: 'RESET_PASSWORD_EXCEED_LIMIT',
+  REJECTED_CREDENTIAL: 'REJECTED_CREDENTIAL',
   SESSION_EXPIRED: 'SESSION_EXPIRED',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'TOO_MANY_ATTEMPTS_TRY_LATER',
@@ -2306,6 +2307,8 @@ fireauth.RpcHandler.getDeveloperError_ =
       fireauth.authenum.Error.QUOTA_EXCEEDED;
   errorMap[fireauth.RpcHandler.ServerError.SESSION_EXPIRED] =
       fireauth.authenum.Error.CODE_EXPIRED;
+  errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
+      fireauth.authenum.Error.REJECTED_CREDENTIAL;
 
   // Other action code errors when additional settings passed.
   errorMap[fireauth.RpcHandler.ServerError.INVALID_CONTINUE_URI] =

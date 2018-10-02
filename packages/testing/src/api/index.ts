@@ -16,7 +16,6 @@
 
 import { firebase } from '@firebase/app';
 import request from 'request-promise';
-import * as fs from 'fs';
 import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import { base64 } from '@firebase/util';
 
@@ -95,27 +94,27 @@ function initializeApp(
     (app as any).INTERNAL.getToken = () =>
       Promise.resolve({ accessToken: accessToken });
   }
+  if (projectId) {
+    (app as any).firestore().settings({
+      host: 'localhost:8080',
+      ssl: false,
+      timestampsInSnapshots: true
+    });
+  }
   return app;
 }
 
 export type LoadDatabaseRulesOptions = {
   databaseName: string;
   rules: string;
-  rulesPath: fs.PathLike;
 };
 export function loadDatabaseRules(options: LoadDatabaseRulesOptions): void {
   if (!options.databaseName) {
     throw new Error('databaseName not specified');
   }
 
-  if (options.rulesPath) {
-    if (!fs.existsSync(options.rulesPath)) {
-      throw new Error('Could not find file: ' + options.rulesPath);
-    }
-    options.rules = fs.readFileSync(options.rulesPath).toString('utf8');
-  }
   if (!options.rules) {
-    throw new Error('must provide either rules or rulesPath');
+    throw new Error('must provide rules to loadDatabaseRules');
   }
 
   request({
