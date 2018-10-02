@@ -430,6 +430,7 @@ export class LocalStore {
             // Do not ref/unref unassigned targetIds - it may lead to leaks.
             let queryData = this.queryDataByTarget[targetId];
             if (!queryData) return;
+
             // When a global snapshot contains updates (either add or modify) we
             // can completely trust these updates as authoritative and blindly
             // apply them to our cache (as a defensive measure to promote

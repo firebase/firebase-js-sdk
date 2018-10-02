@@ -261,26 +261,23 @@ export class PersistencePromise<T> {
   }
 
   /**
-   * Given a collection that has a `forEach` method, call the given function on
-   * each element in the collection and wait for all of the resulting
-   * concurrent PersistencePromises to resolve.
+   * Given an iterable, call the given function on each element in the
+   * collection and wait for all of the resulting concurrent
+   * PersistencePromises to resolve.
    */
   static waitForEach<K>(
-    collection: Foreachable<K>,
+    collection: Iterable<K>,
     f: (item: K) => PersistencePromise<void>
   ): PersistencePromise<void> {
+    const it = collection[Symbol.iterator]();
+
     const promises: Array<PersistencePromise<void>> = [];
-    collection.forEach(item => {
-      promises.push(f(item));
-    });
+    let result = it.next();
+    while (!result.done) {
+      const value = result.value;
+      promises.push(f(value));
+      result = it.next();
+    }
     return this.waitFor(promises);
   }
 }
-
-/**
- * Intended to match any type that has a standard `forEach` method. This allows the implementation
- * of functions on top of collections without caring about the underlying collection type.
- */
-export type Foreachable<K> = {
-  forEach(f: (item: K) => void): void;
-};

@@ -526,7 +526,10 @@ function genericLocalStoreTests(
       .toContain(deletedDoc('foo/bar', 0))
       .afterAcknowledgingMutation({ documentVersion: 1 })
       .toReturnRemoved('foo/bar')
-      .toNotContainIfEager(gcIsEager, deletedDoc('foo/bar', 1, { hasCommittedMutations: true }))
+      .toNotContainIfEager(
+        gcIsEager,
+        deletedDoc('foo/bar', 1, { hasCommittedMutations: true })
+      )
       .finish();
   });
 
@@ -546,7 +549,10 @@ function genericLocalStoreTests(
         .afterReleasingQuery(query)
         .afterAcknowledgingMutation({ documentVersion: 2 })
         .toReturnRemoved('foo/bar')
-        .toNotContainIfEager(gcIsEager, deletedDoc('foo/bar', 2, { hasCommittedMutations: true }))
+        .toNotContainIfEager(
+          gcIsEager,
+          deletedDoc('foo/bar', 2, { hasCommittedMutations: true })
+        )
         .finish()
     );
   });
@@ -567,7 +573,10 @@ function genericLocalStoreTests(
         .afterReleasingQuery(query)
         .afterAcknowledgingMutation({ documentVersion: 2 })
         .toReturnRemoved('foo/bar')
-        .toNotContainIfEager(gcIsEager, deletedDoc('foo/bar', 2, { hasCommittedMutations: true }))
+        .toNotContainIfEager(
+          gcIsEager,
+          deletedDoc('foo/bar', 2, { hasCommittedMutations: true })
+        )
         .finish()
     );
   });

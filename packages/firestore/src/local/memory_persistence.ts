@@ -318,7 +318,6 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<number> {
     let count = 0;
     const cache = this.persistence.getRemoteDocumentCache();
-    // TODO(gsoltis): make this concurrent
     const p = cache.forEachDocumentKey(txn, key => {
       return this.isPinned(txn, key, upperBound).next(isPinned => {
         if (isPinned) {
