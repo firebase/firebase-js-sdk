@@ -94,4 +94,15 @@ export interface RemoteDocumentCache {
   getNewDocumentChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<MaybeDocumentMap>;
+
+  /**
+   * Skips all existing change log entries in IndexedDb and moves the change log
+   * cursor past the last existing change. This method should only be called if
+   * `getNewDocumentChanges()`can no longer replay all changes and all views
+   * have already been manually synchronized.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
+  resetLastProcessedDocumentChange(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void>;
 }
