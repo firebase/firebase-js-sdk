@@ -75,5 +75,7 @@ exports.getCurrentSha = async () => {
 };
 
 exports.hasDiff = async () => {
-  return !!await git.diff();
+  const diff = await git.diff();
+  console.log(diff);
+  return !!diff;
 };
