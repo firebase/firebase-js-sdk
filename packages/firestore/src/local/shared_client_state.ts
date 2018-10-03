@@ -262,7 +262,7 @@ export class MutationMetadata {
   toWebStorageJSON(): string {
     const batchMetadata: MutationMetadataSchema = {
       state: this.state,
-      updateTimeMs: Date.now()
+      updateTimeMs: Date.now() // Modify the existing value to trigger update.
     };
 
     if (this.error) {
@@ -352,7 +352,7 @@ export class QueryTargetMetadata {
   toWebStorageJSON(): string {
     const targetState: QueryTargetStateSchema = {
       state: this.state,
-      updateTimeMs: Date.now()
+      updateTimeMs: Date.now() // Modify the existing value to trigger update.
     };
 
     if (this.error) {
@@ -509,7 +509,7 @@ export class LocalClientState implements ClientState {
   toWebStorageJSON(): string {
     const data: ClientStateSchema = {
       activeTargetIds: this.activeTargetIds.toArray(),
-      updateTimeMs: Date.now()
+      updateTimeMs: Date.now() // Modify the existing value to trigger update.
     };
     return JSON.stringify(data);
   }
