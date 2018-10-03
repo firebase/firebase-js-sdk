@@ -235,9 +235,7 @@ class LocalStoreTester {
     return this;
   }
 
-  toNotContainIfEager(
-    doc: MaybeDocument
-  ): LocalStoreTester {
+  toNotContainIfEager(doc: MaybeDocument): LocalStoreTester {
     if (this.gcIsEager) {
       return this.toNotContain(doc.key.toString());
     } else {
