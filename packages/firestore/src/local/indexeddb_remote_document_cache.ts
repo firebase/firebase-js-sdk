@@ -175,6 +175,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     return changesStore
       .iterate({ range }, (_, documentChange) => {
         if (firstIteration) {
+          firstIteration = false;
+
           // If our client was throttled for more than 30 minutes, another
           // client may have garbage collected the remote document changelog.
           if (this._lastProcessedDocumentChangeId + 1 !== documentChange.id) {
@@ -190,7 +192,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
               )
             );
           }
-          firstIteration = false;
         }
 
         changedKeys = changedKeys.unionWith(
