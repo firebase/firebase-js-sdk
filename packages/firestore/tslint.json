@@ -25,7 +25,7 @@
     "interface-name": [true, "never-prefix"],
     "jsdoc-format": true,
     "label-position": true,
-    "max-line-length": [true, {"limit": 100, "ignore-pattern": "https?://"}],
+    "max-line-length": [true, {"limit": 100, "ignore-pattern": "^import|https?://"}],
     "member-access": [true, "no-public"],
     "new-parens": true,
     "no-angle-bracket-type-assertion": true,

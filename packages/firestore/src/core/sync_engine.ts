@@ -42,6 +42,7 @@ import { SortedMap } from '../util/sorted_map';
 import { isNullOrUndefined } from '../util/types';
 
 import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
+import { isDocumentChangeMissingError } from '../local/indexeddb_remote_document_cache';
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import {
   QueryTargetState,
@@ -1001,14 +1002,32 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       switch (state) {
         case 'current':
         case 'not-current': {
-          const changes = await this.localStore.getNewDocumentChanges();
-          const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
-            targetId,
-            state === 'current'
-          );
-          return this.emitNewSnapsAndNotifyLocalStore(
-            changes,
-            synthesizedRemoteEvent
+          return this.localStore.getNewDocumentChanges().then(
+            async changes => {
+              // tslint and prettier disagree about their preferred line length.
+              // tslint:disable-next-line:max-line-length
+              const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
+                targetId,
+                state === 'current'
+              );
+              await this.emitNewSnapsAndNotifyLocalStore(
+                changes,
+                synthesizedRemoteEvent
+              );
+            },
+            async err => {
+              if (isDocumentChangeMissingError(err)) {
+                const activeTargets: TargetId[] = [];
+                objUtils.forEachNumber(this.queryViewsByTarget, target =>
+                  activeTargets.push(target)
+                );
+                await this.synchronizeQueryViewsAndRaiseSnapshots(
+                  activeTargets
+                );
+              } else {
+                throw err;
+              }
+            }
           );
         }
         case 'rejected': {

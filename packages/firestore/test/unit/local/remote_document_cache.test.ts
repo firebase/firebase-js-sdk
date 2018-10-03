@@ -28,13 +28,18 @@ import {
   removedDoc
 } from '../../util/helpers';
 
-import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
+import {
+  IndexedDbRemoteDocumentCache,
+  isDocumentChangeMissingError
+} from '../../../src/local/indexeddb_remote_document_cache';
 import {
   DbRemoteDocumentChanges,
   DbRemoteDocumentChangesKey
 } from '../../../src/local/indexeddb_schema';
 import { MaybeDocumentMap } from '../../../src/model/collections';
+import { fail } from '../../../src/util/assert';
 import * as persistenceHelpers from './persistence_test_helpers';
+import { INDEXEDDB_TEST_SERIALIZER } from './persistence_test_helpers';
 import { TestRemoteDocumentCache } from './test_remote_document_cache';
 
 // Helpers for use throughout tests.
@@ -115,8 +120,49 @@ describe('IndexedDbRemoteDocumentCache', () => {
       persistence,
       persistence.getRemoteDocumentCache()
     );
-    const changedDocs = await cache.getNextDocumentChanges();
+    const changedDocs = await cache.getNewDocumentChanges();
     assertMatches([], changedDocs);
+  });
+
+  it('can recover from garbage collected change log', async () => {
+    // This test is meant to simulate the recovery from a garbage collected
+    // document change log.
+    // The tests adds four changes (via the `writer`). After the first change is
+    // processed by the reader, the writer garbage collects the first and second
+    // change. When reader then reads the new changes, it notices that a change
+    // is missing. The test then uses `resetLastProcessedDocumentChange` to
+    // simulate a successful recovery.
+
+    const writerCache = new TestRemoteDocumentCache(
+      persistence,
+      persistence.getRemoteDocumentCache()
+    );
+    const readerCache = new TestRemoteDocumentCache(
+      persistence,
+      new IndexedDbRemoteDocumentCache(INDEXEDDB_TEST_SERIALIZER, true)
+    );
+
+    await writerCache.addEntries([doc('a/1', 1, DOC_DATA)]);
+    let changedDocs = await readerCache.getNewDocumentChanges();
+    assertMatches([doc('a/1', 1, DOC_DATA)], changedDocs);
+
+    await writerCache.addEntries([doc('a/2', 2, DOC_DATA)]);
+    await writerCache.addEntries([doc('a/3', 3, DOC_DATA)]);
+    // Garbage collect change 1 and 2, but not change 3.
+    await writerCache.removeDocumentChangesThroughChangeId(2);
+
+    await readerCache
+      .getNewDocumentChanges()
+      .then(
+        () => fail('Missing expected error'),
+        err => expect(isDocumentChangeMissingError(err)).to.be.ok
+      );
+
+    // Ensure that we can retrieve future changes after the we processed the
+    // error
+    await writerCache.addEntries([doc('a/4', 4, DOC_DATA)]);
+    changedDocs = await readerCache.getNewDocumentChanges();
+    assertMatches([doc('a/4', 4, DOC_DATA)], changedDocs);
   });
 
   genericRemoteDocumentCacheTests();
@@ -217,7 +263,7 @@ function genericRemoteDocumentCacheTests(): void {
       doc('a/1', 3, DOC_DATA)
     ]);
 
-    let changedDocs = await cache.getNextDocumentChanges();
+    let changedDocs = await cache.getNewDocumentChanges();
     assertMatches(
       [
         doc('a/1', 3, DOC_DATA),
@@ -228,12 +274,12 @@ function genericRemoteDocumentCacheTests(): void {
     );
 
     await cache.addEntries([doc('c/1', 3, DOC_DATA)]);
-    changedDocs = await cache.getNextDocumentChanges();
+    changedDocs = await cache.getNewDocumentChanges();
     assertMatches([doc('c/1', 3, DOC_DATA)], changedDocs);
   });
 
   it('can get empty changes', async () => {
-    const changedDocs = await cache.getNextDocumentChanges();
+    const changedDocs = await cache.getNewDocumentChanges();
     assertMatches([], changedDocs);
   });
 
@@ -245,7 +291,7 @@ function genericRemoteDocumentCacheTests(): void {
     ]);
     await cache.removeEntry(key('a/2'));
 
-    const changedDocs = await cache.getNextDocumentChanges();
+    const changedDocs = await cache.getNewDocumentChanges();
     assertMatches(
       [doc('a/1', 1, DOC_DATA), removedDoc('a/2'), doc('a/3', 3, DOC_DATA)],
       changedDocs
