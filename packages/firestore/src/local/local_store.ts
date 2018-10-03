@@ -706,7 +706,7 @@ export class LocalStore {
    */
   // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
   releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
-    const mode = keepPersistedQueryData ? 'readonly' : 'readwrite-primary';
+    const mode = keepPersistedQueryData ? 'readwrite' : 'readwrite-primary';
     return this.persistence.runTransaction('Release query', mode, txn => {
       return this.queryCache
         .getQueryData(txn, query)
