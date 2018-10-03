@@ -232,7 +232,10 @@ describe('WebStorageSharedClientState', () => {
       )!
     );
 
-    expect(Object.keys(actual)).to.have.members(['activeTargetIds']);
+    expect(Object.keys(actual)).to.have.members([
+      'activeTargetIds',
+      'updateTimeMs'
+    ]);
     expect(actual.activeTargetIds)
       .to.be.an('array')
       .and.have.members(activeTargetIds);
@@ -250,7 +253,7 @@ describe('WebStorageSharedClientState', () => {
 
       expect(actual.state).to.equal(mutationBatchState);
 
-      const expectedMembers = ['state'];
+      const expectedMembers = ['state', 'updateTimeMs'];
 
       if (mutationBatchState === 'rejected') {
         expectedMembers.push('error');
@@ -304,7 +307,7 @@ describe('WebStorageSharedClientState', () => {
         const actual = JSON.parse(webStorage.getItem(targetKey(targetId))!);
         expect(actual.state).to.equal(queryTargetState);
 
-        const expectedMembers = ['state'];
+        const expectedMembers = ['state', 'updateTimeMs'];
         if (queryTargetState === 'rejected') {
           expectedMembers.push('error');
           expect(actual.error.code).to.equal(err!.code);
