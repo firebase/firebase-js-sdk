@@ -516,7 +516,13 @@ export class SimpleDbStore<
         const controller = new IterationController(cursor);
         const userResult = fn(cursor.primaryKey, cursor.value, controller);
         if (userResult instanceof PersistencePromise) {
-          results.push(userResult);
+          const userPromise: PersistencePromise<void> = userResult.catch(
+            err => {
+              controller.done();
+              return PersistencePromise.reject(err);
+            }
+          );
+          results.push(userPromise);
         }
         if (controller.isDone) {
           resolve();
