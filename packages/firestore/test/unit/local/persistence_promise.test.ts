@@ -231,15 +231,6 @@ describe('PersistencePromise', () => {
     return expect(p).to.be.eventually.rejectedWith('rejected');
   });
 
-  it('executes forEach in order', async () => {
-    let result = '';
-    await PersistencePromise.forEach(['a', 'b', 'c'], el => {
-      result += el;
-      return PersistencePromise.resolve();
-    }).toPromise();
-    expect(result).to.equal('abc');
-  });
-
   it('propagates error for forEach()', () => {
     const p = PersistencePromise.forEach([true, false], success => {
       if (success) {

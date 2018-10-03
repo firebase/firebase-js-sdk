@@ -607,7 +607,7 @@ export class LocalStore {
       'notifyLocalViewChanges',
       'readwrite',
       txn => {
-        return PersistencePromise.waitForEach(viewChanges, viewChange => {
+        return PersistencePromise.forEach(viewChanges, viewChange => {
           this.localViewReferences.addReferences(
             viewChange.addedKeys,
             viewChange.targetId
@@ -616,7 +616,7 @@ export class LocalStore {
             viewChange.removedKeys,
             viewChange.targetId
           );
-          return PersistencePromise.waitForEach(viewChange.removedKeys, key =>
+          return PersistencePromise.forEach(viewChange.removedKeys, key =>
             this.persistence.referenceDelegate.removeReference(txn, key)
           );
         });
@@ -728,7 +728,7 @@ export class LocalStore {
           );
           delete this.queryDataByTarget[targetId];
           if (!keepPersistedQueryData) {
-            return PersistencePromise.waitForEach(removed, key =>
+            return PersistencePromise.forEach(removed, key =>
               this.persistence.referenceDelegate.removeReference(txn, key)
             ).next(() =>
               this.persistence.referenceDelegate.removeTarget(

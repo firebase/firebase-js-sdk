@@ -469,7 +469,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
       batch
     ).next(removedDocuments => {
       this.removeCachedMutationKeys(batch.batchId);
-      return PersistencePromise.waitForEach(removedDocuments, key => {
+      return PersistencePromise.forEach(removedDocuments, key => {
         return this.referenceDelegate.removeMutationReference(transaction, key);
       });
     });
