@@ -99,11 +99,4 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
 
     return PersistencePromise.resolve(changedDocs);
   }
-
-  resetLastProcessedDocumentChange(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<void> {
-    this.newDocumentChanges = documentKeySet();
-    return PersistencePromise.resolve();
-  }
 }

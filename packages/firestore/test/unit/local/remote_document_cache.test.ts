@@ -30,7 +30,7 @@ import {
 
 import {
   IndexedDbRemoteDocumentCache,
-  isRemoteDocumentChangesGarbageCollectedError
+  isDocumentChangeMissingError
 } from '../../../src/local/indexeddb_remote_document_cache';
 import {
   DbRemoteDocumentChanges,
@@ -155,14 +155,11 @@ describe('IndexedDbRemoteDocumentCache', () => {
       .getNewDocumentChanges()
       .then(
         () => fail('Missing expected error'),
-        err =>
-          expect(isRemoteDocumentChangesGarbageCollectedError(err)).to.be.ok
+        err => expect(isDocumentChangeMissingError(err)).to.be.ok
       );
 
-    // Recover by moving moving the change log cursor to the last existing
-    // entry. We assume that as part of the recovery, all relevant changes have
-    // been processed manually (see `SyncEngine.applyTargetState`).
-    await readerCache.resetLastProcessDocumentChange();
+    // Ensure that we can retrieve future changes after the we processed the
+    // error
     await writerCache.addEntries([doc('a/4', 4, DOC_DATA)]);
     changedDocs = await readerCache.getNewDocumentChanges();
     assertMatches([doc('a/4', 4, DOC_DATA)], changedDocs);

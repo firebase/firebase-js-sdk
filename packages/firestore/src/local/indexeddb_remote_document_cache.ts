@@ -41,7 +41,7 @@ import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
-const REMOTE_DOCUMENT_CHANGELOG_GARBAGE_COLLECTED_ERR_MSG =
+const REMOTE_DOCUMENT_CHANGE_MISSING_ERR_MSG =
   'The remote document changelog no longer contains all changes for all ' +
   'local query views. It may be necessary to rebuild these views.';
 
@@ -171,16 +171,22 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     );
     let firstIteration = true;
 
-    return documentChangesStore(transaction)
+    const changesStore = documentChangesStore(transaction);
+    return changesStore
       .iterate({ range }, (_, documentChange) => {
         if (firstIteration) {
           // If our client was throttled for more than 30 minutes, another
           // client may have garbage collected the remote document changelog.
           if (this._lastProcessedDocumentChangeId + 1 !== documentChange.id) {
-            return PersistencePromise.reject(
-              new FirestoreError(
-                Code.DATA_LOSS,
-                REMOTE_DOCUMENT_CHANGELOG_GARBAGE_COLLECTED_ERR_MSG
+            // Reset the `lastProcessedDocumentChangeId` to allow further
+            // invocations to successfully return the changes after this
+            // rejection.
+            return this.synchronizeLastDocumentChangeId(changesStore).next(() =>
+              PersistencePromise.reject(
+                new FirestoreError(
+                  Code.DATA_LOSS,
+                  REMOTE_DOCUMENT_CHANGE_MISSING_ERR_MSG
+                )
               )
             );
           }
@@ -221,13 +227,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     return documentChangesStore(transaction).delete(range);
   }
 
-  resetLastProcessedDocumentChange(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<void> {
-    const store = documentChangesStore(transaction);
-    return this.synchronizeLastDocumentChangeId(store);
-  }
-
   private synchronizeLastDocumentChangeId(
     documentChangesStore: SimpleDbStore<
       DbRemoteDocumentChangesKey,
@@ -247,12 +246,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 }
 
-export function isRemoteDocumentChangesGarbageCollectedError(
-  err: FirestoreError
-): boolean {
+export function isDocumentChangeMissingError(err: FirestoreError): boolean {
   return (
     err.code === Code.DATA_LOSS &&
-    err.message === REMOTE_DOCUMENT_CHANGELOG_GARBAGE_COLLECTED_ERR_MSG
+    err.message === REMOTE_DOCUMENT_CHANGE_MISSING_ERR_MSG
   );
 }
 

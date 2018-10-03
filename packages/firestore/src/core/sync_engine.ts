@@ -42,7 +42,7 @@ import { SortedMap } from '../util/sorted_map';
 import { isNullOrUndefined } from '../util/types';
 
 import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
-import { isRemoteDocumentChangesGarbageCollectedError } from '../local/indexeddb_remote_document_cache';
+import { isDocumentChangeMissingError } from '../local/indexeddb_remote_document_cache';
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import {
   QueryTargetState,
@@ -1016,7 +1016,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
               );
             },
             async err => {
-              if (isRemoteDocumentChangesGarbageCollectedError(err)) {
+              if (isDocumentChangeMissingError(err)) {
                 const activeTargets: TargetId[] = [];
                 objUtils.forEachNumber(this.queryViewsByTarget, target =>
                   activeTargets.push(target)

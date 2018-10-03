@@ -78,31 +78,17 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  resetLastProcessDocumentChange(): Promise<void> {
-    return this.persistence.runTransaction(
-      'resetLastProcessDocumentChange',
-      'readonly',
-      txn => {
-        return this.cache.resetLastProcessedDocumentChange(txn);
-      }
-    );
-  }
-
   removeDocumentChangesThroughChangeId(changeId: number): Promise<void> {
-    if (!(this.cache instanceof IndexedDbRemoteDocumentCache)) {
-      throw new Error(
-        'Can only removeDocumentChangesThroughChangeId() in IndexedDb'
-      );
-    }
     return this.persistence.runTransaction(
       'removeDocumentChangesThroughChangeId',
       'readwrite-primary',
       txn => {
-        return (this
-          .cache as IndexedDbRemoteDocumentCache).removeDocumentChangesThroughChangeId(
-          txn,
-          changeId
-        );
+        if (!(this.cache instanceof IndexedDbRemoteDocumentCache)) {
+          throw new Error(
+            'Can only removeDocumentChangesThroughChangeId() in IndexedDb'
+          );
+        }
+        return this.cache.removeDocumentChangesThroughChangeId(txn, changeId);
       }
     );
   }

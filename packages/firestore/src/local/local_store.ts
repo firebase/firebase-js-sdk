@@ -869,14 +869,4 @@ export class LocalStore {
       }
     );
   }
-
-  resetLastDocumentChangeId(): Promise<void> {
-    return this.persistence.runTransaction(
-      'Reset last document change ID',
-      'readonly',
-      txn => {
-        return this.remoteDocuments.resetLastProcessedDocumentChange(txn);
-      }
-    );
-  }
 }
