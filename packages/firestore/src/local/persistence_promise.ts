@@ -200,15 +200,31 @@ export class PersistencePromise<T> {
 
   static map<R>(all: Iterable<PersistencePromise<R>>): PersistencePromise<R[]> {
     const results: R[] = [];
-    return PersistencePromise.forEach(all, result => {
-      results.push(result);
-      return PersistencePromise.resolve();
-    }).next(() => results);
+    const promises: Array<PersistencePromise<void>> = [];
+
+    const it = all[Symbol.iterator]();
+    let result = it.next();
+    let count = 0;
+    while (!result.done) {
+      const value = result.value;
+      const index = count;
+
+      promises.push(
+        value.next(val => {
+          results[index] = val;
+        })
+      );
+
+      result = it.next();
+      ++count;
+    }
+
+    return PersistencePromise.waitFor(promises).next(() => results);
   }
 
   static forEach<T>(
     all: Iterable<T>,
-    callback: (T) => PersistencePromise<void>
+    callback: (elem: T) => PersistencePromise<void>
   ): PersistencePromise<void> {
     const it = all[Symbol.iterator]();
 

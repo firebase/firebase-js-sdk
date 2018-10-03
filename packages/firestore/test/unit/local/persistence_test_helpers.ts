@@ -56,7 +56,7 @@ export const INDEXEDDB_TEST_DATABASE_ID = new DatabaseId('test-project');
 /** The DatabaseInfo used by most tests that access IndexedDb. */
 const INDEXEDDB_TEST_DATABASE_INFO = new DatabaseInfo(
   INDEXEDDB_TEST_DATABASE_ID,
-  'PersistenceTestHelpers',
+  '[PersistenceTestHelpers]',
   'host',
   /*ssl=*/ false
 );
