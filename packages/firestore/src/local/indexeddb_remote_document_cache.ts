@@ -27,6 +27,7 @@ import { DocumentKey } from '../model/document_key';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
@@ -39,6 +40,10 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+
+const REMOTE_DOCUMENT_CHANGE_MISSING_ERR_MSG =
+  'The remote document changelog no longer contains all changes for all ' +
+  'local query views. It may be necessary to rebuild these views.';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /** The last id read by `getNewDocumentChanges()`. */
@@ -69,21 +74,11 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    */
   // PORTING NOTE: This is only used for multi-tab synchronization.
   start(transaction: SimpleDbTransaction): PersistencePromise<void> {
-    // If there are no existing changes, we set `lastProcessedDocumentChangeId`
-    // to 0 since IndexedDb's auto-generated keys start at 1.
-    this._lastProcessedDocumentChangeId = 0;
-
     const store = SimpleDb.getStore<
       DbRemoteDocumentChangesKey,
       DbRemoteDocumentChanges
     >(transaction, DbRemoteDocumentChanges.store);
-    return store.iterate(
-      { keysOnly: true, reverse: true },
-      (key, value, control) => {
-        this._lastProcessedDocumentChangeId = key;
-        control.done();
-      }
-    );
+    return this.synchronizeLastDocumentChangeId(store);
   }
 
   addEntries(
@@ -172,18 +167,33 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     let changedDocs = maybeDocumentMap();
 
     const range = IDBKeyRange.lowerBound(
-      this._lastProcessedDocumentChangeId,
-      /*lowerOpen=*/ true
+      this._lastProcessedDocumentChangeId + 1
     );
+    let firstIteration = true;
 
-    // TODO(b/114228464): Another client may have garbage collected the remote
-    // document changelog if our client was throttled for more than 30 minutes.
-    // We can detect this if the `lastProcessedDocumentChangeId` entry is no
-    // longer in the changelog. It is possible to recover from this state,
-    // either by replaying the entire remote document cache or by re-executing
-    // all queries against the local store.
-    return documentChangesStore(transaction)
+    const changesStore = documentChangesStore(transaction);
+    return changesStore
       .iterate({ range }, (_, documentChange) => {
+        if (firstIteration) {
+          firstIteration = false;
+
+          // If our client was throttled for more than 30 minutes, another
+          // client may have garbage collected the remote document changelog.
+          if (this._lastProcessedDocumentChangeId + 1 !== documentChange.id) {
+            // Reset the `lastProcessedDocumentChangeId` to allow further
+            // invocations to successfully return the changes after this
+            // rejection.
+            return this.synchronizeLastDocumentChangeId(changesStore).next(() =>
+              PersistencePromise.reject(
+                new FirestoreError(
+                  Code.DATA_LOSS,
+                  REMOTE_DOCUMENT_CHANGE_MISSING_ERR_MSG
+                )
+              )
+            );
+          }
+        }
+
         changedKeys = changedKeys.unionWith(
           this.serializer.fromDbResourcePaths(documentChange.changes)
         );
@@ -217,6 +227,31 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     const range = IDBKeyRange.upperBound(changeId);
     return documentChangesStore(transaction).delete(range);
   }
+
+  private synchronizeLastDocumentChangeId(
+    documentChangesStore: SimpleDbStore<
+      DbRemoteDocumentChangesKey,
+      DbRemoteDocumentChanges
+    >
+  ): PersistencePromise<void> {
+    // If there are no existing changes, we set `lastProcessedDocumentChangeId`
+    // to 0 since IndexedDb's auto-generated keys start at 1.
+    this._lastProcessedDocumentChangeId = 0;
+    return documentChangesStore.iterate(
+      { keysOnly: true, reverse: true },
+      (key, value, control) => {
+        this._lastProcessedDocumentChangeId = key;
+        control.done();
+      }
+    );
+  }
+}
+
+export function isDocumentChangeMissingError(err: FirestoreError): boolean {
+  return (
+    err.code === Code.DATA_LOSS &&
+    err.message === REMOTE_DOCUMENT_CHANGE_MISSING_ERR_MSG
+  );
 }
 
 /**

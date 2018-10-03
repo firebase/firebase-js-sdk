@@ -15,6 +15,7 @@
  */
 
 import { Query } from '../../../src/core/query';
+import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
 import { Persistence } from '../../../src/local/persistence';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { DocumentMap, MaybeDocumentMap } from '../../../src/model/collections';
@@ -67,12 +68,27 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  getNextDocumentChanges(): Promise<MaybeDocumentMap> {
+  getNewDocumentChanges(): Promise<MaybeDocumentMap> {
     return this.persistence.runTransaction(
-      'getNextDocumentChanges',
+      'getNewDocumentChanges',
       'readonly',
       txn => {
         return this.cache.getNewDocumentChanges(txn);
+      }
+    );
+  }
+
+  removeDocumentChangesThroughChangeId(changeId: number): Promise<void> {
+    return this.persistence.runTransaction(
+      'removeDocumentChangesThroughChangeId',
+      'readwrite-primary',
+      txn => {
+        if (!(this.cache instanceof IndexedDbRemoteDocumentCache)) {
+          throw new Error(
+            'Can only removeDocumentChangesThroughChangeId() in IndexedDb'
+          );
+        }
+        return this.cache.removeDocumentChangesThroughChangeId(txn, changeId);
       }
     );
   }
