@@ -13,11 +13,10 @@
   must use the same setting for this flag.
 - [fixed] Fixed an issue where the first `get()` call made after being offline
   could incorrectly return cached data without attempting to reach the backend.
-- [changed] Changed `get()` to only make 1 attempt to reach the backend before
-  returning cached data, potentially reducing delays while offline. Previously
-  it would make 2 attempts, to work around a backend bug.
-- [fixed] Fixed an issue that caused us to drop empty objects from calls to
-  `set(..., { merge: true })`.
+- [changed] Changed `get()` to only make one attempt to reach the backend before
+  returning cached data, potentially reducing delays while offline.
+- [fixed] Fixed an issue that caused Firebase to drop empty objects from calls
+  to `set(..., { merge: true })`.
 - [changed] Improved argument validation for several API methods.
 
 # 0.7.3
