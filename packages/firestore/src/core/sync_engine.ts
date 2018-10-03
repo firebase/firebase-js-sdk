@@ -1024,7 +1024,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
                 await this.synchronizeQueryViewsAndRaiseSnapshots(
                   activeTargets
                 );
-                await this.localStore.resetLastDocumentChangeId();
               } else {
                 throw err;
               }
