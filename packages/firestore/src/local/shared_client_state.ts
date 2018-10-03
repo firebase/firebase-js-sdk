@@ -190,6 +190,7 @@ export interface SharedClientState {
 interface MutationMetadataSchema {
   state: MutationBatchState;
   error?: { code: string; message: string }; // Only set when state === 'rejected'
+  updateTimeMs: number;
 }
 
 /**
@@ -260,7 +261,8 @@ export class MutationMetadata {
 
   toWebStorageJSON(): string {
     const batchMetadata: MutationMetadataSchema = {
-      state: this.state
+      state: this.state,
+      updateTimeMs: Date.now() // Modify the existing value to trigger update.
     };
 
     if (this.error) {
@@ -281,6 +283,7 @@ export class MutationMetadata {
 interface QueryTargetStateSchema {
   state: QueryTargetState;
   error?: { code: string; message: string }; // Only set when state === 'rejected'
+  updateTimeMs: number;
 }
 
 /**
@@ -348,7 +351,8 @@ export class QueryTargetMetadata {
 
   toWebStorageJSON(): string {
     const targetState: QueryTargetStateSchema = {
-      state: this.state
+      state: this.state,
+      updateTimeMs: Date.now() // Modify the existing value to trigger update.
     };
 
     if (this.error) {
@@ -369,6 +373,7 @@ export class QueryTargetMetadata {
  */
 interface ClientStateSchema {
   activeTargetIds: number[];
+  updateTimeMs: number;
 }
 
 /**
@@ -503,7 +508,8 @@ export class LocalClientState implements ClientState {
    */
   toWebStorageJSON(): string {
     const data: ClientStateSchema = {
-      activeTargetIds: this.activeTargetIds.toArray()
+      activeTargetIds: this.activeTargetIds.toArray(),
+      updateTimeMs: Date.now() // Modify the existing value to trigger update.
     };
     return JSON.stringify(data);
   }
