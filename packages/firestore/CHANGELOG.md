@@ -1,5 +1,9 @@
 # Unreleased
 
+# 0.8.3
+- [fixed] Fixed an issue that prevented query synchronization between multiple
+  tabs.
+
 # 0.8.2
 - [fixed] Fixed an issue where native ES6 module loading was not working.
 
