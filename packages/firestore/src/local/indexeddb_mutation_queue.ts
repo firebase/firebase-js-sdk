@@ -28,7 +28,6 @@ import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
 import * as EncodedResourcePath from './encoded_resource_path';
-import { GarbageCollector } from './garbage_collector';
 import {
   IndexedDbPersistence,
   IndexedDbTransaction
@@ -43,7 +42,7 @@ import {
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
-import { PersistenceTransaction } from './persistence';
+import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
@@ -63,15 +62,14 @@ export class IndexedDbMutationQueue implements MutationQueue {
   // PORTING NOTE: Multi-tab only.
   private documentKeysByBatchId = {} as { [batchId: number]: DocumentKeySet };
 
-  private garbageCollector: GarbageCollector | null = null;
-
   constructor(
     /**
      * The normalized userId (e.g. null UID => "" userId) used to store /
      * retrieve mutations.
      */
     private userId: string,
-    private serializer: LocalSerializer
+    private serializer: LocalSerializer,
+    private readonly referenceDelegate: ReferenceDelegate
   ) {}
 
   /**
@@ -81,7 +79,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
    */
   static forUser(
     user: User,
-    serializer: LocalSerializer
+    serializer: LocalSerializer,
+    referenceDelegate: ReferenceDelegate
   ): IndexedDbMutationQueue {
     // TODO(mcg): Figure out what constraints there are on userIDs
     // In particular, are there any reserved characters? are empty ids allowed?
@@ -89,7 +88,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // that empty userIDs aren't allowed.
     assert(user.uid !== '', 'UserID must not be an empty string.');
     const userId = user.isAuthenticated() ? user.uid! : '';
-    return new IndexedDbMutationQueue(userId, serializer);
+    return new IndexedDbMutationQueue(userId, serializer, referenceDelegate);
   }
 
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
@@ -470,11 +469,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
       batch
     ).next(removedDocuments => {
       this.removeCachedMutationKeys(batch.batchId);
-      if (this.garbageCollector !== null) {
-        for (const key of removedDocuments) {
-          this.garbageCollector.addPotentialGarbageKey(key);
-        }
-      }
+      return PersistencePromise.forEach(removedDocuments, key => {
+        return this.referenceDelegate.removeMutationReference(transaction, key);
+      });
     });
   }
 
@@ -518,27 +515,11 @@ export class IndexedDbMutationQueue implements MutationQueue {
     });
   }
 
-  setGarbageCollector(gc: GarbageCollector | null): void {
-    this.garbageCollector = gc;
-  }
-
   containsKey(
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
-    const indexKey = DbDocumentMutation.prefixForPath(this.userId, key.path);
-    const encodedPath = indexKey[1];
-    const startRange = IDBKeyRange.lowerBound(indexKey);
-    let containsKey = false;
-    return documentMutationsStore(txn)
-      .iterate({ range: startRange, keysOnly: true }, (key, value, control) => {
-        const [userID, keyPath, /*batchID*/ _] = key;
-        if (userID === this.userId && keyPath === encodedPath) {
-          containsKey = true;
-        }
-        control.done();
-      })
-      .next(() => containsKey);
+    return mutationQueueContainsKey(txn, this.userId, key);
   }
 
   // PORTING NOTE: Multi-tab only (state is held in memory in other clients).
@@ -559,6 +540,48 @@ export class IndexedDbMutationQueue implements MutationQueue {
         );
       });
   }
+}
+
+/**
+ * @return true if the mutation queue for the given user contains a pending
+ *         mutation for the given key.
+ */
+function mutationQueueContainsKey(
+  txn: PersistenceTransaction,
+  userId: string,
+  key: DocumentKey
+): PersistencePromise<boolean> {
+  const indexKey = DbDocumentMutation.prefixForPath(userId, key.path);
+  const encodedPath = indexKey[1];
+  const startRange = IDBKeyRange.lowerBound(indexKey);
+  let containsKey = false;
+  return documentMutationsStore(txn)
+    .iterate({ range: startRange, keysOnly: true }, (key, value, control) => {
+      const [userID, keyPath, /*batchID*/ _] = key;
+      if (userID === userId && keyPath === encodedPath) {
+        containsKey = true;
+      }
+      control.done();
+    })
+    .next(() => containsKey);
+}
+
+/** Returns true if any mutation queue contains the given document. */
+export function mutationQueuesContainKey(
+  txn: PersistenceTransaction,
+  docKey: DocumentKey
+): PersistencePromise<boolean> {
+  let found = false;
+  return mutationQueuesStore(txn)
+    .iterateSerial(userId => {
+      return mutationQueueContainsKey(txn, userId, docKey).next(containsKey => {
+        if (containsKey) {
+          found = true;
+        }
+        return PersistencePromise.resolve(!containsKey);
+      });
+    })
+    .next(() => found);
 }
 
 /**

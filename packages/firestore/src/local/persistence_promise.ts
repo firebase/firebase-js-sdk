@@ -222,19 +222,46 @@ export class PersistencePromise<T> {
     return PersistencePromise.waitFor(promises).next(() => results);
   }
 
-  static forEach<T>(
-    all: Iterable<T>,
-    callback: (elem: T) => PersistencePromise<void>
-  ): PersistencePromise<void> {
-    const it = all[Symbol.iterator]();
+  /**
+   * Given an array of predicate functions that asynchronously evaluate to a
+   * boolean, implements a short-circuiting `or` between the results. Predicates
+   * will be evaluated until one of them returns `true`, then stop. The final
+   * result will be whether any of them returned `true`.
+   */
+  static or(
+    predicates: Array<() => PersistencePromise<boolean>>
+  ): PersistencePromise<boolean> {
+    let p: PersistencePromise<boolean> = PersistencePromise.resolve(false);
+    for (const predicate of predicates) {
+      p = p.next(isTrue => {
+        if (isTrue) {
+          return PersistencePromise.resolve<boolean>(isTrue);
+        } else {
+          return predicate();
+        }
+      });
+    }
+    return p;
+  }
 
-    let p = PersistencePromise.resolve();
+  /**
+   * Given an iterable, call the given function on each element in the
+   * collection and wait for all of the resulting concurrent
+   * PersistencePromises to resolve.
+   */
+  static forEach<K>(
+    collection: Iterable<K>,
+    f: (item: K) => PersistencePromise<void>
+  ): PersistencePromise<void> {
+    const it = collection[Symbol.iterator]();
+
+    const promises: Array<PersistencePromise<void>> = [];
     let result = it.next();
     while (!result.done) {
       const value = result.value;
-      p = p.next(() => callback(value));
+      promises.push(f(value));
       result = it.next();
     }
-    return p;
+    return this.waitFor(promises);
   }
 }

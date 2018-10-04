@@ -18,10 +18,10 @@ import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
-import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
+import { ReferenceSet } from '../../../src/local/reference_set';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   filter,
@@ -33,11 +33,10 @@ import {
 
 import { Timestamp } from '../../../src/api/timestamp';
 import * as persistenceHelpers from './persistence_test_helpers';
-import { TestGarbageCollector } from './test_garbage_collector';
 import { TestQueryCache } from './test_query_cache';
 
 describe('MemoryQueryCache', () => {
-  genericQueryCacheTests(persistenceHelpers.testMemoryPersistence);
+  genericQueryCacheTests(persistenceHelpers.testMemoryEagerPersistence);
 });
 
 describe('IndexedDbQueryCache', () => {
@@ -133,6 +132,7 @@ function genericQueryCacheTests(
   let persistence: Persistence;
   beforeEach(async () => {
     persistence = await persistencePromise();
+    persistence.referenceDelegate.setInMemoryPins(new ReferenceSet());
     cache = new TestQueryCache(persistence, persistence.getQueryCache());
   });
 
@@ -262,38 +262,6 @@ function genericQueryCacheTests(
     expect(await cache.containsKey(key1)).to.equal(false);
     expect(await cache.containsKey(key2)).to.equal(false);
     expect(await cache.containsKey(key3)).to.equal(false);
-  });
-
-  it('emits garbage collection events for removes', async () => {
-    const eagerGc = new EagerGarbageCollector();
-    const testGc = new TestGarbageCollector(persistence, eagerGc);
-    eagerGc.addGarbageSource(cache.cache);
-    expect(await testGc.collectGarbage()).to.deep.equal([]);
-
-    const rooms = testQueryData(QUERY_ROOMS, 1, 1);
-    await cache.addQueryData(rooms);
-
-    const room1 = key('rooms/bar');
-    const room2 = key('rooms/foo');
-    await cache.addMatchingKeys([room1, room2], rooms.targetId);
-
-    const halls = testQueryData(QUERY_HALLS, 2, 1);
-    await cache.addQueryData(halls);
-
-    const hall1 = key('halls/bar');
-    const hall2 = key('halls/foo');
-    await cache.addMatchingKeys([hall1, hall2], halls.targetId);
-
-    expect(await testGc.collectGarbage()).to.deep.equal([]);
-
-    await cache.removeMatchingKeys([room1], rooms.targetId);
-    expect(await testGc.collectGarbage()).to.deep.equal([room1]);
-
-    await cache.removeQueryData(rooms);
-    expect(await testGc.collectGarbage()).to.deep.equal([room2]);
-
-    await cache.removeMatchingKeysForTargetId(halls.targetId);
-    expect(await testGc.collectGarbage()).to.deep.equal([hall1, hall2]);
   });
 
   it('can get matching keys for targetId', async () => {

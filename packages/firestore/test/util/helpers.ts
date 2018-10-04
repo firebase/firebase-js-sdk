@@ -266,7 +266,8 @@ export function queryData(
 export function docAddedRemoteEvent(
   doc: MaybeDocument,
   updatedInTargets?: TargetId[],
-  removedFromTargets?: TargetId[]
+  removedFromTargets?: TargetId[],
+  limboTargets?: TargetId[]
 ): RemoteEvent {
   assert(
     !(doc instanceof Document) || !doc.hasLocalMutations,
@@ -280,8 +281,13 @@ export function docAddedRemoteEvent(
   );
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
-    getQueryDataForTarget: targetId =>
-      queryData(targetId, QueryPurpose.Listen, doc.key.toString())
+    getQueryDataForTarget: targetId => {
+      const purpose =
+        limboTargets && limboTargets.indexOf(targetId) !== -1
+          ? QueryPurpose.LimboResolution
+          : QueryPurpose.Listen;
+      return queryData(targetId, purpose, doc.key.toString());
+    }
   });
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);
@@ -290,7 +296,8 @@ export function docAddedRemoteEvent(
 export function docUpdateRemoteEvent(
   doc: MaybeDocument,
   updatedInTargets?: TargetId[],
-  removedFromTargets?: TargetId[]
+  removedFromTargets?: TargetId[],
+  limboTargets?: TargetId[]
 ): RemoteEvent {
   assert(
     !(doc instanceof Document) || !doc.hasLocalMutations,
@@ -304,8 +311,13 @@ export function docUpdateRemoteEvent(
   );
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => keys(doc),
-    getQueryDataForTarget: targetId =>
-      queryData(targetId, QueryPurpose.Listen, doc.key.toString())
+    getQueryDataForTarget: targetId => {
+      const purpose =
+        limboTargets && limboTargets.indexOf(targetId) !== -1
+          ? QueryPurpose.LimboResolution
+          : QueryPurpose.Listen;
+      return queryData(targetId, purpose, doc.key.toString());
+    }
   });
   aggregator.handleDocumentChange(docChange);
   return aggregator.createRemoteEvent(doc.version);

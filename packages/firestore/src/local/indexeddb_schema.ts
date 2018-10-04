@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-import { BatchId } from '../core/types';
-import { TargetId } from '../core/types';
+import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
 import { assert } from '../util/assert';
@@ -573,9 +572,14 @@ export class DbTarget {
 export type DbTargetDocumentKey = [TargetId, EncodedResourcePath];
 
 /**
- * An object representing an association between a target and a document.
- * Stored in the targetDocument object store to store the documents tracked by a
- * particular target.
+ * An object representing an association between a target and a document, or a
+ * sentinel row marking the last sequence number at which a document was used.
+ * Each document cached must have a corresponding sentinel row before lru
+ * garbage collection is enabled.
+ *
+ * The target associations and sentinel rows are co-located so that orphaned
+ * documents and their sequence numbers can be identified efficiently via a scan
+ * of this store.
  */
 export class DbTargetDocument {
   /** Name of the IndexedDb object store.  */
@@ -592,14 +596,26 @@ export class DbTargetDocument {
 
   constructor(
     /**
-     * The targetId identifying a target.
+     * The targetId identifying a target or 0 for a sentinel row.
      */
     public targetId: TargetId,
     /**
      * The path to the document, as encoded in the key.
      */
-    public path: EncodedResourcePath
-  ) {}
+    public path: EncodedResourcePath,
+    /**
+     * If this is a sentinel row, this should be the sequence number of the last
+     * time the document specified by `path` was used. Otherwise, it should be
+     * `undefined`.
+     */
+    public sequenceNumber?: ListenSequenceNumber
+  ) {
+    assert(
+      (targetId === 0) === (sequenceNumber !== undefined),
+      // tslint:disable-next-line:max-line-length
+      'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
+    );
+  }
 }
 
 /**
