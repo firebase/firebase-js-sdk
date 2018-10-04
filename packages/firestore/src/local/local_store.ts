@@ -38,7 +38,6 @@ import { assert } from '../util/assert';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
-import { GarbageCollector } from './garbage_collector';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { MutationQueue } from './mutation_queue';
@@ -156,17 +155,14 @@ export class LocalStore {
   constructor(
     /** Manages our in-memory or durable persistence. */
     private persistence: Persistence,
-    initialUser: User,
-    /**
-     * The garbage collector collects documents that should no longer be
-     * cached (e.g. if they are no longer retained by the above reference sets
-     * and the garbage collector is performing eager collection).
-     */
-    private garbageCollector: GarbageCollector
+    initialUser: User
   ) {
     assert(
       persistence.started,
       'LocalStore was passed an unstarted persistence implementation'
+    );
+    this.persistence.referenceDelegate.setInMemoryPins(
+      this.localViewReferences
     );
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
@@ -175,9 +171,6 @@ export class LocalStore {
       this.remoteDocuments,
       this.mutationQueue
     );
-    this.garbageCollector.addGarbageSource(this.localViewReferences);
-    this.garbageCollector.addGarbageSource(this.queryCache);
-    this.garbageCollector.addGarbageSource(this.mutationQueue);
   }
 
   /** Performs any initial startup actions required by the local store. */
@@ -208,9 +201,7 @@ export class LocalStore {
           .next(promisedOldBatches => {
             oldBatches = promisedOldBatches;
 
-            this.garbageCollector.removeGarbageSource(this.mutationQueue);
             this.mutationQueue = this.persistence.getMutationQueue(user);
-            this.garbageCollector.addGarbageSource(this.mutationQueue);
             return this.startMutationQueue(txn);
           })
           .next(() => {
@@ -521,12 +512,13 @@ export class LocalStore {
                   doc.version
                 );
               }
-
-              // The document might be garbage because it was unreferenced by
-              // everything. Make sure to mark it as garbage if it is...
-              this.garbageCollector.addPotentialGarbageKey(key);
             })
           );
+          if (remoteEvent.resolvedLimboDocuments.has(key)) {
+            promises.push(
+              this.persistence.referenceDelegate.updateLimboDocument(txn, key)
+            );
+          }
         });
 
         // HACK: The only reason we allow a null snapshot version is so that we
@@ -610,17 +602,26 @@ export class LocalStore {
   /**
    * Notify local store of the changed views to locally pin documents.
    */
-  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): void {
-    for (const viewChange of viewChanges) {
-      this.localViewReferences.addReferences(
-        viewChange.addedKeys,
-        viewChange.targetId
-      );
-      this.localViewReferences.removeReferences(
-        viewChange.removedKeys,
-        viewChange.targetId
-      );
-    }
+  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
+    return this.persistence.runTransaction(
+      'notifyLocalViewChanges',
+      'readwrite',
+      txn => {
+        return PersistencePromise.forEach(viewChanges, viewChange => {
+          this.localViewReferences.addReferences(
+            viewChange.addedKeys,
+            viewChange.targetId
+          );
+          this.localViewReferences.removeReferences(
+            viewChange.removedKeys,
+            viewChange.targetId
+          );
+          return PersistencePromise.forEach(viewChange.removedKeys, key =>
+            this.persistence.referenceDelegate.removeReference(txn, key)
+          );
+        });
+      }
+    );
   }
 
   /**
@@ -718,18 +719,23 @@ export class LocalStore {
           const targetId = queryData!.targetId;
           const cachedQueryData = this.queryDataByTarget[targetId];
 
-          this.localViewReferences.removeReferencesForId(targetId);
+          // References for documents sent via Watch are automatically removed when we delete a
+          // query's target data from the reference delegate. Since this does not remove references
+          // for locally mutated documents, we have to remove the target associations for these
+          // documents manually.
+          const removed = this.localViewReferences.removeReferencesForId(
+            targetId
+          );
           delete this.queryDataByTarget[targetId];
-          if (!keepPersistedQueryData && this.garbageCollector.isEager) {
-            return this.queryCache.removeQueryData(txn, queryData!);
-          } else if (
-            cachedQueryData.snapshotVersion > queryData!.snapshotVersion
-          ) {
-            // If we've been avoiding persisting the resumeToken (see
-            // shouldPersistQueryData for conditions and rationale) we need to
-            // persist the token now because there will no longer be an
-            // in-memory version to fall back on.
-            return this.queryCache.updateQueryData(txn, cachedQueryData);
+          if (!keepPersistedQueryData) {
+            return PersistencePromise.forEach(removed, key =>
+              this.persistence.referenceDelegate.removeReference(txn, key)
+            ).next(() =>
+              this.persistence.referenceDelegate.removeTarget(
+                txn,
+                cachedQueryData
+              )
+            );
           } else {
             return PersistencePromise.resolve();
           }
@@ -757,30 +763,6 @@ export class LocalStore {
       'readonly',
       txn => {
         return this.queryCache.getMatchingKeysForTargetId(txn, targetId);
-      }
-    );
-  }
-
-  /**
-   * Collect garbage if necessary.
-   * Should be called periodically by Sync Engine to recover resources. The
-   * implementation must guarantee that GC won't happen in other places than
-   * this method call.
-   */
-  collectGarbage(): Promise<void> {
-    // Call collectGarbage regardless of whether isGCEnabled so the referenceSet
-    // doesn't continue to accumulate the garbage keys.
-    return this.persistence.runTransaction(
-      'Garbage collection',
-      'readwrite-primary',
-      txn => {
-        return this.garbageCollector.collectGarbage(txn).next(garbage => {
-          const promises = [] as Array<PersistencePromise<void>>;
-          garbage.forEach(key => {
-            promises.push(this.remoteDocuments.removeEntry(txn, key));
-          });
-          return PersistencePromise.waitFor(promises);
-        });
       }
     );
   }

@@ -26,9 +26,8 @@ import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
-import { GarbageCollector } from './garbage_collector';
 import { MutationQueue } from './mutation_queue';
-import { PersistenceTransaction } from './persistence';
+import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
 
@@ -51,11 +50,10 @@ export class MemoryMutationQueue implements MutationQueue {
    */
   private lastStreamToken: ProtoByteString = emptyByteString();
 
-  /** The garbage collector to notify about potential garbage keys. */
-  private garbageCollector: GarbageCollector | null = null;
-
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
+
+  constructor(private readonly referenceDelegate: ReferenceDelegate) {}
 
   start(transaction: PersistenceTransaction): PersistencePromise<void> {
     assert(
@@ -331,25 +329,20 @@ export class MemoryMutationQueue implements MutationQueue {
     }
 
     let references = this.batchesByDocumentKey;
-    for (const mutation of batch.mutations) {
-      const key = mutation.key;
-      if (this.garbageCollector !== null) {
-        this.garbageCollector.addPotentialGarbageKey(key);
-      }
-
-      const ref = new DocReference(key, batch.batchId);
+    return PersistencePromise.forEach(batch.mutations, mutation => {
+      const ref = new DocReference(mutation.key, batch.batchId);
       references = references.delete(ref);
-    }
-    this.batchesByDocumentKey = references;
-    return PersistencePromise.resolve();
+      return this.referenceDelegate.removeMutationReference(
+        transaction,
+        mutation.key
+      );
+    }).next(() => {
+      this.batchesByDocumentKey = references;
+    });
   }
 
   removeCachedMutationKeys(batchId: BatchId): void {
     // No-op since the memory mutation queue does not maintain a separate cache.
-  }
-
-  setGarbageCollector(garbageCollector: GarbageCollector | null): void {
-    this.garbageCollector = garbageCollector;
   }
 
   containsKey(

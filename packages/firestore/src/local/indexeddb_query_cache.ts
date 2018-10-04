@@ -25,8 +25,8 @@ import { immediateSuccessor } from '../util/misc';
 
 import { TargetIdGenerator } from '../core/target_id_generator';
 import * as EncodedResourcePath from './encoded_resource_path';
-import { GarbageCollector } from './garbage_collector';
 import {
+  IndexedDbLruDelegate,
   IndexedDbPersistence,
   IndexedDbTransaction
 } from './indexeddb_persistence';
@@ -39,6 +39,7 @@ import {
   DbTargetKey
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
+import { ActiveTargets } from './lru_garbage_collector';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
@@ -46,10 +47,10 @@ import { QueryData } from './query_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 export class IndexedDbQueryCache implements QueryCache {
-  constructor(private serializer: LocalSerializer) {}
-
-  /** The garbage collector to notify about potential garbage keys. */
-  private garbageCollector: GarbageCollector | null = null;
+  constructor(
+    private readonly referenceDelegate: IndexedDbLruDelegate,
+    private serializer: LocalSerializer
+  ) {}
 
   // PORTING NOTE: We don't cache global metadata for the query cache, since
   // some of it (in particular `highestTargetId`) can be modified by secondary
@@ -145,6 +146,46 @@ export class IndexedDbQueryCache implements QueryCache {
       });
   }
 
+  /**
+   * Drops any targets with sequence number less than or equal to the upper bound, excepting those
+   * present in `activeTargetIds`. Document associations for the removed targets are also removed.
+   * Returns the number of targets removed.
+   */
+  removeTargets(
+    txn: PersistenceTransaction,
+    upperBound: ListenSequenceNumber,
+    activeTargetIds: ActiveTargets
+  ): PersistencePromise<number> {
+    let count = 0;
+    const promises: Array<PersistencePromise<void>> = [];
+    return targetsStore(txn)
+      .iterate((key, value) => {
+        const queryData = this.serializer.fromDbTarget(value);
+        if (
+          queryData.sequenceNumber <= upperBound &&
+          activeTargetIds[queryData.targetId] === undefined
+        ) {
+          count++;
+          promises.push(this.removeQueryData(txn, queryData));
+        }
+      })
+      .next(() => PersistencePromise.waitFor(promises))
+      .next(() => count);
+  }
+
+  /**
+   * Call provided function with each `QueryData` that we have cached.
+   */
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (q: QueryData) => void
+  ): PersistencePromise<void> {
+    return targetsStore(txn).iterate((key, value) => {
+      const queryData = this.serializer.fromDbTarget(value);
+      f(queryData);
+    });
+  }
+
   private retrieveMetadata(
     transaction: PersistenceTransaction
   ): PersistencePromise<DbTargetGlobal> {
@@ -238,6 +279,7 @@ export class IndexedDbQueryCache implements QueryCache {
     keys.forEach(key => {
       const path = EncodedResourcePath.encode(key.path);
       promises.push(store.put(new DbTargetDocument(targetId, path)));
+      promises.push(this.referenceDelegate.addReference(txn, key));
     });
     return PersistencePromise.waitFor(promises);
   }
@@ -249,16 +291,14 @@ export class IndexedDbQueryCache implements QueryCache {
   ): PersistencePromise<void> {
     // PORTING NOTE: The reverse index (documentsTargets) is maintained by
     // IndexedDb.
-    const promises: Array<PersistencePromise<void>> = [];
     const store = documentTargetStore(txn);
-    keys.forEach(key => {
+    return PersistencePromise.forEach(keys, key => {
       const path = EncodedResourcePath.encode(key.path);
-      promises.push(store.delete([targetId, path]));
-      if (this.garbageCollector !== null) {
-        this.garbageCollector.addPotentialGarbageKey(key);
-      }
+      return PersistencePromise.waitFor([
+        store.delete([targetId, path]),
+        this.referenceDelegate.removeReference(txn, key)
+      ]);
     });
-    return PersistencePromise.waitFor(promises);
   }
 
   removeMatchingKeysForTargetId(
@@ -272,33 +312,7 @@ export class IndexedDbQueryCache implements QueryCache {
       /*lowerOpen=*/ false,
       /*upperOpen=*/ true
     );
-    return this.notifyGCForRemovedKeys(txn, range).next(() =>
-      store.delete(range)
-    );
-  }
-
-  private notifyGCForRemovedKeys(
-    txn: PersistenceTransaction,
-    range: IDBKeyRange
-  ): PersistencePromise<void> {
-    const store = documentTargetStore(txn);
-    if (this.garbageCollector !== null && this.garbageCollector.isEager) {
-      // In order to generate garbage events properly, we need to read these
-      // keys before deleting.
-      return store.iterate({ range, keysOnly: true }, (key, _, control) => {
-        const path = EncodedResourcePath.decode(key[1]);
-        const docKey = new DocumentKey(path);
-        // Paranoid assertion in case the the collector is set to null
-        // during the iteration.
-        assert(
-          this.garbageCollector !== null,
-          'GarbageCollector for query cache set to null during key removal.'
-        );
-        this.garbageCollector!.addPotentialGarbageKey(docKey);
-      });
-    } else {
-      return PersistencePromise.resolve();
-    }
+    return store.delete(range);
   }
 
   getMatchingKeysForTargetId(
@@ -323,20 +337,10 @@ export class IndexedDbQueryCache implements QueryCache {
       .next(() => result);
   }
 
-  setGarbageCollector(gc: GarbageCollector | null): void {
-    this.garbageCollector = gc;
-  }
-
-  // TODO(gsoltis): we can let the compiler assert that txn !== null if we
-  // drop null from the type bounds on txn.
   containsKey(
-    txn: PersistenceTransaction | null,
+    txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
-    assert(
-      txn !== null,
-      'Persistence Transaction cannot be null for query cache containsKey'
-    );
     const path = EncodedResourcePath.encode(key.path);
     const range = IDBKeyRange.bound(
       [path],
@@ -352,9 +356,14 @@ export class IndexedDbQueryCache implements QueryCache {
           keysOnly: true,
           range
         },
-        (key, _, control) => {
-          count++;
-          control.done();
+        ([targetId, path], _, control) => {
+          // Having a sentinel row for a document does not count as containing that document;
+          // For the query cache, containing the document means the document is part of some
+          // target.
+          if (targetId !== 0) {
+            count++;
+            control.done();
+          }
         }
       )
       .next(() => count > 0);
@@ -424,7 +433,7 @@ export function getHighestListenSequenceNumber(
 /**
  * Helper to get a typed SimpleDbStore for the document target object store.
  */
-function documentTargetStore(
+export function documentTargetStore(
   txn: PersistenceTransaction
 ): SimpleDbStore<DbTargetDocumentKey, DbTargetDocument> {
   return IndexedDbPersistence.getStore<DbTargetDocumentKey, DbTargetDocument>(

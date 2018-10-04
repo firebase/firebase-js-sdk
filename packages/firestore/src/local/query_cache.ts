@@ -18,8 +18,8 @@ import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
+import { DocumentKey } from '../model/document_key';
 
-import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
@@ -29,7 +29,7 @@ import { QueryData } from './query_data';
  *
  * The cache is keyed by Query and entries in the cache are QueryData instances.
  */
-export interface QueryCache extends GarbageSource {
+export interface QueryCache {
   /**
    * A global snapshot version representing the last consistent snapshot we
    * received from the backend. This is monotonically increasing and any
@@ -52,6 +52,14 @@ export interface QueryCache extends GarbageSource {
   getHighestSequenceNumber(
     transaction: PersistenceTransaction
   ): PersistencePromise<ListenSequenceNumber>;
+
+  /**
+   * Call provided function with each `QueryData` that we have cached.
+   */
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (q: QueryData) => void
+  ): PersistencePromise<void>;
 
   /**
    * Set the highest listen sequence number and optionally updates the
@@ -187,4 +195,9 @@ export interface QueryCache extends GarbageSource {
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId>;
+
+  containsKey(
+    transaction: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<boolean>;
 }

@@ -19,11 +19,9 @@ import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
 import { TargetId } from '../../../src/core/types';
-import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore, LocalWriteResult } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
-import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
 import { Persistence } from '../../../src/local/persistence';
 import {
   documentKeySet,
@@ -70,7 +68,7 @@ class LocalStoreTester {
   private lastChanges: MaybeDocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
-  constructor(public localStore: LocalStore) {}
+  constructor(public localStore: LocalStore, readonly gcIsEager) {}
 
   after(
     op: Mutation | Mutation[] | RemoteEvent | LocalViewChanges
@@ -177,13 +175,6 @@ class LocalStoreTester {
     return this;
   }
 
-  afterGC(): LocalStoreTester {
-    this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.collectGarbage();
-    });
-    return this;
-  }
-
   toReturnTargetId(id: TargetId): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       expect(this.lastTargetId).to.equal(id);
@@ -244,6 +235,14 @@ class LocalStoreTester {
     return this;
   }
 
+  toNotContainIfEager(doc: MaybeDocument): LocalStoreTester {
+    if (this.gcIsEager) {
+      return this.toNotContain(doc.key.toString());
+    } else {
+      return this.toContain(doc);
+    }
+  }
+
   finish(): Promise<void> {
     return this.promiseChain;
   }
@@ -251,7 +250,10 @@ class LocalStoreTester {
 
 describe('LocalStore w/ Memory Persistence', () => {
   addEqualityMatcher();
-  genericLocalStoreTests(persistenceHelpers.testMemoryPersistence);
+  genericLocalStoreTests(
+    persistenceHelpers.testMemoryEagerPersistence,
+    /* gcIsEager= */ true
+  );
 });
 
 describe('LocalStore w/ IndexedDB Persistence', () => {
@@ -263,42 +265,29 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   }
 
   addEqualityMatcher();
-  genericLocalStoreTests(persistenceHelpers.testIndexedDbPersistence);
+  genericLocalStoreTests(
+    persistenceHelpers.testIndexedDbPersistence,
+    /* gcIsEager= */ false
+  );
 });
 
 function genericLocalStoreTests(
-  getPersistence: () => Promise<Persistence>
+  getPersistence: () => Promise<Persistence>,
+  gcIsEager: boolean
 ): void {
   let persistence: Persistence;
   let localStore: LocalStore;
 
   beforeEach(async () => {
     persistence = await getPersistence();
-    localStore = new LocalStore(
-      persistence,
-      User.UNAUTHENTICATED,
-      new EagerGarbageCollector()
-    );
+    localStore = new LocalStore(persistence, User.UNAUTHENTICATED);
     return localStore.start();
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));
 
-  /**
-   * Restarts the local store using the NoOpGarbageCollector instead of the
-   * default.
-   */
-  function restartWithNoOpGarbageCollector(): Promise<void> {
-    localStore = new LocalStore(
-      persistence,
-      User.UNAUTHENTICATED,
-      new NoOpGarbageCollector()
-    );
-    return localStore.start();
-  }
-
   function expectLocalStore(): LocalStoreTester {
-    return new LocalStoreTester(localStore);
+    return new LocalStoreTester(localStore, gcIsEager);
   }
 
   it('handles SetMutation', () => {
@@ -312,7 +301,7 @@ function genericLocalStoreTests(
       .toReturnChanged(
         doc('foo/bar', 1, { foo: 'bar' }, { hasCommittedMutations: true })
       )
-      .toContain(
+      .toNotContainIfEager(
         doc('foo/bar', 1, { foo: 'bar' }, { hasCommittedMutations: true })
       )
       .finish();
@@ -355,7 +344,7 @@ function genericLocalStoreTests(
           .toReturnChanged(
             doc('foo/bar', 1, { foo: 'bar' }, { hasCommittedMutations: true })
           )
-          .toContain(
+          .toNotContainIfEager(
             doc('foo/bar', 1, { foo: 'bar' }, { hasCommittedMutations: true })
           )
           .after(setMutation('bar/baz', { bar: 'baz' }))
@@ -369,7 +358,7 @@ function genericLocalStoreTests(
           .toReturnRemoved('bar/baz')
           .toNotContain('bar/baz')
           .afterRemoteEvent(
-            docUpdateRemoteEvent(doc('foo/bar', 2, { it: 'changed' }), [2])
+            docAddedRemoteEvent(doc('foo/bar', 2, { it: 'changed' }), [2])
           )
           .toReturnChanged(doc('foo/bar', 2, { it: 'changed' }))
           .toContain(doc('foo/bar', 2, { it: 'changed' }))
@@ -386,7 +375,7 @@ function genericLocalStoreTests(
       .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(deletedDoc('foo/bar', 2), [2]))
       .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 2))
+      .toNotContainIfEager(deletedDoc('foo/bar', 2))
       .after(setMutation('foo/bar', { foo: 'bar' }))
       .toReturnChanged(
         doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
@@ -397,7 +386,7 @@ function genericLocalStoreTests(
       .toReturnChanged(
         doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
       )
-      .toContain(
+      .toNotContainIfEager(
         doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
       )
       .finish();
@@ -424,7 +413,7 @@ function genericLocalStoreTests(
       expectLocalStore()
         .afterAllocatingQuery(Query.atPath(path('foo')))
         .toReturnTargetId(2)
-        .after(docUpdateRemoteEvent(doc('foo/bar', 2, { it: 'base' }), [2]))
+        .after(docAddedRemoteEvent(doc('foo/bar', 2, { it: 'base' }), [2]))
         .toReturnChanged(doc('foo/bar', 2, { it: 'base' }))
         .toContain(doc('foo/bar', 2, { it: 'base' }))
         .after(setMutation('foo/bar', { foo: 'bar' }))
@@ -456,7 +445,7 @@ function genericLocalStoreTests(
       .toNotContain('foo/bar')
       .afterAcknowledgingMutation({ documentVersion: 1 })
       .toReturnChanged(unknownDoc('foo/bar', 1))
-      .toContain(unknownDoc('foo/bar', 1))
+      .toNotContainIfEager(unknownDoc('foo/bar', 1))
       .finish();
   });
 
@@ -515,7 +504,7 @@ function genericLocalStoreTests(
       .toNotContain('foo/bar')
       .afterAcknowledgingMutation({ documentVersion: 1 })
       .toReturnChanged(unknownDoc('foo/bar', 1))
-      .toContain(unknownDoc('foo/bar', 1))
+      .toNotContainIfEager(unknownDoc('foo/bar', 1))
       .afterAllocatingQuery(Query.atPath(path('foo')))
       .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
@@ -531,7 +520,9 @@ function genericLocalStoreTests(
       .toContain(deletedDoc('foo/bar', 0))
       .afterAcknowledgingMutation({ documentVersion: 1 })
       .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 1, { hasCommittedMutations: true }))
+      .toNotContainIfEager(
+        deletedDoc('foo/bar', 1, { hasCommittedMutations: true })
+      )
       .finish();
   });
 
@@ -551,7 +542,9 @@ function genericLocalStoreTests(
         .afterReleasingQuery(query)
         .afterAcknowledgingMutation({ documentVersion: 2 })
         .toReturnRemoved('foo/bar')
-        .toContain(deletedDoc('foo/bar', 2, { hasCommittedMutations: true }))
+        .toNotContainIfEager(
+          deletedDoc('foo/bar', 2, { hasCommittedMutations: true })
+        )
         .finish()
     );
   });
@@ -572,7 +565,9 @@ function genericLocalStoreTests(
         .afterReleasingQuery(query)
         .afterAcknowledgingMutation({ documentVersion: 2 })
         .toReturnRemoved('foo/bar')
-        .toContain(deletedDoc('foo/bar', 2, { hasCommittedMutations: true }))
+        .toNotContainIfEager(
+          deletedDoc('foo/bar', 2, { hasCommittedMutations: true })
+        )
         .finish()
     );
   });
@@ -586,7 +581,7 @@ function genericLocalStoreTests(
       .toContain(doc('foo/bar', 1, { it: 'base' }))
       .after(docUpdateRemoteEvent(deletedDoc('foo/bar', 2), [2]))
       .toReturnRemoved('foo/bar')
-      .toContain(deletedDoc('foo/bar', 2))
+      .toNotContainIfEager(deletedDoc('foo/bar', 2))
       .after(docUpdateRemoteEvent(doc('foo/bar', 3, { it: 'changed' }), [2]))
       .toReturnChanged(doc('foo/bar', 3, { it: 'changed' }))
       .toContain(doc('foo/bar', 3, { it: 'changed' }))
@@ -623,7 +618,7 @@ function genericLocalStoreTests(
       .toReturnChanged(
         doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
       )
-      .toContain(
+      .toNotContainIfEager(
         doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
       )
       .finish();
@@ -643,22 +638,25 @@ function genericLocalStoreTests(
   });
 
   it('handles SetMutation -> Ack -> PatchMutation -> Reject', () => {
-    return expectLocalStore()
-      .after(setMutation('foo/bar', { foo: 'old' }))
-      .afterAcknowledgingMutation({ documentVersion: 1 })
-      .toContain(
-        doc('foo/bar', 1, { foo: 'old' }, { hasCommittedMutations: true })
-      )
-      .after(patchMutation('foo/bar', { foo: 'bar' }))
-      .toContain(doc('foo/bar', 1, { foo: 'bar' }, { hasLocalMutations: true }))
-      .afterRejectingMutation()
-      .toReturnChanged(
-        doc('foo/bar', 1, { foo: 'old' }, { hasCommittedMutations: true })
-      )
-      .toContain(
-        doc('foo/bar', 1, { foo: 'old' }, { hasCommittedMutations: true })
-      )
-      .finish();
+    if (!gcIsEager) {
+      return;
+    }
+    return (
+      expectLocalStore()
+        .after(setMutation('foo/bar', { foo: 'old' }))
+        .toContain(
+          doc('foo/bar', 0, { foo: 'old' }, { hasLocalMutations: true })
+        )
+        .afterAcknowledgingMutation({ documentVersion: 1 })
+        // After having been ack'd, there is nothing pinning the document
+        .toNotContain('foo/bar')
+        .after(patchMutation('foo/bar', { foo: 'bar' }))
+        // A blind patch is not visible in the cache
+        .toNotContain('foo/bar')
+        .afterRejectingMutation()
+        .toNotContain('foo/bar')
+        .finish()
+    );
   });
 
   it('handles SetMutation(A) + SetMutation(B) + PatchMutation(A)', () => {
@@ -688,37 +686,45 @@ function genericLocalStoreTests(
       .toContain(deletedDoc('foo/bar', 2, { hasCommittedMutations: true }))
       .afterAcknowledgingMutation({ documentVersion: 3 }) // patch mutation
       .toReturnChanged(unknownDoc('foo/bar', 3))
-      .toContain(unknownDoc('foo/bar', 3))
+      .toNotContainIfEager(unknownDoc('foo/bar', 3))
       .finish();
   });
 
   it('collects garbage after ChangeBatch with no target ids', () => {
+    if (!gcIsEager) {
+      return;
+    }
+
     return expectLocalStore()
-      .after(docAddedRemoteEvent(deletedDoc('foo/bar', 2), [1]))
-      .afterGC()
+      .after(docAddedRemoteEvent(deletedDoc('foo/bar', 2), [], [], [1]))
       .toNotContain('foo/bar')
-      .after(docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [1]))
-      .afterGC()
+      .after(
+        docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [], [], [1])
+      )
       .toNotContain('foo/bar')
       .finish();
   });
 
   it('collects garbage after ChangeBatch', () => {
+    if (!gcIsEager) {
+      return;
+    }
     const query = Query.atPath(path('foo'));
     return expectLocalStore()
       .afterAllocatingQuery(query)
       .toReturnTargetId(2)
       .after(docAddedRemoteEvent(doc('foo/bar', 2, { foo: 'bar' }), [2]))
-      .afterGC()
       .toContain(doc('foo/bar', 2, { foo: 'bar' }))
       .after(docUpdateRemoteEvent(doc('foo/bar', 2, { foo: 'baz' }), [], [2]))
-      .afterGC()
       .toNotContain('foo/bar')
       .finish();
   });
 
   it('collects garbage after acknowledged mutation', () => {
     const query = Query.atPath(path('foo'));
+    if (!gcIsEager) {
+      return;
+    }
     return (
       expectLocalStore()
         .afterAllocatingQuery(query)
@@ -730,7 +736,6 @@ function genericLocalStoreTests(
         .afterReleasingQuery(query)
         .after(setMutation('foo/bah', { foo: 'bah' }))
         .after(deleteMutation('foo/baz'))
-        .afterGC()
         .toContain(
           doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
         )
@@ -739,19 +744,16 @@ function genericLocalStoreTests(
         )
         .toContain(deletedDoc('foo/baz', 0))
         .afterAcknowledgingMutation({ documentVersion: 3 })
-        .afterGC()
         .toNotContain('foo/bar')
         .toContain(
           doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true })
         )
         .toContain(deletedDoc('foo/baz', 0))
         .afterAcknowledgingMutation({ documentVersion: 4 })
-        .afterGC()
         .toNotContain('foo/bar')
         .toNotContain('foo/bah')
         .toContain(deletedDoc('foo/baz', 0))
         .afterAcknowledgingMutation({ documentVersion: 5 })
-        .afterGC()
         .toNotContain('foo/bar')
         .toNotContain('foo/bah')
         .toNotContain('foo/baz')
@@ -760,6 +762,9 @@ function genericLocalStoreTests(
   });
 
   it('collects garbage after rejected mutation', () => {
+    if (!gcIsEager) {
+      return;
+    }
     const query = Query.atPath(path('foo'));
     return (
       expectLocalStore()
@@ -772,7 +777,6 @@ function genericLocalStoreTests(
         .afterReleasingQuery(query)
         .after(setMutation('foo/bah', { foo: 'bah' }))
         .after(deleteMutation('foo/baz'))
-        .afterGC()
         .toContain(
           doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
         )
@@ -781,19 +785,16 @@ function genericLocalStoreTests(
         )
         .toContain(deletedDoc('foo/baz', 0))
         .afterRejectingMutation() // patch mutation
-        .afterGC()
         .toNotContain('foo/bar')
         .toContain(
           doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true })
         )
         .toContain(deletedDoc('foo/baz', 0))
         .afterRejectingMutation() // set mutation
-        .afterGC()
         .toNotContain('foo/bar')
         .toNotContain('foo/bah')
         .toContain(deletedDoc('foo/baz', 0))
         .afterRejectingMutation() // delete mutation
-        .afterGC()
         .toNotContain('foo/bar')
         .toNotContain('foo/bah')
         .toNotContain('foo/baz')
@@ -802,36 +803,37 @@ function genericLocalStoreTests(
   });
 
   it('pins documents in the local view', () => {
+    if (!gcIsEager) {
+      return;
+    }
     const query = Query.atPath(path('foo'));
     return expectLocalStore()
       .afterAllocatingQuery(query)
       .toReturnTargetId(2)
       .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'bar' }), [2]))
       .after(setMutation('foo/baz', { foo: 'baz' }))
-      .afterGC()
       .toContain(doc('foo/bar', 1, { foo: 'bar' }))
       .toContain(doc('foo/baz', 0, { foo: 'baz' }, { hasLocalMutations: true }))
       .after(localViewChanges(2, { added: ['foo/bar', 'foo/baz'] }))
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { foo: 'bar' }), [], [2]))
       .after(docUpdateRemoteEvent(doc('foo/baz', 2, { foo: 'baz' }), [2]))
       .afterAcknowledgingMutation({ documentVersion: 2 })
-      .afterGC()
       .toContain(doc('foo/bar', 1, { foo: 'bar' }))
       .toContain(doc('foo/baz', 2, { foo: 'baz' }))
       .after(localViewChanges(2, { removed: ['foo/bar', 'foo/baz'] }))
       .afterReleasingQuery(query)
-      .afterGC()
       .toNotContain('foo/bar')
       .toNotContain('foo/baz')
       .finish();
   });
 
   it('throws away documents with unknown target-ids immediately', () => {
+    if (!gcIsEager) {
+      return;
+    }
     const targetId = 321;
     return expectLocalStore()
-      .after(docAddedRemoteEvent(doc('foo/bar', 1, {}), [targetId]))
-      .toContain(doc('foo/bar', 1, {}))
-      .afterGC()
+      .after(docAddedRemoteEvent(doc('foo/bar', 1, {}), [], [], [targetId]))
       .toNotContain('foo/bar')
       .finish();
   });
@@ -896,7 +898,9 @@ function genericLocalStoreTests(
   });
 
   it('persists resume tokens', async () => {
-    await restartWithNoOpGarbageCollector();
+    if (gcIsEager) {
+      return;
+    }
     const query = Query.atPath(path('foo/bar'));
     const queryData = await localStore.allocateQuery(query);
     const targetId = queryData.targetId;
@@ -923,7 +927,9 @@ function genericLocalStoreTests(
   });
 
   it('does not replace resume token with empty resume token', async () => {
-    await restartWithNoOpGarbageCollector();
+    if (gcIsEager) {
+      return;
+    }
     const query = Query.atPath(path('foo/bar'));
     const queryData = await localStore.allocateQuery(query);
     const targetId = queryData.targetId;

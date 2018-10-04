@@ -498,6 +498,40 @@ export class SimpleDbStore<
     return this.iterateCursor(cursor, callback);
   }
 
+  /**
+   * Iterates over a store, but waits for the given callback to complete for
+   * each entry before iterating the next entry. This allows the callback to do
+   * asynchronous work to determine if this iteration should continue.
+   *
+   * The provided callback should return `true` to continue iteration, and
+   * `false` otherwise.
+   */
+  iterateSerial(
+    callback: (k: KeyType, v: ValueType) => PersistencePromise<boolean>
+  ): PersistencePromise<void> {
+    const cursorRequest = this.cursor({});
+    return new PersistencePromise((resolve, reject) => {
+      cursorRequest.onerror = (event: Event) => {
+        reject((event.target as IDBRequest).error);
+      };
+      cursorRequest.onsuccess = (event: Event) => {
+        const cursor: IDBCursorWithValue = (event.target as IDBRequest).result;
+        if (!cursor) {
+          resolve();
+          return;
+        }
+
+        callback(cursor.primaryKey, cursor.value).next(shouldContinue => {
+          if (shouldContinue) {
+            cursor.continue();
+          } else {
+            resolve();
+          }
+        });
+      };
+    });
+  }
+
   private iterateCursor(
     cursorRequest: IDBRequest,
     fn: IterateCallback<KeyType, ValueType>

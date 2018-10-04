@@ -16,17 +16,24 @@
 
 import { User } from '../auth/user';
 import { DatabaseInfo } from '../core/database_info';
+import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
+import { ListenSequenceNumber, TargetId } from '../core/types';
+import { DocumentKey } from '../model/document_key';
+import { Platform } from '../platform/platform';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
+import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
-
-import { ListenSequence, SequenceNumberSyncer } from '../core/listen_sequence';
-import { Platform } from '../platform/platform';
-import { AsyncQueue, TimerId } from '../util/async_queue';
 import { CancelablePromise } from '../util/promise';
-import { IndexedDbMutationQueue } from './indexeddb_mutation_queue';
+
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import {
+  IndexedDbMutationQueue,
+  mutationQueuesContainKey
+} from './indexeddb_mutation_queue';
+import {
+  documentTargetStore,
   getHighestListenSequenceNumber,
   IndexedDbQueryCache
 } from './indexeddb_query_cache';
@@ -37,19 +44,27 @@ import {
   DbClientMetadataKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
+  DbTargetDocument,
   DbTargetGlobal,
   SCHEMA_VERSION,
   SchemaConverter
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
+import {
+  ActiveTargets,
+  LruDelegate,
+  LruGarbageCollector
+} from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
-  PrimaryStateListener
+  PrimaryStateListener,
+  ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
+import { QueryData } from './query_data';
+import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
@@ -247,6 +262,7 @@ export class IndexedDbPersistence implements Persistence {
   private remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage;
   private listenSequence: ListenSequence;
+  readonly referenceDelegate: IndexedDbLruDelegate;
 
   // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
   // is still experimental. When multi-client is switched to always on, `multiClientParams` will
@@ -265,11 +281,15 @@ export class IndexedDbPersistence implements Persistence {
         UNSUPPORTED_PLATFORM_ERROR_MSG
       );
     }
+    this.referenceDelegate = new IndexedDbLruDelegate(this);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
     this.allowTabSynchronization = multiClientParams !== undefined;
-    this.queryCache = new IndexedDbQueryCache(this.serializer);
+    this.queryCache = new IndexedDbQueryCache(
+      this.referenceDelegate,
+      this.serializer
+    );
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
@@ -691,10 +711,14 @@ export class IndexedDbPersistence implements Persistence {
       this.started,
       'Cannot initialize MutationQueue before persistence is started.'
     );
-    return IndexedDbMutationQueue.forUser(user, this.serializer);
+    return IndexedDbMutationQueue.forUser(
+      user,
+      this.serializer,
+      this.referenceDelegate
+    );
   }
 
-  getQueryCache(): QueryCache {
+  getQueryCache(): IndexedDbQueryCache {
     assert(
       this.started,
       'Cannot initialize QueryCache before persistence is started.'
@@ -1024,5 +1048,221 @@ function clientMetadataStore(
 ): SimpleDbStore<DbClientMetadataKey, DbClientMetadata> {
   return txn.store<DbClientMetadataKey, DbClientMetadata>(
     DbClientMetadata.store
+  );
+}
+
+/** Provides LRU functionality for IndexedDB persistence. */
+export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
+  private inMemoryPins: ReferenceSet | null;
+
+  readonly garbageCollector: LruGarbageCollector;
+
+  constructor(private readonly db: IndexedDbPersistence) {
+    this.garbageCollector = new LruGarbageCollector(this);
+  }
+
+  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
+    return this.db.getQueryCache().getQueryCount(txn);
+  }
+
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (q: QueryData) => void
+  ): PersistencePromise<void> {
+    return this.db.getQueryCache().forEachTarget(txn, f);
+  }
+
+  forEachOrphanedDocumentSequenceNumber(
+    txn: PersistenceTransaction,
+    f: (sequenceNumber: ListenSequenceNumber) => void
+  ): PersistencePromise<void> {
+    return this.forEachOrphanedDocument(txn, (docKey, sequenceNumber) =>
+      f(sequenceNumber)
+    );
+  }
+
+  setInMemoryPins(inMemoryPins: ReferenceSet): void {
+    this.inMemoryPins = inMemoryPins;
+  }
+
+  addReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return writeSentinelKey(txn, key);
+  }
+
+  removeReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return writeSentinelKey(txn, key);
+  }
+
+  removeTargets(
+    txn: PersistenceTransaction,
+    upperBound: ListenSequenceNumber,
+    activeTargetIds: ActiveTargets
+  ): PersistencePromise<number> {
+    return this.db
+      .getQueryCache()
+      .removeTargets(txn, upperBound, activeTargetIds);
+  }
+
+  removeMutationReference(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return writeSentinelKey(txn, key);
+  }
+
+  /**
+   * Returns true if anything would prevent this document from being garbage
+   * collected, given that the document in question is not present in any
+   * targets and has a sequence number less than or equal to the upper bound for
+   * the collection run.
+   */
+  private isPinned(
+    txn: PersistenceTransaction,
+    docKey: DocumentKey
+  ): PersistencePromise<boolean> {
+    return this.inMemoryPins!.containsKey(txn, docKey).next(isPinned => {
+      if (isPinned) {
+        return PersistencePromise.resolve(true);
+      } else {
+        return mutationQueuesContainKey(txn, docKey);
+      }
+    });
+  }
+
+  removeOrphanedDocuments(
+    txn: PersistenceTransaction,
+    upperBound: ListenSequenceNumber
+  ): PersistencePromise<number> {
+    let count = 0;
+    const promises: Array<PersistencePromise<void>> = [];
+    const iteration = this.forEachOrphanedDocument(
+      txn,
+      (docKey, sequenceNumber) => {
+        if (sequenceNumber <= upperBound) {
+          const p = this.isPinned(txn, docKey).next(isPinned => {
+            if (!isPinned) {
+              count++;
+              return this.removeOrphanedDocument(txn, docKey);
+            }
+          });
+          promises.push(p);
+        }
+      }
+    );
+    // Wait for iteration first to make sure we have a chance to add all of the
+    // removal promises to the array.
+    return iteration
+      .next(() => PersistencePromise.waitFor(promises))
+      .next(() => count);
+  }
+
+  /**
+   * Clears a document from the cache. The document is assumed to be orphaned, so target-document
+   * associations are not queried. We remove it from the remote document cache, as well as remove
+   * its sentinel row.
+   */
+  private removeOrphanedDocument(
+    txn: PersistenceTransaction,
+    docKey: DocumentKey
+  ): PersistencePromise<void> {
+    return PersistencePromise.waitFor([
+      documentTargetStore(txn).delete(sentinelKey(docKey)),
+      this.db.getRemoteDocumentCache().removeEntry(txn, docKey)
+    ]);
+  }
+
+  removeTarget(
+    txn: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void> {
+    const updated = queryData.copy({
+      sequenceNumber: txn.currentSequenceNumber
+    });
+    return this.db.getQueryCache().updateQueryData(txn, updated);
+  }
+
+  updateLimboDocument(
+    txn: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<void> {
+    return writeSentinelKey(txn, key);
+  }
+
+  /**
+   * Call provided function for each document in the cache that is 'orphaned'. Orphaned
+   * means not a part of any target, so the only entry in the target-document index for
+   * that document will be the sentinel row (targetId 0), which will also have the sequence
+   * number for the last time the document was accessed.
+   */
+  private forEachOrphanedDocument(
+    txn: PersistenceTransaction,
+    f: (docKey: DocumentKey, sequenceNumber: ListenSequenceNumber) => void
+  ): PersistencePromise<void> {
+    const store = documentTargetStore(txn);
+    let nextToReport: ListenSequenceNumber = ListenSequence.INVALID;
+    let nextPath: EncodedResourcePath;
+    return store
+      .iterate(
+        {
+          index: DbTargetDocument.documentTargetsIndex
+        },
+        ([targetId, docKey], { path, sequenceNumber }) => {
+          if (targetId === 0) {
+            // if nextToReport is valid, report it, this is a new key so the
+            // last one must not be a member of any targets.
+            if (nextToReport !== ListenSequence.INVALID) {
+              f(new DocumentKey(decode(nextPath)), nextToReport);
+            }
+            // set nextToReport to be this sequence number. It's the next one we
+            // might report, if we don't find any targets for this document.
+            // Note that the sequence number must be defined when the targetId
+            // is 0.
+            nextToReport = sequenceNumber!;
+            nextPath = path;
+          } else {
+            // set nextToReport to be invalid, we know we don't need to report
+            // this one since we found a target for it.
+            nextToReport = ListenSequence.INVALID;
+          }
+        }
+      )
+      .next(() => {
+        // Since we report sequence numbers after getting to the next key, we
+        // need to check if the last key we iterated over was an orphaned
+        // document and report it.
+        if (nextToReport !== ListenSequence.INVALID) {
+          f(new DocumentKey(decode(nextPath)), nextToReport);
+        }
+      });
+  }
+}
+
+function sentinelKey(key: DocumentKey): [TargetId, EncodedResourcePath] {
+  return [0, encode(key.path)];
+}
+
+/**
+ * @return A value suitable for writing a sentinel row in the target-document
+ * store.
+ */
+function sentinelRow(
+  key: DocumentKey,
+  sequenceNumber: ListenSequenceNumber
+): DbTargetDocument {
+  return new DbTargetDocument(0, encode(key.path), sequenceNumber);
+}
+
+function writeSentinelKey(
+  txn: PersistenceTransaction,
+  key: DocumentKey
+): PersistencePromise<void> {
+  return documentTargetStore(txn).put(
+    sentinelRow(key, txn.currentSequenceNumber)
   );
 }
