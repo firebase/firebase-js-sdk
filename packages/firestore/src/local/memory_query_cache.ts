@@ -16,14 +16,13 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
+import { assert, fail } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
 
-import { TargetIdGenerator } from '../core/target_id_generator';
-import { assert, fail } from '../util/assert';
-import { GarbageCollector } from './garbage_collector';
 import { ActiveTargets } from './lru_garbage_collector';
 import { MemoryPersistence } from './memory_persistence';
 import { PersistenceTransaction } from './persistence';
@@ -243,12 +242,8 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve(matchingKeys);
   }
 
-  setGarbageCollector(gc: GarbageCollector | null): void {
-    this.references.setGarbageCollector(gc);
-  }
-
   containsKey(
-    txn: PersistenceTransaction | null,
+    txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return this.references.containsKey(txn, key);

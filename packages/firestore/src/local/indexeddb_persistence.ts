@@ -711,7 +711,11 @@ export class IndexedDbPersistence implements Persistence {
       this.started,
       'Cannot initialize MutationQueue before persistence is started.'
     );
-    return IndexedDbMutationQueue.forUser(user, this.serializer);
+    return IndexedDbMutationQueue.forUser(
+      user,
+      this.serializer,
+      this.referenceDelegate
+    );
   }
 
   getQueryCache(): IndexedDbQueryCache {

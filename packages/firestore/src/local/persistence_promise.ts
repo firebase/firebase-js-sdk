@@ -222,22 +222,6 @@ export class PersistencePromise<T> {
     return PersistencePromise.waitFor(promises).next(() => results);
   }
 
-  static forEach<T>(
-    all: Iterable<T>,
-    callback: (elem: T) => PersistencePromise<void>
-  ): PersistencePromise<void> {
-    const it = all[Symbol.iterator]();
-
-    let p = PersistencePromise.resolve();
-    let result = it.next();
-    while (!result.done) {
-      const value = result.value;
-      p = p.next(() => callback(value));
-      result = it.next();
-    }
-    return p;
-  }
-
   /**
    * Given an array of predicate functions that asynchronously evaluate to a
    * boolean, implements a short-circuiting `or` between the results. Predicates
@@ -258,5 +242,26 @@ export class PersistencePromise<T> {
       });
     }
     return p;
+  }
+
+  /**
+   * Given an iterable, call the given function on each element in the
+   * collection and wait for all of the resulting concurrent
+   * PersistencePromises to resolve.
+   */
+  static forEach<K>(
+    collection: Iterable<K>,
+    f: (item: K) => PersistencePromise<void>
+  ): PersistencePromise<void> {
+    const it = collection[Symbol.iterator]();
+
+    const promises: Array<PersistencePromise<void>> = [];
+    let result = it.next();
+    while (!result.done) {
+      const value = result.value;
+      promises.push(f(value));
+      result = it.next();
+    }
+    return this.waitFor(promises);
   }
 }

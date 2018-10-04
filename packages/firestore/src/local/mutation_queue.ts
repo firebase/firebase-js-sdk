@@ -22,12 +22,11 @@ import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
 
-import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
 /** A queue of mutations to apply to the remote store. */
-export interface MutationQueue extends GarbageSource {
+export interface MutationQueue {
   /**
    * Starts the mutation queue, performing any initial reads that might be
    * required to establish invariants, etc.

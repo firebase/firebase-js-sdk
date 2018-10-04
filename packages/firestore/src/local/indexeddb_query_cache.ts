@@ -25,7 +25,6 @@ import { immediateSuccessor } from '../util/misc';
 
 import { TargetIdGenerator } from '../core/target_id_generator';
 import * as EncodedResourcePath from './encoded_resource_path';
-import { GarbageCollector } from './garbage_collector';
 import {
   IndexedDbLruDelegate,
   IndexedDbPersistence,
@@ -52,9 +51,6 @@ export class IndexedDbQueryCache implements QueryCache {
     private readonly referenceDelegate: IndexedDbLruDelegate,
     private serializer: LocalSerializer
   ) {}
-
-  /** The garbage collector to notify about potential garbage keys. */
-  private garbageCollector: GarbageCollector | null = null;
 
   // PORTING NOTE: We don't cache global metadata for the query cache, since
   // some of it (in particular `highestTargetId`) can be modified by secondary
@@ -295,17 +291,14 @@ export class IndexedDbQueryCache implements QueryCache {
   ): PersistencePromise<void> {
     // PORTING NOTE: The reverse index (documentsTargets) is maintained by
     // IndexedDb.
-    const promises: Array<PersistencePromise<void>> = [];
     const store = documentTargetStore(txn);
-    keys.forEach(key => {
+    return PersistencePromise.forEach(keys, key => {
       const path = EncodedResourcePath.encode(key.path);
-      promises.push(store.delete([targetId, path]));
-      if (this.garbageCollector !== null) {
-        this.garbageCollector.addPotentialGarbageKey(key);
-      }
-      promises.push(this.referenceDelegate.removeReference(txn, key));
+      return PersistencePromise.waitFor([
+        store.delete([targetId, path]),
+        this.referenceDelegate.removeReference(txn, key)
+      ]);
     });
-    return PersistencePromise.waitFor(promises);
   }
 
   removeMatchingKeysForTargetId(
@@ -319,33 +312,7 @@ export class IndexedDbQueryCache implements QueryCache {
       /*lowerOpen=*/ false,
       /*upperOpen=*/ true
     );
-    return this.notifyGCForRemovedKeys(txn, range).next(() =>
-      store.delete(range)
-    );
-  }
-
-  private notifyGCForRemovedKeys(
-    txn: PersistenceTransaction,
-    range: IDBKeyRange
-  ): PersistencePromise<void> {
-    const store = documentTargetStore(txn);
-    if (this.garbageCollector !== null && this.garbageCollector.isEager) {
-      // In order to generate garbage events properly, we need to read these
-      // keys before deleting.
-      return store.iterate({ range, keysOnly: true }, (key, _, control) => {
-        const path = EncodedResourcePath.decode(key[1]);
-        const docKey = new DocumentKey(path);
-        // Paranoid assertion in case the the collector is set to null
-        // during the iteration.
-        assert(
-          this.garbageCollector !== null,
-          'GarbageCollector for query cache set to null during key removal.'
-        );
-        this.garbageCollector!.addPotentialGarbageKey(docKey);
-      });
-    } else {
-      return PersistencePromise.resolve();
-    }
+    return store.delete(range);
   }
 
   getMatchingKeysForTargetId(
@@ -370,20 +337,10 @@ export class IndexedDbQueryCache implements QueryCache {
       .next(() => result);
   }
 
-  setGarbageCollector(gc: GarbageCollector | null): void {
-    this.garbageCollector = gc;
-  }
-
-  // TODO(gsoltis): we can let the compiler assert that txn !== null if we
-  // drop null from the type bounds on txn.
   containsKey(
-    txn: PersistenceTransaction | null,
+    txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
-    assert(
-      txn !== null,
-      'Persistence Transaction cannot be null for query cache containsKey'
-    );
     const path = EncodedResourcePath.encode(key.path);
     const range = IDBKeyRange.bound(
       [path],

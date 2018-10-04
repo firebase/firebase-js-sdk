@@ -324,7 +324,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             this.remoteStore.unlisten(queryView.targetId);
             return this.removeAndCleanupQuery(queryView);
           })
-          .then(() => this.localStore.collectGarbage())
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
     } else {
@@ -583,7 +582,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // NOTE: Both these methods are no-ops for batches that originated from
       // other clients.
       this.processUserCallback(batchId, error ? error : null);
-
       this.localStore.removeCachedMutationBatchMetadata(batchId);
     } else {
       fail(`Unknown batchState: ${batchState}`);
@@ -820,12 +818,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     await Promise.all(queriesProcessed);
     this.syncEngineListener!.onWatchChange(newSnaps);
-    this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-    if (this.isPrimary) {
-      await this.localStore
-        .collectGarbage()
-        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
-    }
+    await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
   }
 
   /**
