@@ -1219,7 +1219,7 @@ describeSpec('Listens:', [], () => {
   );
 
   specTest(
-    'Primary immediately regains primary lease',
+    'Previous primary immediately regains primary lease',
     ['multi-client'],
     () => {
       const query = Query.atPath(path('collection'));
