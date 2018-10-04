@@ -17,9 +17,9 @@
 import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
-import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
+import { ReferenceSet } from '../../../src/local/reference_set';
 import { documentKeySet } from '../../../src/model/collections';
 import {
   BATCHID_UNKNOWN,
@@ -28,7 +28,6 @@ import {
 import { emptyByteString } from '../../../src/platform/platform';
 import {
   expectEqualArrays,
-  expectSetToEqual,
   key,
   patchMutation,
   path,
@@ -43,7 +42,7 @@ let persistence: Persistence;
 let mutationQueue: TestMutationQueue;
 describe('MemoryMutationQueue', () => {
   beforeEach(() => {
-    return persistenceHelpers.testMemoryPersistence().then(p => {
+    return persistenceHelpers.testMemoryEagerPersistence().then(p => {
       persistence = p;
     });
   });
@@ -74,6 +73,7 @@ function genericMutationQueueTests(): void {
   addEqualityMatcher();
 
   beforeEach(async () => {
+    persistence.referenceDelegate.setInMemoryPins(new ReferenceSet());
     mutationQueue = new TestMutationQueue(
       persistence,
       persistence.getMutationQueue(new User('user'))
@@ -329,46 +329,6 @@ function genericMutationQueueTests(): void {
       query
     );
     expectEqualArrays(matches, expected);
-  });
-
-  it('can emits garbage events while removing mutation batches', async () => {
-    const gc = new EagerGarbageCollector();
-    gc.addGarbageSource(mutationQueue.queue);
-    const batches = [
-      await addMutationBatch('foo/bar'),
-      await addMutationBatch('foo/ba'),
-      await addMutationBatch('foo/bar2'),
-      await addMutationBatch('foo/bar'),
-      await addMutationBatch('foo/bar/suffix/baz'),
-      await addMutationBatch('foo/baz')
-    ];
-
-    await mutationQueue.removeMutationBatch(batches[0]);
-    expectSetToEqual(await mutationQueue.collectGarbage(gc), []);
-
-    await mutationQueue.removeMutationBatch(batches[1]);
-    expectSetToEqual(await mutationQueue.collectGarbage(gc), [key('foo/ba')]);
-
-    await mutationQueue.removeMutationBatch(batches[5]);
-    expectSetToEqual(await mutationQueue.collectGarbage(gc), [key('foo/baz')]);
-
-    await mutationQueue.removeMutationBatch(batches[2]);
-    await mutationQueue.removeMutationBatch(batches[3]);
-    expectSetToEqual(await mutationQueue.collectGarbage(gc), [
-      key('foo/bar'),
-      key('foo/bar2')
-    ]);
-
-    batches.push(await addMutationBatch('foo/bar/suffix/baz'));
-    expectSetToEqual(await mutationQueue.collectGarbage(gc), []);
-
-    await mutationQueue.removeMutationBatch(batches[4]);
-    await mutationQueue.removeMutationBatch(batches[6]);
-    expectSetToEqual(await mutationQueue.collectGarbage(gc), [
-      key('foo/bar/suffix/baz')
-    ]);
-
-    gc.removeGarbageSource(mutationQueue.queue);
   });
 
   it('can save the last stream token', async () => {

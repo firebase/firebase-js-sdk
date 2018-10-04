@@ -16,12 +16,9 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { EagerGarbageCollector } from '../local/eager_garbage_collector';
-import { GarbageCollector } from '../local/garbage_collector';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
-import { NoOpGarbageCollector } from '../local/no_op_garbage_collector';
 import { Persistence } from '../local/persistence';
 import {
   DocumentKeySet,
@@ -83,7 +80,6 @@ export class FirestoreClient {
   // with the types rather than littering the code with '!' or unnecessary
   // undefined checks.
   private eventMgr: EventManager;
-  private garbageCollector: GarbageCollector;
   private persistence: Persistence;
   private localStore: LocalStore;
   private remoteStore: RemoteStore;
@@ -292,7 +288,6 @@ export class FirestoreClient {
 
     // TODO(http://b/33384523): For now we just disable garbage collection
     // when persistence is enabled.
-    this.garbageCollector = new NoOpGarbageCollector();
     const storagePrefix = IndexedDbPersistence.buildStoragePrefix(
       this.databaseInfo
     );
@@ -347,8 +342,7 @@ export class FirestoreClient {
    * @returns A promise that will successfully resolve.
    */
   private startMemoryPersistence(): Promise<void> {
-    this.garbageCollector = new EagerGarbageCollector();
-    this.persistence = new MemoryPersistence(this.clientId);
+    this.persistence = MemoryPersistence.createEagerPersistence(this.clientId);
     this.sharedClientState = new MemorySharedClientState();
     return Promise.resolve();
   }
@@ -363,11 +357,7 @@ export class FirestoreClient {
     return this.platform
       .loadConnection(this.databaseInfo)
       .then(async connection => {
-        this.localStore = new LocalStore(
-          this.persistence,
-          user,
-          this.garbageCollector
-        );
+        this.localStore = new LocalStore(this.persistence, user);
         const serializer = this.platform.newSerializer(
           this.databaseInfo.databaseId
         );

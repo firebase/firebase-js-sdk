@@ -124,9 +124,12 @@ export async function testIndexedDbPersistence(
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
-export async function testMemoryPersistence(): Promise<MemoryPersistence> {
-  const persistence = new MemoryPersistence(AutoId.newId());
-  return persistence;
+export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
+  return MemoryPersistence.createEagerPersistence(AutoId.newId());
+}
+
+export async function testMemoryLruPersistence(): Promise<MemoryPersistence> {
+  return MemoryPersistence.createLruPersistence(AutoId.newId());
 }
 
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
