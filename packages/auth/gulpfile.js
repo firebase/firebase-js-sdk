@@ -32,7 +32,7 @@ const CJS_WRAPPER_PREFIX =
     `(function() {var firebase = require('@firebase/app').default;`;
 const EMS_WRAPPER_PREFIX = `import firebase from '@firebase/app';(function() {`;
 const WRAPPER_SUFFIX =
-    `}).call(typeof global !== 'undefined' ? ` +
+    `}).apply(typeof global !== 'undefined' ? ` +
     `global : typeof self !== 'undefined' ? ` +
     `self : typeof window !== 'undefined' ? window : {});`;
 
