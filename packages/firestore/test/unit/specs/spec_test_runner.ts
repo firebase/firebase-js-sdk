@@ -887,7 +887,7 @@ abstract class TestRunner {
     }
 
     if (state.primary) {
-      await clearCurrentPrimaryClient();
+      await clearCurrentPrimaryLease();
       await this.queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
     }
 
@@ -1545,7 +1545,7 @@ export interface StateExpectation {
   };
 }
 
-async function clearCurrentPrimaryClient(): Promise<void> {
+async function clearCurrentPrimaryLease(): Promise<void> {
   const db = await SimpleDb.openOrCreate(
     INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
