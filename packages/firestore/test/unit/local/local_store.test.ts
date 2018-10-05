@@ -281,7 +281,6 @@ function genericLocalStoreTests(
   beforeEach(async () => {
     persistence = await getPersistence();
     localStore = new LocalStore(persistence, User.UNAUTHENTICATED);
-    return localStore.start();
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));
