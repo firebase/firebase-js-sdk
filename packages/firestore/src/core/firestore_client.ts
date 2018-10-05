@@ -401,10 +401,7 @@ export class FirestoreClient {
 
         this.eventMgr = new EventManager(this.syncEngine);
 
-        // NOTE: SyncEngine depends on both LocalStore and SharedClientState
-        // (for persisting stream tokens, refilling mutation queue, retrieving
-        // the list of active targets, etc.) so it must be started last.
-        await this.localStore.start();
+        // PORTING NOTE: LocalStore doesn't need an explicit start() on the Web.
         await this.sharedClientState.start();
         await this.remoteStore.start();
 
