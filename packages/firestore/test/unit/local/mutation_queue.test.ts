@@ -72,13 +72,12 @@ describe('IndexedDbMutationQueue', () => {
 function genericMutationQueueTests(): void {
   addEqualityMatcher();
 
-  beforeEach(async () => {
+  beforeEach(() => {
     persistence.referenceDelegate.setInMemoryPins(new ReferenceSet());
     mutationQueue = new TestMutationQueue(
       persistence,
       persistence.getMutationQueue(new User('user'))
     );
-    return mutationQueue.start();
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));

@@ -173,15 +173,6 @@ export class LocalStore {
     );
   }
 
-  /** Performs any initial startup actions required by the local store. */
-  start(): Promise<void> {
-    return this.persistence.runTransaction(
-      'Start LocalStore',
-      'readonly',
-      txn => this.startMutationQueue(txn)
-    );
-  }
-
   /**
    * Tells the LocalStore that the currently authenticated user has changed.
    *
@@ -202,9 +193,7 @@ export class LocalStore {
             oldBatches = promisedOldBatches;
 
             this.mutationQueue = this.persistence.getMutationQueue(user);
-            return this.startMutationQueue(txn);
-          })
-          .next(() => {
+
             // Recreate our LocalDocumentsView using the new
             // MutationQueue.
             this.localDocuments = new LocalDocumentsView(
@@ -249,13 +238,6 @@ export class LocalStore {
       }
     );
   }
-
-  private startMutationQueue(
-    txn: PersistenceTransaction
-  ): PersistencePromise<void> {
-    return this.mutationQueue.start(txn);
-  }
-
   /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
     return this.persistence.runTransaction(

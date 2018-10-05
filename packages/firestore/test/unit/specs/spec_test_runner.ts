@@ -472,8 +472,6 @@ abstract class TestRunner {
     this.eventManager = new EventManager(this.syncEngine);
 
     await this.sharedClientState.start();
-
-    await this.localStore.start();
     await this.remoteStore.start();
 
     await this.persistence.setPrimaryStateListener(isPrimary =>
