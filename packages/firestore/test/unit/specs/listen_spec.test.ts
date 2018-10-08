@@ -1217,4 +1217,33 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query, { added: [docB] });
     }
   );
+
+  specTest(
+    'Previous primary immediately regains primary lease',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 2000, { key: 'a' });
+
+      return (
+        client(0)
+          .userListens(query)
+          .watchAcksFull(query, 1000)
+          .expectEvents(query, {})
+          .client(1)
+          .stealPrimaryLease()
+          .expectListen(query, 'resume-token-1000')
+          .watchAcksFull(query, 2000, docA)
+          .shutdown()
+          .client(0)
+          .expectPrimaryState(true)
+          // The primary tab only discovers that it has lost its lease when it
+          // is already eligible to obtain it again.
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(true)
+          .expectListen(query, 'resume-token-2000')
+          .expectEvents(query, { added: [docA] })
+      );
+    }
+  );
 });

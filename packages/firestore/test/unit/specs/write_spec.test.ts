@@ -1328,8 +1328,7 @@ describeSpec('Writes:', [], () => {
       });
   });
 
-  // TODO(b/116716934): re-enable this test and fix the breakage.
-  /*specTest('Mutation recovers after primary takeover', ['multi-client', 'exclusive'], () => {
+  specTest('Mutation recovers after primary takeover', ['multi-client'], () => {
     const query = Query.atPath(path('collection'));
     const docALocal = doc(
       'collection/a',
@@ -1348,6 +1347,9 @@ describeSpec('Writes:', [], () => {
         hasPendingWrites: true,
         fromCache: true
       })
+      .client(0)
+      .expectListen(query)
+      .client(1)
       .stealPrimaryLease()
       .writeAcks('collection/a', 1000, { expectUserCallback: false })
       .watchAcksFull(query, 1000, docA)
@@ -1356,7 +1358,7 @@ describeSpec('Writes:', [], () => {
       .expectUserCallbacks({
         acknowledged: ['collection/a']
       });
-  });*/
+  });
 
   specTest('Write is sent by newly started primary', ['multi-client'], () => {
     return client(0)
@@ -1464,27 +1466,22 @@ describeSpec('Writes:', [], () => {
         { hasCommittedMutations: true }
       );
 
-      return (
-        client(0)
-          .expectPrimaryState(true)
-          .userSets('collection/a', { k: 'a' })
-          .userSets('collection/b', { k: 'b' })
-          .client(1)
-          .stealPrimaryLease()
-          .writeAcks('collection/a', 1000, { expectUserCallback: false })
-          .client(0)
-          .expectUserCallbacks({
-            acknowledged: ['collection/a']
-          })
-          // TODO(b/116716934): remove this timer and fix the breakage
-          .runTimer(TimerId.ClientMetadataRefresh)
-          .expectPrimaryState(false)
-          .stealPrimaryLease()
-          .expectPrimaryState(true)
-          .writeAcks('collection/b', 2000)
-          .userListens(query)
-          .expectEvents(query, { added: [docA, docB], fromCache: true })
-      );
+      return client(0)
+        .expectPrimaryState(true)
+        .userSets('collection/a', { k: 'a' })
+        .userSets('collection/b', { k: 'b' })
+        .client(1)
+        .stealPrimaryLease()
+        .writeAcks('collection/a', 1000, { expectUserCallback: false })
+        .client(0)
+        .expectUserCallbacks({
+          acknowledged: ['collection/a']
+        })
+        .stealPrimaryLease()
+        .expectPrimaryState(true)
+        .writeAcks('collection/b', 2000)
+        .userListens(query)
+        .expectEvents(query, { added: [docA, docB], fromCache: true });
     }
   );
 });

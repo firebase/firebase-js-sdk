@@ -367,7 +367,11 @@ export class IndexedDbPersistence implements Persistence {
   setPrimaryStateListener(
     primaryStateListener: PrimaryStateListener
   ): Promise<void> {
-    this.primaryStateListener = primaryStateListener;
+    this.primaryStateListener = async primaryState => {
+      if (this.started) {
+        return primaryStateListener(primaryState);
+      }
+    };
     return primaryStateListener(this.isPrimary);
   }
 
@@ -403,19 +407,27 @@ export class IndexedDbPersistence implements Persistence {
             this.remoteDocumentCache.lastProcessedDocumentChangeId
           )
         )
+        .next(() => {
+          if (this.isPrimary) {
+            return this.verifyPrimaryLease(txn).next(success => {
+              if (!success) {
+                this.isPrimary = false;
+                this.queue.enqueueAndForget(() =>
+                  this.primaryStateListener(false)
+                );
+              }
+            });
+          }
+        })
         .next(() => this.canActAsPrimary(txn))
         .next(canActAsPrimary => {
           const wasPrimary = this.isPrimary;
           this.isPrimary = canActAsPrimary;
 
           if (wasPrimary !== this.isPrimary) {
-            this.queue.enqueueAndForget(async () => {
-              // Verify that `shutdown()` hasn't been called yet by the time
-              // we invoke the `primaryStateListener`.
-              if (this.started) {
-                return this.primaryStateListener(this.isPrimary);
-              }
-            });
+            this.queue.enqueueAndForget(() =>
+              this.primaryStateListener(this.isPrimary)
+            );
           }
 
           if (wasPrimary && !this.isPrimary) {
@@ -424,6 +436,15 @@ export class IndexedDbPersistence implements Persistence {
             return this.acquireOrExtendPrimaryLease(txn);
           }
         });
+    });
+  }
+
+  private verifyPrimaryLease(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<boolean> {
+    const store = primaryClientStore(txn);
+    return store.get(DbPrimaryClient.key).next(primaryClient => {
+      return PersistencePromise.resolve(this.isLocalClient(primaryClient));
     });
   }
 
@@ -755,9 +776,9 @@ export class IndexedDbPersistence implements Persistence {
           // executing transactionOperation(). This ensures that even if the
           // transactionOperation takes a long time, we'll use a recent
           // leaseTimestampMs in the extended (or newly acquired) lease.
-          return this.canActAsPrimary(simpleDbTxn)
-            .next(canActAsPrimary => {
-              if (!canActAsPrimary) {
+          return this.verifyPrimaryLease(simpleDbTxn)
+            .next(success => {
+              if (!success) {
                 log.error(
                   `Failed to obtain primary lease for action '${action}'.`
                 );
@@ -864,8 +885,6 @@ export class IndexedDbPersistence implements Persistence {
   private releasePrimaryLeaseIfHeld(
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
-    this.isPrimary = false;
-
     const store = primaryClientStore(txn);
     return store.get(DbPrimaryClient.key).next(primaryClient => {
       if (this.isLocalClient(primaryClient)) {
