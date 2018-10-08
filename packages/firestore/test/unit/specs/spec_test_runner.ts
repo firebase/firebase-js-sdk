@@ -885,7 +885,7 @@ abstract class TestRunner {
     }
 
     if (state.primary) {
-      await writePrimaryClientToIndexedDb(this.clientId);
+      await clearCurrentPrimaryLease();
       await this.queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
     }
 
@@ -1543,9 +1543,7 @@ export interface StateExpectation {
   };
 }
 
-async function writePrimaryClientToIndexedDb(
-  clientId: ClientId
-): Promise<void> {
+async function clearCurrentPrimaryLease(): Promise<void> {
   const db = await SimpleDb.openOrCreate(
     INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
@@ -1555,14 +1553,7 @@ async function writePrimaryClientToIndexedDb(
     const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
       DbPrimaryClient.store
     );
-    return primaryClientStore.put(
-      DbPrimaryClient.key,
-      new DbPrimaryClient(
-        clientId,
-        /* allowTabSynchronization=*/ true,
-        Date.now()
-      )
-    );
+    return primaryClientStore.delete(DbPrimaryClient.key);
   });
   db.close();
 }
