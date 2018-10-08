@@ -85,7 +85,6 @@ const MAX_CLIENT_AGE_MS = 30 * 60 * 1000; // 30 minutes
  */
 const PRIMARY_ELECTION_MAX_CLIENT_AGE_MS = 5000;
 
-
 /**
  * The interval at which clients will update their metadata, including
  * refreshing their primary lease if held or potentially trying to acquire it if
@@ -463,10 +462,7 @@ export class IndexedDbPersistence implements Persistence {
   private async maybeGarbageCollectMultiClientState(): Promise<void> {
     if (
       this.isPrimary &&
-      !this.isWithinAge(
-        this.lastGarbageCollectionTime,
-        MAX_CLIENT_AGE_MS
-      )
+      !this.isWithinAge(this.lastGarbageCollectionTime, MAX_CLIENT_AGE_MS)
     ) {
       this.lastGarbageCollectionTime = Date.now();
 
