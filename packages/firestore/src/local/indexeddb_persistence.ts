@@ -72,19 +72,18 @@ import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 const LOG_TAG = 'IndexedDbPersistence';
 
 /**
- * Oldest acceptable age in milliseconds for client metadata read from
- * IndexedDB. Client metadata and primary leases that are older than 5 seconds
- * are ignored.
+ * Oldest acceptable age in milliseconds for client metadata before the client
+ * is considered inactive and its associated data (such as the remote document
+ * cache changelog) is garbage collected.
  */
-const CLIENT_METADATA_MAX_AGE_MS = 5000;
+const MAX_CLIENT_AGE_MS = 30 * 60 * 1000; // 30 minutes
 
 /**
- * Oldest acceptable age in milliseconds for client metadata before it and its
- * associated data (such as the remote document cache changelog) can be
- * garbage collected. Clients that exceed this threshold will not be able to
- * replay Watch events that occurred before this threshold.
+ * Oldest acceptable metadata age for clients that may participate in the
+ * primary lease election. Clients that have not updated their client metadata
+ * within 5 seconds are not eligible to receive a primary lease.
  */
-const CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS = 30 * 60 * 1000; // 30 Minutes
+const MAX_PRIMARY_ELIGIBLE_AGE_MS = 5000;
 
 /**
  * The interval at which clients will update their metadata, including
@@ -463,10 +462,7 @@ export class IndexedDbPersistence implements Persistence {
   private async maybeGarbageCollectMultiClientState(): Promise<void> {
     if (
       this.isPrimary &&
-      !this.isWithinAge(
-        this.lastGarbageCollectionTime,
-        CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
-      )
+      !this.isWithinAge(this.lastGarbageCollectionTime, MAX_CLIENT_AGE_MS)
     ) {
       this.lastGarbageCollectionTime = Date.now();
 
@@ -487,7 +483,7 @@ export class IndexedDbPersistence implements Persistence {
             .next(existingClients => {
               activeClients = this.filterActiveClients(
                 existingClients,
-                CLIENT_STATE_GARBAGE_COLLECTION_THRESHOLD_MS
+                MAX_CLIENT_AGE_MS
               );
               inactiveClients = existingClients.filter(
                 client => activeClients.indexOf(client) === -1
@@ -575,7 +571,7 @@ export class IndexedDbPersistence implements Persistence {
           currentPrimary !== null &&
           this.isWithinAge(
             currentPrimary.leaseTimestampMs,
-            CLIENT_METADATA_MAX_AGE_MS
+            MAX_PRIMARY_ELIGIBLE_AGE_MS
           ) &&
           !this.isClientZombied(currentPrimary.ownerId);
 
@@ -627,7 +623,7 @@ export class IndexedDbPersistence implements Persistence {
             // them is better suited to obtain the primary lease.
             const preferredCandidate = this.filterActiveClients(
               existingClients,
-              CLIENT_METADATA_MAX_AGE_MS
+              MAX_PRIMARY_ELIGIBLE_AGE_MS
             ).find(otherClient => {
               if (this.clientId !== otherClient.clientId) {
                 const otherClientHasBetterNetworkState =
@@ -715,7 +711,7 @@ export class IndexedDbPersistence implements Persistence {
         return clientMetadataStore(txn)
           .loadAll()
           .next(clients =>
-            this.filterActiveClients(clients, CLIENT_METADATA_MAX_AGE_MS).map(
+            this.filterActiveClients(clients, MAX_CLIENT_AGE_MS).map(
               clientMetadata => clientMetadata.clientId
             )
           );
@@ -829,7 +825,7 @@ export class IndexedDbPersistence implements Persistence {
         currentPrimary !== null &&
         this.isWithinAge(
           currentPrimary.leaseTimestampMs,
-          CLIENT_METADATA_MAX_AGE_MS
+          MAX_PRIMARY_ELIGIBLE_AGE_MS
         ) &&
         !this.isClientZombied(currentPrimary.ownerId);
 
