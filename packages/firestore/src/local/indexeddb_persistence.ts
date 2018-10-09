@@ -83,7 +83,7 @@ const MAX_CLIENT_AGE_MS = 30 * 60 * 1000; // 30 minutes
  * primary lease election. Clients that have not updated their client metadata
  * within 5 seconds are not eligible to receive a primary lease.
  */
-const PRIMARY_ELECTION_MAX_CLIENT_AGE_MS = 5000;
+const MAX_PRIMARY_ELIGIBLE_AGE_MS = 5000;
 
 /**
  * The interval at which clients will update their metadata, including
@@ -571,7 +571,7 @@ export class IndexedDbPersistence implements Persistence {
           currentPrimary !== null &&
           this.isWithinAge(
             currentPrimary.leaseTimestampMs,
-            PRIMARY_ELECTION_MAX_CLIENT_AGE_MS
+            MAX_PRIMARY_ELIGIBLE_AGE_MS
           ) &&
           !this.isClientZombied(currentPrimary.ownerId);
 
@@ -623,7 +623,7 @@ export class IndexedDbPersistence implements Persistence {
             // them is better suited to obtain the primary lease.
             const preferredCandidate = this.filterActiveClients(
               existingClients,
-              PRIMARY_ELECTION_MAX_CLIENT_AGE_MS
+              MAX_PRIMARY_ELIGIBLE_AGE_MS
             ).find(otherClient => {
               if (this.clientId !== otherClient.clientId) {
                 const otherClientHasBetterNetworkState =
@@ -825,7 +825,7 @@ export class IndexedDbPersistence implements Persistence {
         currentPrimary !== null &&
         this.isWithinAge(
           currentPrimary.leaseTimestampMs,
-          PRIMARY_ELECTION_MAX_CLIENT_AGE_MS
+          MAX_PRIMARY_ELIGIBLE_AGE_MS
         ) &&
         !this.isClientZombied(currentPrimary.ownerId);
 
