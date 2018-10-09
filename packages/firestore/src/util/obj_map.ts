@@ -108,7 +108,7 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
     return objUtil.isEmpty(this.inner);
   }
 
-  [Symbol.iterator](): Iterator<{key: KeyType, value: ValueType}> {
+  [Symbol.iterator](): Iterator<{ key: KeyType; value: ValueType }> {
     // We don't care about the keys, all of the actual keys are in the
     // arrays that are the values of the inner object.
     const it = objUtil.values(this.inner)[Symbol.iterator]();
@@ -119,13 +119,19 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
 /**
  * Implements an Iterator over ObjectMap.
  */
-export type IteratorEntry<KeyType, ValueType> = { key: KeyType, value: ValueType };
-export class ObjectMapIterator<KeyType extends Equatable<KeyType>, ValueType> implements Iterator<IteratorEntry<KeyType, ValueType>> {
+export type IteratorEntry<KeyType, ValueType> = {
+  key: KeyType;
+  value: ValueType;
+};
+export class ObjectMapIterator<KeyType extends Equatable<KeyType>, ValueType>
+  implements Iterator<IteratorEntry<KeyType, ValueType>> {
   private inner: Iterator<Entry<KeyType, ValueType>> | undefined;
   private done: boolean;
-  private nextEntry: { key: KeyType, value: ValueType } | undefined;
+  private nextEntry: { key: KeyType; value: ValueType } | undefined;
 
-  constructor(private readonly outer: Iterator<Array<Entry<KeyType, ValueType>>>) {
+  constructor(
+    private readonly outer: Iterator<Array<Entry<KeyType, ValueType>>>
+  ) {
     this.done = false;
   }
 
@@ -156,7 +162,7 @@ export class ObjectMapIterator<KeyType extends Equatable<KeyType>, ValueType> im
   next(): IteratorResult<IteratorEntry<KeyType, ValueType>> {
     this.fillNextEntry();
     if (this.done) {
-      return { done: true, value: {} as { key: KeyType, value: ValueType } };
+      return { done: true, value: {} as { key: KeyType; value: ValueType } };
     } else {
       return { done: false, value: this.nextEntry! };
     }

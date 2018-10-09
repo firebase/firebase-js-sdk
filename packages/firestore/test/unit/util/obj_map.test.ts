@@ -127,11 +127,11 @@ describe('ObjectMap', () => {
     map.set(k5, 'boo');
 
     const expectedKeys: TestKey[] = [];
-    map.forEach((key) => {
+    map.forEach(key => {
       expectedKeys.push(key);
     });
 
-    const iterated: Array<{key: TestKey, value: string}> = [];
+    const iterated: Array<{ key: TestKey; value: string }> = [];
     const it = map[Symbol.iterator]();
     let result = it.next();
     while (!result.done) {
