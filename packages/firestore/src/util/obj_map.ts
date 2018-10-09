@@ -17,7 +17,7 @@
 import { Equatable } from './misc';
 import * as objUtil from './obj';
 
-export type Entry<K, V> = [K, V];
+type Entry<K, V> = [K, V];
 
 /**
  * A map implementation that uses objects as keys. Objects must implement the
@@ -111,60 +111,8 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
   [Symbol.iterator](): Iterator<{ key: KeyType; value: ValueType }> {
     // We don't care about the keys, all of the actual keys are in the
     // arrays that are the values of the inner object.
-    const it = objUtil.values(this.inner)[Symbol.iterator]();
-    return new ObjectMapIterator<KeyType, ValueType>(it);
-  }
-}
-
-/**
- * Implements an Iterator over ObjectMap.
- */
-export type IteratorEntry<KeyType, ValueType> = {
-  key: KeyType;
-  value: ValueType;
-};
-export class ObjectMapIterator<KeyType extends Equatable<KeyType>, ValueType>
-  implements Iterator<IteratorEntry<KeyType, ValueType>> {
-  private inner: Iterator<Entry<KeyType, ValueType>> | undefined;
-  private done: boolean;
-  private nextEntry: { key: KeyType; value: ValueType } | undefined;
-
-  constructor(
-    private readonly outer: Iterator<Array<Entry<KeyType, ValueType>>>
-  ) {
-    this.done = false;
-  }
-
-  private fillNextEntry(): void {
-    if (this.done) return;
-
-    if (!this.inner) {
-      const { done, value: innerArray } = this.outer.next();
-      if (done) {
-        this.done = true;
-        return;
-      } else {
-        this.inner = innerArray[Symbol.iterator]();
-      }
-    }
-
-    const { done: innerDone, value: entry } = this.inner!.next();
-    if (innerDone) {
-      // Start over with the next inner array.
-      this.inner = undefined;
-      this.fillNextEntry();
-      return;
-    } else {
-      this.nextEntry = { key: entry[0], value: entry[1] };
-    }
-  }
-
-  next(): IteratorResult<IteratorEntry<KeyType, ValueType>> {
-    this.fillNextEntry();
-    if (this.done) {
-      return { done: true, value: {} as { key: KeyType; value: ValueType } };
-    } else {
-      return { done: false, value: this.nextEntry! };
-    }
+    const entries: Array<{key: KeyType, value: ValueType}> = [];
+    this.forEach((key, value) => entries.push({key, value}));
+    return entries[Symbol.iterator]();
   }
 }
