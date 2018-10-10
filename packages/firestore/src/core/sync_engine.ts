@@ -904,6 +904,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     objUtils.forEachNumber(this.limboResolutionsByTarget, targetId => {
       this.remoteStore.unlisten(targetId);
     });
+    this.limboDocumentRefs.removeAllReferences();
     this.limboResolutionsByTarget = [];
     this.limboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
       DocumentKey.comparator
