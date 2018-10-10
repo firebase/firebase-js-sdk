@@ -292,10 +292,20 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     f: (sequenceNumber: ListenSequenceNumber) => void
   ): PersistencePromise<void> {
-    this.orphanedSequenceNumbers.forEach((_, sequenceNumber) =>
-      f(sequenceNumber)
+    return PersistencePromise.forEach(
+      this.orphanedSequenceNumbers,
+      ({ key, value: sequenceNumber }) => {
+        // Pass in the exact sequence number as the upper bound so we know it won't be pinned by
+        // being too recent.
+        return this.isPinned(txn, key, sequenceNumber).next(isPinned => {
+          if (!isPinned) {
+            return f(sequenceNumber);
+          } else {
+            return PersistencePromise.resolve();
+          }
+        });
+      }
     );
-    return PersistencePromise.resolve();
   }
 
   setInMemoryPins(inMemoryPins: ReferenceSet): void {
