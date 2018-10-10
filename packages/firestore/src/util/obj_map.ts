@@ -107,4 +107,12 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
   isEmpty(): boolean {
     return objUtil.isEmpty(this.inner);
   }
+
+  [Symbol.iterator](): Iterator<{ key: KeyType; value: ValueType }> {
+    // We don't care about the keys, all of the actual keys are in the
+    // arrays that are the values of the inner object.
+    const entries: Array<{ key: KeyType; value: ValueType }> = [];
+    this.forEach((key, value) => entries.push({ key, value }));
+    return entries[Symbol.iterator]();
+  }
 }
