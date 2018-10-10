@@ -246,6 +246,6 @@ export class MemoryQueryCache implements QueryCache {
     txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
-    return this.references.containsKey(txn, key);
+    return PersistencePromise.resolve(this.references.containsKey(key));
   }
 }

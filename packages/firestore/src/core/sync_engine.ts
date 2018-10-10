@@ -17,7 +17,6 @@
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
-import { PersistencePromise } from '../local/persistence_promise';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { ReferenceSet } from '../local/reference_set';
 import {
@@ -292,7 +291,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             remoteKeys
           );
           if (this.isPrimary) {
-            await this.updateTrackedLimbos(
+            this.updateTrackedLimbos(
               queryView.targetId,
               viewSnapshot.limboChanges
             );
@@ -323,12 +322,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           .then(() => {
             this.sharedClientState.clearQueryState(queryView.targetId);
             this.remoteStore.unlisten(queryView.targetId);
-            return this.removeAndCleanupQuery(queryView);
+            this.removeAndCleanupQuery(queryView);
           })
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }
     } else {
-      await this.removeAndCleanupQuery(queryView);
+      this.removeAndCleanupQuery(queryView);
       await this.localStore.releaseQuery(
         query,
         /*keepPersistedQueryData=*/ true
@@ -672,7 +671,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
-  private async removeAndCleanupQuery(queryView: QueryView): Promise<void> {
+  private removeAndCleanupQuery(queryView: QueryView): void {
     this.sharedClientState.removeLocalQueryTarget(queryView.targetId);
 
     this.queryViewsByQuery.delete(queryView.query);
@@ -683,16 +682,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         queryView.targetId
       );
       this.limboDocumentRefs.removeReferencesForId(queryView.targetId);
-      await PersistencePromise.forEach(limboKeys, limboKey => {
-        return this.limboDocumentRefs
-          .containsKey(null, limboKey)
-          .next(isReferenced => {
-            if (!isReferenced) {
-              // We removed the last reference for this key
-              this.removeLimboTarget(limboKey);
-            }
-          });
-      }).toPromise();
+      limboKeys.forEach(limboKey => {
+        const isReferenced = this.limboDocumentRefs.containsKey(limboKey);
+        if (!isReferenced) {
+          // We removed the last reference for this key
+          this.removeLimboTarget(limboKey);
+        }
+      });
     }
   }
 
@@ -709,10 +705,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     delete this.limboResolutionsByTarget[limboTargetId];
   }
 
-  private async updateTrackedLimbos(
+  private updateTrackedLimbos(
     targetId: TargetId,
     limboChanges: LimboDocumentChange[]
-  ): Promise<void> {
+  ): void {
     for (const limboChange of limboChanges) {
       if (limboChange instanceof AddedLimboDocument) {
         this.limboDocumentRefs.addReference(limboChange.key, targetId);
@@ -720,15 +716,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       } else if (limboChange instanceof RemovedLimboDocument) {
         log.debug(LOG_TAG, 'Document no longer in limbo: ' + limboChange.key);
         this.limboDocumentRefs.removeReference(limboChange.key, targetId);
-        await this.limboDocumentRefs
-          .containsKey(null, limboChange.key)
-          .next(isReferenced => {
-            if (!isReferenced) {
-              // We removed the last reference for this key
-              this.removeLimboTarget(limboChange.key);
-            }
-          })
-          .toPromise();
+        const isReferenced = this.limboDocumentRefs.containsKey(
+          limboChange.key
+        );
+        if (!isReferenced) {
+          // We removed the last reference for this key
+          this.removeLimboTarget(limboChange.key);
+        }
       } else {
         fail('Unknown limbo change: ' + JSON.stringify(limboChange));
       }
@@ -793,26 +787,25 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
               /* updateLimboDocuments= */ this.isPrimary === true,
               targetChange
             );
-            return this.updateTrackedLimbos(
+            this.updateTrackedLimbos(
               queryView.targetId,
               viewChange.limboChanges
-            ).then(() => {
-              if (viewChange.snapshot) {
-                if (this.isPrimary) {
-                  this.sharedClientState.updateQueryState(
-                    queryView.targetId,
-                    viewChange.snapshot.fromCache ? 'not-current' : 'current'
-                  );
-                }
-
-                newSnaps.push(viewChange.snapshot);
-                const docChanges = LocalViewChanges.fromSnapshot(
+            );
+            if (viewChange.snapshot) {
+              if (this.isPrimary) {
+                this.sharedClientState.updateQueryState(
                   queryView.targetId,
-                  viewChange.snapshot
+                  viewChange.snapshot.fromCache ? 'not-current' : 'current'
                 );
-                docChangesInAllViews.push(docChanges);
               }
-            });
+
+              newSnaps.push(viewChange.snapshot);
+              const docChanges = LocalViewChanges.fromSnapshot(
+                queryView.targetId,
+                viewChange.snapshot
+              );
+              docChangesInAllViews.push(docChanges);
+            }
           })
       );
     });
@@ -1025,7 +1018,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         }
         case 'rejected': {
           const queryView = this.queryViewsByTarget[targetId];
-          await this.removeAndCleanupQuery(queryView);
+          this.removeAndCleanupQuery(queryView);
           await this.localStore.releaseQuery(
             queryView.query,
             /*keepPersistedQueryData=*/ true
@@ -1072,7 +1065,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           .releaseQuery(queryView.query, /*keepPersistedQueryData=*/ false)
           .then(() => {
             this.remoteStore.unlisten(targetId);
-            return this.removeAndCleanupQuery(queryView);
+            this.removeAndCleanupQuery(queryView);
           })
           .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
       }

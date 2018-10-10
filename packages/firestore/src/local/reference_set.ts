@@ -20,9 +20,6 @@ import { DocumentKey } from '../model/document_key';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
-import { PersistenceTransaction } from './persistence';
-import { PersistencePromise } from './persistence_promise';
-
 /**
  * A collection of references to a document from some kind of numbered entity
  * (either a target ID or batch ID). As references are added to or removed from
@@ -110,15 +107,10 @@ export class ReferenceSet {
     return keys;
   }
 
-  containsKey(
-    txn: PersistenceTransaction | null,
-    key: DocumentKey
-  ): PersistencePromise<boolean> {
+  containsKey(key: DocumentKey): boolean {
     const ref = new DocReference(key, 0);
     const firstRef = this.refsByKey.firstAfterOrEqual(ref);
-    return PersistencePromise.resolve(
-      firstRef !== null && key.isEqual(firstRef.key)
-    );
+    return firstRef !== null && key.isEqual(firstRef.key);
   }
 }
 

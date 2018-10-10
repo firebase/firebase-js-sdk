@@ -249,7 +249,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     return PersistencePromise.or([
       () => this.persistence.getQueryCache().containsKey(txn, key),
       () => this.persistence.mutationQueuesContainKey(txn, key),
-      () => this.inMemoryPins!.containsKey(txn, key)
+      () => PersistencePromise.resolve(this.inMemoryPins!.containsKey(key))
     ]);
   }
 }
@@ -390,7 +390,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<boolean> {
     return PersistencePromise.or([
       () => this.persistence.mutationQueuesContainKey(txn, key),
-      () => this.inMemoryPins!.containsKey(txn, key),
+      () => PersistencePromise.resolve(this.inMemoryPins!.containsKey(key)),
       () => this.persistence.getQueryCache().containsKey(txn, key),
       () => {
         const orphanedAt = this.orphanedSequenceNumbers.get(key);
