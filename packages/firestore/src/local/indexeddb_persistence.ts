@@ -1141,13 +1141,11 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     docKey: DocumentKey
   ): PersistencePromise<boolean> {
-    return this.inMemoryPins!.containsKey(txn, docKey).next(isPinned => {
-      if (isPinned) {
-        return PersistencePromise.resolve(true);
-      } else {
-        return mutationQueuesContainKey(txn, docKey);
-      }
-    });
+    if (this.inMemoryPins!.containsKey(docKey)) {
+      return PersistencePromise.resolve(true);
+    } else {
+      return mutationQueuesContainKey(txn, docKey);
+    }
   }
 
   removeOrphanedDocuments(
