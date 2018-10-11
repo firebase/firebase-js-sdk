@@ -17,10 +17,11 @@
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
+import { AnyJs } from '../util/misc';
 import { encode, EncodedResourcePath } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { LocalSerializer } from './local_serializer';
@@ -39,7 +40,7 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 4. Multi-Tab Support.
  * 5. Removal of held write acks.
  */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -107,7 +108,33 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       p = p.next(() => this.removeAcknowledgedMutations(txn));
     }
 
+    if (fromVersion < 6 && toVersion >= 6) {
+      p = p.next(() => {
+        createDocumentMetadataStore(db);
+        return this.addDocumentMetadata(txn);
+      });
+    }
+
     return p;
+  }
+
+  private addDocumentMetadata(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    let byteCount = 0;
+    return txn
+      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+      .iterate((_, doc) => {
+        byteCount += DbRemoteDocument.size(doc);
+      })
+      .next(() => {
+        const metadata = new DbRemoteDocumentMetadata(byteCount);
+        return txn
+          .store<DbRemoteDocumentMetadataKey, DbRemoteDocumentMetadata>(
+            DbRemoteDocumentMetadata.store
+          )
+          .put(DbRemoteDocumentMetadata.key, metadata);
+      });
   }
 
   private removeAcknowledgedMutations(
@@ -437,6 +464,20 @@ export class DbUnknownDocument {
 export class DbRemoteDocument {
   static store = 'remoteDocuments';
 
+  static size(doc: DbRemoteDocument): number {
+    let value: AnyJs;
+    if (doc.document) {
+      value = doc.document;
+    } else if (doc.unknownDocument) {
+      value = doc.unknownDocument;
+    } else if (doc.noDocument) {
+      value = doc.noDocument;
+    } else {
+      throw fail('Unknown remote document type');
+    }
+    return JSON.stringify(value).length;
+  }
+
   constructor(
     /**
      * Set to an instance of DbUnknownDocument if the data for a document is
@@ -462,6 +503,23 @@ export class DbRemoteDocument {
      */
     public hasCommittedMutations: boolean | undefined
   ) {}
+}
+
+/**
+ * Contains a single entry that has metadata about the remote document cache.
+ */
+export class DbRemoteDocumentMetadata {
+  static store = 'remoteDocumentMetadata';
+
+  static key = 'remoteDocumentMetadataKey';
+
+  constructor(public byteSize: number) {}
+}
+
+export type DbRemoteDocumentMetadataKey = typeof DbRemoteDocumentMetadata.key;
+
+function createDocumentMetadataStore(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocumentMetadata.store);
 }
 
 /**
@@ -814,9 +872,13 @@ export const V4_STORES = [
   DbRemoteDocumentChanges.store
 ];
 
+// V5 does not change the set of stores.
+
+export const V6_STORES = [...V4_STORES, DbRemoteDocumentMetadata.store];
+
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = V4_STORES;
+export const ALL_STORES = V6_STORES;

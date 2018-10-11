@@ -33,6 +33,15 @@ export function maybeDocumentMap(): MaybeDocumentMap {
   return EMPTY_MAYBE_DOCUMENT_MAP;
 }
 
+export type DocumentSizeEntry = {
+  maybeDocument: MaybeDocument;
+  size: number;
+};
+export type DocumentSizeMap = SortedMap<DocumentKey, DocumentSizeEntry>;
+export function documentSizeMap(): DocumentSizeMap {
+  return new SortedMap<DocumentKey, DocumentSizeEntry>(DocumentKey.comparator);
+}
+
 export type DocumentMap = SortedMap<DocumentKey, Document>;
 const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(
   DocumentKey.comparator

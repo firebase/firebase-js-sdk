@@ -15,12 +15,20 @@
  */
 
 import { Query } from '../core/query';
-import { DocumentMap, MaybeDocumentMap } from '../model/collections';
+import {
+  DocumentMap,
+  DocumentSizeEntry,
+  MaybeDocumentMap
+} from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+
+export type GetResult = MaybeDocument | null;
+export type SizedGetResult = DocumentSizeEntry | null;
 
 /**
  * Represents cached documents received from the remote backend.
@@ -32,32 +40,6 @@ import { PersistencePromise } from './persistence_promise';
  */
 export interface RemoteDocumentCache {
   /**
-   * Adds or replaces document entries in the cache.
-   *
-   * The cache key is extracted from `maybeDocument.key`. If there is already a
-   * cache entry for the key, it will be replaced.
-   *
-   * @param maybeDocuments A set of Documents or NoDocuments to put in the
-   * cache.
-   *
-   * Multi-Tab Note: This operation should only be called by the primary client.
-   */
-  addEntries(
-    transaction: PersistenceTransaction,
-    maybeDocuments: MaybeDocument[]
-  ): PersistencePromise<void>;
-
-  /**
-   * Removes the cached entry for the given key (no-op if no entry exists).
-   *
-   * Multi-Tab Note: This operation should only be called by the primary client.
-   */
-  removeEntry(
-    transaction: PersistenceTransaction,
-    documentKey: DocumentKey
-  ): PersistencePromise<void>;
-
-  /**
    * Looks up an entry in the cache.
    *
    * @param documentKey The key of the entry to look up.
@@ -67,7 +49,18 @@ export interface RemoteDocumentCache {
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null>;
+  ): PersistencePromise<GetResult>;
+
+  /**
+   * Looks up an entry in the cache.
+   *
+   * @param documentKey The key of the entry to look up.
+   * @return The cached MaybeDocument entry and its size, or null if we have nothing cached.
+   */
+  getSizedEntry(
+    transaction: PersistenceTransaction,
+    documentKey: DocumentKey
+  ): PersistencePromise<SizedGetResult>;
 
   /**
    * Executes a query against the cached Document entries.
@@ -98,4 +91,18 @@ export interface RemoteDocumentCache {
   getNewDocumentChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<MaybeDocumentMap>;
+
+  /**
+   * Provides access to add or update the contents of the cache. The buffer
+   * handles proper size accounting for the change.
+   *
+   * Multi-Tab Note: This should only be called by the primary client.
+   */
+  newChangeBuffer(): RemoteDocumentChangeBuffer;
+
+  /**
+   * Get an estimate of the size of the document cache. Note that for eager
+   * garbage collection, we don't track sizes so this will return 0.
+   */
+  getSize(transaction: PersistenceTransaction): PersistencePromise<number>;
 }

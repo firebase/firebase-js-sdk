@@ -17,7 +17,9 @@
 import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { Persistence } from '../../../src/local/persistence';
+import { PersistenceTransaction } from '../../../src/local/persistence';
+import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { MaybeDocument } from '../../../src/model/document';
 import {
   deletedDoc,
@@ -39,8 +41,11 @@ import {
 import { MaybeDocumentMap } from '../../../src/model/collections';
 import { fail } from '../../../src/util/assert';
 import * as persistenceHelpers from './persistence_test_helpers';
-import { INDEXEDDB_TEST_SERIALIZER } from './persistence_test_helpers';
-import { TestRemoteDocumentCache } from './test_remote_document_cache';
+import {
+  TestIndexedDbRemoteDocumentCache,
+  TestMemoryRemoteDocumentCache,
+  TestRemoteDocumentCache
+} from './test_remote_document_cache';
 
 // Helpers for use throughout tests.
 const DOC_PATH = 'a/b';
@@ -48,16 +53,32 @@ const LONG_DOC_PATH = 'a/b/c/d/e/f';
 const DOC_DATA = { a: 1, b: 2 };
 const VERSION = 42;
 
-let persistence: Persistence;
-
 describe('MemoryRemoteDocumentCache', () => {
-  beforeEach(async () => {
-    persistence = await persistenceHelpers.testMemoryEagerPersistence();
+  let cache: Promise<TestMemoryRemoteDocumentCache>;
+
+  beforeEach(() => {
+    cache = persistenceHelpers
+      .testMemoryEagerPersistence()
+      .then(persistence => new TestMemoryRemoteDocumentCache(persistence));
   });
 
-  afterEach(() => persistence.shutdown(/* deleteData= */ true));
+  genericRemoteDocumentCacheTests(() => cache);
 
-  genericRemoteDocumentCacheTests();
+  eagerRemoteDocumentCacheTests(() => cache);
+});
+
+describe('LRU MemoryRemoteDocumentCache', () => {
+  let cache: Promise<TestMemoryRemoteDocumentCache>;
+
+  beforeEach(async () => {
+    cache = persistenceHelpers
+      .testMemoryLruPersistence()
+      .then(persistence => new TestMemoryRemoteDocumentCache(persistence));
+  });
+
+  genericRemoteDocumentCacheTests(() => cache);
+
+  lruRemoteDocumentCacheTests(() => cache);
 });
 
 describe('IndexedDbRemoteDocumentCache', () => {
@@ -66,13 +87,32 @@ describe('IndexedDbRemoteDocumentCache', () => {
     return;
   }
 
+  let cache: TestIndexedDbRemoteDocumentCache;
+  let persistence: IndexedDbPersistence;
   beforeEach(async () => {
     persistence = await persistenceHelpers.testIndexedDbPersistence({
       synchronizeTabs: true
     });
+    cache = new TestIndexedDbRemoteDocumentCache(persistence);
   });
 
   afterEach(() => persistence.shutdown(/* deleteData= */ true));
+
+  function addEntries(
+    txn: PersistenceTransaction,
+    cache: RemoteDocumentCache,
+    docs: MaybeDocument[]
+  ): PersistencePromise<void> {
+    const changeBuffer = cache.newChangeBuffer();
+    return PersistencePromise.forEach(docs, doc =>
+      changeBuffer.getEntry(txn, doc.key).next()
+    ).next(() => {
+      for (const doc of docs) {
+        changeBuffer.addEntry(doc);
+      }
+      return changeBuffer.apply(txn);
+    });
+  }
 
   it('can prune change log', async () => {
     // Add two change batches and remove the first one.
@@ -80,10 +120,12 @@ describe('IndexedDbRemoteDocumentCache', () => {
       'removeDocumentChangesThroughChangeId',
       'readwrite',
       txn => {
-        const cache = persistence.getRemoteDocumentCache() as IndexedDbRemoteDocumentCache;
-        return cache
-          .addEntries(txn, [doc('a/1', 1, DOC_DATA), doc('b/1', 2, DOC_DATA)])
-          .next(() => cache.addEntries(txn, [doc('c/1', 3, DOC_DATA)]))
+        const cache = persistence.getRemoteDocumentCache();
+        return addEntries(txn, cache, [
+          doc('a/1', 1, DOC_DATA),
+          doc('b/1', 2, DOC_DATA)
+        ])
+          .next(() => addEntries(txn, cache, [doc('c/1', 3, DOC_DATA)]))
           .next(() => cache.removeDocumentChangesThroughChangeId(txn, 1));
       }
     );
@@ -104,10 +146,6 @@ describe('IndexedDbRemoteDocumentCache', () => {
 
   it('skips previous changes', async () => {
     // Add a document to simulate a previous run.
-    let cache = new TestRemoteDocumentCache(
-      persistence,
-      persistence.getRemoteDocumentCache()
-    );
     await cache.addEntries([doc('a/1', 1, DOC_DATA)]);
     await persistence.shutdown(/* deleteData= */ false);
 
@@ -116,10 +154,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
       synchronizeTabs: true,
       dontPurgeData: true
     });
-    cache = new TestRemoteDocumentCache(
-      persistence,
-      persistence.getRemoteDocumentCache()
-    );
+    cache = new TestIndexedDbRemoteDocumentCache(persistence);
     const changedDocs = await cache.getNewDocumentChanges();
     assertMatches([], changedDocs);
   });
@@ -133,14 +168,8 @@ describe('IndexedDbRemoteDocumentCache', () => {
     // is missing. The test then uses `resetLastProcessedDocumentChange` to
     // simulate a successful recovery.
 
-    const writerCache = new TestRemoteDocumentCache(
-      persistence,
-      persistence.getRemoteDocumentCache()
-    );
-    const readerCache = new TestRemoteDocumentCache(
-      persistence,
-      new IndexedDbRemoteDocumentCache(INDEXEDDB_TEST_SERIALIZER, true)
-    );
+    const writerCache = new TestIndexedDbRemoteDocumentCache(persistence);
+    const readerCache = new TestIndexedDbRemoteDocumentCache(persistence);
 
     await writerCache.addEntries([doc('a/1', 1, DOC_DATA)]);
     let changedDocs = await readerCache.getNewDocumentChanges();
@@ -165,14 +194,97 @@ describe('IndexedDbRemoteDocumentCache', () => {
     assertMatches([doc('a/4', 4, DOC_DATA)], changedDocs);
   });
 
-  genericRemoteDocumentCacheTests();
+  genericRemoteDocumentCacheTests(() => Promise.resolve(cache));
+
+  lruRemoteDocumentCacheTests(() => Promise.resolve(cache));
 });
+
+function eagerRemoteDocumentCacheTests(
+  cachePromise: () => Promise<TestRemoteDocumentCache>
+): void {
+  let cache: TestRemoteDocumentCache;
+
+  beforeEach(async () => {
+    cache = await cachePromise();
+  });
+
+  it("doesn't keep track of size", async () => {
+    const initialSize = await cache.getSize();
+    expect(initialSize).to.equal(0);
+
+    const doc1 = doc('docs/foo', 1, { foo: false, bar: 4 });
+    const doc2 = doc('docs/bar', 2, { bar: 'yes', baz: 'also yes' });
+
+    await cache.addEntries([doc1]);
+    const doc1Size = await cache.getSize();
+    expect(doc1Size).to.equal(0);
+
+    await cache.addEntries([doc2]);
+    const totalSize = await cache.getSize();
+    expect(totalSize).to.equal(0);
+
+    const doc2Size = await cache.removeEntry(doc2.key);
+    expect(doc2Size).to.equal(0);
+
+    const currentSize = await cache.getSize();
+    expect(currentSize).to.equal(0);
+
+    const removedSize = await cache.removeEntry(doc1.key);
+    expect(removedSize).to.equal(0);
+
+    const finalSize = await cache.getSize();
+    expect(finalSize).to.equal(0);
+  });
+}
+
+function lruRemoteDocumentCacheTests(
+  cachePromise: () => Promise<TestRemoteDocumentCache>
+): void {
+  let cache: TestRemoteDocumentCache;
+
+  beforeEach(async () => {
+    cache = await cachePromise();
+  });
+
+  it('keeps track of size', async () => {
+    const initialSize = await cache.getSize();
+    expect(initialSize).to.equal(0);
+
+    const doc1 = doc('docs/foo', 1, { foo: false, bar: 4 });
+    const doc2 = doc('docs/bar', 2, { bar: 'yes', baz: 'also yes' });
+
+    // Our size calculation may change, so avoid using hardcoded sizes.
+
+    await cache.addEntries([doc1]);
+    const doc1Size = await cache.getSize();
+    expect(doc1Size).to.be.greaterThan(0);
+
+    await cache.addEntries([doc2]);
+    const totalSize = await cache.getSize();
+    expect(totalSize).to.be.greaterThan(doc1Size);
+
+    const expectedDoc2Size = totalSize - doc1Size;
+    const doc2Size = await cache.removeEntry(doc2.key);
+    expect(doc2Size).to.equal(expectedDoc2Size);
+
+    const currentSize = await cache.getSize();
+    expect(currentSize).to.equal(doc1Size);
+
+    const removedSize = await cache.removeEntry(doc1.key);
+    expect(removedSize).to.equal(doc1Size);
+
+    const finalSize = await cache.getSize();
+    expect(finalSize).to.equal(0);
+  });
+}
 
 /**
  * Defines the set of tests to run against both remote document cache
  * implementations.
  */
-function genericRemoteDocumentCacheTests(): void {
+function genericRemoteDocumentCacheTests(
+  cachePromise: () => Promise<TestRemoteDocumentCache>
+): void {
   let cache: TestRemoteDocumentCache;
 
   function setAndReadDocument(doc: MaybeDocument): Promise<void> {
@@ -186,11 +298,8 @@ function genericRemoteDocumentCacheTests(): void {
       });
   }
 
-  beforeEach(() => {
-    cache = new TestRemoteDocumentCache(
-      persistence,
-      persistence.getRemoteDocumentCache()
-    );
+  beforeEach(async () => {
+    cache = await cachePromise();
   });
 
   it('returns null for document not in cache', () => {
