@@ -1,4 +1,6 @@
 # Unreleased
+- [changed] Removed eval()-based fallback for JSON parsing, allowing SDK to
+  be used in environments that prohibit eval().
 
 # 0.8.3
 - [fixed] Fixed an issue that prevented query synchronization between multiple
