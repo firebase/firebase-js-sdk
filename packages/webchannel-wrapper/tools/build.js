@@ -33,7 +33,9 @@ closureBuilder.build({
       output_wrapper:
         "(function() {%output%}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {})",
       language_out: 'ECMASCRIPT5',
-      compilation_level: 'ADVANCED'
+      compilation_level: 'ADVANCED',
+      // Avoid unsafe eval() calls (https://github.com/firebase/firebase-js-sdk/issues/798)
+      define: 'goog.json.USE_NATIVE_JSON=true'
     }
   }
 });
@@ -47,7 +49,9 @@ closureBuilder.build(
     options: {
       closure: {
         language_out: 'ECMASCRIPT5',
-        compilation_level: 'ADVANCED'
+        compilation_level: 'ADVANCED',
+        // Avoid unsafe eval() calls (https://github.com/firebase/firebase-js-sdk/issues/798)
+        define: 'goog.json.USE_NATIVE_JSON=true'
       }
     }
   },
