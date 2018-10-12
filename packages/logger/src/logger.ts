@@ -42,7 +42,14 @@ export enum LogLevel {
 /**
  * The default log level
  */
-const defaultLogLevel: LogLevel = LogLevel.INFO;
+let defaultLogLevel: LogLevel = LogLevel.INFO;
+
+/**
+* Set the default log level
+*/
+export function setDefaultLogLevel(level: LogLevel) {
+  defaultLogLevel = level
+}
 
 /**
  * We allow users the ability to pass their own log handler. We will pass the

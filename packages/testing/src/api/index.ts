@@ -18,11 +18,14 @@ import { firebase } from '@firebase/app';
 import request from 'request-promise';
 import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import { base64 } from '@firebase/util';
+import { setLogLevel, LogLevel } from '@firebase/logger'
 
 /** The default url for the local database emulator. */
 const DBURL = 'http://localhost:9000';
 /** Passing this in tells the emulator to treat you as an admin. */
 const ADMIN_TOKEN = 'owner';
+/** Warnings aren't needed when product is in testing. */
+setLogLevel(LogLevel.ERROR);
 /** Create an unsecured JWT for the given auth payload. See https://tools.ietf.org/html/rfc7519#section-6. */
 function createUnsecuredJwt(auth: object): string {
   // Unsecured JWTs use "none" as the algorithm.
