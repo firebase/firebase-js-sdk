@@ -7847,8 +7847,7 @@ function testAuth_returnFromLinkWithRedirect_success_withoutPostBody() {
   var expectedCred = fireauth.GoogleAuthProvider.credential(null,
       'ACCESS_TOKEN');
   stubs.reset();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Expected link via redirect successful Auth event.
   var expectedAuthEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.LINK_VIA_REDIRECT,
@@ -7947,8 +7946,7 @@ function testAuth_returnFromLinkWithRedirect_success_withPostBody() {
   fireauth.AuthEventManager.ENABLED = true;
   var expectedEventId = '1234';
   stubs.reset();
-  // Simulate local storage change synchronized.
-  simulateLocalStorageSynchronized();
+  initializeMockStorage();
   // Expected link via redirect successful Auth event.
   var expectedAuthEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.LINK_VIA_REDIRECT,
