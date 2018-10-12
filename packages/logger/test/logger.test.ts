@@ -67,7 +67,7 @@ describe('@firebase/logger', () => {
     });
   }
 
-  describe('Defaults to LogLevel.NOTICE', () => {
+  describe('Defaults to LogLevel.INFO', () => {
     testLog(message, 'debug', false);
     testLog(message, 'log', false);
     testLog(message, 'info', true);
