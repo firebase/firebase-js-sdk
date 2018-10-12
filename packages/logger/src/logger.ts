@@ -45,10 +45,10 @@ export enum LogLevel {
 let defaultLogLevel: LogLevel = LogLevel.INFO;
 
 /**
-* Set the default log level
-*/
+ * Set the default log level
+ */
 export function setDefaultLogLevel(level: LogLevel) {
-  defaultLogLevel = level
+  defaultLogLevel = level;
 }
 
 /**

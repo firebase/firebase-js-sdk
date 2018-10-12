@@ -67,20 +67,20 @@ describe('@firebase/logger', () => {
     });
   }
 
+  describe('Defaults to LogLevel.NOTICE', () => {
+    testLog(message, 'debug', false);
+    testLog(message, 'log', false);
+    testLog(message, 'info', true);
+    testLog(message, 'warn', true);
+    testLog(message, 'error', true);
+  });
+
   describe('Class instance methods', () => {
     beforeEach(() => {
       setLogLevel(LogLevel.DEBUG);
     });
     testLog(message, 'debug', true);
     testLog(message, 'log', true);
-    testLog(message, 'info', true);
-    testLog(message, 'warn', true);
-    testLog(message, 'error', true);
-  });
-
-  describe('Defaults to LogLevel.NOTICE', () => {
-    testLog(message, 'debug', false);
-    testLog(message, 'log', false);
     testLog(message, 'info', true);
     testLog(message, 'warn', true);
     testLog(message, 'error', true);
