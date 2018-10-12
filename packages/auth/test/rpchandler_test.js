@@ -5269,6 +5269,98 @@ function testGetAuthUri_success() {
 
 
 /**
+ * Tests successful getAuthUri request for a SAML Auth flow.
+ */
+function testGetAuthUri_success_saml() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  var expectedResponse = {
+    'authUri': 'https://www.example.com/samlp/?SAMLRequest=1234567890',
+    'providerId': 'saml.provider',
+    'registered': false,
+    'sessionId': 'SESSION_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuth' +
+      'Uri?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'providerId': 'saml.provider',
+        'continueUri': 'http://localhost/widget'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.getAuthUri(
+      'saml.provider',
+      'http://localhost/widget',
+      // Custom parameters should be ignored.
+      expectedCustomParameters,
+      // Scopes should be ignored.
+      ['scope1', 'scope2', 'scope3'],
+      null).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests getAuthUri request with no continue URI.
+ */
+function testGetAuthUri_error_missingContinueUri() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.MISSING_CONTINUE_URI);
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.getAuthUri(
+      'saml.provider',
+      null,
+      // Custom parameters should be ignored.
+      expectedCustomParameters,
+      // Scopes should be ignored.
+      ['scope1', 'scope2', 'scope3'],
+      'user@example.com').thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests getAuthUri request with no provider ID.
+ */
+function testGetAuthUri_error_missingProviderId() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.INTERNAL_ERROR,
+      'A provider ID must be provided in the request.');
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.getAuthUri(
+      // No provider ID.
+      null,
+      'http://localhost/widget',
+      // Custom parameters should be ignored.
+      expectedCustomParameters,
+      // Scopes should be ignored.
+      ['scope1', 'scope2', 'scope3'],
+      'user@example.com').thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
  * Tests server side getAuthUri error.
  */
 function testGetAuthUri_caughtServerError() {

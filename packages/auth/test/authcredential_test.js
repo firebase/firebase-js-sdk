@@ -34,6 +34,7 @@ goog.require('fireauth.OAuthProvider');
 goog.require('fireauth.PhoneAuthCredential');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.RpcHandler');
+goog.require('fireauth.SAMLAuthProvider');
 goog.require('fireauth.TwitterAuthProvider');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.common.testHelper');
@@ -537,6 +538,43 @@ function testOAuthCredential_matchIdTokenWithUid() {
         '&providerId=example.com'
   });
   return p;
+}
+
+
+function testSAMLAuthProvider_constructor() {
+  var provider = new fireauth.SAMLAuthProvider('saml.provider');
+  assertTrue(provider['isOAuthProvider']);
+  assertEquals('saml.provider', provider['providerId']);
+  // Should not throw an error.
+  assertNotThrows(function() {
+    fireauth.AuthProvider.checkIfOAuthSupported(provider);
+  });
+  // This is unused as of now and no reserved parameters used.
+  var expectedParameters = {
+    // Valid Facebook OAuth 2.0 parameters.
+    'display': 'popup',
+    'auth_type': 'rerequest',
+    'locale': 'pt_BR',
+    // Reserved parameters below should be filtered out.
+    'client_id': 'CLIENT_ID',
+    'response_type': 'token',
+    'scope': 'scope1',
+    'redirect_uri': 'https://www.evil.com',
+    'state': 'STATE'
+  };
+  provider.setCustomParameters(expectedParameters);
+  assertObjectEquals(expectedParameters, provider.getCustomParameters());
+  assertNull(fireauth.AuthProvider.getCredentialFromResponse({
+    'providerId': 'saml.provider'
+  }));
+}
+
+
+function testSAMLAuthProvider_invalid() {
+  // SAML provider initialized with an invalid provider ID.
+  assertThrows(function() {
+    new fireauth.SAMLAuthProvider('provider.com');
+  });
 }
 
 

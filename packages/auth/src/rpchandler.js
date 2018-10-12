@@ -25,6 +25,7 @@ goog.provide('fireauth.XmlHttpFactory');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.AuthErrorWithCredential');
 goog.require('fireauth.authenum.Error');
+goog.require('fireauth.idp');
 goog.require('fireauth.idp.ProviderId');
 goog.require('fireauth.object');
 goog.require('fireauth.util');
@@ -868,6 +869,8 @@ fireauth.RpcHandler.prototype.getAuthUri = function(
     opt_additionalScopes,
     opt_email,
     opt_sessionId) {
+  // SAML provider request is constructed differently than OAuth requests.
+  var isSaml = fireauth.idp.isSaml(providerId);
   var request = {
     'identifier': opt_email,
     'providerId': providerId,
@@ -877,6 +880,11 @@ fireauth.RpcHandler.prototype.getAuthUri = function(
         providerId, opt_additionalScopes),
     'sessionId': opt_sessionId
   };
+  // Custom parameters and OAuth scopes should be ignored.
+  if (isSaml) {
+    delete request['customParameter'];
+    delete request['oauthScope'];
+  }
   // When sessionId is provided, mobile flow (Cordova) is being used, force
   // code flow and not implicit flow. All other providers use code flow by
   // default.
@@ -1226,6 +1234,24 @@ fireauth.RpcHandler.validateCreateAccountRequest_ = function(request) {
   fireauth.RpcHandler.validateRequestHasEmail_(request);
   if (!request['password']) {
     throw new fireauth.AuthError(fireauth.authenum.Error.WEAK_PASSWORD);
+  }
+};
+
+
+/**
+ * Validates a request to createAuthUri.
+ * @param {!Object} request
+ * @private
+ */
+fireauth.RpcHandler.validateGetAuthUriRequest_ = function(request) {
+  if (!request['continueUri']) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.MISSING_CONTINUE_URI);
+  }
+  // Either a SAML or non SAML providerId must be provided.
+  if (!request['providerId']) {
+    throw new fireauth.AuthError(
+        fireauth.authenum.Error.INTERNAL_ERROR,
+        'A provider ID must be provided in the request.');
   }
 };
 
@@ -1946,7 +1972,7 @@ fireauth.RpcHandler.ApiMethod = {
   },
   GET_AUTH_URI: {
     endpoint: 'createAuthUri',
-    requestRequiredFields: ['continueUri', 'providerId'],
+    requestValidator: fireauth.RpcHandler.validateGetAuthUriRequest_,
     responseValidator: fireauth.RpcHandler.validateGetAuthResponse_
   },
   GET_EMAIL_SIGNIN_CODE: {

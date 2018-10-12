@@ -31,6 +31,7 @@ goog.provide('fireauth.OAuthProvider');
 goog.provide('fireauth.OAuthResponse');
 goog.provide('fireauth.PhoneAuthCredential');
 goog.provide('fireauth.PhoneAuthProvider');
+goog.provide('fireauth.SAMLAuthProvider');
 goog.provide('fireauth.TwitterAuthProvider');
 
 goog.require('fireauth.ActionCodeUrl');
@@ -38,6 +39,7 @@ goog.require('fireauth.AuthError');
 goog.require('fireauth.DynamicLink');
 goog.require('fireauth.IdToken');
 goog.require('fireauth.authenum.Error');
+goog.require('fireauth.constants');
 goog.require('fireauth.idp');
 goog.require('fireauth.object');
 goog.require('fireauth.util');
@@ -369,6 +371,31 @@ fireauth.FederatedProvider.prototype.getCustomParameters = function() {
   }
   return customParams;
 };
+
+
+/**
+ * Generic SAML auth provider.
+ * @param {string} providerId The SAML IdP provider ID (e.g. saml.saml2rp)
+ *     registered with the backend.
+ * @constructor
+ * @extends {fireauth.FederatedProvider}
+ * @implements {fireauth.AuthProvider}
+ */
+fireauth.SAMLAuthProvider = function(providerId) {
+  // SAML provider IDs must be prefixed with the SAML_PREFIX.
+  if (!fireauth.idp.isSaml(providerId)) {
+    throw new fireauth.AuthError(
+        fireauth.authenum.Error.ARGUMENT_ERROR,
+        'SAML provider IDs must be prefixed with "' +
+        fireauth.constants.SAML_PREFIX + '"');
+  }
+  // isOAuthProvider is true even though this is not an OAuth provider.
+  // This can be confusing as this is a SAML provider. However, this property
+  // is needed to allow signInWithPopup/Redirect. We should rename it to
+  // something more accurate: isFederatedProvider.
+  fireauth.SAMLAuthProvider.base(this, 'constructor', providerId, []);
+};
+goog.inherits(fireauth.SAMLAuthProvider, fireauth.FederatedProvider);
 
 
 /**
@@ -1094,6 +1121,10 @@ fireauth.AuthProvider.getCredentialFromResponse = function(response) {
             accessToken, accessTokenSecret);
 
       default:
+        // Typical for SAML response.
+        if (!accessToken && !accessTokenSecret && !idToken) {
+          return null;
+        }
         return new fireauth.OAuthProvider(providerId).credential(
             idToken, accessToken);
     }
