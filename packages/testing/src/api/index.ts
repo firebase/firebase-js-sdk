@@ -24,8 +24,6 @@ import { setLogLevel, LogLevel } from '@firebase/logger';
 const DBURL = 'http://localhost:9000';
 /** Passing this in tells the emulator to treat you as an admin. */
 const ADMIN_TOKEN = 'owner';
-/** Warnings aren't needed when product is in testing. */
-setLogLevel(LogLevel.ERROR);
 /** Create an unsecured JWT for the given auth payload. See https://tools.ietf.org/html/rfc7519#section-6. */
 function createUnsecuredJwt(auth: object): string {
   // Unsecured JWTs use "none" as the algorithm.
@@ -104,6 +102,11 @@ function initializeApp(
       timestampsInSnapshots: true
     });
   }
+/**
+  Mute warnings for the previously-created database and whatever other
+  objects were just created.
+ */
+  setLogLevel(LogLevel.ERROR);
   return app;
 }
 
