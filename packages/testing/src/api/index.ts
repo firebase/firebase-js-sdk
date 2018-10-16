@@ -18,6 +18,7 @@ import { firebase } from '@firebase/app';
 import request from 'request-promise';
 import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import { base64 } from '@firebase/util';
+import { setLogLevel, LogLevel } from '@firebase/logger';
 
 /** The default url for the local database emulator. */
 const DBURL = 'http://localhost:9000';
@@ -101,6 +102,11 @@ function initializeApp(
       timestampsInSnapshots: true
     });
   }
+/**
+  Mute warnings for the previously-created database and whatever other
+  objects were just created.
+ */
+  setLogLevel(LogLevel.ERROR);
   return app;
 }
 
