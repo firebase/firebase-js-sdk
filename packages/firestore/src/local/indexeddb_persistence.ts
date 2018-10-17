@@ -1161,9 +1161,11 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
           const p = this.isPinned(txn, docKey).next(isPinned => {
             if (!isPinned) {
               count++;
-              return this.removeOrphanedDocument(txn, docKey).next(documentBytes => {
-                bytesRemoved += documentBytes;
-              });
+              return this.removeOrphanedDocument(txn, docKey).next(
+                documentBytes => {
+                  bytesRemoved += documentBytes;
+                }
+              );
             }
           });
           promises.push(p);
@@ -1174,7 +1176,9 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     // removal promises to the array.
     return iteration
       .next(() => PersistencePromise.waitFor(promises))
-      .next(() => this.db.getRemoteDocumentCache().updateSize(txn, -bytesRemoved))
+      .next(() =>
+        this.db.getRemoteDocumentCache().updateSize(txn, -bytesRemoved)
+      )
       .next(() => count);
   }
 

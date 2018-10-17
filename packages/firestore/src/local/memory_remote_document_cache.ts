@@ -31,9 +31,7 @@ import { assert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import {
-  RemoteDocumentCache
-} from './remote_document_cache';
+import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
 export type DocumentSizer = (doc: MaybeDocument) => number;
@@ -95,7 +93,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     const entry = this.docs.get(documentKey);
     return PersistencePromise.resolve(entry ? entry.maybeDocument : null);
   }
-
 
   /**
    * Looks up an entry in the cache.

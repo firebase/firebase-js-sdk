@@ -42,9 +42,7 @@ import {
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import {
-  RemoteDocumentCache
-} from './remote_document_cache';
+import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
@@ -157,7 +155,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           : null;
       });
   }
-
 
   /**
    * Looks up an entry in the cache.
@@ -316,10 +313,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     txn: PersistenceTransaction,
     metadata: DbRemoteDocumentGlobal
   ): PersistencePromise<void> {
-    return documentGlobalStore(txn).put(
-      DbRemoteDocumentGlobal.key,
-      metadata
-    );
+    return documentGlobalStore(txn).put(DbRemoteDocumentGlobal.key, metadata);
   }
 
   /**
@@ -428,14 +422,14 @@ function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {
  */
 export function dbDocumentSize(doc: DbRemoteDocument): number {
   let value: AnyJs;
-    if (doc.document) {
-      value = doc.document;
-    } else if (doc.unknownDocument) {
-      value = doc.unknownDocument;
-    } else if (doc.noDocument) {
-      value = doc.noDocument;
-    } else {
-      throw fail('Unknown remote document type');
-    }
-    return JSON.stringify(value).length;
+  if (doc.document) {
+    value = doc.document;
+  } else if (doc.unknownDocument) {
+    value = doc.unknownDocument;
+  } else if (doc.noDocument) {
+    value = doc.noDocument;
+  } else {
+    throw fail('Unknown remote document type');
+  }
+  return JSON.stringify(value).length;
 }
