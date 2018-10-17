@@ -17,13 +17,13 @@
 import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import { assert, fail } from '../util/assert';
+import { assert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { AnyJs } from '../util/misc';
 import { encode, EncodedResourcePath } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
+import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import { LocalSerializer } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
@@ -125,7 +125,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     return txn
       .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
       .iterate((_, doc) => {
-        byteCount += DbRemoteDocument.size(doc);
+        byteCount += dbDocumentSize(doc);
       })
       .next(() => {
         const metadata = new DbRemoteDocumentMetadata(byteCount);
@@ -463,20 +463,6 @@ export class DbUnknownDocument {
  */
 export class DbRemoteDocument {
   static store = 'remoteDocuments';
-
-  static size(doc: DbRemoteDocument): number {
-    let value: AnyJs;
-    if (doc.document) {
-      value = doc.document;
-    } else if (doc.unknownDocument) {
-      value = doc.unknownDocument;
-    } else if (doc.noDocument) {
-      value = doc.noDocument;
-    } else {
-      throw fail('Unknown remote document type');
-    }
-    return JSON.stringify(value).length;
-  }
 
   constructor(
     /**

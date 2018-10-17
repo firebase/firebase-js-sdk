@@ -26,8 +26,9 @@ import { Document, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert } from '../util/assert';
+import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import { AnyJs } from '../util/misc';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
@@ -138,7 +139,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     const key = dbKey(documentKey);
     return store.get(key).next(document => {
       if (document) {
-        return store.delete(key).next(() => DbRemoteDocument.size(document));
+        return store.delete(key).next(() => dbDocumentSize(document));
       } else {
         return PersistencePromise.resolve(0);
       }
@@ -168,7 +169,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         return dbRemoteDoc
           ? {
               maybeDocument: this.serializer.fromDbRemoteDocument(dbRemoteDoc),
-              size: DbRemoteDocument.size(dbRemoteDoc)
+              size: dbDocumentSize(dbRemoteDoc)
             }
           : null;
       });
@@ -364,7 +365,7 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
         previousSize !== undefined,
         `Attempting to change document ${key.toString()} without having read it first`
       );
-      const size = DbRemoteDocument.size(doc);
+      const size = dbDocumentSize(doc);
       delta += size - previousSize!;
       toApply.push({ key, doc });
     });
@@ -414,4 +415,21 @@ function documentChangesStore(
 
 function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {
   return docKey.path.toArray();
+}
+
+/**
+ * Retrusn an approximate size for the given document.
+ */
+export function dbDocumentSize(doc: DbRemoteDocument): number {
+  let value: AnyJs;
+    if (doc.document) {
+      value = doc.document;
+    } else if (doc.unknownDocument) {
+      value = doc.unknownDocument;
+    } else if (doc.noDocument) {
+      value = doc.noDocument;
+    } else {
+      throw fail('Unknown remote document type');
+    }
+    return JSON.stringify(value).length;
 }
