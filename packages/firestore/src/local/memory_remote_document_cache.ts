@@ -20,7 +20,6 @@ import {
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
-  documentSizeMap,
   MaybeDocumentMap,
   maybeDocumentMap
 } from '../model/collections';
@@ -29,6 +28,7 @@ import { DocumentKey } from '../model/document_key';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert } from '../util/assert';
+import { SortedMap } from '../util/sorted_map';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
@@ -37,6 +37,11 @@ import {
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
 export type DocumentSizer = (doc: MaybeDocument) => number;
+
+type DocumentSizeMap = SortedMap<DocumentKey, DocumentSizeEntry>;
+function documentSizeMap(): DocumentSizeMap {
+  return new SortedMap<DocumentKey, DocumentSizeEntry>(DocumentKey.comparator);
+}
 
 export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private docs = documentSizeMap();
@@ -91,6 +96,13 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     return PersistencePromise.resolve(entry ? entry.maybeDocument : null);
   }
 
+
+  /**
+   * Looks up an entry in the cache.
+   *
+   * @param documentKey The key of the entry to look up.
+   * @return The cached MaybeDocument entry and its size, or null if we have nothing cached.
+   */
   getSizedEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
