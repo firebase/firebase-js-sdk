@@ -1152,6 +1152,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     upperBound: ListenSequenceNumber
   ): PersistencePromise<number> {
     let count = 0;
+    let bytesRemoved = 0;
     const promises: Array<PersistencePromise<void>> = [];
     const iteration = this.forEachOrphanedDocument(
       txn,
@@ -1160,7 +1161,9 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
           const p = this.isPinned(txn, docKey).next(isPinned => {
             if (!isPinned) {
               count++;
-              return this.removeOrphanedDocument(txn, docKey);
+              return this.removeOrphanedDocument(txn, docKey).next(documentBytes => {
+                bytesRemoved += documentBytes;
+              });
             }
           });
           promises.push(p);
@@ -1171,6 +1174,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     // removal promises to the array.
     return iteration
       .next(() => PersistencePromise.waitFor(promises))
+      .next(() => this.db.getRemoteDocumentCache().updateSize(txn, -bytesRemoved))
       .next(() => count);
   }
 
@@ -1182,7 +1186,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   private removeOrphanedDocument(
     txn: PersistenceTransaction,
     docKey: DocumentKey
-  ): PersistencePromise<void> {
+  ): PersistencePromise<number> {
     let totalBytesRemoved = 0;
     const documentCache = this.db.getRemoteDocumentCache();
     return PersistencePromise.waitFor([
@@ -1190,7 +1194,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
       documentCache.removeEntry(txn, docKey).next(bytesRemoved => {
         totalBytesRemoved += bytesRemoved;
       })
-    ]).next(() => documentCache.updateSize(txn, -totalBytesRemoved));
+    ]).next(() => totalBytesRemoved);
   }
 
   removeTarget(
