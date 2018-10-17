@@ -499,6 +499,10 @@ export class DbRemoteDocumentGlobal {
 
   static key = 'remoteDocumentGlobalKey';
 
+  /**
+   * @param byteSize Approximately the total size in bytes of all the documents in the document
+   * cache.
+   */
   constructor(public byteSize: number) {}
 }
 
