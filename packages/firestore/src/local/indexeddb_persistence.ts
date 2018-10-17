@@ -65,7 +65,6 @@ import {
 import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
-import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
@@ -257,8 +256,8 @@ export class IndexedDbPersistence implements Persistence {
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
-  private queryCache: IndexedDbQueryCache;
-  private remoteDocumentCache: IndexedDbRemoteDocumentCache;
+  private readonly queryCache: IndexedDbQueryCache;
+  private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage;
   private listenSequence: ListenSequence;
   readonly referenceDelegate: IndexedDbLruDelegate;
@@ -743,7 +742,7 @@ export class IndexedDbPersistence implements Persistence {
     return this.queryCache;
   }
 
-  getRemoteDocumentCache(): RemoteDocumentCache {
+  getRemoteDocumentCache(): IndexedDbRemoteDocumentCache {
     assert(
       this.started,
       'Cannot initialize RemoteDocumentCache before persistence is started.'
@@ -1153,6 +1152,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     upperBound: ListenSequenceNumber
   ): PersistencePromise<number> {
     let count = 0;
+    let bytesRemoved = 0;
     const promises: Array<PersistencePromise<void>> = [];
     const iteration = this.forEachOrphanedDocument(
       txn,
@@ -1161,7 +1161,11 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
           const p = this.isPinned(txn, docKey).next(isPinned => {
             if (!isPinned) {
               count++;
-              return this.removeOrphanedDocument(txn, docKey);
+              return this.removeOrphanedDocument(txn, docKey).next(
+                documentBytes => {
+                  bytesRemoved += documentBytes;
+                }
+              );
             }
           });
           promises.push(p);
@@ -1172,6 +1176,9 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     // removal promises to the array.
     return iteration
       .next(() => PersistencePromise.waitFor(promises))
+      .next(() =>
+        this.db.getRemoteDocumentCache().updateSize(txn, -bytesRemoved)
+      )
       .next(() => count);
   }
 
@@ -1183,11 +1190,15 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
   private removeOrphanedDocument(
     txn: PersistenceTransaction,
     docKey: DocumentKey
-  ): PersistencePromise<void> {
+  ): PersistencePromise<number> {
+    let totalBytesRemoved = 0;
+    const documentCache = this.db.getRemoteDocumentCache();
     return PersistencePromise.waitFor([
       documentTargetStore(txn).delete(sentinelKey(docKey)),
-      this.db.getRemoteDocumentCache().removeEntry(txn, docKey)
-    ]);
+      documentCache.removeEntry(txn, docKey).next(bytesRemoved => {
+        totalBytesRemoved += bytesRemoved;
+      })
+    ]).next(() => totalBytesRemoved);
   }
 
   removeTarget(

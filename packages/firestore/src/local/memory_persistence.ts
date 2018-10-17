@@ -15,11 +15,16 @@
  */
 
 import { User } from '../auth/user';
+import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { JsonProtoSerializer } from '../remote/serializer';
+import { fail } from '../util/assert';
 import { debug } from '../util/log';
+import { AnyJs } from '../util/misc';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { encode } from './encoded_resource_path';
+import { LocalSerializer } from './local_serializer';
 import {
   ActiveTargets,
   LruDelegate,
@@ -58,30 +63,46 @@ export class MemoryPersistence implements Persistence {
    * persisting values.
    */
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
-  private remoteDocumentCache = new MemoryRemoteDocumentCache();
-  private readonly queryCache: MemoryQueryCache; // = new MemoryQueryCache();
+  private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
+  private readonly queryCache: MemoryQueryCache;
   private readonly listenSequence = new ListenSequence(0);
 
   private _started = false;
 
   readonly referenceDelegate: MemoryLruDelegate | MemoryEagerDelegate;
 
-  static createLruPersistence(clientId: ClientId): MemoryPersistence {
-    return new MemoryPersistence(clientId, /* isEager= */ false);
+  static createLruPersistence(
+    clientId: ClientId,
+    serializer: JsonProtoSerializer
+  ): MemoryPersistence {
+    return new MemoryPersistence(clientId, /* isEager= */ false, serializer);
   }
 
-  static createEagerPersistence(clientId: ClientId): MemoryPersistence {
-    return new MemoryPersistence(clientId, /* isEager= */ true);
+  static createEagerPersistence(
+    clientId: ClientId,
+    serializer: JsonProtoSerializer
+  ): MemoryPersistence {
+    return new MemoryPersistence(clientId, /* isEager= */ true, serializer);
   }
 
-  private constructor(private readonly clientId: ClientId, isEager: boolean) {
+  private constructor(
+    private readonly clientId: ClientId,
+    isEager: boolean,
+    serializer: JsonProtoSerializer
+  ) {
     this._started = true;
     if (isEager) {
       this.referenceDelegate = new MemoryEagerDelegate(this);
     } else {
-      this.referenceDelegate = new MemoryLruDelegate(this);
+      this.referenceDelegate = new MemoryLruDelegate(
+        this,
+        new LocalSerializer(serializer)
+      );
     }
     this.queryCache = new MemoryQueryCache(this);
+    const sizer = (doc: MaybeDocument) =>
+      this.referenceDelegate.documentSize(doc);
+    this.remoteDocumentCache = new MemoryRemoteDocumentCache(sizer);
   }
 
   shutdown(deleteData?: boolean): Promise<void> {
@@ -223,7 +244,10 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     return PersistencePromise.forEach(this.orphanedDocuments, key => {
       return this.isReferenced(txn, key).next(isReferenced => {
         if (!isReferenced) {
-          return cache.removeEntry(txn, key);
+          // Since this is the eager delegate and memory persistence,
+          // we don't care about the size of documents. We don't track
+          // the size of the cache for eager GC.
+          return cache.removeEntry(txn, key).next();
         }
       });
     });
@@ -240,6 +264,11 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
         this.orphanedDocuments.add(key);
       }
     });
+  }
+
+  documentSize(doc: MaybeDocument): number {
+    // For eager GC, we don't care about the document size, there are no size thresholds.
+    return 0;
   }
 
   private isReferenced(
@@ -263,7 +292,10 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   readonly garbageCollector: LruGarbageCollector;
 
-  constructor(private readonly persistence: MemoryPersistence) {
+  constructor(
+    private readonly persistence: MemoryPersistence,
+    private readonly serializer: LocalSerializer
+  ) {
     this.garbageCollector = new LruGarbageCollector(this);
   }
 
@@ -334,7 +366,10 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
           return PersistencePromise.resolve();
         } else {
           count++;
-          return cache.removeEntry(txn, key);
+          // The memory remote document cache does its own byte
+          // accounting on removal. This is ok because updating the size
+          // for memory persistence does not incur IO.
+          return cache.removeEntry(txn, key).next();
         }
       });
     });
@@ -381,6 +416,21 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<void> {
     this.orphanedSequenceNumbers.set(key, txn.currentSequenceNumber);
     return PersistencePromise.resolve();
+  }
+
+  documentSize(maybeDoc: MaybeDocument): number {
+    const remoteDocument = this.serializer.toDbRemoteDocument(maybeDoc);
+    let value: AnyJs;
+    if (remoteDocument.document) {
+      value = remoteDocument.document;
+    } else if (remoteDocument.unknownDocument) {
+      value = remoteDocument.unknownDocument;
+    } else if (remoteDocument.noDocument) {
+      value = remoteDocument.noDocument;
+    } else {
+      throw fail('Unknown remote document type');
+    }
+    return JSON.stringify(value).length;
   }
 
   private isPinned(

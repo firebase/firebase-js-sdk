@@ -23,6 +23,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { encode, EncodedResourcePath } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
+import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import { LocalSerializer } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
@@ -39,7 +40,7 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 4. Multi-Tab Support.
  * 5. Removal of held write acks.
  */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 6;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -107,7 +108,33 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       p = p.next(() => this.removeAcknowledgedMutations(txn));
     }
 
+    if (fromVersion < 6 && toVersion >= 6) {
+      p = p.next(() => {
+        createDocumentGlobalStore(db);
+        return this.addDocumentGlobal(txn);
+      });
+    }
+
     return p;
+  }
+
+  private addDocumentGlobal(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    let byteCount = 0;
+    return txn
+      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+      .iterate((_, doc) => {
+        byteCount += dbDocumentSize(doc);
+      })
+      .next(() => {
+        const metadata = new DbRemoteDocumentGlobal(byteCount);
+        return txn
+          .store<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
+            DbRemoteDocumentGlobal.store
+          )
+          .put(DbRemoteDocumentGlobal.key, metadata);
+      });
   }
 
   private removeAcknowledgedMutations(
@@ -465,6 +492,27 @@ export class DbRemoteDocument {
 }
 
 /**
+ * Contains a single entry that has metadata about the remote document cache.
+ */
+export class DbRemoteDocumentGlobal {
+  static store = 'remoteDocumentGlobal';
+
+  static key = 'remoteDocumentGlobalKey';
+
+  /**
+   * @param byteSize Approximately the total size in bytes of all the documents in the document
+   * cache.
+   */
+  constructor(public byteSize: number) {}
+}
+
+export type DbRemoteDocumentGlobalKey = typeof DbRemoteDocumentGlobal.key;
+
+function createDocumentGlobalStore(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocumentGlobal.store);
+}
+
+/**
  * A key in the 'targets' object store is a targetId of the query.
  */
 export type DbTargetKey = TargetId;
@@ -814,9 +862,13 @@ export const V4_STORES = [
   DbRemoteDocumentChanges.store
 ];
 
+// V5 does not change the set of stores.
+
+export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
+
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = V4_STORES;
+export const ALL_STORES = V6_STORES;

@@ -39,7 +39,7 @@ import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { ReferenceSet } from '../../../src/local/reference_set';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { documentKeySet } from '../../../src/model/collections';
-import { Document } from '../../../src/model/document';
+import { Document, MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
   Mutation,
@@ -233,11 +233,22 @@ function genericLruGarbageCollectorTests(
     );
   }
 
+  function saveDocument(
+    txn: PersistenceTransaction,
+    doc: MaybeDocument
+  ): PersistencePromise<void> {
+    const changeBuffer = documentCache.newChangeBuffer();
+    return changeBuffer.getEntry(txn, doc.key).next(() => {
+      changeBuffer.addEntry(doc);
+      return changeBuffer.apply(txn);
+    });
+  }
+
   function cacheADocumentInTransaction(
     txn: PersistenceTransaction
   ): PersistencePromise<DocumentKey> {
     const doc = nextTestDocument();
-    return documentCache.addEntries(txn, [doc]).next(() => doc.key);
+    return saveDocument(txn, doc).next(() => doc.key);
   }
 
   function mutation(key: DocumentKey): Mutation {
@@ -535,6 +546,17 @@ function genericLruGarbageCollectorTests(
     const expectedRetained = new Set<DocumentKey>();
     const expectedRemoved = new Set<DocumentKey>();
 
+    // Verify that the size of the remote document cache behaves rationally. We don't
+    // verify exact numbers since the sizing algorithm is subject to change. But, we
+    // can verify that it starts at 0, goes up to some number, and then goes down when
+    // we remove documents.
+    const initialSize = await persistence.runTransaction(
+      'get size',
+      'readonly',
+      txn => persistence.getRemoteDocumentCache().getSize(txn)
+    );
+    expect(initialSize).to.equal(0);
+
     // Add oldest target, 5 documents, and add those documents to the target.
     // This target will not be removed, so all documents that are part of it
     // will be retained.
@@ -739,7 +761,7 @@ function genericLruGarbageCollectorTests(
           wrapObject({ foo: 4, bar: true }),
           {}
         );
-        return documentCache.addEntries(txn, [doc]).next(() => {
+        return saveDocument(txn, doc).next(() => {
           return updateTargetInTransaction(txn, middleTarget);
         });
       }
@@ -772,6 +794,13 @@ function genericLruGarbageCollectorTests(
     const activeTargetIds: ActiveTargets = {};
     activeTargetIds[oldestTarget.targetId] = {};
 
+    const preCollectSize = await persistence.runTransaction(
+      'get size',
+      'readonly',
+      txn => persistence.getRemoteDocumentCache().getSize(txn)
+    );
+    expect(preCollectSize).to.be.greaterThan(initialSize);
+
     // Expect to remove newest target
     const removed = await removeTargets(upperBound, activeTargetIds);
     expect(removed).to.equal(1);
@@ -791,5 +820,12 @@ function genericLruGarbageCollectorTests(
       });
       return p;
     });
+
+    const postCollectSize = await persistence.runTransaction(
+      'get size',
+      'readonly',
+      txn => persistence.getRemoteDocumentCache().getSize(txn)
+    );
+    expect(postCollectSize).to.be.lessThan(preCollectSize);
   });
 }
