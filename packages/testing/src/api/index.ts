@@ -21,19 +21,19 @@ import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 
 /** If this environment variable is set, use it for the database emulator's address. */
-const DATABASE_ADDRESS_ENV = 'FIREBASE_DATABASE_EMULATOR_ADDRESS';
+const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_ADDRESS';
 /** The default address for the local database emulator. */
-const DATABASE_ADDRESS_DEFAULT = 'localhost:9000';
+const DATABASE_ADDRESS_DEFAULT: string = 'localhost:9000';
 /** The actual address for the database emulator */
-const DATABASE_ADDRESS =
+const DATABASE_ADDRESS: string =
   process.env[DATABASE_ADDRESS_ENV] || DATABASE_ADDRESS_DEFAULT;
 
 /** If this environment variable is set, use it for the Firestore emulator. */
-const FIRESTORE_ADDRESS_ENV = 'FIREBASE_FIRESTORE_EMULATOR_ADDRESS';
+const FIRESTORE_ADDRESS_ENV: string = 'FIREBASE_FIRESTORE_EMULATOR_ADDRESS';
 /** The default address for the local Firestore emulator. */
-const FIRESTORE_ADDRESS_DEFAULT = 'localhost:8080';
+const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
 /** The actual address for the Firestore emulator */
-const FIRESTORE_ADDRESS =
+const FIRESTORE_ADDRESS: string =
   process.env[FIRESTORE_ADDRESS_ENV] || FIRESTORE_ADDRESS_DEFAULT;
 
 /** Passing this in tells the emulator to treat you as an admin. */
