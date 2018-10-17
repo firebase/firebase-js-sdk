@@ -15,8 +15,8 @@ packages/firestore-types  @mikelehen @schmidt-sebastian @wilhuff @gsoltis @var-c
 integration/firestore  @mikelehen @schmidt-sebastian @wilhuff @gsoltis @var-const @rsgowman @zxu123
 
 # Storage Code
-packages/storage  @sphippen
-packages/storage-types  @sphippen
+packages/storage  @schmidt-sebastian
+packages/storage-types  @schmidt-sebastian
 
 # Messaging Code
 packages/messaging  @gauntface @pinarx @mmermerkaya @dwoffinden
