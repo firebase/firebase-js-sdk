@@ -102,7 +102,7 @@ function initializeApp(
       timestampsInSnapshots: true
     });
   }
-/**
+  /**
   Mute warnings for the previously-created database and whatever other
   objects were just created.
  */
