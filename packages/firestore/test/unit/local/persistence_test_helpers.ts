@@ -50,12 +50,12 @@ export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
   writeSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}
 };
 
-/** The Database ID used by most tests that access IndexedDb. */
-export const INDEXEDDB_TEST_DATABASE_ID = new DatabaseId('test-project');
+/** The Database ID used by most tests that use a serializer. */
+export const TEST_DATABASE_ID = new DatabaseId('test-project');
 
-/** The DatabaseInfo used by most tests that access IndexedDb. */
-const INDEXEDDB_TEST_DATABASE_INFO = new DatabaseInfo(
-  INDEXEDDB_TEST_DATABASE_ID,
+/** The DatabaseInfo used by tests that need a serializer. */
+const TEST_DATABASE_INFO = new DatabaseInfo(
+  TEST_DATABASE_ID,
   '[PersistenceTestHelpers]',
   'host',
   /*ssl=*/ false
@@ -63,27 +63,27 @@ const INDEXEDDB_TEST_DATABASE_INFO = new DatabaseInfo(
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = IndexedDbPersistence.buildStoragePrefix(
-  INDEXEDDB_TEST_DATABASE_INFO
+  TEST_DATABASE_INFO
 );
 
 /**
  * The database name used by tests that access IndexedDb. To be used in
- * conjunction with `INDEXEDDB_TEST_DATABASE_INFO` and
- * `INDEXEDDB_TEST_DATABASE_ID`.
+ * conjunction with `TEST_DATABASE_INFO` and
+ * `TEST_DATABASE_ID`.
  */
 export const INDEXEDDB_TEST_DATABASE_NAME =
-  IndexedDbPersistence.buildStoragePrefix(INDEXEDDB_TEST_DATABASE_INFO) +
+  IndexedDbPersistence.buildStoragePrefix(TEST_DATABASE_INFO) +
   IndexedDbPersistence.MAIN_DATABASE;
 
+const JSON_SERIALIZER = new JsonProtoSerializer(TEST_DATABASE_ID, {
+  useProto3Json: true
+});
+
 /**
- * IndexedDb serializer that uses `INDEXEDDB_TEST_DATABASE_ID` as its database
+ * IndexedDb serializer that uses `TEST_DATABASE_ID` as its database
  * id.
  */
-export const INDEXEDDB_TEST_SERIALIZER = new LocalSerializer(
-  new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
-    useProto3Json: true
-  })
-);
+export const TEST_SERIALIZER = new LocalSerializer(JSON_SERIALIZER);
 
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
@@ -101,9 +101,6 @@ export async function testIndexedDbPersistence(
   if (!options.dontPurgeData) {
     await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   }
-  const serializer = new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
-    useProto3Json: true
-  });
   const platform = PlatformSupport.getPlatform();
   return options.synchronizeTabs
     ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
@@ -111,7 +108,7 @@ export async function testIndexedDbPersistence(
         clientId,
         platform,
         queue,
-        serializer,
+        JSON_SERIALIZER,
         { sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER }
       )
     : IndexedDbPersistence.createIndexedDbPersistence(
@@ -119,17 +116,23 @@ export async function testIndexedDbPersistence(
         clientId,
         platform,
         queue,
-        serializer
+        JSON_SERIALIZER
       );
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
-  return MemoryPersistence.createEagerPersistence(AutoId.newId());
+  return MemoryPersistence.createEagerPersistence(
+    AutoId.newId(),
+    JSON_SERIALIZER
+  );
 }
 
 export async function testMemoryLruPersistence(): Promise<MemoryPersistence> {
-  return MemoryPersistence.createLruPersistence(AutoId.newId());
+  return MemoryPersistence.createLruPersistence(
+    AutoId.newId(),
+    JSON_SERIALIZER
+  );
 }
 
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {

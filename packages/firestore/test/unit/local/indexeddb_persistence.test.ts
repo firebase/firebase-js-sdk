@@ -19,7 +19,6 @@ import { PersistenceSettings } from '../../../src/api/database';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
-  ALL_STORES,
   DbDocumentMutation,
   DbDocumentMutationKey,
   DbMutationBatch,
@@ -28,6 +27,10 @@ import {
   DbMutationQueueKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
+  DbRemoteDocument,
+  DbRemoteDocumentGlobal,
+  DbRemoteDocumentGlobalKey,
+  DbRemoteDocumentKey,
   DbTarget,
   DbTargetGlobal,
   DbTargetGlobalKey,
@@ -37,7 +40,8 @@ import {
   SchemaConverter,
   V1_STORES,
   V3_STORES,
-  V4_STORES
+  V4_STORES,
+  V6_STORES
 } from '../../../src/local/indexeddb_schema';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
@@ -45,21 +49,21 @@ import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { path } from '../../util/helpers';
+import { doc, path } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
-  INDEXEDDB_TEST_DATABASE_ID,
   INDEXEDDB_TEST_DATABASE_NAME,
-  INDEXEDDB_TEST_SERIALIZER,
   MOCK_SEQUENCE_NUMBER_SYNCER,
-  TEST_PERSISTENCE_PREFIX
+  TEST_DATABASE_ID,
+  TEST_PERSISTENCE_PREFIX,
+  TEST_SERIALIZER
 } from './persistence_test_helpers';
 
 function withDb(
   schemaVersion,
   fn: (db: IDBDatabase) => Promise<void>
 ): Promise<void> {
-  const schemaConverter = new SchemaConverter(INDEXEDDB_TEST_SERIALIZER);
+  const schemaConverter = new SchemaConverter(TEST_SERIALIZER);
 
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = window.indexedDB.open(
@@ -97,7 +101,7 @@ async function withCustomPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  const serializer = new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
+  const serializer = new JsonProtoSerializer(TEST_DATABASE_ID, {
     useProto3Json: true
   });
 
@@ -397,7 +401,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     return withDb(4, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', ALL_STORES, txn => {
+      // We can only use the V4 stores here, since that's as far as we've upgraded.
+      return sdb.runTransaction('readwrite', V4_STORES, txn => {
         const mutationBatchStore = txn.store<
           DbMutationBatchKey,
           DbMutationBatch
@@ -439,7 +444,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         expect(db.version).to.be.equal(5);
 
         const sdb = new SimpleDb(db);
-        return sdb.runTransaction('readwrite', ALL_STORES, txn => {
+        // There is no V5_STORES, continue using V4.
+        return sdb.runTransaction('readwrite', V4_STORES, txn => {
           const mutationBatchStore = txn.store<
             DbMutationBatchKey,
             DbMutationBatch
@@ -476,6 +482,45 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       })
     );
   });
+
+  it('can upgrade from version 5 to 6', async () => {
+    await withDb(5, db => {
+      // Add some documents
+      const docs = [
+        doc('docs/a', 1, { foo: 'bar' }),
+        doc('docs/b', 2, { baz: false }),
+        doc('docs/c', 3, { a: 1, b: [5, 'foo'] })
+      ];
+      const dbRemoteDocs = docs.map(doc => ({
+        dbKey: doc.key.path.toArray(),
+        dbDoc: TEST_SERIALIZER.toDbRemoteDocument(doc)
+      }));
+      // V5 stores doesn't exist
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', V4_STORES, txn => {
+        const store = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
+          DbRemoteDocument.store
+        );
+        return PersistencePromise.forEach(dbRemoteDocs, ({ dbKey, dbDoc }) =>
+          store.put(dbKey, dbDoc)
+        );
+      });
+    });
+    await withDb(6, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readonly', V6_STORES, txn => {
+        const store = txn.store<
+          DbRemoteDocumentGlobalKey,
+          DbRemoteDocumentGlobal
+        >(DbRemoteDocumentGlobal.store);
+        return store.get(DbRemoteDocumentGlobal.key).next(metadata => {
+          // We don't really care what the size is, just that it's greater than 0.
+          // Our sizing algorithm may change at some point.
+          expect(metadata!.byteSize).to.be.greaterThan(0);
+        });
+      });
+    });
+  });
 });
 
 describe('IndexedDb: canActAsPrimary', () => {
@@ -488,7 +533,7 @@ describe('IndexedDb: canActAsPrimary', () => {
     const simpleDb = await SimpleDb.openOrCreate(
       INDEXEDDB_TEST_DATABASE_NAME,
       SCHEMA_VERSION,
-      new SchemaConverter(INDEXEDDB_TEST_SERIALIZER)
+      new SchemaConverter(TEST_SERIALIZER)
     );
     await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
       const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(

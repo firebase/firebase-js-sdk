@@ -308,9 +308,7 @@ export class LocalStore {
       'readwrite-primary',
       txn => {
         const affected = batchResult.batch.keys();
-        const documentBuffer = new RemoteDocumentChangeBuffer(
-          this.remoteDocuments
-        );
+        const documentBuffer = this.remoteDocuments.newChangeBuffer();
         return this.mutationQueue
           .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
           .next(() =>
@@ -399,7 +397,7 @@ export class LocalStore {
    * queue.
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
-    const documentBuffer = new RemoteDocumentChangeBuffer(this.remoteDocuments);
+    const documentBuffer = this.remoteDocuments.newChangeBuffer();
     return this.persistence.runTransaction(
       'Apply remote event',
       'readwrite-primary',

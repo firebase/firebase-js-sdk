@@ -14,14 +14,18 @@
  * limitations under the License.
  */
 
-import { MaybeDocumentMap, maybeDocumentMap } from '../model/collections';
+import {
+  DocumentSizeEntry,
+  maybeDocumentMap,
+  MaybeDocumentMap
+} from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
+import { ObjectMap } from '../util/obj_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { RemoteDocumentCache } from './remote_document_cache';
 
 /**
  * An in-memory buffer of entries to be written to a RemoteDocumentCache.
@@ -30,15 +34,27 @@ import { RemoteDocumentCache } from './remote_document_cache';
  * falling back to the underlying RemoteDocumentCache if no entry is
  * buffered.
  *
- * NOTE: This class was introduced in iOS to work around a limitation in
- * LevelDB. Given IndexedDb has full transaction support with
- * read-your-own-writes capability, this class is not technically needed, but
- * has been preserved as a convenience and to aid portability.
+ * Entries added to the cache *must* be read first. This is to facilitate
+ * calculating the size delta of the pending changes.
+ *
+ * PORTING NOTE: This class was implemented then removed from other platforms.
+ * If byte-counting ends up being needed on the other platforms, consider
+ * porting this class as part of that implementation work.
  */
-export class RemoteDocumentChangeBuffer {
+export abstract class RemoteDocumentChangeBuffer {
   private changes: MaybeDocumentMap | null = maybeDocumentMap();
+  protected documentSizes: ObjectMap<DocumentKey, number> = new ObjectMap(key =>
+    key.toString()
+  );
 
-  constructor(private remoteDocumentCache: RemoteDocumentCache) {}
+  protected abstract getFromCache(
+    transaction: PersistenceTransaction,
+    documentKey: DocumentKey
+  ): PersistencePromise<DocumentSizeEntry | null>;
+
+  protected abstract applyChanges(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<void>;
 
   /** Buffers a `RemoteDocumentCache.addEntry()` call. */
   addEntry(maybeDocument: MaybeDocument): void {
@@ -46,7 +62,8 @@ export class RemoteDocumentChangeBuffer {
     this.changes = changes.insert(maybeDocument.key, maybeDocument);
   }
 
-  // NOTE: removeEntry() is not presently necessary and so is omitted.
+  // NOTE: removeEntry() is intentionally omitted. If it needs to be added in
+  // the future it must take byte counting into account.
 
   /**
    * Looks up an entry in the cache. The buffered changes will first be checked,
@@ -69,7 +86,16 @@ export class RemoteDocumentChangeBuffer {
     if (bufferedEntry) {
       return PersistencePromise.resolve<MaybeDocument | null>(bufferedEntry);
     } else {
-      return this.remoteDocumentCache.getEntry(transaction, documentKey);
+      // Record the size of everything we load from the cache so we can compute a delta later.
+      return this.getFromCache(transaction, documentKey).next(getResult => {
+        if (getResult === null) {
+          this.documentSizes.set(documentKey, 0);
+          return null;
+        } else {
+          this.documentSizes.set(documentKey, getResult.size);
+          return getResult.maybeDocument;
+        }
+      });
     }
   }
 
@@ -78,21 +104,14 @@ export class RemoteDocumentChangeBuffer {
    * the provided transaction.
    */
   apply(transaction: PersistenceTransaction): PersistencePromise<void> {
-    const docs: MaybeDocument[] = [];
-
-    const changes = this.assertChanges();
-    changes.forEach((key, maybeDoc) => {
-      docs.push(maybeDoc);
-    });
-
+    const result = this.applyChanges(transaction);
     // We should not buffer any more changes.
     this.changes = null;
-
-    return this.remoteDocumentCache.addEntries(transaction, docs);
+    return result;
   }
 
   /** Helper to assert this.changes is not null and return it. */
-  private assertChanges(): MaybeDocumentMap {
+  protected assertChanges(): MaybeDocumentMap {
     assert(this.changes !== null, 'Changes have already been applied.');
     return this.changes!;
   }

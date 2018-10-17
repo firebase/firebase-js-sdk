@@ -107,8 +107,8 @@ import {
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
-  INDEXEDDB_TEST_SERIALIZER,
-  TEST_PERSISTENCE_PREFIX
+  TEST_PERSISTENCE_PREFIX,
+  TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
@@ -1161,8 +1161,8 @@ class MemoryTestRunner extends TestRunner {
   ): Promise<Persistence> {
     return Promise.resolve(
       gcEnabled
-        ? MemoryPersistence.createEagerPersistence(this.clientId)
-        : MemoryPersistence.createLruPersistence(this.clientId)
+        ? MemoryPersistence.createEagerPersistence(this.clientId, serializer)
+        : MemoryPersistence.createLruPersistence(this.clientId, serializer)
     );
   }
 }
@@ -1547,7 +1547,7 @@ async function clearCurrentPrimaryLease(): Promise<void> {
   const db = await SimpleDb.openOrCreate(
     INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
-    new SchemaConverter(INDEXEDDB_TEST_SERIALIZER)
+    new SchemaConverter(TEST_SERIALIZER)
   );
   await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
     const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(

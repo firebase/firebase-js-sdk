@@ -342,7 +342,14 @@ export class FirestoreClient {
    * @returns A promise that will successfully resolve.
    */
   private startMemoryPersistence(): Promise<void> {
-    this.persistence = MemoryPersistence.createEagerPersistence(this.clientId);
+    // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
+    const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
+      useProto3Json: true
+    });
+    this.persistence = MemoryPersistence.createEagerPersistence(
+      this.clientId,
+      serializer
+    );
     this.sharedClientState = new MemorySharedClientState();
     return Promise.resolve();
   }
