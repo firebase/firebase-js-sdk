@@ -19,10 +19,11 @@ import {
   documentKeySet,
   DocumentMap,
   documentMap,
+  DocumentSizeEntry,
   MaybeDocumentMap,
   maybeDocumentMap
 } from '../model/collections';
-import { Document, NoDocument } from '../model/document';
+import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -42,9 +43,7 @@ import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
-  GetResult,
-  RemoteDocumentCache,
-  SizedGetResult
+  RemoteDocumentCache
 } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
@@ -149,7 +148,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<GetResult> {
+  ): PersistencePromise<MaybeDocument | null> {
     return remoteDocumentsStore(transaction)
       .get(dbKey(documentKey))
       .next(dbRemoteDoc => {
@@ -162,7 +161,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   getSizedEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<SizedGetResult> {
+  ): PersistencePromise<DocumentSizeEntry | null> {
     return remoteDocumentsStore(transaction)
       .get(dbKey(documentKey))
       .next(dbRemoteDoc => {
@@ -376,7 +375,7 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
   protected getFromCache(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<SizedGetResult> {
+  ): PersistencePromise<DocumentSizeEntry | null> {
     return this.documentCache.getSizedEntry(transaction, documentKey);
   }
 }

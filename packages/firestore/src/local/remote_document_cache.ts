@@ -27,9 +27,6 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
-export type GetResult = MaybeDocument | null;
-export type SizedGetResult = DocumentSizeEntry | null;
-
 /**
  * Represents cached documents received from the remote backend.
  *
@@ -49,7 +46,7 @@ export interface RemoteDocumentCache {
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<GetResult>;
+  ): PersistencePromise<MaybeDocument | null>;
 
   /**
    * Looks up an entry in the cache.
@@ -60,7 +57,7 @@ export interface RemoteDocumentCache {
   getSizedEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<SizedGetResult>;
+  ): PersistencePromise<DocumentSizeEntry | null>;
 
   /**
    * Executes a query against the cached Document entries.

@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-import { maybeDocumentMap, MaybeDocumentMap } from '../model/collections';
+import {
+  DocumentSizeEntry,
+  maybeDocumentMap,
+  MaybeDocumentMap
+} from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
@@ -22,7 +26,6 @@ import { ObjectMap } from '../util/obj_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SizedGetResult } from './remote_document_cache';
 
 /**
  * An in-memory buffer of entries to be written to a RemoteDocumentCache.
@@ -45,7 +48,7 @@ export abstract class RemoteDocumentChangeBuffer {
   protected abstract getFromCache(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<SizedGetResult>;
+  ): PersistencePromise<DocumentSizeEntry | null>;
 
   protected abstract applyChanges(
     transaction: PersistenceTransaction

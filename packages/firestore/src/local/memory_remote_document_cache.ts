@@ -32,9 +32,7 @@ import { assert } from '../util/assert';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import {
-  GetResult,
-  RemoteDocumentCache,
-  SizedGetResult
+  RemoteDocumentCache
 } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
@@ -88,7 +86,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<GetResult> {
+  ): PersistencePromise<MaybeDocument | null> {
     const entry = this.docs.get(documentKey);
     return PersistencePromise.resolve(entry ? entry.maybeDocument : null);
   }
@@ -96,7 +94,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   getSizedEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<SizedGetResult> {
+  ): PersistencePromise<DocumentSizeEntry | null> {
     return PersistencePromise.resolve(this.docs.get(documentKey));
   }
 
@@ -193,7 +191,7 @@ export class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer
   protected getFromCache(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<SizedGetResult> {
+  ): PersistencePromise<DocumentSizeEntry | null> {
     return this.documentCache.getSizedEntry(transaction, documentKey);
   }
 }
