@@ -15,10 +15,7 @@
  */
 
 import { Query } from '../core/query';
-import {
-  DocumentMap,
-  MaybeDocumentMap
-} from '../model/collections';
+import { DocumentMap, MaybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
