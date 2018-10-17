@@ -41,9 +41,9 @@ const closureLibRoot = path.dirname(
 
 /**
  * Builds the core Firebase-auth JS.
- * @param {string} filename the name of generated file
- * @param {string} prefix prefix part of the wrapper
- * @param {string} suffix suffix part of the wrapper
+ * @param {string} filename name of the generated file
+ * @param {string} prefix prefix to the compiled code
+ * @param {string} suffix suffix to the compiled code
  */
 function createBuildTask(filename, prefix, suffix) {
   return () =>
