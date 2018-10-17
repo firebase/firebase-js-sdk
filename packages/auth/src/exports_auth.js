@@ -619,6 +619,7 @@ fireauth.exportlib.exportPrototypeMethods(
         ]);
 
     // Register Auth service with firebase.App.
+    debugger;
     firebase.INTERNAL.registerService(
         fireauth.exportlib.AUTH_TYPE,
         factory,
