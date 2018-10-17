@@ -29,8 +29,8 @@ import {
   DbPrimaryClientKey,
   DbRemoteDocument,
   DbRemoteDocumentKey,
-  DbRemoteDocumentMetadata,
-  DbRemoteDocumentMetadataKey,
+  DbRemoteDocumentGlobal,
+  DbRemoteDocumentGlobalKey,
   DbTarget,
   DbTargetGlobal,
   DbTargetGlobalKey,
@@ -510,10 +510,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       const sdb = new SimpleDb(db);
       return sdb.runTransaction('readonly', V6_STORES, txn => {
         const store = txn.store<
-          DbRemoteDocumentMetadataKey,
-          DbRemoteDocumentMetadata
-        >(DbRemoteDocumentMetadata.store);
-        return store.get(DbRemoteDocumentMetadata.key).next(metadata => {
+          DbRemoteDocumentGlobalKey,
+          DbRemoteDocumentGlobal
+        >(DbRemoteDocumentGlobal.store);
+        return store.get(DbRemoteDocumentGlobal.key).next(metadata => {
           // We don't really care what the size is, just that it's greater than 0.
           // Our sizing algorithm may change at some point.
           expect(metadata!.byteSize).to.be.greaterThan(0);

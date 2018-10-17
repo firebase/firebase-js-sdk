@@ -110,15 +110,15 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 6 && toVersion >= 6) {
       p = p.next(() => {
-        createDocumentMetadataStore(db);
-        return this.addDocumentMetadata(txn);
+        createDocumentGlobalStore(db);
+        return this.addDocumentGlobal(txn);
       });
     }
 
     return p;
   }
 
-  private addDocumentMetadata(
+  private addDocumentGlobal(
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
     let byteCount = 0;
@@ -128,12 +128,12 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         byteCount += dbDocumentSize(doc);
       })
       .next(() => {
-        const metadata = new DbRemoteDocumentMetadata(byteCount);
+        const metadata = new DbRemoteDocumentGlobal(byteCount);
         return txn
-          .store<DbRemoteDocumentMetadataKey, DbRemoteDocumentMetadata>(
-            DbRemoteDocumentMetadata.store
+          .store<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
+            DbRemoteDocumentGlobal.store
           )
-          .put(DbRemoteDocumentMetadata.key, metadata);
+          .put(DbRemoteDocumentGlobal.key, metadata);
       });
   }
 
@@ -494,18 +494,18 @@ export class DbRemoteDocument {
 /**
  * Contains a single entry that has metadata about the remote document cache.
  */
-export class DbRemoteDocumentMetadata {
-  static store = 'remoteDocumentMetadata';
+export class DbRemoteDocumentGlobal {
+  static store = 'remoteDocumentGlobal';
 
-  static key = 'remoteDocumentMetadataKey';
+  static key = 'remoteDocumentGlobalKey';
 
   constructor(public byteSize: number) {}
 }
 
-export type DbRemoteDocumentMetadataKey = typeof DbRemoteDocumentMetadata.key;
+export type DbRemoteDocumentGlobalKey = typeof DbRemoteDocumentGlobal.key;
 
-function createDocumentMetadataStore(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocumentMetadata.store);
+function createDocumentGlobalStore(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocumentGlobal.store);
 }
 
 /**
@@ -860,7 +860,7 @@ export const V4_STORES = [
 
 // V5 does not change the set of stores.
 
-export const V6_STORES = [...V4_STORES, DbRemoteDocumentMetadata.store];
+export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is

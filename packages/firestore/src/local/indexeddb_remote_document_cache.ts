@@ -34,9 +34,9 @@ import {
   DbRemoteDocument,
   DbRemoteDocumentChanges,
   DbRemoteDocumentChangesKey,
-  DbRemoteDocumentKey,
-  DbRemoteDocumentMetadata,
-  DbRemoteDocumentMetadataKey
+  DbRemoteDocumentGlobal,
+  DbRemoteDocumentGlobalKey,
+  DbRemoteDocumentKey
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
@@ -297,9 +297,9 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   private getMetadata(
     txn: PersistenceTransaction
-  ): PersistencePromise<DbRemoteDocumentMetadata> {
-    return documentMetadataStore(txn)
-      .get(DbRemoteDocumentMetadata.key)
+  ): PersistencePromise<DbRemoteDocumentGlobal> {
+    return documentGlobalStore(txn)
+      .get(DbRemoteDocumentGlobal.key)
       .next(metadata => {
         assert(!!metadata, 'Missing document cache metadata');
         return metadata!;
@@ -308,10 +308,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   private setMetadata(
     txn: PersistenceTransaction,
-    metadata: DbRemoteDocumentMetadata
+    metadata: DbRemoteDocumentGlobal
   ): PersistencePromise<void> {
-    return documentMetadataStore(txn).put(
-      DbRemoteDocumentMetadata.key,
+    return documentGlobalStore(txn).put(
+      DbRemoteDocumentGlobal.key,
       metadata
     );
   }
@@ -333,13 +333,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 }
 
-function documentMetadataStore(
+function documentGlobalStore(
   txn: PersistenceTransaction
-): SimpleDbStore<DbRemoteDocumentMetadataKey, DbRemoteDocumentMetadata> {
+): SimpleDbStore<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal> {
   return IndexedDbPersistence.getStore<
-    DbRemoteDocumentMetadataKey,
-    DbRemoteDocumentMetadata
-  >(txn, DbRemoteDocumentMetadata.store);
+    DbRemoteDocumentGlobalKey,
+    DbRemoteDocumentGlobal
+  >(txn, DbRemoteDocumentGlobal.store);
 }
 
 /**
