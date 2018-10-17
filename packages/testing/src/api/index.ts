@@ -20,8 +20,22 @@ import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 
-/** The default url for the local database emulator. */
-const DBURL = 'http://localhost:9000';
+/** If this environment variable is set, use it for the database emulator's address. */
+const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_ADDRESS';
+/** The default address for the local database emulator. */
+const DATABASE_ADDRESS_DEFAULT: string = 'localhost:9000';
+/** The actual address for the database emulator */
+const DATABASE_ADDRESS: string =
+  process.env[DATABASE_ADDRESS_ENV] || DATABASE_ADDRESS_DEFAULT;
+
+/** If this environment variable is set, use it for the Firestore emulator. */
+const FIRESTORE_ADDRESS_ENV: string = 'FIREBASE_FIRESTORE_EMULATOR_ADDRESS';
+/** The default address for the local Firestore emulator. */
+const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
+/** The actual address for the Firestore emulator */
+const FIRESTORE_ADDRESS: string =
+  process.env[FIRESTORE_ADDRESS_ENV] || FIRESTORE_ADDRESS_DEFAULT;
+
 /** Passing this in tells the emulator to treat you as an admin. */
 const ADMIN_TOKEN = 'owner';
 /** Create an unsecured JWT for the given auth payload. See https://tools.ietf.org/html/rfc7519#section-6. */
@@ -79,7 +93,7 @@ function initializeApp(
   let appOptions: FirebaseOptions = {};
   if (databaseName) {
     appOptions = {
-      databaseURL: DBURL + '?ns=' + databaseName
+      databaseURL: `http://${DATABASE_ADDRESS}?ns=${databaseName}`
     };
   } else if (projectId) {
     appOptions = {
@@ -97,12 +111,12 @@ function initializeApp(
   }
   if (projectId) {
     (app as any).firestore().settings({
-      host: 'localhost:8080',
+      host: FIRESTORE_ADDRESS,
       ssl: false,
       timestampsInSnapshots: true
     });
   }
-/**
+  /**
   Mute warnings for the previously-created database and whatever other
   objects were just created.
  */
@@ -124,7 +138,9 @@ export function loadDatabaseRules(options: LoadDatabaseRulesOptions): void {
   }
 
   request({
-    uri: DBURL + '/.settings/rules.json?ns=' + options.databaseName,
+    uri: `http://${DATABASE_ADDRESS}/.settings/rules.json?ns=${
+      options.databaseName
+    }`,
     method: 'PUT',
     headers: { Authorization: 'Bearer owner' },
     body: options.rules
