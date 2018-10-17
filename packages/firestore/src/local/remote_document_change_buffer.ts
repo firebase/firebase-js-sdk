@@ -34,10 +34,12 @@ import { PersistencePromise } from './persistence_promise';
  * falling back to the underlying RemoteDocumentCache if no entry is
  * buffered.
  *
- * NOTE: This class was introduced in iOS to work around a limitation in
- * LevelDB. Given IndexedDb has full transaction support with
- * read-your-own-writes capability, this class is not technically needed, but
- * has been preserved as a convenience and to aid portability.
+ * Entries added to the cache *must* be read first. This is to facilitate
+ * calculating the size delta of the pending changes.
+ *
+ * PORTING NOTE: This class was implemented then removed from other platforms.
+ * If byte-counting ends up being needed on the other platforms, consider
+ * porting this class as part of that implementation work.
  */
 export abstract class RemoteDocumentChangeBuffer {
   private changes: MaybeDocumentMap | null = maybeDocumentMap();
@@ -60,7 +62,8 @@ export abstract class RemoteDocumentChangeBuffer {
     this.changes = changes.insert(maybeDocument.key, maybeDocument);
   }
 
-  // NOTE: removeEntry() is not presently necessary and so is omitted.
+  // NOTE: removeEntry() is intentionally omitted. If it needs to be added in
+  // the future it must take byte counting into account.
 
   /**
    * Looks up an entry in the cache. The buffered changes will first be checked,

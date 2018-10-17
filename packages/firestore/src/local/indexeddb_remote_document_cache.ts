@@ -361,6 +361,8 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
         maybeDocument
       );
       const previousSize = this.documentSizes.get(key);
+      // NOTE: if we ever decide we need to support doing writes without
+      // reading first, this assert will need to change to do the read automatically.
       assert(
         previousSize !== undefined,
         `Attempting to change document ${key.toString()} without having read it first`

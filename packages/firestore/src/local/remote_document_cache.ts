@@ -17,7 +17,6 @@
 import { Query } from '../core/query';
 import {
   DocumentMap,
-  DocumentSizeEntry,
   MaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
