@@ -83,7 +83,7 @@ var app = firebase.initializeApp({ ... });
 If you are using ES6 imports or TypeScript:
 
 ```
-import firebase from 'firebase';
+import * as firebase from 'firebase';
 var app = firebase.initializeApp({ ... });
 ```
 
@@ -138,7 +138,7 @@ services you use:
 
 ```
 // This import loads the firebase namespace along with all its type information.
-import firebase from 'firebase/app';
+import * as firebase from 'firebase/app';
 
 // These imports load individual services into the firebase namespace.
 import 'firebase/auth';
@@ -172,6 +172,19 @@ var firebase = require('firebase');
 var app = firebase.initializeApp({ ... });
 // ...
 ```
+
+If you are using native ES6 module with --experimental-modules flag, you should do:
+```
+// This import loads the firebase namespace.
+import firebase from 'firebase/app';
+
+// These imports load individual services into the firebase namespace.
+import 'firebase/auth';
+import 'firebase/database';
+```
+
+_Known issue for typescript users with --experimental-modules: you have to set allowSyntheticDefaultImports to true in tsconfig.json to pass the type check. Use it with caution since it makes the assumption that all modules have a default export, which might not be the case for the other dependencies you have. And Your code will break if you try to import the default export from a module that doesn't have default export._
+
 
 Firebase Storage is not included in the server side Firebase npm module.
 Instead, you can use the
