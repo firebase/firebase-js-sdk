@@ -87,27 +87,27 @@ describe('Testing Module Tests', function() {
   });
 
   it('loadDatabaseRules() throws if no databaseName or rules', async function() {
-    await expect(
-      firebase.loadDatabaseRules.bind(null, { })
-    ).to.throw(/databaseName not specified/);
-    console.log("b");
-    await expect(
-      firebase.loadDatabaseRules.bind(null, { databaseName: 'foo' }) as Promise<void>
-    ).to.throw(/must provide rules/);
+    await expect(firebase.loadDatabaseRules.bind(null, {})).to.throw(
+      /databaseName not specified/
+    );
+    console.log('b');
+    await expect(firebase.loadDatabaseRules.bind(null, {
+      databaseName: 'foo'
+    }) as Promise<void>).to.throw(/must provide rules/);
     await expect(
       firebase.loadDatabaseRules.bind(null, { rules: '{}' })
     ).to.throw(/databaseName not specified/);
   });
 
   it('loadDatabaseRules() tries to make a network request', async function() {
-    await expect(firebase.loadDatabaseRules({ databaseName: "foo", rules: "{}"})).to.be.rejectedWith(
-      /ECONNREFUSED/
-    );
+    await expect(
+      firebase.loadDatabaseRules({ databaseName: 'foo', rules: '{}' })
+    ).to.be.rejectedWith(/ECONNREFUSED/);
   });
 
   it('loadFirestoreRules() succeeds on valid input', async function() {
     let promise = firebase.loadFirestoreRules({
-      projectId: "foo",
+      projectId: 'foo',
       rules: `service cloud.firestore {
         match /databases/{db}/documents/{doc=**} {
           allow read, write;

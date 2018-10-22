@@ -22,8 +22,11 @@ import { setLogLevel, LogLevel } from '@firebase/logger';
 import * as grpc from 'grpc';
 import * as fs from 'fs';
 
-const PROTOS = grpc.load({ root: __dirname + "/../protos", file: "google/firestore/emulator/v1/firestore_emulator.proto" });
-const EMULATOR = PROTOS["google"]["firestore"]["emulator"]["v1"];
+const PROTOS = grpc.load({
+  root: __dirname + '/../protos',
+  file: 'google/firestore/emulator/v1/firestore_emulator.proto'
+});
+const EMULATOR = PROTOS['google']['firestore']['emulator']['v1'];
 
 /** If this environment variable is set, use it for the database emulator's address. */
 const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_ADDRESS';
@@ -133,7 +136,9 @@ export type LoadDatabaseRulesOptions = {
   databaseName: string;
   rules: string;
 };
-export function loadDatabaseRules(options: LoadDatabaseRulesOptions): Promise<void> {
+export function loadDatabaseRules(
+  options: LoadDatabaseRulesOptions
+): Promise<void> {
   if (!options.databaseName) {
     throw Error('databaseName not specified');
   }
@@ -143,19 +148,22 @@ export function loadDatabaseRules(options: LoadDatabaseRulesOptions): Promise<vo
   }
 
   return new Promise((resolve, reject) => {
-    request.put({
-      uri: `http://${DATABASE_ADDRESS}/.settings/rules.json?ns=${
-        options.databaseName
-      }`,
-      headers: { Authorization: 'Bearer owner' },
-      body: options.rules
-    }, (err, resp, body) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve();
+    request.put(
+      {
+        uri: `http://${DATABASE_ADDRESS}/.settings/rules.json?ns=${
+          options.databaseName
+        }`,
+        headers: { Authorization: 'Bearer owner' },
+        body: options.rules
+      },
+      (err, resp, body) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve();
+        }
       }
-    });
+    );
   });
 }
 
@@ -163,7 +171,9 @@ export type LoadFirestoreRulesOptions = {
   projectId: string;
   rules: string;
 };
-export function loadFirestoreRules(options: LoadFirestoreRulesOptions): Promise<void> {
+export function loadFirestoreRules(
+  options: LoadFirestoreRulesOptions
+): Promise<void> {
   if (!options.projectId) {
     throw new Error('projectId not specified');
   }
@@ -172,18 +182,24 @@ export function loadFirestoreRules(options: LoadFirestoreRulesOptions): Promise<
     throw new Error('must provide rules to loadFirestoreRules');
   }
 
-  let client = new EMULATOR.FirestoreEmulator("localhost:8080", grpc.credentials.createInsecure());
+  let client = new EMULATOR.FirestoreEmulator(
+    'localhost:8080',
+    grpc.credentials.createInsecure()
+  );
   return new Promise((resolve, reject) => {
-    client.setSecurityRules({
-      project: "projects/bar",
-      rules: { files: [{ content: options.rules }] }
-    }, (err, resp) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(resp);
+    client.setSecurityRules(
+      {
+        project: 'projects/bar',
+        rules: { files: [{ content: options.rules }] }
+      },
+      (err, resp) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(resp);
+        }
       }
-    });
+    );
   });
 }
 
