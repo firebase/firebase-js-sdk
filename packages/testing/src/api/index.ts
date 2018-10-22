@@ -183,13 +183,13 @@ export function loadFirestoreRules(
   }
 
   let client = new EMULATOR.FirestoreEmulator(
-    'localhost:8080',
+    FIRESTORE_ADDRESS,
     grpc.credentials.createInsecure()
   );
   return new Promise((resolve, reject) => {
     client.setSecurityRules(
       {
-        project: 'projects/bar',
+        project: `projects/${options.projectId}`,
         rules: { files: [{ content: options.rules }] }
       },
       (err, resp) => {
