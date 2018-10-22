@@ -122,8 +122,9 @@ const componentBuilds = components
            * use iife to avoid below error in the old Safari browser
            * SyntaxError: Functions cannot be declared in a nested block in strict mode
            * https://github.com/firebase/firebase-js-sdk/issues/1228
-           * 
-           */  
+           *
+           */
+
           intro: `
             try {
               (function() {`,
