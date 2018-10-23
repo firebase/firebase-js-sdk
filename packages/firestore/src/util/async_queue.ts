@@ -314,7 +314,12 @@ export class AsyncQueue {
    * exists.
    */
   containsDelayedOperation(timerId: TimerId): boolean {
-    return this.delayedOperations.findIndex(op => op.timerId === timerId) >= 0;
+    for (const op of this.delayedOperations) {
+      if (op.timerId === timerId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
