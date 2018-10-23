@@ -16,7 +16,6 @@
 
 import { expect } from 'chai';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { Deferred } from '../../../src/util/promise';
 
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
@@ -236,40 +235,10 @@ describe('PersistencePromise', () => {
       if (success) {
         return PersistencePromise.resolve();
       } else {
-        return PersistencePromise.reject(new Error('rejected'));
+        return PersistencePromise.reject<void>(new Error('rejected'));
       }
     }).toPromise();
 
-    return expect(p).to.be.eventually.rejectedWith('rejected');
-  });
-
-  it('maintains order for map()', async () => {
-    const deferred = new Deferred<void>();
-
-    const pending = new PersistencePromise<string>(resolve => {
-      return deferred.promise.then(() => resolve('first'));
-    });
-    const resolved = PersistencePromise.resolve('second');
-
-    const p = PersistencePromise.map([pending, resolved]).next(results => {
-      expect(results).to.deep.eq(['first', 'second']);
-      return PersistencePromise.resolve();
-    });
-
-    setImmediate(() => {
-      deferred.resolve();
-    });
-
-    await p.toPromise();
-  });
-
-  it('propagates error for map()', () => {
-    const resolved = PersistencePromise.resolve('resolved');
-    const rejected: PersistencePromise<string> = PersistencePromise.reject(
-      new Error('rejected')
-    );
-
-    const p = PersistencePromise.map([resolved, rejected]).toPromise();
     return expect(p).to.be.eventually.rejectedWith('rejected');
   });
 });

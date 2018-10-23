@@ -51,7 +51,7 @@ export abstract class TestRemoteDocumentCache {
       txn => {
         const changeBuffer = this.cache.newChangeBuffer();
         return PersistencePromise.forEach(maybeDocuments, maybeDocument =>
-          changeBuffer.getEntry(txn, maybeDocument.key).next()
+          changeBuffer.getEntry(txn, maybeDocument.key).next(() => {})
         ).next(() => {
           for (const maybeDocument of maybeDocuments) {
             changeBuffer.addEntry(maybeDocument);

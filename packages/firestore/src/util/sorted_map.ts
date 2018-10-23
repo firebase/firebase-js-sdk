@@ -168,21 +168,6 @@ export class SortedMap<K, V> {
   getReverseIteratorFrom(key: K): SortedMapIterator<K, V> {
     return new SortedMapIterator<K, V>(this.root, key, this.comparator, true);
   }
-
-  [Symbol.iterator](): Iterator<Entry<K, V>> {
-    const it = this.getIterator();
-    return {
-      next(): IteratorResult<Entry<K, V>> {
-        if (it.hasNext()) {
-          return { done: false, value: it.getNext() };
-        } else {
-          // The TypeScript typings don't allow `undefined` for Iterator<T>,
-          // so we return an empty object instead.
-          return { done: true, value: {} as Entry<K, V> };
-        }
-      }
-    };
-  }
 } // end SortedMap
 
 // An iterator over an LLRBNode.

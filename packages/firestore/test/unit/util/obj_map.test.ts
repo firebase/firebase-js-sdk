@@ -110,39 +110,4 @@ describe('ObjectMap', () => {
     expect(map.get(k2)).to.equal(undefined);
     expect(map.get(k3)).to.equal(undefined);
   });
-
-  it('can iterate', () => {
-    const map = new ObjectMap<TestKey, string>(o => o.mapKey);
-    const k1 = new TestKey(4, 4);
-    const k2 = new TestKey(5, 5);
-    // Test a collision
-    const k3 = new TestKey(5, 6);
-    // Test an overwrite
-    const k4 = new TestKey(-12354, -12354);
-    const k5 = new TestKey(-12354, -12354);
-    map.set(k1, 'foo');
-    map.set(k2, 'bar');
-    map.set(k3, 'blah');
-    map.set(k4, 'baz');
-    map.set(k5, 'boo');
-
-    const expectedKeys: TestKey[] = [];
-    map.forEach(key => {
-      expectedKeys.push(key);
-    });
-
-    const iterated: Array<{ key: TestKey; value: string }> = [];
-    const it = map[Symbol.iterator]();
-    let result = it.next();
-    while (!result.done) {
-      iterated.push(result.value);
-      result = it.next();
-    }
-
-    for (const entry of iterated) {
-      expect(expectedKeys.indexOf(entry.key)).to.not.equal(-1);
-      expect(map.get(entry.key)).to.equal(entry.value);
-    }
-    expect(iterated.length).to.equal(expectedKeys.length);
-  });
 });
