@@ -19,12 +19,15 @@ import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import * as grpc from 'grpc';
+import { resolve } from 'path';
 import * as fs from 'fs';
 
-const PROTOS = grpc.load({
-  root: __dirname + '/../protos',
+const PROTO_ROOT = {
+  root: resolve(__dirname, '../protos'),
   file: 'google/firestore/emulator/v1/firestore_emulator.proto'
-});
+};
+console.log("PROTO_ROOT = ", JSON.stringify(PROTO_ROOT));
+const PROTOS = grpc.load(PROTO_ROOT, /* format = */ 'proto');
 const EMULATOR = PROTOS['google']['firestore']['emulator']['v1'];
 
 /** If this environment variable is set, use it for the database emulator's address. */

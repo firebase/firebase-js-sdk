@@ -33,6 +33,10 @@ const external = Object.keys(
 export default {
   input: 'index.ts',
   output: [{ file: pkg.main, format: 'cjs' }],
-  plugins,
+  plugins: [
+    ...plugins,
+    // Needed as we also use the *.proto files
+    copy({ assets: ['./src/protos'] })
+  ],
   external
 };
