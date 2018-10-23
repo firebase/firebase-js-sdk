@@ -326,7 +326,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<void> {
     return PersistencePromise.forEach(
       this.orphanedSequenceNumbers,
-      ({ key, value: sequenceNumber }) => {
+      (key, sequenceNumber) => {
         // Pass in the exact sequence number as the upper bound so we know it won't be pinned by
         // being too recent.
         return this.isPinned(txn, key, sequenceNumber).next(isPinned => {
