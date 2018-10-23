@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-import { firebase } from '@firebase/app';
+import * as firebase from 'firebase';
 import * as request from 'request';
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import * as grpc from 'grpc';
+import { resolve } from 'path';
 import * as fs from 'fs';
 
-const PROTOS = grpc.load({
-  root: __dirname + '/../protos',
+const PROTO_ROOT = {
+  root: resolve(
+    __dirname,
+    process.env.FIRESTORE_EMULATOR_PROTO_ROOT || '../protos'
+  ),
   file: 'google/firestore/emulator/v1/firestore_emulator.proto'
-});
+};
+const PROTOS = grpc.load(PROTO_ROOT, /* format = */ 'proto');
 const EMULATOR = PROTOS['google']['firestore']['emulator']['v1'];
 
 /** If this environment variable is set, use it for the database emulator's address. */
@@ -66,7 +70,7 @@ function createUnsecuredJwt(auth: object): string {
   ].join('.');
 }
 
-export function apps(): (FirebaseApp | null)[] {
+export function apps(): firebase.app.App[] {
   return firebase.apps;
 }
 
@@ -75,8 +79,8 @@ export type AppOptions = {
   projectId?: string;
   auth?: object;
 };
-/** Construct a FirebaseApp authenticated with options.auth. */
-export function initializeTestApp(options: AppOptions): FirebaseApp {
+/** Construct an App authenticated with options.auth. */
+export function initializeTestApp(options: AppOptions): firebase.app.App {
   return initializeApp(
     options.auth ? createUnsecuredJwt(options.auth) : null,
     options.databaseName,
@@ -88,8 +92,8 @@ export type AdminAppOptions = {
   databaseName?: string;
   projectId?: string;
 };
-/** Construct a FirebaseApp authenticated as an admin user. */
-export function initializeAdminApp(options: AdminAppOptions): FirebaseApp {
+/** Construct an App authenticated as an admin user. */
+export function initializeAdminApp(options: AdminAppOptions): firebase.app.App {
   return initializeApp(ADMIN_TOKEN, options.databaseName, options.projectId);
 }
 
@@ -97,8 +101,8 @@ function initializeApp(
   accessToken?: string,
   databaseName?: string,
   projectId?: string
-): FirebaseApp {
-  let appOptions: FirebaseOptions = {};
+): firebase.app.App {
+  let appOptions = {};
   if (databaseName) {
     appOptions = {
       databaseURL: `http://${DATABASE_ADDRESS}?ns=${databaseName}`
@@ -117,8 +121,15 @@ function initializeApp(
     (app as any).INTERNAL.getToken = () =>
       Promise.resolve({ accessToken: accessToken });
   }
+  if (databaseName) {
+    // Toggle network connectivity to force a reauthentication attempt.
+    // This mitigates a minor race condition where the client can send the
+    // first database request before authenticating.
+    app.database().goOffline();
+    app.database().goOnline();
+  }
   if (projectId) {
-    (app as any).firestore().settings({
+    app.firestore().settings({
       host: FIRESTORE_ADDRESS,
       ssl: false,
       timestampsInSnapshots: true
