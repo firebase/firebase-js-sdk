@@ -73,6 +73,7 @@ export interface MutationQueue {
    * `removeMutationBatches()` has been called. Secondary clients return a
    * cached result until `removeCachedMutationKeys()` is invoked.
    */
+  // PORTING NOTE: Multi-tab only.
   lookupMutationKeys(
     transaction: PersistenceTransaction,
     batchId: BatchId

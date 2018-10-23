@@ -65,6 +65,7 @@ export class TargetIdGenerator {
    * Returns the ID that follows the given ID. Subsequent calls to `next()`
    * use the newly returned target ID as their base.
    */
+  // PORTING NOTE: Multi-tab only.
   after(targetId: TargetId): TargetId {
     this.seek(targetId + (1 << RESERVED_BITS));
     return this.next();
