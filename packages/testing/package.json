@@ -19,6 +19,7 @@
     "@firebase/logger": "0.1.1",
     "@firebase/util": "0.2.2",
     "@types/request": "^2.47.1",
+    "firebase": "^5.5.5",
     "grpc": "1.13.1",
     "request": "2.88.0"
   },
