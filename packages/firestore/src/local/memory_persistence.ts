@@ -247,8 +247,9 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
           // Since this is the eager delegate and memory persistence,
           // we don't care about the size of documents. We don't track
           // the size of the cache for eager GC.
-          return cache.removeEntry(txn, key).next();
+          return cache.removeEntry(txn, key).next(() => {});
         }
+        return PersistencePromise.resolve();
       });
     });
   }

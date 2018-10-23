@@ -235,7 +235,7 @@ describe('PersistencePromise', () => {
       if (success) {
         return PersistencePromise.resolve();
       } else {
-        return PersistencePromise.reject(new Error('rejected'));
+        return PersistencePromise.reject<void>(new Error('rejected'));
       }
     }).toPromise();
 

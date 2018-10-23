@@ -221,18 +221,18 @@ export class PersistencePromise<T> {
 
   /**
    * Given an iterable, call the given function on each element in the
-   * collection and wait for all of the resulting concurrent
-   * PersistencePromises to resolve.
+   * collection and wait for all of the resulting concurrent PersistencePromises
+   * to resolve.
    */
-  static forEach<K>(
-    // tslint:disable-next-line:no-any Accept any kind of `forEach`.
-    collection: { forEach: ((cb: ((k: K, ...args: any[]) => void)) => void) },
-    // tslint:disable-next-line:no-any Accept any kind of callback.
-    f: (k: K, ...args: any[]) => PersistencePromise<void>
+  static forEach<R, S>(
+    collection: { forEach: ((cb: ((r: R, s?: S) => void)) => void) },
+    f:
+      | ((r: R, s: S) => PersistencePromise<void>)
+      | ((r: R) => PersistencePromise<void>)
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
-    collection.forEach((k, ...args) => {
-      promises.push(f(k, ...args));
+    collection.forEach((r, s) => {
+      promises.push(f.call(this, r, s));
     });
     return this.waitFor(promises);
   }
