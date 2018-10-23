@@ -105,7 +105,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
   ): PersistencePromise<void> {
     const changeBuffer = cache.newChangeBuffer();
     return PersistencePromise.forEach(docs, doc =>
-      changeBuffer.getEntry(txn, doc.key).next()
+      changeBuffer.getEntry(txn, doc.key).next(() => {})
     ).next(() => {
       for (const doc of docs) {
         changeBuffer.addEntry(doc);
