@@ -116,6 +116,13 @@ function initializeApp(
     (app as any).INTERNAL.getToken = () =>
       Promise.resolve({ accessToken: accessToken });
   }
+  if (databaseName) {
+    // Toggle network connectivity to force a reauthentication attempt.
+    // This mitigates a minor race condition where the client can send the
+    // first database request before authenticating.
+    app.database().goOffline();
+    app.database().goOnline();
+  }
   if (projectId) {
     app.firestore().settings({
       host: FIRESTORE_ADDRESS,
