@@ -260,13 +260,6 @@ export class AsyncQueue {
       `Attempted to schedule an operation with a negative delay of ${delayMs}`
     );
 
-    // While not necessarily harmful, we currently don't expect to have multiple
-    // ops with the same timer id in the queue, so defensively reject them.
-    assert(
-      !this.containsDelayedOperation(timerId),
-      `Attempted to schedule multiple operations with timer id ${timerId}.`
-    );
-
     const delayedOp = DelayedOperation.createAndSchedule<Unknown>(
       this,
       timerId,
@@ -312,6 +305,8 @@ export class AsyncQueue {
   /**
    * For Tests: Determine if a delayed operation with a particular TimerId
    * exists.
+   *
+   * Note: This method is not supported on IE 11.
    */
   containsDelayedOperation(timerId: TimerId): boolean {
     return this.delayedOperations.findIndex(op => op.timerId === timerId) >= 0;
@@ -319,6 +314,8 @@ export class AsyncQueue {
 
   /**
    * For Tests: Runs some or all delayed operations early.
+   *
+   * Note: This method is not supported on IE 11.
    *
    * @param lastTimerId Delayed operations up to and including this TimerId will
    *  be drained. Throws if no such operation exists. Pass TimerId.All to run
