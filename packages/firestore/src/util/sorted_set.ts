@@ -154,21 +154,6 @@ export class SortedSet<T> {
     return 'SortedSet(' + result.toString() + ')';
   }
 
-  [Symbol.iterator](): Iterator<T> {
-    const it = this.data.getIterator();
-    return {
-      next(): IteratorResult<T> {
-        if (it.hasNext()) {
-          return { done: false, value: it.getNext().key };
-        } else {
-          // The TypeScript typings don't allow `undefined` for Iterator<T>,
-          // so we return an empty object instead.
-          return { done: true, value: {} as T };
-        }
-      }
-    };
-  }
-
   private copy(data: SortedMap<T, boolean>): SortedSet<T> {
     const result = new SortedSet(this.comparator);
     result.data = data;

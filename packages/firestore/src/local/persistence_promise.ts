@@ -170,56 +170,31 @@ export class PersistencePromise<T> {
 
   static waitFor(
     // tslint:disable-next-line:no-any Accept all Promise types in waitFor().
-    all: Iterable<PersistencePromise<any>>
+    all: { forEach: (cb: ((el: PersistencePromise<any>) => void)) => void }
   ): PersistencePromise<void> {
-    const it = all[Symbol.iterator]();
     return new PersistencePromise<void>((resolve, reject) => {
       let expectedCount = 0;
       let resolvedCount = 0;
+      let done = false;
 
-      let result = it.next();
-      while (!result.done) {
+      all.forEach(element => {
         ++expectedCount;
-        result.value.next(
+        element.next(
           () => {
             ++resolvedCount;
-            if (result.done && resolvedCount === expectedCount) {
+            if (done && resolvedCount === expectedCount) {
               resolve();
             }
           },
           err => reject(err)
         );
-        result = it.next();
-      }
+      });
 
+      done = true;
       if (resolvedCount === expectedCount) {
         resolve();
       }
     });
-  }
-
-  static map<R>(all: Iterable<PersistencePromise<R>>): PersistencePromise<R[]> {
-    const results: R[] = [];
-    const promises: Array<PersistencePromise<void>> = [];
-
-    const it = all[Symbol.iterator]();
-    let result = it.next();
-    let count = 0;
-    while (!result.done) {
-      const value = result.value;
-      const index = count;
-
-      promises.push(
-        value.next(val => {
-          results[index] = val;
-        })
-      );
-
-      result = it.next();
-      ++count;
-    }
-
-    return PersistencePromise.waitFor(promises).next(() => results);
   }
 
   /**
@@ -246,22 +221,19 @@ export class PersistencePromise<T> {
 
   /**
    * Given an iterable, call the given function on each element in the
-   * collection and wait for all of the resulting concurrent
-   * PersistencePromises to resolve.
+   * collection and wait for all of the resulting concurrent PersistencePromises
+   * to resolve.
    */
-  static forEach<K>(
-    collection: Iterable<K>,
-    f: (item: K) => PersistencePromise<void>
+  static forEach<R, S>(
+    collection: { forEach: ((cb: ((r: R, s?: S) => void)) => void) },
+    f:
+      | ((r: R, s: S) => PersistencePromise<void>)
+      | ((r: R) => PersistencePromise<void>)
   ): PersistencePromise<void> {
-    const it = collection[Symbol.iterator]();
-
     const promises: Array<PersistencePromise<void>> = [];
-    let result = it.next();
-    while (!result.done) {
-      const value = result.value;
-      promises.push(f(value));
-      result = it.next();
-    }
+    collection.forEach((r, s) => {
+      promises.push(f.call(this, r, s));
+    });
     return this.waitFor(promises);
   }
 }
