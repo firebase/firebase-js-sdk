@@ -18,6 +18,8 @@ import resolve from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
 import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
+import replace from 'rollup-plugin-replace';
+import copy from 'rollup-plugin-copy-assets';
 
 const plugins = [
   typescript({
@@ -33,6 +35,13 @@ const external = Object.keys(
 export default {
   input: 'index.ts',
   output: [{ file: pkg.main, format: 'cjs' }],
-  plugins,
+  plugins: [
+    ...plugins,
+    // Needed as we also use the *.proto files
+    copy({ assets: ['./src/protos'] }),
+    replace({
+      'process.env.FIRESTORE_EMULATOR_PROTO_ROOT': JSON.stringify('src/protos')
+    })
+  ],
   external
 };
