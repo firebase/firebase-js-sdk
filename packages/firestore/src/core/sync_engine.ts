@@ -1073,11 +1073,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
   }
 
+  // PORTING NOTE: Multi-tab only. In other clients, LocalStore is unaware of
+  // the online state.
   enableNetwork(): Promise<void> {
     this.localStore.setNetworkEnabled(true);
     return this.remoteStore.enableNetwork();
   }
 
+  // PORTING NOTE: Multi-tab only. In other clients, LocalStore is unaware of
+  // the online state.
   disableNetwork(): Promise<void> {
     this.localStore.setNetworkEnabled(false);
     return this.remoteStore.disableNetwork();

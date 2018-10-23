@@ -179,6 +179,8 @@ export class LocalStore {
    * In response the local store switches the mutation queue to the new user and
    * returns any resulting document changes.
    */
+  // PORTING NOTE: Android and iOS only return the documents affected by the
+  // change.
   handleUserChange(user: User): Promise<UserChangeResult> {
     return this.persistence.runTransaction(
       'Handle user change',
