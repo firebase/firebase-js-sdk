@@ -110,15 +110,27 @@ const componentBuilds = components
         input: `${component}/index.ts`,
         output: {
           file: `firebase-${component}.js`,
-          format: 'iife',
+          format: 'umd',
           sourcemap: true,
           extend: true,
           name: GLOBAL_NAME,
           globals: {
             '@firebase/app': GLOBAL_NAME
           },
-          banner: `try  {`,
-          footer: `} catch(err) {
+
+          /**
+           * use iife to avoid below error in the old Safari browser
+           * SyntaxError: Functions cannot be declared in a nested block in strict mode
+           * https://github.com/firebase/firebase-js-sdk/issues/1228
+           *
+           */
+
+          intro: `
+            try {
+              (function() {`,
+          outro: `
+            }).apply(this, arguments);
+          } catch(err) {
               console.error(err);
               throw new Error(
                 'Cannot instantiate firebase-${component} - ' +
