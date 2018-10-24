@@ -22,6 +22,8 @@ import * as grpc from 'grpc';
 import { resolve } from 'path';
 import * as fs from 'fs';
 
+export { database, firestore } from 'firebase';
+
 const PROTO_ROOT = {
   root: resolve(
     __dirname,
