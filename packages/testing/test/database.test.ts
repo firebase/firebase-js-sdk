@@ -89,7 +89,6 @@ describe('Testing Module Tests', function() {
     await expect(firebase.loadDatabaseRules.bind(null, {})).to.throw(
       /databaseName not specified/
     );
-    console.log('b');
     await expect(firebase.loadDatabaseRules.bind(null, {
       databaseName: 'foo'
     }) as Promise<void>).to.throw(/must provide rules/);
