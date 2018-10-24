@@ -128,6 +128,7 @@ describe('Testing Module Tests', function() {
       '.sv': 'timestamp'
     });
   });
+
   it('there is a way to get firestore timestamps', function() {
     expect(firebase.firestore.FieldValue.serverTimestamp()).not.to.be.null;
   });
