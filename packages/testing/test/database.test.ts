@@ -124,4 +124,11 @@ describe('Testing Module Tests', function() {
     await firebase.initializeTestApp({ databaseName: 'bar', auth: {} });
     expect(firebase.apps().length).to.equal(numApps + 2);
   });
+  
+  it('there is a way to get database timestamps', function() {
+    expect(firebase.database.ServerValue.TIMESTAMP).to.deep.equal({ ".sv": "timestamp" });
+  });
+  it('there is a way to get firestore timestamps', function() {
+    expect(firebase.firestore.FieldValue.serverTimestamp()).not.to.be.null;
+  });
 });
