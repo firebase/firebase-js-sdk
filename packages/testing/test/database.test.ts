@@ -18,7 +18,6 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as firebase from '../src/api';
 import { base64 } from '@firebase/util';
-import '@firebase/firestore';
 
 const expect = chai.expect;
 
