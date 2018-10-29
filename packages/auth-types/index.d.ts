@@ -190,7 +190,6 @@ export class SAMLAuthProvider implements AuthProvider {
   providerId: string;
 }
 
-
 export class PhoneAuthProvider extends PhoneAuthProvider_Instance {
   static PROVIDER_ID: string;
   static PHONE_SIGN_IN_METHOD: string;
