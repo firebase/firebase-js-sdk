@@ -29,6 +29,10 @@ require('firebase/<PACKAGE>');
 ES Modules:
 import firebase from 'firebase/app';
 import 'firebase/<PACKAGE>';
+
+Typescript:
+import * as firebase from 'firebase/app';
+import 'firebase/<PACKAGE>';
 `);
 
 import firebase from '../app';

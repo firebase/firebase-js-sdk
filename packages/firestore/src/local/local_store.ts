@@ -179,6 +179,8 @@ export class LocalStore {
    * In response the local store switches the mutation queue to the new user and
    * returns any resulting document changes.
    */
+  // PORTING NOTE: Android and iOS only return the documents affected by the
+  // change.
   handleUserChange(user: User): Promise<UserChangeResult> {
     return this.persistence.runTransaction(
       'Handle user change',
@@ -308,9 +310,7 @@ export class LocalStore {
       'readwrite-primary',
       txn => {
         const affected = batchResult.batch.keys();
-        const documentBuffer = new RemoteDocumentChangeBuffer(
-          this.remoteDocuments
-        );
+        const documentBuffer = this.remoteDocuments.newChangeBuffer();
         return this.mutationQueue
           .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
           .next(() =>
@@ -399,7 +399,7 @@ export class LocalStore {
    * queue.
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
-    const documentBuffer = new RemoteDocumentChangeBuffer(this.remoteDocuments);
+    const documentBuffer = this.remoteDocuments.newChangeBuffer();
     return this.persistence.runTransaction(
       'Apply remote event',
       'readwrite-primary',

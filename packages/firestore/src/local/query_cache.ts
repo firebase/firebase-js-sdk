@@ -192,6 +192,7 @@ export interface QueryCache {
    * Allocated target IDs are persisted and `allocateTargetId()` will never
    * return the same ID twice.
    */
+  // PORTING NOTE: Multi-tab only.
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId>;
