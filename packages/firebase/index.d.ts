@@ -366,6 +366,10 @@ declare namespace firebase.auth {
     ): firebase.auth.AuthProvider;
   }
 
+  class SAMLAuthProvider implements firebase.auth.AuthProvider {
+    providerId: string;
+  }
+
   interface IdTokenResult {
     token: string;
     expirationTime: string;
