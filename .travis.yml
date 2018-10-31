@@ -14,6 +14,7 @@ before_install:
   - '[ "${NPM_TOKEN+x}" ] && echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > $HOME/.npmrc || echo "Skipping .npmrc creation";'
 before_script:
   - cp config/ci.config.json config/project.json
+  - cp config/ci.mocha.node.opts config/mocha.node.opts
 
 # Misc Addons/Configs
 dist: trusty

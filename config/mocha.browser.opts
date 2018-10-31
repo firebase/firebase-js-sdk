@@ -1,0 +1,2 @@
+--timeout 20000
+--retry 3
