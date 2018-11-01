@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "5.5.6",
+  "version": "5.5.7",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -42,7 +42,7 @@
     "@firebase/functions": "0.3.1",
     "@firebase/messaging": "0.3.6",
     "@firebase/polyfill": "0.3.3",
-    "@firebase/storage": "0.2.3"
+    "@firebase/storage": "0.2.4"
   },
   "devDependencies": {
     "rollup": "0.57.1",
