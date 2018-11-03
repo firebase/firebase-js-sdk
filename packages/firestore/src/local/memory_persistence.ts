@@ -317,15 +317,21 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     return this.persistence.getQueryCache().forEachTarget(txn, f);
   }
 
-  getSequenceNumberCount(txn: PersistenceTransaction): PersistencePromise<number> {
+  getSequenceNumberCount(
+    txn: PersistenceTransaction
+  ): PersistencePromise<number> {
     const docCountPromise = this.orphanedDocumentCount(txn);
-    const targetCountPromise = this.persistence.getQueryCache().getTargetCount(txn);
-    return targetCountPromise.next(targetCount => 
+    const targetCountPromise = this.persistence
+      .getQueryCache()
+      .getTargetCount(txn);
+    return targetCountPromise.next(targetCount =>
       docCountPromise.next(docCount => targetCount + docCount)
     );
   }
 
-  private orphanedDocumentCount(txn: PersistenceTransaction): PersistencePromise<number> {
+  private orphanedDocumentCount(
+    txn: PersistenceTransaction
+  ): PersistencePromise<number> {
     let orphanedCount = 0;
     return this.forEachOrphanedDocumentSequenceNumber(txn, _ => {
       orphanedCount++;

@@ -36,7 +36,9 @@ export interface LruDelegate {
     f: (target: QueryData) => void
   ): PersistencePromise<void>;
 
-  getSequenceNumberCount(txn: PersistenceTransaction): PersistencePromise<number>;
+  getSequenceNumberCount(
+    txn: PersistenceTransaction
+  ): PersistencePromise<number>;
 
   /**
    * Enumerates sequence numbers for documents not associated with a target.
