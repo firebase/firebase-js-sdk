@@ -129,23 +129,6 @@ export class MutationBatch {
       misc.arrayEquals(this.mutations, other.mutations)
     );
   }
-
-  /**
-   * Returns true if this mutation batch has already been removed from the
-   * mutation queue.
-   *
-   * Note that not all implementations of the MutationQueue necessarily use
-   * tombstones as part of their implementation and generally speaking no code
-   * outside the mutation queues should really care about this.
-   */
-  isTombstone(): boolean {
-    return this.mutations.length === 0;
-  }
-
-  /** Converts this batch into a tombstone */
-  toTombstone(): MutationBatch {
-    return new MutationBatch(this.batchId, this.localWriteTime, []);
-  }
 }
 
 /** The result of applying a mutation batch to the backend. */
