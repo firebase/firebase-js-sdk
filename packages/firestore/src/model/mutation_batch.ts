@@ -39,7 +39,9 @@ export class MutationBatch {
     public batchId: BatchId,
     public localWriteTime: Timestamp,
     public mutations: Mutation[]
-  ) {}
+  ) {
+    assert(mutations.length > 0, 'Cannot create an empty mutation batch');
+  }
 
   /**
    * Applies all the mutations in this MutationBatch to the specified document
