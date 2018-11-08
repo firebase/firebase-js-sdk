@@ -131,3 +131,7 @@ fireauth.constants.clientEndpoint = fireauth.constants.getEndpointId('__EID__');
 
 /** @const {string} The required SAML provider ID prefix. */
 fireauth.constants.SAML_PREFIX = 'saml.';
+
+
+/** @const {string} The required OIDC provider ID prefix. */
+fireauth.constants.OIDC_PREFIX = 'oidc.';

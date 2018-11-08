@@ -182,7 +182,7 @@ export interface IdTokenResult {
 export class OAuthProvider implements AuthProvider {
   providerId: string;
   addScope(scope: string): AuthProvider;
-  credential(idToken?: string, accessToken?: string): OAuthCredential;
+  credential(idToken?: string, accessToken?: string, nonce?: string): OAuthCredential;
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
 

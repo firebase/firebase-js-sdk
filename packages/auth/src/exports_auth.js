@@ -491,7 +491,9 @@ fireauth.exportlib.exportPrototypeMethods(
           fireauth.args.or(fireauth.args.string(), fireauth.args.null(),
               'idToken', true),
           fireauth.args.or(fireauth.args.string(), fireauth.args.null(),
-              'accessToken', true)
+              'accessToken', true),
+          fireauth.args.or(fireauth.args.string(), fireauth.args.null(),
+              'nonce', true)
         ]
       },
       setCustomParameters: {
