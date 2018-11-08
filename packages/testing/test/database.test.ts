@@ -117,9 +117,9 @@ describe('Testing Module Tests', function() {
 
   it('apps() returns apps created with initializeTestApp', async function() {
     const numApps = firebase.apps().length;
-    await firebase.initializeTestApp({ databaseName: 'foo', auth: {} });
+    await firebase.initializeTestApp({ databaseName: 'foo', auth: null });
     expect(firebase.apps().length).to.equal(numApps + 1);
-    await firebase.initializeTestApp({ databaseName: 'bar', auth: {} });
+    await firebase.initializeTestApp({ databaseName: 'bar', auth: null });
     expect(firebase.apps().length).to.equal(numApps + 2);
   });
 
