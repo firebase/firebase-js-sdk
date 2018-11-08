@@ -19,7 +19,9 @@ import * as firestore from '@firebase/firestore-types';
 import { makeConstructorPrivate } from '../util/api';
 import {
   validateArgType,
-  validateAtLeastNumberOfArgs
+  validateAtLeastNumberOfArgs,
+  validateExactNumberOfArgs,
+  validateNoArgs
 } from '../util/input_validation';
 import { AnyJs } from '../util/misc';
 
@@ -32,10 +34,12 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
   protected constructor(readonly _methodName: string) {}
 
   static delete(): FieldValueImpl {
+    validateNoArgs('FieldValue.delete', arguments);
     return DeleteFieldValueImpl.instance;
   }
 
   static serverTimestamp(): FieldValueImpl {
+    validateNoArgs('FieldValue.serverTimestamp', arguments);
     return ServerTimestampFieldValueImpl.instance;
   }
 
@@ -55,6 +59,7 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
 
   static numericAdd(n: number): FieldValueImpl {
     validateArgType('FieldValue.numericAdd', 'number', 1, n);
+    validateExactNumberOfArgs('FieldValue.numericAdd', arguments, 1);
     return new NumericAddFieldValueImpl(n);
   }
 

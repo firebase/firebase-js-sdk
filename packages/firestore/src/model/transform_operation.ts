@@ -188,11 +188,11 @@ export class NumericAddTransformOperation implements TransformOperation {
     } else if (previousValue instanceof NumberValue) {
       const sum = previousValue.internalValue + this.operand.internalValue;
       return new DoubleValue(sum);
+    } else {
+      // If the existing value is not a number, use the value of the transform as
+      // the new base value.
+      return this.operand;
     }
-
-    // If the existing value is not a number, use the value of the transform as
-    // the new base value.
-    return this.operand;
   }
 
   applyToRemoteDocument(

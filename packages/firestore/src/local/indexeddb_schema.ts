@@ -313,8 +313,7 @@ export class DbMutationBatch {
      * doesn't flicker if the remote document cache receives the result of the
      * non-idempotent write before the write is removed from the queue.
      *
-     * These mutations are never sent to the backend and serialized via
-     * JsonProtoSerializer.toMutation().
+     * These mutations are never sent to the backend.
      */
     public baseMutations: api.Write[] | undefined,
     /**

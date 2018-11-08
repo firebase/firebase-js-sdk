@@ -1264,15 +1264,15 @@ export class FieldValue {
    * Returns a special value that can be used with set() or update() that tells
    * the server to add the given value to the field's current value.
    *
-   * If either the operand or the current field value is of type double, both
-   * values will be interpreted as doubles and all arithmetic will follow IEEE
-   * 754 semantics. If both values are integers, values outside of JavaScript's
-   * safe number range (`Number.MIN_SAFE_INTEGER` to `Number.MAX_SAFE_INTEGER`)
-   * are subject to precision loss. Furthermore, once processed by the Firestore
-   * backend, all integer operations are capped between -2^63 and 2^63-1.
+   * If either the operand or the current field value uses floating point
+   * precision, all arithmetic will follow IEEE 754 semantics. If both values
+   * are integers, values outside of JavaScript's safe number range
+   * (`Number.MIN_SAFE_INTEGER` to `Number.MAX_SAFE_INTEGER`) are also subject
+   * to precision loss. Furthermore, once processed by the Firestore backend,
+   * all integer operations are capped between -2^63 and 2^63-1.
    *
-   * If field is not an integer or double, or if the field does not yet exist,
-   * the transformation will set the field to the given value.
+   * If the current field value is not of type 'number', or if the field does
+   * not yet exist, the transformation will set the field to the given value.
    *
    * @param n The value to add.
    * @return The FieldValue sentinel for use in a call to set() or update().

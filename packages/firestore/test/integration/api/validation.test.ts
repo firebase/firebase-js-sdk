@@ -713,6 +713,18 @@ apiDescribe('Validation:', persistence => {
     });
   });
 
+  describe('Server timestamps transforms', () => {
+    validationIt(persistence, 'reject any arguments', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: (FieldValue as any).serverTimestamp('foo') })
+      ).to.throw(
+        'Function FieldValue.serverTimestamp() does not support ' +
+          'arguments, but was called with 1 argument.'
+      );
+    });
+  });
+
   describe('Numeric transforms', () => {
     validationIt(persistence, 'fail in queries', db => {
       const collection = db.collection('test');
@@ -732,6 +744,16 @@ apiDescribe('Validation:', persistence => {
       ).to.throw(
         'Function FieldValue.numericAdd() requires its first argument to ' +
           'be of type number, but it was: "foo"'
+      );
+    });
+
+    validationIt(persistence, 'reject more than one argument', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: (FieldValue as any).numericAdd(1337, 'leet') })
+      ).to.throw(
+        'Function FieldValue.numericAdd() requires 1 argument, but was ' +
+          'called with 2 arguments.'
       );
     });
   });

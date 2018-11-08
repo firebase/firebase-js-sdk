@@ -277,26 +277,21 @@ export class LocalStore {
                 // are present.
                 const fieldMask = mutation.fieldMask;
                 if (fieldMask) {
-                  if (maybeDoc instanceof Document) {
-                    const baseValues = fieldMask.applyTo(maybeDoc.data);
-                    baseMutations.push(
-                      new PatchMutation(
-                        mutation.key,
-                        baseValues,
-                        fieldMask,
-                        Precondition.exists(true)
-                      )
-                    );
-                  } else {
-                    baseMutations.push(
-                      new PatchMutation(
-                        mutation.key,
-                        ObjectValue.EMPTY,
-                        fieldMask,
-                        Precondition.exists(true)
-                      )
-                    );
-                  }
+                  const baseValues =
+                    maybeDoc instanceof Document
+                      ? fieldMask.applyTo(maybeDoc.data)
+                      : ObjectValue.EMPTY;
+                  // NOTE: The base state should only be applied if there's some
+                  // existing document to override, so use a Precondition of
+                  // exists=true
+                  baseMutations.push(
+                    new PatchMutation(
+                      mutation.key,
+                      baseValues,
+                      fieldMask,
+                      Precondition.exists(true)
+                    )
+                  );
                 }
               }
             }
