@@ -109,26 +109,22 @@ function genericMutationQueueTests(): void {
   }
 
   /**
-   * Removes entries from from the given a batches and returns them.
+   * Removes the first n entries from the given batches and returns them.
    *
-   * @param holes An array of indexes in the batches array; in increasing order.
-   * Indexes are relative to the original state of the batches array, not any
-   * intermediate state that might occur.
+   * @param n The number of batches to remove.
    * @param batches The array to mutate, removing entries from it.
    * @return A new array containing all the entries that were removed from
    * batches.
    */
-  async function makeHolesInBatches(
-    holes: number[],
+  async function removeFirstBatches(
+    n: number,
     batches: MutationBatch[]
   ): Promise<MutationBatch[]> {
     const removed: MutationBatch[] = [];
-    for (let i = 0; i < holes.length; i++) {
-      const index = holes[i] - i;
-      const batch = batches[index];
+    for (let i = 0; i < n; i++) {
+      const batch = batches[0];
       await mutationQueue.removeMutationBatch(batch);
-
-      batches.splice(index, 1);
+      batches.shift();
       removed.push(batch);
     }
     return removed;
@@ -145,10 +141,10 @@ function genericMutationQueueTests(): void {
     const batch2 = await addMutationBatch();
     expect(await mutationQueue.countBatches()).to.equal(2);
 
-    await mutationQueue.removeMutationBatch(batch2);
+    await mutationQueue.removeMutationBatch(batch1);
     expect(await mutationQueue.countBatches()).to.equal(1);
 
-    await mutationQueue.removeMutationBatch(batch1);
+    await mutationQueue.removeMutationBatch(batch2);
     expect(await mutationQueue.countBatches()).to.equal(0);
   });
 
@@ -168,7 +164,7 @@ function genericMutationQueueTests(): void {
     expect(notFound).to.be.null;
 
     const batches = await createBatches(10);
-    const removed = await makeHolesInBatches([2, 6, 7], batches);
+    const removed = await removeFirstBatches(3, batches);
 
     // After removing, a batch should not be found
     for (const batch of removed) {
@@ -189,10 +185,7 @@ function genericMutationQueueTests(): void {
 
   it('can getNextMutationBatchAfterBatchId()', async () => {
     const batches = await createBatches(10);
-
-    // This is an array of successors assuming the removals below will happen:
-    const afters = [batches[3], batches[8], batches[8]];
-    const removed = await makeHolesInBatches([2, 6, 7], batches);
+    const removed = await removeFirstBatches(3, batches);
 
     for (let i = 0; i < batches.length - 1; i++) {
       const current = batches[i];
@@ -205,7 +198,7 @@ function genericMutationQueueTests(): void {
 
     for (let i = 0; i < removed.length; i++) {
       const current = removed[i];
-      const next = afters[i];
+      const next = batches[0];
       const found = await mutationQueue.getNextMutationBatchAfterBatchId(
         current.batchId
       );
@@ -372,20 +365,20 @@ function genericMutationQueueTests(): void {
     expectEqualArrays(found, batches);
     expect(found.length).to.equal(6);
 
-    await mutationQueue.removeMutationBatch(batches[batches.length - 1]);
-    batches.splice(batches.length - 1, 1);
+    await mutationQueue.removeMutationBatch(batches[0]);
+    batches.shift();
     expect(await mutationQueue.countBatches()).to.equal(5);
 
     found = await mutationQueue.getAllMutationBatches();
     expectEqualArrays(found, batches);
     expect(found.length).to.equal(5);
 
-    await mutationQueue.removeMutationBatch(batches[3]);
-    batches.splice(3, 1);
+    await mutationQueue.removeMutationBatch(batches[0]);
+    batches.shift();
     expect(await mutationQueue.countBatches()).to.equal(4);
 
-    await mutationQueue.removeMutationBatch(batches[1]);
-    batches.splice(1, 1);
+    await mutationQueue.removeMutationBatch(batches[0]);
+    batches.shift();
     expect(await mutationQueue.countBatches()).to.equal(3);
 
     found = await mutationQueue.getAllMutationBatches();
