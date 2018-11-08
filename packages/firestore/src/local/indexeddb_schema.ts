@@ -23,6 +23,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { encode, EncodedResourcePath } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
+import { getHighestListenSequenceNumber } from './indexeddb_query_cache';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import { LocalSerializer } from './local_serializer';
 import { PersistencePromise } from './persistence_promise';
@@ -40,7 +41,7 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 4. Multi-Tab Support.
  * 5. Removal of held write acks.
  */
-export const SCHEMA_VERSION = 6;
+export const SCHEMA_VERSION = 7;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -115,6 +116,12 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       });
     }
 
+    if (fromVersion < 7 && toVersion >= 7) {
+      p = p.next(() => {
+        return this.ensureSequenceNumbers(txn);
+      });
+    }
+
     return p;
   }
 
@@ -172,6 +179,49 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       });
     });
   }
+
+  /**
+   * Ensures that every document in the remote document cache has a corresponding sentinel row
+   * with a sequence number. Missing rows are given the most recently used sequence number.
+   */
+  private ensureSequenceNumbers(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const documentTargetStore = txn.store<
+      DbTargetDocumentKey,
+      DbTargetDocument
+    >(DbTargetDocument.store);
+    const documentsStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
+      DbRemoteDocument.store
+    );
+
+    return getHighestListenSequenceNumber(txn).next(currentSequenceNumber => {
+      const writeSentinelKey = (
+        path: ResourcePath
+      ): PersistencePromise<void> => {
+        return documentTargetStore.put(
+          new DbTargetDocument(0, encode(path), currentSequenceNumber)
+        );
+      };
+
+      const promises: Array<PersistencePromise<void>> = [];
+      return documentsStore
+        .iterate((key, doc) => {
+          const path = new ResourcePath(key);
+          const docSentinelKey = sentinelKey(path);
+          documentTargetStore.get(docSentinelKey).next(maybeSentinel => {
+            if (!maybeSentinel) {
+              promises.push(writeSentinelKey(path));
+            }
+          });
+        })
+        .next(() => PersistencePromise.waitFor(promises));
+    });
+  }
+}
+
+function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
+  return [0, encode(path)];
 }
 
 // TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
