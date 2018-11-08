@@ -36,7 +36,9 @@ export interface LruDelegate {
     f: (target: QueryData) => void
   ): PersistencePromise<void>;
 
-  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number>;
+  getSequenceNumberCount(
+    txn: PersistenceTransaction
+  ): PersistencePromise<number>;
 
   /**
    * Enumerates sequence numbers for documents not associated with a target.
@@ -146,7 +148,7 @@ export class LruGarbageCollector {
     txn: PersistenceTransaction,
     percentile: number
   ): PersistencePromise<number> {
-    return this.delegate.getTargetCount(txn).next(targetCount => {
+    return this.delegate.getSequenceNumberCount(txn).next(targetCount => {
       return Math.floor(percentile / 100.0 * targetCount);
     });
   }

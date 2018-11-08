@@ -1075,8 +1075,23 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     this.garbageCollector = new LruGarbageCollector(this);
   }
 
-  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
-    return this.db.getQueryCache().getQueryCount(txn);
+  getSequenceNumberCount(
+    txn: PersistenceTransaction
+  ): PersistencePromise<number> {
+    const docCountPromise = this.orphanedDocmentCount(txn);
+    const targetCountPromise = this.db.getQueryCache().getQueryCount(txn);
+    return targetCountPromise.next(targetCount =>
+      docCountPromise.next(docCount => targetCount + docCount)
+    );
+  }
+
+  private orphanedDocmentCount(
+    txn: PersistenceTransaction
+  ): PersistencePromise<number> {
+    let orphanedCount = 0;
+    return this.forEachOrphanedDocumentSequenceNumber(txn, _ => {
+      orphanedCount++;
+    }).next(() => orphanedCount);
   }
 
   forEachTarget(
