@@ -470,6 +470,7 @@ function genericLruGarbageCollectorTests(
         return mutationQueue.addMutationBatch(
           txn,
           Timestamp.fromMillis(2000),
+          /* baseMutations= */ [],
           mutations
         );
       }

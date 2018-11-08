@@ -84,6 +84,7 @@ export class ReferenceSet {
       this.removeRef(ref);
       keys.push(ref.key);
     });
+    console.log("found " + keys.length + " references");
     return keys;
   }
 

@@ -228,6 +228,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     return cache
       .getMatchingKeysForTargetId(txn, queryData.targetId)
       .next(keys => {
+        console.log('Found matching keys ' + keys.size);
         keys.forEach(key => this.orphanedDocuments.add(key));
       })
       .next(() => cache.removeQueryData(txn, queryData));
@@ -241,6 +242,8 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const cache = this.persistence.getRemoteDocumentCache();
+    const size = this.orphanedDocuments.size;
+    console.log("I have orphaned " + size + ' docs');
     return PersistencePromise.forEach(this.orphanedDocuments, key => {
       return this.isReferenced(txn, key).next(isReferenced => {
         if (!isReferenced) {

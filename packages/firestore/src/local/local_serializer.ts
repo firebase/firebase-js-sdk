@@ -118,6 +118,9 @@ export class LocalSerializer {
 
   /** Encodes a batch of mutations into a DbMutationBatch for local storage. */
   toDbMutationBatch(userId: string, batch: MutationBatch): DbMutationBatch {
+    const serializedBaseMutations = batch.baseMutations.map(m =>
+      this.remoteSerializer.toMutation(m)
+    );
     const serializedMutations = batch.mutations.map(m =>
       this.remoteSerializer.toMutation(m)
     );
@@ -125,17 +128,26 @@ export class LocalSerializer {
       userId,
       batch.batchId,
       batch.localWriteTime.toMillis(),
+      serializedBaseMutations,
       serializedMutations
     );
   }
 
   /** Decodes a DbMutationBatch into a MutationBatch */
   fromDbMutationBatch(dbBatch: DbMutationBatch): MutationBatch {
+    const baseMutations = (dbBatch.baseMutations || []).map(m =>
+      this.remoteSerializer.fromMutation(m)
+    );
     const mutations = dbBatch.mutations.map(m =>
       this.remoteSerializer.fromMutation(m)
     );
     const timestamp = Timestamp.fromMillis(dbBatch.localWriteTimeMs);
-    return new MutationBatch(dbBatch.batchId, timestamp, mutations);
+    return new MutationBatch(
+      dbBatch.batchId,
+      timestamp,
+      baseMutations,
+      mutations
+    );
   }
 
   /*

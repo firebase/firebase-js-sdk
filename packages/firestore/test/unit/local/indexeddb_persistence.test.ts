@@ -197,7 +197,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const batchId = 1;
     const targetId = 2;
 
-    const expectedMutation = new DbMutationBatch(userId, batchId, 1000, []);
+    const expectedMutation = new DbMutationBatch(userId, batchId, 1000, [], []);
     const dummyTargetGlobal = new DbTargetGlobal(
       /*highestTargetId=*/ 1,
       /*highestListenSequencNumber=*/ 1,
@@ -287,18 +287,21 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         userId: 'foo',
         batchId: 0,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: []
       },
       {
         userId: 'foo',
         batchId: 1,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWrite]
       },
       {
         userId: 'foo',
         batchId: 42,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWrite, testWrite]
       }
     ];
@@ -370,12 +373,14 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         userId: 'foo',
         batchId: 1,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWriteFoo]
       },
       {
         userId: 'foo',
         batchId: 2,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWriteFoo]
       },
       // User 'bar' has one acknowledged mutation and one that is pending.
@@ -383,18 +388,21 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         userId: 'bar',
         batchId: 3,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWriteBar, testWriteBaz]
       },
       {
         userId: 'bar',
         batchId: 4,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWritePending]
       },
       {
         userId: 'foo',
         batchId: 5,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWritePending]
       }
     ];

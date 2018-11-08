@@ -595,7 +595,7 @@ describeSpec('Writes:', [], () => {
 
   specTest(
     'Writes are released when there are no queries left',
-    ['eager-gc'],
+    ['eager-gc','exclusive'],
     'This test verifies that committed mutations are eligible for ' +
       'garbage collection on target removal',
     () => {

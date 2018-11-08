@@ -713,6 +713,29 @@ apiDescribe('Validation:', persistence => {
     });
   });
 
+  describe('Numeric transforms', () => {
+    validationIt(persistence, 'fail in queries', db => {
+      const collection = db.collection('test');
+      expect(() =>
+        collection.where('test', '==', { test: FieldValue.numericAdd(1) })
+      ).to.throw(
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.numericAdd() can only be used with update() and set() ' +
+          '(found in field test)'
+      );
+    });
+
+    validationIt(persistence, 'reject invalid operands', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: FieldValue.numericAdd('foo' as any) })
+      ).to.throw(
+        'Function FieldValue.numericAdd() requires its first argument to ' +
+          'be of type number, but it was: "foo"'
+      );
+    });
+  });
+
   describe('Queries', () => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
