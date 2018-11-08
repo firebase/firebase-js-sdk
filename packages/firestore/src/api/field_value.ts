@@ -17,7 +17,10 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { makeConstructorPrivate } from '../util/api';
-import { validateAtLeastNumberOfArgs } from '../util/input_validation';
+import {
+  validateArgType,
+  validateAtLeastNumberOfArgs
+} from '../util/input_validation';
 import { AnyJs } from '../util/misc';
 
 /**
@@ -50,6 +53,11 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
     return new ArrayRemoveFieldValueImpl(elements);
   }
 
+  static numericAdd(n: number): FieldValueImpl {
+    validateArgType('FieldValue.numericAdd', 'number', 1, n);
+    return new NumericAddFieldValueImpl(n);
+  }
+
   isEqual(other: FieldValueImpl): boolean {
     return this === other;
   }
@@ -80,6 +88,12 @@ export class ArrayUnionFieldValueImpl extends FieldValueImpl {
 export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
   constructor(readonly _elements: AnyJs[]) {
     super('FieldValue.arrayRemove');
+  }
+}
+
+export class NumericAddFieldValueImpl extends FieldValueImpl {
+  constructor(readonly _operand: number) {
+    super('FieldValue.numericAdd');
   }
 }
 

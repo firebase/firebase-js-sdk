@@ -54,9 +54,11 @@ import { AnyJs } from '../util/misc';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
+import { NumberValue } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
+  NumericAddTransformOperation,
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
@@ -947,6 +949,11 @@ export class JsonProtoSerializer {
           values: transform.elements.map(v => this.toValue(v))
         }
       };
+    } else if (transform instanceof NumericAddTransformOperation) {
+      return {
+        fieldPath: fieldTransform.field.canonicalString(),
+        numericAdd: this.toValue(transform.operand)
+      };
     } else {
       throw fail('Unknown transform: ' + fieldTransform.transform);
     }
@@ -972,6 +979,13 @@ export class JsonProtoSerializer {
       transform = new ArrayRemoveTransformOperation(
         values.map(v => this.fromValue(v))
       );
+    } else if (hasTag(proto, type, 'numericAdd')) {
+      const operand = this.fromValue(proto.numericAdd!);
+      assert(
+        operand instanceof NumberValue,
+        'NUMERIC_ADD transform requires a NumberValue'
+      );
+      transform = new NumericAddTransformOperation(operand as NumberValue);
     } else {
       fail('Unknown transform proto: ' + JSON.stringify(proto));
     }

@@ -84,7 +84,12 @@ export class TestMutationQueue {
       'addMutationBatch',
       'readwrite',
       txn => {
-        return this.queue.addMutationBatch(txn, Timestamp.now(), mutations);
+        return this.queue.addMutationBatch(
+          txn,
+          Timestamp.now(),
+          /* baseMutations= */ [],
+          mutations
+        );
       }
     );
   }

@@ -108,6 +108,7 @@ export class MemoryMutationQueue implements MutationQueue {
   addMutationBatch(
     transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
+    baseMutations: Mutation[],
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
     assert(mutations.length !== 0, 'Mutation batches should not be empty');
@@ -123,7 +124,12 @@ export class MemoryMutationQueue implements MutationQueue {
       );
     }
 
-    const batch = new MutationBatch(batchId, localWriteTime, mutations);
+    const batch = new MutationBatch(
+      batchId,
+      localWriteTime,
+      baseMutations,
+      mutations
+    );
     this.mutationQueue.push(batch);
 
     // Track references by document key.

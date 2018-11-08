@@ -19,7 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
-import { FieldValue, ObjectValue } from '../model/field_value';
+import { FieldValue, NumberValue, ObjectValue } from '../model/field_value';
 import {
   ArrayValue,
   BlobValue,
@@ -54,6 +54,7 @@ import * as typeUtils from '../util/types';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
+  NumericAddTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
 import { Blob } from './blob';
@@ -66,6 +67,7 @@ import {
   ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
   FieldValueImpl,
+  NumericAddFieldValueImpl,
   ServerTimestampFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
@@ -643,6 +645,15 @@ export class UserDataConverter {
       const arrayRemove = new ArrayRemoveTransformOperation(parsedElements);
       context.fieldTransforms.push(
         new FieldTransform(context.path, arrayRemove)
+      );
+    } else if (value instanceof NumericAddFieldValueImpl) {
+      const operand = this.parseQueryValue(
+        'FieldValue.numericAdd',
+        value._operand
+      ) as NumberValue;
+      const numericAdd = new NumericAddTransformOperation(operand);
+      context.fieldTransforms.push(
+        new FieldTransform(context.path, numericAdd)
       );
     } else {
       fail('Unknown FieldValue type: ' + value);

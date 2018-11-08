@@ -25,9 +25,9 @@ import {
   DocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { Mutation } from '../model/mutation';
+import { Mutation, PatchMutation, Precondition } from '../model/mutation';
 import {
   BATCHID_UNKNOWN,
   MutationBatch,
@@ -38,6 +38,7 @@ import { assert } from '../util/assert';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
+import { ObjectValue } from '../model/field_value';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { MutationQueue } from './mutation_queue';
@@ -242,24 +243,70 @@ export class LocalStore {
   }
   /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
+    const localWriteTime = Timestamp.now();
+    const keys = mutations.reduce(
+      (keys, m) => keys.add(m.key),
+      documentKeySet()
+    );
+
     return this.persistence.runTransaction(
       'Locally write mutations',
       'readwrite',
       txn => {
-        let batch: MutationBatch;
-        const localWriteTime = Timestamp.now();
-        return this.mutationQueue
-          .addMutationBatch(txn, localWriteTime, mutations)
-          .next(promisedBatch => {
-            batch = promisedBatch;
-            // TODO(koss): This is doing an N^2 update by replaying ALL the
-            // mutations on each document (instead of just the ones added) in
-            // this batch.
-            const keys = batch.keys();
-            return this.localDocuments.getDocuments(txn, keys);
-          })
-          .next((changedDocuments: MaybeDocumentMap) => {
-            return { batchId: batch.batchId, changes: changedDocuments };
+        // Load and apply all existing mutations. This lets us compute the
+        // current base state for all non-idempotent transforms before applying
+        // any additional user-provided writes.
+        return this.localDocuments
+          .getDocuments(txn, keys)
+          .next(existingDocs => {
+            // For non-idempotent mutations (such as `FieldValue.numericAdd()`),
+            // we record the base state in a separate patch mutation. This is
+            // later used to guarantee consistent values and prevents flicker
+            // even if the backend sends us an update that already includes our
+            // transform.
+            const baseMutations: Mutation[] = [];
+
+            for (const mutation of mutations) {
+              const maybeDoc = existingDocs.get(mutation.key);
+              if (!mutation.isIdempotent) {
+                // Theoretically, we should only include non-idempotent fields
+                // in this field mask as his mask is used to populate the base
+                // state for all DocumentTransforms.  By  including all fields,
+                // we incorrectly prevent rebasing of idempotent transforms
+                // (such as `arrayUnion()`) when any non-idempotent transforms
+                // are present.
+                const fieldMask = mutation.fieldMask;
+                if (fieldMask) {
+                  if (maybeDoc instanceof Document) {
+                    const baseValues = fieldMask.applyTo(maybeDoc.data);
+                    baseMutations.push(
+                      new PatchMutation(
+                        mutation.key,
+                        baseValues,
+                        fieldMask,
+                        Precondition.exists(true)
+                      )
+                    );
+                  } else {
+                    baseMutations.push(
+                      new PatchMutation(
+                        mutation.key,
+                        ObjectValue.EMPTY,
+                        fieldMask,
+                        Precondition.exists(true)
+                      )
+                    );
+                  }
+                }
+              }
+            }
+
+            return this.mutationQueue
+              .addMutationBatch(txn, localWriteTime, baseMutations, mutations)
+              .next(batch => {
+                const changes = batch.applyToLocalDocumentSet(existingDocs);
+                return { batchId: batch.batchId, changes };
+              });
           });
       }
     );
