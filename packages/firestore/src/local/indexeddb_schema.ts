@@ -119,9 +119,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 7 && toVersion >= 7) {
-      p = p.next(() => {
-        return this.ensureSequenceNumbers(txn);
-      });
+      p = p.next(() => this.ensureSequenceNumbers(txn));
     }
 
     return p;
