@@ -40,6 +40,8 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  *    https://github.com/firebase/firebase-ios-sdk/issues/1548
  * 4. Multi-Tab Support.
  * 5. Removal of held write acks.
+ * 6. Create document global for tracking document cache size.
+ * 7. Ensure every cached document has a sentinel row with a sequence number.
  */
 export const SCHEMA_VERSION = 7;
 
