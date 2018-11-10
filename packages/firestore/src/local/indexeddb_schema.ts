@@ -209,11 +209,15 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         .iterate((key, doc) => {
           const path = new ResourcePath(key);
           const docSentinelKey = sentinelKey(path);
-          documentTargetStore.get(docSentinelKey).next(maybeSentinel => {
-            if (!maybeSentinel) {
-              promises.push(writeSentinelKey(path));
-            }
-          });
+          promises.push(
+            documentTargetStore.get(docSentinelKey).next(maybeSentinel => {
+              if (!maybeSentinel) {
+                return writeSentinelKey(path);
+              } else {
+                return PersistencePromise.resolve();
+              }
+            })
+          );
         })
         .next(() => PersistencePromise.waitFor(promises));
     });
