@@ -985,7 +985,7 @@ function genericLocalStoreTests(
     expect(queryData2.resumeToken).to.deep.equal(resumeToken);
   });
 
-  // TODO(mrschmidt): The FieldValue.numericAdd() field transform tests below
+  // TODO(mrschmidt): The FieldValue.increment() field transform tests below
   // would probably be better implemented as spec tests but currently they don't
   // support transforms.
 
@@ -997,14 +997,14 @@ function genericLocalStoreTests(
       )
       .toContain(doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true }))
       .after(
-        transformMutation('foo/bar', { sum: PublicFieldValue.numericAdd(1) })
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
       )
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true }))
       .after(
-        transformMutation('foo/bar', { sum: PublicFieldValue.numericAdd(2) })
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(2) })
       )
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 3 }, { hasLocalMutations: true })
@@ -1034,7 +1034,7 @@ function genericLocalStoreTests(
       )
       .toContain(doc('foo/bar', 1, { sum: 0 }, { hasCommittedMutations: true }))
       .after(
-        transformMutation('foo/bar', { sum: PublicFieldValue.numericAdd(1) })
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
       )
       .toReturnChanged(
         doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
@@ -1049,7 +1049,7 @@ function genericLocalStoreTests(
       )
       .toContain(doc('foo/bar', 2, { sum: 1 }, { hasCommittedMutations: true }))
       .after(
-        transformMutation('foo/bar', { sum: PublicFieldValue.numericAdd(2) })
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(2) })
       )
       .toReturnChanged(
         doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true })
@@ -1076,7 +1076,7 @@ function genericLocalStoreTests(
         .toReturnChanged(doc('foo/bar', 1, { sum: 0 }))
         .toContain(doc('foo/bar', 1, { sum: 0 }))
         .after(
-          transformMutation('foo/bar', { sum: PublicFieldValue.numericAdd(1) })
+          transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
         )
         .toReturnChanged(
           doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
@@ -1094,7 +1094,7 @@ function genericLocalStoreTests(
         // Add another increment. Note that we still compute the increment based
         // on the local value.
         .after(
-          transformMutation('foo/bar', { sum: PublicFieldValue.numericAdd(2) })
+          transformMutation('foo/bar', { sum: PublicFieldValue.increment(2) })
         )
         .toReturnChanged(
           doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true })
@@ -1153,7 +1153,7 @@ function genericLocalStoreTests(
         )
         .toReturnChanged(doc('foo/bar', 1, { sum: 0, array_union: [] }))
         .afterMutations([
-          transformMutation('foo/bar', { sum: PublicFieldValue.numericAdd(1) }),
+          transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) }),
           transformMutation('foo/bar', {
             array_union: PublicFieldValue.arrayUnion('foo')
           })
@@ -1194,7 +1194,7 @@ function genericLocalStoreTests(
       .toReturnTargetId(2)
       .afterMutations([
         patchMutation('foo/bar', {}, Precondition.NONE),
-        transformMutation('foo/bar', { sum: PublicFieldValue.numericAdd(1) })
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
       ])
       .toReturnChanged(
         doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true })
@@ -1220,7 +1220,7 @@ function genericLocalStoreTests(
       .toReturnTargetId(2)
       .afterMutations([
         patchMutation('foo/bar', {}),
-        transformMutation('foo/bar', { sum: PublicFieldValue.numericAdd(1) })
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
       ])
       .toReturnChanged(deletedDoc('foo/bar', 0))
       .toNotContain('foo/bar')

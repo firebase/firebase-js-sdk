@@ -1979,7 +1979,7 @@ declare namespace firebase.firestore {
 
     /**
      * Returns a special value that can be used with set() or update() that tells
-     * the server to add the given value to the field's current value.
+     * the server to increment the field's current value by the given value.
      *
      * If either the operand or the current field value uses floating point
      * precision, all arithmetic will follow IEEE 754 semantics. If both values
@@ -1991,10 +1991,10 @@ declare namespace firebase.firestore {
      * If the current field value is not of type 'number', or if the field does
      * not yet exist, the transformation will set the field to the given value.
      *
-     * @param n The value to add.
+     * @param n The value to increment by.
      * @return The FieldValue sentinel for use in a call to set() or update().
      */
-    static numericAdd(n: number): FieldValue;
+    static increment(n: number): FieldValue;
 
     /**
      * Returns true if this `FieldValue` is equal to the provided one.

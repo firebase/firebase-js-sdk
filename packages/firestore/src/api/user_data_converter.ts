@@ -54,7 +54,7 @@ import * as typeUtils from '../util/types';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
-  NumericAddTransformOperation,
+  NumericIncrementTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
 import { Blob } from './blob';
@@ -67,7 +67,7 @@ import {
   ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
   FieldValueImpl,
-  NumericAddFieldValueImpl,
+  NumericIncrementFieldValueImpl,
   ServerTimestampFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
@@ -646,14 +646,14 @@ export class UserDataConverter {
       context.fieldTransforms.push(
         new FieldTransform(context.path, arrayRemove)
       );
-    } else if (value instanceof NumericAddFieldValueImpl) {
+    } else if (value instanceof NumericIncrementFieldValueImpl) {
       const operand = this.parseQueryValue(
-        'FieldValue.numericAdd',
+        'FieldValue.increment',
         value._operand
       ) as NumberValue;
-      const numericAdd = new NumericAddTransformOperation(operand);
+      const numericIncrement = new NumericIncrementTransformOperation(operand);
       context.fieldTransforms.push(
-        new FieldTransform(context.path, numericAdd)
+        new FieldTransform(context.path, numericIncrement)
       );
     } else {
       fail('Unknown FieldValue type: ' + value);

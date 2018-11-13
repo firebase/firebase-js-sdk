@@ -729,20 +729,18 @@ apiDescribe('Validation:', persistence => {
     validationIt(persistence, 'fail in queries', db => {
       const collection = db.collection('test');
       expect(() =>
-        collection.where('test', '==', { test: FieldValue.numericAdd(1) })
+        collection.where('test', '==', { test: FieldValue.increment(1) })
       ).to.throw(
         'Function Query.where() called with invalid data. ' +
-          'FieldValue.numericAdd() can only be used with update() and set() ' +
+          'FieldValue.increment() can only be used with update() and set() ' +
           '(found in field test)'
       );
     });
 
     validationIt(persistence, 'reject invalid operands', db => {
       const doc = db.collection('test').doc();
-      expect(() =>
-        doc.set({ x: FieldValue.numericAdd('foo' as any) })
-      ).to.throw(
-        'Function FieldValue.numericAdd() requires its first argument to ' +
+      expect(() => doc.set({ x: FieldValue.increment('foo' as any) })).to.throw(
+        'Function FieldValue.increment() requires its first argument to ' +
           'be of type number, but it was: "foo"'
       );
     });
@@ -750,9 +748,9 @@ apiDescribe('Validation:', persistence => {
     validationIt(persistence, 'reject more than one argument', db => {
       const doc = db.collection('test').doc();
       expect(() =>
-        doc.set({ x: (FieldValue as any).numericAdd(1337, 'leet') })
+        doc.set({ x: (FieldValue as any).increment(1337, 'leet') })
       ).to.throw(
-        'Function FieldValue.numericAdd() requires 1 argument, but was ' +
+        'Function FieldValue.increment() requires 1 argument, but was ' +
           'called with 2 arguments.'
       );
     });

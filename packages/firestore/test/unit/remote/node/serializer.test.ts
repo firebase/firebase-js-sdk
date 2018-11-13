@@ -707,8 +707,8 @@ describe('Serializer', () => {
 
     it('TransformMutation (Numeric Add transform)', () => {
       const mutation = transformMutation('baz/quux', {
-        integer: FieldValue.numericAdd(42),
-        double: FieldValue.numericAdd(13.37)
+        integer: FieldValue.increment(42),
+        double: FieldValue.increment(13.37)
       });
       const proto = {
         transform: {

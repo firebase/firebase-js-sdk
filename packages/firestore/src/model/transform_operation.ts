@@ -159,12 +159,12 @@ export class ArrayRemoveTransformOperation implements TransformOperation {
 }
 
 /**
- * Implements the backend semantics for locally computed NUMERIC_ADD transforms.
- * Converts all field values to integers or doubles, but unlike the backend does
- * not cap integer values at 2^63. Instead, JavaScript number arithmetic is used
- * and precision loss can occur for values greater than 2^53.
+ * Implements the backend semantics for locally computed NUMERIC_ADD (increment)
+ * transforms. Converts all field values to integers or doubles, but unlike the
+ * backend does not cap integer values at 2^63. Instead, JavaScript number
+ * arithmetic is used and precision loss can occur for values greater than 2^53.
  */
-export class NumericAddTransformOperation implements TransformOperation {
+export class NumericIncrementTransformOperation implements TransformOperation {
   readonly isIdempotent = false;
 
   constructor(readonly operand: NumberValue) {}
@@ -174,8 +174,8 @@ export class NumericAddTransformOperation implements TransformOperation {
     localWriteTime: Timestamp
   ): FieldValue {
     // PORTING NOTE: Since JavaScript's integer arithmetic is limited to 53 bit
-    // precision and resolves overflows by reducing precision, we do not manually
-    // cap overflows at 2^63.
+    // precision and resolves overflows by reducing precision, we do not
+    // manually cap overflows at 2^63.
 
     // Return an integer value iff the previous value and the operand is an
     // integer.
@@ -208,7 +208,7 @@ export class NumericAddTransformOperation implements TransformOperation {
 
   isEqual(other: TransformOperation): boolean {
     return (
-      other instanceof NumericAddTransformOperation &&
+      other instanceof NumericIncrementTransformOperation &&
       this.operand.isEqual(other.operand)
     );
   }

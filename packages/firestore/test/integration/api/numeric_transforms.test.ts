@@ -77,14 +77,14 @@ apiDescribe('Numeric Transforms:', persistence => {
 
   it('create document with increment', async () => {
     await withTestSetup(async () => {
-      await docRef.set({ sum: FieldValue.numericAdd(1337) });
+      await docRef.set({ sum: FieldValue.increment(1337) });
       await expectLocalAndRemoteValue(1337);
     });
   });
 
   it('merge on non-existing document with increment', async () => {
     await withTestSetup(async () => {
-      await docRef.set({ sum: FieldValue.numericAdd(1337) }, { merge: true });
+      await docRef.set({ sum: FieldValue.increment(1337) }, { merge: true });
       await expectLocalAndRemoteValue(1337);
     });
   });
@@ -92,7 +92,7 @@ apiDescribe('Numeric Transforms:', persistence => {
   it('increment existing integer with integer', async () => {
     await withTestSetup(async () => {
       await writeInitialData({ sum: 1337 });
-      await docRef.update('sum', FieldValue.numericAdd(1));
+      await docRef.update('sum', FieldValue.increment(1));
       await expectLocalAndRemoteValue(1338);
     });
   });
@@ -100,7 +100,7 @@ apiDescribe('Numeric Transforms:', persistence => {
   it('increment existing double with double', async () => {
     await withTestSetup(async () => {
       await writeInitialData({ sum: 13.37 });
-      await docRef.update('sum', FieldValue.numericAdd(0.1));
+      await docRef.update('sum', FieldValue.increment(0.1));
       await expectLocalAndRemoteValue(13.47);
     });
   });
@@ -108,7 +108,7 @@ apiDescribe('Numeric Transforms:', persistence => {
   it('increment existing double with integer', async () => {
     await withTestSetup(async () => {
       await writeInitialData({ sum: 13.37 });
-      await docRef.update('sum', FieldValue.numericAdd(1));
+      await docRef.update('sum', FieldValue.increment(1));
       await expectLocalAndRemoteValue(14.37);
     });
   });
@@ -116,7 +116,7 @@ apiDescribe('Numeric Transforms:', persistence => {
   it('increment existing integer with double', async () => {
     await withTestSetup(async () => {
       await writeInitialData({ sum: 1337 });
-      await docRef.update('sum', FieldValue.numericAdd(0.1));
+      await docRef.update('sum', FieldValue.increment(0.1));
       await expectLocalAndRemoteValue(1337.1);
     });
   });
@@ -124,7 +124,7 @@ apiDescribe('Numeric Transforms:', persistence => {
   it('increment existing string with integer', async () => {
     await withTestSetup(async () => {
       await writeInitialData({ sum: 'overwrite' });
-      await docRef.update('sum', FieldValue.numericAdd(1337));
+      await docRef.update('sum', FieldValue.increment(1337));
       await expectLocalAndRemoteValue(1337);
     });
   });
@@ -132,7 +132,7 @@ apiDescribe('Numeric Transforms:', persistence => {
   it('increment existing string with double', async () => {
     await withTestSetup(async () => {
       await writeInitialData({ sum: 'overwrite' });
-      await docRef.update('sum', FieldValue.numericAdd(13.37));
+      await docRef.update('sum', FieldValue.increment(13.37));
       await expectLocalAndRemoteValue(13.37);
     });
   });
@@ -143,9 +143,9 @@ apiDescribe('Numeric Transforms:', persistence => {
 
       await docRef.firestore.disableNetwork();
 
-      docRef.update('sum', FieldValue.numericAdd(0.1));
-      docRef.update('sum', FieldValue.numericAdd(0.01));
-      docRef.update('sum', FieldValue.numericAdd(0.001));
+      docRef.update('sum', FieldValue.increment(0.1));
+      docRef.update('sum', FieldValue.increment(0.01));
+      docRef.update('sum', FieldValue.increment(0.001));
 
       let snap = await accumulator.awaitLocalEvent();
       expect(snap.get('sum')).to.be.closeTo(0.1, DOUBLE_EPSILON);

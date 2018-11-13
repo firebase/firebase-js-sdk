@@ -434,14 +434,14 @@ describe('Mutation', () => {
       doublePlusInfinity: 8.8
     };
     const transform = {
-      longPlusLong: FieldValue.numericAdd(1),
-      longPlusDouble: FieldValue.numericAdd(2.2),
-      doublePlusLong: FieldValue.numericAdd(3),
-      doublePlusDouble: FieldValue.numericAdd(4.4),
-      longPlusNan: FieldValue.numericAdd(Number.NaN),
-      doublePlusNan: FieldValue.numericAdd(Number.NaN),
-      longPlusInfinity: FieldValue.numericAdd(Number.POSITIVE_INFINITY),
-      doublePlusInfinity: FieldValue.numericAdd(Number.POSITIVE_INFINITY)
+      longPlusLong: FieldValue.increment(1),
+      longPlusDouble: FieldValue.increment(2.2),
+      doublePlusLong: FieldValue.increment(3),
+      doublePlusDouble: FieldValue.increment(4.4),
+      longPlusNan: FieldValue.increment(Number.NaN),
+      doublePlusNan: FieldValue.increment(Number.NaN),
+      longPlusInfinity: FieldValue.increment(Number.POSITIVE_INFINITY),
+      doublePlusInfinity: FieldValue.increment(Number.POSITIVE_INFINITY)
     };
     const expected = {
       longPlusLong: 2,
@@ -458,28 +458,28 @@ describe('Mutation', () => {
 
   it('can apply numeric add transform to unexpected type', () => {
     const baseDoc = { string: 'zero' };
-    const transform = { string: FieldValue.numericAdd(1) };
+    const transform = { string: FieldValue.increment(1) };
     const expected = { string: 1 };
     verifyTransform(baseDoc, transform, expected);
   });
 
   it('can apply numeric add transform to missing field', () => {
     const baseDoc = {};
-    const transform = { missing: FieldValue.numericAdd(1) };
+    const transform = { missing: FieldValue.increment(1) };
     const expected = { missing: 1 };
     verifyTransform(baseDoc, transform, expected);
   });
 
   it('can apply numeric add transforms consecutively', () => {
     const baseDoc = { number: 1 };
-    const transform1 = { number: FieldValue.numericAdd(2) };
-    const transform2 = { number: FieldValue.numericAdd(3) };
-    const transform3 = { number: FieldValue.numericAdd(4) };
+    const transform1 = { number: FieldValue.increment(2) };
+    const transform2 = { number: FieldValue.increment(3) };
+    const transform3 = { number: FieldValue.increment(4) };
     const expected = { number: 10 };
     verifyTransform(baseDoc, [transform1, transform2, transform3], expected);
   });
 
-  // PORTING NOTE: The `numericAdd()` overflow/underflow tests from Android/iOS
+  // PORTING NOTE: The `increment()` overflow/underflow tests from Android/iOS
   // are not applicable to Web since we expose JavaScript's number arithmetic
   // directly.
 
@@ -487,7 +487,7 @@ describe('Mutation', () => {
     const docData = { sum: 1 };
     const baseDoc = doc('collection/key', 0, docData);
     const transform = transformMutation('collection/key', {
-      sum: FieldValue.numericAdd(2)
+      sum: FieldValue.increment(2)
     });
 
     const mutationResult = new MutationResult(version(1), [

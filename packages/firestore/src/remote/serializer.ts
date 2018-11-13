@@ -58,7 +58,7 @@ import { NumberValue } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
-  NumericAddTransformOperation,
+  NumericIncrementTransformOperation,
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
@@ -949,7 +949,7 @@ export class JsonProtoSerializer {
           values: transform.elements.map(v => this.toValue(v))
         }
       };
-    } else if (transform instanceof NumericAddTransformOperation) {
+    } else if (transform instanceof NumericIncrementTransformOperation) {
       return {
         fieldPath: fieldTransform.field.canonicalString(),
         numericAdd: this.toValue(transform.operand)
@@ -985,7 +985,9 @@ export class JsonProtoSerializer {
         operand instanceof NumberValue,
         'NUMERIC_ADD transform requires a NumberValue'
       );
-      transform = new NumericAddTransformOperation(operand as NumberValue);
+      transform = new NumericIncrementTransformOperation(
+        operand as NumberValue
+      );
     } else {
       fail('Unknown transform proto: ' + JSON.stringify(proto));
     }

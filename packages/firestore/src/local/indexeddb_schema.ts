@@ -308,7 +308,7 @@ export class DbMutationBatch {
      * write batch was initially created. During local application of the write
      * batch, these baseMutations are applied prior to the real writes in order
      * to override certain document fields from the remote document cache. This
-     * is necessary in the case of non-idempotent writes (e.g. `numericAdd()`
+     * is necessary in the case of non-idempotent writes (e.g. `increment()`
      * transforms) to make sure that the local view of the modified documents
      * doesn't flicker if the remote document cache receives the result of the
      * non-idempotent write before the write is removed from the queue.

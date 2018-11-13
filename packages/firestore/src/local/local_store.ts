@@ -259,7 +259,7 @@ export class LocalStore {
         return this.localDocuments
           .getDocuments(txn, keys)
           .next(existingDocs => {
-            // For non-idempotent mutations (such as `FieldValue.numericAdd()`),
+            // For non-idempotent mutations (such as `FieldValue.increment()`),
             // we record the base state in a separate patch mutation. This is
             // later used to guarantee consistent values and prevents flicker
             // even if the backend sends us an update that already includes our

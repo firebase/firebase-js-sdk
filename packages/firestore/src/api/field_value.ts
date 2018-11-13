@@ -57,10 +57,10 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
     return new ArrayRemoveFieldValueImpl(elements);
   }
 
-  static numericAdd(n: number): FieldValueImpl {
-    validateArgType('FieldValue.numericAdd', 'number', 1, n);
-    validateExactNumberOfArgs('FieldValue.numericAdd', arguments, 1);
-    return new NumericAddFieldValueImpl(n);
+  static increment(n: number): FieldValueImpl {
+    validateArgType('FieldValue.increment', 'number', 1, n);
+    validateExactNumberOfArgs('FieldValue.increment', arguments, 1);
+    return new NumericIncrementFieldValueImpl(n);
   }
 
   isEqual(other: FieldValueImpl): boolean {
@@ -96,9 +96,9 @@ export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
   }
 }
 
-export class NumericAddFieldValueImpl extends FieldValueImpl {
+export class NumericIncrementFieldValueImpl extends FieldValueImpl {
   constructor(readonly _operand: number) {
-    super('FieldValue.numericAdd');
+    super('FieldValue.increment');
   }
 }
 
