@@ -137,6 +137,7 @@ fireauth.authenum.Error = {
   INVALID_CONTINUE_URI: 'invalid-continue-uri',
   INVALID_CORDOVA_CONFIGURATION: 'invalid-cordova-configuration',
   INVALID_CUSTOM_TOKEN: 'invalid-custom-token',
+  INVALID_DYNAMIC_LINK_DOMAIN: 'invalid-dynamic-link-domain',
   INVALID_EMAIL: 'invalid-email',
   INVALID_IDP_RESPONSE: 'invalid-credential',
   INVALID_MESSAGE_PAYLOAD: 'invalid-message-payload',
@@ -262,6 +263,10 @@ fireauth.AuthError.MESSAGES_[
     'cordova-plugin-customurlscheme.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_CUSTOM_TOKEN] =
     'The custom token format is incorrect. Please check the documentation.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN] = 'The provided ' +
+    'dynamic link domain is not configured or authorized for the current ' +
+    'project.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_EMAIL] =
     'The email address is badly formatted.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_API_KEY] =

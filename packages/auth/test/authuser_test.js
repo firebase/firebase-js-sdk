@@ -171,7 +171,8 @@ var actionCodeSettings = {
     'installApp': true,
     'minimumVersion': '12'
   },
-  'handleCodeInApp': true
+  'handleCodeInApp': true,
+  'dynamicLinkDomain': 'example.page.link'
 };
 var lastLoginAt = '1506050282000';
 var createdAt = '1506044998000';

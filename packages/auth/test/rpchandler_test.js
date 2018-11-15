@@ -3660,7 +3660,8 @@ function testSendSignInLinkToEmail_success_actionCodeSettings() {
     'androidPackageName': 'com.example.android',
     'androidInstallApp': true,
     'androidMinimumVersion': '12',
-    'canHandleCodeInApp': true
+    'canHandleCodeInApp': true,
+    'dynamicLinkDomain': 'example.page.link'
   };
   var expectedResponse = {'email': userEmail};
   asyncTestCase.waitForSignals(1);
@@ -3676,7 +3677,8 @@ function testSendSignInLinkToEmail_success_actionCodeSettings() {
         'androidPackageName': 'com.example.android',
         'androidInstallApp': true,
         'androidMinimumVersion': '12',
-        'canHandleCodeInApp': true
+        'canHandleCodeInApp': true,
+        'dynamicLinkDomain': 'example.page.link'
       }),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
@@ -3825,6 +3827,8 @@ function testSendSignInLinkToEmail_serverCaughtError() {
       fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID;
   errorMap[fireauth.RpcHandler.ServerError.UNAUTHORIZED_DOMAIN] =
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
+      fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendSignInLinkToEmail(userEmail, {});
@@ -3843,7 +3847,8 @@ function testSendPasswordResetEmail_success_actionCodeSettings() {
     'androidPackageName': 'com.example.android',
     'androidInstallApp': true,
     'androidMinimumVersion': '12',
-    'canHandleCodeInApp': true
+    'canHandleCodeInApp': true,
+    'dynamicLinkDomain': 'example.page.link'
   };
   var expectedResponse = {
     'email': userEmail
@@ -3861,7 +3866,8 @@ function testSendPasswordResetEmail_success_actionCodeSettings() {
         'androidPackageName': 'com.example.android',
         'androidInstallApp': true,
         'androidMinimumVersion': '12',
-        'canHandleCodeInApp': true
+        'canHandleCodeInApp': true,
+        'dynamicLinkDomain': 'example.page.link'
       }),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
@@ -4012,6 +4018,8 @@ function testSendPasswordResetEmail_caughtServerError() {
       fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID;
   errorMap[fireauth.RpcHandler.ServerError.UNAUTHORIZED_DOMAIN] =
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
+      fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendPasswordResetEmail(userEmail, {});
@@ -4034,7 +4042,8 @@ function testSendEmailVerification_success_actionCodeSettings() {
     'androidPackageName': 'com.example.android',
     'androidInstallApp': true,
     'androidMinimumVersion': '12',
-    'canHandleCodeInApp': true
+    'canHandleCodeInApp': true,
+    'dynamicLinkDomain': 'example.page.link'
   };
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
@@ -4049,7 +4058,8 @@ function testSendEmailVerification_success_actionCodeSettings() {
         'androidPackageName': 'com.example.android',
         'androidInstallApp': true,
         'androidMinimumVersion': '12',
-        'canHandleCodeInApp': true
+        'canHandleCodeInApp': true,
+        'dynamicLinkDomain': 'example.page.link'
       }),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
@@ -4176,6 +4186,8 @@ function testSendEmailVerification_caughtServerError() {
       fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID;
   errorMap[fireauth.RpcHandler.ServerError.UNAUTHORIZED_DOMAIN] =
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
+      fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendEmailVerification(idToken, {});
