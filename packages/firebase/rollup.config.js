@@ -57,9 +57,7 @@ const uglifyOptions = {
     }
   },
   compress: {
-    passes: 3,
-    unsafe: true,
-    warnings: false,
+    passes: 3
   }
 };
 
@@ -152,7 +150,10 @@ const componentBuilds = components
               );
             }`
         },
-        plugins: [...plugins, uglify(component !== 'auth' ? uglifyOptions : {})],
+        plugins: [
+          ...plugins,
+          uglify(component !== 'auth' ? uglifyOptions : {})
+        ],
         external: ['@firebase/app']
       }
     ];
