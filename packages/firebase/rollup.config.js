@@ -49,6 +49,20 @@ const plugins = [
 
 const external = Object.keys(pkg.dependencies || {});
 
+const uglifyOptions = {
+  mangle: {
+    properties: {
+      keep_quoted: true,
+      regex: /_$|^_/
+    }
+  },
+  compress: {
+    passes: 3,
+    unsafe: true,
+    warnings: false,
+  }
+};
+
 /**
  * Global UMD Build
  */
@@ -81,7 +95,7 @@ const appBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, uglify()]
+    plugins: [...plugins, uglify(uglifyOptions)]
   }
 ];
 
@@ -138,7 +152,7 @@ const componentBuilds = components
               );
             }`
         },
-        plugins: [...plugins, uglify()],
+        plugins: [...plugins, uglify(component !== 'auth' ? uglifyOptions : {})],
         external: ['@firebase/app']
       }
     ];
@@ -168,7 +182,7 @@ const completeBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, uglify()]
+    plugins: [...plugins, uglify(uglifyOptions)]
   },
   /**
    * App Node.js Builds
