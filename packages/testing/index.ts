@@ -24,8 +24,10 @@ export {
   apps,
   assertFails,
   assertSucceeds,
+  database,
+  firestore,
   initializeAdminApp,
   initializeTestApp,
   loadDatabaseRules,
-  loadFirestoreRules
+  loadFirestoreRules,
 } from './src/api';
