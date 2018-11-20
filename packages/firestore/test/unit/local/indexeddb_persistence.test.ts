@@ -46,6 +46,7 @@ import {
   V4_STORES,
   V6_STORES
 } from '../../../src/local/indexeddb_schema';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
@@ -120,6 +121,7 @@ async function withCustomPersistence(
         platform,
         queue,
         serializer,
+        LruParams.default(),
         {
           sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
         }
@@ -129,7 +131,8 @@ async function withCustomPersistence(
         clientId,
         platform,
         queue,
-        serializer
+        serializer,
+        LruParams.default()
       ));
 
   await fn(persistence, platform, queue);

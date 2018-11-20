@@ -25,7 +25,8 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   ActiveTargets,
   LruDelegate,
-  LruGarbageCollector
+  LruGarbageCollector,
+  LruParams
 } from '../../../src/local/lru_garbage_collector';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import {
@@ -55,19 +56,19 @@ describe('IndexedDbLruDelegate', () => {
     return;
   }
 
-  genericLruGarbageCollectorTests(() =>
-    PersistenceTestHelpers.testIndexedDbPersistence()
+  genericLruGarbageCollectorTests(params =>
+    PersistenceTestHelpers.testIndexedDbPersistence({}, params)
   );
 });
 
 describe('MemoryLruDelegate', () => {
-  genericLruGarbageCollectorTests(() =>
-    PersistenceTestHelpers.testMemoryLruPersistence()
+  genericLruGarbageCollectorTests(params =>
+    PersistenceTestHelpers.testMemoryLruPersistence(params)
   );
 });
 
 function genericLruGarbageCollectorTests(
-  newPersistence: () => Promise<Persistence>
+  newPersistence: (params: LruParams) => Promise<Persistence>
 ): void {
   // We need to initialize a few counters so that we can use them when we
   // auto-generate things like targets and documents. Pick arbitrary values
@@ -78,7 +79,7 @@ function genericLruGarbageCollectorTests(
   beforeEach(async () => {
     previousTargetId = 500;
     previousDocNum = 10;
-    await initializeTestResources();
+    await initializeTestResources(LruParams.default());
   });
 
   afterEach(async () => {
@@ -91,12 +92,16 @@ function genericLruGarbageCollectorTests(
   let initialSequenceNumber: ListenSequenceNumber;
   let mutationQueue: MutationQueue;
   let documentCache: RemoteDocumentCache;
+  let lruParams: LruParams;
 
-  async function initializeTestResources(): Promise<void> {
+  async function initializeTestResources(
+    params: LruParams = LruParams.default()
+  ): Promise<void> {
     if (persistence && persistence.started) {
       await persistence.shutdown(/* deleteData= */ true);
     }
-    persistence = await newPersistence();
+    lruParams = params;
+    persistence = await newPersistence(params);
     queryCache = persistence.getQueryCache();
     mutationQueue = persistence.getMutationQueue(new User('user'));
     documentCache = persistence.getRemoteDocumentCache();
@@ -827,5 +832,147 @@ function genericLruGarbageCollectorTests(
       txn => persistence.getRemoteDocumentCache().getSize(txn)
     );
     expect(postCollectSize).to.be.lessThan(preCollectSize);
+  });
+
+  it('gets cache size', async () => {
+    const initialSize = await persistence.runTransaction(
+      'getCacheSize',
+      'readonly',
+      txn => garbageCollector.getCacheSize(txn)
+    );
+
+    await persistence.runTransaction('fill cache', 'readwrite-primary', txn => {
+      // Simulate a bunch of ack'd mutations
+      const promises: Array<PersistencePromise<void>> = [];
+      for (let i = 0; i < 50; i++) {
+        promises.push(
+          cacheADocumentInTransaction(txn).next(docKey =>
+            markDocumentEligibleForGCInTransaction(txn, docKey)
+          )
+        );
+      }
+      return PersistencePromise.waitFor(promises);
+    });
+
+    const finalSize = await persistence.runTransaction(
+      'getCacheSize',
+      'readonly',
+      txn => garbageCollector.getCacheSize(txn)
+    );
+    // Document sizes are approximate, so we don't test an exact value here. Instead, just confirm
+    // that the size is larger than the initial size.
+    expect(finalSize).to.be.greaterThan(initialSize);
+  });
+
+  it('can be disabled', async () => {
+    // Switch out the test resources for ones with a disabled GC.
+    await persistence.shutdown();
+    await initializeTestResources(LruParams.disabled());
+
+    await persistence.runTransaction('fill cache', 'readwrite-primary', txn => {
+      // Simulate a bunch of ack'd mutations
+      const promises: Array<PersistencePromise<void>> = [];
+      for (let i = 0; i < 50; i++) {
+        promises.push(
+          cacheADocumentInTransaction(txn).next(docKey =>
+            markDocumentEligibleForGCInTransaction(txn, docKey)
+          )
+        );
+      }
+      return PersistencePromise.waitFor(promises);
+    });
+
+    const results = await persistence.runTransaction(
+      'collect garbage',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, {})
+    );
+    expect(results.hasRun).to.be.false;
+  });
+
+  it('skips a cache that is too small', async () => {
+    // Default LRU params are ok for this test.
+
+    await persistence.runTransaction('fill cache', 'readwrite-primary', txn => {
+      // Simulate a bunch of ack'd mutations
+      const promises: Array<PersistencePromise<void>> = [];
+      for (let i = 0; i < 50; i++) {
+        promises.push(
+          cacheADocumentInTransaction(txn).next(docKey =>
+            markDocumentEligibleForGCInTransaction(txn, docKey)
+          )
+        );
+      }
+      return PersistencePromise.waitFor(promises);
+    });
+
+    // Make sure we're under the target size.
+    const cacheSize = await persistence.runTransaction(
+      'getCacheSize',
+      'readonly',
+      txn => garbageCollector.getCacheSize(txn)
+    );
+    expect(cacheSize).to.be.lessThan(lruParams.minBytesThreshold);
+
+    const results = await persistence.runTransaction(
+      'collect garbage',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, {})
+    );
+    expect(results.hasRun).to.be.false;
+  });
+
+  it('runs when the cache is large enough', async () => {
+    // Set a low byte threshold so we can guarantee that GC will run
+    await persistence.shutdown();
+    await initializeTestResources(LruParams.withCacheSize(100));
+    expect(persistence.started).to.be.true;
+
+    // Add 50 targets and 10 documents to each.
+    for (let i = 0; i < 50; i++) {
+      // Use separate transactions so that each target and associated documents get their own
+      // sequence number.
+      await persistence.runTransaction(
+        'Add a target and some documents',
+        'readwrite-primary',
+        txn => {
+          return addNextTargetInTransaction(txn).next(queryData => {
+            const targetId = queryData.targetId;
+            const promises: Array<PersistencePromise<void>> = [];
+            for (let j = 0; j < 10; j++) {
+              promises.push(
+                cacheADocumentInTransaction(txn).next(docKey =>
+                  queryCache.addMatchingKeys(
+                    txn,
+                    documentKeySet(docKey),
+                    targetId
+                  )
+                )
+              );
+            }
+            return PersistencePromise.waitFor(promises).next(() =>
+              updateTargetInTransaction(txn, queryData)
+            );
+          });
+        }
+      );
+    }
+
+    // Make sure we're over the target size.
+    const cacheSize = await persistence.runTransaction(
+      'getCacheSize',
+      'readonly',
+      txn => garbageCollector.getCacheSize(txn)
+    );
+    expect(cacheSize).to.be.greaterThan(lruParams.minBytesThreshold);
+
+    const results = await persistence.runTransaction(
+      'collect garbage',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, {})
+    );
+    expect(results.hasRun).to.be.true;
+    expect(results.targetsRemoved).to.equal(5);
+    expect(results.documentsRemoved).to.equal(50);
   });
 }

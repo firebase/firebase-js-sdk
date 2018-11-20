@@ -32,6 +32,7 @@ import {
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
+import { LruParams } from '../local/lru_garbage_collector';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -101,6 +102,10 @@ import {
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
+const MINIMUM_CACHE_BYTES = 1 * 1024 * 1024;
+const DEFAULT_CACHE_SIZE_BYTES = LruParams.DEFAULT_CACHE_SIZE_BYTES;
+
+export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
 
 // enablePersistence() defaults:
 const DEFAULT_SYNCHRONIZE_TABS = false;
@@ -127,12 +132,14 @@ export interface FirestoreDatabase {
  */
 class FirestoreSettings {
   /** The hostname to connect to. */
-  host: string;
+  readonly host: string;
 
   /** Whether to use SSL when connecting. */
-  ssl: boolean;
+  readonly ssl: boolean;
 
-  timestampsInSnapshots: boolean;
+  readonly timestampsInSnapshots: boolean;
+
+  readonly cacheSizeBytes: number;
 
   // Can be a google-auth-library or gapi client.
   // tslint:disable-next-line:no-any
@@ -159,7 +166,8 @@ class FirestoreSettings {
       'host',
       'ssl',
       'credentials',
-      'timestampsInSnapshots'
+      'timestampsInSnapshots',
+      'cacheSizeBytes'
     ]);
 
     validateNamedOptionalType(
@@ -180,6 +188,25 @@ class FirestoreSettings {
       settings.timestampsInSnapshots,
       DEFAULT_TIMESTAMPS_IN_SNAPSHOTS
     );
+
+    validateNamedOptionalType(
+      'settings',
+      'number',
+      'cacheSizeBytes',
+      settings.cacheSizeBytes
+    );
+    if (settings.cacheSizeBytes === undefined) {
+      this.cacheSizeBytes = DEFAULT_CACHE_SIZE_BYTES;
+    } else {
+      if (settings.cacheSizeBytes < MINIMUM_CACHE_BYTES) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `cacheSizeBytes must be at least ${MINIMUM_CACHE_BYTES}`
+        );
+      } else {
+        this.cacheSizeBytes = settings.cacheSizeBytes;
+      }
+    }
   }
 
   isEqual(other: FirestoreSettings): boolean {
@@ -187,7 +214,8 @@ class FirestoreSettings {
       this.host === other.host &&
       this.ssl === other.ssl &&
       this.timestampsInSnapshots === other.timestampsInSnapshots &&
-      this.credentials === other.credentials
+      this.credentials === other.credentials &&
+      this.cacheSizeBytes === other.cacheSizeBytes
     );
   }
 }
@@ -418,7 +446,10 @@ follow these steps, YOUR APP MAY BREAK.`);
       this._config.credentials,
       this._queue
     );
-    return this._firestoreClient.start(persistenceSettings);
+    return this._firestoreClient.start(
+      persistenceSettings,
+      this._config.settings.cacheSizeBytes
+    );
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
