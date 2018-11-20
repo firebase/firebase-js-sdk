@@ -113,9 +113,17 @@ export class GrpcConnection implements Connection {
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
       this.cachedStub = {
-        stub: new this.firestore.Firestore(this.databaseInfo.host, credentials, {
-          "grpc.max_reconnect_backoff_ms": 100
-        }),
+        stub: new this.firestore.Firestore(
+          this.databaseInfo.host,
+          credentials,
+          {
+            // gRPC will automatically perform exponential backoff if there is already a connection
+            // to this host. In production this is not an issue because "firestore.googleapis.com"
+            // resolves to many different IPs, so we almost always get a fresh connection. For the
+            // Firestore emulator, which often runs on localhost, this backoff is undesireable.
+            'grpc.max_reconnect_backoff_ms': 100
+          }
+        ),
         token
       };
     }
