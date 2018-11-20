@@ -113,7 +113,9 @@ export class GrpcConnection implements Connection {
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
       this.cachedStub = {
-        stub: new this.firestore.Firestore(this.databaseInfo.host, credentials),
+        stub: new this.firestore.Firestore(this.databaseInfo.host, credentials, {
+          "grpc.max_reconnect_backoff_ms": 100
+        }),
         token
       };
     }
