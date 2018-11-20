@@ -117,10 +117,9 @@ export class GrpcConnection implements Connection {
           this.databaseInfo.host,
           credentials,
           {
-            // gRPC will automatically perform exponential backoff if there is already a connection
-            // to this host. In production this is not an issue because "firestore.googleapis.com"
-            // resolves to many different IPs, so we almost always get a fresh connection. For the
-            // Firestore emulator, which often runs on localhost, this backoff is undesireable.
+            // We do our own connection backoff (that for example is aware of whether or
+            // not a write stream error is permanent or not) so we don't want gRPC to do
+            // backoff on top of that. 100ms is the minimum value that gRPC allows.
             'grpc.max_reconnect_backoff_ms': 100
           }
         ),
