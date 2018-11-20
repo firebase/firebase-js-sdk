@@ -53,7 +53,7 @@ const uglifyOptions = {
   mangle: {
     properties: {
       keep_quoted: true,
-      regex: /_$|^_/
+      regex: /(^_[^_])|([^_]_$)/
     }
   },
   compress: {
