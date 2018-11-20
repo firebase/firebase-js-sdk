@@ -1,2 +1,8 @@
+# With dot reporter, the full names of test case will not be displayed in log during execution.
+# The name and details of all failed cases will still be appended to log after execution.
+# See https://mochajs.org/#dot-matrix for more information.
 --reporter dot
+
+# Node doesn't exit after mocha test completion. Supplying this flag for force exit.
+# Not applicable in karma + mocha test (browser test).
 --exit

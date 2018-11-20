@@ -1,1 +1,3 @@
+# Node doesn't exit after mocha test completion. Supplying this flag for force exit.
+# Not applicable in karma + mocha test (browser test).
 --exit
