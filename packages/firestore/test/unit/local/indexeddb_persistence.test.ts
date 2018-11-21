@@ -17,6 +17,7 @@
 import { expect } from 'chai';
 import { PersistenceSettings } from '../../../src/api/database';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { decode, encode } from '../../../src/local/encoded_resource_path';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbDocumentMutation,
@@ -32,6 +33,8 @@ import {
   DbRemoteDocumentGlobalKey,
   DbRemoteDocumentKey,
   DbTarget,
+  DbTargetDocument,
+  DbTargetDocumentKey,
   DbTargetGlobal,
   DbTargetGlobalKey,
   DbTargetKey,
@@ -518,6 +521,92 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           // Our sizing algorithm may change at some point.
           expect(metadata!.byteSize).to.be.greaterThan(0);
         });
+      });
+    });
+  });
+
+  it('can upgrade from version 6 to 7', async () => {
+    const oldSequenceNumber = 1;
+    // Set the highest sequence number to this value so that untagged documents
+    // will pick up this value.
+    const newSequenceNumber = 2;
+    await withDb(6, db => {
+      const serializer = TEST_SERIALIZER;
+
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', V6_STORES, txn => {
+        const targetGlobalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+          DbTargetGlobal.store
+        );
+        const remoteDocumentStore = txn.store<
+          DbRemoteDocumentKey,
+          DbRemoteDocument
+        >(DbRemoteDocument.store);
+        const targetDocumentStore = txn.store<
+          DbTargetDocumentKey,
+          DbTargetDocument
+        >(DbTargetDocument.store);
+        return targetGlobalStore
+          .get(DbTargetGlobal.key)
+          .next(metadata => {
+            expect(metadata).to.not.be.null;
+            metadata!.highestListenSequenceNumber = newSequenceNumber;
+            return targetGlobalStore.put(DbTargetGlobal.key, metadata!);
+          })
+          .next(() => {
+            // Set up some documents (we only need the keys)
+            // For the odd ones, add sentinel rows.
+            const promises: Array<PersistencePromise<void>> = [];
+            for (let i = 0; i < 10; i++) {
+              const document = doc('docs/doc_' + i, 1, { foo: 'bar' });
+              promises.push(
+                remoteDocumentStore.put(
+                  document.key.path.toArray(),
+                  serializer.toDbRemoteDocument(document)
+                )
+              );
+              if (i % 2 === 1) {
+                promises.push(
+                  targetDocumentStore.put(
+                    new DbTargetDocument(
+                      0,
+                      encode(document.key.path),
+                      oldSequenceNumber
+                    )
+                  )
+                );
+              }
+            }
+            return PersistencePromise.waitFor(promises);
+          });
+      });
+    });
+
+    // Now run the migration and verify
+    await withDb(7, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readonly', V6_STORES, txn => {
+        const targetDocumentStore = txn.store<
+          DbTargetDocumentKey,
+          DbTargetDocument
+        >(DbTargetDocument.store);
+        const range = IDBKeyRange.bound(
+          [0],
+          [1],
+          /*lowerOpen=*/ false,
+          /*upperOpen=*/ true
+        );
+        return targetDocumentStore.iterate(
+          { range },
+          ([_, path], targetDocument) => {
+            const decoded = decode(path);
+            const lastSegment = decoded.lastSegment();
+            const docNum = +lastSegment.split('_')[1];
+            const expected =
+              docNum % 2 === 1 ? oldSequenceNumber : newSequenceNumber;
+            expect(targetDocument.sequenceNumber).to.equal(expected);
+          }
+        );
       });
     });
   });

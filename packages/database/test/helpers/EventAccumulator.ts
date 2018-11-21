@@ -17,7 +17,7 @@
 export const EventAccumulatorFactory = {
   waitsForCount: maxCount => {
     let count = 0;
-    const condition = () => ea.eventData.length >= count;
+    const condition = () => count >= maxCount;
     const ea = new EventAccumulator(condition);
     ea.onReset(() => {
       count = 0;
