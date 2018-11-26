@@ -208,6 +208,7 @@ fireauth.RpcHandler.ServerError = {
   INVALID_OAUTH_CLIENT_ID: 'INVALID_OAUTH_CLIENT_ID',
   INVALID_OOB_CODE: 'INVALID_OOB_CODE',
   INVALID_PASSWORD: 'INVALID_PASSWORD',
+  INVALID_PENDING_TOKEN: 'INVALID_PENDING_TOKEN',
   INVALID_PHONE_NUMBER: 'INVALID_PHONE_NUMBER',
   INVALID_PROVIDER_ID: 'INVALID_PROVIDER_ID',
   INVALID_RECIPIENT_EMAIL: 'INVALID_RECIPIENT_EMAIL',
@@ -2315,6 +2316,8 @@ fireauth.RpcHandler.getDeveloperError_ =
 
   // Verify assertion for sign in with credential errors:
   errorMap[fireauth.RpcHandler.ServerError.INVALID_IDP_RESPONSE] =
+      fireauth.authenum.Error.INVALID_IDP_RESPONSE;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_PENDING_TOKEN] =
       fireauth.authenum.Error.INVALID_IDP_RESPONSE;
   errorMap[fireauth.RpcHandler.ServerError.FEDERATED_USER_ID_ALREADY_LINKED] =
       fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE;

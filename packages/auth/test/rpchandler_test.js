@@ -3148,6 +3148,29 @@ function testVerifyAssertion_pendingTokenRequest_success() {
 
 
 /**
+ * Tests verifyAssertion RPC call with invalid/expired pendingToken in request.
+ */
+function testVerifyAssertion_pendingTokenRequest_serverCaughtError() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
+      'relyingparty/verifyAssertion?key=apiKey';
+  var requestBody = {
+    'pendingToken': 'PENDING_TOKEN',
+    'requestUri': 'http://localhost',
+    'returnIdpCredential': true,
+    'returnSecureToken': true
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_IDP_RESPONSE] =
+      fireauth.authenum.Error.INVALID_IDP_RESPONSE;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_PENDING_TOKEN] =
+      fireauth.authenum.Error.INVALID_IDP_RESPONSE;
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.verifyAssertion(requestBody);
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
  * Tests verifyAssertion RPC call with no recovery errorMessage.
  */
 function testVerifyAssertion_returnIdpCredential_noRecoveryError() {
