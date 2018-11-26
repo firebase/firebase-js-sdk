@@ -148,7 +148,8 @@ var actionCodeSettings = {
     'installApp': true,
     'minimumVersion': '12'
   },
-  'handleCodeInApp': true
+  'handleCodeInApp': true,
+  'dynamicLinkDomain': 'example.page.link'
 };
 var mockLocalStorage;
 var mockSessionStorage;
