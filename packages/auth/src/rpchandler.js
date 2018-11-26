@@ -198,6 +198,7 @@ fireauth.RpcHandler.ServerError = {
   INVALID_CODE: 'INVALID_CODE',
   INVALID_CONTINUE_URI: 'INVALID_CONTINUE_URI',
   INVALID_CUSTOM_TOKEN: 'INVALID_CUSTOM_TOKEN',
+  INVALID_DYNAMIC_LINK_DOMAIN: 'INVALID_DYNAMIC_LINK_DOMAIN',
   INVALID_EMAIL: 'INVALID_EMAIL',
   INVALID_ID_TOKEN: 'INVALID_ID_TOKEN',
   INVALID_IDP_RESPONSE: 'INVALID_IDP_RESPONSE',
@@ -2321,6 +2322,8 @@ fireauth.RpcHandler.getDeveloperError_ =
       fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID;
   errorMap[fireauth.RpcHandler.ServerError.UNAUTHORIZED_DOMAIN] =
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
+      fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
 
   // getProjectConfig errors when clientId is passed.
   errorMap[fireauth.RpcHandler.ServerError.INVALID_OAUTH_CLIENT_ID] =
