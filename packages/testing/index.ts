@@ -24,6 +24,8 @@ export {
   apps,
   assertFails,
   assertSucceeds,
+  database,
+  firestore,
   initializeAdminApp,
   initializeTestApp,
   loadDatabaseRules,

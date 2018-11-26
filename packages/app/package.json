@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -22,7 +22,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/app-types": "0.3.2",
-    "@firebase/util": "0.2.2",
+    "@firebase/util": "0.2.3",
     "tslib": "1.9.0",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"
@@ -42,7 +42,7 @@
     "karma-sourcemap-loader": "0.3.7",
     "karma-spec-reporter": "0.0.32",
     "karma-webpack": "2.0.9",
-    "mocha": "5.0.5",
+    "mocha": "5.2.0",
     "npm-run-all": "4.1.2",
     "nyc": "11.6.0",
     "rollup": "0.57.1",

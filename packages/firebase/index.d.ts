@@ -190,6 +190,7 @@ declare namespace firebase.auth {
     handleCodeInApp?: boolean;
     iOS?: { bundleId: string };
     url: string;
+    dynamicLinkDomain?: string;
   };
 
   type AdditionalUserInfo = {

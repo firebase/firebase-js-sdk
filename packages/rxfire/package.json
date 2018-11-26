@@ -1,6 +1,6 @@
 {
   "name": "rxfire",
-  "version": "3.0.9",
+  "version": "3.0.11",
   "private": false,
   "description": "Firebase JavaScript library RxJS",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -35,7 +35,7 @@
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "5.5.7",
+    "firebase": "5.5.9",
     "rxjs": "^6.2.2",
     "rollup": "0.57.1",
     "rollup-plugin-commonjs": "9.1.0",
@@ -57,7 +57,7 @@
     "karma-sourcemap-loader": "0.3.7",
     "karma-spec-reporter": "0.0.32",
     "karma-webpack": "2.0.9",
-    "mocha": "5.0.5",
+    "mocha": "5.2.0",
     "npm-run-all": "4.1.2",
     "nyc": "11.6.0",
     "sinon": "4.5.0",

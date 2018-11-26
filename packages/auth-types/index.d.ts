@@ -88,6 +88,7 @@ export type ActionCodeSettings = {
   handleCodeInApp?: boolean;
   iOS?: { bundleId: string };
   url: string;
+  dynamicLinkDomain?: string;
 };
 
 export type AdditionalUserInfo = {
