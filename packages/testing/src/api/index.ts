@@ -200,7 +200,13 @@ export function loadFirestoreRules(
 
   let client = new EMULATOR.FirestoreEmulator(
     FIRESTORE_ADDRESS,
-    grpc.credentials.createInsecure()
+    grpc.credentials.createInsecure(),
+    {
+      // Cap how much backoff gRPC will perform. This is testing code, so
+      // efficiency is less important than responsiveness.
+      'grpc.initial_reconnect_backoff_ms': 100,
+      'grpc.max_reconnect_backoff_ms': 100
+    }
   );
   return new Promise((resolve, reject) => {
     client.setSecurityRules(
