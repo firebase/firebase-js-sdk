@@ -373,8 +373,7 @@ declare namespace firebase.auth {
     addScope(scope: string): firebase.auth.AuthProvider;
     credential(
       idToken?: string,
-      accessToken?: string,
-      nonce?: string
+      accessToken?: string
     ): firebase.auth.AuthCredential;
     setCustomParameters(
       customOAuthParameters: Object

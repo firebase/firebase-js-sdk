@@ -185,8 +185,7 @@ export class OAuthProvider implements AuthProvider {
   addScope(scope: string): AuthProvider;
   credential(
     idToken?: string,
-    accessToken?: string,
-    nonce?: string
+    accessToken?: string
   ): OAuthCredential;
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
