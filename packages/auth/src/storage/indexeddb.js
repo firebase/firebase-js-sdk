@@ -399,7 +399,7 @@ fireauth.storage.IndexedDB.prototype.onIDBRequest_ =
       }
     };
     request.onerror = function(event) {
-      reject(new Error(event.target.errorCode));
+      reject(event.target.error);
     };
   });
 };
@@ -566,7 +566,7 @@ fireauth.storage.IndexedDB.prototype.sync_ = function() {
               }
             };
             request.onerror = function(event) {
-              reject(new Error(event.target.errorCode));
+              reject(event.target.error);
             };
           });
         }
