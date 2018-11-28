@@ -26,7 +26,7 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import {CACHE_SIZE_UNLIMITED} from "../../../src/api/database";
+import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
@@ -134,7 +134,7 @@ apiDescribe('Validation:', persistence => {
       );
     });
 
-    validationIt(persistence,'disallows changing settings after use', db => {
+    validationIt(persistence, 'disallows changing settings after use', db => {
       db.doc('foo/bar');
       expect(() =>
         db.settings({ host: 'something-else.example.com' })
@@ -146,14 +146,14 @@ apiDescribe('Validation:', persistence => {
     });
 
     validationIt(persistence, 'enforces minimum cache size', db => {
-      expect(
-        () => db.settings({cacheSizeBytes: 1})
-      ).to.throw('cacheSizeBytes must be at least 1048576');
+      expect(() => db.settings({ cacheSizeBytes: 1 })).to.throw(
+        'cacheSizeBytes must be at least 1048576'
+      );
     });
 
     validationIt(persistence, 'garbage collection can be disabled', db => {
       // Verify that this doesn't throw.
-      db.settings({cacheSizeBytes: CACHE_SIZE_UNLIMITED});
+      db.settings({ cacheSizeBytes: CACHE_SIZE_UNLIMITED });
     });
   });
 
