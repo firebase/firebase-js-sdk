@@ -104,8 +104,6 @@ const config = {
   client: {
     mocha: mochaConfig,
 
-    captureConsole: true,
-
     // Pass through --grep option to filter the tests that run.
     args: argv.grep ? ['--grep', argv.grep] : []
   },

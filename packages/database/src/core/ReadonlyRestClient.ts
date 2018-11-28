@@ -174,6 +174,8 @@ export class ReadonlyRestClient extends ServerActions {
           this.repoInfo_.host +
           pathString +
           '?' +
+          'ns=' +
+          this.repoInfo_.namespace +
           querystring(queryStringParameters);
 
         this.log_('Sending REST request for ' + url);

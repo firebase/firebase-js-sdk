@@ -46,5 +46,11 @@ module.exports = {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
     extensions: ['.js', '.ts']
   },
-  plugins: [new webpack.EnvironmentPlugin(['DATABASE_EMULATOR_ADDRESS'])]
+  plugins: [
+    new webpack.EnvironmentPlugin([
+      'USE_RTDB_EMULATOR',
+      'RTDB_EMULATOR_PORT',
+      'RTDB_EMULATOR_NAMESPACE'
+    ])
+  ]
 };
