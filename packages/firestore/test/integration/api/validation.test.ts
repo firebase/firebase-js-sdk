@@ -17,16 +17,16 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
+import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 import firebase from '../util/firebase_export';
 import {
-  ALT_PROJECT_ID,
-  apiDescribe,
-  DEFAULT_PROJECT_ID,
-  withAlternateTestDb,
-  withTestCollection,
-  withTestDb
+ALT_PROJECT_ID,
+apiDescribe,
+DEFAULT_PROJECT_ID,
+withAlternateTestDb,
+withTestCollection,
+withTestDb
 } from '../util/helpers';
-import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
