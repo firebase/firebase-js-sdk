@@ -29,6 +29,11 @@ export type DocumentData = { [field: string]: any };
  */
 export type UpdateData = { [fieldPath: string]: any };
 
+/**
+ * Constant used to indicate the LRU garbage collection should be disabled.
+ * Set this value as the `cacheSizeBytes` on the settings passed to the
+ * `Firestore` instance.
+ */
 export const CACHE_SIZE_UNLIMITED: number;
 
 /** Settings used to configure a `Firestore` instance. */

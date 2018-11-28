@@ -105,6 +105,11 @@ const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
 const MINIMUM_CACHE_BYTES = 1 * 1024 * 1024;
 const DEFAULT_CACHE_SIZE_BYTES = LruParams.DEFAULT_CACHE_SIZE_BYTES;
 
+/**
+ * Constant used to indicate the LRU garbage collection should be disabled.
+ * Set this value as the `cacheSizeBytes` on the settings passed to the
+ * `Firestore` instance.
+ */
 export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
 
 // enablePersistence() defaults:
@@ -198,7 +203,10 @@ class FirestoreSettings {
     if (settings.cacheSizeBytes === undefined) {
       this.cacheSizeBytes = DEFAULT_CACHE_SIZE_BYTES;
     } else {
-      if (settings.cacheSizeBytes < MINIMUM_CACHE_BYTES) {
+      if (
+        settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
+        settings.cacheSizeBytes < MINIMUM_CACHE_BYTES
+      ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `cacheSizeBytes must be at least ${MINIMUM_CACHE_BYTES}`

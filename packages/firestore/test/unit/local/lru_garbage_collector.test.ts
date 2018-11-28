@@ -974,5 +974,13 @@ function genericLruGarbageCollectorTests(
     expect(results.hasRun).to.be.true;
     expect(results.targetsRemoved).to.equal(5);
     expect(results.documentsRemoved).to.equal(50);
+
+    // Verify that we updated the cache size by checking that it's smaller now.
+    const finalCacheSize = await persistence.runTransaction(
+      'getCacheSize',
+      'readonly',
+      txn => garbageCollector.getCacheSize(txn)
+    );
+    expect(finalCacheSize).to.be.lessThan(cacheSize);
   });
 }
