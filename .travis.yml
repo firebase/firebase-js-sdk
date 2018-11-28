@@ -12,6 +12,7 @@ before_install:
   # get an up to date version
   - npm install -g yarn@1.10.1
   - '[ "${NPM_TOKEN+x}" ] && echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > $HOME/.npmrc || echo "Skipping .npmrc creation";'
+
 before_script:
   - cp config/ci.config.json config/project.json
 
@@ -27,31 +28,50 @@ addons:
       - google-chrome-stable
       - g++-4.8
 
-matrix:
-  fast_finish: true
-
 jobs:
-  allow_failures:
-    - script: yarn test:saucelabs
-    - script: yarn test:saucelabs --database-firestore-only
   include:
     - stage: test
-      script: xvfb-run yarn test
-      after_success: yarn test:coverage
-      env: '#= chrome headless test'
+      name: Database Nodejs & Chrome Test w/ Prod Server
+      script:
+        - cd packages/database
+        - yarn test
     - stage: test
-      script: yarn test:saucelabs
-      env: '#= cross browser test: all packages except database and firestore'
-      if: type = push
+      name: Database Node Test w/ Emulators
+      before_script:
+        - cp config/ci.config.json config/project.json
+        - firebase setup:emulators:database
+        - firebase serve --only database &
+      script:
+        - cd packages/database
+        - yarn test:node
+      env: DATABASE_EMULATOR_ADDRESS=localhost:9000
     - stage: test
-      script: yarn test:saucelabs --database-firestore-only
-      env: '#= cross browser test: database and firestore (allow_failures)'
-      if: type = push
-    - stage: deploy
-      script: skip
-      # NPM Canary Build Config
-      deploy:
-        skip_cleanup: true
-        provider: script
-        script: yarn release --canary
-      if: type = push AND repo = firebase/firebase-js-sdk AND branch = master
+      name: Database Browser Test w/ Emulators (crawler_support.test)
+      before_script:
+        - cp config/ci.config.json config/project.json
+        - firebase setup:emulators:database
+        - firebase serve --only database &
+      script:
+        - cd packages/database
+        - karma start karma.crawler-support-test.js --single-run
+      env: DATABASE_EMULATOR_ADDRESS=localhost:9000
+    - stage: test
+      name: Database Browser Test w/ Emulators (transaction.test)
+      before_script:
+        - cp config/ci.config.json config/project.json
+        - firebase setup:emulators:database
+        - firebase serve --only database &
+      script:
+        - cd packages/database
+        - karma start karma.transaction-test.js --single-run
+      env: DATABASE_EMULATOR_ADDRESS=localhost:9000
+    - stage: test
+      name: Database Browser Test w/ Emulators (all other tests)
+      before_script:
+        - cp config/ci.config.json config/project.json
+        - firebase setup:emulators:database
+        - firebase serve --only database &
+      script:
+        - cd packages/database
+        - karma start karma.other-tests.js --single-run
+      env: DATABASE_EMULATOR_ADDRESS=localhost:9000

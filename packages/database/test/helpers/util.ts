@@ -21,9 +21,24 @@ import '../../index';
 import { Reference } from '../../src/api/Reference';
 import { Query } from '../../src/api/Query';
 import { ConnectionTarget } from '../../src/api/test_access';
-import { RepoInfo } from '../../src/core/RepoInfo';
 
 export const TEST_PROJECT = require('../../../../config/project.json');
+
+// Webpack processes node environment variables through text replacement. Therefore
+// process.env.DATABASE_EMULATOR_ADDRESS is used directly in this file, instead of
+// process.env[EMULATOR_ADDRESS_ENV].
+// See https://webpack.js.org/plugins/define-plugin/#usage for more information.
+const EMULATOR_ADDRESS_ENV = 'DATABASE_EMULATOR_ADDRESS';
+const EMULATOR_ADDRESS = process.env.DATABASE_EMULATOR_ADDRESS;
+const EMULATOR_TEST_NAMESPACE = 'emulator-test';
+
+export const DATABASE_ADDRESS = EMULATOR_ADDRESS || TEST_PROJECT.databaseURL;
+
+const DATABASE_URL = EMULATOR_ADDRESS
+  ? `http://${EMULATOR_ADDRESS}?ns=${EMULATOR_TEST_NAMESPACE}`
+  : TEST_PROJECT.databaseURL;
+
+console.log(`database_url: ${DATABASE_URL}`);
 
 const qs = {};
 if ('location' in this) {
@@ -47,13 +62,22 @@ export function patchFakeAuthFunctions(app) {
   app['INTERNAL'] = app['INTERNAL'] || {};
 
   app['INTERNAL']['getToken'] = function(forceRefresh) {
-    return Promise.resolve(token_);
+    return Promise.resolve(
+      process.env.DATABASE_EMULATOR_ADDRESS ? { accessToken: 'owner' } : token_
+    );
   };
 
   app['INTERNAL']['addAuthTokenListener'] = function(listener) {};
 
   app['INTERNAL']['removeAuthTokenListener'] = function(listener) {};
 
+  return app;
+}
+
+export function createTestApp() {
+  console.log(`creating test app w/ db url: ${DATABASE_URL}`);
+  const app = firebase.initializeApp({ databaseURL: DATABASE_URL });
+  patchFakeAuthFunctions(app);
   return app;
 }
 
@@ -73,10 +97,8 @@ export function getRootNode(i = 0, ref?: string) {
   try {
     app = firebase.app('TEST-' + i);
   } catch (e) {
-    app = firebase.initializeApp(
-      { databaseURL: TEST_PROJECT.databaseURL },
-      'TEST-' + i
-    );
+    console.log(`creating root node w/ db url: ${DATABASE_URL}`);
+    app = firebase.initializeApp({ databaseURL: DATABASE_URL }, 'TEST-' + i);
     patchFakeAuthFunctions(app);
   }
   db = app.database();
@@ -119,7 +141,10 @@ export function pause(milliseconds: number) {
 }
 
 export function getPath(query: Query) {
-  return query.toString().replace(TEST_PROJECT.databaseURL, '');
+  return query
+    .toString()
+    .replace(TEST_PROJECT.databaseURL, '')
+    .replace(`http://${process.env.DATABASE_EMULATOR_ADDRESS}`, '');
 }
 
 export function shuffle(arr, randFn = Math.random) {
@@ -242,4 +267,19 @@ export function testRepoInfo(url) {
   if (!match) throw new Error('Couldnt get Namespace from passed URL');
   const [, ns] = match;
   return new ConnectionTarget(`${ns}.firebaseio.com`, true, ns, false);
+}
+
+export function repoInfoForConnectionTest() {
+  if (process.env.DATABASE_EMULATOR_ADDRESS) {
+    console.log(`creating repo info: ${process.env.DATABASE_EMULATOR_ADDRESS}`);
+    return new ConnectionTarget(
+      process.env.DATABASE_EMULATOR_ADDRESS,
+      false, // emulator does not support https or wss
+      EMULATOR_TEST_NAMESPACE,
+      false
+    );
+  } else {
+    console.log(`creating repo info: ${TEST_PROJECT.databaseURL}`);
+    return testRepoInfo(TEST_PROJECT.databaseURL);
+  }
 }
