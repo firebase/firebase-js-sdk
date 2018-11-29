@@ -230,7 +230,10 @@ export class LruScheduler {
 
   private scheduleGC(): void {
     const delay = this.hasRun ? REGULAR_GC_DELAY_MS : INITIAL_GC_DELAY_MS;
-    log.debug('LruGarbageCollector', `Garbage collection scheduled in ${delay}ms`);
+    log.debug(
+      'LruGarbageCollector',
+      `Garbage collection scheduled in ${delay}ms`
+    );
     this.gcTask = this.asyncQueue.enqueueAfterDelay(
       TimerId.LruGarbageCollection,
       delay,
