@@ -230,6 +230,7 @@ export class LruScheduler {
 
   private scheduleGC(): void {
     const delay = this.hasRun ? REGULAR_GC_DELAY_MS : INITIAL_GC_DELAY_MS;
+    log.debug('LruGarbageCollector', `Garbage collection scheduled in ${delay}ms`);
     this.gcTask = this.asyncQueue.enqueueAfterDelay(
       TimerId.LruGarbageCollection,
       delay,
@@ -395,8 +396,9 @@ export class LruGarbageCollector {
           desc +=
             `\tRemoved ${targetsRemoved} targets in ` +
             `${removedTargetsTs - foundUpperBoundTs}ms\n`;
-          desc += `\tRemoved ${documentsRemoved} in ${removedDocumentsTs -
-            removedTargetsTs}ms\n`;
+          desc +=
+            `\tRemoved ${documentsRemoved} documents in ` +
+            `${removedDocumentsTs - removedTargetsTs}ms\n`;
           desc += `Total Duration: ${removedDocumentsTs - startTs}ms`;
           log.debug('LruGarbageCollector', desc);
         }
