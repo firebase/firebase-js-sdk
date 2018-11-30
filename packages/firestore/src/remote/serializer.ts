@@ -1304,15 +1304,19 @@ export class JsonProtoSerializer {
   }
 
   toDocumentMask(fieldMask: FieldMask): api.DocumentMask {
+    const canonicalFields: string[] = [];
+    fieldMask.fields.forEach(field =>
+      canonicalFields.push(field.canonicalString())
+    );
     return {
-      fieldPaths: fieldMask.fields.map(field => field.canonicalString())
+      fieldPaths: canonicalFields
     };
   }
 
   fromDocumentMask(proto: api.DocumentMask): FieldMask {
     const paths = proto.fieldPaths || [];
     const fields = paths.map(path => FieldPath.fromServerFormat(path));
-    return new FieldMask(fields);
+    return FieldMask.fromArray(fields);
   }
 }
 
