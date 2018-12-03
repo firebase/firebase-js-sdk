@@ -212,9 +212,9 @@ export function testAuthTokenProvider(app) {
 let freshRepoId = 1;
 const activeFreshApps = [];
 
-export function getFreshRepo(url, path?) {
+export function getFreshRepo(path) {
   const app = firebase.initializeApp(
-    { databaseURL: url },
+    { databaseURL: DATABASE_URL },
     'ISOLATED_REPO_' + freshRepoId++
   );
   patchFakeAuthFunctions(app);
@@ -225,7 +225,7 @@ export function getFreshRepo(url, path?) {
 export function getFreshRepoFromReference(ref) {
   const host = ref.root.toString();
   const path = ref.toString().replace(host, '');
-  return getFreshRepo(host, path);
+  return getFreshRepo(path);
 }
 
 // Little helpers to get the currently cached snapshot / value.

@@ -132,6 +132,7 @@ describe('.info Tests', function() {
   });
 
   it.skip('database.goOffline() / database.goOnline() connection management', function() {
+    // NOTE: getFreshRepo() no longer takes a hostname, so this test needs to be reworked.
     const ref = getFreshRepo(TEST_NAMESPACE);
     const refAlt = getFreshRepo(TEST_ALT_NAMESPACE);
     let ready;
