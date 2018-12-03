@@ -95,7 +95,7 @@ export async function testIndexedDbPersistence(
     dontPurgeData?: boolean;
     synchronizeTabs?: boolean;
   } = {},
-  lruParams: LruParams = LruParams.default()
+  lruParams: LruParams = LruParams.DEFAULT
 ): Promise<IndexedDbPersistence> {
   const queue = new AsyncQueue();
   const clientId = AutoId.newId();
@@ -130,7 +130,7 @@ export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
 }
 
 export async function testMemoryLruPersistence(
-  params: LruParams = LruParams.default()
+  params: LruParams = LruParams.DEFAULT
 ): Promise<MemoryPersistence> {
   return MemoryPersistence.createLruPersistence(
     AutoId.newId(),

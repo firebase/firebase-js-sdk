@@ -1166,7 +1166,7 @@ class MemoryTestRunner extends TestRunner {
         : MemoryPersistence.createLruPersistence(
             this.clientId,
             serializer,
-            LruParams.default()
+            LruParams.DEFAULT
           )
     );
   }
@@ -1198,7 +1198,7 @@ class IndexedDbTestRunner extends TestRunner {
       this.platform,
       this.queue,
       serializer,
-      LruParams.default(),
+      LruParams.DEFAULT,
       { sequenceNumberSyncer: this.sharedClientState }
     );
   }

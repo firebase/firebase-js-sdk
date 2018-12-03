@@ -809,7 +809,7 @@ export class LocalStore {
 
   collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
     return this.persistence.runTransaction(
-      'Collect garbagbe',
+      'Collect garbage',
       'readwrite-primary',
       txn => garbageCollector.collect(txn, this.queryDataByTarget)
     );

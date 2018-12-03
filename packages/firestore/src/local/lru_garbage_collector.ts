@@ -146,21 +146,24 @@ class RollingSequenceNumberBuffer {
   }
 }
 
+/**
+ * Describes the results of a garbage collection run. `hasRun` will be set to
+ * `false` if collection was skipped (either it is disabled or the cache size
+ * has not hit the threshold).
+ */
 export type LruResults = {
-  hasRun: boolean;
-  sequenceNumbersCollected: number;
-  targetsRemoved: number;
-  documentsRemoved: number;
+  readonly hasRun: boolean;
+  readonly sequenceNumbersCollected: number;
+  readonly targetsRemoved: number;
+  readonly documentsRemoved: number;
 };
 
-function gcDidNotRun(): LruResults {
-  return {
-    hasRun: false,
-    sequenceNumbersCollected: 0,
-    targetsRemoved: 0,
-    documentsRemoved: 0
-  };
-}
+const GC_DID_NOT_RUN: LruResults = {
+  hasRun: false,
+  sequenceNumbersCollected: 0,
+  targetsRemoved: 0,
+  documentsRemoved: 0
+};
 
 export class LruParams {
   static readonly COLLECTION_DISABLED = -1;
@@ -176,17 +179,14 @@ export class LruParams {
     );
   }
 
-  static default(): LruParams {
-    return new LruParams(
-      LruParams.DEFAULT_CACHE_SIZE_BYTES,
-      LruParams.DEFAULT_COLLECTION_PERCENTILE,
-      LruParams.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT
-    );
-  }
+  static readonly DEFAULT: LruParams = new LruParams(
+    LruParams.DEFAULT_CACHE_SIZE_BYTES,
+    LruParams.DEFAULT_COLLECTION_PERCENTILE,
+    LruParams.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT
+  );
 
-  static disabled(): LruParams {
-    return new LruParams(LruParams.COLLECTION_DISABLED, 0, 0);
-  }
+  static readonly DISABLED: LruParams =
+    new LruParams(LruParams.COLLECTION_DISABLED, 0, 0);
 
   constructor(
     readonly minBytesThreshold: number,
@@ -314,7 +314,7 @@ export class LruGarbageCollector {
   ): PersistencePromise<LruResults> {
     if (this.params.minBytesThreshold === LruParams.COLLECTION_DISABLED) {
       log.debug('LruGarbageCollector', 'Garbage collection skipped; disabled');
-      return PersistencePromise.resolve(gcDidNotRun());
+      return PersistencePromise.resolve(GC_DID_NOT_RUN);
     }
 
     return this.getCacheSize(txn).next(cacheSize => {
@@ -324,7 +324,7 @@ export class LruGarbageCollector {
           `Garbage collection skipped; Cache size ${cacheSize} ` +
             `is lower than threshold ${this.params.minBytesThreshold}`
         );
-        return gcDidNotRun();
+        return GC_DID_NOT_RUN;
       } else {
         return this.runGarbageCollection(txn, activeTargetIds);
       }

@@ -79,7 +79,7 @@ function genericLruGarbageCollectorTests(
   beforeEach(async () => {
     previousTargetId = 500;
     previousDocNum = 10;
-    await initializeTestResources(LruParams.default());
+    await initializeTestResources(LruParams.DEFAULT);
   });
 
   afterEach(async () => {
@@ -95,7 +95,7 @@ function genericLruGarbageCollectorTests(
   let lruParams: LruParams;
 
   async function initializeTestResources(
-    params: LruParams = LruParams.default()
+    params: LruParams = LruParams.DEFAULT
   ): Promise<void> {
     if (persistence && persistence.started) {
       await persistence.shutdown(/* deleteData= */ true);
@@ -867,7 +867,7 @@ function genericLruGarbageCollectorTests(
   it('can be disabled', async () => {
     // Switch out the test resources for ones with a disabled GC.
     await persistence.shutdown();
-    await initializeTestResources(LruParams.disabled());
+    await initializeTestResources(LruParams.DISABLED);
 
     await persistence.runTransaction('fill cache', 'readwrite-primary', txn => {
       // Simulate a bunch of ack'd mutations

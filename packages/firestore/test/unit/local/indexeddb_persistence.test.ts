@@ -121,7 +121,7 @@ async function withCustomPersistence(
         platform,
         queue,
         serializer,
-        LruParams.default(),
+        LruParams.DEFAULT,
         {
           sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
         }
@@ -132,7 +132,7 @@ async function withCustomPersistence(
         platform,
         queue,
         serializer,
-        LruParams.default()
+        LruParams.DEFAULT
       ));
 
   await fn(persistence, platform, queue);
