@@ -102,7 +102,7 @@ import {
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
-const MINIMUM_CACHE_BYTES = 1 * 1024 * 1024;
+const MINIMUM_CACHE_SIZE_BYTES = 1 * 1024 * 1024;
 const DEFAULT_CACHE_SIZE_BYTES = LruParams.DEFAULT_CACHE_SIZE_BYTES;
 
 /**
@@ -205,11 +205,11 @@ class FirestoreSettings {
     } else {
       if (
         settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
-        settings.cacheSizeBytes < MINIMUM_CACHE_BYTES
+        settings.cacheSizeBytes < MINIMUM_CACHE_SIZE_BYTES
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `cacheSizeBytes must be at least ${MINIMUM_CACHE_BYTES}`
+          `cacheSizeBytes must be at least ${MINIMUM_CACHE_SIZE_BYTES}`
         );
       } else {
         this.cacheSizeBytes = settings.cacheSizeBytes;
