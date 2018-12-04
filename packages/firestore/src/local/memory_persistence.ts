@@ -77,25 +77,31 @@ export class MemoryPersistence implements Persistence {
     serializer: JsonProtoSerializer,
     params: LruParams
   ): MemoryPersistence {
-    const ctor = (p: MemoryPersistence): MemoryLruDelegate =>
+    const factory = (p: MemoryPersistence): MemoryLruDelegate =>
       new MemoryLruDelegate(p, new LocalSerializer(serializer), params);
-    return new MemoryPersistence(clientId, ctor);
+    return new MemoryPersistence(clientId, factory);
   }
 
   static createEagerPersistence(clientId: ClientId): MemoryPersistence {
-    const ctor = (p: MemoryPersistence): MemoryEagerDelegate =>
+    const factory = (p: MemoryPersistence): MemoryEagerDelegate =>
       new MemoryEagerDelegate(p);
-    return new MemoryPersistence(clientId, ctor);
+    return new MemoryPersistence(clientId, factory);
   }
 
+  /**
+   * The constructor accepts a factory for creating a reference delegate. This
+   * allows both the delegate and this instance to have strong references to
+   * each other without having nullable fields that would then need to be
+   * checked or asserted on every access.
+   */
   private constructor(
     private readonly clientId: ClientId,
-    referenceDelegateConstructor: (
+    referenceDelegateFactory: (
       p: MemoryPersistence
     ) => MemoryLruDelegate | MemoryEagerDelegate
   ) {
     this._started = true;
-    this.referenceDelegate = referenceDelegateConstructor(this);
+    this.referenceDelegate = referenceDelegateFactory(this);
     this.queryCache = new MemoryQueryCache(this);
     const sizer = (doc: MaybeDocument) =>
       this.referenceDelegate.documentSize(doc);

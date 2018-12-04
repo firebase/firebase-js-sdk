@@ -94,10 +94,11 @@ export async function testIndexedDbPersistence(
   options: {
     dontPurgeData?: boolean;
     synchronizeTabs?: boolean;
+    queue?: AsyncQueue;
   } = {},
   lruParams: LruParams = LruParams.DEFAULT
 ): Promise<IndexedDbPersistence> {
-  const queue = new AsyncQueue();
+  const queue = options.queue || new AsyncQueue();
   const clientId = AutoId.newId();
   const prefix = `${TEST_PERSISTENCE_PREFIX}/`;
   if (!options.dontPurgeData) {

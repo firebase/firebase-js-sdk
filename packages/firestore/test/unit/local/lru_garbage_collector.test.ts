@@ -30,8 +30,8 @@ import {
 } from '../../../src/local/lru_garbage_collector';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import {
-  Persistence,
-  PersistenceTransaction
+Persistence,
+PersistenceTransaction
 } from '../../../src/local/persistence';
 
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -43,10 +43,11 @@ import { documentKeySet } from '../../../src/model/collections';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
-  Mutation,
-  Precondition,
-  SetMutation
+Mutation,
+Precondition,
+SetMutation
 } from '../../../src/model/mutation';
+import { AsyncQueue } from "../../../src/util/async_queue";
 import { path, wrapObject } from '../../util/helpers';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 
@@ -56,8 +57,8 @@ describe('IndexedDbLruDelegate', () => {
     return;
   }
 
-  genericLruGarbageCollectorTests(params =>
-    PersistenceTestHelpers.testIndexedDbPersistence({}, params)
+  genericLruGarbageCollectorTests((params, queue) =>
+    PersistenceTestHelpers.testIndexedDbPersistence({ queue }, params)
   );
 });
 
@@ -68,8 +69,10 @@ describe('MemoryLruDelegate', () => {
 });
 
 function genericLruGarbageCollectorTests(
-  newPersistence: (params: LruParams) => Promise<Persistence>
+  newPersistence: (params: LruParams, queue: AsyncQueue) => Promise<Persistence>
 ): void {
+  const queue = new AsyncQueue();
+
   // We need to initialize a few counters so that we can use them when we
   // auto-generate things like targets and documents. Pick arbitrary values
   // such that sequences are unlikely to overlap as we increment them.
@@ -83,7 +86,7 @@ function genericLruGarbageCollectorTests(
   });
 
   afterEach(async () => {
-    await persistence.shutdown(/* deleteData= */ true);
+    await queue.enqueue(() => persistence.shutdown(/* deleteData= */ true));
   });
 
   let persistence: Persistence;
@@ -98,10 +101,12 @@ function genericLruGarbageCollectorTests(
     params: LruParams = LruParams.DEFAULT
   ): Promise<void> {
     if (persistence && persistence.started) {
-      await persistence.shutdown(/* deleteData= */ true);
+      await queue.enqueue(() =>
+        persistence.shutdown(/* deleteData= */ true)
+      );
     }
     lruParams = params;
-    persistence = await newPersistence(params);
+    persistence = await newPersistence(params, queue);
     queryCache = persistence.getQueryCache();
     mutationQueue = persistence.getMutationQueue(new User('user'));
     documentCache = persistence.getRemoteDocumentCache();
@@ -912,7 +917,7 @@ function genericLruGarbageCollectorTests(
       'readonly',
       txn => garbageCollector.getCacheSize(txn)
     );
-    expect(cacheSize).to.be.lessThan(lruParams.minBytesThreshold);
+    expect(cacheSize).to.be.lessThan(lruParams.cacheSizeCollectionThreshold);
 
     const results = await persistence.runTransaction(
       'collect garbage',
@@ -964,7 +969,7 @@ function genericLruGarbageCollectorTests(
       'readonly',
       txn => garbageCollector.getCacheSize(txn)
     );
-    expect(cacheSize).to.be.greaterThan(lruParams.minBytesThreshold);
+    expect(cacheSize).to.be.greaterThan(lruParams.cacheSizeCollectionThreshold);
 
     const results = await persistence.runTransaction(
       'collect garbage',
@@ -982,5 +987,50 @@ function genericLruGarbageCollectorTests(
       txn => garbageCollector.getCacheSize(txn)
     );
     expect(finalCacheSize).to.be.lessThan(cacheSize);
+  });
+
+  it('caps sequence numbers to collect', async () => {
+    //await persistence.shutdown();
+    // Set a low byte threshold and plan to GC all of it. Should be capped by low max number of sequence numbers.
+    const params = new LruParams(100, 100, 5);
+    await initializeTestResources(params);
+
+    // Add 50 targets and 10 documents to each.
+    for (let i = 0; i < 50; i++) {
+      // Use separate transactions so that each target and associated documents get their own
+      // sequence number.
+      await persistence.runTransaction(
+        'Add a target and some documents',
+        'readwrite-primary',
+        txn => {
+          return addNextTargetInTransaction(txn).next(queryData => {
+            const targetId = queryData.targetId;
+            const promises: Array<PersistencePromise<void>> = [];
+            for (let j = 0; j < 10; j++) {
+              promises.push(
+                cacheADocumentInTransaction(txn).next(docKey =>
+                  queryCache.addMatchingKeys(
+                    txn,
+                    documentKeySet(docKey),
+                    targetId
+                  )
+                )
+              );
+            }
+            return PersistencePromise.waitFor(promises).next(() =>
+              updateTargetInTransaction(txn, queryData)
+            );
+          });
+        }
+      );
+    }
+
+    // Nothing is marked live, so everything should be eligible for collection.
+    const results = await persistence.runTransaction(
+      'collect garbage',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, {})
+    );
+    expect(results.sequenceNumbersCollected).to.equal(5);
   });
 }
