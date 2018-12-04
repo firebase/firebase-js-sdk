@@ -212,7 +212,9 @@ class FirestoreSettings {
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `cacheSizeBytes must be at least ${LruParams.MINIMUM_CACHE_SIZE_BYTES}`
+          `cacheSizeBytes must be at least ${
+            LruParams.MINIMUM_CACHE_SIZE_BYTES
+          }`
         );
       } else {
         this.cacheSizeBytes = settings.cacheSizeBytes;
