@@ -235,7 +235,6 @@ export class FirestoreClient {
     user: User
   ): Promise<LruGarbageCollector | null> {
     if (persistenceSettings instanceof IndexedDbPersistenceSettings) {
-      //if (persistenceSettings.enabled) {
       return this.startIndexedDbPersistence(user, persistenceSettings)
         .then(maybeLruGc => {
           persistenceResult.resolve();
