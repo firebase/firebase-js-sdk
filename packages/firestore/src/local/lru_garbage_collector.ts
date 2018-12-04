@@ -148,20 +148,20 @@ class RollingSequenceNumberBuffer {
 }
 
 /**
- * Describes the results of a garbage collection run. `hasRun` will be set to
+ * Describes the results of a garbage collection run. `didRun` will be set to
  * `false` if collection was skipped (either it is disabled or the cache size
  * has not hit the threshold). If collection ran, the other fields will be
  * filled in with the details of the results.
  */
 export type LruResults = {
-  readonly hasRun: boolean;
+  readonly didRun: boolean;
   readonly sequenceNumbersCollected: number;
   readonly targetsRemoved: number;
   readonly documentsRemoved: number;
 };
 
 const GC_DID_NOT_RUN: LruResults = {
-  hasRun: false,
+  didRun: false,
   sequenceNumbersCollected: 0,
   targetsRemoved: 0,
   documentsRemoved: 0
@@ -169,6 +169,7 @@ const GC_DID_NOT_RUN: LruResults = {
 
 export class LruParams {
   static readonly COLLECTION_DISABLED = -1;
+  static readonly MINIMUM_CACHE_SIZE_BYTES = 1 * 1024 * 1024;
   static readonly DEFAULT_CACHE_SIZE_BYTES = 40 * 1024 * 1024;
   private static readonly DEFAULT_COLLECTION_PERCENTILE = 10;
   private static readonly DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT = 1000;
@@ -427,7 +428,7 @@ export class LruGarbageCollector {
         }
 
         return PersistencePromise.resolve({
-          hasRun: true,
+          didRun: true,
           sequenceNumbersCollected: sequenceNumbersToCollect,
           targetsRemoved,
           documentsRemoved

@@ -890,7 +890,7 @@ function genericLruGarbageCollectorTests(
       'readwrite-primary',
       txn => garbageCollector.collect(txn, {})
     );
-    expect(results.hasRun).to.be.false;
+    expect(results.didRun).to.be.false;
   });
 
   it('skips a cache that is too small', async () => {
@@ -922,12 +922,11 @@ function genericLruGarbageCollectorTests(
       'readwrite-primary',
       txn => garbageCollector.collect(txn, {})
     );
-    expect(results.hasRun).to.be.false;
+    expect(results.didRun).to.be.false;
   });
 
   it('runs when the cache is large enough', async () => {
     // Set a low byte threshold so we can guarantee that GC will run
-    await persistence.shutdown();
     await initializeTestResources(LruParams.withCacheSize(100));
     expect(persistence.started).to.be.true;
 
@@ -974,7 +973,7 @@ function genericLruGarbageCollectorTests(
       'readwrite-primary',
       txn => garbageCollector.collect(txn, {})
     );
-    expect(results.hasRun).to.be.true;
+    expect(results.didRun).to.be.true;
     expect(results.targetsRemoved).to.equal(5);
     expect(results.documentsRemoved).to.equal(50);
 
@@ -988,7 +987,6 @@ function genericLruGarbageCollectorTests(
   });
 
   it('caps sequence numbers to collect', async () => {
-    //await persistence.shutdown();
     // Set a low byte threshold and plan to GC all of it. Should be capped by low max number of
     // sequence numbers.
     const params = new LruParams(100, 100, 5);
