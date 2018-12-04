@@ -368,6 +368,22 @@ declare namespace firebase.auth {
     ): firebase.auth.AuthProvider;
   }
 
+  class OAuthProvider implements firebase.auth.AuthProvider {
+    providerId: string;
+    addScope(scope: string): firebase.auth.AuthProvider;
+    credential(
+      idToken?: string,
+      accessToken?: string
+    ): firebase.auth.AuthCredential;
+    setCustomParameters(
+      customOAuthParameters: Object
+    ): firebase.auth.AuthProvider;
+  }
+
+  class SAMLAuthProvider implements firebase.auth.AuthProvider {
+    providerId: string;
+  }
+
   interface IdTokenResult {
     token: string;
     expirationTime: string;

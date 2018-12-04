@@ -187,6 +187,10 @@ export class OAuthProvider implements AuthProvider {
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
 
+export class SAMLAuthProvider implements AuthProvider {
+  providerId: string;
+}
+
 export class PhoneAuthProvider extends PhoneAuthProvider_Instance {
   static PROVIDER_ID: string;
   static PHONE_SIGN_IN_METHOD: string;
@@ -344,6 +348,7 @@ declare module '@firebase/app-types' {
       GoogleAuthProvider: typeof GoogleAuthProvider;
       GoogleAuthProvider_Instance: typeof GoogleAuthProvider_Instance;
       OAuthProvider: typeof OAuthProvider;
+      SAMLAuthProvider: typeof SAMLAuthProvider;
       PhoneAuthProvider: typeof PhoneAuthProvider;
       PhoneAuthProvider_Instance: typeof PhoneAuthProvider_Instance;
       RecaptchaVerifier: typeof RecaptchaVerifier;
