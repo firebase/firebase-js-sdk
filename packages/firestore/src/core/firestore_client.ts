@@ -45,7 +45,6 @@ import {
 import { SyncEngine } from './sync_engine';
 import { View, ViewDocumentChanges } from './view';
 
-import { PersistenceSettings } from '../api/database';
 import {
   LruGarbageCollector,
   LruParams,
@@ -56,7 +55,6 @@ import {
   SharedClientState,
   WebStorageSharedClientState
 } from '../local/shared_client_state';
-import { assert } from '../util/assert';
 import { AutoId } from '../util/misc';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Query } from './query';
@@ -71,6 +69,18 @@ const DOM_EXCEPTION_ABORTED = 20;
 
 /** The DOMException code for quota exceeded. */
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
+
+export class IndexedDbPersistenceSettings {
+  constructor(readonly cacheSizeBytes: number, readonly experimentalTabSynchronization: boolean) {}
+
+  lruParams(): LruParams {
+    return LruParams.withCacheSize(this.cacheSizeBytes);
+  }
+}
+
+export class MemoryPersistenceSettings {}
+
+export type InternalPersistenceSettings = IndexedDbPersistenceSettings | MemoryPersistenceSettings;
 
 /**
  * FirestoreClient is a top-level class that constructs and owns all of the
@@ -147,8 +157,7 @@ export class FirestoreClient {
    *     unconditionally resolved.
    */
   start(
-    persistenceSettings: PersistenceSettings,
-    cacheSizeBytes: number
+    persistenceSettings: InternalPersistenceSettings
   ): Promise<void> {
     // We defer our initialization until we get the current user from
     // setChangeListener(). We block the async queue until we got the initial
@@ -175,8 +184,7 @@ export class FirestoreClient {
         this.initializePersistence(
           persistenceSettings,
           persistenceResult,
-          user,
-          cacheSizeBytes
+          user
         )
           .then(maybeLruGc => this.initializeRest(user, maybeLruGc))
           .then(initializationDone.resolve, initializationDone.reject);
@@ -223,16 +231,15 @@ export class FirestoreClient {
    *     succeeded.
    */
   private initializePersistence(
-    persistenceSettings: PersistenceSettings,
+    persistenceSettings: InternalPersistenceSettings,
     persistenceResult: Deferred<void>,
-    user: User,
-    cacheSizeBytes: number
+    user: User
   ): Promise<LruGarbageCollector | null> {
-    if (persistenceSettings.enabled) {
+    if (persistenceSettings instanceof IndexedDbPersistenceSettings) {
+    //if (persistenceSettings.enabled) {
       return this.startIndexedDbPersistence(
         user,
-        persistenceSettings,
-        cacheSizeBytes
+        persistenceSettings
       )
         .then(maybeLruGc => {
           persistenceResult.resolve();
@@ -301,14 +308,8 @@ export class FirestoreClient {
    */
   private startIndexedDbPersistence(
     user: User,
-    settings: PersistenceSettings,
-    cacheSizeBytes: number
+    settings: IndexedDbPersistenceSettings,
   ): Promise<LruGarbageCollector> {
-    assert(
-      settings.enabled,
-      'Should only start IndexedDb persitence with offline persistence enabled.'
-    );
-
     // TODO(http://b/33384523): For now we just disable garbage collection
     // when persistence is enabled.
     const storagePrefix = IndexedDbPersistence.buildStoragePrefix(
@@ -331,7 +332,7 @@ export class FirestoreClient {
       }
 
       let persistence: IndexedDbPersistence;
-      const lruParams = LruParams.withCacheSize(cacheSizeBytes);
+      const lruParams = settings.lruParams();
       if (settings.experimentalTabSynchronization) {
         this.sharedClientState = new WebStorageSharedClientState(
           this.asyncQueue,

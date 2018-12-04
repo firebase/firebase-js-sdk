@@ -20,7 +20,12 @@ import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
-import { FirestoreClient } from '../core/firestore_client';
+import {
+  FirestoreClient,
+  IndexedDbPersistenceSettings,
+  InternalPersistenceSettings,
+  MemoryPersistenceSettings
+} from '../core/firestore_client';
 import {
   Bound,
   Direction,
@@ -238,38 +243,6 @@ class FirestoreConfig {
 }
 
 /**
- * Encapsulates the settings that can be used to configure Firestore
- * persistence.
- */
-export class PersistenceSettings {
-  /** Whether to enable multi-tab synchronization. */
-  experimentalTabSynchronization: boolean;
-
-  constructor(
-    readonly enabled: boolean,
-    settings?: firestore.PersistenceSettings
-  ) {
-    assert(
-      enabled || !settings,
-      'Can only provide PersistenceSettings with persistence enabled'
-    );
-    settings = settings || {};
-    this.experimentalTabSynchronization = objUtils.defaulted(
-      settings.experimentalTabSynchronization,
-      DEFAULT_SYNCHRONIZE_TABS
-    );
-  }
-
-  isEqual(other: PersistenceSettings): boolean {
-    return (
-      this.enabled === other.enabled &&
-      this.experimentalTabSynchronization ===
-        other.experimentalTabSynchronization
-    );
-  }
-}
-
-/**
  * The root reference to the database.
  */
 export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
@@ -371,9 +344,15 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           'any other methods on a Firestore object.'
       );
     }
-
     return this.configureClient(
-      new PersistenceSettings(/* enabled= */ true, settings)
+      new IndexedDbPersistenceSettings(
+        this._config.settings.cacheSizeBytes,
+        settings !== undefined &&
+        objUtils.defaulted(
+          settings.experimentalTabSynchronization,
+          DEFAULT_SYNCHRONIZE_TABS
+        )
+      )
     );
   }
 
@@ -381,13 +360,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // tslint:disable-next-line:no-floating-promises
-      this.configureClient(new PersistenceSettings(/* enabled= */ false));
+      this.configureClient(new MemoryPersistenceSettings());
     }
     return this._firestoreClient as FirestoreClient;
   }
 
   private configureClient(
-    persistenceSettings: PersistenceSettings
+    persistenceSettings: InternalPersistenceSettings
   ): Promise<void> {
     assert(
       !!this._config.settings.host,
@@ -454,10 +433,7 @@ follow these steps, YOUR APP MAY BREAK.`);
       this._config.credentials,
       this._queue
     );
-    return this._firestoreClient.start(
-      persistenceSettings,
-      this._config.settings.cacheSizeBytes
-    );
+    return this._firestoreClient.start(persistenceSettings);
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {

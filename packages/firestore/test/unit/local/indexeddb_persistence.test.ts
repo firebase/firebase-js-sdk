@@ -15,7 +15,6 @@
  */
 
 import { expect } from 'chai';
-import { PersistenceSettings } from '../../../src/api/database';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { decode, encode } from '../../../src/local/encoded_resource_path';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -98,7 +97,7 @@ function withDb(
 
 async function withCustomPersistence(
   clientId: ClientId,
-  settings: PersistenceSettings,
+  multiClient: boolean,
   fn: (
     persistence: IndexedDbPersistence,
     platform: TestPlatform,
@@ -114,7 +113,7 @@ async function withCustomPersistence(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
-  const persistence = await (settings.experimentalTabSynchronization
+  const persistence = await (multiClient
     ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
         TEST_PERSISTENCE_PREFIX,
         clientId,
@@ -149,7 +148,7 @@ async function withPersistence(
 ): Promise<void> {
   return withCustomPersistence(
     clientId,
-    new PersistenceSettings(/* enabled */ true),
+    /* multiClient= */ false,
     fn
   );
 }
@@ -164,9 +163,7 @@ async function withMultiClientPersistence(
 ): Promise<void> {
   return withCustomPersistence(
     clientId,
-    new PersistenceSettings(/* enabled */ true, {
-      experimentalTabSynchronization: true
-    }),
+    /* multiClient= */ true,
     fn
   );
 }
