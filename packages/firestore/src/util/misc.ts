@@ -32,12 +32,6 @@ export type AnyJs = null | undefined | boolean | number | string | object;
  */
 export type Unknown = null | undefined | {} | void;
 
-// TODO(b/66916745): AnyDuringMigration was used to suppress type check failures
-// that were found during the upgrade to TypeScript 2.4. They need to be audited
-// and fixed.
-// tslint:disable-next-line:no-any
-export type AnyDuringMigration = any;
-
 // tslint:disable-next-line:class-as-namespace
 export class AutoId {
   static newId(): string {

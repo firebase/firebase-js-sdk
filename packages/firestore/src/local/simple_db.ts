@@ -17,7 +17,6 @@
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
-import { AnyDuringMigration } from '../util/misc';
 import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
@@ -173,6 +172,7 @@ export class SimpleDb {
       .catch(error => {
         // Abort the transaction if there was an error.
         transaction.abort(error);
+        return PersistencePromise.reject<T>(error);
       })
       .toPromise();
 
@@ -181,7 +181,7 @@ export class SimpleDb {
     // caller.
     return transaction.completionPromise.then(
       () => transactionFnResult
-    ) as AnyDuringMigration;
+    );
   }
 
   close(): void {
