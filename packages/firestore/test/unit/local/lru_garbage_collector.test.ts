@@ -989,7 +989,8 @@ function genericLruGarbageCollectorTests(
 
   it('caps sequence numbers to collect', async () => {
     //await persistence.shutdown();
-    // Set a low byte threshold and plan to GC all of it. Should be capped by low max number of sequence numbers.
+    // Set a low byte threshold and plan to GC all of it. Should be capped by low max number of
+    // sequence numbers.
     const params = new LruParams(100, 100, 5);
     await initializeTestResources(params);
 
