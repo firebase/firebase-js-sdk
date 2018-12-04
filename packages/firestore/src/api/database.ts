@@ -348,10 +348,10 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       new IndexedDbPersistenceSettings(
         this._config.settings.cacheSizeBytes,
         settings !== undefined &&
-        objUtils.defaulted(
-          settings.experimentalTabSynchronization,
-          DEFAULT_SYNCHRONIZE_TABS
-        )
+          objUtils.defaulted(
+            settings.experimentalTabSynchronization,
+            DEFAULT_SYNCHRONIZE_TABS
+          )
       )
     );
   }

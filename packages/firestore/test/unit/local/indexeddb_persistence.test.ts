@@ -146,11 +146,7 @@ async function withPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(
-    clientId,
-    /* multiClient= */ false,
-    fn
-  );
+  return withCustomPersistence(clientId, /* multiClient= */ false, fn);
 }
 
 async function withMultiClientPersistence(
@@ -161,11 +157,7 @@ async function withMultiClientPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(
-    clientId,
-    /* multiClient= */ true,
-    fn
-  );
+  return withCustomPersistence(clientId, /* multiClient= */ true, fn);
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {

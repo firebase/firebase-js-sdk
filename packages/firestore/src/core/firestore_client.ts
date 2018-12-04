@@ -71,7 +71,10 @@ const DOM_EXCEPTION_ABORTED = 20;
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
 export class IndexedDbPersistenceSettings {
-  constructor(readonly cacheSizeBytes: number, readonly experimentalTabSynchronization: boolean) {}
+  constructor(
+    readonly cacheSizeBytes: number,
+    readonly experimentalTabSynchronization: boolean
+  ) {}
 
   lruParams(): LruParams {
     return LruParams.withCacheSize(this.cacheSizeBytes);
@@ -80,7 +83,9 @@ export class IndexedDbPersistenceSettings {
 
 export class MemoryPersistenceSettings {}
 
-export type InternalPersistenceSettings = IndexedDbPersistenceSettings | MemoryPersistenceSettings;
+export type InternalPersistenceSettings =
+  | IndexedDbPersistenceSettings
+  | MemoryPersistenceSettings;
 
 /**
  * FirestoreClient is a top-level class that constructs and owns all of the
@@ -156,9 +161,7 @@ export class FirestoreClient {
    *     start for any reason. If usePersistence is false this is
    *     unconditionally resolved.
    */
-  start(
-    persistenceSettings: InternalPersistenceSettings
-  ): Promise<void> {
+  start(persistenceSettings: InternalPersistenceSettings): Promise<void> {
     // We defer our initialization until we get the current user from
     // setChangeListener(). We block the async queue until we got the initial
     // user and the initialization is completed. This will prevent any scheduled
@@ -181,11 +184,7 @@ export class FirestoreClient {
       if (!initialized) {
         initialized = true;
 
-        this.initializePersistence(
-          persistenceSettings,
-          persistenceResult,
-          user
-        )
+        this.initializePersistence(persistenceSettings, persistenceResult, user)
           .then(maybeLruGc => this.initializeRest(user, maybeLruGc))
           .then(initializationDone.resolve, initializationDone.reject);
       } else {
@@ -236,11 +235,8 @@ export class FirestoreClient {
     user: User
   ): Promise<LruGarbageCollector | null> {
     if (persistenceSettings instanceof IndexedDbPersistenceSettings) {
-    //if (persistenceSettings.enabled) {
-      return this.startIndexedDbPersistence(
-        user,
-        persistenceSettings
-      )
+      //if (persistenceSettings.enabled) {
+      return this.startIndexedDbPersistence(user, persistenceSettings)
         .then(maybeLruGc => {
           persistenceResult.resolve();
           return maybeLruGc;
@@ -308,7 +304,7 @@ export class FirestoreClient {
    */
   private startIndexedDbPersistence(
     user: User,
-    settings: IndexedDbPersistenceSettings,
+    settings: IndexedDbPersistenceSettings
   ): Promise<LruGarbageCollector> {
     // TODO(http://b/33384523): For now we just disable garbage collection
     // when persistence is enabled.
