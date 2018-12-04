@@ -159,6 +159,7 @@ fireauth.authenum.Error = {
   MISSING_CONTINUE_URI: 'missing-continue-uri',
   MISSING_IFRAME_START: 'missing-iframe-start',
   MISSING_IOS_BUNDLE_ID: 'missing-ios-bundle-id',
+  MISSING_OR_INVALID_NONCE: 'missing-or-invalid-nonce',
   MISSING_PHONE_NUMBER: 'missing-phone-number',
   MISSING_SESSION_INFO: 'missing-verification-id',
   MODULE_DESTROYED: 'app-deleted',
@@ -331,6 +332,8 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_IFRAME_START] =
     'An internal error has occurred.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID] =
     'An iOS Bundle ID must be provided if an App Store ID is provided.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_OR_INVALID_NONCE] =
+    'The OIDC ID token requires a valid unhashed nonce.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_PHONE_NUMBER] =
     'To send verification codes, provide a phone number for the recipient.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_SESSION_INFO] =
