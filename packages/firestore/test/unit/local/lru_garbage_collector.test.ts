@@ -30,8 +30,8 @@ import {
 } from '../../../src/local/lru_garbage_collector';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import {
-Persistence,
-PersistenceTransaction
+  Persistence,
+  PersistenceTransaction
 } from '../../../src/local/persistence';
 
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -43,11 +43,11 @@ import { documentKeySet } from '../../../src/model/collections';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
-Mutation,
-Precondition,
-SetMutation
+  Mutation,
+  Precondition,
+  SetMutation
 } from '../../../src/model/mutation';
-import { AsyncQueue } from "../../../src/util/async_queue";
+import { AsyncQueue } from '../../../src/util/async_queue';
 import { path, wrapObject } from '../../util/helpers';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
 
@@ -101,9 +101,7 @@ function genericLruGarbageCollectorTests(
     params: LruParams = LruParams.DEFAULT
   ): Promise<void> {
     if (persistence && persistence.started) {
-      await queue.enqueue(() =>
-        persistence.shutdown(/* deleteData= */ true)
-      );
+      await queue.enqueue(() => persistence.shutdown(/* deleteData= */ true));
     }
     lruParams = params;
     persistence = await newPersistence(params, queue);

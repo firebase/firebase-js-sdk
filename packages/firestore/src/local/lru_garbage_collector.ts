@@ -17,7 +17,7 @@
 import { CACHE_SIZE_UNLIMITED } from '../api/database';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
-import { assert } from "../util/assert";
+import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import * as log from '../util/log';
 import { AnyJs, primitiveComparator } from '../util/misc';
@@ -187,8 +187,11 @@ export class LruParams {
     LruParams.DEFAULT_MAX_SEQUENCE_NUMBERS_TO_COLLECT
   );
 
-  static readonly DISABLED: LruParams =
-    new LruParams(LruParams.COLLECTION_DISABLED, 0, 0);
+  static readonly DISABLED: LruParams = new LruParams(
+    LruParams.COLLECTION_DISABLED,
+    0,
+    0
+  );
 
   constructor(
     // When we attempt to collect, we will only do so if the cache size is greater than this
@@ -224,9 +227,13 @@ export class LruScheduler {
   }
 
   start(): void {
-    assert(this.gcTask === null, 'Cannot start an already started LruScheduler');
+    assert(
+      this.gcTask === null,
+      'Cannot start an already started LruScheduler'
+    );
     if (
-      this.garbageCollector.params.cacheSizeCollectionThreshold !== CACHE_SIZE_UNLIMITED
+      this.garbageCollector.params.cacheSizeCollectionThreshold !==
+      CACHE_SIZE_UNLIMITED
     ) {
       this.scheduleGC();
     }
@@ -325,7 +332,9 @@ export class LruGarbageCollector {
     txn: PersistenceTransaction,
     activeTargetIds: ActiveTargets
   ): PersistencePromise<LruResults> {
-    if (this.params.cacheSizeCollectionThreshold === LruParams.COLLECTION_DISABLED) {
+    if (
+      this.params.cacheSizeCollectionThreshold === LruParams.COLLECTION_DISABLED
+    ) {
       log.debug('LruGarbageCollector', 'Garbage collection skipped; disabled');
       return PersistencePromise.resolve(GC_DID_NOT_RUN);
     }
@@ -335,7 +344,9 @@ export class LruGarbageCollector {
         log.debug(
           'LruGarbageCollector',
           `Garbage collection skipped; Cache size ${cacheSize} ` +
-            `is lower than threshold ${this.params.cacheSizeCollectionThreshold}`
+            `is lower than threshold ${
+              this.params.cacheSizeCollectionThreshold
+            }`
         );
         return GC_DID_NOT_RUN;
       } else {
@@ -364,9 +375,7 @@ export class LruGarbageCollector {
     return this.calculateTargetCount(txn, this.params.percentileToCollect)
       .next(sequenceNumbers => {
         // Cap at the configured max
-        if (
-          sequenceNumbers > this.params.maximumSequenceNumbersToCollect
-        ) {
+        if (sequenceNumbers > this.params.maximumSequenceNumbersToCollect) {
           log.debug(
             'LruGarbageCollector',
             'Capping sequence numbers to collect down ' +
@@ -404,7 +413,8 @@ export class LruGarbageCollector {
         removedDocumentsTs = Date.now();
 
         if (log.getLogLevel() <= log.LogLevel.DEBUG) {
-          const desc = 'LRU Garbage Collection\n' +
+          const desc =
+            'LRU Garbage Collection\n' +
             `\tCounted targets in ${countedTargetsTs - startTs}ms\n` +
             `\tDetermined least recently used ${sequenceNumbersToCollect} in ` +
             `${foundUpperBoundTs - countedTargetsTs}ms\n` +
