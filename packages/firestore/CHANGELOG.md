@@ -1,6 +1,14 @@
 # Unreleased
 - [changed] Removed eval()-based fallback for JSON parsing, allowing SDK to
   be used in environments that prohibit eval().
+- [feature] Added a garbage collection process to on-disk persistence that
+  removes older documents. This is enabled automatically if persistence is
+  enabled, and the SDK will attempt to periodically clean up older, unused
+  documents once the on-disk cache passes a threshold size (default: 40 MB).
+  This threshold can be configured by changing the setting `cacheSizeBytes` in
+  the settings passed to `Firestore.settings()`. It must be set to a minimum of
+  1 MB. The garbage collection process can be disabled entirely by setting
+  `cacheSizeBytes` to `CACHE_SIZE_UNLIMITED`.
 
 # 0.8.3
 - [fixed] Fixed an issue that prevented query synchronization between multiple
