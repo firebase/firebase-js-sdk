@@ -40,6 +40,7 @@ import * as objUtils from '../util/obj';
 
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
+import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -803,6 +804,14 @@ export class LocalStore {
     });
     return promiseChain.next(() =>
       this.mutationQueue.removeMutationBatch(txn, batch)
+    );
+  }
+
+  collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
+    return this.persistence.runTransaction(
+      'Collect garbage',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, this.queryDataByTarget)
     );
   }
 

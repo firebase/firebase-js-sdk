@@ -28,7 +28,8 @@ import { LocalSerializer } from './local_serializer';
 import {
   ActiveTargets,
   LruDelegate,
-  LruGarbageCollector
+  LruGarbageCollector,
+  LruParams
 } from './lru_garbage_collector';
 
 import { ListenSequence } from '../core/listen_sequence';
@@ -73,32 +74,34 @@ export class MemoryPersistence implements Persistence {
 
   static createLruPersistence(
     clientId: ClientId,
-    serializer: JsonProtoSerializer
+    serializer: JsonProtoSerializer,
+    params: LruParams
   ): MemoryPersistence {
-    return new MemoryPersistence(clientId, /* isEager= */ false, serializer);
+    const factory = (p: MemoryPersistence): MemoryLruDelegate =>
+      new MemoryLruDelegate(p, new LocalSerializer(serializer), params);
+    return new MemoryPersistence(clientId, factory);
   }
 
-  static createEagerPersistence(
-    clientId: ClientId,
-    serializer: JsonProtoSerializer
-  ): MemoryPersistence {
-    return new MemoryPersistence(clientId, /* isEager= */ true, serializer);
+  static createEagerPersistence(clientId: ClientId): MemoryPersistence {
+    const factory = (p: MemoryPersistence): MemoryEagerDelegate =>
+      new MemoryEagerDelegate(p);
+    return new MemoryPersistence(clientId, factory);
   }
 
+  /**
+   * The constructor accepts a factory for creating a reference delegate. This
+   * allows both the delegate and this instance to have strong references to
+   * each other without having nullable fields that would then need to be
+   * checked or asserted on every access.
+   */
   private constructor(
     private readonly clientId: ClientId,
-    isEager: boolean,
-    serializer: JsonProtoSerializer
+    referenceDelegateFactory: (
+      p: MemoryPersistence
+    ) => MemoryLruDelegate | MemoryEagerDelegate
   ) {
     this._started = true;
-    if (isEager) {
-      this.referenceDelegate = new MemoryEagerDelegate(this);
-    } else {
-      this.referenceDelegate = new MemoryLruDelegate(
-        this,
-        new LocalSerializer(serializer)
-      );
-    }
+    this.referenceDelegate = referenceDelegateFactory(this);
     this.queryCache = new MemoryQueryCache(this);
     const sizer = (doc: MaybeDocument) =>
       this.referenceDelegate.documentSize(doc);
@@ -295,9 +298,10 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   constructor(
     private readonly persistence: MemoryPersistence,
-    private readonly serializer: LocalSerializer
+    private readonly serializer: LocalSerializer,
+    lruParams: LruParams
   ) {
-    this.garbageCollector = new LruGarbageCollector(this);
+    this.garbageCollector = new LruGarbageCollector(this, lruParams);
   }
 
   // No-ops, present so memory persistence doesn't have to care which delegate
@@ -467,5 +471,9 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
         );
       }
     ]);
+  }
+
+  getCacheSize(txn: PersistenceTransaction): PersistencePromise<number> {
+    return this.persistence.getRemoteDocumentCache().getSize(txn);
   }
 }

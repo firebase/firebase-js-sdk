@@ -17,6 +17,7 @@
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
+import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 import firebase from '../util/firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -106,6 +107,12 @@ class TestClass {
 // once.
 apiDescribe('Validation:', persistence => {
   describe('FirestoreSettings', () => {
+    // Enabling persistence counts as a use of the firestore instance, meaning
+    // that it will be impossible to verify that a set of settings don't throw,
+    // and additionally that some exceptions happen for specific reasons, rather
+    // than persistence having already been enabled.
+    if (persistence) return;
+
     validationIt(persistence, 'validates options', db => {
       // NOTE: 'credentials' is an undocumented API so ideally we wouldn't
       // show it in the error, but I don't think it's worth the trouble of
@@ -137,6 +144,17 @@ apiDescribe('Validation:', persistence => {
           'calling any other methods on a Firestore object.'
       );
     });
+
+    validationIt(persistence, 'enforces minimum cache size', db => {
+      expect(() => db.settings({ cacheSizeBytes: 1 })).to.throw(
+        'cacheSizeBytes must be at least 1048576'
+      );
+    });
+
+    validationIt(persistence, 'garbage collection can be disabled', db => {
+      // Verify that this doesn't throw.
+      db.settings({ cacheSizeBytes: CACHE_SIZE_UNLIMITED });
+    });
   });
 
   describe('Firestore', () => {
@@ -144,7 +162,11 @@ apiDescribe('Validation:', persistence => {
       persistence,
       'disallows calling enablePersistence after use',
       db => {
-        db.doc('foo/bar');
+        // Calling `enablePersistence()` itself counts as use, so we should only
+        // need this method when persistence is not enabled.
+        if (!persistence) {
+          db.doc('foo/bar');
+        }
         expect(() => db.enablePersistence()).to.throw(
           'Firestore has already been started and persistence can no ' +
             'longer be enabled. You can only call enablePersistence() ' +

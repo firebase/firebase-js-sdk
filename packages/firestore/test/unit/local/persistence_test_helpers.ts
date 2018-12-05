@@ -26,6 +26,7 @@ import {
 import { ListenSequenceNumber } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalSerializer } from '../../../src/local/local_serializer';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import {
   ClientId,
@@ -93,9 +94,11 @@ export async function testIndexedDbPersistence(
   options: {
     dontPurgeData?: boolean;
     synchronizeTabs?: boolean;
-  } = {}
+    queue?: AsyncQueue;
+  } = {},
+  lruParams: LruParams = LruParams.DEFAULT
 ): Promise<IndexedDbPersistence> {
-  const queue = new AsyncQueue();
+  const queue = options.queue || new AsyncQueue();
   const clientId = AutoId.newId();
   const prefix = `${TEST_PERSISTENCE_PREFIX}/`;
   if (!options.dontPurgeData) {
@@ -109,6 +112,7 @@ export async function testIndexedDbPersistence(
         platform,
         queue,
         JSON_SERIALIZER,
+        lruParams,
         { sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER }
       )
     : IndexedDbPersistence.createIndexedDbPersistence(
@@ -116,22 +120,23 @@ export async function testIndexedDbPersistence(
         clientId,
         platform,
         queue,
-        JSON_SERIALIZER
+        JSON_SERIALIZER,
+        lruParams
       );
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
 export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
-  return MemoryPersistence.createEagerPersistence(
-    AutoId.newId(),
-    JSON_SERIALIZER
-  );
+  return MemoryPersistence.createEagerPersistence(AutoId.newId());
 }
 
-export async function testMemoryLruPersistence(): Promise<MemoryPersistence> {
+export async function testMemoryLruPersistence(
+  params: LruParams = LruParams.DEFAULT
+): Promise<MemoryPersistence> {
   return MemoryPersistence.createLruPersistence(
     AutoId.newId(),
-    JSON_SERIALIZER
+    JSON_SERIALIZER,
+    params
   );
 }
 

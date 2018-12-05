@@ -53,7 +53,8 @@ import { LocalSerializer } from './local_serializer';
 import {
   ActiveTargets,
   LruDelegate,
-  LruGarbageCollector
+  LruGarbageCollector,
+  LruParams
 } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import {
@@ -193,14 +194,16 @@ export class IndexedDbPersistence implements Persistence {
     clientId: ClientId,
     platform: Platform,
     queue: AsyncQueue,
-    serializer: JsonProtoSerializer
+    serializer: JsonProtoSerializer,
+    lruParams: LruParams
   ): Promise<IndexedDbPersistence> {
     const persistence = new IndexedDbPersistence(
       persistenceKey,
       clientId,
       platform,
       queue,
-      serializer
+      serializer,
+      lruParams
     );
     await persistence.start();
     return persistence;
@@ -212,6 +215,7 @@ export class IndexedDbPersistence implements Persistence {
     platform: Platform,
     queue: AsyncQueue,
     serializer: JsonProtoSerializer,
+    lruParams: LruParams,
     multiClientParams: MultiClientParams
   ): Promise<IndexedDbPersistence> {
     const persistence = new IndexedDbPersistence(
@@ -220,6 +224,7 @@ export class IndexedDbPersistence implements Persistence {
       platform,
       queue,
       serializer,
+      lruParams,
       multiClientParams
     );
     await persistence.start();
@@ -271,6 +276,7 @@ export class IndexedDbPersistence implements Persistence {
     platform: Platform,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
+    lruParams: LruParams,
     private readonly multiClientParams?: MultiClientParams
   ) {
     if (!IndexedDbPersistence.isAvailable()) {
@@ -279,7 +285,7 @@ export class IndexedDbPersistence implements Persistence {
         UNSUPPORTED_PLATFORM_ERROR_MSG
       );
     }
-    this.referenceDelegate = new IndexedDbLruDelegate(this);
+    this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
@@ -1071,8 +1077,8 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
   readonly garbageCollector: LruGarbageCollector;
 
-  constructor(private readonly db: IndexedDbPersistence) {
-    this.garbageCollector = new LruGarbageCollector(this);
+  constructor(private readonly db: IndexedDbPersistence, params: LruParams) {
+    this.garbageCollector = new LruGarbageCollector(this, params);
   }
 
   getSequenceNumberCount(
@@ -1279,6 +1285,10 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
           f(new DocumentKey(decode(nextPath)), nextToReport);
         }
       });
+  }
+
+  getCacheSize(txn: PersistenceTransaction): PersistencePromise<number> {
+    return this.db.getRemoteDocumentCache().getSize(txn);
   }
 }
 

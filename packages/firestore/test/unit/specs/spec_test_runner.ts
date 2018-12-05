@@ -45,6 +45,7 @@ import {
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
@@ -1161,8 +1162,12 @@ class MemoryTestRunner extends TestRunner {
   ): Promise<Persistence> {
     return Promise.resolve(
       gcEnabled
-        ? MemoryPersistence.createEagerPersistence(this.clientId, serializer)
-        : MemoryPersistence.createLruPersistence(this.clientId, serializer)
+        ? MemoryPersistence.createEagerPersistence(this.clientId)
+        : MemoryPersistence.createLruPersistence(
+            this.clientId,
+            serializer,
+            LruParams.DEFAULT
+          )
     );
   }
 }
@@ -1193,6 +1198,7 @@ class IndexedDbTestRunner extends TestRunner {
       this.platform,
       this.queue,
       serializer,
+      LruParams.DEFAULT,
       { sequenceNumberSyncer: this.sharedClientState }
     );
   }
