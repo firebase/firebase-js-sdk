@@ -170,7 +170,8 @@ export class LocalStore {
     this.queryCache = persistence.getQueryCache();
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
-      this.mutationQueue
+      this.mutationQueue,
+      this.persistence.getQueryIndexes()
     );
   }
 
@@ -201,7 +202,8 @@ export class LocalStore {
             // MutationQueue.
             this.localDocuments = new LocalDocumentsView(
               this.remoteDocuments,
-              this.mutationQueue
+              this.mutationQueue,
+              this.persistence.getQueryIndexes()
             );
             return this.mutationQueue.getAllMutationBatches(txn);
           })

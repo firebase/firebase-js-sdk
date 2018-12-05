@@ -38,6 +38,7 @@ export class Query {
 
   constructor(
     readonly path: ResourcePath,
+    readonly collectionGroup: string | null = null,
     readonly explicitOrderBy: OrderBy[] = [],
     readonly filters: Filter[] = [],
     readonly limit: number | null = null,
@@ -110,13 +111,10 @@ export class Query {
       'Query must only have one inequality field.'
     );
 
-    assert(
-      !DocumentKey.isDocumentKey(this.path),
-      'No filtering allowed for document query'
-    );
     const newFilters = this.filters.concat([filter]);
     return new Query(
       this.path,
+      this.collectionGroup,
       this.explicitOrderBy.slice(),
       newFilters,
       this.limit,
@@ -126,15 +124,12 @@ export class Query {
   }
 
   addOrderBy(orderBy: OrderBy): Query {
-    assert(
-      !DocumentKey.isDocumentKey(this.path),
-      'No ordering allowed for document query'
-    );
     assert(!this.startAt && !this.endAt, 'Bounds must be set after orderBy');
     // TODO(dimond): validate that orderBy does not list the same key twice.
     const newOrderBy = this.explicitOrderBy.concat([orderBy]);
     return new Query(
       this.path,
+      this.collectionGroup,
       newOrderBy,
       this.filters.slice(),
       this.limit,
@@ -146,6 +141,7 @@ export class Query {
   withLimit(limit: number | null): Query {
     return new Query(
       this.path,
+      this.collectionGroup,
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       limit,
@@ -157,6 +153,7 @@ export class Query {
   withStartAt(bound: Bound): Query {
     return new Query(
       this.path,
+      this.collectionGroup,
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
@@ -168,11 +165,28 @@ export class Query {
   withEndAt(bound: Bound): Query {
     return new Query(
       this.path,
+      this.collectionGroup,
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
       this.startAt,
       bound
+    );
+  }
+
+  /**
+   * Helper to convert a Collection Group query into a collection query at a
+   * specific path.
+   */
+  asCollectionQueryAtPath(path: ResourcePath): Query {
+    return new Query(
+      path,
+      /*collectionGroup=*/ null,
+      this.explicitOrderBy.slice(),
+      this.filters.slice(),
+      this.limit,
+      this.startAt,
+      this.endAt
     );
   }
 
@@ -182,6 +196,9 @@ export class Query {
   canonicalId(): string {
     if (this.memoizedCanonicalId === null) {
       let canonicalId = this.path.canonicalString();
+      if (this.collectionGroup !== null) {
+        canonicalId += '|cg:' + this.collectionGroup;
+      }
       canonicalId += '|f:';
       for (const filter of this.filters) {
         canonicalId += filter.canonicalId();
@@ -212,6 +229,9 @@ export class Query {
 
   toString(): string {
     let str = 'Query(' + this.path.canonicalString();
+    if (this.collectionGroup !== null) {
+      str += ' collectionGroup=' + this.collectionGroup;
+    }
     if (this.filters.length > 0) {
       str += `, filters: [${this.filters.join(', ')}]`;
     }
@@ -256,6 +276,10 @@ export class Query {
       }
     }
 
+    if (this.collectionGroup !== other.collectionGroup) {
+      return false;
+    }
+
     if (!this.path.isEqual(other.path)) {
       return false;
     }
@@ -290,7 +314,7 @@ export class Query {
 
   matches(doc: Document): boolean {
     return (
-      this.matchesAncestor(doc) &&
+      this.matchesPathAndCollectionGroup(doc) &&
       this.matchesOrderBy(doc) &&
       this.matchesFilters(doc) &&
       this.matchesBounds(doc)
@@ -327,12 +351,21 @@ export class Query {
   }
 
   isDocumentQuery(): boolean {
-    return DocumentKey.isDocumentKey(this.path) && this.filters.length === 0;
+    return (
+      DocumentKey.isDocumentKey(this.path) &&
+      this.collectionGroup === null &&
+      this.filters.length === 0
+    );
   }
 
-  private matchesAncestor(doc: Document): boolean {
+  private matchesPathAndCollectionGroup(doc: Document): boolean {
     const docPath = doc.key.path;
-    if (DocumentKey.isDocumentKey(this.path)) {
+    if (this.collectionGroup !== null) {
+      return (
+        this.collectionGroup === docPath.secondToLastSegment() &&
+        this.path.isPrefixOf(docPath)
+      );
+    } else if (DocumentKey.isDocumentKey(this.path)) {
       // exact match for document queries
       return this.path.isEqual(docPath);
     } else {

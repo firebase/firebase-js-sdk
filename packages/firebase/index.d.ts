@@ -884,6 +884,16 @@ declare namespace firebase.firestore {
     doc(documentPath: string): DocumentReference;
 
     /**
+     * Gets a Query instance that will include documents from all collections and
+     * subcollections in the database with the given collectionId.
+     *
+     * @param collectionId The collectionId specifying the group of collections to
+     * query over.
+     * @return The Query instance.
+     */
+    collectionGroup(collectionId: string): Query;
+
+    /**
      * Executes the given updateFunction and then attempts to commit the
      * changes applied within the transaction. If any document read within the
      * transaction has changed, the updateFunction will be retried. If it fails

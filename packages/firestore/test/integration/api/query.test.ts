@@ -27,7 +27,8 @@ import {
   apiDescribe,
   toChangesArray,
   toDataArray,
-  withTestCollection
+  withTestCollection,
+  withTestDb
 } from '../util/helpers';
 
 const Timestamp = firebase.firestore!.Timestamp;
@@ -564,5 +565,43 @@ apiDescribe('Queries', persistence => {
       for (const _ of docChange) {
       }
     }).to.throw(expectedError);
+  });
+
+  it('Collection Group Smoke Test', async () => {
+    await withTestDb(persistence, async db => {
+      // Use .doc() to get a random collection group name to use.
+      const collectionGroup = db.collection('foo').doc().id;
+
+      const docPaths = [
+        `${collectionGroup}/cg-doc1`,
+        `${collectionGroup}/cg-doc2`,
+        `abc/123/${collectionGroup}/cg-doc3`,
+        `abc/123/${collectionGroup}/cg-doc4`,
+        `def/456/${collectionGroup}/cg-doc5`,
+        `${collectionGroup}/virtual-doc/nested-coll/not-cg-doc`,
+        `x${collectionGroup}/not-cg-doc`,
+        `${collectionGroup}x/not-cg-doc`,
+        `abc/123/${collectionGroup}x/not-cg-doc`,
+        `abc/123/x${collectionGroup}/not-cg-doc`,
+        `abc/${collectionGroup}`
+      ];
+      const batch = db.batch();
+      for (const docPath of docPaths) {
+        batch.set(db.doc(docPath), { x: 1 });
+      }
+      await batch.commit();
+
+      const querySnapshot = await db.collectionGroup(collectionGroup).get();
+      expect(querySnapshot.size).to.equal(5);
+
+      // TODO(mikelehen): This is kinda' hacky. I should probably rework this
+      // test (move to spec tests, etc.).
+      if (persistence) {
+        const querySnapshot = await db
+          .collectionGroup(collectionGroup)
+          .get({ source: 'cache' });
+        expect(querySnapshot.size).to.equal(5);
+      }
+    });
   });
 });

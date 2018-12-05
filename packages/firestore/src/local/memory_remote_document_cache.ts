@@ -31,6 +31,7 @@ import { assert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { QueryIndexes } from './query_indexes';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
@@ -50,7 +51,10 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
    * @param sizer Used to assess the size of a document. For eager GC, this is expected to just
    * return 0 to avoid unnecessarily doing the work of calculating the size.
    */
-  constructor(private readonly sizer: DocumentSizer) {}
+  constructor(
+    private readonly queryIndexes: QueryIndexes,
+    private readonly sizer: DocumentSizer
+  ) {}
 
   /**
    * Adds the supplied entries to the cache. Adds the given size delta to the cached size.
@@ -60,13 +64,16 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     entries: DocumentSizeEntry[],
     sizeDelta: number
   ): PersistencePromise<void> {
+    const promises = [] as Array<PersistencePromise<void>>;
     for (const entry of entries) {
       const key = entry.maybeDocument.key;
       this.docs = this.docs.insert(key, entry);
       this.newDocumentChanges = this.newDocumentChanges.add(key);
+
+      promises.push(this.queryIndexes.indexCollectionParent(transaction, key.path.popLast()));
     }
     this.size += sizeDelta;
-    return PersistencePromise.resolve();
+    return PersistencePromise.waitFor(promises);
   }
 
   /**
@@ -115,7 +122,12 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
-    const prefix = new DocumentKey(query.path.child(''));
+    // Note that DocumentKeys must be even-length, but our query path could be odd or even depending
+    // on whether it's a collection group query.
+    const prefix =
+      query.path.length % 2 === 0
+        ? new DocumentKey(query.path)
+        : new DocumentKey(query.path.child(''));
     const iterator = this.docs.getIteratorFrom(prefix);
     while (iterator.hasNext()) {
       const {

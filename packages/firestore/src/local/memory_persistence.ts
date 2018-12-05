@@ -36,6 +36,7 @@ import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryQueryCache } from './memory_query_cache';
+import { MemoryQueryIndexes } from './memory_query_indexes';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
 import { MutationQueue } from './mutation_queue';
 import {
@@ -67,6 +68,7 @@ export class MemoryPersistence implements Persistence {
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
   private readonly queryCache: MemoryQueryCache;
   private readonly listenSequence = new ListenSequence(0);
+  private readonly queryIndexes: MemoryQueryIndexes;
 
   private _started = false;
 
@@ -105,7 +107,11 @@ export class MemoryPersistence implements Persistence {
     this.queryCache = new MemoryQueryCache(this);
     const sizer = (doc: MaybeDocument) =>
       this.referenceDelegate.documentSize(doc);
-    this.remoteDocumentCache = new MemoryRemoteDocumentCache(sizer);
+    this.queryIndexes = new MemoryQueryIndexes();
+    this.remoteDocumentCache = new MemoryRemoteDocumentCache(
+      this.queryIndexes,
+      sizer
+    );
   }
 
   shutdown(deleteData?: boolean): Promise<void> {
@@ -144,6 +150,10 @@ export class MemoryPersistence implements Persistence {
 
   getQueryCache(): MemoryQueryCache {
     return this.queryCache;
+  }
+
+  getQueryIndexes(): MemoryQueryIndexes {
+    return this.queryIndexes;
   }
 
   getRemoteDocumentCache(): MemoryRemoteDocumentCache {

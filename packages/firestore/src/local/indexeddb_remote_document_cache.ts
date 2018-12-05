@@ -42,6 +42,7 @@ import {
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { QueryIndexes } from './query_indexes';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
@@ -56,6 +57,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   /**
    * @param {LocalSerializer} serializer The document serializer.
+   * @param {QueryIndexes} queryIndexes The query indexes that need to be maintained.
    * @param keepDocumentChangeLog Whether to keep a document change log in
    * IndexedDb. This change log is required for Multi-Tab synchronization, but
    * not needed in clients that don't share access to their remote document
@@ -63,6 +65,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    */
   constructor(
     readonly serializer: LocalSerializer,
+    private readonly queryIndexes: QueryIndexes,
     private readonly keepDocumentChangeLog: boolean
   ) {}
 
@@ -102,6 +105,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       for (const { key, doc } of entries) {
         promises.push(documentStore.put(dbKey(key), doc));
         changedKeys = changedKeys.add(key);
+
+        promises.push(
+          this.queryIndexes.indexCollectionParent(
+            transaction,
+            key.path.popLast()
+          )
+        );
       }
 
       if (this.keepDocumentChangeLog) {
@@ -182,6 +192,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
+    assert(
+      query.collectionGroup === null,
+      'CollectionGroup queries should be handled in LocalDocumentsView'
+    );
     let results = documentMap();
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down

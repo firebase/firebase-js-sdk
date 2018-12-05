@@ -479,13 +479,6 @@ follow these steps, YOUR APP MAY BREAK.`);
   collection(pathString: string): firestore.CollectionReference {
     validateExactNumberOfArgs('Firestore.collection', arguments, 1);
     validateArgType('Firestore.collection', 'non-empty string', 1, pathString);
-    if (!pathString) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Must provide a non-empty collection path to collection()'
-      );
-    }
-
     this.ensureClientConfigured();
     return new CollectionReference(ResourcePath.fromString(pathString), this);
   }
@@ -493,14 +486,23 @@ follow these steps, YOUR APP MAY BREAK.`);
   doc(pathString: string): firestore.DocumentReference {
     validateExactNumberOfArgs('Firestore.doc', arguments, 1);
     validateArgType('Firestore.doc', 'non-empty string', 1, pathString);
-    if (!pathString) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Must provide a non-empty document path to doc()'
-      );
-    }
     this.ensureClientConfigured();
     return DocumentReference.forPath(ResourcePath.fromString(pathString), this);
+  }
+
+  collectionGroup(collectionId: string): firestore.Query {
+    validateExactNumberOfArgs('Firestore.collectionGroup', arguments, 1);
+    validateArgType(
+      'Firestore.collectionGroup',
+      'non-empty string',
+      1,
+      collectionId
+    );
+    this.ensureClientConfigured();
+    return new Query(
+      new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+      this
+    );
   }
 
   runTransaction<T>(
