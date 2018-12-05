@@ -5,9 +5,10 @@
   removes older documents. This is enabled by default, and the SDK will attempt
   to periodically clean up older, unused documents once the on-disk cache passes
   a threshold size (default: 40 MB). This threshold can be configured by
-  the changing the setting `cacheSizeBytes` in `FirestoreSettings`. It must be
-  set to a minimum of 1 MB. The garbage collection process can be disabled
-  entirely by setting `cacheSizeBytes` to `CACHE_SIZE_UNLIMITED`.
+  changing the setting `cacheSizeBytes` in the settings passed to
+  `Firestore.settings()`. It must be set to a minimum of 1 MB. The garbage
+  collection process can be disabled entirely by setting `cacheSizeBytes` to
+  `CACHE_SIZE_UNLIMITED`.
 
 # 0.8.3
 - [fixed] Fixed an issue that prevented query synchronization between multiple
