@@ -17,11 +17,13 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const request = require('request');
+const tmp = require('tmp');
+
 const { spawn } = require('child-process-promise');
 
 const EMULATOR_LINK =
-  'https://firebase.google.com/docs/database/downloads/database-emulator.jar';
-const EMULATOR_DIRECTORY = path.join(os.tmpdir(), 'firebase-emulators');
+  'https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v3.5.0.jar';
 const EMULATOR_FILENAME = 'database-emulator.jar';
 
 const EMULATOR_PORT = 8088;
@@ -33,58 +35,68 @@ async function delay(seconds) {
 
 async function downloadEmulator() {
   return new Promise((resolve, reject) => {
-    console.log(`Creating directory [${EMULATOR_DIRECTORY}] ...`);
-    fs.mkdir(EMULATOR_DIRECTORY, err => {
-      if (err && err.code !== 'EEXIST') reject(err);
-      console.log(`Downloading emulator binary from [${EMULATOR_LINK}] ...`);
-      // const promise = spawn('firebase', ['setup:emulators:database']);
-      const promise = spawn('curl', [EMULATOR_LINK, '-o', EMULATOR_FILENAME], {
-        cwd: EMULATOR_DIRECTORY,
-        stdio: 'inherit'
-      });
-      resolve(promise);
+    tmp.dir((err, dir) => {
+      if (err) reject(err);
+      console.log(`Created temporary directory at [${dir}].`);
+      const filepath = path.resolve(dir, EMULATOR_FILENAME);
+      const writeStream = fs.createWriteStream(filepath);
+      console.log(`Downloading emulator from [${EMULATOR_LINK}] ...`);
+      request(EMULATOR_LINK)
+        .pipe(writeStream)
+        .on('finish', () => {
+          resolve(filepath);
+          console.log(`Saved emulator binary file to [${filepath}].`);
+        })
+        .on('error', reject);
     });
   });
 }
 
-async function launchEmulator(locked) {
-  const emulator = new Promise((resolve, reject) => {
-    // const promise = spawn('firebase', ['serve', '--only', 'database']);
+async function launchEmulator(filepath) {
+  return new Promise((resolve, reject) => {
     const promise = spawn(
       'java',
-      ['-jar', EMULATOR_FILENAME, '--port', EMULATOR_PORT],
-      { cwd: EMULATOR_DIRECTORY }
-    );
-    promise.catch(reject);
-    const process = promise.childProcess;
-    console.log(`Bringing up emulator, pid: [${process.pid}] ...`);
-    process.stdout.on('data', data => {
-      console.log(`[emulator-logs]: ${data}`);
-      // Working on better ways to signal readiness.
-      if (data.includes(`Listening on port ${EMULATOR_PORT}`)) {
-        setTimeout(() => resolve(process), 5000);
+      ['-jar', path.basename(filepath), '--port', EMULATOR_PORT],
+      {
+        cwd: path.dirname(filepath),
+        stdio: 'inherit'
       }
-    });
-  });
-  await emulator;
-  if (!locked) {
-    console.log('Loading rule {".read": true, ".write": true} to emulator ...');
-    await spawn(
-      'curl',
-      [
-        '-H',
-        'Authorization: Bearer owner',
-        '-X',
-        'PUT',
-        '-d',
-        '{"rules": {".read": true, ".write": true}}',
-        `http://localhost:${EMULATOR_PORT}/.settings/rules.json?ns=${EMULATOR_NAMESPACE}`
-      ],
-      { stdio: 'inherit' }
     );
-  }
-  console.log('\n\nEmulator has started up successfully!\n\n');
-  return emulator;
+
+    promise.catch(reject);
+    console.log(`Waiting for emulator to start up ...`);
+    setTimeout(function wait() {
+      console.log(`Ping emulator at [http://localhost:${EMULATOR_PORT}] ...`);
+      request(`http://localhost:${EMULATOR_PORT}`, (error, response) => {
+        if (error && error.code === 'ECONNREFUSED') {
+          setTimeout(wait, 1000);
+        } else if (response && response.statusCode === 400) {
+          console.log('Emulator has started up successfully!');
+          resolve(promise.childProcess);
+        } else {
+          reject(error);
+        }
+      });
+    }, 1000);
+  });
+}
+
+async function loadPublicRules() {
+  console.log('Loading rule {".read": true, ".write": true} to emulator ...');
+  return new Promise((resolve, reject) => {
+    request.put(
+      {
+        uri: `http://localhost:${EMULATOR_PORT}/.settings/rules.json?ns=${EMULATOR_NAMESPACE}`,
+        headers: { Authorization: 'Bearer owner' },
+        body: '{ "rules": { ".read": true, ".write": true } }'
+      },
+      (error, response, body) => {
+        if (error) reject(error);
+        console.log(body);
+        resolve(response.statusCode);
+      }
+    );
+  });
 }
 
 async function runTest() {
@@ -97,17 +109,15 @@ async function runTest() {
     }),
     stdio: 'inherit'
   };
-  return Promise.all([
-    spawn('yarn', ['test:node'], options),
-    spawn('yarn', ['test:browser'], options)
-  ]);
+  return spawn('yarn', ['test'], options);
 }
 
-(async () => {
+async function start() {
   let emulator;
   try {
-    await downloadEmulator();
-    emulator = await launchEmulator(false);
+    const filepath = await downloadEmulator();
+    emulator = await launchEmulator(filepath);
+    await loadPublicRules();
     await runTest();
   } catch (err) {
     console.error(err);
@@ -118,4 +128,8 @@ async function runTest() {
       emulator.kill();
     }
   }
-})();
+}
+
+start().catch(err => {
+  console.error(err);
+});

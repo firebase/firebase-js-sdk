@@ -28,12 +28,20 @@ const USE_EMULATOR = process.env.USE_RTDB_EMULATOR;
 const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
 const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;
 
+/*
+ * When running against the emulator, the hostname will be "localhost" rather
+ * than "<namespace>.firebaseio.com", and so we need to append the namespace
+ * as a query param.
+ *
+ * Some tests look for hostname only while others need full url (with the
+ * namespace provided as a query param), hence below declarations.
+ */
 export const DATABASE_ADDRESS = USE_EMULATOR
   ? `http://localhost:${EMULATOR_PORT}`
   : TEST_PROJECT.databaseURL;
 
 export const DATABASE_URL = USE_EMULATOR
-  ? `http://localhost:${EMULATOR_PORT}?ns=${EMULATOR_NAMESPACE}`
+  ? `${DATABASE_ADDRESS}?ns=${EMULATOR_NAMESPACE}`
   : TEST_PROJECT.databaseURL;
 
 console.log(`USE_EMULATOR: ${USE_EMULATOR}. DATABASE_URL: ${DATABASE_URL}.`);
