@@ -55,8 +55,12 @@ export function documentVersionMap(): DocumentVersionMap {
 
 export type DocumentKeySet = SortedSet<DocumentKey>;
 const EMPTY_DOCUMENT_KEY_SET = new SortedSet(DocumentKey.comparator);
-export function documentKeySet(): DocumentKeySet {
-  return EMPTY_DOCUMENT_KEY_SET;
+export function documentKeySet(...keys: DocumentKey[]): DocumentKeySet {
+  let set = EMPTY_DOCUMENT_KEY_SET;
+  for (const key of keys) {
+    set = set.add(key);
+  }
+  return set;
 }
 
 export type TargetIdSet = SortedSet<TargetId>;

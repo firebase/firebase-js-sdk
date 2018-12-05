@@ -15,7 +15,6 @@
  */
 
 import { expect } from 'chai';
-import { PersistenceSettings } from '../../../src/api/database';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { decode, encode } from '../../../src/local/encoded_resource_path';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -46,6 +45,7 @@ import {
   V4_STORES,
   V6_STORES
 } from '../../../src/local/indexeddb_schema';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
@@ -97,7 +97,7 @@ function withDb(
 
 async function withCustomPersistence(
   clientId: ClientId,
-  settings: PersistenceSettings,
+  multiClient: boolean,
   fn: (
     persistence: IndexedDbPersistence,
     platform: TestPlatform,
@@ -113,13 +113,14 @@ async function withCustomPersistence(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
-  const persistence = await (settings.experimentalTabSynchronization
+  const persistence = await (multiClient
     ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
         TEST_PERSISTENCE_PREFIX,
         clientId,
         platform,
         queue,
         serializer,
+        LruParams.DEFAULT,
         {
           sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
         }
@@ -129,7 +130,8 @@ async function withCustomPersistence(
         clientId,
         platform,
         queue,
-        serializer
+        serializer,
+        LruParams.DEFAULT
       ));
 
   await fn(persistence, platform, queue);
@@ -144,11 +146,7 @@ async function withPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(
-    clientId,
-    new PersistenceSettings(/* enabled */ true),
-    fn
-  );
+  return withCustomPersistence(clientId, /* multiClient= */ false, fn);
 }
 
 async function withMultiClientPersistence(
@@ -159,13 +157,7 @@ async function withMultiClientPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(
-    clientId,
-    new PersistenceSettings(/* enabled */ true, {
-      experimentalTabSynchronization: true
-    }),
-    fn
-  );
+  return withCustomPersistence(clientId, /* multiClient= */ true, fn);
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {
