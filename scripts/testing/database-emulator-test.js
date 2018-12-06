@@ -108,7 +108,6 @@ async function runTest() {
   const options = {
     cwd: path.resolve(__dirname, '../../packages/database'),
     env: Object.assign({}, process.env, {
-      USE_RTDB_EMULATOR: true,
       RTDB_EMULATOR_PORT: EMULATOR_PORT,
       RTDB_EMULATOR_NAMESPACE: EMULATOR_NAMESPACE
     }),

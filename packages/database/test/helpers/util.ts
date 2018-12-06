@@ -24,9 +24,10 @@ import { ConnectionTarget } from '../../src/api/test_access';
 
 export const TEST_PROJECT = require('../../../../config/project.json');
 
-const USE_EMULATOR = process.env.USE_RTDB_EMULATOR;
 const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
 const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;
+
+const USE_EMULATOR = !!EMULATOR_PORT;
 
 /*
  * When running against the emulator, the hostname will be "localhost" rather

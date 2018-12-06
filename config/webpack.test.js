@@ -48,7 +48,6 @@ module.exports = {
   },
   plugins: [
     new webpack.EnvironmentPlugin([
-      'USE_RTDB_EMULATOR',
       'RTDB_EMULATOR_PORT',
       'RTDB_EMULATOR_NAMESPACE'
     ])
