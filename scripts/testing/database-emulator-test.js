@@ -15,7 +15,6 @@
  */
 
 const fs = require('fs');
-const os = require('os');
 const path = require('path');
 const request = require('request');
 const tmp = require('tmp');
@@ -62,21 +61,27 @@ async function launchEmulator(filepath) {
         stdio: 'inherit'
       }
     );
-
     promise.catch(reject);
+
+    const timeout = 10; // seconds
     console.log(`Waiting for emulator to start up ...`);
+    const start = Date.now();
     setTimeout(function wait() {
-      console.log(`Ping emulator at [http://localhost:${EMULATOR_PORT}] ...`);
-      request(`http://localhost:${EMULATOR_PORT}`, (error, response) => {
-        if (error && error.code === 'ECONNREFUSED') {
-          setTimeout(wait, 1000);
-        } else if (response && response.statusCode === 400) {
-          console.log('Emulator has started up successfully!');
-          resolve(promise.childProcess);
-        } else {
-          reject(error);
-        }
-      });
+      if (Date.now() - start > timeout * 1000) {
+        reject(`Emulator not ready after ${timeout}s. Exiting ...`);
+      } else {
+        console.log(`Ping emulator at [http://localhost:${EMULATOR_PORT}] ...`);
+        request(`http://localhost:${EMULATOR_PORT}`, (error, response) => {
+          if (error && error.code === 'ECONNREFUSED') {
+            setTimeout(wait, 1000);
+          } else if (response && response.statusCode === 400) {
+            console.log('Emulator has started up successfully!');
+            resolve(promise.childProcess);
+          } else {
+            reject(error);
+          }
+        });
+      }
     }, 1000);
   });
 }

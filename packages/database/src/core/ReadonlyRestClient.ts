@@ -99,13 +99,13 @@ export class ReadonlyRestClient extends ServerActions {
     const thisListen = {};
     this.listens_[listenId] = thisListen;
 
-    const queryStringParamaters = query
+    const queryStringParameters = query
       .getQueryParams()
       .toRestQueryStringParameters();
 
     this.restRequest_(
       pathString + '.json',
-      queryStringParamaters,
+      queryStringParameters,
       (error, result) => {
         let data = result;
 

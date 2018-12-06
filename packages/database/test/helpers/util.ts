@@ -271,10 +271,10 @@ export function testRepoInfo(url) {
 export function repoInfoForConnectionTest() {
   if (USE_EMULATOR) {
     return new ConnectionTarget(
-      `localhost:${EMULATOR_PORT}`,
-      false, // emulator does not support https or wss
-      EMULATOR_NAMESPACE,
-      false
+      /* host = */ `localhost:${EMULATOR_PORT}`,
+      /* secure (useSsl) = */ false, // emulator does not support https or wss
+      /* namespace = */ EMULATOR_NAMESPACE,
+      /* webSocketOnly = */ false
     );
   } else {
     return testRepoInfo(TEST_PROJECT.databaseURL);
