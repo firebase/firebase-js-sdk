@@ -45,5 +45,11 @@ module.exports = {
   resolve: {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
     extensions: ['.js', '.ts']
-  }
+  },
+  plugins: [
+    new webpack.EnvironmentPlugin([
+      'RTDB_EMULATOR_PORT',
+      'RTDB_EMULATOR_NAMESPACE'
+    ])
+  ]
 };
