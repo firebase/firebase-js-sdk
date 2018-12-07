@@ -324,6 +324,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
   }
 }
 
+/**
+ * If the array of stores don't exist, runs the provided function. Throws an error
+ * if only some, but not all, of  the provided stores exist.
+ */
 function ifStoresDontExist(
   db: IDBDatabase,
   stores: string[],
