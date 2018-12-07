@@ -28,10 +28,6 @@ const EMULATOR_FILENAME = 'database-emulator.jar';
 const EMULATOR_PORT = 8088;
 const EMULATOR_NAMESPACE = 'test-emulator';
 
-async function delay(seconds) {
-  return new Promise(resolve => setTimeout(resolve, 1000 * seconds));
-}
-
 async function downloadEmulator() {
   return new Promise((resolve, reject) => {
     tmp.dir((err, dir) => {
@@ -43,8 +39,8 @@ async function downloadEmulator() {
       request(EMULATOR_LINK)
         .pipe(writeStream)
         .on('finish', () => {
-          resolve(filepath);
           console.log(`Saved emulator binary file to [${filepath}].`);
+          resolve(filepath);
         })
         .on('error', reject);
     });
@@ -75,10 +71,18 @@ async function launchEmulator(filepath) {
           if (error && error.code === 'ECONNREFUSED') {
             setTimeout(wait, 1000);
           } else if (response && response.statusCode === 400) {
+            // The emulator is ready to serve requests as long as it can return
+            // a response instead of a 'ECONNREFUSED' error.
+            // It is not necessary to send a valid requests here, as they
+            // are doing some certain things like setting data or rules to the
+            // emulator.
+            // More information on valid requests that emulator recognizes:
+            // https://firebase.google.com/docs/database/security/test-rules-emulator#interact_with_the_emulator
             console.log('Emulator has started up successfully!');
             resolve(promise.childProcess);
           } else {
-            reject(error);
+            // This should not happen.
+            reject({ error, response });
           }
         });
       }
@@ -86,8 +90,8 @@ async function launchEmulator(filepath) {
   });
 }
 
-async function loadPublicRules() {
-  console.log('Loading rule {".read": true, ".write": true} to emulator ...');
+async function setPublicRules() {
+  console.log('Setting rule {".read": true, ".write": true} to emulator ...');
   return new Promise((resolve, reject) => {
     request.put(
       {
@@ -97,7 +101,7 @@ async function loadPublicRules() {
       },
       (error, response, body) => {
         if (error) reject(error);
-        console.log(body);
+        console.log(`Done setting public rule to emulator. Response: ${body}.`);
         resolve(response.statusCode);
       }
     );
@@ -121,11 +125,8 @@ async function start() {
   try {
     const filepath = await downloadEmulator();
     emulator = await launchEmulator(filepath);
-    await loadPublicRules();
+    await setPublicRules();
     await runTest();
-  } catch (err) {
-    console.error(err);
-    process.exitCode = 1;
   } finally {
     if (emulator) {
       console.log(`Shutting down emulator, pid: [${emulator.pid}] ...`);
@@ -136,4 +137,5 @@ async function start() {
 
 start().catch(err => {
   console.error(err);
+  process.exitCode = 1;
 });
