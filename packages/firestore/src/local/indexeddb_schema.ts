@@ -685,6 +685,12 @@ export class DbRemoteDocument {
   ) {}
 }
 
+/**
+ * These constants define an object store with a single entry, our current
+ * schema version. We use this, rather than IndexedDB's version so that we can
+ * allow downgrades. The constants are not exported because this should be
+ * internal to the schema migration code.
+ */
 const DB_VERSION_GLOBAL_STORE = 'versionGlobal';
 const DB_VERSION_GLOBAL_KEY = 'versionGlobalKey';
 type DbVersionGlobalKeyType = typeof DB_VERSION_GLOBAL_KEY;
