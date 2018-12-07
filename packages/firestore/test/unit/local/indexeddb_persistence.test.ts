@@ -602,6 +602,39 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       });
     });
   });
+
+  it('can save its own version number', async () => {
+    await withDb(8, async db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readonly', ['versionGlobal'], txn => {
+        expect(db.version).to.equal(8);
+        const store = txn.store('versionGlobal');
+        return store.get('versionGlobalKey').next(version => {
+          expect(version).to.equal(8);
+        });
+      });
+    });
+  });
+
+  it('does not delete object stores', async () => {
+    // Since we intend on allowing downgrades, we cannot delete previously
+    // existing object stores. Verify that after each individual migration, we
+    // still have the object stores that we started with.
+    let stores: string[] = [];
+    for (let version = 1; version <= SCHEMA_VERSION; version++) {
+      await withDb(version, async db => {
+        const thisVersionStores = db.objectStoreNames;
+        for (const store of stores) {
+          expect(thisVersionStores.contains(store)).to.be.true;
+        }
+        // Reload the existing stores to check the next version.
+        stores = [];
+        for (let i = 0; i < thisVersionStores.length; i++) {
+          stores.push(thisVersionStores[i]);
+        }
+      });
+    }
+  });
 });
 
 describe('IndexedDb: canActAsPrimary', () => {

@@ -21,6 +21,7 @@ import { assert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
+import { Code, FirestoreError } from '../util/error';
 import { encode, EncodedResourcePath } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { getHighestListenSequenceNumber } from './indexeddb_query_cache';
@@ -42,8 +43,14 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 5. Removal of held write acks.
  * 6. Create document global for tracking document cache size.
  * 7. Ensure every cached document has a sentinel row with a sequence number.
+ * 8. Switch to independent schema version
  */
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
+/**
+ * This is the first version at which we started handling the version manually.
+ * If the manual version number is missing, start with this value.
+ */
+const FIRST_MANUAL_SCHEMA_VERSION = 8;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -62,18 +69,24 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
+    // We assert that we have sane values, but we now allow downgrades, so
+    // fromVersion may be less than toVersion.
     assert(
-      fromVersion < toVersion &&
-        fromVersion >= 0 &&
-        toVersion <= SCHEMA_VERSION,
-      `Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
+      fromVersion >= 0 && toVersion <= SCHEMA_VERSION,
+      `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
     );
 
+    /*
+     * NOTE: Even though it is not possible to downgrade this far, existing
+     * migrations are following the patterns required for future migrations to
+     * allow downgrade as an example.
+     */
+
     if (fromVersion < 1 && toVersion >= 1) {
-      createPrimaryClientStore(db);
-      createMutationQueue(db);
-      createQueryCache(db);
-      createRemoteDocumentCache(db);
+      createV1PrimaryClientStore(db);
+      createV1MutationQueue(db);
+      createV1QueryCache(db);
+      createV1RemoteDocumentCache(db);
     }
 
     // Migration 2 to populate the targetGlobal object no longer needed since
@@ -84,8 +97,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       // Brand new clients don't need to drop and recreate--only clients that
       // potentially have corrupt data.
       if (fromVersion !== 0) {
-        dropQueryCache(db);
-        createQueryCache(db);
+        dropV1QueryCache(db);
+        createV1QueryCache(db);
       }
       p = p.next(() => writeEmptyTargetGlobalEntry(txn));
     }
@@ -102,8 +115,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       }
 
       p = p.next(() => {
-        createClientMetadataStore(db);
-        createRemoteDocumentChangesStore(db);
+        createV1ClientMetadataStore(db);
+        createV1RemoteDocumentChangesStore(db);
       });
     }
 
@@ -113,13 +126,29 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 6 && toVersion >= 6) {
       p = p.next(() => {
-        createDocumentGlobalStore(db);
+        createV1DocumentGlobalStore(db);
         return this.addDocumentGlobal(txn);
       });
     }
 
     if (fromVersion < 7 && toVersion >= 7) {
       p = p.next(() => this.ensureSequenceNumbers(txn));
+    }
+
+    assert(
+      fromVersion <= 8,
+      'After version 8, we switch to a separately maintained schema ' +
+        'version. IndexedDB should never see its version go past 8.'
+    );
+    if (fromVersion < 8 && toVersion >= 8) {
+      p = p.next(() => this.addManualVersion(txn, db));
+    }
+
+    // IMPORTANT: new migrations should be implemented in
+    // `upgradeFromManualVersion`. After this point, we no longer use
+    // IndexedDB's versioning, as it does not allow downgrades.
+    if (toVersion >= FIRST_MANUAL_SCHEMA_VERSION) {
+      p = p.next(() => this.upgradeFromManualVersion(txn, toVersion));
     }
 
     return p;
@@ -222,6 +251,105 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         .next(() => PersistencePromise.waitFor(promises));
     });
   }
+
+  private addManualVersion(
+    txn: SimpleDbTransaction,
+    db: IDBDatabase
+  ): PersistencePromise<void> {
+    ifStoresDontExist(db, [DB_VERSION_GLOBAL_STORE], () =>
+      db.createObjectStore(DB_VERSION_GLOBAL_STORE)
+    );
+    // If this is a re-upgrade (the store already existed), we still want to set the version back.
+    // This will cause us to rerun all of the migrations after the switch to the manual version,
+    // which is what we want in the re-upgrade scenario.
+    return this.writeSchemaVersion(txn, FIRST_MANUAL_SCHEMA_VERSION);
+  }
+
+  private readSchemaVersion(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<number> {
+    const store = txn.store<DbVersionGlobalKeyType, DbVersionGlobal>(
+      DB_VERSION_GLOBAL_STORE
+    );
+    return store.get(DB_VERSION_GLOBAL_KEY).next(maybeVersion => {
+      assert(!!maybeVersion, 'Missing manual version');
+      return maybeVersion!;
+    });
+  }
+
+  private writeSchemaVersion(
+    txn: SimpleDbTransaction,
+    version: number
+  ): PersistencePromise<void> {
+    const store = txn.store<DbVersionGlobalKeyType, DbVersionGlobal>(
+      DB_VERSION_GLOBAL_STORE
+    );
+    return store.put(DB_VERSION_GLOBAL_KEY, version);
+  }
+
+  private upgradeFromManualVersion(
+    txn: SimpleDbTransaction,
+    toVersion: number
+  ): PersistencePromise<void> {
+    // Read manual schema version.
+    return this.readSchemaVersion(txn).next(fromVersion => {
+      // tslint:disable-next-line:prefer-const
+      let p = PersistencePromise.resolve();
+
+      /*
+       * Adding a new migration? READ THIS FIRST!
+       *
+       * Be aware that the SDK version may be downgraded then re-upgraded. This means that running
+       * your new migration must not prevent older versions of the SDK from functioning.
+       * Additionally, your migration must be able to run multiple times. In practice, this means a
+       * few things:
+       *  * Do not delete stores, change their key paths, or delete fields. Older versions may be
+       *    reading and writing them.
+       *  * Guard schema additions. Check if stores exist before adding them.
+       *  * Data migrations should *probably* always run. Older versions of the SDK will not have
+       *    maintained invariants from later versions, so migrations that update values cannot
+       *    assume that existing values have been properly maintained. Calculate them again, if
+       *    applicable.
+       */
+
+      /*
+       * As above, the migrations should be in the form of
+       * if (fromVersion < $VERSION && toVersion >= $VERSION) {
+       *   p = p.next(() => doMigrationSteps());
+       * }
+       */
+
+      return p.next(() => this.writeSchemaVersion(txn, toVersion));
+    });
+  }
+}
+
+function ifStoresDontExist(
+  db: IDBDatabase,
+  stores: string[],
+  fn: () => void
+): void {
+  let storesFound = false;
+  const allStores = `[${stores.join(', ')}]`;
+  const objectStores = db.objectStoreNames;
+  for (let i = 0; i < stores.length; i++) {
+    const storeName = stores[i];
+    const storeFound = objectStores.contains(storeName);
+    if (i === 0) {
+      storesFound = storeFound;
+    } else if (storeFound !== storesFound) {
+      let msg = `Expected all of ${allStores} to either exist of not, but`;
+      if (storesFound) {
+        msg += `${stores[0]} exists and ${storeName} does not`;
+      } else {
+        msg += `${stores[0]} does not exist and ${storeName} does`;
+      }
+      throw new FirestoreError(Code.INTERNAL, msg);
+    }
+  }
+  if (!storesFound) {
+    fn();
+  }
 }
 
 function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
@@ -275,8 +403,10 @@ export class DbPrimaryClient {
   ) {}
 }
 
-function createPrimaryClientStore(db: IDBDatabase): void {
-  db.createObjectStore(DbPrimaryClient.store);
+function createV1PrimaryClientStore(db: IDBDatabase): void {
+  ifStoresDontExist(db, [DbPrimaryClient.store], () =>
+    db.createObjectStore(DbPrimaryClient.store)
+  );
 }
 
 /** Object keys in the 'mutationQueues' store are userId strings. */
@@ -373,22 +503,28 @@ export class DbMutationBatch {
  */
 export type DbDocumentMutationKey = [string, EncodedResourcePath, BatchId];
 
-function createMutationQueue(db: IDBDatabase): void {
-  db.createObjectStore(DbMutationQueue.store, {
-    keyPath: DbMutationQueue.keyPath
-  });
+function createV1MutationQueue(db: IDBDatabase): void {
+  ifStoresDontExist(
+    db,
+    [DbMutationQueue.store, DbMutationBatch.store, DbDocumentMutation.store],
+    () => {
+      db.createObjectStore(DbMutationQueue.store, {
+        keyPath: DbMutationQueue.keyPath
+      });
 
-  const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
-    keyPath: DbMutationBatch.keyPath,
-    autoIncrement: true
-  });
-  mutationBatchesStore.createIndex(
-    DbMutationBatch.userMutationsIndex,
-    DbMutationBatch.userMutationsKeyPath,
-    { unique: true }
+      const mutationBatchesStore = db.createObjectStore(DbMutationBatch.store, {
+        keyPath: DbMutationBatch.keyPath,
+        autoIncrement: true
+      });
+      mutationBatchesStore.createIndex(
+        DbMutationBatch.userMutationsIndex,
+        DbMutationBatch.userMutationsKeyPath,
+        { unique: true }
+      );
+
+      db.createObjectStore(DbDocumentMutation.store);
+    }
   );
-
-  db.createObjectStore(DbDocumentMutation.store);
 }
 
 /**
@@ -484,8 +620,10 @@ export class DbDocumentMutation {
  */
 export type DbRemoteDocumentKey = string[];
 
-function createRemoteDocumentCache(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocument.store);
+function createV1RemoteDocumentCache(db: IDBDatabase): void {
+  ifStoresDontExist(db, [DbRemoteDocument.store], () =>
+    db.createObjectStore(DbRemoteDocument.store)
+  );
 }
 
 /**
@@ -547,6 +685,11 @@ export class DbRemoteDocument {
   ) {}
 }
 
+const DB_VERSION_GLOBAL_STORE = 'versionGlobal';
+const DB_VERSION_GLOBAL_KEY = 'versionGlobalKey';
+type DbVersionGlobalKeyType = typeof DB_VERSION_GLOBAL_KEY;
+type DbVersionGlobal = number;
+
 /**
  * Contains a single entry that has metadata about the remote document cache.
  */
@@ -564,8 +707,10 @@ export class DbRemoteDocumentGlobal {
 
 export type DbRemoteDocumentGlobalKey = typeof DbRemoteDocumentGlobal.key;
 
-function createDocumentGlobalStore(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocumentGlobal.store);
+function createV1DocumentGlobalStore(db: IDBDatabase): void {
+  ifStoresDontExist(db, [DbRemoteDocumentGlobal.store], () =>
+    db.createObjectStore(DbRemoteDocumentGlobal.store)
+  );
 }
 
 /**
@@ -770,30 +915,39 @@ export class DbTargetGlobal {
   ) {}
 }
 
-function createQueryCache(db: IDBDatabase): void {
-  const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
-    keyPath: DbTargetDocument.keyPath as KeyPath
-  });
-  targetDocumentsStore.createIndex(
-    DbTargetDocument.documentTargetsIndex,
-    DbTargetDocument.documentTargetsKeyPath,
-    { unique: true }
-  );
+function createV1QueryCache(db: IDBDatabase): void {
+  ifStoresDontExist(
+    db,
+    [DbTargetDocument.store, DbTarget.store, DbTargetGlobal.store],
+    () => {
+      const targetDocumentsStore = db.createObjectStore(
+        DbTargetDocument.store,
+        {
+          keyPath: DbTargetDocument.keyPath as KeyPath
+        }
+      );
+      targetDocumentsStore.createIndex(
+        DbTargetDocument.documentTargetsIndex,
+        DbTargetDocument.documentTargetsKeyPath,
+        { unique: true }
+      );
 
-  const targetStore = db.createObjectStore(DbTarget.store, {
-    keyPath: DbTarget.keyPath
-  });
+      const targetStore = db.createObjectStore(DbTarget.store, {
+        keyPath: DbTarget.keyPath
+      });
 
-  // NOTE: This is unique only because the TargetId is the suffix.
-  targetStore.createIndex(
-    DbTarget.queryTargetsIndexName,
-    DbTarget.queryTargetsKeyPath,
-    { unique: true }
+      // NOTE: This is unique only because the TargetId is the suffix.
+      targetStore.createIndex(
+        DbTarget.queryTargetsIndexName,
+        DbTarget.queryTargetsKeyPath,
+        { unique: true }
+      );
+      db.createObjectStore(DbTargetGlobal.store);
+    }
   );
-  db.createObjectStore(DbTargetGlobal.store);
 }
 
-function dropQueryCache(db: IDBDatabase): void {
+function dropV1QueryCache(db: IDBDatabase): void {
   db.deleteObjectStore(DbTargetDocument.store);
   db.deleteObjectStore(DbTarget.store);
   db.deleteObjectStore(DbTargetGlobal.store);
@@ -848,11 +1002,13 @@ export class DbRemoteDocumentChanges {
 */
 export type DbRemoteDocumentChangesKey = number;
 
-function createRemoteDocumentChangesStore(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocumentChanges.store, {
-    keyPath: 'id',
-    autoIncrement: true
-  });
+function createV1RemoteDocumentChangesStore(db: IDBDatabase): void {
+  ifStoresDontExist(db, [DbRemoteDocumentChanges.store], () =>
+    db.createObjectStore(DbRemoteDocumentChanges.store, {
+      keyPath: 'id',
+      autoIncrement: true
+    })
+  );
 }
 
 /**
@@ -888,10 +1044,12 @@ export class DbClientMetadata {
 /** Object keys in the 'clientMetadata' store are clientId strings. */
 export type DbClientMetadataKey = string;
 
-function createClientMetadataStore(db: IDBDatabase): void {
-  db.createObjectStore(DbClientMetadata.store, {
-    keyPath: DbClientMetadata.keyPath
-  });
+function createV1ClientMetadataStore(db: IDBDatabase): void {
+  ifStoresDontExist(db, [DbClientMetadata.store], () =>
+    db.createObjectStore(DbClientMetadata.store, {
+      keyPath: DbClientMetadata.keyPath
+    })
+  );
 }
 
 // Visible for testing
