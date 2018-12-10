@@ -83,11 +83,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import {
-  AnyDuringMigration,
-  AnyJs,
-  primitiveComparator
-} from '../../../src/util/misc';
+import { AnyJs, primitiveComparator } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
@@ -160,8 +156,9 @@ class MockConnection implements Connection {
   }
 
   waitForWriteRequest(): Promise<api.WriteRequest> {
-    if (this.earlyWrites.length > 0) {
-      return Promise.resolve(this.earlyWrites.shift()) as AnyDuringMigration;
+    const earlyWrite = this.earlyWrites.shift();
+    if (earlyWrite) {
+      return Promise.resolve(earlyWrite);
     }
     const barrier = new Deferred<WriteRequest>();
     this.writeSendBarriers.push(barrier);
