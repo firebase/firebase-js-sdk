@@ -156,8 +156,9 @@ class MockConnection implements Connection {
   }
 
   waitForWriteRequest(): Promise<api.WriteRequest> {
-    if (this.earlyWrites.length > 0) {
-      return Promise.resolve(this.earlyWrites.shift()!);
+    const earlyWrite = this.earlyWrites.shift();
+    if (earlyWrite) {
+      return Promise.resolve(earlyWrite);
     }
     const barrier = new Deferred<WriteRequest>();
     this.writeSendBarriers.push(barrier);
