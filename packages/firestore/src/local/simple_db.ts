@@ -17,7 +17,6 @@
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
-import { AnyDuringMigration } from '../util/misc';
 import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
@@ -173,15 +172,18 @@ export class SimpleDb {
       .catch(error => {
         // Abort the transaction if there was an error.
         transaction.abort(error);
+        // We cannot actually recover, and calling `abort()` will cause the transaction's
+        // completion promise to be rejected. This in turn means that we won't use
+        // `transactionFnResult` below. We return a rejection here so that we don't add the
+        // possibility of returning `void` to the type of `transactionFnResult`.
+        return PersistencePromise.reject<T>(error);
       })
       .toPromise();
 
     // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
     // fire), but still return the original transactionFnResult back to the
     // caller.
-    return transaction.completionPromise.then(
-      () => transactionFnResult
-    ) as AnyDuringMigration;
+    return transaction.completionPromise.then(() => transactionFnResult);
   }
 
   close(): void {
