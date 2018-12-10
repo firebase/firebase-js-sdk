@@ -179,9 +179,7 @@ export class SimpleDb {
     // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
     // fire), but still return the original transactionFnResult back to the
     // caller.
-    return transaction.completionPromise.then(
-      () => transactionFnResult
-    );
+    return transaction.completionPromise.then(() => transactionFnResult);
   }
 
   close(): void {
