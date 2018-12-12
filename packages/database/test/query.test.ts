@@ -368,6 +368,8 @@ describe('Query Tests', function() {
       .true;
 
     // Refs with different repos
+    // NOTE: getFreshRepo() no longer takes a hostname, so this test needs to be reworked.
+    // Same in info.test.ts.
     // var rootRefDifferentRepo = TESTS.getFreshRepo(TEST_ALT_NAMESPACE);
     // rootRefDifferentRepo.database.goOffline();
 
