@@ -43,12 +43,18 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 5. Removal of held write acks.
  * 6. Create document global for tracking document cache size.
  * 7. Ensure every cached document has a sentinel row with a sequence number.
- * 8. Switch to independent schema version
+ * 8. Switch to explicit schema version, independent of IndexedDb's builtin schema. This allows us
+ *    to support downgrades to this version going forward, and re-upgrades to later versions.
+ * 9. A no-op test migration used to demonstrate downgrade-then-upgrade support.
  */
 export const SCHEMA_VERSION = 9;
+
 /**
- * This is the first version at which we started handling the version manually.
- * If the manual version number is missing, start with this value.
+ * This is the first version at which we started handling the version independent of IndexedDB's
+ * schema handling. As such, IndexedDB should never be upgraded past this point. IndexedDB's schema
+ * version does not allow downgrading, so we save our own schema version instead. This is the last
+ * version that IndexedDB will see, and the first version that our manual versioning will see. So,
+ * if the manual version number is missing, initialize it to this value.
  */
 export const FIRST_MANUAL_SCHEMA_VERSION = 8;
 
@@ -69,7 +75,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-      // fromVersion may be less than toVersion.
+    // toVersion *should* always equal FIRST_MANUAL_SCHEMA_VERSION, except in tests we upgrade to
+    // intermediate versions, so we cannot assert that here.
     assert(
       fromVersion >= 0 && toVersion <= FIRST_MANUAL_SCHEMA_VERSION,
       `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
@@ -140,7 +147,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         'version. IndexedDB should never see its version go past 8.'
     );
     if (fromVersion < 8 && toVersion >= 8) {
-      p = p.next(() => this.addManualVersion(txn, db));
+      p = p.next(() => addManualSchemaVersion(txn, db));
     }
 
     // IMPORTANT: new migrations should be implemented in
@@ -152,6 +159,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
   doManualMigrations(db: IDBDatabase, toVersion: number): PersistencePromise<void> {
     return readManualSchemaVersion(db).next(fromVersion => {
+      // We don't yet know what migrations will run, and we don't know which ones might be skipped
+      // that added object stores that we will need to access. Rather than attempt to pick the exact
+      // right set of object stores based on the current version, add all of the existing object
+      // stores to the transaction.
       const objectStores: string[] = [];
       const objectStoreNames = db.objectStoreNames;
       for (let i = 0; i < objectStoreNames.length; i++) {
@@ -260,68 +271,56 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     });
   }
 
-  private addManualVersion(
-    txn: SimpleDbTransaction,
-    db: IDBDatabase
-  ): PersistencePromise<void> {
-    ifStoresDontExist(db, [DB_VERSION_GLOBAL_STORE], () =>
-      db.createObjectStore(DB_VERSION_GLOBAL_STORE)
-    );
-    // If this is a re-upgrade (the store already existed), we still want to set the version back.
-    // This will cause us to rerun all of the migrations after the switch to the manual version,
-    // which is what we want in the re-upgrade scenario.
-    return this.writeSchemaVersion(txn, FIRST_MANUAL_SCHEMA_VERSION);
-  }
-
-  private writeSchemaVersion(
-    txn: SimpleDbTransaction,
-    version: number
-  ): PersistencePromise<void> {
-    const store = txn.store<DbVersionGlobalKeyType, DbVersionGlobal>(
-      DB_VERSION_GLOBAL_STORE
-    );
-    return store.put(DB_VERSION_GLOBAL_KEY, version);
-  }
-
   private upgradeFromManualVersion(
     txn: SimpleDbTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    // Read manual schema version.
-    //return readManualSchemaVersion(txn).next(fromVersion => {
-      // tslint:disable-next-line:prefer-const
-      let p = PersistencePromise.resolve();
+    let p = PersistencePromise.resolve();
 
-      /*
-       * Adding a new migration? READ THIS FIRST!
-       *
-       * Be aware that the SDK version may be downgraded then re-upgraded. This means that running
-       * your new migration must not prevent older versions of the SDK from functioning.
-       * Additionally, your migration must be able to run multiple times. In practice, this means a
-       * few things:
-       *  * Do not delete stores, change their key paths, or delete fields. Older versions may be
-       *    reading and writing them.
-       *  * Guard schema additions. Check if stores exist before adding them.
-       *  * Data migrations should *probably* always run. Older versions of the SDK will not have
-       *    maintained invariants from later versions, so migrations that update values cannot
-       *    assume that existing values have been properly maintained. Calculate them again, if
-       *    applicable.
-       */
+    /*
+     * Adding a new migration? READ THIS FIRST!
+     *
+     * Be aware that the SDK version may be downgraded then re-upgraded. This means that running
+     * your new migration must not prevent older versions of the SDK from functioning.
+     * Additionally, your migration must be able to run multiple times. In practice, this means a
+     * few things:
+     *  * Do not delete stores, change their key paths, or delete fields. Older versions may be
+     *    reading and writing them.
+     *  * Guard schema additions. Check if stores exist before adding them.
+     *  * Data migrations should *probably* always run. Older versions of the SDK will not have
+     *    maintained invariants from later versions, so migrations that update values cannot
+     *    assume that existing values have been properly maintained. Calculate them again, if
+     *    applicable.
+     */
 
-      /*
-       * As above, the migrations should be in the form of
-       * if (fromVersion < $VERSION && toVersion >= $VERSION) {
-       *   p = p.next(() => doMigrationSteps());
-       * }
-       */
-      if (fromVersion < 9 && toVersion >= 9) {
-        p = p.next(() => doTestMigration(txn));
-      }
+    /*
+     * As above, the migrations should be in the form of
+     * if (fromVersion < $VERSION && toVersion >= $VERSION) {
+     *   p = p.next(() => doMigrationSteps());
+     * }
+     */
+    if (fromVersion < 9 && toVersion >= 9) {
+      p = p.next(() => doTestMigration(txn));
+    }
 
-      return p.next(() => this.writeSchemaVersion(txn, toVersion));
-    //});
+    return p.next(() => writeManualSchemaVersion(txn, toVersion));
   }
+}
+
+
+function addManualSchemaVersion(
+  txn: SimpleDbTransaction,
+  db: IDBDatabase
+): PersistencePromise<void> {
+  ifStoresDontExist(db, [DB_VERSION_GLOBAL_STORE], () =>
+    db.createObjectStore(DB_VERSION_GLOBAL_STORE)
+  );
+  // Technically, this can't be a re-upgrade, since this is the last migration from IndexedDB's
+  // schema versioning. However, in order to follow the model of idempotent migrations, we would
+  // want to rewrite the manual schema version back to its initial value. This would allow future
+  // migrations the chance to run again.
+  return writeManualSchemaVersion(txn, FIRST_MANUAL_SCHEMA_VERSION);
 }
 
 function readManualSchemaVersion(
@@ -332,9 +331,19 @@ function readManualSchemaVersion(
     DB_VERSION_GLOBAL_STORE
   );
   return store.get(DB_VERSION_GLOBAL_KEY).next(maybeVersion => {
-    assert(maybeVersion !== undefined, 'Missing manual version');
+    assert(maybeVersion !== null, 'Missing manual version');
     return maybeVersion!;
   });
+}
+
+function writeManualSchemaVersion(
+  txn: SimpleDbTransaction,
+  version: number
+): PersistencePromise<void> {
+  const store = txn.store<DbVersionGlobalKeyType, DbVersionGlobal>(
+    DB_VERSION_GLOBAL_STORE
+  );
+  return store.put(DB_VERSION_GLOBAL_KEY, version);
 }
 
 function doTestMigration(txn: SimpleDbTransaction): PersistencePromise<void> {
