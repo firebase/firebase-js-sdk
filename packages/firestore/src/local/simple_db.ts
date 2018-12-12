@@ -20,7 +20,7 @@ import { debug } from '../util/log';
 import { AnyDuringMigration } from '../util/misc';
 import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
-import { SCHEMA_VERSION } from './indexeddb_schema';
+import { FIRST_MANUAL_SCHEMA_VERSION, SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
 
 const LOG_TAG = 'SimpleDb';
@@ -32,6 +32,69 @@ export interface SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void>;
+
+  doManualMigrations(db: IDBDatabase, toVersion: number): PersistencePromise<void>;
+}
+
+export function openIndexedDb(name: string, version: number, schemaConverter: SimpleDbSchemaConverter): Promise<IDBDatabase> {
+  assert(
+    SimpleDb.isAvailable(),
+    'IndexedDB not supported in current environment.'
+  );
+  debug(LOG_TAG, 'Opening database:', name);
+  const indexedDbVersion = Math.min(version, FIRST_MANUAL_SCHEMA_VERSION);
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    // TODO(mikelehen): Investigate browser compatibility.
+    // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
+    // suggests IE9 and older WebKit browsers handle upgrade
+    // differently. They expect setVersion, as described here:
+    // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
+    const request = window.indexedDB.open(name, indexedDbVersion);
+
+    request.onsuccess = (event: Event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (db.version === FIRST_MANUAL_SCHEMA_VERSION) {
+        schemaConverter.doManualMigrations(db, version).next(() => resolve(db));
+      } else {
+        resolve(db);
+      }
+    };
+
+    request.onblocked = () => {
+      reject(
+        new FirestoreError(
+          Code.FAILED_PRECONDITION,
+          'Cannot upgrade IndexedDB schema while another tab is open. ' +
+          'Close all tabs that access Firestore and reload this page to proceed.'
+        )
+      );
+    };
+
+    request.onerror = (event: Event) => {
+      reject((event.target as IDBOpenDBRequest).error);
+    };
+
+    request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+      debug(
+        LOG_TAG,
+        'Database "' + name + '" requires upgrade from version:',
+        event.oldVersion
+      );
+      const db = (event.target as IDBOpenDBRequest).result;
+      // We are provided a version upgrade transaction from the request, so
+      // we wrap that in a SimpleDbTransaction to allow use of our friendlier
+      // API for schema migration operations.
+      const txn = new SimpleDbTransaction(request.transaction);
+      schemaConverter
+         .createOrUpgrade(db, txn, event.oldVersion, event.newVersion!)
+         .next(() => {
+           debug(
+             LOG_TAG,
+           'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
+           );
+         });
+    };
+  });
 }
 
 /**
@@ -48,59 +111,7 @@ export class SimpleDb {
     version: number,
     schemaConverter: SimpleDbSchemaConverter
   ): Promise<SimpleDb> {
-    assert(
-      SimpleDb.isAvailable(),
-      'IndexedDB not supported in current environment.'
-    );
-    debug(LOG_TAG, 'Opening database:', name);
-    return new PersistencePromise<SimpleDb>((resolve, reject) => {
-      // TODO(mikelehen): Investigate browser compatibility.
-      // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
-      // suggests IE9 and older WebKit browsers handle upgrade
-      // differently. They expect setVersion, as described here:
-      // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
-      const request = window.indexedDB.open(name, version);
-
-      request.onsuccess = (event: Event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        resolve(new SimpleDb(db));
-      };
-
-      request.onblocked = () => {
-        reject(
-          new FirestoreError(
-            Code.FAILED_PRECONDITION,
-            'Cannot upgrade IndexedDB schema while another tab is open. ' +
-              'Close all tabs that access Firestore and reload this page to proceed.'
-          )
-        );
-      };
-
-      request.onerror = (event: Event) => {
-        reject((event.target as IDBOpenDBRequest).error);
-      };
-
-      request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-        debug(
-          LOG_TAG,
-          'Database "' + name + '" requires upgrade from version:',
-          event.oldVersion
-        );
-        const db = (event.target as IDBOpenDBRequest).result;
-        // We are provided a version upgrade transaction from the request, so
-        // we wrap that in a SimpleDbTransaction to allow use of our friendlier
-        // API for schema migration operations.
-        const txn = new SimpleDbTransaction(request.transaction);
-        schemaConverter
-          .createOrUpgrade(db, txn, event.oldVersion, SCHEMA_VERSION)
-          .next(() => {
-            debug(
-              LOG_TAG,
-              'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
-            );
-          });
-      };
-    }).toPromise();
+    return openIndexedDb(name, version, schemaConverter).then(db => new SimpleDb(db));
   }
 
   /** Deletes the specified database. */

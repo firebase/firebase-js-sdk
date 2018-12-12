@@ -45,12 +45,12 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 7. Ensure every cached document has a sentinel row with a sequence number.
  * 8. Switch to independent schema version
  */
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 /**
  * This is the first version at which we started handling the version manually.
  * If the manual version number is missing, start with this value.
  */
-const FIRST_MANUAL_SCHEMA_VERSION = 8;
+export const FIRST_MANUAL_SCHEMA_VERSION = 8;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -69,10 +69,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    // We assert that we have sane values, but we now allow downgrades, so
-    // fromVersion may be less than toVersion.
+      // fromVersion may be less than toVersion.
     assert(
-      fromVersion >= 0 && toVersion <= SCHEMA_VERSION,
+      fromVersion >= 0 && toVersion <= FIRST_MANUAL_SCHEMA_VERSION,
       `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
     );
 
@@ -147,11 +146,20 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     // IMPORTANT: new migrations should be implemented in
     // `upgradeFromManualVersion`. After this point, we no longer use
     // IndexedDB's versioning, as it does not allow downgrades.
-    if (toVersion >= FIRST_MANUAL_SCHEMA_VERSION) {
-      p = p.next(() => this.upgradeFromManualVersion(txn, toVersion));
-    }
 
     return p;
+  }
+
+  doManualMigrations(db: IDBDatabase, toVersion: number): PersistencePromise<void> {
+    return readManualSchemaVersion(db).next(fromVersion => {
+      const objectStores: string[] = [];
+      const objectStoreNames = db.objectStoreNames;
+      for (let i = 0; i < objectStoreNames.length; i++) {
+        objectStores.push(objectStoreNames[i]);
+      }
+      const txn = new SimpleDbTransaction(db.transaction(objectStores, 'readwrite'));
+      return this.upgradeFromManualVersion(txn, fromVersion, toVersion);
+    });
   }
 
   private addDocumentGlobal(
@@ -265,18 +273,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     return this.writeSchemaVersion(txn, FIRST_MANUAL_SCHEMA_VERSION);
   }
 
-  private readSchemaVersion(
-    txn: SimpleDbTransaction
-  ): PersistencePromise<number> {
-    const store = txn.store<DbVersionGlobalKeyType, DbVersionGlobal>(
-      DB_VERSION_GLOBAL_STORE
-    );
-    return store.get(DB_VERSION_GLOBAL_KEY).next(maybeVersion => {
-      assert(!!maybeVersion, 'Missing manual version');
-      return maybeVersion!;
-    });
-  }
-
   private writeSchemaVersion(
     txn: SimpleDbTransaction,
     version: number
@@ -289,10 +285,11 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
   private upgradeFromManualVersion(
     txn: SimpleDbTransaction,
+    fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
     // Read manual schema version.
-    return this.readSchemaVersion(txn).next(fromVersion => {
+    //return readManualSchemaVersion(txn).next(fromVersion => {
       // tslint:disable-next-line:prefer-const
       let p = PersistencePromise.resolve();
 
@@ -318,10 +315,31 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
        *   p = p.next(() => doMigrationSteps());
        * }
        */
+      if (fromVersion < 9 && toVersion >= 9) {
+        p = p.next(() => doTestMigration(txn));
+      }
 
       return p.next(() => this.writeSchemaVersion(txn, toVersion));
-    });
+    //});
   }
+}
+
+function readManualSchemaVersion(
+  db: IDBDatabase
+): PersistencePromise<number> {
+  const txn = new SimpleDbTransaction(db.transaction(DB_VERSION_GLOBAL_STORE, 'readonly'));
+  const store = txn.store<DbVersionGlobalKeyType, DbVersionGlobal>(
+    DB_VERSION_GLOBAL_STORE
+  );
+  return store.get(DB_VERSION_GLOBAL_KEY).next(maybeVersion => {
+    assert(maybeVersion !== undefined, 'Missing manual version');
+    return maybeVersion!;
+  });
+}
+
+function doTestMigration(txn: SimpleDbTransaction): PersistencePromise<void> {
+  // Dummy migration to test a version number not based on indexeddb's versioning scheme.
+  return PersistencePromise.resolve();
 }
 
 /**
@@ -1090,9 +1108,10 @@ export const V4_STORES = [
 
 export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
 
+export const V8_STORES = [...V6_STORES, DB_VERSION_GLOBAL_STORE];
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = V6_STORES;
+export const ALL_STORES = V8_STORES;

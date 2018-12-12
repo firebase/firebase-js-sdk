@@ -39,6 +39,10 @@ class EncodedResourcePathSchemaConverter implements SimpleDbSchemaConverter {
     db.createObjectStore('test');
     return PersistencePromise.resolve();
   }
+
+  doManualMigrations(db: IDBDatabase, toVersion: number): PersistencePromise<void> {
+    throw new Error('Not yet implemented');
+  }
 }
 
 describe('EncodedResourcePath', () => {

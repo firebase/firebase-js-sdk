@@ -37,7 +37,7 @@ import {
   DbTargetGlobal,
   DbTargetGlobalKey,
   DbTargetKey,
-  DbTimestamp,
+  DbTimestamp, FIRST_MANUAL_SCHEMA_VERSION,
   SCHEMA_VERSION,
   SchemaConverter,
   V1_STORES,
@@ -48,7 +48,7 @@ import {
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
-import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
+import {openIndexedDb, SimpleDb, SimpleDbTransaction} from '../../../src/local/simple_db';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
@@ -67,28 +67,7 @@ function withDb(
   fn: (db: IDBDatabase) => Promise<void>
 ): Promise<void> {
   const schemaConverter = new SchemaConverter(TEST_SERIALIZER);
-
-  return new Promise<IDBDatabase>((resolve, reject) => {
-    const request = window.indexedDB.open(
-      INDEXEDDB_TEST_DATABASE_NAME,
-      schemaVersion
-    );
-    request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      schemaConverter.createOrUpgrade(
-        db,
-        new SimpleDbTransaction(request.transaction!),
-        event.oldVersion,
-        schemaVersion
-      );
-    };
-    request.onsuccess = (event: Event) => {
-      resolve((event.target as IDBOpenDBRequest).result);
-    };
-    request.onerror = (event: Event) => {
-      reject((event.target as IDBOpenDBRequest).error);
-    };
-  })
+  return openIndexedDb(INDEXEDDB_TEST_DATABASE_NAME, schemaVersion, schemaConverter)
     .then(db => fn(db).then(() => db))
     .then(db => {
       db.close();
@@ -603,16 +582,22 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
   });
 
+  const readManualVersion = (db: IDBDatabase): Promise<number> => {
+    const sdb = new SimpleDb(db);
+    return sdb.runTransaction('readonly', ['versionGlobal'], txn => {
+      const store = txn.store<string, number>('versionGlobal');
+      return store.get('versionGlobalKey').next(maybeVersion => {
+        expect(maybeVersion).to.not.be.undefined;
+        return maybeVersion!;
+      });
+    });
+  };
+
   it('can save its own version number', async () => {
     await withDb(8, async db => {
-      const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readonly', ['versionGlobal'], txn => {
-        expect(db.version).to.equal(8);
-        const store = txn.store('versionGlobal');
-        return store.get('versionGlobalKey').next(version => {
-          expect(version).to.equal(8);
-        });
-      });
+      expect(db.version).to.equal(8);
+      const version = await readManualVersion(db);
+      expect(version).to.equal(8);
     });
   });
 
@@ -634,6 +619,27 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         }
       });
     }
+  });
+
+  it('can upgrade, then downgrade to earliest safe point, then upgrade again', async () => {
+    // Upgrade to latest version
+    await withDb(SCHEMA_VERSION, async db => {
+      expect(db.version).to.equal(FIRST_MANUAL_SCHEMA_VERSION);
+      const version = await readManualVersion(db);
+      expect(version).to.equal(SCHEMA_VERSION);
+    });
+    // downgrade to first manual version
+    await withDb(FIRST_MANUAL_SCHEMA_VERSION, async db => {
+      expect(db.version).to.equal(FIRST_MANUAL_SCHEMA_VERSION);
+      const version = await readManualVersion(db);
+      expect(version).to.equal(FIRST_MANUAL_SCHEMA_VERSION);
+    });
+    // upgrade to latest version again
+    await withDb(SCHEMA_VERSION, async db => {
+      expect(db.version).to.equal(FIRST_MANUAL_SCHEMA_VERSION);
+      const version = await readManualVersion(db);
+      expect(version).to.equal(SCHEMA_VERSION);
+    });
   });
 });
 

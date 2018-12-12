@@ -76,6 +76,10 @@ class TestSchemaConverter implements SimpleDbSchemaConverter {
     db.createObjectStore('docs');
     return PersistencePromise.resolve();
   }
+
+  doManualMigrations(db: IDBDatabase, toVersion: number): PersistencePromise<void> {
+    throw new Error('Not yet implemented');
+  }
 }
 
 describe('SimpleDb', () => {
