@@ -77,7 +77,10 @@ class TestSchemaConverter implements SimpleDbSchemaConverter {
     return PersistencePromise.resolve();
   }
 
-  doManualMigrations(db: IDBDatabase, toVersion: number): PersistencePromise<void> {
+  doManualMigrations(
+    db: IDBDatabase,
+    toVersion: number
+  ): PersistencePromise<void> {
     throw new Error('Not implemented');
   }
 }

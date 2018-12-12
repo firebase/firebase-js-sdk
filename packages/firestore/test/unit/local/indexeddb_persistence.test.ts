@@ -37,7 +37,8 @@ import {
   DbTargetGlobal,
   DbTargetGlobalKey,
   DbTargetKey,
-  DbTimestamp, FIRST_MANUAL_SCHEMA_VERSION,
+  DbTimestamp,
+  FIRST_MANUAL_SCHEMA_VERSION,
   SCHEMA_VERSION,
   SchemaConverter,
   V1_STORES,
@@ -48,7 +49,11 @@ import {
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
-import {openIndexedDb, SimpleDb, SimpleDbTransaction} from '../../../src/local/simple_db';
+import {
+  openIndexedDb,
+  SimpleDb,
+  SimpleDbTransaction
+} from '../../../src/local/simple_db';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
@@ -67,7 +72,11 @@ function withDb(
   fn: (db: IDBDatabase) => Promise<void>
 ): Promise<void> {
   const schemaConverter = new SchemaConverter(TEST_SERIALIZER);
-  return openIndexedDb(INDEXEDDB_TEST_DATABASE_NAME, schemaVersion, schemaConverter)
+  return openIndexedDb(
+    INDEXEDDB_TEST_DATABASE_NAME,
+    schemaVersion,
+    schemaConverter
+  )
     .then(db => fn(db).then(() => db))
     .then(db => {
       db.close();

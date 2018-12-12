@@ -157,7 +157,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     return p;
   }
 
-  doManualMigrations(db: IDBDatabase, toVersion: number): PersistencePromise<void> {
+  doManualMigrations(
+    db: IDBDatabase,
+    toVersion: number
+  ): PersistencePromise<void> {
     return readManualSchemaVersion(db).next(fromVersion => {
       // We don't yet know what migrations will run, and we don't know which ones might be skipped
       // that added object stores that we will need to access. Rather than attempt to pick the exact
@@ -168,7 +171,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       for (let i = 0; i < objectStoreNames.length; i++) {
         objectStores.push(objectStoreNames[i]);
       }
-      const txn = new SimpleDbTransaction(db.transaction(objectStores, 'readwrite'));
+      const txn = new SimpleDbTransaction(
+        db.transaction(objectStores, 'readwrite')
+      );
       return this.upgradeFromManualVersion(txn, fromVersion, toVersion);
     });
   }
@@ -308,7 +313,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
   }
 }
 
-
 function addManualSchemaVersion(
   txn: SimpleDbTransaction,
   db: IDBDatabase
@@ -323,10 +327,10 @@ function addManualSchemaVersion(
   return writeManualSchemaVersion(txn, FIRST_MANUAL_SCHEMA_VERSION);
 }
 
-function readManualSchemaVersion(
-  db: IDBDatabase
-): PersistencePromise<number> {
-  const txn = new SimpleDbTransaction(db.transaction(DB_VERSION_GLOBAL_STORE, 'readonly'));
+function readManualSchemaVersion(db: IDBDatabase): PersistencePromise<number> {
+  const txn = new SimpleDbTransaction(
+    db.transaction(DB_VERSION_GLOBAL_STORE, 'readonly')
+  );
   const store = txn.store<DbVersionGlobalKeyType, DbVersionGlobal>(
     DB_VERSION_GLOBAL_STORE
   );

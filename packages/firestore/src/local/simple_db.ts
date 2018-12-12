@@ -19,7 +19,10 @@ import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
-import { FIRST_MANUAL_SCHEMA_VERSION, SCHEMA_VERSION } from './indexeddb_schema';
+import {
+  FIRST_MANUAL_SCHEMA_VERSION,
+  SCHEMA_VERSION
+} from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
 
 const LOG_TAG = 'SimpleDb';
@@ -32,10 +35,17 @@ export interface SimpleDbSchemaConverter {
     toVersion: number
   ): PersistencePromise<void>;
 
-  doManualMigrations(db: IDBDatabase, toVersion: number): PersistencePromise<void>;
+  doManualMigrations(
+    db: IDBDatabase,
+    toVersion: number
+  ): PersistencePromise<void>;
 }
 
-export function openIndexedDb(name: string, version: number, schemaConverter: SimpleDbSchemaConverter): Promise<IDBDatabase> {
+export function openIndexedDb(
+  name: string,
+  version: number,
+  schemaConverter: SimpleDbSchemaConverter
+): Promise<IDBDatabase> {
   assert(
     SimpleDb.isAvailable(),
     'IndexedDB not supported in current environment.'
@@ -64,7 +74,7 @@ export function openIndexedDb(name: string, version: number, schemaConverter: Si
         new FirestoreError(
           Code.FAILED_PRECONDITION,
           'Cannot upgrade IndexedDB schema while another tab is open. ' +
-          'Close all tabs that access Firestore and reload this page to proceed.'
+            'Close all tabs that access Firestore and reload this page to proceed.'
         )
       );
     };
@@ -85,13 +95,13 @@ export function openIndexedDb(name: string, version: number, schemaConverter: Si
       // API for schema migration operations.
       const txn = new SimpleDbTransaction(request.transaction);
       schemaConverter
-         .createOrUpgrade(db, txn, event.oldVersion, event.newVersion!)
-         .next(() => {
-           debug(
-             LOG_TAG,
-           'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
-           );
-         });
+        .createOrUpgrade(db, txn, event.oldVersion, event.newVersion!)
+        .next(() => {
+          debug(
+            LOG_TAG,
+            'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
+          );
+        });
     };
   });
 }
@@ -110,7 +120,9 @@ export class SimpleDb {
     version: number,
     schemaConverter: SimpleDbSchemaConverter
   ): Promise<SimpleDb> {
-    return openIndexedDb(name, version, schemaConverter).then(db => new SimpleDb(db));
+    return openIndexedDb(name, version, schemaConverter).then(
+      db => new SimpleDb(db)
+    );
   }
 
   /** Deletes the specified database. */
