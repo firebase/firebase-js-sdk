@@ -51,8 +51,7 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import {
   openIndexedDb,
-  SimpleDb,
-  SimpleDbTransaction
+  SimpleDb
 } from '../../../src/local/simple_db';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
