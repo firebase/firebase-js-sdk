@@ -19,15 +19,18 @@ import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
-import {
-  FIRST_MANUAL_SCHEMA_VERSION,
-  SCHEMA_VERSION
-} from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
 
 const LOG_TAG = 'SimpleDb';
 
+/**
+ * This interface defines the functionality needed to perform schema migrations. SimpleDB provides
+ * the option to use a manual schema version, instead of IndexedDB's schema version mechanism. If a
+ * manual schema version is supplied to SimpleDB, `doManualMigrations` in this interface will be
+ * called for the manual schema version.
+ */
 export interface SimpleDbSchemaConverter {
+  /** Called to apply migrations for IndexedDB-based schema versions */
   createOrUpgrade(
     db: IDBDatabase,
     txn: SimpleDbTransaction,
@@ -35,23 +38,28 @@ export interface SimpleDbSchemaConverter {
     toVersion: number
   ): PersistencePromise<void>;
 
+  /** Called to apply migrations for manual schema versions */
   doManualMigrations(
     db: IDBDatabase,
     toVersion: number
   ): PersistencePromise<void>;
 }
 
+/**
+ * Exported for testing purposes.
+ */
 export function openIndexedDb(
   name: string,
   version: number,
-  schemaConverter: SimpleDbSchemaConverter
+  schemaConverter: SimpleDbSchemaConverter,
+  firstManualSchemaVersion: number
 ): Promise<IDBDatabase> {
   assert(
     SimpleDb.isAvailable(),
     'IndexedDB not supported in current environment.'
   );
   debug(LOG_TAG, 'Opening database:', name);
-  const indexedDbVersion = Math.min(version, FIRST_MANUAL_SCHEMA_VERSION);
+  const indexedDbVersion = Math.min(version, firstManualSchemaVersion);
   return new Promise<IDBDatabase>((resolve, reject) => {
     // TODO(mikelehen): Investigate browser compatibility.
     // https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API/Using_IndexedDB
@@ -62,7 +70,7 @@ export function openIndexedDb(
 
     request.onsuccess = (event: Event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      if (db.version === FIRST_MANUAL_SCHEMA_VERSION) {
+      if (db.version === firstManualSchemaVersion) {
         schemaConverter.doManualMigrations(db, version).next(() => resolve(db));
       } else {
         resolve(db);
@@ -99,7 +107,7 @@ export function openIndexedDb(
         .next(() => {
           debug(
             LOG_TAG,
-            'Database upgrade to version ' + SCHEMA_VERSION + ' complete'
+            'Database upgrade to version ' + event.newVersion + ' complete'
           );
         });
     };
@@ -118,9 +126,10 @@ export class SimpleDb {
   static openOrCreate(
     name: string,
     version: number,
-    schemaConverter: SimpleDbSchemaConverter
+    schemaConverter: SimpleDbSchemaConverter,
+    firstManualVersion = Infinity
   ): Promise<SimpleDb> {
-    return openIndexedDb(name, version, schemaConverter).then(
+    return openIndexedDb(name, version, schemaConverter, firstManualVersion).then(
       db => new SimpleDb(db)
     );
   }

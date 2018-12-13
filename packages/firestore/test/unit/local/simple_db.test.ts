@@ -61,6 +61,9 @@ function isIndexedDbMock(): boolean {
 }
 
 class TestSchemaConverter implements SimpleDbSchemaConverter {
+  manualVersion = -1;
+  indexedDbVersion = -1;
+
   createOrUpgrade(
     db: IDBDatabase,
     txn: SimpleDbTransaction,
@@ -74,6 +77,7 @@ class TestSchemaConverter implements SimpleDbSchemaConverter {
 
     // A store that uses arrays as keys.
     db.createObjectStore('docs');
+    this.indexedDbVersion = toVersion;
     return PersistencePromise.resolve();
   }
 
@@ -81,7 +85,8 @@ class TestSchemaConverter implements SimpleDbSchemaConverter {
     db: IDBDatabase,
     toVersion: number
   ): PersistencePromise<void> {
-    throw new Error('Not implemented');
+    this.manualVersion = toVersion;
+    return PersistencePromise.resolve();
   }
 }
 
@@ -123,9 +128,12 @@ describe('SimpleDb', () => {
       });
   });
 
-  afterEach(() => db.close());
+  //afterEach(() => db.close());
 
-  after(() => SimpleDb.delete(dbName));
+  afterEach(async () => {
+    db.close();
+    await SimpleDb.delete(dbName);
+  });
 
   it('can get', async () => {
     await runTransaction(store => {
@@ -519,5 +527,29 @@ describe('SimpleDb', () => {
         });
       });
     });
+  });
+
+  it('can upgrade with just indexeddb', async () => {
+    db.close();
+    await SimpleDb.delete(dbName);
+    // Re-open with our own version number
+    const expectedVersion = 10;
+    const converter = new TestSchemaConverter();
+    db = await SimpleDb.openOrCreate(dbName, expectedVersion, converter);
+    expect(converter.indexedDbVersion).to.equal(expectedVersion);
+    expect(converter.manualVersion).to.equal(-1);
+  });
+
+  it('can do manual versions', async () => {
+    db.close();
+    await SimpleDb.delete(dbName);
+    // Re-open with our version numbers
+    const expectedIndexedDbVersion = 10;
+    const expectedManualVersion = 20;
+    const firstManualVersion = expectedIndexedDbVersion;
+    const converter = new TestSchemaConverter();
+    db = await SimpleDb.openOrCreate(dbName, expectedManualVersion, converter, firstManualVersion);
+    expect(converter.indexedDbVersion).to.equal(expectedIndexedDbVersion);
+    expect(converter.manualVersion).to.equal(expectedManualVersion);
   });
 });

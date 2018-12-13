@@ -66,7 +66,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
    * Performs database creation and schema upgrades.
    *
    * Note that in production, this method is only ever used to upgrade the schema
-   * to SCHEMA_VERSION. Different values of toVersion are only used for testing
+   * to FIRST_MANUAL_SCHEMA_VERSION. Different values of toVersion are only used for testing
    * and local feature development.
    */
   createOrUpgrade(
@@ -75,8 +75,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
-    // toVersion *should* always equal FIRST_MANUAL_SCHEMA_VERSION, except in tests we upgrade to
-    // intermediate versions, so we cannot assert that here.
     assert(
       fromVersion >= 0 && toVersion <= FIRST_MANUAL_SCHEMA_VERSION,
       `Unexpected schema upgrade from v${fromVersion} to v${toVersion}.`
@@ -85,7 +83,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     /*
      * NOTE: Even though it is not possible to downgrade this far, existing
      * migrations are following the patterns required for future migrations to
-     * allow downgrade as an example.
+     * allow downgrade as an example. This includes things like not deleting object stores
+     * and checking whether object stores exist before creating them.
      */
 
     if (fromVersion < 1 && toVersion >= 1) {
@@ -161,21 +160,13 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     db: IDBDatabase,
     toVersion: number
   ): PersistencePromise<void> {
-    return readManualSchemaVersion(db).next(fromVersion => {
-      // We don't yet know what migrations will run, and we don't know which ones might be skipped
-      // that added object stores that we will need to access. Rather than attempt to pick the exact
-      // right set of object stores based on the current version, add all of the existing object
-      // stores to the transaction.
-      const objectStores: string[] = [];
-      const objectStoreNames = db.objectStoreNames;
-      for (let i = 0; i < objectStoreNames.length; i++) {
-        objectStores.push(objectStoreNames[i]);
-      }
-      const txn = new SimpleDbTransaction(
-        db.transaction(objectStores, 'readwrite')
-      );
-      return this.upgradeFromManualVersion(txn, fromVersion, toVersion);
-    });
+    const objectStores = Array.from(db.objectStoreNames);
+    const txn = new SimpleDbTransaction(
+      db.transaction(objectStores, 'readwrite')
+    );
+    return readManualSchemaVersion(txn).next(fromVersion =>
+      this.upgradeFromManualVersion(txn, fromVersion, toVersion)
+    );
   }
 
   private addDocumentGlobal(
@@ -300,7 +291,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
      */
 
     /*
-     * As above, the migrations should be in the form of
+     * The migrations should be in the form of:
      * if (fromVersion < $VERSION && toVersion >= $VERSION) {
      *   p = p.next(() => doMigrationSteps());
      * }
@@ -327,10 +318,7 @@ function addManualSchemaVersion(
   return writeManualSchemaVersion(txn, FIRST_MANUAL_SCHEMA_VERSION);
 }
 
-function readManualSchemaVersion(db: IDBDatabase): PersistencePromise<number> {
-  const txn = new SimpleDbTransaction(
-    db.transaction(DB_VERSION_GLOBAL_STORE, 'readonly')
-  );
+function readManualSchemaVersion(txn: SimpleDbTransaction): PersistencePromise<number> {
   const store = txn.store<DbVersionGlobalKeyType, DbVersionGlobal>(
     DB_VERSION_GLOBAL_STORE
   );
@@ -351,7 +339,8 @@ function writeManualSchemaVersion(
 }
 
 function doTestMigration(txn: SimpleDbTransaction): PersistencePromise<void> {
-  // Dummy migration to test a version number not based on indexeddb's versioning scheme.
+  // Dummy migration that does nothing. It only exists for tests to exercise our "manual" version
+  // number mechanism and the ability to downgrade / re-upgrade successfully.
   return PersistencePromise.resolve();
 }
 

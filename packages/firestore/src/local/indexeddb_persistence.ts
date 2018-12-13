@@ -45,7 +45,7 @@ import {
   DbPrimaryClient,
   DbPrimaryClientKey,
   DbTargetDocument,
-  DbTargetGlobal,
+  DbTargetGlobal, FIRST_MANUAL_SCHEMA_VERSION,
   SCHEMA_VERSION,
   SchemaConverter
 } from './indexeddb_schema';
@@ -321,7 +321,8 @@ export class IndexedDbPersistence implements Persistence {
     return SimpleDb.openOrCreate(
       this.dbName,
       SCHEMA_VERSION,
-      new SchemaConverter(this.serializer)
+      new SchemaConverter(this.serializer),
+      FIRST_MANUAL_SCHEMA_VERSION
     )
       .then(db => {
         this.simpleDb = db;

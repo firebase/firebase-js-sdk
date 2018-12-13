@@ -71,7 +71,8 @@ function withDb(
   return openIndexedDb(
     INDEXEDDB_TEST_DATABASE_NAME,
     schemaVersion,
-    schemaConverter
+    schemaConverter,
+    FIRST_MANUAL_SCHEMA_VERSION
   )
     .then(db => fn(db).then(() => db))
     .then(db => {
@@ -618,10 +619,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           expect(thisVersionStores.contains(store)).to.be.true;
         }
         // Reload the existing stores to check the next version.
-        stores = [];
-        for (let i = 0; i < thisVersionStores.length; i++) {
-          stores.push(thisVersionStores[i]);
-        }
+        stores = Array.from(thisVersionStores);
       });
     }
   });
