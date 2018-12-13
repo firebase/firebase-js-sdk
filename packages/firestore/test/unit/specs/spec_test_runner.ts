@@ -40,7 +40,8 @@ import {
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
-  DbPrimaryClientKey, FIRST_MANUAL_SCHEMA_VERSION,
+  DbPrimaryClientKey,
+  FIRST_MANUAL_SCHEMA_VERSION,
   SCHEMA_VERSION,
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
