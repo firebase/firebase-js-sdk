@@ -656,7 +656,8 @@ describe('IndexedDb: canActAsPrimary', () => {
     const simpleDb = await SimpleDb.openOrCreate(
       INDEXEDDB_TEST_DATABASE_NAME,
       SCHEMA_VERSION,
-      new SchemaConverter(TEST_SERIALIZER)
+      new SchemaConverter(TEST_SERIALIZER),
+      FIRST_MANUAL_SCHEMA_VERSION
     );
     await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
       const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
@@ -667,9 +668,7 @@ describe('IndexedDb: canActAsPrimary', () => {
     simpleDb.close();
   }
 
-  beforeEach(() => {
-    return SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME);
-  });
+  beforeEach(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
   after(() => SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME));
 
@@ -734,7 +733,6 @@ describe('IndexedDb: canActAsPrimary', () => {
           // Clear the current primary holder, since our logic will not revoke
           // the lease until it expires.
           await clearPrimaryLease();
-
           await withPersistence(
             'thisClient',
             async (thisPersistence, thisPlatform, thisQueue) => {

@@ -40,7 +40,7 @@ import {
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
-  DbPrimaryClientKey,
+  DbPrimaryClientKey, FIRST_MANUAL_SCHEMA_VERSION,
   SCHEMA_VERSION,
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
@@ -1550,7 +1550,8 @@ async function clearCurrentPrimaryLease(): Promise<void> {
   const db = await SimpleDb.openOrCreate(
     INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
-    new SchemaConverter(TEST_SERIALIZER)
+    new SchemaConverter(TEST_SERIALIZER),
+    FIRST_MANUAL_SCHEMA_VERSION
   );
   await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
     const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
