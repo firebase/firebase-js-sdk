@@ -45,7 +45,8 @@ import {
   DbPrimaryClient,
   DbPrimaryClientKey,
   DbTargetDocument,
-  DbTargetGlobal, FIRST_MANUAL_SCHEMA_VERSION,
+  DbTargetGlobal,
+  FIRST_MANUAL_SCHEMA_VERSION,
   SCHEMA_VERSION,
   SchemaConverter
 } from './indexeddb_schema';

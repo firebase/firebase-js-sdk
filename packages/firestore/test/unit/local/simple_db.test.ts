@@ -548,7 +548,12 @@ describe('SimpleDb', () => {
     const expectedManualVersion = 20;
     const firstManualVersion = expectedIndexedDbVersion;
     const converter = new TestSchemaConverter();
-    db = await SimpleDb.openOrCreate(dbName, expectedManualVersion, converter, firstManualVersion);
+    db = await SimpleDb.openOrCreate(
+      dbName,
+      expectedManualVersion,
+      converter,
+      firstManualVersion
+    );
     expect(converter.indexedDbVersion).to.equal(expectedIndexedDbVersion);
     expect(converter.manualVersion).to.equal(expectedManualVersion);
   });

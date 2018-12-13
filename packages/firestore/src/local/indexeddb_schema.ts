@@ -318,7 +318,9 @@ function addManualSchemaVersion(
   return writeManualSchemaVersion(txn, FIRST_MANUAL_SCHEMA_VERSION);
 }
 
-function readManualSchemaVersion(txn: SimpleDbTransaction): PersistencePromise<number> {
+function readManualSchemaVersion(
+  txn: SimpleDbTransaction
+): PersistencePromise<number> {
   const store = txn.store<DbVersionGlobalKeyType, DbVersionGlobal>(
     DB_VERSION_GLOBAL_STORE
   );

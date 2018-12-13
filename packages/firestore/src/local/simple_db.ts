@@ -129,9 +129,12 @@ export class SimpleDb {
     schemaConverter: SimpleDbSchemaConverter,
     firstManualVersion = Infinity
   ): Promise<SimpleDb> {
-    return openIndexedDb(name, version, schemaConverter, firstManualVersion).then(
-      db => new SimpleDb(db)
-    );
+    return openIndexedDb(
+      name,
+      version,
+      schemaConverter,
+      firstManualVersion
+    ).then(db => new SimpleDb(db));
   }
 
   /** Deletes the specified database. */
