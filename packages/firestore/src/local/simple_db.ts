@@ -39,6 +39,11 @@ export interface SimpleDbSchemaConverter {
  * since .then() continuations are executed asynchronously (e.g. via
  * .setImmediate), which would cause IndexedDB to end the transaction.
  * See PersistencePromise for more details.
+ *
+ * Note that `version` must not be a downgrade. IndexedDB does not support downgrading the schema
+ * version. We currently do not support any way to do versioning outside of IndexedDB's versioning
+ * mechanism, as only version-upgrade transactions are allowed to do things like create
+ * objectstores.
  */
 export class SimpleDb {
   /** Opens the specified database, creating or upgrading it if necessary. */
@@ -76,7 +81,17 @@ export class SimpleDb {
       };
 
       request.onerror = (event: Event) => {
-        reject((event.target as IDBOpenDBRequest).error);
+        const error: DOMException = (event.target as IDBOpenDBRequest).error!;
+        if (error.name === 'VersionError') {
+          reject(
+            new FirestoreError(
+              Code.FAILED_PRECONDITION,
+              'Cannot downgrade IndexedDB version. Please use a newer version of the SDK.'
+            )
+          );
+        } else {
+          reject(error);
+        }
       };
 
       request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
