@@ -85,13 +85,13 @@ export class LocalDocumentsView {
     docs: NullableMaybeDocumentMap,
     batches: MutationBatch[]
   ): PersistencePromise<NullableMaybeDocumentMap> {
-      let results = nullableMaybeDocumentMap();
-      return new PersistencePromise<NullableMaybeDocumentMap>(() => {
-        docs.forEach((key, localView : MaybeDocument | null) => {
-          for (const batch of batches) {
-            localView = batch.applyToLocalView(key, localView);
-          }
-          results = results.insert(key, localView);
+    let results = nullableMaybeDocumentMap();
+    return new PersistencePromise<NullableMaybeDocumentMap>(() => {
+      docs.forEach((key, localView: MaybeDocument | null) => {
+        for (const batch of batches) {
+          localView = batch.applyToLocalView(key, localView);
+        }
+        results = results.insert(key, localView);
       });
     });
   }
@@ -111,37 +111,36 @@ export class LocalDocumentsView {
     });
   }
 
-/**
- * Similar to `getDocuments`, but creates the local view from the given
- * `baseDocs` without retrieving documents from the local store.
- */
+  /**
+   * Similar to `getDocuments`, but creates the local view from the given
+   * `baseDocs` without retrieving documents from the local store.
+   */
   getLocalViewOfDocuments(
     transaction: PersistenceTransaction,
     baseDocs: NullableMaybeDocumentMap
   ): PersistencePromise<MaybeDocumentMap> {
     let allKeys = documentKeySet();
-    baseDocs.forEach((key) => {
+    baseDocs.forEach(key => {
       allKeys = allKeys.add(key);
     });
 
     return this.mutationQueue
       .getAllMutationBatchesAffectingDocumentKeys(transaction, allKeys)
-    .next(batches => this.applyLocalMutationsToDocuments(transaction, baseDocs, batches))
-    .next(docs => {
+      .next(batches =>
+        this.applyLocalMutationsToDocuments(transaction, baseDocs, batches)
+      )
+      .next(docs => {
         let results = maybeDocumentMap();
         docs.forEach((key, maybeDoc) => {
-            // TODO(http://b/32275378): Don't conflate missing / deleted.
-            if (!maybeDoc) {
-              maybeDoc = new NoDocument(
-                key,
-                SnapshotVersion.forDeletedDoc()
-              );
-              results = results.insert(key, maybeDoc);
-            }
-          });
-
-          return results;
+          // TODO(http://b/32275378): Don't conflate missing / deleted.
+          if (!maybeDoc) {
+            maybeDoc = new NoDocument(key, SnapshotVersion.forDeletedDoc());
+            results = results.insert(key, maybeDoc);
+          }
         });
+
+        return results;
+      });
   }
 
   /** Performs a query against the local view of all documents. */
