@@ -28,8 +28,6 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
-import { SortedMap } from '../util/sorted_map';
-
 /**
  * Represents cached documents received from the remote backend.
  *

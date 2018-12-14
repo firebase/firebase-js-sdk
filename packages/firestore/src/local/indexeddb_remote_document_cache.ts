@@ -394,7 +394,7 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
     const toApply: Array<{ doc: DbRemoteDocument; key: DocumentKey }> = [];
     changes.forEach((key, maybeDocument) => {
       const doc = this.documentCache.serializer.toDbRemoteDocument(
-        maybeDocument!
+        maybeDocument
       );
       const previousSize = this.documentSizes.get(key);
       // NOTE: if we ever decide we need to support doing writes without

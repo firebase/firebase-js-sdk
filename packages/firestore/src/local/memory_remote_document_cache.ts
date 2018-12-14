@@ -117,9 +117,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     let results = nullableMaybeDocumentMap();
     documentKeys.forEach(documentKey => {
       const entry = this.docs.get(documentKey);
-      if (entry) {
-        results = results.insert(documentKey, entry.maybeDocument);
-      }
+      results = results.insert(documentKey, entry ? entry.maybeDocument : null);
     });
     return PersistencePromise.resolve(results);
   }

@@ -30,7 +30,6 @@ import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
-import { SortedMap } from '../util/sorted_map';
 
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
@@ -87,12 +86,13 @@ export class LocalDocumentsView {
   ): PersistencePromise<NullableMaybeDocumentMap> {
     let results = nullableMaybeDocumentMap();
     return new PersistencePromise<NullableMaybeDocumentMap>(() => {
-      docs.forEach((key, localView: MaybeDocument | null) => {
+      docs.forEach((key, localView) => {
         for (const batch of batches) {
           localView = batch.applyToLocalView(key, localView);
         }
         results = results.insert(key, localView);
       });
+      return results;
     });
   }
 
@@ -135,8 +135,8 @@ export class LocalDocumentsView {
           // TODO(http://b/32275378): Don't conflate missing / deleted.
           if (!maybeDoc) {
             maybeDoc = new NoDocument(key, SnapshotVersion.forDeletedDoc());
-            results = results.insert(key, maybeDoc);
           }
+          results = results.insert(key, maybeDoc);
         });
 
         return results;
