@@ -17,7 +17,7 @@
 import { Query } from '../core/query';
 import {
   DocumentKeySet,
-  DocumentMap
+  DocumentMap,
   NullableMaybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
