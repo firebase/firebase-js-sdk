@@ -478,12 +478,12 @@ export class LocalStore {
               // resolution failing).
               if (
                 existingDoc == null ||
-                doc.version.isEqual(SnapshotVersion.MIN) ||
-                (authoritativeUpdates.has(doc.key) &&
+                doc!.version.isEqual(SnapshotVersion.MIN) ||
+                (authoritativeUpdates.has(doc!.key) &&
                   !existingDoc.hasPendingWrites) ||
-                doc.version.compareTo(existingDoc.version) >= 0
+                doc!.version.compareTo(existingDoc.version) >= 0
               ) {
-                documentBuffer.addEntry(doc);
+                documentBuffer.addEntry(doc!);
               } else {
                 log.debug(
                   LOG_TAG,
@@ -492,7 +492,7 @@ export class LocalStore {
                   '. Current version:',
                   existingDoc.version,
                   ' Watch version:',
-                  doc.version
+                  doc!.version
                 );
               }
             })

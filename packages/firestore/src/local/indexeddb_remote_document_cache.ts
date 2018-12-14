@@ -16,6 +16,7 @@
 
 import { Query } from '../core/query';
 import {
+  DocumentKeySet,
   documentKeySet,
   DocumentMap,
   documentMap,
@@ -176,6 +177,34 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             }
           : null;
       });
+  }
+
+  getEntries(
+    transaction : PersistenceTransaction,
+    documentKeys : DocumentKeySet,
+  ): PersistencePromise<MaybeDocumentMap> {
+    let results = maybeDocumentMap();
+    if (documentKeys.isEmpty()) {
+      return PersistencePromise.resolve(results);
+    }
+
+    const range = IDBKeyRange.bound(documentKeys.first(), documentKeys.last());
+    let key = documentKeys.first();
+
+    return remoteDocumentsStore(transaction)
+      .iterate({ range }, (potentialKey, dbRemoteDoc, control) => {
+        if (DocumentKey.fromSegments(potentialKey) === key!) {
+          results = results.insert(key!, this.serializer.fromDbRemoteDocument(dbRemoteDoc));
+        }
+
+        key = documentKeys.firstAfterOrEqual(key!);
+        if (!key) {
+          control.done();
+          return;
+        }
+        control.skip(key.path.toArray());
+      })
+      .next(() => results);
   }
 
   getDocumentsMatchingQuery(
@@ -358,7 +387,7 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
     const toApply: Array<{ doc: DbRemoteDocument; key: DocumentKey }> = [];
     changes.forEach((key, maybeDocument) => {
       const doc = this.documentCache.serializer.toDbRemoteDocument(
-        maybeDocument
+        maybeDocument!
       );
       const previousSize = this.documentSizes.get(key);
       // NOTE: if we ever decide we need to support doing writes without

@@ -16,6 +16,7 @@
 
 import { Query } from '../core/query';
 import {
+  DocumentKeySet,
   documentKeySet,
   DocumentMap,
   documentMap,
@@ -105,6 +106,20 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     documentKey: DocumentKey
   ): PersistencePromise<DocumentSizeEntry | null> {
     return PersistencePromise.resolve(this.docs.get(documentKey));
+  }
+
+  getEntries(
+    transaction : PersistenceTransaction,
+    documentKeys : DocumentKeySet,
+  ): PersistencePromise<MaybeDocumentMap> {
+    let results = maybeDocumentMap();
+    documentKeys.forEach(documentKey => {
+        const entry = this.docs.get(documentKey);
+      if (entry) {
+        results = results.insert(documentKey, entry.maybeDocument);
+      }
+      });
+    return PersistencePromise.resolve(results);
   }
 
   getDocumentsMatchingQuery(
