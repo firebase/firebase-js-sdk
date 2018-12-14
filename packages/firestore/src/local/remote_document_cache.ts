@@ -52,15 +52,15 @@ export interface RemoteDocumentCache {
   ): PersistencePromise<MaybeDocument | null>;
 
   /**
-  * Looks up a set of entries in the cache.
-  *
-  * @param documentKeys The keys of the entries to look up.
-  * @return The cached Document or NoDocument entries indexed by key. If an entry is not cached,
-  *     the corresponding key will be mapped to a null value.
-  */
+   * Looks up a set of entries in the cache.
+   *
+   * @param documentKeys The keys of the entries to look up.
+   * @return The cached Document or NoDocument entries indexed by key. If an entry is not cached,
+   *     the corresponding key will be mapped to a null value.
+   */
   getEntries(
-    transaction : PersistenceTransaction,
-    documentKeys : DocumentKeySet,
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
   ): PersistencePromise<NullableMaybeDocumentMap>;
 
   /**
