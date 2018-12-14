@@ -468,6 +468,25 @@ fireauth.util.matchDomain = function(domainPattern, domain, scheme) {
 
 
 /**
+ * RegExp to detect if the email address given is valid.
+ * @const {!RegExp}
+ * @private
+ */
+fireauth.util.EMAIL_ADDRESS_REGEXP_ = /^[^@]+@[^@]+$/;
+
+
+/**
+ * Determines if it is a valid email address.
+ * @param {*} email The email address.
+ * @return {boolean} Whether the email address is valid.
+ */
+fireauth.util.isValidEmailAddress = function(email) {
+  return goog.isString(email) &&
+      fireauth.util.EMAIL_ADDRESS_REGEXP_.test(email);
+};
+
+
+/**
  * @return {!goog.Promise<void>} A promise that resolves when DOM is ready.
  */
 fireauth.util.onDomReady = function() {
@@ -1427,7 +1446,7 @@ fireauth.util.persistsStorageWithIndexedDB = function() {
   // IE11, Edge when indexedDB is available (this is unavailable in InPrivate
   // mode). (SDK, OAuth handler and iframe)
   // Any environment where indexedDB is available (SDK only).
-  
+
   // In a browser environment, when an iframe and a popup web storage are not
   // synchronized, use the indexedDB fireauth.storage.Storage implementation.
   return (fireauth.util.isLocalStorageNotSynchronized() ||
@@ -1493,4 +1512,3 @@ fireauth.util.getActiveServiceWorker = function() {
   }
   return goog.Promise.resolve(/** @type {?ServiceWorker} */ (null));
 };
-
