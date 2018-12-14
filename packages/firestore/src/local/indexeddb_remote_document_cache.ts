@@ -21,6 +21,8 @@ import {
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
+  nullableMaybeDocumentMap,
+  NullableMaybeDocumentMap,
   MaybeDocumentMap,
   maybeDocumentMap
 } from '../model/collections';
@@ -182,8 +184,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   getEntries(
     transaction : PersistenceTransaction,
     documentKeys : DocumentKeySet,
-  ): PersistencePromise<MaybeDocumentMap> {
-    let results = maybeDocumentMap();
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    let results = nullableMaybeDocumentMap();
     if (documentKeys.isEmpty()) {
       return PersistencePromise.resolve(results);
     }
@@ -195,6 +197,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .iterate({ range }, (potentialKey, dbRemoteDoc, control) => {
         if (DocumentKey.fromSegments(potentialKey) === key!) {
           results = results.insert(key!, this.serializer.fromDbRemoteDocument(dbRemoteDoc));
+        } else {
+          results = results.insert(key!, null);
         }
 
         key = documentKeys.firstAfterOrEqual(key!);

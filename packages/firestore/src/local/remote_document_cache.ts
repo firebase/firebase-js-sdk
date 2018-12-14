@@ -18,6 +18,7 @@ import { Query } from '../core/query';
 import {
   DocumentKeySet,
   DocumentMap
+  NullableMaybeDocumentMap
   MaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
@@ -26,6 +27,8 @@ import { DocumentKey } from '../model/document_key';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+
+import { SortedMap } from '../util/sorted_map';
 
 /**
  * Represents cached documents received from the remote backend.
@@ -58,7 +61,7 @@ export interface RemoteDocumentCache {
   getEntries(
     transaction : PersistenceTransaction,
     documentKeys : DocumentKeySet,
-  ): PersistencePromise<MaybeDocumentMap>;
+  ): PersistencePromise<NullableMaybeDocumentMap>;
 
   /**
    * Executes a query against the cached Document entries.

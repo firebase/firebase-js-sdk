@@ -22,7 +22,9 @@ import {
   documentMap,
   DocumentSizeEntry,
   MaybeDocumentMap,
-  maybeDocumentMap
+  maybeDocumentMap,
+  NullableMaybeDocumentMap,
+  nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -111,8 +113,8 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   getEntries(
     transaction : PersistenceTransaction,
     documentKeys : DocumentKeySet,
-  ): PersistencePromise<MaybeDocumentMap> {
-    let results = maybeDocumentMap();
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    let results = nullableMaybeDocumentMap();
     documentKeys.forEach(documentKey => {
         const entry = this.docs.get(documentKey);
       if (entry) {

@@ -17,16 +17,20 @@
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
+  documentKeySet,
   DocumentKeySet,
   DocumentMap,
   documentMap,
   MaybeDocumentMap,
-  maybeDocumentMap
+  maybeDocumentMap,
+  NullableMaybeDocumentMap,
+  nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
+import { SortedMap } from '../util/sorted_map';
 
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
@@ -74,6 +78,24 @@ export class LocalDocumentsView {
     });
   }
 
+  // Returns the view of the given `docs` as they would appear after applying
+  // all mutations in the given `batches`.
+  private applyLocalMutationsToDocuments(
+    transaction: PersistenceTransaction,
+    docs: NullableMaybeDocumentMap,
+    batches: MutationBatch[]
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+      let results = nullableMaybeDocumentMap();
+      return new PersistencePromise<NullableMaybeDocumentMap>(() => {
+        docs.forEach((key, localView : MaybeDocument | null) => {
+          for (const batch of batches) {
+            localView = batch.applyToLocalView(key, localView);
+          }
+          results = results.insert(key, localView);
+      });
+    });
+  }
+
   /**
    * Gets the local view of the documents identified by `keys`.
    *
@@ -84,29 +106,42 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     keys: DocumentKeySet
   ): PersistencePromise<MaybeDocumentMap> {
+    return this.remoteDocumentCache.getEntries(transaction, keys).next(docs => {
+      return this.getLocalViewOfDocuments(transaction, docs);
+    });
+  }
+
+/**
+ * Similar to `getDocuments`, but creates the local view from the given
+ * `baseDocs` without retrieving documents from the local store.
+ */
+  getLocalViewOfDocuments(
+    transaction: PersistenceTransaction,
+    baseDocs: NullableMaybeDocumentMap
+  ): PersistencePromise<MaybeDocumentMap> {
+    let allKeys = documentKeySet();
+    baseDocs.forEach((key) => {
+      allKeys = allKeys.add(key);
+    });
+
     return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKeys(transaction, keys)
-      .next(batches => {
-        const promises = [] as Array<PersistencePromise<void>>;
+      .getAllMutationBatchesAffectingDocumentKeys(transaction, allKeys)
+    .next(batches => this.applyLocalMutationsToDocuments(transaction, baseDocs, batches))
+    .next(docs => {
         let results = maybeDocumentMap();
-        keys.forEach(key => {
-          promises.push(
-            this.getDocumentInternal(transaction, key, batches).next(
-              maybeDoc => {
-                // TODO(http://b/32275378): Don't conflate missing / deleted.
-                if (!maybeDoc) {
-                  maybeDoc = new NoDocument(
-                    key,
-                    SnapshotVersion.forDeletedDoc()
-                  );
-                }
-                results = results.insert(key, maybeDoc);
-              }
-            )
-          );
+        docs.forEach((key, maybeDoc) => {
+            // TODO(http://b/32275378): Don't conflate missing / deleted.
+            if (!maybeDoc) {
+              maybeDoc = new NoDocument(
+                key,
+                SnapshotVersion.forDeletedDoc()
+              );
+              results = results.insert(key, maybeDoc);
+            }
+          });
+
+          return results;
         });
-        return PersistencePromise.waitFor(promises).next(() => results);
-      });
   }
 
   /** Performs a query against the local view of all documents. */
