@@ -2636,7 +2636,7 @@ function testEmailLinkSignIn_invalidEmailError() {
   // Test when invalid email is passed in emailLinkSignIn request.
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
-  rpcHandler.emailLinkSignIn('user@invalid', 'OTP_CODE')
+  rpcHandler.emailLinkSignIn('user.invalid', 'OTP_CODE')
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -2745,7 +2745,7 @@ function testVerifyPassword_invalidEmailError() {
   // Test when invalid email is passed in verifyPassword request.
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
-  rpcHandler.verifyPassword('uid123@invalid', 'mysupersecretpassword')
+  rpcHandler.verifyPassword('uid123.invalid', 'mysupersecretpassword')
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -2847,7 +2847,7 @@ function testCreateAccount_invalidEmailError() {
   // Test when invalid email is passed in setAccountInfo request.
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
-  rpcHandler.createAccount('uid123@invalid', 'mysupersecretpassword')
+  rpcHandler.createAccount('uid123.invalid', 'mysupersecretpassword')
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -4715,7 +4715,7 @@ function testSendSignInLinkToEmail_invalidEmailError() {
   };
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
-  rpcHandler.sendSignInLinkToEmail('user@invalid', additionalRequestData)
+  rpcHandler.sendSignInLinkToEmail('user.invalid', additionalRequestData)
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -4917,7 +4917,7 @@ function testSendPasswordResetEmail_invalidEmailError() {
   // Test when invalid email is passed in getOobCode request.
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
-  rpcHandler.sendPasswordResetEmail('user@exampl', {})
+  rpcHandler.sendPasswordResetEmail('user.invalid', {})
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -5803,7 +5803,7 @@ function testUpdateEmail_invalidEmail() {
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.INVALID_EMAIL);
   asyncTestCase.waitForSignals(1);
-  rpcHandler.updateEmail('ID_TOKEN', 'newuser@exam')
+  rpcHandler.updateEmail('ID_TOKEN', 'newuser.invalid')
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
@@ -6000,7 +6000,7 @@ function testEmailLinkSignInForLinking_invalidEmailError() {
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
   rpcHandler.emailLinkSignInForLinking(
-      'ID_TOKEN', 'user@invalid', 'OTP_CODE')
+      'ID_TOKEN', 'user.invalid', 'OTP_CODE')
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),

@@ -31,7 +31,6 @@ goog.require('fireauth.object');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.Uri');
-goog.require('goog.format.EmailAddress');
 goog.require('goog.html.TrustedResourceUrl');
 goog.require('goog.json');
 goog.require('goog.net.CorsXmlHttpFactory');
@@ -803,7 +802,7 @@ fireauth.RpcHandler.prototype.requestFirebaseEndpoint = function(
  * @private
  */
 fireauth.RpcHandler.validateRequestHasEmail_ = function(request) {
-  if (!goog.format.EmailAddress.isValidAddrSpec(request['email'])) {
+  if (!fireauth.util.isValidEmailAddress(request['email'])) {
     throw new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL);
   }
 };
@@ -815,7 +814,7 @@ fireauth.RpcHandler.validateRequestHasEmail_ = function(request) {
  * @private
  */
 fireauth.RpcHandler.validateResponseHasEmail_ = function(response) {
-  if (!goog.format.EmailAddress.isValidAddrSpec(response['email'])) {
+  if (!fireauth.util.isValidEmailAddress(response['email'])) {
     throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
   }
 };
