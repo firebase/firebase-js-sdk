@@ -85,14 +85,14 @@ export class LocalDocumentsView {
     batches: MutationBatch[]
   ): PersistencePromise<NullableMaybeDocumentMap> {
     let results = nullableMaybeDocumentMap();
-    return new PersistencePromise<NullableMaybeDocumentMap>(() => {
+    return new PersistencePromise<NullableMaybeDocumentMap>((resolve) => {
       docs.forEach((key, localView) => {
         for (const batch of batches) {
           localView = batch.applyToLocalView(key, localView);
         }
         results = results.insert(key, localView);
       });
-      return results;
+      resolve(results);
     });
   }
 
@@ -106,9 +106,9 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     keys: DocumentKeySet
   ): PersistencePromise<MaybeDocumentMap> {
-    return this.remoteDocumentCache.getEntries(transaction, keys).next(docs => {
-      return this.getLocalViewOfDocuments(transaction, docs);
-    });
+    return this.remoteDocumentCache.getEntries(transaction, keys).next(docs => 
+      this.getLocalViewOfDocuments(transaction, docs)
+    );
   }
 
   /**

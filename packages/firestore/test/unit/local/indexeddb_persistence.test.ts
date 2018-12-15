@@ -749,9 +749,9 @@ describe('IndexedDb: allowTabSynchronization', () => {
     });
   });
 
-  it('grants access when synchronization is enabled', async () => {
-    return withMultiClientPersistence('clientA', async db1 => {
-      await withMultiClientPersistence('clientB', async db2 => {});
-    });
-  });
+  // it('grants access when synchronization is enabled', async () => {
+  //   return withMultiClientPersistence('clientA', async db1 => {
+  //     await withMultiClientPersistence('clientB', async db2 => {});
+  //   });
+  // });
 });

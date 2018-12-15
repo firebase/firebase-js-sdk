@@ -190,28 +190,38 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       return PersistencePromise.resolve(results);
     }
 
-    const range = IDBKeyRange.bound(documentKeys.first(), documentKeys.last());
+    const range = IDBKeyRange.bound(documentKeys.first().path.toArray(),
+      documentKeys.last().path.toArray());
     let key = documentKeys.first();
 
     return remoteDocumentsStore(transaction)
-      .iterate({ range }, (potentialKey, dbRemoteDoc, control) => {
-        if (DocumentKey.fromSegments(potentialKey) === key!) {
-          results = results.insert(
-            key!,
-            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
-          );
-        } else {
-          results = results.insert(key!, null);
-        }
+     .iterate( {range}, (potentialKeyRaw, dbRemoteDoc, control) => {
+        const potentialKey = DocumentKey.fromSegments(potentialKeyRaw);
+        while (DocumentKey.comparator(key, potentialKey) != 1) {
+          if (key.isEqual(potentialKey)) {
+            results = results.insert(
+              key!,
+              this.serializer.fromDbRemoteDocument(dbRemoteDoc)
+            );
+          } else {
+            results = results.insert(key!, null);
+          }
 
-        key = documentKeys.firstAfterOrEqual(key!);
-        if (!key) {
-          control.done();
-          return;
+          key = documentKeys.firstAfter(key!);
+          if (!key) {
+            control.done();
+            return;
+          }
         }
-        control.skip(key.path.toArray());
       })
-      .next(() => results);
+      .next(() => {
+        documentKeys.forEach(key => {
+          if (results.get(key) === null) {
+            results = results.insert(key, null);
+          }
+        });
+        return results;
+      });
   }
 
   getDocumentsMatchingQuery(
@@ -253,7 +263,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
     const changesStore = documentChangesStore(transaction);
     return changesStore
-      .iterate({ range }, (_, documentChange) => {
+      .iterate({ }, (_, documentChange) => {
         if (firstIteration) {
           firstIteration = false;
 
