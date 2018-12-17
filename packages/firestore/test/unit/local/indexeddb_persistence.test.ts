@@ -622,7 +622,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     } catch (e) {
       error = e;
       expect(
-        e.message.indexOf('Cannot downgrade IndexedDB version')
+        e.message.indexOf('A newer version of the Firestore SDK')
       ).to.not.equal(-1);
     }
     expect(error).to.not.be.null;
