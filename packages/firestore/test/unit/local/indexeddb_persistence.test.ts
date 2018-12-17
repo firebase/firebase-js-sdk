@@ -52,6 +52,7 @@ import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
+import { FirestoreError } from '../../../src/util/error';
 import { doc, path } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
@@ -601,6 +602,30 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         );
       });
     });
+  });
+
+  it('downgrading throws a custom error', async () => {
+    // Upgrade to latest version
+    await withDb(SCHEMA_VERSION, async db => {
+      expect(db.version).to.equal(SCHEMA_VERSION);
+    });
+    // downgrade by one version
+    const downgradeVersion = SCHEMA_VERSION - 1;
+    const schemaConverter = new SchemaConverter(TEST_SERIALIZER);
+    let error: FirestoreError | null = null;
+    try {
+      await SimpleDb.openOrCreate(
+        INDEXEDDB_TEST_DATABASE_NAME,
+        downgradeVersion,
+        schemaConverter
+      );
+    } catch (e) {
+      error = e;
+      expect(
+        e.message.indexOf('A newer version of the Firestore SDK')
+      ).to.not.equal(-1);
+    }
+    expect(error).to.not.be.null;
   });
 });
 
