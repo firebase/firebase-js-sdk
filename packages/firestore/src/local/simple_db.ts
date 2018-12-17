@@ -89,10 +89,10 @@ export class SimpleDb {
             new FirestoreError(
               Code.FAILED_PRECONDITION,
               'A newer version of the Firestore SDK was previously used and so the persisted ' +
-              'data is not compatible with the version of the SDK you are now using. The SDK ' +
-              'will operate with persistence disabled. If you need persistence, please ' +
-              're-upgrade to a newer version of the SDK or else clear the persisted IndexedDB ' +
-              'data for your app to start fresh.'
+                'data is not compatible with the version of the SDK you are now using. The SDK ' +
+                'will operate with persistence disabled. If you need persistence, please ' +
+                're-upgrade to a newer version of the SDK or else clear the persisted IndexedDB ' +
+                'data for your app to start fresh.'
             )
           );
         } else {
