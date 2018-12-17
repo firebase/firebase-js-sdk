@@ -16,12 +16,15 @@
 
 import { Query } from '../core/query';
 import {
+  DocumentKeySet,
   documentKeySet,
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
   MaybeDocumentMap,
-  maybeDocumentMap
+  maybeDocumentMap,
+  NullableMaybeDocumentMap,
+  nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -105,6 +108,18 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     documentKey: DocumentKey
   ): PersistencePromise<DocumentSizeEntry | null> {
     return PersistencePromise.resolve(this.docs.get(documentKey));
+  }
+
+  getEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    let results = nullableMaybeDocumentMap();
+    documentKeys.forEach(documentKey => {
+      const entry = this.docs.get(documentKey);
+      results = results.insert(documentKey, entry ? entry.maybeDocument : null);
+    });
+    return PersistencePromise.resolve(results);
   }
 
   getDocumentsMatchingQuery(

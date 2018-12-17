@@ -16,10 +16,13 @@
 
 import { Query } from '../core/query';
 import {
+  DocumentKeySet,
   documentKeySet,
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
+  nullableMaybeDocumentMap,
+  NullableMaybeDocumentMap,
   MaybeDocumentMap,
   maybeDocumentMap
 } from '../model/collections';
@@ -178,6 +181,48 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       });
   }
 
+  getEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    let results = nullableMaybeDocumentMap();
+    if (documentKeys.isEmpty()) {
+      return PersistencePromise.resolve(results);
+    }
+
+    const range = IDBKeyRange.bound(documentKeys.first()!.path.toArray(),
+      documentKeys.last()!.path.toArray());
+    let key = documentKeys.first();
+
+    return remoteDocumentsStore(transaction)
+     .iterate( {range}, (potentialKeyRaw, dbRemoteDoc, control) => {
+        const potentialKey = DocumentKey.fromSegments(potentialKeyRaw);
+        while (DocumentKey.comparator(key!, potentialKey) != 1) {
+          if (key!.isEqual(potentialKey)) {
+            results = results.insert(
+              key!,
+              this.serializer.fromDbRemoteDocument(dbRemoteDoc)
+            );
+          } else {
+            results = results.insert(key!, null);
+          }
+
+          key = documentKeys.firstAfter(key!);
+          if (!key) {
+            control.done();
+            return;
+          }
+        }
+      })
+      .next(() => {
+        while (key) {
+          results = results.insert(key, null);
+          key = documentKeys.firstAfter(key!);
+        }
+        return results;
+      });
+  }
+
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query
@@ -217,7 +262,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
     const changesStore = documentChangesStore(transaction);
     return changesStore
-      .iterate({ range }, (_, documentChange) => {
+      .iterate({ }, (_, documentChange) => {
         if (firstIteration) {
           firstIteration = false;
 
