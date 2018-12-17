@@ -190,15 +190,15 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       return PersistencePromise.resolve(results);
     }
 
-    const range = IDBKeyRange.bound(documentKeys.first().path.toArray(),
-      documentKeys.last().path.toArray());
+    const range = IDBKeyRange.bound(documentKeys.first()!.path.toArray(),
+      documentKeys.last()!.path.toArray());
     let key = documentKeys.first();
 
     return remoteDocumentsStore(transaction)
      .iterate( {range}, (potentialKeyRaw, dbRemoteDoc, control) => {
         const potentialKey = DocumentKey.fromSegments(potentialKeyRaw);
-        while (DocumentKey.comparator(key, potentialKey) != 1) {
-          if (key.isEqual(potentialKey)) {
+        while (DocumentKey.comparator(key!, potentialKey) != 1) {
+          if (key!.isEqual(potentialKey)) {
             results = results.insert(
               key!,
               this.serializer.fromDbRemoteDocument(dbRemoteDoc)
@@ -215,11 +215,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         }
       })
       .next(() => {
-        documentKeys.forEach(key => {
-          if (results.get(key) === null) {
-            results = results.insert(key, null);
-          }
-        });
+        while (key) {
+          results = results.insert(key, null);
+          key = documentKeys.firstAfter(key!);
+        }
         return results;
       });
   }
