@@ -262,7 +262,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
     const changesStore = documentChangesStore(transaction);
     return changesStore
-      .iterate({ }, (_, documentChange) => {
+      .iterate({ range }, (_, documentChange) => {
         if (firstIteration) {
           firstIteration = false;
 
