@@ -64,7 +64,7 @@ export class Document extends MaybeDocument {
     options: DocumentOptions,
     /**
      * Memoized serialized form of the document for optimization purposes (avoids repeated
-     * serialization). Might be nil.
+     * serialization). Might be undefined.
      */
     readonly proto?: api.Document
   ) {

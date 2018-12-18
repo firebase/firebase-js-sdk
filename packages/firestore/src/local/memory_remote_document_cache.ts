@@ -124,10 +124,12 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   /**
-   * Looks up an entry in the cache.
+   * Looks up several entries in the cache.
    *
-   * @param documentKey The key of the entry to look up.
-   * @return The cached MaybeDocument entry and its size, or null if we have nothing cached.
+   * @param documentKeys The set of keys entries to look up.
+   * @return A map of MaybeDocuments indexed by key (if a document cannot be
+   *     found, the key will be mapped to null) and a map of sizes indexed by
+   *     key (zero if the key cannot be found).
    */
   getSizedEntries(
     transaction: PersistenceTransaction,

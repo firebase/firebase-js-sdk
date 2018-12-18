@@ -124,8 +124,6 @@ export abstract class RemoteDocumentChangeBuffer {
   ): PersistencePromise<NullableMaybeDocumentMap> {
     const changes = this.assertChanges();
 
-    // TODO OBC: look up in the buffer
-
     // Record the size of everything we load from the cache so we can compute a delta later.
     return this.getAllFromCache(transaction, documentKeys).next(getResult => {
       getResult.sizeMap.forEach((documentKey, size) => {
