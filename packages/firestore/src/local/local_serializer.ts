@@ -71,7 +71,12 @@ export class LocalSerializer {
   /** Encodes a document for storage locally. */
   toDbRemoteDocument(maybeDoc: MaybeDocument): DbRemoteDocument {
     if (maybeDoc instanceof Document) {
-      const doc = this.remoteSerializer.toDocument(maybeDoc);
+      let doc: api.Document;
+      if (maybeDoc.proto) {
+        doc = maybeDoc.proto;
+      } else {
+        doc = this.remoteSerializer.toDocument(maybeDoc);
+      }
       const hasCommittedMutations = maybeDoc.hasCommittedMutations;
       return new DbRemoteDocument(
         /* unknownDocument= */ null,
