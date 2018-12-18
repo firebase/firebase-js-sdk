@@ -728,7 +728,13 @@ export class JsonProtoSerializer {
       const fields = this.fromFields(entityChange.document!.fields || {});
       // The document may soon be re-serialized back to protos in order to store it in local
       // persistence. Memoize the encoded form to avoid encoding it again.
-      const doc = new Document(key, version, fields, {}, entityChange.document!);
+      const doc = new Document(
+        key,
+        version,
+        fields,
+        {},
+        entityChange.document!
+      );
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(

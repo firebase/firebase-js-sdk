@@ -140,7 +140,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       results = results.insert(documentKey, entry ? entry.maybeDocument : null);
       sizeMap = sizeMap.insert(documentKey, entry ? entry.size : 0);
     });
-    return PersistencePromise.resolve({maybeDocuments: results, sizeMap});
+    return PersistencePromise.resolve({ maybeDocuments: results, sizeMap });
   }
 
   getDocumentsMatchingQuery(

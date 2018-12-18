@@ -62,10 +62,10 @@ export class Document extends MaybeDocument {
     version: SnapshotVersion,
     readonly data: ObjectValue,
     options: DocumentOptions,
-/**
- * Memoized serialized form of the document for optimization purposes (avoids repeated
- * serialization). Might be nil.
- */
+    /**
+     * Memoized serialized form of the document for optimization purposes (avoids repeated
+     * serialization). Might be nil.
+     */
     readonly proto?: api.Document
   ) {
     super(key, version);

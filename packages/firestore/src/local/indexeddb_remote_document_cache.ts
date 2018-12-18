@@ -187,7 +187,9 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<NullableMaybeDocumentMap> {
-    return this.getSizedEntries(transaction, documentKeys).next(result => result.maybeDocuments);
+    return this.getSizedEntries(transaction, documentKeys).next(
+      result => result.maybeDocuments
+    );
   }
 
   getSizedEntries(
@@ -197,15 +199,17 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     let results = nullableMaybeDocumentMap();
     let sizeMap = new SortedMap<DocumentKey, number>(DocumentKey.comparator);
     if (documentKeys.isEmpty()) {
-      return PersistencePromise.resolve({maybeDocuments: results, sizeMap});
+      return PersistencePromise.resolve({ maybeDocuments: results, sizeMap });
     }
 
-    const range = IDBKeyRange.bound(documentKeys.first()!.path.toArray(),
-      documentKeys.last()!.path.toArray());
+    const range = IDBKeyRange.bound(
+      documentKeys.first()!.path.toArray(),
+      documentKeys.last()!.path.toArray()
+    );
     let key = documentKeys.first();
 
     return remoteDocumentsStore(transaction)
-     .iterate( {range}, (potentialKeyRaw, dbRemoteDoc, control) => {
+      .iterate({ range }, (potentialKeyRaw, dbRemoteDoc, control) => {
         const potentialKey = DocumentKey.fromSegments(potentialKeyRaw);
         while (DocumentKey.comparator(key!, potentialKey) != 1) {
           if (key!.isEqual(potentialKey)) {
