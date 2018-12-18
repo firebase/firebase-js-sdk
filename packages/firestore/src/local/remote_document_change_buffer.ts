@@ -108,15 +108,16 @@ export abstract class RemoteDocumentChangeBuffer {
   }
 
   /**
-   * Looks up an entry in the cache. The buffered changes will first be checked,
-   * and if no buffered change applies, this will forward to
+   * Looks up several entries in the cache.
+   * checked, and if no buffered change applies, this will forward to
    * `RemoteDocumentCache.getEntry()`.
    *
    * @param transaction The transaction in which to perform any persistence
    *     operations.
-   * @param documentKey The key of the entry to look up.
-   * @return The cached Document or NoDocument entry, or null if we have nothing
-   * cached.
+   * @param documentKeys The keys of the entries to look up.
+   * @return A map of cached `Document`s or `NoDocument`s, indexed by key. If an
+   *     entry cannot be found, the corresponding key will be mapped to a null
+   *     value.
    */
   getEntries(
     transaction: PersistenceTransaction,
@@ -124,7 +125,8 @@ export abstract class RemoteDocumentChangeBuffer {
   ): PersistencePromise<NullableMaybeDocumentMap> {
     const changes = this.assertChanges();
 
-    // Record the size of everything we load from the cache so we can compute a delta later.
+    // Record the size of everything we load from the cache so we can compute
+    // a delta later.
     return this.getAllFromCache(transaction, documentKeys).next(getResult => {
       getResult.sizeMap.forEach((documentKey, size) => {
         this.documentSizes.set(documentKey, size);
