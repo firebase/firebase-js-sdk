@@ -236,6 +236,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             control.done();
             return;
           }
+          control.skip(key!.path.toArray());
         }
       })
       .next(() => {
