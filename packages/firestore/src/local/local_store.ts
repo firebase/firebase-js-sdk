@@ -475,7 +475,7 @@ export class LocalStore {
 
         // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
         // documents in advance in a single call.
-        documentBuffer.getEntries(txn, updatedKeys)
+        promises.push(documentBuffer.getEntries(txn, updatedKeys)
           .next(existingDocs => {
             remoteEvent.documentUpdates.forEach((key, doc) => {
               const existingDoc = existingDocs.get(key);
@@ -505,13 +505,13 @@ export class LocalStore {
                 );
               }
 
-          if (remoteEvent.resolvedLimboDocuments.has(key)) {
-            promises.push(
-              this.persistence.referenceDelegate.updateLimboDocument(txn, key)
-            );
-          }
+              if (remoteEvent.resolvedLimboDocuments.has(key)) {
+                promises.push(
+                  this.persistence.referenceDelegate.updateLimboDocument(txn, key)
+                );
+              }
             });
-        });
+        }));
 
         // HACK: The only reason we allow a null snapshot version is so that we
         // can synthesize remote events when we get permission denied errors while
