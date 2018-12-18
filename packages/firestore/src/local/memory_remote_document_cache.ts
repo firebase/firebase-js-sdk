@@ -21,6 +21,7 @@ import {
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
+  DocumentSizeEntries,
   MaybeDocumentMap,
   maybeDocumentMap,
   NullableMaybeDocumentMap,
@@ -122,6 +123,26 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
+  /**
+   * Looks up an entry in the cache.
+   *
+   * @param documentKey The key of the entry to look up.
+   * @return The cached MaybeDocument entry and its size, or null if we have nothing cached.
+   */
+  getSizedEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<DocumentSizeEntries> {
+    let results = nullableMaybeDocumentMap();
+    let sizeMap = new SortedMap<DocumentKey, number>(DocumentKey.comparator);
+    documentKeys.forEach(documentKey => {
+      const entry = this.docs.get(documentKey);
+      results = results.insert(documentKey, entry ? entry.maybeDocument : null);
+      sizeMap = sizeMap.insert(documentKey, entry ? entry.size : 0);
+    });
+    return PersistencePromise.resolve({maybeDocuments: results, sizeMap});
+  }
+
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query
@@ -217,5 +238,12 @@ export class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer
     documentKey: DocumentKey
   ): PersistencePromise<DocumentSizeEntry | null> {
     return this.documentCache.getSizedEntry(transaction, documentKey);
+  }
+
+  protected getAllFromCache(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<DocumentSizeEntries> {
+    return this.documentCache.getSizedEntries(transaction, documentKeys);
   }
 }

@@ -15,7 +15,10 @@
  */
 
 import {
+  DocumentKeySet,
   DocumentSizeEntry,
+  DocumentSizeEntries,
+  NullableMaybeDocumentMap,
   maybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
@@ -51,6 +54,11 @@ export abstract class RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<DocumentSizeEntry | null>;
+
+  protected abstract getAllFromCache(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<DocumentSizeEntries>;
 
   protected abstract applyChanges(
     transaction: PersistenceTransaction
@@ -97,6 +105,34 @@ export abstract class RemoteDocumentChangeBuffer {
         }
       });
     }
+  }
+
+  /**
+   * Looks up an entry in the cache. The buffered changes will first be checked,
+   * and if no buffered change applies, this will forward to
+   * `RemoteDocumentCache.getEntry()`.
+   *
+   * @param transaction The transaction in which to perform any persistence
+   *     operations.
+   * @param documentKey The key of the entry to look up.
+   * @return The cached Document or NoDocument entry, or null if we have nothing
+   * cached.
+   */
+  getEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    const changes = this.assertChanges();
+
+    // TODO OBC: look up in the buffer
+
+    // Record the size of everything we load from the cache so we can compute a delta later.
+    return this.getAllFromCache(transaction, documentKeys).next(getResult => {
+      getResult.sizeMap.forEach((documentKey, size) => {
+        this.documentSizes.set(documentKey, size);
+      });
+      return getResult.maybeDocuments;
+    });
   }
 
   /**

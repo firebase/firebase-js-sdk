@@ -21,12 +21,14 @@ import {
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
+  DocumentSizeEntries,
   nullableMaybeDocumentMap,
   NullableMaybeDocumentMap,
   MaybeDocumentMap,
   maybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { SortedMap } from '../util/sorted_map';
 import { DocumentKey } from '../model/document_key';
 
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -185,9 +187,17 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<NullableMaybeDocumentMap> {
+    return this.getSizedEntries(transaction, documentKeys).next(result => result.maybeDocuments);
+  }
+
+  getSizedEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<DocumentSizeEntries> {
     let results = nullableMaybeDocumentMap();
+    let sizeMap = new SortedMap<DocumentKey, number>(DocumentKey.comparator);
     if (documentKeys.isEmpty()) {
-      return PersistencePromise.resolve(results);
+      return PersistencePromise.resolve({maybeDocuments: results, sizeMap});
     }
 
     const range = IDBKeyRange.bound(documentKeys.first()!.path.toArray(),
@@ -203,8 +213,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
               key!,
               this.serializer.fromDbRemoteDocument(dbRemoteDoc)
             );
+            sizeMap = sizeMap.insert(key!, dbDocumentSize(dbRemoteDoc));
           } else {
             results = results.insert(key!, null);
+            sizeMap = sizeMap.insert(key!, 0);
           }
 
           key = documentKeys.firstAfter(key!);
@@ -217,9 +229,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .next(() => {
         while (key) {
           results = results.insert(key, null);
+          sizeMap = sizeMap.insert(key, 0);
           key = documentKeys.firstAfter(key!);
         }
-        return results;
+        return { maybeDocuments: results, sizeMap };
       });
   }
 
@@ -425,6 +438,13 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
     documentKey: DocumentKey
   ): PersistencePromise<DocumentSizeEntry | null> {
     return this.documentCache.getSizedEntry(transaction, documentKey);
+  }
+
+  protected getAllFromCache(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<DocumentSizeEntries> {
+    return this.documentCache.getSizedEntries(transaction, documentKeys);
   }
 }
 
