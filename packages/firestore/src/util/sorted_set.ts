@@ -103,11 +103,16 @@ export class SortedSet<T> {
     if (!iter.hasNext()) {
       return null;
     }
-    if (this.comparator(iter.peek()!.key, elem) == 0) {
-      // Skip
-      iter.getNext();
+
+    const next = iter.getNext();
+    if (this.comparator(next.key, elem) !== 0) {
+      return next.key;
     }
-    return iter.hasNext() ? iter.getNext().key : null;
+    if (iter.hasNext()) {
+      return iter.getNext().key;
+    }
+
+    return null;
   }
 
   /** Finds the least element greater than or equal to `elem`. */

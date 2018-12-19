@@ -21,6 +21,7 @@ import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
+import { SortedMap } from '../util/sorted_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -133,7 +134,7 @@ export interface MutationQueue {
   // TODO(mcg): This should really return an enumerator
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: SortedMap<DocumentKey, any>
   ): PersistencePromise<MutationBatch[]>;
 
   /**

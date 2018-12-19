@@ -24,6 +24,7 @@ import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
 import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
+import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import { MutationQueue } from './mutation_queue';
@@ -203,7 +204,7 @@ export class MemoryMutationQueue implements MutationQueue {
 
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: SortedMap<DocumentKey, any>
   ): PersistencePromise<MutationBatch[]> {
     let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);
 

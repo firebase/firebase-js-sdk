@@ -119,13 +119,8 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     baseDocs: NullableMaybeDocumentMap
   ): PersistencePromise<MaybeDocumentMap> {
-    let allKeys = documentKeySet();
-    baseDocs.forEach(key => {
-      allKeys = allKeys.add(key);
-    });
-
     return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKeys(transaction, allKeys)
+      .getAllMutationBatchesAffectingDocumentKeys(transaction, baseDocs)
       .next(batches =>
         this.applyLocalMutationsToDocuments(transaction, baseDocs, batches)
       )
