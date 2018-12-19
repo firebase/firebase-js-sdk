@@ -38,7 +38,10 @@ import {
   DbRemoteDocumentChanges,
   DbRemoteDocumentChangesKey
 } from '../../../src/local/indexeddb_schema';
-import { documentKeySet, MaybeDocumentMap } from '../../../src/model/collections';
+import {
+  documentKeySet,
+  MaybeDocumentMap
+} from '../../../src/model/collections';
 import { fail } from '../../../src/util/assert';
 import * as persistenceHelpers from './persistence_test_helpers';
 import {
@@ -327,13 +330,20 @@ function genericRemoteDocumentCacheTests(
   });
 
   it('can set and read several documents', () => {
-    const docs = [doc(DOC_PATH, VERSION, DOC_DATA), doc(LONG_DOC_PATH, VERSION, DOC_DATA)];
+    const docs = [
+      doc(DOC_PATH, VERSION, DOC_DATA),
+      doc(LONG_DOC_PATH, VERSION, DOC_DATA)
+    ];
     const key1 = key(DOC_PATH);
     const key2 = key(LONG_DOC_PATH);
     return cache
       .addEntries(docs)
       .then(() => {
-        return cache.getEntries(documentKeySet().add(key1).add(key2));
+        return cache.getEntries(
+          documentKeySet()
+            .add(key1)
+            .add(key2)
+        );
       })
       .then(read => {
         expectEqual(read.get(key1), docs[0]);
@@ -342,14 +352,22 @@ function genericRemoteDocumentCacheTests(
   });
 
   it('can set and read several documents including missing document', () => {
-    const docs = [doc(DOC_PATH, VERSION, DOC_DATA), doc(LONG_DOC_PATH, VERSION, DOC_DATA)];
+    const docs = [
+      doc(DOC_PATH, VERSION, DOC_DATA),
+      doc(LONG_DOC_PATH, VERSION, DOC_DATA)
+    ];
     const key1 = key(DOC_PATH);
     const key2 = key(LONG_DOC_PATH);
     const missing_key = key('foo/nonexistent');
     return cache
       .addEntries(docs)
       .then(() => {
-        return cache.getEntries(documentKeySet().add(key1).add(key2).add(missing_key));
+        return cache.getEntries(
+          documentKeySet()
+            .add(key1)
+            .add(key2)
+            .add(missing_key)
+        );
       })
       .then(read => {
         expectEqual(read.get(key1), docs[0]);

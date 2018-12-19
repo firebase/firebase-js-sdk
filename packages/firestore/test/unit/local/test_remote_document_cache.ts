@@ -26,7 +26,12 @@ import {
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
-import { DocumentKeySet, DocumentMap, MaybeDocumentMap, NullableMaybeDocumentMap } from '../../../src/model/collections';
+import {
+  DocumentKeySet,
+  DocumentMap,
+  MaybeDocumentMap,
+  NullableMaybeDocumentMap
+} from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 
