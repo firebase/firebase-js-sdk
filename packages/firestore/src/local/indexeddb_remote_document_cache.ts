@@ -188,16 +188,20 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     documentKeys: DocumentKeySet
   ): PersistencePromise<NullableMaybeDocumentMap> {
     let results = nullableMaybeDocumentMap();
-    return this.forEachDbEntry(transaction, documentKeys, (key, dbRemoteDoc) => {
-      if (dbRemoteDoc) {
+    return this.forEachDbEntry(
+      transaction,
+      documentKeys,
+      (key, dbRemoteDoc) => {
+        if (dbRemoteDoc) {
           results = results.insert(
             key,
             this.serializer.fromDbRemoteDocument(dbRemoteDoc)
           );
-      } else {
+        } else {
           results = results.insert(key, null);
+        }
       }
-    }).next(() => results);
+    ).next(() => results);
   }
 
   /**
@@ -214,20 +218,23 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   ): PersistencePromise<DocumentSizeEntries> {
     let results = nullableMaybeDocumentMap();
     let sizeMap = new SortedMap<DocumentKey, number>(DocumentKey.comparator);
-    return this.forEachDbEntry(transaction, documentKeys, (key, dbRemoteDoc) => {
-      if (dbRemoteDoc) {
+    return this.forEachDbEntry(
+      transaction,
+      documentKeys,
+      (key, dbRemoteDoc) => {
+        if (dbRemoteDoc) {
           results = results.insert(
             key,
             this.serializer.fromDbRemoteDocument(dbRemoteDoc)
           );
-        sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc));
-      } else {
+          sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc));
+        } else {
           results = results.insert(key, null);
-        sizeMap = sizeMap.insert(key, 0);
+          sizeMap = sizeMap.insert(key, 0);
+        }
       }
-    })
-    .next(() => {
-      return { maybeDocuments:results, sizeMap };
+    ).next(() => {
+      return { maybeDocuments: results, sizeMap };
     });
   }
 
@@ -235,7 +242,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet,
     callback: (key: DocumentKey, doc: DbRemoteDocument | null) => void
-  ) : PersistencePromise<void> {
+  ): PersistencePromise<void> {
     if (documentKeys.isEmpty()) {
       return PersistencePromise.resolve();
     }

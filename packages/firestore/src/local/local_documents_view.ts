@@ -119,8 +119,12 @@ export class LocalDocumentsView {
   ): PersistencePromise<MaybeDocumentMap> {
     return this.mutationQueue
       .getAllMutationBatchesAffectingDocumentKeys(transaction, baseDocs)
-    .next(batches => {
-        const docs = this.applyLocalMutationsToDocuments(transaction, baseDocs, batches);
+      .next(batches => {
+        const docs = this.applyLocalMutationsToDocuments(
+          transaction,
+          baseDocs,
+          batches
+        );
         let results = maybeDocumentMap();
         docs.forEach((key, maybeDoc) => {
           // TODO(http://b/32275378): Don't conflate missing / deleted.

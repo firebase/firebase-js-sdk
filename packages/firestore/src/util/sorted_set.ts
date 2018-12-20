@@ -170,8 +170,7 @@ export class SortedSet<T> {
 }
 
 export class SortedSetIterator<T> {
-  constructor(private iter: SortedMapIterator<T, boolean>) {
-  }
+  constructor(private iter: SortedMapIterator<T, boolean>) {}
 
   getNext(): T {
     return this.iter.getNext().key;

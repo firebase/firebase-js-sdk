@@ -126,12 +126,14 @@ export abstract class RemoteDocumentChangeBuffer {
 
     // Record the size of everything we load from the cache so we can compute
     // a delta later.
-    return this.getAllFromCache(transaction, documentKeys).next(({maybeDocuments, sizeMap}) => {
-      sizeMap.forEach((documentKey, size) => {
-        this.documentSizes.set(documentKey, size);
-      });
-      return maybeDocuments;
-    });
+    return this.getAllFromCache(transaction, documentKeys).next(
+      ({ maybeDocuments, sizeMap }) => {
+        sizeMap.forEach((documentKey, size) => {
+          this.documentSizes.set(documentKey, size);
+        });
+        return maybeDocuments;
+      }
+    );
   }
 
   /**
