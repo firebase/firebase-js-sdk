@@ -29,7 +29,7 @@ export class DatabaseEmulator extends Emulator {
       'https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v3.5.0.jar';
   }
 
-  async setPublicRules(): Promise<number> {
+  setPublicRules(): Promise<number> {
     console.log('Setting rule {".read": true, ".write": true} to emulator ...');
     return new Promise<number>((resolve, reject) => {
       request.put(

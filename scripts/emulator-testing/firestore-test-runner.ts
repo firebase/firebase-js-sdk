@@ -17,9 +17,10 @@
 import { spawn } from 'child-process-promise';
 import * as path from 'path';
 
+import { ChildProcessPromise } from './emulators/emulator';
 import { FirestoreEmulator } from './emulators/firestore-emulator';
 
-async function runTest(port: number, projectId: string): Promise<any> {
+function runTest(port: number, projectId: string): ChildProcessPromise {
   const options = {
     cwd: path.resolve(__dirname, '../../packages/firestore'),
     env: Object.assign({}, process.env, {

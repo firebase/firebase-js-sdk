@@ -21,6 +21,10 @@ import * as path from 'path';
 import * as request from 'request';
 import * as tmp from 'tmp';
 
+export interface ChildProcessPromise extends Promise<void> {
+  childProcess: ChildProcess;
+}
+
 export abstract class Emulator {
   binaryName: string;
   binaryUrl: string;
@@ -33,7 +37,7 @@ export abstract class Emulator {
     this.port = port;
   }
 
-  async download(): Promise<void> {
+  download(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       tmp.dir((err, dir) => {
         if (err) reject(err);
@@ -55,9 +59,9 @@ export abstract class Emulator {
     });
   }
 
-  async setUp(): Promise<void> {
+  setUp(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      const promise: any = spawn(
+      const promise: ChildProcessPromise = spawn(
         'java',
         ['-jar', path.basename(this.binaryPath), '--port', this.port],
         {
@@ -96,7 +100,7 @@ export abstract class Emulator {
     });
   }
 
-  async tearDown(): Promise<void> {
+  tearDown(): void {
     if (this.emulator) {
       console.log(`Shutting down emulator, pid: [${this.emulator.pid}] ...`);
       this.emulator.kill();

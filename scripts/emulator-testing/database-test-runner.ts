@@ -18,8 +18,9 @@ import { spawn } from 'child-process-promise';
 import * as path from 'path';
 
 import { DatabaseEmulator } from './emulators/database-emulator';
+import { ChildProcessPromise } from './emulators/emulator';
 
-async function runTest(port: number, namespace: string): Promise<any> {
+function runTest(port: number, namespace: string): ChildProcessPromise {
   const options = {
     cwd: path.resolve(__dirname, '../../packages/database'),
     env: Object.assign({}, process.env, {
