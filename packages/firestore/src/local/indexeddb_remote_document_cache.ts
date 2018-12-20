@@ -20,16 +20,16 @@ import {
   documentKeySet,
   DocumentMap,
   documentMap,
-  DocumentSizeEntry,
   DocumentSizeEntries,
-  nullableMaybeDocumentMap,
-  NullableMaybeDocumentMap,
+  DocumentSizeEntry,
   MaybeDocumentMap,
-  maybeDocumentMap
+  maybeDocumentMap,
+  nullableMaybeDocumentMap,
+  NullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
-import { SortedMap } from '../util/sorted_map';
 import { DocumentKey } from '../model/document_key';
+import { SortedMap } from '../util/sorted_map';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
@@ -187,9 +187,17 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<NullableMaybeDocumentMap> {
-    return this.getSizedEntries(transaction, documentKeys).next(
-      result => result.maybeDocuments
-    );
+    let results = nullableMaybeDocumentMap();
+    return this.forEachDbEntry(transaction, documentKeys, (key, dbRemoteDoc) => {
+      if (dbRemoteDoc) {
+          results = results.insert(
+            key,
+            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
+          );
+      } else {
+          results = results.insert(key, null);
+      }
+    }).next(() => results);
   }
 
   /**
@@ -206,8 +214,30 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   ): PersistencePromise<DocumentSizeEntries> {
     let results = nullableMaybeDocumentMap();
     let sizeMap = new SortedMap<DocumentKey, number>(DocumentKey.comparator);
+    return this.forEachDbEntry(transaction, documentKeys, (key, dbRemoteDoc) => {
+      if (dbRemoteDoc) {
+          results = results.insert(
+            key,
+            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
+          );
+        sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc));
+      } else {
+          results = results.insert(key, null);
+        sizeMap = sizeMap.insert(key, 0);
+      }
+    })
+    .next(() => {
+      return { maybeDocuments:results, sizeMap };
+    });
+  }
+
+  forEachDbEntry(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet,
+    callback: (key: DocumentKey, doc: DbRemoteDocument | null) => void
+  ) : PersistencePromise<void> {
     if (documentKeys.isEmpty()) {
-      return PersistencePromise.resolve({ maybeDocuments: results, sizeMap });
+      return PersistencePromise.resolve();
     }
 
     const range = IDBKeyRange.bound(
@@ -215,27 +245,21 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       documentKeys.last()!.path.toArray()
     );
     const keyIter = documentKeys.getIterator();
-    let nextKey = keyIter.getNext();
+    let nextKey: DocumentKey | null = keyIter.getNext();
 
     return remoteDocumentsStore(transaction)
       .iterate({ range }, (potentialKeyRaw, dbRemoteDoc, control) => {
         const potentialKey = DocumentKey.fromSegments(potentialKeyRaw);
 
-        let compResult = 0;
         // Go through keys not found in cache.
-        for (compResult = DocumentKey.comparator(nextKey!, potentialKey); compResult < 0;) {
-          results = results.insert(nextKey!, null);
-          sizeMap = sizeMap.insert(nextKey!, 0);
-          nextKey = keyIter.hasNext() ? keyIter.getNext() : null;
+        while (nextKey && DocumentKey.comparator(nextKey!, potentialKey) < 0) {
+          callback(nextKey!, null);
+          nextKey = keyIter.getNext();
         }
 
         if (nextKey && nextKey!.isEqual(potentialKey)) {
           // Key found in cache.
-          results = results.insert(
-            nextKey!,
-            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
-          );
-          sizeMap = sizeMap.insert(nextKey!, dbDocumentSize(dbRemoteDoc));
+          callback(nextKey!, dbRemoteDoc);
           nextKey = keyIter.hasNext() ? keyIter.getNext() : null;
         }
 
@@ -250,11 +274,9 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         // The rest of the keys are not in the cache. One case where `iterate`
         // above won't go through them is when the cache is empty.
         while (nextKey) {
-          results = results.insert(nextKey, null);
-          sizeMap = sizeMap.insert(nextKey, 0);
+          callback(nextKey!, null);
           nextKey = keyIter.hasNext() ? keyIter.getNext() : null;
         }
-        return { maybeDocuments: results, sizeMap };
       });
   }
 

@@ -91,7 +91,7 @@ export class LocalDocumentsView {
       }
       results = results.insert(key, localView);
     });
-    return result;
+    return results;
   }
 
   /**
@@ -119,7 +119,7 @@ export class LocalDocumentsView {
   ): PersistencePromise<MaybeDocumentMap> {
     return this.mutationQueue
       .getAllMutationBatchesAffectingDocumentKeys(transaction, baseDocs)
-      .next(batches =>
+    .next(batches => {
         const docs = this.applyLocalMutationsToDocuments(transaction, baseDocs, batches);
         let results = maybeDocumentMap();
         docs.forEach((key, maybeDoc) => {
