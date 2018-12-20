@@ -25,6 +25,9 @@ export class DatabaseEmulator extends Emulator {
     super(port);
     this.namespace = namespace;
     this.binaryName = 'database-emulator.jar';
+    // Use locked version of emulator for test to be deterministic.
+    // The latest version can be found from database emulator doc:
+    // https://firebase.google.com/docs/database/security/test-rules-emulator
     this.binaryUrl =
       'https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v3.5.0.jar';
   }
