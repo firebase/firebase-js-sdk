@@ -37,7 +37,7 @@ jobs:
     - script: yarn test:saucelabs --database-firestore-only
     # TODO(yifanyang): Once we verify the emulator tests are reliable, we
     # should make these tests blocking rather than allow failures.
-    - script: node scripts/testing/database-emulator-test.js
+    - script: yarn test:database:emulator
   include:
     - name: Node.js and Browser (Chrome) Test
       stage: test
@@ -53,7 +53,7 @@ jobs:
       if: type = push
     - name: Database Node.js and Browser (Chrome) Test with Emulator
       stage: test
-      script: node scripts/testing/database-emulator-test.js
+      script: yarn test:database:emulator
     - stage: deploy
       script: skip
       # NPM Canary Build Config
