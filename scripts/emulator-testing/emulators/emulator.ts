@@ -28,11 +28,9 @@ export abstract class Emulator {
 
   emulator: ChildProcess;
   port: number;
-  namespace: string;
 
-  constructor(port: number, namespace: string) {
+  constructor(port: number) {
     this.port = port;
-    this.namespace = namespace;
   }
 
   async download(): Promise<void> {

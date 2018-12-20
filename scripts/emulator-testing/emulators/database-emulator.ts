@@ -19,8 +19,11 @@ import * as request from 'request';
 import { Emulator } from './emulator';
 
 export class DatabaseEmulator extends Emulator {
+  namespace: string;
+
   constructor(port = 8088, namespace = 'test-emulator') {
-    super(port, namespace);
+    super(port);
+    this.namespace = namespace;
     this.binaryName = 'database-emulator.jar';
     this.binaryUrl =
       'https://storage.googleapis.com/firebase-preview-drop/emulator/firebase-database-emulator-v3.5.0.jar';

@@ -19,12 +19,12 @@ import * as path from 'path';
 
 import { FirestoreEmulator } from './emulators/firestore-emulator';
 
-async function runTest(port: number, namespace: string): Promise<any> {
+async function runTest(port: number, projectId: string): Promise<any> {
   const options = {
     cwd: path.resolve(__dirname, '../../packages/firestore'),
     env: Object.assign({}, process.env, {
       FIRESTORE_EMULATOR_PORT: port,
-      FIRESTORE_EMULATOR_PROJECT_ID: namespace
+      FIRESTORE_EMULATOR_PROJECT_ID: projectId
     }),
     stdio: 'inherit'
   };
@@ -38,7 +38,7 @@ async function run(): Promise<void> {
   try {
     await emulator.download();
     await emulator.setUp();
-    await runTest(emulator.port, emulator.namespace);
+    await runTest(emulator.port, emulator.projectId);
   } finally {
     await emulator.tearDown();
   }
