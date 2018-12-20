@@ -44,7 +44,9 @@ const PROD_FIRESTORE_SETTING = {
 };
 
 export const DEFAULT_SETTINGS = getDefaultSettings();
-console.info(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
+
+// tslint:disable-next-line:ban
+console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 
 function getDefaultSettings(): firestore.Settings {
   const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
