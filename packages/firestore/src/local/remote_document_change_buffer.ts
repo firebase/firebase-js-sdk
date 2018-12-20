@@ -108,8 +108,7 @@ export abstract class RemoteDocumentChangeBuffer {
   }
 
   /**
-   * Looks up several entries in the cache.
-   * checked, and if no buffered change applies, this will forward to
+   * Looks up several entries in the cache, orwarding to
    * `RemoteDocumentCache.getEntry()`.
    *
    * @param transaction The transaction in which to perform any persistence
@@ -127,11 +126,11 @@ export abstract class RemoteDocumentChangeBuffer {
 
     // Record the size of everything we load from the cache so we can compute
     // a delta later.
-    return this.getAllFromCache(transaction, documentKeys).next(getResult => {
-      getResult.sizeMap.forEach((documentKey, size) => {
+    return this.getAllFromCache(transaction, documentKeys).next((maybeDocuments, sizeMap) => {
+      sizeMap.forEach((documentKey, size) => {
         this.documentSizes.set(documentKey, size);
       });
-      return getResult.maybeDocuments;
+      return maybeDocuments;
     });
   }
 

@@ -214,36 +214,45 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       documentKeys.first()!.path.toArray(),
       documentKeys.last()!.path.toArray()
     );
-    let key = documentKeys.first();
+    const keyIter = documentKeys.getIterator();
+    let nextKey = keyIter.getNext();
 
     return remoteDocumentsStore(transaction)
       .iterate({ range }, (potentialKeyRaw, dbRemoteDoc, control) => {
         const potentialKey = DocumentKey.fromSegments(potentialKeyRaw);
-        while (DocumentKey.comparator(key!, potentialKey) != 1) {
-          if (key!.isEqual(potentialKey)) {
-            results = results.insert(
-              key!,
-              this.serializer.fromDbRemoteDocument(dbRemoteDoc)
-            );
-            sizeMap = sizeMap.insert(key!, dbDocumentSize(dbRemoteDoc));
-          } else {
-            results = results.insert(key!, null);
-            sizeMap = sizeMap.insert(key!, 0);
-          }
 
-          key = documentKeys.firstAfter(key!);
-          if (!key) {
-            control.done();
-            return;
-          }
-          control.skip(key!.path.toArray());
+        let compResult = 0;
+        // Go through keys not found in cache.
+        for (compResult = DocumentKey.comparator(nextKey!, potentialKey); compResult < 0;) {
+          results = results.insert(nextKey!, null);
+          sizeMap = sizeMap.insert(nextKey!, 0);
+          nextKey = keyIter.hasNext() ? keyIter.getNext() : null;
+        }
+
+        if (nextKey && nextKey!.isEqual(potentialKey)) {
+          // Key found in cache.
+          results = results.insert(
+            nextKey!,
+            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
+          );
+          sizeMap = sizeMap.insert(nextKey!, dbDocumentSize(dbRemoteDoc));
+          nextKey = keyIter.hasNext() ? keyIter.getNext() : null;
+        }
+
+        // Skip to the next key (if there is one).
+        if (nextKey) {
+          control.skip(nextKey!.path.toArray());
+        } else {
+          control.done();
         }
       })
       .next(() => {
-        while (key) {
-          results = results.insert(key, null);
-          sizeMap = sizeMap.insert(key, 0);
-          key = documentKeys.firstAfter(key!);
+        // The rest of the keys are not in the cache. One case where `iterate`
+        // above won't go through them is when the cache is empty.
+        while (nextKey) {
+          results = results.insert(nextKey, null);
+          sizeMap = sizeMap.insert(nextKey, 0);
+          nextKey = keyIter.hasNext() ? keyIter.getNext() : null;
         }
         return { maybeDocuments: results, sizeMap };
       });
