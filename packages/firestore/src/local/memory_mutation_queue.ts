@@ -32,6 +32,8 @@ import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
 
+import { AnyJs } from '../../src/util/misc';
+
 export class MemoryMutationQueue implements MutationQueue {
   /**
    * The set of all mutations that have been sent but not yet been applied to
@@ -204,7 +206,7 @@ export class MemoryMutationQueue implements MutationQueue {
 
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: SortedMap<DocumentKey, any>
+    documentKeys: SortedMap<DocumentKey, AnyJs>
   ): PersistencePromise<MutationBatch[]> {
     let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);
 

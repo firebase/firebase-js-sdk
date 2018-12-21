@@ -26,6 +26,8 @@ import { SortedMap } from '../util/sorted_map';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
+import { AnyJs } from '../../src/util/misc';
+
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue {
   /** Returns true if this queue contains no mutation batches. */
@@ -134,7 +136,7 @@ export interface MutationQueue {
   // TODO(mcg): This should really return an enumerator
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: SortedMap<DocumentKey, any>
+    documentKeys: SortedMap<DocumentKey, AnyJs>
   ): PersistencePromise<MutationBatch[]>;
 
   /**
