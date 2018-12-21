@@ -111,6 +111,8 @@ export class Query {
       'Query must only have one inequality field.'
     );
 
+    assert(!this.isDocumentQuery(), 'No filtering allowed for document query');
+
     const newFilters = this.filters.concat([filter]);
     return new Query(
       this.path,
@@ -176,7 +178,9 @@ export class Query {
 
   /**
    * Helper to convert a Collection Group query into a collection query at a
-   * specific path.
+   * specific path. This is used when executing Collection Group queries, since
+   * we have to split the query into a set of Collection queries at multiple
+   * paths.
    */
   asCollectionQueryAtPath(path: ResourcePath): Query {
     return new Query(
@@ -361,8 +365,10 @@ export class Query {
   private matchesPathAndCollectionGroup(doc: Document): boolean {
     const docPath = doc.key.path;
     if (this.collectionGroup !== null) {
+      // NOTE: this.path is currently always empty since we don't expose Collection
+      // Group queries rooted at a document path yet.
       return (
-        this.collectionGroup === docPath.secondToLastSegment() &&
+        doc.key.hasCollectionId(this.collectionGroup) &&
         this.path.isPrefixOf(docPath)
       );
     } else if (DocumentKey.isDocumentKey(this.path)) {
@@ -370,9 +376,7 @@ export class Query {
       return this.path.isEqual(docPath);
     } else {
       // shallow ancestor queries by default
-      return (
-        this.path.isPrefixOf(docPath) && this.path.length === docPath.length - 1
-      );
+      return this.path.isImmediateParentOf(docPath);
     }
   }
 

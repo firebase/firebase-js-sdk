@@ -119,10 +119,6 @@ export abstract class Path {
     return this.get(this.length - 1);
   }
 
-  secondToLastSegment(): string {
-    return this.get(this.length - 2);
-  }
-
   get(index: number): string {
     assert(index < this.length, 'Index out of range');
     return this.segments[this.offset + index];

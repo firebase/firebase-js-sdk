@@ -53,6 +53,8 @@ export class MemoryMutationQueue implements MutationQueue {
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
 
+  // TODO(mikelehen): Pass QueryIndexes into constructor and make sure to add
+  // entries from addMutationBatch().
   constructor(private readonly referenceDelegate: ReferenceDelegate) {}
 
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {

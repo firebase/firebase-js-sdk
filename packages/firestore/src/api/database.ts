@@ -498,6 +498,13 @@ follow these steps, YOUR APP MAY BREAK.`);
       1,
       collectionId
     );
+    if (collectionId.indexOf('/') >= 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Function Firestore.collectionGroup() requires its first parameter to be a ' +
+          'valid collection ID and therefore must not contain "/"'
+      );
+    }
     this.ensureClientConfigured();
     return new Query(
       new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),

@@ -21,6 +21,11 @@ import { PersistencePromise } from './persistence_promise';
 
 /**
  * Represents a set of indexes that are used to execute queries efficiently.
+ *
+ * Currently the only index is a [collection id] => [parent path] index, used
+ * to execute Collection Group queries. When we implement property indexing in
+ * the future, the way this interface is structured and used will very possibly
+ * change.
  */
 export interface QueryIndexes {
   /**

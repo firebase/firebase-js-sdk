@@ -62,6 +62,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
   // PORTING NOTE: Multi-tab only.
   private documentKeysByBatchId = {} as { [batchId: number]: DocumentKeySet };
 
+  // TODO(mikelehen): Pass QueryIndexes into constructor and make sure to add
+  // entries from addMutationBatch().
   constructor(
     /**
      * The normalized userId (e.g. null UID => "" userId) used to store /
