@@ -70,7 +70,9 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       this.docs = this.docs.insert(key, entry);
       this.newDocumentChanges = this.newDocumentChanges.add(key);
 
-      promises.push(this.queryIndexes.indexCollectionParent(transaction, key.path.popLast()));
+      promises.push(
+        this.queryIndexes.indexCollectionParent(transaction, key.path.popLast())
+      );
     }
     this.size += sizeDelta;
     return PersistencePromise.waitFor(promises);

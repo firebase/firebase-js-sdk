@@ -146,8 +146,10 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
-    assert(query.path.isEmpty(),
-        'Currently we only support collection group queries at the root.');
+    assert(
+      query.path.isEmpty(),
+      'Currently we only support collection group queries at the root.'
+    );
     const collectionId = query.collectionGroup!;
     let results = documentMap();
     return this.queryIndexes
