@@ -23,6 +23,7 @@ import * as log from '../util/log';
 import { AnyJs, primitiveComparator } from '../util/misc';
 import { CancelablePromise } from '../util/promise';
 import { SortedSet } from '../util/sorted_set';
+import { ignoreIfPrimaryLeaseLoss } from './indexeddb_persistence';
 import { LocalStore } from './local_store';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -247,6 +248,10 @@ export class LruScheduler {
     }
   }
 
+  get started(): boolean {
+    return this.gcTask !== null;
+  }
+
   private scheduleGC(): void {
     assert(this.gcTask === null, 'Cannot schedule GC while a task is pending');
     const delay = this.hasRun ? REGULAR_GC_DELAY_MS : INITIAL_GC_DELAY_MS;
@@ -262,7 +267,8 @@ export class LruScheduler {
         this.hasRun = true;
         return this.localStore
           .collectGarbage(this.garbageCollector)
-          .then(() => this.scheduleGC());
+          .then(() => this.scheduleGC())
+          .catch(ignoreIfPrimaryLeaseLoss);
       }
     );
   }

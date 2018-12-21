@@ -1045,12 +1045,33 @@ export class IndexedDbPersistence implements Persistence {
   }
 }
 
-export function isPrimaryLeaseLostError(err: FirestoreError): boolean {
+function isPrimaryLeaseLostError(err: FirestoreError): boolean {
   return (
     err.code === Code.FAILED_PRECONDITION &&
     err.message === PRIMARY_LEASE_LOST_ERROR_MSG
   );
 }
+
+/**
+ * Verifies the error thrown by a LocalStore operation. If a LocalStore
+ * operation fails because the primary lease has been taken by another client,
+ * we ignore the error (the persistence layer will immediately call
+ * `applyPrimaryLease` to propagate the primary state change). All other errors
+ * are re-thrown.
+ *
+ * @param err An error returned by a LocalStore operation.
+ * @return A Promise that resolves after we recovered, or the original error.
+ */
+export async function ignoreIfPrimaryLeaseLoss(
+  err: FirestoreError
+): Promise<void> {
+  if (isPrimaryLeaseLostError(err)) {
+    log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+  } else {
+    throw err;
+  }
+}
+
 /**
  * Helper to get a typed SimpleDbStore for the primary client object store.
  */

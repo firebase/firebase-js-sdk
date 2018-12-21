@@ -31,7 +31,7 @@ import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
-import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
+import { ignoreIfPrimaryLeaseLoss } from '../local/indexeddb_persistence';
 import { DocumentKeySet } from '../model/collections';
 import { AsyncQueue } from '../util/async_queue';
 import { Datastore } from './datastore';
@@ -564,23 +564,7 @@ export class RemoteStore implements TargetMetadataProvider {
           this.writeStream.writeMutations(batch.mutations);
         }
       })
-      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
-  }
-
-  /**
-   * Verifies the error thrown by an LocalStore operation. If a LocalStore
-   * operation fails because the primary lease has been taken by another client,
-   * we ignore the error. All other errors are re-thrown.
-   *
-   * @param err An error returned by a LocalStore operation.
-   * @return A Promise that resolves after we recovered, or the original error.
-   */
-  private ignoreIfPrimaryLeaseLoss(err: FirestoreError): void {
-    if (isPrimaryLeaseLostError(err)) {
-      log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
-    } else {
-      throw err;
-    }
+      .catch(ignoreIfPrimaryLeaseLoss);
   }
 
   private onMutationResult(
@@ -656,7 +640,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
       return this.localStore
         .setLastStreamToken(emptyByteString())
-        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+        .catch(ignoreIfPrimaryLeaseLoss);
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.
