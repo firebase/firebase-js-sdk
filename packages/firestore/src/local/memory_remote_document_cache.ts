@@ -22,10 +22,10 @@ import {
   documentMap,
   DocumentSizeEntries,
   DocumentSizeEntry,
+  MaybeDocumentMap,
+  maybeDocumentMap,
   NullableMaybeDocumentMap,
   nullableMaybeDocumentMap,
-  MaybeDocumentMap,
-  maybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
