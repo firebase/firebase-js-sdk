@@ -108,7 +108,7 @@ export abstract class RemoteDocumentChangeBuffer {
   }
 
   /**
-   * Looks up several entries in the cache, orwarding to
+   * Looks up several entries in the cache, forwarding to
    * `RemoteDocumentCache.getEntry()`.
    *
    * @param transaction The transaction in which to perform any persistence

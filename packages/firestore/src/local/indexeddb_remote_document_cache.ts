@@ -238,7 +238,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     });
   }
 
-  forEachDbEntry(
+  private forEachDbEntry(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet,
     callback: (key: DocumentKey, doc: DbRemoteDocument | null) => void
