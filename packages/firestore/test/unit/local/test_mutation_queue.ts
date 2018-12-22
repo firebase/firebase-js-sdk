@@ -23,7 +23,6 @@ import { DocumentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
-import { AnyDuringMigration } from '../../../src/util/misc';
 import { SortedMap } from '../../../src/util/sorted_map';
 
 /**
@@ -65,9 +64,15 @@ export class TestMutationQueue {
       'getLastStreamToken',
       'readonly',
       txn => {
-        return this.queue.getLastStreamToken(txn);
+        return this.queue.getLastStreamToken(txn).next(token => {
+          if (typeof token === 'string') {
+            return token;
+          } else {
+            throw new Error('Test mutation queue cannot handle Uint8Arrays');
+          }
+        });
       }
-    ) as AnyDuringMigration;
+    );
   }
 
   setLastStreamToken(streamToken: string): Promise<void> {
