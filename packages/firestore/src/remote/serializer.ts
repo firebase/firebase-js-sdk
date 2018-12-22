@@ -581,7 +581,7 @@ export class JsonProtoSerializer {
     const key = this.fromName(doc.found!.name!);
     const version = this.fromVersion(doc.found!.updateTime!);
     const fields = this.fromFields(doc.found!.fields || {});
-    return new Document(key, version, fields, {});
+    return new Document(key, version, fields, {}, doc.found!);
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -726,7 +726,15 @@ export class JsonProtoSerializer {
       const key = this.fromName(entityChange.document!.name!);
       const version = this.fromVersion(entityChange.document!.updateTime!);
       const fields = this.fromFields(entityChange.document!.fields || {});
-      const doc = new Document(key, version, fields, {});
+      // The document may soon be re-serialized back to protos in order to store it in local
+      // persistence. Memoize the encoded form to avoid encoding it again.
+      const doc = new Document(
+        key,
+        version,
+        fields,
+        {},
+        entityChange.document!
+      );
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(
