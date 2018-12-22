@@ -17,7 +17,6 @@
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
-  documentKeySet,
   DocumentKeySet,
   DocumentMap,
   documentMap,

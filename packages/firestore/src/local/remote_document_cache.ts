@@ -18,8 +18,8 @@ import { Query } from '../core/query';
 import {
   DocumentKeySet,
   DocumentMap,
-  NullableMaybeDocumentMap,
-  MaybeDocumentMap
+  MaybeDocumentMap,
+  NullableMaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';

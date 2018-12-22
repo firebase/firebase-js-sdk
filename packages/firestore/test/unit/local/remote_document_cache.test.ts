@@ -358,7 +358,7 @@ function genericRemoteDocumentCacheTests(
     ];
     const key1 = key(DOC_PATH);
     const key2 = key(LONG_DOC_PATH);
-    const missing_key = key('foo/nonexistent');
+    const missingKey = key('foo/nonexistent');
     return cache
       .addEntries(docs)
       .then(() => {
@@ -366,13 +366,13 @@ function genericRemoteDocumentCacheTests(
           documentKeySet()
             .add(key1)
             .add(key2)
-            .add(missing_key)
+            .add(missingKey)
         );
       })
       .then(read => {
         expectEqual(read.get(key1), docs[0]);
         expectEqual(read.get(key2), docs[1]);
-        expect(read.get(missing_key)).to.be.null;
+        expect(read.get(missingKey)).to.be.null;
       });
   });
 

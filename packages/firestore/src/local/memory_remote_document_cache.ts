@@ -20,12 +20,12 @@ import {
   documentKeySet,
   DocumentMap,
   documentMap,
-  DocumentSizeEntry,
   DocumentSizeEntries,
-  MaybeDocumentMap,
-  maybeDocumentMap,
+  DocumentSizeEntry,
   NullableMaybeDocumentMap,
-  nullableMaybeDocumentMap
+  nullableMaybeDocumentMap,
+  MaybeDocumentMap,
+  maybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';

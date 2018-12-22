@@ -16,11 +16,11 @@
 
 import {
   DocumentKeySet,
-  DocumentSizeEntry,
   DocumentSizeEntries,
-  NullableMaybeDocumentMap,
+  DocumentSizeEntry,
   maybeDocumentMap,
-  MaybeDocumentMap
+  MaybeDocumentMap,
+  NullableMaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -122,8 +122,6 @@ export abstract class RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<NullableMaybeDocumentMap> {
-    const changes = this.assertChanges();
-
     // Record the size of everything we load from the cache so we can compute
     // a delta later.
     return this.getAllFromCache(transaction, documentKeys).next(
