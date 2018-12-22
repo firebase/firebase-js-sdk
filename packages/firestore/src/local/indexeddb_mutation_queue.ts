@@ -25,6 +25,7 @@ import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
+import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import * as EncodedResourcePath from './encoded_resource_path';
@@ -45,6 +46,8 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+
+import { AnyJs } from '../../src/util/misc';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -325,7 +328,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: SortedMap<DocumentKey, AnyJs>
   ): PersistencePromise<MutationBatch[]> {
     let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
 

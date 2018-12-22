@@ -16,15 +16,20 @@
 
 import { Query } from '../core/query';
 import {
+  DocumentKeySet,
   documentKeySet,
   DocumentMap,
   documentMap,
+  DocumentSizeEntries,
   DocumentSizeEntry,
   MaybeDocumentMap,
-  maybeDocumentMap
+  maybeDocumentMap,
+  nullableMaybeDocumentMap,
+  NullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { SortedMap } from '../util/sorted_map';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
@@ -175,6 +180,110 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
               size: dbDocumentSize(dbRemoteDoc)
             }
           : null;
+      });
+  }
+
+  getEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    let results = nullableMaybeDocumentMap();
+    return this.forEachDbEntry(
+      transaction,
+      documentKeys,
+      (key, dbRemoteDoc) => {
+        if (dbRemoteDoc) {
+          results = results.insert(
+            key,
+            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
+          );
+        } else {
+          results = results.insert(key, null);
+        }
+      }
+    ).next(() => results);
+  }
+
+  /**
+   * Looks up several entries in the cache.
+   *
+   * @param documentKeys The set of keys entries to look up.
+   * @return A map of MaybeDocuments indexed by key (if a document cannot be
+   *     found, the key will be mapped to null) and a map of sizes indexed by
+   *     key (zero if the key cannot be found).
+   */
+  getSizedEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<DocumentSizeEntries> {
+    let results = nullableMaybeDocumentMap();
+    let sizeMap = new SortedMap<DocumentKey, number>(DocumentKey.comparator);
+    return this.forEachDbEntry(
+      transaction,
+      documentKeys,
+      (key, dbRemoteDoc) => {
+        if (dbRemoteDoc) {
+          results = results.insert(
+            key,
+            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
+          );
+          sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc));
+        } else {
+          results = results.insert(key, null);
+          sizeMap = sizeMap.insert(key, 0);
+        }
+      }
+    ).next(() => {
+      return { maybeDocuments: results, sizeMap };
+    });
+  }
+
+  private forEachDbEntry(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet,
+    callback: (key: DocumentKey, doc: DbRemoteDocument | null) => void
+  ): PersistencePromise<void> {
+    if (documentKeys.isEmpty()) {
+      return PersistencePromise.resolve();
+    }
+
+    const range = IDBKeyRange.bound(
+      documentKeys.first()!.path.toArray(),
+      documentKeys.last()!.path.toArray()
+    );
+    const keyIter = documentKeys.getIterator();
+    let nextKey: DocumentKey | null = keyIter.getNext();
+
+    return remoteDocumentsStore(transaction)
+      .iterate({ range }, (potentialKeyRaw, dbRemoteDoc, control) => {
+        const potentialKey = DocumentKey.fromSegments(potentialKeyRaw);
+
+        // Go through keys not found in cache.
+        while (nextKey && DocumentKey.comparator(nextKey!, potentialKey) < 0) {
+          callback(nextKey!, null);
+          nextKey = keyIter.getNext();
+        }
+
+        if (nextKey && nextKey!.isEqual(potentialKey)) {
+          // Key found in cache.
+          callback(nextKey!, dbRemoteDoc);
+          nextKey = keyIter.hasNext() ? keyIter.getNext() : null;
+        }
+
+        // Skip to the next key (if there is one).
+        if (nextKey) {
+          control.skip(nextKey!.path.toArray());
+        } else {
+          control.done();
+        }
+      })
+      .next(() => {
+        // The rest of the keys are not in the cache. One case where `iterate`
+        // above won't go through them is when the cache is empty.
+        while (nextKey) {
+          callback(nextKey!, null);
+          nextKey = keyIter.hasNext() ? keyIter.getNext() : null;
+        }
       });
   }
 
@@ -380,6 +489,13 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
     documentKey: DocumentKey
   ): PersistencePromise<DocumentSizeEntry | null> {
     return this.documentCache.getSizedEntry(transaction, documentKey);
+  }
+
+  protected getAllFromCache(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<DocumentSizeEntries> {
+    return this.documentCache.getSizedEntries(transaction, documentKeys);
   }
 }
 

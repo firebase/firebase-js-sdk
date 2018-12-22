@@ -22,6 +22,8 @@ import { DocumentKey } from './document_key';
 import { FieldValue, JsonObject, ObjectValue } from './field_value';
 import { FieldPath } from './path';
 
+import * as api from '../protos/firestore_proto_api';
+
 export interface DocumentOptions {
   hasLocalMutations?: boolean;
   hasCommittedMutations?: boolean;
@@ -59,7 +61,12 @@ export class Document extends MaybeDocument {
     key: DocumentKey,
     version: SnapshotVersion,
     readonly data: ObjectValue,
-    options: DocumentOptions
+    options: DocumentOptions,
+    /**
+     * Memoized serialized form of the document for optimization purposes (avoids repeated
+     * serialization). Might be undefined.
+     */
+    readonly proto?: api.Document
   ) {
     super(key, version);
     this.hasLocalMutations = !!options.hasLocalMutations;
