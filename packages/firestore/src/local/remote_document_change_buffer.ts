@@ -126,6 +126,9 @@ export abstract class RemoteDocumentChangeBuffer {
     // a delta later.
     return this.getAllFromCache(transaction, documentKeys).next(
       ({ maybeDocuments, sizeMap }) => {
+        // Note: `getAllFromCache` returns two maps instead of a single map from
+        // keys to `DocumentSizeEntry`s. This is to allow returning the
+        // `NullableMaybeDocumentMap` directly, without a conversion.
         sizeMap.forEach((documentKey, size) => {
           this.documentSizes.set(documentKey, size);
         });
