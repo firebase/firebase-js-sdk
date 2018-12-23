@@ -1,4 +1,12 @@
 # Unreleased
+- [fixed] Fixed a regression introduced in 5.7.0 that caused apps using
+  experimentalTabSynchronization to hit an exception for "Failed to obtain
+  primary lease for action 'Collect garbage'".
+
+# 0.9.1
+- [changed] Added a custom error for schema downgrades.
+
+# 0.9.0
 - [changed] Removed eval()-based fallback for JSON parsing, allowing SDK to
   be used in environments that prohibit eval().
 - [feature] Added a garbage collection process to on-disk persistence that

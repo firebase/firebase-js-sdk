@@ -393,7 +393,6 @@ export class FirestoreClient {
             this.asyncQueue,
             this.localStore
           );
-          this.lruScheduler.start();
         }
         const serializer = this.platform.newSerializer(
           this.databaseInfo.databaseId
@@ -444,9 +443,16 @@ export class FirestoreClient {
 
         // NOTE: This will immediately call the listener, so we make sure to
         // set it after localStore / remoteStore are started.
-        await this.persistence.setPrimaryStateListener(isPrimary =>
-          this.syncEngine.applyPrimaryState(isPrimary)
-        );
+        await this.persistence.setPrimaryStateListener(async isPrimary => {
+          await this.syncEngine.applyPrimaryState(isPrimary);
+          if (this.lruScheduler) {
+            if (isPrimary && !this.lruScheduler.started) {
+              this.lruScheduler.start();
+            } else if (!isPrimary) {
+              this.lruScheduler.stop();
+            }
+          }
+        });
       });
   }
 
