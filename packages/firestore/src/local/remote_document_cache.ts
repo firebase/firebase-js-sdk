@@ -15,7 +15,12 @@
  */
 
 import { Query } from '../core/query';
-import { DocumentMap, MaybeDocumentMap } from '../model/collections';
+import {
+  DocumentKeySet,
+  DocumentMap,
+  MaybeDocumentMap,
+  NullableMaybeDocumentMap
+} from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
@@ -43,6 +48,18 @@ export interface RemoteDocumentCache {
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null>;
+
+  /**
+   * Looks up a set of entries in the cache.
+   *
+   * @param documentKeys The keys of the entries to look up.
+   * @return The cached Document or NoDocument entries indexed by key. If an entry is not cached,
+   *     the corresponding key will be mapped to a null value.
+   */
+  getEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<NullableMaybeDocumentMap>;
 
   /**
    * Executes a query against the cached Document entries.

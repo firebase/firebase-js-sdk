@@ -15,9 +15,12 @@
  */
 
 import {
+  DocumentKeySet,
+  DocumentSizeEntries,
   DocumentSizeEntry,
   maybeDocumentMap,
-  MaybeDocumentMap
+  MaybeDocumentMap,
+  NullableMaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -51,6 +54,11 @@ export abstract class RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<DocumentSizeEntry | null>;
+
+  protected abstract getAllFromCache(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<DocumentSizeEntries>;
 
   protected abstract applyChanges(
     transaction: PersistenceTransaction
@@ -97,6 +105,36 @@ export abstract class RemoteDocumentChangeBuffer {
         }
       });
     }
+  }
+
+  /**
+   * Looks up several entries in the cache, forwarding to
+   * `RemoteDocumentCache.getEntry()`.
+   *
+   * @param transaction The transaction in which to perform any persistence
+   *     operations.
+   * @param documentKeys The keys of the entries to look up.
+   * @return A map of cached `Document`s or `NoDocument`s, indexed by key. If an
+   *     entry cannot be found, the corresponding key will be mapped to a null
+   *     value.
+   */
+  getEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    // Record the size of everything we load from the cache so we can compute
+    // a delta later.
+    return this.getAllFromCache(transaction, documentKeys).next(
+      ({ maybeDocuments, sizeMap }) => {
+        // Note: `getAllFromCache` returns two maps instead of a single map from
+        // keys to `DocumentSizeEntry`s. This is to allow returning the
+        // `NullableMaybeDocumentMap` directly, without a conversion.
+        sizeMap.forEach((documentKey, size) => {
+          this.documentSizes.set(documentKey, size);
+        });
+        return maybeDocuments;
+      }
+    );
   }
 
   /**

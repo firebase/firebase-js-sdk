@@ -16,12 +16,16 @@
 
 import { Query } from '../core/query';
 import {
+  DocumentKeySet,
   documentKeySet,
   DocumentMap,
   documentMap,
+  DocumentSizeEntries,
   DocumentSizeEntry,
   MaybeDocumentMap,
-  maybeDocumentMap
+  maybeDocumentMap,
+  NullableMaybeDocumentMap,
+  nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -105,6 +109,40 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     documentKey: DocumentKey
   ): PersistencePromise<DocumentSizeEntry | null> {
     return PersistencePromise.resolve(this.docs.get(documentKey));
+  }
+
+  getEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    let results = nullableMaybeDocumentMap();
+    documentKeys.forEach(documentKey => {
+      const entry = this.docs.get(documentKey);
+      results = results.insert(documentKey, entry ? entry.maybeDocument : null);
+    });
+    return PersistencePromise.resolve(results);
+  }
+
+  /**
+   * Looks up several entries in the cache.
+   *
+   * @param documentKeys The set of keys entries to look up.
+   * @return A map of MaybeDocuments indexed by key (if a document cannot be
+   *     found, the key will be mapped to null) and a map of sizes indexed by
+   *     key (zero if the key cannot be found).
+   */
+  getSizedEntries(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<DocumentSizeEntries> {
+    let results = nullableMaybeDocumentMap();
+    let sizeMap = new SortedMap<DocumentKey, number>(DocumentKey.comparator);
+    documentKeys.forEach(documentKey => {
+      const entry = this.docs.get(documentKey);
+      results = results.insert(documentKey, entry ? entry.maybeDocument : null);
+      sizeMap = sizeMap.insert(documentKey, entry ? entry.size : 0);
+    });
+    return PersistencePromise.resolve({ maybeDocuments: results, sizeMap });
   }
 
   getDocumentsMatchingQuery(
@@ -202,5 +240,12 @@ export class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer
     documentKey: DocumentKey
   ): PersistencePromise<DocumentSizeEntry | null> {
     return this.documentCache.getSizedEntry(transaction, documentKey);
+  }
+
+  protected getAllFromCache(
+    transaction: PersistenceTransaction,
+    documentKeys: DocumentKeySet
+  ): PersistencePromise<DocumentSizeEntries> {
+    return this.documentCache.getSizedEntries(transaction, documentKeys);
   }
 }

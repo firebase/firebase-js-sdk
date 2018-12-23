@@ -21,7 +21,9 @@ import {
   DocumentMap,
   documentMap,
   MaybeDocumentMap,
-  maybeDocumentMap
+  maybeDocumentMap,
+  NullableMaybeDocumentMap,
+  nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -74,6 +76,23 @@ export class LocalDocumentsView {
     });
   }
 
+  // Returns the view of the given `docs` as they would appear after applying
+  // all mutations in the given `batches`.
+  private applyLocalMutationsToDocuments(
+    transaction: PersistenceTransaction,
+    docs: NullableMaybeDocumentMap,
+    batches: MutationBatch[]
+  ): NullableMaybeDocumentMap {
+    let results = nullableMaybeDocumentMap();
+    docs.forEach((key, localView) => {
+      for (const batch of batches) {
+        localView = batch.applyToLocalView(key, localView);
+      }
+      results = results.insert(key, localView);
+    });
+    return results;
+  }
+
   /**
    * Gets the local view of the documents identified by `keys`.
    *
@@ -84,28 +103,37 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     keys: DocumentKeySet
   ): PersistencePromise<MaybeDocumentMap> {
+    return this.remoteDocumentCache
+      .getEntries(transaction, keys)
+      .next(docs => this.getLocalViewOfDocuments(transaction, docs));
+  }
+
+  /**
+   * Similar to `getDocuments`, but creates the local view from the given
+   * `baseDocs` without retrieving documents from the local store.
+   */
+  getLocalViewOfDocuments(
+    transaction: PersistenceTransaction,
+    baseDocs: NullableMaybeDocumentMap
+  ): PersistencePromise<MaybeDocumentMap> {
     return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKeys(transaction, keys)
+      .getAllMutationBatchesAffectingDocumentKeys(transaction, baseDocs)
       .next(batches => {
-        const promises = [] as Array<PersistencePromise<void>>;
+        const docs = this.applyLocalMutationsToDocuments(
+          transaction,
+          baseDocs,
+          batches
+        );
         let results = maybeDocumentMap();
-        keys.forEach(key => {
-          promises.push(
-            this.getDocumentInternal(transaction, key, batches).next(
-              maybeDoc => {
-                // TODO(http://b/32275378): Don't conflate missing / deleted.
-                if (!maybeDoc) {
-                  maybeDoc = new NoDocument(
-                    key,
-                    SnapshotVersion.forDeletedDoc()
-                  );
-                }
-                results = results.insert(key, maybeDoc);
-              }
-            )
-          );
+        docs.forEach((key, maybeDoc) => {
+          // TODO(http://b/32275378): Don't conflate missing / deleted.
+          if (!maybeDoc) {
+            maybeDoc = new NoDocument(key, SnapshotVersion.forDeletedDoc());
+          }
+          results = results.insert(key, maybeDoc);
         });
-        return PersistencePromise.waitFor(promises).next(() => results);
+
+        return results;
       });
   }
 
