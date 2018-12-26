@@ -79,3 +79,17 @@ function testGetIdpSetting_twitter() {
        'oauth_version'],
       fireauth.idp.getReservedOAuthParams('twitter.com'));
 }
+
+
+function testIsSaml() {
+  assertTrue(fireauth.idp.isSaml('saml.provider'));
+  assertTrue(fireauth.idp.isSaml('saml.'));
+  assertFalse(fireauth.idp.isSaml('saMl.provider'));
+  assertFalse(fireauth.idp.isSaml(null));
+  assertFalse(fireauth.idp.isSaml(undefined));
+  for (var key in fireauth.idp.ProviderId) {
+    assertFalse(fireauth.idp.isSaml(fireauth.idp.ProviderId[key]));
+  }
+  assertFalse(fireauth.idp.isSaml('generic.com'));
+  assertFalse(fireauth.idp.isSaml('asaml.b'));
+}

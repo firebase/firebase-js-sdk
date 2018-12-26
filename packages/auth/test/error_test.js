@@ -382,6 +382,71 @@ function testAuthErrorWithCredential_fromPlainObject() {
 }
 
 
+function testAuthErrorWithCredential_oauthCredential_idTokenNonce() {
+  var email = 'user@example.com';
+  var credential = fireauth.AuthProvider.getCredentialFromResponse({
+    // Subset of server response.
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider',
+    // Injected by rpcHandler.
+    'nonce': 'NONCE'
+  });
+  var error = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        email: email,
+        credential: credential
+      });
+
+  assertEquals('auth/credential-already-in-use', error['code']);
+  assertEquals(email, error['email']);
+  assertEquals(credential, error['credential']);
+
+  var errorObject = {
+    'code': 'auth/credential-already-in-use',
+    'email': email,
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider',
+    'nonce': 'NONCE'
+  };
+  assertObjectEquals(
+      error,
+      fireauth.AuthErrorWithCredential.fromPlainObject(errorObject));
+}
+
+
+function testAuthErrorWithCredential_oauthCredential_pendingToken() {
+  var email = 'user@example.com';
+  var credential = fireauth.AuthProvider.getCredentialFromResponse({
+    // Subset of server response.
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'pendingToken': 'PENDING_TOKEN',
+    'providerId': 'oidc.provider'
+  });
+  var error = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        email: email,
+        credential: credential
+      });
+
+  assertEquals('auth/credential-already-in-use', error['code']);
+  assertEquals(email, error['email']);
+  assertEquals(credential, error['credential']);
+
+  var errorObject = {
+    'code': 'auth/credential-already-in-use',
+    'email': email,
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'pendingToken': 'PENDING_TOKEN',
+    'providerId': 'oidc.provider'
+  };
+  assertObjectEquals(
+      error,
+      fireauth.AuthErrorWithCredential.fromPlainObject(errorObject));
+}
+
+
 function testAuthErrorWithCredential_phoneCredential() {
   var temporaryProof = 'theTempProof';
   var phoneNumber = '+16505550101';

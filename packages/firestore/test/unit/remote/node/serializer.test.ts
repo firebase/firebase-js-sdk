@@ -605,7 +605,7 @@ describe('Serializer', () => {
     // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
     it.skip('converts a weird path', () => {
       const expected: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
-      const mask = new FieldMask([
+      const mask = FieldMask.fromArray([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
       ]);
       const actual = s.toDocumentMask(mask);
@@ -618,7 +618,7 @@ describe('Serializer', () => {
 
     // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
     it.skip('converts a weird path', () => {
-      const expected = new FieldMask([
+      const expected = FieldMask.fromArray([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
       ]);
       const proto: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };

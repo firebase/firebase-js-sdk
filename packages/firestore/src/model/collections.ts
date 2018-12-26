@@ -37,6 +37,20 @@ export function maybeDocumentMap(): MaybeDocumentMap {
   return EMPTY_MAYBE_DOCUMENT_MAP;
 }
 
+export type NullableMaybeDocumentMap = SortedMap<
+  DocumentKey,
+  MaybeDocument | null
+>;
+
+export function nullableMaybeDocumentMap(): NullableMaybeDocumentMap {
+  return maybeDocumentMap();
+}
+
+export type DocumentSizeEntries = {
+  maybeDocuments: NullableMaybeDocumentMap;
+  sizeMap: SortedMap<DocumentKey, number>;
+};
+
 export type DocumentMap = SortedMap<DocumentKey, Document>;
 const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(
   DocumentKey.comparator
@@ -55,8 +69,12 @@ export function documentVersionMap(): DocumentVersionMap {
 
 export type DocumentKeySet = SortedSet<DocumentKey>;
 const EMPTY_DOCUMENT_KEY_SET = new SortedSet(DocumentKey.comparator);
-export function documentKeySet(): DocumentKeySet {
-  return EMPTY_DOCUMENT_KEY_SET;
+export function documentKeySet(...keys: DocumentKey[]): DocumentKeySet {
+  let set = EMPTY_DOCUMENT_KEY_SET;
+  for (const key of keys) {
+    set = set.add(key);
+  }
+  return set;
 }
 
 export type TargetIdSet = SortedSet<TargetId>;

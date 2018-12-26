@@ -63,6 +63,9 @@ function createUnsecuredJwt(auth: object): string {
   (auth as any).iat = (auth as any).iat || 0;
   // Use `uid` field as a backup when `sub` is missing.
   (auth as any).sub = (auth as any).sub || (auth as any).uid;
+  if (!(auth as any).sub) {
+    throw new Error("auth must be an object with a 'sub' or 'uid' field");
+  }
   // Unsecured JWTs use the empty string as a signature.
   const signature = '';
   return [
@@ -197,7 +200,13 @@ export function loadFirestoreRules(
 
   let client = new EMULATOR.FirestoreEmulator(
     FIRESTORE_ADDRESS,
-    grpc.credentials.createInsecure()
+    grpc.credentials.createInsecure(),
+    {
+      // Cap how much backoff gRPC will perform. This is testing code, so
+      // efficiency is less important than responsiveness.
+      'grpc.initial_reconnect_backoff_ms': 100,
+      'grpc.max_reconnect_backoff_ms': 100
+    }
   );
   return new Promise((resolve, reject) => {
     client.setSecurityRules(

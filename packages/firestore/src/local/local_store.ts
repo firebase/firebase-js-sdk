@@ -23,6 +23,7 @@ import {
   DocumentKeySet,
   documentKeySet,
   DocumentMap,
+  maybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument } from '../model/document';
@@ -41,6 +42,7 @@ import * as objUtils from '../util/obj';
 import { ObjectValue } from '../model/field_value';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
+import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -507,11 +509,18 @@ export class LocalStore {
           }
         );
 
-        let changedDocKeys = documentKeySet();
+        let changedDocs = maybeDocumentMap();
+        let updatedKeys = documentKeySet();
         remoteEvent.documentUpdates.forEach((key, doc) => {
-          changedDocKeys = changedDocKeys.add(key);
-          promises.push(
-            documentBuffer.getEntry(txn, key).next(existingDoc => {
+          updatedKeys = updatedKeys.add(key);
+        });
+
+        // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
+        // documents in advance in a single call.
+        promises.push(
+          documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
+            remoteEvent.documentUpdates.forEach((key, doc) => {
+              const existingDoc = existingDocs.get(key);
               // If a document update isn't authoritative, make sure we don't
               // apply an old document version to the remote cache. We make an
               // exception for SnapshotVersion.MIN which can happen for
@@ -525,6 +534,7 @@ export class LocalStore {
                 doc.version.compareTo(existingDoc.version) >= 0
               ) {
                 documentBuffer.addEntry(doc);
+                changedDocs = changedDocs.insert(key, doc);
               } else {
                 log.debug(
                   LOG_TAG,
@@ -536,14 +546,18 @@ export class LocalStore {
                   doc.version
                 );
               }
-            })
-          );
-          if (remoteEvent.resolvedLimboDocuments.has(key)) {
-            promises.push(
-              this.persistence.referenceDelegate.updateLimboDocument(txn, key)
-            );
-          }
-        });
+
+              if (remoteEvent.resolvedLimboDocuments.has(key)) {
+                promises.push(
+                  this.persistence.referenceDelegate.updateLimboDocument(
+                    txn,
+                    key
+                  )
+                );
+              }
+            });
+          })
+        );
 
         // HACK: The only reason we allow a null snapshot version is so that we
         // can synthesize remote events when we get permission denied errors while
@@ -573,7 +587,10 @@ export class LocalStore {
         return PersistencePromise.waitFor(promises)
           .next(() => documentBuffer.apply(txn))
           .next(() => {
-            return this.localDocuments.getDocuments(txn, changedDocKeys);
+            return this.localDocuments.getLocalViewOfDocuments(
+              txn,
+              changedDocs
+            );
           });
       }
     );
@@ -845,6 +862,14 @@ export class LocalStore {
     });
     return promiseChain.next(() =>
       this.mutationQueue.removeMutationBatch(txn, batch)
+    );
+  }
+
+  collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
+    return this.persistence.runTransaction(
+      'Collect garbage',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, this.queryDataByTarget)
     );
   }
 

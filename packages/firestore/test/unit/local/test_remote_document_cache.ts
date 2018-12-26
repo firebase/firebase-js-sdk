@@ -26,7 +26,12 @@ import {
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
-import { DocumentMap, MaybeDocumentMap } from '../../../src/model/collections';
+import {
+  DocumentKeySet,
+  DocumentMap,
+  MaybeDocumentMap,
+  NullableMaybeDocumentMap
+} from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 
@@ -80,6 +85,12 @@ export abstract class TestRemoteDocumentCache {
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
     return this.persistence.runTransaction('getEntry', 'readonly', txn => {
       return this.cache.getEntry(txn, documentKey);
+    });
+  }
+
+  getEntries(documentKeys: DocumentKeySet): Promise<NullableMaybeDocumentMap> {
+    return this.persistence.runTransaction('getEntries', 'readonly', txn => {
+      return this.cache.getEntries(txn, documentKeys);
     });
   }
 

@@ -53,7 +53,8 @@ import { LocalSerializer } from './local_serializer';
 import {
   ActiveTargets,
   LruDelegate,
-  LruGarbageCollector
+  LruGarbageCollector,
+  LruParams
 } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import {
@@ -193,14 +194,16 @@ export class IndexedDbPersistence implements Persistence {
     clientId: ClientId,
     platform: Platform,
     queue: AsyncQueue,
-    serializer: JsonProtoSerializer
+    serializer: JsonProtoSerializer,
+    lruParams: LruParams
   ): Promise<IndexedDbPersistence> {
     const persistence = new IndexedDbPersistence(
       persistenceKey,
       clientId,
       platform,
       queue,
-      serializer
+      serializer,
+      lruParams
     );
     await persistence.start();
     return persistence;
@@ -212,6 +215,7 @@ export class IndexedDbPersistence implements Persistence {
     platform: Platform,
     queue: AsyncQueue,
     serializer: JsonProtoSerializer,
+    lruParams: LruParams,
     multiClientParams: MultiClientParams
   ): Promise<IndexedDbPersistence> {
     const persistence = new IndexedDbPersistence(
@@ -220,6 +224,7 @@ export class IndexedDbPersistence implements Persistence {
       platform,
       queue,
       serializer,
+      lruParams,
       multiClientParams
     );
     await persistence.start();
@@ -271,6 +276,7 @@ export class IndexedDbPersistence implements Persistence {
     platform: Platform,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
+    lruParams: LruParams,
     private readonly multiClientParams?: MultiClientParams
   ) {
     if (!IndexedDbPersistence.isAvailable()) {
@@ -279,7 +285,7 @@ export class IndexedDbPersistence implements Persistence {
         UNSUPPORTED_PLATFORM_ERROR_MSG
       );
     }
-    this.referenceDelegate = new IndexedDbLruDelegate(this);
+    this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
@@ -1039,12 +1045,33 @@ export class IndexedDbPersistence implements Persistence {
   }
 }
 
-export function isPrimaryLeaseLostError(err: FirestoreError): boolean {
+function isPrimaryLeaseLostError(err: FirestoreError): boolean {
   return (
     err.code === Code.FAILED_PRECONDITION &&
     err.message === PRIMARY_LEASE_LOST_ERROR_MSG
   );
 }
+
+/**
+ * Verifies the error thrown by a LocalStore operation. If a LocalStore
+ * operation fails because the primary lease has been taken by another client,
+ * we ignore the error (the persistence layer will immediately call
+ * `applyPrimaryLease` to propagate the primary state change). All other errors
+ * are re-thrown.
+ *
+ * @param err An error returned by a LocalStore operation.
+ * @return A Promise that resolves after we recovered, or the original error.
+ */
+export async function ignoreIfPrimaryLeaseLoss(
+  err: FirestoreError
+): Promise<void> {
+  if (isPrimaryLeaseLostError(err)) {
+    log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
+  } else {
+    throw err;
+  }
+}
+
 /**
  * Helper to get a typed SimpleDbStore for the primary client object store.
  */
@@ -1071,12 +1098,27 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
   readonly garbageCollector: LruGarbageCollector;
 
-  constructor(private readonly db: IndexedDbPersistence) {
-    this.garbageCollector = new LruGarbageCollector(this);
+  constructor(private readonly db: IndexedDbPersistence, params: LruParams) {
+    this.garbageCollector = new LruGarbageCollector(this, params);
   }
 
-  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
-    return this.db.getQueryCache().getQueryCount(txn);
+  getSequenceNumberCount(
+    txn: PersistenceTransaction
+  ): PersistencePromise<number> {
+    const docCountPromise = this.orphanedDocmentCount(txn);
+    const targetCountPromise = this.db.getQueryCache().getQueryCount(txn);
+    return targetCountPromise.next(targetCount =>
+      docCountPromise.next(docCount => targetCount + docCount)
+    );
+  }
+
+  private orphanedDocmentCount(
+    txn: PersistenceTransaction
+  ): PersistencePromise<number> {
+    let orphanedCount = 0;
+    return this.forEachOrphanedDocumentSequenceNumber(txn, _ => {
+      orphanedCount++;
+    }).next(() => orphanedCount);
   }
 
   forEachTarget(
@@ -1264,6 +1306,10 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
           f(new DocumentKey(decode(nextPath)), nextToReport);
         }
       });
+  }
+
+  getCacheSize(txn: PersistenceTransaction): PersistencePromise<number> {
+    return this.db.getRemoteDocumentCache().getSize(txn);
   }
 }
 

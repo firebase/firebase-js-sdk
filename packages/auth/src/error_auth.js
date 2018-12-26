@@ -137,6 +137,7 @@ fireauth.authenum.Error = {
   INVALID_CONTINUE_URI: 'invalid-continue-uri',
   INVALID_CORDOVA_CONFIGURATION: 'invalid-cordova-configuration',
   INVALID_CUSTOM_TOKEN: 'invalid-custom-token',
+  INVALID_DYNAMIC_LINK_DOMAIN: 'invalid-dynamic-link-domain',
   INVALID_EMAIL: 'invalid-email',
   INVALID_IDP_RESPONSE: 'invalid-credential',
   INVALID_MESSAGE_PAYLOAD: 'invalid-message-payload',
@@ -158,6 +159,7 @@ fireauth.authenum.Error = {
   MISSING_CONTINUE_URI: 'missing-continue-uri',
   MISSING_IFRAME_START: 'missing-iframe-start',
   MISSING_IOS_BUNDLE_ID: 'missing-ios-bundle-id',
+  MISSING_OR_INVALID_NONCE: 'missing-or-invalid-nonce',
   MISSING_PHONE_NUMBER: 'missing-phone-number',
   MISSING_SESSION_INFO: 'missing-verification-id',
   MODULE_DESTROYED: 'app-deleted',
@@ -262,6 +264,10 @@ fireauth.AuthError.MESSAGES_[
     'cordova-plugin-customurlscheme.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_CUSTOM_TOKEN] =
     'The custom token format is incorrect. Please check the documentation.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN] = 'The provided ' +
+    'dynamic link domain is not configured or authorized for the current ' +
+    'project.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_EMAIL] =
     'The email address is badly formatted.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_API_KEY] =
@@ -326,6 +332,8 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_IFRAME_START] =
     'An internal error has occurred.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID] =
     'An iOS Bundle ID must be provided if an App Store ID is provided.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_OR_INVALID_NONCE] =
+    'The OIDC ID token requires a valid unhashed nonce.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_PHONE_NUMBER] =
     'To send verification codes, provide a phone number for the recipient.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_SESSION_INFO] =

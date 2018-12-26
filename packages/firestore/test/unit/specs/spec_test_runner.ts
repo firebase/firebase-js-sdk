@@ -45,6 +45,7 @@ import {
   SchemaConverter
 } from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
@@ -82,11 +83,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import {
-  AnyDuringMigration,
-  AnyJs,
-  primitiveComparator
-} from '../../../src/util/misc';
+import { AnyJs, primitiveComparator } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
@@ -159,8 +156,9 @@ class MockConnection implements Connection {
   }
 
   waitForWriteRequest(): Promise<api.WriteRequest> {
-    if (this.earlyWrites.length > 0) {
-      return Promise.resolve(this.earlyWrites.shift()) as AnyDuringMigration;
+    const earlyWrite = this.earlyWrites.shift();
+    if (earlyWrite) {
+      return Promise.resolve(earlyWrite);
     }
     const barrier = new Deferred<WriteRequest>();
     this.writeSendBarriers.push(barrier);
@@ -1161,8 +1159,12 @@ class MemoryTestRunner extends TestRunner {
   ): Promise<Persistence> {
     return Promise.resolve(
       gcEnabled
-        ? MemoryPersistence.createEagerPersistence(this.clientId, serializer)
-        : MemoryPersistence.createLruPersistence(this.clientId, serializer)
+        ? MemoryPersistence.createEagerPersistence(this.clientId)
+        : MemoryPersistence.createLruPersistence(
+            this.clientId,
+            serializer,
+            LruParams.DEFAULT
+          )
     );
   }
 }
@@ -1193,6 +1195,7 @@ class IndexedDbTestRunner extends TestRunner {
       this.platform,
       this.queue,
       serializer,
+      LruParams.DEFAULT,
       { sequenceNumberSyncer: this.sharedClientState }
     );
   }

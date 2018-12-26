@@ -127,3 +127,11 @@ fireauth.constants.getEndpointId = function(opt_id) {
 
 /** @const {string|undefined} The current client endpoint. */
 fireauth.constants.clientEndpoint = fireauth.constants.getEndpointId('__EID__');
+
+
+/** @const {string} The required SAML provider ID prefix. */
+fireauth.constants.SAML_PREFIX = 'saml.';
+
+
+/** @const {string} The required OIDC provider ID prefix. */
+fireauth.constants.OIDC_PREFIX = 'oidc.';

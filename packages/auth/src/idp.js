@@ -24,6 +24,8 @@ goog.provide('fireauth.idp.ProviderId');
 goog.provide('fireauth.idp.Settings');
 goog.provide('fireauth.idp.SignInMethod');
 
+goog.require('fireauth.constants');
+
 
 /**
  * Enums for supported provider IDs. These provider IDs correspond to the
@@ -154,4 +156,14 @@ fireauth.idp.getIdpSettings = function(providerId) {
 fireauth.idp.getReservedOAuthParams = function(providerId) {
   var settings = fireauth.idp.getIdpSettings(providerId);
   return (settings && settings.reservedOAuthParameters) || [];
+};
+
+
+/**
+ * @param {?string|undefined} identifier The provider identifier.
+ * @return {boolean} Whether the identifier provided is a SAML provider ID.
+ */
+fireauth.idp.isSaml = function(identifier) {
+   return typeof identifier === 'string' &&
+     identifier.indexOf(fireauth.constants.SAML_PREFIX) == 0;
 };

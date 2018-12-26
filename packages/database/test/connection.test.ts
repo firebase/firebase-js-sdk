@@ -15,14 +15,14 @@
  */
 
 import { expect } from 'chai';
-import { TEST_PROJECT, testRepoInfo } from './helpers/util';
+import { repoInfoForConnectionTest } from './helpers/util';
 import { Connection } from '../src/realtime/Connection';
 
 describe('Connection', () => {
   it('return the session id', function(done) {
     new Connection(
       '1',
-      testRepoInfo(TEST_PROJECT.databaseURL),
+      repoInfoForConnectionTest(),
       message => {},
       (timestamp, sessionId) => {
         expect(sessionId).not.to.be.null;
@@ -38,7 +38,7 @@ describe('Connection', () => {
   // fails about 20% of the time (open - it never fails).  In the failing
   // case a long-poll is opened first.
   it.skip('disconnect old session on new connection', function(done) {
-    const info = testRepoInfo(TEST_PROJECT.databaseURL);
+    const info = repoInfoForConnectionTest();
     new Connection(
       '1',
       info,

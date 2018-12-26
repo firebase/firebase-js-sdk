@@ -18,6 +18,7 @@ import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert } from '../util/assert';
 import * as misc from '../util/misc';
+import { SortedSet } from '../util/sorted_set';
 
 import {
   Document,
@@ -41,8 +42,14 @@ import { TransformOperation } from './transform_operation';
  *             containing foo
  */
 export class FieldMask {
-  constructor(readonly fields: FieldPath[]) {
+  private constructor(readonly fields: SortedSet<FieldPath>) {
     // TODO(dimond): validation of FieldMask
+  }
+
+  static fromArray(fields: FieldPath[]): FieldMask {
+    let fieldsAsSet = new SortedSet<FieldPath>(FieldPath.comparator);
+    fields.forEach(fieldPath => (fieldsAsSet = fieldsAsSet.add(fieldPath)));
+    return new FieldMask(fieldsAsSet);
   }
 
   /**
@@ -52,13 +59,13 @@ export class FieldMask {
    * This is an O(n) operation, where `n` is the size of the field mask.
    */
   covers(fieldPath: FieldPath): boolean {
-    for (const fieldMaskPath of this.fields) {
+    let found = false;
+    this.fields.forEach(fieldMaskPath => {
       if (fieldMaskPath.isPrefixOf(fieldPath)) {
-        return true;
+        found = true;
       }
-    }
-
-    return false;
+    });
+    return found;
   }
 
   /**
@@ -84,7 +91,7 @@ export class FieldMask {
   }
 
   isEqual(other: FieldMask): boolean {
-    return misc.arrayEquals(this.fields, other.fields);
+    return this.fields.isEqual(other.fields);
   }
 }
 
@@ -497,7 +504,7 @@ export class PatchMutation extends Mutation {
   }
 
   private patchObject(data: ObjectValue): ObjectValue {
-    for (const fieldPath of this.fieldMask.fields) {
+    this.fieldMask.fields.forEach(fieldPath => {
       if (!fieldPath.isEmpty()) {
         const newValue = this.data.field(fieldPath);
         if (newValue !== undefined) {
@@ -506,7 +513,7 @@ export class PatchMutation extends Mutation {
           data = data.delete(fieldPath);
         }
       }
-    }
+    });
     return data;
   }
 }
