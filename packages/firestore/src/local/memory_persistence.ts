@@ -244,7 +244,6 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const cache = this.persistence.getRemoteDocumentCache();
-    const size = this.orphanedDocuments.size;
     return PersistencePromise.forEach(this.orphanedDocuments, key => {
       return this.isReferenced(txn, key).next(isReferenced => {
         if (!isReferenced) {
