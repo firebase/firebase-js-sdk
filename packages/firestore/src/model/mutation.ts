@@ -607,7 +607,9 @@ export class TransformMutation extends Mutation {
 
   get fieldMask(): FieldMask {
     let fieldMask = new SortedSet<FieldPath>(FieldPath.comparator);
-    this.fieldTransforms.forEach(transform => (fieldMask = fieldMask.add(transform.field)));
+    this.fieldTransforms.forEach(
+      transform => (fieldMask = fieldMask.add(transform.field))
+    );
     return new FieldMask(fieldMask);
   }
 
