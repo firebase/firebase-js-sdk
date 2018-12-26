@@ -214,7 +214,7 @@ export declare namespace firestoreV1beta1ApiClientInterfaces {
     setToServerValue?: FieldTransformSetToServerValue;
     appendMissingElements?: ArrayValue;
     removeAllFromArray?: ArrayValue;
-    numericAdd?: Value;
+    increment?: Value;
   }
   interface Filter {
     compositeFilter?: CompositeFilter;

@@ -960,7 +960,7 @@ export class JsonProtoSerializer {
     } else if (transform instanceof NumericIncrementTransformOperation) {
       return {
         fieldPath: fieldTransform.field.canonicalString(),
-        numericAdd: this.toValue(transform.operand)
+        increment: this.toValue(transform.operand)
       };
     } else {
       throw fail('Unknown transform: ' + fieldTransform.transform);
@@ -987,8 +987,8 @@ export class JsonProtoSerializer {
       transform = new ArrayRemoveTransformOperation(
         values.map(v => this.fromValue(v))
       );
-    } else if (hasTag(proto, type, 'numericAdd')) {
-      const operand = this.fromValue(proto.numericAdd!);
+    } else if (hasTag(proto, type, 'increment')) {
+      const operand = this.fromValue(proto.increment!);
       assert(
         operand instanceof NumberValue,
         'NUMERIC_ADD transform requires a NumberValue'

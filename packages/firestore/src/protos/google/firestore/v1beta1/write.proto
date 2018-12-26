@@ -99,7 +99,7 @@ message DocumentTransform {
       // representation of double values follow IEEE 754 semantics.
       // If there is positive/negative integer overflow, the field is resolved
       // to the largest magnitude positive/negative integer.
-      Value numeric_add = 3;
+      Value increment = 3;
 
       // Append the given elements in order if they are not already present in
       // the current field value.

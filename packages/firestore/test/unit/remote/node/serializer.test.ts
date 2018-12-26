@@ -714,8 +714,8 @@ describe('Serializer', () => {
         transform: {
           document: s.toName(mutation.key),
           fieldTransforms: [
-            { fieldPath: 'integer', numericAdd: { integerValue: '42' } },
-            { fieldPath: 'double', numericAdd: { doubleValue: 13.37 } }
+            { fieldPath: 'integer', increment: { integerValue: '42' } },
+            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
           ]
         },
         currentDocument: { exists: true }

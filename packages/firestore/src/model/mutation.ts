@@ -42,7 +42,7 @@ import { TransformOperation } from './transform_operation';
  *             containing foo
  */
 export class FieldMask {
-  private constructor(readonly fields: SortedSet<FieldPath>) {
+  constructor(readonly fields: SortedSet<FieldPath>) {
     // TODO(dimond): validation of FieldMask
   }
 
@@ -75,8 +75,7 @@ export class FieldMask {
    */
   applyTo(data: ObjectValue): ObjectValue {
     let filteredObject = ObjectValue.EMPTY;
-
-    for (const fieldMaskPath of this.fields) {
+    this.fields.forEach(fieldMaskPath => {
       if (fieldMaskPath.isEmpty()) {
         return data;
       } else {
@@ -85,7 +84,7 @@ export class FieldMask {
           filteredObject = filteredObject.set(fieldMaskPath, newValue);
         }
       }
-    }
+    });
 
     return filteredObject;
   }
@@ -607,9 +606,9 @@ export class TransformMutation extends Mutation {
   }
 
   get fieldMask(): FieldMask {
-    return new FieldMask(
-      this.fieldTransforms.map(transform => transform.field)
-    );
+    let fieldMask = new SortedSet<FieldPath>(FieldPath.comparator);
+    this.fieldTransforms.forEach(transform => (fieldMask = fieldMask.add(transform.field)));
+    return new FieldMask(fieldMask);
   }
 
   isEqual(other: Mutation): boolean {
