@@ -42,8 +42,12 @@ import { TransformOperation } from './transform_operation';
  *             containing foo
  */
 export class FieldMask {
-  constructor(readonly fields: SortedSet<FieldPath>) {
+  private constructor(readonly fields: SortedSet<FieldPath>) {
     // TODO(dimond): validation of FieldMask
+  }
+
+  static fromSet(fields: SortedSet<FieldPath>): FieldMask {
+    return new FieldMask(fields);
   }
 
   static fromArray(fields: FieldPath[]): FieldMask {

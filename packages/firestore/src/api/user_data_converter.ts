@@ -368,7 +368,7 @@ export class UserDataConverter {
         validatedFieldPaths = validatedFieldPaths.add(fieldPath);
       }
 
-      fieldMask = new FieldMask(validatedFieldPaths);
+      fieldMask = FieldMask.fromSet(validatedFieldPaths);
       fieldTransforms = context.fieldTransforms.filter(transform =>
         fieldMask.covers(transform.field)
       );
@@ -408,7 +408,7 @@ export class UserDataConverter {
       }
     });
 
-    const mask = new FieldMask(fieldMaskPaths);
+    const mask = FieldMask.fromSet(fieldMaskPaths);
     return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
   }
 
@@ -463,7 +463,7 @@ export class UserDataConverter {
       }
     }
 
-    const mask = new FieldMask(fieldMaskPaths);
+    const mask = FieldMask.fromSet(fieldMaskPaths);
     return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
   }
 
