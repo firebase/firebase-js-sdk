@@ -46,6 +46,10 @@ export class FieldMask {
     // TODO(dimond): validation of FieldMask
   }
 
+  static fromSet(fields: SortedSet<FieldPath>): FieldMask {
+    return new FieldMask(fields);
+  }
+
   static fromArray(fields: FieldPath[]): FieldMask {
     let fieldsAsSet = new SortedSet<FieldPath>(FieldPath.comparator);
     fields.forEach(fieldPath => (fieldsAsSet = fieldsAsSet.add(fieldPath)));
