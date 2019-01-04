@@ -222,7 +222,6 @@ export function loadFirestoreRules(
 
 export type clearFirestoreDataOptions = {
   projectId: string;
-  databaseId?: string;
 };
 export function clearFirestoreData(
   options: clearFirestoreDataOptions
@@ -230,10 +229,6 @@ export function clearFirestoreData(
   if (!options.projectId) {
     throw new Error('projectId not specified');
   }
-
-  const optionsWithDefaults = Object.assign({}, options, {
-    databaseId: '(default)'
-  });
 
   let client = new EMULATOR.FirestoreEmulator(
     FIRESTORE_ADDRESS,
@@ -247,9 +242,7 @@ export function clearFirestoreData(
   return new Promise((resolve, reject) => {
     client.clearData(
       {
-        database: `projects/${optionsWithDefaults.projectId}/databases/${
-          optionsWithDefaults.databaseId
-        }`
+        database: `projects/${options.projectId}/databases/(default)`
       },
       (err, resp) => {
         if (err) {
