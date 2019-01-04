@@ -220,11 +220,11 @@ export function loadFirestoreRules(
   });
 }
 
-export type clearFirestoreDataOptions = {
+export type ClearFirestoreDataOptions = {
   projectId: string;
 };
 export function clearFirestoreData(
-  options: clearFirestoreDataOptions
+  options: ClearFirestoreDataOptions
 ): Promise<void> {
   if (!options.projectId) {
     throw new Error('projectId not specified');
