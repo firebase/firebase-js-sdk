@@ -109,10 +109,10 @@ function initializeApp(
 ): firebase.app.App {
   let appOptions = {};
   if (databaseName) {
-    appOptions["databaseURL"] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
+    appOptions['databaseURL'] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
   }
   if (projectId) {
-    appOptions["projectId"] = projectId;
+    appOptions['projectId'] = projectId;
   }
   const appName = 'app-' + new Date().getTime() + '-' + Math.random();
   let app = firebase.initializeApp(appOptions, appName);
@@ -231,7 +231,9 @@ export function clearFirestoreData(
     throw new Error('projectId not specified');
   }
 
-  const optionsWithDefaults = Object.assign({}, options, {databaseId: '(default)'})
+  const optionsWithDefaults = Object.assign({}, options, {
+    databaseId: '(default)'
+  });
 
   let client = new EMULATOR.FirestoreEmulator(
     FIRESTORE_ADDRESS,
@@ -245,7 +247,9 @@ export function clearFirestoreData(
   return new Promise((resolve, reject) => {
     client.clearData(
       {
-        database: `projects/${optionsWithDefaults.projectId}/databases/${optionsWithDefaults.databaseId}`,
+        database: `projects/${optionsWithDefaults.projectId}/databases/${
+          optionsWithDefaults.databaseId
+        }`
       },
       (err, resp) => {
         if (err) {
