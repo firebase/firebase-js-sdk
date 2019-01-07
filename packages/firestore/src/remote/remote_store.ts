@@ -644,9 +644,9 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async handleHandshakeError(error: FirestoreError): Promise<void> {
-    // Reset the token if it's a permanent error or the error code is
-    // ABORTED, signaling the write stream is no longer valid.
-    if (isPermanentError(error.code) || error.code === Code.ABORTED) {
+    // Reset the token if it's a permanent error, signaling the write stream is
+    // no longer valid.
+    if (isPermanentError(error.code)) {
       log.debug(
         LOG_TAG,
         'RemoteStore error before completed handshake; resetting stream token: ',
@@ -664,7 +664,10 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async handleWriteError(error: FirestoreError): Promise<void> {
-    if (isPermanentError(error.code)) {
+    // Only handle permanent errors here. If it's transient, just let the retry
+    // logic kick in. As of b/119437764, ABORTED errors on the write stream
+    // should be retried too.
+    if (isPermanentError(error.code) && error.code !== Code.ABORTED) {
       // This was a permanent error, the request itself was the problem
       // so it's not going to succeed if we resend it.
       const batch = this.writePipeline.shift()!;
