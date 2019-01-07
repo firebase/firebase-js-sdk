@@ -83,7 +83,6 @@ describe('RxFire Firestore', () => {
   beforeEach(() => {
     app = initializeApp({ projectId: TEST_PROJECT.projectId });
     firestore = app.firestore();
-    firestore.settings({ timestampsInSnapshots: true });
     firestore.disableNetwork();
   });
 

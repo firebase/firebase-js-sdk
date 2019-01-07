@@ -329,7 +329,7 @@ export class TimestampValue extends FieldValue {
   }
 
   value(options?: FieldValueOptions): Date | Timestamp {
-    if (options && options.timestampsInSnapshots) {
+    if (!options || options.timestampsInSnapshots) {
       return this.internalValue;
     } else {
       return this.internalValue.toDate();

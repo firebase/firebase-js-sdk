@@ -132,7 +132,6 @@ function initializeApp(
     app.firestore().settings({
       host: FIRESTORE_ADDRESS,
       ssl: false,
-      timestampsInSnapshots: true
     });
   }
   /**
