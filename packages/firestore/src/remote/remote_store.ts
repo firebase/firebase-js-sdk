@@ -41,7 +41,7 @@ import {
   PersistentWriteStream
 } from './persistent_stream';
 import { RemoteSyncer } from './remote_syncer';
-import { isPermanentError } from './rpc_error';
+import { isPermanentError, isPermanentWriteError } from './rpc_error';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -645,7 +645,8 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private async handleHandshakeError(error: FirestoreError): Promise<void> {
     // Reset the token if it's a permanent error, signaling the write stream is
-    // no longer valid.
+    // no longer valid. Note that the handshake does not count as a write: see
+    // comments on isPermanentWriteError for details.
     if (isPermanentError(error.code)) {
       log.debug(
         LOG_TAG,
@@ -665,9 +666,8 @@ export class RemoteStore implements TargetMetadataProvider {
 
   private async handleWriteError(error: FirestoreError): Promise<void> {
     // Only handle permanent errors here. If it's transient, just let the retry
-    // logic kick in. As of b/119437764, ABORTED errors on the write stream
-    // should be retried too.
-    if (isPermanentError(error.code) && error.code !== Code.ABORTED) {
+    // logic kick in.
+    if (isPermanentWriteError(error.code)) {
       // This was a permanent error, the request itself was the problem
       // so it's not going to succeed if we resend it.
       const batch = this.writePipeline.shift()!;
