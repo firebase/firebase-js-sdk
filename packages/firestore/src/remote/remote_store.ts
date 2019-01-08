@@ -27,7 +27,7 @@ import {
 } from '../model/mutation_batch';
 import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
+import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
