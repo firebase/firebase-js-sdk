@@ -109,10 +109,10 @@ function initializeApp(
 ): firebase.app.App {
   let appOptions = {};
   if (databaseName) {
-    appOptions["databaseURL"] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
+    appOptions['databaseURL'] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
   }
   if (projectId) {
-    appOptions["projectId"] = projectId;
+    appOptions['projectId'] = projectId;
   }
   const appName = 'app-' + new Date().getTime() + '-' + Math.random();
   let app = firebase.initializeApp(appOptions, appName);
