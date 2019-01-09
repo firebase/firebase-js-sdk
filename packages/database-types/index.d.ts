@@ -125,7 +125,7 @@ export interface ServerValue {
   };
 }
 
-export interface ThenableReference extends Reference, PromiseLike<Reference> {}
+export interface ThenableReference extends Reference, Promise<Reference> {}
 
 export function enableLogging(
   logger?: boolean | ((a: string) => any),
