@@ -585,7 +585,7 @@ declare namespace firebase.database {
 
   interface ThenableReference
     extends firebase.database.Reference,
-      PromiseLike<any> {}
+      Promise<Reference> {}
 
   function enableLogging(
     logger?: boolean | ((a: string) => any),
