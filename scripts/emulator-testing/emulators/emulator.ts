@@ -51,8 +51,15 @@ export abstract class Emulator {
           .pipe(writeStream)
           .on('finish', () => {
             console.log(`Saved emulator binary file to [${filepath}].`);
-            this.binaryPath = filepath;
-            resolve();
+            // Change emulator binary file permission to 'rwxr-xr-x'.
+            // The execute permission is required for it to be able to start
+            // with 'java -jar'.
+            fs.chmod(filepath, 0o755, err => {
+              if (err) reject(err);
+              console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
+              this.binaryPath = filepath;
+              resolve();
+            });
           })
           .on('error', reject);
       });
