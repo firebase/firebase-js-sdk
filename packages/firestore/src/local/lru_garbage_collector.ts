@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { CACHE_SIZE_UNLIMITED } from '../api/database';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
 import { assert } from '../util/assert';
@@ -235,7 +234,7 @@ export class LruScheduler {
     );
     if (
       this.garbageCollector.params.cacheSizeCollectionThreshold !==
-      CACHE_SIZE_UNLIMITED
+      LruParams.COLLECTION_DISABLED
     ) {
       this.scheduleGC();
     }
