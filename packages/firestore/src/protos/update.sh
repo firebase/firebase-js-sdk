@@ -42,9 +42,9 @@ mkdir -p "${PROTOS_DIR}/google/api"
 cp googleapis/google/api/{annotations.proto,http.proto} \
    "${PROTOS_DIR}/google/api/"
 
-mkdir -p "${PROTOS_DIR}/google/firestore/v1beta1"
-cp googleapis/google/firestore/v1beta1/*.proto \
-   "${PROTOS_DIR}/google/firestore/v1beta1/"
+mkdir -p "${PROTOS_DIR}/google/firestore/v1"
+cp googleapis/google/firestore/v1/*.proto \
+   "${PROTOS_DIR}/google/firestore/v1/"
 
 mkdir -p "${PROTOS_DIR}/google/rpc"
 cp googleapis/google/rpc/status.proto \
