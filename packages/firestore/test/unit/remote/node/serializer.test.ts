@@ -78,7 +78,7 @@ describe('Serializer', () => {
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
   const protos = loadProtos();
-  const ds = protos['google']['firestore']['v1beta1'];
+  const ds = protos['google']['firestore']['v1'];
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
