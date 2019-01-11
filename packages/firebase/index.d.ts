@@ -789,7 +789,7 @@ declare namespace firebase.firestore {
      * To opt into the old behavior of returning `Date` objects, you can
      * temporarily set `timestampsInSnapshots` to false.
      *
-     * WARNING: This setting will be removed in a future release. You should
+     * @deprecated This setting will be removed in a future release. You should
      * update your code to expect `Timestamp` objects and stop using the
      * `timestampsInSnapshots` setting.
      */

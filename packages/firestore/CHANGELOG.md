@@ -1,7 +1,7 @@
 # Unreleased
 - [changed] The `timestampsInSnapshots` setting is now enabled by default
   so timestamp fields read from a `DocumentSnapshot` will be returned as
-  `Timestamp` objects instead of `Date`. Any cexpecting to receive a
+  `Timestamp` objects instead of `Date`. Any code expecting to receive a
   `Date` object must be updated.
 
 # 0.9.2
