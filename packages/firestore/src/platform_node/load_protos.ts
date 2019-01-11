@@ -35,7 +35,7 @@ export function loadProtos(): grpc.GrpcObject {
   );
   const firestoreProtoFile = {
     root,
-    file: 'google/firestore/v1beta1/firestore.proto'
+    file: 'google/firestore/v1/firestore.proto'
   };
   return grpc.load(firestoreProtoFile, /*format=*/ 'proto', options);
 }

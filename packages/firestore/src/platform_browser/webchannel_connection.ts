@@ -41,8 +41,8 @@ import { StringMap } from '../util/types';
 
 const LOG_TAG = 'Connection';
 
-const RPC_STREAM_SERVICE = 'google.firestore.v1beta1.Firestore';
-const RPC_URL_VERSION = 'v1beta1';
+const RPC_STREAM_SERVICE = 'google.firestore.v1.Firestore';
+const RPC_URL_VERSION = 'v1';
 
 /** Maps RPC names to the corresponding REST endpoint name. */
 const RPC_NAME_REST_MAPPING = {
