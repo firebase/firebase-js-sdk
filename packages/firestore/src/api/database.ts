@@ -106,7 +106,7 @@ import {
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
-const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
+const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = true;
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -192,6 +192,37 @@ class FirestoreSettings {
       'timestampsInSnapshots',
       settings.timestampsInSnapshots
     );
+
+    // Nobody should set timestampsInSnapshots anymore, but the error depends on
+    // whether they set it to true or false...
+    if (settings.timestampsInSnapshots === true) {
+      log.error(`
+  The timestampsInSnapshots setting now defaults to true and you no
+  longer need to explicitly set it. In a future release, the setting
+  will be removed entirely and so it is recommended that you remove it
+  from your firestore.settings() call now.`);
+    } else if (settings.timestampsInSnapshots === false) {
+      log.error(`
+  The timestampsInSnapshots setting will soon be removed. YOU MUST UPDATE
+  YOUR CODE.
+
+  To hide this warning, stop using the timestampsInSnapshots setting in your
+  firestore.settings({ ... }) call.
+
+  Once you remove the setting, Timestamps stored in Cloud Firestore will be
+  read back as Firebase Timestamp objects instead of as system Date objects.
+  So you will also need to update code expecting a Date to instead expect a
+  Timestamp. For example:
+
+  // Old:
+  const date = snapshot.get('created_at');
+  // New:
+  const timestamp = snapshot.get('created_at'); const date =
+  timestamp.toDate();
+
+  Please audit all existing usages of Date when you enable the new
+  behavior.`);
+    }
     this.timestampsInSnapshots = objUtils.defaulted(
       settings.timestampsInSnapshots,
       DEFAULT_TIMESTAMPS_IN_SNAPSHOTS
@@ -372,32 +403,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       !!this._config.settings.host,
       'FirestoreSettings.host cannot be falsey'
     );
-
-    if (!this._config.settings.timestampsInSnapshots) {
-      log.error(`
-The behavior for Date objects stored in Firestore is going to change
-AND YOUR APP MAY BREAK.
-To hide this warning and ensure your app does not break, you need to add the
-following code to your app before calling any other Cloud Firestore methods:
-
-  const firestore = firebase.firestore();
-  const settings = {/* your settings... */ timestampsInSnapshots: true};
-  firestore.settings(settings);
-
-With this change, timestamps stored in Cloud Firestore will be read back as
-Firebase Timestamp objects instead of as system Date objects. So you will also
-need to update code expecting a Date to instead expect a Timestamp. For example:
-
-  // Old:
-  const date = snapshot.get('created_at');
-  // New:
-  const timestamp = snapshot.get('created_at');
-  const date = timestamp.toDate();
-
-Please audit all existing usages of Date when you enable the new behavior. In a
-future release, the behavior will change to the new behavior, so if you do not
-follow these steps, YOUR APP MAY BREAK.`);
-    }
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
