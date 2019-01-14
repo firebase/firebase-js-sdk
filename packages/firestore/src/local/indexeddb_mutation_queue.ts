@@ -117,13 +117,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
-      const batchId = batch.batchId;
-      assert(
-        batchId > metadata.lastAcknowledgedBatchId,
-        'Mutation batchIDs must be acknowledged in order'
-      );
-
-      metadata.lastAcknowledgedBatchId = batchId;
       metadata.lastStreamToken = convertStreamToken(streamToken);
 
       return mutationQueuesStore(transaction).put(metadata);
@@ -233,11 +226,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
     return this.getMutationQueueMetadata(transaction).next(metadata => {
-      // All batches with batchId <= this.metadata.lastAcknowledgedBatchId have
-      // been acknowledged so the first unacknowledged batch after batchID will
-      // have a batchID larger than both of these values.
-      const nextBatchId =
-        Math.max(batchId, metadata.lastAcknowledgedBatchId) + 1;
+      const nextBatchId = batchId + 1;
 
       const range = IDBKeyRange.lowerBound([this.userId, nextBatchId]);
       let foundBatch: MutationBatch | null = null;

@@ -305,6 +305,8 @@ export class DbMutationQueue {
      * by the server. All MutationBatches in this queue with batchIds less
      * than or equal to this value are considered to have been acknowledged by
      * the server.
+     *
+     * NOTE: this is deprecated and no longer used by the code.
      */
     public lastAcknowledgedBatchId: number,
     /**
