@@ -3,6 +3,9 @@
   so timestamp fields read from a `DocumentSnapshot` will be returned as
   `Timestamp` objects instead of `Date`. Any code expecting to receive a
   `Date` object must be updated.
+- [fixed] Fixed a crash that could happen when the app is shut down after
+  a write has been sent to the server but before it has been received on
+  a listener.
 
 # 0.9.2
 - [fixed] Fixed a regression introduced in 5.7.0 that caused apps using
