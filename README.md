@@ -8,7 +8,7 @@
 The Firebase JavaScript SDK implements the client-side libraries used by
 applications using Firebase services. This SDK is distributed via:
 
-- CDN (`<script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>`)
+- CDN (`<script src="https://www.gstatic.com/firebasejs/5.5.3/firebase.js"></script>`)
 - [npm package](https://www.npmjs.com/package/firebase)
 - [Bower package](https://github.com/firebase/firebase-bower)
 
@@ -24,7 +24,8 @@ Current [Release Notes](https://firebase.google.com/support/release-notes/js)
 #### Node.js
 
 Before you can start working on the Firebase JS SDK, you need to have Node.js
-`8.0.0` or greater installed on your machine. 
+installed on your machine. The currently supported versions are `8.0.0` or greater,
+but smaller than `10.0.0`.
 
 To download Node.js visit https://nodejs.org/en/download/.
 

@@ -105,7 +105,7 @@ declare namespace firebase {
 
   function app(name?: string): firebase.app.App;
 
-  var apps: (firebase.app.App | null)[];
+  var apps: firebase.app.App[];
 
   function auth(app?: firebase.app.App): firebase.auth.Auth;
 
@@ -145,6 +145,7 @@ declare namespace firebase.functions {
   }
   export class Functions {
     private constructor();
+    useFunctionsEmulator(url: string): void;
     httpsCallable(name: string): HttpsCallable;
   }
   export type ErrorStatus =
@@ -189,6 +190,7 @@ declare namespace firebase.auth {
     handleCodeInApp?: boolean;
     iOS?: { bundleId: string };
     url: string;
+    dynamicLinkDomain?: string;
   };
 
   type AdditionalUserInfo = {
@@ -364,6 +366,22 @@ declare namespace firebase.auth {
     setCustomParameters(
       customOAuthParameters: Object
     ): firebase.auth.AuthProvider;
+  }
+
+  class OAuthProvider implements firebase.auth.AuthProvider {
+    providerId: string;
+    addScope(scope: string): firebase.auth.AuthProvider;
+    credential(
+      idToken?: string,
+      accessToken?: string
+    ): firebase.auth.AuthCredential;
+    setCustomParameters(
+      customOAuthParameters: Object
+    ): firebase.auth.AuthProvider;
+  }
+
+  class SAMLAuthProvider implements firebase.auth.AuthProvider {
+    providerId: string;
   }
 
   interface IdTokenResult {
@@ -567,7 +585,7 @@ declare namespace firebase.database {
 
   interface ThenableReference
     extends firebase.database.Reference,
-      PromiseLike<any> {}
+      Promise<Reference> {}
 
   function enableLogging(
     logger?: boolean | ((a: string) => any),
@@ -741,6 +759,13 @@ declare namespace firebase.firestore {
    */
   export type UpdateData = { [fieldPath: string]: any };
 
+  /**
+   * Constant used to indicate the LRU garbage collection should be disabled.
+   * Set this value as the `cacheSizeBytes` on the settings passed to the
+   * `Firestore` instance.
+   */
+  export const CACHE_SIZE_UNLIMITED: number;
+
   /** Settings used to configure a `Firestore` instance. */
   export interface Settings {
     /** The hostname to connect to. */
@@ -749,46 +774,58 @@ declare namespace firebase.firestore {
     ssl?: boolean;
 
     /**
-     * Enables the use of `Timestamp`s for timestamp fields in
-     * `DocumentSnapshot`s.
+     * Specifies whether to use `Timestamp` objects for timestamp fields in
+     * `DocumentSnapshot`s. This is enabled by default and should not be
+     * disabled.
      *
-     * Currently, Firestore returns timestamp fields as `Date` but `Date` only
-     * supports millisecond precision, which leads to truncation and causes
-     * unexpected behavior when using a timestamp from a snapshot as a part
-     * of a subsequent query.
+     * Previously, Firestore returned timestamp fields as `Date` but `Date`
+     * only supports millisecond precision, which leads to truncation and
+     * causes unexpected behavior when using a timestamp from a snapshot as a
+     * part of a subsequent query.
      *
-     * Setting `timestampsInSnapshots` to true will cause Firestore to return
-     * `Timestamp` values instead of `Date` avoiding this kind of problem. To make
-     * this work you must also change any code that uses `Date` to use `Timestamp`
-     * instead.
+     * So now Firestore returns `Timestamp` values instead of `Date`, avoiding
+     * this kind of problem.
      *
-     * NOTE: in the future `timestampsInSnapshots: true` will become the
-     * default and this option will be removed so you should change your code to
-     * use Timestamp now and opt-in to this new behavior as soon as you can.
+     * To opt into the old behavior of returning `Date` objects, you can
+     * temporarily set `timestampsInSnapshots` to false.
+     *
+     * @deprecated This setting will be removed in a future release. You should
+     * update your code to expect `Timestamp` objects and stop using the
+     * `timestampsInSnapshots` setting.
      */
     timestampsInSnapshots?: boolean;
+
+    /**
+     * An approximate cache size threshold for the on-disk data. If the cache grows beyond this
+     * size, Firestore will start removing data that hasn't been recently used. The size is not a
+     * guarantee that the cache will stay below that size, only that if the cache exceeds the given
+     * size, cleanup will be attempted.
+     *
+     * The default value is 40 MB. The threshold must be set to at least 1 MB, and can be set to
+     * CACHE_SIZE_UNLIMITED to disable garbage collection.
+     */
+    cacheSizeBytes?: number;
   }
 
-  // TODO(multitab): Uncomment when multi-tab is released publicly.
-  // /**
-  //  * Settings that can be passed to Firestore.enablePersistence() to configure
-  //  * Firestore persistence.
-  //  */
-  // export interface PersistenceSettings {
-  //   /**
-  //    * Whether to synchronize the in-memory state of multiple tabs. Setting this
-  //    * to 'true' in all open tabs enables shared access to local persistence,
-  //    * shared execution of queries and latency-compensated local document updates
-  //    * across all connected instances.
-  //    *
-  //    * To enable this mode, `experimentalTabSynchronization:true` needs to be set
-  //    * globally in all active tabs. If omitted or set to 'false',
-  //    * `enablePersistence()` will fail in all but the first tab.
-  //    *
-  //    * NOTE: This mode is not yet recommended for production use.
-  //    */
-  //   experimentalTabSynchronization?: boolean;
-  // }
+  /**
+   * Settings that can be passed to Firestore.enablePersistence() to configure
+   * Firestore persistence.
+   */
+  export interface PersistenceSettings {
+    /**
+     * Whether to synchronize the in-memory state of multiple tabs. Setting this
+     * to 'true' in all open tabs enables shared access to local persistence,
+     * shared execution of queries and latency-compensated local document updates
+     * across all connected instances.
+     *
+     * To enable this mode, `experimentalTabSynchronization:true` needs to be set
+     * globally in all active tabs. If omitted or set to 'false',
+     * `enablePersistence()` will fail in all but the first tab.
+     *
+     * NOTE: This mode is not yet recommended for production use.
+     */
+    experimentalTabSynchronization?: boolean;
+  }
 
   export type LogLevel = 'debug' | 'error' | 'silent';
 
@@ -824,33 +861,11 @@ declare namespace firebase.firestore {
      *   * unimplemented: The browser is incompatible with the offline
      *     persistence implementation.
      *
+     * @param settings Optional settings object to configure persistence.
      * @return A promise that represents successfully enabling persistent
      * storage.
      */
-    enablePersistence(): Promise<void>;
-
-    // TODO(multitab): Uncomment when multi-tab is released publicly.
-    // /**
-    //  * Attempts to enable persistent storage, if possible.
-    //  *
-    //  * Must be called before any other methods (other than settings()).
-    //  *
-    //  * If this fails, enablePersistence() will reject the promise it returns.
-    //  * Note that even after this failure, the firestore instance will remain
-    //  * usable, however offline persistence will be disabled.
-    //  *
-    //  * There are several reasons why this can fail, which can be identified by
-    //  * the `code` on the error.
-    //  *
-    //  *   * failed-precondition: The app is already open in another browser tab.
-    //  *   * unimplemented: The browser is incompatible with the offline
-    //  *     persistence implementation.
-    //  *
-    //  * @param settings Optional settings object to configure persistence.
-    //  * @return A promise that represents successfully enabling persistent
-    //  * storage.
-    //  */
-    // enablePersistence(settings?: PersistenceSettings): Promise<void>;
+    enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
     /**
      * Gets a `CollectionReference` instance that refers to the collection at

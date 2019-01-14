@@ -24,8 +24,8 @@ const grpcVersion = require('grpc/package.json').version;
 import { Token } from '../api/credentials';
 import { DatabaseInfo } from '../core/database_info';
 import { Connection, Stream } from '../remote/connection';
-import { StreamBridge } from '../remote/stream_bridge';
 import { mapCodeFromRpcCode } from '../remote/rpc_error';
+import { StreamBridge } from '../remote/stream_bridge';
 import { assert } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
@@ -97,7 +97,7 @@ export class GrpcConnection implements Connection {
   private cachedStub: CachedStub | null = null;
 
   constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
-    this.firestore = protos['google']['firestore']['v1beta1'];
+    this.firestore = protos['google']['firestore']['v1'];
   }
 
   private sameToken(tokenA: Token | null, tokenB: Token | null): boolean {
@@ -113,7 +113,17 @@ export class GrpcConnection implements Connection {
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
       this.cachedStub = {
-        stub: new this.firestore.Firestore(this.databaseInfo.host, credentials),
+        stub: new this.firestore.Firestore(
+          this.databaseInfo.host,
+          credentials,
+          {
+            // We do our own connection backoff (that for example is aware of whether or
+            // not a write stream error is permanent or not) so we don't want gRPC to do
+            // backoff on top of that. 100ms is the minimum value that gRPC allows.
+            'grpc.initial_reconnect_backoff_ms': 100,
+            'grpc.max_reconnect_backoff_ms': 100
+          }
+        ),
         token
       };
     }

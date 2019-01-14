@@ -16,24 +16,24 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
+import { ChangeType } from '../core/view_snapshot';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import {
-  maybeDocumentMap,
   documentKeySet,
-  DocumentKeySet
+  DocumentKeySet,
+  maybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { emptyByteString } from '../platform/platform';
 import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
+import { primitiveComparator } from '../util/misc';
 import * as objUtils from '../util/obj';
-import { ExistenceFilter } from './existence_filter';
-import { RemoteEvent, TargetChange } from './remote_event';
-import { ChangeType } from '../core/view_snapshot';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
-import { primitiveComparator } from '../util/misc';
+import { ExistenceFilter } from './existence_filter';
+import { RemoteEvent, TargetChange } from './remote_event';
 
 /**
  * Internal representation of the watcher API protocol buffers.

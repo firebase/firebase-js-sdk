@@ -22,9 +22,9 @@ import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
 
+import { AnyJs } from '../util/misc';
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
-import { AnyJs } from '../util/misc';
 
 export class NodePlatform implements Platform {
   readonly base64Available = true;

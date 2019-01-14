@@ -482,6 +482,22 @@ function testMatchDomain_dotsInPatternEscaped() {
 }
 
 
+function testIsValidEmailAddress() {
+  assertTrue(fireauth.util.isValidEmailAddress('test@abc.com'));
+  assertTrue(fireauth.util.isValidEmailAddress('abc@def'));
+  // International email addresses.
+  assertTrue(fireauth.util.isValidEmailAddress('Pelé@example.com'));
+  assertTrue(fireauth.util.isValidEmailAddress('我買@屋企.香港'));
+  // Invalid email addresses.
+  assertFalse(fireauth.util.isValidEmailAddress('abcdef'));
+  assertFalse(fireauth.util.isValidEmailAddress('abc.def'));
+  // Non-string.
+  assertFalse(fireauth.util.isValidEmailAddress(123));
+  assertFalse(fireauth.util.isValidEmailAddress(null));
+  assertFalse(fireauth.util.isValidEmailAddress(undefined));
+}
+
+
 function testOnDomReady() {
   return installAndRunTest('onDomReady', function() {
     // Should resolve immediately.

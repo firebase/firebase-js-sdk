@@ -88,6 +88,7 @@ export type ActionCodeSettings = {
   handleCodeInApp?: boolean;
   iOS?: { bundleId: string };
   url: string;
+  dynamicLinkDomain?: string;
 };
 
 export type AdditionalUserInfo = {
@@ -184,6 +185,10 @@ export class OAuthProvider implements AuthProvider {
   addScope(scope: string): AuthProvider;
   credential(idToken?: string, accessToken?: string): OAuthCredential;
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
+}
+
+export class SAMLAuthProvider implements AuthProvider {
+  providerId: string;
 }
 
 export class PhoneAuthProvider extends PhoneAuthProvider_Instance {
@@ -343,6 +348,7 @@ declare module '@firebase/app-types' {
       GoogleAuthProvider: typeof GoogleAuthProvider;
       GoogleAuthProvider_Instance: typeof GoogleAuthProvider_Instance;
       OAuthProvider: typeof OAuthProvider;
+      SAMLAuthProvider: typeof SAMLAuthProvider;
       PhoneAuthProvider: typeof PhoneAuthProvider;
       PhoneAuthProvider_Instance: typeof PhoneAuthProvider_Instance;
       RecaptchaVerifier: typeof RecaptchaVerifier;

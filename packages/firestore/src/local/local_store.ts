@@ -23,6 +23,7 @@ import {
   DocumentKeySet,
   documentKeySet,
   DocumentMap,
+  maybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
@@ -38,9 +39,9 @@ import { assert } from '../util/assert';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
-import { GarbageCollector } from './garbage_collector';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
+import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -156,17 +157,14 @@ export class LocalStore {
   constructor(
     /** Manages our in-memory or durable persistence. */
     private persistence: Persistence,
-    initialUser: User,
-    /**
-     * The garbage collector collects documents that should no longer be
-     * cached (e.g. if they are no longer retained by the above reference sets
-     * and the garbage collector is performing eager collection).
-     */
-    private garbageCollector: GarbageCollector
+    initialUser: User
   ) {
     assert(
       persistence.started,
       'LocalStore was passed an unstarted persistence implementation'
+    );
+    this.persistence.referenceDelegate.setInMemoryPins(
+      this.localViewReferences
     );
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
@@ -174,18 +172,6 @@ export class LocalStore {
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
       this.mutationQueue
-    );
-    this.garbageCollector.addGarbageSource(this.localViewReferences);
-    this.garbageCollector.addGarbageSource(this.queryCache);
-    this.garbageCollector.addGarbageSource(this.mutationQueue);
-  }
-
-  /** Performs any initial startup actions required by the local store. */
-  start(): Promise<void> {
-    return this.persistence.runTransaction(
-      'Start LocalStore',
-      'readonly',
-      txn => this.startMutationQueue(txn)
     );
   }
 
@@ -195,6 +181,8 @@ export class LocalStore {
    * In response the local store switches the mutation queue to the new user and
    * returns any resulting document changes.
    */
+  // PORTING NOTE: Android and iOS only return the documents affected by the
+  // change.
   handleUserChange(user: User): Promise<UserChangeResult> {
     return this.persistence.runTransaction(
       'Handle user change',
@@ -208,12 +196,8 @@ export class LocalStore {
           .next(promisedOldBatches => {
             oldBatches = promisedOldBatches;
 
-            this.garbageCollector.removeGarbageSource(this.mutationQueue);
             this.mutationQueue = this.persistence.getMutationQueue(user);
-            this.garbageCollector.addGarbageSource(this.mutationQueue);
-            return this.startMutationQueue(txn);
-          })
-          .next(() => {
+
             // Recreate our LocalDocumentsView using the new
             // MutationQueue.
             this.localDocuments = new LocalDocumentsView(
@@ -258,13 +242,6 @@ export class LocalStore {
       }
     );
   }
-
-  private startMutationQueue(
-    txn: PersistenceTransaction
-  ): PersistencePromise<void> {
-    return this.mutationQueue.start(txn);
-  }
-
   /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
     return this.persistence.runTransaction(
@@ -335,9 +312,7 @@ export class LocalStore {
       'readwrite-primary',
       txn => {
         const affected = batchResult.batch.keys();
-        const documentBuffer = new RemoteDocumentChangeBuffer(
-          this.remoteDocuments
-        );
+        const documentBuffer = this.remoteDocuments.newChangeBuffer();
         return this.mutationQueue
           .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
           .next(() =>
@@ -426,7 +401,7 @@ export class LocalStore {
    * queue.
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
-    const documentBuffer = new RemoteDocumentChangeBuffer(this.remoteDocuments);
+    const documentBuffer = this.remoteDocuments.newChangeBuffer();
     return this.persistence.runTransaction(
       'Apply remote event',
       'readwrite-primary',
@@ -492,11 +467,18 @@ export class LocalStore {
           }
         );
 
-        let changedDocKeys = documentKeySet();
+        let changedDocs = maybeDocumentMap();
+        let updatedKeys = documentKeySet();
         remoteEvent.documentUpdates.forEach((key, doc) => {
-          changedDocKeys = changedDocKeys.add(key);
-          promises.push(
-            documentBuffer.getEntry(txn, key).next(existingDoc => {
+          updatedKeys = updatedKeys.add(key);
+        });
+
+        // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
+        // documents in advance in a single call.
+        promises.push(
+          documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
+            remoteEvent.documentUpdates.forEach((key, doc) => {
+              const existingDoc = existingDocs.get(key);
               // If a document update isn't authoritative, make sure we don't
               // apply an old document version to the remote cache. We make an
               // exception for SnapshotVersion.MIN which can happen for
@@ -510,6 +492,7 @@ export class LocalStore {
                 doc.version.compareTo(existingDoc.version) >= 0
               ) {
                 documentBuffer.addEntry(doc);
+                changedDocs = changedDocs.insert(key, doc);
               } else {
                 log.debug(
                   LOG_TAG,
@@ -522,12 +505,17 @@ export class LocalStore {
                 );
               }
 
-              // The document might be garbage because it was unreferenced by
-              // everything. Make sure to mark it as garbage if it is...
-              this.garbageCollector.addPotentialGarbageKey(key);
-            })
-          );
-        });
+              if (remoteEvent.resolvedLimboDocuments.has(key)) {
+                promises.push(
+                  this.persistence.referenceDelegate.updateLimboDocument(
+                    txn,
+                    key
+                  )
+                );
+              }
+            });
+          })
+        );
 
         // HACK: The only reason we allow a null snapshot version is so that we
         // can synthesize remote events when we get permission denied errors while
@@ -557,7 +545,10 @@ export class LocalStore {
         return PersistencePromise.waitFor(promises)
           .next(() => documentBuffer.apply(txn))
           .next(() => {
-            return this.localDocuments.getDocuments(txn, changedDocKeys);
+            return this.localDocuments.getLocalViewOfDocuments(
+              txn,
+              changedDocs
+            );
           });
       }
     );
@@ -610,17 +601,26 @@ export class LocalStore {
   /**
    * Notify local store of the changed views to locally pin documents.
    */
-  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): void {
-    for (const viewChange of viewChanges) {
-      this.localViewReferences.addReferences(
-        viewChange.addedKeys,
-        viewChange.targetId
-      );
-      this.localViewReferences.removeReferences(
-        viewChange.removedKeys,
-        viewChange.targetId
-      );
-    }
+  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
+    return this.persistence.runTransaction(
+      'notifyLocalViewChanges',
+      'readwrite',
+      txn => {
+        return PersistencePromise.forEach(viewChanges, viewChange => {
+          this.localViewReferences.addReferences(
+            viewChange.addedKeys,
+            viewChange.targetId
+          );
+          this.localViewReferences.removeReferences(
+            viewChange.removedKeys,
+            viewChange.targetId
+          );
+          return PersistencePromise.forEach(viewChange.removedKeys, key =>
+            this.persistence.referenceDelegate.removeReference(txn, key)
+          );
+        });
+      }
+    );
   }
 
   /**
@@ -706,7 +706,7 @@ export class LocalStore {
    */
   // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
   releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
-    const mode = keepPersistedQueryData ? 'readonly' : 'readwrite-primary';
+    const mode = keepPersistedQueryData ? 'readwrite' : 'readwrite-primary';
     return this.persistence.runTransaction('Release query', mode, txn => {
       return this.queryCache
         .getQueryData(txn, query)
@@ -718,18 +718,23 @@ export class LocalStore {
           const targetId = queryData!.targetId;
           const cachedQueryData = this.queryDataByTarget[targetId];
 
-          this.localViewReferences.removeReferencesForId(targetId);
+          // References for documents sent via Watch are automatically removed when we delete a
+          // query's target data from the reference delegate. Since this does not remove references
+          // for locally mutated documents, we have to remove the target associations for these
+          // documents manually.
+          const removed = this.localViewReferences.removeReferencesForId(
+            targetId
+          );
           delete this.queryDataByTarget[targetId];
-          if (!keepPersistedQueryData && this.garbageCollector.isEager) {
-            return this.queryCache.removeQueryData(txn, queryData!);
-          } else if (
-            cachedQueryData.snapshotVersion > queryData!.snapshotVersion
-          ) {
-            // If we've been avoiding persisting the resumeToken (see
-            // shouldPersistQueryData for conditions and rationale) we need to
-            // persist the token now because there will no longer be an
-            // in-memory version to fall back on.
-            return this.queryCache.updateQueryData(txn, cachedQueryData);
+          if (!keepPersistedQueryData) {
+            return PersistencePromise.forEach(removed, key =>
+              this.persistence.referenceDelegate.removeReference(txn, key)
+            ).next(() =>
+              this.persistence.referenceDelegate.removeTarget(
+                txn,
+                cachedQueryData
+              )
+            );
           } else {
             return PersistencePromise.resolve();
           }
@@ -757,30 +762,6 @@ export class LocalStore {
       'readonly',
       txn => {
         return this.queryCache.getMatchingKeysForTargetId(txn, targetId);
-      }
-    );
-  }
-
-  /**
-   * Collect garbage if necessary.
-   * Should be called periodically by Sync Engine to recover resources. The
-   * implementation must guarantee that GC won't happen in other places than
-   * this method call.
-   */
-  collectGarbage(): Promise<void> {
-    // Call collectGarbage regardless of whether isGCEnabled so the referenceSet
-    // doesn't continue to accumulate the garbage keys.
-    return this.persistence.runTransaction(
-      'Garbage collection',
-      'readwrite-primary',
-      txn => {
-        return this.garbageCollector.collectGarbage(txn).next(garbage => {
-          const promises = [] as Array<PersistencePromise<void>>;
-          garbage.forEach(key => {
-            promises.push(this.remoteDocuments.removeEntry(txn, key));
-          });
-          return PersistencePromise.waitFor(promises);
-        });
       }
     );
   }
@@ -839,6 +820,14 @@ export class LocalStore {
     });
     return promiseChain.next(() =>
       this.mutationQueue.removeMutationBatch(txn, batch)
+    );
+  }
+
+  collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
+    return this.persistence.runTransaction(
+      'Collect garbage',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, this.queryDataByTarget)
     );
   }
 

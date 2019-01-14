@@ -19,8 +19,8 @@ import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 
-import { WebChannelConnection } from './webchannel_connection';
 import { AnyJs } from '../util/misc';
+import { WebChannelConnection } from './webchannel_connection';
 
 export class BrowserPlatform implements Platform {
   readonly base64Available: boolean;

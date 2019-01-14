@@ -49,7 +49,9 @@ function setUp() {
       fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP,
       null,
       'http://www.example.com/#oauthResponse',
-      'SESSION_ID');
+      'SESSION_ID',
+      null,
+      'POST_BODY');
   authEvent2 = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
       '12345678',
@@ -61,7 +63,8 @@ function setUp() {
     'eventId': null,
     'urlResponse': 'http://www.example.com/#oauthResponse',
     'sessionId': 'SESSION_ID',
-    'error': null
+    'error': null,
+    'postBody': 'POST_BODY'
   };
   authEventObject2 = {
     'type': 'signInViaRedirect',
@@ -72,7 +75,8 @@ function setUp() {
       'code': fireauth.AuthError.ERROR_CODE_PREFIX +
           fireauth.authenum.Error.INTERNAL_ERROR,
       'message': 'An internal error has occurred.'
-    }
+    },
+    'postBody': null
   };
 }
 
@@ -216,6 +220,7 @@ function testAuthEvent() {
       'http://www.example.com/#oauthResponse', authEvent.getUrlResponse());
   assertEquals(
       'SESSION_ID', authEvent.getSessionId());
+  assertEquals('POST_BODY', authEvent.getPostBody());
   assertNull(authEvent.getEventId());
   assertNull(authEvent.getError());
   assertFalse(authEvent.hasError());
@@ -228,6 +233,7 @@ function testAuthEvent() {
       new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
       authEvent2.getError());
   assertTrue(authEvent2.hasError());
+  assertNull(authEvent2.getPostBody());
 }
 
 

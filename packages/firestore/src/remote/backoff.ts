@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
+import { AsyncQueue, TimerId } from '../util/async_queue';
 import * as log from '../util/log';
 import { CancelablePromise } from '../util/promise';
-import { AsyncQueue, TimerId } from '../util/async_queue';
 const LOG_TAG = 'ExponentialBackoff';
 
 /**

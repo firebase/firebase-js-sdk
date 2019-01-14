@@ -14,7 +14,7 @@ The `authState()` function creates an observable that emits authentication chang
 
 #### TypeScript Example
 ```ts
-import { authState } from 'rxfire/firestore';
+import { authState } from 'rxfire/auth';
 import { auth, initializeApp } from 'firebase';
 import 'firebase/auth';
 import { filter } from 'rxjs/operators';
@@ -43,7 +43,7 @@ The `user()` function creates an observable that emits authentication changes su
 
 #### TypeScript Example
 ```ts
-import { user } from 'rxfire/firestore';
+import { user } from 'rxfire/auth';
 import { auth, initializeApp } from 'firebase';
 import 'firebase/auth';
 import { filter } from 'rxjs/operators';
@@ -66,7 +66,7 @@ The `idToken()` function creates an observable that emits the `idToken` refreshe
 
 #### TypeScript Example
 ```ts
-import { idToken } from 'rxfire/firestore';
+import { idToken } from 'rxfire/auth';
 import { auth, initializeApp } from 'firebase';
 import 'firebase/auth';
 import { filter } from 'rxjs/operators';

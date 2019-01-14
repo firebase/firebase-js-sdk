@@ -31,12 +31,12 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from '../../src/core/view_snapshot';
+import { DocumentKeySet } from '../../src/model/collections';
 import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/field_value';
 import { AnyJs } from '../../src/util/misc';
 import { doc, key, path as pathFrom } from './helpers';
-import { DocumentKeySet } from '../../src/model/collections';
 
 /**
  * A mock Firestore. Will not work for integration test.
@@ -47,7 +47,6 @@ export const FIRESTORE = new Firestore({
 });
 
 export function firestore(): Firestore {
-  FIRESTORE.settings({ timestampsInSnapshots: true });
   return FIRESTORE;
 }
 

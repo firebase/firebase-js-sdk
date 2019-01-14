@@ -15,7 +15,6 @@
  */
 
 import { expect } from 'chai';
-import * as api from '../../../src/protos/firestore_proto_api';
 import { EmptyCredentialsProvider, Token } from '../../../src/api/credentials';
 import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
@@ -38,14 +37,24 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from '../../../src/core/view_snapshot';
-import { EagerGarbageCollector } from '../../../src/local/eager_garbage_collector';
-import { GarbageCollector } from '../../../src/local/garbage_collector';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import {
+  DbPrimaryClient,
+  DbPrimaryClientKey,
+  SCHEMA_VERSION,
+  SchemaConverter
+} from '../../../src/local/indexeddb_schema';
 import { LocalStore } from '../../../src/local/local_store';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
-import { NoOpGarbageCollector } from '../../../src/local/no_op_garbage_collector';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryData, QueryPurpose } from '../../../src/local/query_data';
+import {
+  ClientId,
+  MemorySharedClientState,
+  SharedClientState,
+  WebStorageSharedClientState
+} from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -55,6 +64,7 @@ import {
   emptyByteString,
   PlatformSupport
 } from '../../../src/platform/platform';
+import * as api from '../../../src/protos/firestore_proto_api';
 import { Connection, Stream } from '../../../src/remote/connection';
 import { Datastore } from '../../../src/remote/datastore';
 import { ExistenceFilter } from '../../../src/remote/existence_filter';
@@ -73,11 +83,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import {
-  AnyDuringMigration,
-  AnyJs,
-  primitiveComparator
-} from '../../../src/util/misc';
+import { AnyJs, primitiveComparator } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
@@ -85,6 +91,7 @@ import {
   deletedDoc,
   deleteMutation,
   doc,
+  expectFirestoreError,
   filter,
   key,
   orderBy,
@@ -92,26 +99,13 @@ import {
   path,
   setMutation,
   TestSnapshotVersion,
-  version,
-  expectFirestoreError
+  version
 } from '../../util/helpers';
-import {
-  ClientId,
-  MemorySharedClientState,
-  SharedClientState,
-  WebStorageSharedClientState
-} from '../../../src/local/shared_client_state';
-import {
-  DbPrimaryClient,
-  DbPrimaryClientKey,
-  SCHEMA_VERSION,
-  SchemaConverter
-} from '../../../src/local/indexeddb_schema';
-import { TestPlatform, SharedFakeWebStorage } from '../../util/test_platform';
+import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
   INDEXEDDB_TEST_DATABASE_NAME,
-  INDEXEDDB_TEST_SERIALIZER,
-  TEST_PERSISTENCE_PREFIX
+  TEST_PERSISTENCE_PREFIX,
+  TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
@@ -162,8 +156,9 @@ class MockConnection implements Connection {
   }
 
   waitForWriteRequest(): Promise<api.WriteRequest> {
-    if (this.earlyWrites.length > 0) {
-      return Promise.resolve(this.earlyWrites.shift()) as AnyDuringMigration;
+    const earlyWrite = this.earlyWrites.shift();
+    if (earlyWrite) {
+      return Promise.resolve(earlyWrite);
     }
     const barrier = new Deferred<WriteRequest>();
     this.writeSendBarriers.push(barrier);
@@ -427,14 +422,12 @@ abstract class TestRunner {
 
   async start(): Promise<void> {
     this.sharedClientState = this.getSharedClientState();
-    this.persistence = await this.initPersistence(this.serializer);
-    const garbageCollector = this.getGarbageCollector();
-
-    this.localStore = new LocalStore(
-      this.persistence,
-      this.user,
-      garbageCollector
+    this.persistence = await this.initPersistence(
+      this.serializer,
+      this.useGarbageCollection
     );
+
+    this.localStore = new LocalStore(this.persistence, this.user);
 
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
@@ -477,8 +470,6 @@ abstract class TestRunner {
     this.eventManager = new EventManager(this.syncEngine);
 
     await this.sharedClientState.start();
-
-    await this.localStore.start();
     await this.remoteStore.start();
 
     await this.persistence.setPrimaryStateListener(isPrimary =>
@@ -488,14 +479,9 @@ abstract class TestRunner {
     this.started = true;
   }
 
-  private getGarbageCollector(): GarbageCollector {
-    return this.useGarbageCollection
-      ? new EagerGarbageCollector()
-      : new NoOpGarbageCollector();
-  }
-
   protected abstract initPersistence(
-    serializer: JsonProtoSerializer
+    serializer: JsonProtoSerializer,
+    gcEnabled: boolean
   ): Promise<Persistence>;
 
   protected abstract getSharedClientState(): SharedClientState;
@@ -640,7 +626,6 @@ abstract class TestRunner {
   private doMutations(mutations: Mutation[]): Promise<void> {
     const documentKeys = mutations.map(val => val.key.path.toString());
     const syncEngineCallback = new Deferred<void>();
-
     syncEngineCallback.promise.then(
       () => this.acknowledgedDocs.push(...documentKeys),
       () => this.rejectedDocs.push(...documentKeys)
@@ -898,7 +883,7 @@ abstract class TestRunner {
     }
 
     if (state.primary) {
-      await writePrimaryClientToIndexedDb(this.clientId);
+      await clearCurrentPrimaryLease();
       await this.queue.runDelayedOperationsEarly(TimerId.ClientMetadataRefresh);
     }
 
@@ -1169,9 +1154,18 @@ class MemoryTestRunner extends TestRunner {
   }
 
   protected initPersistence(
-    serializer: JsonProtoSerializer
+    serializer: JsonProtoSerializer,
+    gcEnabled: boolean
   ): Promise<Persistence> {
-    return Promise.resolve(new MemoryPersistence(this.clientId));
+    return Promise.resolve(
+      gcEnabled
+        ? MemoryPersistence.createEagerPersistence(this.clientId)
+        : MemoryPersistence.createLruPersistence(
+            this.clientId,
+            serializer,
+            LruParams.DEFAULT
+          )
+    );
   }
 }
 
@@ -1191,14 +1185,17 @@ class IndexedDbTestRunner extends TestRunner {
   }
 
   protected initPersistence(
-    serializer: JsonProtoSerializer
+    serializer: JsonProtoSerializer,
+    gcEnabled: boolean
   ): Promise<Persistence> {
+    // TODO(gsoltis): can we or should we disable this test if gc is enabled?
     return IndexedDbPersistence.createMultiClientIndexedDbPersistence(
       TEST_PERSISTENCE_PREFIX,
       this.clientId,
       this.platform,
       this.queue,
       serializer,
+      LruParams.DEFAULT,
       { sequenceNumberSyncer: this.sharedClientState }
     );
   }
@@ -1549,26 +1546,17 @@ export interface StateExpectation {
   };
 }
 
-async function writePrimaryClientToIndexedDb(
-  clientId: ClientId
-): Promise<void> {
+async function clearCurrentPrimaryLease(): Promise<void> {
   const db = await SimpleDb.openOrCreate(
     INDEXEDDB_TEST_DATABASE_NAME,
     SCHEMA_VERSION,
-    new SchemaConverter(INDEXEDDB_TEST_SERIALIZER)
+    new SchemaConverter(TEST_SERIALIZER)
   );
   await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
     const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
       DbPrimaryClient.store
     );
-    return primaryClientStore.put(
-      DbPrimaryClient.key,
-      new DbPrimaryClient(
-        clientId,
-        /* allowTabSynchronization=*/ true,
-        Date.now()
-      )
-    );
+    return primaryClientStore.delete(DbPrimaryClient.key);
   });
   db.close();
 }

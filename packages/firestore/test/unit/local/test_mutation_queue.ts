@@ -17,14 +17,13 @@
 import { Timestamp } from '../../../src/api/timestamp';
 import { Query } from '../../../src/core/query';
 import { BatchId, ProtoByteString } from '../../../src/core/types';
-import { GarbageCollector } from '../../../src/local/garbage_collector';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
 import { DocumentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import { Mutation } from '../../../src/model/mutation';
 import { MutationBatch } from '../../../src/model/mutation_batch';
-import { AnyDuringMigration } from '../../../src/util/misc';
+import { SortedMap } from '../../../src/util/sorted_map';
 
 /**
  * A wrapper around a MutationQueue that automatically creates a
@@ -32,12 +31,6 @@ import { AnyDuringMigration } from '../../../src/util/misc';
  */
 export class TestMutationQueue {
   constructor(public persistence: Persistence, public queue: MutationQueue) {}
-
-  start(): Promise<void> {
-    return this.persistence.runTransaction('start', 'readonly', txn => {
-      return this.queue.start(txn);
-    });
-  }
 
   checkEmpty(): Promise<boolean> {
     return this.persistence.runTransaction('checkEmpty', 'readonly', txn => {
@@ -71,9 +64,15 @@ export class TestMutationQueue {
       'getLastStreamToken',
       'readonly',
       txn => {
-        return this.queue.getLastStreamToken(txn);
+        return this.queue.getLastStreamToken(txn).next(token => {
+          if (typeof token === 'string') {
+            return token;
+          } else {
+            throw new Error('Test mutation queue cannot handle Uint8Arrays');
+          }
+        });
       }
-    ) as AnyDuringMigration;
+    );
   }
 
   setLastStreamToken(streamToken: string): Promise<void> {
@@ -146,13 +145,18 @@ export class TestMutationQueue {
   getAllMutationBatchesAffectingDocumentKeys(
     documentKeys: DocumentKeySet
   ): Promise<MutationBatch[]> {
+    let keyMap = new SortedMap<DocumentKey, null>(DocumentKey.comparator);
+    documentKeys.forEach(key => {
+      keyMap = keyMap.insert(key, null);
+    });
+
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingDocumentKeys',
       'readonly',
       txn => {
         return this.queue.getAllMutationBatchesAffectingDocumentKeys(
           txn,
-          documentKeys
+          keyMap
         );
       }
     );
@@ -174,16 +178,6 @@ export class TestMutationQueue {
       'readwrite-primary',
       txn => {
         return this.queue.removeMutationBatch(txn, batch);
-      }
-    );
-  }
-
-  collectGarbage(gc: GarbageCollector): Promise<DocumentKeySet> {
-    return this.persistence.runTransaction(
-      'garbageCollection',
-      'readwrite-primary',
-      txn => {
-        return gc.collectGarbage(txn);
       }
     );
   }

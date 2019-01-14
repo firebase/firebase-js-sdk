@@ -52,8 +52,8 @@ import { AnyJs, primitiveComparator } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Dict } from '../util/obj';
 import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
 import * as typeUtils from '../util/types';
-
 import { Blob } from './blob';
 import {
   FieldPath as ExternalFieldPath,
@@ -67,7 +67,6 @@ import {
   ServerTimestampFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
-
 import { Timestamp } from './timestamp';
 
 /**
@@ -127,7 +126,7 @@ export class UserDataConverter {
     const updateData = this.parseData(input, context) as ObjectValue;
 
     if (fieldPaths) {
-      const validatedFieldPaths: FieldPath[] = [];
+      let validatedFieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
 
       for (const stringOrFieldPath of fieldPaths) {
         let fieldPath: FieldPath;
@@ -152,12 +151,12 @@ export class UserDataConverter {
           );
         }
 
-        validatedFieldPaths.push(fieldPath);
+        validatedFieldPaths = validatedFieldPaths.add(fieldPath);
       }
 
       return accumulator.toMergeData(
         updateData,
-        new FieldMask(validatedFieldPaths)
+        FieldMask.fromSet(validatedFieldPaths)
       );
     } else {
       return accumulator.toMergeData(updateData);
@@ -170,7 +169,7 @@ export class UserDataConverter {
     const context = accumulator.rootContext();
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    const fieldMaskPaths = [] as FieldPath[];
+    let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
     let updateData = ObjectValue.EMPTY;
     objUtils.forEach(input as Dict<AnyJs>, (key, value) => {
       const path = fieldPathFromDotSeparatedString(methodName, key);
@@ -179,17 +178,17 @@ export class UserDataConverter {
       value = this.runPreConverter(value, childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths.push(path);
+        fieldMaskPaths = fieldMaskPaths.add(path);
       } else {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
-          fieldMaskPaths.push(path);
+          fieldMaskPaths = fieldMaskPaths.add(path);
           updateData = updateData.set(path, parsedValue);
         }
       }
     });
 
-    const mask = new FieldMask(fieldMaskPaths);
+    const mask = FieldMask.fromSet(fieldMaskPaths);
     return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
   }
 

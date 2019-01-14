@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-import * as api from '../../../src/protos/firestore_proto_api';
 import { expect } from 'chai';
-import { WebChannelConnection } from '../../../src/platform_browser/webchannel_connection';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
+import { WebChannelConnection } from '../../../src/platform_browser/webchannel_connection';
+import * as api from '../../../src/protos/firestore_proto_api';
 import { DEFAULT_PROJECT_ID } from '../util/helpers';
 import { getDefaultDatabaseInfo } from '../util/internal_helpers';
 
@@ -42,7 +42,7 @@ describeFn('WebChannel', () => {
     it('includes project ID and database ID', () => {
       const url = makeUrl('Commit', {});
       expect(url).to.equal(
-        'http://example.com/v1beta1/projects/testproject/' +
+        'http://example.com/v1/projects/testproject/' +
           'databases/(default)/documents:commit'
       );
     });

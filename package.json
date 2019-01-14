@@ -29,7 +29,9 @@
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
     "test:setup": "node tools/config.js",
     "pretest:saucelabs": "lerna run --parallel pretest",
-    "test:saucelabs": "karma start config/karma.saucelabs.js --single-run"
+    "test:saucelabs": "karma start config/karma.saucelabs.js --single-run",
+    "test:database:emulator": "ts-node scripts/emulator-testing/database-test-runner.ts",
+    "test:firestore:emulator": "ts-node scripts/emulator-testing/firestore-test-runner.ts"
   },
   "repository": {
     "type": "git",
@@ -45,7 +47,7 @@
     "clone": "2.1.1",
     "coveralls": "3.0.0",
     "dependency-graph": "0.7.0",
-    "firebase-tools": "3.18.2",
+    "firebase-tools": "5.1.1",
     "glob": "7.1.2",
     "husky": "0.14.3",
     "inquirer": "5.2.0",
@@ -61,6 +63,8 @@
     "prettier": "1.12.0",
     "semver": "5.5.0",
     "simple-git": "1.92.0",
+    "ts-node": "5.0.1",
+    "typescript": "2.8.1",
     "yargs": "11.0.0"
   }
 }

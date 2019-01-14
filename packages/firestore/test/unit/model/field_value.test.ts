@@ -118,8 +118,8 @@ describe('FieldValue', () => {
     expect(dateValue1).to.be.an.instanceof(fieldValue.TimestampValue);
     expect(dateValue2).to.be.an.instanceof(fieldValue.TimestampValue);
 
-    expect(dateValue1.value()).to.deep.equal(date1);
-    expect(dateValue2.value()).to.deep.equal(date2);
+    expect(dateValue1.value()).to.deep.equal(Timestamp.fromDate(date1));
+    expect(dateValue2.value()).to.deep.equal(Timestamp.fromDate(date2));
   });
 
   it('can parse geo points', () => {

@@ -30,7 +30,6 @@ export class TestRemoteDocumentChangeBuffer {
   ) {}
 
   addEntry(maybeDocument: MaybeDocument): void {
-    // Doesn't need a transaction!
     this.buffer.addEntry(maybeDocument);
   }
 

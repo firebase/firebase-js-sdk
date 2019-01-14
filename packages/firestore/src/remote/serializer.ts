@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
 import { Blob } from '../api/blob';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
@@ -48,12 +47,20 @@ import {
   TransformMutation
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
+import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { AnyJs } from '../util/misc';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation,
+  ServerTimestampTransform,
+  TransformOperation
+} from '../model/transform_operation';
+import { ApiClientObjectMap } from '../protos/firestore_proto_api';
 import { ExistenceFilter } from './existence_filter';
 import { mapCodeFromRpcCode, mapRpcCodeFromCode } from './rpc_error';
 import {
@@ -63,13 +70,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { ApiClientObjectMap } from '../protos/firestore_proto_api';
-import {
-  TransformOperation,
-  ServerTimestampTransform,
-  ArrayUnionTransformOperation,
-  ArrayRemoveTransformOperation
-} from '../model/transform_operation';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
@@ -340,16 +340,15 @@ export class JsonProtoSerializer {
   }
 
   toQueryPath(path: ResourcePath): string {
-    if (path.length === 0) {
-      // If the path is empty, the backend requires we leave off the /documents
-      // at the end.
-      return this.encodedDatabaseId;
-    }
     return this.toResourceName(this.databaseId, path);
   }
 
   fromQueryPath(name: string): ResourcePath {
     const resourceName = this.fromResourceName(name);
+    // In v1beta1 queries for collections at the root did not have a trailing
+    // "/documents". In v1 all resource paths contain "/documents". Preserve the
+    // ability to read the v1beta1 form for compatibility with queries persisted
+    // in the local query cache.
     if (resourceName.length === 4) {
       return ResourcePath.EMPTY_PATH;
     }
@@ -581,7 +580,7 @@ export class JsonProtoSerializer {
     const key = this.fromName(doc.found!.name!);
     const version = this.fromVersion(doc.found!.updateTime!);
     const fields = this.fromFields(doc.found!.fields || {});
-    return new Document(key, version, fields, {});
+    return new Document(key, version, fields, {}, doc.found!);
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -726,7 +725,15 @@ export class JsonProtoSerializer {
       const key = this.fromName(entityChange.document!.name!);
       const version = this.fromVersion(entityChange.document!.updateTime!);
       const fields = this.fromFields(entityChange.document!.fields || {});
-      const doc = new Document(key, version, fields, {});
+      // The document may soon be re-serialized back to protos in order to store it in local
+      // persistence. Memoize the encoded form to avoid encoding it again.
+      const doc = new Document(
+        key,
+        version,
+        fields,
+        {},
+        entityChange.document!
+      );
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(
@@ -1304,15 +1311,19 @@ export class JsonProtoSerializer {
   }
 
   toDocumentMask(fieldMask: FieldMask): api.DocumentMask {
+    const canonicalFields: string[] = [];
+    fieldMask.fields.forEach(field =>
+      canonicalFields.push(field.canonicalString())
+    );
     return {
-      fieldPaths: fieldMask.fields.map(field => field.canonicalString())
+      fieldPaths: canonicalFields
     };
   }
 
   fromDocumentMask(proto: api.DocumentMask): FieldMask {
     const paths = proto.fieldPaths || [];
     const fields = paths.map(path => FieldPath.fromServerFormat(path));
-    return new FieldMask(fields);
+    return FieldMask.fromArray(fields);
   }
 }
 

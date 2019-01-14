@@ -1,15 +1,53 @@
-# Unreleased (0.8.0)
+# Unreleased
+- [changed] The `timestampsInSnapshots` setting is now enabled by default
+  so timestamp fields read from a `DocumentSnapshot` will be returned as
+  `Timestamp` objects instead of `Date`. Any code expecting to receive a
+  `Date` object must be updated.
+- [fixed] Fixed a crash that could happen when the app is shut down after
+  a write has been sent to the server but before it has been received on
+  a listener.
+
+# 0.9.2
+- [fixed] Fixed a regression introduced in 5.7.0 that caused apps using
+  experimentalTabSynchronization to hit an exception for "Failed to obtain
+  primary lease for action 'Collect garbage'".
+
+# 0.9.1
+- [changed] Added a custom error for schema downgrades.
+
+# 0.9.0
+- [changed] Removed eval()-based fallback for JSON parsing, allowing SDK to
+  be used in environments that prohibit eval().
+- [feature] Added a garbage collection process to on-disk persistence that
+  removes older documents. This is enabled automatically if persistence is
+  enabled, and the SDK will attempt to periodically clean up older, unused
+  documents once the on-disk cache passes a threshold size (default: 40 MB).
+  This threshold can be configured by changing the setting `cacheSizeBytes` in
+  the settings passed to `Firestore.settings()`. It must be set to a minimum of
+  1 MB. The garbage collection process can be disabled entirely by setting
+  `cacheSizeBytes` to `CACHE_SIZE_UNLIMITED`.
+
+# 0.8.3
+- [fixed] Fixed an issue that prevented query synchronization between multiple
+  tabs.
+
+# 0.8.2
+- [fixed] Fixed an issue where native ES6 module loading was not working.
+
+# 0.8.1
+- [fixed] Fixed an issue where typings are created in the wrong location.
+
+# 0.8.0
 - [feature] Access to offline persistence is no longer limited to a single tab.
   You can opt into this new experimental mode by invoking `enablePersistence()`
   with `{experimentalTabSynchronization: true}`. All tabs accessing persistence
   must use the same setting for this flag.
 - [fixed] Fixed an issue where the first `get()` call made after being offline
   could incorrectly return cached data without attempting to reach the backend.
-- [changed] Changed `get()` to only make 1 attempt to reach the backend before
-  returning cached data, potentially reducing delays while offline. Previously
-  it would make 2 attempts, to work around a backend bug.
-- [fixed] Fixed an issue that caused us to drop empty objects from calls to
-  `set(..., { merge: true })`.
+- [changed] Changed `get()` to only make one attempt to reach the backend before
+  returning cached data, potentially reducing delays while offline.
+- [fixed] Fixed an issue that caused Firebase to drop empty objects from calls
+  to `set(..., { merge: true })`.
 - [changed] Improved argument validation for several API methods.
 
 # 0.7.3
@@ -19,7 +57,7 @@
 - [changed] Eliminated superfluous update events for locally cached documents
   that are known to lag behind the server version. Instead, we buffer these
   events until the client has caught up with the server.
-  
+
 # 0.7.2
 - [fixed] Fixed a regression that prevented use of Firestore on ReactNative's
   Expo platform (#1138).

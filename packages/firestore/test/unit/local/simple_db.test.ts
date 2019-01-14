@@ -28,6 +28,7 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
+import { fail } from '../../../src/util/assert';
 
 chai.use(chaiAsPromised);
 
@@ -317,6 +318,22 @@ describe('SimpleDb', () => {
     });
   });
 
+  it('stops iteration after rejected promise', async () => {
+    return runTransaction(store => {
+      const iterated: User[] = [];
+      return store
+        .iterate((key, value) => {
+          iterated.push(value);
+          return PersistencePromise.reject(new Error('Expected error'));
+        })
+        .next(() => fail('Promise not rejected'))
+        .catch(err => {
+          expect(err.message).to.eq('Expected error');
+          expect(iterated).to.deep.equal([testData[0]]);
+        });
+    });
+  });
+
   it('can iterate in reverse', async () => {
     return runTransaction(store => {
       const iterated: User[] = [];
@@ -488,7 +505,7 @@ describe('SimpleDb', () => {
         for (let i = 0; i < 1000; ++i) {
           promises.push(store.get(i));
         }
-        return PersistencePromise.map(promises).next(() => {
+        return PersistencePromise.waitFor(promises).next(() => {
           const end = new Date().getTime();
           // tslint:disable-next-line:no-console
           console.log(`Reading: ${end - start} ms`);

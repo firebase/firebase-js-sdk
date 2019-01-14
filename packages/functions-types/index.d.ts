@@ -52,7 +52,7 @@ export class FirebaseFunctions {
    * @param origin The origin of the local emulator, such as
    * "http://localhost:5005".
    */
-  useFunctionsEmulator(origin: string);
+  useFunctionsEmulator(origin: string): void;
 }
 
 /**

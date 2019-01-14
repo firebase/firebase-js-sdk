@@ -500,7 +500,7 @@ fireauth.Auth.prototype.resolvePendingPopupEvent =
  * @param {!fireauth.AuthEvent.Type} mode The Auth type mode.
  * @param {?string=} opt_eventId The optional event ID.
  * @return {?function(string,
- *     string):!goog.Promise<!fireauth.AuthEventManager.Result>}
+ *     string, ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
  * @override
  */
 fireauth.Auth.prototype.getAuthEventHandlerFinisher =
@@ -521,14 +521,16 @@ fireauth.Auth.prototype.getAuthEventHandlerFinisher =
  * Finishes the popup and redirect sign in operations.
  * @param {string} requestUri The callback url with the oauth response.
  * @param {string} sessionId The session id used to generate the authUri.
+ * @param {?string=} opt_postBody The optional POST body content.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.Auth.prototype.finishPopupAndRedirectSignIn =
-    function(requestUri, sessionId) {
+    function(requestUri, sessionId, opt_postBody) {
   var self = this;
   // Verify assertion request.
   var request = {
     'requestUri': requestUri,
+    'postBody': opt_postBody,
     'sessionId': sessionId
   };
   // Now that popup has responded, delete popup timeout promise.

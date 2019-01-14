@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
+import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
 import firebase from '../util/firebase_export';
 import {
-  DEFAULT_PROJECT_ID,
   ALT_PROJECT_ID,
   apiDescribe,
+  DEFAULT_PROJECT_ID,
   withAlternateTestDb,
   withTestCollection,
   withTestDb
@@ -106,6 +107,12 @@ class TestClass {
 // once.
 apiDescribe('Validation:', persistence => {
   describe('FirestoreSettings', () => {
+    // Enabling persistence counts as a use of the firestore instance, meaning
+    // that it will be impossible to verify that a set of settings don't throw,
+    // and additionally that some exceptions happen for specific reasons, rather
+    // than persistence having already been enabled.
+    if (persistence) return;
+
     validationIt(persistence, 'validates options', db => {
       // NOTE: 'credentials' is an undocumented API so ideally we wouldn't
       // show it in the error, but I don't think it's worth the trouble of
@@ -137,6 +144,17 @@ apiDescribe('Validation:', persistence => {
           'calling any other methods on a Firestore object.'
       );
     });
+
+    validationIt(persistence, 'enforces minimum cache size', db => {
+      expect(() => db.settings({ cacheSizeBytes: 1 })).to.throw(
+        'cacheSizeBytes must be at least 1048576'
+      );
+    });
+
+    validationIt(persistence, 'garbage collection can be disabled', db => {
+      // Verify that this doesn't throw.
+      db.settings({ cacheSizeBytes: CACHE_SIZE_UNLIMITED });
+    });
   });
 
   describe('Firestore', () => {
@@ -144,7 +162,11 @@ apiDescribe('Validation:', persistence => {
       persistence,
       'disallows calling enablePersistence after use',
       db => {
-        db.doc('foo/bar');
+        // Calling `enablePersistence()` itself counts as use, so we should only
+        // need this method when persistence is not enabled.
+        if (!persistence) {
+          db.doc('foo/bar');
+        }
         expect(() => db.enablePersistence()).to.throw(
           'Firestore has already been started and persistence can no ' +
             'longer be enabled. You can only call enablePersistence() ' +
@@ -311,14 +333,16 @@ apiDescribe('Validation:', persistence => {
     const fn = () => {};
 
     expect(() => doc.get(fn as any)).to.throw(
-      'Function DocumentReference.get() requires its first argument to be of type object, but it was: a function'
+      'Function DocumentReference.get() requires its first argument to be of type object, ' +
+        'but it was: a function'
     );
     expect(() => doc.get({ abc: 'cache' } as any)).to.throw(
       `Unknown option 'abc' passed to function DocumentReference.get(). Available options: source`
     );
 
     expect(() => collection.get(fn as any)).to.throw(
-      'Function Query.get() requires its first argument to be of type object, but it was: a function'
+      'Function Query.get() requires its first argument to be of type object, but it was: ' +
+        'a function'
     );
     expect(() => collection.get({ abc: 'cache' } as any)).to.throw(
       `Unknown option 'abc' passed to function Query.get(). Available options: source`
@@ -342,7 +366,8 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           snapshot.data({ serverTimestamps: 'foo' } as any)
         ).to.throw(
-          `Invalid value "foo" provided to function DocumentSnapshot.data() for option "serverTimestamps". Acceptable values: "estimate", "previous", "none"`
+          `Invalid value "foo" provided to function DocumentSnapshot.data() for option ` +
+            `"serverTimestamps". Acceptable values: "estimate", "previous", "none"`
         );
       });
   });
@@ -351,21 +376,26 @@ apiDescribe('Validation:', persistence => {
     const docRef = db.collection('test').doc();
 
     expect(() => docRef.set({}, { merge: true, mergeFields: [] })).to.throw(
-      'Invalid options passed to function DocumentReference.set(): You cannot specify both "merge" and "mergeFields".'
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
+        '"merge" and "mergeFields".'
     );
     expect(() => docRef.set({}, { merge: false, mergeFields: [] })).to.throw(
-      'Invalid options passed to function DocumentReference.set(): You cannot specify both "merge" and "mergeFields".'
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
+        '"merge" and "mergeFields".'
     );
     expect(() => docRef.set({}, { merge: 'foo' as any })).to.throw(
-      'Function DocumentReference.set() requires its merge option to be of type boolean, but it was: "foo"'
+      'Function DocumentReference.set() requires its merge option to be of type boolean, but it ' +
+        'was: "foo"'
     );
     expect(() => docRef.set({}, { mergeFields: 'foo' as any })).to.throw(
-      'Function DocumentReference.set() requires its mergeFields option to be an array, but it was: "foo"'
+      'Function DocumentReference.set() requires its mergeFields option to be an array, but it ' +
+        'was: "foo"'
     );
     expect(() =>
       docRef.set({}, { mergeFields: ['foo', false as any] })
     ).to.throw(
-      'Function DocumentReference.set() requires all mergeFields elements to be a string or a FieldPath, but the value at index 1 was: false'
+      'Function DocumentReference.set() requires all mergeFields elements to be a string or a ' +
+        'FieldPath, but the value at index 1 was: false'
     );
   });
 

@@ -15,10 +15,10 @@
  */
 
 import { assert, fail } from './assert';
+import { Code, FirestoreError } from './error';
 import * as log from './log';
 import { Unknown } from './misc';
-import { Deferred, CancelablePromise } from './promise';
-import { Code, FirestoreError } from './error';
+import { CancelablePromise, Deferred } from './promise';
 
 // tslint:disable-next-line:no-any Accept any return type from setTimeout().
 type TimerHandle = any;
@@ -56,7 +56,10 @@ export enum TimerId {
    * A timer used to update the client metadata in IndexedDb, which is used
    * to determine the primary leaseholder.
    */
-  ClientMetadataRefresh = 'client_metadata_refresh'
+  ClientMetadataRefresh = 'client_metadata_refresh',
+
+  /** A timer used to periodically attempt LRU Garbage collection */
+  LruGarbageCollection = 'lru_garbage_collection'
 }
 
 /**
@@ -314,7 +317,12 @@ export class AsyncQueue {
    * exists.
    */
   containsDelayedOperation(timerId: TimerId): boolean {
-    return this.delayedOperations.findIndex(op => op.timerId === timerId) >= 0;
+    for (const op of this.delayedOperations) {
+      if (op.timerId === timerId) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

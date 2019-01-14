@@ -15,13 +15,12 @@
  */
 
 import { assert } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
-import { AnyDuringMigration } from '../util/misc';
-import { PersistencePromise } from './persistence_promise';
-import { SCHEMA_VERSION } from './indexeddb_schema';
 import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
-import { Code, FirestoreError } from '../util/error';
+import { SCHEMA_VERSION } from './indexeddb_schema';
+import { PersistencePromise } from './persistence_promise';
 
 const LOG_TAG = 'SimpleDb';
 
@@ -42,7 +41,14 @@ export interface SimpleDbSchemaConverter {
  * See PersistencePromise for more details.
  */
 export class SimpleDb {
-  /** Opens the specified database, creating or upgrading it if necessary. */
+  /**
+   * Opens the specified database, creating or upgrading it if necessary.
+   *
+   * Note that `version` must not be a downgrade. IndexedDB does not support downgrading the schema
+   * version. We currently do not support any way to do versioning outside of IndexedDB's versioning
+   * mechanism, as only version-upgrade transactions are allowed to do things like create
+   * objectstores.
+   */
   static openOrCreate(
     name: string,
     version: number,
@@ -77,7 +83,21 @@ export class SimpleDb {
       };
 
       request.onerror = (event: Event) => {
-        reject((event.target as IDBOpenDBRequest).error);
+        const error: DOMException = (event.target as IDBOpenDBRequest).error!;
+        if (error.name === 'VersionError') {
+          reject(
+            new FirestoreError(
+              Code.FAILED_PRECONDITION,
+              'A newer version of the Firestore SDK was previously used and so the persisted ' +
+                'data is not compatible with the version of the SDK you are now using. The SDK ' +
+                'will operate with persistence disabled. If you need persistence, please ' +
+                're-upgrade to a newer version of the SDK or else clear the persisted IndexedDB ' +
+                'data for your app to start fresh.'
+            )
+          );
+        } else {
+          reject(error);
+        }
       };
 
       request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
@@ -173,15 +193,18 @@ export class SimpleDb {
       .catch(error => {
         // Abort the transaction if there was an error.
         transaction.abort(error);
+        // We cannot actually recover, and calling `abort()` will cause the transaction's
+        // completion promise to be rejected. This in turn means that we won't use
+        // `transactionFnResult` below. We return a rejection here so that we don't add the
+        // possibility of returning `void` to the type of `transactionFnResult`.
+        return PersistencePromise.reject<T>(error);
       })
       .toPromise();
 
     // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
     // fire), but still return the original transactionFnResult back to the
     // caller.
-    return transaction.completionPromise.then(
-      () => transactionFnResult
-    ) as AnyDuringMigration;
+    return transaction.completionPromise.then(() => transactionFnResult);
   }
 
   close(): void {
@@ -498,6 +521,40 @@ export class SimpleDbStore<
     return this.iterateCursor(cursor, callback);
   }
 
+  /**
+   * Iterates over a store, but waits for the given callback to complete for
+   * each entry before iterating the next entry. This allows the callback to do
+   * asynchronous work to determine if this iteration should continue.
+   *
+   * The provided callback should return `true` to continue iteration, and
+   * `false` otherwise.
+   */
+  iterateSerial(
+    callback: (k: KeyType, v: ValueType) => PersistencePromise<boolean>
+  ): PersistencePromise<void> {
+    const cursorRequest = this.cursor({});
+    return new PersistencePromise((resolve, reject) => {
+      cursorRequest.onerror = (event: Event) => {
+        reject((event.target as IDBRequest).error);
+      };
+      cursorRequest.onsuccess = (event: Event) => {
+        const cursor: IDBCursorWithValue = (event.target as IDBRequest).result;
+        if (!cursor) {
+          resolve();
+          return;
+        }
+
+        callback(cursor.primaryKey, cursor.value).next(shouldContinue => {
+          if (shouldContinue) {
+            cursor.continue();
+          } else {
+            resolve();
+          }
+        });
+      };
+    });
+  }
+
   private iterateCursor(
     cursorRequest: IDBRequest,
     fn: IterateCallback<KeyType, ValueType>
@@ -516,7 +573,13 @@ export class SimpleDbStore<
         const controller = new IterationController(cursor);
         const userResult = fn(cursor.primaryKey, cursor.value, controller);
         if (userResult instanceof PersistencePromise) {
-          results.push(userResult);
+          const userPromise: PersistencePromise<void> = userResult.catch(
+            err => {
+              controller.done();
+              return PersistencePromise.reject(err);
+            }
+          );
+          results.push(userPromise);
         }
         if (controller.isDone) {
           resolve();

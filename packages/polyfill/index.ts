@@ -18,7 +18,7 @@
 import 'whatwg-fetch';
 
 // Promise
-import 'promise-polyfill/src/polyfill';
+import 'promise-polyfill/lib/polyfill';
 
 // ES6
 import 'core-js/fn/array/find';

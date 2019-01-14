@@ -25,7 +25,7 @@ import {
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import {
-  isPermanentError,
+  isPermanentWriteError,
   mapCodeFromRpcCode,
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
@@ -37,6 +37,7 @@ import * as objUtils from '../../../src/util/obj';
 import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion } from '../../util/helpers';
 
+import { TimerId } from '../../../src/util/async_queue';
 import { RpcError } from './spec_rpc_error';
 import {
   runSpec,
@@ -50,7 +51,6 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
-import { TimerId } from '../../../src/util/async_queue';
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.
@@ -504,7 +504,8 @@ export class SpecBuilder {
 
     // If this is a permanent error, the write is not expected to be sent
     // again.
-    const isPermanentFailure = isPermanentError(mapCodeFromRpcCode(error.code));
+    const code = mapCodeFromRpcCode(error.code);
+    const isPermanentFailure = isPermanentWriteError(code);
     const keepInQueue =
       options.keepInQueue !== undefined
         ? options.keepInQueue

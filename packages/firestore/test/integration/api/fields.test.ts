@@ -15,6 +15,8 @@
  */
 
 import { expect } from 'chai';
+import * as log from '../../../src/util/log';
+import { LogLevel } from '../../../src/util/log';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -24,8 +26,6 @@ import {
   withTestCollectionSettings,
   withTestDoc
 } from '../util/helpers';
-import * as log from '../../../src/util/log';
-import { LogLevel } from '../../../src/util/log';
 
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
@@ -351,7 +351,7 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
     return { timestamp: ts, nested: { timestamp2: ts } };
   };
 
-  it('are returned as native dates if timestampsInSnapshots is not set', () => {
+  it('are returned as native dates if timestampsInSnapshots set to false', () => {
     // Avoid the verbose log message triggered by timestampsInSnapshots ==
     // false.
     const logLevel = log.getLogLevel();
@@ -386,8 +386,6 @@ apiDescribe('Timestamp Fields in snapshots', persistence => {
   });
 
   it('are returned as Timestamps', () => {
-    expect(DEFAULT_SETTINGS['timestampsInSnapshots']).to.equal(true);
-
     const timestamp = new Timestamp(100, 123456000);
     // Timestamps are currently truncated to microseconds after being written to
     // the database, so a truncated version of the timestamp is needed for

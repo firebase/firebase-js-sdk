@@ -18,10 +18,14 @@ import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
-import { FieldPath as ExternalFieldPath } from './field_path';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
-import { FirestoreClient } from '../core/firestore_client';
+import {
+  FirestoreClient,
+  IndexedDbPersistenceSettings,
+  InternalPersistenceSettings,
+  MemoryPersistenceSettings
+} from '../core/firestore_client';
 import {
   Bound,
   Direction,
@@ -33,6 +37,7 @@ import {
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
+import { LruParams } from '../local/lru_garbage_collector';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -57,19 +62,20 @@ import {
   validateBetweenNumberOfArgs,
   validateDefined,
   validateExactNumberOfArgs,
-  validateNamedOptionalType,
   validateNamedOptionalPropertyEquals,
+  validateNamedOptionalType,
   validateNamedType,
   validateOptionalArgType,
+  validateOptionalArrayElements,
   validateOptionNames,
-  valueDescription,
-  validateOptionalArrayElements
+  valueDescription
 } from '../util/input_validation';
 import * as log from '../util/log';
 import { LogLevel } from '../util/log';
 import { AnyJs, AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
+import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
   CredentialsProvider,
@@ -100,7 +106,14 @@ import {
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
-const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
+const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = true;
+
+/**
+ * Constant used to indicate the LRU garbage collection should be disabled.
+ * Set this value as the `cacheSizeBytes` on the settings passed to the
+ * `Firestore` instance.
+ */
+export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
 
 // enablePersistence() defaults:
 const DEFAULT_SYNCHRONIZE_TABS = false;
@@ -127,12 +140,14 @@ export interface FirestoreDatabase {
  */
 class FirestoreSettings {
   /** The hostname to connect to. */
-  host: string;
+  readonly host: string;
 
   /** Whether to use SSL when connecting. */
-  ssl: boolean;
+  readonly ssl: boolean;
 
-  timestampsInSnapshots: boolean;
+  readonly timestampsInSnapshots: boolean;
+
+  readonly cacheSizeBytes: number;
 
   // Can be a google-auth-library or gapi client.
   // tslint:disable-next-line:no-any
@@ -159,7 +174,8 @@ class FirestoreSettings {
       'host',
       'ssl',
       'credentials',
-      'timestampsInSnapshots'
+      'timestampsInSnapshots',
+      'cacheSizeBytes'
     ]);
 
     validateNamedOptionalType(
@@ -176,10 +192,65 @@ class FirestoreSettings {
       'timestampsInSnapshots',
       settings.timestampsInSnapshots
     );
+
+    // Nobody should set timestampsInSnapshots anymore, but the error depends on
+    // whether they set it to true or false...
+    if (settings.timestampsInSnapshots === true) {
+      log.error(`
+  The timestampsInSnapshots setting now defaults to true and you no
+  longer need to explicitly set it. In a future release, the setting
+  will be removed entirely and so it is recommended that you remove it
+  from your firestore.settings() call now.`);
+    } else if (settings.timestampsInSnapshots === false) {
+      log.error(`
+  The timestampsInSnapshots setting will soon be removed. YOU MUST UPDATE
+  YOUR CODE.
+
+  To hide this warning, stop using the timestampsInSnapshots setting in your
+  firestore.settings({ ... }) call.
+
+  Once you remove the setting, Timestamps stored in Cloud Firestore will be
+  read back as Firebase Timestamp objects instead of as system Date objects.
+  So you will also need to update code expecting a Date to instead expect a
+  Timestamp. For example:
+
+  // Old:
+  const date = snapshot.get('created_at');
+  // New:
+  const timestamp = snapshot.get('created_at'); const date =
+  timestamp.toDate();
+
+  Please audit all existing usages of Date when you enable the new
+  behavior.`);
+    }
     this.timestampsInSnapshots = objUtils.defaulted(
       settings.timestampsInSnapshots,
       DEFAULT_TIMESTAMPS_IN_SNAPSHOTS
     );
+
+    validateNamedOptionalType(
+      'settings',
+      'number',
+      'cacheSizeBytes',
+      settings.cacheSizeBytes
+    );
+    if (settings.cacheSizeBytes === undefined) {
+      this.cacheSizeBytes = LruParams.DEFAULT_CACHE_SIZE_BYTES;
+    } else {
+      if (
+        settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
+        settings.cacheSizeBytes < LruParams.MINIMUM_CACHE_SIZE_BYTES
+      ) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `cacheSizeBytes must be at least ${
+            LruParams.MINIMUM_CACHE_SIZE_BYTES
+          }`
+        );
+      } else {
+        this.cacheSizeBytes = settings.cacheSizeBytes;
+      }
+    }
   }
 
   isEqual(other: FirestoreSettings): boolean {
@@ -187,7 +258,8 @@ class FirestoreSettings {
       this.host === other.host &&
       this.ssl === other.ssl &&
       this.timestampsInSnapshots === other.timestampsInSnapshots &&
-      this.credentials === other.credentials
+      this.credentials === other.credentials &&
+      this.cacheSizeBytes === other.cacheSizeBytes
     );
   }
 }
@@ -199,38 +271,6 @@ class FirestoreConfig {
   firebaseApp: FirebaseApp;
   settings: FirestoreSettings;
   persistence: boolean;
-}
-
-/**
- * Encapsulates the settings that can be used to configure Firestore
- * persistence.
- */
-export class PersistenceSettings {
-  /** Whether to enable multi-tab synchronization. */
-  experimentalTabSynchronization: boolean;
-
-  constructor(
-    readonly enabled: boolean,
-    settings?: firestore.PersistenceSettings
-  ) {
-    assert(
-      enabled || !settings,
-      'Can only provide PersistenceSettings with persistence enabled'
-    );
-    settings = settings || {};
-    this.experimentalTabSynchronization = objUtils.defaulted(
-      settings.experimentalTabSynchronization,
-      DEFAULT_SYNCHRONIZE_TABS
-    );
-  }
-
-  isEqual(other: PersistenceSettings): boolean {
-    return (
-      this.enabled === other.enabled &&
-      this.experimentalTabSynchronization ===
-        other.experimentalTabSynchronization
-    );
-  }
 }
 
 /**
@@ -335,9 +375,15 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           'any other methods on a Firestore object.'
       );
     }
-
     return this.configureClient(
-      new PersistenceSettings(/* enabled= */ true, settings)
+      new IndexedDbPersistenceSettings(
+        this._config.settings.cacheSizeBytes,
+        settings !== undefined &&
+          objUtils.defaulted(
+            settings.experimentalTabSynchronization,
+            DEFAULT_SYNCHRONIZE_TABS
+          )
+      )
     );
   }
 
@@ -345,44 +391,18 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // tslint:disable-next-line:no-floating-promises
-      this.configureClient(new PersistenceSettings(/* enabled= */ false));
+      this.configureClient(new MemoryPersistenceSettings());
     }
     return this._firestoreClient as FirestoreClient;
   }
 
   private configureClient(
-    persistenceSettings: PersistenceSettings
+    persistenceSettings: InternalPersistenceSettings
   ): Promise<void> {
     assert(
       !!this._config.settings.host,
       'FirestoreSettings.host cannot be falsey'
     );
-
-    if (!this._config.settings.timestampsInSnapshots) {
-      log.error(`
-The behavior for Date objects stored in Firestore is going to change
-AND YOUR APP MAY BREAK.
-To hide this warning and ensure your app does not break, you need to add the
-following code to your app before calling any other Cloud Firestore methods:
-
-  const firestore = firebase.firestore();
-  const settings = {/* your settings... */ timestampsInSnapshots: true};
-  firestore.settings(settings);
-
-With this change, timestamps stored in Cloud Firestore will be read back as
-Firebase Timestamp objects instead of as system Date objects. So you will also
-need to update code expecting a Date to instead expect a Timestamp. For example:
-
-  // Old:
-  const date = snapshot.get('created_at');
-  // New:
-  const timestamp = snapshot.get('created_at');
-  const date = timestamp.toDate();
-
-Please audit all existing usages of Date when you enable the new behavior. In a
-future release, the behavior will change to the new behavior, so if you do not
-follow these steps, YOUR APP MAY BREAK.`);
-    }
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
@@ -2076,7 +2096,8 @@ function validateSetOptions(
   if (options.mergeFields !== undefined && options.merge !== undefined) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" and "mergeFields".`
+      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" ` +
+        `and "mergeFields".`
     );
   }
 

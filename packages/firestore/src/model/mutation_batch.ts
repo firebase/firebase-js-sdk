@@ -17,6 +17,8 @@
 import { Timestamp } from '../api/timestamp';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId, ProtoByteString } from '../core/types';
+import { assert } from '../util/assert';
+import * as misc from '../util/misc';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -26,8 +28,6 @@ import {
 import { MaybeDocument } from './document';
 import { DocumentKey } from './document_key';
 import { Mutation, MutationResult } from './mutation';
-import { assert } from '../util/assert';
-import * as misc from '../util/misc';
 
 export const BATCHID_UNKNOWN = -1;
 
@@ -39,7 +39,9 @@ export class MutationBatch {
     public batchId: BatchId,
     public localWriteTime: Timestamp,
     public mutations: Mutation[]
-  ) {}
+  ) {
+    assert(mutations.length > 0, 'Cannot create an empty mutation batch');
+  }
 
   /**
    * Applies all the mutations in this MutationBatch to the specified document
@@ -128,23 +130,6 @@ export class MutationBatch {
       this.batchId === other.batchId &&
       misc.arrayEquals(this.mutations, other.mutations)
     );
-  }
-
-  /**
-   * Returns true if this mutation batch has already been removed from the
-   * mutation queue.
-   *
-   * Note that not all implementations of the MutationQueue necessarily use
-   * tombstones as part of their implementation and generally speaking no code
-   * outside the mutation queues should really care about this.
-   */
-  isTombstone(): boolean {
-    return this.mutations.length === 0;
-  }
-
-  /** Converts this batch into a tombstone */
-  toTombstone(): MutationBatch {
-    return new MutationBatch(this.batchId, this.localWriteTime, []);
   }
 }
 

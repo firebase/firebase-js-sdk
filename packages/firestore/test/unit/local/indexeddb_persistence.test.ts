@@ -15,9 +15,10 @@
  */
 
 import { expect } from 'chai';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { decode, encode } from '../../../src/local/encoded_resource_path';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
-  ALL_STORES,
   DbDocumentMutation,
   DbDocumentMutationKey,
   DbMutationBatch,
@@ -26,7 +27,13 @@ import {
   DbMutationQueueKey,
   DbPrimaryClient,
   DbPrimaryClientKey,
+  DbRemoteDocument,
+  DbRemoteDocumentGlobal,
+  DbRemoteDocumentGlobalKey,
+  DbRemoteDocumentKey,
   DbTarget,
+  DbTargetDocument,
+  DbTargetDocumentKey,
   DbTargetGlobal,
   DbTargetGlobalKey,
   DbTargetKey,
@@ -35,31 +42,32 @@ import {
   SchemaConverter,
   V1_STORES,
   V3_STORES,
-  V4_STORES
+  V4_STORES,
+  V6_STORES
 } from '../../../src/local/indexeddb_schema';
-import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
-import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PlatformSupport } from '../../../src/platform/platform';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
+import { FirestoreError } from '../../../src/util/error';
+import { doc, path } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { PersistenceSettings } from '../../../src/api/database';
-import { path } from '../../util/helpers';
 import {
-  INDEXEDDB_TEST_DATABASE_ID,
   INDEXEDDB_TEST_DATABASE_NAME,
-  INDEXEDDB_TEST_SERIALIZER,
   MOCK_SEQUENCE_NUMBER_SYNCER,
-  TEST_PERSISTENCE_PREFIX
+  TEST_DATABASE_ID,
+  TEST_PERSISTENCE_PREFIX,
+  TEST_SERIALIZER
 } from './persistence_test_helpers';
 
 function withDb(
   schemaVersion,
   fn: (db: IDBDatabase) => Promise<void>
 ): Promise<void> {
-  const schemaConverter = new SchemaConverter(INDEXEDDB_TEST_SERIALIZER);
+  const schemaConverter = new SchemaConverter(TEST_SERIALIZER);
 
   return new Promise<IDBDatabase>((resolve, reject) => {
     const request = window.indexedDB.open(
@@ -90,14 +98,14 @@ function withDb(
 
 async function withCustomPersistence(
   clientId: ClientId,
-  settings: PersistenceSettings,
+  multiClient: boolean,
   fn: (
     persistence: IndexedDbPersistence,
     platform: TestPlatform,
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  const serializer = new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
+  const serializer = new JsonProtoSerializer(TEST_DATABASE_ID, {
     useProto3Json: true
   });
 
@@ -106,13 +114,14 @@ async function withCustomPersistence(
     PlatformSupport.getPlatform(),
     new SharedFakeWebStorage()
   );
-  const persistence = await (settings.experimentalTabSynchronization
+  const persistence = await (multiClient
     ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
         TEST_PERSISTENCE_PREFIX,
         clientId,
         platform,
         queue,
         serializer,
+        LruParams.DEFAULT,
         {
           sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
         }
@@ -122,7 +131,8 @@ async function withCustomPersistence(
         clientId,
         platform,
         queue,
-        serializer
+        serializer,
+        LruParams.DEFAULT
       ));
 
   await fn(persistence, platform, queue);
@@ -137,11 +147,7 @@ async function withPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(
-    clientId,
-    new PersistenceSettings(/* enabled */ true),
-    fn
-  );
+  return withCustomPersistence(clientId, /* multiClient= */ false, fn);
 }
 
 async function withMultiClientPersistence(
@@ -152,13 +158,7 @@ async function withMultiClientPersistence(
     queue: AsyncQueue
   ) => Promise<void>
 ): Promise<void> {
-  return withCustomPersistence(
-    clientId,
-    new PersistenceSettings(/* enabled */ true, {
-      experimentalTabSynchronization: true
-    }),
-    fn
-  );
+  return withCustomPersistence(clientId, /* multiClient= */ true, fn);
 }
 
 function getAllObjectStores(db: IDBDatabase): string[] {
@@ -397,7 +397,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     return withDb(4, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', ALL_STORES, txn => {
+      // We can only use the V4 stores here, since that's as far as we've upgraded.
+      return sdb.runTransaction('readwrite', V4_STORES, txn => {
         const mutationBatchStore = txn.store<
           DbMutationBatchKey,
           DbMutationBatch
@@ -416,7 +417,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             return PersistencePromise.forEach(testMutation.mutations, write => {
               const indexKey = DbDocumentMutation.key(
                 testMutation.userId,
-                path(write.update.name, 5),
+                path(write.update!.name!, 5),
                 testMutation.batchId
               );
               return documentMutationStore.put(
@@ -439,7 +440,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         expect(db.version).to.be.equal(5);
 
         const sdb = new SimpleDb(db);
-        return sdb.runTransaction('readwrite', ALL_STORES, txn => {
+        // There is no V5_STORES, continue using V4.
+        return sdb.runTransaction('readwrite', V4_STORES, txn => {
           const mutationBatchStore = txn.store<
             DbMutationBatchKey,
             DbMutationBatch
@@ -476,6 +478,155 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       })
     );
   });
+
+  it('can upgrade from version 5 to 6', async () => {
+    await withDb(5, db => {
+      // Add some documents
+      const docs = [
+        doc('docs/a', 1, { foo: 'bar' }),
+        doc('docs/b', 2, { baz: false }),
+        doc('docs/c', 3, { a: 1, b: [5, 'foo'] })
+      ];
+      const dbRemoteDocs = docs.map(doc => ({
+        dbKey: doc.key.path.toArray(),
+        dbDoc: TEST_SERIALIZER.toDbRemoteDocument(doc)
+      }));
+      // V5 stores doesn't exist
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', V4_STORES, txn => {
+        const store = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
+          DbRemoteDocument.store
+        );
+        return PersistencePromise.forEach(dbRemoteDocs, ({ dbKey, dbDoc }) =>
+          store.put(dbKey, dbDoc)
+        );
+      });
+    });
+    await withDb(6, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readonly', V6_STORES, txn => {
+        const store = txn.store<
+          DbRemoteDocumentGlobalKey,
+          DbRemoteDocumentGlobal
+        >(DbRemoteDocumentGlobal.store);
+        return store.get(DbRemoteDocumentGlobal.key).next(metadata => {
+          // We don't really care what the size is, just that it's greater than 0.
+          // Our sizing algorithm may change at some point.
+          expect(metadata!.byteSize).to.be.greaterThan(0);
+        });
+      });
+    });
+  });
+
+  it('can upgrade from version 6 to 7', async () => {
+    const oldSequenceNumber = 1;
+    // Set the highest sequence number to this value so that untagged documents
+    // will pick up this value.
+    const newSequenceNumber = 2;
+    await withDb(6, db => {
+      const serializer = TEST_SERIALIZER;
+
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', V6_STORES, txn => {
+        const targetGlobalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
+          DbTargetGlobal.store
+        );
+        const remoteDocumentStore = txn.store<
+          DbRemoteDocumentKey,
+          DbRemoteDocument
+        >(DbRemoteDocument.store);
+        const targetDocumentStore = txn.store<
+          DbTargetDocumentKey,
+          DbTargetDocument
+        >(DbTargetDocument.store);
+        return targetGlobalStore
+          .get(DbTargetGlobal.key)
+          .next(metadata => {
+            expect(metadata).to.not.be.null;
+            metadata!.highestListenSequenceNumber = newSequenceNumber;
+            return targetGlobalStore.put(DbTargetGlobal.key, metadata!);
+          })
+          .next(() => {
+            // Set up some documents (we only need the keys)
+            // For the odd ones, add sentinel rows.
+            const promises: Array<PersistencePromise<void>> = [];
+            for (let i = 0; i < 10; i++) {
+              const document = doc('docs/doc_' + i, 1, { foo: 'bar' });
+              promises.push(
+                remoteDocumentStore.put(
+                  document.key.path.toArray(),
+                  serializer.toDbRemoteDocument(document)
+                )
+              );
+              if (i % 2 === 1) {
+                promises.push(
+                  targetDocumentStore.put(
+                    new DbTargetDocument(
+                      0,
+                      encode(document.key.path),
+                      oldSequenceNumber
+                    )
+                  )
+                );
+              }
+            }
+            return PersistencePromise.waitFor(promises);
+          });
+      });
+    });
+
+    // Now run the migration and verify
+    await withDb(7, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readonly', V6_STORES, txn => {
+        const targetDocumentStore = txn.store<
+          DbTargetDocumentKey,
+          DbTargetDocument
+        >(DbTargetDocument.store);
+        const range = IDBKeyRange.bound(
+          [0],
+          [1],
+          /*lowerOpen=*/ false,
+          /*upperOpen=*/ true
+        );
+        return targetDocumentStore.iterate(
+          { range },
+          ([_, path], targetDocument) => {
+            const decoded = decode(path);
+            const lastSegment = decoded.lastSegment();
+            const docNum = +lastSegment.split('_')[1];
+            const expected =
+              docNum % 2 === 1 ? oldSequenceNumber : newSequenceNumber;
+            expect(targetDocument.sequenceNumber).to.equal(expected);
+          }
+        );
+      });
+    });
+  });
+
+  it('downgrading throws a custom error', async () => {
+    // Upgrade to latest version
+    await withDb(SCHEMA_VERSION, async db => {
+      expect(db.version).to.equal(SCHEMA_VERSION);
+    });
+    // downgrade by one version
+    const downgradeVersion = SCHEMA_VERSION - 1;
+    const schemaConverter = new SchemaConverter(TEST_SERIALIZER);
+    let error: FirestoreError | null = null;
+    try {
+      await SimpleDb.openOrCreate(
+        INDEXEDDB_TEST_DATABASE_NAME,
+        downgradeVersion,
+        schemaConverter
+      );
+    } catch (e) {
+      error = e;
+      expect(
+        e.message.indexOf('A newer version of the Firestore SDK')
+      ).to.not.equal(-1);
+    }
+    expect(error).to.not.be.null;
+  });
 });
 
 describe('IndexedDb: canActAsPrimary', () => {
@@ -488,7 +639,7 @@ describe('IndexedDb: canActAsPrimary', () => {
     const simpleDb = await SimpleDb.openOrCreate(
       INDEXEDDB_TEST_DATABASE_NAME,
       SCHEMA_VERSION,
-      new SchemaConverter(INDEXEDDB_TEST_SERIALIZER)
+      new SchemaConverter(TEST_SERIALIZER)
     );
     await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
       const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(

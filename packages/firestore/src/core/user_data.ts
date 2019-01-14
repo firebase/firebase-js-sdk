@@ -133,7 +133,7 @@ export class ParseAccumulator {
     } else {
       return new ParsedSetData(
         data,
-        new FieldMask(this.fieldMask),
+        FieldMask.fromArray(this.fieldMask),
         this.fieldTransforms
       );
     }
@@ -158,7 +158,7 @@ export class ParseAccumulator {
   toUpdateData(data: ObjectValue): ParsedUpdateData {
     return new ParsedUpdateData(
       data,
-      new FieldMask(this.fieldMask),
+      FieldMask.fromArray(this.fieldMask),
       this.fieldTransforms
     );
   }

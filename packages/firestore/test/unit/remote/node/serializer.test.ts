@@ -17,10 +17,9 @@
 import { expect } from 'chai';
 import * as Long from 'long';
 
-import * as api from '../../../../src/protos/firestore_proto_api';
 import { Blob } from '../../../../src/api/blob';
-import { GeoPoint } from '../../../../src/api/geo_point';
 import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
+import { GeoPoint } from '../../../../src/api/geo_point';
 import { Timestamp } from '../../../../src/api/timestamp';
 import { DatabaseId } from '../../../../src/core/database_info';
 import {
@@ -41,6 +40,8 @@ import {
   SetMutation
 } from '../../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
+import { loadProtos } from '../../../../src/platform_node/load_protos';
+import * as api from '../../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../../src/remote/serializer';
 import {
   DocumentWatchChange,
@@ -71,14 +72,13 @@ import {
   wrap,
   wrapObject
 } from '../../../util/helpers';
-import { loadProtos } from '../../../../src/platform_node/load_protos';
 
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
   const protos = loadProtos();
-  const ds = protos['google']['firestore']['v1beta1'];
+  const ds = protos['google']['firestore']['v1'];
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
@@ -605,7 +605,7 @@ describe('Serializer', () => {
     // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
     it.skip('converts a weird path', () => {
       const expected: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
-      const mask = new FieldMask([
+      const mask = FieldMask.fromArray([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
       ]);
       const actual = s.toDocumentMask(mask);
@@ -618,7 +618,7 @@ describe('Serializer', () => {
 
     // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
     it.skip('converts a weird path', () => {
-      const expected = new FieldMask([
+      const expected = FieldMask.fromArray([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
       ]);
       const proto: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
@@ -911,7 +911,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       expect(result).to.deep.equal({
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'messages' }],
             orderBy: [
@@ -954,7 +954,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             where: {
@@ -992,7 +992,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             where: {
@@ -1093,7 +1093,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1119,7 +1119,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1154,7 +1154,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1197,7 +1197,7 @@ describe('Serializer', () => {
       );
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
