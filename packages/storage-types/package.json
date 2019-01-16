@@ -22,5 +22,8 @@
   },
   "devDependencies": {
     "typescript": "2.8.1"
+  },
+  "dependencies": {
+    "@firebase/util": "0.2.4"
   }
 }
