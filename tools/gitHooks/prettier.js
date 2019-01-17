@@ -79,6 +79,10 @@ async function doPrettierCommit() {
     symbol: '✅'
   });
 
+  const hasDiff = await git.diff();
+
+  if (!hasDiff) return;
+
   const gitSpinner = ora(' Creating automated style commit').start();
   await git.add('.');
 
