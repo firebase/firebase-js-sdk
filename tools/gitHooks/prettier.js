@@ -20,6 +20,7 @@ const fs = require('mz/fs');
 const glob = require('glob');
 const simpleGit = require('simple-git/promise');
 const ora = require('ora');
+const chalk = require('chalk');
 
 // Computed Deps
 const root = resolve(__dirname, '../..');
@@ -39,11 +40,13 @@ function checkVersion() {
       const runtimeVersion = data.toString().trim();
       const packageVersion = packageJson.devDependencies.prettier;
       if (packageVersion !== runtimeVersion) {
-        reject(
-          `Installed version of prettier (${runtimeVersion}) ` +
-            `does not match required version (${packageVersion}). Please upgrade ` +
-            `and try running again.`
-        );
+        const versionMismatchMessage = chalk`
+          {red Installed version of prettier (${
+            runtimeVersion}) does not match required version (${packageVersion}).}
+          
+          {yellow Please re-run {reset 'yarn'} from the root of the repo and try again.}
+          `;
+        reject(versionMismatchMessage);
       }
       resolvePromise();
     });
@@ -55,7 +58,7 @@ async function doPrettierCommit() {
     await checkVersion();
   } catch (e) {
     console.error(e);
-    return;
+    return process.exit(1);
   }
   const diff = await git.diff(['--name-only', 'origin/master']);
   const targetFiles = diff.split('\n').filter(line => line);
