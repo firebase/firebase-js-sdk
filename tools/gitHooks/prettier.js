@@ -40,8 +40,11 @@ function checkVersion() {
       const runtimeVersion = data.toString().trim();
       const packageVersion = packageJson.devDependencies.prettier;
       if (packageVersion !== runtimeVersion) {
+        const mismatchText =
+          `Installed version of prettier (${runtimeVersion}) does not match ` +
+          `required version (${packageVersion}).`;
         const versionMismatchMessage = chalk`
-          {red Installed version of prettier (${runtimeVersion}) does not match required version (${packageVersion}).}
+          {red ${mismatchText}}
           
           {yellow Please re-run {reset 'yarn'} from the root of the repo and try again.}
           `;
@@ -60,7 +63,10 @@ async function doPrettierCommit() {
     return process.exit(1);
   }
   const diff = await git.diff(['--name-only', 'origin/master']);
-  const targetFiles = diff.split('\n').filter(line => line);
+  // Only run on .js or .ts files.
+  const targetFiles = diff
+    .split('\n')
+    .filter(line => line.match(/^.+\.(js|ts)$/));
   if (targetFiles.length === 0) return;
 
   const stylingSpinner = ora(
