@@ -24,12 +24,49 @@ const ora = require('ora');
 // Computed Deps
 const root = resolve(__dirname, '../..');
 const git = simpleGit(root);
+const packageJson = require(root + '/package.json');
+
+function checkVersion() {
+  return new Promise((resolvePromise, reject) => {
+    const versionCheckCommand = spawn('prettier', ['--version'], {
+      stdio: ['ignore', 'pipe', process.stderr],
+      cwd: root,
+      env: {
+        PATH: `${resolve(root, 'node_modules/.bin')}:${process.env.PATH}`
+      }
+    }).catch(e => reject(e));
+    versionCheckCommand.childProcess.stdout.on('data', data => {
+      const runtimeVersion = data.toString().trim();
+      const packageVersion = packageJson.devDependencies.prettier;
+      if (packageVersion !== runtimeVersion) {
+        reject(
+          `Installed version of prettier (${runtimeVersion}) ` +
+            `does not match required version (${packageVersion}). Please upgrade ` +
+            `and try running again.`
+        );
+      }
+      resolvePromise();
+    });
+  });
+}
 
 async function doPrettierCommit() {
-  const stylingSpinner = ora(' Formatting code with prettier').start();
+  try {
+    await checkVersion();
+  } catch (e) {
+    console.error(e);
+    return;
+  }
+  const diff = await git.diff(['--name-only', 'origin/master']);
+  const targetFiles = diff.split('\n').filter(line => line);
+  if (targetFiles.length === 0) return;
+
+  const stylingSpinner = ora(
+    ` Formatting ${targetFiles.length} files with prettier`
+  ).start();
   await spawn(
     'prettier',
-    ['--config', `${resolve(root, '.prettierrc')}`, '--write', '**/*.{ts,js}'],
+    ['--config', `${resolve(root, '.prettierrc')}`, '--write', ...targetFiles],
     {
       stdio: ['ignore', 'ignore', process.stderr],
       cwd: root,
@@ -41,10 +78,6 @@ async function doPrettierCommit() {
   stylingSpinner.stopAndPersist({
     symbol: '✅'
   });
-
-  const hasDiff = await git.diff();
-
-  if (!hasDiff) return;
 
   const gitSpinner = ora(' Creating automated style commit').start();
   await git.add('.');
