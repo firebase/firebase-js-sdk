@@ -14,7 +14,7 @@
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "test:node": "nyc --reporter lcovonly -- mocha test/**/*.test.* --compilers ts:ts-node/register --exit",
+    "test:node": "nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
     "prepare": "npm run build"
   },
   "license": "Apache-2.0",
