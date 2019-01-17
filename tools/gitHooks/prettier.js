@@ -41,8 +41,7 @@ function checkVersion() {
       const packageVersion = packageJson.devDependencies.prettier;
       if (packageVersion !== runtimeVersion) {
         const versionMismatchMessage = chalk`
-          {red Installed version of prettier (${
-            runtimeVersion}) does not match required version (${packageVersion}).}
+          {red Installed version of prettier (${runtimeVersion}) does not match required version (${packageVersion}).}
           
           {yellow Please re-run {reset 'yarn'} from the root of the repo and try again.}
           `;
