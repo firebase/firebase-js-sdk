@@ -62,7 +62,7 @@ async function doPrettierCommit() {
     console.error(e);
     return process.exit(1);
   }
-  const diff = await git.diff(['--name-only', 'origin/master']);
+  const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   // Only run on .js or .ts files.
   const targetFiles = diff
     .split('\n')
