@@ -219,6 +219,41 @@ export function loadFirestoreRules(
   });
 }
 
+export type ClearFirestoreDataOptions = {
+  projectId: string;
+};
+export function clearFirestoreData(
+  options: ClearFirestoreDataOptions
+): Promise<void> {
+  if (!options.projectId) {
+    throw new Error('projectId not specified');
+  }
+
+  let client = new EMULATOR.FirestoreEmulator(
+    FIRESTORE_ADDRESS,
+    grpc.credentials.createInsecure(),
+    {
+      // As with 'loadFirestoreRules', cap how much backoff gRPC will perform.
+      'grpc.initial_reconnect_backoff_ms': 100,
+      'grpc.max_reconnect_backoff_ms': 100
+    }
+  );
+  return new Promise((resolve, reject) => {
+    client.clearData(
+      {
+        database: `projects/${options.projectId}/databases/(default)`
+      },
+      (err, resp) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(resp);
+        }
+      }
+    );
+  });
+}
+
 export function assertFails(pr: Promise<any>): any {
   return pr.then(
     v =>
