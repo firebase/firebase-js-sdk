@@ -66,7 +66,7 @@ async function doPrettierCommit() {
   // Only run on .js or .ts files.
   const targetFiles = diff
     .split('\n')
-    .filter(line => line.match(/^.+\.(js|ts)$/));
+    .filter(line => line.match(/(js|ts)$/));
   if (targetFiles.length === 0) return;
 
   const stylingSpinner = ora(
