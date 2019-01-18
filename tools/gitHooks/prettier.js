@@ -64,9 +64,7 @@ async function doPrettierCommit() {
   }
   const diff = await git.diff(['--name-only', 'origin/master...HEAD']);
   // Only run on .js or .ts files.
-  const targetFiles = diff
-    .split('\n')
-    .filter(line => line.match(/(js|ts)$/));
+  const targetFiles = diff.split('\n').filter(line => line.match(/(js|ts)$/));
   if (targetFiles.length === 0) return;
 
   const stylingSpinner = ora(
