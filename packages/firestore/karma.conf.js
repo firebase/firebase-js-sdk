@@ -60,12 +60,12 @@ function getFirestoreSettings(argv) {
   if (argv.local) {
     return {
       host: 'localhost:8080',
-      ssl: false,
+      ssl: false
     };
   } else {
     return {
       host: 'firestore.googleapis.com',
-      ssl: true,
+      ssl: true
     };
   }
 }
