@@ -1,8 +1,10 @@
 # Unreleased
-- [changed] The `timestampsInSnapshots` setting is now enabled by default
-  so timestamp fields read from a `DocumentSnapshot` will be returned as
-  `Timestamp` objects instead of `Date`. Any code expecting to receive a
-  `Date` object must be updated.
+- [changed] The `timestampsInSnapshots` setting is now enabled by default.
+  Timestamp fields that read from a `DocumentSnapshot` are now returned as
+  `Timestamp` objects instead of `Date` objects. This is a breaking change;
+  developers must update any code that expects to receive a `Date` object. See
+  https://firebase.google.com/docs/reference/js/firebase.firestore.Settings#~timestampsInSnapshots
+  for more details.
 - [fixed] Fixed a crash that could happen when the app is shut down after
   a write has been sent to the server but before it has been received on
   a listener.
