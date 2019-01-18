@@ -115,6 +115,13 @@ describe('Testing Module Tests', function() {
     await expect(promise).to.be.rejectedWith(/UNAVAILABLE/);
   });
 
+  it('clearFirestoreData() succeeds on valid input', async function() {
+    let promise = firebase.clearFirestoreData({
+      projectId: 'foo'
+    });
+    await expect(promise).to.be.rejectedWith(/UNAVAILABLE/);
+  });
+
   it('apps() returns apps created with initializeTestApp', async function() {
     const numApps = firebase.apps().length;
     await firebase.initializeTestApp({ databaseName: 'foo', auth: null });
