@@ -19,6 +19,7 @@
     "/firebase*.js",
     "/firebase*.map",
     "/index.d.ts",
+    "/empty-import.d.ts",
     "/externs"
   ],
   "repository": {
