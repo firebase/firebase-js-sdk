@@ -14,24 +14,30 @@
  * limitations under the License.
  */
 
+import { IndexManager } from '../../../src/local/index_manager';
 import { Persistence } from '../../../src/local/persistence';
-import { QueryIndexes } from '../../../src/local/query_indexes';
 import { ResourcePath } from '../../../src/model/path';
 import { SortedSet } from '../../../src/util/sorted_set';
 
 /**
- * A wrapper around QueryIndexes that automatically creates a
+ * A wrapper around IndexManager that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
-export class TestQueryIndexes {
-  constructor(public persistence: Persistence, public indexes: QueryIndexes) {}
+export class TestIndexManager {
+  constructor(
+    public persistence: Persistence,
+    public indexManager: IndexManager
+  ) {}
 
-  indexCollectionParent(collectionPath: ResourcePath): Promise<void> {
+  addToCollectionParentIndex(collectionPath: ResourcePath): Promise<void> {
     return this.persistence.runTransaction(
-      'indexCollectionParent',
+      'addToCollectionParentIndex',
       'readwrite',
       txn => {
-        return this.indexes.indexCollectionParent(txn, collectionPath);
+        return this.indexManager.addToCollectionParentIndex(
+          txn,
+          collectionPath
+        );
       }
     );
   }
@@ -41,7 +47,7 @@ export class TestQueryIndexes {
       'getCollectionParents',
       'readwrite',
       txn => {
-        return this.indexes.getCollectionParents(txn, collectionId);
+        return this.indexManager.getCollectionParents(txn, collectionId);
       }
     );
   }

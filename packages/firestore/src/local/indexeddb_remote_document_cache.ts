@@ -30,6 +30,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { AnyJs } from '../util/misc';
+import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
@@ -42,7 +43,6 @@ import {
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryIndexes } from './query_indexes';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
@@ -57,7 +57,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   /**
    * @param {LocalSerializer} serializer The document serializer.
-   * @param {QueryIndexes} queryIndexes The query indexes that need to be maintained.
+   * @param {IndexManager} indexManager The query indexes that need to be maintained.
    * @param keepDocumentChangeLog Whether to keep a document change log in
    * IndexedDb. This change log is required for Multi-Tab synchronization, but
    * not needed in clients that don't share access to their remote document
@@ -65,7 +65,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    */
   constructor(
     readonly serializer: LocalSerializer,
-    private readonly queryIndexes: QueryIndexes,
+    private readonly indexManager: IndexManager,
     private readonly keepDocumentChangeLog: boolean
   ) {}
 
@@ -107,7 +107,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         changedKeys = changedKeys.add(key);
 
         promises.push(
-          this.queryIndexes.indexCollectionParent(
+          this.indexManager.addToCollectionParentIndex(
             transaction,
             key.path.popLast()
           )

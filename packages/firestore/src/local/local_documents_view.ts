@@ -29,10 +29,10 @@ import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 
 import { assert } from '../util/assert';
+import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryIndexes } from './query_indexes';
 import { RemoteDocumentCache } from './remote_document_cache';
 
 /**
@@ -45,7 +45,7 @@ export class LocalDocumentsView {
   constructor(
     private remoteDocumentCache: RemoteDocumentCache,
     private mutationQueue: MutationQueue,
-    private queryIndexes: QueryIndexes
+    private indexManager: IndexManager
   ) {}
 
   /**
@@ -152,7 +152,7 @@ export class LocalDocumentsView {
     );
     const collectionId = query.collectionGroup!;
     let results = documentMap();
-    return this.queryIndexes
+    return this.indexManager
       .getCollectionParents(transaction, collectionId)
       .next(parents => {
         return PersistencePromise.forEach(parents, parent => {

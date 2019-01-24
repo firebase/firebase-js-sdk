@@ -29,9 +29,9 @@ import { DocumentKey } from '../model/document_key';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
+import { IndexManager } from './index_manager';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryIndexes } from './query_indexes';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
@@ -52,7 +52,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
    * return 0 to avoid unnecessarily doing the work of calculating the size.
    */
   constructor(
-    private readonly queryIndexes: QueryIndexes,
+    private readonly indexManager: IndexManager,
     private readonly sizer: DocumentSizer
   ) {}
 
@@ -71,7 +71,10 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       this.newDocumentChanges = this.newDocumentChanges.add(key);
 
       promises.push(
-        this.queryIndexes.indexCollectionParent(transaction, key.path.popLast())
+        this.indexManager.addToCollectionParentIndex(
+          transaction,
+          key.path.popLast()
+        )
       );
     }
     this.size += sizeDelta;

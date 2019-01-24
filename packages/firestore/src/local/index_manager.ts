@@ -27,14 +27,14 @@ import { PersistencePromise } from './persistence_promise';
  * the future, the way this interface is structured and used will very possibly
  * change.
  */
-export interface QueryIndexes {
+export interface IndexManager {
   /**
    * Creates an index entry mapping the collectionId (last segment of the path)
    * to the parent path (either the containing document location or the empty
    * path for root-level collections). Index entries can be retrieved via
    * getCollectionParents().
    */
-  indexCollectionParent(
+  addToCollectionParentIndex(
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void>;

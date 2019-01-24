@@ -18,11 +18,11 @@ import { User } from '../auth/user';
 
 import { ListenSequenceNumber } from '../core/types';
 import { DocumentKey } from '../model/document_key';
+import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
-import { QueryIndexes } from './query_indexes';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
@@ -216,13 +216,13 @@ export interface Persistence {
   getRemoteDocumentCache(): RemoteDocumentCache;
 
   /**
-   * Returns a QueryIndexes instance representing our persisted query indexes.
+   * Returns an IndexManager instance that manages our persisted query indexes.
    *
    * Note: The implementation is free to return the same instance every time
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getQueryIndexes(): QueryIndexes;
+  getIndexManager(): IndexManager;
 
   /**
    * Performs an operation inside a persistence transaction. Any reads or writes

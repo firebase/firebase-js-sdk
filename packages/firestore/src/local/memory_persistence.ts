@@ -34,9 +34,9 @@ import {
 
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
+import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryQueryCache } from './memory_query_cache';
-import { MemoryQueryIndexes } from './memory_query_indexes';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
 import { MutationQueue } from './mutation_queue';
 import {
@@ -68,7 +68,7 @@ export class MemoryPersistence implements Persistence {
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
   private readonly queryCache: MemoryQueryCache;
   private readonly listenSequence = new ListenSequence(0);
-  private readonly queryIndexes: MemoryQueryIndexes;
+  private readonly indexManager: MemoryIndexManager;
 
   private _started = false;
 
@@ -107,9 +107,9 @@ export class MemoryPersistence implements Persistence {
     this.queryCache = new MemoryQueryCache(this);
     const sizer = (doc: MaybeDocument) =>
       this.referenceDelegate.documentSize(doc);
-    this.queryIndexes = new MemoryQueryIndexes();
+    this.indexManager = new MemoryIndexManager();
     this.remoteDocumentCache = new MemoryRemoteDocumentCache(
-      this.queryIndexes,
+      this.indexManager,
       sizer
     );
   }
@@ -152,8 +152,8 @@ export class MemoryPersistence implements Persistence {
     return this.queryCache;
   }
 
-  getQueryIndexes(): MemoryQueryIndexes {
-    return this.queryIndexes;
+  getIndexManager(): MemoryIndexManager {
+    return this.indexManager;
   }
 
   getRemoteDocumentCache(): MemoryRemoteDocumentCache {

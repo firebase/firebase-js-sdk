@@ -17,19 +17,19 @@
 import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 import { SortedSet } from '../util/sorted_set';
+import { IndexManager } from './index_manager';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryIndexes } from './query_indexes';
 
 /**
- * An in-memory implementation of QueryIndexes.
+ * An in-memory implementation of IndexManager.
  */
-export class MemoryQueryIndexes implements QueryIndexes {
+export class MemoryIndexManager implements IndexManager {
   private collectionParentsIndex = {} as {
     [collectionId: string]: SortedSet<ResourcePath>;
   };
 
-  indexCollectionParent(
+  addToCollectionParentIndex(
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {

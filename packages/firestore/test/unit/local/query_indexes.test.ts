@@ -22,15 +22,15 @@ import { SortedSet } from '../../../src/util/sorted_set';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 
 import * as persistenceHelpers from './persistence_test_helpers';
-import { TestQueryIndexes } from './test_query_indexes';
+import { TestIndexManager } from './test_query_indexes';
 
-describe('MemoryQueryIndexes', () => {
-  genericQueryIndexesTests(persistenceHelpers.testMemoryEagerPersistence);
+describe('MemoryIndexManager', () => {
+  genericIndexManagerTests(persistenceHelpers.testMemoryEagerPersistence);
 });
 
-describe('IndexedDbQueryIndexes', () => {
+describe('IndexedDbIndexManager', () => {
   if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbQueryIndexes tests.');
+    console.warn('No IndexedDB. Skipping IndexedDbIndexManager tests.');
     return;
   }
 
@@ -39,22 +39,25 @@ describe('IndexedDbQueryIndexes', () => {
     persistencePromise = persistenceHelpers.testIndexedDbPersistence();
   });
 
-  genericQueryIndexesTests(() => persistencePromise);
+  genericIndexManagerTests(() => persistencePromise);
 });
 
 /**
- * Defines the set of tests to run against both QueryIndexes implementations.
+ * Defines the set of tests to run against both IndexManager implementations.
  */
-function genericQueryIndexesTests(
+function genericIndexManagerTests(
   persistencePromise: () => Promise<Persistence>
 ): void {
   addEqualityMatcher();
-  let indexes: TestQueryIndexes;
+  let indexManager: TestIndexManager;
 
   let persistence: Persistence;
   beforeEach(async () => {
     persistence = await persistencePromise();
-    indexes = new TestQueryIndexes(persistence, persistence.getQueryIndexes());
+    indexManager = new TestIndexManager(
+      persistence,
+      persistence.getIndexManager()
+    );
   });
 
   afterEach(async () => {
@@ -64,27 +67,31 @@ function genericQueryIndexesTests(
   });
 
   it('can add and read collection=>parent index entries', async () => {
-    await indexes.indexCollectionParent(ResourcePath.fromString('messages'));
-    await indexes.indexCollectionParent(ResourcePath.fromString('messages'));
-    await indexes.indexCollectionParent(
+    await indexManager.addToCollectionParentIndex(
+      ResourcePath.fromString('messages')
+    );
+    await indexManager.addToCollectionParentIndex(
+      ResourcePath.fromString('messages')
+    );
+    await indexManager.addToCollectionParentIndex(
       ResourcePath.fromString('rooms/foo/messages')
     );
-    await indexes.indexCollectionParent(
+    await indexManager.addToCollectionParentIndex(
       ResourcePath.fromString('rooms/bar/messages')
     );
-    await indexes.indexCollectionParent(
+    await indexManager.addToCollectionParentIndex(
       ResourcePath.fromString('rooms/foo/messages2')
     );
 
-    expect(await indexes.getCollectionParents('messages')).to.deep.equal(
+    expect(await indexManager.getCollectionParents('messages')).to.deep.equal(
       pathSet('', 'rooms/foo', 'rooms/bar')
     );
 
-    expect(await indexes.getCollectionParents('messages2')).to.deep.equal(
+    expect(await indexManager.getCollectionParents('messages2')).to.deep.equal(
       pathSet('rooms/foo')
     );
 
-    expect(await indexes.getCollectionParents('messages3')).to.deep.equal(
+    expect(await indexManager.getCollectionParents('messages3')).to.deep.equal(
       pathSet()
     );
   });

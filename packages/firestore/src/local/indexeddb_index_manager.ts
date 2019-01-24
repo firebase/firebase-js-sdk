@@ -19,17 +19,17 @@ import { assert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 import { decode, encode } from './encoded_resource_path';
+import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { DbCollectionParent, DbCollectionParentKey } from './indexeddb_schema';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryIndexes } from './query_indexes';
 import { SimpleDbStore } from './simple_db';
 
 /**
- * A persisted implementation of QueryIndexes.
+ * A persisted implementation of IndexManager.
  */
-export class IndexedDbQueryIndexes implements QueryIndexes {
+export class IndexedDbIndexManager implements IndexManager {
   /**
    * An in-memory copy of the collection parents that we've written to the index since the
    * SDK launched. Used to avoid re-writing the same entry repeatedly.
@@ -41,7 +41,7 @@ export class IndexedDbQueryIndexes implements QueryIndexes {
     [collectionId: string]: SortedSet<ResourcePath>;
   };
 
-  indexCollectionParent(
+  addToCollectionParentIndex(
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {

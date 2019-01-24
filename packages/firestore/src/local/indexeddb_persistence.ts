@@ -28,6 +28,7 @@ import * as log from '../util/log';
 import { CancelablePromise } from '../util/promise';
 
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
   IndexedDbMutationQueue,
   mutationQueuesContainKey
@@ -37,7 +38,6 @@ import {
   getHighestListenSequenceNumber,
   IndexedDbQueryCache
 } from './indexeddb_query_cache';
-import { IndexedDbQueryIndexes } from './indexeddb_query_indexes';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
@@ -264,7 +264,7 @@ export class IndexedDbPersistence implements Persistence {
 
   private readonly queryCache: IndexedDbQueryCache;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
-  private readonly queryIndexes: IndexedDbQueryIndexes;
+  private readonly indexManager: IndexedDbIndexManager;
   private readonly webStorage: Storage;
   private listenSequence: ListenSequence;
   readonly referenceDelegate: IndexedDbLruDelegate;
@@ -296,10 +296,10 @@ export class IndexedDbPersistence implements Persistence {
       this.referenceDelegate,
       this.serializer
     );
-    this.queryIndexes = new IndexedDbQueryIndexes();
+    this.indexManager = new IndexedDbIndexManager();
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
-      this.queryIndexes,
+      this.indexManager,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
     );
     if (platform.window && platform.window.localStorage) {
@@ -760,12 +760,12 @@ export class IndexedDbPersistence implements Persistence {
     return this.remoteDocumentCache;
   }
 
-  getQueryIndexes(): IndexedDbQueryIndexes {
+  getIndexManager(): IndexedDbIndexManager {
     assert(
       this.started,
-      'Cannot initialize QueryIndexes before persistence is started.'
+      'Cannot initialize IndexManager before persistence is started.'
     );
-    return this.queryIndexes;
+    return this.indexManager;
   }
 
   runTransaction<T>(
