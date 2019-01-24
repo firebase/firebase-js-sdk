@@ -740,6 +740,7 @@ export class IndexedDbPersistence implements Persistence {
     return IndexedDbMutationQueue.forUser(
       user,
       this.serializer,
+      this.indexManager,
       this.referenceDelegate
     );
   }

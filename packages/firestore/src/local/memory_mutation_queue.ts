@@ -26,6 +26,7 @@ import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
+import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -53,9 +54,10 @@ export class MemoryMutationQueue implements MutationQueue {
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
 
-  // TODO(mikelehen): Pass IndexManager into constructor and make sure to add
-  // entries from addMutationBatch().
-  constructor(private readonly referenceDelegate: ReferenceDelegate) {}
+  constructor(
+    private readonly indexManager: IndexManager,
+    private readonly referenceDelegate: ReferenceDelegate
+  ) {}
 
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
@@ -128,10 +130,15 @@ export class MemoryMutationQueue implements MutationQueue {
     const batch = new MutationBatch(batchId, localWriteTime, mutations);
     this.mutationQueue.push(batch);
 
-    // Track references by document key.
+    // Track references by document key and index collection parents.
     for (const mutation of mutations) {
       this.batchesByDocumentKey = this.batchesByDocumentKey.add(
         new DocReference(mutation.key, batchId)
+      );
+
+      this.indexManager.addToCollectionParentIndex(
+        transaction,
+        mutation.key.path.popLast()
       );
     }
 
