@@ -78,7 +78,7 @@ describe('Serializer', () => {
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
   const protos = loadProtos();
-  const ds = protos['google']['firestore']['v1beta1'];
+  const ds = protos['google']['firestore']['v1'];
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
@@ -911,7 +911,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       expect(result).to.deep.equal({
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'messages' }],
             orderBy: [
@@ -954,7 +954,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             where: {
@@ -992,7 +992,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             where: {
@@ -1093,7 +1093,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1119,7 +1119,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1154,7 +1154,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1197,7 +1197,7 @@ describe('Serializer', () => {
       );
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [

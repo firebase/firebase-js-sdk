@@ -340,16 +340,15 @@ export class JsonProtoSerializer {
   }
 
   toQueryPath(path: ResourcePath): string {
-    if (path.length === 0) {
-      // If the path is empty, the backend requires we leave off the /documents
-      // at the end.
-      return this.encodedDatabaseId;
-    }
     return this.toResourceName(this.databaseId, path);
   }
 
   fromQueryPath(name: string): ResourcePath {
     const resourceName = this.fromResourceName(name);
+    // In v1beta1 queries for collections at the root did not have a trailing
+    // "/documents". In v1 all resource paths contain "/documents". Preserve the
+    // ability to read the v1beta1 form for compatibility with queries persisted
+    // in the local query cache.
     if (resourceName.length === 4) {
       return ResourcePath.EMPTY_PATH;
     }
@@ -581,7 +580,7 @@ export class JsonProtoSerializer {
     const key = this.fromName(doc.found!.name!);
     const version = this.fromVersion(doc.found!.updateTime!);
     const fields = this.fromFields(doc.found!.fields || {});
-    return new Document(key, version, fields, {});
+    return new Document(key, version, fields, {}, doc.found!);
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -726,7 +725,15 @@ export class JsonProtoSerializer {
       const key = this.fromName(entityChange.document!.name!);
       const version = this.fromVersion(entityChange.document!.updateTime!);
       const fields = this.fromFields(entityChange.document!.fields || {});
-      const doc = new Document(key, version, fields, {});
+      // The document may soon be re-serialized back to protos in order to store it in local
+      // persistence. Memoize the encoded form to avoid encoding it again.
+      const doc = new Document(
+        key,
+        version,
+        fields,
+        {},
+        entityChange.document!
+      );
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(

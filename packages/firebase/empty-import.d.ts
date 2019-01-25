@@ -14,7 +14,4 @@
  * limitations under the License.
  */
 
-module.exports = {
-  timeout: 20000,
-  retries: 3
-};
+export = undefined;

@@ -1,4 +1,23 @@
 # Unreleased
+- [changed] The `timestampsInSnapshots` setting is now enabled by default.
+  Timestamp fields that read from a `DocumentSnapshot` are now returned as
+  `Timestamp` objects instead of `Date` objects. This is a breaking change;
+  developers must update any code that expects to receive a `Date` object. See
+  https://firebase.google.com/docs/reference/js/firebase.firestore.Settings#~timestampsInSnapshots
+  for more details.
+- [fixed] Fixed a crash that could happen when the app is shut down after
+  a write has been sent to the server but before it has been received on
+  a listener.
+
+# 0.9.2
+- [fixed] Fixed a regression introduced in 5.7.0 that caused apps using
+  experimentalTabSynchronization to hit an exception for "Failed to obtain
+  primary lease for action 'Collect garbage'".
+
+# 0.9.1
+- [changed] Added a custom error for schema downgrades.
+
+# 0.9.0
 - [changed] Removed eval()-based fallback for JSON parsing, allowing SDK to
   be used in environments that prohibit eval().
 - [feature] Added a garbage collection process to on-disk persistence that
@@ -40,7 +59,7 @@
 - [changed] Eliminated superfluous update events for locally cached documents
   that are known to lag behind the server version. Instead, we buffer these
   events until the client has caught up with the server.
-  
+
 # 0.7.2
 - [fixed] Fixed a regression that prevented use of Firestore on ReactNative's
   Expo platform (#1138).

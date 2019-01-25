@@ -24,6 +24,7 @@ export {
   apps,
   assertFails,
   assertSucceeds,
+  clearFirestoreData,
   database,
   firestore,
   initializeAdminApp,

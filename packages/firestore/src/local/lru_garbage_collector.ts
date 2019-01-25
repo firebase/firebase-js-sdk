@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-import { CACHE_SIZE_UNLIMITED } from '../api/database';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
 import { assert } from '../util/assert';
@@ -23,6 +22,7 @@ import * as log from '../util/log';
 import { AnyJs, primitiveComparator } from '../util/misc';
 import { CancelablePromise } from '../util/promise';
 import { SortedSet } from '../util/sorted_set';
+import { ignoreIfPrimaryLeaseLoss } from './indexeddb_persistence';
 import { LocalStore } from './local_store';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -234,7 +234,7 @@ export class LruScheduler {
     );
     if (
       this.garbageCollector.params.cacheSizeCollectionThreshold !==
-      CACHE_SIZE_UNLIMITED
+      LruParams.COLLECTION_DISABLED
     ) {
       this.scheduleGC();
     }
@@ -245,6 +245,10 @@ export class LruScheduler {
       this.gcTask.cancel();
       this.gcTask = null;
     }
+  }
+
+  get started(): boolean {
+    return this.gcTask !== null;
   }
 
   private scheduleGC(): void {
@@ -262,7 +266,8 @@ export class LruScheduler {
         this.hasRun = true;
         return this.localStore
           .collectGarbage(this.garbageCollector)
-          .then(() => this.scheduleGC());
+          .then(() => this.scheduleGC())
+          .catch(ignoreIfPrimaryLeaseLoss);
       }
     );
   }

@@ -40,7 +40,7 @@ import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 import { isNullOrUndefined } from '../util/types';
 
-import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
+import { ignoreIfPrimaryLeaseLoss } from '../local/indexeddb_persistence';
 import { isDocumentChangeMissingError } from '../local/indexeddb_remote_document_cache';
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import {
@@ -324,7 +324,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             this.remoteStore.unlisten(queryView.targetId);
             this.removeAndCleanupQuery(queryView);
           })
-          .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+          .catch(ignoreIfPrimaryLeaseLoss);
       }
     } else {
       this.removeAndCleanupQuery(queryView);
@@ -464,7 +464,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         );
         return this.emitNewSnapsAndNotifyLocalStore(changes, remoteEvent);
       })
-      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+      .catch(ignoreIfPrimaryLeaseLoss);
   }
 
   /**
@@ -547,7 +547,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       await this.localStore
         .releaseQuery(queryView.query, /* keepPersistedQueryData */ false)
         .then(() => this.removeAndCleanupQuery(queryView))
-        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+        .catch(ignoreIfPrimaryLeaseLoss);
       this.syncEngineListener!.onWatchError(queryView.query, err);
     }
   }
@@ -609,7 +609,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.sharedClientState.updateMutationState(batchId, 'acknowledged');
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
-      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+      .catch(ignoreIfPrimaryLeaseLoss);
   }
 
   rejectFailedWrite(batchId: BatchId, error: FirestoreError): Promise<void> {
@@ -627,7 +627,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         this.sharedClientState.updateMutationState(batchId, 'rejected', error);
         return this.emitNewSnapsAndNotifyLocalStore(changes);
       })
-      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+      .catch(ignoreIfPrimaryLeaseLoss);
   }
 
   private addMutationCallback(
@@ -813,24 +813,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     await Promise.all(queriesProcessed);
     this.syncEngineListener!.onWatchChange(newSnaps);
     await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
-  }
-
-  /**
-   * Verifies the error thrown by an LocalStore operation. If a LocalStore
-   * operation fails because the primary lease has been taken by another client,
-   * we ignore the error (the persistence layer will immediately call
-   * `applyPrimaryLease` to propagate the primary state change). All other
-   * errors are re-thrown.
-   *
-   * @param err An error returned by a LocalStore operation.
-   * @return A Promise that resolves after we recovered, or the original error.
-   */
-  private async ignoreIfPrimaryLeaseLoss(err: FirestoreError): Promise<void> {
-    if (isPrimaryLeaseLostError(err)) {
-      log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
-    } else {
-      throw err;
-    }
   }
 
   private assertSubscribed(fnName: string): void {
@@ -1068,7 +1050,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             this.remoteStore.unlisten(targetId);
             this.removeAndCleanupQuery(queryView);
           })
-          .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+          .catch(ignoreIfPrimaryLeaseLoss);
       }
     }
   }

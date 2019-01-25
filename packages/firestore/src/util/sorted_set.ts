@@ -103,6 +103,14 @@ export class SortedSet<T> {
     return iter.hasNext() ? iter.getNext().key : null;
   }
 
+  getIterator(): SortedSetIterator<T> {
+    return new SortedSetIterator<T>(this.data.getIterator());
+  }
+
+  getIteratorFrom(key: T): SortedSetIterator<T> {
+    return new SortedSetIterator<T>(this.data.getIteratorFrom(key));
+  }
+
   /** Inserts or updates an element */
   add(elem: T): SortedSet<T> {
     return this.copy(this.data.remove(elem).insert(elem, true));
@@ -158,5 +166,17 @@ export class SortedSet<T> {
     const result = new SortedSet(this.comparator);
     result.data = data;
     return result;
+  }
+}
+
+export class SortedSetIterator<T> {
+  constructor(private iter: SortedMapIterator<T, boolean>) {}
+
+  getNext(): T {
+    return this.iter.getNext().key;
+  }
+
+  hasNext(): boolean {
+    return this.iter.hasNext();
   }
 }

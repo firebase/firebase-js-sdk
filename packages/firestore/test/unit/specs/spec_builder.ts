@@ -25,7 +25,7 @@ import {
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import {
-  isPermanentError,
+  isPermanentWriteError,
   mapCodeFromRpcCode,
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
@@ -504,7 +504,8 @@ export class SpecBuilder {
 
     // If this is a permanent error, the write is not expected to be sent
     // again.
-    const isPermanentFailure = isPermanentError(mapCodeFromRpcCode(error.code));
+    const code = mapCodeFromRpcCode(error.code);
+    const isPermanentFailure = isPermanentWriteError(code);
     const keepInQueue =
       options.keepInQueue !== undefined
         ? options.keepInQueue

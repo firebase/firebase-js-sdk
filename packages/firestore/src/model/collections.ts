@@ -37,6 +37,20 @@ export function maybeDocumentMap(): MaybeDocumentMap {
   return EMPTY_MAYBE_DOCUMENT_MAP;
 }
 
+export type NullableMaybeDocumentMap = SortedMap<
+  DocumentKey,
+  MaybeDocument | null
+>;
+
+export function nullableMaybeDocumentMap(): NullableMaybeDocumentMap {
+  return maybeDocumentMap();
+}
+
+export type DocumentSizeEntries = {
+  maybeDocuments: NullableMaybeDocumentMap;
+  sizeMap: SortedMap<DocumentKey, number>;
+};
+
 export type DocumentMap = SortedMap<DocumentKey, Document>;
 const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(
   DocumentKey.comparator

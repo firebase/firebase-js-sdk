@@ -56,6 +56,7 @@ import {
   ArrayUnionTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
+import { SortedSet } from '../util/sorted_set';
 import { Blob } from './blob';
 import {
   FieldPath as ExternalFieldPath,
@@ -339,7 +340,7 @@ export class UserDataConverter {
       fieldMask = FieldMask.fromArray(context.fieldMask);
       fieldTransforms = context.fieldTransforms;
     } else {
-      const validatedFieldPaths: FieldPath[] = [];
+      let validatedFieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
 
       for (const stringOrFieldPath of fieldPaths) {
         let fieldPath: FieldPath;
@@ -364,10 +365,10 @@ export class UserDataConverter {
           );
         }
 
-        validatedFieldPaths.push(fieldPath);
+        validatedFieldPaths = validatedFieldPaths.add(fieldPath);
       }
 
-      fieldMask = FieldMask.fromArray(validatedFieldPaths);
+      fieldMask = FieldMask.fromSet(validatedFieldPaths);
       fieldTransforms = context.fieldTransforms.filter(transform =>
         fieldMask.covers(transform.field)
       );
@@ -388,7 +389,7 @@ export class UserDataConverter {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    const fieldMaskPaths = [] as FieldPath[];
+    let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
     let updateData = ObjectValue.EMPTY;
     objUtils.forEach(input as Dict<AnyJs>, (key, value) => {
       const path = fieldPathFromDotSeparatedString(methodName, key);
@@ -397,17 +398,17 @@ export class UserDataConverter {
       value = this.runPreConverter(value, childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths.push(path);
+        fieldMaskPaths = fieldMaskPaths.add(path);
       } else {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
-          fieldMaskPaths.push(path);
+          fieldMaskPaths = fieldMaskPaths.add(path);
           updateData = updateData.set(path, parsedValue);
         }
       }
     });
 
-    const mask = FieldMask.fromArray(fieldMaskPaths);
+    const mask = FieldMask.fromSet(fieldMaskPaths);
     return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
   }
 
@@ -443,7 +444,7 @@ export class UserDataConverter {
       values.push(moreFieldsAndValues[i + 1]);
     }
 
-    const fieldMaskPaths = [] as FieldPath[];
+    let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
     let updateData = ObjectValue.EMPTY;
 
     for (let i = 0; i < keys.length; ++i) {
@@ -452,17 +453,17 @@ export class UserDataConverter {
       const value = this.runPreConverter(values[i], childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths.push(path);
+        fieldMaskPaths = fieldMaskPaths.add(path);
       } else {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
-          fieldMaskPaths.push(path);
+          fieldMaskPaths = fieldMaskPaths.add(path);
           updateData = updateData.set(path, parsedValue);
         }
       }
     }
 
-    const mask = FieldMask.fromArray(fieldMaskPaths);
+    const mask = FieldMask.fromSet(fieldMaskPaths);
     return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
   }
 

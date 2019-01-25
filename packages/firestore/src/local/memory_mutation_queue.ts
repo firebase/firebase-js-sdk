@@ -20,10 +20,11 @@ import { BatchId, ProtoByteString } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
+import { MutationBatch } from '../model/mutation_batch';
 import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
+import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import { IndexManager } from './index_manager';
@@ -31,6 +32,8 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
+
+import { AnyJs } from '../../src/util/misc';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**
@@ -41,9 +44,6 @@ export class MemoryMutationQueue implements MutationQueue {
 
   /** Next value to use when assigning sequential IDs to each mutation batch. */
   private nextBatchId: BatchId = 1;
-
-  /** The highest acknowledged mutation in the queue. */
-  private highestAcknowledgedBatchId: BatchId = BATCHID_UNKNOWN;
 
   /** The last received stream token from the server, used to acknowledge which
    * responses the client has processed. Stream tokens are opaque checkpoint
@@ -69,11 +69,6 @@ export class MemoryMutationQueue implements MutationQueue {
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
     const batchId = batch.batchId;
-    assert(
-      batchId > this.highestAcknowledgedBatchId,
-      'Mutation batchIDs must be acknowledged in order'
-    );
-
     const batchIndex = this.indexOfExistingBatchId(batchId, 'acknowledged');
     assert(
       batchIndex === 0,
@@ -90,7 +85,6 @@ export class MemoryMutationQueue implements MutationQueue {
         check.batchId
     );
 
-    this.highestAcknowledgedBatchId = batchId;
     this.lastStreamToken = streamToken;
     return PersistencePromise.resolve();
   }
@@ -167,10 +161,7 @@ export class MemoryMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
-    // All batches with batchId <= this.highestAcknowledgedBatchId have been
-    // acknowledged so the first unacknowledged batch after batchID will have a
-    // batchID larger than both of these values.
-    const nextBatchId = Math.max(batchId, this.highestAcknowledgedBatchId) + 1;
+    const nextBatchId = batchId + 1;
 
     // The requested batchId may still be out of range so normalize it to the
     // start of the queue.
@@ -212,7 +203,7 @@ export class MemoryMutationQueue implements MutationQueue {
 
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: SortedMap<DocumentKey, AnyJs>
   ): PersistencePromise<MutationBatch[]> {
     let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);
 
