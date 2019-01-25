@@ -389,6 +389,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
       !query.isDocumentQuery(),
       "Document queries shouldn't go down this path"
     );
+    assert(
+      query.collectionGroup === null,
+      'CollectionGroup queries should be handled in LocalDocumentsView'
+    );
 
     const queryPath = query.path;
     const immediateChildrenLength = queryPath.length + 1;

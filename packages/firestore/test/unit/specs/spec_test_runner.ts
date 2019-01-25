@@ -1114,7 +1114,7 @@ abstract class TestRunner {
     if (typeof querySpec === 'string') {
       return Query.atPath(path(querySpec));
     } else {
-      let query = Query.atPath(path(querySpec.path));
+      let query = new Query(path(querySpec.path), querySpec.collectionGroup);
       if (querySpec.limit) {
         query = query.withLimit(querySpec.limit);
       }
@@ -1487,6 +1487,7 @@ export type SpecQueryOrderBy = [string, string];
  */
 export interface SpecQuery {
   path: string;
+  collectionGroup?: string;
   limit?: number;
   filters?: SpecQueryFilter[];
   orderBys?: SpecQueryOrderBy[];

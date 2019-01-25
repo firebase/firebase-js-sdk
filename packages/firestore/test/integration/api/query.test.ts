@@ -593,15 +593,6 @@ apiDescribe('Queries', persistence => {
 
       const querySnapshot = await db.collectionGroup(collectionGroup).get();
       expect(querySnapshot.size).to.equal(5);
-
-      // TODO(mikelehen): This is kinda' hacky. I should probably rework this
-      // test (move to spec tests, etc.).
-      if (persistence) {
-        const querySnapshot = await db
-          .collectionGroup(collectionGroup)
-          .get({ source: 'cache' });
-        expect(querySnapshot.size).to.equal(5);
-      }
     });
   });
 });

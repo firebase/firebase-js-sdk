@@ -123,6 +123,10 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
+    assert(
+      query.collectionGroup === null,
+      'CollectionGroup queries should be handled in LocalDocumentsView'
+    );
     let results = documentMap();
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
