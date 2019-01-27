@@ -21,8 +21,10 @@ import { assert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { encode, EncodedResourcePath } from './encoded_resource_path';
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
+import { IndexedDbTransaction } from './indexeddb_persistence';
 import { getHighestListenSequenceNumber } from './indexeddb_query_cache';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import { LocalSerializer } from './local_serializer';
@@ -232,12 +234,29 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     db: IDBDatabase,
     txn: SimpleDbTransaction
   ): PersistencePromise<void> {
+    // Create the index.
     db.createObjectStore(DbCollectionParent.store, {
-      keyPath: ['collectionId', 'parent']
+      keyPath: DbCollectionParent.keyPath
     });
 
-    // TODO(mikelehen): Index existing data.
-    return PersistencePromise.resolve();
+    const indexManager = new IndexedDbIndexManager();
+    const indexedDbTxn = new IndexedDbTransaction(txn, /*currentSequenceNumber (dummy)=*/0);
+
+    // Index existing remote documents.
+    return txn
+      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+      .iterate( {keysOnly: true}, (pathSegments, _) => {
+        const path = new ResourcePath(pathSegments);
+        return indexManager.addToCollectionParentIndex(indexedDbTxn, path.popLast());
+      }).next(() => {
+        // Index existing mutations.
+        return txn
+          .store<DbDocumentMutationKey, DbDocumentMutation>(DbDocumentMutation.store)
+          .iterate( { keysOnly: true }, ([userID, encodedPath, batchId], _) => {
+            const path = decode(encodedPath);
+            return indexManager.addToCollectionParentIndex(indexedDbTxn, path.popLast());
+          });
+      });
   }
 }
 
@@ -801,8 +820,8 @@ export class DbCollectionParent {
   /** Name of the IndexedDb object store. */
   static store = 'collectionParents';
 
-  /** Keys are automatically assigned via the collectionId, path properties. */
-  static keyPath = ['collectionId', 'path'];
+  /** Keys are automatically assigned via the collectionId, parent properties. */
+  static keyPath = ['collectionId', 'parent'];
 
   constructor(
     /**
@@ -968,6 +987,8 @@ export const V4_STORES = [
 // V5 does not change the set of stores.
 
 export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
+
+// V7 does not change the set of stores.
 
 export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
 
