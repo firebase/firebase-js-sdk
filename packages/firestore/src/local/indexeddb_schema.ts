@@ -240,21 +240,33 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     });
 
     const indexManager = new IndexedDbIndexManager();
-    const indexedDbTxn = new IndexedDbTransaction(txn, /*currentSequenceNumber (dummy)=*/0);
+    const indexedDbTxn = new IndexedDbTransaction(
+      txn,
+      /*currentSequenceNumber (dummy)=*/ 0
+    );
 
     // Index existing remote documents.
     return txn
       .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
-      .iterate( {keysOnly: true}, (pathSegments, _) => {
+      .iterate({ keysOnly: true }, (pathSegments, _) => {
         const path = new ResourcePath(pathSegments);
-        return indexManager.addToCollectionParentIndex(indexedDbTxn, path.popLast());
-      }).next(() => {
+        return indexManager.addToCollectionParentIndex(
+          indexedDbTxn,
+          path.popLast()
+        );
+      })
+      .next(() => {
         // Index existing mutations.
         return txn
-          .store<DbDocumentMutationKey, DbDocumentMutation>(DbDocumentMutation.store)
-          .iterate( { keysOnly: true }, ([userID, encodedPath, batchId], _) => {
+          .store<DbDocumentMutationKey, DbDocumentMutation>(
+            DbDocumentMutation.store
+          )
+          .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
             const path = decode(encodedPath);
-            return indexManager.addToCollectionParentIndex(indexedDbTxn, path.popLast());
+            return indexManager.addToCollectionParentIndex(
+              indexedDbTxn,
+              path.popLast()
+            );
           });
       });
   }

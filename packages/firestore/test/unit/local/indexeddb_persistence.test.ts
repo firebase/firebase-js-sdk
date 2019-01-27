@@ -611,12 +611,23 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     // This test creates a database with schema version 7 that has a few
     // mutations and a few remote documents and then ensures that appropriate
     // entries are written to the collectionParentIndex.
-    const writePaths = ['cg1/x', 'cg1/y', 'cg1/x/cg1/x', 'cg2/x', 'cg1/x/cg2/x'];
-    const remoteDocPaths = ['cg1/z', 'cg1/y/cg1/x', 'cg2/x/cg3/x', 'blah/x/blah/x/cg3/x'];
+    const writePaths = [
+      'cg1/x',
+      'cg1/y',
+      'cg1/x/cg1/x',
+      'cg2/x',
+      'cg1/x/cg2/x'
+    ];
+    const remoteDocPaths = [
+      'cg1/z',
+      'cg1/y/cg1/x',
+      'cg2/x/cg3/x',
+      'blah/x/blah/x/cg3/x'
+    ];
     const expectedParents = {
-      'cg1': ['', 'cg1/x', 'cg1/y'],
-      'cg2': ['', 'cg1/x'],
-      'cg3': ['cg2/x', 'blah/x/blah/x']
+      cg1: ['', 'cg1/x', 'cg1/y'],
+      cg2: ['', 'cg1/x'],
+      cg3: ['cg2/x', 'blah/x/blah/x']
     };
 
     await withDb(7, db => {
@@ -636,7 +647,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const indexKey = DbDocumentMutation.key(
             'dummy-uid',
             path(writePath),
-            /*dummy batchId=*/123
+            /*dummy batchId=*/ 123
           );
           return documentMutationStore.put(
             indexKey,
@@ -645,16 +656,18 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         }).next(() => {
           // Write the remote document entries.
           return PersistencePromise.forEach(remoteDocPaths, path => {
-            const remoteDoc = doc(path, /*version=*/1, { data: 1 });
-            return remoteDocumentStore.put(remoteDoc.key.path.toArray(),
-                TEST_SERIALIZER.toDbRemoteDocument(remoteDoc));
+            const remoteDoc = doc(path, /*version=*/ 1, { data: 1 });
+            return remoteDocumentStore.put(
+              remoteDoc.key.path.toArray(),
+              TEST_SERIALIZER.toDbRemoteDocument(remoteDoc)
+            );
           });
         });
       });
     });
 
     // Migrate to v8 and verify index entries.
-    await (withDb(8, db => {
+    await withDb(8, db => {
       const sdb = new SimpleDb(db);
       return sdb.runTransaction('readwrite', V8_STORES, txn => {
         const collectionParentsStore = txn.store<
@@ -662,15 +675,19 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           DbCollectionParent
         >(DbCollectionParent.store);
         return collectionParentsStore.loadAll().next(indexEntries => {
-          for(const collectionId of Object.keys(expectedParents)) {
-            for(const parent of expectedParents[collectionId]) {
+          for (const collectionId of Object.keys(expectedParents)) {
+            for (const parent of expectedParents[collectionId]) {
               expect(indexEntries).to.deep.include({
                 collectionId,
                 parent: encode(path(parent))
               });
               // Remove it from the array so we can check for leftover entries at the end.
-              indexEntries = indexEntries.filter(entry =>
-                !(entry.collectionId === collectionId && entry.parent === encode(path(parent)))
+              indexEntries = indexEntries.filter(
+                entry =>
+                  !(
+                    entry.collectionId === collectionId &&
+                    entry.parent === encode(path(parent))
+                  )
               );
             }
           }
@@ -678,9 +695,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           // Make sure there weren't any extra entries.
           expect(indexEntries).to.be.empty;
         });
+      });
     });
-  }));
-});
+  });
 
   it('downgrading throws a custom error', async () => {
     // Upgrade to latest version

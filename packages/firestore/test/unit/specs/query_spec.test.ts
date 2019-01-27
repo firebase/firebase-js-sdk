@@ -25,15 +25,15 @@ import { spec, SpecBuilder } from './spec_builder';
 // Helper to seed the cache with the specified docs by listening to each one.
 function specWithCachedDocs(...docs: Document[]): SpecBuilder {
   let builder = spec();
-  for(const doc of docs) {
+  for (const doc of docs) {
     const query = Query.atPath(doc.key.path);
-    builder = builder.userListens(query)
-        .watchAcksFull(query, 1000, doc)
-        .expectEvents(query, { added: [doc ]});
+    builder = builder
+      .userListens(query)
+      .watchAcksFull(query, 1000, doc)
+      .expectEvents(query, { added: [doc] });
   }
   return builder;
 }
-
 
 describeSpec('Queries:', [], () => {
   specTest('Collection Group query', [], () => {
@@ -64,11 +64,21 @@ describeSpec('Queries:', [], () => {
     const cgQueryWithFilter = cgQuery.addFilter(filter('val', '==', 1));
     const cachedDocs = [
       doc('cg/1', 1000, { val: 1 }),
-      doc('not-cg/nope', 1000, { val: 1 }),
+      doc('not-cg/nope', 1000, { val: 1 })
     ];
-    const toWrite1 = doc('cg/2', 0, { val : 2 }, { hasLocalMutations: true });
-    const toWrite2 = doc('not-cg/nope/cg/3', 0, { val : 1 }, { hasLocalMutations: true });
-    const toWrite3 = doc('not-cg2/nope', 0, { val : 1 }, { hasLocalMutations: true });
+    const toWrite1 = doc('cg/2', 0, { val: 2 }, { hasLocalMutations: true });
+    const toWrite2 = doc(
+      'not-cg/nope/cg/3',
+      0,
+      { val: 1 },
+      { hasLocalMutations: true }
+    );
+    const toWrite3 = doc(
+      'not-cg2/nope',
+      0,
+      { val: 1 },
+      { hasLocalMutations: true }
+    );
 
     return specWithCachedDocs(...cachedDocs)
       .userSets(toWrite1.key.toString(), toWrite1.data.value())
@@ -88,4 +98,3 @@ describeSpec('Queries:', [], () => {
       });
   });
 });
-
