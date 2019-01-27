@@ -15,7 +15,7 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, path, filter } from '../../util/helpers';
+import { doc, filter } from '../../util/helpers';
 
 import { Document } from '../../../src/model/document';
 import { ResourcePath } from '../../../src/model/path';

@@ -31,7 +31,6 @@ import {
   setMutation
 } from '../../util/helpers';
 
-import { ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestMutationQueue } from './test_mutation_queue';

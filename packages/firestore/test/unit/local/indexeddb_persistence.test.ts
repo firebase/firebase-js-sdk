@@ -19,6 +19,8 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { decode, encode } from '../../../src/local/encoded_resource_path';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
+  DbCollectionParent,
+  DbCollectionParentKey,
   DbDocumentMutation,
   DbDocumentMutationKey,
   DbMutationBatch,
@@ -44,8 +46,6 @@ import {
   V3_STORES,
   V4_STORES,
   V6_STORES,
-  DbCollectionParentKey,
-  DbCollectionParent,
   V8_STORES
 } from '../../../src/local/indexeddb_schema';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
