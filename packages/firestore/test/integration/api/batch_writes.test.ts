@@ -26,7 +26,7 @@ const Timestamp = firebase.firestore!.Timestamp;
 const FieldValue = firebase.firestore!.FieldValue;
 
 apiDescribe('Database batch writes', persistence => {
-  it('support empty batches', () => {
+  it('supports empty batches', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       return db.batch().commit();
     });
