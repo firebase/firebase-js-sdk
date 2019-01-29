@@ -16,6 +16,7 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
+import { AutoId } from '../../../src/util/misc';
 
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
@@ -26,7 +27,7 @@ const Timestamp = firebase.firestore!.Timestamp;
 const FieldValue = firebase.firestore!.FieldValue;
 
 apiDescribe('Database batch writes', persistence => {
-  it('support empty batches', () => {
+  it('supports empty batches', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       return db.batch().commit();
     });
@@ -84,6 +85,39 @@ apiDescribe('Database batch writes', persistence => {
         .then(snapshot => {
           expect(snapshot.exists).to.equal(true);
           expect(snapshot.data()).to.deep.equal({ foo: 'bar', baz: 42 });
+        });
+    });
+  });
+
+  it('can update nested fields', () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny' },
+      'is.admin': false
+    };
+    const finalData = {
+      desc: 'Description',
+      owner: { name: 'Sebastian' },
+      'is.admin': true
+    };
+
+    return integrationHelpers.withTestDb(persistence, db => {
+      const doc = db.collection('counters').doc();
+      return doc.firestore
+        .batch()
+        .set(doc, initialData)
+        .update(
+          doc,
+          'owner.name',
+          'Sebastian',
+          new firebase.firestore!.FieldPath('is.admin'),
+          true
+        )
+        .commit()
+        .then(() => doc.get())
+        .then(docSnapshot => {
+          expect(docSnapshot.exists).to.be.ok;
+          expect(docSnapshot.data()).to.deep.equal(finalData);
         });
     });
   });
@@ -317,36 +351,44 @@ apiDescribe('Database batch writes', persistence => {
     });
   });
 
-  it('can update nested fields', () => {
-    const initialData = {
-      desc: 'Description',
-      owner: { name: 'Jonny' },
-      'is.admin': false
-    };
-    const finalData = {
-      desc: 'Description',
-      owner: { name: 'Sebastian' },
-      'is.admin': true
-    };
+  it('can write very large batches', () => {
+    // On Android, SQLite Cursors are limited reading no more than 2 MB per row
+    // (despite being able to write very large values). This test verifies that
+    // the local MutationQueue is not subject to this limitation.
 
-    return integrationHelpers.withTestDb(persistence, db => {
-      const doc = db.collection('counters').doc();
-      return doc.firestore
-        .batch()
-        .set(doc, initialData)
-        .update(
-          doc,
-          'owner.name',
-          'Sebastian',
-          new firebase.firestore!.FieldPath('is.admin'),
-          true
-        )
-        .commit()
-        .then(() => doc.get())
-        .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
-        });
-    });
+    // Create a map containing nearly 1 MB of data. Note that if you use 1024
+    // below this will create a document larger than 1 MB, which will be
+    // rejected by the backend as too large.
+    let kb = 'a';
+    while (kb.length < 1000) {
+      kb += kb;
+    }
+    kb = kb.substr(0, 1000);
+    const values = {};
+    for (let i = 0; i < 1000; i++) {
+      values[AutoId.newId()] = kb;
+    }
+
+    return integrationHelpers.withTestCollection(
+      persistence,
+      {},
+      async collection => {
+        const doc = collection.doc('a');
+        const batch = doc.firestore.batch();
+
+        // Write a batch containing 3 copies of the data, creating a ~3 MB
+        // batch. Writing to the same document in a batch is allowed and so long
+        // as the net size of the document is under 1 MB the batch is allowed.
+        batch.set(doc, values);
+        for (let i = 0; i < 2; i++) {
+          batch.update(doc, values);
+        }
+
+        await batch.commit();
+
+        const snap = await doc.get();
+        expect(snap.data()).to.deep.equal(values);
+      }
+    );
   });
 });
