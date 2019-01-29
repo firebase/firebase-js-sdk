@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 
-
- /**
-  * Firebase console uses firestore in its special way.
-  * This file creates a build target for it.
-  */
+/**
+ * Firebase console uses firestore in its special way.
+ * This file creates a build target for it.
+ */
 const rollup = require('rollup');
 const typescript = require('rollup-plugin-typescript2');
 const resolve = require('rollup-plugin-node-resolve');
