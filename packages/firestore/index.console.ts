@@ -6,7 +6,7 @@ export {
   PublicCollectionReference as CollectionReference,
   PublicDocumentReference as DocumentReference,
   PublicDocumentSnapshot as DocumentSnapshot,
-  PublicQuerySnapshot as QuerySnapshot,
+  PublicQuerySnapshot as QuerySnapshot
 } from './src/api/database';
 export { GeoPoint } from './src/api/geo_point';
 export { PublicBlob as Blob } from './src/api/blob';
