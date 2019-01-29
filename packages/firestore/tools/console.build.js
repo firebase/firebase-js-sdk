@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+
+ /**
+  * Firebase console uses firestore in its special way.
+  * This file creates a build target for it.
+  */
 const rollup = require('rollup');
 const typescript = require('rollup-plugin-typescript2');
 const resolve = require('rollup-plugin-node-resolve');
@@ -32,7 +37,6 @@ const plugins = [
 
 const EXPORTNAME = '__firebase_exports_temp_';
 
-// see below for details on the options
 const inputOptions = {
   input: 'index.console.ts',
   plugins
