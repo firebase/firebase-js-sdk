@@ -145,7 +145,7 @@ const { argv } = require('yargs');
           delete versions[name];
         }
       });
-      
+
       /**
        * Verify that the versions selected are correct
        */
