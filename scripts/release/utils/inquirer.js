@@ -112,7 +112,7 @@ exports.packageVersionUpdate = async (package, releaseType) => {
    * Lerna doesn't work well with merge commits and may mark a package as changed
    * even though it's not changed except for the version bump from the last release.
    * https://github.com/lerna/lerna/issues/1377
-   * 
+   *
    * Background:
    * We introduced a release branch as a staging area for the next release
    * while development continues in the master branch. Eventually we publish the packages from
