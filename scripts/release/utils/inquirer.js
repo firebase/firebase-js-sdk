@@ -106,30 +106,6 @@ exports.packageVersionUpdate = async (package, releaseType) => {
   }
 
   /**
-   * Skip a pacakage
-   *
-   * Reason:
-   * Lerna doesn't work well with merge commits and may mark a package as changed
-   * even though it's not changed except for the version bump from the last release.
-   * https://github.com/lerna/lerna/issues/1377
-   *
-   * Background:
-   * We introduced a release branch as a staging area for the next release
-   * while development continues in the master branch. Eventually we publish the packages from
-   * the release branch and make the version bumps in package.json and tags. It creats a merge
-   * commit in the master branch when we merge the release branch back.
-   *
-   * Only skip a package if you are sure Lerna listed the package in mistake.
-   * If you skipped a package, it won't show up in the candidate list going forward
-   * unless additional changes are made in this package.
-   *
-   */
-  choices.push({
-    name: chalk`Skip`,
-    value: 'skip'
-  });
-
-  /**
    * Create prompts
    */
   return {

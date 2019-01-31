@@ -25,9 +25,10 @@ function getLernaUpdateJson() {
     try {
       if (cache) return cache;
 
-      const lastTag = await exec('git describe --tags --abbrev=0');
-
-      const result = await exec('lerna updated --json', {
+      let { stdout: lastTag } = await exec('git describe --tags --abbrev=0');
+      lastTag = lastTag.trim();
+      
+      const result = await exec(`lerna ls --since ${lastTag} --json`, {
         env: npmRunPath.env(),
         cwd: root
       });
