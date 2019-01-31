@@ -144,7 +144,7 @@ const { argv } = require('yargs');
           delete versions[name];
 
           // remove skipped package from updates array
-          updates = updates.filter(pkgName => pkgName !== name );
+          updates = updates.filter(pkgName => pkgName !== name);
         }
       });
 
