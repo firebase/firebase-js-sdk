@@ -31,7 +31,11 @@ const plugins = [
   typescript({
     typescript: require('typescript')
   }),
-  uglify()
+  uglify({
+    output: {
+      ascii_only: true // escape unicode chars
+    }
+  })
 ];
 
 const EXPORTNAME = '__firestore_exports__';
