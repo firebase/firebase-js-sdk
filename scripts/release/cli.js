@@ -138,6 +138,15 @@ const { argv } = require('yargs');
       versions = await prompt(versionUpdates);
 
       /**
+       * Remove the skipped packages
+       */
+      Object.keys(versions).forEach(name => {
+        if (versions[name] === 'skip') {
+          delete versions[name];
+        }
+      });
+
+      /**
        * Verify that the versions selected are correct
        */
       const { versionCheck } = await prompt(validateVersions(versions));
