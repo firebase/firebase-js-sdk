@@ -34,7 +34,7 @@ const plugins = [
   uglify()
 ];
 
-const EXPORTNAME = '__firebase_exports_temp_';
+const EXPORTNAME = '__firestore_exports__';
 
 const inputOptions = {
   input: 'index.console.ts',
@@ -46,20 +46,9 @@ const outputOptions = {
   format: 'iife'
 };
 
-const PREFIX = `
-goog.module('firestore');
-exports =
-    (function() {
-      var sdk_exports = eval(
-          'var __firestore_exports__ = { firestore: {}};'+
-`;
+const PREFIX = `goog.module('firestore');`;
 
-const POSTFIX = `
-    +'__firestore_exports__.firestore = ${EXPORTNAME};'
-    +'__firestore_exports__');
-    return sdk_exports.firestore;
-  }).call(window);
-`;
+const POSTFIX = `exports = ${EXPORTNAME};`;
 
 async function build() {
   // create a bundle
@@ -68,9 +57,9 @@ async function build() {
   // generate code
   const { code } = await bundle.generate(outputOptions);
 
-  const output = `${PREFIX}${JSON.stringify(String(code))}${POSTFIX}`;
+  const output = `${PREFIX}${code}${POSTFIX}`;
 
-  await fs_writeFile(outputOptions.file, output);
+  await fs_writeFile(outputOptions.file, output, 'utf-8');
 }
 
 build();
