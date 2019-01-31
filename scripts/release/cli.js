@@ -136,17 +136,6 @@ const { argv } = require('yargs');
         updates.map(pkg => packageVersionUpdate(pkg, releaseType))
       );
       versions = await prompt(versionUpdates);
-      /**
-       * Remove the skipped packages
-       */
-      Object.keys(versions).forEach(name => {
-        if (versions[name] === 'skip') {
-          delete versions[name];
-
-          // remove skipped package from updates array
-          updates = updates.filter(pkgName => pkgName !== name);
-        }
-      });
 
       /**
        * Verify that the versions selected are correct
