@@ -1,5 +1,4 @@
 /**
- * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +19,6 @@ import resolveModule from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import typescript from 'rollup-plugin-typescript2';
 import uglify from 'rollup-plugin-uglify';
-import license from 'rollup-plugin-license';
-import gitRev from 'git-rev-sync';
 import pkg from './package.json';
 
 import appPkg from './app/package.json';
@@ -49,12 +46,6 @@ const plugins = [
   }),
   commonjs()
 ];
-
-const licenseOptions = {
-  banner: `@license Firebase v${pkg.version}
-    Build: rev-${gitRev.short()}
-    Terms: https://firebase.google.com/terms/`
-};
 
 const external = Object.keys(pkg.dependencies || {});
 
@@ -90,7 +81,7 @@ const appBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, uglify(), license(licenseOptions)]
+    plugins: [...plugins, uglify()]
   }
 ];
 
@@ -147,7 +138,7 @@ const componentBuilds = components
               );
             }`
         },
-        plugins: [...plugins, uglify(), license(licenseOptions)],
+        plugins: [...plugins, uglify()],
         external: ['@firebase/app']
       }
     ];
@@ -177,7 +168,7 @@ const completeBuilds = [
       format: 'umd',
       name: GLOBAL_NAME
     },
-    plugins: [...plugins, uglify(), license(licenseOptions)]
+    plugins: [...plugins, uglify()]
   },
   /**
    * App Node.js Builds
