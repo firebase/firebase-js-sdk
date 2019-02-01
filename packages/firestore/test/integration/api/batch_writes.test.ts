@@ -16,7 +16,6 @@
 
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
-import { AutoId } from '../../../src/util/misc';
 
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
@@ -349,46 +348,5 @@ apiDescribe('Database batch writes', persistence => {
           unsubscribe();
         });
     });
-  });
-
-  it('can write very large batches', () => {
-    // On Android, SQLite Cursors are limited reading no more than 2 MB per row
-    // (despite being able to write very large values). This test verifies that
-    // the local MutationQueue is not subject to this limitation.
-
-    // Create a map containing nearly 1 MB of data. Note that if you use 1024
-    // below this will create a document larger than 1 MB, which will be
-    // rejected by the backend as too large.
-    let kb = 'a';
-    while (kb.length < 1000) {
-      kb += kb;
-    }
-    kb = kb.substr(0, 1000);
-    const values = {};
-    for (let i = 0; i < 1000; i++) {
-      values[AutoId.newId()] = kb;
-    }
-
-    return integrationHelpers.withTestCollection(
-      persistence,
-      {},
-      async collection => {
-        const doc = collection.doc('a');
-        const batch = doc.firestore.batch();
-
-        // Write a batch containing 3 copies of the data, creating a ~3 MB
-        // batch. Writing to the same document in a batch is allowed and so long
-        // as the net size of the document is under 1 MB the batch is allowed.
-        batch.set(doc, values);
-        for (let i = 0; i < 2; i++) {
-          batch.update(doc, values);
-        }
-
-        await batch.commit();
-
-        const snap = await doc.get();
-        expect(snap.data()).to.deep.equal(values);
-      }
-    );
   });
 });
