@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
- /**
-  * Config for internal deployment, adds required license header to generated code.
-  */
+/**
+ * Config for internal deployment, adds required license header to generated code.
+ */
 
 import baseBuilds from './rollup.config.js';
 import license from 'rollup-plugin-license';
@@ -30,7 +30,7 @@ const license = license({
 });
 
 const buildsWithLicense = baseBuilds.map(build => {
-    return Object.assign({}, build, { plugins: build.plugins.concat(license) });
+  return Object.assign({}, build, { plugins: build.plugins.concat(license) });
 });
 
 export default buildsWithLicense;
