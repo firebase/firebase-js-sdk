@@ -147,7 +147,7 @@ export class LocalDocumentsView {
   ): PersistencePromise<DocumentMap> {
     if (query.isDocumentQuery()) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
-    } else if (query.collectionGroup !== null) {
+    } else if (query.isCollectionGroupQuery()) {
       return this.getDocumentsMatchingCollectionGroupQuery(transaction, query);
     } else {
       return this.getDocumentsMatchingCollectionQuery(transaction, query);

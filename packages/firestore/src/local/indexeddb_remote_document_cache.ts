@@ -302,7 +302,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     query: Query
   ): PersistencePromise<DocumentMap> {
     assert(
-      query.collectionGroup === null,
+      !query.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
     let results = documentMap();

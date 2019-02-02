@@ -200,7 +200,7 @@ export class Query {
   canonicalId(): string {
     if (this.memoizedCanonicalId === null) {
       let canonicalId = this.path.canonicalString();
-      if (this.collectionGroup !== null) {
+      if (this.isCollectionGroupQuery()) {
         canonicalId += '|cg:' + this.collectionGroup;
       }
       canonicalId += '|f:';
@@ -233,7 +233,7 @@ export class Query {
 
   toString(): string {
     let str = 'Query(' + this.path.canonicalString();
-    if (this.collectionGroup !== null) {
+    if (this.isCollectionGroupQuery()) {
       str += ' collectionGroup=' + this.collectionGroup;
     }
     if (this.filters.length > 0) {
@@ -360,6 +360,10 @@ export class Query {
       this.collectionGroup === null &&
       this.filters.length === 0
     );
+  }
+
+  isCollectionGroupQuery(): boolean {
+    return this.collectionGroup !== null;
   }
 
   private matchesPathAndCollectionGroup(doc: Document): boolean {

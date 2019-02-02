@@ -1360,15 +1360,6 @@ export class Query implements firestore.Query {
         );
       }
       if (typeof value === 'string') {
-        if (value.indexOf('/') !== -1) {
-          // TODO(dimond): Allow slashes once ancestor queries are supported
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Function Query.where() requires its third parameter to be a ' +
-              'valid document ID if the first parameter is ' +
-              'FieldPath.documentId(), but it contains a slash.'
-          );
-        }
         if (value === '') {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
@@ -1377,8 +1368,28 @@ export class Query implements firestore.Query {
               'FieldPath.documentId(), but it was an empty string.'
           );
         }
-        const path = this._query.path.child(new ResourcePath([value]));
-        assert(path.length % 2 === 0, 'Path should be a document key');
+        if (
+          !this._query.isCollectionGroupQuery() &&
+          value.indexOf('/') !== -1
+        ) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid third parameter to Query.where(). When filtering a collection by ` +
+              `FieldPath.documentId(), the value provided must be a plain document ID but ` +
+              `'${value}' contains a slash.`
+          );
+        }
+        const path = this._query.path.child(ResourcePath.fromString(value));
+        if (!DocumentKey.isDocumentKey(path)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid third parameter to Query.where(). When filtering a collection group by ` +
+              `FieldPath.documentId(), the value provided must result in a valid document path ` +
+              `but '${path}' is not because it has an odd number of segments (${
+                path.length
+              }).`
+          );
+        }
         fieldValue = new RefValue(
           this.firestore._databaseId,
           new DocumentKey(path)
@@ -1633,14 +1644,28 @@ export class Query implements firestore.Query {
               `${methodName}(), but got a ${typeof rawValue}`
           );
         }
-        if (rawValue.indexOf('/') !== -1) {
+        if (
+          !this._query.isCollectionGroupQuery() &&
+          rawValue.indexOf('/') !== -1
+        ) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
-            `Invalid query. Document ID '${rawValue}' contains a slash in ` +
-              `${methodName}()`
+            `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
+              `the value passed to ${methodName}() must be a plain document ID but '${rawValue}' ` +
+              `contains a slash.`
           );
         }
-        const key = new DocumentKey(this._query.path.child(rawValue));
+        const path = this._query.path.child(ResourcePath.fromString(rawValue));
+        if (!DocumentKey.isDocumentKey(path)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid query. When querying a collection group and ordering by ` +
+              `FieldPath.documentId(), the value passed to ${methodName}() must result in a ` +
+              `valid document path but '${rawValue}' is not because it contains an odd number of ` +
+              `segments.`
+          );
+        }
+        const key = new DocumentKey(path);
         components.push(new RefValue(this.firestore._databaseId, key));
       } else {
         const wrapped = this.firestore._dataConverter.parseQueryValue(

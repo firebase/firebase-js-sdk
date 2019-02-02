@@ -228,7 +228,7 @@ export class MemoryMutationQueue implements MutationQueue {
     query: Query
   ): PersistencePromise<MutationBatch[]> {
     assert(
-      query.collectionGroup === null,
+      !query.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
     // Use the query path as a prefix for testing if a document matches the
