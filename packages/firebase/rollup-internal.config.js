@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,22 @@
  * limitations under the License.
  */
 
-const path = require('path');
+/**
+ * Config for internal deployment, adds required license header to generated code.
+ */
 
-module.exports = {
-  entry: path.resolve(__dirname, 'src/namespace.test.js'),
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'namespace.test.js'
-  }
-};
+import baseBuilds from './rollup.config.js';
+import license from 'rollup-plugin-license';
+import gitRev from 'git-rev-sync';
+
+const license = license({
+  banner: `@license Firebase v${pkg.version}
+    Build: rev-${gitRev.short()}
+    Terms: https://firebase.google.com/terms/`
+});
+
+const buildsWithLicense = baseBuilds.map(build => {
+  return Object.assign({}, build, { plugins: build.plugins.concat(license) });
+});
+
+export default buildsWithLicense;
