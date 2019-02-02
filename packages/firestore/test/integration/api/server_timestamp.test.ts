@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -245,11 +246,12 @@ apiDescribe('Server Timestamps', persistence => {
   it('can return previous value through consecutive updates', () => {
     return withTestSetup(() => {
       return writeInitialData()
-        .then(() => docRef.firestore.disableNetwork)
+        .then(() => docRef.firestore.disableNetwork())
         .then(() => {
           // We set up two consecutive writes with server timestamps.
           docRef.update('a', FieldValue.serverTimestamp());
-          docRef.update('a', FieldValue.serverTimestamp());
+          // include b=1 to ensure there's a change resulting in a new snapshot.
+          docRef.update('a', FieldValue.serverTimestamp(), 'b', 1);
           return accumulator.awaitLocalEvents(2);
         })
         .then(snapshots => {
@@ -260,6 +262,11 @@ apiDescribe('Server Timestamps', persistence => {
           expect(
             snapshots[1].get('a', { serverTimestamps: 'previous' })
           ).to.equal(42);
+          return docRef.firestore.enableNetwork();
+        })
+        .then(() => accumulator.awaitRemoteEvent())
+        .then(remoteSnapshot => {
+          expect(remoteSnapshot.get('a')).to.be.an.instanceof(Timestamp);
         });
     });
   });
@@ -267,7 +274,7 @@ apiDescribe('Server Timestamps', persistence => {
   it('uses previous value from local mutation', () => {
     return withTestSetup(() => {
       return writeInitialData()
-        .then(() => docRef.firestore.disableNetwork)
+        .then(() => docRef.firestore.disableNetwork())
         .then(() => {
           // We set up three consecutive writes.
           docRef.update('a', FieldValue.serverTimestamp());
@@ -284,6 +291,11 @@ apiDescribe('Server Timestamps', persistence => {
           expect(
             snapshots[2].get('a', { serverTimestamps: 'previous' })
           ).to.equal(1337);
+          return docRef.firestore.enableNetwork();
+        })
+        .then(() => accumulator.awaitRemoteEvent())
+        .then(remoteSnapshot => {
+          expect(remoteSnapshot.get('a')).to.be.an.instanceof(Timestamp);
         });
     });
   });

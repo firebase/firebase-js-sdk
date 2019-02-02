@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +27,7 @@ const Timestamp = firebase.firestore!.Timestamp;
 const FieldValue = firebase.firestore!.FieldValue;
 
 apiDescribe('Database batch writes', persistence => {
-  it('support empty batches', () => {
+  it('supports empty batches', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       return db.batch().commit();
     });
@@ -84,6 +85,39 @@ apiDescribe('Database batch writes', persistence => {
         .then(snapshot => {
           expect(snapshot.exists).to.equal(true);
           expect(snapshot.data()).to.deep.equal({ foo: 'bar', baz: 42 });
+        });
+    });
+  });
+
+  it('can update nested fields', () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny' },
+      'is.admin': false
+    };
+    const finalData = {
+      desc: 'Description',
+      owner: { name: 'Sebastian' },
+      'is.admin': true
+    };
+
+    return integrationHelpers.withTestDb(persistence, db => {
+      const doc = db.collection('counters').doc();
+      return doc.firestore
+        .batch()
+        .set(doc, initialData)
+        .update(
+          doc,
+          'owner.name',
+          'Sebastian',
+          new firebase.firestore!.FieldPath('is.admin'),
+          true
+        )
+        .commit()
+        .then(() => doc.get())
+        .then(docSnapshot => {
+          expect(docSnapshot.exists).to.be.ok;
+          expect(docSnapshot.data()).to.deep.equal(finalData);
         });
     });
   });
@@ -313,39 +347,6 @@ apiDescribe('Database batch writes', persistence => {
           expect(when).to.be.an.instanceof(Timestamp);
           expect(serverSnap.data()).to.deep.equal({ a: 1, b: 2, when });
           unsubscribe();
-        });
-    });
-  });
-
-  it('can update nested fields', () => {
-    const initialData = {
-      desc: 'Description',
-      owner: { name: 'Jonny' },
-      'is.admin': false
-    };
-    const finalData = {
-      desc: 'Description',
-      owner: { name: 'Sebastian' },
-      'is.admin': true
-    };
-
-    return integrationHelpers.withTestDb(persistence, db => {
-      const doc = db.collection('counters').doc();
-      return doc.firestore
-        .batch()
-        .set(doc, initialData)
-        .update(
-          doc,
-          'owner.name',
-          'Sebastian',
-          new firebase.firestore!.FieldPath('is.admin'),
-          true
-        )
-        .commit()
-        .then(() => doc.get())
-        .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
         });
     });
   });
