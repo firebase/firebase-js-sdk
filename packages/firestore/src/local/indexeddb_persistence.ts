@@ -264,8 +264,8 @@ export class IndexedDbPersistence implements Persistence {
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
   private readonly queryCache: IndexedDbQueryCache;
-  private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly indexManager: IndexedDbIndexManager;
+  private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage;
   private listenSequence: ListenSequence;
   readonly referenceDelegate: IndexedDbLruDelegate;

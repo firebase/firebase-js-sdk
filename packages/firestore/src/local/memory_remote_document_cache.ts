@@ -170,12 +170,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
-    // Note that DocumentKeys must be even-length, but our query path could be odd or even depending
-    // on whether it's a collection group query.
-    const prefix =
-      query.path.length % 2 === 0
-        ? new DocumentKey(query.path)
-        : new DocumentKey(query.path.child(''));
+    const prefix = new DocumentKey(query.path.child(''));
     const iterator = this.docs.getIteratorFrom(prefix);
     while (iterator.hasNext()) {
       const {

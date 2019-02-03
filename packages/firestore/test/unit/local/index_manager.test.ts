@@ -18,11 +18,11 @@ import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { ResourcePath } from '../../../src/model/path';
-import { SortedSet } from '../../../src/util/sorted_set';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 
+import { path } from '../../util/helpers';
 import * as persistenceHelpers from './persistence_test_helpers';
-import { TestIndexManager } from './test_query_indexes';
+import { TestIndexManager } from './test_index_manager';
 
 describe('MemoryIndexManager', () => {
   genericIndexManagerTests(persistenceHelpers.testMemoryEagerPersistence);
@@ -83,24 +83,16 @@ function genericIndexManagerTests(
       ResourcePath.fromString('rooms/foo/messages2')
     );
 
-    expect(await indexManager.getCollectionParents('messages')).to.deep.equal(
-      pathSet('', 'rooms/foo', 'rooms/bar')
-    );
-
-    expect(await indexManager.getCollectionParents('messages2')).to.deep.equal(
-      pathSet('rooms/foo')
-    );
-
+    expect(await indexManager.getCollectionParents('messages')).to.deep.equal([
+      path(''),
+      path('rooms/bar'),
+      path('rooms/foo')
+    ]);
+    expect(await indexManager.getCollectionParents('messages2')).to.deep.equal([
+      path('rooms/foo')
+    ]);
     expect(await indexManager.getCollectionParents('messages3')).to.deep.equal(
-      pathSet()
+      []
     );
   });
-
-  function pathSet(...pathStrings: string[]): SortedSet<ResourcePath> {
-    let paths = new SortedSet<ResourcePath>(ResourcePath.comparator);
-    for (const path of pathStrings) {
-      paths = paths.add(ResourcePath.fromString(path));
-    }
-    return paths;
-  }
 }

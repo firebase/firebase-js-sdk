@@ -15,7 +15,6 @@
  */
 
 import { ResourcePath } from '../model/path';
-import { SortedSet } from '../util/sorted_set';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
@@ -41,11 +40,11 @@ export interface IndexManager {
 
   /**
    * Retrieves all parent locations containing the given collectionId, as a
-   * set of paths (each path being either a document location or the empty
+   * list of paths (each path being either a document location or the empty
    * path for a root-level collection).
    */
   getCollectionParents(
     transaction: PersistenceTransaction,
     collectionId: string
-  ): PersistencePromise<SortedSet<ResourcePath>>;
+  ): PersistencePromise<ResourcePath[]>;
 }

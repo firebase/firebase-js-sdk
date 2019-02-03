@@ -23,12 +23,11 @@ import { assert } from '../util/assert';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
-import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
-import { IndexedDbTransaction } from './indexeddb_persistence';
 import { getHighestListenSequenceNumber } from './indexeddb_query_cache';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import { LocalSerializer } from './local_serializer';
+import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
@@ -240,21 +239,30 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       keyPath: DbCollectionParent.keyPath
     });
 
-    const indexManager = new IndexedDbIndexManager();
-    const indexedDbTxn = new IndexedDbTransaction(
-      txn,
-      /*currentSequenceNumber (dummy)=*/ 0
-    );
+    const collectionParentsStore = txn.store<
+      DbCollectionParentKey,
+      DbCollectionParent
+    >(DbCollectionParent.store);
+
+    // Helper to add an index entry iff it hasn't already been written.
+    const cache = new MemoryCollectionParentIndex();
+    const addEntry = collectionPath => {
+      if (cache.add(collectionPath)) {
+        const collectionId = collectionPath.lastSegment();
+        const parentPath = collectionPath.popLast();
+        return collectionParentsStore.put({
+          collectionId,
+          parent: encode(parentPath)
+        });
+      }
+    };
 
     // Index existing remote documents.
     return txn
       .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
       .iterate({ keysOnly: true }, (pathSegments, _) => {
         const path = new ResourcePath(pathSegments);
-        return indexManager.addToCollectionParentIndex(
-          indexedDbTxn,
-          path.popLast()
-        );
+        return addEntry(path.popLast());
       })
       .next(() => {
         // Index existing mutations.
@@ -264,10 +272,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
           )
           .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
             const path = decode(encodedPath);
-            return indexManager.addToCollectionParentIndex(
-              indexedDbTxn,
-              path.popLast()
-            );
+            return addEntry(path.popLast());
           });
       });
   }

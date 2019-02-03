@@ -826,13 +826,13 @@ apiDescribe('Validation:', persistence => {
         );
         expect(() => query.startAt('foo/bar')).to.throw(
           `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
-            `the value passed to Query.startAt() must be a plain document ID but 'foo/bar' ` +
+            `the value passed to Query.startAt() must be a plain document ID, but 'foo/bar' ` +
             `contains a slash.`
         );
         expect(() => cgQuery.startAt('foo')).to.throw(
           `Invalid query. When querying a collection group and ordering by ` +
             `FieldPath.documentId(), the value passed to Query.startAt() must result in a valid ` +
-            `document path but 'foo' is not because it contains an odd number of segments.`
+            `document path, but 'foo' is not because it contains an odd number of segments.`
         );
       }
     );
@@ -929,16 +929,16 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 'foo/bar/baz')
         ).to.throw(
-          `Invalid third parameter to Query.where(). When filtering a collection by ` +
-            `FieldPath.documentId(), the value provided must be a plain document ID but ` +
+          `Invalid third parameter to Query.where(). When querying a collection by ` +
+            `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
             `'foo/bar/baz' contains a slash.`
         );
         expect(() =>
           db.collectionGroup('foo').where(FieldPath.documentId(), '>=', 'foo')
         ).to.throw(
-          `Invalid third parameter to Query.where(). When filtering a collection group by ` +
-            `FieldPath.documentId(), the value provided must result in a valid document path but ` +
-            `'foo' is not because it has an odd number of segments (1).`
+          `Invalid third parameter to Query.where(). When querying a collection group by ` +
+            `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+            `but 'foo' is not because it has an odd number of segments (1).`
         );
 
         expect(() =>

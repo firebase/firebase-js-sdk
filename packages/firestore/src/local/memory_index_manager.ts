@@ -25,31 +25,53 @@ import { PersistencePromise } from './persistence_promise';
  * An in-memory implementation of IndexManager.
  */
 export class MemoryIndexManager implements IndexManager {
-  private collectionParentsIndex = {} as {
-    [collectionId: string]: SortedSet<ResourcePath>;
-  };
+  private collectionParentIndex = new MemoryCollectionParentIndex();
 
   addToCollectionParentIndex(
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {
-    assert(collectionPath.length >= 1, 'Invalid collection path.');
-    const collectionId = collectionPath.lastSegment();
-    const parentPath = collectionPath.popLast();
-    const existingParents =
-      this.collectionParentsIndex[collectionId] ||
-      new SortedSet<ResourcePath>(ResourcePath.comparator);
-    this.collectionParentsIndex[collectionId] = existingParents.add(parentPath);
+    this.collectionParentIndex.add(collectionPath);
     return PersistencePromise.resolve();
   }
 
   getCollectionParents(
     transaction: PersistenceTransaction,
     collectionId: string
-  ): PersistencePromise<SortedSet<ResourcePath>> {
-    const parentPaths =
-      this.collectionParentsIndex[collectionId] ||
+  ): PersistencePromise<ResourcePath[]> {
+    return PersistencePromise.resolve(
+      this.collectionParentIndex.getEntries(collectionId)
+    );
+  }
+}
+
+/**
+ * Internal implementation of the collection-parent index exposed by MemoryIndexManager.
+ * Also used for in-memory caching by IndexedDbIndexManager and initial index population
+ * in indexeddb_schema.ts
+ */
+export class MemoryCollectionParentIndex {
+  private index = {} as {
+    [collectionId: string]: SortedSet<ResourcePath>;
+  };
+
+  // Returns false if the entry already existed.
+  add(collectionPath: ResourcePath): boolean {
+    assert(collectionPath.length >= 1, 'Invalid collection path.');
+    const collectionId = collectionPath.lastSegment();
+    const parentPath = collectionPath.popLast();
+    const existingParents =
+      this.index[collectionId] ||
       new SortedSet<ResourcePath>(ResourcePath.comparator);
-    return PersistencePromise.resolve(parentPaths);
+    const added = !existingParents.has(parentPath);
+    this.index[collectionId] = existingParents.add(parentPath);
+    return added;
+  }
+
+  getEntries(collectionId: string): ResourcePath[] {
+    const parentPaths =
+      this.index[collectionId] ||
+      new SortedSet<ResourcePath>(ResourcePath.comparator);
+    return parentPaths.toArray();
   }
 }

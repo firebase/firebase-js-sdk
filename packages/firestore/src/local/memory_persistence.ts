@@ -65,11 +65,11 @@ export class MemoryPersistence implements Persistence {
    * will make the in-memory persistence layer behave as if it were actually
    * persisting values.
    */
+  private readonly indexManager: MemoryIndexManager;
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
   private readonly queryCache: MemoryQueryCache;
   private readonly listenSequence = new ListenSequence(0);
-  private readonly indexManager: MemoryIndexManager;
 
   private _started = false;
 
@@ -140,6 +140,10 @@ export class MemoryPersistence implements Persistence {
     // No op.
   }
 
+  getIndexManager(): MemoryIndexManager {
+    return this.indexManager;
+  }
+
   getMutationQueue(user: User): MutationQueue {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
@@ -154,10 +158,6 @@ export class MemoryPersistence implements Persistence {
 
   getQueryCache(): MemoryQueryCache {
     return this.queryCache;
-  }
-
-  getIndexManager(): MemoryIndexManager {
-    return this.indexManager;
   }
 
   getRemoteDocumentCache(): MemoryRemoteDocumentCache {

@@ -17,11 +17,11 @@
 import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 import { immediateSuccessor } from '../util/misc';
-import { SortedSet } from '../util/sorted_set';
 import { decode, encode } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { DbCollectionParent, DbCollectionParentKey } from './indexeddb_schema';
+import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore } from './simple_db';
@@ -31,54 +31,53 @@ import { SimpleDbStore } from './simple_db';
  */
 export class IndexedDbIndexManager implements IndexManager {
   /**
-   * An in-memory copy of the collection parents that we've written to the index since the
-   * SDK launched. Used to avoid re-writing the same entry repeatedly.
+   * An in-memory copy of the index entries we've already written since the SDK
+   * launched. Used to avoid re-writing the same entry repeatedly.
    *
    * This is *NOT* a complete cache of what's in persistence and so can never be used to
    * satisfy reads.
    */
-  private knownPersistedCollectionParents = {} as {
-    [collectionId: string]: SortedSet<ResourcePath>;
-  };
+  private collectionParentsCache = new MemoryCollectionParentIndex();
 
   addToCollectionParentIndex(
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {
-    assert(collectionPath.length >= 1, 'Invalid collection path.');
-    const collectionId = collectionPath.lastSegment();
-    const parentPath = collectionPath.popLast();
-    const knownParents =
-      this.knownPersistedCollectionParents[collectionId] ||
-      new SortedSet<ResourcePath>(ResourcePath.comparator);
-    if (knownParents.has(parentPath)) {
-      return PersistencePromise.resolve();
-    } else {
-      this.knownPersistedCollectionParents[collectionId] = knownParents.add(
-        parentPath
-      );
+    if (this.collectionParentsCache.add(collectionPath)) {
+      assert(collectionPath.length >= 1, 'Invalid collection path.');
+      const collectionId = collectionPath.lastSegment();
+      const parentPath = collectionPath.popLast();
       return collectionParentsStore(transaction).put({
         collectionId,
         parent: encode(parentPath)
       });
     }
+    return PersistencePromise.resolve();
   }
 
   getCollectionParents(
     transaction: PersistenceTransaction,
     collectionId: string
-  ): PersistencePromise<SortedSet<ResourcePath>> {
-    let parentPaths = new SortedSet<ResourcePath>(ResourcePath.comparator);
+  ): PersistencePromise<ResourcePath[]> {
+    const parentPaths = [] as ResourcePath[];
     const range = IDBKeyRange.bound(
-      [collectionId],
-      [immediateSuccessor(collectionId)],
-      /*lowerOpen=*/ false /*upperOpen=true*/
+      [collectionId, ''],
+      [immediateSuccessor(collectionId), ''],
+      /*lowerOpen=*/ false,
+      /*upperOpen=*/ true
     );
     return collectionParentsStore(transaction)
       .loadAll(range)
       .next(entries => {
-        for (const { parent } of entries) {
-          parentPaths = parentPaths.add(decode(parent));
+        for (const entry of entries) {
+          // This collectionId guard shouldn't be necessary (and isn't as long
+          // as we're running in a real browser), but there's a bug in
+          // indexeddbshim that breaks our range in our tests running in node:
+          // https://github.com/axemclion/IndexedDBShim/issues/334
+          if (entry.collectionId !== collectionId) {
+            break;
+          }
+          parentPaths.push(decode(entry.parent));
         }
         return parentPaths;
       });

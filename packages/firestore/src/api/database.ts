@@ -507,8 +507,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (collectionId.indexOf('/') >= 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Function Firestore.collectionGroup() requires its first parameter to be a ' +
-          'valid collection ID and therefore must not contain "/"'
+        `Invalid collection ID '${collectionId}' passed to function ` +
+          `Firestore.collectionGroup(). Collection IDs must not contain '/'.`
       );
     }
     this.ensureClientConfigured();
@@ -1375,8 +1375,8 @@ export class Query implements firestore.Query {
         ) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
-            `Invalid third parameter to Query.where(). When filtering a collection by ` +
-              `FieldPath.documentId(), the value provided must be a plain document ID but ` +
+            `Invalid third parameter to Query.where(). When querying a collection by ` +
+              `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
               `'${value}' contains a slash.`
           );
         }
@@ -1384,8 +1384,8 @@ export class Query implements firestore.Query {
         if (!DocumentKey.isDocumentKey(path)) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
-            `Invalid third parameter to Query.where(). When filtering a collection group by ` +
-              `FieldPath.documentId(), the value provided must result in a valid document path ` +
+            `Invalid third parameter to Query.where(). When querying a collection group by ` +
+              `FieldPath.documentId(), the value provided must result in a valid document path, ` +
               `but '${path}' is not because it has an odd number of segments (${
                 path.length
               }).`
@@ -1652,8 +1652,8 @@ export class Query implements firestore.Query {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
-              `the value passed to ${methodName}() must be a plain document ID but '${rawValue}' ` +
-              `contains a slash.`
+              `the value passed to ${methodName}() must be a plain document ID, but ` +
+              `'${rawValue}' contains a slash.`
           );
         }
         const path = this._query.path.child(ResourcePath.fromString(rawValue));
@@ -1662,8 +1662,8 @@ export class Query implements firestore.Query {
             Code.INVALID_ARGUMENT,
             `Invalid query. When querying a collection group and ordering by ` +
               `FieldPath.documentId(), the value passed to ${methodName}() must result in a ` +
-              `valid document path but '${rawValue}' is not because it contains an odd number of ` +
-              `segments.`
+              `valid document path, but '${path}' is not because it contains an odd number ` +
+              `of segments.`
           );
         }
         const key = new DocumentKey(path);

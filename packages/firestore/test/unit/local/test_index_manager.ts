@@ -17,7 +17,6 @@
 import { IndexManager } from '../../../src/local/index_manager';
 import { Persistence } from '../../../src/local/persistence';
 import { ResourcePath } from '../../../src/model/path';
-import { SortedSet } from '../../../src/util/sorted_set';
 
 /**
  * A wrapper around IndexManager that automatically creates a
@@ -42,7 +41,7 @@ export class TestIndexManager {
     );
   }
 
-  getCollectionParents(collectionId: string): Promise<SortedSet<ResourcePath>> {
+  getCollectionParents(collectionId: string): Promise<ResourcePath[]> {
     return this.persistence.runTransaction(
       'getCollectionParents',
       'readwrite',

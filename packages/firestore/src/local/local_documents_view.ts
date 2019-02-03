@@ -184,6 +184,8 @@ export class LocalDocumentsView {
     return this.indexManager
       .getCollectionParents(transaction, collectionId)
       .next(parents => {
+        // Perform a collection query against each parent that contains the
+        // collectionId and aggregate the results.
         return PersistencePromise.forEach(parents, parent => {
           const collectionQuery = query.asCollectionQueryAtPath(
             parent.child(collectionId)
