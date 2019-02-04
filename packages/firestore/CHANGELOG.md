@@ -1,4 +1,8 @@
 # Unreleased
+- [feature] You can now query across all collections in your database with a
+  given collection ID using the `FirebaseFirestore.collectionGroup()` method.
+
+# 1.0.0
 - [changed] The `timestampsInSnapshots` setting is now enabled by default.
   Timestamp fields that read from a `DocumentSnapshot` are now returned as
   `Timestamp` objects instead of `Date` objects. This is a breaking change;
