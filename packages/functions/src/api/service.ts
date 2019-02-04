@@ -42,7 +42,7 @@ interface HttpResponse {
  *
  * @param millis Number of milliseconds to wait before rejecting.
  */
-function delay(millis): Promise<Response> {
+function failAfter(millis): Promise<HttpResponse> {
   return new Promise((_, reject) => {
     const error = new HttpsErrorImpl('deadline-exceeded', 'deadline-exceeded');
     setTimeout(() => reject(error), millis);
@@ -183,7 +183,7 @@ export class Service implements FirebaseFunctions {
 
     const response = await Promise.race([
       this.postJSON(url, body, headers),
-      delay(timeout)
+      failAfter(timeout)
     ]);
 
     // Check for an error status, regardless of http status.
