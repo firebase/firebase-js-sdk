@@ -171,7 +171,7 @@ describe('Firebase Functions > Call', () => {
   });
 
   it('timeout', async () => {
-    const func = functions.httpsCallable('timeoutTest', {timeout: 10});
+    const func = functions.httpsCallable('timeoutTest', { timeout: 10 });
     await expectError(func(), 'deadline-exceeded', 'deadline-exceeded');
   });
 });

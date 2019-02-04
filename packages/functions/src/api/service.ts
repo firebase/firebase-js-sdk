@@ -157,7 +157,11 @@ export class Service implements FirebaseFunctions {
    * @param name The name of the callable trigger.
    * @param data The data to pass as params to the function.s
    */
-  private async call(name: string, data: any, options: HttpsCallableOptions): Promise<HttpsCallableResult> {
+  private async call(
+    name: string,
+    data: any,
+    options: HttpsCallableOptions
+  ): Promise<HttpsCallableResult> {
     const url = this._url(name);
 
     // Encode any special types, such as dates, in the input data.

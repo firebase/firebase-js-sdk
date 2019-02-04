@@ -138,6 +138,6 @@ exports.httpErrorTest = functions.https.onRequest((request, response) => {
 exports.timeoutTest = functions.https.onRequest((request, response) => {
   cors(request, response, () => {
     // Wait for longer than 500ms.
-    setTimeout(() => response.send({data: true}), 500);
+    setTimeout(() => response.send({ data: true }), 500);
   });
 });

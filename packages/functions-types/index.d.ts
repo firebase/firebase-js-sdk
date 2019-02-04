@@ -34,7 +34,7 @@ export interface HttpsCallable {
  * HttpsCallableOptions specify metadata about how calls should be executed.
  */
 export interface HttpsCallableOptions {
-  timeout?: number;  // in millis
+  timeout?: number; // in millis
 }
 
 /**
