@@ -17,7 +17,6 @@
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
-import { ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 
 import { path } from '../../util/helpers';
@@ -67,21 +66,11 @@ function genericIndexManagerTests(
   });
 
   it('can add and read collection=>parent index entries', async () => {
-    await indexManager.addToCollectionParentIndex(
-      ResourcePath.fromString('messages')
-    );
-    await indexManager.addToCollectionParentIndex(
-      ResourcePath.fromString('messages')
-    );
-    await indexManager.addToCollectionParentIndex(
-      ResourcePath.fromString('rooms/foo/messages')
-    );
-    await indexManager.addToCollectionParentIndex(
-      ResourcePath.fromString('rooms/bar/messages')
-    );
-    await indexManager.addToCollectionParentIndex(
-      ResourcePath.fromString('rooms/foo/messages2')
-    );
+    await indexManager.addToCollectionParentIndex(path('messages'));
+    await indexManager.addToCollectionParentIndex(path('messages'));
+    await indexManager.addToCollectionParentIndex(path('rooms/foo/messages'));
+    await indexManager.addToCollectionParentIndex(path('rooms/bar/messages'));
+    await indexManager.addToCollectionParentIndex(path('rooms/foo/messages2'));
 
     expect(await indexManager.getCollectionParents('messages')).to.deep.equal([
       path(''),
