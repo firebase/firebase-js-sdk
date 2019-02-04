@@ -43,6 +43,7 @@ export class IndexedDbIndexManager implements IndexManager {
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {
+    assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
     if (this.collectionParentsCache.add(collectionPath)) {
       assert(collectionPath.length >= 1, 'Invalid collection path.');
       const collectionId = collectionPath.lastSegment();

@@ -57,7 +57,7 @@ export class MemoryCollectionParentIndex {
 
   // Returns false if the entry already existed.
   add(collectionPath: ResourcePath): boolean {
-    assert(collectionPath.length >= 1, 'Invalid collection path.');
+    assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
     const collectionId = collectionPath.lastSegment();
     const parentPath = collectionPath.popLast();
     const existingParents =
