@@ -934,6 +934,13 @@ apiDescribe('Validation:', persistence => {
             `'foo/bar/baz' contains a slash.`
         );
         expect(() =>
+          collection.where(FieldPath.documentId(), '>=', 1)
+        ).to.throw(
+          'Function Query.where() requires its third parameter to be ' +
+            'a string or a DocumentReference if the first parameter is ' +
+            'FieldPath.documentId(), but it was: 1.'
+        );
+        expect(() =>
           db.collectionGroup('foo').where(FieldPath.documentId(), '>=', 'foo')
         ).to.throw(
           `Invalid third parameter to Query.where(). When querying a collection group by ` +
