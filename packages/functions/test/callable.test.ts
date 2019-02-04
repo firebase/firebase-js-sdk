@@ -43,7 +43,7 @@ async function expectError(
     expect(e.details).to.deep.equal(details);
   }
   if (!failed) {
-    expect(false, 'Promise should have failed.');
+    expect(false, 'Promise should have failed.').to.be.true;
   }
 }
 
@@ -168,5 +168,10 @@ describe('Firebase Functions > Call', () => {
   it('http error', async () => {
     const func = functions.httpsCallable('httpErrorTest');
     await expectError(func(), 'invalid-argument', 'invalid-argument');
+  });
+
+  it('timeout', async () => {
+    const func = functions.httpsCallable('timeoutTest', {timeout: 10});
+    await expectError(func(), 'deadline-exceeded', 'deadline-exceeded');
   });
 });
