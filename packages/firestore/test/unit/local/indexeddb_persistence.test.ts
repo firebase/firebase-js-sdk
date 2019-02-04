@@ -628,7 +628,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const expectedParents = {
       cg1: ['', 'cg1/x', 'cg1/y'],
       cg2: ['', 'cg1/x'],
-      cg3: ['cg2/x', 'blah/x/blah/x']
+      cg3: ['blah/x/blah/x', 'cg2/x']
     };
 
     await withDb(7, db => {
@@ -676,25 +676,17 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           DbCollectionParent
         >(DbCollectionParent.store);
         return collectionParentsStore.loadAll().next(indexEntries => {
-          for (const collectionId of Object.keys(expectedParents)) {
-            for (const parent of expectedParents[collectionId]) {
-              expect(indexEntries).to.deep.include({
-                collectionId,
-                parent: encode(path(parent))
-              });
-              // Remove it from the array so we can check for leftover entries at the end.
-              indexEntries = indexEntries.filter(
-                entry =>
-                  !(
-                    entry.collectionId === collectionId &&
-                    entry.parent === encode(path(parent))
-                  )
-              );
+          const actualParents = {};
+          for (const { collectionId, parent } of indexEntries) {
+            let parents = actualParents[collectionId];
+            if (!parents) {
+              parents = [];
+              actualParents[collectionId] = parents;
             }
+            parents.push(decode(parent).toString());
           }
 
-          // Make sure there weren't any extra entries.
-          expect(indexEntries).to.be.empty;
+          expect(actualParents).to.deep.equal(expectedParents);
         });
       });
     });
