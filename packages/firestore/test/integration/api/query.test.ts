@@ -568,7 +568,7 @@ apiDescribe('Queries', persistence => {
     }).to.throw(expectedError);
   });
 
-  it('support collection groups', async () => {
+  it('can query collection groups', async () => {
     await withTestDb(persistence, async db => {
       // Use .doc() to get a random collection group name to use but ensure it starts with 'b' for
       // predictable ordering.
@@ -604,7 +604,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it('support collection groups with startAt / endAt by arbitrary documentId', async () => {
+  it('can query collection groups with startAt / endAt by arbitrary documentId', async () => {
     await withTestDb(persistence, async db => {
       // Use .doc() to get a random collection group name to use but ensure it starts with 'b' for
       // predictable ordering.
@@ -647,7 +647,7 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it('support collection groups with where filters on arbitrary documentId', async () => {
+  it('can query collection groups with where filters on arbitrary documentId', async () => {
     await withTestDb(persistence, async db => {
       // Use .doc() to get a random collection group name to use but ensure it starts with 'b' for
       // predictable ordering.

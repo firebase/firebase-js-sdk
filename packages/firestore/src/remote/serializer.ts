@@ -1008,7 +1008,7 @@ export class JsonProtoSerializer {
     if (query.collectionGroup !== null) {
       assert(
         path.length % 2 === 0,
-        'Collection Group queries should be within a document path.'
+        'Collection Group queries should be within a document path or root.'
       );
       result.parent = this.toQueryPath(path);
       result.structuredQuery!.from = [

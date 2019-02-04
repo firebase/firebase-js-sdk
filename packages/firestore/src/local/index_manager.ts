@@ -1,5 +1,5 @@
 /**
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,7 @@ import { PersistencePromise } from './persistence_promise';
  * Represents a set of indexes that are used to execute queries efficiently.
  *
  * Currently the only index is a [collection id] => [parent path] index, used
- * to execute Collection Group queries. When we implement property indexing in
- * the future, the way this interface is structured and used will very possibly
- * change.
+ * to execute Collection Group queries.
  */
 export interface IndexManager {
   /**
