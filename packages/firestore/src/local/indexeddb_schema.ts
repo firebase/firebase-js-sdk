@@ -244,7 +244,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       DbCollectionParent
     >(DbCollectionParent.store);
 
-    // Helper to add an index entry iff it hasn't already been written.
+    // Helper to add an index entry iff we haven't already written it.
     const cache = new MemoryCollectionParentIndex();
     const addEntry = collectionPath => {
       if (cache.add(collectionPath)) {
