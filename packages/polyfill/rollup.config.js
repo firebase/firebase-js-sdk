@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import commonjs from 'rollup-plugin-commonjs';
+import resolve from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
 import pkg from './package.json';
 
@@ -28,12 +30,21 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-export default {
-  input: 'index.ts',
-  output: [
-    { file: pkg.main, format: 'cjs' },
-    { file: pkg.module, format: 'es' }
-  ],
-  plugins,
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-};
+export default [
+  {
+    input: 'index.ts',
+    output: [
+      { file: pkg.main, format: 'cjs' }
+    ],
+    plugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'index.ts',
+    output: [
+      { file: pkg.module, format: 'es' }
+    ],
+    plugins: [...plugins, resolve(), commonjs()],
+    external: deps
+  }
+];
