@@ -33,17 +33,13 @@ const deps = Object.keys(
 export default [
   {
     input: 'index.ts',
-    output: [
-      { file: pkg.main, format: 'cjs' }
-    ],
+    output: [{ file: pkg.main, format: 'cjs' }],
     plugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'index.ts',
-    output: [
-      { file: pkg.module, format: 'es' }
-    ],
+    output: [{ file: pkg.module, format: 'es' }],
     plugins: [...plugins, resolve(), commonjs()],
     external: deps
   }
