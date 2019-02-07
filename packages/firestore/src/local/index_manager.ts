@@ -30,6 +30,9 @@ export interface IndexManager {
    * to the parent path (either the containing document location or the empty
    * path for root-level collections). Index entries can be retrieved via
    * getCollectionParents().
+   *
+   * NOTE: Currently we don't remove index entries. If this ends up being an
+   * issue we can devise some sort of GC strategy.
    */
   addToCollectionParentIndex(
     transaction: PersistenceTransaction,
