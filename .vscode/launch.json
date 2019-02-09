@@ -7,6 +7,26 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Launch Program",
+      "program": "${workspaceFolder}/packages/firestore/node_modules/.bin/webpack",
+      "cwd": "${workspaceFolder}/packages/firestore",
+      "runtimeArgs": []
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch via NPM",
+      "runtimeExecutable": "npm",
+      "cwd": "${workspaceFolder}/packages/firestore",
+      "runtimeArgs": [
+        "run",
+        "wp"
+      ],
+      "port": 9229
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Firestore Unit Tests (Node)",
       "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",

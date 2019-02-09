@@ -1,5 +1,5 @@
 /**
- * @license
+ * 
  * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +24,7 @@ import license from 'rollup-plugin-license';
 import gitRev from 'git-rev-sync';
 
 const license = license({
-  banner: `@license Firebase v${pkg.version}
+  banner: ` Firebase v${pkg.version}
     Build: rev-${gitRev.short()}
     Terms: https://firebase.google.com/terms/`
 });
