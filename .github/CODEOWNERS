@@ -66,4 +66,4 @@ packages/auth-types  @bojeil-google @wti806 @firebase/jssdk-global-approvers
 packages/testing  @tonymeng @ryanpbrewster @firebase/jssdk-global-approvers
 
 # RxFire Code
-packages/rxfire @davideast @firebase/jssdk-global-approvers
+packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers
