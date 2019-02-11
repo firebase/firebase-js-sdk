@@ -806,8 +806,12 @@ apiDescribe('Validation:', persistence => {
           async (collection: firestore.CollectionReference) => {
             await db.disableNetwork();
 
-            const offlineAccumulator = new EventsAccumulator<firestore.QuerySnapshot>();
-            const onlineAccumulator = new EventsAccumulator<firestore.QuerySnapshot>();
+            const offlineAccumulator = new EventsAccumulator<
+              firestore.QuerySnapshot
+            >();
+            const onlineAccumulator = new EventsAccumulator<
+              firestore.QuerySnapshot
+            >();
 
             const unsubscribe = collection.onSnapshot(snapshot => {
               // Skip the initial empty snapshot.
