@@ -847,6 +847,8 @@ apiDescribe('Validation:', persistence => {
 
             await db.enableNetwork();
             await onlineAccumulator.awaitEvent();
+
+            unsubscribe();
           }
         );
       }
