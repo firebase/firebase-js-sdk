@@ -32,7 +32,9 @@ const firebaseLicense = license({
 });
 
 const buildsWithLicense = baseBuilds.map(build => {
-  return Object.assign({}, build, { plugins: build.plugins.concat(firebaseLicense) });
+  return Object.assign({}, build, {
+    plugins: build.plugins.concat(firebaseLicense)
+  });
 });
 
 export default buildsWithLicense;
