@@ -19,6 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
+import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -794,6 +795,58 @@ apiDescribe('Validation:', persistence => {
           });
       });
     });
+
+    validationIt(
+      persistence,
+      'cannot be sorted by an uncommitted server timestamp',
+      db => {
+        return withTestCollection(
+          persistence,
+          /*docs=*/ {},
+          async (collection: firestore.CollectionReference) => {
+            await db.disableNetwork();
+
+            const offlineAccumulator = new EventsAccumulator<firestore.QuerySnapshot>();
+            const onlineAccumulator = new EventsAccumulator<firestore.QuerySnapshot>();
+
+            const unsubscribe = collection.onSnapshot(snapshot => {
+              // Skip the initial empty snapshot.
+              if (snapshot.empty) return;
+
+              expect(snapshot.docs).to.have.lengthOf(1);
+              const docSnap: firestore.DocumentSnapshot = snapshot.docs[0];
+
+              if (snapshot.metadata.hasPendingWrites) {
+                // Offline snapshot. Since the server timestamp is uncommitted,
+                // we shouldn't be able to query by it.
+                expect(() =>
+                  collection
+                    .orderBy('timestamp')
+                    .endAt(docSnap)
+                    .onSnapshot(() => {})
+                ).to.throw('uncommitted server timestamp');
+                offlineAccumulator.storeEvent(snapshot);
+              } else {
+                // Online snapshot. Since the server timestamp is committed, we
+                // should be able to query by it.
+                collection
+                  .orderBy('timestamp')
+                  .endAt(docSnap)
+                  .onSnapshot(() => {});
+                onlineAccumulator.storeEvent(snapshot);
+              }
+            });
+
+            const doc: firestore.DocumentReference = collection.doc();
+            doc.set({ timestamp: FieldValue.serverTimestamp() });
+            await offlineAccumulator.awaitEvent();
+
+            await db.enableNetwork();
+            await onlineAccumulator.awaitEvent();
+          }
+        );
+      }
+    );
 
     validationIt(
       persistence,
