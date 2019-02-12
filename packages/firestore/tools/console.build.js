@@ -50,9 +50,11 @@ const outputOptions = {
   format: 'iife'
 };
 
-const PREFIX = `goog.module('firestore');`;
+const PREFIX = `
+goog.module('firestore');
+exports = eval(`;
 
-const POSTFIX = `exports = ${EXPORTNAME};`;
+const POSTFIX = ` + '${EXPORTNAME};');`;
 
 async function build() {
   // create a bundle
@@ -61,7 +63,7 @@ async function build() {
   // generate code
   const { code } = await bundle.generate(outputOptions);
 
-  const output = `${PREFIX}${code}${POSTFIX}`;
+  const output = `${PREFIX}${JSON.stringify(String(code))}${POSTFIX}`;
 
   await fs_writeFile(outputOptions.file, output, 'utf-8');
 }

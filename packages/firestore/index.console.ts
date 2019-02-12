@@ -29,3 +29,4 @@ export { PublicBlob as Blob } from './src/api/blob';
 export { FirstPartyCredentialsSettings } from './src/api/credentials';
 export { PublicFieldValue as FieldValue } from './src/api/field_value';
 export { FieldPath } from './src/api/field_path';
+export { Timestamp } from './src/api/timestamp';
