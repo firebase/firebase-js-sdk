@@ -19,6 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
+import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -28,7 +29,6 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
-import { Deferred } from '../../util/promise';
 
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
