@@ -1,4 +1,5 @@
-var nodeExternals = require('webpack-node-externals');
+const nodeExternals = require('webpack-node-externals');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = {
     entry: "./index.ts",
@@ -26,5 +27,12 @@ module.exports = {
     },
     optimization: {
        usedExports: true
-    }
+    },
+    plugins: [
+        new BundleAnalyzerPlugin({
+            analyzerMode: 'static',
+            defaultSizes: "gzip",
+            generateStatsFile: true
+        })
+    ]
 };
