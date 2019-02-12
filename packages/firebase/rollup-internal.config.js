@@ -16,10 +16,11 @@
  */
 
 /**
- * Config for internal deployment, adds required license header to generated code.
+ * Specialized config only for internal deployment to google3 repo, adds required license header to
+ * generated code.
  */
 
-// This will only be used in a script that first renames rollup.config.js to rollup-main.config.js
+// When run in google3, original rollup.config.js will have been renamed to rollup-main.config.js.
 import baseBuilds from './rollup-main.config.js';
 import license from 'rollup-plugin-license';
 import gitRev from 'git-rev-sync';
