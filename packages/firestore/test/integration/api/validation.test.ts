@@ -19,7 +19,6 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
-import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   ALT_PROJECT_ID,
