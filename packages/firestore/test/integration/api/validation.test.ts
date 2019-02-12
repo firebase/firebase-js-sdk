@@ -29,6 +29,7 @@ import {
   withTestCollection,
   withTestDb
 } from '../util/helpers';
+import { Deferred } from '../../util/promise';
 
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
@@ -806,12 +807,8 @@ apiDescribe('Validation:', persistence => {
           async (collection: firestore.CollectionReference) => {
             await db.disableNetwork();
 
-            const offlineAccumulator = new EventsAccumulator<
-              firestore.QuerySnapshot
-            >();
-            const onlineAccumulator = new EventsAccumulator<
-              firestore.QuerySnapshot
-            >();
+            const offlineDeferred = new Deferred<Void>();
+            const onlineDeferred = new Deferred<Void>();
 
             const unsubscribe = collection.onSnapshot(snapshot => {
               // Skip the initial empty snapshot.
@@ -829,7 +826,7 @@ apiDescribe('Validation:', persistence => {
                     .endAt(docSnap)
                     .onSnapshot(() => {})
                 ).to.throw('uncommitted server timestamp');
-                offlineAccumulator.storeEvent(snapshot);
+                offlineDeferred.resolve();
               } else {
                 // Online snapshot. Since the server timestamp is committed, we
                 // should be able to query by it.
@@ -837,16 +834,16 @@ apiDescribe('Validation:', persistence => {
                   .orderBy('timestamp')
                   .endAt(docSnap)
                   .onSnapshot(() => {});
-                onlineAccumulator.storeEvent(snapshot);
+                onlineDeferred.resolve();
               }
             });
 
             const doc: firestore.DocumentReference = collection.doc();
             doc.set({ timestamp: FieldValue.serverTimestamp() });
-            await offlineAccumulator.awaitEvent();
+            await offlineDeferred.promise;
 
             await db.enableNetwork();
-            await onlineAccumulator.awaitEvent();
+            await onlineDeferred.promise;
 
             unsubscribe();
           }
