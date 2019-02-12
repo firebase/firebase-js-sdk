@@ -90,8 +90,8 @@ declare namespace firebase {
       phoneCredential: firebase.auth.AuthCredential
     ): Promise<void>;
     updateProfile(profile: {
-      displayName: string | null;
-      photoURL: string | null;
+      displayName?: string | null;
+      photoURL?: string | null;
     }): Promise<void>;
   }
 
