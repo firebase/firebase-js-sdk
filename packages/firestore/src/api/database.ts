@@ -46,7 +46,8 @@ import {
   FieldValue,
   FieldValueOptions,
   ObjectValue,
-  RefValue
+  RefValue,
+  ServerTimestampValue
 } from '../model/field_value';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
@@ -1557,7 +1558,8 @@ export class Query implements firestore.Query {
    * position.
    *
    * Will throw if the document does not contain all fields of the order by
-   * of the query.
+   * of the query or if any of the fields in the order by are an uncommitted
+   * server timestamp.
    */
   private boundFromDocument(
     methodName: string,
@@ -1578,7 +1580,16 @@ export class Query implements firestore.Query {
         components.push(new RefValue(this.firestore._databaseId, doc.key));
       } else {
         const value = doc.field(orderBy.field);
-        if (value !== undefined) {
+        if (value instanceof ServerTimestampValue) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            'Invalid query. You are trying to start or end a query using a ' +
+              'document for which the field "' +
+              orderBy.field +
+              '" is an uncommitted server timestamp. (Since the value of ' +
+              'this field is unknown, you cannot start/end a query with it.)'
+          );
+        } else if (value !== undefined) {
           components.push(value);
         } else {
           const field = orderBy.field.canonicalString();
