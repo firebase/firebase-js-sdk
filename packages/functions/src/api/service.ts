@@ -179,8 +179,8 @@ export class Service implements FirebaseFunctions {
       headers.append('Firebase-Instance-ID-Token', context.instanceIdToken);
     }
 
-    // Default timeout to 60s, but let the options override it.
-    const timeout = options.timeout || 60000;
+    // Default timeout to 70s, but let the options override it.
+    const timeout = options.timeout || 70000;
 
     const response = await Promise.race([
       this.postJSON(url, body, headers),
