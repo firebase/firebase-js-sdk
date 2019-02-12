@@ -42,10 +42,11 @@ interface HttpResponse {
  *
  * @param millis Number of milliseconds to wait before rejecting.
  */
-function failAfter(millis): Promise<HttpResponse> {
+function failAfter(millis: number): Promise<HttpResponse> {
   return new Promise((_, reject) => {
-    const error = new HttpsErrorImpl('deadline-exceeded', 'deadline-exceeded');
-    setTimeout(() => reject(error), millis);
+    setTimeout(() => {
+      reject(new HttpsErrorImpl('deadline-exceeded', 'deadline-exceeded'));
+    }, millis);
   });
 }
 
