@@ -19,7 +19,9 @@ import typescript from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
 import pkg from './package.json';
-import { dirname, resolve } from 'path';
+import analyze from 'rollup-plugin-analyzer'
+import resolveModule from 'rollup-plugin-node-resolve';
+import fs from 'fs';
 
 const plugins = [
   typescript({
@@ -35,34 +37,41 @@ export default [
   /**
    * Node.js Build
    */
-  {
-    input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs' }],
-    plugins: [
-      ...plugins,
-      // Needed as we also use the *.proto files
-      copy({
-        assets: ['./src/protos']
-      }),
-      replace({
-        'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
-      })
-    ],
-    external: id =>
-      [...deps, 'util', 'path'].some(
-        dep => id === dep || id.startsWith(`${dep}/`)
-      )
-  },
+  // {
+  //   input: 'index.node.ts',
+  //   output: [{ file: pkg.main, format: 'cjs' }],
+  //   plugins: [
+  //     ...plugins,
+  //     // Needed as we also use the *.proto files
+  //     copy({
+  //       assets: ['./src/protos']
+  //     }),
+  //     replace({
+  //       'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
+  //     })
+  //   ],
+  //   external: id =>
+  //     [...deps, 'util', 'path'].some(
+  //       dep => id === dep || id.startsWith(`${dep}/`)
+  //     )
+  // },
   /**
    * Browser Builds
    */
   {
     input: 'index.ts',
     output: [
-      { file: pkg.browser, format: 'cjs' },
+      // { file: pkg.browser, format: 'cjs' },
       { file: pkg.module, format: 'es' }
     ],
-    plugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+    plugins: [
+      resolveModule(),
+      ...plugins,
+      analyze({
+        writeTo: function (analysis) {
+          fs.writeFile('dist/rollup_analysis.txt', analysis);
+        }
+      })],
+    external: id => id !== '@firebase/webchannel-wrapper' && deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
