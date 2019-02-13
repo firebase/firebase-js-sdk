@@ -1,10 +1,10 @@
 {
-  "name": "@firebase/template",
+  "name": "@firebase/ioc",
   "version": "0.1.0",
   "private": true,
-  "description": "A template package for new firebase packages",
+  "description": "IOC container for firebase services",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
-  "main": "dist/index.node.cjs.js",
+  "main": "dist/index.cjs.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "files": [

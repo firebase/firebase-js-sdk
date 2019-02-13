@@ -37,7 +37,7 @@
   "devDependencies": {
     "firebase": "5.8.2",
     "rxjs": "^6.2.2",
-    "rollup": "0.57.1",
+    "rollup": "1.1.2",
     "rollup-plugin-commonjs": "9.1.0",
     "rollup-plugin-node-resolve": "3.3.0",
     "rollup-plugin-typescript2": "0.12.0",
