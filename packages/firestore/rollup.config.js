@@ -1,5 +1,5 @@
 /**
- * 
+ *
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +19,7 @@ import typescript from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
 import pkg from './package.json';
-import analyze from 'rollup-plugin-analyzer'
+import analyze from 'rollup-plugin-analyzer';
 import resolveModule from 'rollup-plugin-node-resolve';
 import fs from 'fs';
 
@@ -68,10 +68,13 @@ export default [
       resolveModule(),
       ...plugins,
       analyze({
-        writeTo: function (analysis) {
+        writeTo: function(analysis) {
           fs.writeFile('dist/rollup_analysis.txt', analysis);
         }
-      })],
-    external: id => id !== '@firebase/webchannel-wrapper' && deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+      })
+    ],
+    external: id =>
+      id !== '@firebase/webchannel-wrapper' &&
+      deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
