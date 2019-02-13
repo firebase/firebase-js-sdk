@@ -202,6 +202,10 @@ export class SimpleDb {
       })
       .toPromise();
 
+    // As noted above, errors are propagated by aborting the transaction. So
+    // we swallow any error here to avoid the browser logging it as unhandled.
+    transactionFnResult.catch(() => {});
+
     // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
     // fire), but still return the original transactionFnResult back to the
     // caller.
