@@ -1,4 +1,8 @@
 # Unreleased
+- [fixed] Fixed an uncaught promise error occurring when `enablePersistence()`
+  was called in a second tab (#1531).
+
+# 1.0.0
 - [changed] The `timestampsInSnapshots` setting is now enabled by default.
   Timestamp fields that read from a `DocumentSnapshot` are now returned as
   `Timestamp` objects instead of `Date` objects. This is a breaking change;
