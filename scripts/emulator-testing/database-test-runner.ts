@@ -29,7 +29,7 @@ function runTest(port: number, namespace: string): ChildProcessPromise {
     }),
     stdio: 'inherit'
   };
-  return spawn('yarn', ['test'], options);
+  return spawn('npx', ['run-p', 'test:browser', 'test:node'], options);
 }
 
 async function run(): Promise<void> {
