@@ -16,6 +16,7 @@
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require index.node.ts --opts ../../config/mocha.node.opts",
     "test:node:persistence": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
+    "test:emulator": "ts-node ../../scripts/emulator-testing/firestore-test-runner.ts",
     "prepare": "npm run build"
   },
   "main": "dist/index.node.cjs.js",
