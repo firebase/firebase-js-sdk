@@ -80,11 +80,12 @@ export abstract class Emulator {
       this.emulator = promise.childProcess;
 
       console.log(`Waiting for emulator to start up ...`);
-      const timeout = 10; // seconds
+      const timeout = 60; // seconds
       const start: number = Date.now();
 
       const wait = (resolve, reject) => {
-        if (Date.now() - start > timeout * 1000) {
+        const elapsed = (Date.now() - start) / 1000;
+        if (elapsed > timeout) {
           reject(`Emulator not ready after ${timeout}s. Exiting ...`);
         } else {
           console.log(`Ping emulator at [http://localhost:${this.port}] ...`);
@@ -94,7 +95,7 @@ export abstract class Emulator {
             } else if (response) {
               // Database and Firestore emulators will return 400 and 200 respectively.
               // As long as we get a response back, it means the emulator is ready.
-              console.log('Emulator has started up successfully!');
+              console.log(`Emulator has started up after ${elapsed}s!`);
               resolve();
             } else {
               // This should not happen.
