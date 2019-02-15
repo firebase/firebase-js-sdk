@@ -144,10 +144,13 @@ declare namespace firebase.functions {
   export interface HttpsCallable {
     (data?: any): Promise<HttpsCallableResult>;
   }
+  export interface HttpsCallableOptions {
+    timeout?: number;
+  }
   export class Functions {
     private constructor();
     useFunctionsEmulator(url: string): void;
-    httpsCallable(name: string): HttpsCallable;
+    httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable;
   }
   export type ErrorStatus =
     | 'ok'
