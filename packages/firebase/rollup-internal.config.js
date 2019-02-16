@@ -16,21 +16,26 @@
  */
 
 /**
- * Config for internal deployment, adds required license header to generated code.
+ * Specialized config only for internal deployment to google3 repo, adds required license header to
+ * generated code.
  */
 
-import baseBuilds from './rollup.config.js';
+// When run in google3, original rollup.config.js will have been renamed to rollup-main.config.js.
+import baseBuilds from './rollup-main.config.js';
 import license from 'rollup-plugin-license';
 import gitRev from 'git-rev-sync';
+import pkg from './package.json';
 
-const license = license({
+const firebaseLicense = license({
   banner: `@license Firebase v${pkg.version}
     Build: rev-${gitRev.short()}
     Terms: https://firebase.google.com/terms/`
 });
 
 const buildsWithLicense = baseBuilds.map(build => {
-  return Object.assign({}, build, { plugins: build.plugins.concat(license) });
+  return Object.assign({}, build, {
+    plugins: build.plugins.concat(firebaseLicense)
+  });
 });
 
 export default buildsWithLicense;
