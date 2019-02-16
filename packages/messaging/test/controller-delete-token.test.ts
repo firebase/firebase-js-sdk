@@ -45,7 +45,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
     fakeReg: ServiceWorkerRegistration | null
   ): void {
     sandbox.stub(serviceClass.prototype, 'getSWRegistration_').callsFake(() => {
-      return fakeReg;
+      return Promise.resolve(fakeReg as any);
     });
   }
 
