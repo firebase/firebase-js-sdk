@@ -155,7 +155,7 @@ export class Tree<T> {
    * @return {boolean} true if the action callback returned true.
    */
   forEachAncestor(
-    action: (tree: Tree<T>) => void,
+    action: (tree: Tree<T>) => any,
     includeSelf?: boolean
   ): boolean {
     let node = includeSelf ? this : this.parent();
