@@ -148,8 +148,8 @@ export type LoadDatabaseRulesOptions = {
   rules: string;
 };
 type LoadDatabaseRulesErrorBody = {
-    error?: string;
-}
+  error?: string;
+};
 export function loadDatabaseRules(
   options: LoadDatabaseRulesOptions
 ): Promise<void> {
@@ -171,16 +171,16 @@ export function loadDatabaseRules(
         body: options.rules
       },
       (err, resp, body) => {
-        let parsedBody: LoadDatabaseRulesErrorBody
+        let parsedBody: LoadDatabaseRulesErrorBody;
         try {
-          parsedBody = JSON.parse(body)
-        } catch(e) {
-          parsedBody = {}
+          parsedBody = JSON.parse(body);
+        } catch (e) {
+          parsedBody = {};
         }
         if (err) {
           reject(err);
         } else if (parsedBody.error) {
-          reject(parsedBody.error)
+          reject(parsedBody.error);
         } else {
           resolve();
         }
