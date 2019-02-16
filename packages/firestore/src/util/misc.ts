@@ -20,11 +20,10 @@ import { assert } from './assert';
 export type EventHandler<E> = (value: E) => void;
 
 /**
- * A union of all of the standard JS types, useful for cases where the type is
- * unknown. Unlike "any" this doesn't lose all type-safety, since the consuming
- * code must still cast to a particular type before using it.
+ * type safe any, since the consuming
+ * code must cast to a particular type before using it.
  */
-export type AnyJs = null | undefined | boolean | number | string | object;
+export type AnyJs = unknown;
 
 /**
  * `Unknown` is a stand-in for Typescript 3's `unknown` type. It is similar to
