@@ -57,7 +57,7 @@ const config = {
   // preprocess matching files before serving them to the browser
   // available preprocessors:
   // https://npmjs.org/browse/keyword/karma-preprocessor
-  preprocessors: { 'test/**/*.ts': ['webpack', 'sourcemap'] },
+  preprocessors: { 'test/**/*.ts': ['webpack'] },
 
   mime: { 'text/x-typescript': ['ts', 'tsx'] },
 
