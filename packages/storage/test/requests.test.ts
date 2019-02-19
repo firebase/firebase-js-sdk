@@ -52,7 +52,7 @@ describe('Firebase Storage > Requests', () => {
 
   const authWrapper = new AuthWrapper(
     null,
-    function (authWrapper, loc) {
+    function(authWrapper, loc) {
       return {} as Reference;
     },
     makeRequest,
@@ -142,11 +142,11 @@ describe('Firebase Storage > Requests', () => {
     }
 
     if (body instanceof Blob) {
-      return readBlob(body).then(function (str) {
+      return readBlob(body).then(function(str) {
         assert.equal(str, expectedStr);
       });
     } else if (body instanceof Uint8Array) {
-      return readBlob(new Blob([body])).then(function (str) {
+      return readBlob(new Blob([body])).then(function(str) {
         assert.equal(str, expectedStr);
       });
     } else {

@@ -190,14 +190,16 @@ apiDescribe('Validation:', persistence => {
 
     it("fails transaction if function doesn't return a Promise.", () => {
       return withTestDb(persistence, db => {
-        return db.runTransaction(() => 5 as any).then(
-          x => expect.fail('Transaction should fail'),
-          err => {
-            expect(err.message).to.equal(
-              'Transaction callback must return a Promise'
-            );
-          }
-        );
+        return db
+          .runTransaction(() => 5 as any)
+          .then(
+            x => expect.fail('Transaction should fail'),
+            err => {
+              expect(err.message).to.equal(
+                'Transaction callback must return a Promise'
+              );
+            }
+          );
       });
     });
   });

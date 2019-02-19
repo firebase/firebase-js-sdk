@@ -30,7 +30,7 @@ module.exports = {
           loader: 'ts-loader',
           options: {
             compilerOptions: {
-              module: "commonjs"
+              module: 'commonjs'
             }
           }
         }
