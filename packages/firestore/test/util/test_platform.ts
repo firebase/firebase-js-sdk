@@ -91,7 +91,7 @@ export class FakeDocument {
    * unload is no more a valid member of VisibilityState, is it a bug?
    * https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilityState
    */
-  private _visibilityState: VisibilityState = 'unloaded' as any;
+  private _visibilityState: VisibilityState = 'unloaded' as VisibilityState;
   private visibilityListener: EventListener | null;
 
   get visibilityState(): VisibilityState {
