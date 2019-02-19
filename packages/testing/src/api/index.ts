@@ -147,9 +147,6 @@ export type LoadDatabaseRulesOptions = {
   databaseName: string;
   rules: string;
 };
-type LoadDatabaseRulesErrorBody = {
-  error?: string;
-};
 export function loadDatabaseRules(
   options: LoadDatabaseRulesOptions
 ): Promise<void> {
@@ -171,12 +168,10 @@ export function loadDatabaseRules(
         body: options.rules
       },
       (err, resp, body) => {
-        // This should always parse (so don't purposefully catch errors).
-        let parsedBody: LoadDatabaseRulesErrorBody = JSON.parse(body);
         if (err) {
           reject(err);
         } else if (resp.statusCode !== 200) {
-          reject(parsedBody.error);
+          reject(JSON.parse(body).error);
         } else {
           resolve();
         }
