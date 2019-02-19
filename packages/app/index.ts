@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseNamespace } from '@firebase/app-types';
 import { createFirebaseNamespace } from './src/firebaseApp';
 
 // Node detection logic from: https://github.com/iliakan/detect-node/
