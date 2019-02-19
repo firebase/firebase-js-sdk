@@ -170,6 +170,8 @@ export function loadDatabaseRules(
       (err, resp, body) => {
         if (err) {
           reject(err);
+        } else if (resp.statusCode !== 200) {
+          reject(JSON.parse(body).error);
         } else {
           resolve();
         }
