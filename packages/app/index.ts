@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
 import { createFirebaseNamespace } from './src/firebaseApp';
 
 // Node detection logic from: https://github.com/iliakan/detect-node/
@@ -27,12 +26,17 @@ try {
 
 isNode &&
   console.warn(`
-Warning: This is a browser-targeted Firebase bundle but it appears it is being run in a Node
-environment.  This may be because you are using ES module resolution and the Node bundle is
-only provided as a CommonJS module.
+Warning: This is a browser-targeted Firebase bundle but it appears it is being
+run in a Node environment.  If running in a Node environment, make sure you
+are using the bundle specified by the "main" field in package.json.
 
-In order to get the CommonJS Node bundle try setting your bundler to use CommonJS module
-resolution if the option is available, or specify that it should look at "main" for modules.
+If you are using Webpack, you can specify "main" as the first item in
+"resolve.mainFields":
+https://webpack.js.org/configuration/resolve/#resolvemainfields
+
+If using Rollup, use the rollup-plugin-node-resolve plugin and set "module"
+to false and "main" to true:
+https://github.com/rollup/rollup-plugin-node-resolve
 `);
 
 export const firebase = createFirebaseNamespace();
