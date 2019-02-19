@@ -71,7 +71,7 @@ describe('FirebaseError', () => {
 // Run the stack trace tests with, and without, Error.captureStackTrace
 let realCapture = patchCapture();
 stackTests(realCapture);
-// stackTests(undefined);
+stackTests(undefined);
 
 function stackTests(fakeCapture: any) {
   let saveCapture: any;
