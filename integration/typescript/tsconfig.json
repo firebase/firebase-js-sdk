@@ -9,7 +9,9 @@
     "noImplicitAny": true,
     "outDir": "dist",
     "target": "ES5",
-    "sourceMap": true
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
   "exclude": [
     "node_modules",

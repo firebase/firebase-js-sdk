@@ -17,7 +17,7 @@
 
 import * as firebase from 'firebase';
 import * as namespaceDefinition from '../../shared/namespaceDefinition.json';
-import * as validateNamespace from '../../shared/validator';
+import validateNamespace from '../../shared/validator';
 
 firebase.initializeApp({
   apiKey: 'test-api-key',
