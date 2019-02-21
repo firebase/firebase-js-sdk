@@ -37,6 +37,10 @@ export class Query {
   private memoizedCanonicalId: string | null = null;
   private memoizedOrderBy: OrderBy[] | null = null;
 
+  /**
+   * Initializes a Query with a path and optional additional query constraints.
+   * Path must currently be empty if this is a collection group query.
+   */
   constructor(
     readonly path: ResourcePath,
     readonly collectionGroup: string | null = null,
@@ -178,9 +182,9 @@ export class Query {
   }
 
   /**
-   * Helper to convert a Collection Group query into a collection query at a
-   * specific path. This is used when executing Collection Group queries, since
-   * we have to split the query into a set of Collection queries at multiple
+   * Helper to convert a collection group query into a collection query at a
+   * specific path. This is used when executing collection group queries, since
+   * we have to split the query into a set of collection queries at multiple
    * paths.
    */
   asCollectionQueryAtPath(path: ResourcePath): Query {

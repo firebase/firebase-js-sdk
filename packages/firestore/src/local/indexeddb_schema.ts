@@ -824,7 +824,8 @@ export class DbTargetGlobal {
 
 /**
  * The key for a DbCollectionParent entry, containing the collection ID
- * and the parent path that contains it.
+ * and the parent path that contains it. Note that the parent path will be an
+ * empty path in the case of root-level collections.
  */
 export type DbCollectionParentKey = [string, EncodedResourcePath];
 
