@@ -4,10 +4,8 @@ toc:
   section:
   - title: "FirebaseError"
     path: /docs/reference/js/firebase.firebaseerror
-  - title: "Promise"
-    path: /docs/reference/js/firebase.promise
-  - title: "Thenable"
-    path: /docs/reference/js/firebase.thenable
+  - title: "Observer"
+    path: /docs/reference/js/firebase.observer
 
 - title: "firebase.app"
   path: /docs/reference/js/firebase.app
@@ -97,8 +95,8 @@ toc:
     path: /docs/reference/js/firebase.firestore.query
   - title: "QueryDocumentSnapshot"
     path: /docs/reference/js/firebase.firestore.querydocumentsnapshot
-  - title: "QueryListenOptions"
-    path: /docs/reference/js/firebase.firestore.querylistenoptions
+  - title: "SnapshotListenOptions"
+    path: /docs/reference/js/firebase.firestore.snapshotlistenoptions
   - title: "QuerySnapshot"
     path: /docs/reference/js/firebase.firestore.querysnapshot
   - title: "SetOptions"

@@ -71,7 +71,7 @@ Promise.all([
     const { toc } = yaml.safeLoad(tocLower);
     let tocPageLines = [homeRaw, '# API Reference'];
     toc.forEach(group => {
-      tocPageLines.push(`## [${group.title}](${stripPath(group.path)})`);
+      tocPageLines.push(`\n## [${group.title}](${stripPath(group.path)})`);
       group.section.forEach(item => {
         tocPageLines.push(`- [${item.title}](${stripPath(item.path)})`);
       });
