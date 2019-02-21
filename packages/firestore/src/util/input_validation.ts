@@ -330,7 +330,7 @@ export function valueDescription(input: AnyJs): string {
     if (input instanceof Array) {
       return 'an array';
     } else {
-      const customObjectName = tryGetCustomObjectType(input);
+      const customObjectName = tryGetCustomObjectType(input!);
       if (customObjectName) {
         return `a custom ${customObjectName} object`;
       } else {
