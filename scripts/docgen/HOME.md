@@ -1,4 +1,4 @@
-# Overview
+# Firebase JavaScript SDK Reference
 The Firebase JavaScript SDK implements the client-side libraries used by
 applications using Firebase services. This SDK is distributed via:
 
