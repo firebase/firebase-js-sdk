@@ -87,7 +87,8 @@ export class FakeWindow {
  * `Document` fake that implements the `visibilitychange` API used by Firestore.
  */
 export class FakeDocument {
-  private _visibilityState: VisibilityState = 'unloaded';
+
+  private _visibilityState: VisibilityState = 'hidden';
   private visibilityListener: EventListener | null;
 
   get visibilityState(): VisibilityState {

@@ -806,8 +806,8 @@ apiDescribe('Validation:', persistence => {
           async (collection: firestore.CollectionReference) => {
             await db.disableNetwork();
 
-            const offlineDeferred = new Deferred<Void>();
-            const onlineDeferred = new Deferred<Void>();
+            const offlineDeferred = new Deferred<void>();
+            const onlineDeferred = new Deferred<void>();
 
             const unsubscribe = collection.onSnapshot(snapshot => {
               // Skip the initial empty snapshot.
