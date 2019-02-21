@@ -21,8 +21,7 @@ const options = {
   ignoreCompilerErrors: true,
   name: 'JavaScript SDK',
   mode: 'file',
-  hideGenerator: true,
-  theme: './theme'
+  hideGenerator: true
 };
 
 module.exports = options;
