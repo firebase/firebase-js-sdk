@@ -80,7 +80,7 @@ Promise.all([
   })
   // Run main Typedoc process (uses HOME_TEMP.md)
   .then(() => exec(command))
-  .then((output) => {
+  .then(output => {
     console.log(output.stdout);
     // Clean up temp home markdown file. (Nothing needs to wait for this.)
     fs.unlink(`${__dirname}/HOME_TEMP.md`);
@@ -124,7 +124,7 @@ Promise.all([
     const htmlFiles = files.filter(filename => filename.slice(-4) === 'html');
     htmlFiles.forEach(file => fixLinks(`${docPath}/${file}`));
   })
-  .catch((e) => {
+  .catch(e => {
     if (e.stdout) {
       console.error(e.stdout);
     } else {
