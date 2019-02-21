@@ -872,7 +872,7 @@ declare namespace firebase {
    * // Return the default app
    * var app = firebase.app();
    * ```
-   * 
+   *
    * @example
    * ```
    * // Return a named app
@@ -892,7 +892,6 @@ declare namespace firebase {
    */
   var apps: firebase.app.App[];
 
-
   /**
    * Gets the {@link firebase.auth.Auth `Auth`} service for the default app or a
    * given app.
@@ -904,13 +903,13 @@ declare namespace firebase {
    *
    * @example
    * ```
-   * 
+   *
    * // Get the Auth service for the default app
    * var defaultAuth = firebase.auth();
    * ```
    * @example
    * ```
-   * 
+   *
    * // Get the Auth service for a given app
    * var otherAuth = firebase.auth(otherApp);
    * ```
@@ -952,49 +951,49 @@ declare namespace firebase {
    *   is provided or the Database service associated with the provided app.
    */
   function database(app?: firebase.app.App): firebase.database.Database;
-  
+
   /**
-  * Creates and initializes a Firebase {@link firebase.app.App app} instance.
-  *
-  * See
-  * {@link
-  *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
-  *   Add Firebase to your app} and
-  * {@link
-  *   https://firebase.google.com/docs/web/setup#initialize_multiple_apps
-  *   Initialize multiple apps} for detailed documentation.
-  *
-  * @example
+   * Creates and initializes a Firebase {@link firebase.app.App app} instance.
+   *
+   * See
+   * {@link
+   *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
+   *   Add Firebase to your app} and
+   * {@link
+   *   https://firebase.google.com/docs/web/setup#initialize_multiple_apps
+   *   Initialize multiple apps} for detailed documentation.
+   *
+   * @example
    * ```
-   * 
-  * // Initialize default app
-  * // Retrieve your own options values by adding a web app on
-  * // https://console.firebase.google.com
-  * firebase.initializeApp({
-  *   apiKey: "AIza....",                             // Auth / General Use
-  *   authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
-  *   databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
-  *   storageBucket: "YOUR_APP.appspot.com",          // Storage
-  *   messagingSenderId: "123456789"                  // Cloud Messaging
-  * });
-  * ```
-  *
-  * @example
+   *
+   * // Initialize default app
+   * // Retrieve your own options values by adding a web app on
+   * // https://console.firebase.google.com
+   * firebase.initializeApp({
+   *   apiKey: "AIza....",                             // Auth / General Use
+   *   authDomain: "YOUR_APP.firebaseapp.com",         // Auth with popup/redirect
+   *   databaseURL: "https://YOUR_APP.firebaseio.com", // Realtime Database
+   *   storageBucket: "YOUR_APP.appspot.com",          // Storage
+   *   messagingSenderId: "123456789"                  // Cloud Messaging
+   * });
    * ```
-   * 
-  * // Initialize another app
-  * var otherApp = firebase.initializeApp({
-  *   databaseURL: "https://<OTHER_DATABASE_NAME>.firebaseio.com",
-  *   storageBucket: "<OTHER_STORAGE_BUCKET>.appspot.com"
-  * }, "otherApp");
-  * ```
-  *
-  * @param {!Object} options Options to configure the app's services.
-  * @param {string=} name Optional name of the app to initialize. If no name
-  *   is provided, the default is `"[DEFAULT]"`.
-  *
-  * @return {!firebase.app.App} The initialized app.
-  */
+   *
+   * @example
+   * ```
+   *
+   * // Initialize another app
+   * var otherApp = firebase.initializeApp({
+   *   databaseURL: "https://<OTHER_DATABASE_NAME>.firebaseio.com",
+   *   storageBucket: "<OTHER_STORAGE_BUCKET>.appspot.com"
+   * }, "otherApp");
+   * ```
+   *
+   * @param {!Object} options Options to configure the app's services.
+   * @param {string=} name Optional name of the app to initialize. If no name
+   *   is provided, the default is `"[DEFAULT]"`.
+   *
+   * @return {!firebase.app.App} The initialized app.
+   */
   function initializeApp(options: Object, name?: string): firebase.app.App;
 
   /**
@@ -1070,7 +1069,7 @@ declare namespace firebase.app {
    * A Firebase App holds the initialization information for a collection of
    * services.
    *
-   * Do not call this constructor directly. Instead, use 
+   * Do not call this constructor directly. Instead, use
    * {@link firebase.initializeApp|`firebase.initializeApp()`} to create an app.
    *
    */
@@ -1208,7 +1207,7 @@ declare namespace firebase.functions {
   }
   /**
    * The Cloud Functions for Firebase service interface.
-   * 
+   *
    * Do not call this constructor directly. Instead, use
    * {@link firebase.functions `firebase.functions()`}.
    */
@@ -2689,9 +2688,9 @@ declare namespace firebase.auth {
   }
 
   /**
- * Interface that represents the OAuth credentials returned by an OAuth
- * provider. Implementations specify the details about each auth provider's
- * credential requirements.
+   * Interface that represents the OAuth credentials returned by an OAuth
+   * provider. Implementations specify the details about each auth provider's
+   * credential requirements.
    *
    */
   interface OAuthCredential {
@@ -2806,65 +2805,65 @@ declare namespace firebase.auth {
     providerId: string;
   }
 
-/**
- * An authentication error.
- * For method-specific error codes, refer to the specific methods in the
- * documentation. For common error codes, check the reference below. Use {@link
-  * firebase.auth.Error#code} to get the specific error code. For a detailed
-  * message, use {@link firebase.auth.Error.message}.
-  * Errors with the code <strong>auth/account-exists-with-different-credential
-  * </strong> will have the additional fields <strong>email</strong> and <strong>
-  * credential</strong> which are needed to provide a way to resolve these
-  * specific errors. Refer to {@link firebase.auth.Auth.signInWithPopup} for more
-  * information.
-  *
-  * <h4>Common Error Codes</h4>
-  * <dl>
-  * <dt>auth/app-deleted</dt>
-  * <dd>Thrown if the instance of FirebaseApp has been deleted.</dd>
-  * <dt>auth/app-not-authorized</dt>
-  * <dd>Thrown if the app identified by the domain where it's hosted, is not
-  *     authorized to use Firebase Authentication with the provided API key.
-  *     Review your key configuration in the Google API console.</dd>
-  * <dt>auth/argument-error</dt>
-  * <dd>Thrown if a method is called with incorrect arguments.</dd>
-  * <dt>auth/invalid-api-key</dt>
-  * <dd>Thrown if the provided API key is invalid. Please check that you have
-  *     copied it correctly from the Firebase Console.</dd>
-  * <dt>auth/invalid-user-token</dt>
-  * <dd>Thrown if the user's credential is no longer valid. The user must sign in
-  *     again.</dd>
-  * <dt>auth/network-request-failed</dt>
-  * <dd>Thrown if a network error (such as timeout, interrupted connection or
-  *     unreachable host) has occurred.</dd>
-  * <dt>auth/operation-not-allowed</dt>
-  * <dd>Thrown if you have not enabled the provider in the Firebase Console. Go
-  *     to the Firebase Console for your project, in the Auth section and the
-  *     <strong>Sign in Method</strong> tab and configure the provider.</dd>
-  * <dt>auth/requires-recent-login</dt>
-  * <dd>Thrown if the user's last sign-in time does not meet the security
-  *     threshold. Use {@link firebase.User.reauthenticateWithCredential} to
-  *     resolve. This does not apply if the user is anonymous.</dd>
-  * <dt>auth/too-many-requests</dt>
-  * <dd>Thrown if requests are blocked from a device due to unusual activity.
-  *     Trying again after some delay would unblock.</dd>
-  * <dt>auth/unauthorized-domain</dt>
-  * <dd>Thrown if the app domain is not authorized for OAuth operations for your
-  *     Firebase project. Edit the list of authorized domains from the Firebase
-  *     console.</dd>
-  * <dt>auth/user-disabled</dt>
-  * <dd>Thrown if the user account has been disabled by an administrator.
-  *     Accounts can be enabled or disabled in the Firebase Console, the Auth
-  *     section and Users subsection.</dd>
-  * <dt>auth/user-token-expired</dt>
-  * <dd>Thrown if the user's credential has expired. This could also be thrown if
-  *     a user has been deleted. Prompting the user to sign in again should
-  *     resolve this for either case.</dd>
-  * <dt>auth/web-storage-unsupported</dt>
-  * <dd>Thrown if the browser does not support web storage or if the user
-  *     disables them.</dd>
-  * </dl>
-  */
+  /**
+   * An authentication error.
+   * For method-specific error codes, refer to the specific methods in the
+   * documentation. For common error codes, check the reference below. Use {@link
+   * firebase.auth.Error#code} to get the specific error code. For a detailed
+   * message, use {@link firebase.auth.Error.message}.
+   * Errors with the code <strong>auth/account-exists-with-different-credential
+   * </strong> will have the additional fields <strong>email</strong> and <strong>
+   * credential</strong> which are needed to provide a way to resolve these
+   * specific errors. Refer to {@link firebase.auth.Auth.signInWithPopup} for more
+   * information.
+   *
+   * <h4>Common Error Codes</h4>
+   * <dl>
+   * <dt>auth/app-deleted</dt>
+   * <dd>Thrown if the instance of FirebaseApp has been deleted.</dd>
+   * <dt>auth/app-not-authorized</dt>
+   * <dd>Thrown if the app identified by the domain where it's hosted, is not
+   *     authorized to use Firebase Authentication with the provided API key.
+   *     Review your key configuration in the Google API console.</dd>
+   * <dt>auth/argument-error</dt>
+   * <dd>Thrown if a method is called with incorrect arguments.</dd>
+   * <dt>auth/invalid-api-key</dt>
+   * <dd>Thrown if the provided API key is invalid. Please check that you have
+   *     copied it correctly from the Firebase Console.</dd>
+   * <dt>auth/invalid-user-token</dt>
+   * <dd>Thrown if the user's credential is no longer valid. The user must sign in
+   *     again.</dd>
+   * <dt>auth/network-request-failed</dt>
+   * <dd>Thrown if a network error (such as timeout, interrupted connection or
+   *     unreachable host) has occurred.</dd>
+   * <dt>auth/operation-not-allowed</dt>
+   * <dd>Thrown if you have not enabled the provider in the Firebase Console. Go
+   *     to the Firebase Console for your project, in the Auth section and the
+   *     <strong>Sign in Method</strong> tab and configure the provider.</dd>
+   * <dt>auth/requires-recent-login</dt>
+   * <dd>Thrown if the user's last sign-in time does not meet the security
+   *     threshold. Use {@link firebase.User.reauthenticateWithCredential} to
+   *     resolve. This does not apply if the user is anonymous.</dd>
+   * <dt>auth/too-many-requests</dt>
+   * <dd>Thrown if requests are blocked from a device due to unusual activity.
+   *     Trying again after some delay would unblock.</dd>
+   * <dt>auth/unauthorized-domain</dt>
+   * <dd>Thrown if the app domain is not authorized for OAuth operations for your
+   *     Firebase project. Edit the list of authorized domains from the Firebase
+   *     console.</dd>
+   * <dt>auth/user-disabled</dt>
+   * <dd>Thrown if the user account has been disabled by an administrator.
+   *     Accounts can be enabled or disabled in the Firebase Console, the Auth
+   *     section and Users subsection.</dd>
+   * <dt>auth/user-token-expired</dt>
+   * <dd>Thrown if the user's credential has expired. This could also be thrown if
+   *     a user has been deleted. Prompting the user to sign in again should
+   *     resolve this for either case.</dd>
+   * <dt>auth/web-storage-unsupported</dt>
+   * <dd>Thrown if the browser does not support web storage or if the user
+   *     disables them.</dd>
+   * </dl>
+   */
   interface Error {
     /**
      * Unique error code.
@@ -3526,9 +3525,9 @@ declare namespace firebase.auth {
     user: firebase.User | null;
   };
 
-/**
- * Interface representing a user's metadata.
- */
+  /**
+   * Interface representing a user's metadata.
+   */
   interface UserMetadata {
     creationTime?: string;
     lastSignInTime?: string;
@@ -3903,10 +3902,10 @@ declare namespace firebase.database {
    *
    * See
    * {@link
-    *   https://firebase.google.com/docs/database/web/start/
-    *   Installation &amp; Setup in JavaScript}
-    * for a full guide on how to use the Firebase Database service.
-    */
+   *   https://firebase.google.com/docs/database/web/start/
+   *   Installation &amp; Setup in JavaScript}
+   * for a full guide on how to use the Firebase Database service.
+   */
   interface Database {
     /**
      * The {@link firebase.app.App app} associated with the `Database` service
@@ -4016,27 +4015,27 @@ declare namespace firebase.database {
     refFromURL(url: string): firebase.database.Reference;
   }
 
-/**
- * The `onDisconnect` class allows you to write or clear data when your client
- * disconnects from the Database server. These updates occur whether your
- * client disconnects cleanly or not, so you can rely on them to clean up data
- * even if a connection is dropped or a client crashes.
- *
- * The `onDisconnect` class is most commonly used to manage presence in
- * applications where it is useful to detect how many clients are connected and
- * when other clients disconnect. See
- * {@link
-  *   https://firebase.google.com/docs/database/web/offline-capabilities
-  *   Enabling Offline Capabilities in JavaScript} for more information.
-  *
-  * To avoid problems when a connection is dropped before the requests can be
-  * transferred to the Database server, these functions should be called before
-  * writing any data.
-  *
-  * Note that `onDisconnect` operations are only triggered once. If you want an
-  * operation to occur each time a disconnect occurs, you'll need to re-establish
-  * the `onDisconnect` operations each time you reconnect.
-  */
+  /**
+   * The `onDisconnect` class allows you to write or clear data when your client
+   * disconnects from the Database server. These updates occur whether your
+   * client disconnects cleanly or not, so you can rely on them to clean up data
+   * even if a connection is dropped or a client crashes.
+   *
+   * The `onDisconnect` class is most commonly used to manage presence in
+   * applications where it is useful to detect how many clients are connected and
+   * when other clients disconnect. See
+   * {@link
+   *   https://firebase.google.com/docs/database/web/offline-capabilities
+   *   Enabling Offline Capabilities in JavaScript} for more information.
+   *
+   * To avoid problems when a connection is dropped before the requests can be
+   * transferred to the Database server, these functions should be called before
+   * writing any data.
+   *
+   * Note that `onDisconnect` operations are only triggered once. If you want an
+   * operation to occur each time a disconnect occurs, you'll need to re-establish
+   * the `onDisconnect` operations each time you reconnect.
+   */
   interface OnDisconnect {
     /**
      * Cancels all previously queued `onDisconnect()` set or update events for this
@@ -4177,9 +4176,9 @@ declare namespace firebase.database {
    *
    * Read our documentation on
    * {@link
-    *  https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
-    *  Sorting and filtering data} for more information.
-    */
+   *  https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data
+   *  Sorting and filtering data} for more information.
+   */
   interface Query {
     /**
      * Creates a `Query` with the specified ending point.
@@ -4741,9 +4740,9 @@ declare namespace firebase.database {
    * Writing is done with the `set()` method and reading can be done with the
    * `on()` method. See
    * {@link
-    *   https://firebase.google.com/docs/database/web/read-and-write
-    *   Read and Write Data on the Web}
-    */
+   *   https://firebase.google.com/docs/database/web/read-and-write
+   *   Read and Write Data on the Web}
+   */
   interface Reference extends firebase.database.Query {
     /**
      * Gets a `Reference` for the location at the specified relative path.
@@ -6038,11 +6037,11 @@ declare namespace firebase.firestore {
     /**
      * Re-enables use of the network for this Firestore instance after a prior
      * call to {@link firebase.firestore.Firestore.disableNetwork
-      * `disableNetwork()`}.
-      *
-      * @return {!Promise<void>} A promise that is resolved once the network has been
-      *   enabled.
-      */
+     * `disableNetwork()`}.
+     *
+     * @return {!Promise<void>} A promise that is resolved once the network has been
+     *   enabled.
+     */
     enableNetwork(): Promise<void>;
 
     /**
@@ -6101,7 +6100,7 @@ declare namespace firebase.firestore {
    * A Timestamp represents a point in time independent of any time zone or
    * calendar, represented as seconds and fractions of seconds at nanosecond
    * resolution in UTC Epoch time.
-   * 
+   *
    * It is encoded using the Proleptic Gregorian
    * Calendar which extends the Gregorian calendar backwards to year one. It is
    * encoded assuming all minutes are 60 seconds long, i.e. leap seconds are
@@ -6189,7 +6188,7 @@ declare namespace firebase.firestore {
     /**
      * Creates a new Blob from the given Base64 string, converting it to
      * bytes.
-     * 
+     *
      * @param {string} base64
      *   The Base64 string used to create the Blob object.
      */
