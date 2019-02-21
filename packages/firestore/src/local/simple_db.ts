@@ -111,7 +111,7 @@ export class SimpleDb {
         // We are provided a version upgrade transaction from the request, so
         // we wrap that in a SimpleDbTransaction to allow use of our friendlier
         // API for schema migration operations.
-        const txn = new SimpleDbTransaction(request.transaction);
+        const txn = new SimpleDbTransaction(request.transaction!);
         schemaConverter
           .createOrUpgrade(db, txn, event.oldVersion, SCHEMA_VERSION)
           .next(() => {
@@ -321,7 +321,7 @@ export class SimpleDbTransaction {
       }
     };
     this.transaction.onerror = (event: Event) => {
-      this.completionDeferred.reject((event.target as IDBRequest).error);
+      this.completionDeferred.reject((event.target as IDBRequest).error!);
     };
   }
 
@@ -540,7 +540,7 @@ export class SimpleDbStore<
     const cursorRequest = this.cursor({});
     return new PersistencePromise((resolve, reject) => {
       cursorRequest.onerror = (event: Event) => {
-        reject((event.target as IDBRequest).error);
+        reject((event.target as IDBRequest).error!);
       };
       cursorRequest.onsuccess = (event: Event) => {
         const cursor: IDBCursorWithValue = (event.target as IDBRequest).result;
@@ -549,7 +549,7 @@ export class SimpleDbStore<
           return;
         }
 
-        callback(cursor.primaryKey, cursor.value).next(shouldContinue => {
+        callback(cursor.primaryKey as KeyType, cursor.value).next(shouldContinue => {
           if (shouldContinue) {
             cursor.continue();
           } else {
@@ -567,7 +567,7 @@ export class SimpleDbStore<
     const results: Array<PersistencePromise<void>> = [];
     return new PersistencePromise((resolve, reject) => {
       cursorRequest.onerror = (event: Event) => {
-        reject((event.target as IDBRequest).error);
+        reject((event.target as IDBRequest).error!);
       };
       cursorRequest.onsuccess = (event: Event) => {
         const cursor: IDBCursorWithValue = (event.target as IDBRequest).result;
@@ -576,7 +576,7 @@ export class SimpleDbStore<
           return;
         }
         const controller = new IterationController(cursor);
-        const userResult = fn(cursor.primaryKey, cursor.value, controller);
+        const userResult = fn(cursor.primaryKey as KeyType, cursor.value, controller);
         if (userResult instanceof PersistencePromise) {
           const userPromise: PersistencePromise<void> = userResult.catch(
             err => {
@@ -648,7 +648,7 @@ function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
     };
 
     request.onerror = (event: Event) => {
-      reject((event.target as IDBRequest).error);
+      reject((event.target as IDBRequest).error!);
     };
   });
 }

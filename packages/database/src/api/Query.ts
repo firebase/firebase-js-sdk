@@ -650,7 +650,7 @@ export class Query {
         // it's a context!
         ret.context = cancelOrContext;
       } else if (typeof cancelOrContext === 'function') {
-        ret.cancel = cancelOrContext;
+        ret.cancel = cancelOrContext as (a: Error) => void;
       } else {
         throw new Error(
           errorPrefix(fnName, 3, true) +
