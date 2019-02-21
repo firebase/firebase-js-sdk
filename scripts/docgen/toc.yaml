@@ -4,8 +4,6 @@ toc:
   section:
   - title: "FirebaseError"
     path: /docs/reference/js/firebase.firebaseerror
-  - title: "Observer"
-    path: /docs/reference/js/firebase.observer
 
 - title: "firebase.app"
   path: /docs/reference/js/firebase.app

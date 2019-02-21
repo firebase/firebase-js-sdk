@@ -69,6 +69,9 @@ declare namespace firebase {
     stack?: string;
   }
 
+  /**
+   * @hidden
+   */
   interface Observer<T, E = Error> {
     next: NextFn<T>;
     error: ErrorFn<E>;
