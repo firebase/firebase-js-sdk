@@ -87,11 +87,8 @@ export class FakeWindow {
  * `Document` fake that implements the `visibilitychange` API used by Firestore.
  */
 export class FakeDocument {
-  /**
-   * unload is no more a valid member of VisibilityState, consider changing it to a valid value.
-   * https://developer.mozilla.org/en-US/docs/Web/API/Document/visibilityState
-   */
-  private _visibilityState: VisibilityState = 'unloaded' as VisibilityState;
+
+  private _visibilityState: VisibilityState = 'hidden';
   private visibilityListener: EventListener | null;
 
   get visibilityState(): VisibilityState {
