@@ -18,7 +18,6 @@
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
-import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
@@ -175,7 +174,7 @@ export class SimpleDb {
   }
 
   /** Helper to get a typed SimpleDbStore from a transaction. */
-  static getStore<KeyType extends IDBValidKey, ValueType extends AnyJs>(
+  static getStore<KeyType extends IDBValidKey, ValueType extends unknown>(
     txn: SimpleDbTransaction,
     store: string
   ): SimpleDbStore<KeyType, ValueType> {
@@ -354,7 +353,7 @@ export class SimpleDbTransaction {
    * Note that we can't actually enforce that the KeyType and ValueType are
    * correct, but they allow type safety through the rest of the consuming code.
    */
-  store<KeyType extends IDBValidKey, ValueType extends AnyJs>(
+  store<KeyType extends IDBValidKey, ValueType extends unknown>(
     storeName: string
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
@@ -375,7 +374,7 @@ export class SimpleDbTransaction {
  */
 export class SimpleDbStore<
   KeyType extends IDBValidKey,
-  ValueType extends AnyJs
+  ValueType extends unknown
 > {
   constructor(private store: IDBObjectStore) {}
 

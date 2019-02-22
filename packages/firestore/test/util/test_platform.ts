@@ -21,7 +21,6 @@ import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { assert, fail } from '../../src/util/assert';
-import { AnyJs } from '../../src/util/misc';
 
 /**
  * `Window` fake that implements the event and storage API that is used by
@@ -251,7 +250,7 @@ export class TestPlatform implements Platform {
     return this.basePlatform.newSerializer(databaseId);
   }
 
-  formatJSON(value: AnyJs): string {
+  formatJSON(value: unknown): string {
     return this.basePlatform.formatJSON(value);
   }
 

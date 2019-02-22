@@ -16,7 +16,6 @@
  */
 
 import { JsonObject } from '../model/field_value';
-import { AnyJs } from '../util/misc';
 
 /**
  * Observer/Subscribe interfaces.
@@ -36,7 +35,7 @@ export interface Unsubscribe {
   (): void;
 }
 
-export function isPartialObserver(obj: AnyJs): boolean {
+export function isPartialObserver(obj: unknown): boolean {
   return implementsAnyMethods(obj, ['next', 'error', 'complete']);
 }
 
@@ -44,12 +43,12 @@ export function isPartialObserver(obj: AnyJs): boolean {
  * Returns true if obj is an object and contains at least one of the specified
  * methods.
  */
-function implementsAnyMethods(obj: AnyJs, methods: string[]): boolean {
+function implementsAnyMethods(obj: unknown, methods: string[]): boolean {
   if (typeof obj !== 'object' || obj === null) {
     return false;
   }
 
-  const object = obj as JsonObject<AnyJs>;
+  const object = obj as JsonObject<unknown>;
   for (const method of methods) {
     if (method in object && typeof object[method] === 'function') {
       return true;

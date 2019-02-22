@@ -21,7 +21,6 @@ import { DocumentKey } from '../model/document_key';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
 import { debug } from '../util/log';
-import { AnyJs } from '../util/misc';
 import * as obj from '../util/obj';
 import { ObjectMap } from '../util/obj_map';
 import { encode } from './encoded_resource_path';
@@ -443,7 +442,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   documentSize(maybeDoc: MaybeDocument): number {
     const remoteDocument = this.serializer.toDbRemoteDocument(maybeDoc);
-    let value: AnyJs;
+    let value: unknown;
     if (remoteDocument.document) {
       value = remoteDocument.document;
     } else if (remoteDocument.unknownDocument) {
