@@ -33,7 +33,6 @@ import {
 import { assert } from '../../../src/util/assert';
 import { fail } from '../../../src/util/assert';
 import { Code } from '../../../src/util/error';
-import { AnyJs } from '../../../src/util/misc';
 import * as objUtils from '../../../src/util/obj';
 import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion } from '../../util/helpers';
@@ -274,7 +273,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userSets(key: string, value: JsonObject<AnyJs>): this {
+  userSets(key: string, value: JsonObject<unknown>): this {
     this.nextStep();
     this.currentStep = {
       userSet: [key, value]
@@ -282,7 +281,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userPatches(key: string, value: JsonObject<AnyJs>): this {
+  userPatches(key: string, value: JsonObject<unknown>): this {
     this.nextStep();
     this.currentStep = {
       userPatch: [key, value]

@@ -19,13 +19,6 @@ import { assert } from './assert';
 
 export type EventHandler<E> = (value: E) => void;
 
-/**
- * TODO: remove AnyJs and Unknown and replace them with unknown
- */
-export type AnyJs = unknown;
-
-export type Unknown = unknown;
-
 // tslint:disable-next-line:class-as-namespace
 export class AutoId {
   static newId(): string {
