@@ -294,6 +294,7 @@ declare namespace firebase.auth {
   interface AuthCredential {
     providerId: string;
     signInMethod: string;
+    accessToken: string;
   }
 
   interface AuthProvider {
