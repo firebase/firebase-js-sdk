@@ -80,7 +80,12 @@ export abstract class Emulator {
       this.emulator = promise.childProcess;
 
       console.log(`Waiting for emulator to start up ...`);
-      const timeout = 60; // seconds
+      // NOTE: Normally the emulator starts up within a few seconds.
+      // However, our sdk test suite launches tests from 20+ packages in parallel, which slows
+      // down the startup substantially. In such case for the emulator to start, it can take
+      // ~17 seconds on a corp macbook, ~7 seconds on a corp workstation, and even 50+ seconds
+      // on Travis VMs.
+      const timeout = process.env.TRAVIS ? 100 : 30; // seconds
       const start: number = Date.now();
 
       const wait = (resolve, reject) => {
