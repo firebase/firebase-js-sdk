@@ -12,9 +12,11 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "run-p test:browser test:node",
+    "test": "yarn test:emulator",
+    "test:all": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' -r src/nodePatches.ts --opts ../../config/mocha.node.opts",
+    "test:emulator": "ts-node ../../scripts/emulator-testing/database-test-runner.ts",
     "prepare": "npm run build"
   },
   "license": "Apache-2.0",
