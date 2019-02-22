@@ -23,6 +23,19 @@ const hypothetical = require('rollup-plugin-hypothetical');
 const glob = closureBuilder.globSupport();
 const { resolve } = require('path');
 
+const closureDefines = [
+  // Avoid unsafe eval() calls (https://github.com/firebase/firebase-js-sdk/issues/798)
+  'goog.json.USE_NATIVE_JSON=true',
+  // Disable debug logging (saves 8780 bytes).
+  'goog.DEBUG=false',
+  // Disable fallbacks for running async code (saves 1472 bytes).
+  'goog.ASSUME_NATIVE_PROMISE=true',
+  // Disables IE8-specific event fallback code (saves 523 bytes).
+  'goog.events.CAPTURE_SIMULATION_MODE=0',
+  // Disable IE-Specific ActiveX fallback for XHRs (saves 524 bytes).
+  'goog.net.XmlHttpDefines.ASSUME_NATIVE_XHR=true',
+];
+
 // commonjs build
 closureBuilder.build({
   name: 'firebase.webchannel.wrapper',
@@ -35,8 +48,7 @@ closureBuilder.build({
         "(function() {%output%}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {})",
       language_out: 'ECMASCRIPT5',
       compilation_level: 'ADVANCED',
-      // Avoid unsafe eval() calls (https://github.com/firebase/firebase-js-sdk/issues/798)
-      define: 'goog.json.USE_NATIVE_JSON=true'
+      define: closureDefines
     }
   }
 });
@@ -51,8 +63,7 @@ closureBuilder.build(
       closure: {
         language_out: 'ECMASCRIPT5',
         compilation_level: 'ADVANCED',
-        // Avoid unsafe eval() calls (https://github.com/firebase/firebase-js-sdk/issues/798)
-        define: 'goog.json.USE_NATIVE_JSON=true'
+        define: closureDefines
       }
     }
   },
