@@ -17,7 +17,6 @@
 
 import { fail } from './assert';
 import { Code, FirestoreError } from './error';
-import { AnyJs } from './misc';
 import * as obj from './obj';
 
 /** Types accepted by validateType() and related methods for validation. */
@@ -132,7 +131,7 @@ export function validateArgType(
   functionName: string,
   type: ValidationType,
   position: number,
-  argument: AnyJs
+  argument: unknown
 ): void {
   validateType(functionName, type, `${ordinal(position)} argument`, argument);
 }
@@ -145,7 +144,7 @@ export function validateOptionalArgType(
   functionName: string,
   type: ValidationType,
   position: number,
-  argument: AnyJs
+  argument: unknown
 ): void {
   if (argument !== undefined) {
     validateArgType(functionName, type, position, argument);
@@ -160,7 +159,7 @@ export function validateNamedType(
   functionName: string,
   type: ValidationType,
   optionName: string,
-  argument: AnyJs
+  argument: unknown
 ): void {
   validateType(functionName, type, `${optionName} option`, argument);
 }
@@ -173,7 +172,7 @@ export function validateNamedOptionalType(
   functionName: string,
   type: ValidationType,
   optionName: string,
-  argument: AnyJs
+  argument: unknown
 ): void {
   if (argument !== undefined) {
     validateNamedType(functionName, type, optionName, argument);
@@ -279,7 +278,7 @@ function validateType(
   functionName: string,
   type: ValidationType,
   inputName: string,
-  input: AnyJs
+  input: unknown
 ): void {
   let valid = false;
   if (type === 'object') {
@@ -304,7 +303,7 @@ function validateType(
  * Returns true if it's a non-null object without a custom prototype
  * (i.e. excludes Array, Date, etc.).
  */
-export function isPlainObject(input: AnyJs): boolean {
+export function isPlainObject(input: unknown): boolean {
   return (
     typeof input === 'object' &&
     input !== null &&
@@ -314,7 +313,7 @@ export function isPlainObject(input: AnyJs): boolean {
 }
 
 /** Returns a string describing the type / value of the provided input. */
-export function valueDescription(input: AnyJs): string {
+export function valueDescription(input: unknown): string {
   if (input === undefined) {
     return 'undefined';
   } else if (input === null) {
@@ -360,7 +359,7 @@ export function tryGetCustomObjectType(input: object): string | null {
 export function validateDefined(
   functionName: string,
   position: number,
-  argument: AnyJs
+  argument: unknown
 ): void {
   if (argument === undefined) {
     throw new FirestoreError(
@@ -380,7 +379,7 @@ export function validateOptionNames(
   options: object,
   optionNames: string[]
 ): void {
-  obj.forEach(options as obj.Dict<AnyJs>, (key, _) => {
+  obj.forEach(options as obj.Dict<unknown>, (key, _) => {
     if (optionNames.indexOf(key) < 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -400,7 +399,7 @@ export function invalidClassError(
   functionName: string,
   type: string,
   position: number,
-  argument: AnyJs
+  argument: unknown
 ): Error {
   const description = valueDescription(argument);
   return new FirestoreError(

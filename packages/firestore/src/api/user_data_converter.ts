@@ -46,7 +46,7 @@ import { FieldPath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
-import { AnyJs, primitiveComparator } from '../util/misc';
+import { primitiveComparator } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Dict } from '../util/obj';
 import { SortedMap } from '../util/sorted_map';
@@ -284,7 +284,7 @@ class ParseContext {
  *
  * It can also throw an Error which will be wrapped into a friendly message.
  */
-export type DataPreConverter = (input: AnyJs) => AnyJs;
+export type DataPreConverter = (input: unknown) => unknown;
 
 /**
  * A placeholder object for DocumentReferences in this file, in order to
@@ -303,7 +303,7 @@ export class UserDataConverter {
   constructor(private preConverter: DataPreConverter) {}
 
   /** Parse document data from a non-merge set() call. */
-  parseSetData(methodName: string, input: AnyJs): ParsedSetData {
+  parseSetData(methodName: string, input: unknown): ParsedSetData {
     const context = new ParseContext(
       UserDataSource.Set,
       methodName,
@@ -323,7 +323,7 @@ export class UserDataConverter {
   /** Parse document data from a set() call with '{merge:true}'. */
   parseMergeData(
     methodName: string,
-    input: AnyJs,
+    input: unknown,
     fieldPaths?: Array<string | firestore.FieldPath>
   ): ParsedSetData {
     const context = new ParseContext(
@@ -382,7 +382,7 @@ export class UserDataConverter {
   }
 
   /** Parse update data from an update() call. */
-  parseUpdateData(methodName: string, input: AnyJs): ParsedUpdateData {
+  parseUpdateData(methodName: string, input: unknown): ParsedUpdateData {
     const context = new ParseContext(
       UserDataSource.Update,
       methodName,
@@ -392,7 +392,7 @@ export class UserDataConverter {
 
     let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
     let updateData = ObjectValue.EMPTY;
-    objUtils.forEach(input as Dict<AnyJs>, (key, value) => {
+    objUtils.forEach(input as Dict<unknown>, (key, value) => {
       const path = fieldPathFromDotSeparatedString(methodName, key);
 
       const childContext = context.childContextForFieldPath(path);
@@ -417,8 +417,8 @@ export class UserDataConverter {
   parseUpdateVarargs(
     methodName: string,
     field: string | ExternalFieldPath,
-    value: AnyJs,
-    moreFieldsAndValues: AnyJs[]
+    value: unknown,
+    moreFieldsAndValues: unknown[]
   ): ParsedUpdateData {
     const context = new ParseContext(
       UserDataSource.Update,
@@ -472,7 +472,7 @@ export class UserDataConverter {
    * Parse a "query value" (e.g. value in a where filter or a value in a cursor
    * bound).
    */
-  parseQueryValue(methodName: string, input: AnyJs): FieldValue {
+  parseQueryValue(methodName: string, input: unknown): FieldValue {
     const context = new ParseContext(
       UserDataSource.Argument,
       methodName,
@@ -488,7 +488,7 @@ export class UserDataConverter {
   }
 
   /** Sends data through this.preConverter, handling any thrown errors. */
-  private runPreConverter(input: AnyJs, context: ParseContext): AnyJs {
+  private runPreConverter(input: unknown, context: ParseContext): unknown {
     try {
       return this.preConverter(input);
     } catch (e) {
@@ -506,11 +506,11 @@ export class UserDataConverter {
    * @return The parsed value, or null if the value was a FieldValue sentinel
    * that should not be included in the resulting parsed data.
    */
-  private parseData(input: AnyJs, context: ParseContext): FieldValue | null {
+  private parseData(input: unknown, context: ParseContext): FieldValue | null {
     input = this.runPreConverter(input, context);
     if (looksLikeJsonObject(input)) {
       validatePlainObject('Unsupported field value:', context, input);
-      return this.parseObject(input as Dict<AnyJs>, context);
+      return this.parseObject(input as Dict<unknown>, context);
     } else if (input instanceof FieldValueImpl) {
       // FieldValues usually parse into transforms (except FieldValue.delete())
       // in which case we do not want to include this field in our parsed data
@@ -532,14 +532,14 @@ export class UserDataConverter {
         if (context.arrayElement) {
           throw context.createError('Nested arrays are not supported');
         }
-        return this.parseArray(input as AnyJs[], context);
+        return this.parseArray(input as unknown[], context);
       } else {
         return this.parseScalarValue(input, context);
       }
     }
   }
 
-  private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
+  private parseObject(obj: Dict<unknown>, context: ParseContext): FieldValue {
     let result = new SortedMap<string, FieldValue>(primitiveComparator);
 
     if (objUtils.isEmpty(obj)) {
@@ -549,7 +549,7 @@ export class UserDataConverter {
         context.fieldMask.push(context.path);
       }
     } else {
-      objUtils.forEach(obj, (key: string, val: AnyJs) => {
+      objUtils.forEach(obj, (key: string, val: unknown) => {
         const parsedValue = this.parseData(
           val,
           context.childContextForField(key)
@@ -563,7 +563,7 @@ export class UserDataConverter {
     return new ObjectValue(result);
   }
 
-  private parseArray(array: AnyJs[], context: ParseContext): FieldValue {
+  private parseArray(array: unknown[], context: ParseContext): FieldValue {
     const result = [] as FieldValue[];
     let entryIndex = 0;
     for (const entry of array) {
@@ -656,7 +656,7 @@ export class UserDataConverter {
    *
    * @return The parsed value
    */
-  private parseScalarValue(value: AnyJs, context: ParseContext): FieldValue {
+  private parseScalarValue(value: unknown, context: ParseContext): FieldValue {
     if (value === null) {
       return NullValue.INSTANCE;
     } else if (typeof value === 'number') {
@@ -696,7 +696,7 @@ export class UserDataConverter {
 
   private parseArrayTransformElements(
     methodName: string,
-    elements: AnyJs[]
+    elements: unknown[]
   ): FieldValue[] {
     return elements.map((element, i) => {
       // Although array transforms are used with writes, the actual elements
@@ -719,7 +719,7 @@ export class UserDataConverter {
  * GeoPoints, etc. are not considered to look like JSON objects since they map
  * to specific FieldValue types other than ObjectValue.
  */
-function looksLikeJsonObject(input: AnyJs): boolean {
+function looksLikeJsonObject(input: unknown): boolean {
   return (
     typeof input === 'object' &&
     input !== null &&
@@ -736,7 +736,7 @@ function looksLikeJsonObject(input: AnyJs): boolean {
 function validatePlainObject(
   message: string,
   context: ParseContext,
-  input: AnyJs
+  input: unknown
 ): void {
   if (!looksLikeJsonObject(input) || !isPlainObject(input)) {
     const description = valueDescription(input);

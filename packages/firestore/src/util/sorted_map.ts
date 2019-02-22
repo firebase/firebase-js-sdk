@@ -16,7 +16,6 @@
  */
 
 import { assert, fail } from './assert';
-import { AnyJs } from './misc';
 
 /*
  * Implementation of an immutable SortedMap using a Left-leaning
@@ -568,4 +567,4 @@ export class LLRBEmptyNode<K, V> {
   }
 } // end LLRBEmptyNode
 
-LLRBNode.EMPTY = new LLRBEmptyNode<AnyJs, AnyJs>();
+LLRBNode.EMPTY = new LLRBEmptyNode<unknown, unknown>();

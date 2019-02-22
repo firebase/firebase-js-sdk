@@ -19,7 +19,6 @@ import * as firestore from '@firebase/firestore-types';
 
 import { makeConstructorPrivate } from '../util/api';
 import { validateAtLeastNumberOfArgs } from '../util/input_validation';
-import { AnyJs } from '../util/misc';
 
 /**
  * An opaque base class for FieldValue sentinel objects in our public API,
@@ -37,14 +36,14 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
     return ServerTimestampFieldValueImpl.instance;
   }
 
-  static arrayUnion(...elements: AnyJs[]): FieldValueImpl {
+  static arrayUnion(...elements: unknown[]): FieldValueImpl {
     validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we need access to the Firestore instance.
     return new ArrayUnionFieldValueImpl(elements);
   }
 
-  static arrayRemove(...elements: AnyJs[]): FieldValueImpl {
+  static arrayRemove(...elements: unknown[]): FieldValueImpl {
     validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we need access to the Firestore instance.
@@ -73,13 +72,13 @@ export class ServerTimestampFieldValueImpl extends FieldValueImpl {
 }
 
 export class ArrayUnionFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _elements: AnyJs[]) {
+  constructor(readonly _elements: unknown[]) {
     super('FieldValue.arrayUnion');
   }
 }
 
 export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _elements: AnyJs[]) {
+  constructor(readonly _elements: unknown[]) {
     super('FieldValue.arrayRemove');
   }
 }

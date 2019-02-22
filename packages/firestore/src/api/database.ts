@@ -74,7 +74,7 @@ import {
 } from '../util/input_validation';
 import * as log from '../util/log';
 import { LogLevel } from '../util/log';
-import { AnyJs, AutoId } from '../util/misc';
+import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
@@ -415,7 +415,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._config.settings.ssl
     );
 
-    const preConverter = (value: AnyJs) => {
+    const preConverter = (value: unknown) => {
       if (value instanceof DocumentReference) {
         const thisDb = this._config.databaseId;
         const otherDb = value.firestore._config.databaseId;
@@ -651,14 +651,14 @@ export class Transaction implements firestore.Transaction {
   update(
     documentRef: firestore.DocumentReference,
     field: string | ExternalFieldPath,
-    value: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): Transaction;
   update(
     documentRef: firestore.DocumentReference,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
-    value?: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value?: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): Transaction {
     let ref;
     let parsed;
@@ -748,14 +748,14 @@ export class WriteBatch implements firestore.WriteBatch {
   update(
     documentRef: firestore.DocumentReference,
     field: string | ExternalFieldPath,
-    value: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
   update(
     documentRef: firestore.DocumentReference,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
-    value?: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value?: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
     this.verifyNotCommitted();
 
@@ -915,13 +915,13 @@ export class DocumentReference implements firestore.DocumentReference {
   update(value: firestore.UpdateData): Promise<void>;
   update(
     field: string | ExternalFieldPath,
-    value: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
   update(
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
-    value?: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value?: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): Promise<void> {
     let parsed;
 
@@ -975,7 +975,7 @@ export class DocumentReference implements firestore.DocumentReference {
     onCompletion?: CompleteFn
   ): Unsubscribe;
 
-  onSnapshot(...args: AnyJs[]): Unsubscribe {
+  onSnapshot(...args: unknown[]): Unsubscribe {
     validateBetweenNumberOfArgs(
       'DocumentReference.onSnapshot',
       arguments,
@@ -1213,7 +1213,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
   get(
     fieldPath: string | ExternalFieldPath,
     options?: firestore.SnapshotOptions
-  ): AnyJs {
+  ): unknown {
     validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
     options = validateSnapshotOptions('DocumentSnapshot.get', options);
     if (this._document) {
@@ -1274,7 +1274,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     return result;
   }
 
-  private convertValue(value: FieldValue, options: FieldValueOptions): AnyJs {
+  private convertValue(value: FieldValue, options: FieldValueOptions): unknown {
     if (value instanceof ObjectValue) {
       return this.convertObject(value, options);
     } else if (value instanceof ArrayValue) {
@@ -1301,7 +1301,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     }
   }
 
-  private convertArray(data: ArrayValue, options: FieldValueOptions): AnyJs[] {
+  private convertArray(data: ArrayValue, options: FieldValueOptions): unknown[] {
     return data.internalValue.map(value => {
       return this.convertValue(value, options);
     });
@@ -1336,7 +1336,7 @@ export class Query implements firestore.Query {
   where(
     field: string | ExternalFieldPath,
     opStr: firestore.WhereFilterOp,
-    value: AnyJs
+    value: unknown
   ): firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateArgType('Query.where', 'non-empty string', 2, opStr);
@@ -1456,8 +1456,8 @@ export class Query implements firestore.Query {
   }
 
   startAt(
-    docOrField: AnyJs | firestore.DocumentSnapshot,
-    ...fields: AnyJs[]
+    docOrField: unknown | firestore.DocumentSnapshot,
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.startAt', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1470,8 +1470,8 @@ export class Query implements firestore.Query {
   }
 
   startAfter(
-    docOrField: AnyJs | firestore.DocumentSnapshot,
-    ...fields: AnyJs[]
+    docOrField: unknown | firestore.DocumentSnapshot,
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.startAfter', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1484,8 +1484,8 @@ export class Query implements firestore.Query {
   }
 
   endBefore(
-    docOrField: AnyJs | firestore.DocumentSnapshot,
-    ...fields: AnyJs[]
+    docOrField: unknown | firestore.DocumentSnapshot,
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.endBefore', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1498,8 +1498,8 @@ export class Query implements firestore.Query {
   }
 
   endAt(
-    docOrField: AnyJs | firestore.DocumentSnapshot,
-    ...fields: AnyJs[]
+    docOrField: unknown | firestore.DocumentSnapshot,
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.endAt', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1523,8 +1523,8 @@ export class Query implements firestore.Query {
   /** Helper function to create a bound from a document or fields */
   private boundFromDocOrFields(
     methodName: string,
-    docOrField: AnyJs | firestore.DocumentSnapshot,
-    fields: AnyJs[],
+    docOrField: unknown | firestore.DocumentSnapshot,
+    fields: unknown[],
     before: boolean
   ): Bound {
     validateDefined(methodName, 1, docOrField);
@@ -1610,7 +1610,7 @@ export class Query implements firestore.Query {
    */
   private boundFromFields(
     methodName: string,
-    values: AnyJs[],
+    values: unknown[],
     before: boolean
   ): Bound {
     // Use explicit order by's because it has to match the query the user made
@@ -1674,7 +1674,7 @@ export class Query implements firestore.Query {
     onCompletion?: CompleteFn
   ): Unsubscribe;
 
-  onSnapshot(...args: AnyJs[]): Unsubscribe {
+  onSnapshot(...args: unknown[]): Unsubscribe {
     validateBetweenNumberOfArgs('Query.onSnapshot', arguments, 1, 4);
     let options: firestore.SnapshotListenOptions = {};
     let observer: PartialObserver<firestore.QuerySnapshot>;
@@ -1904,7 +1904,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
 
   forEach(
     callback: (result: firestore.QueryDocumentSnapshot) => void,
-    thisArg?: AnyJs
+    thisArg?: unknown
   ): void {
     validateBetweenNumberOfArgs('QuerySnapshot.forEach', arguments, 1, 2);
     validateArgType('QuerySnapshot.forEach', 'function', 1, callback);

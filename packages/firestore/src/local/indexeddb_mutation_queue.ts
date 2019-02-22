@@ -48,8 +48,6 @@ import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
-import { AnyJs } from '../../src/util/misc';
-
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
   /**
@@ -318,7 +316,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
 
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: SortedMap<DocumentKey, AnyJs>
+    documentKeys: SortedMap<DocumentKey, unknown>
   ): PersistencePromise<MutationBatch[]> {
     let uniqueBatchIDs = new SortedSet<BatchId>(primitiveComparator);
 

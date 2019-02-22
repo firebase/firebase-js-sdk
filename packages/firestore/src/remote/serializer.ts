@@ -51,7 +51,6 @@ import { FieldPath, ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { AnyJs } from '../util/misc';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
@@ -93,7 +92,7 @@ const OPERATORS = (() => {
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
 
-function assertPresent(value: AnyJs, description: string): void {
+function assertPresent(value: unknown, description: string): void {
   assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
 }
 

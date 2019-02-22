@@ -20,7 +20,6 @@
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
 import { SDK_VERSION } from '../core/version';
 import { PlatformSupport } from '../platform/platform';
-import { AnyJs } from './misc';
 
 const logClient = new Logger('@firebase/firestore');
 
@@ -61,14 +60,14 @@ export function setLogLevel(newLevel: LogLevel): void {
   }
 }
 
-export function debug(tag: string, msg: string, ...obj: AnyJs[]): void {
+export function debug(tag: string, msg: string, ...obj: unknown[]): void {
   if (logClient.logLevel <= FirebaseLogLevel.DEBUG) {
     const args = obj.map(argToString);
     logClient.debug(`Firestore (${SDK_VERSION}) [${tag}]: ${msg}`, ...args);
   }
 }
 
-export function error(msg: string, ...obj: AnyJs[]): void {
+export function error(msg: string, ...obj: unknown[]): void {
   if (logClient.logLevel <= FirebaseLogLevel.ERROR) {
     const args = obj.map(argToString);
     logClient.error(`Firestore (${SDK_VERSION}): ${msg}`, ...args);
@@ -78,7 +77,7 @@ export function error(msg: string, ...obj: AnyJs[]): void {
 /**
  * Converts an additional log parameter to a string representation.
  */
-function argToString(obj: AnyJs): string | AnyJs {
+function argToString(obj: unknown): string | unknown {
   if (typeof obj === 'string') {
     return obj;
   } else {

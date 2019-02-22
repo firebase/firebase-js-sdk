@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import { AnyJs } from './misc';
-
 /*
  * Utilities for dealing with node.js-style APIs. See nodePromise for more
  * details.
@@ -60,8 +58,8 @@ export function nodePromise<R>(
   action: (callback: NodeCallback<R>) => void
 ): Promise<R> {
   return new Promise(
-    (resolve: (value?: R) => void, reject: (error?: AnyJs) => void) => {
-      action((error?: AnyJs, value?: R) => {
+    (resolve: (value?: R) => void, reject: (error?: unknown) => void) => {
+      action((error?: unknown, value?: R) => {
         if (error) {
           reject(error);
         } else {
@@ -77,5 +75,5 @@ export function nodePromise<R>(
  * was an error, or passes null and a proper value
  */
 export interface NodeCallback<R> {
-  (error?: AnyJs, value?: R): void;
+  (error?: unknown, value?: R): void;
 }
