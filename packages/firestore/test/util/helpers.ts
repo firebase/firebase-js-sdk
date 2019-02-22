@@ -496,7 +496,7 @@ export function documentSet(
   ...docs: Document[]
 ): DocumentSet;
 export function documentSet(...docs: Document[]): DocumentSet;
-export function documentSet(...args: unknown[]): DocumentSet {
+export function documentSet(...args: Array<unknown>): DocumentSet {
   let docSet: DocumentSet | null = null;
   if (args[0] instanceof Function) {
     docSet = new DocumentSet(args[0] as DocumentComparator);
@@ -565,8 +565,8 @@ export function expectNotEqual(left: any, right: any, message?: string): void {
 }
 
 export function expectEqualArrays(
-  left: unknown[],
-  right: unknown[],
+  left: Array<unknown>,
+  right: Array<unknown>,
   message?: string
 ): void {
   message = message ? ' ' + message : '';

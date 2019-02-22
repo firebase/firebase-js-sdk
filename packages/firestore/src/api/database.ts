@@ -652,13 +652,13 @@ export class Transaction implements firestore.Transaction {
     documentRef: firestore.DocumentReference,
     field: string | ExternalFieldPath,
     value: unknown,
-    ...moreFieldsAndValues: unknown[]
+    ...moreFieldsAndValues: Array<unknown>
   ): Transaction;
   update(
     documentRef: firestore.DocumentReference,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
-    ...moreFieldsAndValues: unknown[]
+    ...moreFieldsAndValues: Array<unknown>
   ): Transaction {
     let ref;
     let parsed;
@@ -749,13 +749,13 @@ export class WriteBatch implements firestore.WriteBatch {
     documentRef: firestore.DocumentReference,
     field: string | ExternalFieldPath,
     value: unknown,
-    ...moreFieldsAndValues: unknown[]
+    ...moreFieldsAndValues: Array<unknown>
   ): WriteBatch;
   update(
     documentRef: firestore.DocumentReference,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
-    ...moreFieldsAndValues: unknown[]
+    ...moreFieldsAndValues: Array<unknown>
   ): WriteBatch {
     this.verifyNotCommitted();
 
@@ -916,12 +916,12 @@ export class DocumentReference implements firestore.DocumentReference {
   update(
     field: string | ExternalFieldPath,
     value: unknown,
-    ...moreFieldsAndValues: unknown[]
+    ...moreFieldsAndValues: Array<unknown>
   ): Promise<void>;
   update(
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
-    ...moreFieldsAndValues: unknown[]
+    ...moreFieldsAndValues: Array<unknown>
   ): Promise<void> {
     let parsed;
 
@@ -975,7 +975,7 @@ export class DocumentReference implements firestore.DocumentReference {
     onCompletion?: CompleteFn
   ): Unsubscribe;
 
-  onSnapshot(...args: unknown[]): Unsubscribe {
+  onSnapshot(...args: Array<unknown>): Unsubscribe {
     validateBetweenNumberOfArgs(
       'DocumentReference.onSnapshot',
       arguments,
@@ -1301,7 +1301,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     }
   }
 
-  private convertArray(data: ArrayValue, options: FieldValueOptions): unknown[] {
+  private convertArray(data: ArrayValue, options: FieldValueOptions): Array<unknown> {
     return data.internalValue.map(value => {
       return this.convertValue(value, options);
     });
@@ -1457,7 +1457,7 @@ export class Query implements firestore.Query {
 
   startAt(
     docOrField: unknown | firestore.DocumentSnapshot,
-    ...fields: unknown[]
+    ...fields: Array<unknown>
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.startAt', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1471,7 +1471,7 @@ export class Query implements firestore.Query {
 
   startAfter(
     docOrField: unknown | firestore.DocumentSnapshot,
-    ...fields: unknown[]
+    ...fields: Array<unknown>
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.startAfter', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1485,7 +1485,7 @@ export class Query implements firestore.Query {
 
   endBefore(
     docOrField: unknown | firestore.DocumentSnapshot,
-    ...fields: unknown[]
+    ...fields: Array<unknown>
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.endBefore', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1499,7 +1499,7 @@ export class Query implements firestore.Query {
 
   endAt(
     docOrField: unknown | firestore.DocumentSnapshot,
-    ...fields: unknown[]
+    ...fields: Array<unknown>
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.endAt', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1524,7 +1524,7 @@ export class Query implements firestore.Query {
   private boundFromDocOrFields(
     methodName: string,
     docOrField: unknown | firestore.DocumentSnapshot,
-    fields: unknown[],
+    fields: Array<unknown>,
     before: boolean
   ): Bound {
     validateDefined(methodName, 1, docOrField);
@@ -1610,7 +1610,7 @@ export class Query implements firestore.Query {
    */
   private boundFromFields(
     methodName: string,
-    values: unknown[],
+    values: Array<unknown>,
     before: boolean
   ): Bound {
     // Use explicit order by's because it has to match the query the user made
@@ -1674,7 +1674,7 @@ export class Query implements firestore.Query {
     onCompletion?: CompleteFn
   ): Unsubscribe;
 
-  onSnapshot(...args: unknown[]): Unsubscribe {
+  onSnapshot(...args: Array<unknown>): Unsubscribe {
     validateBetweenNumberOfArgs('Query.onSnapshot', arguments, 1, 4);
     let options: firestore.SnapshotListenOptions = {};
     let observer: PartialObserver<firestore.QuerySnapshot>;

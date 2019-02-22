@@ -36,14 +36,14 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
     return ServerTimestampFieldValueImpl.instance;
   }
 
-  static arrayUnion(...elements: unknown[]): FieldValueImpl {
+  static arrayUnion(...elements: Array<unknown>): FieldValueImpl {
     validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we need access to the Firestore instance.
     return new ArrayUnionFieldValueImpl(elements);
   }
 
-  static arrayRemove(...elements: unknown[]): FieldValueImpl {
+  static arrayRemove(...elements: Array<unknown>): FieldValueImpl {
     validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we need access to the Firestore instance.
@@ -72,13 +72,13 @@ export class ServerTimestampFieldValueImpl extends FieldValueImpl {
 }
 
 export class ArrayUnionFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _elements: unknown[]) {
+  constructor(readonly _elements: Array<unknown>) {
     super('FieldValue.arrayUnion');
   }
 }
 
 export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _elements: unknown[]) {
+  constructor(readonly _elements: Array<unknown>) {
     super('FieldValue.arrayRemove');
   }
 }
