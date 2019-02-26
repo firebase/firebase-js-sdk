@@ -21,7 +21,6 @@ import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { assert, fail } from '../../src/util/assert';
-import { AnyJs } from '../../src/util/misc';
 
 /**
  * `Window` fake that implements the event and storage API that is used by
@@ -87,7 +86,8 @@ export class FakeWindow {
  * `Document` fake that implements the `visibilitychange` API used by Firestore.
  */
 export class FakeDocument {
-  private _visibilityState: VisibilityState = 'unloaded';
+
+  private _visibilityState: VisibilityState = 'hidden';
   private visibilityListener: EventListener | null;
 
   get visibilityState(): VisibilityState {
@@ -250,7 +250,7 @@ export class TestPlatform implements Platform {
     return this.basePlatform.newSerializer(databaseId);
   }
 
-  formatJSON(value: AnyJs): string {
+  formatJSON(value: unknown): string {
     return this.basePlatform.formatJSON(value);
   }
 

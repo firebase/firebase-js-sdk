@@ -18,7 +18,6 @@
 import { assert, fail } from './assert';
 import { Code, FirestoreError } from './error';
 import * as log from './log';
-import { Unknown } from './misc';
 import { CancelablePromise, Deferred } from './promise';
 
 // tslint:disable-next-line:no-any Accept any return type from setTimeout().
@@ -70,7 +69,7 @@ export enum TimerId {
  *
  * Supports cancellation (via cancel()) and early execution (via skipDelay()).
  */
-class DelayedOperation<T extends Unknown> implements CancelablePromise<T> {
+class DelayedOperation<T extends unknown> implements CancelablePromise<T> {
   // handle for use with clearTimeout(), or null if the operation has been
   // executed or canceled already.
   private timerHandle: TimerHandle | null;
@@ -104,7 +103,7 @@ class DelayedOperation<T extends Unknown> implements CancelablePromise<T> {
    *   PORTING NOTE: This exists to prevent making removeDelayedOperation() and
    *   the DelayedOperation class public.
    */
-  static createAndSchedule<R extends Unknown>(
+  static createAndSchedule<R extends unknown>(
     asyncQueue: AsyncQueue,
     timerId: TimerId,
     delayMs: number,
@@ -187,11 +186,11 @@ class DelayedOperation<T extends Unknown> implements CancelablePromise<T> {
 
 export class AsyncQueue {
   // The last promise in the queue.
-  private tail: Promise<Unknown> = Promise.resolve();
+  private tail: Promise<unknown> = Promise.resolve();
 
   // Operations scheduled to be queued in the future. Operations are
   // automatically removed after they are run or canceled.
-  private delayedOperations: Array<DelayedOperation<Unknown>> = [];
+  private delayedOperations: Array<DelayedOperation<unknown>> = [];
 
   // visible for testing
   failure: Error;
@@ -204,7 +203,7 @@ export class AsyncQueue {
    * Adds a new operation to the queue without waiting for it to complete (i.e.
    * we ignore the Promise result).
    */
-  enqueueAndForget<T extends Unknown>(op: () => Promise<T>): void {
+  enqueueAndForget<T extends unknown>(op: () => Promise<T>): void {
     // tslint:disable-next-line:no-floating-promises
     this.enqueue(op);
   }
@@ -213,7 +212,7 @@ export class AsyncQueue {
    * Adds a new operation to the queue. Returns a promise that will be resolved
    * when the promise returned by the new operation is (with its value).
    */
-  enqueue<T extends Unknown>(op: () => Promise<T>): Promise<T> {
+  enqueue<T extends unknown>(op: () => Promise<T>): Promise<T> {
     this.verifyNotFailed();
     const newTail = this.tail.then(() => {
       this.operationInProgress = true;
@@ -252,7 +251,7 @@ export class AsyncQueue {
    * `delayMs` has elapsed. The returned CancelablePromise can be used to cancel
    * the operation prior to its running.
    */
-  enqueueAfterDelay<T extends Unknown>(
+  enqueueAfterDelay<T extends unknown>(
     timerId: TimerId,
     delayMs: number,
     op: () => Promise<T>
@@ -271,7 +270,7 @@ export class AsyncQueue {
       `Attempted to schedule multiple operations with timer id ${timerId}.`
     );
 
-    const delayedOp = DelayedOperation.createAndSchedule<Unknown>(
+    const delayedOp = DelayedOperation.createAndSchedule<unknown>(
       this,
       timerId,
       delayMs,
@@ -358,7 +357,7 @@ export class AsyncQueue {
   }
 
   /** Called once a DelayedOperation is run or canceled. */
-  private removeDelayedOperation(op: DelayedOperation<Unknown>): void {
+  private removeDelayedOperation(op: DelayedOperation<unknown>): void {
     // NOTE: indexOf / slice are O(n), but delayedOperations is expected to be small.
     const index = this.delayedOperations.indexOf(op);
     assert(index >= 0, 'Delayed operation not found.');

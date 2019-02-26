@@ -35,7 +35,6 @@ import { SortedMap } from '../util/sorted_map';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { AnyJs } from '../util/misc';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
@@ -540,7 +539,7 @@ function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {
  * Retrusn an approximate size for the given document.
  */
 export function dbDocumentSize(doc: DbRemoteDocument): number {
-  let value: AnyJs;
+  let value: unknown;
   if (doc.document) {
     value = doc.document;
   } else if (doc.unknownDocument) {

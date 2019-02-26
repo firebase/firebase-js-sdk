@@ -839,8 +839,8 @@ declare namespace firebase {
      * @return {!firebase.Promise<void>}
      */
     updateProfile(profile: {
-      displayName: string | null;
-      photoURL: string | null;
+      displayName?: string | null;
+      photoURL?: string | null;
     }): Promise<void>;
   }
 
@@ -1208,6 +1208,9 @@ declare namespace firebase.functions {
   export interface HttpsCallable {
     (data?: any): Promise<HttpsCallableResult>;
   }
+  export interface HttpsCallableOptions {
+    timeout?: number;
+  }
   /**
    * The Cloud Functions for Firebase service interface.
    *
@@ -1229,9 +1232,10 @@ declare namespace firebase.functions {
      * name.
      *
      * @param name The name of the https callable function.
+     * @param options The options for this HttpsCallable instance.
      * @return The `HttpsCallable` instance.
      */
-    httpsCallable(name: string): HttpsCallable;
+    httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable;
   }
   /**
    * The set of Firebase Functions status codes. The codes are the same at the
@@ -2696,22 +2700,22 @@ declare namespace firebase.auth {
    * credential requirements.
    *
    */
-  interface OAuthCredential {
+  interface OAuthCredential extends AuthCredential {
     /**
      * The OAuth ID token associated with the credential if it belongs to an
      * OIDC provider, such as `google.com`.
      */
-    idToken: string;
+    idToken?: string;
     /**
      * The OAuth access token associated with the credential if it belongs to
      * an OAuth provider, such as `facebook.com`, `twitter.com`, etc.
      */
-    accessToken: string;
+    accessToken?: string;
     /**
      * The OAuth access token secret associated with the credential if it
      * belongs to an OAuth 1.0 provider, such as `twitter.com`.
      */
-    secret: string;
+    secret?: string;
   }
 
   /**
@@ -2931,7 +2935,7 @@ declare namespace firebase.auth {
      *
      * @param {string} token Facebook access token.
      */
-    static credential(token: string): firebase.auth.AuthCredential;
+    static credential(token: string): firebase.auth.OAuthCredential;
   }
   /**
    * @hidden
@@ -3047,7 +3051,7 @@ declare namespace firebase.auth {
      * @param {string} token Github access token.
      * @return {!firebase.auth.OAuthCredential} The auth provider credential.
      */
-    static credential(token: string): firebase.auth.AuthCredential;
+    static credential(token: string): firebase.auth.OAuthCredential;
   }
   /**
    * @hidden
@@ -3139,7 +3143,7 @@ declare namespace firebase.auth {
     static credential(
       idToken?: string | null,
       accessToken?: string | null
-    ): firebase.auth.AuthCredential;
+    ): firebase.auth.OAuthCredential;
   }
   /**
    * @hidden
@@ -3493,7 +3497,7 @@ declare namespace firebase.auth {
     static credential(
       token: string,
       secret: string
-    ): firebase.auth.AuthCredential;
+    ): firebase.auth.OAuthCredential;
   }
   /**
    * @hidden

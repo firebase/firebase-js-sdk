@@ -35,7 +35,7 @@ import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
-import { AnyJs, primitiveComparator } from '../util/misc';
+import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
@@ -361,7 +361,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   // TODO(klimt): Wrap the given error in a standard Firestore error object.
-  private wrapUpdateFunctionError(error: AnyJs): AnyJs {
+  private wrapUpdateFunctionError(error: unknown): unknown {
     return error;
   }
 

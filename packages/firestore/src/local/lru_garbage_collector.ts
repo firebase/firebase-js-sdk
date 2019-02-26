@@ -20,7 +20,7 @@ import { ListenSequenceNumber } from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import * as log from '../util/log';
-import { AnyJs, primitiveComparator } from '../util/misc';
+import { primitiveComparator } from '../util/misc';
 import { CancelablePromise } from '../util/promise';
 import { SortedSet } from '../util/sorted_set';
 import { ignoreIfPrimaryLeaseLoss } from './indexeddb_persistence';
@@ -87,7 +87,7 @@ export interface LruDelegate {
  * values.
  */
 export type ActiveTargets = {
-  [id: number]: AnyJs;
+  [id: number]: unknown;
 };
 
 // The type and comparator for the items contained in the SortedSet used in

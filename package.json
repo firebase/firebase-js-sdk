@@ -29,9 +29,7 @@
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
     "test:setup": "node tools/config.js",
     "pretest:saucelabs": "lerna run --parallel pretest",
-    "test:saucelabs": "karma start config/karma.saucelabs.js --single-run",
-    "test:database:emulator": "ts-node scripts/emulator-testing/database-test-runner.ts",
-    "test:firestore:emulator": "ts-node scripts/emulator-testing/firestore-test-runner.ts"
+    "test:saucelabs": "karma start config/karma.saucelabs.js --single-run"
   },
   "repository": {
     "type": "git",
@@ -66,7 +64,7 @@
     "simple-git": "1.92.0",
     "ts-node": "5.0.1",
     "typedoc": "0.14.2",
-    "typescript": "2.8.1",
+    "typescript": "3.3.3",
     "yargs": "11.0.0"
   }
 }
