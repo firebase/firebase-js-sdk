@@ -247,14 +247,14 @@ Promise.all([
   // Add local variable include line to index.html (to access current SDK
   // version number).
   .then(() => {
-    fs.readFile(`${docPath}/index.html`, 'utf8')
-      .then((data) => {
-        // String to include devsite local variables.
-        const localVariablesIncludeString =
-          `{% include "docs/web/_local_variables.html" %}\n`;
-        return fs.writeFile(`${docPath}/index.html`,
-          localVariablesIncludeString + data);
-      })
+    fs.readFile(`${docPath}/index.html`, 'utf8').then(data => {
+      // String to include devsite local variables.
+      const localVariablesIncludeString = `{% include "docs/web/_local_variables.html" %}\n`;
+      return fs.writeFile(
+        `${docPath}/index.html`,
+        localVariablesIncludeString + data
+      );
+    });
   })
   .catch(e => {
     if (e.stdout) {
