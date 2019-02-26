@@ -16,10 +16,10 @@
     "storage"
   ],
   "scripts": {
-    "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
-    "prepare": "lerna run --scope @firebase/* --scope firebase prepare",
+    "dev": "lerna run --parallel --scope @firebase/* --scope firebase --scope rxfire dev",
+    "prepare": "lerna run --scope @firebase/* --scope firebase --scope rxfire prepare",
     "prepush": "node tools/gitHooks/prepush.js",
-    "link:packages": "lerna exec --scope @firebase/* --scope firebase -- yarn link",
+    "link:packages": "lerna exec --scope @firebase/* --scope firebase --scope rxfire -- yarn link",
     "stage:packages": "./scripts/prepublish.sh",
     "repl": "node tools/repl.js",
     "release": "node scripts/release/cli.js",
