@@ -1,0 +1,23 @@
+<header class="firebase-docs">
+    <div class="tsd-page-title">
+        <div class="container">
+            <h1>
+            {{#ifCond model.name '==' project.name}}
+            {{else}}
+                <ul class="tsd-breadcrumb">
+                    {{#with model.parent}}{{> breadcrumb}}{{/with}}
+                    <li class="model-name">{{model.name}}</li>
+                    {{#if model.typeParameters}}
+                        &lt;
+                        {{#each model.typeParameters}}
+                            {{#if @index}},&nbsp;{{/if}}
+                            {{name}}
+                        {{/each}}
+                        &gt;
+                    {{/if}}
+                </ul>
+            {{/ifCond}}
+            </h1>
+        </div>
+    </div>
+</header>
