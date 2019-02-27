@@ -68,7 +68,7 @@ describe('Firebase Messaging > IidModel', () => {
         .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
       const res = await iidModel.getToken(fcmSenderId, subscription, appPubKey);
       expect(res).to.deep.equal(mockResponse);
-      expect(fetchStub.lastCall.args[1].body).to.include('application_pub_key');
+      expect(fetchStub.lastCall.args[1]!.body).to.include('application_pub_key');
     });
 
     it('gets token on valid request with default VAPID key', async () => {
@@ -85,7 +85,7 @@ describe('Firebase Messaging > IidModel', () => {
         getDefaultPublicKey()
       );
       expect(res).to.deep.equal(mockResponse);
-      expect(fetchStub.lastCall.args[1].body).not.to.include(
+      expect(fetchStub.lastCall.args[1]!.body).not.to.include(
         'application_pub_key'
       );
     });
@@ -160,7 +160,7 @@ describe('Firebase Messaging > IidModel', () => {
         appPubKey
       );
       expect(res).to.equal(fcmToken);
-      expect(fetchStub.lastCall.args[1].body).to.include('application_pub_key');
+      expect(fetchStub.lastCall.args[1]!.body).to.include('application_pub_key');
     });
 
     it('updates on valid request with default VAPID key', async () => {
@@ -176,7 +176,7 @@ describe('Firebase Messaging > IidModel', () => {
         getDefaultPublicKey()
       );
       expect(res).to.equal(fcmToken);
-      expect(fetchStub.lastCall.args[1].body).not.to.include(
+      expect(fetchStub.lastCall.args[1]!.body).not.to.include(
         'application_pub_key'
       );
     });

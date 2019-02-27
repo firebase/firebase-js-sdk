@@ -11,20 +11,20 @@
     "test:debug": "karma start --auto-watch --browsers Chrome"
   },
   "devDependencies": {
-    "@types/mocha": "5.0.0",
+    "@types/mocha": "5.2.6",
     "@types/node": "9.6.4",
     "gulp": "4.0.0",
     "gulp-filter": "5.1.0",
     "gulp-replace": "0.6.1",
-    "karma": "2.0.0",
+    "karma": "4.0.0",
     "karma-chrome-launcher": "2.2.0",
     "karma-firefox-launcher": "1.1.0",
     "karma-mocha": "1.3.0",
     "karma-spec-reporter": "0.0.32",
-    "mocha": "5.2.0",
-    "ts-loader": "3.5.0",
+    "mocha": "6.0.2",
+    "ts-loader": "5.3.3",
     "typescript": "3.3.3",
-    "webpack": "3.11.0",
+    "webpack": "4.29.5",
     "webpack-stream": "4.0.3"
   }
 }
