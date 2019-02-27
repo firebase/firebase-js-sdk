@@ -3,6 +3,7 @@ node_modules
 dist
 .awcache
 /config/project.json
+scripts/docgen/html
 
 # OS Specific Files
 .DS_Store

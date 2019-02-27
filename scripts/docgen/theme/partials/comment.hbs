@@ -1,0 +1,22 @@
+{{#with comment}}
+    {{#if hasVisibleComponent}}
+        <div class="tsd-comment tsd-typography">
+            {{#if shortText}}
+                <div class="lead">
+                    {{#markdown}}{{{shortText}}}{{/markdown}}
+                </div>
+            {{/if}}
+            {{#if text}}
+                {{#markdown}}{{{text}}}{{/markdown}}
+            {{/if}}
+            {{#if tags}}
+                <dl class="tsd-comment-tags">
+                    {{#each tags}}
+                        <dt class="tag-{{tagName}}">{{tagName}}</dt>
+                        <dd class="tag-body-{{tagName}}">{{#markdown}}{{{text}}}{{/markdown}}</dd>
+                    {{/each}}
+                </dl>
+            {{/if}}
+        </div>
+    {{/if}}
+{{/with}}
