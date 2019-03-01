@@ -6,6 +6,7 @@
   "scripts": {
     "build": "rollup -c",
     "build:console": "node tools/console.build.js",
+    "build:analysis": "rollup -c --analysis",
     "dev": "rollup -c -w",
     "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' 'test/**/*.ts'",
     "lint:fix": "tslint --fix -p tsconfig.json -c tslint.json 'src/**/*.ts' 'test/**/*.ts'",
@@ -17,7 +18,9 @@
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require index.node.ts --opts ../../config/mocha.node.opts",
     "test:node:persistence": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
     "test:emulator": "ts-node ../../scripts/emulator-testing/firestore-test-runner.ts",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "analyze:bundle": "source-map-explorer ./analysis_tmp/index.js",
+    "analyze": "run-s build:analysis analyze:bundle"
   },
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
@@ -66,8 +69,10 @@
     "rollup-plugin-node-resolve": "4.0.1",
     "rollup-plugin-replace": "2.1.0",
     "rollup-plugin-typescript2": "0.19.3",
+    "rollup-plugin-uglify": "6.0.2",
     "sinon": "4.5.0",
     "source-map-loader": "0.2.3",
+    "source-map-explorer": "1.7.0",
     "ts-loader": "3.5.0",
     "ts-node": "5.0.1",
     "tslint": "5.9.1",

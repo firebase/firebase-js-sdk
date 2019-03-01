@@ -5,6 +5,9 @@ dist
 /config/project.json
 scripts/docgen/html
 
+# Bundle analysis
+analysis_tmp
+
 # OS Specific Files
 .DS_Store
 

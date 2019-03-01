@@ -12,11 +12,14 @@
   ],
   "scripts": {
     "build": "rollup -c",
+    "build:analysis": "rollup -c --analysis",
     "dev": "rollup -c -w",
     "test": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "analyze:bundle": "source-map-explorer ./analysis_tmp/index.js",
+    "analyze": "run-s build:analysis analyze:bundle"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
@@ -45,6 +48,8 @@
     "nyc": "11.6.0",
     "rollup": "1.2.3",
     "rollup-plugin-typescript2": "0.19.3",
+    "rollup-plugin-uglify": "6.0.2",
+    "source-map-explorer": "1.7.0",
     "ts-loader": "3.5.0",
     "ts-node": "5.0.1",
     "typescript": "3.3.3",
