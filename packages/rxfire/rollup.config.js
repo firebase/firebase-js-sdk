@@ -76,7 +76,7 @@ const componentBuilds = components
           globals: {
             rxfire: GLOBAL_NAME,
             rxjs: 'rxjs',
-            'rxjs/operators': 'rxjs/operators'
+            'rxjs/operators': 'rxjs.operators'
           }
         },
         plugins: [...plugins, uglify()],
