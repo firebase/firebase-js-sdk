@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
@@ -27,9 +27,9 @@
     "dist"
   ],
   "dependencies": {
-    "@firebase/firestore-types": "1.0.2",
-    "@firebase/logger": "0.1.6",
-    "@firebase/webchannel-wrapper": "0.2.13",
+    "@firebase/firestore-types": "1.0.3",
+    "@firebase/logger": "0.1.7",
+    "@firebase/webchannel-wrapper": "0.2.14",
     "grpc": "1.18.0",
     "tslib": "1.9.0"
   },
