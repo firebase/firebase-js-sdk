@@ -11,13 +11,16 @@
   ],
   "scripts": {
     "build": "rollup -c",
+    "build:analysis": "rollup -c --analysis",
     "dev": "rollup -c -w",
     "test": "yarn test:emulator",
     "test:all": "run-p test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' -r src/nodePatches.ts --opts ../../config/mocha.node.opts",
     "test:emulator": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/database-test-runner.ts",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "analyze:bundle": "source-map-explorer ./analysis_tmp/index.js",
+    "analyze": "run-s build:analysis analyze:bundle"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
@@ -51,8 +54,10 @@
     "nyc": "11.6.0",
     "rollup": "1.2.3",
     "rollup-plugin-typescript2": "0.19.3",
+    "rollup-plugin-uglify": "6.0.2",
     "sinon": "4.5.0",
     "source-map-loader": "0.2.3",
+    "source-map-explorer": "1.7.0",
     "ts-loader": "3.5.0",
     "ts-node": "5.0.1",
     "typescript": "3.3.3",

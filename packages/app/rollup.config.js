@@ -17,6 +17,7 @@
 
 import typescript from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
+import { uglify } from 'rollup-plugin-uglify';
 import pkg from './package.json';
 
 import firebasePkg from '../firebase/package.json';
@@ -37,7 +38,7 @@ const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-export default [
+const buildTargets = [
   {
     input: 'index.ts',
     output: [
@@ -69,3 +70,27 @@ export default [
       )
   }
 ];
+
+const analysisTargets = [
+  /**
+   * Build for Bundle Analysis
+   */
+  {
+    input: 'index.ts',
+    output: [
+      { file: 'analysis_tmp/index.js', format: 'cjs', sourcemap: true }
+    ],
+    plugins: [
+      ...plugins,
+      uglify()
+    ],
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default commandLineArgs => {
+  if (commandLineArgs.analysis) {
+    return analysisTargets;
+  }
+  return buildTargets;
+};

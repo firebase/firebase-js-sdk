@@ -10,10 +10,13 @@
   ],
   "scripts": {
     "build": "rollup -c",
+    "build:analysis": "rollup -c --analysis",
     "dev": "rollup -c -w",
     "test": "run-p test:browser",
     "test:browser": "karma start --single-run",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "analyze:bundle": "source-map-explorer ./analysis_tmp/index.js",
+    "analyze": "run-s build:analysis analyze:bundle"
   },
   "license": "Apache-2.0",
   "dependencies": {
@@ -41,8 +44,10 @@
     "npm-run-all": "4.1.5",
     "rollup": "1.2.3",
     "rollup-plugin-typescript2": "0.19.3",
+    "rollup-plugin-uglify": "6.0.2",
     "sinon": "4.5.0",
     "source-map-loader": "0.2.3",
+    "source-map-explorer": "1.7.0",
     "ts-loader": "3.5.0",
     "typescript": "3.3.3",
     "webpack": "3.11.0"

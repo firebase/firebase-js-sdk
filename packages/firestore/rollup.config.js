@@ -18,8 +18,8 @@
 import typescript from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
-import pkg from './package.json';
 import { uglify } from 'rollup-plugin-uglify';
+import pkg from './package.json';
 
 const plugins = [
   typescript({
