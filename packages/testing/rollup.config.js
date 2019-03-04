@@ -32,7 +32,7 @@ const deps = Object.keys(
 
 export default {
   input: 'index.ts',
-  output: [{ file: pkg.main, format: 'cjs' }],
+  output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
   plugins: [
     ...plugins,
     // Needed as we also use the *.proto files
