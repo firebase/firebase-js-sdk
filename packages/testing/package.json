@@ -23,9 +23,9 @@
     "request": "2.88.0"
   },
   "devDependencies": {
-    "chai": "4.1.2",
+    "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
-    "mocha": "5.2.0",
+    "mocha": "6.0.2",
     "nyc": "13.1.0",
     "rollup": "1.2.3",
     "rollup-plugin-copy-assets": "1.1.0",
