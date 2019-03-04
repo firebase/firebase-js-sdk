@@ -66,7 +66,7 @@ describe('Firebase Messaging > *WindowController', () => {
         .withArgs('link[rel="manifest"]')
         .returns({
           href: 'https://firebase.io/messaging/example'
-        });
+        } as any);
 
       sandbox
         .stub(window, 'fetch')
@@ -76,7 +76,7 @@ describe('Firebase Messaging > *WindowController', () => {
             json: () => {
               return {};
             }
-          })
+          } as any)
         );
 
       return manifestCheck();
@@ -88,7 +88,7 @@ describe('Firebase Messaging > *WindowController', () => {
         .withArgs('link[rel="manifest"]')
         .returns({
           href: 'https://firebase.io/messaging/example'
-        });
+        } as any);
 
       sandbox
         .stub(window, 'fetch')
@@ -100,7 +100,7 @@ describe('Firebase Messaging > *WindowController', () => {
                 gcm_sender_id: '103953800507'
               };
             }
-          })
+          } as any)
         );
 
       return manifestCheck();
@@ -112,7 +112,7 @@ describe('Firebase Messaging > *WindowController', () => {
         .withArgs('link[rel="manifest"]')
         .returns({
           href: 'https://firebase.io/messaging/example'
-        });
+        } as any);
 
       sandbox
         .stub(window, 'fetch')
@@ -124,7 +124,7 @@ describe('Firebase Messaging > *WindowController', () => {
                 gcm_sender_id: 'incorrect-sender-id'
               };
             }
-          })
+          } as any)
         );
 
       return manifestCheck().then(
@@ -143,7 +143,7 @@ describe('Firebase Messaging > *WindowController', () => {
         .withArgs('link[rel="manifest"]')
         .returns({
           href: 'https://firebase.io/messaging/example'
-        });
+        } as any);
 
       sandbox
         .stub(window, 'fetch')
@@ -166,7 +166,7 @@ describe('Firebase Messaging > *WindowController', () => {
       sandbox.stub(Notification as any, 'permission').value('denied');
       sandbox
         .stub(Notification, 'requestPermission')
-        .returns(Promise.resolve('denied'));
+        .returns(Promise.resolve<NotificationPermission>('denied'));
 
       const controller = new WindowController(app);
       return controller.requestPermission().then(
@@ -183,7 +183,7 @@ describe('Firebase Messaging > *WindowController', () => {
       sandbox.stub(Notification as any, 'permission').value('default');
       sandbox
         .stub(Notification, 'requestPermission')
-        .returns(Promise.resolve('default'));
+        .returns(Promise.resolve<NotificationPermission>('default'));
 
       const controller = new WindowController(app);
       return controller.requestPermission().then(
@@ -200,7 +200,7 @@ describe('Firebase Messaging > *WindowController', () => {
       sandbox.stub(Notification as any, 'permission').value('default');
       sandbox
         .stub(Notification, 'requestPermission')
-        .returns(Promise.resolve('granted'));
+        .returns(Promise.resolve<NotificationPermission>('granted'));
 
       const controller = new WindowController(app);
       return controller.requestPermission();
