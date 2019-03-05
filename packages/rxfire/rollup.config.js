@@ -59,8 +59,16 @@ const componentBuilds = components
       {
         input: `${component}/index.ts`,
         output: [
-          { file: resolve(component, pkg.main), format: 'cjs', sourcemap: true },
-          { file: resolve(component, pkg.module), format: 'es', sourcemap: true }
+          {
+            file: resolve(component, pkg.main),
+            format: 'cjs',
+            sourcemap: true
+          },
+          {
+            file: resolve(component, pkg.module),
+            format: 'es',
+            sourcemap: true
+          }
         ],
         plugins,
         external

@@ -64,8 +64,8 @@ closureBuilder.build(
     out_source_map: 'dist/index.closure-es.js.map',
     options: {
       closure: {
-      output_wrapper:
-        "%output%\n//# sourceMappingURL=index.closure-es.js.map",
+        output_wrapper:
+          '%output%\n//# sourceMappingURL=index.closure-es.js.map',
         language_out: 'ECMASCRIPT5',
         compilation_level: 'ADVANCED',
         define: closureDefines
@@ -76,10 +76,7 @@ closureBuilder.build(
     const filePath = resolve(__dirname, '../dist/index.closure-es.js');
     const inputOptions = {
       input: filePath,
-      plugins: [
-        sourcemaps(),
-        commonjs()
-      ]
+      plugins: [sourcemaps(), commonjs()]
     };
 
     const outputOptions = {
