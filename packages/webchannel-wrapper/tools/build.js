@@ -18,7 +18,7 @@
 const closureBuilder = require('closure-builder');
 const rollup = require('rollup');
 const commonjs = require('rollup-plugin-commonjs');
-const hypothetical = require('rollup-plugin-hypothetical');
+const sourcemaps = require('rollup-plugin-sourcemaps');
 
 const glob = closureBuilder.globSupport();
 const { resolve } = require('path');
@@ -42,10 +42,11 @@ closureBuilder.build({
   srcs: glob([resolve(__dirname, '../src/**/*.js')]),
   externs: [resolve(__dirname, '../externs/overrides.js')],
   out: 'dist/index.js',
+  out_source_map: 'dist/index.js.map',
   options: {
     closure: {
       output_wrapper:
-        "(function() {%output%}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {})",
+        "(function() {%output%}).call(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {})\n//# sourceMappingURL=index.js.map",
       language_out: 'ECMASCRIPT5',
       compilation_level: 'ADVANCED',
       define: closureDefines
@@ -59,31 +60,32 @@ closureBuilder.build(
     name: 'firebase.webchannel.wrapper',
     srcs: glob([resolve(__dirname, '../src/**/*.js')]),
     externs: [resolve(__dirname, '../externs/overrides.js')],
+    out: 'dist/index.closure-es.js',
+    out_source_map: 'dist/index.closure-es.js.map',
     options: {
       closure: {
+      output_wrapper:
+        "%output%\n//# sourceMappingURL=index.closure-es.js.map",
         language_out: 'ECMASCRIPT5',
         compilation_level: 'ADVANCED',
         define: closureDefines
       }
     }
   },
-  async function(errors, warnings, files, results) {
-    const filePath = resolve(__dirname, '../src/index.js');
+  async function() {
+    const filePath = resolve(__dirname, '../dist/index.closure-es.js');
     const inputOptions = {
       input: filePath,
       plugins: [
-        commonjs(),
-        hypothetical({
-          files: {
-            [filePath]: results // use the compiled code from memory
-          }
-        })
+        sourcemaps(),
+        commonjs()
       ]
     };
 
     const outputOptions = {
       file: 'dist/index.esm.js',
-      format: 'es'
+      format: 'es',
+      sourcemap: true
     };
 
     const bundle = await rollup.rollup(inputOptions);

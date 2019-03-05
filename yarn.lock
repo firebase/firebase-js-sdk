@@ -12292,11 +12292,6 @@ rollup-plugin-copy-assets@1.1.0:
   dependencies:
     fs-extra "^5.0.0"
 
-rollup-plugin-hypothetical@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/rollup-plugin-hypothetical/-/rollup-plugin-hypothetical-2.1.0.tgz#7fec9a865ed7d0eac14ca6ee2b2c4088acdb1955"
-  integrity sha512-MlxPQTkMtiRUtyhIJ7FpBvTzWtar8eFBA+V7/J6Deg9fSgIIHwL6bJKK1Wl1uWSWtOrWhOmtsMwb9F6aagP/Pg==
-
 rollup-plugin-license@0.8.1:
   version "0.8.1"
   resolved "https://registry.npmjs.org/rollup-plugin-license/-/rollup-plugin-license-0.8.1.tgz#cdcfee2a32f27790e5019a2a7abd9234476ac589"
