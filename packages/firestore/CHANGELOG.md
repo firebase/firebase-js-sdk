@@ -1,4 +1,8 @@
 # Unreleased
+- [changed] Improved performance when querying over documents that contain
+  subcollections.
+
+# 1.0.4
 - [fixed] Fixed an uncaught promise error occurring when `enablePersistence()`
   was called in a second tab (#1531).
 
