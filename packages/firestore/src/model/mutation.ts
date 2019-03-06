@@ -43,7 +43,7 @@ import { TransformOperation } from './transform_operation';
  *             containing foo
  */
 export class FieldMask {
-  private constructor(readonly fields: SortedSet<FieldPath>) {
+  constructor(readonly fields: SortedSet<FieldPath>) {
     // TODO(dimond): validation of FieldMask
   }
 
@@ -73,6 +73,27 @@ export class FieldMask {
     return found;
   }
 
+  /**
+   * Applies this field mask to the provided object value and returns an object
+   * that only contains fields that are specified in both the input object and
+   * this field mask.
+   */
+  applyTo(data: ObjectValue): ObjectValue {
+    let filteredObject = ObjectValue.EMPTY;
+    this.fields.forEach(fieldMaskPath => {
+      if (fieldMaskPath.isEmpty()) {
+        return data;
+      } else {
+        const newValue = data.field(fieldMaskPath);
+        if (newValue !== undefined) {
+          filteredObject = filteredObject.set(fieldMaskPath, newValue);
+        }
+      }
+    });
+
+    return filteredObject;
+  }
+
   isEqual(other: FieldMask): boolean {
     return this.fields.isEqual(other.fields);
   }
@@ -84,6 +105,11 @@ export class FieldTransform {
     readonly field: FieldPath,
     readonly transform: TransformOperation
   ) {}
+
+  /** Whether this field transform is idempotent. */
+  get isIdempotent(): boolean {
+    return this.transform.isIdempotent;
+  }
 
   isEqual(other: FieldTransform): boolean {
     return (
@@ -278,6 +304,16 @@ export abstract class Mutation {
 
   abstract isEqual(other: Mutation): boolean;
 
+  /**
+   * If applicable, returns the field mask for this mutation. Fields that are
+   * not included in this field mask are not modified when this mutation is
+   * applied. Mutations that replace the entire document return 'null'.
+   */
+  abstract get fieldMask(): FieldMask | null;
+
+  /** Returns whether all operations in the mutation are idempotent. */
+  abstract get isIdempotent(): boolean;
+
   protected verifyKeyMatches(maybeDoc: MaybeDocument | null): void {
     if (maybeDoc != null) {
       assert(
@@ -357,6 +393,14 @@ export class SetMutation extends Mutation {
     });
   }
 
+  get isIdempotent(): true {
+    return true;
+  }
+
+  get fieldMask(): null {
+    return null;
+  }
+
   isEqual(other: Mutation): boolean {
     return (
       other instanceof SetMutation &&
@@ -433,6 +477,10 @@ export class PatchMutation extends Mutation {
     return new Document(this.key, version, newData, {
       hasLocalMutations: true
     });
+  }
+
+  get isIdempotent(): true {
+    return true;
   }
 
   isEqual(other: Mutation): boolean {
@@ -550,6 +598,24 @@ export class TransformMutation extends Mutation {
     return new Document(this.key, doc.version, newData, {
       hasLocalMutations: true
     });
+  }
+
+  get isIdempotent(): boolean {
+    for (const fieldTransform of this.fieldTransforms) {
+      if (!fieldTransform.isIdempotent) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  get fieldMask(): FieldMask {
+    let fieldMask = new SortedSet<FieldPath>(FieldPath.comparator);
+    this.fieldTransforms.forEach(
+      transform => (fieldMask = fieldMask.add(transform.field))
+    );
+    return new FieldMask(fieldMask);
   }
 
   isEqual(other: Mutation): boolean {
@@ -719,5 +785,13 @@ export class DeleteMutation extends Mutation {
       this.key.isEqual(other.key) &&
       this.precondition.isEqual(other.precondition)
     );
+  }
+
+  get isIdempotent(): true {
+    return true;
+  }
+
+  get fieldMask(): null {
+    return null;
   }
 }

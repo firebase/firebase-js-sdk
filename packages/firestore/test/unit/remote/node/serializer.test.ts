@@ -705,6 +705,24 @@ describe('Serializer', () => {
       verifyMutation(mutation, proto);
     });
 
+    it('TransformMutation (Numeric Add transform)', () => {
+      const mutation = transformMutation('baz/quux', {
+        integer: FieldValue.increment(42),
+        double: FieldValue.increment(13.37)
+      });
+      const proto = {
+        transform: {
+          document: s.toName(mutation.key),
+          fieldTransforms: [
+            { fieldPath: 'integer', increment: { integerValue: '42' } },
+            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
+          ]
+        },
+        currentDocument: { exists: true }
+      };
+      verifyMutation(mutation, proto);
+    });
+
     it('TransformMutation (Array transforms)', () => {
       const mutation = transformMutation('docs/1', {
         a: FieldValue.arrayUnion('a', 2),

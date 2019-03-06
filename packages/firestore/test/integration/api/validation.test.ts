@@ -737,6 +737,49 @@ apiDescribe('Validation:', persistence => {
     });
   });
 
+  describe('Server timestamps transforms', () => {
+    validationIt(persistence, 'reject any arguments', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: (FieldValue as any).serverTimestamp('foo') })
+      ).to.throw(
+        'Function FieldValue.serverTimestamp() does not support ' +
+          'arguments, but was called with 1 argument.'
+      );
+    });
+  });
+
+  describe('Numeric transforms', () => {
+    validationIt(persistence, 'fail in queries', db => {
+      const collection = db.collection('test');
+      expect(() =>
+        collection.where('test', '==', { test: FieldValue.increment(1) })
+      ).to.throw(
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.increment() can only be used with update() and set() ' +
+          '(found in field test)'
+      );
+    });
+
+    validationIt(persistence, 'reject invalid operands', db => {
+      const doc = db.collection('test').doc();
+      expect(() => doc.set({ x: FieldValue.increment('foo' as any) })).to.throw(
+        'Function FieldValue.increment() requires its first argument to ' +
+          'be of type number, but it was: "foo"'
+      );
+    });
+
+    validationIt(persistence, 'reject more than one argument', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: (FieldValue as any).increment(1337, 'leet') })
+      ).to.throw(
+        'Function FieldValue.increment() requires 1 argument, but was ' +
+          'called with 2 arguments.'
+      );
+    });
+  });
+
   describe('Queries', () => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');

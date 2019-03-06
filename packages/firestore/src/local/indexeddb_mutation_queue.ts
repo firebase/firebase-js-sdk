@@ -143,6 +143,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   addMutationBatch(
     transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
+    baseMutations: Mutation[],
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
     const documentStore = documentMutationsStore(transaction);
@@ -160,7 +161,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
     return mutationStore.add({} as any).next(batchId => {
       assert(typeof batchId === 'number', 'Auto-generated key is not a number');
 
-      const batch = new MutationBatch(batchId, localWriteTime, mutations);
+      const batch = new MutationBatch(
+        batchId,
+        localWriteTime,
+        baseMutations,
+        mutations
+      );
       const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
 
       this.documentKeysByBatchId[batchId] = batch.keys();

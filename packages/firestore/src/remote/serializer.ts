@@ -54,9 +54,11 @@ import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
+import { NumberValue } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
@@ -954,6 +956,11 @@ export class JsonProtoSerializer {
           values: transform.elements.map(v => this.toValue(v))
         }
       };
+    } else if (transform instanceof NumericIncrementTransformOperation) {
+      return {
+        fieldPath: fieldTransform.field.canonicalString(),
+        increment: this.toValue(transform.operand)
+      };
     } else {
       throw fail('Unknown transform: ' + fieldTransform.transform);
     }
@@ -978,6 +985,15 @@ export class JsonProtoSerializer {
       const values = proto.removeAllFromArray!.values || [];
       transform = new ArrayRemoveTransformOperation(
         values.map(v => this.fromValue(v))
+      );
+    } else if (hasTag(proto, type, 'increment')) {
+      const operand = this.fromValue(proto.increment!);
+      assert(
+        operand instanceof NumberValue,
+        'NUMERIC_ADD transform requires a NumberValue'
+      );
+      transform = new NumericIncrementTransformOperation(
+        operand as NumberValue
       );
     } else {
       fail('Unknown transform proto: ' + JSON.stringify(proto));
