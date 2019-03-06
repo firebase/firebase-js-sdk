@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,8 +52,15 @@ export abstract class Emulator {
           .pipe(writeStream)
           .on('finish', () => {
             console.log(`Saved emulator binary file to [${filepath}].`);
-            this.binaryPath = filepath;
-            resolve();
+            // Change emulator binary file permission to 'rwxr-xr-x'.
+            // The execute permission is required for it to be able to start
+            // with 'java -jar'.
+            fs.chmod(filepath, 0o755, err => {
+              if (err) reject(err);
+              console.log(`Changed emulator file permissions to 'rwxr-xr-x'.`);
+              this.binaryPath = filepath;
+              resolve();
+            });
           })
           .on('error', reject);
       });
@@ -73,11 +81,17 @@ export abstract class Emulator {
       this.emulator = promise.childProcess;
 
       console.log(`Waiting for emulator to start up ...`);
-      const timeout = 10; // seconds
+      // NOTE: Normally the emulator starts up within a few seconds.
+      // However, our sdk test suite launches tests from 20+ packages in parallel, which slows
+      // down the startup substantially. In such case for the emulator to start, it can take
+      // ~17 seconds on a corp macbook, ~7 seconds on a corp workstation, and even 50+ seconds
+      // on Travis VMs.
+      const timeout = process.env.TRAVIS ? 100 : 30; // seconds
       const start: number = Date.now();
 
       const wait = (resolve, reject) => {
-        if (Date.now() - start > timeout * 1000) {
+        const elapsed = (Date.now() - start) / 1000;
+        if (elapsed > timeout) {
           reject(`Emulator not ready after ${timeout}s. Exiting ...`);
         } else {
           console.log(`Ping emulator at [http://localhost:${this.port}] ...`);
@@ -87,7 +101,7 @@ export abstract class Emulator {
             } else if (response) {
               // Database and Firestore emulators will return 400 and 200 respectively.
               // As long as we get a response back, it means the emulator is ready.
-              console.log('Emulator has started up successfully!');
+              console.log(`Emulator has started up after ${elapsed}s!`);
               resolve();
             } else {
               // This should not happen.

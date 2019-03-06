@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,7 +33,6 @@ import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation
 } from '../../../src/model/transform_operation';
-import { AnyJs } from '../../../src/util/misc';
 import { Dict } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -347,9 +347,9 @@ describe('Mutation', () => {
   });
 
   function verifyTransform(
-    baseData: Dict<AnyJs>,
-    transforms: Dict<AnyJs> | Array<Dict<AnyJs>>,
-    expectedData: Dict<AnyJs>
+    baseData: Dict<unknown>,
+    transformData: Dict<unknown> | Array<Dict<unknown>>,
+    expectedData: Dict<unknown>
   ): void {
     const baseDoc = doc('collection/key', 0, baseData);
     let transformedDoc: MaybeDocument | null = baseDoc;

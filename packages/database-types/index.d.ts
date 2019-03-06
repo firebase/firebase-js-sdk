@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -125,7 +126,7 @@ export interface ServerValue {
   };
 }
 
-export interface ThenableReference extends Reference, PromiseLike<Reference> {}
+export interface ThenableReference extends Reference, Promise<Reference> {}
 
 export function enableLogging(
   logger?: boolean | ((a: string) => any),

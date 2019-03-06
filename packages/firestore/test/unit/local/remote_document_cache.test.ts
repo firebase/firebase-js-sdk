@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -401,6 +402,7 @@ function genericRemoteDocumentCacheTests(
     await cache.addEntries([
       doc('a/1', VERSION, DOC_DATA),
       doc('b/1', VERSION, DOC_DATA),
+      doc('b/1/z/1', VERSION, DOC_DATA),
       doc('b/2', VERSION, DOC_DATA),
       doc('c/1', VERSION, DOC_DATA)
     ]);

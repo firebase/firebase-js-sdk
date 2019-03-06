@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,4 @@
  * limitations under the License.
  */
 
-module.exports = {
-  timeout: 20000,
-  retries: 3
-};
+export = undefined;

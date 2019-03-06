@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -124,7 +125,7 @@ describe('Firebase Storage > Requests', () => {
     reader.readAsText(blob);
     return fbsPromise.make((resolve, reject) => {
       reader.onload = () => {
-        resolve(reader.result);
+        resolve(reader.result as string);
       };
       reader.onerror = () => {
         reject(reader.error as Error);

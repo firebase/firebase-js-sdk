@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,6 +49,12 @@ enum RpcCode {
   DATA_LOSS = 15
 }
 
+/**
+ * Determines whether an error code represents a permanent error when received
+ * in response to a non-write operation.
+ *
+ * See isPermanentWriteError for classifying write errors.
+ */
 export function isPermanentError(code: Code): boolean {
   switch (code) {
     case Code.OK:
@@ -78,6 +85,22 @@ export function isPermanentError(code: Code): boolean {
     default:
       return fail('Unknown status code: ' + code);
   }
+}
+
+/**
+ * Determines whether an error code represents a permanent error when received
+ * in response to a write operation.
+ *
+ * Write operations must be handled specially because as of b/119437764, ABORTED
+ * errors on the write stream should be retried too (even though ABORTED errors
+ * are not generally retryable).
+ *
+ * Note that during the initial handshake on the write stream an ABORTED error
+ * signals that we should discard our stream token (i.e. it is permanent). This
+ * means a handshake error should be classified with isPermanentError, above.
+ */
+export function isPermanentWriteError(code: Code): boolean {
+  return isPermanentError(code) && code !== Code.ABORTED;
 }
 
 /**

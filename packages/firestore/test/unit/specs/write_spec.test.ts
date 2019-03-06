@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -633,7 +634,6 @@ describeSpec('Writes:', [], () => {
     Code.ALREADY_EXISTS,
     Code.PERMISSION_DENIED,
     Code.FAILED_PRECONDITION,
-    Code.ABORTED,
     Code.OUT_OF_RANGE,
     Code.UNIMPLEMENTED,
     Code.DATA_LOSS
@@ -697,6 +697,7 @@ describeSpec('Writes:', [], () => {
   );
 
   for (const code of [
+    Code.ABORTED,
     Code.CANCELLED,
     Code.UNKNOWN,
     Code.DEADLINE_EXCEEDED,

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +19,7 @@
 import 'whatwg-fetch';
 
 // Promise
-import 'promise-polyfill/src/polyfill';
+import 'promise-polyfill/lib/polyfill';
 
 // ES6
 import 'core-js/fn/array/find';

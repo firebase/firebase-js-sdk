@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +17,28 @@
 
 import { FirebaseNamespace } from '@firebase/app-types';
 import { createFirebaseNamespace } from './src/firebaseApp';
+
+// Node detection logic from: https://github.com/iliakan/detect-node/
+let isNode = false;
+try {
+  isNode =
+    Object.prototype.toString.call(global.process) === '[object process]';
+} catch (e) {}
+
+isNode &&
+  console.warn(`
+Warning: This is a browser-targeted Firebase bundle but it appears it is being
+run in a Node environment.  If running in a Node environment, make sure you
+are using the bundle specified by the "main" field in package.json.
+
+If you are using Webpack, you can specify "main" as the first item in
+"resolve.mainFields":
+https://webpack.js.org/configuration/resolve/#resolvemainfields
+
+If using Rollup, use the rollup-plugin-node-resolve plugin and set "module"
+to false and "main" to true:
+https://github.com/rollup/rollup-plugin-node-resolve
+`);
 
 export const firebase = createFirebaseNamespace();
 

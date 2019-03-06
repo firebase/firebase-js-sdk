@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,13 +15,12 @@
  * limitations under the License.
  */
 
-import { CACHE_SIZE_UNLIMITED } from '../api/database';
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import * as log from '../util/log';
-import { AnyJs, primitiveComparator } from '../util/misc';
+import { primitiveComparator } from '../util/misc';
 import { CancelablePromise } from '../util/promise';
 import { SortedSet } from '../util/sorted_set';
 import { ignoreIfPrimaryLeaseLoss } from './indexeddb_persistence';
@@ -87,7 +87,7 @@ export interface LruDelegate {
  * values.
  */
 export type ActiveTargets = {
-  [id: number]: AnyJs;
+  [id: number]: unknown;
 };
 
 // The type and comparator for the items contained in the SortedSet used in
@@ -235,7 +235,7 @@ export class LruScheduler {
     );
     if (
       this.garbageCollector.params.cacheSizeCollectionThreshold !==
-      CACHE_SIZE_UNLIMITED
+      LruParams.COLLECTION_DISABLED
     ) {
       this.scheduleGC();
     }

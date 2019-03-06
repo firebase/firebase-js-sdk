@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,8 +26,6 @@ import { SortedMap } from '../util/sorted_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-
-import { AnyJs } from '../../src/util/misc';
 
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue {
@@ -144,7 +143,7 @@ export interface MutationQueue {
   // TODO(mcg): This should really return an enumerator
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: SortedMap<DocumentKey, AnyJs>
+    documentKeys: SortedMap<DocumentKey, unknown>
   ): PersistencePromise<MutationBatch[]>;
 
   /**

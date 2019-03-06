@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +20,7 @@ import {
   ErrorCode,
   EventType,
   WebChannel,
-  XhrIoPool
+  XhrIo
 } from '@firebase/webchannel-wrapper';
 
 import { isReactNative } from '@firebase/util';
@@ -41,8 +42,8 @@ import { StringMap } from '../util/types';
 
 const LOG_TAG = 'Connection';
 
-const RPC_STREAM_SERVICE = 'google.firestore.v1beta1.Firestore';
-const RPC_URL_VERSION = 'v1beta1';
+const RPC_STREAM_SERVICE = 'google.firestore.v1.Firestore';
+const RPC_URL_VERSION = 'v1';
 
 /** Maps RPC names to the corresponding REST endpoint name. */
 const RPC_NAME_REST_MAPPING = {
@@ -60,11 +61,9 @@ const XHR_TIMEOUT_SECS = 15;
 export class WebChannelConnection implements Connection {
   private readonly databaseId: DatabaseId;
   private readonly baseUrl: string;
-  private readonly pool: XhrIoPool;
 
   constructor(info: DatabaseInfo) {
     this.databaseId = info.databaseId;
-    this.pool = new XhrIoPool();
     const proto = info.ssl ? 'https' : 'http';
     this.baseUrl = proto + '://' + info.host;
   }
@@ -95,78 +94,76 @@ export class WebChannelConnection implements Connection {
     const url = this.makeUrl(rpcName);
 
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
-      // tslint:disable-next-line:no-any XhrIoPool doesn't have TS typings.
-      this.pool.getObject((xhr: any) => {
-        xhr.listenOnce(EventType.COMPLETE, () => {
-          try {
-            switch (xhr.getLastErrorCode()) {
-              case ErrorCode.NO_ERROR:
-                const json = xhr.getResponseJson() as Resp;
-                log.debug(LOG_TAG, 'XHR received:', JSON.stringify(json));
-                resolve(json);
-                break;
-              case ErrorCode.TIMEOUT:
-                log.debug(LOG_TAG, 'RPC "' + rpcName + '" timed out');
+      // tslint:disable-next-line:no-any XhrIo doesn't have TS typings.
+      const xhr: any = new XhrIo();
+      xhr.listenOnce(EventType.COMPLETE, () => {
+        try {
+          switch (xhr.getLastErrorCode()) {
+            case ErrorCode.NO_ERROR:
+              const json = xhr.getResponseJson() as Resp;
+              log.debug(LOG_TAG, 'XHR received:', JSON.stringify(json));
+              resolve(json);
+              break;
+            case ErrorCode.TIMEOUT:
+              log.debug(LOG_TAG, 'RPC "' + rpcName + '" timed out');
+              reject(
+                new FirestoreError(Code.DEADLINE_EXCEEDED, 'Request time out')
+              );
+              break;
+            case ErrorCode.HTTP_ERROR:
+              const status = xhr.getStatus();
+              log.debug(
+                LOG_TAG,
+                'RPC "' + rpcName + '" failed with status:',
+                status,
+                'response text:',
+                xhr.getResponseText()
+              );
+              if (status > 0) {
                 reject(
-                  new FirestoreError(Code.DEADLINE_EXCEEDED, 'Request time out')
+                  new FirestoreError(
+                    mapCodeFromHttpStatus(status),
+                    'Server responded with status ' + xhr.getStatusText()
+                  )
                 );
-                break;
-              case ErrorCode.HTTP_ERROR:
-                const status = xhr.getStatus();
-                log.debug(
-                  LOG_TAG,
-                  'RPC "' + rpcName + '" failed with status:',
-                  status,
-                  'response text:',
-                  xhr.getResponseText()
+              } else {
+                // If we received an HTTP_ERROR but there's no status code,
+                // it's most probably a connection issue
+                log.debug(LOG_TAG, 'RPC "' + rpcName + '" failed');
+                reject(
+                  new FirestoreError(Code.UNAVAILABLE, 'Connection failed.')
                 );
-                if (status > 0) {
-                  reject(
-                    new FirestoreError(
-                      mapCodeFromHttpStatus(status),
-                      'Server responded with status ' + xhr.getStatusText()
-                    )
-                  );
-                } else {
-                  // If we received an HTTP_ERROR but there's no status code,
-                  // it's most probably a connection issue
-                  log.debug(LOG_TAG, 'RPC "' + rpcName + '" failed');
-                  reject(
-                    new FirestoreError(Code.UNAVAILABLE, 'Connection failed.')
-                  );
-                }
-                break;
-              default:
-                fail(
-                  'RPC "' +
-                    rpcName +
-                    '" failed with unanticipated ' +
-                    'webchannel error ' +
-                    xhr.getLastErrorCode() +
-                    ': ' +
-                    xhr.getLastError() +
-                    ', giving up.'
-                );
-            }
-          } finally {
-            log.debug(LOG_TAG, 'RPC "' + rpcName + '" completed.');
-            this.pool.releaseObject(xhr);
+              }
+              break;
+            default:
+              fail(
+                'RPC "' +
+                  rpcName +
+                  '" failed with unanticipated ' +
+                  'webchannel error ' +
+                  xhr.getLastErrorCode() +
+                  ': ' +
+                  xhr.getLastError() +
+                  ', giving up.'
+              );
           }
-        });
-
-        const requestString = JSON.stringify(request);
-        log.debug(LOG_TAG, 'XHR sending: ', url + ' ' + requestString);
-        // Content-Type: text/plain will avoid preflight requests which might
-        // mess with CORS and redirects by proxies. If we add custom headers
-        // we will need to change this code to potentially use the
-        // $httpOverwrite parameter supported by ESF to avoid
-        // triggering preflight requests.
-        const headers: StringMap = { 'Content-Type': 'text/plain' };
-
-        this.modifyHeadersForRequest(headers, token);
-
-        xhr.send(url, 'POST', requestString, headers, XHR_TIMEOUT_SECS);
+        } finally {
+          log.debug(LOG_TAG, 'RPC "' + rpcName + '" completed.');
+        }
       });
+
+      const requestString = JSON.stringify(request);
+      log.debug(LOG_TAG, 'XHR sending: ', url + ' ' + requestString);
+      // Content-Type: text/plain will avoid preflight requests which might
+      // mess with CORS and redirects by proxies. If we add custom headers
+      // we will need to change this code to potentially use the
+      // $httpOverwrite parameter supported by ESF to avoid
+      // triggering preflight requests.
+      const headers: StringMap = { 'Content-Type': 'text/plain' };
+
+      this.modifyHeadersForRequest(headers, token);
+
+      xhr.send(url, 'POST', requestString, headers, XHR_TIMEOUT_SECS);
     });
   }
 

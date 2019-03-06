@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +15,7 @@
  * limitations under the License.
  */
 
-import resolve from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
-import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
@@ -24,14 +23,13 @@ import copy from 'rollup-plugin-copy-assets';
 const plugins = [
   typescript({
     typescript: require('typescript')
-  }),
-  resolve(),
-  commonjs()
+  })
 ];
 
-const external = Object.keys(
+const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
+
 export default {
   input: 'index.ts',
   output: [{ file: pkg.main, format: 'cjs' }],
@@ -43,5 +41,5 @@ export default {
       'process.env.FIRESTORE_EMULATOR_PROTO_ROOT': JSON.stringify('src/protos')
     })
   ],
-  external
+  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
 };

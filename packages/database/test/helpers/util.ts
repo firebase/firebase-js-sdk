@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -46,15 +47,6 @@ export const DATABASE_URL = USE_EMULATOR
   : TEST_PROJECT.databaseURL;
 
 console.log(`USE_EMULATOR: ${USE_EMULATOR}. DATABASE_URL: ${DATABASE_URL}.`);
-
-const qs = {};
-if ('location' in this) {
-  const search = (this.location.search.substr(1) || '').split('&');
-  for (let i = 0; i < search.length; ++i) {
-    const parts = search[i].split('=');
-    qs[parts[0]] = parts[1] || true; // support for foo=
-  }
-}
 
 let numDatabases = 0;
 

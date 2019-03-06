@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +17,6 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { fail } from '../util/assert';
-import { AnyJs } from '../util/misc';
 
 import { DocumentKey } from './document_key';
 import { FieldValue, JsonObject, ObjectValue } from './field_value';
@@ -79,12 +79,12 @@ export class Document extends MaybeDocument {
     return this.data.field(path);
   }
 
-  fieldValue(path: FieldPath): AnyJs {
+  fieldValue(path: FieldPath): unknown {
     const field = this.field(path);
     return field ? field.value() : undefined;
   }
 
-  value(): JsonObject<AnyJs> {
+  value(): JsonObject<unknown> {
     return this.data.value();
   }
 

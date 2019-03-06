@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -49,7 +50,6 @@ import {
   WatchTargetChangeState
 } from '../../../../src/remote/watch_change';
 import { Code, FirestoreError } from '../../../../src/util/error';
-import { AnyJs } from '../../../../src/util/misc';
 import * as obj from '../../../../src/util/obj';
 import * as types from '../../../../src/util/types';
 import { addEqualityMatcher } from '../../../util/equality_matcher';
@@ -78,7 +78,7 @@ describe('Serializer', () => {
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
   const protos = loadProtos();
-  const ds = protos['google']['firestore']['v1beta1'];
+  const ds = protos['google']['firestore']['v1'];
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
@@ -100,7 +100,7 @@ describe('Serializer', () => {
     /**
      * Verifies that the given object can be parsed as a datastore Value proto.
      */
-    function expectValue(obj: AnyJs, tag: string): Chai.Assertion {
+    function expectValue(obj: unknown, tag: string): Chai.Assertion {
       const proto = new ds.Value(obj);
       expect(proto.value_type).to.equal(tag);
       return expect(proto[tag]);
@@ -640,7 +640,7 @@ describe('Serializer', () => {
   describe('toMutation / fromMutation', () => {
     addEqualityMatcher();
 
-    function verifyMutation(mutation: Mutation, proto: AnyJs): void {
+    function verifyMutation(mutation: Mutation, proto: unknown): void {
       const serialized = s.toMutation(mutation);
       expect(serialized).to.deep.equal(proto);
       expect(s.fromMutation(serialized)).to.deep.equal(mutation);
@@ -929,7 +929,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       expect(result).to.deep.equal({
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'messages' }],
             orderBy: [
@@ -972,7 +972,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             where: {
@@ -1010,7 +1010,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             where: {
@@ -1111,7 +1111,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1137,7 +1137,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1172,7 +1172,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1215,7 +1215,7 @@ describe('Serializer', () => {
       );
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [

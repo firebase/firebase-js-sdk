@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -97,7 +98,7 @@ export class GrpcConnection implements Connection {
   private cachedStub: CachedStub | null = null;
 
   constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
-    this.firestore = protos['google']['firestore']['v1beta1'];
+    this.firestore = protos['google']['firestore']['v1'];
   }
 
   private sameToken(tokenA: Token | null, tokenB: Token | null): boolean {

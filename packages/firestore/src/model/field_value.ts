@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -329,7 +330,7 @@ export class TimestampValue extends FieldValue {
   }
 
   value(options?: FieldValueOptions): Date | Timestamp {
-    if (options && options.timestampsInSnapshots) {
+    if (!options || options.timestampsInSnapshots) {
       return this.internalValue;
     } else {
       return this.internalValue.toDate();

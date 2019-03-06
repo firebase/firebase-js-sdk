@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -132,5 +133,12 @@ exports.httpErrorTest = functions.https.onRequest((request, response) => {
   cors(request, response, () => {
     // Send an http error with no body.
     response.status(400).send();
+  });
+});
+
+exports.timeoutTest = functions.https.onRequest((request, response) => {
+  cors(request, response, () => {
+    // Wait for longer than 500ms.
+    setTimeout(() => response.send({ data: true }), 500);
   });
 });

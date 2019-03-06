@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,20 +18,6 @@
 import { assert } from './assert';
 
 export type EventHandler<E> = (value: E) => void;
-
-/**
- * A union of all of the standard JS types, useful for cases where the type is
- * unknown. Unlike "any" this doesn't lose all type-safety, since the consuming
- * code must still cast to a particular type before using it.
- */
-export type AnyJs = null | undefined | boolean | number | string | object;
-
-/**
- * `Unknown` is a stand-in for Typescript 3's `unknown` type. It is similar to
- * `any` but forces code to check types before performing operations on a value
- * of type `Unknown`. See: https://blogs.msdn.microsoft.com/typescript/2018/07/30/announcing-typescript-3-0/#the-unknown-type
- */
-export type Unknown = null | undefined | {} | void;
 
 // tslint:disable-next-line:class-as-namespace
 export class AutoId {

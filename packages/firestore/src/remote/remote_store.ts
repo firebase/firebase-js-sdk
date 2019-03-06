@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,7 +28,7 @@ import {
 } from '../model/mutation_batch';
 import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
+import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
@@ -41,7 +42,7 @@ import {
   PersistentWriteStream
 } from './persistent_stream';
 import { RemoteSyncer } from './remote_syncer';
-import { isPermanentError } from './rpc_error';
+import { isPermanentError, isPermanentWriteError } from './rpc_error';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
@@ -628,9 +629,10 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async handleHandshakeError(error: FirestoreError): Promise<void> {
-    // Reset the token if it's a permanent error or the error code is
-    // ABORTED, signaling the write stream is no longer valid.
-    if (isPermanentError(error.code) || error.code === Code.ABORTED) {
+    // Reset the token if it's a permanent error, signaling the write stream is
+    // no longer valid. Note that the handshake does not count as a write: see
+    // comments on isPermanentWriteError for details.
+    if (isPermanentError(error.code)) {
       log.debug(
         LOG_TAG,
         'RemoteStore error before completed handshake; resetting stream token: ',
@@ -648,7 +650,9 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async handleWriteError(error: FirestoreError): Promise<void> {
-    if (isPermanentError(error.code)) {
+    // Only handle permanent errors here. If it's transient, just let the retry
+    // logic kick in.
+    if (isPermanentWriteError(error.code)) {
       // This was a permanent error, the request itself was the problem
       // so it's not going to succeed if we resend it.
       const batch = this.writePipeline.shift()!;

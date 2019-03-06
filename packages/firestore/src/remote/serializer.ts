@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -50,7 +51,6 @@ import { FieldPath, ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { AnyJs } from '../util/misc';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
@@ -94,7 +94,7 @@ const OPERATORS = (() => {
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
 
-function assertPresent(value: AnyJs, description: string): void {
+function assertPresent(value: unknown, description: string): void {
   assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
 }
 
@@ -342,16 +342,15 @@ export class JsonProtoSerializer {
   }
 
   toQueryPath(path: ResourcePath): string {
-    if (path.length === 0) {
-      // If the path is empty, the backend requires we leave off the /documents
-      // at the end.
-      return this.encodedDatabaseId;
-    }
     return this.toResourceName(this.databaseId, path);
   }
 
   fromQueryPath(name: string): ResourcePath {
     const resourceName = this.fromResourceName(name);
+    // In v1beta1 queries for collections at the root did not have a trailing
+    // "/documents". In v1 all resource paths contain "/documents". Preserve the
+    // ability to read the v1beta1 form for compatibility with queries persisted
+    // in the local query cache.
     if (resourceName.length === 4) {
       return ResourcePath.EMPTY_PATH;
     }

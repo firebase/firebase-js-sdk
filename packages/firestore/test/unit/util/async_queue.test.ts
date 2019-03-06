@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +19,6 @@ import { expect } from 'chai';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { Code } from '../../../src/util/error';
 import { getLogLevel, LogLevel, setLogLevel } from '../../../src/util/log';
-import { AnyJs } from '../../../src/util/misc';
 import { Deferred, Rejecter, Resolver } from '../../../src/util/promise';
 
 describe('AsyncQueue', () => {
@@ -90,7 +90,7 @@ describe('AsyncQueue', () => {
         () => {
           expect.fail('expected op1 to fail');
         },
-        (err: AnyJs) => {
+        (err: unknown) => {
           expect(err).to.equal(expected);
         }
       )
@@ -110,7 +110,7 @@ describe('AsyncQueue', () => {
         () => {
           expect.fail('expected op2 to fail');
         },
-        (err: AnyJs) => {
+        (err: unknown) => {
           // should be the original failure still.
           expect(err).to.equal(expected);
           expect(queue.failure).to.equal(expected);

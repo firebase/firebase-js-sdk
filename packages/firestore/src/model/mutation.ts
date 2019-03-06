@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -44,6 +45,10 @@ import { TransformOperation } from './transform_operation';
 export class FieldMask {
   constructor(readonly fields: SortedSet<FieldPath>) {
     // TODO(dimond): validation of FieldMask
+  }
+
+  static fromSet(fields: SortedSet<FieldPath>): FieldMask {
+    return new FieldMask(fields);
   }
 
   static fromArray(fields: FieldPath[]): FieldMask {

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -358,7 +359,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
         sandbox
           .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
-          .callsFake(() => Promise.resolve(null));
+          .callsFake(() => Promise.resolve(undefined));
 
         const saveTokenDetailsStub = sandbox
           .stub(TokenDetailsModel.prototype, 'saveTokenDetails')

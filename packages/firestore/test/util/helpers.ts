@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -80,7 +81,7 @@ import {
   WatchChangeAggregator
 } from '../../src/remote/watch_change';
 import { assert, fail } from '../../src/util/assert';
-import { AnyJs, primitiveComparator } from '../../src/util/misc';
+import { primitiveComparator } from '../../src/util/misc';
 import { Dict, forEach } from '../../src/util/obj';
 import { SortedMap } from '../../src/util/sorted_map';
 import { SortedSet } from '../../src/util/sorted_set';
@@ -94,7 +95,7 @@ export type TestSnapshotVersion = number;
  */
 export const DELETE_SENTINEL = '<DELETE>';
 
-const preConverter = (input: AnyJs) => {
+const preConverter = (input: unknown) => {
   return input === DELETE_SENTINEL ? FieldValueImpl.delete() : input;
 };
 
@@ -113,7 +114,7 @@ export function ref(dbIdStr: string, keyStr: string): DocumentKeyReference {
 export function doc(
   keyStr: string,
   ver: TestSnapshotVersion,
-  json: JsonObject<AnyJs>,
+  json: JsonObject<unknown>,
   options: DocumentOptions = {}
 ): Document {
   return new Document(key(keyStr), version(ver), wrapObject(json), options);
@@ -138,14 +139,14 @@ export function removedDoc(keyStr: string): NoDocument {
   return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
 }
 
-export function wrap(value: AnyJs): FieldValue {
+export function wrap(value: unknown): FieldValue {
   // HACK: We use parseQueryValue() since it accepts scalars as well as
   // arrays / objects, and our tests currently use wrap() pretty generically so
   // we don't know the intent.
   return dataConverter.parseQueryValue('wrap', value);
 }
 
-export function wrapObject(obj: JsonObject<AnyJs>): ObjectValue {
+export function wrapObject(obj: JsonObject<unknown>): ObjectValue {
   // Cast is safe here because value passed in is a map
   return wrap(obj) as ObjectValue;
 }
@@ -181,7 +182,7 @@ export function blob(...bytes: number[]): Blob {
   return Blob.fromUint8Array(new Uint8Array(bytes || []));
 }
 
-export function filter(path: string, op: string, value: AnyJs): Filter {
+export function filter(path: string, op: string, value: unknown): Filter {
   const dataValue = wrap(value);
   const operator = RelationOp.fromString(op);
   return Filter.create(field(path), operator, dataValue);
@@ -189,14 +190,14 @@ export function filter(path: string, op: string, value: AnyJs): Filter {
 
 export function setMutation(
   keyStr: string,
-  json: JsonObject<AnyJs>
+  json: JsonObject<unknown>
 ): SetMutation {
   return new SetMutation(key(keyStr), wrapObject(json), Precondition.NONE);
 }
 
 export function patchMutation(
   keyStr: string,
-  json: JsonObject<AnyJs>,
+  json: JsonObject<unknown>,
   precondition?: Precondition
 ): PatchMutation {
   if (precondition === undefined) {
@@ -224,7 +225,7 @@ export function deleteMutation(keyStr: string): DeleteMutation {
  */
 export function transformMutation(
   keyStr: string,
-  data: Dict<AnyJs>
+  data: Dict<unknown>
 ): TransformMutation {
   const result = dataConverter.parseUpdateData('transformMutation()', data);
   return new TransformMutation(key(keyStr), result.fieldTransforms);
@@ -495,7 +496,7 @@ export function documentSet(
   ...docs: Document[]
 ): DocumentSet;
 export function documentSet(...docs: Document[]): DocumentSet;
-export function documentSet(...args: AnyJs[]): DocumentSet {
+export function documentSet(...args: Array<unknown>): DocumentSet {
   let docSet: DocumentSet | null = null;
   if (args[0] instanceof Function) {
     docSet = new DocumentSet(args[0] as DocumentComparator);
@@ -564,8 +565,8 @@ export function expectNotEqual(left: any, right: any, message?: string): void {
 }
 
 export function expectEqualArrays(
-  left: AnyJs[],
-  right: AnyJs[],
+  left: Array<unknown>,
+  right: Array<unknown>,
   message?: string
 ): void {
   message = message ? ' ' + message : '';
@@ -582,7 +583,7 @@ export function expectEqualArrays(
  * Checks that an ordered array of elements yields the correct pair-wise
  * comparison result for the supplied comparator
  */
-export function expectCorrectComparisons<T extends AnyJs>(
+export function expectCorrectComparisons<T extends unknown>(
   array: T[],
   comp: (left: T, right: T) => number
 ): void {
@@ -611,7 +612,7 @@ export function expectCorrectComparisons<T extends AnyJs>(
  * returns the same as comparing the indexes of the "equality groups"
  * (0 for items in the same group).
  */
-export function expectCorrectComparisonGroups<T extends AnyJs>(
+export function expectCorrectComparisonGroups<T extends unknown>(
   groups: T[][],
   comp: (left: T, right: T) => number
 ): void {
@@ -696,7 +697,7 @@ export function expectEqualitySets<T>(
 }
 
 /** Returns the number of keys in this object. */
-export function size(obj: JsonObject<AnyJs>): number {
+export function size(obj: JsonObject<unknown>): number {
   let c = 0;
   forEach(obj, () => c++);
   return c;

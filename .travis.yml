@@ -10,7 +10,7 @@ env:
 before_install:
   # Yarn defaults to an old version, make sure we
   # get an up to date version
-  - npm install -g yarn@1.10.1
+  - npm install -g yarn@1.13.0
   - '[ "${NPM_TOKEN+x}" ] && echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > $HOME/.npmrc || echo "Skipping .npmrc creation";'
 
 before_script:
@@ -35,9 +35,6 @@ jobs:
   allow_failures:
     - script: yarn test:saucelabs
     - script: yarn test:saucelabs --database-firestore-only
-    # TODO(yifanyang): Once we verify the emulator tests are reliable, we
-    # should make these tests blocking rather than allow failures.
-    - script: yarn test:database:emulator
   include:
     - name: Node.js and Browser (Chrome) Test
       stage: test
@@ -51,9 +48,6 @@ jobs:
       stage: test
       script: yarn test:saucelabs --database-firestore-only
       if: type = push
-    - name: Database Node.js and Browser (Chrome) Test with Emulator
-      stage: test
-      script: yarn test:database:emulator
     - stage: deploy
       script: skip
       # NPM Canary Build Config

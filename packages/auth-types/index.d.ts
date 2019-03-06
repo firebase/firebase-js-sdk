@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,8 +58,8 @@ export interface User extends UserInfo {
   updatePassword(newPassword: string): Promise<void>;
   updatePhoneNumber(phoneCredential: AuthCredential): Promise<void>;
   updateProfile(profile: {
-    displayName: string | null;
-    photoURL: string | null;
+    displayName?: string | null;
+    photoURL?: string | null;
   }): Promise<void>;
 }
 

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -55,12 +56,12 @@ export class TokenDetailsModel extends DbInterface {
       }
 
       case 2: {
-        const objectStore = request.transaction.objectStore(
+        const objectStore = request.transaction!.objectStore(
           this.objectStoreName
         );
         const cursorRequest = objectStore.openCursor();
         cursorRequest.onsuccess = () => {
-          const cursor: IDBCursorWithValue = cursorRequest.result;
+          const cursor: IDBCursorWithValue | null = cursorRequest.result;
           if (cursor) {
             const value = cursor.value;
             const newValue: Partial<TokenDetails> = { ...value };

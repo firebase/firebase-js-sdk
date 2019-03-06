@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -764,7 +765,7 @@ describe('Firebase Messaging > *SwController', () => {
 
           sandbox
             .stub(swController, 'getWindowClient_')
-            .callsFake(async () => fakeWindowClient);
+            .callsFake(async () => fakeWindowClient as WindowClient);
           const attemptToMessageClientStub = sandbox
             .stub(swController, 'attemptToMessageClient_')
             .callsFake(async () => {});
@@ -914,7 +915,7 @@ describe('Firebase Messaging > *SwController', () => {
     it('should hook up push events', () => {
       const listeners: { [key: string]: (e: Event) => void } = {};
       sandbox.stub(self, 'addEventListener').callsFake((eventName, eventCb) => {
-        listeners[eventName] = eventCb;
+        listeners[eventName] = eventCb as any;
       });
       const onPushStub = sandbox.stub(SwController.prototype, 'onPush');
       const pushEvent = new Event('push');
@@ -931,7 +932,7 @@ describe('Firebase Messaging > *SwController', () => {
     it('should hook up subscription change events', () => {
       const listeners: { [key: string]: (e: Event) => void } = {};
       sandbox.stub(self, 'addEventListener').callsFake((eventName, eventCb) => {
-        listeners[eventName] = eventCb;
+        listeners[eventName] = eventCb as any;
       });
       const onSubChangeStub = sandbox.stub(
         SwController.prototype,
@@ -957,7 +958,7 @@ describe('Firebase Messaging > *SwController', () => {
     it('should hook up notification click events', () => {
       const listeners: { [key: string]: (e: Event) => void } = {};
       sandbox.stub(self, 'addEventListener').callsFake((eventName, eventCb) => {
-        listeners[eventName] = eventCb;
+        listeners[eventName] = eventCb as any;
       });
       const onNotificationClickStub = sandbox.stub(
         SwController.prototype,
@@ -1016,7 +1017,7 @@ describe('Firebase Messaging > *SwController', () => {
       const controller = new SwController(app);
       sandbox
         .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
-        .callsFake(async () => null);
+        .callsFake(async () => undefined);
       const pubKey = await controller.getPublicVapidKey_();
       expect(pubKey).to.equal(DEFAULT_PUBLIC_VAPID_KEY);
     });

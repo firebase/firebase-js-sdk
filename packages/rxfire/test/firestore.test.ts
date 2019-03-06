@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,7 +84,6 @@ describe('RxFire Firestore', () => {
   beforeEach(() => {
     app = initializeApp({ projectId: TEST_PROJECT.projectId });
     firestore = app.firestore();
-    firestore.settings({ timestampsInSnapshots: true });
     firestore.disableNetwork();
   });
 

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +24,6 @@ import {
   validateExactNumberOfArgs,
   validateNoArgs
 } from '../util/input_validation';
-import { AnyJs } from '../util/misc';
 
 /**
  * An opaque base class for FieldValue sentinel objects in our public API,
@@ -43,14 +43,14 @@ export abstract class FieldValueImpl implements firestore.FieldValue {
     return ServerTimestampFieldValueImpl.instance;
   }
 
-  static arrayUnion(...elements: AnyJs[]): FieldValueImpl {
+  static arrayUnion(...elements: Array<unknown>): FieldValueImpl {
     validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we need access to the Firestore instance.
     return new ArrayUnionFieldValueImpl(elements);
   }
 
-  static arrayRemove(...elements: AnyJs[]): FieldValueImpl {
+  static arrayRemove(...elements: Array<unknown>): FieldValueImpl {
     validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we need access to the Firestore instance.
@@ -85,13 +85,13 @@ export class ServerTimestampFieldValueImpl extends FieldValueImpl {
 }
 
 export class ArrayUnionFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _elements: AnyJs[]) {
+  constructor(readonly _elements: Array<unknown>) {
     super('FieldValue.arrayUnion');
   }
 }
 
 export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _elements: AnyJs[]) {
+  constructor(readonly _elements: Array<unknown>) {
     super('FieldValue.arrayRemove');
   }
 }

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,10 +22,7 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { ReferenceSet } from '../../../src/local/reference_set';
 import { documentKeySet } from '../../../src/model/collections';
-import {
-  BATCHID_UNKNOWN,
-  MutationBatch
-} from '../../../src/model/mutation_batch';
+import { MutationBatch } from '../../../src/model/mutation_batch';
 import { emptyByteString } from '../../../src/platform/platform';
 import {
   expectEqualArrays,
@@ -216,24 +214,6 @@ function genericMutationQueueTests(): void {
       last.batchId
     );
     expect(notFound).to.be.null;
-  });
-
-  it('getNextMutationBatchAfterBatchId() skips acknowledged batches', async () => {
-    const batches = await createBatches(3);
-    expect(
-      await mutationQueue.getNextMutationBatchAfterBatchId(BATCHID_UNKNOWN)
-    ).to.deep.equal(batches[0]);
-
-    await mutationQueue.acknowledgeBatch(batches[0], emptyByteString());
-    expect(
-      await mutationQueue.getNextMutationBatchAfterBatchId(BATCHID_UNKNOWN)
-    ).to.deep.equal(batches[1]);
-    expect(
-      await mutationQueue.getNextMutationBatchAfterBatchId(batches[0].batchId)
-    ).to.deep.equal(batches[1]);
-    expect(
-      await mutationQueue.getNextMutationBatchAfterBatchId(batches[1].batchId)
-    ).to.deep.equal(batches[2]);
   });
 
   it('can getAllMutationBatchesAffectingDocumentKey()', async () => {

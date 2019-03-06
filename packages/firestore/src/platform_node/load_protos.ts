@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +36,7 @@ export function loadProtos(): grpc.GrpcObject {
   );
   const firestoreProtoFile = {
     root,
-    file: 'google/firestore/v1beta1/firestore.proto'
+    file: 'google/firestore/v1/firestore.proto'
   };
   return grpc.load(firestoreProtoFile, /*format=*/ 'proto', options);
 }

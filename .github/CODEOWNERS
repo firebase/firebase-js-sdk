@@ -1,34 +1,69 @@
 # Lines starting with '#' are comments.
 # Each line is a file pattern followed by one or more owners.
 
+######################################################################################################
+#
+#  Team structure and memberships
+#
+#######################################################################################################
+
+# ===========================================================
+#  @firebase/jssdk-global-approvers
+# ===========================================================
+#  Used for approving minor changes, large-scale refactorings, and emergency situations.
+#  (secret team to avoid review requests)
+#
+#   - @Feiyang1 
+#   - @hiranya911 
+#   - @mikelehen 
+#   - @bojeil-google
+#   - @depoll
+#   - @hsubox76
+
+
+# ===========================================================
+#  @firebase/firestore-js-team
+# ===========================================================
+#  Used for approving firestore changes.
+#  (secret team to avoid review requests)
+#
+# - @mikelehen 
+# - @schmidt-sebastian 
+# - @wilhuff 
+# - @gsoltis
+# - @var-const
+# - @rsgowman
+# - @zxu123
+
+
 # These owners will be the default owners for everything in the repo.
-*       @Feiyang1 @hiranya911 @mikelehen @bojeil-google @depoll
+*       @Feiyang1 @hiranya911 @hsubox76 @firebase/jssdk-global-approvers
 
 # Database Code
-packages/database  @mikelehen @schmidt-sebastian
-packages/database-types  @mikelehen @schmidt-sebastian
+packages/database  @mikelehen @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
+packages/database-types  @mikelehen @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
 
 # Firestore Code
-packages/firestore  @mikelehen @schmidt-sebastian @wilhuff @gsoltis @var-const @rsgowman @zxu123
-packages/webchannel-wrapper  @mikelehen @schmidt-sebastian @wilhuff @gsoltis @var-const @rsgowman @zxu123
-packages/firestore-types  @mikelehen @schmidt-sebastian @wilhuff @gsoltis @var-const @rsgowman @zxu123
-integration/firestore  @mikelehen @schmidt-sebastian @wilhuff @gsoltis @var-const @rsgowman @zxu123
+packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
+packages/webchannel-wrapper  @firebase/firestore-js-team @firebase/jssdk-global-approvers
+packages/firestore-types  @firebase/firestore-js-team @firebase/jssdk-global-approvers
+integration/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
 
 # Storage Code
-packages/storage  @schmidt-sebastian
-packages/storage-types  @schmidt-sebastian
+packages/storage  @schmidt-sebastian @firebase/jssdk-global-approvers
+packages/storage-types  @schmidt-sebastian @firebase/jssdk-global-approvers
 
 # Messaging Code
-packages/messaging  @pinarx @mmermerkaya @dwoffinden
-packages/messaging-types  @pinarx @mmermerkaya @dwoffinden
-integration/messaging  @pinarx @mmermerkaya @dwoffinden
+packages/messaging  @pinarx @mmermerkaya @dwoffinden @firebase/jssdk-global-approvers
+packages/messaging-types  @pinarx @mmermerkaya @dwoffinden @firebase/jssdk-global-approvers
+integration/messaging  @pinarx @mmermerkaya @dwoffinden @firebase/jssdk-global-approvers
 
 # Auth Code
-packages/auth  @bojeil-google @wti806
-packages/auth-types  @bojeil-google @wti806
+packages/auth  @bojeil-google @wti806 @firebase/jssdk-global-approvers
+packages/auth-types  @bojeil-google @wti806 @firebase/jssdk-global-approvers
 
 # Testing Code
-packages/testing  @tonymeng @ryanpbrewster
+packages/testing  @tonymeng @ryanpbrewster @firebase/jssdk-global-approvers
 
 # RxFire Code
-packages/rxfire @davideast
+packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers

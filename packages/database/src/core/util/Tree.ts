@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -154,7 +155,7 @@ export class Tree<T> {
    * @return {boolean} true if the action callback returned true.
    */
   forEachAncestor(
-    action: (tree: Tree<T>) => void,
+    action: (tree: Tree<T>) => unknown,
     includeSelf?: boolean
   ): boolean {
     let node = includeSelf ? this : this.parent();

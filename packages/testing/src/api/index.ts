@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -109,15 +110,10 @@ function initializeApp(
 ): firebase.app.App {
   let appOptions = {};
   if (databaseName) {
-    appOptions = {
-      databaseURL: `http://${DATABASE_ADDRESS}?ns=${databaseName}`
-    };
-  } else if (projectId) {
-    appOptions = {
-      projectId: projectId
-    };
-  } else {
-    throw new Error('neither databaseName or projectId were specified');
+    appOptions['databaseURL'] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
+  }
+  if (projectId) {
+    appOptions['projectId'] = projectId;
   }
   const appName = 'app-' + new Date().getTime() + '-' + Math.random();
   let app = firebase.initializeApp(appOptions, appName);
@@ -136,8 +132,7 @@ function initializeApp(
   if (projectId) {
     app.firestore().settings({
       host: FIRESTORE_ADDRESS,
-      ssl: false,
-      timestampsInSnapshots: true
+      ssl: false
     });
   }
   /**
@@ -175,6 +170,8 @@ export function loadDatabaseRules(
       (err, resp, body) => {
         if (err) {
           reject(err);
+        } else if (resp.statusCode !== 200) {
+          reject(JSON.parse(body).error);
         } else {
           resolve();
         }
@@ -213,6 +210,41 @@ export function loadFirestoreRules(
       {
         project: `projects/${options.projectId}`,
         rules: { files: [{ content: options.rules }] }
+      },
+      (err, resp) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(resp);
+        }
+      }
+    );
+  });
+}
+
+export type ClearFirestoreDataOptions = {
+  projectId: string;
+};
+export function clearFirestoreData(
+  options: ClearFirestoreDataOptions
+): Promise<void> {
+  if (!options.projectId) {
+    throw new Error('projectId not specified');
+  }
+
+  let client = new EMULATOR.FirestoreEmulator(
+    FIRESTORE_ADDRESS,
+    grpc.credentials.createInsecure(),
+    {
+      // As with 'loadFirestoreRules', cap how much backoff gRPC will perform.
+      'grpc.initial_reconnect_backoff_ms': 100,
+      'grpc.max_reconnect_backoff_ms': 100
+    }
+  );
+  return new Promise((resolve, reject) => {
+    client.clearData(
+      {
+        database: `projects/${options.projectId}/databases/(default)`
       },
       (err, resp) => {
         if (err) {

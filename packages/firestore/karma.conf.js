@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,14 +61,12 @@ function getFirestoreSettings(argv) {
   if (argv.local) {
     return {
       host: 'localhost:8080',
-      ssl: false,
-      timestampsInSnapshots: true
+      ssl: false
     };
   } else {
     return {
       host: 'firestore.googleapis.com',
-      ssl: true,
-      timestampsInSnapshots: true
+      ssl: true
     };
   }
 }

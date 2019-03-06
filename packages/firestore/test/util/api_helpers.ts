@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,7 +36,6 @@ import { DocumentKeySet } from '../../src/model/collections';
 import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/field_value';
-import { AnyJs } from '../../src/util/misc';
 import { doc, key, path as pathFrom } from './helpers';
 
 /**
@@ -47,7 +47,6 @@ export const FIRESTORE = new Firestore({
 });
 
 export function firestore(): Firestore {
-  FIRESTORE.settings({ timestampsInSnapshots: true });
   return FIRESTORE;
 }
 
@@ -61,7 +60,7 @@ export function documentReference(path: string): DocumentReference {
 
 export function documentSnapshot(
   path: string,
-  data: JsonObject<AnyJs> | null,
+  data: JsonObject<unknown> | null,
   fromCache: boolean
 ): DocumentSnapshot {
   if (data) {
@@ -102,8 +101,8 @@ export function query(path: string): Query {
  */
 export function querySnapshot(
   path: string,
-  oldDocs: { [key: string]: JsonObject<AnyJs> },
-  docsToAdd: { [key: string]: JsonObject<AnyJs> },
+  oldDocs: { [key: string]: JsonObject<unknown> },
+  docsToAdd: { [key: string]: JsonObject<unknown> },
   mutatedKeys: DocumentKeySet,
   fromCache: boolean,
   syncStateChanged: boolean

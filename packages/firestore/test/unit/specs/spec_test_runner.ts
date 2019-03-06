@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -83,7 +84,7 @@ import {
 import { assert, fail } from '../../../src/util/assert';
 import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
-import { AnyJs, primitiveComparator } from '../../../src/util/misc';
+import { primitiveComparator } from '../../../src/util/misc';
 import * as obj from '../../../src/util/obj';
 import { ObjectMap } from '../../../src/util/obj_map';
 import { Deferred, sequence } from '../../../src/util/promise';
@@ -1373,10 +1374,10 @@ export type SpecUserListen = [TargetId, string | SpecQuery];
 export type SpecUserUnlisten = [TargetId, string | SpecQuery];
 
 /** [<key>, <value>] */
-export type SpecUserSet = [string, JsonObject<AnyJs>];
+export type SpecUserSet = [string, JsonObject<unknown>];
 
 /** [<key>, <patches>] */
-export type SpecUserPatch = [string, JsonObject<AnyJs>];
+export type SpecUserPatch = [string, JsonObject<unknown>];
 
 /** key */
 export type SpecUserDelete = string;
@@ -1474,7 +1475,7 @@ export interface SpecWatchFilter
  * [field, op, value]
  * This currently only supports relation filters (<, <=, ==, >=, >)
  */
-export type SpecQueryFilter = [string, string, AnyJs];
+export type SpecQueryFilter = [string, string, unknown];
 
 /**
  * [field, direction]
@@ -1501,7 +1502,7 @@ export interface SpecQuery {
 export interface SpecDocument {
   key: string;
   version: TestSnapshotVersion;
-  value: JsonObject<AnyJs> | null;
+  value: JsonObject<unknown> | null;
   options?: DocumentOptions;
 }
 

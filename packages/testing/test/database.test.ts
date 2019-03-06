@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -111,6 +112,13 @@ describe('Testing Module Tests', function() {
           allow read, write;
         }
       }`
+    });
+    await expect(promise).to.be.rejectedWith(/UNAVAILABLE/);
+  });
+
+  it('clearFirestoreData() succeeds on valid input', async function() {
+    let promise = firebase.clearFirestoreData({
+      projectId: 'foo'
     });
     await expect(promise).to.be.rejectedWith(/UNAVAILABLE/);
   });

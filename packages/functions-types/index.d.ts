@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,6 +31,13 @@ export interface HttpsCallable {
 }
 
 /**
+ * HttpsCallableOptions specify metadata about how calls should be executed.
+ */
+export interface HttpsCallableOptions {
+  timeout?: number; // in millis
+}
+
+/**
  * `FirebaseFunctions` represents a Functions app, and is the entry point for
  * all Functions operations.
  */
@@ -43,7 +51,7 @@ export class FirebaseFunctions {
    * @param name The name of the https callable function.
    * @return The `HttpsCallable` instance.
    */
-  httpsCallable(name: string): HttpsCallable;
+  httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable;
 
   /**
    * Changes this instance to point to a Cloud Functions emulator running

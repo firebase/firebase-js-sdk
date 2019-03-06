@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +15,7 @@
  * limitations under the License.
  */
 
-import resolveNode from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
-import commonjs from 'rollup-plugin-commonjs';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
 import pkg from './package.json';
@@ -25,12 +24,10 @@ import { dirname, resolve } from 'path';
 const plugins = [
   typescript({
     typescript: require('typescript')
-  }),
-  resolveNode(),
-  commonjs()
+  })
 ];
 
-const external = Object.keys(
+const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
@@ -51,7 +48,10 @@ export default [
         'process.env.FIRESTORE_PROTO_ROOT': JSON.stringify('src/protos')
       })
     ],
-    external: [...external, 'util', 'path']
+    external: id =>
+      [...deps, 'util', 'path'].some(
+        dep => id === dep || id.startsWith(`${dep}/`)
+      )
   },
   /**
    * Browser Builds
@@ -63,6 +63,6 @@ export default [
       { file: pkg.module, format: 'es' }
     ],
     plugins,
-    external
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

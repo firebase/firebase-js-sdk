@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -42,7 +43,7 @@ describeFn('WebChannel', () => {
     it('includes project ID and database ID', () => {
       const url = makeUrl('Commit', {});
       expect(url).to.equal(
-        'http://example.com/v1beta1/projects/testproject/' +
+        'http://example.com/v1/projects/testproject/' +
           'databases/(default)/documents:commit'
       );
     });
