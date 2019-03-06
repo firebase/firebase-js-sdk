@@ -474,7 +474,7 @@ firebase.firestore.SetOptions.prototype.merge;
  *
  * @typedef {Array<string>|Array<firebase.firestore.FieldPath>}
  */
-firebase.firestore.SetOptions.prototype.mergeFields
+firebase.firestore.SetOptions.prototype.mergeFields;
 
 /**
  * A `DocumentReference` refers to a document location in a Firestore database
@@ -662,7 +662,7 @@ firebase.firestore.GetOptions = function() {};
  *
  * @typedef {string|undefined}
  */
-firebase.firestore.GetOptions.prototype.source
+firebase.firestore.GetOptions.prototype.source;
 
 /**
  * Metadata about a snapshot, describing the state of the snapshot.
@@ -679,7 +679,7 @@ firebase.firestore.SnapshotMetadata = function() {};
  *
  * @typedef {boolean}
  */
-firebase.firestore.SnapshotMetadata.prototype.fromCache
+firebase.firestore.SnapshotMetadata.prototype.fromCache;
 
 /**
  * True if the snapshot includes local writes (`set()` or
@@ -692,7 +692,7 @@ firebase.firestore.SnapshotMetadata.prototype.fromCache
  *
  * @typedef {boolean}
  */
-firebase.firestore.SnapshotMetadata.prototype.hasPendingWrites
+firebase.firestore.SnapshotMetadata.prototype.hasPendingWrites;
 
 /**
  * Returns 'true' if this `SnapshotMetadata` is equal to the provided one.
@@ -858,7 +858,7 @@ firebase.firestore.SnapshotListenOptions = function() {};
  *
  * @typedef {boolean}
  */
-firebase.firestore.SnapshotListenOptions.prototype.includeMetadataChanges
+firebase.firestore.SnapshotListenOptions.prototype.includeMetadataChanges;
 
 /**
  * A `Query` refers to a Query which you can read or listen to. You can also
