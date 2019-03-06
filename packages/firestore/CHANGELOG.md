@@ -1,4 +1,7 @@
 # Unreleased
+- [feature] Added `FieldValue.increment()`, which can be used in `update()`
+  and ``set(..., {merge:true)`` to increment or decrement numeric field
+  values safely without transactions.
 - [changed] Improved performance when querying over documents that contain
   subcollections.
 
