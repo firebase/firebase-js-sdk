@@ -354,7 +354,9 @@ describe('Mutation', () => {
     const baseDoc = doc('collection/key', 0, baseData);
     let transformedDoc: MaybeDocument | null = baseDoc;
 
-    const transforms = Array.isArray(transformData) ? transformData : [transformData];
+    const transforms = Array.isArray(transformData)
+      ? transformData
+      : [transformData];
 
     for (const transformData of transforms) {
       const transform = transformMutation('collection/key', transformData);
