@@ -16,6 +16,7 @@
  */
 
 import { expect } from 'chai';
+import { PublicFieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
@@ -30,7 +31,11 @@ import {
   MaybeDocumentMap
 } from '../../../src/model/collections';
 import { MaybeDocument, NoDocument } from '../../../src/model/document';
-import { Mutation, MutationResult } from '../../../src/model/mutation';
+import {
+  Mutation,
+  MutationResult,
+  Precondition
+} from '../../../src/model/mutation';
 import {
   MutationBatch,
   MutationBatchResult
@@ -58,10 +63,12 @@ import {
   path,
   setMutation,
   TestSnapshotVersion,
+  transformMutation,
   unknownDoc,
   version
 } from '../../util/helpers';
 
+import { FieldValue, IntegerValue } from '../../../src/model/field_value';
 import * as persistenceHelpers from './persistence_test_helpers';
 
 class LocalStoreTester {
@@ -92,7 +99,7 @@ class LocalStoreTester {
       })
       .then((result: LocalWriteResult) => {
         this.batches.push(
-          new MutationBatch(result.batchId, Timestamp.now(), mutations)
+          new MutationBatch(result.batchId, Timestamp.now(), [], mutations)
         );
         this.lastChanges = result.changes;
       });
@@ -119,6 +126,7 @@ class LocalStoreTester {
 
   afterAcknowledgingMutation(options: {
     documentVersion: TestSnapshotVersion;
+    transformResult?: FieldValue;
   }): LocalStoreTester {
     this.promiseChain = this.promiseChain
       .then(() => {
@@ -129,7 +137,10 @@ class LocalStoreTester {
         );
         const ver = version(options.documentVersion);
         const mutationResults = [
-          new MutationResult(ver, /*transformResults=*/ null)
+          new MutationResult(
+            ver,
+            options.transformResult ? [options.transformResult] : null
+          )
         ];
         const write = MutationBatchResult.from(
           batch,
@@ -192,7 +203,13 @@ class LocalStoreTester {
       expect(this.lastChanges!.size).to.equal(docs.length, 'number of changes');
       for (const doc of docs) {
         const returned = this.lastChanges!.get(doc.key);
-        expectEqual(doc, returned);
+        expectEqual(
+          doc,
+          returned,
+          `Expected '${
+            returned ? returned.toString() : null
+          }' to equal '${doc.toString()}'.`
+        );
       }
       this.lastChanges = null;
     });
@@ -967,5 +984,254 @@ function genericLocalStoreTests(
     // Should come back with the same resume token
     const queryData2 = await localStore.allocateQuery(query);
     expect(queryData2.resumeToken).to.deep.equal(resumeToken);
+  });
+
+  // TODO(mrschmidt): The FieldValue.increment() field transform tests below
+  // would probably be better implemented as spec tests but currently they don't
+  // support transforms.
+
+  it('handles SetMutation -> TransformMutation -> TransformMutation', () => {
+    return expectLocalStore()
+      .after(setMutation('foo/bar', { sum: 0 }))
+      .toReturnChanged(
+        doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true }))
+      .after(
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
+      )
+      .toReturnChanged(
+        doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true }))
+      .after(
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(2) })
+      )
+      .toReturnChanged(
+        doc('foo/bar', 0, { sum: 3 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 0, { sum: 3 }, { hasLocalMutations: true }))
+      .finish();
+  });
+
+  it('handles SetMutation -> Ack -> TransformMutation -> Ack -> TransformMutation', () => {
+    if (gcIsEager) {
+      // Since this test doesn't start a listen, Eager GC removes the documents
+      // from the cache as soon as the mutation is applied. This creates a lot
+      // of special casing in this unit test but does not expand its test
+      // coverage.
+      return;
+    }
+
+    return expectLocalStore()
+      .after(setMutation('foo/bar', { sum: 0 }))
+      .toReturnChanged(
+        doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true }))
+      .afterAcknowledgingMutation({ documentVersion: 1 })
+      .toReturnChanged(
+        doc('foo/bar', 1, { sum: 0 }, { hasCommittedMutations: true })
+      )
+      .toContain(doc('foo/bar', 1, { sum: 0 }, { hasCommittedMutations: true }))
+      .after(
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
+      )
+      .toReturnChanged(
+        doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+      .afterAcknowledgingMutation({
+        documentVersion: 2,
+        transformResult: new IntegerValue(1)
+      })
+      .toReturnChanged(
+        doc('foo/bar', 2, { sum: 1 }, { hasCommittedMutations: true })
+      )
+      .toContain(doc('foo/bar', 2, { sum: 1 }, { hasCommittedMutations: true }))
+      .after(
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(2) })
+      )
+      .toReturnChanged(
+        doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true }))
+      .finish();
+  });
+
+  it('handles SetMutation -> TransformMutation -> RemoteEvent -> TransformMutation', () => {
+    const query = Query.atPath(path('foo'));
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query)
+        .toReturnTargetId(2)
+        .after(setMutation('foo/bar', { sum: 0 }))
+        .toReturnChanged(
+          doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true })
+        )
+        .toContain(doc('foo/bar', 0, { sum: 0 }, { hasLocalMutations: true }))
+        .afterRemoteEvent(
+          docAddedRemoteEvent(doc('foo/bar', 1, { sum: 0 }), [2])
+        )
+        .afterAcknowledgingMutation({ documentVersion: 1 })
+        .toReturnChanged(doc('foo/bar', 1, { sum: 0 }))
+        .toContain(doc('foo/bar', 1, { sum: 0 }))
+        .after(
+          transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
+        )
+        .toReturnChanged(
+          doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
+        )
+        .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+        // The value in this remote event gets ignored since we still have a
+        // pending transform mutation.
+        .afterRemoteEvent(
+          docUpdateRemoteEvent(doc('foo/bar', 2, { sum: 1337 }), [2])
+        )
+        .toReturnChanged(
+          doc('foo/bar', 2, { sum: 1 }, { hasLocalMutations: true })
+        )
+        .toContain(doc('foo/bar', 2, { sum: 1 }, { hasLocalMutations: true }))
+        // Add another increment. Note that we still compute the increment based
+        // on the local value.
+        .after(
+          transformMutation('foo/bar', { sum: PublicFieldValue.increment(2) })
+        )
+        .toReturnChanged(
+          doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true })
+        )
+        .toContain(doc('foo/bar', 2, { sum: 3 }, { hasLocalMutations: true }))
+        .afterAcknowledgingMutation({
+          documentVersion: 3,
+          transformResult: new IntegerValue(1)
+        })
+        .toReturnChanged(
+          doc('foo/bar', 3, { sum: 3 }, { hasLocalMutations: true })
+        )
+        .toContain(doc('foo/bar', 3, { sum: 3 }, { hasLocalMutations: true }))
+        .afterAcknowledgingMutation({
+          documentVersion: 4,
+          transformResult: new IntegerValue(1339)
+        })
+        .toReturnChanged(
+          doc('foo/bar', 4, { sum: 1339 }, { hasCommittedMutations: true })
+        )
+        .toContain(
+          doc('foo/bar', 4, { sum: 1339 }, { hasCommittedMutations: true })
+        )
+        .finish()
+    );
+  });
+
+  it('holds back only non-idempotent transforms', () => {
+    const query = Query.atPath(path('foo'));
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query)
+        .toReturnTargetId(2)
+        .after(setMutation('foo/bar', { sum: 0, array_union: [] }))
+        .toReturnChanged(
+          doc(
+            'foo/bar',
+            0,
+            { sum: 0, array_union: [] },
+            { hasLocalMutations: true }
+          )
+        )
+        .afterAcknowledgingMutation({ documentVersion: 1 })
+        .toReturnChanged(
+          doc(
+            'foo/bar',
+            1,
+            { sum: 0, array_union: [] },
+            { hasCommittedMutations: true }
+          )
+        )
+        .afterRemoteEvent(
+          docAddedRemoteEvent(doc('foo/bar', 1, { sum: 0, array_union: [] }), [
+            2
+          ])
+        )
+        .toReturnChanged(doc('foo/bar', 1, { sum: 0, array_union: [] }))
+        .afterMutations([
+          transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) }),
+          transformMutation('foo/bar', {
+            array_union: PublicFieldValue.arrayUnion('foo')
+          })
+        ])
+        .toReturnChanged(
+          doc(
+            'foo/bar',
+            1,
+            { sum: 1, array_union: ['foo'] },
+            { hasLocalMutations: true }
+          )
+        )
+        // The sum transform is not idempotent and the backend's updated value
+        // is ignored. The ArrayUnion transform is recomputed and includes the
+        // backend value.
+        .afterRemoteEvent(
+          docUpdateRemoteEvent(
+            doc('foo/bar', 2, { sum: 1337, array_union: ['bar'] }),
+            [2]
+          )
+        )
+        .toReturnChanged(
+          doc(
+            'foo/bar',
+            2,
+            { sum: 1, array_union: ['bar', 'foo'] },
+            { hasLocalMutations: true }
+          )
+        )
+        .finish()
+    );
+  });
+
+  it('handles MergeMutation with Transform -> RemoteEvent', () => {
+    const query = Query.atPath(path('foo'));
+    return expectLocalStore()
+      .afterAllocatingQuery(query)
+      .toReturnTargetId(2)
+      .afterMutations([
+        patchMutation('foo/bar', {}, Precondition.NONE),
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
+      ])
+      .toReturnChanged(
+        doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 0, { sum: 1 }, { hasLocalMutations: true }))
+      .afterRemoteEvent(
+        docAddedRemoteEvent(doc('foo/bar', 1, { sum: 1337 }), [2])
+      )
+      .toReturnChanged(
+        doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+      .finish();
+  });
+
+  it('handles PatchMutation with Transform -> RemoteEvent', () => {
+    // Note: This test reflects the current behavior, but it may be preferable
+    // to replay the mutation once we receive the first value from the backend.
+
+    const query = Query.atPath(path('foo'));
+    return expectLocalStore()
+      .afterAllocatingQuery(query)
+      .toReturnTargetId(2)
+      .afterMutations([
+        patchMutation('foo/bar', {}),
+        transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) })
+      ])
+      .toReturnChanged(deletedDoc('foo/bar', 0))
+      .toNotContain('foo/bar')
+      .afterRemoteEvent(
+        docAddedRemoteEvent(doc('foo/bar', 1, { sum: 1337 }), [2])
+      )
+      .toReturnChanged(
+        doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
+      )
+      .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+      .finish();
   });
 }

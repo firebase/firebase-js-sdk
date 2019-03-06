@@ -47,6 +47,8 @@ export abstract class MaybeDocument {
   abstract get hasPendingWrites(): boolean;
 
   abstract isEqual(other: MaybeDocument | null | undefined): boolean;
+
+  abstract toString(): string;
 }
 
 /**

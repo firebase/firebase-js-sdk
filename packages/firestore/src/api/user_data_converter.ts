@@ -20,7 +20,7 @@ import * as firestore from '@firebase/firestore-types';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
-import { FieldValue, ObjectValue } from '../model/field_value';
+import { FieldValue, NumberValue, ObjectValue } from '../model/field_value';
 import {
   ArrayValue,
   BlobValue,
@@ -55,6 +55,7 @@ import * as typeUtils from '../util/types';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
   ServerTimestampTransform
 } from '../model/transform_operation';
 import { SortedSet } from '../util/sorted_set';
@@ -68,6 +69,7 @@ import {
   ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
   FieldValueImpl,
+  NumericIncrementFieldValueImpl,
   ServerTimestampFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
@@ -645,6 +647,15 @@ export class UserDataConverter {
       const arrayRemove = new ArrayRemoveTransformOperation(parsedElements);
       context.fieldTransforms.push(
         new FieldTransform(context.path, arrayRemove)
+      );
+    } else if (value instanceof NumericIncrementFieldValueImpl) {
+      const operand = this.parseQueryValue(
+        'FieldValue.increment',
+        value._operand
+      ) as NumberValue;
+      const numericIncrement = new NumericIncrementTransformOperation(operand);
+      context.fieldTransforms.push(
+        new FieldTransform(context.path, numericIncrement)
       );
     } else {
       fail('Unknown FieldValue type: ' + value);
