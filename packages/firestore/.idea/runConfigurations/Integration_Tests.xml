@@ -1,14 +1,17 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Integration Tests" type="mocha-javascript-test-runner" factoryName="Mocha">
+  <configuration default="false" name="Integration Tests" type="mocha-javascript-test-runner">
     <node-interpreter>project</node-interpreter>
     <node-options />
+    <mocha-package>$PROJECT_DIR$/../../node_modules/mocha</mocha-package>
     <working-directory>$PROJECT_DIR$</working-directory>
     <pass-parent-env>true</pass-parent-env>
-    <envs />
+    <envs>
+      <env name="TS_NODE_COMPILER_OPTIONS" value="{&quot;module&quot;:&quot;commonjs&quot;}" />
+    </envs>
     <ui>bdd</ui>
     <extra-mocha-options>--require ts-node/register/type-check --require index.node.ts --timeout 5000</extra-mocha-options>
     <test-kind>PATTERN</test-kind>
     <test-pattern>test/integration/{,!(browser)/**/}*.test.ts</test-pattern>
-    <method />
+    <method v="2" />
   </configuration>
 </component>
