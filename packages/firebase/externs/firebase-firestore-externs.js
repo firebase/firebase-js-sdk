@@ -62,8 +62,8 @@ firebase.firestore.Settings = function() {};
  * use `Timestamp` and opt-in to this new behavior as soon as you can.
  *
  * @typedef {boolean}
- * firebase.firestore.Settings~timestampsInSnapshots
  */
+firebase.firestore.Settings.prototype.timestampsInSnapshots;
 
 /**
  * Sets the verbosity of Cloud Firestore logs (debug, error, or silent).
@@ -190,7 +190,7 @@ firebase.firestore.Firestore.prototype.batch = function() {};
  * The {@link firebase.app.App app} associated with this `Firestore` service
  * instance.
  *
- * @type {!firebase.firestore.app}
+ * @type {!firebase.app.App}
  */
 firebase.firestore.Firestore.prototype.app;
 
@@ -464,8 +464,8 @@ firebase.firestore.SetOptions = function() {};
  * in its data argument. Fields omitted from the set() call remain untouched.
  *
  * @typedef {boolean}
- * firebase.firestore.SetOptions~merge
  */
+firebase.firestore.SetOptions.prototype.merge;
 
 /**
  * Changes the behavior of set() calls to only replace the specified field
@@ -473,8 +473,8 @@ firebase.firestore.SetOptions = function() {};
  * untouched.
  *
  * @typedef {Array<string>|Array<firebase.firestore.FieldPath>}
- * firebase.firestore.SetOptions~mergeFields
  */
+firebase.firestore.SetOptions.prototype.mergeFields;
 
 /**
  * A `DocumentReference` refers to a document location in a Firestore database
@@ -593,10 +593,10 @@ firebase.firestore.DocumentReference.prototype.get = function(options) {};
  *   { includeMetadataChanges: true } to opt into events even when only metadata
  *   changed.
  * @param {!Object|function(!firebase.firestore.DocumentSnapshot)|
- *         function(!firebase.FirebaseError)}
+ *         function(!Error)}
  *   observerOrOnNextOrOnError If you provided options, this will be an observer
  *   object or your onNext callback. Else, it is an optional onError callback.
- * @param {function(!firebase.FirebaseError)=} onError If you didn't provide
+ * @param {function(!Error)=} onError If you didn't provide
  *   options and didn't use an observer object, this is the optional onError
  *   callback.
  * @return {!function()} An unsubscribe function that can be called to cancel
@@ -631,8 +631,8 @@ firebase.firestore.SnapshotOptions = function() {};
  * server value becomes available.
  *
  * @typedef {string|undefined}
- * firebase.firestore.SnapshotOptions~serverTimestamps
  */
+firebase.firestore.SnapshotOptions.prototype.serverTimestamps;
 
 /**
  * Options that configure how data is retrieved for a `get()` request.
@@ -661,8 +661,8 @@ firebase.firestore.GetOptions = function() {};
  * `QuerySnapshot.get()` will return an empty `QuerySnapshot`.
  *
  * @typedef {string|undefined}
- * firebase.firestore.GetOptions~source
  */
+firebase.firestore.GetOptions.prototype.source;
 
 /**
  * Metadata about a snapshot, describing the state of the snapshot.
@@ -677,8 +677,9 @@ firebase.firestore.SnapshotMetadata = function() {};
  * you will receive another snapshot with `fromCache` set to false once
  * the client has received up-to-date data from the backend.
  *
- * @typedef {boolean} firebase.firestore.SnapshotMetadata~fromCache
+ * @typedef {boolean}
  */
+firebase.firestore.SnapshotMetadata.prototype.fromCache;
 
 /**
  * True if the snapshot includes local writes (`set()` or
@@ -689,8 +690,9 @@ firebase.firestore.SnapshotMetadata = function() {};
  * snapshot with `hasPendingWrites` set to false once the writes have been
  * committed to the backend.
  *
- * @typedef {boolean} firebase.firestore.SnapshotMetadata~hasPendingWrites
+ * @typedef {boolean}
  */
+firebase.firestore.SnapshotMetadata.prototype.hasPendingWrites;
 
 /**
  * Returns 'true' if this `SnapshotMetadata` is equal to the provided one.
@@ -712,7 +714,7 @@ firebase.firestore.SnapshotMetadata.prototype.isEqual = function(other) {};
  * access will return 'undefined'. You can use the `exists` property to
  * explicitly verify a document's existence.
  *
- * @interface
+ * @constructor
  */
 firebase.firestore.DocumentSnapshot = function() {};
 
@@ -720,34 +722,37 @@ firebase.firestore.DocumentSnapshot = function() {};
  * Property of the `DocumentSnapshot` that signals whether or not the data
  * exists. True if the document exists.
  *
- * @typedef {boolean} firebase.firestore.DocumentSnapshot~exists
+ * @typedef {boolean}
  */
+firebase.firestore.DocumentSnapshot.prototype.exists;
 
 /**
  * The `DocumentReference` for the document included in the `DocumentSnapshot`.
  *
  * @typedef {!firebase.firestore.DocumentReference}
- * firebase.firestore.DocumentSnapshot~ref
  */
+firebase.firestore.DocumentSnapshot.prototype.ref;
 
 /**
  * Property of the `DocumentSnapshot` that provides the document's ID.
  *
- * @typedef {string} firebase.firestore.DocumentSnapshot~id
+ * @typedef {string}
  */
+firebase.firestore.DocumentSnapshot.prototype.id;
 
 /**
  *  Metadata about the `DocumentSnapshot`, including information about its
  *  source and local modifications.
  *
  * @typedef {!firebase.firestore.SnapshotMetadata}
- * firebase.firestore.DocumentSnapshot~metadata
  */
+firebase.firestore.DocumentSnapshot.prototype.metadata;
 
 /**
  * An object containing all the data in a document.
- * @typedef {object} firebase.firestore.Firestore~DocumentData
+ * @typedef {Object}
  */
+firebase.firestore.DocumentData;
 
 /**
  * Retrieves all fields in the document as an Object. Returns `undefined` if
@@ -762,7 +767,7 @@ firebase.firestore.DocumentSnapshot = function() {};
  *   behavior for server timestamps that have not yet been set to their final
  *   value).
  *
- * @return {(!firebase.firestore.Firestore~DocumentData|undefined)}
+ * @return {(!firebase.firestore.DocumentData|undefined)}
  *   An object containing all fields in the specified document or 'undefined'
  *   if the document doesn't exist.
  */
@@ -834,7 +839,7 @@ firebase.firestore.QueryDocumentSnapshot = function() {};
  *   behavior for server timestamps that have not yet been set to their
  *   final value).
  *
- * @return {!firebase.firestore.Firestore~DocumentData}
+ * @return {!firebase.firestore.DocumentData}
  *   An object containing all fields in the specified document.
  */
 firebase.firestore.QueryDocumentSnapshot.prototype.data = function(options) {};
@@ -852,13 +857,13 @@ firebase.firestore.SnapshotListenOptions = function() {};
  * changes. Default is false.
  *
  * @typedef {boolean}
- * firebase.firestore.SnapshotListenOptions~includeMetadataChanges
  */
+firebase.firestore.SnapshotListenOptions.prototype.includeMetadataChanges;
 
 /**
  * A `Query` refers to a Query which you can read or listen to. You can also
  * construct refined `Query` objects by adding filters and ordering.
- * @interface
+ * @constructor
  */
 firebase.firestore.Query = function() {};
 
@@ -925,7 +930,7 @@ firebase.firestore.Query.prototype.limit = function(limit) {};
  * The document must contain all of the fields provided in the `orderBy` of
  * the query.
  *
- * @param {(!firebase.firestore.DocumentSnapshot|...*)} snapshotOrVarArgs
+ * @param {...*} snapshotOrVarArgs
  *   The snapshot of the document you want the query to start at or
  *   the field values to start this query at, in order of the query's order by.
  *
@@ -940,7 +945,7 @@ firebase.firestore.Query.prototype.startAt = function(snapshotOrVarArgs) {};
  * The document must contain all of the fields provided in the `orderBy` of
  * this query.
  *
- * @param {(!firebase.firestore.DocumentSnapshot|...*)} snapshotOrVarArgs
+ * @param {...*} snapshotOrVarArgs
  *   The snapshot of the document to start after or
  *   the field values to start this query after, in order of the query's order
  *   by.
@@ -956,7 +961,7 @@ firebase.firestore.Query.prototype.startAfter = function(snapshotOrVarArgs) {};
  * document must contain all of the fields provided in the `orderBy` of this
  * query.
  *
- * @param {(!firebase.firestore.DocumentSnapshot|...*)} snapshotOrVarArgs
+ * @param {...*} snapshotOrVarArgs
  *   The snapshot of the document the query results should end before or
  *   the field values to end this query before, in order of the query's order
  *   by.
@@ -972,7 +977,7 @@ firebase.firestore.Query.prototype.endBefore = function(snapshotOrVarArgs) {};
  * document must contain all of the fields provided in the `orderBy` of this
  * query.
  *
- * @param {(!firebase.firestore.DocumentSnapshot|...*)} snapshotOrVarArgs
+ * @param {...*} snapshotOrVarArgs
  *   The snapshot of the document the query results should end at or
  *   the field values to end this query at, in order of the query's order by.
  *
@@ -1008,10 +1013,10 @@ firebase.firestore.Query.prototype.get = function(options) {};
  *   { includeMetadataChanges: true } to opt into events even when only metadata
  *   changed.
  * @param {!Object|function(!firebase.firestore.DocumentSnapshot)|
- *         function(!firebase.FirebaseError)}
+ *         function(!Error)}
  *   observerOrOnNextOrOnError If you provided options, this will be an observer
  *   object or your onNext callback. Else, it is an optional onError callback.
- * @param {function(!firebase.FirebaseError)=} onError If you didn't provide
+ * @param {function(!Error)=} onError If you didn't provide
  *   options and didn't use an observer object, this is the optional onError
  *   callback.
  * @return {!function()} An unsubscribe function that can be called to cancel
@@ -1019,7 +1024,8 @@ firebase.firestore.Query.prototype.get = function(options) {};
  */
 firebase.firestore.Query.prototype.onSnapshot = function(
   optionsOrObserverOrOnNext,
-  observerOrOnNextOrOnError
+  observerOrOnNextOrOnError,
+  onError
 ) {};
 
 /**
@@ -1034,14 +1040,14 @@ firebase.firestore.QuerySnapshot = function() {};
 
 /**
  * The query you called `get` or `onSnapshot` on to get the `QuerySnapshot`.
- * @type {!firebase.firestore.query}
+ * @type {!firebase.firestore.Query}
  */
 firebase.firestore.QuerySnapshot.prototype.query;
 
 /**
  * Metadata about this snapshot, concerning its source and if it has local
  * modifications.
- * @type {!firebase.firestore.snapshotMetadata}
+ * @type {!firebase.firestore.SnapshotMetadata}
  */
 firebase.firestore.QuerySnapshot.prototype.metadata;
 
@@ -1176,7 +1182,7 @@ firebase.firestore.CollectionReference.prototype.doc = function(
  * Adds a new document to this collection with the specified data, assigning
  * it a document ID automatically.
  *
- * @param {!firebase.firestore.Firestore~DocumentData} data
+ * @param {!firebase.firestore.DocumentData} data
  * @return {!Promise<!firebase.firestore.DocumentReference>}
  *   A Promise that resolves with a `DocumentReference` pointing to the newly
  *   created document after it has been written to the backend.
