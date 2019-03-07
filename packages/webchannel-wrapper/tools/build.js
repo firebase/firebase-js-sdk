@@ -22,6 +22,7 @@ const sourcemaps = require('rollup-plugin-sourcemaps');
 
 const glob = closureBuilder.globSupport();
 const { resolve } = require('path');
+const { tmpdir } = require('os');
 
 const closureDefines = [
   // Avoid unsafe eval() calls (https://github.com/firebase/firebase-js-sdk/issues/798)
@@ -55,13 +56,15 @@ closureBuilder.build({
 });
 
 // esm build
+// We write the closure output to a temp file and then re-compile it with rollup.
+const filePath = `${tmpdir()}/index.js`
 closureBuilder.build(
   {
     name: 'firebase.webchannel.wrapper',
     srcs: glob([resolve(__dirname, '../src/**/*.js')]),
     externs: [resolve(__dirname, '../externs/overrides.js')],
-    out: 'dist/index.closure-es.js',
-    out_source_map: 'dist/index.closure-es.js.map',
+    out: filePath,
+    out_source_map: `${filePath}.map`,
     options: {
       closure: {
         output_wrapper:
@@ -73,7 +76,6 @@ closureBuilder.build(
     }
   },
   async function() {
-    const filePath = resolve(__dirname, '../dist/index.closure-es.js');
     const inputOptions = {
       input: filePath,
       plugins: [sourcemaps(), commonjs()]
