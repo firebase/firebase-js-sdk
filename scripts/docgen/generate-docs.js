@@ -132,7 +132,9 @@ function checkForMissingFilesAndFixFilenameCase() {
     return fs.exists(generatedFilePath).then(exists => {
       if (exists) {
         // Store in a lookup table for link fixing.
-        lowerToUpperLookup[`${filename.toLowerCase()}.html`] = `${filename}.html`;
+        lowerToUpperLookup[
+          `${filename.toLowerCase()}.html`
+        ] = `${filename}.html`;
         return fs.rename(generatedFilePath, tocFilePath);
       } else {
         console.warn(
