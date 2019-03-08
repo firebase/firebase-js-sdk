@@ -548,13 +548,15 @@ export class SimpleDbStore<
           return;
         }
 
-        callback(cursor.primaryKey as KeyType, cursor.value).next(shouldContinue => {
-          if (shouldContinue) {
-            cursor.continue();
-          } else {
-            resolve();
+        callback(cursor.primaryKey as KeyType, cursor.value).next(
+          shouldContinue => {
+            if (shouldContinue) {
+              cursor.continue();
+            } else {
+              resolve();
+            }
           }
-        });
+        );
       };
     });
   }
@@ -575,7 +577,11 @@ export class SimpleDbStore<
           return;
         }
         const controller = new IterationController(cursor);
-        const userResult = fn(cursor.primaryKey as KeyType, cursor.value, controller);
+        const userResult = fn(
+          cursor.primaryKey as KeyType,
+          cursor.value,
+          controller
+        );
         if (userResult instanceof PersistencePromise) {
           const userPromise: PersistencePromise<void> = userResult.catch(
             err => {

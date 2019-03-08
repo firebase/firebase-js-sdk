@@ -1301,7 +1301,10 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     }
   }
 
-  private convertArray(data: ArrayValue, options: FieldValueOptions): Array<unknown> {
+  private convertArray(
+    data: ArrayValue,
+    options: FieldValueOptions
+  ): Array<unknown> {
     return data.internalValue.map(value => {
       return this.convertValue(value, options);
     });
