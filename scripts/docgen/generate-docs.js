@@ -76,7 +76,7 @@ function fixLinks(file) {
       .replace(/\.\.\//g, '')
       .replace(/(modules|interfaces|classes)\//g, '');
     let caseFixedLinks = flattenedLinks;
-    for (let lower in lowerToUpperLookup) {
+    for (const lower in lowerToUpperLookup) {
       const re = new RegExp(lower, 'g');
       caseFixedLinks = caseFixedLinks.replace(re, lowerToUpperLookup[lower]);
     }
