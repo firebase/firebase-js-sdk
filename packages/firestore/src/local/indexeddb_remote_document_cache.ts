@@ -35,6 +35,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
@@ -61,6 +62,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   /**
    * @param {LocalSerializer} serializer The document serializer.
+   * @param {IndexManager} indexManager The query indexes that need to be maintained.
    * @param keepDocumentChangeLog Whether to keep a document change log in
    * IndexedDb. This change log is required for Multi-Tab synchronization, but
    * not needed in clients that don't share access to their remote document
@@ -68,6 +70,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    */
   constructor(
     readonly serializer: LocalSerializer,
+    private readonly indexManager: IndexManager,
     private readonly keepDocumentChangeLog: boolean
   ) {}
 
@@ -107,6 +110,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       for (const { key, doc } of entries) {
         promises.push(documentStore.put(dbKey(key), doc));
         changedKeys = changedKeys.add(key);
+
+        promises.push(
+          this.indexManager.addToCollectionParentIndex(
+            transaction,
+            key.path.popLast()
+          )
+        );
       }
 
       if (this.keepDocumentChangeLog) {
@@ -291,6 +301,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
+    assert(
+      !query.isCollectionGroupQuery(),
+      'CollectionGroup queries should be handled in LocalDocumentsView'
+    );
     let results = documentMap();
 
     const immediateChildrenPathLength = query.path.length + 1;

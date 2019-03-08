@@ -1019,10 +1019,20 @@ export class JsonProtoSerializer {
   toQueryTarget(query: Query): api.QueryTarget {
     // Dissect the path into parent, collectionId, and optional key filter.
     const result: api.QueryTarget = { structuredQuery: {} };
-    if (query.path.isEmpty()) {
-      result.parent = this.toQueryPath(ResourcePath.EMPTY_PATH);
+    const path = query.path;
+    if (query.collectionGroup !== null) {
+      assert(
+        path.length % 2 === 0,
+        'Collection Group queries should be within a document path or root.'
+      );
+      result.parent = this.toQueryPath(path);
+      result.structuredQuery!.from = [
+        {
+          collectionId: query.collectionGroup,
+          allDescendants: true
+        }
+      ];
     } else {
-      const path = query.path;
       assert(
         path.length % 2 !== 0,
         'Document queries with filters are not supported.'
@@ -1061,13 +1071,18 @@ export class JsonProtoSerializer {
 
     const query = target.structuredQuery!;
     const fromCount = query.from ? query.from.length : 0;
+    let collectionGroup: string | null = null;
     if (fromCount > 0) {
       assert(
         fromCount === 1,
         'StructuredQuery.from with more than one collection is not supported.'
       );
       const from = query.from![0];
-      path = path.child(from.collectionId!);
+      if (from.allDescendants) {
+        collectionGroup = from.collectionId!;
+      } else {
+        path = path.child(from.collectionId!);
+      }
     }
 
     let filterBy: Filter[] = [];
@@ -1095,7 +1110,15 @@ export class JsonProtoSerializer {
       endAt = this.fromCursor(query.endAt);
     }
 
-    return new Query(path, orderBy, filterBy, limit, startAt, endAt);
+    return new Query(
+      path,
+      collectionGroup,
+      orderBy,
+      filterBy,
+      limit,
+      startAt,
+      endAt
+    );
   }
 
   toListenRequestLabels(

@@ -156,6 +156,20 @@ export class FirebaseFirestore {
    */
   doc(documentPath: string): DocumentReference;
 
+  // TODO(b/116617988): Uncomment method and change jsdoc comment to "/**"
+  // once backend support is ready.
+  /*
+   * Creates and returns a new Query that includes all documents in the
+   * database that are contained in a collection or subcollection with the
+   * given collectionId.
+   *
+   * @param collectionId Identifies the collections to query over. Every
+   * collection or subcollection with this ID as the last segment of its path
+   * will be included. Cannot contain a slash.
+   * @return The created Query.
+   */
+  //collectionGroup(collectionId: string): Query;
+
   /**
    * Executes the given updateFunction and then attempts to commit the
    * changes applied within the transaction. If any document read within the

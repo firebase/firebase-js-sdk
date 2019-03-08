@@ -117,8 +117,7 @@ export abstract class Path {
   }
 
   lastSegment(): string {
-    assert(!this.isEmpty(), "Can't call lastSegment() on empty path");
-    return this.segments[this.limit() - 1];
+    return this.get(this.length - 1);
   }
 
   get(index: number): string {

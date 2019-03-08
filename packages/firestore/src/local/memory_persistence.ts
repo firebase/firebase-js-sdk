@@ -34,6 +34,7 @@ import {
 
 import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
+import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
 import { MemoryQueryCache } from './memory_query_cache';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
@@ -63,6 +64,7 @@ export class MemoryPersistence implements Persistence {
    * will make the in-memory persistence layer behave as if it were actually
    * persisting values.
    */
+  private readonly indexManager: MemoryIndexManager;
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
   private readonly queryCache: MemoryQueryCache;
@@ -105,7 +107,11 @@ export class MemoryPersistence implements Persistence {
     this.queryCache = new MemoryQueryCache(this);
     const sizer = (doc: MaybeDocument) =>
       this.referenceDelegate.documentSize(doc);
-    this.remoteDocumentCache = new MemoryRemoteDocumentCache(sizer);
+    this.indexManager = new MemoryIndexManager();
+    this.remoteDocumentCache = new MemoryRemoteDocumentCache(
+      this.indexManager,
+      sizer
+    );
   }
 
   shutdown(deleteData?: boolean): Promise<void> {
@@ -133,10 +139,17 @@ export class MemoryPersistence implements Persistence {
     // No op.
   }
 
+  getIndexManager(): MemoryIndexManager {
+    return this.indexManager;
+  }
+
   getMutationQueue(user: User): MutationQueue {
     let queue = this.mutationQueues[user.toKey()];
     if (!queue) {
-      queue = new MemoryMutationQueue(this.referenceDelegate);
+      queue = new MemoryMutationQueue(
+        this.indexManager,
+        this.referenceDelegate
+      );
       this.mutationQueues[user.toKey()] = queue;
     }
     return queue;

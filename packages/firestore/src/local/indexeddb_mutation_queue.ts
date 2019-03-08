@@ -30,6 +30,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import * as EncodedResourcePath from './encoded_resource_path';
+import { IndexManager } from './index_manager';
 import {
   IndexedDbPersistence,
   IndexedDbTransaction
@@ -70,7 +71,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
      * retrieve mutations.
      */
     private userId: string,
-    private serializer: LocalSerializer,
+    private readonly serializer: LocalSerializer,
+    private readonly indexManager: IndexManager,
     private readonly referenceDelegate: ReferenceDelegate
   ) {}
 
@@ -82,6 +84,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
   static forUser(
     user: User,
     serializer: LocalSerializer,
+    indexManager: IndexManager,
     referenceDelegate: ReferenceDelegate
   ): IndexedDbMutationQueue {
     // TODO(mcg): Figure out what constraints there are on userIDs
@@ -90,7 +93,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // that empty userIDs aren't allowed.
     assert(user.uid !== '', 'UserID must not be an empty string.');
     const userId = user.isAuthenticated() ? user.uid! : '';
-    return new IndexedDbMutationQueue(userId, serializer, referenceDelegate);
+    return new IndexedDbMutationQueue(
+      userId,
+      serializer,
+      indexManager,
+      referenceDelegate
+    );
   }
 
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
@@ -181,6 +189,12 @@ export class IndexedDbMutationQueue implements MutationQueue {
         promises.push(mutationStore.put(dbBatch));
         promises.push(
           documentStore.put(indexKey, DbDocumentMutation.PLACEHOLDER)
+        );
+        promises.push(
+          this.indexManager.addToCollectionParentIndex(
+            transaction,
+            mutation.key.path.popLast()
+          )
         );
       }
       return PersistencePromise.waitFor(promises).next(() => batch);
@@ -371,6 +385,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
     assert(
       !query.isDocumentQuery(),
       "Document queries shouldn't go down this path"
+    );
+    assert(
+      !query.isCollectionGroupQuery(),
+      'CollectionGroup queries should be handled in LocalDocumentsView'
     );
 
     const queryPath = query.path;
