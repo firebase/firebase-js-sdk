@@ -12298,11 +12298,6 @@ rollup-plugin-copy-assets@1.1.0:
   dependencies:
     fs-extra "^5.0.0"
 
-rollup-plugin-hypothetical@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/rollup-plugin-hypothetical/-/rollup-plugin-hypothetical-2.1.0.tgz#7fec9a865ed7d0eac14ca6ee2b2c4088acdb1955"
-  integrity sha512-MlxPQTkMtiRUtyhIJ7FpBvTzWtar8eFBA+V7/J6Deg9fSgIIHwL6bJKK1Wl1uWSWtOrWhOmtsMwb9F6aagP/Pg==
-
 rollup-plugin-license@0.8.1:
   version "0.8.1"
   resolved "https://registry.npmjs.org/rollup-plugin-license/-/rollup-plugin-license-0.8.1.tgz#cdcfee2a32f27790e5019a2a7abd9234476ac589"
@@ -12331,6 +12326,14 @@ rollup-plugin-replace@2.1.0:
     magic-string "^0.25.1"
     minimatch "^3.0.2"
     rollup-pluginutils "^2.0.1"
+
+rollup-plugin-sourcemaps@0.4.2:
+  version "0.4.2"
+  resolved "https://registry.npmjs.org/rollup-plugin-sourcemaps/-/rollup-plugin-sourcemaps-0.4.2.tgz#62125aa94087aadf7b83ef4dfaf629b473135e87"
+  integrity sha1-YhJaqUCHqt97g+9N+vYptHMTXoc=
+  dependencies:
+    rollup-pluginutils "^2.0.1"
+    source-map-resolve "^0.5.0"
 
 rollup-plugin-typescript2@0.19.3:
   version "0.19.3"
