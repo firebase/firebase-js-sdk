@@ -1,4 +1,8 @@
-# Unreleased
+# Unreleased (I/O)
+- [feature] You can now query across all collections in your database with a
+given collection ID using the `FirebaseFirestore.collectionGroup()` method.
+
+# 1.1.4
 - [feature] Added an `experimentalForceLongPolling` setting that that can be
   used to work around proxies that prevent the Firestore client from connecting
   to the Firestore backend.

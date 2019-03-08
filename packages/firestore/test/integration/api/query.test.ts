@@ -37,11 +37,6 @@ const FieldPath = firebase.firestore!.FieldPath;
 const GeoPoint = firebase.firestore!.GeoPoint;
 const Timestamp = firebase.firestore!.Timestamp;
 
-// TODO(b/116617988): Use public API.
-interface FirestoreInternal extends firestore.FirebaseFirestore {
-  _collectionGroup(collectionId: string): firestore.Query;
-}
-
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
 
@@ -600,9 +595,7 @@ apiDescribe('Queries', persistence => {
       }
       await batch.commit();
 
-      const querySnapshot = await (db as FirestoreInternal)
-        ._collectionGroup(collectionGroup)
-        .get();
+      const querySnapshot = await db.collectionGroup(collectionGroup).get();
       expect(querySnapshot.docs.map(d => d.id)).to.deep.equal([
         'cg-doc1',
         'cg-doc2',
@@ -634,8 +627,8 @@ apiDescribe('Queries', persistence => {
       }
       await batch.commit();
 
-      let querySnapshot = await (db as FirestoreInternal)
-        ._collectionGroup(collectionGroup)
+      let querySnapshot = await db
+        .collectionGroup(collectionGroup)
         .orderBy(FieldPath.documentId())
         .startAt(`a/b`)
         .endAt('a/b0')
@@ -646,8 +639,8 @@ apiDescribe('Queries', persistence => {
         'cg-doc4'
       ]);
 
-      querySnapshot = await (db as FirestoreInternal)
-        ._collectionGroup(collectionGroup)
+      querySnapshot = await db
+        .collectionGroup(collectionGroup)
         .orderBy(FieldPath.documentId())
         .startAfter('a/b')
         .endBefore(`a/b/${collectionGroup}/cg-doc3`)
@@ -677,8 +670,8 @@ apiDescribe('Queries', persistence => {
       }
       await batch.commit();
 
-      let querySnapshot = await (db as FirestoreInternal)
-        ._collectionGroup(collectionGroup)
+      let querySnapshot = await db
+        .collectionGroup(collectionGroup)
         .where(FieldPath.documentId(), '>=', `a/b`)
         .where(FieldPath.documentId(), '<=', 'a/b0')
         .get();
@@ -688,8 +681,8 @@ apiDescribe('Queries', persistence => {
         'cg-doc4'
       ]);
 
-      querySnapshot = await (db as FirestoreInternal)
-        ._collectionGroup(collectionGroup)
+      querySnapshot = await db
+        .collectionGroup(collectionGroup)
         .where(FieldPath.documentId(), '>', `a/b`)
         .where(FieldPath.documentId(), '<', `a/b/${collectionGroup}/cg-doc3`)
         .get();

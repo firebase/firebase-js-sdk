@@ -6026,6 +6026,18 @@ declare namespace firebase.firestore {
     doc(documentPath: string): DocumentReference;
 
     /**
+     * Creates and returns a new Query that includes all documents in the
+     * database that are contained in a collection or subcollection with the
+     * given collectionId.
+     *
+     * @param collectionId Identifies the collections to query over. Every
+     * collection or subcollection with this ID as the last segment of its path
+     * will be included. Cannot contain a slash.
+     * @return The created Query.
+     */
+    collectionGroup(collectionId: string): Query;
+
+    /**
      * Executes the given `updateFunction` and then attempts to commit the changes
      * applied within the transaction. If any document read within the transaction
      * has changed, Cloud Firestore retries the `updateFunction`. If it fails to

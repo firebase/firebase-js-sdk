@@ -538,8 +538,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return DocumentReference.forPath(ResourcePath.fromString(pathString), this);
   }
 
-  // TODO(b/116617988): Fix name, uncomment d.ts definitions, and update CHANGELOG.md.
-  _collectionGroup(collectionId: string): firestore.Query {
+  collectionGroup(collectionId: string): firestore.Query {
     validateExactNumberOfArgs('Firestore.collectionGroup', arguments, 1);
     validateArgType(
       'Firestore.collectionGroup',
