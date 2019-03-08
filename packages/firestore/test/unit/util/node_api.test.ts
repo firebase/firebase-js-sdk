@@ -16,7 +16,6 @@
  */
 
 import { expect } from 'chai';
-import { AnyJs } from '../../../src/util/misc';
 import { NodeCallback, nodePromise } from '../../../src/util/node_api';
 
 describe('nodePromise', () => {
@@ -37,7 +36,7 @@ describe('nodePromise', () => {
       .then((value: string) => {
         expect.fail('should not have returned a value, got: ' + value);
       })
-      .catch((err: AnyJs) => {
+      .catch((err: unknown) => {
         expect(err).to.equal(expected);
       });
   });

@@ -410,6 +410,19 @@ export class DbMutationBatch {
      */
     public localWriteTimeMs: number,
     /**
+     * A list of "mutations" that represent a partial base state from when this
+     * write batch was initially created. During local application of the write
+     * batch, these baseMutations are applied prior to the real writes in order
+     * to override certain document fields from the remote document cache. This
+     * is necessary in the case of non-idempotent writes (e.g. `increment()`
+     * transforms) to make sure that the local view of the modified documents
+     * doesn't flicker if the remote document cache receives the result of the
+     * non-idempotent write before the write is removed from the queue.
+     *
+     * These mutations are never sent to the backend.
+     */
+    public baseMutations: api.Write[] | undefined,
+    /**
      * A list of mutations to apply. All mutations will be applied atomically.
      *
      * Mutations are serialized via JsonProtoSerializer.toMutation().

@@ -18,7 +18,8 @@
         "--exit"
       ],
       "env": {
-        "TS_NODE_CACHE": "NO"
+        "TS_NODE_CACHE": "NO",
+        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
       },
       "sourceMaps": true,
       "protocol": "inspector"
@@ -39,7 +40,8 @@
       ],
       "env": {
         "USE_MOCK_PERSISTENCE": "YES",
-        "TS_NODE_CACHE": "NO"
+        "TS_NODE_CACHE": "NO",
+        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
       },
       "sourceMaps": true,
       "protocol": "inspector"
@@ -58,7 +60,9 @@
         "--exit"
       ],
       "env": {
-        "TS_NODE_CACHE": "NO"
+        "TS_NODE_CACHE": "NO",
+        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
+
       },
       "sourceMaps": true,
       "protocol": "inspector"
@@ -79,7 +83,9 @@
       ],
       "env": {
         "USE_MOCK_PERSISTENCE": "YES",
-        "TS_NODE_CACHE": "NO"
+        "TS_NODE_CACHE": "NO",
+        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
+
       },
       "sourceMaps": true,
       "protocol": "inspector"

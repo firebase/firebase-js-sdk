@@ -40,8 +40,8 @@
 *       @Feiyang1 @hiranya911 @hsubox76 @firebase/jssdk-global-approvers
 
 # Database Code
-packages/database  @mikelehen @schmidt-sebastian @firebase/jssdk-global-approvers
-packages/database-types  @mikelehen @schmidt-sebastian @firebase/jssdk-global-approvers
+packages/database  @mikelehen @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
+packages/database-types  @mikelehen @schmidt-sebastian @jsdt @firebase/jssdk-global-approvers
 
 # Firestore Code
 packages/firestore  @firebase/firestore-js-team @firebase/jssdk-global-approvers
@@ -66,4 +66,4 @@ packages/auth-types  @bojeil-google @wti806 @firebase/jssdk-global-approvers
 packages/testing  @tonymeng @ryanpbrewster @firebase/jssdk-global-approvers
 
 # RxFire Code
-packages/rxfire @davideast @firebase/jssdk-global-approvers
+packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers

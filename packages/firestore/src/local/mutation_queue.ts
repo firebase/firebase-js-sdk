@@ -27,8 +27,6 @@ import { SortedMap } from '../util/sorted_map';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
-import { AnyJs } from '../../src/util/misc';
-
 /** A queue of mutations to apply to the remote store. */
 export interface MutationQueue {
   /** Returns true if this queue contains no mutation batches. */
@@ -56,10 +54,18 @@ export interface MutationQueue {
 
   /**
    * Creates a new mutation batch and adds it to this mutation queue.
+   *
+   * @param transaction The transaction this operation is scoped to.
+   * @param localWriteTime The original write time of this mutation.
+   * @param baseMutations Mutations that are used to populate the base values
+   * when this mutation is applied locally. These mutations are used to locally
+   * overwrite values that are persisted in the remote document cache.
+   * @param mutations The user-provided mutations in this mutation batch.
    */
   addMutationBatch(
     transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
+    baseMutations: Mutation[],
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch>;
 
@@ -137,7 +143,7 @@ export interface MutationQueue {
   // TODO(mcg): This should really return an enumerator
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: SortedMap<DocumentKey, AnyJs>
+    documentKeys: SortedMap<DocumentKey, unknown>
   ): PersistencePromise<MutationBatch[]>;
 
   /**

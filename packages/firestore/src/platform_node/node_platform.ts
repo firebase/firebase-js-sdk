@@ -23,7 +23,6 @@ import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
 
-import { AnyJs } from '../util/misc';
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
 
@@ -51,7 +50,7 @@ export class NodePlatform implements Platform {
     return new JsonProtoSerializer(partitionId, { useProto3Json: false });
   }
 
-  formatJSON(value: AnyJs): string {
+  formatJSON(value: unknown): string {
     // util.inspect() results in much more readable output than JSON.stringify()
     return util.inspect(value, { depth: 100 });
   }

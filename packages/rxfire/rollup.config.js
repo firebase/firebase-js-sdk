@@ -19,7 +19,7 @@ import { resolve } from 'path';
 import resolveModule from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import typescript from 'rollup-plugin-typescript2';
-import uglify from 'rollup-plugin-uglify';
+import { uglify } from 'rollup-plugin-uglify';
 import pkg from './package.json';
 
 import authPkg from './auth/package.json';
@@ -76,7 +76,7 @@ const componentBuilds = components
           globals: {
             rxfire: GLOBAL_NAME,
             rxjs: 'rxjs',
-            'rxjs/operators': 'rxjs/operators'
+            'rxjs/operators': 'rxjs.operators'
           }
         },
         plugins: [...plugins, uglify()],

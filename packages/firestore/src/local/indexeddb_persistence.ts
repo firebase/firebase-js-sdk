@@ -330,14 +330,17 @@ export class IndexedDbPersistence implements Persistence {
     )
       .then(db => {
         this.simpleDb = db;
+        // NOTE: This is expected to fail sometimes (in the case of another tab already
+        // having the persistence lock), so it's the first thing we should do.
+        return this.updateClientMetadataAndTryBecomePrimary();
       })
-      .then(() => this.startRemoteDocumentCache())
       .then(() => {
         this.attachVisibilityHandler();
         this.attachWindowUnloadHook();
-        return this.updateClientMetadataAndTryBecomePrimary().then(() =>
-          this.scheduleClientMetadataAndPrimaryLeaseRefreshes()
-        );
+
+        this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
+
+        return this.startRemoteDocumentCache();
       })
       .then(() => {
         return this.simpleDb.runTransaction(

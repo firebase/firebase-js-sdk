@@ -51,13 +51,14 @@ import { FieldPath, ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { AnyJs } from '../util/misc';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
+import { NumberValue } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
@@ -93,7 +94,7 @@ const OPERATORS = (() => {
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
 
-function assertPresent(value: AnyJs, description: string): void {
+function assertPresent(value: unknown, description: string): void {
   assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
 }
 
@@ -955,6 +956,11 @@ export class JsonProtoSerializer {
           values: transform.elements.map(v => this.toValue(v))
         }
       };
+    } else if (transform instanceof NumericIncrementTransformOperation) {
+      return {
+        fieldPath: fieldTransform.field.canonicalString(),
+        increment: this.toValue(transform.operand)
+      };
     } else {
       throw fail('Unknown transform: ' + fieldTransform.transform);
     }
@@ -979,6 +985,15 @@ export class JsonProtoSerializer {
       const values = proto.removeAllFromArray!.values || [];
       transform = new ArrayRemoveTransformOperation(
         values.map(v => this.fromValue(v))
+      );
+    } else if (hasTag(proto, type, 'increment')) {
+      const operand = this.fromValue(proto.increment!);
+      assert(
+        operand instanceof NumberValue,
+        'NUMERIC_ADD transform requires a NumberValue'
+      );
+      transform = new NumericIncrementTransformOperation(
+        operand as NumberValue
       );
     } else {
       fail('Unknown transform proto: ' + JSON.stringify(proto));

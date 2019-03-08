@@ -19,6 +19,7 @@ import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
 import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
+import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
   ALT_PROJECT_ID,
@@ -736,6 +737,49 @@ apiDescribe('Validation:', persistence => {
     });
   });
 
+  describe('Server timestamps transforms', () => {
+    validationIt(persistence, 'reject any arguments', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: (FieldValue as any).serverTimestamp('foo') })
+      ).to.throw(
+        'Function FieldValue.serverTimestamp() does not support ' +
+          'arguments, but was called with 1 argument.'
+      );
+    });
+  });
+
+  describe('Numeric transforms', () => {
+    validationIt(persistence, 'fail in queries', db => {
+      const collection = db.collection('test');
+      expect(() =>
+        collection.where('test', '==', { test: FieldValue.increment(1) })
+      ).to.throw(
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.increment() can only be used with update() and set() ' +
+          '(found in field test)'
+      );
+    });
+
+    validationIt(persistence, 'reject invalid operands', db => {
+      const doc = db.collection('test').doc();
+      expect(() => doc.set({ x: FieldValue.increment('foo' as any) })).to.throw(
+        'Function FieldValue.increment() requires its first argument to ' +
+          'be of type number, but it was: "foo"'
+      );
+    });
+
+    validationIt(persistence, 'reject more than one argument', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: (FieldValue as any).increment(1337, 'leet') })
+      ).to.throw(
+        'Function FieldValue.increment() requires 1 argument, but was ' +
+          'called with 2 arguments.'
+      );
+    });
+  });
+
   describe('Queries', () => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
@@ -794,6 +838,60 @@ apiDescribe('Validation:', persistence => {
           });
       });
     });
+
+    validationIt(
+      persistence,
+      'cannot be sorted by an uncommitted server timestamp',
+      db => {
+        return withTestCollection(
+          persistence,
+          /*docs=*/ {},
+          async (collection: firestore.CollectionReference) => {
+            await db.disableNetwork();
+
+            const offlineDeferred = new Deferred<void>();
+            const onlineDeferred = new Deferred<void>();
+
+            const unsubscribe = collection.onSnapshot(snapshot => {
+              // Skip the initial empty snapshot.
+              if (snapshot.empty) return;
+
+              expect(snapshot.docs).to.have.lengthOf(1);
+              const docSnap: firestore.DocumentSnapshot = snapshot.docs[0];
+
+              if (snapshot.metadata.hasPendingWrites) {
+                // Offline snapshot. Since the server timestamp is uncommitted,
+                // we shouldn't be able to query by it.
+                expect(() =>
+                  collection
+                    .orderBy('timestamp')
+                    .endAt(docSnap)
+                    .onSnapshot(() => {})
+                ).to.throw('uncommitted server timestamp');
+                offlineDeferred.resolve();
+              } else {
+                // Online snapshot. Since the server timestamp is committed, we
+                // should be able to query by it.
+                collection
+                  .orderBy('timestamp')
+                  .endAt(docSnap)
+                  .onSnapshot(() => {});
+                onlineDeferred.resolve();
+              }
+            });
+
+            const doc: firestore.DocumentReference = collection.doc();
+            doc.set({ timestamp: FieldValue.serverTimestamp() });
+            await offlineDeferred.promise;
+
+            await db.enableNetwork();
+            await onlineDeferred.promise;
+
+            unsubscribe();
+          }
+        );
+      }
+    );
 
     validationIt(
       persistence,

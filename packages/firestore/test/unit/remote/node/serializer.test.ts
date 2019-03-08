@@ -50,7 +50,6 @@ import {
   WatchTargetChangeState
 } from '../../../../src/remote/watch_change';
 import { Code, FirestoreError } from '../../../../src/util/error';
-import { AnyJs } from '../../../../src/util/misc';
 import * as obj from '../../../../src/util/obj';
 import * as types from '../../../../src/util/types';
 import { addEqualityMatcher } from '../../../util/equality_matcher';
@@ -101,7 +100,7 @@ describe('Serializer', () => {
     /**
      * Verifies that the given object can be parsed as a datastore Value proto.
      */
-    function expectValue(obj: AnyJs, tag: string): Chai.Assertion {
+    function expectValue(obj: unknown, tag: string): Chai.Assertion {
       const proto = new ds.Value(obj);
       expect(proto.value_type).to.equal(tag);
       return expect(proto[tag]);
@@ -641,7 +640,7 @@ describe('Serializer', () => {
   describe('toMutation / fromMutation', () => {
     addEqualityMatcher();
 
-    function verifyMutation(mutation: Mutation, proto: AnyJs): void {
+    function verifyMutation(mutation: Mutation, proto: unknown): void {
       const serialized = s.toMutation(mutation);
       expect(serialized).to.deep.equal(proto);
       expect(s.fromMutation(serialized)).to.deep.equal(mutation);
@@ -699,6 +698,24 @@ describe('Serializer', () => {
           fieldTransforms: [
             { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
             { fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME' }
+          ]
+        },
+        currentDocument: { exists: true }
+      };
+      verifyMutation(mutation, proto);
+    });
+
+    it('TransformMutation (Numeric Add transform)', () => {
+      const mutation = transformMutation('baz/quux', {
+        integer: FieldValue.increment(42),
+        double: FieldValue.increment(13.37)
+      });
+      const proto = {
+        transform: {
+          document: s.toName(mutation.key),
+          fieldTransforms: [
+            { fieldPath: 'integer', increment: { integerValue: '42' } },
+            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
           ]
         },
         currentDocument: { exists: true }

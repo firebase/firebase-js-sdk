@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +30,7 @@ function runTest(port: number, namespace: string): ChildProcessPromise {
     }),
     stdio: 'inherit'
   };
-  return spawn('yarn', ['test'], options);
+  return spawn('yarn', ['test:all'], options);
 }
 
 async function run(): Promise<void> {

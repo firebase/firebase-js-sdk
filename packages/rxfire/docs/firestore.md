@@ -65,19 +65,19 @@ collection(db.collection('users'))
   .subscribe(users => { console.log(users) });
 ```
 
-### `docChanges()`
-The `docChanges()` function creates an observable that emits the event changes on a collection. This is different than the collection function in that it does not contain the state of your application but only the individual changes. The optional `events` parameter will filter which child events populate the array.
+### `collectionChanges()`
+The `collectionChanges()` function creates an observable that emits the event changes on a collection. This is different than the collection function in that it does not contain the state of your application but only the individual changes. The optional `events` parameter will filter which child events populate the array.
 
 |                 |                                          |
 |-----------------|------------------------------------------|
-| **function**    | `docChanges()`                           |
+| **function**    | `collectionChanges()`                           |
 | **params**      | query: `firestore.CollectionReference` | `firestore.Query`, events?: `firestore.DocumentChangeType[]` |
 | **import path** | `rxfire/firestore`                       |
 | **return**      | `Observable<firestore.DocumentChange[]>`    |
 
 #### TypeScript Example
 ```ts
-import { docChanges } from 'rxfire/firestore';
+import { collectionChanges } from 'rxfire/firestore';
 import { firestore, initializeApp } from 'firebase';
 import 'firebase/firestore';
 import { map } from 'rxjs/operators';
@@ -90,11 +90,11 @@ const davidDoc = db.doc('users/david');
 // Seed the firestore
 davidDoc.set({ name: 'David' });
 
-docChanges(db.collection('users'))
+collectionChanges(db.collection('users'))
   .subscribe(changes => { console.log(users) });
 
 // Listen to only 'added' events
-docChanges(db.collection('users'), ['added'])
+collectionChanges(db.collection('users'), ['added'])
   .subscribe(addedEvents => { console.log(addedEvents) });
 ```
 

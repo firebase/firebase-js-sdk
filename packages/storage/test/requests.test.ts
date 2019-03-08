@@ -125,7 +125,7 @@ describe('Firebase Storage > Requests', () => {
     reader.readAsText(blob);
     return fbsPromise.make((resolve, reject) => {
       reader.onload = () => {
-        resolve(reader.result);
+        resolve(reader.result as string);
       };
       reader.onerror = () => {
         reject(reader.error as Error);

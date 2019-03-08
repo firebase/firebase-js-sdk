@@ -35,7 +35,6 @@ import { SortedMap } from '../util/sorted_map';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { AnyJs } from '../util/misc';
 import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
@@ -308,12 +307,23 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     );
     let results = documentMap();
 
+    const immediateChildrenPathLength = query.path.length + 1;
+
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
     const startKey = query.path.toArray();
     const range = IDBKeyRange.lowerBound(startKey);
     return remoteDocumentsStore(transaction)
       .iterate({ range }, (key, dbRemoteDoc, control) => {
+        // The query is actually returning any path that starts with the query
+        // path prefix which may include documents in subcollections. For
+        // example, a query on 'rooms' will return rooms/abc/messages/xyx but we
+        // shouldn't match it. Fix this by discarding rows with document keys
+        // more than one segment longer than the query path.
+        if (key.length !== immediateChildrenPathLength) {
+          return;
+        }
+
         const maybeDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
         if (!query.path.isPrefixOf(maybeDoc.key.path)) {
           control.done();
@@ -554,7 +564,7 @@ function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {
  * Retrusn an approximate size for the given document.
  */
 export function dbDocumentSize(doc: DbRemoteDocument): number {
-  let value: AnyJs;
+  let value: unknown;
   if (doc.document) {
     value = doc.document;
   } else if (doc.unknownDocument) {

@@ -18,7 +18,6 @@
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
-import { AnyJs } from '../util/misc';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
@@ -111,7 +110,7 @@ export class SimpleDb {
         // We are provided a version upgrade transaction from the request, so
         // we wrap that in a SimpleDbTransaction to allow use of our friendlier
         // API for schema migration operations.
-        const txn = new SimpleDbTransaction(request.transaction);
+        const txn = new SimpleDbTransaction(request.transaction!);
         schemaConverter
           .createOrUpgrade(db, txn, event.oldVersion, SCHEMA_VERSION)
           .next(() => {
@@ -175,7 +174,7 @@ export class SimpleDb {
   }
 
   /** Helper to get a typed SimpleDbStore from a transaction. */
-  static getStore<KeyType extends IDBValidKey, ValueType extends AnyJs>(
+  static getStore<KeyType extends IDBValidKey, ValueType extends unknown>(
     txn: SimpleDbTransaction,
     store: string
   ): SimpleDbStore<KeyType, ValueType> {
@@ -201,6 +200,10 @@ export class SimpleDb {
         return PersistencePromise.reject<T>(error);
       })
       .toPromise();
+
+    // As noted above, errors are propagated by aborting the transaction. So
+    // we swallow any error here to avoid the browser logging it as unhandled.
+    transactionFnResult.catch(() => {});
 
     // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
     // fire), but still return the original transactionFnResult back to the
@@ -317,7 +320,7 @@ export class SimpleDbTransaction {
       }
     };
     this.transaction.onerror = (event: Event) => {
-      this.completionDeferred.reject((event.target as IDBRequest).error);
+      this.completionDeferred.reject((event.target as IDBRequest).error!);
     };
   }
 
@@ -350,7 +353,7 @@ export class SimpleDbTransaction {
    * Note that we can't actually enforce that the KeyType and ValueType are
    * correct, but they allow type safety through the rest of the consuming code.
    */
-  store<KeyType extends IDBValidKey, ValueType extends AnyJs>(
+  store<KeyType extends IDBValidKey, ValueType extends unknown>(
     storeName: string
   ): SimpleDbStore<KeyType, ValueType> {
     const store = this.transaction.objectStore(storeName);
@@ -371,7 +374,7 @@ export class SimpleDbTransaction {
  */
 export class SimpleDbStore<
   KeyType extends IDBValidKey,
-  ValueType extends AnyJs
+  ValueType extends unknown
 > {
   constructor(private store: IDBObjectStore) {}
 
@@ -536,7 +539,7 @@ export class SimpleDbStore<
     const cursorRequest = this.cursor({});
     return new PersistencePromise((resolve, reject) => {
       cursorRequest.onerror = (event: Event) => {
-        reject((event.target as IDBRequest).error);
+        reject((event.target as IDBRequest).error!);
       };
       cursorRequest.onsuccess = (event: Event) => {
         const cursor: IDBCursorWithValue = (event.target as IDBRequest).result;
@@ -545,7 +548,7 @@ export class SimpleDbStore<
           return;
         }
 
-        callback(cursor.primaryKey, cursor.value).next(shouldContinue => {
+        callback(cursor.primaryKey as KeyType, cursor.value).next(shouldContinue => {
           if (shouldContinue) {
             cursor.continue();
           } else {
@@ -563,7 +566,7 @@ export class SimpleDbStore<
     const results: Array<PersistencePromise<void>> = [];
     return new PersistencePromise((resolve, reject) => {
       cursorRequest.onerror = (event: Event) => {
-        reject((event.target as IDBRequest).error);
+        reject((event.target as IDBRequest).error!);
       };
       cursorRequest.onsuccess = (event: Event) => {
         const cursor: IDBCursorWithValue = (event.target as IDBRequest).result;
@@ -572,7 +575,7 @@ export class SimpleDbStore<
           return;
         }
         const controller = new IterationController(cursor);
-        const userResult = fn(cursor.primaryKey, cursor.value, controller);
+        const userResult = fn(cursor.primaryKey as KeyType, cursor.value, controller);
         if (userResult instanceof PersistencePromise) {
           const userPromise: PersistencePromise<void> = userResult.catch(
             err => {
@@ -644,7 +647,7 @@ function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
     };
 
     request.onerror = (event: Event) => {
-      reject((event.target as IDBRequest).error);
+      reject((event.target as IDBRequest).error!);
     };
   });
 }

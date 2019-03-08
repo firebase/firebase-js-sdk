@@ -1,6 +1,6 @@
 {
   "name": "@firebase/webchannel-wrapper",
-  "version": "0.2.12",
+  "version": "0.2.14",
   "description": "A wrapper of the webchannel packages from closure-library for use outside of a closure compiled application",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.js",
@@ -15,9 +15,9 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "closure-builder": "2.3.0",
-    "rollup": "0.57.1",
-    "rollup-plugin-commonjs": "9.1.0",
+    "closure-builder": "2.3.4",
+    "rollup": "1.2.3",
+    "rollup-plugin-commonjs": "9.2.1",
     "rollup-plugin-hypothetical": "2.1.0",
     "watch": "1.0.2"
   },

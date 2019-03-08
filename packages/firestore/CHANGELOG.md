@@ -1,6 +1,16 @@
 # Unreleased
+- [feature] Added `FieldValue.increment()`, which can be used in `update()`
+  and `set(..., {merge:true})` to increment or decrement numeric field
+  values safely without transactions.
+- [changed] Improved performance when querying over documents that contain
+  subcollections.
 - [feature] You can now query across all collections in your database with a
-  given collection ID using the `FirebaseFirestore.collectionGroup()` method.
+given collection ID using the `FirebaseFirestore.collectionGroup()` method.
+
+
+# 1.0.4
+- [fixed] Fixed an uncaught promise error occurring when `enablePersistence()`
+  was called in a second tab (#1531).
 
 # 1.0.0
 - [changed] The `timestampsInSnapshots` setting is now enabled by default.

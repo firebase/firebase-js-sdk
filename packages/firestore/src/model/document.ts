@@ -17,7 +17,6 @@
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { fail } from '../util/assert';
-import { AnyJs } from '../util/misc';
 
 import { DocumentKey } from './document_key';
 import { FieldValue, JsonObject, ObjectValue } from './field_value';
@@ -48,6 +47,8 @@ export abstract class MaybeDocument {
   abstract get hasPendingWrites(): boolean;
 
   abstract isEqual(other: MaybeDocument | null | undefined): boolean;
+
+  abstract toString(): string;
 }
 
 /**
@@ -78,12 +79,12 @@ export class Document extends MaybeDocument {
     return this.data.field(path);
   }
 
-  fieldValue(path: FieldPath): AnyJs {
+  fieldValue(path: FieldPath): unknown {
     const field = this.field(path);
     return field ? field.value() : undefined;
   }
 
-  value(): JsonObject<AnyJs> {
+  value(): JsonObject<unknown> {
     return this.data.value();
   }
 

@@ -16,10 +16,10 @@
     "storage"
   ],
   "scripts": {
-    "dev": "lerna run --parallel --scope @firebase/* --scope firebase dev",
-    "prepare": "lerna run --scope @firebase/* --scope firebase prepare",
+    "dev": "lerna run --parallel --scope @firebase/* --scope firebase --scope rxfire dev",
+    "prepare": "lerna run --scope @firebase/* --scope firebase --scope rxfire prepare",
     "prepush": "node tools/gitHooks/prepush.js",
-    "link:packages": "lerna exec --scope @firebase/* --scope firebase -- yarn link",
+    "link:packages": "lerna exec --scope @firebase/* --scope firebase --scope rxfire -- yarn link",
     "stage:packages": "./scripts/prepublish.sh",
     "repl": "node tools/repl.js",
     "release": "node scripts/release/cli.js",
@@ -29,9 +29,7 @@
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
     "test:setup": "node tools/config.js",
     "pretest:saucelabs": "lerna run --parallel pretest",
-    "test:saucelabs": "karma start config/karma.saucelabs.js --single-run",
-    "test:database:emulator": "ts-node scripts/emulator-testing/database-test-runner.ts",
-    "test:firestore:emulator": "ts-node scripts/emulator-testing/firestore-test-runner.ts"
+    "test:saucelabs": "karma start config/karma.saucelabs.js --single-run"
   },
   "repository": {
     "type": "git",
@@ -52,9 +50,10 @@
     "husky": "0.14.3",
     "inquirer": "5.2.0",
     "istanbul-instrumenter-loader": "3.0.1",
+    "js-yaml": "3.12.1",
     "lcov-result-merger": "2.0.0",
     "lerna": "3.10.5",
-    "listr": "0.14.0",
+    "listr": "0.14.3",
     "merge2": "1.2.1",
     "mkdirp": "0.5.1",
     "mz": "2.7.0",
@@ -63,8 +62,9 @@
     "prettier": "1.12.0",
     "semver": "5.5.0",
     "simple-git": "1.92.0",
-    "ts-node": "5.0.1",
-    "typescript": "2.8.1",
+    "typedoc": "0.14.2",
+    "ts-node": "8.0.2",
+    "typescript": "3.3.3",
     "yargs": "11.0.0"
   }
 }

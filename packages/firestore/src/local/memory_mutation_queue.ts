@@ -34,8 +34,6 @@ import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
 
-import { AnyJs } from '../../src/util/misc';
-
 export class MemoryMutationQueue implements MutationQueue {
   /**
    * The set of all mutations that have been sent but not yet been applied to
@@ -107,6 +105,7 @@ export class MemoryMutationQueue implements MutationQueue {
   addMutationBatch(
     transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
+    baseMutations: Mutation[],
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
     assert(mutations.length !== 0, 'Mutation batches should not be empty');
@@ -122,7 +121,12 @@ export class MemoryMutationQueue implements MutationQueue {
       );
     }
 
-    const batch = new MutationBatch(batchId, localWriteTime, mutations);
+    const batch = new MutationBatch(
+      batchId,
+      localWriteTime,
+      baseMutations,
+      mutations
+    );
     this.mutationQueue.push(batch);
 
     // Track references by document key and index collection parents.
@@ -204,7 +208,7 @@ export class MemoryMutationQueue implements MutationQueue {
 
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: SortedMap<DocumentKey, AnyJs>
+    documentKeys: SortedMap<DocumentKey, unknown>
   ): PersistencePromise<MutationBatch[]> {
     let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);
 
