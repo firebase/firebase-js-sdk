@@ -9,13 +9,13 @@
     "firebase": "5.8.6"
   },
   "devDependencies": {
-    "@babel/core": "7.0.0-beta.47",
-    "@babel/preset-env": "7.0.0-beta.47",
+    "@babel/core": "7.3.4",
+    "@babel/preset-env": "7.3.4",
     "@types/chai": "4.1.7",
     "@types/mocha": "5.2.6",
-    "@types/node": "9.6.4",
+    "@types/node": "11.10.5",
     "chai": "4.2.0",
-    "karma": "4.0.0",
+    "karma": "4.0.1",
     "karma-babel-preprocessor": "8.0.0",
     "karma-chrome-launcher": "2.2.0",
     "karma-firefox-launcher": "1.1.0",

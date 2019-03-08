@@ -12,12 +12,12 @@
   },
   "devDependencies": {
     "chai": "4.2.0",
-    "chromedriver": "2.37.0",
-    "express": "4.16.3",
-    "geckodriver": "1.11.0",
+    "chromedriver": "2.46.0",
+    "express": "4.16.4",
+    "geckodriver": "1.16.0",
     "mocha": "6.0.2",
-    "node-fetch": "2.1.2",
-    "selenium-assistant": "5.3.0",
-    "sinon": "7.2.4"
+    "node-fetch": "2.3.0",
+    "selenium-assistant": "5.4.0",
+    "sinon": "7.2.7"
   }
 }
