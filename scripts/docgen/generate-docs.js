@@ -72,14 +72,19 @@ function moveFilesToRoot(subdir) {
  */
 function fixLinks(file) {
   return fs.readFile(file, 'utf8').then(data => {
-    const fixedLinks = data
+    const flattenedLinks = data
       .replace(/\.\.\//g, '')
       .replace(/(modules|interfaces|classes)\//g, '');
-    return fs.writeFile(file, fixedLinks);
+    let caseFixedLinks = flattenedLinks;
+    for (const lower in lowerToUpperLookup) {
+      const re = new RegExp(lower, 'g');
+      caseFixedLinks = caseFixedLinks.replace(re, lowerToUpperLookup[lower]);
+    }
+    return fs.writeFile(file, caseFixedLinks);
   });
 }
 
-let tocLower = '';
+let tocText = '';
 
 /**
  * Generates temporary markdown file that will be sourced by Typedoc to
@@ -89,9 +94,7 @@ let tocLower = '';
  * @param {string} homeRaw
  */
 function generateTempHomeMdFile(tocRaw, homeRaw) {
-  // In case we need to paste in toc.yaml from old docs.
-  tocLower = tocRaw.replace(/path:.*/g, x => x.toLowerCase());
-  const { toc } = yaml.safeLoad(tocLower);
+  const { toc } = yaml.safeLoad(tocRaw);
   let tocPageLines = [homeRaw, '# API Reference'];
   toc.forEach(group => {
     tocPageLines.push(`\n## [${group.title}](${stripPath(group.path)})`);
@@ -103,20 +106,37 @@ function generateTempHomeMdFile(tocRaw, homeRaw) {
 }
 
 /**
- * Checks to see if any files listed in toc.yaml were not generated.
+ * Mapping between lowercase file name and correctly cased name.
+ * Used to update links when filenames are capitalized.
  */
-function checkForMissingFiles() {
+const lowerToUpperLookup = {};
+
+/**
+ * Checks to see if any files listed in toc.yaml were not generated.
+ * If files exist, fixes filename case to match toc.yaml version.
+ */
+function checkForMissingFilesAndFixFilenameCase() {
   // Get filenames from toc.yaml.
-  const filenames = tocLower
+  const filenames = tocText
     .split('\n')
     .filter(line => line.includes('path:'))
     .map(line => line.split(devsitePath)[1]);
   // Logs warning to console if a file from TOC is not found.
-  filenames.forEach(filename => {
-    // This is just a warning, it doesn't need to finish before
-    // the process continues.
-    fs.exists(`${docPath}/${filename}.html`).then(exists => {
-      if (!exists) {
+  const fileCheckPromises = filenames.map(filename => {
+    // Warns if file does not exist, fixes filename case if it does.
+    // Preferred filename for devsite should be capitalized and taken from
+    // toc.yaml.
+    const tocFilePath = `${docPath}/${filename}.html`;
+    // Generated filename from Typedoc will be lowercase.
+    const generatedFilePath = `${docPath}/${filename.toLowerCase()}.html`;
+    return fs.exists(generatedFilePath).then(exists => {
+      if (exists) {
+        // Store in a lookup table for link fixing.
+        lowerToUpperLookup[
+          `${filename.toLowerCase()}.html`
+        ] = `${filename}.html`;
+        return fs.rename(generatedFilePath, tocFilePath);
+      } else {
         console.warn(
           `Missing file: ${filename}.html requested ` +
             `in toc.yaml but not found in ${docPath}`
@@ -124,7 +144,7 @@ function checkForMissingFiles() {
       }
     });
   });
-  return filenames;
+  return Promise.all(fileCheckPromises).then(() => filenames);
 }
 
 /**
@@ -209,6 +229,7 @@ Promise.all([
   // Read TOC and homepage text and assemble a homepage markdown file.
   // This file will be sourced by Typedoc to generate index.html.
   .then(([tocRaw, homeRaw]) => {
+    tocText = tocRaw;
     return generateTempHomeMdFile(tocRaw, homeRaw);
   })
   // Run main Typedoc process (uses index.d.ts and generated temp file above).
@@ -223,7 +244,7 @@ Promise.all([
   })
   // Write out TOC file.  Do this after Typedoc step to prevent Typedoc
   // erroring when it finds an unexpected file in the target dir.
-  .then(() => fs.writeFile(`${docPath}/_toc.yaml`, tocLower))
+  .then(() => fs.writeFile(`${docPath}/_toc.yaml`, tocText))
   // Flatten file structure. These categories don't matter to us and it makes
   // it easier to manage the docs directory.
   .then(() => {
@@ -235,7 +256,7 @@ Promise.all([
   })
   // Check for files listed in TOC that are missing and warn if so.
   // Not blocking.
-  .then(checkForMissingFiles)
+  .then(checkForMissingFilesAndFixFilenameCase)
   // Check for files that exist but aren't listed in the TOC and warn.
   // Not blocking.
   .then(filenamesFromToc => checkForUnlistedFiles(filenamesFromToc))
