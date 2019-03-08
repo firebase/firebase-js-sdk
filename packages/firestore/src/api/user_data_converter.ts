@@ -420,7 +420,7 @@ export class UserDataConverter {
     methodName: string,
     field: string | ExternalFieldPath,
     value: unknown,
-    moreFieldsAndValues: Array<unknown>
+    moreFieldsAndValues: unknown[]
   ): ParsedUpdateData {
     const context = new ParseContext(
       UserDataSource.Update,
@@ -534,7 +534,7 @@ export class UserDataConverter {
         if (context.arrayElement) {
           throw context.createError('Nested arrays are not supported');
         }
-        return this.parseArray(input as Array<unknown>, context);
+        return this.parseArray(input as unknown[], context);
       } else {
         return this.parseScalarValue(input, context);
       }
@@ -565,7 +565,7 @@ export class UserDataConverter {
     return new ObjectValue(result);
   }
 
-  private parseArray(array: Array<unknown>, context: ParseContext): FieldValue {
+  private parseArray(array: unknown[], context: ParseContext): FieldValue {
     const result = [] as FieldValue[];
     let entryIndex = 0;
     for (const entry of array) {
@@ -707,7 +707,7 @@ export class UserDataConverter {
 
   private parseArrayTransformElements(
     methodName: string,
-    elements: Array<unknown>
+    elements: unknown[]
   ): FieldValue[] {
     return elements.map((element, i) => {
       // Although array transforms are used with writes, the actual elements
