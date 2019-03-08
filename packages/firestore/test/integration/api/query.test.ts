@@ -28,11 +28,17 @@ import {
   apiDescribe,
   toChangesArray,
   toDataArray,
-  withTestCollection
+  withTestCollection,
+  withTestDb
 } from '../util/helpers';
 
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldPath = firebase.firestore!.FieldPath;
+
+// TODO(b/116617988): Use public API.
+interface FirestoreInternal extends firestore.FirebaseFirestore {
+  _collectionGroup(collectionId: string): firestore.Query;
+}
 
 apiDescribe('Queries', persistence => {
   addEqualityMatcher();
@@ -565,5 +571,127 @@ apiDescribe('Queries', persistence => {
       for (const _ of docChange) {
       }
     }).to.throw(expectedError);
+  });
+
+  it('can query collection groups', async () => {
+    await withTestDb(persistence, async db => {
+      // Use .doc() to get a random collection group name to use but ensure it starts with 'b' for
+      // predictable ordering.
+      const collectionGroup = 'b' + db.collection('foo').doc().id;
+
+      const docPaths = [
+        `abc/123/${collectionGroup}/cg-doc1`,
+        `abc/123/${collectionGroup}/cg-doc2`,
+        `${collectionGroup}/cg-doc3`,
+        `${collectionGroup}/cg-doc4`,
+        `def/456/${collectionGroup}/cg-doc5`,
+        `${collectionGroup}/virtual-doc/nested-coll/not-cg-doc`,
+        `x${collectionGroup}/not-cg-doc`,
+        `${collectionGroup}x/not-cg-doc`,
+        `abc/123/${collectionGroup}x/not-cg-doc`,
+        `abc/123/x${collectionGroup}/not-cg-doc`,
+        `abc/${collectionGroup}`
+      ];
+      const batch = db.batch();
+      for (const docPath of docPaths) {
+        batch.set(db.doc(docPath), { x: 1 });
+      }
+      await batch.commit();
+
+      const querySnapshot = await (db as FirestoreInternal)
+        ._collectionGroup(collectionGroup)
+        .get();
+      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal([
+        'cg-doc1',
+        'cg-doc2',
+        'cg-doc3',
+        'cg-doc4',
+        'cg-doc5'
+      ]);
+    });
+  });
+
+  it('can query collection groups with startAt / endAt by arbitrary documentId', async () => {
+    await withTestDb(persistence, async db => {
+      // Use .doc() to get a random collection group name to use but ensure it starts with 'b' for
+      // predictable ordering.
+      const collectionGroup = 'b' + db.collection('foo').doc().id;
+
+      const docPaths = [
+        `a/a/${collectionGroup}/cg-doc1`,
+        `a/b/a/b/${collectionGroup}/cg-doc2`,
+        `a/b/${collectionGroup}/cg-doc3`,
+        `a/b/c/d/${collectionGroup}/cg-doc4`,
+        `a/c/${collectionGroup}/cg-doc5`,
+        `${collectionGroup}/cg-doc6`,
+        `a/b/nope/nope`
+      ];
+      const batch = db.batch();
+      for (const docPath of docPaths) {
+        batch.set(db.doc(docPath), { x: 1 });
+      }
+      await batch.commit();
+
+      let querySnapshot = await (db as FirestoreInternal)
+        ._collectionGroup(collectionGroup)
+        .orderBy(FieldPath.documentId())
+        .startAt(`a/b`)
+        .endAt('a/b0')
+        .get();
+      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal([
+        'cg-doc2',
+        'cg-doc3',
+        'cg-doc4'
+      ]);
+
+      querySnapshot = await (db as FirestoreInternal)
+        ._collectionGroup(collectionGroup)
+        .orderBy(FieldPath.documentId())
+        .startAfter('a/b')
+        .endBefore(`a/b/${collectionGroup}/cg-doc3`)
+        .get();
+      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal(['cg-doc2']);
+    });
+  });
+
+  it('can query collection groups with where filters on arbitrary documentId', async () => {
+    await withTestDb(persistence, async db => {
+      // Use .doc() to get a random collection group name to use but ensure it starts with 'b' for
+      // predictable ordering.
+      const collectionGroup = 'b' + db.collection('foo').doc().id;
+
+      const docPaths = [
+        `a/a/${collectionGroup}/cg-doc1`,
+        `a/b/a/b/${collectionGroup}/cg-doc2`,
+        `a/b/${collectionGroup}/cg-doc3`,
+        `a/b/c/d/${collectionGroup}/cg-doc4`,
+        `a/c/${collectionGroup}/cg-doc5`,
+        `${collectionGroup}/cg-doc6`,
+        `a/b/nope/nope`
+      ];
+      const batch = db.batch();
+      for (const docPath of docPaths) {
+        batch.set(db.doc(docPath), { x: 1 });
+      }
+      await batch.commit();
+
+      let querySnapshot = await (db as FirestoreInternal)
+        ._collectionGroup(collectionGroup)
+        .where(FieldPath.documentId(), '>=', `a/b`)
+        .where(FieldPath.documentId(), '<=', 'a/b0')
+        .get();
+      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal([
+        'cg-doc2',
+        'cg-doc3',
+        'cg-doc4'
+      ]);
+
+      querySnapshot = await (db as FirestoreInternal)
+        ._collectionGroup(collectionGroup)
+        .where(FieldPath.documentId(), '>', `a/b`)
+        .where(FieldPath.documentId(), '<', `a/b/${collectionGroup}/cg-doc3`)
+        .get();
+      expect(querySnapshot.docs.map(d => d.id)).to.deep.equal(['cg-doc2']);
+    });
   });
 });

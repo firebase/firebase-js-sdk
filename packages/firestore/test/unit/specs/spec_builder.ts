@@ -821,6 +821,9 @@ export class SpecBuilder {
   private static queryToSpec(query: Query): SpecQuery {
     // TODO(dimond): full query support
     const spec: SpecQuery = { path: query.path.canonicalString() };
+    if (query.collectionGroup !== null) {
+      spec.collectionGroup = query.collectionGroup;
+    }
     if (query.hasLimit()) {
       spec.limit = query.limit!;
     }

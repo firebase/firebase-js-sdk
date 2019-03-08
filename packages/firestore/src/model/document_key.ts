@@ -28,6 +28,14 @@ export class DocumentKey {
     );
   }
 
+  /** Returns true if the document is in the specified collectionId. */
+  hasCollectionId(collectionId: string): boolean {
+    return (
+      this.path.length >= 2 &&
+      this.path.get(this.path.length - 2) === collectionId
+    );
+  }
+
   isEqual(other: DocumentKey | null): boolean {
     return (
       other !== null && ResourcePath.comparator(this.path, other.path) === 0

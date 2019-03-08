@@ -22,11 +22,12 @@ import { assert } from '../util/assert';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
-import { encode, EncodedResourcePath } from './encoded_resource_path';
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
 import { getHighestListenSequenceNumber } from './indexeddb_query_cache';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import { LocalSerializer } from './local_serializer';
+import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
@@ -43,8 +44,9 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 5. Removal of held write acks.
  * 6. Create document global for tracking document cache size.
  * 7. Ensure every cached document has a sentinel row with a sequence number.
+ * 8. Add collection-parent index for Collection Group queries.
  */
-export const SCHEMA_VERSION = 7;
+export const SCHEMA_VERSION = 8;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -121,6 +123,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 7 && toVersion >= 7) {
       p = p.next(() => this.ensureSequenceNumbers(txn));
+    }
+
+    if (fromVersion < 8 && toVersion >= 8) {
+      p = p.next(() => this.createCollectionParentIndex(db, txn));
     }
 
     return p;
@@ -223,15 +229,58 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         .next(() => PersistencePromise.waitFor(promises));
     });
   }
+
+  private createCollectionParentIndex(
+    db: IDBDatabase,
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    // Create the index.
+    db.createObjectStore(DbCollectionParent.store, {
+      keyPath: DbCollectionParent.keyPath
+    });
+
+    const collectionParentsStore = txn.store<
+      DbCollectionParentKey,
+      DbCollectionParent
+    >(DbCollectionParent.store);
+
+    // Helper to add an index entry iff we haven't already written it.
+    const cache = new MemoryCollectionParentIndex();
+    const addEntry = collectionPath => {
+      if (cache.add(collectionPath)) {
+        const collectionId = collectionPath.lastSegment();
+        const parentPath = collectionPath.popLast();
+        return collectionParentsStore.put({
+          collectionId,
+          parent: encode(parentPath)
+        });
+      }
+    };
+
+    // Index existing remote documents.
+    return txn
+      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+      .iterate({ keysOnly: true }, (pathSegments, _) => {
+        const path = new ResourcePath(pathSegments);
+        return addEntry(path.popLast());
+      })
+      .next(() => {
+        // Index existing mutations.
+        return txn
+          .store<DbDocumentMutationKey, DbDocumentMutation>(
+            DbDocumentMutation.store
+          )
+          .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
+            const path = decode(encodedPath);
+            return addEntry(path.popLast());
+          });
+      });
+  }
 }
 
 function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
   return [0, encode(path)];
 }
-
-// TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
-// https://github.com/Microsoft/TypeScript/issues/14322
-type KeyPath = any; // tslint:disable-line:no-any
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -786,9 +835,42 @@ export class DbTargetGlobal {
   ) {}
 }
 
+/**
+ * The key for a DbCollectionParent entry, containing the collection ID
+ * and the parent path that contains it. Note that the parent path will be an
+ * empty path in the case of root-level collections.
+ */
+export type DbCollectionParentKey = [string, EncodedResourcePath];
+
+/**
+ * An object representing an association between a Collection id (e.g. 'messages')
+ * to a parent path (e.g. '/chats/123') that contains it as a (sub)collection.
+ * This is used to efficiently find all collections to query when performing
+ * a Collection Group query.
+ */
+export class DbCollectionParent {
+  /** Name of the IndexedDb object store. */
+  static store = 'collectionParents';
+
+  /** Keys are automatically assigned via the collectionId, parent properties. */
+  static keyPath = ['collectionId', 'parent'];
+
+  constructor(
+    /**
+     * The collectionId (e.g. 'messages')
+     */
+    public collectionId: string,
+    /**
+     * The path to the parent (either a document location or an empty path for
+     * a root-level collection).
+     */
+    public parent: EncodedResourcePath
+  ) {}
+}
+
 function createQueryCache(db: IDBDatabase): void {
   const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
-    keyPath: DbTargetDocument.keyPath as KeyPath
+    keyPath: DbTargetDocument.keyPath
   });
   targetDocumentsStore.createIndex(
     DbTargetDocument.documentTargetsIndex,
@@ -938,9 +1020,13 @@ export const V4_STORES = [
 
 export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
 
+// V7 does not change the set of stores.
+
+export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
+
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = V6_STORES;
+export const ALL_STORES = V8_STORES;
