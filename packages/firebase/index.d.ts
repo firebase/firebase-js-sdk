@@ -6006,7 +6006,9 @@ declare namespace firebase.firestore {
      */
     doc(documentPath: string): DocumentReference;
 
-    /**
+    // TODO(b/116617988): Uncomment method and change jsdoc comment to "/**"
+    // once backend support is ready.
+    /*
      * Creates and returns a new Query that includes all documents in the
      * database that are contained in a collection or subcollection with the
      * given collectionId.
@@ -6016,7 +6018,7 @@ declare namespace firebase.firestore {
      * will be included. Cannot contain a slash.
      * @return The created Query.
      */
-    collectionGroup(collectionId: string): Query;
+    //collectionGroup(collectionId: string): Query;
 
     /**
      * Executes the given `updateFunction` and then attempts to commit the changes

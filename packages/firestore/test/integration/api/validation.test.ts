@@ -33,6 +33,11 @@ import {
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
 
+// TODO(b/116617988): Use public API.
+interface FirestoreInternal extends firestore.FirebaseFirestore {
+  _collectionGroup(collectionId: string): firestore.Query;
+}
+
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 // tslint:disable:no-any
 
@@ -915,8 +920,8 @@ apiDescribe('Validation:', persistence => {
         const query = db
           .collection('collection')
           .orderBy(firebase.firestore!.FieldPath.documentId());
-        const cgQuery = db
-          .collectionGroup('collection')
+        const cgQuery = (db as FirestoreInternal)
+          ._collectionGroup('collection')
           .orderBy(firebase.firestore!.FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
@@ -1039,7 +1044,9 @@ apiDescribe('Validation:', persistence => {
             'FieldPath.documentId(), but it was: 1.'
         );
         expect(() =>
-          db.collectionGroup('foo').where(FieldPath.documentId(), '>=', 'foo')
+          (db as FirestoreInternal)
+            ._collectionGroup('foo')
+            .where(FieldPath.documentId(), '>=', 'foo')
         ).to.throw(
           `Invalid third parameter to Query.where(). When querying a collection group by ` +
             `FieldPath.documentId(), the value provided must result in a valid document path, ` +

@@ -4,9 +4,6 @@
   values safely without transactions.
 - [changed] Improved performance when querying over documents that contain
   subcollections.
-- [feature] You can now query across all collections in your database with a
-given collection ID using the `FirebaseFirestore.collectionGroup()` method.
-
 
 # 1.0.4
 - [fixed] Fixed an uncaught promise error occurring when `enablePersistence()`
