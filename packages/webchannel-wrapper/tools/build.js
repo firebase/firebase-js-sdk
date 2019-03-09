@@ -68,7 +68,7 @@ closureBuilder.build(
     options: {
       closure: {
         output_wrapper:
-          '%output%\n//# sourceMappingURL=index.closure-es.js.map',
+          '%output%\n//# sourceMappingURL=index.js.map',
         language_out: 'ECMASCRIPT5',
         compilation_level: 'ADVANCED',
         define: closureDefines
