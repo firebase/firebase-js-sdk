@@ -65,7 +65,7 @@ const { argv } = require('yargs');
      * If there are no packages that have been updated
      * skip the release cycle
      */
-    if (!await hasUpdatedPackages()) {
+    if (!(await hasUpdatedPackages())) {
       console.log('No packages need to be updated. Exiting...');
       return;
     }
