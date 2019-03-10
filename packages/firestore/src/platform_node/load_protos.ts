@@ -16,6 +16,7 @@
  */
 
 import * as grpc from 'grpc';
+import * as protoLoader from '@grpc/proto-loader';
 import { resolve } from 'path';
 
 /**
@@ -24,19 +25,13 @@ import { resolve } from 'path';
  * @returns The GrpcObject representing our protos.
  */
 export function loadProtos(): grpc.GrpcObject {
-  const options = {
-    // Beware that converting fields to camel case does not convert the tag
-    // fields in oneof groups (!!!). This will likely be fixed when we upgrade
-    // to protobufjs 6.x
-    convertFieldsToCamelCase: true
-  };
   const root = resolve(
     __dirname,
     process.env.FIRESTORE_PROTO_ROOT || '../protos'
   );
-  const firestoreProtoFile = {
-    root,
-    file: 'google/firestore/v1/firestore.proto'
-  };
-  return grpc.load(firestoreProtoFile, /*format=*/ 'proto', options);
+  const pkgDef = protoLoader.loadSync(
+    resolve(root, 'google/firestore/v1/firestore.proto'),
+    { includeDirs: [root] }
+  );
+  return grpc.loadPackageDefinition(pkgDef);
 }
