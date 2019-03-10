@@ -25,10 +25,14 @@ import { resolve } from 'path';
 
 export { database, firestore } from 'firebase';
 
-const PROTO_ROOT = resolve(__dirname, process.env.FIRESTORE_EMULATOR_PROTO_ROOT || '../protos');
+const PROTO_ROOT = resolve(
+  __dirname,
+  process.env.FIRESTORE_EMULATOR_PROTO_ROOT || '../protos'
+);
 const PROTO_PKG_DEF = protoLoader.loadSync(
   resolve(PROTO_ROOT, 'google/firestore/emulator/v1/firestore_emulator.proto'),
-  { includeDirs: [PROTO_ROOT] });
+  { includeDirs: [PROTO_ROOT] }
+);
 const PROTOS = grpc.loadPackageDefinition(PROTO_PKG_DEF);
 const EMULATOR = PROTOS['google']['firestore']['emulator']['v1'];
 
