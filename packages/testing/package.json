@@ -17,7 +17,7 @@
   "dependencies": {
     "@firebase/logger": "0.1.8",
     "@firebase/util": "0.2.9",
-    "@grpc/proto-loader": "^0.4.0",
+    "@grpc/proto-loader": "0.4.0",
     "@types/request": "2.48.1",
     "firebase": "5.8.6",
     "grpc": "1.19.0",
