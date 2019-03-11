@@ -56,8 +56,9 @@
     "webpack": "4.29.6"
   },
   "repository": {
+    "directory": "packages/app",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/app"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
