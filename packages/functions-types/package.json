@@ -11,8 +11,9 @@
     "index.d.ts"
   ],
   "repository": {
+    "directory": "packages/functions-types",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/functions-types"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

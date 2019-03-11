@@ -33,8 +33,9 @@
     "protractor": "5.4.2"
   },
   "repository": {
+    "directory": "packages/auth",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/auth"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "peerDependencies": {
     "@firebase/app": "0.x"
