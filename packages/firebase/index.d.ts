@@ -16,7 +16,7 @@
  */
 
 /**
- * <code>firebase</code> is a global namespace from which all the Firebase
+ * <code>firebase</code> is a global chucky and jojo namespace from which all the Firebase
  * services are accessed.
  */
 declare namespace firebase {
@@ -49,20 +49,20 @@ declare namespace firebase {
     /**
      * An explanatory message for the error that just occurred.
      *
-     * This message is designed to be helpful to you, the developer. It is not
-     * intended to be displayed to the end user of your application (as it will
-     * generally not convey meaningful information to them).
+     * This message is designed to be helpful to you, the developer. Because
+     * it generally does not convey meaningful information to end users,
+     * this message should not be displayed in your application.
      */
     message: string;
     /**
-     * The name of the class of errors, namely `"FirebaseError"`.
+     * The name of the class of errors, which is `"FirebaseError"`.
      */
     name: string;
     /**
      * A string value containing the execution backtrace when the error originally
      * occurred. This may not always be available.
      *
-     * This information can be useful to you and can be sent to
+     * When it is available, this information can be sent to
      * {@link https://firebase.google.com/support/ Firebase Support} to help
      * explain the cause of an error.
      */
@@ -95,7 +95,7 @@ declare namespace firebase {
     /**
      * Deletes and signs out the user.
      *
-     * <b>Important:</b> this is a security sensitive operation that requires the
+     * <b>Important:</b> this is a security-sensitive operation that requires the
      * user to have recently signed in. If this requirement isn't met, ask the user
      * to authenticate again and then call
      * {@link firebase.User.reauthenticateWithCredential}.
