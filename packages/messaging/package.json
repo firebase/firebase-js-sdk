@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.3.11",
+  "version": "0.3.13",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -25,35 +25,36 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/messaging-types": "0.2.5",
-    "@firebase/util": "0.2.7",
-    "tslib": "1.9.0"
+    "@firebase/messaging-types": "0.2.6",
+    "@firebase/util": "0.2.9",
+    "tslib": "1.9.3"
   },
   "devDependencies": {
-    "@types/chai": "4.1.2",
-    "@types/mocha": "5.0.0",
-    "@types/sinon": "4.3.1",
-    "chai": "4.1.2",
-    "karma": "2.0.0",
+    "@types/chai": "4.1.7",
+    "@types/mocha": "5.2.6",
+    "@types/sinon": "7.0.9",
+    "chai": "4.2.0",
+    "karma": "4.0.1",
     "karma-chrome-launcher": "2.2.0",
-    "karma-cli": "1.0.1",
+    "karma-cli": "2.0.0",
     "karma-firefox-launcher": "1.1.0",
     "karma-mocha": "1.3.0",
     "karma-safari-launcher": "1.0.0",
-    "karma-sauce-launcher": "1.2.0",
+    "karma-sauce-launcher": "2.0.2",
     "karma-sourcemap-loader": "0.3.7",
     "karma-spec-reporter": "0.0.32",
-    "mocha": "5.2.0",
+    "mocha": "6.0.2",
     "npm-run-all": "4.1.5",
-    "rollup": "1.2.3",
+    "rollup": "1.6.0",
     "rollup-plugin-typescript2": "0.19.3",
-    "sinon": "4.5.0",
-    "tslint": "5.9.1",
+    "sinon": "7.2.7",
+    "tslint": "5.13.1",
     "typescript": "3.3.3"
   },
   "repository": {
+    "directory": "packages/messaging",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/messaging"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

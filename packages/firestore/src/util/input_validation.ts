@@ -30,6 +30,25 @@ export type ValidationType =
   | 'non-empty string';
 
 /**
+ * Validates that no arguments were passed in the invocation of functionName.
+ *
+ * Forward the magic "arguments" variable as second parameter on which the
+ * parameter validation is performed:
+ * validateNoArgs('myFunction', arguments);
+ */
+export function validateNoArgs(functionName: string, args: IArguments): void {
+  if (args.length !== 0) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Function ${functionName}() does not support arguments, ` +
+        'but was called with ' +
+        formatPlural(args.length, 'argument') +
+        '.'
+    );
+  }
+}
+
+/**
  * Validates the invocation of functionName has the exact number of arguments.
  *
  * Forward the magic "arguments" variable as second parameter on which the

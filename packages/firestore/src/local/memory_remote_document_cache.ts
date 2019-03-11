@@ -34,6 +34,7 @@ import { DocumentKey } from '../model/document_key';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
+import { IndexManager } from './index_manager';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -55,7 +56,10 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
    * @param sizer Used to assess the size of a document. For eager GC, this is expected to just
    * return 0 to avoid unnecessarily doing the work of calculating the size.
    */
-  constructor(private readonly sizer: DocumentSizer) {}
+  constructor(
+    private readonly indexManager: IndexManager,
+    private readonly sizer: DocumentSizer
+  ) {}
 
   /**
    * Adds the supplied entries to the cache. Adds the given size delta to the cached size.
@@ -65,13 +69,21 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     entries: DocumentSizeEntry[],
     sizeDelta: number
   ): PersistencePromise<void> {
+    const promises = [] as Array<PersistencePromise<void>>;
     for (const entry of entries) {
       const key = entry.maybeDocument.key;
       this.docs = this.docs.insert(key, entry);
       this.newDocumentChanges = this.newDocumentChanges.add(key);
+
+      promises.push(
+        this.indexManager.addToCollectionParentIndex(
+          transaction,
+          key.path.popLast()
+        )
+      );
     }
     this.size += sizeDelta;
-    return PersistencePromise.resolve();
+    return PersistencePromise.waitFor(promises);
   }
 
   /**
@@ -150,6 +162,10 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
+    assert(
+      !query.isCollectionGroupQuery(),
+      'CollectionGroup queries should be handled in LocalDocumentsView'
+    );
     let results = documentMap();
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down

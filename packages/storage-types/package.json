@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage-types",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "@firebase/storage Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -15,8 +15,9 @@
     "@firebase/util": "0.x"
   },
   "repository": {
+    "directory": "packages/storage-types",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/storage-types"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

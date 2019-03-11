@@ -156,6 +156,20 @@ export class FirebaseFirestore {
    */
   doc(documentPath: string): DocumentReference;
 
+  // TODO(b/116617988): Uncomment method and change jsdoc comment to "/**"
+  // once backend support is ready.
+  /*
+   * Creates and returns a new Query that includes all documents in the
+   * database that are contained in a collection or subcollection with the
+   * given collectionId.
+   *
+   * @param collectionId Identifies the collections to query over. Every
+   * collection or subcollection with this ID as the last segment of its path
+   * will be included. Cannot contain a slash.
+   * @return The created Query.
+   */
+  //collectionGroup(collectionId: string): Query;
+
   /**
    * Executes the given updateFunction and then attempts to commit the
    * changes applied within the transaction. If any document read within the
@@ -1280,6 +1294,25 @@ export class FieldValue {
    * @return The FieldValue sentinel for use in a call to set() or update().
    */
   static arrayRemove(...elements: any[]): FieldValue;
+
+  /**
+   * Returns a special value that can be used with set() or update() that tells
+   * the server to increment the field's current value by the given value.
+   *
+   * If either the operand or the current field value uses floating point
+   * precision, all arithmetic will follow IEEE 754 semantics. If both values
+   * are integers, values outside of JavaScript's safe number range
+   * (`Number.MIN_SAFE_INTEGER` to `Number.MAX_SAFE_INTEGER`) are also subject
+   * to precision loss. Furthermore, once processed by the Firestore backend,
+   * all integer operations are capped between -2^63 and 2^63-1.
+   *
+   * If the current field value is not of type 'number', or if the field does
+   * not yet exist, the transformation will set the field to the given value.
+   *
+   * @param n The value to increment by.
+   * @return The FieldValue sentinel for use in a call to set() or update().
+   */
+  static increment(n: number): FieldValue;
 
   /**
    * Returns true if this `FieldValue` is equal to the provided one.

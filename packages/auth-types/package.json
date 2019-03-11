@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth-types",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "@firebase/auth Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -15,8 +15,9 @@
     "@firebase/util": "0.x"
   },
   "repository": {
+    "directory": "packages/auth-types",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/auth-types"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

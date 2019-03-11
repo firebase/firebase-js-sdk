@@ -29,6 +29,7 @@ import * as log from '../util/log';
 import { CancelablePromise } from '../util/promise';
 
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
+import { IndexedDbIndexManager } from './indexeddb_index_manager';
 import {
   IndexedDbMutationQueue,
   mutationQueuesContainKey
@@ -263,6 +264,7 @@ export class IndexedDbPersistence implements Persistence {
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
   private readonly queryCache: IndexedDbQueryCache;
+  private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage;
   private listenSequence: ListenSequence;
@@ -295,8 +297,10 @@ export class IndexedDbPersistence implements Persistence {
       this.referenceDelegate,
       this.serializer
     );
+    this.indexManager = new IndexedDbIndexManager();
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
+      this.indexManager,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
     );
     if (platform.window && platform.window.localStorage) {
@@ -740,6 +744,7 @@ export class IndexedDbPersistence implements Persistence {
     return IndexedDbMutationQueue.forUser(
       user,
       this.serializer,
+      this.indexManager,
       this.referenceDelegate
     );
   }
@@ -758,6 +763,14 @@ export class IndexedDbPersistence implements Persistence {
       'Cannot initialize RemoteDocumentCache before persistence is started.'
     );
     return this.remoteDocumentCache;
+  }
+
+  getIndexManager(): IndexedDbIndexManager {
+    assert(
+      this.started,
+      'Cannot initialize IndexManager before persistence is started.'
+    );
+    return this.indexManager;
   }
 
   runTransaction<T>(

@@ -33,6 +33,11 @@ import {
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
 
+// TODO(b/116617988): Use public API.
+interface FirestoreInternal extends firestore.FirebaseFirestore {
+  _collectionGroup(collectionId: string): firestore.Query;
+}
+
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 // tslint:disable:no-any
 
@@ -737,6 +742,49 @@ apiDescribe('Validation:', persistence => {
     });
   });
 
+  describe('Server timestamps transforms', () => {
+    validationIt(persistence, 'reject any arguments', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: (FieldValue as any).serverTimestamp('foo') })
+      ).to.throw(
+        'Function FieldValue.serverTimestamp() does not support ' +
+          'arguments, but was called with 1 argument.'
+      );
+    });
+  });
+
+  describe('Numeric transforms', () => {
+    validationIt(persistence, 'fail in queries', db => {
+      const collection = db.collection('test');
+      expect(() =>
+        collection.where('test', '==', { test: FieldValue.increment(1) })
+      ).to.throw(
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.increment() can only be used with update() and set() ' +
+          '(found in field test)'
+      );
+    });
+
+    validationIt(persistence, 'reject invalid operands', db => {
+      const doc = db.collection('test').doc();
+      expect(() => doc.set({ x: FieldValue.increment('foo' as any) })).to.throw(
+        'Function FieldValue.increment() requires its first argument to ' +
+          'be of type number, but it was: "foo"'
+      );
+    });
+
+    validationIt(persistence, 'reject more than one argument', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: (FieldValue as any).increment(1337, 'leet') })
+      ).to.throw(
+        'Function FieldValue.increment() requires 1 argument, but was ' +
+          'called with 2 arguments.'
+      );
+    });
+  });
+
   describe('Queries', () => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
@@ -869,17 +917,25 @@ apiDescribe('Validation:', persistence => {
       persistence,
       'order-by-key bounds must be strings without slashes.',
       db => {
-        const collection = db.collection('collection');
-        const query = collection.orderBy(
-          firebase.firestore!.FieldPath.documentId()
-        );
+        const query = db
+          .collection('collection')
+          .orderBy(firebase.firestore!.FieldPath.documentId());
+        const cgQuery = (db as FirestoreInternal)
+          ._collectionGroup('collection')
+          .orderBy(firebase.firestore!.FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
             'Query.startAt(), but got a number'
         );
         expect(() => query.startAt('foo/bar')).to.throw(
-          `Invalid query. Document ID 'foo/bar' contains a slash in ` +
-            'Query.startAt()'
+          `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
+            `the value passed to Query.startAt() must be a plain document ID, but 'foo/bar' ` +
+            `contains a slash.`
+        );
+        expect(() => cgQuery.startAt('foo')).to.throw(
+          `Invalid query. When querying a collection group and ordering by ` +
+            `FieldPath.documentId(), the value passed to Query.startAt() must result in a valid ` +
+            `document path, but 'foo' is not because it contains an odd number of segments.`
         );
       }
     );
@@ -976,9 +1032,9 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 'foo/bar/baz')
         ).to.throw(
-          'Function Query.where() requires its third parameter to be ' +
-            'a valid document ID if the first parameter is ' +
-            'FieldPath.documentId(), but it contains a slash.'
+          `Invalid third parameter to Query.where(). When querying a collection by ` +
+            `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
+            `'foo/bar/baz' contains a slash.`
         );
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 1)
@@ -986,6 +1042,15 @@ apiDescribe('Validation:', persistence => {
           'Function Query.where() requires its third parameter to be ' +
             'a string or a DocumentReference if the first parameter is ' +
             'FieldPath.documentId(), but it was: 1.'
+        );
+        expect(() =>
+          (db as FirestoreInternal)
+            ._collectionGroup('foo')
+            .where(FieldPath.documentId(), '>=', 'foo')
+        ).to.throw(
+          `Invalid third parameter to Query.where(). When querying a collection group by ` +
+            `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+            `but 'foo' is not because it has an odd number of segments (1).`
         );
 
         expect(() =>

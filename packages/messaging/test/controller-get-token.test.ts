@@ -359,7 +359,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
         sandbox
           .stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope')
-          .callsFake(() => Promise.resolve(null));
+          .callsFake(() => Promise.resolve(undefined));
 
         const saveTokenDetailsStub = sandbox
           .stub(TokenDetailsModel.prototype, 'saveTokenDetails')

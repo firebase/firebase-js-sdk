@@ -20,6 +20,8 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { decode, encode } from '../../../src/local/encoded_resource_path';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
+  DbCollectionParent,
+  DbCollectionParentKey,
   DbDocumentMutation,
   DbDocumentMutationKey,
   DbMutationBatch,
@@ -44,7 +46,8 @@ import {
   V1_STORES,
   V3_STORES,
   V4_STORES,
-  V6_STORES
+  V6_STORES,
+  V8_STORES
 } from '../../../src/local/indexeddb_schema';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -194,7 +197,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     const batchId = 1;
     const targetId = 2;
 
-    const expectedMutation = new DbMutationBatch(userId, batchId, 1000, []);
+    const expectedMutation = new DbMutationBatch(userId, batchId, 1000, [], []);
     const dummyTargetGlobal = new DbTargetGlobal(
       /*highestTargetId=*/ 1,
       /*highestListenSequencNumber=*/ 1,
@@ -284,18 +287,21 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         userId: 'foo',
         batchId: 0,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: []
       },
       {
         userId: 'foo',
         batchId: 1,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWrite]
       },
       {
         userId: 'foo',
         batchId: 42,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWrite, testWrite]
       }
     ];
@@ -367,12 +373,14 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         userId: 'foo',
         batchId: 1,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWriteFoo]
       },
       {
         userId: 'foo',
         batchId: 2,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWriteFoo]
       },
       // User 'bar' has one acknowledged mutation and one that is pending.
@@ -380,18 +388,21 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         userId: 'bar',
         batchId: 3,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWriteBar, testWriteBaz]
       },
       {
         userId: 'bar',
         batchId: 4,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWritePending]
       },
       {
         userId: 'foo',
         batchId: 5,
         localWriteTimeMs: 1337,
+        baseMutations: undefined,
         mutations: [testWritePending]
       }
     ];
@@ -601,6 +612,90 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             expect(targetDocument.sequenceNumber).to.equal(expected);
           }
         );
+      });
+    });
+  });
+
+  it('can upgrade from version 7 to 8', async () => {
+    // This test creates a database with schema version 7 that has a few
+    // mutations and a few remote documents and then ensures that appropriate
+    // entries are written to the collectionParentIndex.
+    const writePaths = [
+      'cg1/x',
+      'cg1/y',
+      'cg1/x/cg1/x',
+      'cg2/x',
+      'cg1/x/cg2/x'
+    ];
+    const remoteDocPaths = [
+      'cg1/z',
+      'cg1/y/cg1/x',
+      'cg2/x/cg3/x',
+      'blah/x/blah/x/cg3/x'
+    ];
+    const expectedParents = {
+      cg1: ['', 'cg1/x', 'cg1/y'],
+      cg2: ['', 'cg1/x'],
+      cg3: ['blah/x/blah/x', 'cg2/x']
+    };
+
+    await withDb(7, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', V6_STORES, txn => {
+        const remoteDocumentStore = txn.store<
+          DbRemoteDocumentKey,
+          DbRemoteDocument
+        >(DbRemoteDocument.store);
+        const documentMutationStore = txn.store<
+          DbDocumentMutationKey,
+          DbDocumentMutation
+        >(DbDocumentMutation.store);
+        // We "cheat" and only write the DbDocumentMutation index entries, since that's
+        // all the migration uses.
+        return PersistencePromise.forEach(writePaths, writePath => {
+          const indexKey = DbDocumentMutation.key(
+            'dummy-uid',
+            path(writePath),
+            /*dummy batchId=*/ 123
+          );
+          return documentMutationStore.put(
+            indexKey,
+            DbDocumentMutation.PLACEHOLDER
+          );
+        }).next(() => {
+          // Write the remote document entries.
+          return PersistencePromise.forEach(remoteDocPaths, path => {
+            const remoteDoc = doc(path, /*version=*/ 1, { data: 1 });
+            return remoteDocumentStore.put(
+              remoteDoc.key.path.toArray(),
+              TEST_SERIALIZER.toDbRemoteDocument(remoteDoc)
+            );
+          });
+        });
+      });
+    });
+
+    // Migrate to v8 and verify index entries.
+    await withDb(8, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
+        const collectionParentsStore = txn.store<
+          DbCollectionParentKey,
+          DbCollectionParent
+        >(DbCollectionParent.store);
+        return collectionParentsStore.loadAll().next(indexEntries => {
+          const actualParents = {};
+          for (const { collectionId, parent } of indexEntries) {
+            let parents = actualParents[collectionId];
+            if (!parents) {
+              parents = [];
+              actualParents[collectionId] = parents;
+            }
+            parents.push(decode(parent).toString());
+          }
+
+          expect(actualParents).to.deep.equal(expectedParents);
+        });
       });
     });
   });

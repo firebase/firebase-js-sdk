@@ -28,6 +28,7 @@ import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
+import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -52,7 +53,10 @@ export class MemoryMutationQueue implements MutationQueue {
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
 
-  constructor(private readonly referenceDelegate: ReferenceDelegate) {}
+  constructor(
+    private readonly indexManager: IndexManager,
+    private readonly referenceDelegate: ReferenceDelegate
+  ) {}
 
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
@@ -101,6 +105,7 @@ export class MemoryMutationQueue implements MutationQueue {
   addMutationBatch(
     transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
+    baseMutations: Mutation[],
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
     assert(mutations.length !== 0, 'Mutation batches should not be empty');
@@ -116,13 +121,23 @@ export class MemoryMutationQueue implements MutationQueue {
       );
     }
 
-    const batch = new MutationBatch(batchId, localWriteTime, mutations);
+    const batch = new MutationBatch(
+      batchId,
+      localWriteTime,
+      baseMutations,
+      mutations
+    );
     this.mutationQueue.push(batch);
 
-    // Track references by document key.
+    // Track references by document key and index collection parents.
     for (const mutation of mutations) {
       this.batchesByDocumentKey = this.batchesByDocumentKey.add(
         new DocReference(mutation.key, batchId)
+      );
+
+      this.indexManager.addToCollectionParentIndex(
+        transaction,
+        mutation.key.path.popLast()
       );
     }
 
@@ -217,6 +232,10 @@ export class MemoryMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
+    assert(
+      !query.isCollectionGroupQuery(),
+      'CollectionGroup queries should be handled in LocalDocumentsView'
+    );
     // Use the query path as a prefix for testing if a document matches the
     // query.
     const prefix = query.path;

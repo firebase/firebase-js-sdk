@@ -35,8 +35,8 @@ export default [
   {
     input: 'index.ts',
     output: [
-      { file: pkg.browser, format: 'cjs' },
-      { file: pkg.module, format: 'es' }
+      { file: pkg.browser, format: 'cjs', sourcemap: true },
+      { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
@@ -46,7 +46,7 @@ export default [
    */
   {
     input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs' }],
+    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }

@@ -35,6 +35,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
@@ -61,6 +62,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   /**
    * @param {LocalSerializer} serializer The document serializer.
+   * @param {IndexManager} indexManager The query indexes that need to be maintained.
    * @param keepDocumentChangeLog Whether to keep a document change log in
    * IndexedDb. This change log is required for Multi-Tab synchronization, but
    * not needed in clients that don't share access to their remote document
@@ -68,6 +70,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    */
   constructor(
     readonly serializer: LocalSerializer,
+    private readonly indexManager: IndexManager,
     private readonly keepDocumentChangeLog: boolean
   ) {}
 
@@ -107,6 +110,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       for (const { key, doc } of entries) {
         promises.push(documentStore.put(dbKey(key), doc));
         changedKeys = changedKeys.add(key);
+
+        promises.push(
+          this.indexManager.addToCollectionParentIndex(
+            transaction,
+            key.path.popLast()
+          )
+        );
       }
 
       if (this.keepDocumentChangeLog) {
@@ -291,7 +301,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
+    assert(
+      !query.isCollectionGroupQuery(),
+      'CollectionGroup queries should be handled in LocalDocumentsView'
+    );
     let results = documentMap();
+
+    const immediateChildrenPathLength = query.path.length + 1;
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
@@ -299,6 +315,15 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     const range = IDBKeyRange.lowerBound(startKey);
     return remoteDocumentsStore(transaction)
       .iterate({ range }, (key, dbRemoteDoc, control) => {
+        // The query is actually returning any path that starts with the query
+        // path prefix which may include documents in subcollections. For
+        // example, a query on 'rooms' will return rooms/abc/messages/xyx but we
+        // shouldn't match it. Fix this by discarding rows with document keys
+        // more than one segment longer than the query path.
+        if (key.length !== immediateChildrenPathLength) {
+          return;
+        }
+
         const maybeDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
         if (!query.path.isPrefixOf(maybeDoc.key.path)) {
           control.done();

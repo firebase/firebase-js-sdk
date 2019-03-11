@@ -486,13 +486,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   collection(pathString: string): firestore.CollectionReference {
     validateExactNumberOfArgs('Firestore.collection', arguments, 1);
     validateArgType('Firestore.collection', 'non-empty string', 1, pathString);
-    if (!pathString) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Must provide a non-empty collection path to collection()'
-      );
-    }
-
     this.ensureClientConfigured();
     return new CollectionReference(ResourcePath.fromString(pathString), this);
   }
@@ -500,14 +493,31 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   doc(pathString: string): firestore.DocumentReference {
     validateExactNumberOfArgs('Firestore.doc', arguments, 1);
     validateArgType('Firestore.doc', 'non-empty string', 1, pathString);
-    if (!pathString) {
+    this.ensureClientConfigured();
+    return DocumentReference.forPath(ResourcePath.fromString(pathString), this);
+  }
+
+  // TODO(b/116617988): Fix name, uncomment d.ts definitions, and update CHANGELOG.md.
+  _collectionGroup(collectionId: string): firestore.Query {
+    validateExactNumberOfArgs('Firestore.collectionGroup', arguments, 1);
+    validateArgType(
+      'Firestore.collectionGroup',
+      'non-empty string',
+      1,
+      collectionId
+    );
+    if (collectionId.indexOf('/') >= 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Must provide a non-empty document path to doc()'
+        `Invalid collection ID '${collectionId}' passed to function ` +
+          `Firestore.collectionGroup(). Collection IDs must not contain '/'.`
       );
     }
     this.ensureClientConfigured();
-    return DocumentReference.forPath(ResourcePath.fromString(pathString), this);
+    return new Query(
+      new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+      this
+    );
   }
 
   runTransaction<T>(
@@ -652,13 +662,13 @@ export class Transaction implements firestore.Transaction {
     documentRef: firestore.DocumentReference,
     field: string | ExternalFieldPath,
     value: unknown,
-    ...moreFieldsAndValues: Array<unknown>
+    ...moreFieldsAndValues: unknown[]
   ): Transaction;
   update(
     documentRef: firestore.DocumentReference,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
-    ...moreFieldsAndValues: Array<unknown>
+    ...moreFieldsAndValues: unknown[]
   ): Transaction {
     let ref;
     let parsed;
@@ -749,13 +759,13 @@ export class WriteBatch implements firestore.WriteBatch {
     documentRef: firestore.DocumentReference,
     field: string | ExternalFieldPath,
     value: unknown,
-    ...moreFieldsAndValues: Array<unknown>
+    ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
   update(
     documentRef: firestore.DocumentReference,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
-    ...moreFieldsAndValues: Array<unknown>
+    ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
     this.verifyNotCommitted();
 
@@ -916,12 +926,12 @@ export class DocumentReference implements firestore.DocumentReference {
   update(
     field: string | ExternalFieldPath,
     value: unknown,
-    ...moreFieldsAndValues: Array<unknown>
+    ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
   update(
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
     value?: unknown,
-    ...moreFieldsAndValues: Array<unknown>
+    ...moreFieldsAndValues: unknown[]
   ): Promise<void> {
     let parsed;
 
@@ -975,7 +985,7 @@ export class DocumentReference implements firestore.DocumentReference {
     onCompletion?: CompleteFn
   ): Unsubscribe;
 
-  onSnapshot(...args: Array<unknown>): Unsubscribe {
+  onSnapshot(...args: unknown[]): Unsubscribe {
     validateBetweenNumberOfArgs(
       'DocumentReference.onSnapshot',
       arguments,
@@ -1301,7 +1311,10 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     }
   }
 
-  private convertArray(data: ArrayValue, options: FieldValueOptions): Array<unknown> {
+  private convertArray(
+    data: ArrayValue,
+    options: FieldValueOptions
+  ): unknown[] {
     return data.internalValue.map(value => {
       return this.convertValue(value, options);
     });
@@ -1353,15 +1366,6 @@ export class Query implements firestore.Query {
         );
       }
       if (typeof value === 'string') {
-        if (value.indexOf('/') !== -1) {
-          // TODO(dimond): Allow slashes once ancestor queries are supported
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Function Query.where() requires its third parameter to be a ' +
-              'valid document ID if the first parameter is ' +
-              'FieldPath.documentId(), but it contains a slash.'
-          );
-        }
         if (value === '') {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
@@ -1370,8 +1374,28 @@ export class Query implements firestore.Query {
               'FieldPath.documentId(), but it was an empty string.'
           );
         }
-        const path = this._query.path.child(new ResourcePath([value]));
-        assert(path.length % 2 === 0, 'Path should be a document key');
+        if (
+          !this._query.isCollectionGroupQuery() &&
+          value.indexOf('/') !== -1
+        ) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid third parameter to Query.where(). When querying a collection by ` +
+              `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
+              `'${value}' contains a slash.`
+          );
+        }
+        const path = this._query.path.child(ResourcePath.fromString(value));
+        if (!DocumentKey.isDocumentKey(path)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid third parameter to Query.where(). When querying a collection group by ` +
+              `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+              `but '${path}' is not because it has an odd number of segments (${
+                path.length
+              }).`
+          );
+        }
         fieldValue = new RefValue(
           this.firestore._databaseId,
           new DocumentKey(path)
@@ -1457,7 +1481,7 @@ export class Query implements firestore.Query {
 
   startAt(
     docOrField: unknown | firestore.DocumentSnapshot,
-    ...fields: Array<unknown>
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.startAt', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1471,7 +1495,7 @@ export class Query implements firestore.Query {
 
   startAfter(
     docOrField: unknown | firestore.DocumentSnapshot,
-    ...fields: Array<unknown>
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.startAfter', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1485,7 +1509,7 @@ export class Query implements firestore.Query {
 
   endBefore(
     docOrField: unknown | firestore.DocumentSnapshot,
-    ...fields: Array<unknown>
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.endBefore', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1499,7 +1523,7 @@ export class Query implements firestore.Query {
 
   endAt(
     docOrField: unknown | firestore.DocumentSnapshot,
-    ...fields: Array<unknown>
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.endAt', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1524,7 +1548,7 @@ export class Query implements firestore.Query {
   private boundFromDocOrFields(
     methodName: string,
     docOrField: unknown | firestore.DocumentSnapshot,
-    fields: Array<unknown>,
+    fields: unknown[],
     before: boolean
   ): Bound {
     validateDefined(methodName, 1, docOrField);
@@ -1610,7 +1634,7 @@ export class Query implements firestore.Query {
    */
   private boundFromFields(
     methodName: string,
-    values: Array<unknown>,
+    values: unknown[],
     before: boolean
   ): Bound {
     // Use explicit order by's because it has to match the query the user made
@@ -1636,14 +1660,28 @@ export class Query implements firestore.Query {
               `${methodName}(), but got a ${typeof rawValue}`
           );
         }
-        if (rawValue.indexOf('/') !== -1) {
+        if (
+          !this._query.isCollectionGroupQuery() &&
+          rawValue.indexOf('/') !== -1
+        ) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
-            `Invalid query. Document ID '${rawValue}' contains a slash in ` +
-              `${methodName}()`
+            `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
+              `the value passed to ${methodName}() must be a plain document ID, but ` +
+              `'${rawValue}' contains a slash.`
           );
         }
-        const key = new DocumentKey(this._query.path.child(rawValue));
+        const path = this._query.path.child(ResourcePath.fromString(rawValue));
+        if (!DocumentKey.isDocumentKey(path)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid query. When querying a collection group and ordering by ` +
+              `FieldPath.documentId(), the value passed to ${methodName}() must result in a ` +
+              `valid document path, but '${path}' is not because it contains an odd number ` +
+              `of segments.`
+          );
+        }
+        const key = new DocumentKey(path);
         components.push(new RefValue(this.firestore._databaseId, key));
       } else {
         const wrapped = this.firestore._dataConverter.parseQueryValue(
@@ -1674,7 +1712,7 @@ export class Query implements firestore.Query {
     onCompletion?: CompleteFn
   ): Unsubscribe;
 
-  onSnapshot(...args: Array<unknown>): Unsubscribe {
+  onSnapshot(...args: unknown[]): Unsubscribe {
     validateBetweenNumberOfArgs('Query.onSnapshot', arguments, 1, 4);
     let options: firestore.SnapshotListenOptions = {};
     let observer: PartialObserver<firestore.QuerySnapshot>;

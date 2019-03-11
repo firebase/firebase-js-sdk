@@ -1,4 +1,15 @@
 # Unreleased
+- [feature] Added `FieldValue.increment()`, which can be used in `update()`
+  and `set(..., {merge:true})` to increment or decrement numeric field
+  values safely without transactions.
+- [changed] Improved performance when querying over documents that contain
+  subcollections.
+- [changed] Prepared the persistence layer to support collection group queries.
+  While this feature is not yet available, all schema changes are included
+  in this release. Once you upgrade, you will not be able to use an older version
+  of the Firestore SDK with persistence enabled.
+
+# 1.0.4
 - [fixed] Fixed an uncaught promise error occurring when `enablePersistence()`
   was called in a second tab (#1531).
 

@@ -31,6 +31,8 @@ import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 
+import { assert } from '../util/assert';
+import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -45,7 +47,8 @@ import { RemoteDocumentCache } from './remote_document_cache';
 export class LocalDocumentsView {
   constructor(
     private remoteDocumentCache: RemoteDocumentCache,
-    private mutationQueue: MutationQueue
+    private mutationQueue: MutationQueue,
+    private indexManager: IndexManager
   ) {}
 
   /**
@@ -143,8 +146,10 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
-    if (DocumentKey.isDocumentKey(query.path)) {
+    if (query.isDocumentQuery()) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
+    } else if (query.isCollectionGroupQuery()) {
+      return this.getDocumentsMatchingCollectionGroupQuery(transaction, query);
     } else {
       return this.getDocumentsMatchingCollectionQuery(transaction, query);
     }
@@ -164,6 +169,37 @@ export class LocalDocumentsView {
         return result;
       }
     );
+  }
+
+  private getDocumentsMatchingCollectionGroupQuery(
+    transaction: PersistenceTransaction,
+    query: Query
+  ): PersistencePromise<DocumentMap> {
+    assert(
+      query.path.isEmpty(),
+      'Currently we only support collection group queries at the root.'
+    );
+    const collectionId = query.collectionGroup!;
+    let results = documentMap();
+    return this.indexManager
+      .getCollectionParents(transaction, collectionId)
+      .next(parents => {
+        // Perform a collection query against each parent that contains the
+        // collectionId and aggregate the results.
+        return PersistencePromise.forEach(parents, parent => {
+          const collectionQuery = query.asCollectionQueryAtPath(
+            parent.child(collectionId)
+          );
+          return this.getDocumentsMatchingCollectionQuery(
+            transaction,
+            collectionQuery
+          ).next(r => {
+            r.forEach((key, doc) => {
+              results = results.insert(key, doc);
+            });
+          });
+        }).next(() => results);
+      });
   }
 
   private getDocumentsMatchingCollectionQuery(
