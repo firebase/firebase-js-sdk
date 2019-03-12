@@ -333,7 +333,11 @@ export class SwController extends BaseController {
     const clientList = await getClientList();
 
     return clientList.some(
-      (client: WindowClient) => client.visibilityState === 'visible'
+      (client: WindowClient) =>
+        client.visibilityState === 'visible' &&
+        // Ignore chrome-extension clients as that matches the background pages
+        // of extensions, which are always considered visible.
+        !client.url.startsWith('chrome-extension://')
     );
   }
 
