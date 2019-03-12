@@ -34,8 +34,9 @@
     "rollup-plugin-typescript2": "0.19.3"
   },
   "repository": {
+    "directory": "packages/testing",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/testing"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "typings": "dist/index.d.ts",
   "bugs": {

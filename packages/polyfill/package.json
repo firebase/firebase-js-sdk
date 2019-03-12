@@ -25,8 +25,9 @@
     "rollup-plugin-typescript2": "0.19.3"
   },
   "repository": {
+    "directory": "packages/polyfill",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/polyfill"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"

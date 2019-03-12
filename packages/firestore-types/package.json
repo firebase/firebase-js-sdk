@@ -14,8 +14,9 @@
     "@firebase/app-types": "0.x"
   },
   "repository": {
+    "directory": "packages/firestore-types",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/firestore-types"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
