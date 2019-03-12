@@ -105,7 +105,7 @@ function parseInt64(value: number | string): number {
   } else if (typeof value === 'string') {
     return Number(value);
   } else {
-    return fail("can't parse " + value);
+    return fail(`can't parse ${value} (${typeof value})`);
   }
 }
 

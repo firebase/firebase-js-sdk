@@ -31,7 +31,7 @@ export function loadProtos(): grpc.GrpcObject {
   );
   const pkgDef = protoLoader.loadSync(
     resolve(root, 'google/firestore/v1/firestore.proto'),
-    { includeDirs: [root] }
+    { includeDirs: [root], enums: String, longs: String }
   );
   return grpc.loadPackageDefinition(pkgDef);
 }
