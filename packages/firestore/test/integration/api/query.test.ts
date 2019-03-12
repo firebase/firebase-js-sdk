@@ -32,8 +32,10 @@ import {
   withTestDb
 } from '../util/helpers';
 
-const Timestamp = firebase.firestore!.Timestamp;
+const Blob = firebase.firestore!.Blob;
 const FieldPath = firebase.firestore!.FieldPath;
+const GeoPoint = firebase.firestore!.GeoPoint;
+const Timestamp = firebase.firestore!.Timestamp;
 
 // TODO(b/116617988): Use public API.
 interface FirestoreInternal extends firestore.FirebaseFirestore {
@@ -692,6 +694,37 @@ apiDescribe('Queries', persistence => {
         .where(FieldPath.documentId(), '<', `a/b/${collectionGroup}/cg-doc3`)
         .get();
       expect(querySnapshot.docs.map(d => d.id)).to.deep.equal(['cg-doc2']);
+    });
+  });
+
+  it('can query custom types', () => {
+    return withTestCollection(persistence, {}, async ref => {
+      const data = {
+        ref: ref.firestore.doc('f/c'),
+        geoPoint: new GeoPoint(0, 0),
+        buffer: Blob.fromBase64String('Zm9v'),
+        time: Timestamp.now()
+      };
+      await ref.add({ data });
+
+      // In https://github.com/firebase/firebase-js-sdk/issues/1524, a
+      // customer was not able to unlisten from a query that contained a
+      // nested object with a DocumentReference. The cause of it was that our
+      // serialization of nested references via JSON.stringify() was different
+      // for Queries created via the API layer versus Queries read from
+      // persistence. To simulate this issue, we have to listen and unlisten
+      // to the same query twice.
+      const query = ref.where('data', '==', data);
+
+      for (let i = 0; i < 2; ++i) {
+        const deferred = new Deferred();
+        const unsubscribe = query.onSnapshot(snapshot => {
+          expect(snapshot.size).to.equal(1);
+          deferred.resolve();
+        });
+        await deferred.promise;
+        unsubscribe();
+      }
     });
   });
 });

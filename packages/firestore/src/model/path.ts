@@ -73,6 +73,10 @@ export abstract class Path {
     return this.len;
   }
 
+  toJSON(): string[] {
+    return this.segments.slice(this.offset, this.limit());
+  }
+
   isEqual(other: Path): boolean {
     return Path.comparator(this, other) === 0;
   }

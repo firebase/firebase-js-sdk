@@ -171,6 +171,12 @@ describe('Path', () => {
     expect(abc.isPrefixOf(ba)).to.equal(false);
   });
 
+  it('respects offset during JSON serialization', () => {
+    const path1 = new ResourcePath(['c']);
+    const path2 = new ResourcePath(['a', 'b', 'c'], 2);
+    expect(JSON.stringify(path1)).to.equal(JSON.stringify(path2));
+  });
+
   it('can be constructed from field path.', () => {
     const path = FieldPath.fromServerFormat('foo\\..bar\\\\.baz');
     expect(path.toArray()).to.deep.equal(['foo.', 'bar\\', 'baz']);
