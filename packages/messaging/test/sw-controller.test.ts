@@ -400,13 +400,16 @@ describe('Firebase Messaging > *SwController', () => {
 
           return [
             {
-              visibilityState: 'hidden'
+              visibilityState: 'hidden',
+              url: 'https://example.com'
             },
             {
-              visibilityState: 'prerender'
+              visibilityState: 'prerender',
+              url: 'https://firebase.com'
             },
             {
-              visibilityState: 'unloaded'
+              visibilityState: 'unloaded',
+              url: 'https://google.com'
             }
           ];
         }
@@ -428,16 +431,20 @@ describe('Firebase Messaging > *SwController', () => {
 
           return [
             {
-              visibilityState: 'hidden'
+              visibilityState: 'hidden',
+              url: 'https://example.com'
             },
             {
-              visibilityState: 'prerender'
+              visibilityState: 'prerender',
+              url: 'https://firebase.com'
             },
             {
-              visibilityState: 'unloaded'
+              visibilityState: 'unloaded',
+              url: 'https://google.com'
             },
             {
-              visibilityState: 'visible'
+              visibilityState: 'visible',
+              url: 'https://mozilla.org'
             }
           ];
         }
@@ -447,6 +454,29 @@ describe('Firebase Messaging > *SwController', () => {
       const swController = new SwController(app);
       const result = await swController.hasVisibleClients_();
       expect(result).to.equal(true);
+    });
+
+    it('should return false when a chrome-extension client is visible', async () => {
+      const clients = {
+        matchAll: async (options: Partial<ClientQueryOptions>) => {
+          expect(options).to.deep.equal({
+            type: 'window',
+            includeUncontrolled: true
+          });
+
+          return [
+            {
+              visibilityState: 'visible',
+              url: 'chrome-extension://example.com'
+            }
+          ];
+        }
+      };
+      sandbox.stub(self, 'clients').value(clients);
+
+      const swController = new SwController(app);
+      const result = await swController.hasVisibleClients_();
+      expect(result).to.equal(false);
     });
   });
 
