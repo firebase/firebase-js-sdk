@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import * as grpc from 'grpc';
 import * as protoLoader from '@grpc/proto-loader';
+import * as grpc from 'grpc';
 import { resolve } from 'path';
 
 /**
