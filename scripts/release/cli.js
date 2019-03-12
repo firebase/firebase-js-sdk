@@ -31,8 +31,7 @@ const {
   getCurrentSha,
   hasDiff,
   pushUpdatesToGithub,
-  resetWorkingTree,
-  treeAtHead
+  resetWorkingTree
 } = require('./utils/git');
 const {
   packageVersionUpdate,
@@ -40,7 +39,7 @@ const {
   validateReadyToPush,
   validateVersions
 } = require('./utils/inquirer');
-const { reinstallDeps } = require('./utils/yarn');
+const { reinstallDeps, buildPackages } = require('./utils/yarn');
 const { runTests, setupTestDeps } = require('./utils/tests');
 const { publishToNpm } = require('./utils/npm');
 const { bannerText } = require('./utils/banner');
@@ -66,7 +65,7 @@ const { argv } = require('yargs');
      * If there are no packages that have been updated
      * skip the release cycle
      */
-    if (!await hasUpdatedPackages()) {
+    if (!(await hasUpdatedPackages())) {
       console.log('No packages need to be updated. Exiting...');
       return;
     }
@@ -155,9 +154,9 @@ const { argv } = require('yargs');
     await updateWorkspaceVersions(versions, argv.canary);
 
     /**
-     * Users can pass --skipRebuild to skip the rebuild step
+     * Users can pass --skipReinstall to skip the installation step
      */
-    if (!argv.skipRebuild) {
+    if (!argv.skipReinstall) {
       /**
        * Clean install dependencies
        */
@@ -165,6 +164,11 @@ const { argv } = require('yargs');
       await cleanTree();
       await reinstallDeps();
     }
+
+    /**
+     * build packages
+     */
+    await buildPackages();
 
     /**
      * Don't do the following for canary releases:
