@@ -1170,11 +1170,10 @@ export class JsonProtoSerializer {
 
   private toFilter(filters: Filter[]): api.Filter | undefined {
     if (filters.length === 0) return;
-    const protos = filters.map(
-      filter =>
-        filter instanceof RelationFilter
-          ? this.toRelationFilter(filter)
-          : this.toUnaryFilter(filter)
+    const protos = filters.map(filter =>
+      filter instanceof RelationFilter
+        ? this.toRelationFilter(filter)
+        : this.toUnaryFilter(filter)
     );
     if (protos.length === 1) {
       return protos[0];
