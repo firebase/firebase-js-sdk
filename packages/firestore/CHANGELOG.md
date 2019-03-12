@@ -8,6 +8,9 @@
   While this feature is not yet available, all schema changes are included
   in this release. Once you upgrade, you will not be able to use an older version
   of the Firestore SDK with persistence enabled.
+- [fixed] Fixed an issue with IndexedDb persistence that triggered an internal
+  assert for Queries that use nested DocumentReferences in where() clauses
+  (#1524, #1596).
 
 # 1.0.4
 - [fixed] Fixed an uncaught promise error occurring when `enablePersistence()`
