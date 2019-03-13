@@ -204,7 +204,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     const queryView = this.queryViewsByQuery.get(query);
     if (queryView) {
-      // PORTING NOTE: With Mult-Tab Web, it is possible that a query view
+      // PORTING NOTE: With Multi-Tab Web, it is possible that a query view
       // already exists when EventManager calls us for the first time. This
       // happens when the primary tab is already listening to this query on
       // behalf of another tab and the user of the primary also starts listening
