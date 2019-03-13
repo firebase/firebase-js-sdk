@@ -703,7 +703,13 @@ apiDescribe('Queries', persistence => {
         ref: ref.firestore.doc('f/c'),
         geoPoint: new GeoPoint(0, 0),
         buffer: Blob.fromBase64String('Zm9v'),
-        time: Timestamp.now()
+        time: Timestamp.now(),
+        array: [
+          ref.firestore.doc('f/c'),
+          new GeoPoint(0, 0),
+          Blob.fromBase64String('Zm9v'),
+          Timestamp.now()
+        ]
       };
       await ref.add({ data });
 
