@@ -62,12 +62,15 @@ describe('Firebase Storage > Reference', () => {
     });
     it('ignores URL params and fragments on an http URL', () => {
       const s = makeStorage(
-        `http://${DOMAIN_NAME}/v0/b/test-bucket/o/my/object.txt` + '?ignoreme#please'
+        `http://${DOMAIN_NAME}/v0/b/test-bucket/o/my/object.txt` +
+          '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
     });
     it('URL-decodes and ignores fragment on an http URL', () => {
-      const s = makeStorage(`http://${DOMAIN_NAME}/v0/b/test-bucket/o/%3F?ignore`);
+      const s = makeStorage(
+        `http://${DOMAIN_NAME}/v0/b/test-bucket/o/%3F?ignore`
+      );
       assert.equal(s.toString(), 'gs://test-bucket/?');
     });
 
@@ -80,7 +83,9 @@ describe('Firebase Storage > Reference', () => {
     });
 
     it('URL-decodes and ignores fragment on an https URL', () => {
-      const s = makeStorage(`https://${DOMAIN_NAME}/v0/b/test-bucket/o/%3F?ignore`);
+      const s = makeStorage(
+        `https://${DOMAIN_NAME}/v0/b/test-bucket/o/%3F?ignore`
+      );
       assert.equal(s.toString(), 'gs://test-bucket/?');
     });
   });
