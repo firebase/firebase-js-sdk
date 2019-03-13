@@ -19,7 +19,7 @@ import { TaskEvent } from '../src/implementation/taskenums';
 import { XhrIoPool } from '../src/implementation/xhriopool';
 import { Service } from '../src/service';
 import * as testShared from './testshared';
-import {domain} from '../src/implementation/constants';
+import { domain } from '../src/implementation/constants';
 
 const fakeAppGs = testShared.makeFakeApp(null, 'gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp(null, 'gs://mybucket/');

@@ -21,7 +21,7 @@
  */
 import * as errorsExports from './error';
 import { errors } from './error';
-import {domain} from './constants';
+import { domain } from './constants';
 
 /**
  * @struct

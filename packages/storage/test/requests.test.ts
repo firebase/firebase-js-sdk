@@ -33,7 +33,7 @@ import { Metadata } from '../src/metadata';
 import { Reference } from '../src/reference';
 import { Service } from '../src/service';
 import { assertObjectIncludes, fakeXhrIo } from './testshared';
-import {domain} from '../src/implementation/constants';
+import { domain } from '../src/implementation/constants';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
