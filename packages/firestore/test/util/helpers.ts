@@ -105,10 +105,14 @@ export function version(v: TestSnapshotVersion): SnapshotVersion {
   return SnapshotVersion.fromMicroseconds(v);
 }
 
-export function ref(dbIdStr: string, keyStr: string): DocumentKeyReference {
+export function ref(
+  dbIdStr: string,
+  keyStr: string,
+  offset?: number
+): DocumentKeyReference {
   const [project, database] = dbIdStr.split('/', 2);
   const dbId = new DatabaseId(project, database);
-  return new DocumentKeyReference(dbId, key(keyStr));
+  return new DocumentKeyReference(dbId, new DocumentKey(path(keyStr, offset)));
 }
 
 export function doc(
