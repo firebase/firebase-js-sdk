@@ -30,7 +30,7 @@
     "test:setup": "node tools/config.js",
     "pretest:saucelabs": "lerna run --parallel pretest",
     "test:saucelabs": "karma start config/karma.saucelabs.js --single-run",
-    "docgen": "node scripts/docgen/generate-docs.js"
+    "docgen": "node scripts/docgen/generate-docs.js --api js; node scripts/docgen/generate-docs.js --api node"
   },
   "repository": {
     "type": "git",

@@ -93,8 +93,6 @@ toc:
     path: /docs/reference/js/firebase.firestore.Query
   - title: "QueryDocumentSnapshot"
     path: /docs/reference/js/firebase.firestore.QueryDocumentSnapshot
-  - title: "QueryListenOptions"
-    path: /docs/reference/js/firebase.firestore.QueryListenOptions
   - title: "QuerySnapshot"
     path: /docs/reference/js/firebase.firestore.QuerySnapshot
   - title: "SetOptions"
