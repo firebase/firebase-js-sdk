@@ -171,7 +171,7 @@ export class PersistencePromise<T> {
 
   static waitFor(
     // tslint:disable-next-line:no-any Accept all Promise types in waitFor().
-    all: { forEach: (cb: ((el: PersistencePromise<any>) => void)) => void }
+    all: { forEach: (cb: (el: PersistencePromise<any>) => void) => void }
   ): PersistencePromise<void> {
     return new PersistencePromise<void>((resolve, reject) => {
       let expectedCount = 0;
@@ -226,7 +226,7 @@ export class PersistencePromise<T> {
    * to resolve.
    */
   static forEach<R, S>(
-    collection: { forEach: ((cb: ((r: R, s?: S) => void)) => void) },
+    collection: { forEach: (cb: (r: R, s?: S) => void) => void },
     f:
       | ((r: R, s: S) => PersistencePromise<void>)
       | ((r: R) => PersistencePromise<void>)

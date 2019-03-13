@@ -943,7 +943,7 @@ export class DbRemoteDocumentChanges {
 /*
  * The key for DbRemoteDocumentChanges, consisting of an auto-incrementing
  * number.
-*/
+ */
 export type DbRemoteDocumentChangesKey = number;
 
 function createRemoteDocumentChangesStore(db: IDBDatabase): void {

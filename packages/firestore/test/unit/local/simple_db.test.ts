@@ -427,9 +427,8 @@ describe('SimpleDb', () => {
         )
         .next(() => {
           const expected = testData
-            .sort(
-              (a, b) =>
-                a.age !== b.age ? a.age - b.age : a.name.localeCompare(b.name)
+            .sort((a, b) =>
+              a.age !== b.age ? a.age - b.age : a.name.localeCompare(b.name)
             )
             .map(user => user.id);
           expect(iterated).to.deep.equal(expected);

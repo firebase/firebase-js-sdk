@@ -287,7 +287,7 @@ export class LruGarbageCollector {
     percentile: number
   ): PersistencePromise<number> {
     return this.delegate.getSequenceNumberCount(txn).next(targetCount => {
-      return Math.floor(percentile / 100.0 * targetCount);
+      return Math.floor((percentile / 100.0) * targetCount);
     });
   }
 
