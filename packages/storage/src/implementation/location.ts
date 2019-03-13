@@ -82,11 +82,10 @@ export class Location {
     }
     let version = 'v[A-Za-z0-9_]+';
     let domainRegex = domain.replace(/[.]/g, '\\.');
-    let a = `^https?://${domainRegex}/${version}/b/${bucketDomain}/o${path}`;
-    let httpRegex = new RegExp(a,
+    let httpRegex = new RegExp(
+      `^https?://${domainRegex}/${version}/b/${bucketDomain}/o${path}`,
       'i'
     );
-    console.log(a);
     let httpIndices = { bucket: 1, path: 3 };
     let groups = [
       { regex: gsRegex, indices: gsIndices, postModify: gsModify },
