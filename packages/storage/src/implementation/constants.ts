@@ -18,15 +18,17 @@
  * @fileoverview Constants used in the Firebase Storage library.
  */
 
+export const domain: string = "firebasestorage.googleapis.com";
+
 /**
  * Domain and scheme for API calls.
  */
-export const domainBase: string = 'https://firebasestorage.googleapis.com';
+export const domainBase: string = `https://${domain}`;
 
 /**
  * Domain and scheme for object downloads.
  */
-export const downloadBase: string = 'https://firebasestorage.googleapis.com';
+export const downloadBase: string = `https://${domain}`;
 
 /**
  * Base URL for non-upload calls to the API.

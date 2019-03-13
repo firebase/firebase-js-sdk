@@ -21,6 +21,7 @@
  */
 import * as errorsExports from './error';
 import { errors } from './error';
+import {domain} from './constants';
 
 /**
  * @struct
@@ -80,15 +81,12 @@ export class Location {
       loc.path_ = decodeURIComponent(loc.path);
     }
     let version = 'v[A-Za-z0-9_]+';
-    let httpRegex = new RegExp(
-      '^https?://firebasestorage\\.googleapis\\.com/' +
-        version +
-        '/b/' +
-        bucketDomain +
-        '/o' +
-        path,
+    let domainRegex = domain.replace(/[.]/g, '\\.');
+    let a = `^https?://${domainRegex}/${version}/b/${bucketDomain}/o${path}`;
+    let httpRegex = new RegExp(a,
       'i'
     );
+    console.log(a);
     let httpIndices = { bucket: 1, path: 3 };
     let groups = [
       { regex: gsRegex, indices: gsIndices, postModify: gsModify },
