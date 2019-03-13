@@ -74,8 +74,8 @@ export class AuthWrapper {
     this.requestMaker_ = requestMaker;
     this.pool_ = pool;
     this.service_ = service;
-    this.maxOperationRetryTime_ = constants.defaultMaxOperationRetryTime;
-    this.maxUploadRetryTime_ = constants.defaultMaxUploadRetryTime;
+    this.maxOperationRetryTime_ = constants.DEFAULT_MAX_OPERATION_RETRY_TIME;
+    this.maxUploadRetryTime_ = constants.DEFAULT_MAX_UPLOAD_RETRY_TIME;
     this.requestMap_ = new RequestMap();
   }
 

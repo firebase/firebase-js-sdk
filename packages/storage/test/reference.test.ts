@@ -25,7 +25,7 @@ import { Reference } from '../src/reference';
 import { Service } from '../src/service';
 import * as testShared from './testshared';
 import { SendHook, TestingXhrIo } from './xhrio';
-import { domain } from '../src/implementation/constants';
+import { DOMAIN_NAME } from '../src/implementation/constants';
 
 function makeFakeService(app: FirebaseApp, sendHook: SendHook): Service {
   return new Service(app, testShared.makePool(sendHook));
@@ -62,25 +62,25 @@ describe('Firebase Storage > Reference', () => {
     });
     it('ignores URL params and fragments on an http URL', () => {
       const s = makeStorage(
-        `http://${domain}/v0/b/test-bucket/o/my/object.txt` + '?ignoreme#please'
+        `http://${DOMAIN_NAME}/v0/b/test-bucket/o/my/object.txt` + '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
     });
     it('URL-decodes and ignores fragment on an http URL', () => {
-      const s = makeStorage(`http://${domain}/v0/b/test-bucket/o/%3F?ignore`);
+      const s = makeStorage(`http://${DOMAIN_NAME}/v0/b/test-bucket/o/%3F?ignore`);
       assert.equal(s.toString(), 'gs://test-bucket/?');
     });
 
     it('ignores URL params and fragments on an https URL', () => {
       const s = makeStorage(
-        `https://${domain}/v0/b/test-bucket/o/my/object.txt` +
+        `https://${DOMAIN_NAME}/v0/b/test-bucket/o/my/object.txt` +
           '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
     });
 
     it('URL-decodes and ignores fragment on an https URL', () => {
-      const s = makeStorage(`https://${domain}/v0/b/test-bucket/o/%3F?ignore`);
+      const s = makeStorage(`https://${DOMAIN_NAME}/v0/b/test-bucket/o/%3F?ignore`);
       assert.equal(s.toString(), 'gs://test-bucket/?');
     });
   });

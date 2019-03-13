@@ -19,7 +19,7 @@ import { TaskEvent } from '../src/implementation/taskenums';
 import { XhrIoPool } from '../src/implementation/xhriopool';
 import { Service } from '../src/service';
 import * as testShared from './testshared';
-import { domain } from '../src/implementation/constants';
+import { DOMAIN_NAME } from '../src/implementation/constants';
 
 const fakeAppGs = testShared.makeFakeApp(null, 'gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp(null, 'gs://mybucket/');
@@ -49,13 +49,13 @@ describe('Firebase Storage > Service', () => {
     });
     it('Throws calling ref with an http:// URL', () => {
       const error = testShared.assertThrows(() => {
-        service.ref(`http://${domain}/etc`);
+        service.ref(`http://${DOMAIN_NAME}/etc`);
       }, 'storage/invalid-argument');
       assert.match(error.message, /refFromURL/);
     });
     it('Throws calling ref with an https:// URL', () => {
       const error = testShared.assertThrows(() => {
-        service.ref(`https://${domain}/etc`);
+        service.ref(`https://${DOMAIN_NAME}/etc`);
       }, 'storage/invalid-argument');
       assert.match(error.message, /refFromURL/);
     });
@@ -74,7 +74,7 @@ describe('Firebase Storage > Service', () => {
       const service = new Service(
         testShared.fakeApp,
         xhrIoPool,
-        `http://${domain}/v1/b/foo-bar.appspot.com/o`
+        `http://${DOMAIN_NAME}/v1/b/foo-bar.appspot.com/o`
       );
       const ref = service.ref();
       assert.equal(ref.toString(), 'gs://foo-bar.appspot.com/');
@@ -83,7 +83,7 @@ describe('Firebase Storage > Service', () => {
       const service = new Service(
         testShared.fakeApp,
         xhrIoPool,
-        `https://${domain}/v1/b/foo-bar.appspot.com/o`
+        `https://${DOMAIN_NAME}/v1/b/foo-bar.appspot.com/o`
       );
       const ref = service.ref();
       assert.equal(ref.toString(), 'gs://foo-bar.appspot.com/');
@@ -143,14 +143,14 @@ describe('Firebase Storage > Service', () => {
     });
     it('Works with http:// URLs', () => {
       const ref = service.refFromURL(
-        `http://${domain}/v0/b/` +
+        `http://${DOMAIN_NAME}/v0/b/` +
           'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
       );
       assert.equal(ref.toString(), 'gs://mybucket/child/path/image.png');
     });
     it('Works with https:// URLs', () => {
       const ref = service.refFromURL(
-        `https://${domain}/v0/b/` +
+        `https://${DOMAIN_NAME}/v0/b/` +
           'mybucket/o/child%2Fpath%2Fimage.png?downloadToken=hello'
       );
       assert.equal(ref.toString(), 'gs://mybucket/child/path/image.png');

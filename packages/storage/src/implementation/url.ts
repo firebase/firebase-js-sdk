@@ -22,15 +22,15 @@ import * as constants from './constants';
 import * as object from './object';
 
 export function makeNormalUrl(urlPart: string): string {
-  return constants.domainBase + constants.apiBaseUrl + urlPart;
+  return constants.API_DOMAIN + constants.API_BASE_URL + urlPart;
 }
 
 export function makeDownloadUrl(urlPart: string): string {
-  return constants.downloadBase + constants.apiBaseUrl + urlPart;
+  return constants.API_DOWNLOAD_DOMAIN + constants.API_BASE_URL + urlPart;
 }
 
 export function makeUploadUrl(urlPart: string): string {
-  return constants.domainBase + constants.apiUploadBaseUrl + urlPart;
+  return constants.API_DOMAIN + constants.API_UPLOAD_BASE_URL + urlPart;
 }
 
 export function makeQueryString(params: { [key: string]: string }): string {
