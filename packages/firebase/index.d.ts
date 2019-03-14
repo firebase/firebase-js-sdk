@@ -1122,6 +1122,7 @@ declare namespace firebase.app {
      * @return {!firebase.Promise<void>} An empty promise fulfilled when the app has
      *   been deleted.
      */
+    delete(): Promise<any>;
     /**
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
