@@ -438,11 +438,11 @@ function testMatchDomain_ipAddressDomain() {
 
 function testMatchDomain_caseInsensitiveMatch() {
   assertTrue(fireauth.util.matchDomain('localhost', 'localhost', 'http'));
-  assertTrue(fireauth.util.matchDomain('domain.com', 'DOMAIN_NAME.COM', 'http'));
+  assertTrue(fireauth.util.matchDomain('domain.com', 'DOMAIN.COM', 'http'));
   assertTrue(fireauth.util.matchDomain(
       'doMAin.com', 'abC.domain.COM', 'http'));
   assertTrue(fireauth.util.matchDomain('localhost', 'localhost', 'https'));
-  assertTrue(fireauth.util.matchDomain('domain.com', 'DOMAIN_NAME.COM', 'https'));
+  assertTrue(fireauth.util.matchDomain('domain.com', 'DOMAIN.COM', 'https'));
   assertTrue(fireauth.util.matchDomain(
       'doMAin.com', 'abC.domain.COM', 'https'));
   assertFalse(fireauth.util.matchDomain(
