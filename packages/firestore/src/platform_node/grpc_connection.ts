@@ -42,13 +42,6 @@ const X_GOOG_API_CLIENT_VALUE = `gl-node/${
   process.versions.node
 } fire/${SDK_VERSION} grpc/${grpcVersion}`;
 
-type DuplexRpc<Req, Resp> = () => grpc.ClientDuplexStream<Req, Resp>;
-type ReadableRpc<Req, Resp> = (req: Req) => grpc.ClientReadableStream<Resp>;
-type UnaryRpc<Req, Resp> = (
-  req: Req,
-  callback: (err?: grpc.ServiceError, resp?: Resp) => void
-) => grpc.ClientUnaryCall;
-
 function createMetadata(
   databaseInfo: DatabaseInfo,
   token: Token | null
@@ -82,11 +75,6 @@ function createMetadata(
 // tslint:disable-next-line:no-any
 type GeneratedGrpcStub = any;
 
-interface CachedStub {
-  stub: GeneratedGrpcStub;
-  token: Token | null;
-}
-
 /**
  * A Connection implemented by GRPC-Node.
  */
@@ -95,54 +83,31 @@ export class GrpcConnection implements Connection {
   private firestore: any;
 
   // We cache stubs for the most-recently-used token.
-  private cachedStub: CachedStub | null = null;
+  private cachedStub: GeneratedGrpcStub | null = null;
 
   constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
     this.firestore = protos['google']['firestore']['v1'];
   }
 
-  private sameToken(tokenA: Token | null, tokenB: Token | null): boolean {
-    const valueA = tokenA && tokenA.authHeaders['Authorization'];
-    const valueB = tokenB && tokenB.authHeaders['Authorization'];
-    return valueA === valueB;
-  }
-
-  private ensureActiveStub(token: Token | null): GeneratedGrpcStub {
-    if (!this.cachedStub || !this.sameToken(this.cachedStub.token, token)) {
+  private ensureActiveStub(): GeneratedGrpcStub {
+    if (!this.cachedStub) {
       log.debug(LOG_TAG, 'Creating Firestore stub.');
       const credentials = this.databaseInfo.ssl
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
-      this.cachedStub = {
-        stub: new this.firestore.Firestore(
-          this.databaseInfo.host,
-          credentials,
-          {
-            // We do our own connection backoff (that for example is aware of whether or
-            // not a write stream error is permanent or not) so we don't want gRPC to do
-            // backoff on top of that. 100ms is the minimum value that gRPC allows.
-            'grpc.initial_reconnect_backoff_ms': 100,
-            'grpc.max_reconnect_backoff_ms': 100
-          }
-        ),
-        token
-      };
+      this.cachedStub = new this.firestore.Firestore(
+        this.databaseInfo.host,
+        credentials,
+        {
+          // We do our own connection backoff (that for example is aware of whether or
+          // not a write stream error is permanent or not) so we don't want gRPC to do
+          // backoff on top of that. 100ms is the minimum value that gRPC allows.
+          'grpc.initial_reconnect_backoff_ms': 100,
+          'grpc.max_reconnect_backoff_ms': 100
+        }
+      );
     }
-
-    return this.cachedStub.stub;
-  }
-
-  private getRpcCallable<Req, Resp>(
-    rpcName: string,
-    token: Token | null
-  ): UnaryRpc<Req, Resp> | ReadableRpc<Req, Resp> | DuplexRpc<Req, Resp> {
-    const stub = this.ensureActiveStub(token);
-    const rpc = stub[rpcName];
-    assert(rpc != null, 'Unknown RPC: ' + rpcName);
-
-    const metadata = createMetadata(this.databaseInfo, token);
-    const f = rpc.bind(stub);
-    return (...args) => f(...args, metadata);
+    return this.cachedStub;
   }
 
   invokeRPC<Req, Resp>(
@@ -150,30 +115,37 @@ export class GrpcConnection implements Connection {
     request: Req,
     token: Token | null
   ): Promise<Resp> {
-    const rpc = this.getRpcCallable<Req, Resp>(rpcName, token) as UnaryRpc<
-      Req,
-      Resp
-    >;
+    const stub = this.ensureActiveStub();
+    const metadata = createMetadata(this.databaseInfo, token);
+
     return nodePromise((callback: NodeCallback<Resp>) => {
       log.debug(LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
-      return rpc(request, (grpcError?: grpc.ServiceError, value?: Resp) => {
-        if (grpcError) {
-          log.debug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
-          callback(
-            new FirestoreError(
-              mapCodeFromRpcCode(grpcError.code),
-              grpcError.message
-            )
-          );
-        } else {
-          log.debug(
-            LOG_TAG,
-            `RPC '${rpcName}' completed with response:`,
-            value
-          );
-          callback(undefined, value);
+      return stub[rpcName](
+        request,
+        metadata,
+        (grpcError?: grpc.ServiceError, value?: Resp) => {
+          if (grpcError) {
+            log.debug(
+              LOG_TAG,
+              `RPC '${rpcName}' failed with error:`,
+              grpcError
+            );
+            callback(
+              new FirestoreError(
+                mapCodeFromRpcCode(grpcError.code),
+                grpcError.message
+              )
+            );
+          } else {
+            log.debug(
+              LOG_TAG,
+              `RPC '${rpcName}' completed with response:`,
+              value
+            );
+            callback(undefined, value);
+          }
         }
-      });
+      );
     });
   }
 
@@ -182,7 +154,6 @@ export class GrpcConnection implements Connection {
     request: Req,
     token: Token | null
   ): Promise<Resp[]> {
-    const rpc = this.getRpcCallable(rpcName, token) as ReadableRpc<Req, Resp>;
     const results: Resp[] = [];
     const responseDeferred = new Deferred<Resp[]>();
 
@@ -191,7 +162,9 @@ export class GrpcConnection implements Connection {
       `RPC '${rpcName}' invoked (streaming) with request:`,
       request
     );
-    const stream = rpc(request);
+    const stub = this.ensureActiveStub();
+    const metadata = createMetadata(this.databaseInfo, token);
+    const stream = stub[rpcName](request, metadata);
     stream.on('data', (response: Resp) => {
       log.debug(LOG_TAG, `RPC ${rpcName} received result:`, response);
       results.push(response);
@@ -214,8 +187,9 @@ export class GrpcConnection implements Connection {
     rpcName: string,
     token: Token | null
   ): Stream<Req, Resp> {
-    const rpc = this.getRpcCallable(rpcName, token) as DuplexRpc<Req, Resp>;
-    const grpcStream = rpc();
+    const stub = this.ensureActiveStub();
+    const metadata = createMetadata(this.databaseInfo, token);
+    const grpcStream = stub[rpcName](metadata);
 
     let closed = false;
     let close: (err?: FirestoreError) => void;
