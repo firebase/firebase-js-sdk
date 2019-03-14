@@ -18,6 +18,9 @@
  * @fileoverview Constants used in the Firebase Storage library.
  */
 
+/**
+ * Domain name for firebase storage.
+ */
 export const DOMAIN_NAME: string = 'firebasestorage.googleapis.com';
 
 /**
