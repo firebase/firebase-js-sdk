@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database",
-  "version": "0.3.14",
+  "version": "0.3.15",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -25,9 +25,9 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/database-types": "0.3.6",
-    "@firebase/logger": "0.1.8",
-    "@firebase/util": "0.2.9",
+    "@firebase/database-types": "0.3.7",
+    "@firebase/logger": "0.1.9",
+    "@firebase/util": "0.2.10",
     "faye-websocket": "0.11.1",
     "tslib": "1.9.3"
   },
