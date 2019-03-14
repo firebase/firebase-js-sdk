@@ -96,16 +96,16 @@ export class GrpcConnection implements Connection {
         ? grpc.credentials.createSsl()
         : grpc.credentials.createInsecure();
       this.cachedStub = new this.firestore.Firestore(
-          this.databaseInfo.host,
-          credentials,
-          {
-            // We do our own connection backoff (that for example is aware of whether or
-            // not a write stream error is permanent or not) so we don't want gRPC to do
-            // backoff on top of that. 100ms is the minimum value that gRPC allows.
-            'grpc.initial_reconnect_backoff_ms': 100,
-            'grpc.max_reconnect_backoff_ms': 100
-          }
-        );
+        this.databaseInfo.host,
+        credentials,
+        {
+          // We do our own connection backoff (that for example is aware of whether or
+          // not a write stream error is permanent or not) so we don't want gRPC to do
+          // backoff on top of that. 100ms is the minimum value that gRPC allows.
+          'grpc.initial_reconnect_backoff_ms': 100,
+          'grpc.max_reconnect_backoff_ms': 100
+        }
+      );
     }
     return this.cachedStub;
   }
@@ -120,24 +120,32 @@ export class GrpcConnection implements Connection {
 
     return nodePromise((callback: NodeCallback<Resp>) => {
       log.debug(LOG_TAG, `RPC '${rpcName}' invoked with request:`, request);
-      return stub[rpcName](request, metadata, (grpcError?: grpc.ServiceError, value?: Resp) => {
-        if (grpcError) {
-          log.debug(LOG_TAG, `RPC '${rpcName}' failed with error:`, grpcError);
-          callback(
-            new FirestoreError(
-              mapCodeFromRpcCode(grpcError.code),
-              grpcError.message
-            )
-          );
-        } else {
-          log.debug(
-            LOG_TAG,
-            `RPC '${rpcName}' completed with response:`,
-            value
-          );
-          callback(undefined, value);
+      return stub[rpcName](
+        request,
+        metadata,
+        (grpcError?: grpc.ServiceError, value?: Resp) => {
+          if (grpcError) {
+            log.debug(
+              LOG_TAG,
+              `RPC '${rpcName}' failed with error:`,
+              grpcError
+            );
+            callback(
+              new FirestoreError(
+                mapCodeFromRpcCode(grpcError.code),
+                grpcError.message
+              )
+            );
+          } else {
+            log.debug(
+              LOG_TAG,
+              `RPC '${rpcName}' completed with response:`,
+              value
+            );
+            callback(undefined, value);
+          }
         }
-      });
+      );
     });
   }
 
