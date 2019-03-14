@@ -63,5 +63,5 @@ goog.net.WebChannel.Options.backgroundChannelTest;
 /** @type {boolean|undefined} */
 goog.net.WebChannel.Options.fastHandshake;
 
-/** @type {(!Object<string, boolean|number>|undefined)|undefined} */
+/** @type {!Object<string, boolean|number>|undefined} */
 goog.net.WebChannel.Options.internalChannelParams;
