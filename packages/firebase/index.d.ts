@@ -1122,6 +1122,7 @@ declare namespace firebase.app {
      * @return {!firebase.Promise<void>} An empty promise fulfilled when the app has
      *   been deleted.
      */
+    delete(): Promise<any>;
     /**
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
@@ -5778,7 +5779,10 @@ declare namespace firebase.storage {
      */
     on(
       event: firebase.storage.TaskEvent,
-      nextOrObserver?: firebase.Observer<UploadTaskSnapshot> | null | ((a: UploadTaskSnapshot) => any),
+      nextOrObserver?:
+        | firebase.Observer<UploadTaskSnapshot>
+        | null
+        | ((a: UploadTaskSnapshot) => any),
       error?: ((a: Error) => any) | null,
       complete?: (firebase.Unsubscribe) | null
     ): Function;
