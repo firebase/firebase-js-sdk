@@ -11,6 +11,8 @@
 - [fixed] Fixed an issue with IndexedDb persistence that triggered an internal
   assert for Queries that use nested DocumentReferences in where() clauses
   (#1524, #1596).
+- [changed] Increased a connection timeout that could lead to large writes
+  perputually retrying without ever succeeding (#1447).
 - [fixed] Fixed an issue where transactions in a Node.JS app could be sent
   without auth credentials, leading to Permission Denied errors.
 
