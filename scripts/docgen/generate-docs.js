@@ -36,8 +36,7 @@ const { api: apiType, source: sourceFile } = yargs
     type: 'string'
   })
   .version(false)
-  .help()
-  .argv;
+  .help().argv;
 
 const docPath = path.resolve(`${__dirname}/html/${apiType}`);
 const contentPath = path.resolve(`${__dirname}/content-sources/${apiType}`);
