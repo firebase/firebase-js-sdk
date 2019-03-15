@@ -1,6 +1,6 @@
 {
   "name": "rxfire",
-  "version": "3.3.6",
+  "version": "3.3.7",
   "private": false,
   "description": "Firebase JavaScript library RxJS",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -24,6 +24,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "prepare": "npm run build",
+    "test": "npm run test:browser",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch"
   },
@@ -35,7 +36,7 @@
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "5.8.6",
+    "firebase": "5.9.0",
     "rxjs": "^6.2.2",
     "rollup": "1.6.0",
     "rollup-plugin-commonjs": "9.2.1",

@@ -208,7 +208,16 @@ export class WebChannelConnection implements Connection {
         }`
       },
       sendRawJson: true,
-      supportsCrossDomainXhr: true
+      supportsCrossDomainXhr: true,
+      internalChannelParams: {
+        // Override the default timeout (randomized between 10-20 seconds) since
+        // a large write batch on a slow internet connection may take a long
+        // time to send to the backend. Rather than have WebChannel impose a
+        // tight timeout which could lead to infinite timeouts and retries, we
+        // set it very large (5-10 minutes) and rely on the browser's builtin
+        // timeouts to kick in if the request isn't working.
+        forwardChannelRequestTimeoutMs: 10 * 60 * 1000
+      }
     };
 
     this.modifyHeadersForRequest(request.initMessageHeaders, token);

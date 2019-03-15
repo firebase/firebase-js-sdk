@@ -15,6 +15,7 @@ before_install:
 
 before_script:
   - cp config/ci.config.json config/project.json
+  - yarn build
 
 # Misc Addons/Configs
 dist: trusty

@@ -32,3 +32,17 @@ exports.reinstallDeps = async () => {
     throw err;
   }
 };
+
+exports.buildPackages = async () => {
+  try {
+    const spinner = ora(' Building Packages').start();
+    await spawn('yarn', ['build'], {
+      cwd: root
+    });
+    spinner.stopAndPersist({
+      symbol: '✅'
+    });
+  } catch (err) {
+    throw err;
+  }
+};

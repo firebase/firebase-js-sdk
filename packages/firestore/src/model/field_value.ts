@@ -614,7 +614,7 @@ export class ObjectValue extends FieldValue {
   }
 
   toString(): string {
-    return JSON.stringify(this.value());
+    return this.internalValue.toString();
   }
 
   private child(childName: string): FieldValue | undefined {
@@ -688,6 +688,7 @@ export class ArrayValue extends FieldValue {
   }
 
   toString(): string {
-    return JSON.stringify(this.value());
+    const descriptions = this.internalValue.map(v => v.toString());
+    return `[${descriptions.join(',')}]`;
   }
 }

@@ -143,6 +143,15 @@ export class SortedMap<K, V> {
     });
   }
 
+  toString(): string {
+    const descriptions: string[] = [];
+    this.inorderTraversal((k, v) => {
+      descriptions.push(`${k}:${v}`);
+      return false;
+    });
+    return `{${descriptions.join(', ')}}`;
+  }
+
   // Traverses the map in reverse key order and calls the specified action
   // function for each key/value pair. If action returns true, traversal is
   // aborted.

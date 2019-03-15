@@ -128,11 +128,10 @@ describe('RemoteEvent', () => {
     }
 
     if (options.changes) {
-      options.changes.forEach(
-        change =>
-          change instanceof DocumentWatchChange
-            ? aggregator.handleDocumentChange(change)
-            : aggregator.handleTargetChange(change)
+      options.changes.forEach(change =>
+        change instanceof DocumentWatchChange
+          ? aggregator.handleDocumentChange(change)
+          : aggregator.handleTargetChange(change)
       );
     }
 

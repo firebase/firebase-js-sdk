@@ -819,14 +819,18 @@ function genericLruGarbageCollectorTests(
     await persistence.runTransaction('verify results', 'readwrite', txn => {
       let p = PersistencePromise.resolve();
       expectedRemoved.forEach(key => {
-        p = p.next(() => documentCache.getEntry(txn, key)).next(maybeDoc => {
-          expect(maybeDoc).to.be.null;
-        });
+        p = p
+          .next(() => documentCache.getEntry(txn, key))
+          .next(maybeDoc => {
+            expect(maybeDoc).to.be.null;
+          });
       });
       expectedRetained.forEach(key => {
-        p = p.next(() => documentCache.getEntry(txn, key)).next(maybeDoc => {
-          expect(maybeDoc).to.not.be.null;
-        });
+        p = p
+          .next(() => documentCache.getEntry(txn, key))
+          .next(maybeDoc => {
+            expect(maybeDoc).to.not.be.null;
+          });
       });
       return p;
     });
