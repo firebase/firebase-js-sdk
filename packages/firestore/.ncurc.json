@@ -1,6 +1,7 @@
 {
     "upgrade": true,
     "reject": [
-        "long"
+        "long",
+        "karma-sauce-launcher"
     ]
 }

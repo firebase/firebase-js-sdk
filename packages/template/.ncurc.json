@@ -1,5 +1,6 @@
 {
     "upgrade": true,
     "reject": [
+        "karma-sauce-launcher"
     ]
 }
