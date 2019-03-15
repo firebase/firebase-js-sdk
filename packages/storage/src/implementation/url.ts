@@ -21,15 +21,7 @@
 import * as object from './object';
 import { DEFAULT_HOST } from './constants';
 
-export function makeNormalUrl(urlPart: string): string {
-  return `https://${DEFAULT_HOST}/v0/${urlPart}`;
-}
-
-export function makeDownloadUrl(urlPart: string): string {
-  return `https://${DEFAULT_HOST}/v0/${urlPart}`;
-}
-
-export function makeUploadUrl(urlPart: string): string {
+export function makeUrl(urlPart: string): string {
   return `https://${DEFAULT_HOST}/v0/${urlPart}`;
 }
 

@@ -18,13 +18,10 @@ import { assert } from 'chai';
 import { AuthWrapper } from '../src/implementation/authwrapper';
 import { FbsBlob } from '../src/implementation/blob';
 import { Location } from '../src/implementation/location';
-import {
-  fromResourceString,
-  getMappings
-} from '../src/implementation/metadata';
+import { fromResourceString, getMappings } from '../src/implementation/metadata';
 import { makeRequest } from '../src/implementation/request';
 import * as requests from '../src/implementation/requests';
-import { makeNormalUrl, makeUploadUrl } from '../src/implementation/url';
+import { makeUrl } from '../src/implementation/url';
 import * as fbsPromise from '../src/implementation/promise_external';
 import * as errors from '../src/implementation/error';
 import { RequestInfo } from '../src/implementation/requestinfo';
@@ -46,8 +43,6 @@ describe('Firebase Storage > Requests', () => {
   const smallBlob = new FbsBlob(new Blob(['a']));
   const smallBlobString = 'a';
   const bigBlob = new FbsBlob(new Blob([new ArrayBuffer(1024 * 1024)]));
-  const normalUrl = makeNormalUrl;
-  const uploadUrl = makeUploadUrl;
 
   const mappings = getMappings();
 
@@ -180,7 +175,7 @@ describe('Firebase Storage > Requests', () => {
       const requestInfo = requests.getMetadata(authWrapper, location, mappings);
       assertObjectIncludes(
         {
-          url: normalUrl(url),
+          url: makeUrl(url),
           method: 'GET',
           body: null,
           headers: {},
@@ -213,7 +208,7 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: normalUrl(url),
+          url: makeUrl(url),
           method: 'GET',
           body: null,
           headers: {},
@@ -248,7 +243,7 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: normalUrl(url),
+          url: makeUrl(url),
           method: 'PATCH',
           body: metadataString,
           headers: { 'Content-Type': metadataContentType },
@@ -279,7 +274,7 @@ describe('Firebase Storage > Requests', () => {
       const requestInfo = requests.deleteObject(authWrapper, location);
       assertObjectIncludes(
         {
-          url: normalUrl(url),
+          url: makeUrl(url),
           method: 'DELETE',
           body: null,
           headers: {},
@@ -344,7 +339,7 @@ describe('Firebase Storage > Requests', () => {
 
       assertObjectIncludes(
         {
-          url: uploadUrl(url),
+          url: makeUrl(url),
           method: 'POST',
           urlParams: { name: location.path },
           headers: {
@@ -389,7 +384,7 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: uploadUrl(url),
+          url: makeUrl(url),
           method: 'POST',
           urlParams: { name: location.path },
           headers: {

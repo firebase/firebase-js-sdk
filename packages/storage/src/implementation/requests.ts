@@ -130,7 +130,7 @@ export function getMetadata(
   mappings: MetadataUtils.Mappings
 ): RequestInfo<Metadata> {
   let urlPart = location.fullServerUrl();
-  let url = UrlUtils.makeNormalUrl(urlPart);
+  let url = UrlUtils.makeUrl(urlPart);
   let method = 'GET';
   let timeout = authWrapper.maxOperationRetryTime();
   let requestInfo = new RequestInfo(
@@ -149,7 +149,7 @@ export function getDownloadUrl(
   mappings: MetadataUtils.Mappings
 ): RequestInfo<string | null> {
   let urlPart = location.fullServerUrl();
-  let url = UrlUtils.makeNormalUrl(urlPart);
+  let url = UrlUtils.makeUrl(urlPart);
   let method = 'GET';
   let timeout = authWrapper.maxOperationRetryTime();
   let requestInfo = new RequestInfo(
@@ -169,7 +169,7 @@ export function updateMetadata(
   mappings: MetadataUtils.Mappings
 ): RequestInfo<Metadata> {
   let urlPart = location.fullServerUrl();
-  let url = UrlUtils.makeNormalUrl(urlPart);
+  let url = UrlUtils.makeUrl(urlPart);
   let method = 'PATCH';
   let body = MetadataUtils.toResourceString(metadata, mappings);
   let headers = { 'Content-Type': 'application/json; charset=utf-8' };
@@ -191,7 +191,7 @@ export function deleteObject(
   location: Location
 ): RequestInfo<void> {
   let urlPart = location.fullServerUrl();
-  let url = UrlUtils.makeNormalUrl(urlPart);
+  let url = UrlUtils.makeUrl(urlPart);
   let method = 'DELETE';
   let timeout = authWrapper.maxOperationRetryTime();
 
@@ -272,7 +272,7 @@ export function multipartUpload(
     throw errorsExports.cannotSliceBlob();
   }
   let urlParams = { name: metadata['fullPath'] };
-  let url = UrlUtils.makeUploadUrl(urlPart);
+  let url = UrlUtils.makeUrl(urlPart);
   let method = 'POST';
   let timeout = authWrapper.maxUploadRetryTime();
   let requestInfo = new RequestInfo(
@@ -333,7 +333,7 @@ export function createResumableUpload(
   let urlPart = location.bucketOnlyServerUrl();
   let metadata = metadataForUpload_(location, blob, opt_metadata);
   let urlParams = { name: metadata['fullPath'] };
-  let url = UrlUtils.makeUploadUrl(urlPart);
+  let url = UrlUtils.makeUrl(urlPart);
   let method = 'POST';
   let headers = {
     'X-Goog-Upload-Protocol': 'resumable',
