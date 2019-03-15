@@ -19,21 +19,20 @@
  * @fileoverview Defines methods for interacting with the network.
  */
 
-import { Metadata } from '../metadata';
+import {Metadata} from '../metadata';
 
 import * as array from './array';
-import { AuthWrapper } from './authwrapper';
-import { FbsBlob } from './blob';
+import {AuthWrapper} from './authwrapper';
+import {FbsBlob} from './blob';
 import * as errorsExports from './error';
-import { FirebaseStorageError } from './error';
-import { errors } from './error';
-import { Location } from './location';
+import {FirebaseStorageError} from './error';
+import {Location} from './location';
 import * as MetadataUtils from './metadata';
 import * as object from './object';
-import { RequestInfo } from './requestinfo';
+import {RequestInfo} from './requestinfo';
 import * as type from './type';
 import * as UrlUtils from './url';
-import { XhrIo } from './xhrio';
+import {XhrIo} from './xhrio';
 
 /**
  * Throws the UNKNOWN FirebaseStorageError if cndn is false.

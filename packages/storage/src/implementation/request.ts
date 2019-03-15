@@ -24,16 +24,15 @@ import firebase from '@firebase/app';
 import * as array from './array';
 import * as backoff from './backoff';
 import * as errorsExports from './error';
-import { FirebaseStorageError } from './error';
-import { errors } from './error';
+import {FirebaseStorageError} from './error';
 import * as object from './object';
 import * as promiseimpl from './promise_external';
-import { RequestInfo } from './requestinfo';
+import {RequestInfo} from './requestinfo';
 import * as type from './type';
 import * as UrlUtils from './url';
 import * as XhrIoExports from './xhrio';
-import { Headers, XhrIo } from './xhrio';
-import { XhrIoPool } from './xhriopool';
+import {Headers, XhrIo} from './xhrio';
+import {XhrIoPool} from './xhriopool';
 
 /**
  * @template T

@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FirebaseStorageError } from './error';
-import { Headers, XhrIo } from './xhrio';
+import {FirebaseStorageError} from './error';
+import {Headers, XhrIo} from './xhrio';
 
 export type UrlParams = { [name: string]: string };
 

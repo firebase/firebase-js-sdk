@@ -14,25 +14,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Reference } from '../reference';
-import { Service } from '../service';
+import {Reference} from '../reference';
+import {Service} from '../service';
 import * as constants from './constants';
 import * as errorsExports from './error';
-import { errors } from './error';
-import { FailRequest } from './failrequest';
-import { Location } from './location';
+import {FailRequest} from './failrequest';
+import {Location} from './location';
 import * as promiseimpl from './promise_external';
-import { Request } from './request';
-import { RequestInfo } from './requestinfo';
-import { requestMaker } from './requestmaker';
-import { RequestMap } from './requestmap';
+import {Request} from './request';
+import {RequestInfo} from './requestinfo';
+import {requestMaker} from './requestmaker';
+import {RequestMap} from './requestmap';
 import * as type from './type';
-import { XhrIoPool } from './xhriopool';
-import { FirebaseApp } from '@firebase/app-types';
-import {
-  _FirebaseApp,
-  FirebaseAuthTokenData
-} from '@firebase/app-types/private';
+import {XhrIoPool} from './xhriopool';
+import {FirebaseApp} from '@firebase/app-types';
+import {_FirebaseApp, FirebaseAuthTokenData} from '@firebase/app-types/private';
 
 /**
  * @param app If null, getAuthToken always resolves with null.
