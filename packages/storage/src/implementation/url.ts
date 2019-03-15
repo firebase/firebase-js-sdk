@@ -20,7 +20,7 @@
  */
 import * as constants from './constants';
 import * as object from './object';
-import {DEFAULT_HOST} from './constants';
+import { DEFAULT_HOST } from './constants';
 
 export function makeNormalUrl(urlPart: string): string {
   return `https://${constants.DEFAULT_HOST}/v0/${urlPart}`;

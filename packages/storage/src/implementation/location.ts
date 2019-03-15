@@ -20,7 +20,7 @@
  * object location.
  */
 import * as errorsExports from './error';
-import {DEFAULT_HOST} from './constants';
+import { DEFAULT_HOST } from './constants';
 
 /**
  * @struct
