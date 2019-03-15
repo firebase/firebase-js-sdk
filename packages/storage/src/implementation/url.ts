@@ -18,20 +18,19 @@
 /**
  * @fileoverview Functions to create and manipulate URLs for the server API.
  */
-import * as constants from './constants';
 import * as object from './object';
 import { DEFAULT_HOST } from './constants';
 
 export function makeNormalUrl(urlPart: string): string {
-  return `https://${constants.DEFAULT_HOST}/v0/${urlPart}`;
+  return `https://${DEFAULT_HOST}/v0/${urlPart}`;
 }
 
 export function makeDownloadUrl(urlPart: string): string {
-  return `https://${constants.DEFAULT_HOST}/v0/${urlPart}`;
+  return `https://${DEFAULT_HOST}/v0/${urlPart}`;
 }
 
 export function makeUploadUrl(urlPart: string): string {
-  return `https://${constants.DEFAULT_HOST}/v0/${urlPart}`;
+  return `https://${DEFAULT_HOST}/v0/${urlPart}`;
 }
 
 export function makeQueryString(params: { [key: string]: string }): string {

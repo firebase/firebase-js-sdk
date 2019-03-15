@@ -23,20 +23,9 @@ import { FbsBlob } from './implementation/blob';
 import * as errors from './implementation/error';
 import { FirebaseStorageError } from './implementation/error';
 import * as fbsTaskEnums from './implementation/taskenums';
-import {
-  InternalTaskState,
-  TaskEvent,
-  TaskState
-} from './implementation/taskenums';
+import { InternalTaskState, TaskEvent, TaskState } from './implementation/taskenums';
 import { Metadata } from './metadata';
-import {
-  CompleteFn,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
-} from './implementation/observer';
+import { CompleteFn, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe } from './implementation/observer';
 import { Request } from './implementation/request';
 import { UploadTaskSnapshot } from './tasksnapshot';
 import * as fbsArgs from './implementation/args';
