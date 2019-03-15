@@ -33,7 +33,7 @@ import { Metadata } from '../src/metadata';
 import { Reference } from '../src/reference';
 import { Service } from '../src/service';
 import { assertObjectIncludes, fakeXhrIo } from './testshared';
-import { DOMAIN_NAME } from '../src/implementation/constants';
+import { DEFAULT_HOST } from '../src/implementation/constants';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
@@ -105,7 +105,7 @@ describe('Firebase Storage > Requests', () => {
     mappings
   );
   const downloadUrlFromServerResource =
-    `https://${DOMAIN_NAME}/v0/b/` +
+    `https://${DEFAULT_HOST}/v0/b/` +
     normalBucket +
     '/o/' +
     encodeURIComponent(serverResource.name) +

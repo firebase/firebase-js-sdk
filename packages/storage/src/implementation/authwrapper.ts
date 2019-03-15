@@ -82,7 +82,7 @@ export class AuthWrapper {
   private static extractBucket_(config: {
     [prop: string]: any;
   }): string | null {
-    let bucketString = config[constants.configOption] || null;
+    let bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] || null;
     if (bucketString == null) {
       return null;
     }

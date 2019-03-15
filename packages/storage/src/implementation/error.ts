@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { configOption } from './constants';
+import { CONFIG_STORAGE_BUCKET_KEY } from './constants';
 
 export class FirebaseStorageError implements Error {
   private code_: string;
@@ -209,7 +209,7 @@ export function noDefaultBucket(): FirebaseStorageError {
     Code.NO_DEFAULT_BUCKET,
     'No default bucket ' +
       "found. Did you set the '" +
-      configOption +
+      CONFIG_STORAGE_BUCKET_KEY +
       "' property when initializing the app?"
   );
 }

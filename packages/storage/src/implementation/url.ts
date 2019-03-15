@@ -20,17 +20,14 @@
  */
 import * as constants from './constants';
 import * as object from './object';
+import {DEFAULT_HOST} from './constants';
 
 export function makeNormalUrl(urlPart: string): string {
-  return constants.API_DOMAIN + constants.API_BASE_URL + urlPart;
+  return `https://${constants.DEFAULT_HOST}/v0/${urlPart}`;
 }
 
 export function makeDownloadUrl(urlPart: string): string {
-  return constants.API_DOWNLOAD_DOMAIN + constants.API_BASE_URL + urlPart;
-}
-
-export function makeUploadUrl(urlPart: string): string {
-  return constants.API_DOMAIN + constants.API_UPLOAD_BASE_URL + urlPart;
+  return `https://${constants.DEFAULT_HOST}/v0/${urlPart}`;
 }
 
 export function makeQueryString(params: { [key: string]: string }): string {

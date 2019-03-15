@@ -115,10 +115,6 @@ export class Service {
     this.authWrapper_.setMaxUploadRetryTime(time);
   }
 
-  get maxOperationRetryTime(): number {
-    return this.authWrapper_.maxOperationRetryTime();
-  }
-
   setMaxOperationRetryTime(time: number) {
     args.validate(
       'setMaxOperationRetryTime',

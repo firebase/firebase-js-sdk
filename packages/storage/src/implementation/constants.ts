@@ -21,42 +21,24 @@
 /**
  * Domain name for firebase storage.
  */
-export const DOMAIN_NAME: string = 'firebasestorage.googleapis.com';
+export const DEFAULT_HOST: string = 'firebasestorage.googleapis.com';
 
 /**
- * Domain and scheme for API calls.
+ * The key in Firebase config json for the storage bucket.
  */
-export const API_DOMAIN: string = `https://${DOMAIN_NAME}`;
-
-/**
- * Domain and scheme for object downloads.
- */
-export const API_DOWNLOAD_DOMAIN: string = `https://${DOMAIN_NAME}`;
-
-/**
- * Base URL for non-upload calls to the API.
- */
-export const API_BASE_URL: string = '/v0';
-
-/**
- * Base URL for upload calls to the API.
- */
-export const API_UPLOAD_BASE_URL: string = '/v0';
-
-export const configOption: string = 'storageBucket';
-
-/**
- * 1 minute
- */
-export const SHORT_MAX_OPERATION_RETRY_TIME: number = 1 * 60 * 1000;
+export const CONFIG_STORAGE_BUCKET_KEY: string = 'storageBucket';
 
 /**
  * 2 minutes
+ *
+ * The timeout for all operations except upload.
  */
 export const DEFAULT_MAX_OPERATION_RETRY_TIME: number = 2 * 60 * 1000;
 
 /**
  * 10 minutes
+ *
+ * The timeout for upload.
  */
 export const DEFAULT_MAX_UPLOAD_RETRY_TIME: number = 10 * 60 * 100;
 

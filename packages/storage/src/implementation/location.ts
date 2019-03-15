@@ -20,8 +20,7 @@
  * object location.
  */
 import * as errorsExports from './error';
-import { errors } from './error';
-import { DOMAIN_NAME } from './constants';
+import {DEFAULT_HOST} from './constants';
 
 /**
  * @struct
@@ -81,7 +80,7 @@ export class Location {
       loc.path_ = decodeURIComponent(loc.path);
     }
     let version = 'v[A-Za-z0-9_]+';
-    let domainRegex = DOMAIN_NAME.replace(/[.]/g, '\\.');
+    let domainRegex = DEFAULT_HOST.replace(/[.]/g, '\\.');
     let httpRegex = new RegExp(
       `^https?://${domainRegex}/${version}/b/${bucketDomain}/o${path}`,
       'i'
