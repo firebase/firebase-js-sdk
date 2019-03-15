@@ -22,7 +22,7 @@ import * as object from './object';
 import { DEFAULT_HOST } from './constants';
 
 export function makeUrl(urlPart: string): string {
-  return `https://${DEFAULT_HOST}/v0/${urlPart}`;
+  return `https://${DEFAULT_HOST}/v0${urlPart}`;
 }
 
 export function makeQueryString(params: { [key: string]: string }): string {
