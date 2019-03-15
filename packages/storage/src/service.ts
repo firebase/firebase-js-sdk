@@ -21,7 +21,6 @@ import { AuthWrapper } from './implementation/authwrapper';
 import { Location } from './implementation/location';
 import * as fbsPromiseImpl from './implementation/promise_external';
 import * as RequestExports from './implementation/request';
-import { Request } from './implementation/request';
 import { XhrIoPool } from './implementation/xhriopool';
 import { Reference } from './reference';
 
@@ -113,10 +112,6 @@ export class Service {
       arguments
     );
     this.authWrapper_.setMaxUploadRetryTime(time);
-  }
-
-  get maxOperationRetryTime(): number {
-    return this.authWrapper_.maxOperationRetryTime();
   }
 
   setMaxOperationRetryTime(time: number) {

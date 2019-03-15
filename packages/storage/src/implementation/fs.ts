@@ -19,7 +19,6 @@
  * We don't include goog.fs because it pulls in a bunch of Deferred code that
  * bloats the size of the released binary.
  */
-import * as array from './array';
 import * as type from './type';
 
 declare var IBlobBuilder;

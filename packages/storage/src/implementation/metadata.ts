@@ -171,7 +171,7 @@ export function downloadUrlFromResourceString(
     let bucket: string = metadata['bucket'] as string;
     let path: string = metadata['fullPath'] as string;
     let urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
-    let base = UrlUtils.makeDownloadUrl(urlPart);
+    let base = UrlUtils.makeUrl(urlPart);
     let queryString = UrlUtils.makeQueryString({
       alt: 'media',
       token: token

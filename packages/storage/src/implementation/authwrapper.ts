@@ -18,7 +18,6 @@ import { Reference } from '../reference';
 import { Service } from '../service';
 import * as constants from './constants';
 import * as errorsExports from './error';
-import { errors } from './error';
 import { FailRequest } from './failrequest';
 import { Location } from './location';
 import * as promiseimpl from './promise_external';
@@ -74,15 +73,15 @@ export class AuthWrapper {
     this.requestMaker_ = requestMaker;
     this.pool_ = pool;
     this.service_ = service;
-    this.maxOperationRetryTime_ = constants.defaultMaxOperationRetryTime;
-    this.maxUploadRetryTime_ = constants.defaultMaxUploadRetryTime;
+    this.maxOperationRetryTime_ = constants.DEFAULT_MAX_OPERATION_RETRY_TIME;
+    this.maxUploadRetryTime_ = constants.DEFAULT_MAX_UPLOAD_RETRY_TIME;
     this.requestMap_ = new RequestMap();
   }
 
   private static extractBucket_(config: {
     [prop: string]: any;
   }): string | null {
-    let bucketString = config[constants.configOption] || null;
+    let bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] || null;
     if (bucketString == null) {
       return null;
     }
