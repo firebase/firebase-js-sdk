@@ -19,20 +19,20 @@
  * @fileoverview Defines the Firebase Storage Reference class.
  */
 import * as args from './implementation/args';
-import {AuthWrapper} from './implementation/authwrapper';
-import {FbsBlob} from './implementation/blob';
+import { AuthWrapper } from './implementation/authwrapper';
+import { FbsBlob } from './implementation/blob';
 import * as errorsExports from './implementation/error';
-import {Location} from './implementation/location';
+import { Location } from './implementation/location';
 import * as metadata from './implementation/metadata';
 import * as object from './implementation/object';
 import * as path from './implementation/path';
 import * as requests from './implementation/requests';
 import * as fbsString from './implementation/string';
-import {StringFormat} from './implementation/string';
+import { StringFormat } from './implementation/string';
 import * as type from './implementation/type';
-import {Metadata} from './metadata';
-import {Service} from './service';
-import {UploadTask} from './task';
+import { Metadata } from './metadata';
+import { Service } from './service';
+import { UploadTask } from './task';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.

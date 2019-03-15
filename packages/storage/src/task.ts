@@ -18,26 +18,37 @@
  * @fileoverview Defines types for interacting with blob transfer tasks.
  */
 
-import {AuthWrapper} from './implementation/authwrapper';
-import {FbsBlob} from './implementation/blob';
+import { AuthWrapper } from './implementation/authwrapper';
+import { FbsBlob } from './implementation/blob';
 import * as errors from './implementation/error';
-import {FirebaseStorageError} from './implementation/error';
+import { FirebaseStorageError } from './implementation/error';
 import * as fbsTaskEnums from './implementation/taskenums';
-import {InternalTaskState, TaskEvent, TaskState} from './implementation/taskenums';
-import {Metadata} from './metadata';
-import {CompleteFn, ErrorFn, NextFn, Observer, Subscribe, Unsubscribe} from './implementation/observer';
-import {Request} from './implementation/request';
-import {UploadTaskSnapshot} from './tasksnapshot';
+import {
+  InternalTaskState,
+  TaskEvent,
+  TaskState
+} from './implementation/taskenums';
+import { Metadata } from './metadata';
+import {
+  CompleteFn,
+  ErrorFn,
+  NextFn,
+  Observer,
+  Subscribe,
+  Unsubscribe
+} from './implementation/observer';
+import { Request } from './implementation/request';
+import { UploadTaskSnapshot } from './tasksnapshot';
 import * as fbsArgs from './implementation/args';
-import {ArgSpec} from './implementation/args';
+import { ArgSpec } from './implementation/args';
 import * as fbsArray from './implementation/array';
-import {async as fbsAsync} from './implementation/async';
-import {Location} from './implementation/location';
+import { async as fbsAsync } from './implementation/async';
+import { Location } from './implementation/location';
 import * as fbsMetadata from './implementation/metadata';
 import * as fbsPromiseimpl from './implementation/promise_external';
 import * as fbsRequests from './implementation/requests';
 import * as typeUtils from './implementation/type';
-import {Reference} from './reference';
+import { Reference } from './reference';
 
 /**
  * Represents a blob being uploaded. Can be used to pause/resume/cancel the
