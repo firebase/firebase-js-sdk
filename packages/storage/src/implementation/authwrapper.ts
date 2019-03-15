@@ -28,10 +28,7 @@ import { RequestMap } from './requestmap';
 import * as type from './type';
 import { XhrIoPool } from './xhriopool';
 import { FirebaseApp } from '@firebase/app-types';
-import {
-  _FirebaseApp,
-  FirebaseAuthTokenData
-} from '@firebase/app-types/private';
+import { _FirebaseApp, FirebaseAuthTokenData } from '@firebase/app-types/private';
 
 /**
  * @param app If null, getAuthToken always resolves with null.

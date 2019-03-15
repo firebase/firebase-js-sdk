@@ -30,6 +30,10 @@ export function makeDownloadUrl(urlPart: string): string {
   return `https://${constants.DEFAULT_HOST}/v0/${urlPart}`;
 }
 
+export function makeUploadUrl(urlPart: string): string {
+  return `https://${constants.DEFAULT_HOST}/v0/${urlPart}`;
+}
+
 export function makeQueryString(params: { [key: string]: string }): string {
   let encode = encodeURIComponent;
   let queryPart = '?';
