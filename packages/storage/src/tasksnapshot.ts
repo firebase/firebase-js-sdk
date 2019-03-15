@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { TaskState } from './implementation/taskenums';
-import * as type from './implementation/type';
 import { Metadata } from './metadata';
 import { Reference } from './reference';
 import { UploadTask } from './task';

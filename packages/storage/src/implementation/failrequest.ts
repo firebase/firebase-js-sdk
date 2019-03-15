@@ -16,7 +16,6 @@
  */
 import { FirebaseStorageError } from './error';
 import * as promiseimpl from './promise_external';
-import * as RequestExports from './request';
 import { Request } from './request';
 
 /**

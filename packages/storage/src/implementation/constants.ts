@@ -19,48 +19,31 @@
  */
 
 /**
- * Domain and scheme for API calls.
+ * Domain name for firebase storage.
  */
-export const domainBase: string = 'https://firebasestorage.googleapis.com';
+export const DEFAULT_HOST: string = 'firebasestorage.googleapis.com';
 
 /**
- * Domain and scheme for object downloads.
+ * The key in Firebase config json for the storage bucket.
  */
-export const downloadBase: string = 'https://firebasestorage.googleapis.com';
-
-/**
- * Base URL for non-upload calls to the API.
- */
-export const apiBaseUrl: string = '/v0';
-
-/**
- * Base URL for upload calls to the API.
- */
-export const apiUploadBaseUrl: string = '/v0';
-
-export function setDomainBase(domainBase: string) {
-  domainBase = domainBase;
-}
-
-export const configOption: string = 'storageBucket';
-
-/**
- * 1 minute
- */
-export const shortMaxOperationRetryTime: number = 1 * 60 * 1000;
+export const CONFIG_STORAGE_BUCKET_KEY: string = 'storageBucket';
 
 /**
  * 2 minutes
+ *
+ * The timeout for all operations except upload.
  */
-export const defaultMaxOperationRetryTime: number = 2 * 60 * 1000;
+export const DEFAULT_MAX_OPERATION_RETRY_TIME: number = 2 * 60 * 1000;
 
 /**
  * 10 minutes
+ *
+ * The timeout for upload.
  */
-export const defaultMaxUploadRetryTime: number = 10 * 60 * 100;
+export const DEFAULT_MAX_UPLOAD_RETRY_TIME: number = 10 * 60 * 100;
 
 /**
  * This is the value of Number.MIN_SAFE_INTEGER, which is not well supported
  * enough for us to use it directly.
  */
-export const minSafeInteger: number = -9007199254740991;
+export const MIN_SAFE_INTEGER: number = -9007199254740991;

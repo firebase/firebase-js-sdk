@@ -25,7 +25,6 @@ import * as array from './array';
 import * as backoff from './backoff';
 import * as errorsExports from './error';
 import { FirebaseStorageError } from './error';
-import { errors } from './error';
 import * as object from './object';
 import * as promiseimpl from './promise_external';
 import { RequestInfo } from './requestinfo';

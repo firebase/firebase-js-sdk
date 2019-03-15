@@ -27,7 +27,7 @@ export class RequestMap {
   private id_: number;
 
   constructor() {
-    this.id_ = constants.minSafeInteger;
+    this.id_ = constants.MIN_SAFE_INTEGER;
   }
 
   /**
