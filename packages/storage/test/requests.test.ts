@@ -18,7 +18,10 @@ import { assert } from 'chai';
 import { AuthWrapper } from '../src/implementation/authwrapper';
 import { FbsBlob } from '../src/implementation/blob';
 import { Location } from '../src/implementation/location';
-import { fromResourceString, getMappings } from '../src/implementation/metadata';
+import {
+  fromResourceString,
+  getMappings
+} from '../src/implementation/metadata';
 import { makeRequest } from '../src/implementation/request';
 import * as requests from '../src/implementation/requests';
 import { makeUrl } from '../src/implementation/url';
