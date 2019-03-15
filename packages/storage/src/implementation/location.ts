@@ -80,9 +80,9 @@ export class Location {
       loc.path_ = decodeURIComponent(loc.path);
     }
     let version = 'v[A-Za-z0-9_]+';
-    let domainRegex = DEFAULT_HOST.replace(/[.]/g, '\\.');
+    let hostRegex = DEFAULT_HOST.replace(/[.]/g, '\\.');
     let httpRegex = new RegExp(
-      `^https?://${domainRegex}/${version}/b/${bucketDomain}/o${path}`,
+      `^https?://${hostRegex}/${version}/b/${bucketDomain}/o${path}`,
       'i'
     );
     let httpIndices = { bucket: 1, path: 3 };
