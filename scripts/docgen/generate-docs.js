@@ -16,18 +16,30 @@
  */
 
 const { exec } = require('child-process-promise');
-const { argv } = require('yargs');
+const yargs = require('yargs');
 const fs = require('mz/fs');
 const path = require('path');
 const yaml = require('js-yaml');
 
-// API to generate docs for, 'node' or 'js' - default to 'js'
-const apiType = argv.api || 'js';
 const repoPath = path.resolve(`${__dirname}/../..`);
+
+// Command-line options.
+const { api: apiType, source: sourceFile } = yargs
+  .option('api', {
+    default: 'js',
+    describe: 'api to generate docs for ("js" or "node")',
+    type: 'string'
+  })
+  .option('source', {
+    default: `${repoPath}/packages/firebase/index.d.ts`,
+    describe: 'Typescript source file(s)',
+    type: 'string'
+  })
+  .version(false)
+  .help()
+  .argv;
+
 const docPath = path.resolve(`${__dirname}/html/${apiType}`);
-const sourceFile = argv.source
-  ? path.resolve(argv.source)
-  : `${repoPath}/packages/firebase/index.d.ts`;
 const contentPath = path.resolve(`${__dirname}/content-sources/${apiType}`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
 const devsitePath = `/docs/reference/${apiType}/`;
