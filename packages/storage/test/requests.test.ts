@@ -248,29 +248,27 @@ describe('Firebase Storage > Requests', () => {
   });
   it('list handler', () => {
     const requestInfo = requests.list(authWrapper, locationNormal);
-    const pageToken = "YS9mLw==";
+    const pageToken = 'YS9mLw==';
     const listResponse = {
-      "prefixes": [
-        "a/f/"
-      ],
-      "items": [
+      prefixes: ['a/f/'],
+      items: [
         {
-          "name": "a/a",
-          "bucket": "fredzqm-staging"
+          name: 'a/a',
+          bucket: 'fredzqm-staging'
         },
         {
-          "name": "a/b",
-          "bucket": "fredzqm-staging"
-        },
+          name: 'a/b',
+          bucket: 'fredzqm-staging'
+        }
       ],
-      "nextPageToken": pageToken,
+      nextPageToken: pageToken
     };
     const listResponseString = JSON.stringify(listResponse);
     const listResult = requestInfo.handler(fakeXhrIo({}), listResponseString);
     assert.equal(listResult.prefixes[0].fullPath, 'a/f');
     assert.equal(listResult.items[0].fullPath, 'a/a');
     assert.equal(listResult.items[1].fullPath, 'a/b');
-    assert.equal(listResult.nextPageToken, pageToken );
+    assert.equal(listResult.nextPageToken, pageToken);
   });
 
   it('getDownloadUrl request info', () => {
