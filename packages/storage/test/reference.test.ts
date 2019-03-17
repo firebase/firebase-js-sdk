@@ -399,7 +399,7 @@ describe('Firebase Storage > Reference', () => {
     describe('list', () => {
       it('throws on invalid option', () => {
         testShared.assertThrows(
-          testShared.bind(child.list, child, "invalid-option"),
+          testShared.bind(child.list, child, 'invalid-option'),
           'storage/invalid-argument'
         );
       });
@@ -411,19 +411,19 @@ describe('Firebase Storage > Reference', () => {
       });
       it('throws on nonstring pageToken', () => {
         testShared.assertThrows(
-          testShared.bind(child.list, child,{pageToken: {x: 1}}),
+          testShared.bind(child.list, child, { pageToken: { x: 1 } }),
           'storage/invalid-argument'
         );
       });
       it('throws on negative maxResults', () => {
         testShared.assertThrows(
-          testShared.bind(child.list, child,{maxResults: -4}),
+          testShared.bind(child.list, child, { maxResults: -4 }),
           'storage/invalid-argument'
         );
       });
       it('throws on unkonw option', () => {
         testShared.assertThrows(
-          testShared.bind(child.list, child,{unknown: "ok"}),
+          testShared.bind(child.list, child, { unknown: 'ok' }),
           'storage/invalid-argument'
         );
       });
@@ -494,13 +494,13 @@ describe('Firebase Storage > Reference', () => {
         child.list();
       });
       assert.doesNotThrow(() => {
-        child.list({pageToken: "xxx", maxResults: 4});
+        child.list({ pageToken: 'xxx', maxResults: 4 });
       });
       assert.doesNotThrow(() => {
-        child.list({pageToken: "xxx"});
+        child.list({ pageToken: 'xxx' });
       });
       assert.doesNotThrow(() => {
-        child.list({maxResults: 4});
+        child.list({ maxResults: 4 });
       });
     });
     it("updateMetadata doesn't throw", () => {
@@ -545,7 +545,7 @@ describe('Firebase Storage > Reference', () => {
         child.list();
       });
       assert.doesNotThrow(() => {
-        child.list({pageToken: "xxx", maxResults: 4});
+        child.list({ pageToken: 'xxx', maxResults: 4 });
       });
     });
     it('updateMetadata throws', () => {

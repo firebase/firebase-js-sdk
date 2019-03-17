@@ -197,24 +197,20 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('list root request info', () => {
-      const requestInfo = requests.list(
-        authWrapper,
-        locationRoot,
-        '/',
-      );
-      assertObjectIncludes(
-        {
-          url: makeUrl(locationNormalNoObjUrl),
-          method: 'GET',
-          body: null,
-          headers: {},
-          urlParams: {
-            prefix: '',
-            delimiter: '/',
-          }
-        },
-        requestInfo
-      );
+    const requestInfo = requests.list(authWrapper, locationRoot, '/');
+    assertObjectIncludes(
+      {
+        url: makeUrl(locationNormalNoObjUrl),
+        method: 'GET',
+        body: null,
+        headers: {},
+        urlParams: {
+          prefix: '',
+          delimiter: '/'
+        }
+      },
+      requestInfo
+    );
   });
   it('list request info', () => {
     const maps = [
