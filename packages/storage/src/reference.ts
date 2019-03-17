@@ -34,6 +34,7 @@ import { Metadata } from './metadata';
 import { Service } from './service';
 import { UploadTask } from './task';
 import { ListOptions, ListResult } from './list_result';
+import { listOptionSpec } from './implementation/args';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -209,7 +210,7 @@ export class Reference {
    * nextPageToken can be passed as options.pageToken to get the rest of results
    */
   list(options?: ListOptions | null): Promise<ListResult> {
-    args.validate('list', [], arguments);
+    args.validate('list', [listOptionSpec(true)], arguments);
     let self = this;
     return this.authWrapper.getAuthToken().then(function(authToken) {
       let op = options || {

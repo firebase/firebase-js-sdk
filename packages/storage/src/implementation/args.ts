@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import * as errorsExports from './error';
-import { errors } from './error';
 import * as MetadataUtils from './metadata';
+import * as ListOptionsUtils from './list_result';
 import * as type from './type';
 
 /**
@@ -115,6 +115,10 @@ export function uploadDataSpec(): ArgSpec {
 
 export function metadataSpec(opt_optional?: boolean): ArgSpec {
   return new ArgSpec(MetadataUtils.metadataValidator, opt_optional);
+}
+
+export function listOptionSpec(opt_optional?: boolean): ArgSpec {
+  return new ArgSpec(ListOptionsUtils.listOptionsValidator, opt_optional);
 }
 
 export function nonNegativeNumberSpec(): ArgSpec {

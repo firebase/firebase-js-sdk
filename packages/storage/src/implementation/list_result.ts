@@ -18,11 +18,11 @@
 /**
  * @fileoverview Documentation for the metadata format
  */
-import { ListResult } from '../list_result';
-
 import { AuthWrapper } from './authwrapper';
-import * as json from './json';
 import { Location } from './location';
+import * as json from './json';
+import * as type from './type';
+import { ListResult } from '../list_result';
 
 export function fromResource(
   authWrapper: AuthWrapper,
@@ -63,4 +63,17 @@ export function fromResourceString(
   }
   let resource = obj as ListResult;
   return fromResource(authWrapper, resource);
+}
+
+export function listOptionsValidator(p: any) {
+  let validType = p && type.isObject(p);
+  if (!validType) {
+    throw 'Expected ListOptions object.';
+  }
+  if (p['maxResults'] < 0) {
+    throw 'Expected maxResults to be positive.';
+  }
+  if (!type.isString(p['pageToken'] )) {
+    throw 'Expected pageToken to be string.';
+  }
 }

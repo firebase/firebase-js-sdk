@@ -237,10 +237,10 @@ describe('Firebase Storage > Requests', () => {
       prefixes: ['a/f/'],
       items: [
         {
-          name: 'a/a',
+          name: 'a/a'
         },
         {
-          name: 'a/b',
+          name: 'a/b'
         }
       ]
     };

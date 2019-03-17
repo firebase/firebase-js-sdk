@@ -397,10 +397,34 @@ describe('Firebase Storage > Reference', () => {
     });
 
     describe('list', () => {
+      it('throws on invalid option', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, "invalid-option"),
+          'storage/invalid-argument'
+        );
+      });
       it('throws on number arg', () => {
         testShared.assertThrows(
-          testShared.bind(child.list, child, 2),
+          testShared.bind(child.list, child, 1, 2),
           'storage/invalid-argument-count'
+        );
+      });
+      it('throws on nonstring pageToken', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child,{pageToken: {x: 1}}),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on negative maxResults', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child,{maxResults: -4}),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on unkonw option', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child,{unknown: "ok"}),
+          'storage/invalid-argument'
         );
       });
     });
@@ -469,6 +493,9 @@ describe('Firebase Storage > Reference', () => {
       assert.doesNotThrow(() => {
         child.list();
       });
+      assert.doesNotThrow(() => {
+        child.list({pageToken: "xxx", maxResults: 4});
+      });
     });
     it("updateMetadata doesn't throw", () => {
       assert.doesNotThrow(() => {
@@ -510,6 +537,9 @@ describe('Firebase Storage > Reference', () => {
     it("list doesn't throws", () => {
       assert.doesNotThrow(() => {
         child.list();
+      });
+      assert.doesNotThrow(() => {
+        child.list({pageToken: "xxx", maxResults: 4});
       });
     });
     it('updateMetadata throws', () => {
