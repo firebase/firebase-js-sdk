@@ -18,10 +18,8 @@ import { assert } from 'chai';
 import { AuthWrapper } from '../src/implementation/authwrapper';
 import { FbsBlob } from '../src/implementation/blob';
 import { Location } from '../src/implementation/location';
-import {
-  fromResourceString,
-  getMappings
-} from '../src/implementation/metadata';
+import * as MetadataUtils from '../src/implementation/metadata';
+import * as ListResultUtils from '../src/implementation/list_result';
 import { makeRequest } from '../src/implementation/request';
 import * as requests from '../src/implementation/requests';
 import { makeUrl } from '../src/implementation/url';
@@ -34,6 +32,7 @@ import { Reference } from '../src/reference';
 import { Service } from '../src/service';
 import { assertObjectIncludes, fakeXhrIo } from './testshared';
 import { DEFAULT_HOST } from '../src/implementation/constants';
+import { isNonArrayObject } from '../dist/src/implementation/type';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
@@ -47,7 +46,7 @@ describe('Firebase Storage > Requests', () => {
   const smallBlobString = 'a';
   const bigBlob = new FbsBlob(new Blob([new ArrayBuffer(1024 * 1024)]));
 
-  const mappings = getMappings();
+  const mappings = MetadataUtils.getMappings();
 
   const authWrapper = new AuthWrapper(
     null,
@@ -97,7 +96,7 @@ describe('Firebase Storage > Requests', () => {
     metadata: { foo: 'bar' }
   };
   const serverResourceString = JSON.stringify(serverResource);
-  const metadataFromServerResource = fromResourceString(
+  const metadataFromServerResource = MetadataUtils.fromResourceString(
     authWrapper,
     serverResourceString,
     mappings
@@ -196,6 +195,65 @@ describe('Firebase Storage > Requests', () => {
     );
     checkMetadataHandler(requestInfo);
   });
+
+  it('list request info', () => {
+    const maps = [
+      [locationNormal, locationNormalNoObjUrl],
+      [locationEscapes, locationEscapesNoObjUrl]
+    ];
+    const pageToken = 'pageToken-afeafeagef';
+    const maxResults = 13;
+    for (let i = 0; i < maps.length; i++) {
+      const location = maps[i][0] as Location;
+      const locationNoObjectUrl = maps[i][1] as string;
+      const requestInfo = requests.list(
+        authWrapper,
+        location,
+        '/',
+        pageToken,
+        maxResults
+      );
+      console.error(requestInfo);
+      assertObjectIncludes(
+        {
+          url: makeUrl(locationNoObjectUrl),
+          method: 'GET',
+          body: null,
+          headers: {},
+          urlParams: {
+            prefix: location.path + '/',
+            delimiter: '/',
+            pageToken: pageToken,
+            maxResults: maxResults
+          }
+        },
+        requestInfo
+      );
+    }
+  });
+  it('list handler', () => {
+    const requestInfo = requests.list(authWrapper, locationNormal);
+    const listResponse = {
+      prefixes: ['a/f/'],
+      items: [
+        {
+          name: 'a/a',
+          bucket: 'fredzqm-staging'
+        },
+        {
+          name: 'a/b',
+          bucket: 'fredzqm-staging'
+        }
+      ]
+    };
+    const listResponseString = JSON.stringify(listResponse);
+    const listResult = requestInfo.handler(fakeXhrIo({}), listResponseString);
+    assert.deepEqual(
+      listResult,
+      ListResultUtils.fromResourceString(authWrapper, listResponseString)
+    );
+  });
+
   it('getDownloadUrl request info', () => {
     const maps = [
       [locationNormal, locationNormalUrl],

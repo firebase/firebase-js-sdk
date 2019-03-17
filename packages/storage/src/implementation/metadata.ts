@@ -26,6 +26,7 @@ import { Location } from './location';
 import * as path from './path';
 import * as type from './type';
 import * as UrlUtils from './url';
+import { ListResult } from '@firebase/storage-types';
 
 export function noXform_(metadata: Metadata, value: any): any {
   return value;

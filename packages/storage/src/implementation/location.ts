@@ -36,6 +36,10 @@ export class Location {
     return this.path_;
   }
 
+  get isRoot(): boolean {
+    return this.path_.length === 0;
+  }
+
   fullServerUrl(): string {
     let encode = encodeURIComponent;
     return '/b/' + encode(this.bucket) + '/o/' + encode(this.path);

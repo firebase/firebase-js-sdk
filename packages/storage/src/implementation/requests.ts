@@ -20,6 +20,7 @@
  */
 
 import { Metadata } from '../metadata';
+import { ListResult } from '../list_result';
 
 import * as array from './array';
 import { AuthWrapper } from './authwrapper';
@@ -28,6 +29,7 @@ import * as errorsExports from './error';
 import { FirebaseStorageError } from './error';
 import { Location } from './location';
 import * as MetadataUtils from './metadata';
+import * as ListResultUtils from './list_result';
 import * as object from './object';
 import { RequestInfo } from './requestinfo';
 import * as type from './type';
@@ -55,6 +57,17 @@ export function metadataHandler(
     );
     handlerCheck(metadata !== null);
     return metadata as Metadata;
+  }
+  return handler;
+}
+
+export function listHandler(
+  authWrapper: AuthWrapper
+): (p1: XhrIo, p2: string) => ListResult {
+  function handler(xhr: XhrIo, text: string): ListResult {
+    let metadata = ListResultUtils.fromResourceString(authWrapper, text);
+    handlerCheck(metadata !== null);
+    return metadata as ListResult;
   }
   return handler;
 }
@@ -139,6 +152,41 @@ export function getMetadata(
     metadataHandler(authWrapper, mappings),
     timeout
   );
+  requestInfo.errorHandler = objectErrorHandler(location);
+  return requestInfo;
+}
+
+export function list(
+  authWrapper: AuthWrapper,
+  location: Location,
+  delimiter?: string,
+  pageToken?: string,
+  maxResults?: number
+): RequestInfo<ListResult> {
+  var urlParams = {};
+  if (!location.isRoot) {
+    urlParams['prefix'] = location.path + '/';
+  }
+  if (delimiter && delimiter.length > 0) {
+    urlParams['delimiter'] = delimiter;
+  }
+  if (pageToken) {
+    urlParams['pageToken'] = pageToken;
+  }
+  if (maxResults) {
+    urlParams['maxResults'] = maxResults;
+  }
+  let urlPart = location.bucketOnlyServerUrl();
+  let url = UrlUtils.makeUrl(urlPart);
+  let method = 'GET';
+  let timeout = authWrapper.maxOperationRetryTime();
+  let requestInfo = new RequestInfo(
+    url,
+    method,
+    listHandler(authWrapper),
+    timeout
+  );
+  requestInfo.urlParams = urlParams;
   requestInfo.errorHandler = objectErrorHandler(location);
   return requestInfo;
 }

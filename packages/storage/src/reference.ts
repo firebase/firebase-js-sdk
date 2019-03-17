@@ -33,6 +33,8 @@ import * as type from './implementation/type';
 import { Metadata } from './metadata';
 import { Service } from './service';
 import { UploadTask } from './task';
+import { ListResult } from './list_result';
+import { ListOptions } from '@firebase/storage-types';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -197,6 +199,30 @@ export class Reference {
     let self = this;
     return this.authWrapper.getAuthToken().then(function(authToken) {
       let requestInfo = requests.deleteObject(self.authWrapper, self.location);
+      return self.authWrapper.makeRequest(requestInfo, authToken).getPromise();
+    });
+  }
+
+  /**
+   *     A promise that resolves with the metadata for this object. If this
+   *     object doesn't exist or metadata cannot be retreived, the promise is
+   *     rejected.
+   */
+  list(options?: ListOptions | null): Promise<ListResult> {
+    args.validate('list', [], arguments);
+    let self = this;
+    return this.authWrapper.getAuthToken().then(function(authToken) {
+      let op = options || {
+        pageToken: null,
+        maxResults: 0
+      };
+      let requestInfo = requests.list(
+        self.authWrapper,
+        self.location,
+        /*delimiter= */ '/',
+        op.pageToken,
+        op.maxResults
+      );
       return self.authWrapper.makeRequest(requestInfo, authToken).getPromise();
     });
   }
