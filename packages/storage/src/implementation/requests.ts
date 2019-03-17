@@ -20,7 +20,7 @@
  */
 
 import { Metadata } from '../metadata';
-import { ListResult } from '../list_result';
+import { ListResult } from '../list';
 
 import * as array from './array';
 import { AuthWrapper } from './authwrapper';
@@ -29,7 +29,7 @@ import * as errorsExports from './error';
 import { FirebaseStorageError } from './error';
 import { Location } from './location';
 import * as MetadataUtils from './metadata';
-import * as ListResultUtils from './list_result';
+import * as ListResultUtils from './list';
 import * as object from './object';
 import { RequestInfo } from './requestinfo';
 import * as type from './type';
@@ -164,7 +164,11 @@ export function list(
   maxResults?: number
 ): RequestInfo<ListResult> {
   var urlParams = {};
-  urlParams['prefix'] = location.path + '/';
+  if (location.isRoot) {
+    urlParams['prefix'] = '';
+  } else {
+    urlParams['prefix'] = location.path + '/';
+  }
   if (delimiter && delimiter.length > 0) {
     urlParams['delimiter'] = delimiter;
   }

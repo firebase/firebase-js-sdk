@@ -21,7 +21,7 @@
 /**
  * Domain name for firebase storage.
  */
-export const DEFAULT_HOST: string = 'firebasestorage.googleapis.com';
+export const DEFAULT_HOST: string = 'staging-firebasestorage.sandbox.googleapis.com';
 
 /**
  * The key in Firebase config json for the storage bucket.

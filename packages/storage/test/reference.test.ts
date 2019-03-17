@@ -496,6 +496,12 @@ describe('Firebase Storage > Reference', () => {
       assert.doesNotThrow(() => {
         child.list({pageToken: "xxx", maxResults: 4});
       });
+      assert.doesNotThrow(() => {
+        child.list({pageToken: "xxx"});
+      });
+      assert.doesNotThrow(() => {
+        child.list({maxResults: 4});
+      });
     });
     it("updateMetadata doesn't throw", () => {
       assert.doesNotThrow(() => {

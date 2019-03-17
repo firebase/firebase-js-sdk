@@ -16,7 +16,7 @@
  */
 import * as errorsExports from './error';
 import * as MetadataUtils from './metadata';
-import * as ListOptionsUtils from './list_result';
+import * as ListOptionsUtils from './list';
 import * as type from './type';
 
 /**

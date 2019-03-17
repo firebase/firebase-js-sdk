@@ -19,7 +19,7 @@ import { AuthWrapper } from '../src/implementation/authwrapper';
 import { FbsBlob } from '../src/implementation/blob';
 import { Location } from '../src/implementation/location';
 import * as MetadataUtils from '../src/implementation/metadata';
-import * as ListResultUtils from '../src/implementation/list_result';
+import * as ListResultUtils from '../src/implementation/list';
 import { makeRequest } from '../src/implementation/request';
 import * as requests from '../src/implementation/requests';
 import { makeUrl } from '../src/implementation/url';
@@ -196,9 +196,28 @@ describe('Firebase Storage > Requests', () => {
     checkMetadataHandler(requestInfo);
   });
 
+  it('list root request info', () => {
+      const requestInfo = requests.list(
+        authWrapper,
+        locationRoot,
+        '/',
+      );
+      assertObjectIncludes(
+        {
+          url: makeUrl(locationNormalNoObjUrl),
+          method: 'GET',
+          body: null,
+          headers: {},
+          urlParams: {
+            prefix: '',
+            delimiter: '/',
+          }
+        },
+        requestInfo
+      );
+  });
   it('list request info', () => {
     const maps = [
-      [locationRoot, locationNormalNoObjUrl],
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
     ];

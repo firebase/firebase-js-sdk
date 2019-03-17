@@ -17,17 +17,17 @@
 import { Reference } from './reference';
 
 /**
- * @fileoverview Documentation for the ListResult format.
+ * @fileoverview Documentation for ListOptions and ListResult format.
  */
 type ListOptions = {
-  maxResults: number | null | undefined;
-  pageToken: string | null | undefined;
+  maxResults?: number | null | undefined;
+  pageToken?: string | null | undefined;
 };
 
 type ListResult = {
   prefixes: Reference[];
   items: Reference[];
-  nextPageToken: string | null | undefined;
+  nextPageToken?: string | null | undefined;
 };
 
 export { ListOptions, ListResult };

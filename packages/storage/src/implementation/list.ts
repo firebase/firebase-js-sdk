@@ -22,7 +22,7 @@ import { AuthWrapper } from './authwrapper';
 import { Location } from './location';
 import * as json from './json';
 import * as type from './type';
-import { ListResult } from '../list_result';
+import { ListResult } from '../list';
 
 export function fromResource(
   authWrapper: AuthWrapper,
@@ -65,15 +65,25 @@ export function fromResourceString(
   return fromResource(authWrapper, resource);
 }
 
+const maxResultsKey = 'maxResults';
+const pageTokenKey = 'pageToken';
+
 export function listOptionsValidator(p: any) {
   let validType = p && type.isObject(p);
   if (!validType) {
     throw 'Expected ListOptions object.';
   }
-  if (p['maxResults'] < 0) {
-    throw 'Expected maxResults to be positive.';
-  }
-  if (!type.isString(p['pageToken'] )) {
-    throw 'Expected pageToken to be string.';
+  for (let key in p) {
+    if (key === maxResultsKey) {
+      if (p[maxResultsKey] && p[maxResultsKey] < 0) {
+        throw 'Expected maxResults to be positive.';
+      }
+    } else if (key === pageTokenKey) {
+      if (p[pageTokenKey] && !type.isString(p[pageTokenKey])) {
+        throw 'Expected pageToken to be string.';
+      }
+    } else {
+      throw 'Unknown option ' + key;
+    }
   }
 }

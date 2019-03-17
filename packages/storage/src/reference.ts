@@ -33,7 +33,7 @@ import * as type from './implementation/type';
 import { Metadata } from './metadata';
 import { Service } from './service';
 import { UploadTask } from './task';
-import { ListOptions, ListResult } from './list_result';
+import { ListOptions, ListResult } from './list';
 import { listOptionSpec } from './implementation/args';
 
 /**
