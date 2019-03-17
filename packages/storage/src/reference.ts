@@ -33,8 +33,7 @@ import * as type from './implementation/type';
 import { Metadata } from './metadata';
 import { Service } from './service';
 import { UploadTask } from './task';
-import { ListResult } from './list_result';
-import { ListOptions } from '@firebase/storage-types';
+import { ListOptions, ListResult } from './list_result';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -204,9 +203,10 @@ export class Reference {
   }
 
   /**
-   *     A promise that resolves with the metadata for this object. If this
-   *     object doesn't exist or metadata cannot be retreived, the promise is
-   *     rejected.
+   * @param options.maxResults limits the total number of prefixes and items returned.
+   * @param options.pageToken limits the total number of prefixes and items returned.
+   * @return A promise that resolves with ListResult. prefixes contains reference to subfolders and items contains reference to objects in this folder.
+   * nextPageToken can be passed as options.pageToken to get the rest of results
    */
   list(options?: ListOptions | null): Promise<ListResult> {
     args.validate('list', [], arguments);

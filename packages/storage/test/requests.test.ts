@@ -32,7 +32,6 @@ import { Reference } from '../src/reference';
 import { Service } from '../src/service';
 import { assertObjectIncludes, fakeXhrIo } from './testshared';
 import { DEFAULT_HOST } from '../src/implementation/constants';
-import { isNonArrayObject } from '../dist/src/implementation/type';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
@@ -215,7 +214,6 @@ describe('Firebase Storage > Requests', () => {
         pageToken,
         maxResults
       );
-      console.error(requestInfo);
       assertObjectIncludes(
         {
           url: makeUrl(locationNoObjectUrl),
@@ -240,11 +238,9 @@ describe('Firebase Storage > Requests', () => {
       items: [
         {
           name: 'a/a',
-          bucket: 'fredzqm-staging'
         },
         {
           name: 'a/b',
-          bucket: 'fredzqm-staging'
         }
       ]
     };

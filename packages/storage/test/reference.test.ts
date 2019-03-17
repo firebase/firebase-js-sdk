@@ -399,7 +399,7 @@ describe('Firebase Storage > Reference', () => {
     describe('list', () => {
       it('throws on number arg', () => {
         testShared.assertThrows(
-          testShared.bind(child.getDownloadURL, child, 2),
+          testShared.bind(child.list, child, 2),
           'storage/invalid-argument-count'
         );
       });
@@ -502,15 +502,15 @@ describe('Firebase Storage > Reference', () => {
       );
     });
     it('getMetadata throws', () => {
-      assert.doesNotThrow(() => {
-        child.list();
-      });
-    });
-    it('list doesnt throws', () => {
       testShared.assertThrows(
         root.getMetadata.bind(root),
         'storage/invalid-root-operation'
       );
+    });
+    it("list doesn't throws", () => {
+      assert.doesNotThrow(() => {
+        child.list();
+      });
     });
     it('updateMetadata throws', () => {
       testShared.assertThrows(

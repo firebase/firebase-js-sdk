@@ -19,7 +19,7 @@ import { Reference } from './reference';
 /**
  * @fileoverview Documentation for the ListResult format.
  */
-type ListOption = {
+type ListOptions = {
   maxResults: number | null | undefined;
   pageToken: string | null | undefined;
 };
@@ -30,4 +30,4 @@ type ListResult = {
   nextPageToken: string | null | undefined;
 };
 
-export { ListOption, ListResult };
+export { ListOptions, ListResult };
