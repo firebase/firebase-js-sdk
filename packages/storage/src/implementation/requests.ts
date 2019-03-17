@@ -65,9 +65,9 @@ export function listHandler(
   authWrapper: AuthWrapper
 ): (p1: XhrIo, p2: string) => ListResult {
   function handler(xhr: XhrIo, text: string): ListResult {
-    let metadata = ListResultUtils.fromResourceString(authWrapper, text);
-    handlerCheck(metadata !== null);
-    return metadata as ListResult;
+    let listResult = ListResultUtils.fromResourceString(authWrapper, text);
+    handlerCheck(listResult !== null);
+    return listResult as ListResult;
   }
   return handler;
 }

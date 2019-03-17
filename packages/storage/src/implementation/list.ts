@@ -31,11 +31,11 @@ export function fromResource(
   let listResult: ListResult = {
     prefixes: [],
     items: [],
-    nextPageToken: resource['pageToken']
+    nextPageToken: resource['nextPageToken']
   };
   var prefixLength = resource['prefixes'] ? resource['prefixes'].length : 0;
   for (var i = 0; i < prefixLength; i++) {
-    let path = resource['prefixes'][i];
+    let path = resource['prefixes'][i].replace(/\/$/, "");
     let reference = authWrapper.makeStorageReference(
       new Location(authWrapper.bucket(), path)
     );
