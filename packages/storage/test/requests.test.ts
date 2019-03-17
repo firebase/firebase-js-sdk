@@ -36,6 +36,7 @@ import { isNonArrayObject } from '../dist/src/implementation/type';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
+  const locationRoot = new Location(normalBucket, '');
   const locationNormal = new Location(normalBucket, 'o');
   const locationNormalUrl = '/b/' + normalBucket + '/o/o';
   const locationNormalNoObjUrl = '/b/' + normalBucket + '/o';
@@ -198,6 +199,7 @@ describe('Firebase Storage > Requests', () => {
 
   it('list request info', () => {
     const maps = [
+      [locationRoot, locationNormalNoObjUrl],
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
     ];

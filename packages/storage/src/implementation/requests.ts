@@ -164,9 +164,7 @@ export function list(
   maxResults?: number
 ): RequestInfo<ListResult> {
   var urlParams = {};
-  if (!location.isRoot) {
-    urlParams['prefix'] = location.path + '/';
-  }
+  urlParams['prefix'] = location.path + '/';
   if (delimiter && delimiter.length > 0) {
     urlParams['delimiter'] = delimiter;
   }
