@@ -80,5 +80,3 @@ typings/
 
 # NPM Lockfiles
 package-lock.json
-
-index.html

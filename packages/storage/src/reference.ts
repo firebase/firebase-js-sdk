@@ -205,7 +205,7 @@ export class Reference {
 
   /**
    * @param options.maxResults limits the total number of prefixes and items returned.
-   * @param options.pageToken limits the total number of prefixes and items returned.
+   * @param options.pageToken nextPageToken from a previous list(). Resume from that position.
    * @return A promise that resolves with ListResult. prefixes contains reference to subfolders and items contains reference to objects in this folder.
    * nextPageToken can be passed as options.pageToken to get the rest of results
    */
