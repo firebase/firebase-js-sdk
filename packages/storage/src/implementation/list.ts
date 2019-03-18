@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-/**
- * @fileoverview Documentation for the metadata format
- */
 import { AuthWrapper } from './authwrapper';
 import { Location } from './location';
 import * as json from './json';
