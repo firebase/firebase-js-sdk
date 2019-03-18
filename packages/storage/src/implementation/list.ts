@@ -33,7 +33,7 @@ export function fromResource(
     items: [],
     nextPageToken: resource['nextPageToken']
   };
-  const prefixesKey = "prefixes";
+  const prefixesKey = 'prefixes';
   if (resource[prefixesKey]) {
     for (let path of resource[prefixesKey]) {
       let reference = authWrapper.makeStorageReference(
@@ -43,7 +43,7 @@ export function fromResource(
     }
   }
 
-  const itemsKey = "items";
+  const itemsKey = 'items';
   if (resource[itemsKey]) {
     for (let item of resource[itemsKey]) {
       let reference = authWrapper.makeStorageReference(

@@ -417,7 +417,7 @@ describe('Firebase Storage > Reference', () => {
       });
       it('throws on non-int maxResults', () => {
         testShared.assertThrows(
-          testShared.bind(child.list, child, { maxResults: "4" }),
+          testShared.bind(child.list, child, { maxResults: '4' }),
           'storage/invalid-argument'
         );
         testShared.assertThrows(

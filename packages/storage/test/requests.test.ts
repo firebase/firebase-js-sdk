@@ -171,9 +171,9 @@ describe('Firebase Storage > Requests', () => {
       [locationNormal, locationNormalUrl],
       [locationEscapes, locationEscapesUrl]
     ];
-    for (let i = 0; i < maps.length; i++) {
-      const location = maps[i][0] as Location;
-      const url = maps[i][1] as string;
+    for (const d of maps) {
+      const location = d[0] as Location;
+      const url = d[1] as string;
       const requestInfo = requests.getMetadata(authWrapper, location, mappings);
       assertObjectIncludes(
         {
@@ -219,9 +219,9 @@ describe('Firebase Storage > Requests', () => {
     ];
     const pageToken = 'pageToken-afeafeagef';
     const maxResults = 13;
-    for (let i = 0; i < maps.length; i++) {
-      const location = maps[i][0] as Location;
-      const locationNoObjectUrl = maps[i][1] as string;
+    for (const d of maps) {
+      const location = d[0] as Location;
+      const locationNoObjectUrl = d[1] as string;
       const requestInfo = requests.list(
         authWrapper,
         location,
