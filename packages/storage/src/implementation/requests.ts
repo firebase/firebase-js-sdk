@@ -163,7 +163,7 @@ export function list(
   pageToken?: string,
   maxResults?: number
 ): RequestInfo<ListResult> {
-  var urlParams = {};
+  let urlParams = {};
   if (location.isRoot) {
     urlParams['prefix'] = '';
   } else {

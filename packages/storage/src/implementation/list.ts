@@ -28,15 +28,15 @@ export function fromResource(
   authWrapper: AuthWrapper,
   resource: { [name: string]: any }
 ): ListResult {
-  let listResult: ListResult = {
+  const listResult: ListResult = {
     prefixes: [],
     items: [],
     nextPageToken: resource['nextPageToken']
   };
   const prefixesKey = 'prefixes';
   if (resource[prefixesKey]) {
-    for (let path of resource[prefixesKey]) {
-      let reference = authWrapper.makeStorageReference(
+    for (const path of resource[prefixesKey]) {
+      const reference = authWrapper.makeStorageReference(
         new Location(authWrapper.bucket(), path.replace(/\/$/, ''))
       );
       listResult.prefixes.push(reference);
@@ -45,8 +45,8 @@ export function fromResource(
 
   const itemsKey = 'items';
   if (resource[itemsKey]) {
-    for (let item of resource[itemsKey]) {
-      let reference = authWrapper.makeStorageReference(
+    for (const item of resource[itemsKey]) {
+      const reference = authWrapper.makeStorageReference(
         new Location(authWrapper.bucket(), item['name'])
       );
       listResult.items.push(reference);
@@ -59,11 +59,11 @@ export function fromResourceString(
   authWrapper: AuthWrapper,
   resourceString: string
 ): ListResult | null {
-  let obj = json.jsonObjectOrNull(resourceString);
+  const obj = json.jsonObjectOrNull(resourceString);
   if (obj === null) {
     return null;
   }
-  let resource = obj as ListResult;
+  const resource = obj as ListResult;
   return fromResource(authWrapper, resource);
 }
 
@@ -74,7 +74,7 @@ export function listOptionsValidator(p: any) {
   }
   const maxResultsKey = 'maxResults';
   const pageTokenKey = 'pageToken';
-  for (let key in p) {
+  for (const key in p) {
     if (key === maxResultsKey) {
       if (!type.isInteger(p[maxResultsKey]) || p[maxResultsKey] <= 0) {
         throw 'Expected maxResults to be positive.';
