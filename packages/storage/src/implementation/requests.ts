@@ -65,7 +65,7 @@ export function listHandler(
   authWrapper: AuthWrapper
 ): (p1: XhrIo, p2: string) => ListResult {
   function handler(xhr: XhrIo, text: string): ListResult {
-    let listResult = ListResultUtils.fromResourceString(authWrapper, text);
+    const listResult = ListResultUtils.fromResourceString(authWrapper, text);
     handlerCheck(listResult !== null);
     return listResult as ListResult;
   }
@@ -178,18 +178,18 @@ export function list(
   if (maxResults) {
     urlParams['maxResults'] = maxResults;
   }
-  let urlPart = location.bucketOnlyServerUrl();
-  let url = UrlUtils.makeUrl(urlPart);
-  let method = 'GET';
-  let timeout = authWrapper.maxOperationRetryTime();
-  let requestInfo = new RequestInfo(
+  const urlPart = location.bucketOnlyServerUrl();
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'GET';
+  const timeout = authWrapper.maxOperationRetryTime();
+  const requestInfo = new RequestInfo(
     url,
     method,
     listHandler(authWrapper),
     timeout
   );
   requestInfo.urlParams = urlParams;
-  requestInfo.errorHandler = objectErrorHandler(location);
+  requestInfo.errorHandler = sharedErrorHandler(location);
   return requestInfo;
 }
 

@@ -409,13 +409,27 @@ describe('Firebase Storage > Reference', () => {
           'storage/invalid-argument-count'
         );
       });
-      it('throws on nonstring pageToken', () => {
+      it('throws on non-string pageToken', () => {
         testShared.assertThrows(
           testShared.bind(child.list, child, { pageToken: { x: 1 } }),
           'storage/invalid-argument'
         );
       });
-      it('throws on negative maxResults', () => {
+      it('throws on non-int maxResults', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: "4" }),
+          'storage/invalid-argument'
+        );
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: 1.2 }),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on non-positive maxResults', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: 0 }),
+          'storage/invalid-argument'
+        );
         testShared.assertThrows(
           testShared.bind(child.list, child, { maxResults: -4 }),
           'storage/invalid-argument'

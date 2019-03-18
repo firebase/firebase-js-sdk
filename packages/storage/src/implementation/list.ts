@@ -15,6 +15,9 @@
  * limitations under the License.
  */
 
+/**
+ * @fileoverview Documentation for the listOptions and listResult format
+ */
 import { AuthWrapper } from './authwrapper';
 import { Location } from './location';
 import * as json from './json';
@@ -30,22 +33,24 @@ export function fromResource(
     items: [],
     nextPageToken: resource['nextPageToken']
   };
-  var prefixLength = resource['prefixes'] ? resource['prefixes'].length : 0;
-  for (var i = 0; i < prefixLength; i++) {
-    let path = resource['prefixes'][i].replace(/\/$/, '');
-    let reference = authWrapper.makeStorageReference(
-      new Location(authWrapper.bucket(), path)
-    );
-    listResult.prefixes.push(reference);
+  const prefixesKey = "prefixes";
+  if (resource[prefixesKey]) {
+    for (let path of resource[prefixesKey]) {
+      let reference = authWrapper.makeStorageReference(
+        new Location(authWrapper.bucket(), path.replace(/\/$/, ''))
+      );
+      listResult.prefixes.push(reference);
+    }
   }
 
-  var itemLength = resource['items'] ? resource['items'].length : 0;
-  for (var i = 0; i < itemLength; i++) {
-    let path = resource['items'][i]['name'];
-    let reference = authWrapper.makeStorageReference(
-      new Location(authWrapper.bucket(), path)
-    );
-    listResult.items.push(reference);
+  const itemsKey = "items";
+  if (resource[itemsKey]) {
+    for (let item of resource[itemsKey]) {
+      let reference = authWrapper.makeStorageReference(
+        new Location(authWrapper.bucket(), item['name'])
+      );
+      listResult.items.push(reference);
+    }
   }
   return listResult;
 }
@@ -62,21 +67,20 @@ export function fromResourceString(
   return fromResource(authWrapper, resource);
 }
 
-const maxResultsKey = 'maxResults';
-const pageTokenKey = 'pageToken';
-
 export function listOptionsValidator(p: any) {
-  let validType = p && type.isObject(p);
+  const validType = p && type.isObject(p);
   if (!validType) {
     throw 'Expected ListOptions object.';
   }
+  const maxResultsKey = 'maxResults';
+  const pageTokenKey = 'pageToken';
   for (let key in p) {
     if (key === maxResultsKey) {
-      if (p[maxResultsKey] && p[maxResultsKey] < 0) {
+      if (!type.isInteger(p[maxResultsKey]) || p[maxResultsKey] <= 0) {
         throw 'Expected maxResults to be positive.';
       }
     } else if (key === pageTokenKey) {
-      if (p[pageTokenKey] && !type.isString(p[pageTokenKey])) {
+      if (!type.isString(p[pageTokenKey])) {
         throw 'Expected pageToken to be string.';
       }
     } else {
