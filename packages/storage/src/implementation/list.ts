@@ -90,7 +90,7 @@ export function listOptionsValidator(p: any) {
   for (const key in p) {
     if (key === maxResultsKey) {
       if (!type.isInteger(p[maxResultsKey]) || p[maxResultsKey] <= 0) {
-        throw 'Expected maxResults to be positive number.';
+        throw 'Expected maxResults to be a positive number.';
       }
     } else if (key === pageTokenKey) {
       if (!type.isString(p[pageTokenKey])) {

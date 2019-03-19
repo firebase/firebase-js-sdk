@@ -5474,23 +5474,49 @@ declare namespace firebase.storage {
     updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
     /**
      * List items and folders (prefixes) within this directory.
+     * "/" is treated as a path delimiter. Firebase storage does not support invalid object path that ends with "/" or contains two consecutive "//".
+     * All invalid objects in GCS will be filtered.
      *
      * @param {!options.maxResults} If set, limits the total number of prefixes and items to return..
      * @param {!options.pageToken} The nextPageToken from a previous list() response. If provided, listing is resumed from that position.
-     * @return A promise that resolves with ListResult. prefixes contains reference to subfolders and items contains reference to objects in this folder.
+     * @return {!firebase.Promise<firebase.storage.ListResult>} A promise that resolves with the sub-directories and items.
+     * prefixes contains reference to sub-directories and items contains reference to objects in this folder.
      *      nextPageToken can be passed as options.pageToken to get the rest of results
      */
     list(options?: ListOptions): Promise<ListResult>;
   }
 
+  /**
+   * Result returned by list()
+   */
   interface ListResult {
+    /**
+     * References to sub-directories. You can call list() on them to get its contents.
+     */
     prefixes: Reference[];
+    /**
+     * Objects in this directory. You can call getMetadat() and getDownload() on them.
+     */
     items: Reference[];
+    /**
+     * If set, there might be more results for this list. Use this token to resume the list.
+     */
     nextPageToken: string | null;
   }
 
+  /**
+   * The options list() accepts
+   */
   interface ListOptions {
+    /**
+     * The maximum number of results returned.
+     */
     maxResults?: number | null;
+    /**
+     * A pageToken returned from a previous list().
+     * If set, resumes list from the previous location. prefixes and items already listed
+     * will not show up.
+     */
     pageToken?: string | null;
   }
 
