@@ -167,7 +167,7 @@ describe('Firebase Storage > Requests', () => {
   }
 
   it('getMetadata request info', () => {
-    const maps: [Location, string][]  = [
+    const maps: [Location, string][] = [
       [locationNormal, locationNormalUrl],
       [locationEscapes, locationEscapesUrl]
     ];

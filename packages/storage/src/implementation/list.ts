@@ -42,7 +42,7 @@ const itemsKey = 'items';
 
 function fromResource(
   authWrapper: AuthWrapper,
-  resource: ListResultResource,
+  resource: ListResultResource
 ): ListResult {
   const listResult: ListResult = {
     prefixes: [],

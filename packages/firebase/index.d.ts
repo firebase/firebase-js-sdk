@@ -5494,7 +5494,6 @@ declare namespace firebase.storage {
     pageToken?: string | null;
   }
 
-
   /**
    * Object metadata that can be set at any time.
    */
