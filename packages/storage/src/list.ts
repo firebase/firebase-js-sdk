@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,13 @@ import { Reference } from './reference';
 /**
  * @fileoverview Documentation for ListOptions and ListResult format.
  */
-type ListOptions = {
-  maxResults?: number | null | undefined;
-  pageToken?: string | null | undefined;
+export type ListOptions = {
+  maxResults?: number | null;
+  pageToken?: string | null;
 };
 
-type ListResult = {
+export type ListResult = {
   prefixes: Reference[];
   items: Reference[];
-  nextPageToken?: string | null | undefined;
+  nextPageToken?: string | null;
 };
-
-export { ListOptions, ListResult };

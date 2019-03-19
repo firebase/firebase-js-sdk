@@ -5472,7 +5472,28 @@ declare namespace firebase.storage {
      *     including if the object did not exist.
      */
     updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
+    /**
+     * List items and folders (prefixes) within this directory.
+     *
+     * @param {!options.maxResults} If set, limits the total number of prefixes and items to return..
+     * @param {!options.pageToken} The nextPageToken from a previous list() response. If provided, listing is resumed from that position.
+     * @return A promise that resolves with ListResult. prefixes contains reference to subfolders and items contains reference to objects in this folder.
+     *      nextPageToken can be passed as options.pageToken to get the rest of results
+     */
+    list(options?: ListOptions): Promise<ListResult>;
   }
+
+  interface ListResult {
+    prefixes: Reference[];
+    items: Reference[];
+    nextPageToken: string | null;
+  }
+
+  interface ListOptions {
+    maxResults?: number | null;
+    pageToken?: string | null;
+  }
+
 
   /**
    * Object metadata that can be set at any time.

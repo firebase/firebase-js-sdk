@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -204,10 +204,12 @@ export class Reference {
   }
 
   /**
-   * @param options.maxResults limits the total number of prefixes and items to return..
-   * @param options.pageToken nextPageToken from a previous list(). Resume from that position.
+   * List items and folders (prefixes) within this directory.
+   *
+   * @param {!options.maxResults} If set, limits the total number of prefixes and items to return..
+   * @param {!options.pageToken} The nextPageToken from a previous list() response. If provided, listing is resumed from that position.
    * @return A promise that resolves with ListResult. prefixes contains reference to subfolders and items contains reference to objects in this folder.
-   * nextPageToken can be passed as options.pageToken to get the rest of results
+   *      nextPageToken can be passed as options.pageToken to get the rest of results
    */
   list(options?: ListOptions | null): Promise<ListResult> {
     args.validate('list', [listOptionSpec(true)], arguments);

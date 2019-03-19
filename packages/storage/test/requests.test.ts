@@ -167,13 +167,11 @@ describe('Firebase Storage > Requests', () => {
   }
 
   it('getMetadata request info', () => {
-    const maps = [
+    const maps: [Location, string][]  = [
       [locationNormal, locationNormalUrl],
       [locationEscapes, locationEscapesUrl]
     ];
-    for (const d of maps) {
-      const location = d[0] as Location;
-      const url = d[1] as string;
+    for (const [location, url] of maps) {
       const requestInfo = requests.getMetadata(authWrapper, location, mappings);
       assertObjectIncludes(
         {
@@ -187,6 +185,7 @@ describe('Firebase Storage > Requests', () => {
       );
     }
   });
+
   it('getMetadata handler', () => {
     const requestInfo = requests.getMetadata(
       authWrapper,
@@ -212,16 +211,15 @@ describe('Firebase Storage > Requests', () => {
       requestInfo
     );
   });
+
   it('list request info', () => {
-    const maps = [
+    const maps: [Location, string][] = [
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
     ];
     const pageToken = 'pageToken-afeafeagef';
     const maxResults = 13;
-    for (const d of maps) {
-      const location = d[0] as Location;
-      const locationNoObjectUrl = d[1] as string;
+    for (const [location, locationNoObjectUrl] of maps) {
       const requestInfo = requests.list(
         authWrapper,
         location,
@@ -246,6 +244,7 @@ describe('Firebase Storage > Requests', () => {
       );
     }
   });
+
   it('list handler', () => {
     const requestInfo = requests.list(authWrapper, locationNormal);
     const pageToken = 'YS9mLw==';
@@ -272,13 +271,11 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('getDownloadUrl request info', () => {
-    const maps = [
+    const maps: [Location, string][] = [
       [locationNormal, locationNormalUrl],
       [locationEscapes, locationEscapesUrl]
     ];
-    for (let i = 0; i < maps.length; i++) {
-      const location = maps[i][0] as Location;
-      const url = maps[i][1] as string;
+    for (const [location, url] of maps) {
       const requestInfo = requests.getDownloadUrl(
         authWrapper,
         location,

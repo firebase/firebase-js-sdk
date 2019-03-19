@@ -61,8 +61,8 @@ export interface ListResult {
 }
 
 export interface ListOptions {
-  maxResults?: number | null | undefined;
-  pageToken?: string | null | undefined;
+  maxResults?: number | null;
+  pageToken?: string | null;
 }
 
 export interface SettableMetadata {

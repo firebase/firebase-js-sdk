@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,26 +24,41 @@ import * as json from './json';
 import * as type from './type';
 import { ListResult } from '../list';
 
-export function fromResource(
+interface ListMetadataReource {
+  name: string;
+  bucket: string;
+}
+
+interface ListResultResource {
+  prefixes: string[];
+  items: ListMetadataReource[];
+  nextPageToken?: string;
+}
+
+const maxResultsKey = 'maxResults';
+const pageTokenKey = 'pageToken';
+const prefixesKey = 'prefixes';
+const itemsKey = 'items';
+
+function fromResource(
   authWrapper: AuthWrapper,
-  resource: { [name: string]: any }
+  resource: ListResultResource,
 ): ListResult {
   const listResult: ListResult = {
     prefixes: [],
     items: [],
     nextPageToken: resource['nextPageToken']
   };
-  const prefixesKey = 'prefixes';
   if (resource[prefixesKey]) {
     for (const path of resource[prefixesKey]) {
+      const pathWithoutTrailingSlash = path.replace(/\/$/, '');
       const reference = authWrapper.makeStorageReference(
-        new Location(authWrapper.bucket(), path.replace(/\/$/, ''))
+        new Location(authWrapper.bucket(), pathWithoutTrailingSlash)
       );
       listResult.prefixes.push(reference);
     }
   }
 
-  const itemsKey = 'items';
   if (resource[itemsKey]) {
     for (const item of resource[itemsKey]) {
       const reference = authWrapper.makeStorageReference(
@@ -63,7 +78,7 @@ export function fromResourceString(
   if (obj === null) {
     return null;
   }
-  const resource = obj as ListResult;
+  const resource = obj as ListResultResource;
   return fromResource(authWrapper, resource);
 }
 
@@ -72,19 +87,17 @@ export function listOptionsValidator(p: any) {
   if (!validType) {
     throw 'Expected ListOptions object.';
   }
-  const maxResultsKey = 'maxResults';
-  const pageTokenKey = 'pageToken';
   for (const key in p) {
     if (key === maxResultsKey) {
       if (!type.isInteger(p[maxResultsKey]) || p[maxResultsKey] <= 0) {
-        throw 'Expected maxResults to be positive.';
+        throw 'Expected maxResults to be positive number.';
       }
     } else if (key === pageTokenKey) {
       if (!type.isString(p[pageTokenKey])) {
         throw 'Expected pageToken to be string.';
       }
     } else {
-      throw 'Unknown option ' + key;
+      throw 'Unknown option: ' + key;
     }
   }
 }
