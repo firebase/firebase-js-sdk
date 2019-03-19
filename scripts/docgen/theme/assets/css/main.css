@@ -305,8 +305,8 @@ pre code { padding: 0; font-size: 100%; background-color: transparent; }
   html.default.has-menu header, html.default.has-menu footer, html.default.has-menu .col-content { -webkit-transform: translate(-25%, 0); transform: translate(-25%, 0); }
   html.default.has-menu .col-menu { visibility: visible; -webkit-transform: translate(0, 0); transform: translate(0, 0); } }
 
-.tsd-page-title { padding: 20px 0; margin: 0 0 40px 0; background: #fff; }
-.tsd-page-title h1 { font-weight: normal, margin: 0; }
+.tsd-page-title { padding: 0; margin: 0; background: #fff; }
+.tsd-page-title h1 { font-weight: normal; margin: 0; }
 
 .tsd-breadcrumb { margin: 0; padding: 0; color: #808080; }
 .tsd-breadcrumb a { color: #808080; text-decoration: none; }
