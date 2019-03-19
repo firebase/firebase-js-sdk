@@ -18,12 +18,18 @@ toc:
     path: /docs/reference/js/firebase.auth.Auth
   - title: "ActionCodeInfo"
     path: /docs/reference/js/firebase.auth.ActionCodeInfo
+  - title: "ApplicationVerifier"
+    path: /docs/reference/js/firebase.auth.ApplicationVerifier
   - title: "AuthCredential"
     path: /docs/reference/js/firebase.auth.AuthCredential
+  - title: "AuthSettings"
+    path: /docs/reference/js/firebase.auth.AuthSettings
   - title: "OAuthCredential"
     path: /docs/reference/js/firebase.auth.OAuthCredential
   - title: "AuthProvider"
     path: /docs/reference/js/firebase.auth.AuthProvider
+  - title: "ConfirmationResult"
+    path: /docs/reference/js/firebase.auth.ConfirmationResult
   - title: "EmailAuthProvider"
     path: /docs/reference/js/firebase.auth.EmailAuthProvider
   - title: "Error"
@@ -34,12 +40,18 @@ toc:
     path: /docs/reference/js/firebase.auth.GithubAuthProvider
   - title: "GoogleAuthProvider"
     path: /docs/reference/js/firebase.auth.GoogleAuthProvider
+  - title: "IdTokenResult"
+    path: /docs/reference/js/firebase.auth.IDTokenResult
   - title: "TwitterAuthProvider"
     path: /docs/reference/js/firebase.auth.TwitterAuthProvider
   - title: "OAuthProvider"
     path: /docs/reference/js/firebase.auth.OAuthProvider
+  - title: "PhoneAuthProvider"
+    path: /docs/reference/js/firebase.auth.PhoneAuthProvider
   - title: "SAMLAuthProvider"
     path: /docs/reference/js/firebase.auth.SAMLAuthProvider
+  - title: "RecaptchaVerifier"
+    path: /docs/reference/js/firebase.auth.RecaptchaVerifier
   - title: "UserMetadata"
     path: /docs/reference/js/firebase.auth.UserMetadata
   - title: "User"
@@ -87,24 +99,28 @@ toc:
     path: /docs/reference/js/firebase.firestore.FirestoreError
   - title: "GeoPoint"
     path: /docs/reference/js/firebase.firestore.GeoPoint
+  - title: "GetOptions"
+    path: /docs/reference/js/firebase.firestore.GetOptions
   - title: "PersistenceSettings"
     path: /docs/reference/js/firebase.firestore.PersistenceSettings
   - title: "Query"
     path: /docs/reference/js/firebase.firestore.Query
   - title: "QueryDocumentSnapshot"
     path: /docs/reference/js/firebase.firestore.QueryDocumentSnapshot
-  - title: "QueryListenOptions"
-    path: /docs/reference/js/firebase.firestore.QueryListenOptions
   - title: "QuerySnapshot"
     path: /docs/reference/js/firebase.firestore.QuerySnapshot
   - title: "SetOptions"
     path: /docs/reference/js/firebase.firestore.SetOptions
   - title: "Settings"
     path: /docs/reference/js/firebase.firestore.Settings
+  - title: "SnapshotListenOptions"
+    path: /docs/reference/js/firebase.firestore.SnapshotListenOptions
   - title: "SnapshotMetadata"
     path: /docs/reference/js/firebase.firestore.SnapshotMetadata
   - title: "SnapshotOptions"
     path: /docs/reference/js/firebase.firestore.SnapshotOptions
+  - title: "TimeStamp"
+    path: /docs/reference/js/firebase.firestore.TimeStamp
   - title: "Transaction"
     path: /docs/reference/js/firebase.firestore.Transaction
   - title: "WriteBatch"
@@ -115,6 +131,10 @@ toc:
   section:
   - title: "Functions"
     path: /docs/reference/js/firebase.functions.Functions
+  - title: "HttpsCallable"
+    path: /docs/reference/js/firebase.functions.HttpsCallable
+  - title: "HttpsCallableOptions"
+    path: /docs/reference/js/firebase.functions.HttpsCallableOptions
   - title: "HttpsCallableResult"
     path: /docs/reference/js/firebase.functions.HttpsCallableResult
   - title: "HttpsError"
