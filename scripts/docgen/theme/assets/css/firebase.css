@@ -6,6 +6,10 @@
     margin-left: 130px;
 }
 
+.firebase-docs aside.tsd-sources {
+    padding: 8px;
+}
+
 .firebase-docs .tsd-panel li {
     margin: 0;
 }
@@ -17,7 +21,7 @@
 .firebase-docs dl.tsd-comment-tags dt.tag-example {
     float: none;
     text-transform: capitalize;
-    color: #039be5;
+    color: #000;
     font-size: 1.1em;
     padding: 5px;
     border: none;
