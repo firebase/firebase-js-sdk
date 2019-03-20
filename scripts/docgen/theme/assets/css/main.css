@@ -149,33 +149,37 @@ textarea { overflow: auto; /* 1 */ vertical-align: top; }
 /** Remove most spacing between table cells. */
 table { border-collapse: collapse; border-spacing: 0; }
 
-/* Visual Studio-like style based on original C# coloring by Jason Diamond <jason@diamond.name> */
-.hljs { display: inline-block; padding: 0.5em; background: white; color: black; }
+.hljs { display: inline-block; padding: 0.5em; background: white; color: #37474f; }
 
-.hljs-comment, .hljs-annotation, .hljs-template_comment, .diff .hljs-header, .hljs-chunk, .apache .hljs-cbracket { color: #008000; }
+.hljs-comment,
+dd.tag-body-example pre code,
+dd.tag-body-example pre code span,
+.hljs-annotation,
+.hljs-template_comment,
+.diff .hljs-header,
+.hljs-chunk,
+.apache .hljs-cbracket { color: #d81b60; }
 
-.hljs-keyword, .hljs-id, .hljs-built_in, .css .smalltalk .hljs-class, .hljs-winutils, .bash .hljs-variable, .tex .hljs-command, .hljs-request, .hljs-status, .nginx .hljs-title { color: #00f; }
+.hljs-keyword,
+.hljs-id,
+.hljs-built_in,
+.css .smalltalk .hljs-class,
+.hljs-winutils,
+.bash .hljs-variable,
+.tex .hljs-command,
+.hljs-request,
+.hljs-status,
+.hljs-meta,
+.nginx .hljs-title { color: #3b78e7; }
 
-.xml .hljs-tag { color: #00f; }
-.xml .hljs-tag .hljs-value { color: #00f; }
+.xml .hljs-tag { color: #3b78e7; }
+.xml .hljs-tag .hljs-value { color: #3b78e7; }
 
-.hljs-string, .hljs-title, .hljs-parent, .hljs-tag .hljs-value, .hljs-rules .hljs-value { color: #a31515; }
-
-.ruby .hljs-symbol { color: #a31515; }
-.ruby .hljs-symbol .hljs-string { color: #a31515; }
-
-.hljs-template_tag, .django .hljs-variable, .hljs-addition, .hljs-flow, .hljs-stream, .apache .hljs-tag, .hljs-date, .tex .hljs-formula, .coffeescript .hljs-attribute { color: #a31515; }
-
-.ruby .hljs-string, .hljs-decorator, .hljs-filter .hljs-argument, .hljs-localvars, .hljs-array, .hljs-attr_selector, .hljs-pseudo, .hljs-pi, .hljs-doctype, .hljs-deletion, .hljs-envvar, .hljs-shebang, .hljs-preprocessor, .hljs-pragma, .userType, .apache .hljs-sqbracket, .nginx .hljs-built_in, .tex .hljs-special, .hljs-prompt { color: #2b91af; }
-
-.hljs-phpdoc, .hljs-javadoc, .hljs-xmlDocTag { color: #808080; }
-
-.vhdl .hljs-typename { font-weight: bold; }
-.vhdl .hljs-string { color: #666666; }
-.vhdl .hljs-literal { color: #a31515; }
-.vhdl .hljs-attribute { color: #00b0e8; }
-
-.xml .hljs-attribute { color: #f00; }
+.hljs-string,
+.hljs-title,
+.hljs-parent,
+.hljs-tag .hljs-value,
+.hljs-rules .hljs-value { color: #0d904f; }
 
 .col > :first-child, .col-1 > :first-child, .col-2 > :first-child, .col-3 > :first-child, .col-4 > :first-child, .col-5 > :first-child, .col-6 > :first-child, .col-7 > :first-child, .col-8 > :first-child, .col-9 > :first-child, .col-10 > :first-child, .col-11 > :first-child, .tsd-panel > :first-child, ul.tsd-descriptions > li > :first-child, .col > :first-child > :first-child, .col-1 > :first-child > :first-child, .col-2 > :first-child > :first-child, .col-3 > :first-child > :first-child, .col-4 > :first-child > :first-child, .col-5 > :first-child > :first-child, .col-6 > :first-child > :first-child, .col-7 > :first-child > :first-child, .col-8 > :first-child > :first-child, .col-9 > :first-child > :first-child, .col-10 > :first-child > :first-child, .col-11 > :first-child > :first-child, .tsd-panel > :first-child > :first-child, ul.tsd-descriptions > li > :first-child > :first-child, .col > :first-child > :first-child > :first-child, .col-1 > :first-child > :first-child > :first-child, .col-2 > :first-child > :first-child > :first-child, .col-3 > :first-child > :first-child > :first-child, .col-4 > :first-child > :first-child > :first-child, .col-5 > :first-child > :first-child > :first-child, .col-6 > :first-child > :first-child > :first-child, .col-7 > :first-child > :first-child > :first-child, .col-8 > :first-child > :first-child > :first-child, .col-9 > :first-child > :first-child > :first-child, .col-10 > :first-child > :first-child > :first-child, .col-11 > :first-child > :first-child > :first-child, .tsd-panel > :first-child > :first-child > :first-child, ul.tsd-descriptions > li > :first-child > :first-child > :first-child { margin-top: 0; }
 .col > :last-child, .col-1 > :last-child, .col-2 > :last-child, .col-3 > :last-child, .col-4 > :last-child, .col-5 > :last-child, .col-6 > :last-child, .col-7 > :last-child, .col-8 > :last-child, .col-9 > :last-child, .col-10 > :last-child, .col-11 > :last-child, .tsd-panel > :last-child, ul.tsd-descriptions > li > :last-child, .col > :last-child > :last-child, .col-1 > :last-child > :last-child, .col-2 > :last-child > :last-child, .col-3 > :last-child > :last-child, .col-4 > :last-child > :last-child, .col-5 > :last-child > :last-child, .col-6 > :last-child > :last-child, .col-7 > :last-child > :last-child, .col-8 > :last-child > :last-child, .col-9 > :last-child > :last-child, .col-10 > :last-child > :last-child, .col-11 > :last-child > :last-child, .tsd-panel > :last-child > :last-child, ul.tsd-descriptions > li > :last-child > :last-child, .col > :last-child > :last-child > :last-child, .col-1 > :last-child > :last-child > :last-child, .col-2 > :last-child > :last-child > :last-child, .col-3 > :last-child > :last-child > :last-child, .col-4 > :last-child > :last-child > :last-child, .col-5 > :last-child > :last-child > :last-child, .col-6 > :last-child > :last-child > :last-child, .col-7 > :last-child > :last-child > :last-child, .col-8 > :last-child > :last-child > :last-child, .col-9 > :last-child > :last-child > :last-child, .col-10 > :last-child > :last-child > :last-child, .col-11 > :last-child > :last-child > :last-child, .tsd-panel > :last-child > :last-child > :last-child, ul.tsd-descriptions > li > :last-child > :last-child > :last-child { margin-bottom: 0; }
