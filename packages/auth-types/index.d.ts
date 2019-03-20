@@ -104,7 +104,7 @@ export interface ApplicationVerifier {
   verify(): Promise<string>;
 }
 
-export class AuthCredential {
+export abstract class AuthCredential {
   providerId: string;
   signInMethod: string;
   toJSON(): Object;
@@ -183,16 +183,10 @@ export interface IdTokenResult {
   };
 }
 
-export interface OAuthProviderOptions {
-  idToken?: string;
-  accessToken?: string;
-  rawNonce?: string;
-}
-
 export class OAuthProvider implements AuthProvider {
   providerId: string;
   addScope(scope: string): AuthProvider;
-  credential(options: OAuthProviderOptions): OAuthCredential;
+  credential(idToken?: string, accessToken?: string): OAuthCredential;
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
 }
 
@@ -254,7 +248,7 @@ export interface UserMetadata {
 
 export type Persistence = string;
 
-export class OAuthCredential extends AuthCredential {
+export abstract class OAuthCredential extends AuthCredential {
   idToken?: string;
   accessToken?: string;
   secret?: string;

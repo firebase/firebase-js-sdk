@@ -2680,7 +2680,7 @@ declare namespace firebase.auth {
    * requirements.
    *
    */
-  class AuthCredential {
+  abstract class AuthCredential {
     /**
      * The authentication provider ID for the credential.
      * For example, 'facebook.com', or 'google.com'.
@@ -2698,16 +2698,14 @@ declare namespace firebase.auth {
      */
     toJSON(): Object;
     /**
-     * Static method to deserialize a JSON representation of an object into an 
-     * {@link firebase.auth.AuthCredential}. Input can be either Object or the 
-     * stringified representation of the object. When string is provided, 
+     * Static method to deserialize a JSON representation of an object into an
+     * {@link firebase.auth.AuthCredential}. Input can be either Object or the
+     * stringified representation of the object. When string is provided,
      * JSON.parse would be called first.
      * @param {!Object|string} json The plain object representation of an
      *     AuthCredential.
      */
-    static fromJSON(
-      json: Object | string
-    ): AuthCredential | null;
+    static fromJSON(json: Object | string): AuthCredential | null;
   }
 
   /**
@@ -2716,7 +2714,7 @@ declare namespace firebase.auth {
    * credential requirements.
    *
    */
-  class OAuthCredential extends AuthCredential {
+  abstract class OAuthCredential extends AuthCredential {
     /**
      * The OAuth ID token associated with the credential if it belongs to an
      * OIDC provider, such as `google.com`.
@@ -3191,26 +3189,6 @@ declare namespace firebase.auth {
   }
 
   /**
-   * Interface representing the options for initializing an
-   * {@link firebase.auth.OAuthCredential}. For OIDC ID tokens with nonce claim, the
-   * raw nonce has to also be provided.
-   */
-  interface OAuthProviderOptions {
-    /**
-     * The OAuth ID token.
-     */
-    idToken?: string;
-    /**
-     * The OAuth access token.
-     */
-    accessToken?: string;
-    /**
-     * The OIDC raw nonce.
-     */
-    rawNonce?: string;
-  }
-
-  /**
    * Generic OAuth provider.
    *
    * @example
@@ -3263,16 +3241,17 @@ declare namespace firebase.auth {
      * // `googleUser` from the onsuccess Google Sign In callback.
      * // Initialize a generate OAuth provider with a `google.com` providerId.
      * var provider = new firebase.auth.OAuthProvider('google.com');
-     * var credential = provider.credential({
-     *     'idToken': googleUser.getAuthResponse().id_token});
+     * var credential = provider.credential(
+     *     googleUser.getAuthResponse().id_token);
      * firebase.auth().signInWithCredential(credential)
      * ```
      *
-     * @param {!firebase.auth.OAuthProviderOptions} options The options object 
-     *     containing the ID token, access token and raw nonce
+     * @param {?string=} idToken The OAuth ID token if OIDC compliant.
+     * @param {?string=} accessToken The OAuth access token.
      */
     credential(
-      options: OAuthProviderOptions
+      idToken?: string,
+      accessToken?: string
     ): firebase.auth.OAuthCredential;
     /**
      * Sets the OAuth custom parameters to pass in an OAuth request for popup
