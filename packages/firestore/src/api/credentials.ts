@@ -26,7 +26,7 @@ import { Code, FirestoreError } from '../util/error';
 
 export interface FirstPartyCredentialsSettings {
   type: 'gapi';
-  client: Gapi;
+  client: unknown;
   sessionIndex: string;
 }
 
@@ -280,16 +280,7 @@ export class FirstPartyToken implements Token {
  * to applications hosted by Google.
  */
 export class FirstPartyCredentialsProvider implements CredentialsProvider {
-  constructor(private gapi: Gapi, private sessionIndex: string) {
-    assert(
-      !!(
-        this.gapi &&
-        this.gapi.auth &&
-        this.gapi.auth.getAuthHeaderValueForFirstParty
-      ),
-      'unexpected gapi interface'
-    );
-  }
+  constructor(private gapi: Gapi, private sessionIndex: string) {}
 
   getToken(): Promise<Token | null> {
     return Promise.resolve(new FirstPartyToken(this.gapi, this.sessionIndex));
@@ -318,8 +309,19 @@ export function makeCredentialsProvider(
 
   switch (credentials.type) {
     case 'gapi':
+      const client = credentials.client;
+      // Make sure this is a Gapi client.
+      assert(
+        !!(
+          typeof client === 'object' &&
+          client !== null &&
+          client['auth'] &&
+          client['auth']['getAuthHeaderValueForFirstParty']
+        ),
+        'unexpected gapi interface'
+      );
       return new FirstPartyCredentialsProvider(
-        credentials.client,
+        client as Gapi,
         credentials.sessionIndex || '0'
       );
 
