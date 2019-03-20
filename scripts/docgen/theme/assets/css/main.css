@@ -152,8 +152,6 @@ table { border-collapse: collapse; border-spacing: 0; }
 .hljs { display: inline-block; padding: 0.5em; background: white; color: #37474f; }
 
 .hljs-comment,
-dd.tag-body-example pre code,
-dd.tag-body-example pre code span,
 .hljs-annotation,
 .hljs-template_comment,
 .diff .hljs-header,
