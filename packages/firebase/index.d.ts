@@ -16,7 +16,7 @@
  */
 
 /**
- * <code>firebase</code> is a global namespace from which all the Firebase
+ * <code>firebase</code> is a global namespace from which all Firebase
  * services are accessed.
  */
 declare namespace firebase {
@@ -49,20 +49,20 @@ declare namespace firebase {
     /**
      * An explanatory message for the error that just occurred.
      *
-     * This message is designed to be helpful to you, the developer. It is not
-     * intended to be displayed to the end user of your application (as it will
-     * generally not convey meaningful information to them).
+     * This message is designed to be helpful to you, the developer. Because
+     * it generally does not convey meaningful information to end users,
+     * this message should not be displayed in your application.
      */
     message: string;
     /**
-     * The name of the class of errors, namely `"FirebaseError"`.
+     * The name of the class of errors, which is `"FirebaseError"`.
      */
     name: string;
     /**
      * A string value containing the execution backtrace when the error originally
      * occurred. This may not always be available.
      *
-     * This information can be useful to you and can be sent to
+     * When it is available, this information can be sent to
      * {@link https://firebase.google.com/support/ Firebase Support} to help
      * explain the cause of an error.
      */
@@ -95,7 +95,7 @@ declare namespace firebase {
     /**
      * Deletes and signs out the user.
      *
-     * <b>Important:</b> this is a security sensitive operation that requires the
+     * <b>Important:</b> this is a security-sensitive operation that requires the
      * user to have recently signed in. If this requirement isn't met, ask the user
      * to authenticate again and then call
      * {@link firebase.User.reauthenticateWithCredential}.
@@ -116,9 +116,10 @@ declare namespace firebase {
       forceRefresh?: boolean
     ): Promise<firebase.auth.IdTokenResult>;
     /**
-     * Returns a JWT token used to identify the user to a Firebase service.
+     * Returns a JSON Web Token (JWT) used to identify the user to a Firebase
+     * service.
      *
-     * Returns the current token if it has not expired, otherwise this will
+     * Returns the current token if it has not expired. Otherwise, this will
      * refresh the token and return a new one.
      *
      * @param {boolean=} forceRefresh Force refresh regardless of token
@@ -128,7 +129,7 @@ declare namespace firebase {
     getIdToken(forceRefresh?: boolean): Promise<string>;
     isAnonymous: boolean;
     /**
-     * Links the user account with the given credentials, and returns any available
+     * Links the user account with the given credentials and returns any available
      * additional user information, such as user name.
      *
      * <h4>Error Codes</h4>
@@ -5779,10 +5780,7 @@ declare namespace firebase.storage {
      */
     on(
       event: firebase.storage.TaskEvent,
-      nextOrObserver?:
-        | firebase.Observer<UploadTaskSnapshot>
-        | null
-        | ((a: UploadTaskSnapshot) => any),
+      nextOrObserver?: firebase.Observer<any> | null | ((a: Object) => any),
       error?: ((a: Error) => any) | null,
       complete?: (firebase.Unsubscribe) | null
     ): Function;
@@ -6009,20 +6007,6 @@ declare namespace firebase.firestore {
      * @return The `DocumentReference` instance.
      */
     doc(documentPath: string): DocumentReference;
-
-    // TODO(b/116617988): Uncomment method and change jsdoc comment to "/**"
-    // once backend support is ready.
-    /*
-     * Creates and returns a new Query that includes all documents in the
-     * database that are contained in a collection or subcollection with the
-     * given collectionId.
-     *
-     * @param collectionId Identifies the collections to query over. Every
-     * collection or subcollection with this ID as the last segment of its path
-     * will be included. Cannot contain a slash.
-     * @return The created Query.
-     */
-    //collectionGroup(collectionId: string): Query;
 
     /**
      * Executes the given `updateFunction` and then attempts to commit the changes
@@ -7280,25 +7264,6 @@ declare namespace firebase.firestore {
      * @return The FieldValue sentinel for use in a call to `set()` or `update()`.
      */
     static arrayRemove(...elements: any[]): FieldValue;
-
-    /**
-     * Returns a special value that can be used with set() or update() that tells
-     * the server to increment the field's current value by the given value.
-     *
-     * If either the operand or the current field value uses floating point
-     * precision, all arithmetic will follow IEEE 754 semantics. If both values
-     * are integers, values outside of JavaScript's safe number range
-     * (`Number.MIN_SAFE_INTEGER` to `Number.MAX_SAFE_INTEGER`) are also subject
-     * to precision loss. Furthermore, once processed by the Firestore backend,
-     * all integer operations are capped between -2^63 and 2^63-1.
-     *
-     * If the current field value is not of type 'number', or if the field does
-     * not yet exist, the transformation will set the field to the given value.
-     *
-     * @param n The value to increment by.
-     * @return The FieldValue sentinel for use in a call to set() or update().
-     */
-    static increment(n: number): FieldValue;
 
     /**
      * Returns true if this `FieldValue` is equal to the provided one.
