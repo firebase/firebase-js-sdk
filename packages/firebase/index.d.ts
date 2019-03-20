@@ -108,7 +108,7 @@ declare namespace firebase {
      *     resolve. This does not apply if the user is anonymous.</dd>
      * </dl>
      *
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     delete(): Promise<void>;
     emailVerified: boolean;
@@ -123,7 +123,7 @@ declare namespace firebase {
      *
      * @param {boolean=} forceRefresh Force refresh regardless of token
      *     expiration.
-     * @return {!firebase.Promise<string>}
+     * @return {!Promise<string>}
      */
     getIdToken(forceRefresh?: boolean): Promise<string>;
     isAnonymous: boolean;
@@ -187,7 +187,7 @@ declare namespace firebase {
      * </dl>
      *
      * @param {!firebase.auth.AuthCredential} credential The auth credential.
-     * @return {!firebase.Promise<!firebase.auth.UserCredential>}
+     * @return {!Promise<!firebase.auth.UserCredential>}
      */
     linkAndRetrieveDataWithCredential(
       credential: firebase.auth.AuthCredential
@@ -254,7 +254,7 @@ declare namespace firebase {
      * </dl>
      *
      * @param {!firebase.auth.AuthCredential} credential The auth credential.
-     * @return {!firebase.Promise<!firebase.User>}
+     * @return {!Promise<!firebase.User>}
      */
     linkWithCredential(
       credential: firebase.auth.AuthCredential
@@ -298,7 +298,7 @@ declare namespace firebase {
      * @param {string} phoneNumber The user's phone number in E.164 format (e.g.
      *     +16505550101).
      * @param {!firebase.auth.ApplicationVerifier} applicationVerifier
-     * @return {!firebase.Promise<!firebase.auth.ConfirmationResult>}
+     * @return {!Promise<!firebase.auth.ConfirmationResult>}
      */
     linkWithPhoneNumber(
       phoneNumber: string,
@@ -389,7 +389,7 @@ declare namespace firebase {
      * @param {!firebase.auth.AuthProvider} provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
      *     firebase.auth.EmailAuthProvider} will throw an error.
-     * @return {!firebase.Promise<!firebase.auth.UserCredential>}
+     * @return {!Promise<!firebase.auth.UserCredential>}
      */
     linkWithPopup(
       provider: firebase.auth.AuthProvider
@@ -421,7 +421,7 @@ declare namespace firebase {
      * @param {!firebase.auth.AuthProvider} provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
      *     firebase.auth.EmailAuthProvider} will throw an error.
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     linkWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
     metadata: firebase.auth.UserMetadata;
@@ -468,7 +468,7 @@ declare namespace firebase {
      * </dl>
      *
      * @param {!firebase.auth.AuthCredential} credential
-     * @return {!firebase.Promise<!firebase.auth.UserCredential>}
+     * @return {!Promise<!firebase.auth.UserCredential>}
      */
     reauthenticateAndRetrieveDataWithCredential(
       credential: firebase.auth.AuthCredential
@@ -511,7 +511,7 @@ declare namespace firebase {
      * </dl>
      *
      * @param {!firebase.auth.AuthCredential} credential
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     reauthenticateWithCredential(
       credential: firebase.auth.AuthCredential
@@ -542,7 +542,7 @@ declare namespace firebase {
      * @param {string} phoneNumber The user's phone number in E.164 format (e.g.
      *     +16505550101).
      * @param {!firebase.auth.ApplicationVerifier} applicationVerifier
-     * @return {!firebase.Promise<!firebase.auth.ConfirmationResult>}
+     * @return {!Promise<!firebase.auth.ConfirmationResult>}
      */
     reauthenticateWithPhoneNumber(
       phoneNumber: string,
@@ -609,7 +609,7 @@ declare namespace firebase {
      * @param {!firebase.auth.AuthProvider} provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
      *     firebase.auth.EmailAuthProvider} will throw an error.
-     * @return {!firebase.Promise<!firebase.auth.UserCredential>}
+     * @return {!Promise<!firebase.auth.UserCredential>}
      */
     reauthenticateWithPopup(
       provider: firebase.auth.AuthProvider
@@ -639,7 +639,7 @@ declare namespace firebase {
      * @param {!firebase.auth.AuthProvider} provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
      *     firebase.auth.EmailAuthProvider} will throw an error.
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     reauthenticateWithRedirect(
       provider: firebase.auth.AuthProvider
@@ -648,7 +648,7 @@ declare namespace firebase {
     /**
      * Refreshes the current user, if signed in.
      *
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     reload(): Promise<void>;
     /**
@@ -709,7 +709,7 @@ declare namespace firebase {
      *     and accepts the Firebase Dynamic Links terms of condition.
      *     The Android package name and iOS bundle ID will be respected only if they
      *     are configured in the same Firebase Auth project used.
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     sendEmailVerification(
       actionCodeSettings?: firebase.auth.ActionCodeSettings | null
@@ -731,7 +731,7 @@ declare namespace firebase {
      * </dt>
      *
      * @param {string} providerId
-     * @return {!firebase.Promise<!firebase.User>}
+     * @return {!Promise<!firebase.User>}
      */
     unlink(providerId: string): Promise<firebase.User>;
     /**
@@ -759,7 +759,7 @@ declare namespace firebase {
      * </dl>
      *
      * @param {string} newEmail The new email address.
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     updateEmail(newEmail: string): Promise<void>;
     /**
@@ -781,7 +781,7 @@ declare namespace firebase {
      * </dl>
      *
      * @param {string} newPassword
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     updatePassword(newPassword: string): Promise<void>;
     /**
@@ -796,7 +796,7 @@ declare namespace firebase {
      * </dl>
      *
      * @param {!firebase.auth.AuthCredential} phoneCredential
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     updatePhoneNumber(
       phoneCredential: firebase.auth.AuthCredential
@@ -836,7 +836,7 @@ declare namespace firebase {
      *
      * @param {!{displayName: ?string, photoURL: ?string}} profile The profile's
      *     displayName and photoURL to update.
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     updateProfile(profile: {
       displayName?: string | null;
@@ -1119,7 +1119,7 @@ declare namespace firebase.app {
      *   });
      * ```
      *
-     * @return {!firebase.Promise<void>} An empty promise fulfilled when the app has
+     * @return {!Promise<void>} An empty promise fulfilled when the app has
      *   been deleted.
      */
     delete(): Promise<any>;
@@ -1409,7 +1409,7 @@ declare namespace firebase.auth {
     type: string;
     /**
      * Executes the verification process.
-     * @return {!firebase.Promise<string>} A Promise for a token that can be used to
+     * @return {!Promise<string>} A Promise for a token that can be used to
      *     assert the validity of a request.
      */
     verify(): Promise<string>;
@@ -1505,7 +1505,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @param {string} code A verification code sent to the user.
-     * @return {!firebase.Promise<!firebase.auth.ActionCodeInfo>}
+     * @return {!Promise<!firebase.auth.ActionCodeInfo>}
      */
     checkActionCode(code: string): Promise<firebase.auth.ActionCodeInfo>;
     /**
@@ -1781,7 +1781,7 @@ declare namespace firebase.auth {
      * });
      * ```
      *
-     * @return {!firebase.Promise<!firebase.auth.UserCredential>}
+     * @return {!Promise<!firebase.auth.UserCredential>}
      */
     getRedirectResult(): Promise<firebase.auth.UserCredential>;
     /**
@@ -2582,7 +2582,7 @@ declare namespace firebase.auth {
      * @param {!firebase.auth.AuthProvider} provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
      *     firebase.auth.EmailAuthProvider} will throw an error.
-     * @return {!firebase.Promise<!firebase.auth.UserCredential>}
+     * @return {!Promise<!firebase.auth.UserCredential>}
      */
     signInWithPopup(
       provider: firebase.auth.AuthProvider
@@ -2611,7 +2611,7 @@ declare namespace firebase.auth {
      * @param {!firebase.auth.AuthProvider} provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
      *     firebase.auth.EmailAuthProvider} will throw an error.
-     * @return {!firebase.Promise<void>}
+     * @return {!Promise<void>}
      */
     signInWithRedirect(provider: firebase.auth.AuthProvider): Promise<void>;
     /**
@@ -2669,7 +2669,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @param {string} code A verification code sent to the user.
-     * @return {!firebase.Promise<string>}
+     * @return {!Promise<string>}
      */
     verifyPasswordResetCode(code: string): Promise<string>;
   }
@@ -3388,7 +3388,7 @@ declare namespace firebase.auth {
      * @param {string} phoneNumber The user's phone number in E.164 format (e.g.
      *     +16505550101).
      * @param {!firebase.auth.ApplicationVerifier} applicationVerifier
-     * @return {!firebase.Promise<string>} A Promise for the verification ID.
+     * @return {!Promise<string>} A Promise for the verification ID.
      */
     verifyPhoneNumber(
       phoneNumber: string,
@@ -3431,7 +3431,7 @@ declare namespace firebase.auth {
     clear(): void;
     /**
      * Renders the reCAPTCHA widget on the page.
-     * @return {!firebase.Promise<number>} A Promise that resolves with the
+     * @return {!Promise<number>} A Promise that resolves with the
      *     reCAPTCHA widget ID.
      */
     render(): Promise<number>;
@@ -3442,7 +3442,7 @@ declare namespace firebase.auth {
     /**
      * Waits for the user to solve the reCAPTCHA and resolves with the reCAPTCHA
      * token.
-     * @return {!firebase.Promise<string>} A Promise for the reCAPTCHA token.
+     * @return {!Promise<string>} A Promise for the reCAPTCHA token.
      */
     verify(): Promise<string>;
   }
@@ -4065,7 +4065,7 @@ declare namespace firebase.database {
      *   be called when synchronization to the server has completed. The callback
      *   will be passed a single parameter: null for success, or an Error object
      *   indicating a failure.
-     * @return {!firebase.Promise<void>} Resolves when synchronization to the server
+     * @return {!Promise<void>} Resolves when synchronization to the server
      *   is complete.
      */
     cancel(onComplete?: (a: Error | null) => any): Promise<any>;
@@ -4077,7 +4077,7 @@ declare namespace firebase.database {
      *   be called when synchronization to the server has completed. The callback
      *   will be passed a single parameter: null for success, or an Error object
      *   indicating a failure.
-     * @return {!firebase.Promise<void>} Resolves when synchronization to the server
+     * @return {!Promise<void>} Resolves when synchronization to the server
      *   is complete.
      */
     remove(onComplete?: (a: Error | null) => any): Promise<any>;
@@ -4109,7 +4109,7 @@ declare namespace firebase.database {
      *   will be called when synchronization to the Database server has completed.
      *   The callback will be passed a single parameter: null for success, or an
      *   `Error` object indicating a failure.
-     * @return {!firebase.Promise<void>} Resolves when synchronization to the
+     * @return {!Promise<void>} Resolves when synchronization to the
      *   Database is complete.
      */
     set(value: any, onComplete?: (a: Error | null) => any): Promise<any>;
@@ -4157,7 +4157,7 @@ declare namespace firebase.database {
      *   be called when synchronization to the server has completed. The
      *   callback will be passed a single parameter: null for success, or an Error
      *   object indicating a failure.
-     * @return {!firebase.Promise<void>} Resolves when synchronization to the
+     * @return {!Promise<void>} Resolves when synchronization to the
      *   Database is complete.
      */
     update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
@@ -4574,7 +4574,7 @@ declare namespace firebase.database {
      *   why the failure occurred.
      * @param {Object=} context If provided, this object will be used as `this`
      *   when calling your callback(s).
-     * @return {!firebase.Promise<*>}
+     * @return {!Promise<*>}
      */
     once(
       eventType: EventType,
@@ -4900,7 +4900,7 @@ declare namespace firebase.database {
      *
      * @param {function(?Error)=} onComplete Callback called when write to server is
      *   complete.
-     * @return {!firebase.Promise<void>} Resolves when remove on server is complete.
+     * @return {!Promise<void>} Resolves when remove on server is complete.
      */
     remove(onComplete?: (a: Error | null) => any): Promise<any>;
     /**
@@ -4978,7 +4978,7 @@ declare namespace firebase.database {
      *   array, or null).
      * @param {function(?Error)=} onComplete Callback called when write to server is
      *   complete.
-     * @return {!firebase.Promise<void>} Resolves when write to server is complete.
+     * @return {!Promise<void>} Resolves when write to server is complete.
      */
     set(value: any, onComplete?: (a: Error | null) => any): Promise<any>;
     /**
@@ -5092,7 +5092,7 @@ declare namespace firebase.database {
      *   see intermediate states. You can set this to false to suppress these
      *   intermediate states and instead wait until the transaction has completed
      *   before events are raised.
-     * @return {!firebase.Promise<{
+     * @return {!Promise<{
      *   committed: boolean,
      *   snapshot: ?firebase.database.DataSnapshot
      * }>} Returns a Promise that can optionally be used instead of the onComplete
@@ -5151,7 +5151,7 @@ declare namespace firebase.database {
      * @param {!Object} values Object containing multiple values.
      * @param {function(?Error)=} onComplete Callback called when write to server is
      *   complete.
-     * @return {!firebase.Promise<void>} Resolves when update on server is complete.
+     * @return {!Promise<void>} Resolves when update on server is complete.
      */
     update(values: Object, onComplete?: (a: Error | null) => any): Promise<any>;
   }
@@ -5238,7 +5238,7 @@ declare namespace firebase.messaging {
      * by calling this method.
      *
      * @param {!string} token The token to delete.
-     * @return {firebase.Promise} The promise resolves when the token has been
+     * @return {Promise} The promise resolves when the token has been
      *   successfully deleted.
      */
     deleteToken(token: string): Promise<boolean>;
@@ -5246,7 +5246,7 @@ declare namespace firebase.messaging {
      * After calling `requestPermission()` you can call this method to get an FCM
      * registration token that can be used to send push messages to this user.
      *
-     * @return {firebase.Promise<string>} The promise resolves if an FCM token can
+     * @return {Promise<string>} The promise resolves if an FCM token can
      *   be retrieved. This method returns null if the current origin does not have
      *   permission to show notifications.
      */
@@ -5291,7 +5291,7 @@ declare namespace firebase.messaging {
      * Calling this method displays the permission dialog to the user and
      * resolves if the permission is granted.
      *
-     * @return {firebase.Promise} The promise resolves if permission is
+     * @return {Promise} The promise resolves if permission is
      *   granted. Otherwise, the promise is rejected with an error.
      */
     requestPermission(): Promise<void>;
@@ -5388,7 +5388,7 @@ declare namespace firebase.storage {
     child(path: string): firebase.storage.Reference;
     /**
      * Deletes the object at this reference's location.
-     * @return {!firebase.Promise<void>} A Promise that resolves if the deletion
+     * @return {!Promise<void>} A Promise that resolves if the deletion
      *     succeeded and rejects if it failed, including if the object didn't exist.
      */
     delete(): Promise<any>;
@@ -5398,14 +5398,14 @@ declare namespace firebase.storage {
     fullPath: string;
     /**
      * Fetches a long lived download URL for this object.
-     * @return {!firebase.Promise<string>} A Promise that resolves with the download
+     * @return {!Promise<string>} A Promise that resolves with the download
      *     URL or rejects if the fetch failed, including if the object did not
      *     exist.
      */
     getDownloadURL(): Promise<any>;
     /**
      * Fetches metadata for the object at this location, if one exists.
-     * @return {!firebase.Promise<firebase.storage.FullMetadata>} A Promise that
+     * @return {!Promise<firebase.storage.FullMetadata>} A Promise that
      *     resolves with the metadata, or rejects if the fetch failed, including if
      *     the object did not exist.
      */
@@ -5467,14 +5467,17 @@ declare namespace firebase.storage {
      * @param {!firebase.storage.SettableMetadata} metadata The new metadata.
      *     Setting a property to 'null' removes it on the server, while leaving
      *     a property as 'undefined' has no effect.
-     * @return {!firebase.Promise<firebase.storage.FullMetadata>} A Promise that
+     * @return {!Promise<firebase.storage.FullMetadata>} A Promise that
      *     resolves with the full updated metadata or rejects if the updated failed,
      *     including if the object did not exist.
      */
     updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
     /**
      * List items and folders (prefixes) within this directory.
-     * "/" is treated as a path delimiter. Firebase storage does not support invalid object path that ends with "/" or contains two consecutive "//".
+     *
+     * "/" is treated as a path delimiter. Firebase storage does not support
+     * invalid object path that ends with "/" or contains two consecutive "//".
+     *
      * All invalid objects in GCS will be filtered.
      *
      * @param {!options.maxResults} If set, limits the total number of prefixes and items to return..

@@ -24,33 +24,40 @@ import * as json from './json';
 import * as type from './type';
 import { ListResult } from '../list';
 
-interface ListMetadataReource {
+/**
+ * Represents the simplified object metadata returned by List API.
+ * Other fields are filtered because list does not grant permission to get metadata.
+ */
+interface ListMetadataResponse {
   name: string;
   bucket: string;
 }
 
-interface ListResultResource {
+/**
+ * Represents the JSON response of List API.
+ */
+interface ListResultResponse {
   prefixes: string[];
-  items: ListMetadataReource[];
+  items: ListMetadataResponse[];
   nextPageToken?: string;
 }
 
-const maxResultsKey = 'maxResults';
-const pageTokenKey = 'pageToken';
-const prefixesKey = 'prefixes';
-const itemsKey = 'items';
+const MAXRESULTS_KEY = 'maxResults';
+const PAGETOKEN_KEY = 'pageToken';
+const PREFIXES_KEY = 'prefixes';
+const ITEMS_KEY = 'items';
 
-function fromResource(
+function fromBackendResponse(
   authWrapper: AuthWrapper,
-  resource: ListResultResource
+  resource: ListResultResponse
 ): ListResult {
   const listResult: ListResult = {
     prefixes: [],
     items: [],
     nextPageToken: resource['nextPageToken']
   };
-  if (resource[prefixesKey]) {
-    for (const path of resource[prefixesKey]) {
+  if (resource[PREFIXES_KEY]) {
+    for (const path of resource[PREFIXES_KEY]) {
       const pathWithoutTrailingSlash = path.replace(/\/$/, '');
       const reference = authWrapper.makeStorageReference(
         new Location(authWrapper.bucket(), pathWithoutTrailingSlash)
@@ -59,8 +66,8 @@ function fromResource(
     }
   }
 
-  if (resource[itemsKey]) {
-    for (const item of resource[itemsKey]) {
+  if (resource[ITEMS_KEY]) {
+    for (const item of resource[ITEMS_KEY]) {
       const reference = authWrapper.makeStorageReference(
         new Location(authWrapper.bucket(), item['name'])
       );
@@ -78,8 +85,8 @@ export function fromResourceString(
   if (obj === null) {
     return null;
   }
-  const resource = obj as ListResultResource;
-  return fromResource(authWrapper, resource);
+  const resource = obj as ListResultResponse;
+  return fromBackendResponse(authWrapper, resource);
 }
 
 export function listOptionsValidator(p: any) {
@@ -88,12 +95,12 @@ export function listOptionsValidator(p: any) {
     throw 'Expected ListOptions object.';
   }
   for (const key in p) {
-    if (key === maxResultsKey) {
-      if (!type.isInteger(p[maxResultsKey]) || p[maxResultsKey] <= 0) {
+    if (key === MAXRESULTS_KEY) {
+      if (!type.isInteger(p[MAXRESULTS_KEY]) || p[MAXRESULTS_KEY] <= 0) {
         throw 'Expected maxResults to be a positive number.';
       }
-    } else if (key === pageTokenKey) {
-      if (!type.isString(p[pageTokenKey])) {
+    } else if (key === PAGETOKEN_KEY) {
+      if (!type.isString(p[PAGETOKEN_KEY])) {
         throw 'Expected pageToken to be string.';
       }
     } else {
