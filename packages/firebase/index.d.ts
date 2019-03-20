@@ -2698,16 +2698,14 @@ declare namespace firebase.auth {
      */
     toJSON(): Object;
     /**
-     * Static method to deserialize a JSON representation of an object into an 
-     * {@link firebase.auth.AuthCredential}. Input can be either Object or the 
-     * stringified representation of the object. When string is provided, 
+     * Static method to deserialize a JSON representation of an object into an
+     * {@link firebase.auth.AuthCredential}. Input can be either Object or the
+     * stringified representation of the object. When string is provided,
      * JSON.parse would be called first.
      * @param {!Object|string} json The plain object representation of an
      *     AuthCredential.
      */
-    static fromJSON(
-      json: Object | string
-    ): AuthCredential | null;
+    static fromJSON(json: Object | string): AuthCredential | null;
   }
 
   /**
@@ -3268,12 +3266,10 @@ declare namespace firebase.auth {
      * firebase.auth().signInWithCredential(credential)
      * ```
      *
-     * @param {!firebase.auth.OAuthProviderOptions} options The options object 
+     * @param {!firebase.auth.OAuthProviderOptions} options The options object
      *     containing the ID token, access token and raw nonce
      */
-    credential(
-      options: OAuthProviderOptions
-    ): firebase.auth.OAuthCredential;
+    credential(options: OAuthProviderOptions): firebase.auth.OAuthCredential;
     /**
      * Sets the OAuth custom parameters to pass in an OAuth request for popup
      * and redirect sign-in operations.
