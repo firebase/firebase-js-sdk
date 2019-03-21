@@ -204,16 +204,21 @@ export class Reference {
   }
 
   /**
-   * List items and folders (prefixes) within this directory.
+   * List items and folders `prefixes` within this directory.
    *
-   * @param If set, limits the total number of prefixes
-   *      and items to return..
-   * @param The nextPageToken from a previous list()
-   *      response. If provided, listing is resumed from that position.
-   * @return A promise that resolves with ListResult. `prefixes` contains
-   *      references to sub-folders and `items` contains references to objects in
-   *      this folder. `nextPageToken` can be passed as options.pageToken to get
-   *      the rest of results
+   * "/" is treated as a path delimiter. Firebase storage does not support
+   * invalid object path that ends with "/" or contains two consecutive "//".
+   * All invalid objects in GCS will be filtered.
+   *
+   * @param options.maxResults If set, limits the total number of `prefixes`
+   *      and items to return.
+   * @param options.pageToken The `nextPageToken` from a previous call to
+   *      list() operation response. If provided, listing is resumed
+   *      from that position.
+   * @return A promise that resolves with the sub-directories and items.
+   *      `prefixes` contains `Reference` to sub-directories and `items`
+   *      contains `Reference` to objects in this folder. `nextPageToken`
+   *      can be passed as `options.pageToken` to get the rest of results.
    */
   list(options?: ListOptions | null): Promise<ListResult> {
     args.validate('list', [listOptionSpec(true)], arguments);
