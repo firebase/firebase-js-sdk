@@ -37,7 +37,7 @@ export class Location {
   }
 
   get isRoot(): boolean {
-    return this.path_.length === 0;
+    return this.path.length === 0;
   }
 
   fullServerUrl(): string {

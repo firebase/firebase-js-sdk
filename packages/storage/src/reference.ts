@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ import * as type from './implementation/type';
 import { Metadata } from './metadata';
 import { Service } from './service';
 import { UploadTask } from './task';
-import { ListResult } from './list_result';
-import { ListOptions } from '@firebase/storage-types';
+import { ListOptions, ListResult } from './list';
+import { listOptionSpec } from './implementation/args';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -204,18 +204,22 @@ export class Reference {
   }
 
   /**
-   *     A promise that resolves with the metadata for this object. If this
-   *     object doesn't exist or metadata cannot be retreived, the promise is
-   *     rejected.
+   * List items and folders (prefixes) within this directory.
+   *
+   * @param {!options.maxResults} If set, limits the total number of prefixes
+   *      and items to return..
+   * @param {!options.pageToken} The nextPageToken from a previous list()
+   *      response. If provided, listing is resumed from that position.
+   * @return A promise that resolves with ListResult. `prefixes` contains
+   *      references to sub-folders and `items` contains references to objects in
+   *      this folder. `nextPageToken` can be passed as options.pageToken to get
+   *      the rest of results
    */
   list(options?: ListOptions | null): Promise<ListResult> {
-    args.validate('list', [], arguments);
-    let self = this;
+    args.validate('list', [listOptionSpec(true)], arguments);
+    const self = this;
     return this.authWrapper.getAuthToken().then(function(authToken) {
-      let op = options || {
-        pageToken: null,
-        maxResults: 0
-      };
+      const op = options || {};
       let requestInfo = requests.list(
         self.authWrapper,
         self.location,

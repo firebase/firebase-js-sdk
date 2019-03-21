@@ -20,7 +20,7 @@
  */
 
 import { Metadata } from '../metadata';
-import { ListResult } from '../list_result';
+import { ListResult } from '../list';
 
 import * as array from './array';
 import { AuthWrapper } from './authwrapper';
@@ -29,7 +29,7 @@ import * as errorsExports from './error';
 import { FirebaseStorageError } from './error';
 import { Location } from './location';
 import * as MetadataUtils from './metadata';
-import * as ListResultUtils from './list_result';
+import * as ListResultUtils from './list';
 import * as object from './object';
 import { RequestInfo } from './requestinfo';
 import * as type from './type';
@@ -65,9 +65,9 @@ export function listHandler(
   authWrapper: AuthWrapper
 ): (p1: XhrIo, p2: string) => ListResult {
   function handler(xhr: XhrIo, text: string): ListResult {
-    let metadata = ListResultUtils.fromResourceString(authWrapper, text);
-    handlerCheck(metadata !== null);
-    return metadata as ListResult;
+    const listResult = ListResultUtils.fromResourceString(authWrapper, text);
+    handlerCheck(listResult !== null);
+    return listResult as ListResult;
   }
   return handler;
 }
@@ -163,8 +163,10 @@ export function list(
   pageToken?: string,
   maxResults?: number
 ): RequestInfo<ListResult> {
-  var urlParams = {};
-  if (!location.isRoot) {
+  let urlParams = {};
+  if (location.isRoot) {
+    urlParams['prefix'] = '';
+  } else {
     urlParams['prefix'] = location.path + '/';
   }
   if (delimiter && delimiter.length > 0) {
@@ -176,18 +178,18 @@ export function list(
   if (maxResults) {
     urlParams['maxResults'] = maxResults;
   }
-  let urlPart = location.bucketOnlyServerUrl();
-  let url = UrlUtils.makeUrl(urlPart);
-  let method = 'GET';
-  let timeout = authWrapper.maxOperationRetryTime();
-  let requestInfo = new RequestInfo(
+  const urlPart = location.bucketOnlyServerUrl();
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'GET';
+  const timeout = authWrapper.maxOperationRetryTime();
+  const requestInfo = new RequestInfo(
     url,
     method,
     listHandler(authWrapper),
     timeout
   );
   requestInfo.urlParams = urlParams;
-  requestInfo.errorHandler = objectErrorHandler(location);
+  requestInfo.errorHandler = sharedErrorHandler(location);
   return requestInfo;
 }
 
