@@ -1,35 +1,3 @@
-ol, ul, menu, dl {
-    margin: unset;
-}
-
-.firebase-docs body {
-    font-family: "Roboto", sans-serif;
-    -webkit-font-smoothing: antialiased;
-}
-
-.firebase-docs body header {
-    font-family: "Google Sans", sans-serif;
-    -webkit-font-smoothing: antialiased;
-}
-
-.firebase-docs .tsd-page-title {
-    font-weight: normal;
-    padding-top: 20px;
-    box-shadow: none;
-}
-
-.firebase-docs .tsd-page-title h1 {
-    font-weight: normal;
-}
-
-.firebase-docs .title {
-    background-image: url(../../assets/images/lockup.png);
-    background-repeat: no-repeat;
-    background-position: 0 2px;
-    background-size: 120px;
-    display: inline-block;
-}
-
 .firebase-docs .project-name {
     color: #333;
     display: inline-block;
@@ -38,30 +6,12 @@ ol, ul, menu, dl {
     margin-left: 130px;
 }
 
-.firebase-docs .tsd-panel {
-    box-shadow: none;
-}
-
-.tsd-panel-group h2 {
-    font: 400 22px/30px Google Sans,sans-serif;
-}
-
-.tsd-panel h3 {
-    font: 400 18px/30px Google Sans,sans-serif;
-    border-bottom: 1px solid #ebebeb;
+.firebase-docs aside.tsd-sources {
+    padding: 8px;
 }
 
 .firebase-docs .tsd-panel li {
     margin: 0;
-}
-
-.firebase-docs aside.tsd-sources {
-    margin: 0;
-    padding: 0;
-}
-
-.firebase-docs .tsd-flag {
-    line-height: 1.5em;
 }
 
 .firebase-docs aside.tsd-sources:before {
@@ -71,7 +21,7 @@ ol, ul, menu, dl {
 .firebase-docs dl.tsd-comment-tags dt.tag-example {
     float: none;
     text-transform: capitalize;
-    color: #039be5;
+    color: #000;
     font-size: 1.1em;
     padding: 5px;
     border: none;
@@ -81,22 +31,10 @@ ol, ul, menu, dl {
     padding-left: 0;
 }
 
-.firebase-docs .tsd-breadcrumb li:after {
-    content: unset;
-}
-
-.firebase-docs .tsd-breadcrumb li {
-    margin-right: -0.25em;
-}
-
 .firebase-docs .tsd-breadcrumb .breadcrumb-name a {
     color: #039be5;
 }
 
 .firebase-docs .tsd-breadcrumb .model-name {
     color: #333;
-}
-
-.tsd-kind-icon:before {
-    content: unset;
 }
