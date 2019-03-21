@@ -5419,7 +5419,7 @@ declare namespace firebase.storage {
      */
     updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
     /**
-     * List items and folders `prefixes` within this directory.
+     * List items and sub-directories within this directory.
      *
      * "/" is treated as a path delimiter. Firebase storage does not support
      * invalid object path that ends with "/" or contains two consecutive "//".
@@ -5428,11 +5428,10 @@ declare namespace firebase.storage {
      * @param options.maxResults If set, limits the total number of `prefixes`
      *      and items to return.
      * @param options.pageToken The `nextPageToken` from a previous call to
-     *      list() operation response. If provided, listing is resumed
-     *      from that position.
-     * @return A promise that resolves with the sub-directories and items.
-     *      `prefixes` contains `Reference` to sub-directories and `items`
-     *      contains `Reference` to objects in this folder. `nextPageToken`
+     *      list(). If provided, listing is resumed from the previous position.
+     * @return A promise that resolves with the items and sub-directories.
+     *      `prefixes` contains `Reference`s to sub-directories and `items`
+     *      contains `Reference`s to objects in this folder. `nextPageToken`
      *      can be passed as `options.pageToken` to get the rest of results.
      */
     list(options?: ListOptions): Promise<ListResult>;
