@@ -102,3 +102,25 @@ toc:
     path: /docs/reference/node/firebase.firestore.Transaction
   - title: "WriteBatch"
     path: /docs/reference/node/firebase.firestore.WriteBatch
+
+- title: "firebase.storage"
+  path: /docs/reference/node/firebase.storage
+  section:
+    - title: "Storage"
+      path: /docs/reference/node/firebase.storage.Storage
+    - title: "FullMetadata"
+      path: /docs/reference/node/firebase.storage.FullMetadata
+    - title: "Reference"
+      path: /docs/reference/node/firebase.storage.Reference
+    - title: "SettableMetadata"
+      path: /docs/reference/node/firebase.storage.SettableMetadata
+    - title: "UploadMetadata"
+      path: /docs/reference/node/firebase.storage.UploadMetadata
+    - title: "UploadTask"
+      path: /docs/reference/node/firebase.storage.UploadTask
+    - title: "UploadTaskSnapshot"
+      path: /docs/reference/node/firebase.storage.UploadTaskSnapshot
+    - title: "ListOptions"
+      path: /docs/reference/node/firebase.storage.ListOptions
+    - title: "ListResult"
+      path: /docs/reference/node/firebase.storage.ListResult

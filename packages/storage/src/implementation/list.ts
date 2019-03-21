@@ -42,8 +42,8 @@ interface ListResultResponse {
   nextPageToken?: string;
 }
 
-const MAXRESULTS_KEY = 'maxResults';
-const PAGETOKEN_KEY = 'pageToken';
+const MAXR_ESULTS_KEY = 'maxResults';
+const PAGE_TOKEN_KEY = 'pageToken';
 const PREFIXES_KEY = 'prefixes';
 const ITEMS_KEY = 'items';
 
@@ -77,7 +77,7 @@ function fromBackendResponse(
   return listResult;
 }
 
-export function fromResourceString(
+export function fromResposneString(
   authWrapper: AuthWrapper,
   resourceString: string
 ): ListResult | null {
@@ -95,12 +95,12 @@ export function listOptionsValidator(p: any) {
     throw 'Expected ListOptions object.';
   }
   for (const key in p) {
-    if (key === MAXRESULTS_KEY) {
-      if (!type.isInteger(p[MAXRESULTS_KEY]) || p[MAXRESULTS_KEY] <= 0) {
+    if (key === MAXR_ESULTS_KEY) {
+      if (!type.isInteger(p[MAXR_ESULTS_KEY]) || p[MAXR_ESULTS_KEY] <= 0) {
         throw 'Expected maxResults to be a positive number.';
       }
-    } else if (key === PAGETOKEN_KEY) {
-      if (!type.isString(p[PAGETOKEN_KEY])) {
+    } else if (key === PAGE_TOKEN_KEY) {
+      if (!type.isString(p[PAGE_TOKEN_KEY])) {
         throw 'Expected pageToken to be string.';
       }
     } else {

@@ -5425,8 +5425,10 @@ declare namespace firebase.storage {
      *
      * All invalid objects in GCS will be filtered.
      *
-     * @param If set, limits the total number of prefixes and items to return..
-     * @param The nextPageToken from a previous list() response. If provided,
+     * @param options.maxResults If set, limits the total number of prefixes and
+     *      items to return.
+     * @param options.pageToken The nextPageToken from a previous list()
+     *      response. If provided,
      *      listing is resumed from that position.
      * @return A promise that resolves with the sub-directories and items.
      *      prefixes contains reference to sub-directories and items contains

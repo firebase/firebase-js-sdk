@@ -141,3 +141,7 @@ toc:
     path: /docs/reference/js/firebase.storage.UploadTask
   - title: "UploadTaskSnapshot"
     path: /docs/reference/js/firebase.storage.UploadTaskSnapshot
+  - title: "ListOptions"
+    path: /docs/reference/js/firebase.storage.ListOptions
+  - title: "ListResult"
+    path: /docs/reference/js/firebase.storage.ListResult
