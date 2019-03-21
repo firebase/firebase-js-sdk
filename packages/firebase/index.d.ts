@@ -16,7 +16,7 @@
  */
 
 /**
- * <code>firebase</code> is a global namespace from which all the Firebase
+ * <code>firebase</code> is a global namespace from which all Firebase
  * services are accessed.
  */
 declare namespace firebase {
@@ -49,20 +49,20 @@ declare namespace firebase {
     /**
      * An explanatory message for the error that just occurred.
      *
-     * This message is designed to be helpful to you, the developer. It is not
-     * intended to be displayed to the end user of your application (as it will
-     * generally not convey meaningful information to them).
+     * This message is designed to be helpful to you, the developer. Because
+     * it generally does not convey meaningful information to end users,
+     * this message should not be displayed in your application.
      */
     message: string;
     /**
-     * The name of the class of errors, namely `"FirebaseError"`.
+     * The name of the class of errors, which is `"FirebaseError"`.
      */
     name: string;
     /**
      * A string value containing the execution backtrace when the error originally
      * occurred. This may not always be available.
      *
-     * This information can be useful to you and can be sent to
+     * When it is available, this information can be sent to
      * {@link https://firebase.google.com/support/ Firebase Support} to help
      * explain the cause of an error.
      */
@@ -95,7 +95,7 @@ declare namespace firebase {
     /**
      * Deletes and signs out the user.
      *
-     * <b>Important:</b> this is a security sensitive operation that requires the
+     * <b>Important:</b> this is a security-sensitive operation that requires the
      * user to have recently signed in. If this requirement isn't met, ask the user
      * to authenticate again and then call
      * {@link firebase.User.reauthenticateWithCredential}.
@@ -116,9 +116,10 @@ declare namespace firebase {
       forceRefresh?: boolean
     ): Promise<firebase.auth.IdTokenResult>;
     /**
-     * Returns a JWT token used to identify the user to a Firebase service.
+     * Returns a JSON Web Token (JWT) used to identify the user to a Firebase
+     * service.
      *
-     * Returns the current token if it has not expired, otherwise this will
+     * Returns the current token if it has not expired. Otherwise, this will
      * refresh the token and return a new one.
      *
      * @param {boolean=} forceRefresh Force refresh regardless of token
@@ -128,7 +129,7 @@ declare namespace firebase {
     getIdToken(forceRefresh?: boolean): Promise<string>;
     isAnonymous: boolean;
     /**
-     * Links the user account with the given credentials, and returns any available
+     * Links the user account with the given credentials and returns any available
      * additional user information, such as user name.
      *
      * <h4>Error Codes</h4>
@@ -368,7 +369,7 @@ declare namespace firebase {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * // Creates the provider object.
      * var provider = new firebase.auth.FacebookAuthProvider();
      * // You can add additional scopes to the provider:
@@ -588,7 +589,7 @@ declare namespace firebase {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * // Creates the provider object.
      * var provider = new firebase.auth.FacebookAuthProvider();
      * // You can add additional scopes to the provider:
@@ -674,7 +675,7 @@ declare namespace firebase {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * var actionCodeSettings = {
      *   url: 'https://www.example.com/cart?email=user@example.com&cartId=123',
      *   iOS: {
@@ -805,7 +806,7 @@ declare namespace firebase {
      * Updates a user's profile data.
      *
      * @example
-     * ```
+     * ```javascript
      * // Updates the user attributes:
      * user.updateProfile({
      *   displayName: "Jane Q. User",
@@ -1081,7 +1082,7 @@ declare namespace firebase.app {
      * Gets the {@link firebase.auth.Auth `Auth`} service for the current app.
      *
      * @example
-     * ```
+     * ```javascript
      * var auth = app.auth();
      * // The above is shorthand for:
      * // var auth = firebase.auth(app);
@@ -1095,7 +1096,7 @@ declare namespace firebase.app {
      * current app.
      *
      * @example
-     * ```
+     * ```javascript
      * var database = app.database();
      * // The above is shorthand for:
      * // var database = firebase.database(app);
@@ -1109,7 +1110,7 @@ declare namespace firebase.app {
      * services.
      *
      * @example
-     * ```
+     * ```javascript
      * app.delete()
      *   .then(function() {
      *     console.log("App deleted successfully");
@@ -1128,7 +1129,7 @@ declare namespace firebase.app {
      * current app.
      *
      * @example
-     * ```
+     * ```javascript
      * var messaging = app.messaging();
      * // The above is shorthand for:
      * // var messaging = firebase.messaging(app);
@@ -1143,14 +1144,14 @@ declare namespace firebase.app {
      * The default app's name is `"[DEFAULT]"`.
      *
      * @example
-     * ```
+     * ```javascript
      * // The default app's name is "[DEFAULT]"
      * firebase.initializeApp(defaultAppConfig);
      * console.log(firebase.app().name);  // "[DEFAULT]"
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * // A named app's name is what you provide to initializeApp()
      * var otherApp = firebase.initializeApp(otherAppConfig, "other");
      * console.log(otherApp.name);  // "other"
@@ -1163,7 +1164,7 @@ declare namespace firebase.app {
      * {@link firebase.initializeApp `firebase.initializeApp()`}.
      *
      * @example
-     * ```
+     * ```javascript
      * var app = firebase.initializeApp(config);
      * console.log(app.options.databaseURL === config.databaseURL);  // true
      * ```
@@ -1174,14 +1175,14 @@ declare namespace firebase.app {
      * app, optionally initialized with a custom storage bucket.
      *
      * @example
-     * ```
+     * ```javascript
      * var storage = app.storage();
      * // The above is shorthand for:
      * // var storage = firebase.storage(app);
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * var storage = app.storage("gs://your-app.appspot.com");
      * ```
      *
@@ -1454,7 +1455,7 @@ declare namespace firebase.auth {
      * instance.
      *
      * @example
-     * ```
+     * ```javascript
      * var app = auth.app;
      * ```
      */
@@ -1566,7 +1567,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().createUserAndRetrieveDataWithEmailAndPassword(email, password)
      *     .catch(function(error) {
      *       // Handle Errors here.
@@ -1617,7 +1618,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().createUserWithEmailAndPassword(email, password)
      *     .catch(function(error) {
      *   // Handle Errors here.
@@ -1739,7 +1740,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * // First, we perform the signInWithRedirect.
      * // Creates the provider object.
      * var provider = new firebase.auth.FacebookAuthProvider();
@@ -1810,7 +1811,7 @@ declare namespace firebase.auth {
      * To keep the old behavior, see {@link firebase.auth.Auth.onIdTokenChanged}.
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().onAuthStateChanged(function(user) {
      *   if (user) {
      *     // User is signed in.
@@ -1831,7 +1832,7 @@ declare namespace firebase.auth {
      * behavior as {@link firebase.auth.Auth.onAuthStateChanged} had prior to 4.0.0.
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().onIdTokenChanged(function(user) {
      *   if (user) {
      *     // User is signed in or token was refreshed.
@@ -1885,7 +1886,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * var actionCodeSettings = {
      *   // The URL to redirect to for sign-in completion. This is also the deep
      *   // link for mobile redirects. The domain (www.example.com) for this URL
@@ -1956,7 +1957,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * var actionCodeSettings = {
      *   url: 'https://www.example.com/?email=user@example.com',
      *   iOS: {
@@ -2027,7 +2028,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().setPersistence(firebase.auth.Auth.Persistence.SESSION)
      *     .then(function() {
      *   // Existing and future Auth states are now persisted in the current
@@ -2080,7 +2081,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().signInAndRetrieveDataWithCredential(credential)
      *     .then(function(userCredential) {
      *       console.log(userCredential.additionalUserInfo.username);
@@ -2106,7 +2107,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().signInAnonymously().catch(function(error) {
      *   // Handle Errors here.
      *   var errorCode = error.code;
@@ -2141,7 +2142,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().signInAnonymouslyAndRetrieveData().catch(function(error) {
      *   // Handle Errors here.
      *   var errorCode = error.code;
@@ -2201,7 +2202,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().signInWithCredential(credential).catch(function(error) {
      *   // Handle Errors here.
      *   var errorCode = error.code;
@@ -2242,7 +2243,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().signInWithCustomToken(token).catch(function(error) {
      *   // Handle Errors here.
      *   var errorCode = error.code;
@@ -2280,7 +2281,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().signInAndRetrieveDataWithCustomToken(token)
      *     .catch(function(error) {
      *       // Handle Errors here.
@@ -2325,7 +2326,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().signInWithEmailAndPassword(email, password)
      *     .catch(function(error) {
      *   // Handle Errors here.
@@ -2379,7 +2380,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().signInAndRetrieveDataWithEmailAndPassword(email, password)
      *     .catch(function(error) {
      *       // Handle Errors here.
@@ -2433,7 +2434,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * // 'recaptcha-container' is the ID of an element in the DOM.
      * var applicationVerifier = new firebase.auth.RecaptchaVerifier(
      *     'recaptcha-container');
@@ -2478,7 +2479,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.auth().signInWithEmailLink(email, emailLink)
      *     .catch(function(error) {
      *       // Some error occurred, you can inspect the code: error.code
@@ -2547,7 +2548,7 @@ declare namespace firebase.auth {
      * </dl>
      *
      * @example
-     * ```
+     * ```javascript
      * // Creates the provider object.
      * var provider = new firebase.auth.FacebookAuthProvider();
      * // You can add additional scopes to the provider:
@@ -2770,7 +2771,7 @@ declare namespace firebase.auth {
     static EMAIL_LINK_SIGN_IN_METHOD: string;
     /**
      * @example
-     * ```
+     * ```javascript
      * var cred = firebase.auth.EmailAuthProvider.credential(
      *     email,
      *     password
@@ -2790,7 +2791,7 @@ declare namespace firebase.auth {
      * after a sign in with email link operation.
      *
      * @example
-     * ```
+     * ```javascript
      * var cred = firebase.auth.EmailAuthProvider.credentialWithLink(
      *     email,
      *     emailLink
@@ -2927,7 +2928,7 @@ declare namespace firebase.auth {
     static FACEBOOK_SIGN_IN_METHOD: string;
     /**
      * @example
-     * ```
+     * ```javascript
      * var cred = firebase.auth.FacebookAuthProvider.credential(
      *     // `event` from the Facebook auth.authResponseChange callback.
      *     event.authResponse.accessToken
@@ -3042,7 +3043,7 @@ declare namespace firebase.auth {
     static GITHUB_SIGN_IN_METHOD: string;
     /**
      * @example
-     * ```
+     * ```javascript
      * var cred = firebase.auth.FacebookAuthProvider.credential(
      *     // `event` from the Facebook auth.authResponseChange callback.
      *     event.authResponse.accessToken
@@ -3131,7 +3132,7 @@ declare namespace firebase.auth {
      * is required.
      *
      * @example
-     * ```
+     * ```javascript
      * // \`googleUser\` from the onsuccess Google Sign In callback.
      * var credential = firebase.auth.GoogleAuthProvider.credential(
                   googleUser.getAuthResponse().id_token);
@@ -3224,7 +3225,7 @@ declare namespace firebase.auth {
      * ID token.
      *
      * @example
-     * ```
+     * ```javascript
      * // `googleUser` from the onsuccess Google Sign In callback.
      * // Initialize a generate OAuth provider with a `google.com` providerId.
      * var provider = new firebase.auth.OAuthProvider('google.com');
@@ -3594,7 +3595,7 @@ declare namespace firebase.database {
      * whose value is `null`) is returned.
      *
      * @example
-     * ```
+     * ```javascript
      * // Assume we have the following data in the Database:
      * {
      *   "name": {
@@ -3622,7 +3623,7 @@ declare namespace firebase.database {
      * efficient than using `snapshot.val() !== null`.
      *
      * @example
-     * ```
+     * ```javascript
      * // Assume we have the following data in the Database:
      * {
      *   "name": {
@@ -3669,7 +3670,7 @@ declare namespace firebase.database {
      * returned by priority).
      *
      * @example
-     * ```
+     * ```javascript
      * // Assume we have the following data in the Database:
      * {
      *   "users": {
@@ -3700,7 +3701,7 @@ declare namespace firebase.database {
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * // You can cancel the enumeration at any point by having your callback
      * // function return true. For example, the following code sample will only
      * // fire the callback function one time:
@@ -3739,7 +3740,7 @@ declare namespace firebase.database {
      * Returns true if the specified child path has (non-null) data.
      *
      * @example
-     * ```
+     * ```javascript
      * // Assume we have the following data in the Database:
      * {
      *   "name": {
@@ -3773,7 +3774,7 @@ declare namespace firebase.database {
      * `null`).
      *
      * @example
-     * ```
+     * ```javascript
      * // Assume we have the following data in the Database:
      * {
      *   "name": {
@@ -3803,7 +3804,7 @@ declare namespace firebase.database {
      * However, accessing the key on the root URL of a Database will return `null`.
      *
      * @example
-     * ```
+     * ```javascript
      * // Assume we have the following data in the Database:
      * {
      *   "name": {
@@ -3821,7 +3822,7 @@ declare namespace firebase.database {
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * var rootRef = firebase.database().ref();
      * rootRef.once("value")
      *   .then(function(snapshot) {
@@ -3835,7 +3836,7 @@ declare namespace firebase.database {
      * Returns the number of child properties of this `DataSnapshot`.
      *
      * @example
-     * ```
+     * ```javascript
      * // Assume we have the following data in the Database:
      * {
      *   "name": {
@@ -3862,7 +3863,7 @@ declare namespace firebase.database {
      * return null, indicating that the `DataSnapshot` is empty (contains no data).
      *
      * @example
-     * ```
+     * ```javascript
      * // Write and then read back a string from the Database.
      * ref.set("hello")
      *   .then(function() {
@@ -3874,7 +3875,7 @@ declare namespace firebase.database {
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * // Write and then read back a JavaScript object from the Database.
      * ref.set({ name: "Ada", age: 36 })
      *   .then(function() {
@@ -3920,7 +3921,7 @@ declare namespace firebase.database {
      * instance.
      *
      * @example
-     * ```
+     * ```javascript
      * var app = database.app;
      * ```
      */
@@ -3945,7 +3946,7 @@ declare namespace firebase.database {
      * `goOnline()`.
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.database().goOffline();
      * ```
      */
@@ -3960,7 +3961,7 @@ declare namespace firebase.database {
      * automatically.
      *
      * @example
-     * ```
+     * ```javascript
      * firebase.database().goOnline();
      * ```
      */
@@ -3971,13 +3972,13 @@ declare namespace firebase.database {
      * will point to the root of the Database.
      *
      * @example
-     * ```
+     * ```javascript
      * // Get a reference to the root of the Database
      * var rootRef = firebase.database().ref();
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * // Get a reference to the /users/ada node
      * var adaRef = firebase.database().ref("users/ada");
      * // The above is shorthand for the following operations:
@@ -4004,13 +4005,13 @@ declare namespace firebase.database {
      * and are not applied to the returned `Reference`.
      *
      * @example
-     * ```
+     * ```javascript
      * // Get a reference to the root of the Database
      * var rootRef = firebase.database().ref("https://<DATABASE_NAME>.firebaseio.com");
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * // Get a reference to the /users/ada node
      * var adaRef = firebase.database().ref("https://<DATABASE_NAME>.firebaseio.com/users/ada");
      * ```
@@ -4054,7 +4055,7 @@ declare namespace firebase.database {
      * to sibling locations will still occur.
      *
      * @example
-     * ```
+     * ```javascript
      * var ref = firebase.database().ref("onlineState");
      * ref.onDisconnect().set(false);
      * // ... sometime later
@@ -4098,7 +4099,7 @@ declare namespace firebase.database {
      * the `onDisconnect` operations each time.
      *
      * @example
-     * ```
+     * ```javascript
      * var ref = firebase.database().ref("users/ada/status");
      * ref.onDisconnect().set("I disconnected!");
      * ```
@@ -4140,7 +4141,7 @@ declare namespace firebase.database {
      * {@link firebase.database.Reference.update `update()`}.
      *
      * @example
-     * ```
+     * ```javascript
      * var ref = firebase.database().ref("users/ada");
      * ref.update({
      *    onlineState: true,
@@ -4206,7 +4207,7 @@ declare namespace firebase.database {
      *  Filtering data}.
      *
      * @example
-     * ```
+     * ```javascript
      * // Find all dinosaurs whose names come before Pterodactyl lexicographically.
      * var ref = firebase.database().ref("dinosaurs");
      * ref.orderByKey().endAt("pterodactyl").on("child_added", function(snapshot) {
@@ -4244,7 +4245,7 @@ declare namespace firebase.database {
      *  Filtering data}.
      *
      * @example
-     * ```
+     * ```javascript
      * // Find all dinosaurs whose height is exactly 25 meters.
      * var ref = firebase.database().ref("dinosaurs");
      * ref.orderByChild("height").equalTo(25).on("child_added", function(snapshot) {
@@ -4279,7 +4280,7 @@ declare namespace firebase.database {
      * starting and ending points.
      *
      * @example
-     * ```
+     * ```javascript
      * var rootRef = firebase.database.ref();
      * var usersRef = rootRef.child("users");
      *
@@ -4289,7 +4290,7 @@ declare namespace firebase.database {
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * var rootRef = firebase.database.ref();
      * var usersRef = rootRef.child("users");
      * var usersQuery = usersRef.limitToLast(10);
@@ -4323,7 +4324,7 @@ declare namespace firebase.database {
      *  Filtering data}.
      *
      * @example
-     * ```
+     * ```javascript
      * // Find the two shortest dinosaurs.
      * var ref = firebase.database().ref("dinosaurs");
      * ref.orderByChild("height").limitToFirst(2).on("child_added", function(snapshot) {
@@ -4360,7 +4361,7 @@ declare namespace firebase.database {
      *  Filtering data}.
      *
      * @example
-     * ```
+     * ```javascript
      * // Find the two heaviest dinosaurs.
      * var ref = firebase.database().ref("dinosaurs");
      * ref.orderByChild("weight").limitToLast(2).on("child_added", function(snapshot) {
@@ -4390,7 +4391,7 @@ declare namespace firebase.database {
      * callbacks for the `Reference` will be removed.
      *
      * @example
-     * ```
+     * ```javascript
      * var onValueChange = function(dataSnapshot) {  ... };
      * ref.on('value', onValueChange);
      * ref.child('meta-data').on('child_added', onChildAdded);
@@ -4403,7 +4404,7 @@ declare namespace firebase.database {
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * // Or you can save a line of code by using an inline function
      * // and on()'s return value.
      * var onValueChange = ref.on('value', function(dataSnapshot) { ... });
@@ -4552,7 +4553,7 @@ declare namespace firebase.database {
      * event types.
      *
      * @example
-     * ```
+     * ```javascript
      * // Basic usage of .once() to read the data located at ref.
      * ref.once('value')
      *   .then(function(dataSnapshot) {
@@ -4600,7 +4601,7 @@ declare namespace firebase.database {
      *  Sort data}.
      *
      * @example
-     * ```
+     * ```javascript
      * var ref = firebase.database().ref("dinosaurs");
      * ref.orderByChild("height").on("child_added", function(snapshot) {
      *   console.log(snapshot.key + " was " + snapshot.val().height + " m tall");
@@ -4619,7 +4620,7 @@ declare namespace firebase.database {
      *  Sort data}.
      *
      * @example
-     * ```
+     * ```javascript
      * var ref = firebase.database().ref("dinosaurs");
      * ref.orderByKey().on("child_added", function(snapshot) {
      *   console.log(snapshot.key);
@@ -4649,7 +4650,7 @@ declare namespace firebase.database {
      *  Sort data}.
      *
      * @example
-     * ```
+     * ```javascript
      * var scoresRef = firebase.database().ref("scores");
      * scoresRef.orderByValue().limitToLast(3).on("value", function(snapshot) {
      *   snapshot.forEach(function(data) {
@@ -4681,7 +4682,7 @@ declare namespace firebase.database {
      *  Filtering data}.
      *
      * @example
-     * ```
+     * ```javascript
      * // Find all dinosaurs that are at least three meters tall.
      * var ref = firebase.database().ref("dinosaurs");
      * ref.orderByChild("height").startAt(3).on("child_added", function(snapshot) {
@@ -4719,7 +4720,7 @@ declare namespace firebase.database {
      * readable), you will get a permission-denied error.
      *
      * @example
-     * ```
+     * ```javascript
      * // Calling toString() on a root Firebase reference returns the URL where its
      * // data is stored within the Database:
      * var rootRef = firebase.database().ref();
@@ -4759,7 +4760,7 @@ declare namespace firebase.database {
      * a deeper slash-separated path (for example, "ada/name/first").
      *
      * @example
-     * ```
+     * ```javascript
      * var usersRef = firebase.database().ref('users');
      * var adaRef = usersRef.child('ada');
      * var adaFirstNameRef = adaRef.child('name/first');
@@ -4781,14 +4782,14 @@ declare namespace firebase.database {
      * The key of a root `Reference` is `null`.
      *
      * @example
-     * ```
+     * ```javascript
      * // The key of a root reference is null
      * var rootRef = firebase.database().ref();
      * var key = rootRef.key;  // key === null
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * // The key of any non-root reference is the last token in the path
      * var adaRef = firebase.database().ref("users/ada");
      * var key = adaRef.key;  // key === "ada"
@@ -4810,14 +4811,14 @@ declare namespace firebase.database {
      * The parent of a root `Reference` is `null`.
      *
      * @example
-     * ```
+     * ```javascript
      * // The parent of a root reference is null
      * var rootRef = firebase.database().ref();
      * parent = rootRef.parent;  // parent === null
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * // The parent of any non-root reference is the parent location
      * var usersRef = firebase.database().ref("users");
      * var adaRef = firebase.database().ref("users/ada");
@@ -4851,7 +4852,7 @@ declare namespace firebase.database {
      *  The 2^120 Ways to Ensure Unique Identifiers}
      *
      * @example
-     * ```
+     * ```javascript
      * var messageListRef = firebase.database().ref('message_list');
      * var newMessageRef = messageListRef.push();
      * newMessageRef.set({
@@ -4887,7 +4888,7 @@ declare namespace firebase.database {
      * asynchronously after synchronization has finished.
      *
      * @example
-     * ```
+     * ```javascript
      * var adaRef = firebase.database().ref('users/ada');
      * adaRef.remove()
      *   .then(function() {
@@ -4907,14 +4908,14 @@ declare namespace firebase.database {
      * The root `Reference` of the Database.
      *
      * @example
-     * ```
+     * ```javascript
      * // The root of a root reference is itself
      * var rootRef = firebase.database().ref();
      * // rootRef and rootRef.root represent the same location
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * // The root of any non-root reference is the root location
      * var adaRef = firebase.database().ref("users/ada");
      * // rootRef and adaRef.root represent the same location
@@ -4946,7 +4947,7 @@ declare namespace firebase.database {
      * the `set()` was performed.
      *
      * @example
-     * ```
+     * ```javascript
      * var adaNameRef = firebase.database().ref('users/ada/name');
      * adaNameRef.child('first').set('Ada');
      * adaNameRef.child('last').set('Lovelace');
@@ -4955,14 +4956,14 @@ declare namespace firebase.database {
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * adaNameRef.set({ first: 'Ada', last: 'Lovelace' });
      * // Exact same effect as the previous example, except we've written
      * // Ada's first and last name simultaneously.
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * adaNameRef.set({ first: 'Ada', last: 'Lovelace' })
      *   .then(function() {
      *     console.log('Synchronization succeeded');
@@ -5036,7 +5037,7 @@ declare namespace firebase.database {
      * update it.
      *
      * @example
-     * ```
+     * ```javascript
      * // Increment Ada's rank by 1.
      * var adaRankRef = firebase.database().ref('users/ada/rank');
      * adaRankRef.transaction(function(currentRank) {
@@ -5046,7 +5047,7 @@ declare namespace firebase.database {
      * ```
      *
      * @example
-     * ```
+     * ```javascript
      * // Try to create a user for ada, but only if the user id 'ada' isn't
      * // already taken
      * var adaRef = firebase.database().ref('users/ada');
@@ -5141,7 +5142,7 @@ declare namespace firebase.database {
      *  Introducing multi-location updates and more}.
      *
      * @example
-     * ```
+     * ```javascript
      * var adaNameRef = firebase.database().ref('users/ada/name');
      * // Modify the 'first' and 'last' properties, but leave other data at
      * // adaNameRef unchanged.
@@ -5521,7 +5522,7 @@ declare namespace firebase.storage {
      * instance.
      *
      * @example
-     * ```
+     * ```javascript
      * var app = storage.app;
      * ```
      */
@@ -5779,10 +5780,7 @@ declare namespace firebase.storage {
      */
     on(
       event: firebase.storage.TaskEvent,
-      nextOrObserver?:
-        | firebase.Observer<UploadTaskSnapshot>
-        | null
-        | ((a: UploadTaskSnapshot) => any),
+      nextOrObserver?: firebase.Observer<any> | null | ((a: Object) => any),
       error?: ((a: Error) => any) | null,
       complete?: (firebase.Unsubscribe) | null
     ): Function;
@@ -6009,20 +6007,6 @@ declare namespace firebase.firestore {
      * @return The `DocumentReference` instance.
      */
     doc(documentPath: string): DocumentReference;
-
-    // TODO(b/116617988): Uncomment method and change jsdoc comment to "/**"
-    // once backend support is ready.
-    /*
-     * Creates and returns a new Query that includes all documents in the
-     * database that are contained in a collection or subcollection with the
-     * given collectionId.
-     *
-     * @param collectionId Identifies the collections to query over. Every
-     * collection or subcollection with this ID as the last segment of its path
-     * will be included. Cannot contain a slash.
-     * @return The created Query.
-     */
-    //collectionGroup(collectionId: string): Query;
 
     /**
      * Executes the given `updateFunction` and then attempts to commit the changes
@@ -7280,25 +7264,6 @@ declare namespace firebase.firestore {
      * @return The FieldValue sentinel for use in a call to `set()` or `update()`.
      */
     static arrayRemove(...elements: any[]): FieldValue;
-
-    /**
-     * Returns a special value that can be used with set() or update() that tells
-     * the server to increment the field's current value by the given value.
-     *
-     * If either the operand or the current field value uses floating point
-     * precision, all arithmetic will follow IEEE 754 semantics. If both values
-     * are integers, values outside of JavaScript's safe number range
-     * (`Number.MIN_SAFE_INTEGER` to `Number.MAX_SAFE_INTEGER`) are also subject
-     * to precision loss. Furthermore, once processed by the Firestore backend,
-     * all integer operations are capped between -2^63 and 2^63-1.
-     *
-     * If the current field value is not of type 'number', or if the field does
-     * not yet exist, the transformation will set the field to the given value.
-     *
-     * @param n The value to increment by.
-     * @return The FieldValue sentinel for use in a call to set() or update().
-     */
-    static increment(n: number): FieldValue;
 
     /**
      * Returns true if this `FieldValue` is equal to the provided one.
