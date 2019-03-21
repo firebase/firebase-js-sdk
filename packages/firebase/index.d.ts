@@ -5426,12 +5426,12 @@ declare namespace firebase.storage {
      * All invalid objects in GCS will be filtered.
      *
      * @param options.maxResults If set, limits the total number of `prefixes`
-     *      and items to return.
+     *      and `items` to return.
      * @param options.pageToken The `nextPageToken` from a previous call to
      *      list(). If provided, listing is resumed from the previous position.
      * @return A promise that resolves with the items and sub-directories.
-     *      `prefixes` contains `Reference`s to sub-directories and `items`
-     *      contains `Reference`s to objects in this folder. `nextPageToken`
+     *      `prefixes` contains references to sub-directories and `items`
+     *      contains references to objects in this folder. `nextPageToken`
      *      can be passed as `options.pageToken` to get the rest of results.
      */
     list(options?: ListOptions): Promise<ListResult>;
