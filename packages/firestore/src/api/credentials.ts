@@ -26,7 +26,7 @@ import { Code, FirestoreError } from '../util/error';
 
 export interface FirstPartyCredentialsSettings {
   type: 'gapi';
-  client: Gapi;
+  client: unknown;
   sessionIndex: string;
 }
 
@@ -240,35 +240,37 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   }
 }
 
-// TODO(b/32935141): Ideally gapi type would be declared as an extern
-// tslint:disable-next-line:no-any
-export type Gapi = any;
+// Manual type definition for the subset of Gapi we use.
+interface Gapi {
+  auth: {
+    getAuthHeaderValueForFirstParty: (
+      userIdentifiers: Array<{ [key: string]: string }>
+    ) => string | null;
+  };
+}
 
 /*
  * FirstPartyToken provides a fresh token each time its value
  * is requested, because if the token is too old, requests will be rejected.
- * TODO(b/33147818) this implementation violates the current assumption that
- * tokens are immutable.  We need to either revisit this assumption or come
- * up with some way for FPA to use the listen/unlisten interface.
+ * Technically this may no longer be necessary since the SDK should gracefully
+ * recover from unauthenticated errors (see b/33147818 for context), but it's
+ * safer to keep the implementation as-is.
  */
 export class FirstPartyToken implements Token {
   type = 'FirstParty' as TokenType;
   user = User.FIRST_PARTY;
 
-  constructor(private gapi: Gapi, private sessionIndex: string) {
-    assert(
-      this.gapi &&
-        this.gapi['auth'] &&
-        this.gapi['auth']['getAuthHeaderValueForFirstParty'],
-      'unexpected gapi interface'
-    );
-  }
+  constructor(private gapi: Gapi, private sessionIndex: string) {}
 
   get authHeaders(): { [header: string]: string } {
-    return {
-      Authorization: this.gapi['auth']['getAuthHeaderValueForFirstParty']([]),
+    const headers = {
       'X-Goog-AuthUser': this.sessionIndex
     };
+    const authHeader = this.gapi.auth.getAuthHeaderValueForFirstParty([]);
+    if (authHeader) {
+      headers['Authorization'] = authHeader;
+    }
+    return headers;
   }
 }
 
@@ -278,21 +280,12 @@ export class FirstPartyToken implements Token {
  * to applications hosted by Google.
  */
 export class FirstPartyCredentialsProvider implements CredentialsProvider {
-  constructor(private gapi: Gapi, private sessionIndex: string) {
-    assert(
-      this.gapi &&
-        this.gapi['auth'] &&
-        this.gapi['auth']['getAuthHeaderValueForFirstParty'],
-      'unexpected gapi interface'
-    );
-  }
+  constructor(private gapi: Gapi, private sessionIndex: string) {}
 
   getToken(): Promise<Token | null> {
     return Promise.resolve(new FirstPartyToken(this.gapi, this.sessionIndex));
   }
 
-  // TODO(33108925): can someone switch users w/o a page refresh?
-  // TODO(33110621): need to understand token/session lifecycle
   setChangeListener(changeListener: CredentialChangeListener): void {
     // Fire with initial uid.
     changeListener(User.FIRST_PARTY);
@@ -316,8 +309,19 @@ export function makeCredentialsProvider(
 
   switch (credentials.type) {
     case 'gapi':
+      const client = credentials.client;
+      // Make sure this is a Gapi client.
+      assert(
+        !!(
+          typeof client === 'object' &&
+          client !== null &&
+          client['auth'] &&
+          client['auth']['getAuthHeaderValueForFirstParty']
+        ),
+        'unexpected gapi interface'
+      );
       return new FirstPartyCredentialsProvider(
-        credentials.client,
+        client as Gapi,
         credentials.sessionIndex || '0'
       );
 

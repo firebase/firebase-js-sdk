@@ -18,10 +18,18 @@ toc:
     path: /docs/reference/node/firebase.auth.Auth
   - title: "ActionCodeInfo"
     path: /docs/reference/node/firebase.auth.ActionCodeInfo
+  - title: "ApplicationVerifier"
+    path: /docs/reference/node/firebase.auth.ApplicationVerifier
   - title: "AuthCredential"
     path: /docs/reference/node/firebase.auth.AuthCredential
+  - title: "AuthSettings"
+    path: /docs/reference/node/firebase.auth.AuthSettings
+  - title: "OAuthCredential"
+    path: /docs/reference/node/firebase.auth.OAuthCredential
   - title: "AuthProvider"
     path: /docs/reference/node/firebase.auth.AuthProvider
+  - title: "ConfirmationResult"
+    path: /docs/reference/node/firebase.auth.ConfirmationResult
   - title: "EmailAuthProvider"
     path: /docs/reference/node/firebase.auth.EmailAuthProvider
   - title: "Error"
@@ -32,12 +40,20 @@ toc:
     path: /docs/reference/node/firebase.auth.GithubAuthProvider
   - title: "GoogleAuthProvider"
     path: /docs/reference/node/firebase.auth.GoogleAuthProvider
+  - title: "IdTokenResult"
+    path: /docs/reference/node/firebase.auth.IDTokenResult
   - title: "TwitterAuthProvider"
     path: /docs/reference/node/firebase.auth.TwitterAuthProvider
   - title: "OAuthProvider"
     path: /docs/reference/node/firebase.auth.OAuthProvider
+  - title: "PhoneAuthProvider"
+    path: /docs/reference/node/firebase.auth.PhoneAuthProvider
   - title: "SAMLAuthProvider"
     path: /docs/reference/node/firebase.auth.SAMLAuthProvider
+  - title: "RecaptchaVerifier"
+    path: /docs/reference/node/firebase.auth.RecaptchaVerifier
+  - title: "UserMetadata"
+    path: /docs/reference/node/firebase.auth.UserMetadata
   - title: "User"
     path: /docs/reference/node/firebase.User
   - title: "UserInfo"
@@ -52,14 +68,14 @@ toc:
     path: /docs/reference/node/firebase.database.DataSnapshot
   - title: "OnDisconnect"
     path: /docs/reference/node/firebase.database.OnDisconnect
-  - title: "Query"
-    path: /docs/reference/node/firebase.database.Query
   - title: "Reference"
     path: /docs/reference/node/firebase.database.Reference
   - title: "ServerValue"
     path: /docs/reference/node/firebase.database.ServerValue
   - title: "ThenableReference"
     path: /docs/reference/node/firebase.database.ThenableReference
+  - title: "Query"
+    path: /docs/reference/node/firebase.database.Query
 
 - title: "firebase.firestore"
   path: /docs/reference/node/firebase.firestore
@@ -84,6 +100,10 @@ toc:
     path: /docs/reference/node/firebase.firestore.FirestoreError
   - title: "GeoPoint"
     path: /docs/reference/node/firebase.firestore.GeoPoint
+  - title: "GetOptions"
+    path: /docs/reference/node/firebase.firestore.GetOptions
+  - title: "PersistenceSettings"
+    path: /docs/reference/node/firebase.firestore.PersistenceSettings
   - title: "Query"
     path: /docs/reference/node/firebase.firestore.Query
   - title: "QueryDocumentSnapshot"
@@ -94,10 +114,14 @@ toc:
     path: /docs/reference/node/firebase.firestore.SetOptions
   - title: "Settings"
     path: /docs/reference/node/firebase.firestore.Settings
+  - title: "SnapshotListenOptions"
+    path: /docs/reference/node/firebase.firestore.SnapshotListenOptions
   - title: "SnapshotMetadata"
     path: /docs/reference/node/firebase.firestore.SnapshotMetadata
   - title: "SnapshotOptions"
     path: /docs/reference/node/firebase.firestore.SnapshotOptions
+  - title: "TimeStamp"
+    path: /docs/reference/node/firebase.firestore.TimeStamp
   - title: "Transaction"
     path: /docs/reference/node/firebase.firestore.Transaction
   - title: "WriteBatch"
