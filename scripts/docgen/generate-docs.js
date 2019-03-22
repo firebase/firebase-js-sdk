@@ -113,7 +113,7 @@ function generateTempHomeMdFile(tocRaw, homeRaw) {
   toc.forEach(group => {
     tocPageLines.push(`\n## [${group.title}](${stripPath(group.path)})`);
     group.section.forEach(item => {
-      tocPageLines.push(`- [${item.title}](${stripPath(item.path)})`);
+      tocPageLines.push(`- [${item.title}](${stripPath(item.path)}.html)`);
     });
   });
   return fs.writeFile(tempHomePath, tocPageLines.join('\n'));
