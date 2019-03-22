@@ -3018,7 +3018,6 @@ declare namespace firebase.auth {
    */
   class GithubAuthProvider_Instance implements firebase.auth.AuthProvider {
     /**
-     * @return {!firebase.auth.AuthProvider} The provider instance itself.
      * @param scope Github OAuth scope.
      * @return The provider instance itself.
      */
