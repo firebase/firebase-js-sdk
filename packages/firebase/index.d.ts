@@ -2968,7 +2968,7 @@ declare namespace firebase.auth {
   }
 
   /**
-   * Github auth provider.
+   * GitHub auth provider.
    *
    * GitHub requires an OAuth 2.0 redirect, so you can either handle the redirect
    * directly, or use the signInWithPopup handler:
@@ -3050,7 +3050,7 @@ declare namespace firebase.auth {
      * );
      * ```
      *
-     * @param {string} token Github access token.
+     * @param {string} token GitHub access token.
      * @return {!firebase.auth.OAuthCredential} The auth provider credential.
      */
     static credential(token: string): firebase.auth.OAuthCredential;
@@ -3060,7 +3060,7 @@ declare namespace firebase.auth {
    */
   class GithubAuthProvider_Instance implements firebase.auth.AuthProvider {
     /**
-     * @param {string} scope Github OAuth scope.
+     * @param {string} scope GitHub OAuth scope.
      * @return {!firebase.auth.AuthProvider} The provider instance itself.
      */
     addScope(scope: string): firebase.auth.AuthProvider;
@@ -7139,7 +7139,7 @@ declare namespace firebase.firestore {
   }
 
   /**
-   * The type of of a `DocumentChange` may be 'added', 'removed', or 'modified'.
+   * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
    */
   export type DocumentChangeType = 'added' | 'removed' | 'modified';
 
