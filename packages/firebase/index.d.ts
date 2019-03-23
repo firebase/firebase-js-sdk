@@ -852,13 +852,13 @@ declare namespace firebase {
    * initialized.
    *
    * @example
-   * ```
+   * ```javascript
    * // Return the default app
    * var app = firebase.app();
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Return a named app
    * var otherApp = firebase.app("otherApp");
    * ```
@@ -886,13 +886,13 @@ declare namespace firebase {
    * specific app.
    *
    * @example
-   * ```
+   * ```javascript
    *
    * // Get the Auth service for the default app
    * var defaultAuth = firebase.auth();
    * ```
    * @example
-   * ```
+   * ```javascript
    *
    * // Get the Auth service for a given app
    * var otherAuth = firebase.auth(otherApp);
@@ -915,13 +915,13 @@ declare namespace firebase {
    * constants and methods associated with the `Database` service.
    *
    * @example
-   * ```
+   * ```javascript
    * // Get the Database service for the default app
    * var defaultDatabase = firebase.database();
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Get the Database service for a specific app
    * var otherDatabase = firebase.database(app);
    * ```
@@ -946,7 +946,7 @@ declare namespace firebase {
    *   Initialize multiple apps} for detailed documentation.
    *
    * @example
-   * ```
+   * ```javascript
    *
    * // Initialize default app
    * // Retrieve your own options values by adding a web app on
@@ -961,7 +961,7 @@ declare namespace firebase {
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    *
    * // Initialize another app
    * var otherApp = firebase.initializeApp({
@@ -993,13 +993,13 @@ declare namespace firebase {
    * parameter.
    *
    * @example
-   * ```
+   * ```javascript
    * // Get the Messaging service for the default app
    * var defaultMessaging = firebase.messaging();
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Get the Messaging service for a given app
    * var otherMessaging = firebase.messaging(otherApp);
    * ```
@@ -1021,13 +1021,13 @@ declare namespace firebase {
    * specific app.
    *
    * @example
-   * ```
+   * ```javascript
    * // Get the Storage service for the default app
    * var defaultStorage = firebase.storage();
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Get the Storage service for a given app
    * var otherStorage = firebase.storage(otherApp);
    * ```
@@ -2846,7 +2846,7 @@ declare namespace firebase.auth {
    * Facebook auth provider.
    *
    * @example
-   * ```
+   * ```javascript
    * // Sign in using a redirect.
    * firebase.auth().getRedirectResult().then(function(result) {
    *   if (result.credential) {
@@ -2862,7 +2862,7 @@ declare namespace firebase.auth {
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Sign in using a popup.
    * var provider = new firebase.auth.FacebookAuthProvider();
    * provider.addScope('user_birthday');
@@ -2932,7 +2932,7 @@ declare namespace firebase.auth {
    * directly, or use the signInWithPopup handler:
    *
    * @example
-   * ```
+   * ```javascript
    * // Using a redirect.
    * firebase.auth().getRedirectResult().then(function(result) {
    *   if (result.credential) {
@@ -2963,7 +2963,7 @@ declare namespace firebase.auth {
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // With popup.
    * var provider = new firebase.auth.GithubAuthProvider();
    *  provider.addScope('repo');
@@ -3044,7 +3044,7 @@ declare namespace firebase.auth {
    * Google auth provider.
    *
    * @example
-   * ```
+   * ```javascript
    * // Using a redirect.
    * firebase.auth().getRedirectResult().then(function(result) {
    *   if (result.credential) {
@@ -3062,7 +3062,7 @@ declare namespace firebase.auth {
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Using a popup.
    * var provider = new firebase.auth.GoogleAuthProvider();
    * provider.addScope('profile');
@@ -3138,7 +3138,7 @@ declare namespace firebase.auth {
    * Generic OAuth provider.
    *
    * @example
-   * ```
+   * ```javascript
    * // Using a redirect.
    * firebase.auth().getRedirectResult().then(function(result) {
    *   if (result.credential) {
@@ -3155,7 +3155,7 @@ declare namespace firebase.auth {
    * firebase.auth().signInWithRedirect(provider);
    * ```
    * @example
-   * ```
+   * ```javascript
    * // Using a popup.
    * var provider = new firebase.auth.OAuthProvider('google.com');
    * provider.addScope('profile');
@@ -3263,7 +3263,7 @@ declare namespace firebase.auth {
    * Phone number auth provider.
    *
    * @example
-   * ```
+   * ```javascript
    * // 'recaptcha-container' is the ID of an element in the DOM.
    * var applicationVerifier = new firebase.auth.RecaptchaVerifier(
    *     'recaptcha-container');
@@ -3410,7 +3410,7 @@ declare namespace firebase.auth {
    * Twitter auth provider.
    *
    * @example
-   * ```
+   * ```javascript
    * // Using a redirect.
    * firebase.auth().getRedirectResult().then(function(result) {
    *   if (result.credential) {
@@ -3426,7 +3426,7 @@ declare namespace firebase.auth {
    * firebase.auth().signInWithRedirect(provider);
    * ```
    * @example
-   * ```
+   * ```javascript
    * // Using a popup.
    * var provider = new firebase.auth.TwitterAuthProvider();
    * firebase.auth().signInWithPopup(provider).then(function(result) {
@@ -4434,35 +4434,35 @@ declare namespace firebase.database {
      * sibling child by sort order, or `null` if it is the first child.
      *
      * @example **Handle a new value:**
-     * ```
+     * ```javascript
      * ref.on('value', function(dataSnapshot) {
      *   ...
      * });
      * ```
      *
      * @example **Handle a new child:**
-     * ```
+     * ```javascript
      * ref.on('child_added', function(childSnapshot, prevChildKey) {
      *   ...
      * });
      * ```
      *
      * @example **Handle child removal:**
-     * ```
+     * ```javascript
      * ref.on('child_removed', function(oldChildSnapshot) {
      *   ...
      * });
      * ```
      *
      * @example **Handle child data changes:**
-     * ```
+     * ```javascript
      * ref.on('child_changed', function(childSnapshot, prevChildKey) {
      *   ...
      * });
      * ```
      *
      * @example **Handle child ordering changes:**
-     * ```
+     * ```javascript
      * ref.on('child_moved', function(childSnapshot, prevChildKey) {
      *   ...
      * });
@@ -5111,25 +5111,25 @@ declare namespace firebase.database {
    * Logs debugging information to the console.
    *
    * @example
-   * ```
+   * ```javascript
    * // Enable logging
    * firebase.database.enableLogging(true);
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Disable logging
    * firebase.database.enableLogging(false);
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Enable logging across page refreshes
    * firebase.database.enableLogging(true, true);
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Provide custom logger which prefixes log statements with "[FIREBASE]"
    * firebase.database.enableLogging(function(message) {
    *   console.log("[FIREBASE]", message);
@@ -5155,7 +5155,7 @@ declare namespace firebase.database.ServerValue {
    * servers.
    *
    * @example
-   * ```
+   * ```javascript
    * var sessionsRef = firebase.database().ref("sessions");
    * sessionsRef.push({
    *   startedAt: firebase.database.ServerValue.TIMESTAMP
@@ -5626,7 +5626,7 @@ declare namespace firebase.storage {
      * function to unregister the associated callbacks.
      *
      * @example **Pass callbacks separately or in an object.**
-     * ```
+     * ```javascript
      * var next = function(snapshot) {};
      * var error = function(error) {};
      * var complete = function() {};
@@ -5659,7 +5659,7 @@ declare namespace firebase.storage {
      * ```
      *
      * @example **Any callback is optional.**
-     * ```
+     * ```javascript
      * // Just listening for completion, this is legal.
      * uploadTask.on(
      *     firebase.storage.TaskEvent.STATE_CHANGED,
@@ -5684,7 +5684,7 @@ declare namespace firebase.storage {
      * ```
      *
      * @example **Use the returned function to remove callbacks.**
-     * ```
+     * ```javascript
      * var unsubscribe = uploadTask.on(
      *     firebase.storage.TaskEvent.STATE_CHANGED,
      *     function(snapshot) {
