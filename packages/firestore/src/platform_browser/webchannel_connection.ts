@@ -217,7 +217,11 @@ export class WebChannelConnection implements Connection {
         // set it very large (5-10 minutes) and rely on the browser's builtin
         // timeouts to kick in if the request isn't working.
         forwardChannelRequestTimeoutMs: 10 * 60 * 1000
-      }
+      },
+      // Disables redaction of potentially customer-sensitive information from
+      // webchannel log messages. Since we don't enable logging, this is
+      // unnecessary and so we want to avoid the performance hit.
+      disableRedact: true
     };
 
     this.modifyHeadersForRequest(request.initMessageHeaders, token);
