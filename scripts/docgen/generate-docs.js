@@ -182,8 +182,8 @@ function checkForUnlistedFiles(filenamesFromToc, shouldRemove) {
         filename !== 'globals'
       ) {
         if (shouldRemove) {
-          console.log(`REMOVING ${filename} - not listed in toc.yaml.`);
-          removePromises.push(() => fs.unlink(`${docPath}/${filename}`));
+          console.log(`REMOVING ${docPath}/${filename}.html - not listed in toc.yaml.`);
+          removePromises.push(fs.unlink(`${docPath}/${filename}.html`));
         } else {
           // This is just a warning, it doesn't need to finish before
           // the process continues.
@@ -195,7 +195,8 @@ function checkForUnlistedFiles(filenamesFromToc, shouldRemove) {
       }
     });
     if (shouldRemove) {
-      return Promise.all(removePromises).then(() => htmlFiles);
+      return Promise.all(removePromises)
+        .then(() => htmlFiles.filter(filename => filenamesFromToc.includes(filename)));
     } else {
       return htmlFiles;
     }
