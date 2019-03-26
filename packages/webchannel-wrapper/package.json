@@ -15,9 +15,9 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "closure-builder": "2.3.4",
-    "rollup": "1.6.0",
-    "rollup-plugin-commonjs": "9.2.1",
+    "closure-builder": "2.3.7",
+    "rollup": "1.7.3",
+    "rollup-plugin-commonjs": "9.2.2",
     "rollup-plugin-sourcemaps": "0.4.2",
     "watch": "1.0.2"
   },
