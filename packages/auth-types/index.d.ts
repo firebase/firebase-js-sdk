@@ -248,7 +248,8 @@ export interface UserMetadata {
 
 export type Persistence = string;
 
-export abstract class OAuthCredential extends AuthCredential {
+export class OAuthCredential extends AuthCredential {
+  private constructor();
   idToken?: string;
   accessToken?: string;
   secret?: string;

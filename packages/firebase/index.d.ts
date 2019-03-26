@@ -2660,7 +2660,8 @@ declare namespace firebase.auth {
      * Static method to deserialize a JSON representation of an object into an
      * {@link firebase.auth.AuthCredential}. Input can be either Object or the
      * stringified representation of the object. When string is provided,
-     * JSON.parse would be called first.
+     * JSON.parse would be called first. If the JSON input does not represent 
+     * an`AuthCredential`, null is returned.
      * @param {!Object|string} json The plain object representation of an
      *     AuthCredential.
      */
@@ -2673,7 +2674,8 @@ declare namespace firebase.auth {
    * credential requirements.
    *
    */
-  abstract class OAuthCredential extends AuthCredential {
+  class OAuthCredential extends AuthCredential {
+    private constructor();
     /**
      * The OAuth ID token associated with the credential if it belongs to an
      * OIDC provider, such as `google.com`.
