@@ -21,8 +21,8 @@
     "whatwg-fetch": "2.0.4"
   },
   "devDependencies": {
-    "rollup": "1.6.0",
-    "rollup-plugin-typescript2": "0.19.3"
+    "rollup": "1.7.3",
+    "rollup-plugin-typescript2": "0.20.1"
   },
   "repository": {
     "directory": "packages/polyfill",
