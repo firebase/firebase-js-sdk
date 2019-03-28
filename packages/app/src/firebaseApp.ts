@@ -131,10 +131,12 @@ class FirebaseAppImpl implements FirebaseApp {
           })
         );
       })
-      .then((): void => {
-        this.isDeleted_ = true;
-        this.services_ = {};
-      });
+      .then(
+        (): void => {
+          this.isDeleted_ = true;
+          this.services_ = {};
+        }
+      );
   }
 
   /**
@@ -460,9 +462,7 @@ function error(code: AppError, args?: { [name: string]: any }) {
   throw appErrors.create(code, args);
 }
 
-// TypeScript does not support non-string indexes!
-// let errors: {[code: AppError: string} = {
-let errors: { [code: string]: string } = {
+const errors: { readonly [code in AppError]: string } = {
   'no-app':
     "No Firebase App '{$name}' has been created - " +
     'call Firebase App.initializeApp()',
