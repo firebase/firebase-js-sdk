@@ -25,7 +25,7 @@ import {
 } from '@firebase/app-types/private';
 
 import { registerMessaging } from '../index';
-import { ERROR_CODES } from '../src/models/errors';
+import { ErrorCodes } from '../src/models/errors';
 
 import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
@@ -101,7 +101,7 @@ describe('Firebase Messaging > registerMessaging', () => {
           factoryMethod(fakeApp);
         } catch (e) {
           expect(e.code).to.equal(
-            'messaging/' + ERROR_CODES.UNSUPPORTED_BROWSER
+            'messaging/' + ErrorCodes.UNSUPPORTED_BROWSER
           );
           return;
         }

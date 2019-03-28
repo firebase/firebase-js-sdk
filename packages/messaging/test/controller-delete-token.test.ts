@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
-import { ERROR_CODES } from '../src/models/errors';
+import { ErrorCodes } from '../src/models/errors';
 import { IidModel } from '../src/models/iid-model';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 
@@ -103,7 +103,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         throw new Error('Expected error to be thrown.');
       },
       err => {
-        assert.equal('messaging/' + ERROR_CODES.INVALID_DELETE_TOKEN, err.code);
+        assert.equal('messaging/' + ErrorCodes.INVALID_DELETE_TOKEN, err.code);
       }
     );
   });
@@ -224,7 +224,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
           return EXAMPLE_TOKEN_SAVE;
         });
 
-      const errorMsg = 'messaging/' + ERROR_CODES.TOKEN_UNSUBSCRIBE_FAILED;
+      const errorMsg = 'messaging/' + ErrorCodes.TOKEN_UNSUBSCRIBE_FAILED;
       sandbox.stub(IidModel.prototype, 'deleteToken').callsFake(async () => {
         throw new Error(errorMsg);
       });

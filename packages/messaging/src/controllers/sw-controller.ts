@@ -23,7 +23,7 @@ import {
   MessagePayload,
   NotificationDetails
 } from '../interfaces/message-payload';
-import { ERROR_CODES, errorFactory } from '../models/errors';
+import { ErrorCodes, errorFactory } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import {
   InternalMessage,
@@ -135,7 +135,7 @@ export class SwController extends BaseController {
     try {
       registration = await this.getSWRegistration_();
     } catch (err) {
-      throw errorFactory.create(ERROR_CODES.UNABLE_TO_RESUBSCRIBE, {
+      throw errorFactory.create(ErrorCodes.UNABLE_TO_RESUBSCRIBE, {
         message: err
       });
     }
@@ -269,7 +269,7 @@ export class SwController extends BaseController {
    */
   setBackgroundMessageHandler(callback: BgMessageHandler): void {
     if (!callback || typeof callback !== 'function') {
-      throw errorFactory.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
+      throw errorFactory.create(ErrorCodes.BG_HANDLER_FUNCTION_EXPECTED);
     }
 
     this.bgMessageHandler = callback;
@@ -317,7 +317,7 @@ export class SwController extends BaseController {
     // NOTE: This returns a promise in case this API is abstracted later on to
     // do additional work
     if (!client) {
-      throw errorFactory.create(ERROR_CODES.NO_WINDOW_CLIENT_TO_MSG);
+      throw errorFactory.create(ErrorCodes.NO_WINDOW_CLIENT_TO_MSG);
     }
 
     client.postMessage(message);
@@ -376,7 +376,7 @@ export class SwController extends BaseController {
   async getPublicVapidKey_(): Promise<Uint8Array> {
     const swReg = await this.getSWRegistration_();
     if (!swReg) {
-      throw errorFactory.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
+      throw errorFactory.create(ErrorCodes.SW_REGISTRATION_EXPECTED);
     }
 
     const vapidKeyFromDatabase = await this.getVapidDetailsModel().getVapidFromSWScope(
