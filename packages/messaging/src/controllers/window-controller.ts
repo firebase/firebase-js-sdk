@@ -28,7 +28,7 @@ import {
 
 import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
-import { ERROR_CODES, errorFactory } from '../models/errors';
+import { ErrorCode, errorFactory } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import {
   InternalMessage,
@@ -102,9 +102,9 @@ export class WindowController extends BaseController {
     if (permissionResult === 'granted') {
       return;
     } else if (permissionResult === 'denied') {
-      throw errorFactory.create(ERROR_CODES.PERMISSION_BLOCKED);
+      throw errorFactory.create(ErrorCode.PERMISSION_BLOCKED);
     } else {
-      throw errorFactory.create(ERROR_CODES.PERMISSION_DEFAULT);
+      throw errorFactory.create(ErrorCode.PERMISSION_DEFAULT);
     }
   }
 
@@ -117,11 +117,11 @@ export class WindowController extends BaseController {
    */
   useServiceWorker(registration: ServiceWorkerRegistration): void {
     if (!(registration instanceof ServiceWorkerRegistration)) {
-      throw errorFactory.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
+      throw errorFactory.create(ErrorCode.SW_REGISTRATION_EXPECTED);
     }
 
     if (this.registrationToUse != null) {
-      throw errorFactory.create(ERROR_CODES.USE_SW_BEFORE_GET_TOKEN);
+      throw errorFactory.create(ErrorCode.USE_SW_BEFORE_GET_TOKEN);
     }
 
     this.registrationToUse = registration;
@@ -135,17 +135,17 @@ export class WindowController extends BaseController {
    */
   usePublicVapidKey(publicKey: string): void {
     if (typeof publicKey !== 'string') {
-      throw errorFactory.create(ERROR_CODES.INVALID_PUBLIC_VAPID_KEY);
+      throw errorFactory.create(ErrorCode.INVALID_PUBLIC_VAPID_KEY);
     }
 
     if (this.publicVapidKeyToUse != null) {
-      throw errorFactory.create(ERROR_CODES.USE_PUBLIC_KEY_BEFORE_GET_TOKEN);
+      throw errorFactory.create(ErrorCode.USE_PUBLIC_KEY_BEFORE_GET_TOKEN);
     }
 
     const parsedKey = base64ToArrayBuffer(publicKey);
 
     if (parsedKey.length !== 65) {
-      throw errorFactory.create(ERROR_CODES.PUBLIC_KEY_DECRYPTION_FAILED);
+      throw errorFactory.create(ErrorCode.PUBLIC_KEY_DECRYPTION_FAILED);
     }
 
     this.publicVapidKeyToUse = parsedKey;
@@ -207,7 +207,7 @@ export class WindowController extends BaseController {
     return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
       if (!serviceWorker) {
         // This is a rare scenario but has occured in firefox
-        reject(errorFactory.create(ERROR_CODES.NO_SW_IN_REG));
+        reject(errorFactory.create(ErrorCode.NO_SW_IN_REG));
         return;
       }
       // Because the Promise function is called on next tick there is a
@@ -218,7 +218,7 @@ export class WindowController extends BaseController {
       }
 
       if (serviceWorker.state === 'redundant') {
-        reject(errorFactory.create(ERROR_CODES.SW_REG_REDUNDANT));
+        reject(errorFactory.create(ErrorCode.SW_REG_REDUNDANT));
         return;
       }
 
@@ -226,7 +226,7 @@ export class WindowController extends BaseController {
         if (serviceWorker.state === 'activated') {
           resolve(registration);
         } else if (serviceWorker.state === 'redundant') {
-          reject(errorFactory.create(ERROR_CODES.SW_REG_REDUNDANT));
+          reject(errorFactory.create(ErrorCode.SW_REG_REDUNDANT));
         } else {
           // Return early and wait to next state change
           return;
@@ -255,7 +255,7 @@ export class WindowController extends BaseController {
         scope: DEFAULT_SW_SCOPE
       })
       .catch((err: Error) => {
-        throw errorFactory.create(ERROR_CODES.FAILED_DEFAULT_REGISTRATION, {
+        throw errorFactory.create(ErrorCode.FAILED_DEFAULT_REGISTRATION, {
           browserErrorMessage: err.message
         });
       })
@@ -351,6 +351,6 @@ export async function manifestCheck(): Promise<void> {
   }
 
   if (manifestContent.gcm_sender_id !== '103953800507') {
-    throw errorFactory.create(ERROR_CODES.INCORRECT_GCM_SENDER_ID);
+    throw errorFactory.create(ErrorCode.INCORRECT_GCM_SENDER_ID);
   }
 }

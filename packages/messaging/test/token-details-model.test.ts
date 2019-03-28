@@ -21,7 +21,7 @@ import * as sinon from 'sinon';
 import { arrayBufferToBase64 } from '../src/helpers/array-buffer-to-base64';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { TokenDetails } from '../src/interfaces/token-details';
-import { ERROR_CODES } from '../src/models/errors';
+import { ErrorCode } from '../src/models/errors';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 
 import { deleteDatabase } from './testing-utils/db-helper';
@@ -111,7 +111,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SCOPE, err.code);
           }
         );
       });
@@ -128,7 +128,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_VAPID_KEY, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_VAPID_KEY, err.code);
           }
         );
       });
@@ -145,7 +145,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_SUBSCRIPTION, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SUBSCRIPTION, err.code);
           }
         );
       });
@@ -162,7 +162,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_SUBSCRIPTION, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SUBSCRIPTION, err.code);
           }
         );
       });
@@ -179,7 +179,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_SUBSCRIPTION, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SUBSCRIPTION, err.code);
           }
         );
       });
@@ -196,7 +196,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_SENDER_ID, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SENDER_ID, err.code);
           }
         );
       });
@@ -213,7 +213,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_TOKEN, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_TOKEN, err.code);
           }
         );
       });
@@ -230,7 +230,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_PUSH_SET, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_PUSH_SET, err.code);
           }
         );
       });
@@ -252,7 +252,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SCOPE, err.code);
           }
         );
       });
@@ -265,7 +265,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_TOKEN, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_TOKEN, err.code);
           }
         );
       });
@@ -316,10 +316,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
           throw new Error('Expected this to throw an error due to no token');
         },
         err => {
-          assert.equal(
-            'messaging/' + ERROR_CODES.INVALID_DELETE_TOKEN,
-            err.code
-          );
+          assert.equal('messaging/' + ErrorCode.INVALID_DELETE_TOKEN, err.code);
         }
       );
     });
@@ -331,10 +328,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
           throw new Error('Expected this to throw an error due to no token');
         },
         err => {
-          assert.equal(
-            'messaging/' + ERROR_CODES.INVALID_DELETE_TOKEN,
-            err.code
-          );
+          assert.equal('messaging/' + ErrorCode.INVALID_DELETE_TOKEN, err.code);
         }
       );
     });
@@ -365,7 +359,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
         },
         err => {
           assert.equal(
-            'messaging/' + ERROR_CODES.DELETE_TOKEN_NOT_FOUND,
+            'messaging/' + ErrorCode.DELETE_TOKEN_NOT_FOUND,
             err.code
           );
         }
