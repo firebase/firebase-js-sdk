@@ -25,7 +25,7 @@ import { WindowController } from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { isArrayBufferEqual } from '../src/helpers/is-array-buffer-equal';
 import { TokenDetails } from '../src/interfaces/token-details';
-import { ErrorCodes } from '../src/models/errors';
+import { ErrorCode } from '../src/models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { IidModel } from '../src/models/iid-model';
 import { TokenDetailsModel } from '../src/models/token-details-model';
@@ -158,7 +158,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         },
         err => {
           assert.equal(
-            'messaging/' + ErrorCodes.FAILED_DEFAULT_REGISTRATION,
+            'messaging/' + ErrorCode.FAILED_DEFAULT_REGISTRATION,
             err.code
           );
         }
@@ -193,7 +193,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           },
           err => {
             assert.equal(
-              'messaging/' + ErrorCodes.NOTIFICATIONS_BLOCKED,
+              'messaging/' + ErrorCode.NOTIFICATIONS_BLOCKED,
               err.code
             );
           }
@@ -565,7 +565,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       const subscription = makeFakeSubscription();
       mockGetReg(regPromise);
 
-      const errorMsg = 'messaging/' + ErrorCodes.TOKEN_UPDATE_FAILED;
+      const errorMsg = 'messaging/' + ErrorCode.TOKEN_UPDATE_FAILED;
 
       sandbox
         .stub(BaseController.prototype, 'getNotificationPermission_')

@@ -17,7 +17,7 @@
 import { expect } from 'chai';
 import * as sinon from 'sinon';
 
-import { ERROR_MAP, ErrorCodes } from '../src/models/errors';
+import { ERROR_MAP, ErrorCode } from '../src/models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { IidModel } from '../src/models/iid-model';
 
@@ -111,7 +111,7 @@ describe('Firebase Messaging > IidModel', () => {
         await iidModel.getToken(fcmSenderId, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
-        expect(e.code).to.include(ErrorCodes.TOKEN_SUBSCRIBE_FAILED);
+        expect(e.code).to.include(ErrorCode.TOKEN_SUBSCRIBE_FAILED);
       }
     });
 
@@ -127,7 +127,7 @@ describe('Firebase Messaging > IidModel', () => {
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.message).to.include(
-          ERROR_MAP[ErrorCodes.TOKEN_SUBSCRIBE_NO_TOKEN]
+          ERROR_MAP[ErrorCode.TOKEN_SUBSCRIBE_NO_TOKEN]
         );
       }
     });
@@ -143,7 +143,7 @@ describe('Firebase Messaging > IidModel', () => {
         await iidModel.getToken(fcmSenderId, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
-        expect(e.code).to.include(ErrorCodes.TOKEN_SUBSCRIBE_NO_PUSH_SET);
+        expect(e.code).to.include(ErrorCode.TOKEN_SUBSCRIBE_NO_PUSH_SET);
       }
     });
   });
@@ -202,7 +202,7 @@ describe('Firebase Messaging > IidModel', () => {
         );
         throw new Error('Expected error to be thrown.');
       } catch (e) {
-        expect(e.code).to.include(ErrorCodes.TOKEN_UPDATE_NO_TOKEN);
+        expect(e.code).to.include(ErrorCode.TOKEN_UPDATE_NO_TOKEN);
       }
     });
 
@@ -220,7 +220,7 @@ describe('Firebase Messaging > IidModel', () => {
         );
         throw new Error('Expected error to be thrown.');
       } catch (e) {
-        expect(e.code).to.include(ErrorCodes.TOKEN_UPDATE_FAILED);
+        expect(e.code).to.include(ErrorCode.TOKEN_UPDATE_FAILED);
       }
     });
 
@@ -237,7 +237,7 @@ describe('Firebase Messaging > IidModel', () => {
         );
         throw new Error('Expected error to be thrown.');
       } catch (e) {
-        expect(e.code).to.include(ErrorCodes.TOKEN_UPDATE_FAILED);
+        expect(e.code).to.include(ErrorCode.TOKEN_UPDATE_FAILED);
       }
     });
   });
@@ -257,7 +257,7 @@ describe('Firebase Messaging > IidModel', () => {
         await iidModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
-        expect(e.code).to.include(ErrorCodes.TOKEN_UNSUBSCRIBE_FAILED);
+        expect(e.code).to.include(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED);
       }
     });
 
@@ -268,7 +268,7 @@ describe('Firebase Messaging > IidModel', () => {
         await iidModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
-        expect(e.code).to.include(ErrorCodes.TOKEN_UNSUBSCRIBE_FAILED);
+        expect(e.code).to.include(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED);
       }
     });
   });

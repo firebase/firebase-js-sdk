@@ -18,7 +18,7 @@
 import { assert } from 'chai';
 
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
-import { ErrorCodes } from '../src/models/errors';
+import { ErrorCode } from '../src/models/errors';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
 import { deleteDatabase } from './testing-utils/db-helper';
@@ -53,7 +53,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ErrorCodes.BAD_SCOPE, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SCOPE, err.code);
           }
         );
       }
@@ -67,7 +67,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ErrorCodes.BAD_VAPID_KEY, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_VAPID_KEY, err.code);
           }
         );
       }
@@ -87,7 +87,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ErrorCodes.BAD_SCOPE, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SCOPE, err.code);
           }
         );
       });
@@ -118,7 +118,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ErrorCodes.BAD_SCOPE, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SCOPE, err.code);
           }
         );
       }
@@ -132,7 +132,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
         },
         err => {
           assert.equal(
-            'messaging/' + ErrorCodes.DELETE_SCOPE_NOT_FOUND,
+            'messaging/' + ErrorCode.DELETE_SCOPE_NOT_FOUND,
             err.code
           );
         }

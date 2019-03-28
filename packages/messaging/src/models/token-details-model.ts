@@ -19,7 +19,7 @@ import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { TokenDetails } from '../interfaces/token-details';
 import { cleanV1 } from './clean-v1-undefined';
 import { DbInterface } from './db-interface';
-import { ErrorCodes, errorFactory } from './errors';
+import { ErrorCode, errorFactory } from './errors';
 
 export class TokenDetailsModel extends DbInterface {
   protected readonly dbName: string = 'fcm_token_details_db';
@@ -97,7 +97,7 @@ export class TokenDetailsModel extends DbInterface {
     fcmToken: string
   ): Promise<TokenDetails | undefined> {
     if (!fcmToken) {
-      throw errorFactory.create(ErrorCodes.BAD_TOKEN);
+      throw errorFactory.create(ErrorCode.BAD_TOKEN);
     }
 
     validateInputs({ fcmToken });
@@ -114,7 +114,7 @@ export class TokenDetailsModel extends DbInterface {
     swScope: string
   ): Promise<TokenDetails | undefined> {
     if (!swScope) {
-      throw errorFactory.create(ErrorCodes.BAD_SCOPE);
+      throw errorFactory.create(ErrorCode.BAD_SCOPE);
     }
 
     validateInputs({ swScope });
@@ -128,27 +128,27 @@ export class TokenDetailsModel extends DbInterface {
    */
   async saveTokenDetails(tokenDetails: TokenDetails): Promise<void> {
     if (!tokenDetails.swScope) {
-      throw errorFactory.create(ErrorCodes.BAD_SCOPE);
+      throw errorFactory.create(ErrorCode.BAD_SCOPE);
     }
 
     if (!tokenDetails.vapidKey) {
-      throw errorFactory.create(ErrorCodes.BAD_VAPID_KEY);
+      throw errorFactory.create(ErrorCode.BAD_VAPID_KEY);
     }
 
     if (!tokenDetails.endpoint || !tokenDetails.auth || !tokenDetails.p256dh) {
-      throw errorFactory.create(ErrorCodes.BAD_SUBSCRIPTION);
+      throw errorFactory.create(ErrorCode.BAD_SUBSCRIPTION);
     }
 
     if (!tokenDetails.fcmSenderId) {
-      throw errorFactory.create(ErrorCodes.BAD_SENDER_ID);
+      throw errorFactory.create(ErrorCode.BAD_SENDER_ID);
     }
 
     if (!tokenDetails.fcmToken) {
-      throw errorFactory.create(ErrorCodes.BAD_TOKEN);
+      throw errorFactory.create(ErrorCode.BAD_TOKEN);
     }
 
     if (!tokenDetails.fcmPushSet) {
-      throw errorFactory.create(ErrorCodes.BAD_PUSH_SET);
+      throw errorFactory.create(ErrorCode.BAD_PUSH_SET);
     }
 
     validateInputs(tokenDetails);
@@ -167,13 +167,13 @@ export class TokenDetailsModel extends DbInterface {
   async deleteToken(token: string): Promise<TokenDetails> {
     if (typeof token !== 'string' || token.length === 0) {
       return Promise.reject(
-        errorFactory.create(ErrorCodes.INVALID_DELETE_TOKEN)
+        errorFactory.create(ErrorCode.INVALID_DELETE_TOKEN)
       );
     }
 
     const details = await this.getTokenDetailsFromToken(token);
     if (!details) {
-      throw errorFactory.create(ErrorCodes.DELETE_TOKEN_NOT_FOUND);
+      throw errorFactory.create(ErrorCode.DELETE_TOKEN_NOT_FOUND);
     }
 
     await this.delete(details.swScope);
@@ -189,13 +189,13 @@ export class TokenDetailsModel extends DbInterface {
 function validateInputs(input: Partial<TokenDetails>): void {
   if (input.fcmToken) {
     if (typeof input.fcmToken !== 'string' || input.fcmToken.length === 0) {
-      throw errorFactory.create(ErrorCodes.BAD_TOKEN);
+      throw errorFactory.create(ErrorCode.BAD_TOKEN);
     }
   }
 
   if (input.swScope) {
     if (typeof input.swScope !== 'string' || input.swScope.length === 0) {
-      throw errorFactory.create(ErrorCodes.BAD_SCOPE);
+      throw errorFactory.create(ErrorCode.BAD_SCOPE);
     }
   }
 
@@ -204,25 +204,25 @@ function validateInputs(input: Partial<TokenDetails>): void {
       !(input.vapidKey instanceof Uint8Array) ||
       input.vapidKey.length !== 65
     ) {
-      throw errorFactory.create(ErrorCodes.BAD_VAPID_KEY);
+      throw errorFactory.create(ErrorCode.BAD_VAPID_KEY);
     }
   }
 
   if (input.endpoint) {
     if (typeof input.endpoint !== 'string' || input.endpoint.length === 0) {
-      throw errorFactory.create(ErrorCodes.BAD_SUBSCRIPTION);
+      throw errorFactory.create(ErrorCode.BAD_SUBSCRIPTION);
     }
   }
 
   if (input.auth) {
     if (!(input.auth instanceof ArrayBuffer)) {
-      throw errorFactory.create(ErrorCodes.BAD_SUBSCRIPTION);
+      throw errorFactory.create(ErrorCode.BAD_SUBSCRIPTION);
     }
   }
 
   if (input.p256dh) {
     if (!(input.p256dh instanceof ArrayBuffer)) {
-      throw errorFactory.create(ErrorCodes.BAD_SUBSCRIPTION);
+      throw errorFactory.create(ErrorCode.BAD_SUBSCRIPTION);
     }
   }
 
@@ -231,13 +231,13 @@ function validateInputs(input: Partial<TokenDetails>): void {
       typeof input.fcmSenderId !== 'string' ||
       input.fcmSenderId.length === 0
     ) {
-      throw errorFactory.create(ErrorCodes.BAD_SENDER_ID);
+      throw errorFactory.create(ErrorCode.BAD_SENDER_ID);
     }
   }
 
   if (input.fcmPushSet) {
     if (typeof input.fcmPushSet !== 'string' || input.fcmPushSet.length === 0) {
-      throw errorFactory.create(ErrorCodes.BAD_PUSH_SET);
+      throw errorFactory.create(ErrorCode.BAD_PUSH_SET);
     }
   }
 }

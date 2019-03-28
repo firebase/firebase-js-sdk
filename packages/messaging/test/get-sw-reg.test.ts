@@ -19,7 +19,7 @@ import * as sinon from 'sinon';
 
 import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
-import { ErrorCodes } from '../src/models/errors';
+import { ErrorCode } from '../src/models/errors';
 
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
@@ -90,7 +90,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
         throw new Error('Expected this error to throw due to no SW.');
       },
       err => {
-        assert.equal('messaging/' + ErrorCodes.NO_SW_IN_REG, err.code);
+        assert.equal('messaging/' + ErrorCode.NO_SW_IN_REG, err.code);
       }
     );
   });
@@ -131,7 +131,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
       },
       error => {
         assert.equal(
-          'messaging/' + ErrorCodes.FAILED_DEFAULT_REGISTRATION,
+          'messaging/' + ErrorCode.FAILED_DEFAULT_REGISTRATION,
           error.code
         );
         assert.equal(error.message.indexOf(errorMsg) !== -1, true);
@@ -151,7 +151,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
         throw new Error('Should throw error due to redundant SW');
       },
       err => {
-        assert.equal('messaging/' + ErrorCodes.SW_REG_REDUNDANT, err.code);
+        assert.equal('messaging/' + ErrorCode.SW_REG_REDUNDANT, err.code);
       }
     );
   });
@@ -177,7 +177,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
         throw new Error('Should throw error due to redundant SW');
       },
       err => {
-        assert.equal('messaging/' + ErrorCodes.SW_REG_REDUNDANT, err.code);
+        assert.equal('messaging/' + ErrorCode.SW_REG_REDUNDANT, err.code);
       }
     );
   });
@@ -203,7 +203,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
         throw new Error('Should throw error due to redundant SW');
       },
       err => {
-        assert.equal('messaging/' + ErrorCodes.SW_REG_REDUNDANT, err.code);
+        assert.equal('messaging/' + ErrorCode.SW_REG_REDUNDANT, err.code);
       }
     );
   });

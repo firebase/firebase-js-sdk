@@ -17,7 +17,7 @@
 
 import { ErrorFactory } from '@firebase/util';
 
-export const enum ErrorCodes {
+export const enum ErrorCode {
   AVAILABLE_IN_WINDOW = 'only-available-in-window',
   AVAILABLE_IN_SW = 'only-available-in-sw',
   SHOULD_BE_INHERITED = 'should-be-overriden',
@@ -59,100 +59,100 @@ export const enum ErrorCodes {
   PUBLIC_KEY_DECRYPTION_FAILED = 'public-vapid-key-decryption-failed'
 }
 
-export const ERROR_MAP: { [code in ErrorCodes]: string } = {
-  [ErrorCodes.AVAILABLE_IN_WINDOW]:
+export const ERROR_MAP: { [code in ErrorCode]: string } = {
+  [ErrorCode.AVAILABLE_IN_WINDOW]:
     'This method is available in a Window context.',
-  [ErrorCodes.AVAILABLE_IN_SW]:
+  [ErrorCode.AVAILABLE_IN_SW]:
     'This method is available in a service worker ' + 'context.',
-  [ErrorCodes.SHOULD_BE_INHERITED]:
+  [ErrorCode.SHOULD_BE_INHERITED]:
     'This method should be overriden by ' + 'extended classes.',
-  [ErrorCodes.BAD_SENDER_ID]:
+  [ErrorCode.BAD_SENDER_ID]:
     "Please ensure that 'messagingSenderId' is set " +
     'correctly in the options passed into firebase.initializeApp().',
-  [ErrorCodes.PERMISSION_DEFAULT]:
+  [ErrorCode.PERMISSION_DEFAULT]:
     'The required permissions were not granted and ' + 'dismissed instead.',
-  [ErrorCodes.PERMISSION_BLOCKED]:
+  [ErrorCode.PERMISSION_BLOCKED]:
     'The required permissions were not granted and ' + 'blocked instead.',
-  [ErrorCodes.UNSUPPORTED_BROWSER]:
+  [ErrorCode.UNSUPPORTED_BROWSER]:
     "This browser doesn't support the API's " +
     'required to use the firebase SDK.',
-  [ErrorCodes.NOTIFICATIONS_BLOCKED]: 'Notifications have been blocked.',
-  [ErrorCodes.FAILED_DEFAULT_REGISTRATION]:
+  [ErrorCode.NOTIFICATIONS_BLOCKED]: 'Notifications have been blocked.',
+  [ErrorCode.FAILED_DEFAULT_REGISTRATION]:
     'We are unable to register the ' +
     'default service worker. {$browserErrorMessage}',
-  [ErrorCodes.SW_REGISTRATION_EXPECTED]:
+  [ErrorCode.SW_REGISTRATION_EXPECTED]:
     'A service worker registration was the ' + 'expected input.',
-  [ErrorCodes.GET_SUBSCRIPTION_FAILED]:
+  [ErrorCode.GET_SUBSCRIPTION_FAILED]:
     'There was an error when trying to get ' +
     'any existing Push Subscriptions.',
-  [ErrorCodes.INVALID_SAVED_TOKEN]:
+  [ErrorCode.INVALID_SAVED_TOKEN]:
     'Unable to access details of the saved token.',
-  [ErrorCodes.SW_REG_REDUNDANT]:
+  [ErrorCode.SW_REG_REDUNDANT]:
     'The service worker being used for push was made ' + 'redundant.',
-  [ErrorCodes.TOKEN_SUBSCRIBE_FAILED]:
+  [ErrorCode.TOKEN_SUBSCRIBE_FAILED]:
     'A problem occured while subscribing the ' + 'user to FCM: {$message}',
-  [ErrorCodes.TOKEN_SUBSCRIBE_NO_TOKEN]:
+  [ErrorCode.TOKEN_SUBSCRIBE_NO_TOKEN]:
     'FCM returned no token when subscribing ' + 'the user to push.',
-  [ErrorCodes.TOKEN_SUBSCRIBE_NO_PUSH_SET]:
+  [ErrorCode.TOKEN_SUBSCRIBE_NO_PUSH_SET]:
     'FCM returned an invalid response ' + 'when getting an FCM token.',
-  [ErrorCodes.TOKEN_UNSUBSCRIBE_FAILED]:
+  [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]:
     'A problem occured while unsubscribing the ' + 'user from FCM: {$message}',
-  [ErrorCodes.TOKEN_UPDATE_FAILED]:
+  [ErrorCode.TOKEN_UPDATE_FAILED]:
     'A problem occured while updating the ' + 'user from FCM: {$message}',
-  [ErrorCodes.TOKEN_UPDATE_NO_TOKEN]:
+  [ErrorCode.TOKEN_UPDATE_NO_TOKEN]:
     'FCM returned no token when updating ' + 'the user to push.',
-  [ErrorCodes.USE_SW_BEFORE_GET_TOKEN]:
+  [ErrorCode.USE_SW_BEFORE_GET_TOKEN]:
     'The useServiceWorker() method may only be called once and must be ' +
     'called before calling getToken() to ensure your service worker is used.',
-  [ErrorCodes.INVALID_DELETE_TOKEN]:
+  [ErrorCode.INVALID_DELETE_TOKEN]:
     'You must pass a valid token into ' +
     'deleteToken(), i.e. the token from getToken().',
-  [ErrorCodes.DELETE_TOKEN_NOT_FOUND]:
+  [ErrorCode.DELETE_TOKEN_NOT_FOUND]:
     'The deletion attempt for token could not ' +
     'be performed as the token was not found.',
-  [ErrorCodes.DELETE_SCOPE_NOT_FOUND]:
+  [ErrorCode.DELETE_SCOPE_NOT_FOUND]:
     'The deletion attempt for service worker ' +
     'scope could not be performed as the scope was not found.',
-  [ErrorCodes.BG_HANDLER_FUNCTION_EXPECTED]:
+  [ErrorCode.BG_HANDLER_FUNCTION_EXPECTED]:
     'The input to ' + 'setBackgroundMessageHandler() must be a function.',
-  [ErrorCodes.NO_WINDOW_CLIENT_TO_MSG]:
+  [ErrorCode.NO_WINDOW_CLIENT_TO_MSG]:
     'An attempt was made to message a ' + 'non-existant window client.',
-  [ErrorCodes.UNABLE_TO_RESUBSCRIBE]:
+  [ErrorCode.UNABLE_TO_RESUBSCRIBE]:
     'There was an error while re-subscribing ' +
     'the FCM token for push messaging. Will have to resubscribe the ' +
     'user on next visit. {$message}',
-  [ErrorCodes.NO_FCM_TOKEN_FOR_RESUBSCRIBE]:
+  [ErrorCode.NO_FCM_TOKEN_FOR_RESUBSCRIBE]:
     'Could not find an FCM token ' +
     'and as a result, unable to resubscribe. Will have to resubscribe the ' +
     'user on next visit.',
-  [ErrorCodes.FAILED_TO_DELETE_TOKEN]:
+  [ErrorCode.FAILED_TO_DELETE_TOKEN]:
     'Unable to delete the currently saved token.',
-  [ErrorCodes.NO_SW_IN_REG]:
+  [ErrorCode.NO_SW_IN_REG]:
     'Even though the service worker registration was ' +
     'successful, there was a problem accessing the service worker itself.',
-  [ErrorCodes.INCORRECT_GCM_SENDER_ID]:
+  [ErrorCode.INCORRECT_GCM_SENDER_ID]:
     "Please change your web app manifest's " +
     "'gcm_sender_id' value to '103953800507' to use Firebase messaging.",
-  [ErrorCodes.BAD_SCOPE]:
+  [ErrorCode.BAD_SCOPE]:
     'The service worker scope must be a string with at ' +
     'least one character.',
-  [ErrorCodes.BAD_VAPID_KEY]:
+  [ErrorCode.BAD_VAPID_KEY]:
     'The public VAPID key is not a Uint8Array with 65 bytes.',
-  [ErrorCodes.BAD_SUBSCRIPTION]:
+  [ErrorCode.BAD_SUBSCRIPTION]:
     'The subscription must be a valid ' + 'PushSubscription.',
-  [ErrorCodes.BAD_TOKEN]:
+  [ErrorCode.BAD_TOKEN]:
     'The FCM Token used for storage / lookup was not ' +
     'a valid token string.',
-  [ErrorCodes.BAD_PUSH_SET]:
+  [ErrorCode.BAD_PUSH_SET]:
     'The FCM push set used for storage / lookup was not ' +
     'not a valid push set string.',
-  [ErrorCodes.FAILED_DELETE_VAPID_KEY]: 'The VAPID key could not be deleted.',
-  [ErrorCodes.INVALID_PUBLIC_VAPID_KEY]:
+  [ErrorCode.FAILED_DELETE_VAPID_KEY]: 'The VAPID key could not be deleted.',
+  [ErrorCode.INVALID_PUBLIC_VAPID_KEY]:
     'The public VAPID key must be a string.',
-  [ErrorCodes.USE_PUBLIC_KEY_BEFORE_GET_TOKEN]:
+  [ErrorCode.USE_PUBLIC_KEY_BEFORE_GET_TOKEN]:
     'The usePublicVapidKey() method may only be called once and must be ' +
     'called before calling getToken() to ensure your VAPID key is used.',
-  [ErrorCodes.PUBLIC_KEY_DECRYPTION_FAILED]:
+  [ErrorCode.PUBLIC_KEY_DECRYPTION_FAILED]:
     'The public VAPID key did not equal ' + '65 bytes when decrypted.'
 };
 

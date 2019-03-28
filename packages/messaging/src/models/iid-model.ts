@@ -17,7 +17,7 @@
 
 import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
-import { ErrorCodes, errorFactory } from './errors';
+import { ErrorCode, errorFactory } from './errors';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 
 export interface IidDetails {
@@ -72,22 +72,22 @@ export class IidModel {
 
       responseData = await response.json();
     } catch (err) {
-      throw errorFactory.create(ErrorCodes.TOKEN_SUBSCRIBE_FAILED);
+      throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_FAILED);
     }
 
     if (responseData.error) {
       const message = responseData.error.message;
-      throw errorFactory.create(ErrorCodes.TOKEN_SUBSCRIBE_FAILED, {
+      throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_FAILED, {
         message: message
       });
     }
 
     if (!responseData.token) {
-      throw errorFactory.create(ErrorCodes.TOKEN_SUBSCRIBE_NO_TOKEN);
+      throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_NO_TOKEN);
     }
 
     if (!responseData.pushSet) {
-      throw errorFactory.create(ErrorCodes.TOKEN_SUBSCRIBE_NO_PUSH_SET);
+      throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_NO_PUSH_SET);
     }
 
     return {
@@ -144,18 +144,18 @@ export class IidModel {
       );
       responseData = await response.json();
     } catch (err) {
-      throw errorFactory.create(ErrorCodes.TOKEN_UPDATE_FAILED);
+      throw errorFactory.create(ErrorCode.TOKEN_UPDATE_FAILED);
     }
 
     if (responseData.error) {
       const message = responseData.error.message;
-      throw errorFactory.create(ErrorCodes.TOKEN_UPDATE_FAILED, {
+      throw errorFactory.create(ErrorCode.TOKEN_UPDATE_FAILED, {
         message: message
       });
     }
 
     if (!responseData.token) {
-      throw errorFactory.create(ErrorCodes.TOKEN_UPDATE_NO_TOKEN);
+      throw errorFactory.create(ErrorCode.TOKEN_UPDATE_NO_TOKEN);
     }
 
     return responseData.token;
@@ -191,12 +191,12 @@ export class IidModel {
       const responseData: ApiResponse = await response.json();
       if (responseData.error) {
         const message = responseData.error.message;
-        throw errorFactory.create(ErrorCodes.TOKEN_UNSUBSCRIBE_FAILED, {
+        throw errorFactory.create(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED, {
           message: message
         });
       }
     } catch (err) {
-      throw errorFactory.create(ErrorCodes.TOKEN_UNSUBSCRIBE_FAILED);
+      throw errorFactory.create(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED);
     }
   }
 }
