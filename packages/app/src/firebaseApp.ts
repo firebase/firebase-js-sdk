@@ -131,10 +131,12 @@ class FirebaseAppImpl implements FirebaseApp {
           })
         );
       })
-      .then((): void => {
-        this.isDeleted_ = true;
-        this.services_ = {};
-      });
+      .then(
+        (): void => {
+          this.isDeleted_ = true;
+          this.services_ = {};
+        }
+      );
   }
 
   /**
