@@ -24,14 +24,14 @@ import { FirebaseMessaging } from '@firebase/messaging-types';
 
 import { SwController } from './src/controllers/sw-controller';
 import { WindowController } from './src/controllers/window-controller';
-import { ERROR_CODES, errorFactory } from './src/models/errors';
+import { ErrorCode, errorFactory } from './src/models/errors';
 
 export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
 
   const factoryMethod: FirebaseServiceFactory = app => {
     if (!isSupported()) {
-      throw errorFactory.create(ERROR_CODES.UNSUPPORTED_BROWSER);
+      throw errorFactory.create(ErrorCode.UNSUPPORTED_BROWSER);
     }
 
     if (self && 'ServiceWorkerGlobalScope' in self) {
