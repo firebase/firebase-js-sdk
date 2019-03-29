@@ -94,9 +94,7 @@ class FirebaseAppImpl implements FirebaseApp {
         (this.firebase_ as _FirebaseNamespace).INTERNAL.removeApp(this.name_);
         let services: FirebaseService[] = [];
         Object.keys(this.services_).forEach(serviceKey => {
-          Object.keys(this.services_[serviceKey]).forEach(instanceKey => {
-            services.push(this.services_[serviceKey][instanceKey]);
-          });
+          services.push(this.services_[serviceKey]);
         });
         return Promise.all(
           services.map(service => {
@@ -311,12 +309,9 @@ export function createFirebaseNamespace(): FirebaseNamespace {
 
 type AppError =
   | 'no-app'
-  | 'bad-app-name'
   | 'duplicate-app'
   | 'app-deleted'
   | 'duplicate-service'
-  | 'sa-not-supported'
-  | 'invalid-app-argument';
 
 function error(code: AppError, args?: { [name: string]: any }) {
   throw appErrors.create(code, args);
@@ -324,22 +319,13 @@ function error(code: AppError, args?: { [name: string]: any }) {
 
 // TypeScript does not support non-string indexes!
 // let errors: {[code: AppError: string} = {
-let errors: { [code: string]: string } = {
+let errors: { [code in AppError]: string } = {
   'no-app':
     "No Firebase App '{$name}' has been created - " +
     'call Firebase App.initializeApp()',
-  'bad-app-name': "Illegal App name: '{$name}",
   'duplicate-app': "Firebase App named '{$name}' already exists",
   'app-deleted': "Firebase App named '{$name}' already deleted",
   'duplicate-service': "Firebase service named '{$name}' already registered",
-  'sa-not-supported':
-    'Initializing the Firebase SDK with a service ' +
-    'account is only allowed in a Node.js environment. On client ' +
-    'devices, you should instead initialize the SDK with an api key and ' +
-    'auth domain',
-  'invalid-app-argument':
-    'firebase.{$name}() takes either no argument or a ' +
-    'Firebase App instance.'
 };
 
 let appErrors = new ErrorFactory<AppError>('app', 'Firebase', errors);
