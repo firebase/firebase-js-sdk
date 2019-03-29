@@ -46,9 +46,7 @@ class FirebaseAppImpl implements FirebaseApp {
   private name_: string;
   private isDeleted_ = false;
   private services_: {
-    [name: string]: {
-      [serviceName: string]: FirebaseService;
-    };
+    [name: string]: FirebaseService;
   } = {};
   private _automaticDataCollectionEnabled: boolean;
 
@@ -127,31 +125,18 @@ class FirebaseAppImpl implements FirebaseApp {
    * @internal
    */
   _getService(
-    name: string,
-    instanceIdentifier: string = DEFAULT_ENTRY_NAME
+    name: string
   ): FirebaseService {
     this.checkDestroyed_();
 
     if (!this.services_[name]) {
-      this.services_[name] = {};
-    }
-
-    if (!this.services_[name][instanceIdentifier]) {
-      /**
-       * If a custom instance has been defined (i.e. not '[DEFAULT]')
-       * then we will pass that instance on, otherwise we pass `null`
-       */
-      const instanceSpecifier =
-        instanceIdentifier !== DEFAULT_ENTRY_NAME
-          ? instanceIdentifier
-          : undefined;
       const service = (this.firebase_ as _FirebaseNamespace).INTERNAL.factories[
         name
-      ](this, this.extendApp.bind(this), instanceSpecifier);
-      this.services_[name][instanceIdentifier] = service;
+      ](this, this.extendApp.bind(this));
+      this.services_[name] = service;
     }
 
-    return this.services_[name][instanceIdentifier];
+    return this.services_[name];
   }
 
   /**
@@ -307,7 +292,7 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     // Patch the FirebaseAppImpl prototype
     FirebaseAppImpl.prototype[name] = function(...args) {
       const serviceFxn = this._getService.bind(this, name);
-      return serviceFxn.apply(this, allowMultipleInstances ? args : []);
+      return serviceFxn.apply(this);
     };
 
     return serviceNamespace;
