@@ -33,7 +33,6 @@ import {
   deepCopy,
   deepExtend,
   ErrorFactory,
-  patchProperty
 } from '@firebase/util';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
@@ -141,8 +140,7 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     apps: null as any,
     SDK_VERSION: '${JSCORE_VERSION}',
     INTERNAL: {
-      registerService: registerService,
-      removeApp: removeApp
+      registerService: registerService
     }
   };
 
@@ -156,16 +154,7 @@ export function createFirebaseNamespace(): FirebaseNamespace {
   //
   //   import * as firebase from 'firebase';
   //   which becomes: var firebase = require('firebase');
-  patchProperty(namespace, 'default', namespace);
-
-  /**
-   * Called by App.delete() - but before any services associated with the App
-   * are deleted.
-   */
-  function removeApp(): void {
-    callAppHooks(appInstance, 'delete');
-    appInstance = null;
-  }
+  namespace['default'] = namespace;
 
   /**
    * Get the App object for a given name (or DEFAULT).
