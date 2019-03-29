@@ -30,14 +30,10 @@ import {
   AppHook
 } from '@firebase/app-types/private';
 import {
-  createSubscribe,
   deepCopy,
   deepExtend,
   ErrorFactory,
-  FirebaseError,
-  Observer,
-  patchProperty,
-  Subscribe
+  patchProperty
 } from '@firebase/util';
 
 const contains = function(obj, key) {
@@ -244,16 +240,7 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     Promise: Promise,
     SDK_VERSION: '${JSCORE_VERSION}',
     INTERNAL: {
-      registerService: registerService,
-      createFirebaseNamespace: createFirebaseNamespace,
-      extendNamespace: extendNamespace,
-      createSubscribe: createSubscribe,
-      ErrorFactory: ErrorFactory,
-      removeApp: removeApp,
-      factories: factories,
-      useAsService: useAsService,
-      Promise: Promise,
-      deepExtend: deepExtend
+      registerService: registerService
     }
   };
 
