@@ -72,20 +72,7 @@ class FirebaseAppImpl implements FirebaseApp {
     this._automaticDataCollectionEnabled =
       config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);
-    this.INTERNAL = {
-      getUid: () => null,
-      getToken: () => Promise.resolve(null),
-      addAuthTokenListener: (callback: (token: string | null) => void) => {
-        tokenListeners.push(callback);
-        // Make sure callback is called, asynchronously, in the absence of the auth module
-        setTimeout(() => callback(null), 0);
-      },
-      removeAuthTokenListener: callback => {
-        tokenListeners = tokenListeners.filter(
-          listener => listener !== callback
-        );
-      }
-    };
+    this.INTERNAL = {};
   }
 
   get automaticDataCollectionEnabled(): boolean {
