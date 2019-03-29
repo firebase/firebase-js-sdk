@@ -18,6 +18,7 @@
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
+import * as log from '../util/log';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
@@ -192,6 +193,7 @@ export class SimpleDb {
     const transactionFnResult = transactionFn(transaction)
       .catch(error => {
         // Abort the transaction if there was an error.
+        log.error('TransactionFn failed, aborting transaction.', error);
         transaction.abort(error);
         // We cannot actually recover, and calling `abort()` will cause the transaction's
         // completion promise to be rejected. This in turn means that we won't use
@@ -312,7 +314,8 @@ export class SimpleDbTransaction {
     this.transaction.oncomplete = () => {
       this.completionDeferred.resolve();
     };
-    this.transaction.onabort = () => {
+    this.transaction.onabort = (event) => {
+      log.error('transaction onabort called', transaction.error);
       if (transaction.error) {
         this.completionDeferred.reject(transaction.error);
       } else {
@@ -329,6 +332,7 @@ export class SimpleDbTransaction {
   }
 
   abort(error?: Error): void {
+    log.error('SimpleDbTransaction.abort() called.', error);
     if (error) {
       this.completionDeferred.reject(error);
     }
