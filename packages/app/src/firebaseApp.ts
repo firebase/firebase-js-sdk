@@ -44,7 +44,6 @@ const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 class FirebaseAppImpl implements FirebaseApp {
   private options_: FirebaseOptions;
   private name_: string;
-  private isDeleted_ = false;
   private services_: {
     [name: string]: FirebaseService;
   } = {};
@@ -66,46 +65,19 @@ class FirebaseAppImpl implements FirebaseApp {
   }
 
   get automaticDataCollectionEnabled(): boolean {
-    this.checkDestroyed_();
     return this._automaticDataCollectionEnabled;
   }
 
   set automaticDataCollectionEnabled(val) {
-    this.checkDestroyed_();
     this._automaticDataCollectionEnabled = val;
   }
 
   get name(): string {
-    this.checkDestroyed_();
     return this.name_;
   }
 
   get options(): FirebaseOptions {
-    this.checkDestroyed_();
     return this.options_;
-  }
-
-  delete(): Promise<void> {
-    return new Promise(resolve => {
-      this.checkDestroyed_();
-      resolve();
-    })
-      .then(() => {
-        (this.firebase_ as _FirebaseNamespace).INTERNAL.removeApp(this.name_);
-        let services: FirebaseService[] = [];
-        Object.keys(this.services_).forEach(serviceKey => {
-          services.push(this.services_[serviceKey]);
-        });
-        return Promise.all(
-          services.map(service => {
-            return service.INTERNAL!.delete();
-          })
-        );
-      })
-      .then((): void => {
-        this.isDeleted_ = true;
-        this.services_ = {};
-      });
   }
 
   /**
@@ -125,7 +97,6 @@ class FirebaseAppImpl implements FirebaseApp {
   _getService(
     name: string
   ): FirebaseService {
-    this.checkDestroyed_();
 
     if (!this.services_[name]) {
       const service = (this.firebase_ as _FirebaseNamespace).INTERNAL.factories[
@@ -146,15 +117,6 @@ class FirebaseAppImpl implements FirebaseApp {
     deepExtend(this, props);
   }
 
-  /**
-   * This function will throw an Error if the App has already been deleted -
-   * use before performing API actions on the App.
-   */
-  private checkDestroyed_(): void {
-    if (this.isDeleted_) {
-      error('app-deleted', { name: this.name_ });
-    }
-  }
 }
 
 /**
@@ -310,7 +272,6 @@ export function createFirebaseNamespace(): FirebaseNamespace {
 type AppError =
   | 'no-app'
   | 'duplicate-app'
-  | 'app-deleted'
   | 'duplicate-service'
 
 function error(code: AppError, args?: { [name: string]: any }) {
@@ -324,7 +285,6 @@ let errors: { [code in AppError]: string } = {
     "No Firebase App '{$name}' has been created - " +
     'call Firebase App.initializeApp()',
   'duplicate-app': "Firebase App named '{$name}' already exists",
-  'app-deleted': "Firebase App named '{$name}' already deleted",
   'duplicate-service': "Firebase service named '{$name}' already registered",
 };
 

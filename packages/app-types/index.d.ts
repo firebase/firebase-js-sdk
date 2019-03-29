@@ -46,11 +46,6 @@ export class FirebaseApp {
    * The settable config flag for GDPR opt-in/opt-out
    */
   automaticDataCollectionEnabled: boolean;
-
-  /**
-   * Make the given App unusable and free resources.
-   */
-  delete(): Promise<void>;
 }
 
 export interface FirebaseNamespace {
