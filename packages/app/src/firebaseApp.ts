@@ -226,9 +226,8 @@ export function createFirebaseNamespace(): FirebaseNamespace {
    * Get the App object for a given name (or DEFAULT).
    */
   function app(): FirebaseApp {
-    const name = DEFAULT_ENTRY_NAME;
     if (!appInstance) {
-      error('no-app', { name: name });
+      error('no-app', { name: DEFAULT_ENTRY_NAME });
     }
     return appInstance;
   }
@@ -292,15 +291,9 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     }
 
     // The Service namespace is an accessor function ...
-    const serviceNamespace = (appArg: FirebaseApp = app()) => {
-      if (typeof (appArg as any)[name] !== 'function') {
-        // Invalid argument.
-        // This happens in the following case: firebase.storage('gs:/')
-        error('invalid-app-argument', { name: name });
-      }
-
+    const serviceNamespace = () => {
       // Forward service instance lookup to the FirebaseApp.
-      return (appArg as any)[name]();
+      return (app())[name]();
     };
 
     // ... and a container for service-level properties.
