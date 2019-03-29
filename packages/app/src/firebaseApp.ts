@@ -29,11 +29,7 @@ import {
   FirebaseServiceNamespace,
   AppHook
 } from '@firebase/app-types/private';
-import {
-  deepCopy,
-  deepExtend,
-  ErrorFactory,
-} from '@firebase/util';
+import { deepCopy, deepExtend, ErrorFactory } from '@firebase/util';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 /**
@@ -59,8 +55,7 @@ class FirebaseAppImpl implements FirebaseApp {
     this._automaticDataCollectionEnabled =
       config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);
-    this.INTERNAL = {
-    };
+    this.INTERNAL = {};
   }
 
   get automaticDataCollectionEnabled(): boolean {
@@ -93,10 +88,7 @@ class FirebaseAppImpl implements FirebaseApp {
    * The service name is passed to this already
    * @internal
    */
-  _getService(
-    name: string
-  ): FirebaseService {
-
+  _getService(name: string): FirebaseService {
     if (!this.services_[name]) {
       const service = (this.firebase_ as _FirebaseNamespace).INTERNAL.factories[
         name
@@ -115,7 +107,6 @@ class FirebaseAppImpl implements FirebaseApp {
     // Copy the object onto the FirebaseAppImpl prototype
     deepExtend(this, props);
   }
-
 }
 
 /**
@@ -170,7 +161,6 @@ export function createFirebaseNamespace(): FirebaseNamespace {
    * Create a new App instance (name must be unique).
    */
   function initializeApp(options: FirebaseOptions): FirebaseApp {
-
     const config = {
       name: DEFAULT_ENTRY_NAME,
       automaticDataCollectionEnabled: false
@@ -227,7 +217,7 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     // The Service namespace is an accessor function ...
     const serviceNamespace = () => {
       // Forward service instance lookup to the FirebaseApp.
-      return (app())[name]();
+      return app()[name]();
     };
 
     // ... and a container for service-level properties.
@@ -258,10 +248,7 @@ export function createFirebaseNamespace(): FirebaseNamespace {
   return (namespace as any) as FirebaseNamespace;
 }
 
-type AppError =
-  | 'no-app'
-  | 'duplicate-app'
-  | 'duplicate-service'
+type AppError = 'no-app' | 'duplicate-app' | 'duplicate-service';
 
 function error(code: AppError, args?: { [name: string]: any }) {
   throw appErrors.create(code, args);
@@ -274,7 +261,7 @@ let errors: { [code in AppError]: string } = {
     "No Firebase App '{$name}' has been created - " +
     'call Firebase App.initializeApp()',
   'duplicate-app': "Firebase App named '{$name}' already exists",
-  'duplicate-service': "Firebase service named '{$name}' already registered",
+  'duplicate-service': "Firebase service named '{$name}' already registered"
 };
 
 let appErrors = new ErrorFactory<AppError>('app', 'Firebase', errors);
