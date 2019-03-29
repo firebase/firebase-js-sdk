@@ -72,7 +72,8 @@ class FirebaseAppImpl implements FirebaseApp {
     this._automaticDataCollectionEnabled =
       config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);
-    this.INTERNAL = {};
+    this.INTERNAL = {
+    };
   }
 
   get automaticDataCollectionEnabled(): boolean {
@@ -169,22 +170,6 @@ class FirebaseAppImpl implements FirebaseApp {
   private extendApp(props: { [name: string]: any }): void {
     // Copy the object onto the FirebaseAppImpl prototype
     deepExtend(this, props);
-
-    /**
-     * If the app has overwritten the addAuthTokenListener stub, forward
-     * the active token listeners on to the true fxn.
-     *
-     * TODO: This function is required due to our current module
-     * structure. Once we are able to rely strictly upon a single module
-     * implementation, this code should be refactored and Auth should
-     * provide these stubs and the upgrade logic
-     */
-    if (props.INTERNAL && props.INTERNAL.addAuthTokenListener) {
-      tokenListeners.forEach(listener => {
-        this.INTERNAL.addAuthTokenListener(listener);
-      });
-      tokenListeners = [];
-    }
   }
 
   /**
@@ -197,12 +182,6 @@ class FirebaseAppImpl implements FirebaseApp {
     }
   }
 }
-
-// Prevent dead-code elimination of these methods w/o invalid property
-// copying.
-(FirebaseAppImpl.prototype.name && FirebaseAppImpl.prototype.options) ||
-  FirebaseAppImpl.prototype.delete ||
-  console.log('dc');
 
 /**
  * Return a firebase namespace object.
@@ -224,10 +203,10 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     initializeApp: initializeApp,
     app: app as any,
     apps: null as any,
-    Promise: Promise,
     SDK_VERSION: '${JSCORE_VERSION}',
     INTERNAL: {
-      registerService: registerService
+      registerService: registerService,
+      removeApp: removeApp
     }
   };
 
@@ -268,8 +247,6 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     }
     return apps_[name];
   }
-
-  patchProperty(app, 'App', FirebaseAppImpl);
 
   /**
    * Create a new App instance (name must be unique).
@@ -382,40 +359,12 @@ export function createFirebaseNamespace(): FirebaseNamespace {
     return serviceNamespace;
   }
 
-  /**
-   * Patch the top-level firebase namespace with additional properties.
-   *
-   * firebase.INTERNAL.extendNamespace()
-   */
-  function extendNamespace(props: { [prop: string]: any }): void {
-    deepExtend(namespace, props);
-  }
-
   function callAppHooks(app: FirebaseApp, eventName: string) {
     Object.keys(factories).forEach(serviceName => {
-      // Ignore virtual services
-      let factoryName = useAsService(app, serviceName);
-      if (factoryName === null) {
-        return;
-      }
-
-      if (appHooks[factoryName]) {
-        appHooks[factoryName](eventName, app);
+      if (appHooks[serviceName]) {
+        appHooks[serviceName](eventName, app);
       }
     });
-  }
-
-  // Map the requested service to a registered service name
-  // (used to map auth to serverAuth service when needed).
-  function useAsService(app: FirebaseApp, name: string): string | null {
-    if (name === 'serverAuth') {
-      return null;
-    }
-
-    let useService = name;
-    let options = app.options;
-
-    return useService;
   }
 
   return (namespace as any) as FirebaseNamespace;
