@@ -36,16 +36,7 @@ import {
   patchProperty
 } from '@firebase/util';
 
-const contains = function(obj, key) {
-  return Object.prototype.hasOwnProperty.call(obj, key);
-};
-
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
-
-// An array to capture listeners before the true auth functions
-// exist
-let tokenListeners: any[] = [];
-
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
@@ -191,7 +182,7 @@ class FirebaseAppImpl implements FirebaseApp {
  * in unit tests.
  */
 export function createFirebaseNamespace(): FirebaseNamespace {
-  let apps_: { [name: string]: FirebaseApp } = {};
+  let appInstance: FirebaseApp;
   let factories: { [service: string]: FirebaseServiceFactory } = {};
   let appHooks: { [service: string]: AppHook } = {};
 
@@ -222,60 +213,38 @@ export function createFirebaseNamespace(): FirebaseNamespace {
   //   which becomes: var firebase = require('firebase');
   patchProperty(namespace, 'default', namespace);
 
-  // firebase.apps is a read-only getter.
-  Object.defineProperty(namespace, 'apps', {
-    get: getApps
-  });
-
   /**
    * Called by App.delete() - but before any services associated with the App
    * are deleted.
    */
-  function removeApp(name: string): void {
-    let app = apps_[name];
-    callAppHooks(app, 'delete');
-    delete apps_[name];
+  function removeApp(): void {
+    callAppHooks(appInstance, 'delete');
+    appInstance = null;
   }
 
   /**
    * Get the App object for a given name (or DEFAULT).
    */
-  function app(name?: string): FirebaseApp {
-    name = name || DEFAULT_ENTRY_NAME;
-    if (!contains(apps_, name)) {
+  function app(): FirebaseApp {
+    const name = DEFAULT_ENTRY_NAME;
+    if (!appInstance) {
       error('no-app', { name: name });
     }
-    return apps_[name];
+    return appInstance;
   }
 
   /**
    * Create a new App instance (name must be unique).
    */
-  function initializeApp(
-    options: FirebaseOptions,
-    config?: FirebaseAppConfig
-  ): FirebaseApp;
-  function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
-  function initializeApp(options: FirebaseOptions, rawConfig = {}) {
-    if (typeof rawConfig !== 'object' || rawConfig === null) {
-      const name = rawConfig;
-      rawConfig = { name };
-    }
+  function initializeApp(options: FirebaseOptions): FirebaseApp {
 
-    const config = rawConfig as FirebaseAppConfig;
+    const config = {
+      name: DEFAULT_ENTRY_NAME,
+      automaticDataCollectionEnabled: false
+    } as FirebaseAppConfig;
 
-    if (config.name === undefined) {
-      config.name = DEFAULT_ENTRY_NAME;
-    }
-
-    const { name } = config;
-
-    if (typeof name !== 'string' || !name) {
-      error('bad-app-name', { name: name + '' });
-    }
-
-    if (contains(apps_, name)) {
-      error('duplicate-app', { name: name });
+    if (appInstance) {
+      error('duplicate-app', { name: DEFAULT_ENTRY_NAME });
     }
 
     let app = new FirebaseAppImpl(
@@ -284,18 +253,10 @@ export function createFirebaseNamespace(): FirebaseNamespace {
       namespace as FirebaseNamespace
     );
 
-    apps_[name!] = app;
+    appInstance = app;
     callAppHooks(app, 'create');
 
     return app;
-  }
-
-  /*
-   * Return an array of all the non-deleted FirebaseApps.
-   */
-  function getApps(): FirebaseApp[] {
-    // Make a copy so caller cannot mutate the apps list.
-    return Object.keys(apps_).map(name => apps_[name]);
   }
 
   /*
@@ -325,9 +286,9 @@ export function createFirebaseNamespace(): FirebaseNamespace {
       appHooks[name] = appHook;
 
       // Run the **new** app hook on all existing apps
-      getApps().forEach(app => {
-        appHook('create', app);
-      });
+      if (appInstance) {
+        appHook('create', appInstance);
+      }
     }
 
     // The Service namespace is an accessor function ...
