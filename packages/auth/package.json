@@ -6,7 +6,7 @@
   "description": "Javascript library for Firebase Auth SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "files": [
-    "dist",
+    "dist/*.*",
     "index.d.ts"
   ],
   "scripts": {

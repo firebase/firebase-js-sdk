@@ -5,7 +5,8 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "files": [
-    "dist"
+    "dist/*.*",
+    "dist/src/protos"
   ],
   "scripts": {
     "build": "rollup -c",

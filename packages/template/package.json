@@ -8,7 +8,7 @@
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "files": [
-    "dist"
+    "dist/*.*"
   ],
   "scripts": {
     "build": "rollup -c",

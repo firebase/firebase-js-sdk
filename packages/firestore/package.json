@@ -24,7 +24,8 @@
   "module": "dist/index.esm.js",
   "license": "Apache-2.0",
   "files": [
-    "dist"
+    "dist/*.*",
+    "dist/src/protos"
   ],
   "dependencies": {
     "@firebase/firestore-types": "1.1.1",
