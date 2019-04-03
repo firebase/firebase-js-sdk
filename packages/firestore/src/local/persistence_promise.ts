@@ -207,7 +207,9 @@ export class PersistencePromise<T> {
   static or(
     predicates: Array<() => PersistencePromise<boolean>>
   ): PersistencePromise<boolean> {
-    let p: PersistencePromise<boolean> = PersistencePromise.resolve(false);
+    let p: PersistencePromise<boolean> = PersistencePromise.resolve<boolean>(
+      false
+    );
     for (const predicate of predicates) {
       p = p.next(isTrue => {
         if (isTrue) {
