@@ -433,7 +433,7 @@ export class LruGarbageCollector {
           log.debug('LruGarbageCollector', desc);
         }
 
-        return PersistencePromise.resolve({
+        return PersistencePromise.resolve<LruResults>({
           didRun: true,
           sequenceNumbersCollected: sequenceNumbersToCollect,
           targetsRemoved,
