@@ -1,6 +1,6 @@
 {
   "name": "@firebase/messaging",
-  "version": "0.3.15",
+  "version": "0.3.16",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
