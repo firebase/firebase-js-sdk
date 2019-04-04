@@ -223,7 +223,7 @@ export class SimpleDb {
  */
 export class IterationController {
   private shouldStop = false;
-  private nextKey: IDBValidKey | IDBKeyRange | null = null;
+  private nextKey: IDBValidKey | null = null;
 
   constructor(private dbCursor: IDBCursorWithValue) {}
 
@@ -231,7 +231,7 @@ export class IterationController {
     return this.shouldStop;
   }
 
-  get skipToKey(): IDBValidKey | IDBKeyRange | null {
+  get skipToKey(): IDBValidKey | null {
     return this.nextKey;
   }
 
@@ -250,7 +250,7 @@ export class IterationController {
    * This function can be called to skip to that next key, which could be
    * an index or a primary key.
    */
-  skip(key: IDBValidKey | IDBKeyRange): void {
+  skip(key: IDBValidKey): void {
     this.nextKey = key;
   }
 
