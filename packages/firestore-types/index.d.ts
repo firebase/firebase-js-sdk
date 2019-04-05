@@ -76,6 +76,19 @@ export interface Settings {
    * CACHE_SIZE_UNLIMITED to disable garbage collection.
    */
   cacheSizeBytes?: number;
+
+  /**
+   * Forces the SDK’s underlying network transport (WebChannel) to use
+   * long-polling. Each response from the backend will be closed immediately
+   * after the backend sends data (by default responses are kept open in case
+   * the backend has more data to send). This avoids incompatibility issues
+   * with certain proxies, antivirus software, etc. that incorrectly buffer
+   * traffic indefinitely. Use of this option will cause some performance
+   * degradation though.
+   *
+   * This setting may be removed in a future release.
+   */
+  experimentalForceLongPolling?: boolean;
 }
 
 /**

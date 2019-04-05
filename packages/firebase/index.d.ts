@@ -5853,6 +5853,19 @@ declare namespace firebase.firestore {
      * CACHE_SIZE_UNLIMITED to disable garbage collection.
      */
     cacheSizeBytes?: number;
+
+    /**
+     * Forces the SDK’s underlying network transport (WebChannel) to use
+     * long-polling. Each response from the backend will be closed immediately
+     * after the backend sends data (by default responses are kept open in
+     * case the backend has more data to send). This avoids incompatibility
+     * issues with certain proxies, antivirus software, etc. that incorrectly
+     * buffer traffic indefinitely. Use of this option will cause some
+     * performance degradation though.
+     *
+     * This setting may be removed in a future release.
+     */
+    experimentalForceLongPolling?: boolean;
   }
 
   /**
@@ -7209,14 +7222,14 @@ declare namespace firebase.firestore {
     /**
      * Returns a special value that can be used with `set()` or `update()` that tells
      * the server to increment the field's current value by the given value.
-     * 
+     *
      * If either the operand or the current field value uses floating point precision,
      * all arithmetic follows IEEE 754 semantics. If both values are integers,
      * values outside of JavaScript's safe number range (`Number.MIN_SAFE_INTEGER` to
      * `Number.MAX_SAFE_INTEGER`) are also subject to precision loss. Furthermore,
      * once processed by the Firestore backend, all integer operations are capped
      * between -2^63 and 2^63-1.
-     * 
+     *
      * If the current field value is not of type `number`, or if the field does not
      * yet exist, the transformation sets the field to the given value.
      *

@@ -1,4 +1,6 @@
 # Unreleased
+- [feature] Added an `experimentalForceLongPolling` setting that may be helpful
+  to diagnose and avoid connection issues with proxies in certain cases.
 
 # 1.1.1
 - [changed] Increased a connection timeout that could lead to large writes
