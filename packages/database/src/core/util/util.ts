@@ -667,7 +667,7 @@ export const setTimeoutNonBlocking = function(
   time: number
 ): number | Object {
   const timeout: number | Object = setTimeout(fn, time);
-  if (typeof timeout === 'object' && (timeout as any)['unref']) {
+  if (typeof timeout === 'object' && timeout !== null && (timeout as any)['unref']) {
     (timeout as any)['unref']();
   }
   return timeout;
