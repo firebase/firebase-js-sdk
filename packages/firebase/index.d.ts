@@ -3387,9 +3387,9 @@ declare namespace firebase.auth {
   /**
    * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application
    * verifier.
-   * 
+   *
    * @webonly
-   * 
+   *
    * @param container The reCAPTCHA container parameter. This
    *     has different meaning depending on whether the reCAPTCHA is hidden or
    *     visible. For a visible reCAPTCHA the container must be empty. If a string
