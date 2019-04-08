@@ -58,7 +58,7 @@ export function putString(
 export function percentage(task: storage.UploadTask) {
   return fromTask(task).pipe(
     map(s => ({
-      progress: s.bytesTransferred / s.totalBytes * 100,
+      progress: (s.bytesTransferred / s.totalBytes) * 100,
       snapshot: s
     }))
   );

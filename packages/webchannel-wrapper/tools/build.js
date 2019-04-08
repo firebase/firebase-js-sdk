@@ -57,7 +57,7 @@ closureBuilder.build({
 
 // esm build
 // We write the closure output to a temp file and then re-compile it with rollup.
-const filePath = `${tmpdir()}/index.js`
+const filePath = `${tmpdir()}/index.js`;
 closureBuilder.build(
   {
     name: 'firebase.webchannel.wrapper',
@@ -67,8 +67,7 @@ closureBuilder.build(
     out_source_map: `${filePath}.map`,
     options: {
       closure: {
-        output_wrapper:
-          '%output%\n//# sourceMappingURL=index.js.map',
+        output_wrapper: '%output%\n//# sourceMappingURL=index.js.map',
         language_out: 'ECMASCRIPT5',
         compilation_level: 'ADVANCED',
         define: closureDefines
