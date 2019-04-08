@@ -290,6 +290,7 @@ async function generateNodeSource() {
     ) {
       nodeText += sourceText[i];
     } else if (i === webOnlyBlocks[currentBlockIndex].end) {
+      nodeText += sourceText[i];
       currentBlockIndex++;
     }
   }
