@@ -10,12 +10,18 @@
                 {{#markdown}}{{{text}}}{{/markdown}}
             {{/if}}
             {{#if tags}}
-                <dl class="tsd-comment-tags">
-                    {{#each tags}}
-                        <dt class="tag-{{tagName}}">{{tagName}}</dt>
-                        <dd class="tag-body-{{tagName}}">{{#markdown}}{{{text}}}{{/markdown}}</dd>
-                    {{/each}}
-                </dl>
+                {{#ifCond tags.[0].tagName '==' "webonly"}}
+                    <div class="lead">
+						{{#markdown}}{{{tags.[0].text}}}{{/markdown}}
+					</div>
+                {{else}}
+                    <dl class="tsd-comment-tags">
+                        {{#each tags}}
+                            <dt class="tag-{{tagName}}">{{tagName}}</dt>
+                            <dd class="tag-body-{{tagName}}">{{#markdown}}{{{text}}}{{/markdown}}</dd>
+                        {{/each}}
+                    </dl>
+                {{/ifCond}}
             {{/if}}
         </div>
     {{/if}}

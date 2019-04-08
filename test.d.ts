@@ -301,95 +301,6 @@ declare namespace firebase {
     ): Promise<firebase.auth.ConfirmationResult>;
     /**
      * @webonly
-     * Links the authenticated provider to the user account using a pop-up based
-     * OAuth flow.
-     *
-     * If the linking is successful, the returned result will contain the user
-     * and the provider's credential.
-     *
-     * <h4>Error Codes</h4>
-     * <dl>
-     * <dt>auth/auth-domain-config-required</dt>
-     * <dd>Thrown if authDomain configuration is not provided when calling
-     *     firebase.initializeApp(). Check Firebase Console for instructions on
-     *     determining and passing that field.</dd>
-     * <dt>auth/cancelled-popup-request</dt>
-     * <dd>Thrown if successive popup operations are triggered. Only one popup
-     *     request is allowed at one time on a user or an auth instance. All the
-     *     popups would fail with this error except for the last one.</dd>
-     * <dt>auth/credential-already-in-use</dt>
-     * <dd>Thrown if the account corresponding to the credential already exists
-     *     among your users, or is already linked to a Firebase User.
-     *     For example, this error could be thrown if you are upgrading an anonymous
-     *     user to a Google user by linking a Google credential to it and the Google
-     *     credential used is already associated with an existing Firebase Google
-     *     user.
-     *     An <code>error.email</code> and <code>error.credential</code>
-     *     ({@link firebase.auth.AuthCredential}) fields are also provided. You can
-     *     recover from this error by signing in with that credential directly via
-     *     {@link firebase.auth.Auth.signInWithCredential}.</dd>
-     * <dt>auth/email-already-in-use</dt>
-     * <dd>Thrown if the email corresponding to the credential already exists
-     *     among your users. When thrown while linking a credential to an existing
-     *     user, an <code>error.email</code> and <code>error.credential</code>
-     *     ({@link firebase.auth.AuthCredential}) fields are also provided.
-     *     You have to link the credential to the existing user with that email if
-     *     you wish to continue signing in with that credential. To do so, call
-     *     {@link firebase.auth.Auth.fetchProvidersForEmail}, sign in to
-     *     <code>error.email</code> via one of the providers returned and then
-     *     {@link firebase.User.linkWithCredential} the original credential to that
-     *     newly signed in user.</dd>
-     * <dt>auth/operation-not-allowed</dt>
-     * <dd>Thrown if you have not enabled the provider in the Firebase Console. Go
-     *     to the Firebase Console for your project, in the Auth section and the
-     *     <strong>Sign in Method</strong> tab and configure the provider.</dd>
-     * <dt>auth/popup-blocked</dt>
-     * <dt>auth/operation-not-supported-in-this-environment</dt>
-     * <dd>Thrown if this operation is not supported in the environment your
-     *     application is running on. "location.protocol" must be http or https.
-     *     </dd>
-     * <dd>Thrown if the popup was blocked by the browser, typically when this
-     *     operation is triggered outside of a click handler.</dd>
-     * <dt>auth/popup-closed-by-user</dt>
-     * <dd>Thrown if the popup window is closed by the user without completing the
-     *     sign in to the provider.</dd>
-     * <dt>auth/provider-already-linked</dt>
-     * <dd>Thrown if the provider has already been linked to the user. This error is
-     *     thrown even if this is not the same provider's account that is currently
-     *     linked to the user.</dd>
-     * <dt>auth/unauthorized-domain</dt>
-     * <dd>Thrown if the app domain is not authorized for OAuth operations for your
-     *     Firebase project. Edit the list of authorized domains from the Firebase
-     *     console.</dd>
-     * </dl>
-     *
-     * @example
-     * ```javascript
-     * // Creates the provider object.
-     * var provider = new firebase.auth.FacebookAuthProvider();
-     * // You can add additional scopes to the provider:
-     * provider.addScope('email');
-     * provider.addScope('user_friends');
-     * // Link with popup:
-     * user.linkWithPopup(provider).then(function(result) {
-     *   // The firebase.User instance:
-     *   var user = result.user;
-     *   // The Facebook firebase.auth.AuthCredential containing the Facebook
-     *   // access token:
-     *   var credential = result.credential;
-     * }, function(error) {
-     *   // An error happened.
-     * });
-     * ```
-     *
-     * @param provider The provider to authenticate.
-     *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
-     *     firebase.auth.EmailAuthProvider} will throw an error.
-     */
-    linkWithPopup(
-      provider: firebase.auth.AuthProvider
-    ): Promise<firebase.auth.UserCredential>;
-    /**
      * Links the authenticated provider to the user account using a full-page
      * redirect flow.
      *
@@ -980,7 +891,6 @@ declare namespace firebase {
   function initializeApp(options: Object, name?: string): firebase.app.App;
 
   /**
-   * @webonly
    * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
    * default app or a given app.
    *
@@ -1013,7 +923,6 @@ declare namespace firebase {
   function messaging(app?: firebase.app.App): firebase.messaging.Messaging;
 
   /**
-   * @webonly
    * Gets the {@link firebase.storage.Storage `Storage`} service for the default
    * app or a given app.
    *
@@ -1042,9 +951,6 @@ declare namespace firebase {
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
 
-  /**
-   * @webonly
-   */
   function functions(app?: firebase.app.App): firebase.functions.Functions;
 }
 
@@ -1098,7 +1004,6 @@ declare namespace firebase.app {
      */
     delete(): Promise<any>;
     /**
-     * @webonly
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
      *
@@ -1143,7 +1048,6 @@ declare namespace firebase.app {
      */
     options: Object;
     /**
-     * @webonly
      * Gets the {@link firebase.storage.Storage `Storage`} service for the current
      * app, optionally initialized with a custom storage bucket.
      *
@@ -1164,16 +1068,10 @@ declare namespace firebase.app {
      */
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
-    /**
-     * @webonly
-     */
     functions(region?: string): firebase.functions.Functions;
   }
 }
 
-/**
- * @webonly
- */
 declare namespace firebase.functions {
   /**
    * An HttpsCallableResult wraps a single result from a function call.
@@ -5179,9 +5077,6 @@ declare namespace firebase.database.ServerValue {
   var TIMESTAMP: Object;
 }
 
-/**
- * @webonly
- */
 declare namespace firebase.messaging {
   /**
    * The Firebase Messaging service interface.
@@ -5286,9 +5181,6 @@ declare namespace firebase.messaging {
   function isSupported(): boolean;
 }
 
-/**
- * @webonly
- */
 declare namespace firebase.storage {
   /**
    * The full set of object metadata, including read-only properties.
@@ -7229,14 +7121,14 @@ declare namespace firebase.firestore {
     /**
      * Returns a special value that can be used with `set()` or `update()` that tells
      * the server to increment the field's current value by the given value.
-     *
+     * 
      * If either the operand or the current field value uses floating point precision,
      * all arithmetic follows IEEE 754 semantics. If both values are integers,
      * values outside of JavaScript's safe number range (`Number.MIN_SAFE_INTEGER` to
      * `Number.MAX_SAFE_INTEGER`) are also subject to precision loss. Furthermore,
      * once processed by the Firestore backend, all integer operations are capped
      * between -2^63 and 2^63-1.
-     *
+     * 
      * If the current field value is not of type `number`, or if the field does not
      * yet exist, the transformation sets the field to the given value.
      *

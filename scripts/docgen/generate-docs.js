@@ -20,6 +20,7 @@ const yargs = require('yargs');
 const fs = require('mz/fs');
 const path = require('path');
 const yaml = require('js-yaml');
+const typescript = require('typescript');
 
 const repoPath = path.resolve(`${__dirname}/../..`);
 
@@ -41,6 +42,7 @@ const { api: apiType, source: sourceFile } = yargs
 const docPath = path.resolve(`${__dirname}/html/${apiType}`);
 const contentPath = path.resolve(`${__dirname}/content-sources/${apiType}`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
+const tempNodeSourcePath = path.resolve(`${__dirname}/index.node.d.ts`);
 const devsitePath = `/docs/reference/${apiType}/`;
 
 /**
@@ -58,7 +60,8 @@ function stripPath(path) {
  * Additional config options come from ./typedoc.js
  */
 function runTypedoc() {
-  const command = `${repoPath}/node_modules/.bin/typedoc ${sourceFile} \
+  const typeSource = apiType === 'node' ? tempNodeSourcePath : sourceFile;
+  const command = `${repoPath}/node_modules/.bin/typedoc ${typeSource} \
   --out ${docPath} \
   --readme ${tempHomePath} \
   --options ${__dirname}/typedoc.js \
@@ -240,6 +243,99 @@ function fixAllLinks(htmlFiles) {
   return Promise.all(writePromises);
 }
 
+function getLeadingSpaces(line) {
+  if (!line) return 0;
+  return line.search(/\S|$/);
+}
+
+async function generateNodeSource() {
+    const sourceText = await fs.readFile(sourceFile, 'utf8');
+    let typescriptSourceFile = typescript.createSourceFile(
+      'temp.d.ts',
+      sourceText,
+      typescript.ScriptTarget.ES2015,
+      /*setParentNodes */ true
+    );
+    // let indent = 0;
+    const webOnlyBlocks = [];
+    function print(node) {
+      // const spaces = new Array(indent + 1).join(' ');
+      if (node.jsDoc && node.jsDoc.some(item => item.tags)) {
+          node.jsDoc.forEach(item => {
+            if (item.tags) {
+              item.tags.forEach(tag => {
+                if (tag.tagName.escapedText === 'webonly') {
+                  // console.log('\n\n\n***********\nWEBONLY\n************\n');
+                  // console.log(spaces + typescript.SyntaxKind[node.kind]);
+                  // console.log(spaces, 'node props', Object.keys(node).join(','));
+                  // console.log('start', node.pos, 'end', node.end);
+                  webOnlyBlocks.push([node.pos, node.end]);
+                  // console.log(spaces, 'TAGS', `TAGNAME: ${tag.tagName.escapedText} ~ NAME: ${tag.name ? tag.name.escapedText : ''} ~ COMMENT: ${tag.comment ? tag.comment.escapedText : ''}`)
+                }
+              })
+            }
+          });
+      }
+        // indent++;
+        typescript.forEachChild(node, print);
+        // indent--;
+    }
+    print(typescriptSourceFile);
+    let newText = '';
+    let currentBlockIndex = 0;
+    for (let i = 0; i < sourceText.length && currentBlockIndex <= webOnlyBlocks.length; i++) {
+      if (currentBlockIndex === webOnlyBlocks.length || i < webOnlyBlocks[currentBlockIndex][0]) {
+        newText += sourceText[i];
+      } else if (i === webOnlyBlocks[currentBlockIndex][1]) {
+        currentBlockIndex++;
+      }
+    }
+    console.log(newText);
+    // const sourceLines = sourceText.split('\n');
+    // let nodeSourceLines = [];
+    // let inWebOnlyComment = false;
+    // let inWebOnlyBlock = false;
+    // let commentIndentSpaces = 0;
+    // let blockIndentSpaces = 0;
+    // sourceLines.forEach((line, index) => {
+    //   const previousLine = sourceLines[index - 1];
+    //   if (line.includes('@webonly')) {
+    //     // In @webonly leading comment block.
+    //     inWebOnlyComment = true;
+    //     // Remove previous lines in comment block.
+    //     for (let i = index; i > 0; i--) {
+    //         if (sourceLines[i].includes('/**')) {
+    //           commentIndentSpaces = getLeadingSpaces(sourceLines[i]);
+    //           break;
+    //         }
+    //         nodeSourceLines.pop();
+    //     }
+    //   } else if (inWebOnlyComment && previousLine.includes('*/')
+    //       && getLeadingSpaces(previousLine) === commentIndentSpaces + 1) {
+    //     // Comment block ended, start code block
+    //     inWebOnlyComment = false;
+    //     inWebOnlyBlock = true;
+    //     blockIndentSpaces = getLeadingSpaces(line);
+    //     console.log('start', index, line);
+    //   } else if (inWebOnlyBlock && line.length && getLeadingSpaces(line) <= blockIndentSpaces) {
+    //     // End code block if a non-blank line matches or is less than indentation of first line
+    //     // in code block.
+    //     inWebOnlyBlock = false;
+    //     if (line.trim()[0].match(/[A-Za-z]|\//) || getLeadingSpaces(line) < blockIndentSpaces) {
+    //       console.log('end NEXTLINE', index, line);
+    //       nodeSourceLines.push(line);
+    //     } else {
+    //       console.log('end PART OF BLOCK', index, line);
+    //     }
+    //   } else if (!inWebOnlyComment && !inWebOnlyBlock) {
+    //     // If line is not part of a @webonly block, push to buffer.
+    //     nodeSourceLines.push(line);
+    //   }
+    // });
+    // return fs.writeFile(tempNodeSourcePath, nodeSourceLines.join('\n'));
+    return fs.writeFile(tempNodeSourcePath, newText);
+}
+
 /**
  * Main document generation process.
  *
@@ -262,6 +358,11 @@ Promise.all([
     tocText = tocRaw;
     return generateTempHomeMdFile(tocRaw, homeRaw);
   })
+  .then(() => {
+    if (apiType === 'node') {
+      return generateNodeSource();
+    }
+  })
   // Run main Typedoc process (uses index.d.ts and generated temp file above).
   .then(runTypedoc)
   .then(output => {
@@ -269,6 +370,10 @@ Promise.all([
     console.log(output.stdout);
     // Clean up temp home markdown file. (Nothing needs to wait for this.)
     fs.unlink(tempHomePath);
+    // Clean up temp node index.d.ts file if it exists.
+    // if (fs.exists(tempNodeSourcePath)) {
+    //   fs.unlink(tempNodeSourcePath);
+    // }
     // Devsite doesn't like css.map files.
     return fs.unlink(`${docPath}/assets/css/main.css.map`);
   })
