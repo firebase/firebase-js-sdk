@@ -247,47 +247,53 @@ function fixAllLinks(htmlFiles) {
  * Generate an temporary abridged version of index.d.ts used to create Node docs.
  */
 async function generateNodeSource() {
-    const sourceText = await fs.readFile(sourceFile, 'utf8');
+  const sourceText = await fs.readFile(sourceFile, 'utf8');
 
-    // Parse index.d.ts. A dummy filename is required but it doesn't create a file.
-    let typescriptSourceFile = typescript.createSourceFile(
-      'temp.d.ts',
-      sourceText,
-      typescript.ScriptTarget.ES2015,
-      /*setParentNodes */ false
-    );
+  // Parse index.d.ts. A dummy filename is required but it doesn't create a file.
+  let typescriptSourceFile = typescript.createSourceFile(
+    'temp.d.ts',
+    sourceText,
+    typescript.ScriptTarget.ES2015,
+    /*setParentNodes */ false
+  );
 
-    // Traverse AST to get blocks annotated with @webonly and store their start/end index
-    const webOnlyBlocks = [];
-    function findWebOnlyBlocks(node) {
-      if (node.jsDoc) {
-          node.jsDoc.forEach(item => {
-            if (item.tags) {
-              item.tags.forEach(tag => {
-                if (tag.tagName.escapedText === 'webonly') {
-                  webOnlyBlocks.push({ start: node.pos, end: node.end });
-                }
-              })
+  // Traverse AST to get blocks annotated with @webonly and store their start/end index
+  const webOnlyBlocks = [];
+  function findWebOnlyBlocks(node) {
+    if (node.jsDoc) {
+      node.jsDoc.forEach(item => {
+        if (item.tags) {
+          item.tags.forEach(tag => {
+            if (tag.tagName.escapedText === 'webonly') {
+              webOnlyBlocks.push({ start: node.pos, end: node.end });
             }
           });
-      }
-      typescript.forEachChild(node, findWebOnlyBlocks);
+        }
+      });
     }
-    findWebOnlyBlocks(typescriptSourceFile);
+    typescript.forEachChild(node, findWebOnlyBlocks);
+  }
+  findWebOnlyBlocks(typescriptSourceFile);
 
-    // Copy each character from original index.d.ts to Node version, skipping those in webonly
-    // blocks.
-    let nodeText = '';
-    let currentBlockIndex = 0;
-    for (let i = 0; i < sourceText.length && currentBlockIndex <= webOnlyBlocks.length; i++) {
-      if (currentBlockIndex === webOnlyBlocks.length
-          || i < webOnlyBlocks[currentBlockIndex].start) {
-        nodeText += sourceText[i];
-      } else if (i === webOnlyBlocks[currentBlockIndex].end) {
-        currentBlockIndex++;
-      }
+  // Copy each character from original index.d.ts to Node version, skipping those in webonly
+  // blocks.
+  let nodeText = '';
+  let currentBlockIndex = 0;
+  for (
+    let i = 0;
+    i < sourceText.length && currentBlockIndex <= webOnlyBlocks.length;
+    i++
+  ) {
+    if (
+      currentBlockIndex === webOnlyBlocks.length ||
+      i < webOnlyBlocks[currentBlockIndex].start
+    ) {
+      nodeText += sourceText[i];
+    } else if (i === webOnlyBlocks[currentBlockIndex].end) {
+      currentBlockIndex++;
     }
-    return fs.writeFile(tempNodeSourcePath, nodeText);
+  }
+  return fs.writeFile(tempNodeSourcePath, nodeText);
 }
 
 /**
