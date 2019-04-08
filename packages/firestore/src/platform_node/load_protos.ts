@@ -35,9 +35,13 @@ export function loadProtos(): grpc.GrpcObject {
   // Beware that converting fields to camel case (the default behaviour with
   // protoLoader) does not convert the tag fields in oneof groups (!!!). This
   // will likely be fixed when we upgrade to protobufjs 6.x
-  const packageDefinition = protoLoader.loadSync(
-      firestoreProtoFile,
-      { longs: String, enums: String, defaults: true, oneofs: true, includeDirs: [root] });
+  const packageDefinition = protoLoader.loadSync(firestoreProtoFile, {
+    longs: String,
+    enums: String,
+    defaults: true,
+    oneofs: true,
+    includeDirs: [root]
+  });
 
   return grpc.loadPackageDefinition(packageDefinition);
 }
