@@ -300,7 +300,6 @@ declare namespace firebase {
       applicationVerifier: firebase.auth.ApplicationVerifier
     ): Promise<firebase.auth.ConfirmationResult>;
     /**
-     * @webonly
      * Links the authenticated provider to the user account using a pop-up based
      * OAuth flow.
      *
@@ -362,6 +361,8 @@ declare namespace firebase {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
+     * 
+     * @webonly
      *
      * @example
      * ```javascript
@@ -607,7 +608,6 @@ declare namespace firebase {
       provider: firebase.auth.AuthProvider
     ): Promise<firebase.auth.UserCredential>;
     /**
-     * @webonly
      * Reauthenticates the current user with the specified OAuth provider using a
      * full-page redirect flow.
      *
@@ -628,6 +628,8 @@ declare namespace firebase {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
+     * 
+     * @webonly
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -983,7 +985,6 @@ declare namespace firebase {
   function initializeApp(options: Object, name?: string): firebase.app.App;
 
   /**
-   * @webonly
    * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
    * default app or a given app.
    *
@@ -997,6 +998,8 @@ declare namespace firebase {
    * generating notifications if the push message payload has a `notification`
    * parameter.
    *
+   * @webonly
+   * 
    * @example
    * ```javascript
    * // Get the Messaging service for the default app
@@ -1016,7 +1019,6 @@ declare namespace firebase {
   function messaging(app?: firebase.app.App): firebase.messaging.Messaging;
 
   /**
-   * @webonly
    * Gets the {@link firebase.storage.Storage `Storage`} service for the default
    * app or a given app.
    *
@@ -1026,6 +1028,8 @@ declare namespace firebase {
    * {@link firebase.storage.Storage `Storage`} service associated with a
    * specific app.
    *
+   * @webonly
+   * 
    * @example
    * ```javascript
    * // Get the Storage service for the default app
@@ -1101,9 +1105,10 @@ declare namespace firebase.app {
      */
     delete(): Promise<any>;
     /**
-     * @webonly
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
+     * 
+     * @webonly
      *
      * @example
      * ```javascript
@@ -1146,9 +1151,10 @@ declare namespace firebase.app {
      */
     options: Object;
     /**
-     * @webonly
      * Gets the {@link firebase.storage.Storage `Storage`} service for the current
      * app, optionally initialized with a custom storage bucket.
+     * 
+     * @webonly
      *
      * @example
      * ```javascript
@@ -1658,7 +1664,6 @@ declare namespace firebase.auth {
      */
     isSignInWithEmailLink(emailLink: string): boolean;
     /**
-     * @webonly
      * Returns a UserCredential from the redirect-based sign-in flow.
      *
      * If sign-in succeeded, returns the signed in user. If sign-in was
@@ -1719,6 +1724,8 @@ declare namespace firebase.auth {
      *     for your Firebase project. Edit the list of authorized domains from the
      *     Firebase console.</dd>
      * </dl>
+     * 
+     * @webonly
      *
      * @example
      * ```javascript
@@ -2476,7 +2483,6 @@ declare namespace firebase.auth {
       emailLink?: string
     ): Promise<firebase.auth.UserCredential>;
     /**
-     * @webonly
      * Authenticates a Firebase client using a popup-based OAuth authentication
      * flow.
      *
@@ -2526,6 +2532,8 @@ declare namespace firebase.auth {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
+     * 
+     * @webonly
      *
      * @example
      * ```javascript
@@ -2568,7 +2576,6 @@ declare namespace firebase.auth {
       provider: firebase.auth.AuthProvider
     ): Promise<firebase.auth.UserCredential>;
     /**
-     * @webonly
      * Authenticates a Firebase client using a full-page redirect flow. To handle
      * the results and errors for this operation, refer to {@link
      * firebase.auth.Auth.getRedirectResult}.
@@ -2588,6 +2595,8 @@ declare namespace firebase.auth {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
+     * 
+     * @webonly
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
