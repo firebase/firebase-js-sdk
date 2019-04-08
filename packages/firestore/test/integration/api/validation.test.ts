@@ -800,6 +800,13 @@ apiDescribe('Validation:', persistence => {
       );
     });
 
+    validationIt(persistence, 'enum', db=> {
+      const collection = db.collection('test') as any;
+      expect(() => collection.where('a', 'foo', 'b')).to.throw(
+        'Invalid enum.'
+      );
+    });
+
     validationIt(
       persistence,
       'with null or NaN non-equality filters fail',
