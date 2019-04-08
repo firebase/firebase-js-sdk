@@ -325,13 +325,13 @@ Promise.all([
   })
   // Run main Typedoc process (uses index.d.ts and generated temp file above).
   .then(runTypedoc)
-  .then(output => {
+  .then(async output => {
     // Typedoc output.
     console.log(output.stdout);
     // Clean up temp home markdown file. (Nothing needs to wait for this.)
     fs.unlink(tempHomePath);
     // Clean up temp node index.d.ts file if it exists.
-    if (fs.exists(tempNodeSourcePath)) {
+    if (await fs.exists(tempNodeSourcePath)) {
       fs.unlink(tempNodeSourcePath);
     }
     // Devsite doesn't like css.map files.
