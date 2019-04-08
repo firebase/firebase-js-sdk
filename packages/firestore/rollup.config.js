@@ -15,23 +15,26 @@
  * limitations under the License.
  */
 
-import typescript from 'rollup-plugin-typescript2';
+import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
+import typescript from 'typescript';
 import pkg from './package.json';
-import { dirname, resolve } from 'path';
-
-const plugins = [
-  typescript({
-    typescript: require('typescript')
-  })
-];
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-export default [
+/**
+ * ES5 Builds
+ */
+const es5BuildPlugins = [
+  typescriptPlugin({
+    typescript
+  })
+];
+
+const es5Builds = [
   /**
    * Node.js Build
    */
@@ -39,7 +42,7 @@ export default [
     input: 'index.node.ts',
     output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: [
-      ...plugins,
+      ...es5BuildPlugins,
       // Needed as we also use the *.proto files
       copy({
         assets: ['./src/protos']
@@ -62,7 +65,39 @@ export default [
       { file: pkg.browser, format: 'cjs', sourcemap: true },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
-    plugins,
+    plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
+
+/**
+ * ES2017 Builds
+ */
+const es2017BuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    }
+  })
+];
+
+const es2017Builds = [
+  /**
+   * Browser Build
+   */
+  {
+    input: 'index.ts',
+    output: {
+      file: pkg.esm2017,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default [...es5Builds, ...es2017Builds];

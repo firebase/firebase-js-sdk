@@ -9,9 +9,9 @@
     "dist"
   ],
   "scripts": {
-    "dev": "watch 'npm run build' src",
+    "dev": "watch 'yarn build' src",
     "build": "node tools/build.js",
-    "prepare": "npm run build"
+    "prepare": "yarn build"
   },
   "license": "Apache-2.0",
   "devDependencies": {

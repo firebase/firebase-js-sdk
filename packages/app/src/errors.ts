@@ -26,7 +26,7 @@ export const enum AppError {
   INVALID_APP_ARGUMENT = 'invalid-app-argument'
 }
 
-const errors: ErrorMap<AppError> = {
+const ERRORS: ErrorMap<AppError> = {
   [AppError.NO_APP]:
     "No Firebase App '{$name}' has been created - " +
     'call Firebase App.initializeApp()',
@@ -40,7 +40,7 @@ const errors: ErrorMap<AppError> = {
     'Firebase App instance.'
 };
 
-const appErrors = new ErrorFactory('app', 'Firebase', errors);
+const appErrors = new ErrorFactory<AppError>('app', 'Firebase', ERRORS);
 
 export function error(code: AppError, args?: { [name: string]: any }) {
   throw appErrors.create(code, args);
