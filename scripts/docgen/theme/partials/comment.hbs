@@ -13,7 +13,6 @@
                 <dl class="tsd-comment-tags">
                     {{#each tags}}
                         {{#ifCond tagName '==' "webonly"}}
-                        <dd>{{#markdown}}{{{text}}}{{/markdown}}</dd>
                         {{else}}
                         <dt class="tag-{{tagName}}">{{tagName}}</dt>
                         <dd class="tag-body-{{tagName}}">{{#markdown}}{{{text}}}{{/markdown}}</dd>

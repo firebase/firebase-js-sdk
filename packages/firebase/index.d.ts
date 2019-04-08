@@ -540,7 +540,6 @@ declare namespace firebase {
       applicationVerifier: firebase.auth.ApplicationVerifier
     ): Promise<firebase.auth.ConfirmationResult>;
     /**
-     * @webonly
      * Reauthenticates the current user with the specified provider using a pop-up
      * based OAuth flow.
      *
@@ -579,6 +578,8 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
+     * @webonly
+     * 
      * @example
      * ```javascript
      * // Creates the provider object.
