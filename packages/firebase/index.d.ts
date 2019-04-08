@@ -3173,6 +3173,7 @@ declare namespace firebase.auth {
    * @param providerId The associated provider ID, such as `github.com`.
    */
   class OAuthProvider implements firebase.auth.AuthProvider {
+    constructor(providerId: string);
     providerId: string;
     /**
      * @param scope Provider OAuth scope to add.
