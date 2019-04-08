@@ -361,7 +361,7 @@ declare namespace firebase {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
-     * 
+     *
      * @webonly
      *
      * @example
@@ -628,7 +628,7 @@ declare namespace firebase {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
-     * 
+     *
      * @webonly
      *
      * @param provider The provider to authenticate.
@@ -999,7 +999,7 @@ declare namespace firebase {
    * parameter.
    *
    * @webonly
-   * 
+   *
    * @example
    * ```javascript
    * // Get the Messaging service for the default app
@@ -1029,7 +1029,7 @@ declare namespace firebase {
    * specific app.
    *
    * @webonly
-   * 
+   *
    * @example
    * ```javascript
    * // Get the Storage service for the default app
@@ -1107,7 +1107,7 @@ declare namespace firebase.app {
     /**
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
-     * 
+     *
      * @webonly
      *
      * @example
@@ -1153,7 +1153,7 @@ declare namespace firebase.app {
     /**
      * Gets the {@link firebase.storage.Storage `Storage`} service for the current
      * app, optionally initialized with a custom storage bucket.
-     * 
+     *
      * @webonly
      *
      * @example
@@ -1724,7 +1724,7 @@ declare namespace firebase.auth {
      *     for your Firebase project. Edit the list of authorized domains from the
      *     Firebase console.</dd>
      * </dl>
-     * 
+     *
      * @webonly
      *
      * @example
@@ -2532,7 +2532,7 @@ declare namespace firebase.auth {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
-     * 
+     *
      * @webonly
      *
      * @example
@@ -2595,7 +2595,7 @@ declare namespace firebase.auth {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
-     * 
+     *
      * @webonly
      *
      * @param provider The provider to authenticate.
