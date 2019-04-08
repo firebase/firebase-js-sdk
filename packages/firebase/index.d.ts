@@ -579,7 +579,7 @@ declare namespace firebase {
      * </dl>
      *
      * @webonly
-     * 
+     *
      * @example
      * ```javascript
      * // Creates the provider object.
