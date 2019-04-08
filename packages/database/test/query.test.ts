@@ -1523,8 +1523,7 @@ describe('Query Tests', function() {
     });
 
     const snapAcc = EventAccumulatorFactory.waitsForCount(1);
-    f
-      .startAt(null)
+    f.startAt(null)
       .endAt(null)
       .on('value', snap => {
         snapAcc.addEvent(snap.val());
