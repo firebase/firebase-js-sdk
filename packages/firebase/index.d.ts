@@ -540,6 +540,7 @@ declare namespace firebase {
       applicationVerifier: firebase.auth.ApplicationVerifier
     ): Promise<firebase.auth.ConfirmationResult>;
     /**
+     * @webonly
      * Reauthenticates the current user with the specified provider using a pop-up
      * based OAuth flow.
      *
@@ -605,6 +606,7 @@ declare namespace firebase {
       provider: firebase.auth.AuthProvider
     ): Promise<firebase.auth.UserCredential>;
     /**
+     * @webonly
      * Reauthenticates the current user with the specified OAuth provider using a
      * full-page redirect flow.
      *
@@ -1655,6 +1657,7 @@ declare namespace firebase.auth {
      */
     isSignInWithEmailLink(emailLink: string): boolean;
     /**
+     * @webonly
      * Returns a UserCredential from the redirect-based sign-in flow.
      *
      * If sign-in succeeded, returns the signed in user. If sign-in was
@@ -2472,6 +2475,7 @@ declare namespace firebase.auth {
       emailLink?: string
     ): Promise<firebase.auth.UserCredential>;
     /**
+     * @webonly
      * Authenticates a Firebase client using a popup-based OAuth authentication
      * flow.
      *
@@ -2563,6 +2567,7 @@ declare namespace firebase.auth {
       provider: firebase.auth.AuthProvider
     ): Promise<firebase.auth.UserCredential>;
     /**
+     * @webonly
      * Authenticates a Firebase client using a full-page redirect flow. To handle
      * the results and errors for this operation, refer to {@link
      * firebase.auth.Auth.getRedirectResult}.
@@ -3370,6 +3375,7 @@ declare namespace firebase.auth {
   }
 
   /**
+   * @webonly
    * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application
    * verifier.
    * @param container The reCAPTCHA container parameter. This
@@ -3389,6 +3395,7 @@ declare namespace firebase.auth {
    */
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
   /**
+   * @webonly
    * @hidden
    */
   class RecaptchaVerifier_Instance

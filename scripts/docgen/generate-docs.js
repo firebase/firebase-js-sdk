@@ -114,7 +114,7 @@ function generateTempHomeMdFile(tocRaw, homeRaw) {
   const { toc } = yaml.safeLoad(tocRaw);
   let tocPageLines = [homeRaw, '# API Reference'];
   toc.forEach(group => {
-    tocPageLines.push(`\n## [${group.title}](${stripPath(group.path)})`);
+    tocPageLines.push(`\n## [${group.title}](${stripPath(group.path)}.html)`);
     group.section.forEach(item => {
       tocPageLines.push(`- [${item.title}](${stripPath(item.path)}.html)`);
     });
@@ -243,97 +243,51 @@ function fixAllLinks(htmlFiles) {
   return Promise.all(writePromises);
 }
 
-function getLeadingSpaces(line) {
-  if (!line) return 0;
-  return line.search(/\S|$/);
-}
-
+/**
+ * Generate an temporary abridged version of index.d.ts used to create Node docs.
+ */
 async function generateNodeSource() {
     const sourceText = await fs.readFile(sourceFile, 'utf8');
+
+    // Parse index.d.ts. A dummy filename is required but it doesn't create a file.
     let typescriptSourceFile = typescript.createSourceFile(
       'temp.d.ts',
       sourceText,
       typescript.ScriptTarget.ES2015,
-      /*setParentNodes */ true
+      /*setParentNodes */ false
     );
-    // let indent = 0;
+
+    // Traverse AST to get blocks annotated with @webonly and store their start/end index
     const webOnlyBlocks = [];
-    function print(node) {
-      // const spaces = new Array(indent + 1).join(' ');
-      if (node.jsDoc && node.jsDoc.some(item => item.tags)) {
+    function findWebOnlyBlocks(node) {
+      if (node.jsDoc) {
           node.jsDoc.forEach(item => {
             if (item.tags) {
               item.tags.forEach(tag => {
                 if (tag.tagName.escapedText === 'webonly') {
-                  // console.log('\n\n\n***********\nWEBONLY\n************\n');
-                  // console.log(spaces + typescript.SyntaxKind[node.kind]);
-                  // console.log(spaces, 'node props', Object.keys(node).join(','));
-                  // console.log('start', node.pos, 'end', node.end);
-                  webOnlyBlocks.push([node.pos, node.end]);
-                  // console.log(spaces, 'TAGS', `TAGNAME: ${tag.tagName.escapedText} ~ NAME: ${tag.name ? tag.name.escapedText : ''} ~ COMMENT: ${tag.comment ? tag.comment.escapedText : ''}`)
+                  webOnlyBlocks.push({ start: node.pos, end: node.end });
                 }
               })
             }
           });
       }
-        // indent++;
-        typescript.forEachChild(node, print);
-        // indent--;
+      typescript.forEachChild(node, findWebOnlyBlocks);
     }
-    print(typescriptSourceFile);
-    let newText = '';
+    findWebOnlyBlocks(typescriptSourceFile);
+
+    // Copy each character from original index.d.ts to Node version, skipping those in webonly
+    // blocks.
+    let nodeText = '';
     let currentBlockIndex = 0;
     for (let i = 0; i < sourceText.length && currentBlockIndex <= webOnlyBlocks.length; i++) {
-      if (currentBlockIndex === webOnlyBlocks.length || i < webOnlyBlocks[currentBlockIndex][0]) {
-        newText += sourceText[i];
-      } else if (i === webOnlyBlocks[currentBlockIndex][1]) {
+      if (currentBlockIndex === webOnlyBlocks.length
+          || i < webOnlyBlocks[currentBlockIndex].start) {
+        nodeText += sourceText[i];
+      } else if (i === webOnlyBlocks[currentBlockIndex].end) {
         currentBlockIndex++;
       }
     }
-    console.log(newText);
-    // const sourceLines = sourceText.split('\n');
-    // let nodeSourceLines = [];
-    // let inWebOnlyComment = false;
-    // let inWebOnlyBlock = false;
-    // let commentIndentSpaces = 0;
-    // let blockIndentSpaces = 0;
-    // sourceLines.forEach((line, index) => {
-    //   const previousLine = sourceLines[index - 1];
-    //   if (line.includes('@webonly')) {
-    //     // In @webonly leading comment block.
-    //     inWebOnlyComment = true;
-    //     // Remove previous lines in comment block.
-    //     for (let i = index; i > 0; i--) {
-    //         if (sourceLines[i].includes('/**')) {
-    //           commentIndentSpaces = getLeadingSpaces(sourceLines[i]);
-    //           break;
-    //         }
-    //         nodeSourceLines.pop();
-    //     }
-    //   } else if (inWebOnlyComment && previousLine.includes('*/')
-    //       && getLeadingSpaces(previousLine) === commentIndentSpaces + 1) {
-    //     // Comment block ended, start code block
-    //     inWebOnlyComment = false;
-    //     inWebOnlyBlock = true;
-    //     blockIndentSpaces = getLeadingSpaces(line);
-    //     console.log('start', index, line);
-    //   } else if (inWebOnlyBlock && line.length && getLeadingSpaces(line) <= blockIndentSpaces) {
-    //     // End code block if a non-blank line matches or is less than indentation of first line
-    //     // in code block.
-    //     inWebOnlyBlock = false;
-    //     if (line.trim()[0].match(/[A-Za-z]|\//) || getLeadingSpaces(line) < blockIndentSpaces) {
-    //       console.log('end NEXTLINE', index, line);
-    //       nodeSourceLines.push(line);
-    //     } else {
-    //       console.log('end PART OF BLOCK', index, line);
-    //     }
-    //   } else if (!inWebOnlyComment && !inWebOnlyBlock) {
-    //     // If line is not part of a @webonly block, push to buffer.
-    //     nodeSourceLines.push(line);
-    //   }
-    // });
-    // return fs.writeFile(tempNodeSourcePath, nodeSourceLines.join('\n'));
-    return fs.writeFile(tempNodeSourcePath, newText);
+    return fs.writeFile(tempNodeSourcePath, nodeText);
 }
 
 /**
@@ -371,9 +325,9 @@ Promise.all([
     // Clean up temp home markdown file. (Nothing needs to wait for this.)
     fs.unlink(tempHomePath);
     // Clean up temp node index.d.ts file if it exists.
-    // if (fs.exists(tempNodeSourcePath)) {
-    //   fs.unlink(tempNodeSourcePath);
-    // }
+    if (fs.exists(tempNodeSourcePath)) {
+      fs.unlink(tempNodeSourcePath);
+    }
     // Devsite doesn't like css.map files.
     return fs.unlink(`${docPath}/assets/css/main.css.map`);
   })
