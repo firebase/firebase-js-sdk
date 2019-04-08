@@ -1,6 +1,7 @@
 # Unreleased
-- [feature] Added an `experimentalForceLongPolling` setting that may be helpful
-  to diagnose and avoid connection issues with proxies in certain cases.
+- [feature] Added an `experimentalForceLongPolling` setting that that can be
+  used to work around proxies that prevent the Firestore client from connecting
+  to the Firestore backend.
 
 # 1.1.1
 - [changed] Increased a connection timeout that could lead to large writes
