@@ -796,7 +796,6 @@ declare namespace firebase {
    */
   function initializeApp(options: Object, name?: string): firebase.app.App;
 
-
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
 }
 
@@ -2745,7 +2744,6 @@ declare namespace firebase.auth {
     ): Promise<string>;
   }
 
-
   /**
    * Twitter auth provider.
    *
@@ -4504,7 +4502,6 @@ declare namespace firebase.database.ServerValue {
    */
   var TIMESTAMP: Object;
 }
-
 
 declare namespace firebase.firestore {
   /**
