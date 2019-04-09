@@ -269,6 +269,7 @@ async function generateNodeSource() {
           item.tags.forEach(tag => {
             if (tag.tagName.escapedText === 'webonly') {
               webOnlyBlocks.push({ start: node.pos, end: node.end });
+              return;
             }
           });
         }
