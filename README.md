@@ -1,8 +1,10 @@
 # Firebase Javascript SDK
 
 <!-- BADGES -->
+
 [![Build Status](https://travis-ci.org/firebase/firebase-js-sdk.svg?branch=master)](https://travis-ci.org/firebase/firebase-js-sdk)
 [![Build Status](https://saucelabs.com/buildstatus/firebase-oss)](https://saucelabs.com/u/firebase-oss)
+
 <!-- END BADGES -->
 
 The Firebase JavaScript SDK implements the client-side libraries used by
@@ -36,7 +38,7 @@ or [`N`](https://github.com/tj/n) to install and manage multiple node versions_
 
 In addition to Node.js we use `yarn` to facilitate multi package development.
 
-To install `yarn` follow the instructions listed on their website: 
+To install `yarn` follow the instructions listed on their website:
 https://yarnpkg.com/en/docs/install
 
 #### Java
@@ -85,16 +87,17 @@ them below.
 
 #### Authentication Support
 
-Visit the authentication config in your project and enable the `Anonymous` 
+Visit the authentication config in your project and enable the `Anonymous`
 sign-in provider to complete your project config.
 
 #### Automated Setup
 
-The remainder of the test setup can be done by running the following command at
+The remainder of the test setup can be done by running the following commands at
 the root of the package:
 
 ```bash
 yarn test:setup
+yarn build
 ```
 
 ### Running the tests
@@ -115,13 +118,13 @@ an individual package directory.
 ### Introduction
 
 The Firebase JS SDK is built with a series of individual packages that are all
-contained in this repository. Development is coordinated via [yarn 
-workspaces](https://yarnpkg.com/blog/2017/08/02/introducing-workspaces/) and 
+contained in this repository. Development is coordinated via [yarn
+workspaces](https://yarnpkg.com/blog/2017/08/02/introducing-workspaces/) and
 [Lerna](https://lernajs.io/) (a monorepo management tool).
 
 Each package in the `packages` directory, constitute a piece of our
 implementation. The SDK is built via a combination of all of these packages
-which are published under the [`firebase` 
+which are published under the [`firebase`
 scope](https://www.npmjs.com/search?q=scope%3Afirebase) on NPM.
 
 ### Helper Scripts
@@ -139,7 +142,7 @@ yarn dev
 
 ### Prepush Hooks
 
-As part of this repo, we use the NPM package [`husky`](https://npm.im/husky) to 
+As part of this repo, we use the NPM package [`husky`](https://npm.im/husky) to
 implement git hooks. We leverage the prepush hook to do two things:
 
 - Automated code styling (using [`prettier`](https://npm.im/prettier))
