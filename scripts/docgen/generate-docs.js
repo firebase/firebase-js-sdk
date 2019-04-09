@@ -244,12 +244,14 @@ function fixAllLinks(htmlFiles) {
 }
 
 /**
- * Generate an temporary abridged version of index.d.ts used to create Node docs.
+ * Generate an temporary abridged version of index.d.ts used to create
+ * Node docs.
  */
 async function generateNodeSource() {
   const sourceText = await fs.readFile(sourceFile, 'utf8');
 
-  // Parse index.d.ts. A dummy filename is required but it doesn't create a file.
+  // Parse index.d.ts. A dummy filename is required but it doesn't create a
+  // file.
   let typescriptSourceFile = typescript.createSourceFile(
     'temp.d.ts',
     sourceText,
@@ -257,7 +259,8 @@ async function generateNodeSource() {
     /*setParentNodes */ false
   );
 
-  // Traverse AST to get blocks annotated with @webonly and store their start/end index
+  // Traverse AST to get blocks annotated with @webonly and store their
+  // start/end index.
   const webOnlyBlocks = [];
   function findWebOnlyBlocks(node) {
     if (node.jsDoc) {
@@ -275,8 +278,8 @@ async function generateNodeSource() {
   }
   findWebOnlyBlocks(typescriptSourceFile);
 
-  // Copy each character from original index.d.ts to Node version, skipping those in webonly
-  // blocks.
+  // Copy each character from original index.d.ts to Node version, skipping
+  // those in webonly blocks.
   let nodeText = '';
   let currentBlockIndex = 0;
   for (
