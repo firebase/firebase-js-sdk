@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { WhereFilterOp } from '@firebase/firestore-types';
 import { fail } from './assert';
 import { Code, FirestoreError } from './error';
 import * as obj from './obj';
@@ -293,16 +292,26 @@ export function validateNamedOptionalPropertyEquals<T>(
   }
 }
 
-export function validateEnum<T>(functionName: string, position:number, argument: string): void {
-  function isWhereFilterOp(arg: string): arg is WhereFilterOp {
-    return ['<', '<= ', ' == ', ' >= ', ' > ', 'array - contains']
-      .some(element => element === arg);
-  }
-  if (!isWhereFilterOp(argument)) {
+/**
+ * Validates that the provided argument is part of the 
+ * 
+ * @param functionName Function making the validation call.
+ * @param enums Array containing all possible values for the enum.
+ * @param enumName Custom type name.
+ * @param position Position of the argument in `functionName`.
+ * @param argument Arugment to validate.
+ */
+export function validateArgEnum<T>(
+  functionName: string,
+  enums: string[],
+  enumName: string,
+  position:number, 
+  argument: string): void {
+  if (!enums.some(element => element === argument)) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `Function ${functionName}() requires its ${ordinal(position)} ` +
-      `argument to be an operator enum, but it was: ${argument}`
+      `argument to be of type ${enumName}, but it was: ${argument}`
     );
   }
 }

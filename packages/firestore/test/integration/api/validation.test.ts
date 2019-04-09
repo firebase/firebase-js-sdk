@@ -800,10 +800,10 @@ apiDescribe('Validation:', persistence => {
       );
     });
 
-    validationIt.only(persistence, 'enum', db=> {
+    validationIt(persistence, 'enum', db=> {
       const collection = db.collection('test') as any;
       expect(() => collection.where('a', 'foo', 'b')).to.throw(
-        'Function Query.where() requires its second operator to be operator relation,'
+        'Function Query.where() requires its second argument to be of type WhereFilterOp,'
         + ' but it was: foo'
       );
     });

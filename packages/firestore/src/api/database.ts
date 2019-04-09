@@ -59,10 +59,10 @@ import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import {
   invalidClassError,
+  validateArgEnum,
   validateArgType,
   validateAtLeastNumberOfArgs,
   validateBetweenNumberOfArgs,
-  validateCustomType,
   validateDefined,
   validateExactNumberOfArgs,
   validateNamedOptionalPropertyEquals,
@@ -1355,11 +1355,9 @@ export class Query implements firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateArgType('Query.where', 'non-empty string', 2, opStr);
     validateDefined('Query.where', 3, value);
-    function isWhereFilterOpType(arg: string): arg is firestore.WhereFilterOp {
-      return ['<', '<= ', ' == ', ' >= ', ' > ', 'array - contains']
-        .some(element => element === arg);
-    }
-    validateCustomType('Query.where', isWhereFilterOpType, 'operator relation', 2, opStr);
+    // Enumerated from the WhereFilterOp type in index.d.ts. 
+    const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];
+    validateArgEnum('Query.where', whereFilterOpEnums, 'WhereFilterOp', 2, opStr);
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
