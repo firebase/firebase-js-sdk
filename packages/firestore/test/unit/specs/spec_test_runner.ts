@@ -401,7 +401,8 @@ abstract class TestRunner {
       new DatabaseId('project'),
       'persistenceKey',
       'host',
-      false
+      /*ssl=*/ false,
+      /*forceLongPolling=*/ false
     );
 
     // TODO(mrschmidt): During client startup in `firestore_client`, we block

@@ -110,6 +110,7 @@ import {
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
 const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = true;
+const DEFAULT_FORCE_LONG_POLLING = false;
 
 /**
  * Constant used to indicate the LRU garbage collection should be disabled.
@@ -152,6 +153,8 @@ class FirestoreSettings {
 
   readonly cacheSizeBytes: number;
 
+  readonly forceLongPolling: boolean;
+
   // Can be a google-auth-library or gapi client.
   // tslint:disable-next-line:no-any
   credentials?: any;
@@ -178,7 +181,8 @@ class FirestoreSettings {
       'ssl',
       'credentials',
       'timestampsInSnapshots',
-      'cacheSizeBytes'
+      'cacheSizeBytes',
+      'experimentalForceLongPolling'
     ]);
 
     validateNamedOptionalType(
@@ -254,6 +258,17 @@ class FirestoreSettings {
         this.cacheSizeBytes = settings.cacheSizeBytes;
       }
     }
+
+    validateNamedOptionalType(
+      'settings',
+      'boolean',
+      'experimentalForceLongPolling',
+      settings.experimentalForceLongPolling
+    );
+    this.forceLongPolling =
+      settings.experimentalForceLongPolling === undefined
+        ? DEFAULT_FORCE_LONG_POLLING
+        : settings.experimentalForceLongPolling;
   }
 
   isEqual(other: FirestoreSettings): boolean {
@@ -262,7 +277,8 @@ class FirestoreSettings {
       this.ssl === other.ssl &&
       this.timestampsInSnapshots === other.timestampsInSnapshots &&
       this.credentials === other.credentials &&
-      this.cacheSizeBytes === other.cacheSizeBytes
+      this.cacheSizeBytes === other.cacheSizeBytes &&
+      this.forceLongPolling === other.forceLongPolling
     );
   }
 }
@@ -413,7 +429,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._config.databaseId,
       this._config.persistenceKey,
       this._config.settings.host,
-      this._config.settings.ssl
+      this._config.settings.ssl,
+      this._config.settings.forceLongPolling
     );
 
     const preConverter = (value: unknown) => {
