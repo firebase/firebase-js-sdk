@@ -27,12 +27,15 @@ export class DatabaseInfo {
    * storage (used in conjunction with the databaseId).
    * @param host The Firestore backend host to connect to.
    * @param ssl Whether to use SSL when connecting.
+   * @param forceLongPolling Whether to use the forceLongPolling option
+   * when using WebChannel as the network transport.
    */
   constructor(
     readonly databaseId: DatabaseId,
     readonly persistenceKey: string,
     readonly host: string,
-    readonly ssl: boolean
+    readonly ssl: boolean,
+    readonly forceLongPolling: boolean
   ) {}
 }
 
