@@ -12,7 +12,7 @@ a new project by visiting the [Firebase Console](https://console.firebase.google
 Make sure that the project has Cloud Firestore enabled in the database section of the
 console.
 
-While setting up tests, you can choose the project manually, or specify the project directly:
+While setting up tests, you can choose the project manually, or specify the project directly with the following command:
 
 ```
 yarn test:setup --projectId=<your-test-project>
