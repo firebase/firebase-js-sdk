@@ -308,8 +308,9 @@ export function validateStringEnum<T>(
   if (!enums.some(element => element === argument)) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Invalid value ${argument} provided to function ${functionName}() for its` +
-        ` ${ordinal(position)} argument. Acceptable values: ${enums.join(', ')}`
+      `Invalid value ${valueDescription(argument)} provided to function ` +
+        `${functionName}() for its ${ordinal(position)} argument. Acceptable ` +
+        `values: ${enums.join(', ')}`
     );
   }
 }

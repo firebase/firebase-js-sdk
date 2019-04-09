@@ -802,8 +802,8 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(persistence, 'enum', db => {
       const collection = db.collection('test') as any;
-      expect(() => collection.where('a', 'foo', 'b')).to.throw(
-        'Invalid value foo provided to function Query.where() for its second argument. ' +
+      expect(() => collection.where('a', 'foo' as any, 'b')).to.throw(
+        'Invalid value "foo" provided to function Query.where() for its second argument. ' +
           'Acceptable values: <, <=, ==, >=, >, array-contains'
       );
     });
