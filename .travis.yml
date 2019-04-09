@@ -10,9 +10,10 @@ env:
 before_install:
   # Yarn defaults to an old version, make sure we
   # get an up to date version
-  - npm install -g yarn@1.13.0
+  - npm install -g yarn@latest
   - '[ "${NPM_TOKEN+x}" ] && echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > $HOME/.npmrc || echo "Skipping .npmrc creation";'
-
+install:
+  - yarn install --frozen-lockfile
 before_script:
   - cp config/ci.config.json config/project.json
   - yarn build
