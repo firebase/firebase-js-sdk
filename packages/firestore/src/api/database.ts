@@ -59,7 +59,6 @@ import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import {
   invalidClassError,
-  validateArgEnum,
   validateArgType,
   validateAtLeastNumberOfArgs,
   validateBetweenNumberOfArgs,
@@ -71,6 +70,7 @@ import {
   validateOptionalArgType,
   validateOptionalArrayElements,
   validateOptionNames,
+  validateStringEnum,
   valueDescription
 } from '../util/input_validation';
 import * as log from '../util/log';
@@ -1353,17 +1353,10 @@ export class Query implements firestore.Query {
     value: unknown
   ): firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
-    validateArgType('Query.where', 'non-empty string', 2, opStr);
     validateDefined('Query.where', 3, value);
     // Enumerated from the WhereFilterOp type in index.d.ts.
     const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];
-    validateArgEnum(
-      'Query.where',
-      whereFilterOpEnums,
-      'WhereFilterOp',
-      2,
-      opStr
-    );
+    validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);

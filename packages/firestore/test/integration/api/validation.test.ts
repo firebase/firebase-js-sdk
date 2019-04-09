@@ -803,8 +803,8 @@ apiDescribe('Validation:', persistence => {
     validationIt(persistence, 'enum', db => {
       const collection = db.collection('test') as any;
       expect(() => collection.where('a', 'foo', 'b')).to.throw(
-        'Function Query.where() requires its second argument to be of type WhereFilterOp,' +
-          ' but it was: foo'
+        'Invalid value foo provided to function Query.where() for its second argument. ' +
+          'Acceptable values: <, <=, ==, >=, >, array-contains'
       );
     });
 
