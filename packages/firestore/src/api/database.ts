@@ -70,6 +70,7 @@ import {
   validateOptionalArgType,
   validateOptionalArrayElements,
   validateOptionNames,
+  validateStringEnum,
   valueDescription
 } from '../util/input_validation';
 import * as log from '../util/log';
@@ -1352,8 +1353,10 @@ export class Query implements firestore.Query {
     value: unknown
   ): firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
-    validateArgType('Query.where', 'non-empty string', 2, opStr);
     validateDefined('Query.where', 3, value);
+    // Enumerated from the WhereFilterOp type in index.d.ts.
+    const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];
+    validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
