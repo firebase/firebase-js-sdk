@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { fail } from './assert';
 import { Code, FirestoreError } from './error';
 import * as obj from './obj';
@@ -288,6 +287,30 @@ export function validateNamedOptionalPropertyEquals<T>(
       optionName,
       input,
       expected
+    );
+  }
+}
+
+/**
+ * Validates that the provided argument is a valid enum.
+ *
+ * @param functionName Function making the validation call.
+ * @param enums Array containing all possible values for the enum.
+ * @param position Position of the argument in `functionName`.
+ * @param argument Arugment to validate.
+ */
+export function validateStringEnum<T>(
+  functionName: string,
+  enums: string[],
+  position: number,
+  argument: unknown
+): void {
+  if (!enums.some(element => element === argument)) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Invalid value ${valueDescription(argument)} provided to function ` +
+        `${functionName}() for its ${ordinal(position)} argument. Acceptable ` +
+        `values: ${enums.join(', ')}`
     );
   }
 }
