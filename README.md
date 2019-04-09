@@ -1,10 +1,8 @@
 # Firebase Javascript SDK
 
 <!-- BADGES -->
-
 [![Build Status](https://travis-ci.org/firebase/firebase-js-sdk.svg?branch=master)](https://travis-ci.org/firebase/firebase-js-sdk)
 [![Build Status](https://saucelabs.com/buildstatus/firebase-oss)](https://saucelabs.com/u/firebase-oss)
-
 <!-- END BADGES -->
 
 The Firebase JavaScript SDK implements the client-side libraries used by
