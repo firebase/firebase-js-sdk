@@ -5867,6 +5867,8 @@ declare namespace firebase.firestore {
      * using it to work around a specific network reliability issue, please
      * tell us about it in
      * https://github.com/firebase/firebase-js-sdk/issues/1674.
+     *
+     * @webonly
      */
     experimentalForceLongPolling?: boolean;
   }

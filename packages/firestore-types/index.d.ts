@@ -89,6 +89,8 @@ export interface Settings {
    * This setting may be removed in a future release. If you find yourself
    * using it to work around a specific network reliability issue, please tell
    * us about it in https://github.com/firebase/firebase-js-sdk/issues/1674.
+   *
+   * @webonly
    */
   experimentalForceLongPolling?: boolean;
 }
