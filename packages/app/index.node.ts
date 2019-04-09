@@ -17,7 +17,7 @@
 
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { createFirebaseNamespace } from './src/firebaseApp';
+import { createFirebaseNamespace } from './src/firebaseNamespace';
 import Storage from 'dom-storage';
 import { XMLHttpRequest } from 'xmlhttprequest';
 
