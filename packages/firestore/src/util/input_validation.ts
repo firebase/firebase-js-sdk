@@ -293,8 +293,8 @@ export function validateNamedOptionalPropertyEquals<T>(
 }
 
 /**
- * Validates that the provided argument is part of the 
- * 
+ * Validates that the provided argument is part of the
+ *
  * @param functionName Function making the validation call.
  * @param enums Array containing all possible values for the enum.
  * @param enumName Custom type name.
@@ -305,13 +305,14 @@ export function validateArgEnum<T>(
   functionName: string,
   enums: string[],
   enumName: string,
-  position:number, 
-  argument: string): void {
+  position: number,
+  argument: string
+): void {
   if (!enums.some(element => element === argument)) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `Function ${functionName}() requires its ${ordinal(position)} ` +
-      `argument to be of type ${enumName}, but it was: ${argument}`
+        `argument to be of type ${enumName}, but it was: ${argument}`
     );
   }
 }

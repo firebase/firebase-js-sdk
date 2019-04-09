@@ -1355,9 +1355,15 @@ export class Query implements firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateArgType('Query.where', 'non-empty string', 2, opStr);
     validateDefined('Query.where', 3, value);
-    // Enumerated from the WhereFilterOp type in index.d.ts. 
+    // Enumerated from the WhereFilterOp type in index.d.ts.
     const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];
-    validateArgEnum('Query.where', whereFilterOpEnums, 'WhereFilterOp', 2, opStr);
+    validateArgEnum(
+      'Query.where',
+      whereFilterOpEnums,
+      'WhereFilterOp',
+      2,
+      opStr
+    );
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
