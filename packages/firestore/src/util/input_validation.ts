@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { WhereFilterOp } from '@firebase/firestore-types';
 import { fail } from './assert';
 import { Code, FirestoreError } from './error';
 import * as obj from './obj';
@@ -152,6 +152,7 @@ export function validateArgType(
   position: number,
   argument: unknown
 ): void {
+  // console.log('validating: ', argument, 'as', type);
   validateType(functionName, type, `${ordinal(position)} argument`, argument);
 }
 
@@ -288,6 +289,20 @@ export function validateNamedOptionalPropertyEquals<T>(
       optionName,
       input,
       expected
+    );
+  }
+}
+
+export function validateEnum<T>(functionName: string, position:number, argument: string): void {
+  function isWhereFilterOp(arg: string): arg is WhereFilterOp {
+    return ['<', '<= ', ' == ', ' >= ', ' > ', 'array - contains']
+      .some(element => element === arg);
+  }
+  if (!isWhereFilterOp(argument)) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Function ${functionName}() requires its ${ordinal(position)} ` +
+      `argument to be an operator enum, but it was: ${argument}`
     );
   }
 }

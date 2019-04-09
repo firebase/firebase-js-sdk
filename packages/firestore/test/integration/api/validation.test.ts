@@ -779,7 +779,7 @@ apiDescribe('Validation:', persistence => {
     validationIt(persistence, 'reject more than one argument', db => {
       const doc = db.collection('test').doc();
       expect(() =>
-        doc.set({ x: (FieldValue as any).increment(1337, 'leet') })
+        doc.set({ x: (FieldValue as any).increment(1337, 'leet')  })
       ).to.throw(
         'Function FieldValue.increment() requires 1 argument, but was ' +
           'called with 2 arguments.'
@@ -800,10 +800,11 @@ apiDescribe('Validation:', persistence => {
       );
     });
 
-    validationIt(persistence, 'enum', db=> {
+    validationIt.only(persistence, 'enum', db=> {
       const collection = db.collection('test') as any;
       expect(() => collection.where('a', 'foo', 'b')).to.throw(
-        'Invalid enum.'
+        'Function Query.where() requires its second operator to be operator relation,'
+        + ' but it was: foo'
       );
     });
 

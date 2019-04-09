@@ -62,6 +62,7 @@ import {
   validateArgType,
   validateAtLeastNumberOfArgs,
   validateBetweenNumberOfArgs,
+  validateCustomType,
   validateDefined,
   validateExactNumberOfArgs,
   validateNamedOptionalPropertyEquals,
@@ -1354,6 +1355,11 @@ export class Query implements firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateArgType('Query.where', 'non-empty string', 2, opStr);
     validateDefined('Query.where', 3, value);
+    function isWhereFilterOpType(arg: string): arg is firestore.WhereFilterOp {
+      return ['<', '<= ', ' == ', ' >= ', ' > ', 'array - contains']
+        .some(element => element === arg);
+    }
+    validateCustomType('Query.where', isWhereFilterOpType, 'operator relation', 2, opStr);
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
