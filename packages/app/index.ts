@@ -16,7 +16,7 @@
  */
 
 import { FirebaseNamespace } from '@firebase/app-types';
-import { createFirebaseNamespace } from './src/firebaseApp';
+import { createFirebaseNamespace } from './src/firebaseNamespace';
 
 // Node detection logic from: https://github.com/iliakan/detect-node/
 let isNode = false;

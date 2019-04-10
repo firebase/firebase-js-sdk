@@ -948,8 +948,8 @@ declare namespace firebase {
    *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
    *   Add Firebase to your app} and
    * {@link
-   *   https://firebase.google.com/docs/web/setup#initialize_multiple_apps
-   *   Initialize multiple apps} for detailed documentation.
+   *   https://firebase.google.com/docs/web/setup#multiple-projects
+   *   Initialize multiple projects} for detailed documentation.
    *
    * @example
    * ```javascript
@@ -3202,6 +3202,7 @@ declare namespace firebase.auth {
    * @param providerId The associated provider ID, such as `github.com`.
    */
   class OAuthProvider implements firebase.auth.AuthProvider {
+    constructor(providerId: string);
     providerId: string;
     /**
      * @param scope Provider OAuth scope to add.
@@ -5895,6 +5896,24 @@ declare namespace firebase.firestore {
      * CACHE_SIZE_UNLIMITED to disable garbage collection.
      */
     cacheSizeBytes?: number;
+
+    /**
+     * Forces the SDK’s underlying network transport (WebChannel) to use
+     * long-polling. Each response from the backend will be closed immediately
+     * after the backend sends data (by default responses are kept open in
+     * case the backend has more data to send). This avoids incompatibility
+     * issues with certain proxies, antivirus software, etc. that incorrectly
+     * buffer traffic indefinitely. Use of this option will cause some
+     * performance degradation though.
+     *
+     * This setting may be removed in a future release. If you find yourself
+     * using it to work around a specific network reliability issue, please
+     * tell us about it in
+     * https://github.com/firebase/firebase-js-sdk/issues/1674.
+     *
+     * @webonly
+     */
+    experimentalForceLongPolling?: boolean;
   }
 
   /**

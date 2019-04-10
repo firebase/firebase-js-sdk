@@ -21,7 +21,7 @@ import {
   _FirebaseNamespace,
   FirebaseService
 } from '@firebase/app-types/private';
-import { createFirebaseNamespace } from '../src/firebaseApp';
+import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { assert } from 'chai';
 
 describe('Firebase App Class', () => {
