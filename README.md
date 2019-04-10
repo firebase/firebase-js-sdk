@@ -90,19 +90,23 @@ sign-in provider to complete your project config.
 
 #### Automated Setup
 
-The remainder of the test setup can be done by running the following commands at
-the root of the package:
+While setting up tests, you can choose the project manually or specify the 
+project directly at the root of the package:
 
 ```bash
-yarn test:setup
-yarn build
+# Select a project manually when running setup
+$ yarn test:setup
+
+# Specify the specific project for setup
+$ yarn test:setup --projectId=<your-test-project>
 ```
 
 ### Running the tests
 
 Each of the directories in the `integration` directory as well as the `packages`
-directory have their own test suites. These can be run altogether by running the
-following command at the root of the package:
+directory have their own test suites. You will need to build the SDK before
+running tests. Test suites can be run all together by running the following 
+command at the root of the package:
 
 ```bash
 $ yarn test
@@ -112,6 +116,13 @@ In addition, you can run any of the tests individually by running `yarn test` in
 an individual package directory.
 
 ## Building the SDK
+
+Once you have installed all the dependencies, you can build the entire SDK by
+running the following command the root of the SDK:
+
+```bash
+$ yarn build
+```
 
 ### Introduction
 
@@ -135,7 +146,7 @@ watch tasks as well as a sandbox server.
 You can run the dev script by running the following at the root of the package:
 
 ```bash
-yarn dev
+$ yarn dev
 ```
 
 ### Prepush Hooks
