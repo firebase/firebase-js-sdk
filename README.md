@@ -90,8 +90,9 @@ sign-in provider to complete your project config.
 
 #### Automated Setup
 
-While setting up tests, you can choose the project manually or specify the 
-project directly at the root of the package:
+The remainder of the test setup requiers choosing a test project. You can 
+choose the project manually or specify the project directly at the root of 
+the package.
 
 ```bash
 # Select a project manually when running setup
