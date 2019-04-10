@@ -278,25 +278,24 @@ async function generateNodeSource() {
   //   typescript.forEachChild(node, findWebOnlyBlocks);
   // }
   // findWebOnlyBlocks(typescriptSourceFile);
-  
-  const transformer = (context) =>
-    (rootNode) => {
-        function visit(node) {
-          if (node.jsDoc) {
-            node.jsDoc.forEach(item => {
-              if (item.tags) {
-                item.tags.forEach(tag => {
-                  if (tag.tagName.escapedText === 'webonly') {
-                    return null;
-                  }
-                });
+
+  const transformer = context => rootNode => {
+    function visit(node) {
+      if (node.jsDoc) {
+        node.jsDoc.forEach(item => {
+          if (item.tags) {
+            item.tags.forEach(tag => {
+              if (tag.tagName.escapedText === 'webonly') {
+                return null;
               }
             });
           }
-          return typescript.visitEachChild(node, visit, context);
-        }
-        return typescript.visitNode(rootNode, visit);
-    };
+        });
+      }
+      return typescript.visitEachChild(node, visit, context);
+    }
+    return typescript.visitNode(rootNode, visit);
+  };
   const result = typescript.transform(typescriptSourceFile, [transformer]);
 
   const printer = typescript.createPrinter();
@@ -322,7 +321,10 @@ async function generateNodeSource() {
   //   }
   // }
   // return fs.writeFile(tempNodeSourcePath, nodeText);
-  return fs.writeFile(tempNodeSourcePath, printer.printFile(result.transformed[0]));
+  return fs.writeFile(
+    tempNodeSourcePath,
+    printer.printFile(result.transformed[0])
+  );
 }
 
 /**
