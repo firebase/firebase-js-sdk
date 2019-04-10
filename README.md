@@ -70,6 +70,13 @@ by running the following at the root of the SDK:
 $ yarn
 ```
 
+Once you have installed all the dependencies, you can build the entire SDK by
+running the following command the root of the SDK:
+
+```bash
+$ yarn build
+```
+
 ## Testing the SDK
 
 ### Test Setup
@@ -90,7 +97,7 @@ sign-in provider to complete your project config.
 
 #### Automated Setup
 
-The remainder of the test setup requiers choosing a test project. You can 
+The remainder of the test setup requires choosing a test project. You can 
 choose the project manually or specify the project directly at the root of 
 the package.
 
@@ -117,13 +124,6 @@ In addition, you can run any of the tests individually by running `yarn test` in
 an individual package directory.
 
 ## Building the SDK
-
-Once you have installed all the dependencies, you can build the entire SDK by
-running the following command the root of the SDK:
-
-```bash
-$ yarn build
-```
 
 ### Introduction
 
