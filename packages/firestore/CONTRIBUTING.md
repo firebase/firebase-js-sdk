@@ -8,11 +8,12 @@ environment.
 ## Setting up an account for testing
 
 You will need a production project to test the Firestore SDK. You can create
-a new project by visiting the [Firebase Console](https://console.firebase.google.com/).
-Make sure that the project has Cloud Firestore enabled in the database section of the
-console.
+a new project by visiting the 
+[Firebase Console](https://console.firebase.google.com/). Make sure that the 
+project has Cloud Firestore enabled in the database section of the console.
 
-While setting up tests, you can choose the project manually, or specify the project directly with the following command:
+While setting up tests, you can choose the project manually, or specify the 
+project directly with the following command:
 
 ```
 yarn test:setup --projectId=<your-test-project>
