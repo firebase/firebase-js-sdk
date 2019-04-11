@@ -50,8 +50,6 @@ toc:
     path: /docs/reference/node/firebase.auth.PhoneAuthProvider
   - title: "SAMLAuthProvider"
     path: /docs/reference/node/firebase.auth.SAMLAuthProvider
-  - title: "RecaptchaVerifier"
-    path: /docs/reference/node/firebase.auth.RecaptchaVerifier
   - title: "UserMetadata"
     path: /docs/reference/node/firebase.auth.UserMetadata
   - title: "User"

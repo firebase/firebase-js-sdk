@@ -486,11 +486,11 @@ footer .tsd-legend { display: inline-block; width: 25%; padding: 0; font-size: 1
 .tsd-signature-type { font-style: italic; font-weight: normal; }
 
 .tsd-signatures { padding: 0; margin: 0 0 1em 0; border: 1px solid #eee; }
-.tsd-signatures .tsd-signature { margin: 0; border-width: 1px 0 0 0; transition: background-color 0.1s; }
+.tsd-signatures .tsd-signature { margin: 0; border-width: 1px 0; transition: background-color 0.1s; }
 .tsd-signatures .tsd-signature:first-child { border-top-width: 0; }
 .tsd-signatures .tsd-signature.current { background-color: #eee; }
 .tsd-signatures.active > .tsd-signature { cursor: pointer; }
-.tsd-panel > .tsd-signatures { margin-left: -20px; margin-right: -20px; border-width: 1px 0; }
+.tsd-panel > .tsd-signatures { margin-left: -20px; margin-right: -20px; border-width: 1px 0; padding-bottom: 5px }
 .tsd-panel > .tsd-signatures .tsd-signature.tsd-kind-icon { padding-left: 40px; }
 .tsd-panel > a.anchor + .tsd-signatures { border-top-width: 0; margin-top: -20px; }
 

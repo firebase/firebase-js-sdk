@@ -362,6 +362,8 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * // Creates the provider object.
@@ -577,6 +579,8 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * // Creates the provider object.
@@ -624,6 +628,8 @@ declare namespace firebase {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
+     *
+     * @webonly
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -992,6 +998,8 @@ declare namespace firebase {
    * generating notifications if the push message payload has a `notification`
    * parameter.
    *
+   * @webonly
+   *
    * @example
    * ```javascript
    * // Get the Messaging service for the default app
@@ -1020,6 +1028,8 @@ declare namespace firebase {
    * {@link firebase.storage.Storage `Storage`} service associated with a
    * specific app.
    *
+   * @webonly
+   *
    * @example
    * ```javascript
    * // Get the Storage service for the default app
@@ -1039,6 +1049,9 @@ declare namespace firebase {
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
 
+  /**
+   * @webonly
+   */
   function functions(app?: firebase.app.App): firebase.functions.Functions;
 }
 
@@ -1095,6 +1108,8 @@ declare namespace firebase.app {
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * var messaging = app.messaging();
@@ -1139,6 +1154,8 @@ declare namespace firebase.app {
      * Gets the {@link firebase.storage.Storage `Storage`} service for the current
      * app, optionally initialized with a custom storage bucket.
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * var storage = app.storage();
@@ -1156,10 +1173,16 @@ declare namespace firebase.app {
      */
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
+    /**
+     * @webonly
+     */
     functions(region?: string): firebase.functions.Functions;
   }
 }
 
+/**
+ * @webonly
+ */
 declare namespace firebase.functions {
   /**
    * An HttpsCallableResult wraps a single result from a function call.
@@ -1701,6 +1724,8 @@ declare namespace firebase.auth {
      *     for your Firebase project. Edit the list of authorized domains from the
      *     Firebase console.</dd>
      * </dl>
+     *
+     * @webonly
      *
      * @example
      * ```javascript
@@ -2508,6 +2533,8 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * // Creates the provider object.
@@ -2568,6 +2595,8 @@ declare namespace firebase.auth {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
+     *
+     * @webonly
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -3359,6 +3388,9 @@ declare namespace firebase.auth {
   /**
    * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application
    * verifier.
+   *
+   * @webonly
+   *
    * @param container The reCAPTCHA container parameter. This
    *     has different meaning depending on whether the reCAPTCHA is hidden or
    *     visible. For a visible reCAPTCHA the container must be empty. If a string
@@ -3376,6 +3408,7 @@ declare namespace firebase.auth {
    */
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
   /**
+   * @webonly
    * @hidden
    */
   class RecaptchaVerifier_Instance
@@ -5166,6 +5199,9 @@ declare namespace firebase.database.ServerValue {
   var TIMESTAMP: Object;
 }
 
+/**
+ * @webonly
+ */
 declare namespace firebase.messaging {
   /**
    * The Firebase Messaging service interface.
@@ -5270,6 +5306,9 @@ declare namespace firebase.messaging {
   function isSupported(): boolean;
 }
 
+/**
+ * @webonly
+ */
 declare namespace firebase.storage {
   /**
    * The full set of object metadata, including read-only properties.
