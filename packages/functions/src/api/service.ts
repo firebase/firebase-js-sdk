@@ -57,6 +57,8 @@ export class Service implements FirebaseFunctions {
   private readonly contextProvider: ContextProvider;
   private readonly serializer = new Serializer();
   private emulatorOrigin: string | null = null;
+  private cancelAllRequests: Promise<void>;
+  private deleteService: Function;
 
   /**
    * Creates a new Functions service for the given app and (optional) region.
@@ -68,11 +70,24 @@ export class Service implements FirebaseFunctions {
     private region_: string = 'us-central1'
   ) {
     this.contextProvider = new ContextProvider(app_);
+    // Cancels all ongoing requests when resolved.
+    this.cancelAllRequests = new Promise(resolve => {
+      this.deleteService = () => {
+        resolve();
+      }
+    });
   }
 
   get app(): FirebaseApp {
     return this.app_;
   }
+
+  INTERNAL = {
+    delete: (): Promise<void> => {
+      this.deleteService();
+      return Promise.resolve();
+    }
+  };
 
   /**
    * Returns the URL for a callable with the given name.
@@ -184,8 +199,14 @@ export class Service implements FirebaseFunctions {
 
     const response = await Promise.race([
       this.postJSON(url, body, headers),
-      failAfter(timeout)
+      failAfter(timeout),
+      this.cancelAllRequests
     ]);
+
+    // If service was deleted, interrupted response returns undefined.
+    if (!response) {
+      return;
+    }
 
     // Check for an error status, regardless of http status.
     const error = _errorForResponse(
