@@ -74,7 +74,7 @@ export class Service implements FirebaseFunctions {
     this.cancelAllRequests = new Promise(resolve => {
       this.deleteService = () => {
         resolve();
-      }
+      };
     });
   }
 
