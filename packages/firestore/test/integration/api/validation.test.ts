@@ -806,6 +806,10 @@ apiDescribe('Validation:', persistence => {
         'Invalid value "foo" provided to function Query.where() for its second argument. ' +
           'Acceptable values: <, <=, ==, >=, >, array-contains'
       );
+      expect(() => collection.orderBy('path', 'foo' as any)).to.throw(
+        'Invalid value "foo" provided to function Query.orderBy() for its second argument. ' +
+          'Acceptable values: desc, asc'
+      );
     });
 
     validationIt(

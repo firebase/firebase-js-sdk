@@ -571,7 +571,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   static setLogLevel(level: firestore.LogLevel): void {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
-    validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
+    // Enumerated from the LogLevel type in index.d.ts.
+    const logLevelEnums = ['debug', 'error', 'silent'];
+    validateStringEnum('Firestore.setLogLevel', logLevelEnums, 1, level);
     switch (level) {
       case 'debug':
         log.setLogLevel(log.LogLevel.DEBUG);
@@ -1448,12 +1450,16 @@ export class Query implements firestore.Query {
     directionStr?: firestore.OrderByDirection
   ): firestore.Query {
     validateBetweenNumberOfArgs('Query.orderBy', arguments, 1, 2);
-    validateOptionalArgType(
-      'Query.orderBy',
-      'non-empty string',
-      2,
-      directionStr
-    );
+    if (!!directionStr) {
+      // Enumerated from the OrderByDirection type in index.d.ts.
+      const orderByDirectionEnums = ['desc', 'asc'];
+      validateStringEnum(
+        'Query.orderBy',
+        orderByDirectionEnums,
+        2,
+        directionStr
+      );
+    }
     let direction: Direction;
     if (directionStr === undefined || directionStr === 'asc') {
       direction = Direction.ASCENDING;
