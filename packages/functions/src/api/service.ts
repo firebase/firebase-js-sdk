@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseService } from '@firebase/app-types/private';
 import firebase from '@firebase/app';
 import {
   FirebaseFunctions,
@@ -53,7 +54,7 @@ function failAfter(millis: number): Promise<HttpResponse> {
 /**
  * The main class for the Firebase Functions SDK.
  */
-export class Service implements FirebaseFunctions {
+export class Service implements FirebaseFunctions, FirebaseService {
   private readonly contextProvider: ContextProvider;
   private readonly serializer = new Serializer();
   private emulatorOrigin: string | null = null;
