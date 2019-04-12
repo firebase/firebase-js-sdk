@@ -34,7 +34,7 @@ import { deepCopy, deepExtend, ErrorFactory } from '@firebase/util';
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 /**
  * Global context object for a collection of services using
- * a shared authentication state. test
+ * a shared authentication state.
  */
 class FirebaseAppImpl implements FirebaseApp {
   private options_: FirebaseOptions;
