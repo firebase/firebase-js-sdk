@@ -38,3 +38,16 @@
 .firebase-docs .tsd-breadcrumb .model-name {
     color: #333;
 }
+
+.firebase-docs .tsd-signature {
+    border-bottom: 1px solid #eee;
+}
+
+.firebase-docs .tsd-description {
+    display: block;
+    padding-left: 20px;
+}
+
+.firebase-docs li.tsd-description:not(:last-child) {
+    margin-bottom: 20px;
+}

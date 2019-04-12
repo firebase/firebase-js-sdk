@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.1.1",
+  "version": "1.1.4",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
@@ -27,9 +27,9 @@
     "dist"
   ],
   "dependencies": {
-    "@firebase/firestore-types": "1.1.1",
-    "@firebase/logger": "0.1.10",
-    "@firebase/webchannel-wrapper": "0.2.16",
+    "@firebase/firestore-types": "1.1.2",
+    "@firebase/logger": "0.1.11",
+    "@firebase/webchannel-wrapper": "0.2.17",
     "grpc": "1.19.0",
     "tslib": "1.9.3"
   },
@@ -41,7 +41,7 @@
     "@types/chai": "4.1.7",
     "@types/long": "4.0.0",
     "@types/mocha": "5.2.6",
-    "@types/sinon": "7.0.9",
+    "@types/sinon": "7.0.10",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "indexeddbshim": "4.1.0",
@@ -61,17 +61,17 @@
     "npm-run-all": "4.1.5",
     "nyc": "13.3.0",
     "prettier": "1.16.4",
-    "rollup": "1.6.0",
+    "rollup": "1.7.3",
     "rollup-plugin-copy-assets": "1.1.0",
     "rollup-plugin-node-resolve": "4.0.1",
-    "rollup-plugin-replace": "2.1.0",
-    "rollup-plugin-typescript2": "0.19.3",
-    "sinon": "7.2.7",
+    "rollup-plugin-replace": "2.1.1",
+    "rollup-plugin-typescript2": "0.20.1",
+    "sinon": "7.3.0",
     "source-map-loader": "0.2.4",
     "ts-loader": "5.3.3",
     "ts-node": "8.0.3",
-    "tslint": "5.13.1",
-    "typescript": "3.3.3",
+    "tslint": "5.14.0",
+    "typescript": "3.3.4000",
     "webpack": "4.29.6",
     "yargs": "13.2.2"
   },

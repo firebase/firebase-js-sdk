@@ -1200,7 +1200,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     docKey: DocumentKey
   ): PersistencePromise<boolean> {
     if (this.inMemoryPins!.containsKey(docKey)) {
-      return PersistencePromise.resolve(true);
+      return PersistencePromise.resolve<boolean>(true);
     } else {
       return mutationQueuesContainKey(txn, docKey);
     }

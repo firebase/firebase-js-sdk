@@ -119,8 +119,8 @@ toc:
     path: /docs/reference/js/firebase.firestore.SnapshotMetadata
   - title: "SnapshotOptions"
     path: /docs/reference/js/firebase.firestore.SnapshotOptions
-  - title: "TimeStamp"
-    path: /docs/reference/js/firebase.firestore.TimeStamp
+  - title: "Timestamp"
+    path: /docs/reference/js/firebase.firestore.Timestamp
   - title: "Transaction"
     path: /docs/reference/js/firebase.firestore.Transaction
   - title: "WriteBatch"

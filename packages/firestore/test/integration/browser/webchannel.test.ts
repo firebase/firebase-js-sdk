@@ -35,7 +35,8 @@ describeFn('WebChannel', () => {
       new DatabaseId('testproject'),
       'persistenceKey',
       'example.com',
-      false
+      /*ssl=*/ false,
+      /*forceLongPolling=*/ false
     );
     const conn = new WebChannelConnection(info);
     const makeUrl = conn.makeUrl.bind(conn);

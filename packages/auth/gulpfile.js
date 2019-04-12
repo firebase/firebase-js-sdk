@@ -30,7 +30,7 @@ const OPTIMIZATION_LEVEL = 'ADVANCED_OPTIMIZATIONS';
 // For minified builds, wrap the output so we avoid leaking global variables.
 const CJS_WRAPPER_PREFIX =
   `(function() {var firebase = require('@firebase/app').default;`;
-const EMS_WRAPPER_PREFIX = `import firebase from '@firebase/app';(function() {`;
+const ESM_WRAPPER_PREFIX = `import firebase from '@firebase/app';(function() {`;
 const WRAPPER_SUFFIX =
   `}).apply(typeof global !== 'undefined' ? ` +
   `global : typeof self !== 'undefined' ? ` +
@@ -91,7 +91,7 @@ const cjsBuild = createBuildTask('auth.js', CJS_WRAPPER_PREFIX, WRAPPER_SUFFIX);
 gulp.task('cjs', cjsBuild);
 
 // esm build
-const esmBuild = createBuildTask('auth.esm.js', EMS_WRAPPER_PREFIX, WRAPPER_SUFFIX);
+const esmBuild = createBuildTask('auth.esm.js', ESM_WRAPPER_PREFIX, WRAPPER_SUFFIX);
 gulp.task('esm', esmBuild);
 
 // build without wrapper

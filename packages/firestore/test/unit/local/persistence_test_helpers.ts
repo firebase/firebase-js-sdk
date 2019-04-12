@@ -60,7 +60,8 @@ const TEST_DATABASE_INFO = new DatabaseInfo(
   TEST_DATABASE_ID,
   '[PersistenceTestHelpers]',
   'host',
-  /*ssl=*/ false
+  /*ssl=*/ false,
+  /*forceLongPolling=*/ false
 );
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */

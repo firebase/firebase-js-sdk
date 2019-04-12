@@ -12,8 +12,11 @@
             {{#if tags}}
                 <dl class="tsd-comment-tags">
                     {{#each tags}}
+                        {{#ifCond tagName '==' "webonly"}}
+                        {{else}}
                         <dt class="tag-{{tagName}}">{{tagName}}</dt>
                         <dd class="tag-body-{{tagName}}">{{#markdown}}{{{text}}}{{/markdown}}</dd>
+                        {{/ifCond}}
                     {{/each}}
                 </dl>
             {{/if}}

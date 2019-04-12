@@ -362,6 +362,8 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * // Creates the provider object.
@@ -577,6 +579,8 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * // Creates the provider object.
@@ -624,6 +628,8 @@ declare namespace firebase {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
+     *
+     * @webonly
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -942,8 +948,8 @@ declare namespace firebase {
    *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
    *   Add Firebase to your app} and
    * {@link
-   *   https://firebase.google.com/docs/web/setup#initialize_multiple_apps
-   *   Initialize multiple apps} for detailed documentation.
+   *   https://firebase.google.com/docs/web/setup#multiple-projects
+   *   Initialize multiple projects} for detailed documentation.
    *
    * @example
    * ```javascript
@@ -992,6 +998,8 @@ declare namespace firebase {
    * generating notifications if the push message payload has a `notification`
    * parameter.
    *
+   * @webonly
+   *
    * @example
    * ```javascript
    * // Get the Messaging service for the default app
@@ -1020,6 +1028,8 @@ declare namespace firebase {
    * {@link firebase.storage.Storage `Storage`} service associated with a
    * specific app.
    *
+   * @webonly
+   *
    * @example
    * ```javascript
    * // Get the Storage service for the default app
@@ -1039,6 +1049,9 @@ declare namespace firebase {
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
 
+  /**
+   * @webonly
+   */
   function functions(app?: firebase.app.App): firebase.functions.Functions;
 }
 
@@ -1095,6 +1108,8 @@ declare namespace firebase.app {
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * var messaging = app.messaging();
@@ -1139,6 +1154,8 @@ declare namespace firebase.app {
      * Gets the {@link firebase.storage.Storage `Storage`} service for the current
      * app, optionally initialized with a custom storage bucket.
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * var storage = app.storage();
@@ -1156,10 +1173,16 @@ declare namespace firebase.app {
      */
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
+    /**
+     * @webonly
+     */
     functions(region?: string): firebase.functions.Functions;
   }
 }
 
+/**
+ * @webonly
+ */
 declare namespace firebase.functions {
   /**
    * An HttpsCallableResult wraps a single result from a function call.
@@ -1701,6 +1724,8 @@ declare namespace firebase.auth {
      *     for your Firebase project. Edit the list of authorized domains from the
      *     Firebase console.</dd>
      * </dl>
+     *
+     * @webonly
      *
      * @example
      * ```javascript
@@ -2508,6 +2533,8 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * // Creates the provider object.
@@ -2568,6 +2595,8 @@ declare namespace firebase.auth {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
+     *
+     * @webonly
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -3173,6 +3202,7 @@ declare namespace firebase.auth {
    * @param providerId The associated provider ID, such as `github.com`.
    */
   class OAuthProvider implements firebase.auth.AuthProvider {
+    constructor(providerId: string);
     providerId: string;
     /**
      * @param scope Provider OAuth scope to add.
@@ -3358,6 +3388,9 @@ declare namespace firebase.auth {
   /**
    * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application
    * verifier.
+   *
+   * @webonly
+   *
    * @param container The reCAPTCHA container parameter. This
    *     has different meaning depending on whether the reCAPTCHA is hidden or
    *     visible. For a visible reCAPTCHA the container must be empty. If a string
@@ -3375,6 +3408,7 @@ declare namespace firebase.auth {
    */
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
   /**
+   * @webonly
    * @hidden
    */
   class RecaptchaVerifier_Instance
@@ -5165,6 +5199,9 @@ declare namespace firebase.database.ServerValue {
   var TIMESTAMP: Object;
 }
 
+/**
+ * @webonly
+ */
 declare namespace firebase.messaging {
   /**
    * The Firebase Messaging service interface.
@@ -5269,6 +5306,9 @@ declare namespace firebase.messaging {
   function isSupported(): boolean;
 }
 
+/**
+ * @webonly
+ */
 declare namespace firebase.storage {
   /**
    * The full set of object metadata, including read-only properties.
@@ -5721,7 +5761,10 @@ declare namespace firebase.storage {
      */
     on(
       event: firebase.storage.TaskEvent,
-      nextOrObserver?: firebase.Observer<any> | null | ((a: Object) => any),
+      nextOrObserver?:
+        | firebase.Observer<UploadTaskSnapshot>
+        | null
+        | ((a: UploadTaskSnapshot) => any),
       error?: ((a: Error) => any) | null,
       complete?: (firebase.Unsubscribe) | null
     ): Function;
@@ -5853,6 +5896,24 @@ declare namespace firebase.firestore {
      * CACHE_SIZE_UNLIMITED to disable garbage collection.
      */
     cacheSizeBytes?: number;
+
+    /**
+     * Forces the SDK’s underlying network transport (WebChannel) to use
+     * long-polling. Each response from the backend will be closed immediately
+     * after the backend sends data (by default responses are kept open in
+     * case the backend has more data to send). This avoids incompatibility
+     * issues with certain proxies, antivirus software, etc. that incorrectly
+     * buffer traffic indefinitely. Use of this option will cause some
+     * performance degradation though.
+     *
+     * This setting may be removed in a future release. If you find yourself
+     * using it to work around a specific network reliability issue, please
+     * tell us about it in
+     * https://github.com/firebase/firebase-js-sdk/issues/1674.
+     *
+     * @webonly
+     */
+    experimentalForceLongPolling?: boolean;
   }
 
   /**
@@ -7209,14 +7270,14 @@ declare namespace firebase.firestore {
     /**
      * Returns a special value that can be used with `set()` or `update()` that tells
      * the server to increment the field's current value by the given value.
-     * 
+     *
      * If either the operand or the current field value uses floating point precision,
      * all arithmetic follows IEEE 754 semantics. If both values are integers,
      * values outside of JavaScript's safe number range (`Number.MIN_SAFE_INTEGER` to
      * `Number.MAX_SAFE_INTEGER`) are also subject to precision loss. Furthermore,
      * once processed by the Firestore backend, all integer operations are capped
      * between -2^63 and 2^63-1.
-     * 
+     *
      * If the current field value is not of type `number`, or if the field does not
      * yet exist, the transformation sets the field to the given value.
      *
