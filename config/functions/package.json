@@ -3,7 +3,7 @@
   "description": "Cloud Functions for Firebase",
   "dependencies": {
     "cors": "2.8.5",
-    "firebase-admin": "7.1.1",
+    "firebase-admin": "7.2.0",
     "firebase-functions": "2.2.1"
   },
   "private": true
