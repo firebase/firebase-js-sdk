@@ -50,8 +50,6 @@ toc:
     path: /docs/reference/node/firebase.auth.PhoneAuthProvider
   - title: "SAMLAuthProvider"
     path: /docs/reference/node/firebase.auth.SAMLAuthProvider
-  - title: "RecaptchaVerifier"
-    path: /docs/reference/node/firebase.auth.RecaptchaVerifier
   - title: "UserMetadata"
     path: /docs/reference/node/firebase.auth.UserMetadata
   - title: "User"
@@ -120,8 +118,8 @@ toc:
     path: /docs/reference/node/firebase.firestore.SnapshotMetadata
   - title: "SnapshotOptions"
     path: /docs/reference/node/firebase.firestore.SnapshotOptions
-  - title: "TimeStamp"
-    path: /docs/reference/node/firebase.firestore.TimeStamp
+  - title: "Timestamp"
+    path: /docs/reference/node/firebase.firestore.Timestamp
   - title: "Transaction"
     path: /docs/reference/node/firebase.firestore.Transaction
   - title: "WriteBatch"

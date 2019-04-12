@@ -2,10 +2,29 @@
 
 See [Contributing](../../CONTRIBUTING.md) for general information on
 contributing to the Firebase JavaScript SDK (including Cloud Firestore).
+Follow instructions there to install dependencies, build the SDK, and set up
+the testing environment.
+
+## Setting up a project for testing
+
+You will need a production project to test the Firestore SDK. You can create
+a new project by visiting the 
+[Firebase Console](https://console.firebase.google.com/). Make sure that the 
+project has Cloud Firestore enabled in the database section of the console.
+
+See 
+[Automated Setup](https://github.com/firebase/firebase-js-sdk#automated-setup) 
+for more details.
+
 
 ## Running Firestore Tests
+
 All commands must be run from this `packages/firestore/` directory.
+
 ```
+# Come up to date on dependencies after performing git pull
+(cd ../../; yarn && yarn build)
+
 # Run all tests once (browser and node)
 yarn test
 

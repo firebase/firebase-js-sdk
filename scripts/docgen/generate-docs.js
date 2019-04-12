@@ -20,6 +20,7 @@ const yargs = require('yargs');
 const fs = require('mz/fs');
 const path = require('path');
 const yaml = require('js-yaml');
+const typescript = require('typescript');
 
 const repoPath = path.resolve(`${__dirname}/../..`);
 
@@ -41,6 +42,7 @@ const { api: apiType, source: sourceFile } = yargs
 const docPath = path.resolve(`${__dirname}/html/${apiType}`);
 const contentPath = path.resolve(`${__dirname}/content-sources/${apiType}`);
 const tempHomePath = path.resolve(`${contentPath}/HOME_TEMP.md`);
+const tempNodeSourcePath = path.resolve(`${__dirname}/index.node.d.ts`);
 const devsitePath = `/docs/reference/${apiType}/`;
 
 /**
@@ -58,7 +60,8 @@ function stripPath(path) {
  * Additional config options come from ./typedoc.js
  */
 function runTypedoc() {
-  const command = `${repoPath}/node_modules/.bin/typedoc ${sourceFile} \
+  const typeSource = apiType === 'node' ? tempNodeSourcePath : sourceFile;
+  const command = `${repoPath}/node_modules/.bin/typedoc ${typeSource} \
   --out ${docPath} \
   --readme ${tempHomePath} \
   --options ${__dirname}/typedoc.js \
@@ -111,7 +114,7 @@ function generateTempHomeMdFile(tocRaw, homeRaw) {
   const { toc } = yaml.safeLoad(tocRaw);
   let tocPageLines = [homeRaw, '# API Reference'];
   toc.forEach(group => {
-    tocPageLines.push(`\n## [${group.title}](${stripPath(group.path)})`);
+    tocPageLines.push(`\n## [${group.title}](${stripPath(group.path)}.html)`);
     group.section.forEach(item => {
       tocPageLines.push(`- [${item.title}](${stripPath(item.path)}.html)`);
     });
@@ -241,6 +244,55 @@ function fixAllLinks(htmlFiles) {
 }
 
 /**
+ * Generate an temporary abridged version of index.d.ts used to create
+ * Node docs.
+ */
+async function generateNodeSource() {
+  const sourceText = await fs.readFile(sourceFile, 'utf8');
+
+  // Parse index.d.ts. A dummy filename is required but it doesn't create a
+  // file.
+  let typescriptSourceFile = typescript.createSourceFile(
+    'temp.d.ts',
+    sourceText,
+    typescript.ScriptTarget.ES2015,
+    /*setParentNodes */ false
+  );
+
+  /**
+   * Typescript transformer function. Removes nodes tagged with @webonly.
+   */
+  const removeWebOnlyNodes = context => rootNode => {
+    function visit(node) {
+      if (
+        node.jsDoc &&
+        node.jsDoc.some(
+          item =>
+            item.tags &&
+            item.tags.some(tag => tag.tagName.escapedText === 'webonly')
+        )
+      ) {
+        return null;
+      }
+      return typescript.visitEachChild(node, visit, context);
+    }
+    return typescript.visitNode(rootNode, visit);
+  };
+
+  // Use above transformer on source AST to remove nodes tagged with @webonly.
+  const result = typescript.transform(typescriptSourceFile, [
+    removeWebOnlyNodes
+  ]);
+
+  // Convert transformed AST to text and write to file.
+  const printer = typescript.createPrinter();
+  return fs.writeFile(
+    tempNodeSourcePath,
+    printer.printFile(result.transformed[0])
+  );
+}
+
+/**
  * Main document generation process.
  *
  * Steps for generating documentation:
@@ -262,13 +314,22 @@ Promise.all([
     tocText = tocRaw;
     return generateTempHomeMdFile(tocRaw, homeRaw);
   })
+  .then(() => {
+    if (apiType === 'node') {
+      return generateNodeSource();
+    }
+  })
   // Run main Typedoc process (uses index.d.ts and generated temp file above).
   .then(runTypedoc)
-  .then(output => {
+  .then(async output => {
     // Typedoc output.
     console.log(output.stdout);
     // Clean up temp home markdown file. (Nothing needs to wait for this.)
     fs.unlink(tempHomePath);
+    // Clean up temp node index.d.ts file if it exists.
+    if (await fs.exists(tempNodeSourcePath)) {
+      fs.unlink(tempNodeSourcePath);
+    }
     // Devsite doesn't like css.map files.
     return fs.unlink(`${docPath}/assets/css/main.css.map`);
   })

@@ -24,7 +24,7 @@
     "repl": "node tools/repl.js",
     "release": "node scripts/release/cli.js",
     "pretest": "node tools/pretest.js",
-    "test": "lerna run --parallel --stream test",
+    "test": "lerna run --concurrency 4 --stream test",
     "pretest:coverage": "mkdirp coverage",
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
     "test:setup": "node tools/config.js",
