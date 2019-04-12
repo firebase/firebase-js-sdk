@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,8 +19,8 @@ import { expect } from 'chai';
 import {
   apiDescribe,
   toDataMap,
-  withTestDocAndInitialData,
-  withTestCollection
+  withTestCollection,
+  withTestDocAndInitialData
 } from '../util/helpers';
 
 apiDescribe('GetOptions', persistence => {

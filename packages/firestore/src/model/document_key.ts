@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +25,14 @@ export class DocumentKey {
       DocumentKey.isDocumentKey(path),
       'Invalid DocumentKey with an odd number of segments: ' +
         path.toArray().join('/')
+    );
+  }
+
+  /** Returns true if the document is in the specified collectionId. */
+  hasCollectionId(collectionId: string): boolean {
+    return (
+      this.path.length >= 2 &&
+      this.path.get(this.path.length - 2) === collectionId
     );
   }
 

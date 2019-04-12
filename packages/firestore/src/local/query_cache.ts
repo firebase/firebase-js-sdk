@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,10 +17,10 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId } from '../core/types';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
+import { DocumentKey } from '../model/document_key';
 
-import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
@@ -29,7 +30,7 @@ import { QueryData } from './query_data';
  *
  * The cache is keyed by Query and entries in the cache are QueryData instances.
  */
-export interface QueryCache extends GarbageSource {
+export interface QueryCache {
   /**
    * A global snapshot version representing the last consistent snapshot we
    * received from the backend. This is monotonically increasing and any
@@ -44,6 +45,22 @@ export interface QueryCache extends GarbageSource {
   getLastRemoteSnapshotVersion(
     transaction: PersistenceTransaction
   ): PersistencePromise<SnapshotVersion>;
+
+  /**
+   * @return The highest sequence number observed, including any that might be
+   *         persisted on-disk.
+   */
+  getHighestSequenceNumber(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<ListenSequenceNumber>;
+
+  /**
+   * Call provided function with each `QueryData` that we have cached.
+   */
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (q: QueryData) => void
+  ): PersistencePromise<void>;
 
   /**
    * Set the highest listen sequence number and optionally updates the
@@ -176,7 +193,13 @@ export interface QueryCache extends GarbageSource {
    * Allocated target IDs are persisted and `allocateTargetId()` will never
    * return the same ID twice.
    */
+  // PORTING NOTE: Multi-tab only.
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId>;
+
+  containsKey(
+    transaction: PersistenceTransaction,
+    key: DocumentKey
+  ): PersistencePromise<boolean>;
 }

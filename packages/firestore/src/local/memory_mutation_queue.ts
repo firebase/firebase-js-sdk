@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,15 +21,16 @@ import { BatchId, ProtoByteString } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { BATCHID_UNKNOWN, MutationBatch } from '../model/mutation_batch';
+import { MutationBatch } from '../model/mutation_batch';
 import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
+import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
-import { GarbageCollector } from './garbage_collector';
+import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
-import { PersistenceTransaction } from './persistence';
+import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
 
@@ -42,28 +44,19 @@ export class MemoryMutationQueue implements MutationQueue {
   /** Next value to use when assigning sequential IDs to each mutation batch. */
   private nextBatchId: BatchId = 1;
 
-  /** The highest acknowledged mutation in the queue. */
-  private highestAcknowledgedBatchId: BatchId = BATCHID_UNKNOWN;
-
   /** The last received stream token from the server, used to acknowledge which
    * responses the client has processed. Stream tokens are opaque checkpoint
    * markers whose only real value is their inclusion in the next request.
    */
   private lastStreamToken: ProtoByteString = emptyByteString();
 
-  /** The garbage collector to notify about potential garbage keys. */
-  private garbageCollector: GarbageCollector | null = null;
-
   /** An ordered mapping between documents and the mutations batch IDs. */
   private batchesByDocumentKey = new SortedSet(DocReference.compareByKey);
 
-  start(transaction: PersistenceTransaction): PersistencePromise<void> {
-    assert(
-      this.highestAcknowledgedBatchId < this.nextBatchId,
-      'highestAcknowledgedBatchId must be less than the nextBatchId'
-    );
-    return PersistencePromise.resolve();
-  }
+  constructor(
+    private readonly indexManager: IndexManager,
+    private readonly referenceDelegate: ReferenceDelegate
+  ) {}
 
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
@@ -75,12 +68,11 @@ export class MemoryMutationQueue implements MutationQueue {
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
     const batchId = batch.batchId;
-    assert(
-      batchId > this.highestAcknowledgedBatchId,
-      'Mutation batchIDs must be acknowledged in order'
-    );
-
     const batchIndex = this.indexOfExistingBatchId(batchId, 'acknowledged');
+    assert(
+      batchIndex === 0,
+      'Can only acknowledge the first batch in the mutation queue'
+    );
 
     // Verify that the batch in the queue is the one to be acknowledged.
     const check = this.mutationQueue[batchIndex];
@@ -91,12 +83,7 @@ export class MemoryMutationQueue implements MutationQueue {
         ', got batch ' +
         check.batchId
     );
-    assert(
-      !check.isTombstone(),
-      "Can't acknowledge a previously removed batch"
-    );
 
-    this.highestAcknowledgedBatchId = batchId;
     this.lastStreamToken = streamToken;
     return PersistencePromise.resolve();
   }
@@ -118,6 +105,7 @@ export class MemoryMutationQueue implements MutationQueue {
   addMutationBatch(
     transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
+    baseMutations: Mutation[],
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch> {
     assert(mutations.length !== 0, 'Mutation batches should not be empty');
@@ -133,13 +121,23 @@ export class MemoryMutationQueue implements MutationQueue {
       );
     }
 
-    const batch = new MutationBatch(batchId, localWriteTime, mutations);
+    const batch = new MutationBatch(
+      batchId,
+      localWriteTime,
+      baseMutations,
+      mutations
+    );
     this.mutationQueue.push(batch);
 
-    // Track references by document key.
+    // Track references by document key and index collection parents.
     for (const mutation of mutations) {
       this.batchesByDocumentKey = this.batchesByDocumentKey.add(
         new DocReference(mutation.key, batchId)
+      );
+
+      this.indexManager.addToCollectionParentIndex(
+        transaction,
+        mutation.key.path.popLast()
       );
     }
 
@@ -159,8 +157,8 @@ export class MemoryMutationQueue implements MutationQueue {
   ): PersistencePromise<DocumentKeySet | null> {
     const mutationBatch = this.findMutationBatch(batchId);
     assert(mutationBatch != null, 'Failed to find local mutation batch.');
-    return PersistencePromise.resolve(
-      !mutationBatch!.isTombstone() ? mutationBatch!.keys() : null
+    return PersistencePromise.resolve<DocumentKeySet | null>(
+      mutationBatch!.keys()
     );
   }
 
@@ -168,34 +166,21 @@ export class MemoryMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
-    const size = this.mutationQueue.length;
-
-    // All batches with batchId <= this.highestAcknowledgedBatchId have been
-    // acknowledged so the first unacknowledged batch after batchID will have a
-    // batchID larger than both of these values.
-    const nextBatchId = Math.max(batchId, this.highestAcknowledgedBatchId) + 1;
+    const nextBatchId = batchId + 1;
 
     // The requested batchId may still be out of range so normalize it to the
     // start of the queue.
     const rawIndex = this.indexOfBatchId(nextBatchId);
-    let index = rawIndex < 0 ? 0 : rawIndex;
-
-    // Finally return the first non-tombstone batch.
-    for (; index < size; index++) {
-      const batch = this.mutationQueue[index];
-      if (!batch.isTombstone()) {
-        return PersistencePromise.resolve<MutationBatch | null>(batch);
-      }
-    }
-    return PersistencePromise.resolve<MutationBatch | null>(null);
+    const index = rawIndex < 0 ? 0 : rawIndex;
+    return PersistencePromise.resolve(
+      this.mutationQueue.length > index ? this.mutationQueue[index] : null
+    );
   }
 
   getAllMutationBatches(
     transaction: PersistenceTransaction
   ): PersistencePromise<MutationBatch[]> {
-    return PersistencePromise.resolve(
-      this.getAllLiveMutationBatchesBeforeIndex(this.mutationQueue.length)
-    );
+    return PersistencePromise.resolve(this.mutationQueue.slice());
   }
 
   getAllMutationBatchesAffectingDocumentKey(
@@ -223,7 +208,7 @@ export class MemoryMutationQueue implements MutationQueue {
 
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: SortedMap<DocumentKey, unknown>
   ): PersistencePromise<MutationBatch[]> {
     let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);
 
@@ -247,6 +232,10 @@ export class MemoryMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
+    assert(
+      !query.isCollectionGroupQuery(),
+      'CollectionGroup queries should be handled in LocalDocumentsView'
+    );
     // Use the query path as a prefix for testing if a document matches the
     // query.
     const prefix = query.path;
@@ -308,48 +297,26 @@ export class MemoryMutationQueue implements MutationQueue {
     // first entry in the queue.
     const batchIndex = this.indexOfExistingBatchId(batch.batchId, 'removed');
     assert(
-      this.mutationQueue[batchIndex].batchId === batch.batchId,
-      'Removed batches must exist in the queue'
+      batchIndex === 0,
+      'Can only remove the first entry of the mutation queue'
     );
-
-    // Only actually remove batches if removing at the front of the queue.
-    // Previously rejected batches may have left tombstones in the queue, so
-    // expand the removal range to include any tombstones.
-    if (batchIndex === 0) {
-      let endIndex = 1;
-      for (; endIndex < this.mutationQueue.length; endIndex++) {
-        const batch = this.mutationQueue[endIndex];
-        if (!batch.isTombstone()) {
-          break;
-        }
-      }
-      this.mutationQueue.splice(0, endIndex);
-    } else {
-      this.mutationQueue[batchIndex] = this.mutationQueue[
-        batchIndex
-      ].toTombstone();
-    }
+    this.mutationQueue.shift();
 
     let references = this.batchesByDocumentKey;
-    for (const mutation of batch.mutations) {
-      const key = mutation.key;
-      if (this.garbageCollector !== null) {
-        this.garbageCollector.addPotentialGarbageKey(key);
-      }
-
-      const ref = new DocReference(key, batch.batchId);
+    return PersistencePromise.forEach(batch.mutations, mutation => {
+      const ref = new DocReference(mutation.key, batch.batchId);
       references = references.delete(ref);
-    }
-    this.batchesByDocumentKey = references;
-    return PersistencePromise.resolve();
+      return this.referenceDelegate.removeMutationReference(
+        transaction,
+        mutation.key
+      );
+    }).next(() => {
+      this.batchesByDocumentKey = references;
+    });
   }
 
   removeCachedMutationKeys(batchId: BatchId): void {
     // No-op since the memory mutation queue does not maintain a separate cache.
-  }
-
-  setGarbageCollector(garbageCollector: GarbageCollector | null): void {
-    this.garbageCollector = garbageCollector;
   }
 
   containsKey(
@@ -371,26 +338,6 @@ export class MemoryMutationQueue implements MutationQueue {
       );
     }
     return PersistencePromise.resolve();
-  }
-
-  /**
-   * A private helper that collects all the mutations batches in the queue up to
-   * but not including the given endIndex. All tombstones in the queue are
-   * excluded.
-   */
-  private getAllLiveMutationBatchesBeforeIndex(
-    endIndex: number
-  ): MutationBatch[] {
-    const result: MutationBatch[] = [];
-
-    for (let i = 0; i < endIndex; i++) {
-      const batch = this.mutationQueue[i];
-      if (!batch.isTombstone()) {
-        result.push(batch);
-      }
-    }
-
-    return result;
   }
 
   /**
@@ -445,6 +392,6 @@ export class MemoryMutationQueue implements MutationQueue {
 
     const batch = this.mutationQueue[index];
     assert(batch.batchId === batchId, 'If found batch must match');
-    return batch.isTombstone() ? null : batch;
+    return batch;
   }
 }

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +19,7 @@
  * @fileoverview Defines Cordova utility and helper functions.
  * The following plugins must be installed:
  * cordova plugin add cordova-plugin-buildinfo
- * cordova plugin add cordova-universal-links-plugin
+ * cordova plugin add cordova-universal-links-plugin-fix
  * cordova plugin add cordova-plugin-browsertab
  * cordova plugin add cordova-plugin-inappbrowser
  * iOS custom scheme support:
@@ -171,12 +172,14 @@ fireauth.CordovaHandler.prototype.initializeAndWait = function() {
   }
   this.isReady_ = fireauth.util.checkIfCordova().then(function() {
     // Check all dependencies installed.
-    // https://github.com/nordnet/cordova-universal-links-plugin
+    // Note that cordova-universal-links-plugin has been abandoned.
+    // A fork with latest fixes is available at:
+    // https://www.npmjs.com/package/cordova-universal-links-plugin-fix
     var subscribe = fireauth.util.getObjectRef(
         'universalLinks.subscribe', goog.global);
     if (typeof subscribe !== 'function') {
       throw fireauth.CordovaHandler.getError_(
-          'cordova-universal-links-plugin is not installed');
+          'cordova-universal-links-plugin-fix is not installed');
     }
     // https://www.npmjs.com/package/cordova-plugin-buildinfo
     var appIdentifier =
@@ -723,7 +726,7 @@ fireauth.CordovaHandler.prototype.extractAuthEventFromUrl_ =
  * @private
  */
 fireauth.CordovaHandler.prototype.setAuthEventListener_ = function() {
-  // https://github.com/nordnet/cordova-universal-links-plugin
+  // https://github.com/nordnet/cordova-universal-links-plugin-fix
   var self = this;
   // Default no redirect event result.
   var noEvent = new fireauth.AuthEvent(

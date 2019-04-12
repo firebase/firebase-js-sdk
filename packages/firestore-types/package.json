@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore-types",
-  "version": "0.6.0",
+  "version": "1.1.2",
   "description": "@firebase/firestore Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -14,13 +14,14 @@
     "@firebase/app-types": "0.x"
   },
   "repository": {
+    "directory": "packages/firestore-types",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/firestore-types"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "2.8.1"
+    "typescript": "3.3.4000"
   }
 }

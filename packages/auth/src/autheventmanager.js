@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -813,10 +814,12 @@ fireauth.RedirectAuthEventProcessor.prototype.processSuccessEvent_ =
   var handler = owner.getAuthEventHandlerFinisher(mode, eventId);
   var requestUri = /** @type {string} */ (authEvent.getUrlResponse());
   var sessionId = /** @type {string} */ (authEvent.getSessionId());
+  var postBody = /** @type {?string} */ (authEvent.getPostBody());
   var isRedirect = fireauth.AuthEvent.isRedirect(authEvent);
   // Complete sign in or link account operation and then pass result to
   // relevant pending popup promise.
-  return handler(requestUri, sessionId).then(function(popupRedirectResponse) {
+  return handler(requestUri, sessionId, postBody)
+      .then(function(popupRedirectResponse) {
     // Flow completed.
     // For a redirect operation resolve with the popupRedirectResponse,
     // otherwise resolve with null.
@@ -1051,9 +1054,11 @@ fireauth.PopupAuthEventProcessor.prototype.processSuccessEvent_ =
   // Successful operation, complete the exchange for an ID token.
   var requestUri = /** @type {string} */ (authEvent.getUrlResponse());
   var sessionId = /** @type {string} */ (authEvent.getSessionId());
+  var postBody = /** @type {?string} */ (authEvent.getPostBody());
   // Complete sign in or link account operation and then pass result to
   // relevant pending popup promise.
-  return handler(requestUri, sessionId).then(function(popupRedirectResponse) {
+  return handler(requestUri, sessionId, postBody)
+      .then(function(popupRedirectResponse) {
     // Flow completed.
     // Resolve pending popup promise if it exists.
     owner.resolvePendingPopupEvent(mode, popupRedirectResponse, null, eventId);
@@ -1108,7 +1113,7 @@ fireauth.AuthEventHandler.prototype.resolvePendingPopupEvent =
  * @param {!fireauth.AuthEvent.Type} mode The Auth type mode.
  * @param {?string=} opt_eventId The optional event ID.
  * @return {?function(string,
- *     string):!goog.Promise<!fireauth.AuthEventManager.Result>}
+ *     string, ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.AuthEventHandler.prototype.getAuthEventHandlerFinisher =
     function(mode, opt_eventId) {};

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { AnyDuringMigration } from './misc';
 
 export interface Resolver<R> {
   (value?: R | Promise<R>): void;
@@ -42,20 +41,17 @@ export class Deferred<R> {
 }
 
 /**
- * Takes an array of values and sequences them using the promise (or value)
- * returned by the supplied callback. The callback for each item is called
- * after the promise is resolved for the previous item.
- * The function returns a promise which is resolved after the promise for
- * the last item is resolved.
+ * Takes an array of values and a function from a value to a Promise. The function is run on each
+ * value sequentially, waiting for the previous promise to resolve before starting the next one.
+ * The returned promise resolves once the function has been run on all values.
  */
-export function sequence<T, R>(
+export function sequence<T>(
   values: T[],
-  fn: (value: T, result?: R) => R | Promise<R>,
-  initialValue?: R
-): Promise<R> {
-  let result = Promise.resolve(initialValue);
-  values.forEach(value => {
-    result = result.then(lastResult => fn(value, lastResult));
-  });
-  return result as AnyDuringMigration;
+  fn: (value: T) => Promise<void>
+): Promise<void> {
+  let p = Promise.resolve();
+  for (const value of values) {
+    p = p.then(() => fn(value));
+  }
+  return p;
 }

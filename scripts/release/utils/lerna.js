@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +26,10 @@ function getLernaUpdateJson() {
     try {
       if (cache) return cache;
 
-      const result = await exec('lerna updated --json', {
+      let { stdout: lastTag } = await exec('git describe --tags --abbrev=0');
+      lastTag = lastTag.trim();
+
+      const result = await exec(`lerna ls --since ${lastTag} --json`, {
         env: npmRunPath.env(),
         cwd: root
       });

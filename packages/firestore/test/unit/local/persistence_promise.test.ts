@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +17,11 @@
 
 import { expect } from 'chai';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
+
+import * as chai from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+chai.use(chaiAsPromised);
 
 describe('PersistencePromise', () => {
   function async<R>(value: R): PersistencePromise<R> {
@@ -214,12 +220,26 @@ describe('PersistencePromise', () => {
       .toPromise();
   });
 
-  it('executes forEach in order', async () => {
-    let result = '';
-    await PersistencePromise.forEach(['a', 'b', 'c'], el => {
-      result += el;
-      return PersistencePromise.resolve();
+  it('propagates error for waitFor()', () => {
+    const resolved = PersistencePromise.resolve('resolved');
+    const rejected: PersistencePromise<string> = PersistencePromise.reject(
+      new Error('rejected')
+    );
+
+    const p = PersistencePromise.waitFor([resolved, rejected]).toPromise();
+
+    return expect(p).to.be.eventually.rejectedWith('rejected');
+  });
+
+  it('propagates error for forEach()', () => {
+    const p = PersistencePromise.forEach([true, false], success => {
+      if (success) {
+        return PersistencePromise.resolve();
+      } else {
+        return PersistencePromise.reject<void>(new Error('rejected'));
+      }
     }).toPromise();
-    expect(result).to.equal('abc');
+
+    return expect(p).to.be.eventually.rejectedWith('rejected');
   });
 });

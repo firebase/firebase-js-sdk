@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,14 +15,14 @@
  * limitations under the License.
  */
 
+import { assert } from '../util/assert';
+import { EventHandler } from '../util/misc';
+import { ObjectMap } from '../util/obj_map';
 import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState, TargetId } from './types';
 import { DocumentViewChange } from './view_snapshot';
 import { ChangeType, ViewSnapshot } from './view_snapshot';
-import { assert } from '../util/assert';
-import { EventHandler } from '../util/misc';
-import { ObjectMap } from '../util/obj_map';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being

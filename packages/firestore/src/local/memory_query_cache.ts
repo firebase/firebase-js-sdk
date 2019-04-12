@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,19 +17,20 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { TargetId } from '../core/types';
+import { TargetIdGenerator } from '../core/target_id_generator';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
+import { assert, fail } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
 
-import { GarbageCollector } from './garbage_collector';
+import { ActiveTargets } from './lru_garbage_collector';
+import { MemoryPersistence } from './memory_persistence';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
-import { assert, fail } from '../util/assert';
-import { TargetIdGenerator } from '../core/target_id_generator';
 
 export class MemoryQueryCache implements QueryCache {
   /**
@@ -40,6 +42,8 @@ export class MemoryQueryCache implements QueryCache {
   private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
   /** The highest numbered target ID encountered. */
   private highestTargetId: TargetId = 0;
+  /** The highest sequence number encountered. */
+  private highestSequenceNumber: ListenSequenceNumber = 0;
   /**
    * A ordered bidirectional mapping between documents and the remote target
    * IDs.
@@ -50,10 +54,30 @@ export class MemoryQueryCache implements QueryCache {
 
   private targetIdGenerator = TargetIdGenerator.forQueryCache();
 
+  constructor(private readonly persistence: MemoryPersistence) {}
+
+  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
+    return PersistencePromise.resolve(this.targetCount);
+  }
+
+  forEachTarget(
+    txn: PersistenceTransaction,
+    f: (q: QueryData) => void
+  ): PersistencePromise<void> {
+    this.queries.forEach((_, queryData) => f(queryData));
+    return PersistencePromise.resolve();
+  }
+
   getLastRemoteSnapshotVersion(
     transaction: PersistenceTransaction
   ): PersistencePromise<SnapshotVersion> {
     return PersistencePromise.resolve(this.lastRemoteSnapshotVersion);
+  }
+
+  getHighestSequenceNumber(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<ListenSequenceNumber> {
+    return PersistencePromise.resolve(this.highestSequenceNumber);
   }
 
   allocateTargetId(
@@ -72,6 +96,9 @@ export class MemoryQueryCache implements QueryCache {
     if (lastRemoteSnapshotVersion) {
       this.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion;
     }
+    if (highestListenSequenceNumber > this.highestSequenceNumber) {
+      this.highestSequenceNumber = highestListenSequenceNumber;
+    }
     return PersistencePromise.resolve();
   }
 
@@ -81,7 +108,9 @@ export class MemoryQueryCache implements QueryCache {
     if (targetId > this.highestTargetId) {
       this.highestTargetId = targetId;
     }
-    // TODO(GC): track sequence number
+    if (queryData.sequenceNumber > this.highestSequenceNumber) {
+      this.highestSequenceNumber = queryData.sequenceNumber;
+    }
   }
 
   addQueryData(
@@ -121,6 +150,28 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
+  removeTargets(
+    transaction: PersistenceTransaction,
+    upperBound: ListenSequenceNumber,
+    activeTargetIds: ActiveTargets
+  ): PersistencePromise<number> {
+    let count = 0;
+    const removals: Array<PersistencePromise<void>> = [];
+    this.queries.forEach((key, queryData) => {
+      if (
+        queryData.sequenceNumber <= upperBound &&
+        !activeTargetIds[queryData.targetId]
+      ) {
+        this.queries.delete(key);
+        removals.push(
+          this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
+        );
+        count++;
+      }
+    });
+    return PersistencePromise.waitFor(removals).next(() => count);
+  }
+
   getQueryCount(
     transaction: PersistenceTransaction
   ): PersistencePromise<number> {
@@ -150,7 +201,14 @@ export class MemoryQueryCache implements QueryCache {
     targetId: TargetId
   ): PersistencePromise<void> {
     this.references.addReferences(keys, targetId);
-    return PersistencePromise.resolve();
+    const referenceDelegate = this.persistence.referenceDelegate;
+    const promises: Array<PersistencePromise<void>> = [];
+    if (referenceDelegate) {
+      keys.forEach(key => {
+        promises.push(referenceDelegate.addReference(txn, key));
+      });
+    }
+    return PersistencePromise.waitFor(promises);
   }
 
   removeMatchingKeys(
@@ -159,7 +217,14 @@ export class MemoryQueryCache implements QueryCache {
     targetId: TargetId
   ): PersistencePromise<void> {
     this.references.removeReferences(keys, targetId);
-    return PersistencePromise.resolve();
+    const referenceDelegate = this.persistence.referenceDelegate;
+    const promises: Array<PersistencePromise<void>> = [];
+    if (referenceDelegate) {
+      keys.forEach(key => {
+        promises.push(referenceDelegate.removeReference(txn, key));
+      });
+    }
+    return PersistencePromise.waitFor(promises);
   }
 
   removeMatchingKeysForTargetId(
@@ -178,14 +243,10 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve(matchingKeys);
   }
 
-  setGarbageCollector(gc: GarbageCollector | null): void {
-    this.references.setGarbageCollector(gc);
-  }
-
   containsKey(
-    txn: PersistenceTransaction | null,
+    txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
-    return this.references.containsKey(txn, key);
+    return PersistencePromise.resolve(this.references.containsKey(key));
   }
 }

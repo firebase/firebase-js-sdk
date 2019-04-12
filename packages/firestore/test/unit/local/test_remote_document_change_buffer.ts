@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,19 +31,22 @@ export class TestRemoteDocumentChangeBuffer {
   ) {}
 
   addEntry(maybeDocument: MaybeDocument): void {
-    // Doesn't need a transaction!
     this.buffer.addEntry(maybeDocument);
   }
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('getEntry', false, txn => {
+    return this.persistence.runTransaction('getEntry', 'readonly', txn => {
       return this.buffer.getEntry(txn, documentKey);
     });
   }
 
   apply(): Promise<void> {
-    return this.persistence.runTransaction('apply', true, txn => {
-      return this.buffer.apply(txn);
-    });
+    return this.persistence.runTransaction(
+      'apply',
+      'readwrite-primary',
+      txn => {
+        return this.buffer.apply(txn);
+      }
+    );
   }
 }

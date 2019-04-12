@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -170,50 +171,72 @@ export class PersistencePromise<T> {
 
   static waitFor(
     // tslint:disable-next-line:no-any Accept all Promise types in waitFor().
-    all: Array<PersistencePromise<any>>
+    all: { forEach: (cb: (el: PersistencePromise<any>) => void) => void }
   ): PersistencePromise<void> {
-    const expectedCount = all.length;
-    if (expectedCount === 0) {
-      return PersistencePromise.resolve();
-    }
-
-    let resolvedCount = 0;
     return new PersistencePromise<void>((resolve, reject) => {
-      for (const promise of all) {
-        promise.next(
+      let expectedCount = 0;
+      let resolvedCount = 0;
+      let done = false;
+
+      all.forEach(element => {
+        ++expectedCount;
+        element.next(
           () => {
             ++resolvedCount;
-            if (resolvedCount === expectedCount) {
+            if (done && resolvedCount === expectedCount) {
               resolve();
             }
           },
           err => reject(err)
         );
+      });
+
+      done = true;
+      if (resolvedCount === expectedCount) {
+        resolve();
       }
     });
   }
 
-  static map<R>(all: Array<PersistencePromise<R>>): PersistencePromise<R[]> {
-    const results: R[] = [];
-    const promises: Array<PersistencePromise<void>> = [];
-    for (let i = 0; i < all.length; ++i) {
-      promises[i] = all[i].next(result => {
-        results[i] = result;
+  /**
+   * Given an array of predicate functions that asynchronously evaluate to a
+   * boolean, implements a short-circuiting `or` between the results. Predicates
+   * will be evaluated until one of them returns `true`, then stop. The final
+   * result will be whether any of them returned `true`.
+   */
+  static or(
+    predicates: Array<() => PersistencePromise<boolean>>
+  ): PersistencePromise<boolean> {
+    let p: PersistencePromise<boolean> = PersistencePromise.resolve<boolean>(
+      false
+    );
+    for (const predicate of predicates) {
+      p = p.next(isTrue => {
+        if (isTrue) {
+          return PersistencePromise.resolve<boolean>(isTrue);
+        } else {
+          return predicate();
+        }
       });
     }
-    return PersistencePromise.waitFor(promises).next(() => {
-      return results;
-    });
+    return p;
   }
 
-  static forEach<T>(
-    elements: T[],
-    callback: (T) => PersistencePromise<void>
+  /**
+   * Given an iterable, call the given function on each element in the
+   * collection and wait for all of the resulting concurrent PersistencePromises
+   * to resolve.
+   */
+  static forEach<R, S>(
+    collection: { forEach: (cb: (r: R, s?: S) => void) => void },
+    f:
+      | ((r: R, s: S) => PersistencePromise<void>)
+      | ((r: R) => PersistencePromise<void>)
   ): PersistencePromise<void> {
-    let p = PersistencePromise.resolve();
-    for (const element of elements) {
-      p = p.next(() => callback(element));
-    }
-    return p;
+    const promises: Array<PersistencePromise<void>> = [];
+    collection.forEach((r, s) => {
+      promises.push(f.call(this, r, s));
+    });
+    return this.waitFor(promises);
   }
 }

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +24,8 @@ import {
   MaybeDocumentMap,
   targetIdSet
 } from '../model/collections';
-import { SortedSet } from '../util/sorted_set';
 import { emptyByteString } from '../platform/platform';
+import { SortedSet } from '../util/sorted_set';
 
 /**
  * An event from the RemoteStore. It is split into targetChanges (changes to the

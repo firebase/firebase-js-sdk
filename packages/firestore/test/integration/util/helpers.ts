@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,22 +28,37 @@ declare const __karma__: any;
 
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
+const EMULATOR_PORT = process.env.FIRESTORE_EMULATOR_PORT;
+const EMULATOR_PROJECT_ID = process.env.FIRESTORE_EMULATOR_PROJECT_ID;
+export const USE_EMULATOR = !!EMULATOR_PORT;
+
+const EMULATOR_FIRESTORE_SETTING = {
+  host: `localhost:${EMULATOR_PORT}`,
+  ssl: false
+};
+
+const PROD_FIRESTORE_SETTING = {
+  host: 'firestore.googleapis.com',
+  ssl: true
+};
+
 export const DEFAULT_SETTINGS = getDefaultSettings();
+
+// tslint:disable-next-line:no-console
+console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 
 function getDefaultSettings(): firestore.Settings {
   const karma = typeof __karma__ !== 'undefined' ? __karma__ : undefined;
   if (karma && karma.config.firestoreSettings) {
     return karma.config.firestoreSettings;
   } else {
-    return {
-      host: 'firestore.googleapis.com',
-      ssl: true,
-      timestampsInSnapshots: true
-    };
+    return USE_EMULATOR ? EMULATOR_FIRESTORE_SETTING : PROD_FIRESTORE_SETTING;
   }
 }
 
-export const DEFAULT_PROJECT_ID = PROJECT_CONFIG.projectId;
+export const DEFAULT_PROJECT_ID = USE_EMULATOR
+  ? EMULATOR_PROJECT_ID
+  : PROJECT_CONFIG.projectId;
 export const ALT_PROJECT_ID = 'test-db2';
 
 function isIeOrEdge(): boolean {

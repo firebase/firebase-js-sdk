@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,14 +15,16 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
+import { CACHE_SIZE_UNLIMITED } from '../../../src/api/database';
+import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import {
-  DEFAULT_PROJECT_ID,
   ALT_PROJECT_ID,
   apiDescribe,
+  DEFAULT_PROJECT_ID,
   withAlternateTestDb,
   withTestCollection,
   withTestDb
@@ -29,6 +32,11 @@ import {
 
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
+
+// TODO(b/116617988): Use public API.
+interface FirestoreInternal extends firestore.FirebaseFirestore {
+  _collectionGroup(collectionId: string): firestore.Query;
+}
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
 // tslint:disable:no-any
@@ -106,6 +114,12 @@ class TestClass {
 // once.
 apiDescribe('Validation:', persistence => {
   describe('FirestoreSettings', () => {
+    // Enabling persistence counts as a use of the firestore instance, meaning
+    // that it will be impossible to verify that a set of settings don't throw,
+    // and additionally that some exceptions happen for specific reasons, rather
+    // than persistence having already been enabled.
+    if (persistence) return;
+
     validationIt(persistence, 'validates options', db => {
       // NOTE: 'credentials' is an undocumented API so ideally we wouldn't
       // show it in the error, but I don't think it's worth the trouble of
@@ -123,7 +137,7 @@ apiDescribe('Validation:', persistence => {
 
       expect(() => db.settings({ host: null as any })).to.throw(
         'Function settings() requires its host option to be of type ' +
-          'string, but it was: null'
+          'non-empty string, but it was: null'
       );
     });
 
@@ -137,6 +151,17 @@ apiDescribe('Validation:', persistence => {
           'calling any other methods on a Firestore object.'
       );
     });
+
+    validationIt(persistence, 'enforces minimum cache size', db => {
+      expect(() => db.settings({ cacheSizeBytes: 1 })).to.throw(
+        'cacheSizeBytes must be at least 1048576'
+      );
+    });
+
+    validationIt(persistence, 'garbage collection can be disabled', db => {
+      // Verify that this doesn't throw.
+      db.settings({ cacheSizeBytes: CACHE_SIZE_UNLIMITED });
+    });
   });
 
   describe('Firestore', () => {
@@ -144,7 +169,11 @@ apiDescribe('Validation:', persistence => {
       persistence,
       'disallows calling enablePersistence after use',
       db => {
-        db.doc('foo/bar');
+        // Calling `enablePersistence()` itself counts as use, so we should only
+        // need this method when persistence is not enabled.
+        if (!persistence) {
+          db.doc('foo/bar');
+        }
         expect(() => db.enablePersistence()).to.throw(
           'Firestore has already been started and persistence can no ' +
             'longer be enabled. You can only call enablePersistence() ' +
@@ -166,28 +195,38 @@ apiDescribe('Validation:', persistence => {
 
     it("fails transaction if function doesn't return a Promise.", () => {
       return withTestDb(persistence, db => {
-        return db.runTransaction(() => 5 as any).then(
-          x => expect.fail('Transaction should fail'),
-          err => {
-            expect(err.message).to.equal(
-              'Transaction callback must return a Promise'
-            );
-          }
-        );
+        return db
+          .runTransaction(() => 5 as any)
+          .then(
+            x => expect.fail('Transaction should fail'),
+            err => {
+              expect(err.message).to.equal(
+                'Transaction callback must return a Promise'
+              );
+            }
+          );
       });
     });
   });
 
   describe('Collection paths', () => {
-    validationIt(persistence, 'must be strings', db => {
+    validationIt(persistence, 'must be non-empty strings', db => {
       const baseDocRef = db.doc('foo/bar');
       expect(() => db.collection(null as any)).to.throw(
         'Function Firestore.collection() requires its first argument ' +
-          'to be of type string, but it was: null'
+          'to be of type non-empty string, but it was: null'
+      );
+      expect(() => db.collection('')).to.throw(
+        'Function Firestore.collection() requires its first argument ' +
+          'to be of type non-empty string, but it was: ""'
       );
       expect(() => baseDocRef.collection(null as any)).to.throw(
         'Function DocumentReference.collection() requires its first ' +
-          'argument to be of type string, but it was: null'
+          'argument to be of type non-empty string, but it was: null'
+      );
+      expect(() => baseDocRef.collection('')).to.throw(
+        'Function DocumentReference.collection() requires its first ' +
+          'argument to be of type non-empty string, but it was: ""'
       );
       expect(() => (baseDocRef.collection as any)('foo', 'bar')).to.throw(
         'Function DocumentReference.collection() requires 1 argument, ' +
@@ -237,15 +276,23 @@ apiDescribe('Validation:', persistence => {
       const baseCollectionRef = db.collection('foo');
       expect(() => db.doc(null as any)).to.throw(
         'Function Firestore.doc() requires its first argument to be ' +
-          'of type string, but it was: null'
+          'of type non-empty string, but it was: null'
+      );
+      expect(() => db.doc('')).to.throw(
+        'Function Firestore.doc() requires its first argument to be ' +
+          'of type non-empty string, but it was: ""'
       );
       expect(() => baseCollectionRef.doc(null as any)).to.throw(
         'Function CollectionReference.doc() requires its first ' +
-          'argument to be of type string, but it was: null'
+          'argument to be of type non-empty string, but it was: null'
+      );
+      expect(() => baseCollectionRef.doc('')).to.throw(
+        'Function CollectionReference.doc() requires its first ' +
+          'argument to be of type non-empty string, but it was: ""'
       );
       expect(() => baseCollectionRef.doc(undefined as any)).to.throw(
         'Function CollectionReference.doc() requires its first ' +
-          'argument to be of type string, but it was: undefined'
+          'argument to be of type non-empty string, but it was: undefined'
       );
       expect(() => (baseCollectionRef.doc as any)('foo', 'bar')).to.throw(
         'Function CollectionReference.doc() requires between 0 and ' +
@@ -289,6 +336,28 @@ apiDescribe('Validation:', persistence => {
     );
   });
 
+  validationIt(persistence, 'get options are validated', db => {
+    const collection = db.collection('test');
+    const doc = collection.doc();
+    const fn = () => {};
+
+    expect(() => doc.get(fn as any)).to.throw(
+      'Function DocumentReference.get() requires its first argument to be of type object, ' +
+        'but it was: a function'
+    );
+    expect(() => doc.get({ abc: 'cache' } as any)).to.throw(
+      `Unknown option 'abc' passed to function DocumentReference.get(). Available options: source`
+    );
+
+    expect(() => collection.get(fn as any)).to.throw(
+      'Function Query.get() requires its first argument to be of type object, but it was: ' +
+        'a function'
+    );
+    expect(() => collection.get({ abc: 'cache' } as any)).to.throw(
+      `Unknown option 'abc' passed to function Query.get(). Available options: source`
+    );
+  });
+
   validationIt(persistence, 'Snapshot options are validated', db => {
     const docRef = db.collection('test').doc();
 
@@ -306,7 +375,8 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           snapshot.data({ serverTimestamps: 'foo' } as any)
         ).to.throw(
-          `Invalid value "foo" provided to function DocumentSnapshot.data() for option "serverTimestamps". Acceptable values: "estimate", "previous", "none"`
+          `Invalid value "foo" provided to function DocumentSnapshot.data() for option ` +
+            `"serverTimestamps". Acceptable values: "estimate", "previous", "none"`
         );
       });
   });
@@ -315,21 +385,26 @@ apiDescribe('Validation:', persistence => {
     const docRef = db.collection('test').doc();
 
     expect(() => docRef.set({}, { merge: true, mergeFields: [] })).to.throw(
-      'Invalid options passed to function DocumentReference.set(): You cannot specify both "merge" and "mergeFields".'
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
+        '"merge" and "mergeFields".'
     );
     expect(() => docRef.set({}, { merge: false, mergeFields: [] })).to.throw(
-      'Invalid options passed to function DocumentReference.set(): You cannot specify both "merge" and "mergeFields".'
+      'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
+        '"merge" and "mergeFields".'
     );
     expect(() => docRef.set({}, { merge: 'foo' as any })).to.throw(
-      'Function DocumentReference.set() requires its merge option to be of type boolean, but it was: "foo"'
+      'Function DocumentReference.set() requires its merge option to be of type boolean, but it ' +
+        'was: "foo"'
     );
     expect(() => docRef.set({}, { mergeFields: 'foo' as any })).to.throw(
-      'Function DocumentReference.set() requires its mergeFields option to be an array, but it was: "foo"'
+      'Function DocumentReference.set() requires its mergeFields option to be an array, but it ' +
+        'was: "foo"'
     );
     expect(() =>
       docRef.set({}, { mergeFields: ['foo', false as any] })
     ).to.throw(
-      'Function DocumentReference.set() requires all mergeFields elements to be a string or a FieldPath, but the value at index 1 was: false'
+      'Function DocumentReference.set() requires all mergeFields elements to be a string or a ' +
+        'FieldPath, but the value at index 1 was: false'
     );
   });
 
@@ -669,6 +744,49 @@ apiDescribe('Validation:', persistence => {
     });
   });
 
+  describe('Server timestamps transforms', () => {
+    validationIt(persistence, 'reject any arguments', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: (FieldValue as any).serverTimestamp('foo') })
+      ).to.throw(
+        'Function FieldValue.serverTimestamp() does not support ' +
+          'arguments, but was called with 1 argument.'
+      );
+    });
+  });
+
+  describe('Numeric transforms', () => {
+    validationIt(persistence, 'fail in queries', db => {
+      const collection = db.collection('test');
+      expect(() =>
+        collection.where('test', '==', { test: FieldValue.increment(1) })
+      ).to.throw(
+        'Function Query.where() called with invalid data. ' +
+          'FieldValue.increment() can only be used with update() and set() ' +
+          '(found in field test)'
+      );
+    });
+
+    validationIt(persistence, 'reject invalid operands', db => {
+      const doc = db.collection('test').doc();
+      expect(() => doc.set({ x: FieldValue.increment('foo' as any) })).to.throw(
+        'Function FieldValue.increment() requires its first argument to ' +
+          'be of type number, but it was: "foo"'
+      );
+    });
+
+    validationIt(persistence, 'reject more than one argument', db => {
+      const doc = db.collection('test').doc();
+      expect(() =>
+        doc.set({ x: (FieldValue as any).increment(1337, 'leet') })
+      ).to.throw(
+        'Function FieldValue.increment() requires 1 argument, but was ' +
+          'called with 2 arguments.'
+      );
+    });
+  });
+
   describe('Queries', () => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
@@ -679,6 +797,14 @@ apiDescribe('Validation:', persistence => {
       expect(() => collection.limit(-1)).to.throw(
         'Invalid Query. Query limit (-1) is invalid. Limit must be ' +
           'positive.'
+      );
+    });
+
+    validationIt(persistence, 'enum', db => {
+      const collection = db.collection('test') as any;
+      expect(() => collection.where('a', 'foo' as any, 'b')).to.throw(
+        'Invalid value "foo" provided to function Query.where() for its second argument. ' +
+          'Acceptable values: <, <=, ==, >=, >, array-contains'
       );
     });
 
@@ -730,6 +856,60 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
+      'cannot be sorted by an uncommitted server timestamp',
+      db => {
+        return withTestCollection(
+          persistence,
+          /*docs=*/ {},
+          async (collection: firestore.CollectionReference) => {
+            await db.disableNetwork();
+
+            const offlineDeferred = new Deferred<void>();
+            const onlineDeferred = new Deferred<void>();
+
+            const unsubscribe = collection.onSnapshot(snapshot => {
+              // Skip the initial empty snapshot.
+              if (snapshot.empty) return;
+
+              expect(snapshot.docs).to.have.lengthOf(1);
+              const docSnap: firestore.DocumentSnapshot = snapshot.docs[0];
+
+              if (snapshot.metadata.hasPendingWrites) {
+                // Offline snapshot. Since the server timestamp is uncommitted,
+                // we shouldn't be able to query by it.
+                expect(() =>
+                  collection
+                    .orderBy('timestamp')
+                    .endAt(docSnap)
+                    .onSnapshot(() => {})
+                ).to.throw('uncommitted server timestamp');
+                offlineDeferred.resolve();
+              } else {
+                // Online snapshot. Since the server timestamp is committed, we
+                // should be able to query by it.
+                collection
+                  .orderBy('timestamp')
+                  .endAt(docSnap)
+                  .onSnapshot(() => {});
+                onlineDeferred.resolve();
+              }
+            });
+
+            const doc: firestore.DocumentReference = collection.doc();
+            doc.set({ timestamp: FieldValue.serverTimestamp() });
+            await offlineDeferred.promise;
+
+            await db.enableNetwork();
+            await onlineDeferred.promise;
+
+            unsubscribe();
+          }
+        );
+      }
+    );
+
+    validationIt(
+      persistence,
       'must not have more components than order by.',
       db => {
         const collection = db.collection('collection');
@@ -747,17 +927,25 @@ apiDescribe('Validation:', persistence => {
       persistence,
       'order-by-key bounds must be strings without slashes.',
       db => {
-        const collection = db.collection('collection');
-        const query = collection.orderBy(
-          firebase.firestore!.FieldPath.documentId()
-        );
+        const query = db
+          .collection('collection')
+          .orderBy(firebase.firestore!.FieldPath.documentId());
+        const cgQuery = (db as FirestoreInternal)
+          ._collectionGroup('collection')
+          .orderBy(firebase.firestore!.FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
             'Query.startAt(), but got a number'
         );
         expect(() => query.startAt('foo/bar')).to.throw(
-          `Invalid query. Document ID 'foo/bar' contains a slash in ` +
-            'Query.startAt()'
+          `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
+            `the value passed to Query.startAt() must be a plain document ID, but 'foo/bar' ` +
+            `contains a slash.`
+        );
+        expect(() => cgQuery.startAt('foo')).to.throw(
+          `Invalid query. When querying a collection group and ordering by ` +
+            `FieldPath.documentId(), the value passed to Query.startAt() must result in a valid ` +
+            `document path, but 'foo' is not because it contains an odd number of segments.`
         );
       }
     );
@@ -854,9 +1042,9 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 'foo/bar/baz')
         ).to.throw(
-          'Function Query.where() requires its third parameter to be ' +
-            'a valid document ID if the first parameter is ' +
-            'FieldPath.documentId(), but it contains a slash.'
+          `Invalid third parameter to Query.where(). When querying a collection by ` +
+            `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
+            `'foo/bar/baz' contains a slash.`
         );
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 1)
@@ -864,6 +1052,15 @@ apiDescribe('Validation:', persistence => {
           'Function Query.where() requires its third parameter to be ' +
             'a string or a DocumentReference if the first parameter is ' +
             'FieldPath.documentId(), but it was: 1.'
+        );
+        expect(() =>
+          (db as FirestoreInternal)
+            ._collectionGroup('foo')
+            .where(FieldPath.documentId(), '>=', 'foo')
+        ).to.throw(
+          `Invalid third parameter to Query.where(). When querying a collection group by ` +
+            `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+            `but 'foo' is not because it has an odd number of segments (1).`
         );
 
         expect(() =>

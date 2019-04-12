@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +29,7 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
+import { fail } from '../../../src/util/assert';
 
 chai.use(chaiAsPromised);
 
@@ -317,6 +319,22 @@ describe('SimpleDb', () => {
     });
   });
 
+  it('stops iteration after rejected promise', async () => {
+    return runTransaction(store => {
+      const iterated: User[] = [];
+      return store
+        .iterate((key, value) => {
+          iterated.push(value);
+          return PersistencePromise.reject(new Error('Expected error'));
+        })
+        .next(() => fail('Promise not rejected'))
+        .catch(err => {
+          expect(err.message).to.eq('Expected error');
+          expect(iterated).to.deep.equal([testData[0]]);
+        });
+    });
+  });
+
   it('can iterate in reverse', async () => {
     return runTransaction(store => {
       const iterated: User[] = [];
@@ -409,9 +427,8 @@ describe('SimpleDb', () => {
         )
         .next(() => {
           const expected = testData
-            .sort(
-              (a, b) =>
-                a.age !== b.age ? a.age - b.age : a.name.localeCompare(b.name)
+            .sort((a, b) =>
+              a.age !== b.age ? a.age - b.age : a.name.localeCompare(b.name)
             )
             .map(user => user.id);
           expect(iterated).to.deep.equal(expected);
@@ -488,7 +505,7 @@ describe('SimpleDb', () => {
         for (let i = 0; i < 1000; ++i) {
           promises.push(store.get(i));
         }
-        return PersistencePromise.map(promises).next(() => {
+        return PersistencePromise.waitFor(promises).next(() => {
           const end = new Date().getTime();
           // tslint:disable-next-line:no-console
           console.log(`Reading: ${end - start} ms`);

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +23,20 @@ exports.reinstallDeps = async () => {
   try {
     const spinner = ora(' Reinstalling Dependencies').start();
     await spawn('yarn', {
+      cwd: root
+    });
+    spinner.stopAndPersist({
+      symbol: '✅'
+    });
+  } catch (err) {
+    throw err;
+  }
+};
+
+exports.buildPackages = async () => {
+  try {
+    const spinner = ora(' Building Packages').start();
+    await spawn('yarn', ['build'], {
       cwd: root
     });
     spinner.stopAndPersist({

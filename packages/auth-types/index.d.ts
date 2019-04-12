@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,8 +58,8 @@ export interface User extends UserInfo {
   updatePassword(newPassword: string): Promise<void>;
   updatePhoneNumber(phoneCredential: AuthCredential): Promise<void>;
   updateProfile(profile: {
-    displayName: string | null;
-    photoURL: string | null;
+    displayName?: string | null;
+    photoURL?: string | null;
   }): Promise<void>;
 }
 
@@ -88,6 +89,7 @@ export type ActionCodeSettings = {
   handleCodeInApp?: boolean;
   iOS?: { bundleId: string };
   url: string;
+  dynamicLinkDomain?: string;
 };
 
 export type AdditionalUserInfo = {
@@ -180,10 +182,15 @@ export interface IdTokenResult {
 }
 
 export class OAuthProvider implements AuthProvider {
+  constructor(providerId: string);
   providerId: string;
   addScope(scope: string): AuthProvider;
   credential(idToken?: string, accessToken?: string): OAuthCredential;
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
+}
+
+export class SAMLAuthProvider implements AuthProvider {
+  providerId: string;
 }
 
 export class PhoneAuthProvider extends PhoneAuthProvider_Instance {
@@ -343,6 +350,7 @@ declare module '@firebase/app-types' {
       GoogleAuthProvider: typeof GoogleAuthProvider;
       GoogleAuthProvider_Instance: typeof GoogleAuthProvider_Instance;
       OAuthProvider: typeof OAuthProvider;
+      SAMLAuthProvider: typeof SAMLAuthProvider;
       PhoneAuthProvider: typeof PhoneAuthProvider;
       PhoneAuthProvider_Instance: typeof PhoneAuthProvider_Instance;
       RecaptchaVerifier: typeof RecaptchaVerifier;

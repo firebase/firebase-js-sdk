@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -263,7 +264,7 @@ export class QueryParams {
   startAt(indexValue: any, key?: string | null): QueryParams {
     const newParams = this.copy_();
     newParams.startSet_ = true;
-    if (!(indexValue !== undefined)) {
+    if (indexValue === undefined) {
       indexValue = null;
     }
     newParams.indexStartValue_ = indexValue;
@@ -285,7 +286,7 @@ export class QueryParams {
   endAt(indexValue: any, key?: string | null): QueryParams {
     const newParams = this.copy_();
     newParams.endSet_ = true;
-    if (!(indexValue !== undefined)) {
+    if (indexValue === undefined) {
       indexValue = null;
     }
     newParams.indexEndValue_ = indexValue;

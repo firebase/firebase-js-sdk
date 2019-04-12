@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,12 +16,11 @@
  */
 
 const gulp = require('gulp');
-const closureCompiler = require('gulp-closure-compiler');
+const closureCompiler = require('google-closure-compiler').gulp();
 const del = require('del');
 const express = require('express');
 const path = require('path');
-const { through } = require('event-stream');
-const File = require('vinyl');
+const sourcemaps = require('gulp-sourcemaps');
 
 // The optimization level for the JS compiler.
 // Valid levels: WHITESPACE_ONLY, SIMPLE_OPTIMIZATIONS, ADVANCED_OPTIMIZATIONS.
@@ -29,82 +29,74 @@ const OPTIMIZATION_LEVEL = 'ADVANCED_OPTIMIZATIONS';
 
 // For minified builds, wrap the output so we avoid leaking global variables.
 const CJS_WRAPPER_PREFIX =
-    `(function() {var firebase = require('@firebase/app').default;`;
-const EMS_WRAPPER_PREFIX = `import firebase from '@firebase/app';(function() {`;
+  `(function() {var firebase = require('@firebase/app').default;`;
+const ESM_WRAPPER_PREFIX = `import firebase from '@firebase/app';(function() {`;
 const WRAPPER_SUFFIX =
-    `}).call(typeof global !== 'undefined' ? ` +
-    `global : typeof self !== 'undefined' ? ` +
-    `self : typeof window !== 'undefined' ? window : {});`;
-
-/*
- * Re-emits file variations surrounding a content of an input file with
- * CommonJS and EcmaScript modules wrappers.
- */
-const wrap = through(function(file) {
-  const makeFile = (prefix, path) =>
-    new File({
-      path,
-      contents: Buffer.concat([
-        Buffer.from(prefix),
-        file.contents,
-        Buffer.from(WRAPPER_SUFFIX)
-      ])
-    });
-
-  this.emit('data', makeFile(CJS_WRAPPER_PREFIX, 'auth.js'));
-  this.emit('data', makeFile(EMS_WRAPPER_PREFIX, 'auth.esm.js'));
-});
-
-// The path to Closure Compiler.
-const COMPILER_PATH = `${path.dirname(
-    require.resolve('google-closure-compiler/package.json')
-)}/compiler.jar`;
+  `}).apply(typeof global !== 'undefined' ? ` +
+  `global : typeof self !== 'undefined' ? ` +
+  `self : typeof window !== 'undefined' ? window : {});`;
 
 const closureLibRoot = path.dirname(
-    require.resolve('google-closure-library/package.json')
+  require.resolve('google-closure-library/package.json')
 );
 
-// Builds the core Firebase-auth JS.
-const buildFirebaseAuth = () =>
-  gulp
-    .src([
-      `${closureLibRoot}/closure/goog/**/*.js`,
-      `${closureLibRoot}/third_party/closure/goog/**/*.js`,
-      'src/**/*.js'
-    ])
-    .pipe(
+/**
+ * Builds the core Firebase-auth JS.
+ * @param {string} filename name of the generated file
+ * @param {string} prefix prefix to the compiled code
+ * @param {string} suffix suffix to the compiled code
+ */
+function createBuildTask(filename, prefix, suffix) {
+  return () =>
+    gulp
+      .src([
+        `${closureLibRoot}/closure/goog/**/*.js`,
+        `${closureLibRoot}/third_party/closure/goog/**/*.js`,
+        'src/**/*.js'
+      ], { base: '.' })
+      .pipe(sourcemaps.init())
+      .pipe(
         closureCompiler({
-          compilerPath: COMPILER_PATH,
-          fileName: 'unwrapped.js',
-          compilerFlags: {
-            closure_entry_point: 'fireauth.exports',
-            compilation_level: OPTIMIZATION_LEVEL,
-            externs: [
-              'externs/externs.js',
-              'externs/grecaptcha.js',
-              'externs/gapi.iframes.js',
-              path.resolve(
-                  __dirname,
-                  '../firebase/externs/firebase-app-externs.js'
-              ),
-              path.resolve(
-                  __dirname,
-                  '../firebase/externs/firebase-error-externs.js'
-              ),
-              path.resolve(
-                  __dirname,
-                  '../firebase/externs/firebase-app-internal-externs.js'
-              )
-            ],
-            language_out: 'ES5',
-            only_closure_dependencies: true
-          }
+          js_output_file: filename,
+          output_wrapper: `${prefix}%output%${suffix}`,
+          entry_point: 'fireauth.exports',
+          compilation_level: OPTIMIZATION_LEVEL,
+          externs: [
+            'externs/externs.js',
+            'externs/grecaptcha.js',
+            'externs/gapi.iframes.js',
+            path.resolve(
+              __dirname,
+              '../firebase/externs/firebase-app-externs.js'
+            ),
+            path.resolve(
+              __dirname,
+              '../firebase/externs/firebase-error-externs.js'
+            ),
+            path.resolve(
+              __dirname,
+              '../firebase/externs/firebase-app-internal-externs.js'
+            )
+          ],
+          language_out: 'ES5',
+          only_closure_dependencies: true
         })
-    )
-    .pipe(wrap)
-    .pipe(gulp.dest('dist'));
+      )
+      .pipe(sourcemaps.write('.'))
+      .pipe(gulp.dest('dist'));
+}
 
-gulp.task('build-firebase-auth-js', buildFirebaseAuth);
+// commonjs build
+const cjsBuild = createBuildTask('auth.js', CJS_WRAPPER_PREFIX, WRAPPER_SUFFIX);
+gulp.task('cjs', cjsBuild);
+
+// esm build
+const esmBuild = createBuildTask('auth.esm.js', ESM_WRAPPER_PREFIX, WRAPPER_SUFFIX);
+gulp.task('esm', esmBuild);
+
+// build without wrapper
+const unwrappedBuild = createBuildTask('unwrapped.js', '', '');
+gulp.task('build-firebase-auth-js', unwrappedBuild);
 
 // Deletes intermediate files.
 gulp.task('clean', done => del(['dist/*', 'dist'], done));
@@ -114,12 +106,12 @@ gulp.task('serve', () => {
   const app = express();
 
   app.use(
-      '/node_modules',
-      express.static(path.resolve(__dirname, '../../node_modules'))
+    '/node_modules',
+    express.static(path.resolve(__dirname, '../../node_modules'))
   );
   app.use(express.static(__dirname));
 
   app.listen(4000);
 });
 
-gulp.task('default', buildFirebaseAuth);
+gulp.task('default', gulp.parallel('cjs', 'esm'));

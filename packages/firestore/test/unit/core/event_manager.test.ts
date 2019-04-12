@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -255,7 +256,7 @@ describe('QueryListener', () => {
     const eventListenable = queryListener(query, events);
 
     const view = new View(query, documentKeySet());
-    const changes = view.computeInitialChanges(documentUpdates(doc1));
+    const changes = view.computeDocChanges(documentUpdates(doc1));
     const snap1 = view.applyChanges(changes, true, ackTarget()).snapshot!;
 
     eventListenable.onViewSnapshot(snap1);
@@ -276,7 +277,7 @@ describe('QueryListener', () => {
     const eventListenable = queryListener(query, events);
 
     const view = new View(query, documentKeySet());
-    const changes = view.computeInitialChanges(documentUpdates(doc1));
+    const changes = view.computeDocChanges(documentUpdates(doc1));
     const snap1 = view.applyChanges(changes, true, ackTarget()).snapshot!;
 
     eventListenable.onViewSnapshot(snap1);

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,10 +24,10 @@ import {
   CredentialsProvider,
   EmptyCredentialsProvider
 } from '../../../src/api/credentials';
+import { Firestore } from '../../../src/api/database';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { AsyncQueue } from '../../../src/util/async_queue';
-import { DEFAULT_SETTINGS, DEFAULT_PROJECT_ID } from './helpers';
-import { Firestore } from '../../../src/api/database';
+import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './helpers';
 
 /** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {
@@ -38,7 +39,8 @@ export function getDefaultDatabaseInfo(): DatabaseInfo {
     new DatabaseId(DEFAULT_PROJECT_ID),
     'persistenceKey',
     DEFAULT_SETTINGS.host!,
-    !!DEFAULT_SETTINGS.ssl
+    !!DEFAULT_SETTINGS.ssl,
+    !!DEFAULT_SETTINGS.experimentalForceLongPolling
   );
 }
 

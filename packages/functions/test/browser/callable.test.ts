@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +22,7 @@ import { HttpsError, FunctionsErrorCode } from '@firebase/functions-types';
 import firebase from '@firebase/app';
 import '@firebase/messaging';
 import { Service } from '../../src/api/service';
+import { isSupported } from '@firebase/messaging';
 
 export const TEST_PROJECT = require('../../../../config/project.json');
 
@@ -68,7 +70,7 @@ describe('Firebase Functions > Call', () => {
   // TODO(klimt): Move this to the cross-platform tests and delete this file,
   // once instance id works there.
   it('instance id', async () => {
-    if (!('serviceWorker' in navigator)) {
+    if (!isSupported()) {
       // Current platform does not support messaging, skip test.
       return;
     }

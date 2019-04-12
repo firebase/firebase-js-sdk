@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database-types",
-  "version": "0.3.2",
+  "version": "0.3.9",
   "description": "@firebase/database Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -14,13 +14,14 @@
     "@firebase/app-types": "0.x"
   },
   "repository": {
+    "directory": "packages/database-types",
     "type": "git",
-    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/database-types"
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "bugs": {
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "2.8.1"
+    "typescript": "3.3.4000"
   }
 }

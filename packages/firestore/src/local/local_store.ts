@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,11 +24,12 @@ import {
   DocumentKeySet,
   documentKeySet,
   DocumentMap,
+  maybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
-import { Mutation } from '../model/mutation';
+import { Mutation, PatchMutation, Precondition } from '../model/mutation';
 import {
   BATCHID_UNKNOWN,
   MutationBatch,
@@ -38,9 +40,10 @@ import { assert } from '../util/assert';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
-import { GarbageCollector } from './garbage_collector';
+import { ObjectValue } from '../model/field_value';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
+import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -156,35 +159,22 @@ export class LocalStore {
   constructor(
     /** Manages our in-memory or durable persistence. */
     private persistence: Persistence,
-    initialUser: User,
-    /**
-     * The garbage collector collects documents that should no longer be
-     * cached (e.g. if they are no longer retained by the above reference sets
-     * and the garbage collector is performing eager collection).
-     */
-    private garbageCollector: GarbageCollector
+    initialUser: User
   ) {
     assert(
       persistence.started,
       'LocalStore was passed an unstarted persistence implementation'
+    );
+    this.persistence.referenceDelegate.setInMemoryPins(
+      this.localViewReferences
     );
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
     this.queryCache = persistence.getQueryCache();
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
-      this.mutationQueue
-    );
-    this.garbageCollector.addGarbageSource(this.localViewReferences);
-    this.garbageCollector.addGarbageSource(this.queryCache);
-    this.garbageCollector.addGarbageSource(this.mutationQueue);
-  }
-
-  /** Performs any initial startup actions required by the local store. */
-  start(): Promise<void> {
-    // TODO(multitab): Ensure that we in fact don't need the primary lease.
-    return this.persistence.runTransaction('Start LocalStore', false, txn =>
-      this.startMutationQueue(txn)
+      this.mutationQueue,
+      this.persistence.getIndexManager()
     );
   }
 
@@ -194,92 +184,129 @@ export class LocalStore {
    * In response the local store switches the mutation queue to the new user and
    * returns any resulting document changes.
    */
+  // PORTING NOTE: Android and iOS only return the documents affected by the
+  // change.
   handleUserChange(user: User): Promise<UserChangeResult> {
-    return this.persistence.runTransaction('Handle user change', false, txn => {
-      // Swap out the mutation queue, grabbing the pending mutation batches
-      // before and after.
-      let oldBatches: MutationBatch[];
-      return this.mutationQueue
-        .getAllMutationBatches(txn)
-        .next(promisedOldBatches => {
-          oldBatches = promisedOldBatches;
+    return this.persistence.runTransaction(
+      'Handle user change',
+      'readonly',
+      txn => {
+        // Swap out the mutation queue, grabbing the pending mutation batches
+        // before and after.
+        let oldBatches: MutationBatch[];
+        return this.mutationQueue
+          .getAllMutationBatches(txn)
+          .next(promisedOldBatches => {
+            oldBatches = promisedOldBatches;
 
-          this.garbageCollector.removeGarbageSource(this.mutationQueue);
-          this.mutationQueue = this.persistence.getMutationQueue(user);
-          this.garbageCollector.addGarbageSource(this.mutationQueue);
-          return this.startMutationQueue(txn);
-        })
-        .next(() => {
-          // Recreate our LocalDocumentsView using the new
-          // MutationQueue.
-          this.localDocuments = new LocalDocumentsView(
-            this.remoteDocuments,
-            this.mutationQueue
-          );
-          return this.mutationQueue.getAllMutationBatches(txn);
-        })
-        .next(newBatches => {
-          const removedBatchIds: BatchId[] = [];
-          const addedBatchIds: BatchId[] = [];
+            this.mutationQueue = this.persistence.getMutationQueue(user);
 
-          // Union the old/new changed keys.
-          let changedKeys = documentKeySet();
+            // Recreate our LocalDocumentsView using the new
+            // MutationQueue.
+            this.localDocuments = new LocalDocumentsView(
+              this.remoteDocuments,
+              this.mutationQueue,
+              this.persistence.getIndexManager()
+            );
+            return this.mutationQueue.getAllMutationBatches(txn);
+          })
+          .next(newBatches => {
+            const removedBatchIds: BatchId[] = [];
+            const addedBatchIds: BatchId[] = [];
 
-          for (const batch of oldBatches) {
-            removedBatchIds.push(batch.batchId);
-            for (const mutation of batch.mutations) {
-              changedKeys = changedKeys.add(mutation.key);
+            // Union the old/new changed keys.
+            let changedKeys = documentKeySet();
+
+            for (const batch of oldBatches) {
+              removedBatchIds.push(batch.batchId);
+              for (const mutation of batch.mutations) {
+                changedKeys = changedKeys.add(mutation.key);
+              }
             }
-          }
 
-          for (const batch of newBatches) {
-            addedBatchIds.push(batch.batchId);
-            for (const mutation of batch.mutations) {
-              changedKeys = changedKeys.add(mutation.key);
+            for (const batch of newBatches) {
+              addedBatchIds.push(batch.batchId);
+              for (const mutation of batch.mutations) {
+                changedKeys = changedKeys.add(mutation.key);
+              }
             }
-          }
 
-          // Return the set of all (potentially) changed documents and the list
-          // of mutation batch IDs that were affected by change.
-          return this.localDocuments
-            .getDocuments(txn, changedKeys)
-            .next(affectedDocuments => {
-              return {
-                affectedDocuments,
-                removedBatchIds,
-                addedBatchIds
-              };
-            });
-        });
-    });
+            // Return the set of all (potentially) changed documents and the list
+            // of mutation batch IDs that were affected by change.
+            return this.localDocuments
+              .getDocuments(txn, changedKeys)
+              .next(affectedDocuments => {
+                return {
+                  affectedDocuments,
+                  removedBatchIds,
+                  addedBatchIds
+                };
+              });
+          });
+      }
+    );
   }
-
-  private startMutationQueue(
-    txn: PersistenceTransaction
-  ): PersistencePromise<void> {
-    return this.mutationQueue.start(txn);
-  }
-
   /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
+    const localWriteTime = Timestamp.now();
+    const keys = mutations.reduce(
+      (keys, m) => keys.add(m.key),
+      documentKeySet()
+    );
+
     return this.persistence.runTransaction(
       'Locally write mutations',
-      false,
+      'readwrite',
       txn => {
-        let batch: MutationBatch;
-        const localWriteTime = Timestamp.now();
-        return this.mutationQueue
-          .addMutationBatch(txn, localWriteTime, mutations)
-          .next(promisedBatch => {
-            batch = promisedBatch;
-            // TODO(koss): This is doing an N^2 update by replaying ALL the
-            // mutations on each document (instead of just the ones added) in
-            // this batch.
-            const keys = batch.keys();
-            return this.localDocuments.getDocuments(txn, keys);
-          })
-          .next((changedDocuments: MaybeDocumentMap) => {
-            return { batchId: batch.batchId, changes: changedDocuments };
+        // Load and apply all existing mutations. This lets us compute the
+        // current base state for all non-idempotent transforms before applying
+        // any additional user-provided writes.
+        return this.localDocuments
+          .getDocuments(txn, keys)
+          .next(existingDocs => {
+            // For non-idempotent mutations (such as `FieldValue.increment()`),
+            // we record the base state in a separate patch mutation. This is
+            // later used to guarantee consistent values and prevents flicker
+            // even if the backend sends us an update that already includes our
+            // transform.
+            const baseMutations: Mutation[] = [];
+
+            for (const mutation of mutations) {
+              const maybeDoc = existingDocs.get(mutation.key);
+              if (!mutation.isIdempotent) {
+                // Theoretically, we should only include non-idempotent fields
+                // in this field mask as this mask is used to populate the base
+                // state for all DocumentTransforms.  By  including all fields,
+                // we incorrectly prevent rebasing of idempotent transforms
+                // (such as `arrayUnion()`) when any non-idempotent transforms
+                // are present.
+                const fieldMask = mutation.fieldMask;
+                if (fieldMask) {
+                  const baseValues =
+                    maybeDoc instanceof Document
+                      ? fieldMask.applyTo(maybeDoc.data)
+                      : ObjectValue.EMPTY;
+                  // NOTE: The base state should only be applied if there's some
+                  // existing document to override, so use a Precondition of
+                  // exists=true
+                  baseMutations.push(
+                    new PatchMutation(
+                      mutation.key,
+                      baseValues,
+                      fieldMask,
+                      Precondition.exists(true)
+                    )
+                  );
+                }
+              }
+            }
+
+            return this.mutationQueue
+              .addMutationBatch(txn, localWriteTime, baseMutations, mutations)
+              .next(batch => {
+                const changes = batch.applyToLocalDocumentSet(existingDocs);
+                return { batchId: batch.batchId, changes };
+              });
           });
       }
     );
@@ -290,7 +317,7 @@ export class LocalStore {
   lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null> {
     return this.persistence.runTransaction(
       'Lookup mutation documents',
-      false,
+      'readonly',
       txn => {
         return this.mutationQueue
           .lookupMutationKeys(txn, batchId)
@@ -325,20 +352,22 @@ export class LocalStore {
   acknowledgeBatch(
     batchResult: MutationBatchResult
   ): Promise<MaybeDocumentMap> {
-    return this.persistence.runTransaction('Acknowledge batch', true, txn => {
-      const affected = batchResult.batch.keys();
-      const documentBuffer = new RemoteDocumentChangeBuffer(
-        this.remoteDocuments
-      );
-      return this.mutationQueue
-        .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
-        .next(() =>
-          this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
-        )
-        .next(() => documentBuffer.apply(txn))
-        .next(() => this.mutationQueue.performConsistencyCheck(txn))
-        .next(() => this.localDocuments.getDocuments(txn, affected));
-    });
+    return this.persistence.runTransaction(
+      'Acknowledge batch',
+      'readwrite-primary',
+      txn => {
+        const affected = batchResult.batch.keys();
+        const documentBuffer = this.remoteDocuments.newChangeBuffer();
+        return this.mutationQueue
+          .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
+          .next(() =>
+            this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
+          )
+          .next(() => documentBuffer.apply(txn))
+          .next(() => this.mutationQueue.performConsistencyCheck(txn))
+          .next(() => this.localDocuments.getDocuments(txn, affected));
+      }
+    );
   }
 
   /**
@@ -348,29 +377,33 @@ export class LocalStore {
    * @returns The resulting modified documents.
    */
   rejectBatch(batchId: BatchId): Promise<MaybeDocumentMap> {
-    return this.persistence.runTransaction('Reject batch', true, txn => {
-      let affectedKeys: DocumentKeySet;
-      return this.mutationQueue
-        .lookupMutationBatch(txn, batchId)
-        .next((batch: MutationBatch | null) => {
-          assert(batch !== null, 'Attempt to reject nonexistent batch!');
-          affectedKeys = batch!.keys();
-          return this.mutationQueue.removeMutationBatch(txn, batch!);
-        })
-        .next(() => {
-          return this.mutationQueue.performConsistencyCheck(txn);
-        })
-        .next(() => {
-          return this.localDocuments.getDocuments(txn, affectedKeys);
-        });
-    });
+    return this.persistence.runTransaction(
+      'Reject batch',
+      'readwrite-primary',
+      txn => {
+        let affectedKeys: DocumentKeySet;
+        return this.mutationQueue
+          .lookupMutationBatch(txn, batchId)
+          .next((batch: MutationBatch | null) => {
+            assert(batch !== null, 'Attempt to reject nonexistent batch!');
+            affectedKeys = batch!.keys();
+            return this.mutationQueue.removeMutationBatch(txn, batch!);
+          })
+          .next(() => {
+            return this.mutationQueue.performConsistencyCheck(txn);
+          })
+          .next(() => {
+            return this.localDocuments.getDocuments(txn, affectedKeys);
+          });
+      }
+    );
   }
 
   /** Returns the last recorded stream token for the current user. */
   getLastStreamToken(): Promise<ProtoByteString> {
     return this.persistence.runTransaction(
       'Get last stream token',
-      false,
+      'readonly',
       txn => {
         return this.mutationQueue.getLastStreamToken(txn);
       }
@@ -385,7 +418,7 @@ export class LocalStore {
   setLastStreamToken(streamToken: ProtoByteString): Promise<void> {
     return this.persistence.runTransaction(
       'Set last stream token',
-      true,
+      'readwrite-primary',
       txn => {
         return this.mutationQueue.setLastStreamToken(txn, streamToken);
       }
@@ -399,7 +432,7 @@ export class LocalStore {
   getLastRemoteSnapshotVersion(): Promise<SnapshotVersion> {
     return this.persistence.runTransaction(
       'Get last remote snapshot version',
-      false,
+      'readonly',
       txn => this.queryCache.getLastRemoteSnapshotVersion(txn)
     );
   }
@@ -413,133 +446,157 @@ export class LocalStore {
    * queue.
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
-    const documentBuffer = new RemoteDocumentChangeBuffer(this.remoteDocuments);
-    return this.persistence.runTransaction('Apply remote event', true, txn => {
-      const promises = [] as Array<PersistencePromise<void>>;
-      let authoritativeUpdates = documentKeySet();
-      objUtils.forEachNumber(
-        remoteEvent.targetChanges,
-        (targetId: TargetId, change: TargetChange) => {
-          // Do not ref/unref unassigned targetIds - it may lead to leaks.
-          let queryData = this.queryDataByTarget[targetId];
-          if (!queryData) return;
+    const documentBuffer = this.remoteDocuments.newChangeBuffer();
+    return this.persistence.runTransaction(
+      'Apply remote event',
+      'readwrite-primary',
+      txn => {
+        const promises = [] as Array<PersistencePromise<void>>;
+        let authoritativeUpdates = documentKeySet();
+        objUtils.forEachNumber(
+          remoteEvent.targetChanges,
+          (targetId: TargetId, change: TargetChange) => {
+            // Do not ref/unref unassigned targetIds - it may lead to leaks.
+            let queryData = this.queryDataByTarget[targetId];
+            if (!queryData) return;
 
-          // When a global snapshot contains updates (either add or modify) we
-          // can completely trust these updates as authoritative and blindly
-          // apply them to our cache (as a defensive measure to promote
-          // self-healing in the unfortunate case that our cache is ever somehow
-          // corrupted / out-of-sync).
-          //
-          // If the document is only updated while removing it from a target
-          // then watch isn't obligated to send the absolute latest version: it
-          // can send the first version that caused the document not to match.
-          change.addedDocuments.forEach(key => {
-            authoritativeUpdates = authoritativeUpdates.add(key);
-          });
-          change.modifiedDocuments.forEach(key => {
-            authoritativeUpdates = authoritativeUpdates.add(key);
-          });
-
-          promises.push(
-            this.queryCache
-              .removeMatchingKeys(txn, change.removedDocuments, targetId)
-              .next(() => {
-                return this.queryCache.addMatchingKeys(
-                  txn,
-                  change.addedDocuments,
-                  targetId
-                );
-              })
-          );
-
-          // Update the resume token if the change includes one. Don't clear
-          // any preexisting value.
-          const resumeToken = change.resumeToken;
-          if (resumeToken.length > 0) {
-            const oldQueryData = queryData;
-            queryData = queryData.copy({
-              resumeToken,
-              snapshotVersion: remoteEvent.snapshotVersion
+            // When a global snapshot contains updates (either add or modify) we
+            // can completely trust these updates as authoritative and blindly
+            // apply them to our cache (as a defensive measure to promote
+            // self-healing in the unfortunate case that our cache is ever somehow
+            // corrupted / out-of-sync).
+            //
+            // If the document is only updated while removing it from a target
+            // then watch isn't obligated to send the absolute latest version: it
+            // can send the first version that caused the document not to match.
+            change.addedDocuments.forEach(key => {
+              authoritativeUpdates = authoritativeUpdates.add(key);
             });
-            this.queryDataByTarget[targetId] = queryData;
+            change.modifiedDocuments.forEach(key => {
+              authoritativeUpdates = authoritativeUpdates.add(key);
+            });
 
-            if (
-              LocalStore.shouldPersistQueryData(oldQueryData, queryData, change)
-            ) {
-              promises.push(this.queryCache.updateQueryData(txn, queryData));
+            promises.push(
+              this.queryCache
+                .removeMatchingKeys(txn, change.removedDocuments, targetId)
+                .next(() => {
+                  return this.queryCache.addMatchingKeys(
+                    txn,
+                    change.addedDocuments,
+                    targetId
+                  );
+                })
+            );
+
+            // Update the resume token if the change includes one. Don't clear
+            // any preexisting value.
+            const resumeToken = change.resumeToken;
+            if (resumeToken.length > 0) {
+              const oldQueryData = queryData;
+              queryData = queryData.copy({
+                resumeToken,
+                snapshotVersion: remoteEvent.snapshotVersion
+              });
+              this.queryDataByTarget[targetId] = queryData;
+
+              if (
+                LocalStore.shouldPersistQueryData(
+                  oldQueryData,
+                  queryData,
+                  change
+                )
+              ) {
+                promises.push(this.queryCache.updateQueryData(txn, queryData));
+              }
             }
           }
-        }
-      );
+        );
 
-      let changedDocKeys = documentKeySet();
-      remoteEvent.documentUpdates.forEach((key, doc) => {
-        changedDocKeys = changedDocKeys.add(key);
+        let changedDocs = maybeDocumentMap();
+        let updatedKeys = documentKeySet();
+        remoteEvent.documentUpdates.forEach((key, doc) => {
+          updatedKeys = updatedKeys.add(key);
+        });
+
+        // Each loop iteration only affects its "own" doc, so it's safe to get all the remote
+        // documents in advance in a single call.
         promises.push(
-          documentBuffer.getEntry(txn, key).next(existingDoc => {
-            // If a document update isn't authoritative, make sure we don't
-            // apply an old document version to the remote cache. We make an
-            // exception for SnapshotVersion.MIN which can happen for
-            // manufactured events (e.g. in the case of a limbo document
-            // resolution failing).
-            if (
-              existingDoc == null ||
-              doc.version.isEqual(SnapshotVersion.MIN) ||
-              (authoritativeUpdates.has(doc.key) &&
-                !existingDoc.hasPendingWrites) ||
-              doc.version.compareTo(existingDoc.version) >= 0
-            ) {
-              documentBuffer.addEntry(doc);
-            } else {
-              log.debug(
-                LOG_TAG,
-                'Ignoring outdated watch update for ',
-                key,
-                '. Current version:',
-                existingDoc.version,
-                ' Watch version:',
-                doc.version
-              );
-            }
+          documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
+            remoteEvent.documentUpdates.forEach((key, doc) => {
+              const existingDoc = existingDocs.get(key);
+              // If a document update isn't authoritative, make sure we don't
+              // apply an old document version to the remote cache. We make an
+              // exception for SnapshotVersion.MIN which can happen for
+              // manufactured events (e.g. in the case of a limbo document
+              // resolution failing).
+              if (
+                existingDoc == null ||
+                doc.version.isEqual(SnapshotVersion.MIN) ||
+                (authoritativeUpdates.has(doc.key) &&
+                  !existingDoc.hasPendingWrites) ||
+                doc.version.compareTo(existingDoc.version) >= 0
+              ) {
+                documentBuffer.addEntry(doc);
+                changedDocs = changedDocs.insert(key, doc);
+              } else {
+                log.debug(
+                  LOG_TAG,
+                  'Ignoring outdated watch update for ',
+                  key,
+                  '. Current version:',
+                  existingDoc.version,
+                  ' Watch version:',
+                  doc.version
+                );
+              }
 
-            // The document might be garbage because it was unreferenced by
-            // everything. Make sure to mark it as garbage if it is...
-            this.garbageCollector.addPotentialGarbageKey(key);
+              if (remoteEvent.resolvedLimboDocuments.has(key)) {
+                promises.push(
+                  this.persistence.referenceDelegate.updateLimboDocument(
+                    txn,
+                    key
+                  )
+                );
+              }
+            });
           })
         );
-      });
 
-      // HACK: The only reason we allow a null snapshot version is so that we
-      // can synthesize remote events when we get permission denied errors while
-      // trying to resolve the state of a locally cached document that is in
-      // limbo.
-      const remoteVersion = remoteEvent.snapshotVersion;
-      if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
-        const updateRemoteVersion = this.queryCache
-          .getLastRemoteSnapshotVersion(txn)
-          .next(lastRemoteVersion => {
-            assert(
-              remoteVersion.compareTo(lastRemoteVersion) >= 0,
-              'Watch stream reverted to previous snapshot?? ' +
-                remoteVersion +
-                ' < ' +
-                lastRemoteVersion
-            );
-            return this.queryCache.setTargetsMetadata(
+        // HACK: The only reason we allow a null snapshot version is so that we
+        // can synthesize remote events when we get permission denied errors while
+        // trying to resolve the state of a locally cached document that is in
+        // limbo.
+        const remoteVersion = remoteEvent.snapshotVersion;
+        if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
+          const updateRemoteVersion = this.queryCache
+            .getLastRemoteSnapshotVersion(txn)
+            .next(lastRemoteVersion => {
+              assert(
+                remoteVersion.compareTo(lastRemoteVersion) >= 0,
+                'Watch stream reverted to previous snapshot?? ' +
+                  remoteVersion +
+                  ' < ' +
+                  lastRemoteVersion
+              );
+              return this.queryCache.setTargetsMetadata(
+                txn,
+                txn.currentSequenceNumber,
+                remoteVersion
+              );
+            });
+          promises.push(updateRemoteVersion);
+        }
+
+        return PersistencePromise.waitFor(promises)
+          .next(() => documentBuffer.apply(txn))
+          .next(() => {
+            return this.localDocuments.getLocalViewOfDocuments(
               txn,
-              /*highestSequenceNumber=*/ 0,
-              remoteVersion
+              changedDocs
             );
           });
-        promises.push(updateRemoteVersion);
       }
-
-      return PersistencePromise.waitFor(promises)
-        .next(() => documentBuffer.apply(txn))
-        .next(() => {
-          return this.localDocuments.getDocuments(txn, changedDocKeys);
-        });
-    });
+    );
   }
 
   /**
@@ -589,17 +646,26 @@ export class LocalStore {
   /**
    * Notify local store of the changed views to locally pin documents.
    */
-  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): void {
-    for (const viewChange of viewChanges) {
-      this.localViewReferences.addReferences(
-        viewChange.addedKeys,
-        viewChange.targetId
-      );
-      this.localViewReferences.removeReferences(
-        viewChange.removedKeys,
-        viewChange.targetId
-      );
-    }
+  notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
+    return this.persistence.runTransaction(
+      'notifyLocalViewChanges',
+      'readwrite',
+      txn => {
+        return PersistencePromise.forEach(viewChanges, viewChange => {
+          this.localViewReferences.addReferences(
+            viewChange.addedKeys,
+            viewChange.targetId
+          );
+          this.localViewReferences.removeReferences(
+            viewChange.removedKeys,
+            viewChange.targetId
+          );
+          return PersistencePromise.forEach(viewChange.removedKeys, key =>
+            this.persistence.referenceDelegate.removeReference(txn, key)
+          );
+        });
+      }
+    );
   }
 
   /**
@@ -611,7 +677,7 @@ export class LocalStore {
   nextMutationBatch(afterBatchId?: BatchId): Promise<MutationBatch | null> {
     return this.persistence.runTransaction(
       'Get next mutation batch',
-      false,
+      'readonly',
       txn => {
         if (afterBatchId === undefined) {
           afterBatchId = BATCHID_UNKNOWN;
@@ -629,7 +695,7 @@ export class LocalStore {
    * found - used for testing.
    */
   readDocument(key: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('read document', false, txn => {
+    return this.persistence.runTransaction('read document', 'readonly', txn => {
       return this.localDocuments.getDocument(txn, key);
     });
   }
@@ -640,33 +706,42 @@ export class LocalStore {
    * the store can be used to manage its view.
    */
   allocateQuery(query: Query): Promise<QueryData> {
-    return this.persistence.runTransaction('Allocate query', false, txn => {
-      let queryData: QueryData;
-      return this.queryCache
-        .getQueryData(txn, query)
-        .next((cached: QueryData | null) => {
-          if (cached) {
-            // This query has been listened to previously, so reuse the
-            // previous targetID.
-            // TODO(mcg): freshen last accessed date?
-            queryData = cached;
-            return PersistencePromise.resolve();
-          } else {
-            return this.queryCache.allocateTargetId(txn).next(targetId => {
-              queryData = new QueryData(query, targetId, QueryPurpose.Listen);
-              return this.queryCache.addQueryData(txn, queryData);
-            });
-          }
-        })
-        .next(() => {
-          assert(
-            !this.queryDataByTarget[queryData.targetId],
-            'Tried to allocate an already allocated query: ' + query
-          );
-          this.queryDataByTarget[queryData.targetId] = queryData;
-          return queryData;
-        });
-    });
+    return this.persistence.runTransaction(
+      'Allocate query',
+      'readwrite',
+      txn => {
+        let queryData: QueryData;
+        return this.queryCache
+          .getQueryData(txn, query)
+          .next((cached: QueryData | null) => {
+            if (cached) {
+              // This query has been listened to previously, so reuse the
+              // previous targetID.
+              // TODO(mcg): freshen last accessed date?
+              queryData = cached;
+              return PersistencePromise.resolve();
+            } else {
+              return this.queryCache.allocateTargetId(txn).next(targetId => {
+                queryData = new QueryData(
+                  query,
+                  targetId,
+                  QueryPurpose.Listen,
+                  txn.currentSequenceNumber
+                );
+                return this.queryCache.addQueryData(txn, queryData);
+              });
+            }
+          })
+          .next(() => {
+            assert(
+              !this.queryDataByTarget[queryData.targetId],
+              'Tried to allocate an already allocated query: ' + query
+            );
+            this.queryDataByTarget[queryData.targetId] = queryData;
+            return queryData;
+          });
+      }
+    );
   }
 
   /**
@@ -676,39 +751,40 @@ export class LocalStore {
    */
   // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
   releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
-    const requirePrimaryLease = keepPersistedQueryData === false;
-    return this.persistence.runTransaction(
-      'Release query',
-      requirePrimaryLease,
-      txn => {
-        return this.queryCache
-          .getQueryData(txn, query)
-          .next((queryData: QueryData | null) => {
-            assert(
-              queryData != null,
-              'Tried to release nonexistent query: ' + query
-            );
-            const targetId = queryData!.targetId;
-            const cachedQueryData = this.queryDataByTarget[targetId];
+    const mode = keepPersistedQueryData ? 'readwrite' : 'readwrite-primary';
+    return this.persistence.runTransaction('Release query', mode, txn => {
+      return this.queryCache
+        .getQueryData(txn, query)
+        .next((queryData: QueryData | null) => {
+          assert(
+            queryData != null,
+            'Tried to release nonexistent query: ' + query
+          );
+          const targetId = queryData!.targetId;
+          const cachedQueryData = this.queryDataByTarget[targetId];
 
-            this.localViewReferences.removeReferencesForId(targetId);
-            delete this.queryDataByTarget[targetId];
-            if (!keepPersistedQueryData && this.garbageCollector.isEager) {
-              return this.queryCache.removeQueryData(txn, queryData!);
-            } else if (
-              cachedQueryData.snapshotVersion > queryData!.snapshotVersion
-            ) {
-              // If we've been avoiding persisting the resumeToken (see
-              // shouldPersistQueryData for conditions and rationale) we need to
-              // persist the token now because there will no longer be an
-              // in-memory version to fall back on.
-              return this.queryCache.updateQueryData(txn, cachedQueryData);
-            } else {
-              return PersistencePromise.resolve();
-            }
-          });
-      }
-    );
+          // References for documents sent via Watch are automatically removed when we delete a
+          // query's target data from the reference delegate. Since this does not remove references
+          // for locally mutated documents, we have to remove the target associations for these
+          // documents manually.
+          const removed = this.localViewReferences.removeReferencesForId(
+            targetId
+          );
+          delete this.queryDataByTarget[targetId];
+          if (!keepPersistedQueryData) {
+            return PersistencePromise.forEach(removed, key =>
+              this.persistence.referenceDelegate.removeReference(txn, key)
+            ).next(() =>
+              this.persistence.referenceDelegate.removeTarget(
+                txn,
+                cachedQueryData
+              )
+            );
+          } else {
+            return PersistencePromise.resolve();
+          }
+        });
+    });
   }
 
   /**
@@ -716,7 +792,7 @@ export class LocalStore {
    * returns the results.
    */
   executeQuery(query: Query): Promise<DocumentMap> {
-    return this.persistence.runTransaction('Execute query', false, txn => {
+    return this.persistence.runTransaction('Execute query', 'readonly', txn => {
       return this.localDocuments.getDocumentsMatchingQuery(txn, query);
     });
   }
@@ -728,31 +804,11 @@ export class LocalStore {
   remoteDocumentKeys(targetId: TargetId): Promise<DocumentKeySet> {
     return this.persistence.runTransaction(
       'Remote document keys',
-      false,
+      'readonly',
       txn => {
         return this.queryCache.getMatchingKeysForTargetId(txn, targetId);
       }
     );
-  }
-
-  /**
-   * Collect garbage if necessary.
-   * Should be called periodically by Sync Engine to recover resources. The
-   * implementation must guarantee that GC won't happen in other places than
-   * this method call.
-   */
-  collectGarbage(): Promise<void> {
-    // Call collectGarbage regardless of whether isGCEnabled so the referenceSet
-    // doesn't continue to accumulate the garbage keys.
-    return this.persistence.runTransaction('Garbage collection', true, txn => {
-      return this.garbageCollector.collectGarbage(txn).next(garbage => {
-        const promises = [] as Array<PersistencePromise<void>>;
-        garbage.forEach(key => {
-          promises.push(this.remoteDocuments.removeEntry(txn, key));
-        });
-        return PersistencePromise.waitFor(promises);
-      });
-    });
   }
 
   // PORTING NOTE: Multi-tab only.
@@ -812,16 +868,28 @@ export class LocalStore {
     );
   }
 
+  collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
+    return this.persistence.runTransaction(
+      'Collect garbage',
+      'readwrite-primary',
+      txn => garbageCollector.collect(txn, this.queryDataByTarget)
+    );
+  }
+
   // PORTING NOTE: Multi-tab only.
   getQueryForTarget(targetId: TargetId): Promise<Query | null> {
     if (this.queryDataByTarget[targetId]) {
       return Promise.resolve(this.queryDataByTarget[targetId].query);
     } else {
-      return this.persistence.runTransaction('Get query data', false, txn => {
-        return this.queryCache
-          .getQueryDataForTarget(txn, targetId)
-          .next(queryData => (queryData ? queryData.query : null));
-      });
+      return this.persistence.runTransaction(
+        'Get query data',
+        'readonly',
+        txn => {
+          return this.queryCache
+            .getQueryDataForTarget(txn, targetId)
+            .next(queryData => (queryData ? queryData.query : null));
+        }
+      );
     }
   }
 
@@ -829,7 +897,7 @@ export class LocalStore {
   getNewDocumentChanges(): Promise<MaybeDocumentMap> {
     return this.persistence.runTransaction(
       'Get new document changes',
-      false,
+      'readonly',
       txn => {
         return this.remoteDocuments.getNewDocumentChanges(txn);
       }

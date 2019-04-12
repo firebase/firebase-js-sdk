@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +25,6 @@ import { Code, FirestoreError } from '../util/error';
 
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
-import { AnyJs } from '../util/misc';
 
 export class NodePlatform implements Platform {
   readonly base64Available = true;
@@ -50,7 +50,7 @@ export class NodePlatform implements Platform {
     return new JsonProtoSerializer(partitionId, { useProto3Json: false });
   }
 
-  formatJSON(value: AnyJs): string {
+  formatJSON(value: unknown): string {
     // util.inspect() results in much more readable output than JSON.stringify()
     return util.inspect(value, { depth: 100 });
   }

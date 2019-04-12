@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,7 +37,7 @@ $ git stash pop
 
 (async () => {
   try {
-    const hasDiff = !!await git.diff();
+    const hasDiff = !!(await git.diff());
 
     if (hasDiff) {
       console.error(notCleanTreeString);

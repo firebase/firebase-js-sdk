@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +18,7 @@
 export const EventAccumulatorFactory = {
   waitsForCount: maxCount => {
     let count = 0;
-    const condition = () => ea.eventData.length >= count;
+    const condition = () => count >= maxCount;
     const ea = new EventAccumulator(condition);
     ea.onReset(() => {
       count = 0;

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,11 +16,10 @@
  */
 
 import { DatabaseId, DatabaseInfo } from '../../src/core/database_info';
-import { AnyJs } from '../../src/util/misc';
-import { Platform } from '../../src/platform/platform';
-import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { ProtoByteString } from '../../src/core/types';
+import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
+import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { assert, fail } from '../../src/util/assert';
 
 /**
@@ -86,7 +86,7 @@ export class FakeWindow {
  * `Document` fake that implements the `visibilitychange` API used by Firestore.
  */
 export class FakeDocument {
-  private _visibilityState: VisibilityState = 'unloaded';
+  private _visibilityState: VisibilityState = 'hidden';
   private visibilityListener: EventListener | null;
 
   get visibilityState(): VisibilityState {
@@ -249,7 +249,7 @@ export class TestPlatform implements Platform {
     return this.basePlatform.newSerializer(databaseId);
   }
 
-  formatJSON(value: AnyJs): string {
+  formatJSON(value: unknown): string {
     return this.basePlatform.formatJSON(value);
   }
 

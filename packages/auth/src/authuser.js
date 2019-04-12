@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -1643,7 +1644,7 @@ fireauth.AuthUser.prototype.resolvePendingPopupEvent =
  *     redirect).
  * @param {?string=} opt_eventId The optional event ID.
  * @return {?function(string,
- *     string):!goog.Promise<!fireauth.AuthEventManager.Result>}
+ *     string, ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
  * @override
  */
 fireauth.AuthUser.prototype.getAuthEventHandlerFinisher =
@@ -1968,10 +1969,11 @@ fireauth.AuthUser.prototype.getAuthEventManager = function() {
  * Finishes the popup and redirect account linking operations.
  * @param {string} requestUri The callback URL with the OAuth response.
  * @param {string} sessionId The session ID used to generate the authUri.
+ * @param {?string=} opt_postBody The optional POST body content.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.AuthUser.prototype.finishPopupAndRedirectLink =
-    function(requestUri, sessionId) {
+    function(requestUri, sessionId, opt_postBody) {
   var self = this;
   // Now that popup has responded, delete popup timeout promise.
   if (this.popupTimeoutPromise_) {
@@ -1985,6 +1987,7 @@ fireauth.AuthUser.prototype.finishPopupAndRedirectLink =
       .then(function(idToken) {
         var request = {
           'requestUri': requestUri,
+          'postBody': opt_postBody,
           'sessionId': sessionId,
           'idToken': idToken
         };
@@ -2012,10 +2015,11 @@ fireauth.AuthUser.prototype.finishPopupAndRedirectLink =
  * Finishes the popup and redirect account reauthentication operations.
  * @param {string} requestUri The callback URL with the OAuth response.
  * @param {string} sessionId The session ID used to generate the authUri.
+ * @param {?string=} opt_postBody The optional POST body content.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.AuthUser.prototype.finishPopupAndRedirectReauth =
-    function(requestUri, sessionId) {
+    function(requestUri, sessionId, opt_postBody) {
   var self = this;
   // Now that popup has responded, delete popup timeout promise.
   if (this.popupTimeoutPromise_) {
@@ -2030,6 +2034,7 @@ fireauth.AuthUser.prototype.finishPopupAndRedirectReauth =
         var request = {
           'requestUri': requestUri,
           'sessionId': sessionId,
+          'postBody': opt_postBody
         };
         // Finish sign in by calling verifyAssertionForExisting and then
         // matching the returned ID token's UID with the current user's.

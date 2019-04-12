@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,11 +21,6 @@ import { DocumentKey } from '../model/document_key';
 import { primitiveComparator } from '../util/misc';
 import { SortedSet } from '../util/sorted_set';
 
-import { GarbageCollector } from './garbage_collector';
-import { GarbageSource } from './garbage_source';
-import { PersistenceTransaction } from './persistence';
-import { PersistencePromise } from './persistence_promise';
-
 /**
  * A collection of references to a document from some kind of numbered entity
  * (either a target ID or batch ID). As references are added to or removed from
@@ -40,15 +36,12 @@ import { PersistencePromise } from './persistence_promise';
  * IDs. This one is used to efficiently implement removal of all references by
  * some target ID.
  */
-export class ReferenceSet implements GarbageSource {
+export class ReferenceSet {
   // A set of outstanding references to a document sorted by key.
   private refsByKey = new SortedSet(DocReference.compareByKey);
 
   // A set of outstanding references to a document sorted by target id.
   private refsByTarget = new SortedSet(DocReference.compareByTargetId);
-
-  /** Keeps track of keys that have references */
-  private garbageCollector: GarbageCollector | null = null;
 
   /** Returns true if the reference set contains no references. */
   isEmpty(): boolean {
@@ -83,13 +76,16 @@ export class ReferenceSet implements GarbageSource {
    * Clears all references with a given ID. Calls removeRef() for each key
    * removed.
    */
-  removeReferencesForId(id: TargetId | BatchId): void {
+  removeReferencesForId(id: TargetId | BatchId): DocumentKey[] {
     const emptyKey = DocumentKey.EMPTY;
     const startRef = new DocReference(emptyKey, id);
     const endRef = new DocReference(emptyKey, id + 1);
+    const keys: DocumentKey[] = [];
     this.refsByTarget.forEachInRange([startRef, endRef], ref => {
       this.removeRef(ref);
+      keys.push(ref.key);
     });
+    return keys;
   }
 
   removeAllReferences(): void {
@@ -99,9 +95,6 @@ export class ReferenceSet implements GarbageSource {
   private removeRef(ref: DocReference): void {
     this.refsByKey = this.refsByKey.delete(ref);
     this.refsByTarget = this.refsByTarget.delete(ref);
-    if (this.garbageCollector !== null) {
-      this.garbageCollector.addPotentialGarbageKey(ref.key);
-    }
   }
 
   referencesForId(id: TargetId | BatchId): DocumentKeySet {
@@ -115,19 +108,10 @@ export class ReferenceSet implements GarbageSource {
     return keys;
   }
 
-  setGarbageCollector(garbageCollector: GarbageCollector | null): void {
-    this.garbageCollector = garbageCollector;
-  }
-
-  containsKey(
-    txn: PersistenceTransaction | null,
-    key: DocumentKey
-  ): PersistencePromise<boolean> {
+  containsKey(key: DocumentKey): boolean {
     const ref = new DocReference(key, 0);
     const firstRef = this.refsByKey.firstAfterOrEqual(ref);
-    return PersistencePromise.resolve(
-      firstRef !== null && key.isEqual(firstRef.key)
-    );
+    return firstRef !== null && key.isEqual(firstRef.key);
   }
 }
 

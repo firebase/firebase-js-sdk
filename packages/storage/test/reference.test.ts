@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +25,7 @@ import { Reference } from '../src/reference';
 import { Service } from '../src/service';
 import * as testShared from './testshared';
 import { SendHook, TestingXhrIo } from './xhrio';
+import { DEFAULT_HOST } from '../src/implementation/constants';
 
 function makeFakeService(app: FirebaseApp, sendHook: SendHook): Service {
   return new Service(app, testShared.makePool(sendHook));
@@ -60,21 +62,21 @@ describe('Firebase Storage > Reference', () => {
     });
     it('ignores URL params and fragments on an http URL', () => {
       const s = makeStorage(
-        'http://firebasestorage.googleapis.com/v0/b/test-bucket/o/my/object.txt' +
+        `http://${DEFAULT_HOST}/v0/b/test-bucket/o/my/object.txt` +
           '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
     });
     it('URL-decodes and ignores fragment on an http URL', () => {
       const s = makeStorage(
-        'http://firebasestorage.googleapis.com/v0/b/test-bucket/o/%3F?ignore'
+        `http://${DEFAULT_HOST}/v0/b/test-bucket/o/%3F?ignore`
       );
       assert.equal(s.toString(), 'gs://test-bucket/?');
     });
 
     it('ignores URL params and fragments on an https URL', () => {
       const s = makeStorage(
-        'https://firebasestorage.googleapis.com/v0/b/test-bucket/o/my/object.txt' +
+        `https://${DEFAULT_HOST}/v0/b/test-bucket/o/my/object.txt` +
           '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
@@ -82,7 +84,7 @@ describe('Firebase Storage > Reference', () => {
 
     it('URL-decodes and ignores fragment on an https URL', () => {
       const s = makeStorage(
-        'https://firebasestorage.googleapis.com/v0/b/test-bucket/o/%3F?ignore'
+        `https://${DEFAULT_HOST}/v0/b/test-bucket/o/%3F?ignore`
       );
       assert.equal(s.toString(), 'gs://test-bucket/?');
     });

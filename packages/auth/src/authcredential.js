@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +32,8 @@ goog.provide('fireauth.OAuthProvider');
 goog.provide('fireauth.OAuthResponse');
 goog.provide('fireauth.PhoneAuthCredential');
 goog.provide('fireauth.PhoneAuthProvider');
+goog.provide('fireauth.SAMLAuthCredential');
+goog.provide('fireauth.SAMLAuthProvider');
 goog.provide('fireauth.TwitterAuthProvider');
 
 goog.require('fireauth.ActionCodeUrl');
@@ -38,6 +41,7 @@ goog.require('fireauth.AuthError');
 goog.require('fireauth.DynamicLink');
 goog.require('fireauth.IdToken');
 goog.require('fireauth.authenum.Error');
+goog.require('fireauth.constants');
 goog.require('fireauth.idp');
 goog.require('fireauth.object');
 goog.require('fireauth.util');
@@ -90,7 +94,10 @@ fireauth.AuthCredential.prototype.linkToIdToken;
 fireauth.AuthCredential.prototype.matchIdTokenWithUid;
 
 
-/** @return {!Object} The plain object representation of an Auth credential. */
+/**
+ * @return {!Object} The plain object representation of an Auth credential. This
+ *     will be exposed as toJSON() externally.
+ */
 fireauth.AuthCredential.prototype.toPlainObject;
 
 
@@ -146,14 +153,142 @@ fireauth.AuthProvider.credential;
 
 /**
  * @typedef {{
- *   idToken: (?string|undefined),
  *   accessToken: (?string|undefined),
+ *   idToken: (?string|undefined),
+ *   nonce: (?string|undefined),
  *   oauthToken: (?string|undefined),
- *   oauthTokenSecret: (?string|undefined)
+ *   oauthTokenSecret: (?string|undefined),
+ *   pendingToken: (?string|undefined)
  * }}
  */
 fireauth.OAuthResponse;
 
+
+/**
+ * The SAML Auth credential class. The Constructor is not publicly visible.
+ * This is constructed by the SDK on successful or failure after SAML sign-in
+ * and returned to developer.
+ * @param {!fireauth.idp.ProviderId} providerId The provider ID.
+ * @param {string} pendingToken The SAML response pending token.
+ * @constructor
+ * @implements {fireauth.AuthCredential}
+ */
+fireauth.SAMLAuthCredential = function(providerId, pendingToken) {
+  if (pendingToken) {
+    /** @private {string} The pending token where SAML response is encrypted. */
+    this.pendingToken_ = pendingToken;
+  } else {
+    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR,
+        'failed to construct a credential');
+  }
+
+  fireauth.object.setReadonlyProperty(this, 'providerId', providerId);
+  fireauth.object.setReadonlyProperty(this, 'signInMethod', providerId);
+};
+
+
+/**
+ * Returns a promise to retrieve ID token using the underlying RPC handler API
+ * for the current credential.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
+ * @return {!goog.Promise<!Object, !fireauth.AuthError>}
+ *     idTokenPromise The RPC handler method that returns a promise which
+ *     resolves with an ID token.
+ * @override
+ */
+fireauth.SAMLAuthCredential.prototype.getIdTokenProvider =
+    function(rpcHandler) {
+  return rpcHandler.verifyAssertion(
+      /** @type {!fireauth.RpcHandler.VerifyAssertionData} */ (
+      this.makeVerifyAssertionRequest_()));
+};
+
+
+/**
+ * Links the credential to an existing account, identified by an ID token.
+ * @param {!fireauth.RpcHandler} rpcHandler The rpc handler.
+ * @param {string} idToken The ID token of the existing account.
+ * @return {!goog.Promise<!Object>} A Promise that resolves when the accounts
+ *     are linked, returning the backend response.
+ * @override
+ */
+fireauth.SAMLAuthCredential.prototype.linkToIdToken =
+    function(rpcHandler, idToken) {
+  var request = this.makeVerifyAssertionRequest_();
+  request['idToken'] = idToken;
+  return rpcHandler.verifyAssertionForLinking(
+      /** @type {!fireauth.RpcHandler.VerifyAssertionData} */ (request));
+};
+
+
+/**
+ * Tries to match the credential's idToken with the provided UID.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler.
+ * @param {string} uid The UID of the user to reauthenticate.
+ * @return {!goog.Promise<!Object>} A Promise that resolves when
+ *     idToken UID match succeeds and returns the server response.
+ * @override
+ */
+fireauth.SAMLAuthCredential.prototype.matchIdTokenWithUid =
+    function(rpcHandler, uid) {
+  var request = this.makeVerifyAssertionRequest_();
+  // Do not create a new account if the user doesn't exist.
+  return fireauth.AuthCredential.verifyTokenResponseUid(
+      rpcHandler.verifyAssertionForExisting(
+          /** @type {!fireauth.RpcHandler.VerifyAssertionData} */ (request)),
+      uid);
+};
+
+
+/**
+ * @return {!Object} A request to the VerifyAssertion endpoint, populated with
+ *     the assertion data from this credential.
+ * @private
+ */
+fireauth.SAMLAuthCredential.prototype.makeVerifyAssertionRequest_ =
+    function() {
+  return {
+    'pendingToken': this.pendingToken_,
+    // Always use http://localhost.
+    'requestUri': 'http://localhost'
+  };
+};
+
+
+/**
+ * @return {!Object} The plain object representation of an Auth credential.
+ * @override
+ */
+fireauth.SAMLAuthCredential.prototype.toPlainObject = function() {
+  return {
+    'providerId': this['providerId'],
+    'signInMethod': this['signInMethod'],
+    'pendingToken': this.pendingToken_
+  };
+};
+
+
+/**
+ * @param {?Object|undefined} json The plain object representation of a
+ *     SAMLAuthCredential.
+ * @return {?fireauth.SAMLAuthCredential} The SAML credential if the object
+ *     is a JSON representation of a SAMLAuthCredential, null otherwise.
+ */
+fireauth.SAMLAuthCredential.fromJSON = function(json) {
+  if (json &&
+      json['providerId'] &&
+      json['signInMethod'] &&
+      json['providerId'].indexOf(fireauth.constants.SAML_PREFIX) == 0 &&
+      json['pendingToken']) {
+    try {
+      return new fireauth.SAMLAuthCredential(
+          json['providerId'], json['pendingToken']);
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+};
 
 
 /**
@@ -166,6 +301,10 @@ fireauth.OAuthResponse;
  * @implements {fireauth.AuthCredential}
  */
 fireauth.OAuthCredential = function(providerId, oauthResponse, signInMethod) {
+  /**
+   * @private {?string} The pending token where the IdP response is encrypted.
+   */
+  this.pendingToken_ = null;
   if (oauthResponse['idToken'] || oauthResponse['accessToken']) {
     // OAuth 2 and either ID token or access token.
     if (oauthResponse['idToken']) {
@@ -175,6 +314,14 @@ fireauth.OAuthCredential = function(providerId, oauthResponse, signInMethod) {
     if (oauthResponse['accessToken']) {
       fireauth.object.setReadonlyProperty(
           this, 'accessToken', oauthResponse['accessToken']);
+    }
+    // Add nonce if available and no pendingToken is present.
+    if (oauthResponse['nonce'] && !oauthResponse['pendingToken']) {
+      fireauth.object.setReadonlyProperty(
+          this, 'nonce', oauthResponse['nonce']);
+    }
+    if (oauthResponse['pendingToken']) {
+      this.pendingToken_ = oauthResponse['pendingToken'];
     }
   } else if (oauthResponse['oauthToken'] &&
              oauthResponse['oauthTokenSecret'])  {
@@ -262,11 +409,21 @@ fireauth.OAuthCredential.prototype.makeVerifyAssertionRequest_ = function() {
     postBody['oauth_token_secret'] = this['secret'];
   }
   postBody['providerId'] = this['providerId'];
-  return {
+  // Pass nonce in postBody if available.
+  if (this['nonce'] && !this.pendingToken_) {
+    postBody['nonce'] = this['nonce'];
+  }
+  var request = {
     'postBody': goog.Uri.QueryData.createFromMap(postBody).toString(),
     // Always use http://localhost.
     'requestUri': 'http://localhost'
   };
+  if (this.pendingToken_) {
+    // For pendingToken, just pass it through and drop postBody.
+    delete request['postBody'];
+    request['pendingToken'] = this.pendingToken_;
+  }
+  return request;
 };
 
 
@@ -288,7 +445,47 @@ fireauth.OAuthCredential.prototype.toPlainObject = function() {
   if (this['secret']) {
     obj['oauthTokenSecret'] = this['secret'];
   }
+  if (this['nonce']) {
+    obj['nonce'] = this['nonce'];
+  }
+  if (this.pendingToken_) {
+    obj['pendingToken'] = this.pendingToken_;
+  }
   return obj;
+};
+
+
+/**
+ * @param {?Object|undefined} json The plain object representation of an
+ *     OAuthCredential.
+ * @return {?fireauth.OAuthCredential} The OAuth/OIDC credential if the object
+ *     is a JSON representation of an OAuthCredential, null otherwise.
+ */
+fireauth.OAuthCredential.fromJSON = function(json) {
+  if (json &&
+      json['providerId'] &&
+      json['signInMethod']) {
+    // Convert to OAuthResponse format.
+    var oauthResponse = {
+      // OIDC && google.com.
+      'idToken': json['oauthIdToken'],
+      // OAuth 2.0 providers.
+      'accessToken': json['oauthTokenSecret'] ? null : json['oauthAccessToken'],
+      // OAuth 1.0 provider, eg. Twitter.
+      'oauthTokenSecret': json['oauthTokenSecret'],
+      'oauthToken': json['oauthTokenSecret'] && json['oauthAccessToken'],
+      'nonce': json['nonce'],
+      'pendingToken': json['pendingToken']
+    };
+    try {
+      // Constructor will validate the OAuthResponse.
+      return new fireauth.OAuthCredential(
+          json['providerId'], oauthResponse, json['signInMethod']);
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
 };
 
 
@@ -372,6 +569,31 @@ fireauth.FederatedProvider.prototype.getCustomParameters = function() {
 
 
 /**
+ * Generic SAML auth provider.
+ * @param {string} providerId The SAML IdP provider ID (e.g. saml.saml2rp)
+ *     registered with the backend.
+ * @constructor
+ * @extends {fireauth.FederatedProvider}
+ * @implements {fireauth.AuthProvider}
+ */
+fireauth.SAMLAuthProvider = function(providerId) {
+  // SAML provider IDs must be prefixed with the SAML_PREFIX.
+  if (!fireauth.idp.isSaml(providerId)) {
+    throw new fireauth.AuthError(
+        fireauth.authenum.Error.ARGUMENT_ERROR,
+        'SAML provider IDs must be prefixed with "' +
+        fireauth.constants.SAML_PREFIX + '"');
+  }
+  // isOAuthProvider is true even though this is not an OAuth provider.
+  // This can be confusing as this is a SAML provider. However, this property
+  // is needed to allow signInWithPopup/Redirect. We should rename it to
+  // something more accurate: isFederatedProvider.
+  fireauth.SAMLAuthProvider.base(this, 'constructor', providerId, []);
+};
+goog.inherits(fireauth.SAMLAuthProvider, fireauth.FederatedProvider);
+
+
+/**
  * Generic OAuth2 Auth provider.
  * @param {string} providerId The IdP provider ID (e.g. google.com,
  *     facebook.com) registered with the backend.
@@ -411,13 +633,15 @@ fireauth.OAuthProvider.prototype.getScopes = function() {
 
 /**
  * Initializes an OAuth AuthCredential. At least one of ID token or access token
- * must be defined.
+ * must be defined. When providing an OIDC ID token with a nonce encoded, the
+ * raw nonce must also be provided.
  * @param {?string=} opt_idToken The optional OAuth ID token.
  * @param {?string=} opt_accessToken The optional OAuth access token.
+ * @param {?string=} opt_rawNonce The optional raw nonce.
  * @return {!fireauth.AuthCredential} The Auth credential object.
  */
 fireauth.OAuthProvider.prototype.credential = function(opt_idToken,
-    opt_accessToken) {
+    opt_accessToken, opt_rawNonce) {
   if (!opt_idToken && !opt_accessToken) {
     throw new fireauth.AuthError(fireauth.authenum.Error.ARGUMENT_ERROR,
         'credential failed: must provide the ID token and/or the access ' +
@@ -425,7 +649,8 @@ fireauth.OAuthProvider.prototype.credential = function(opt_idToken,
   }
   var oauthResponse = {
     'idToken': opt_idToken || null,
-    'accessToken': opt_accessToken || null
+    'accessToken': opt_accessToken || null,
+    'nonce': opt_rawNonce || null
   };
   // For OAuthCredential, sign in method is same as providerId.
   return new fireauth.OAuthCredential(this['providerId'],
@@ -701,6 +926,22 @@ fireauth.EmailAuthCredential.prototype.toPlainObject = function() {
 };
 
 
+/**
+ * @param {?Object|undefined} json The plain object representation of a
+ *     EmailAuthCredential.
+ * @return {?fireauth.EmailAuthCredential} The email credential if the object
+ *     is a JSON representation of an EmailAuthCredential, null otherwise.
+ */
+fireauth.EmailAuthCredential.fromJSON = function(json) {
+  if (json && json['email'] && json['password']) {
+    return new fireauth.EmailAuthCredential(
+        json['email'],
+        json['password'],
+        json['signInMethod']);
+  }
+  return null;
+};
+
 
 /**
  * Email password Auth provider implementation.
@@ -836,8 +1077,8 @@ fireauth.PhoneAuthCredential.TemporaryProofParameters_;
 /**
  * @private
  * @typedef {
- *   fireauth.PhoneAuthCredential.VerificationParameters_|
- *   fireauth.PhoneAuthCredential.TemporaryProofParameters_
+ *   !fireauth.PhoneAuthCredential.VerificationParameters_|
+ *   !fireauth.PhoneAuthCredential.TemporaryProofParameters_
  * }
  */
 fireauth.PhoneAuthCredential.Parameters_;
@@ -911,6 +1152,33 @@ fireauth.PhoneAuthCredential.prototype.toPlainObject = function() {
     obj['phoneNumber'] = this.params_.phoneNumber;
   }
   return obj;
+};
+
+
+/**
+ * @param {?Object|undefined} json The plain object representation of a
+ *     PhoneAuthCredential.
+ * @return {?fireauth.PhoneAuthCredential} The phone credential if the object
+ *     is a JSON representation of an PhoneAuthCredential, null otherwise.
+ */
+fireauth.PhoneAuthCredential.fromJSON = function(json) {
+  if (json &&
+      json['providerId'] === fireauth.idp.ProviderId.PHONE &&
+      ((json['verificationId'] && json['verificationCode']) ||
+       (json['temporaryProof'] && json['phoneNumber']))) {
+    var params = {};
+    var allowedKeys = [
+      'verificationId', 'verificationCode', 'temporaryProof', 'phoneNumber'
+    ];
+    goog.array.forEach(allowedKeys, function(key) {
+      if (json[key]) {
+        params[key] = json[key];
+      }
+    });
+    return new fireauth.PhoneAuthCredential(
+        /** @type {!fireauth.PhoneAuthCredential.Parameters_} */ (params));
+  }
+  return null;
 };
 
 
@@ -1049,6 +1317,8 @@ fireauth.object.setReadonlyProperties(fireauth.PhoneAuthProvider, {
 
 /**
  * Constructs an Auth credential from a backend response.
+ * Note, unlike fromJSON which constructs the AuthCredential from a toJSON()
+ * response, this helper constructs the credential from the server response.
  * @param {?Object} response The backend response to build a credential from.
  * @return {?fireauth.AuthCredential} The corresponding AuthCredential.
  */
@@ -1073,8 +1343,13 @@ fireauth.AuthProvider.getCredentialFromResponse = function(response) {
 
   var accessToken = response && response['oauthAccessToken'];
   var accessTokenSecret = response && response['oauthTokenSecret'];
+  // Note this is not actually returned by the backend. It is introduced in
+  // rpcHandler.
+  var rawNonce = response && response['nonce'];
   // Google Id Token returned when no additional scopes provided.
   var idToken = response && response['oauthIdToken'];
+  // Pending token for SAML and OAuth/OIDC providers.
+  var pendingToken = response && response['pendingToken'];
   try {
     switch (providerId) {
       case fireauth.idp.ProviderId.GOOGLE:
@@ -1094,13 +1369,66 @@ fireauth.AuthProvider.getCredentialFromResponse = function(response) {
             accessToken, accessTokenSecret);
 
       default:
+        if (!accessToken && !accessTokenSecret && !idToken && !pendingToken) {
+          return null;
+        }
+        if (pendingToken) {
+          if (providerId.indexOf(fireauth.constants.SAML_PREFIX) == 0) {
+            return new fireauth.SAMLAuthCredential(providerId, pendingToken);
+          } else {
+            // OIDC and non-default providers excluding Twitter.
+            return new fireauth.OAuthCredential(
+                providerId,
+                {
+                  'pendingToken': pendingToken,
+                  'idToken': response['oauthIdToken'],
+                  'accessToken': response['oauthAccessToken']
+                },
+                providerId);
+          }
+        }
         return new fireauth.OAuthProvider(providerId).credential(
-            idToken, accessToken);
+            idToken, accessToken, rawNonce);
     }
   } catch (e) {
     return null;
   }
 };
+
+
+/**
+ * Constructs an Auth credential from a JSON representation.
+ * Note, unlike getCredentialFromResponse which constructs the AuthCredential
+ * from a server response, this helper constructs credential from the toJSON()
+ * result.
+ * @param {?Object} json The JSON representation to construct credential from.
+ * @return {?fireauth.AuthCredential} The corresponding AuthCredential.
+ */
+fireauth.AuthProvider.getCredentialFromJSON = function(json) {
+  var credential;
+  var fromJSON = [
+    fireauth.OAuthCredential.fromJSON,
+    fireauth.EmailAuthCredential.fromJSON,
+    fireauth.PhoneAuthCredential.fromJSON,
+    fireauth.SAMLAuthCredential.fromJSON
+  ];
+  for (var i = 0; i < fromJSON.length; i++) {
+    credential = fromJSON[i](json);
+    if (credential) {
+      return credential;
+    }
+  }
+  return null;
+};
+
+
+/**
+ * Constructs an Auth credential from a JSON representation.
+ * @param {?Object} json The JSON representation to construct credential from.
+ * @return {?fireauth.AuthCredential} The corresponding AuthCredential.
+ */
+fireauth.AuthCredential.fromPlainObject =
+    fireauth.AuthProvider.getCredentialFromJSON;
 
 
 /**

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -132,6 +133,8 @@ describe('.info Tests', function() {
   });
 
   it.skip('database.goOffline() / database.goOnline() connection management', function() {
+    // NOTE: getFreshRepo() no longer takes a hostname, so this test needs to be reworked.
+    // Need to figure out how to re-enable this test.
     const ref = getFreshRepo(TEST_NAMESPACE);
     const refAlt = getFreshRepo(TEST_ALT_NAMESPACE);
     let ready;

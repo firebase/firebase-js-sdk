@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,8 +21,8 @@ import { DocumentSet } from '../model/document_set';
 import { fail } from '../util/assert';
 import { SortedMap } from '../util/sorted_map';
 
-import { Query } from './query';
 import { DocumentKeySet } from '../model/collections';
+import { Query } from './query';
 
 export enum ChangeType {
   Added,

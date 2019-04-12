@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -99,13 +100,13 @@ export class ReadonlyRestClient extends ServerActions {
     const thisListen = {};
     this.listens_[listenId] = thisListen;
 
-    const queryStringParamaters = query
+    const queryStringParameters = query
       .getQueryParams()
       .toRestQueryStringParameters();
 
     this.restRequest_(
       pathString + '.json',
-      queryStringParamaters,
+      queryStringParameters,
       (error, result) => {
         let data = result;
 
@@ -174,6 +175,8 @@ export class ReadonlyRestClient extends ServerActions {
           this.repoInfo_.host +
           pathString +
           '?' +
+          'ns=' +
+          this.repoInfo_.namespace +
           querystring(queryStringParameters);
 
         this.log_('Sending REST request for ' + url);

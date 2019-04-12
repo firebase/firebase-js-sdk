@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,12 +17,16 @@
 
 import { User } from '../auth/user';
 
+import { ListenSequenceNumber } from '../core/types';
+import { DocumentKey } from '../model/document_key';
+import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
+import { QueryData } from './query_data';
+import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
-import { ListenSequenceNumber } from '../core/types';
 
 /**
  * Opaque interface representing a persistence transaction.
@@ -45,6 +50,60 @@ export abstract class PersistenceTransaction {
  * exactly once marking the current instance as Primary.
  */
 export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
+
+/**
+ * A ReferenceDelegate instance handles all of the hooks into the document-reference lifecycle. This
+ * includes being added to a target, being removed from a target, being subject to mutation, and
+ * being mutated by the user.
+ *
+ * Different implementations may do different things with each of these events. Not every
+ * implementation needs to do something with every lifecycle hook.
+ *
+ * PORTING NOTE: since sequence numbers are attached to transactions in this
+ * client, the ReferenceDelegate does not need to deal in transactional
+ * semantics (onTransactionStarted/Committed()), nor does it need to track and
+ * generate sequence numbers (getCurrentSequenceNumber()).
+ */
+export interface ReferenceDelegate {
+  /**
+   * Registers a ReferenceSet of documents that should be considered 'referenced' and not eligible
+   * for removal during garbage collection.
+   */
+  setInMemoryPins(pins: ReferenceSet): void;
+
+  /** Notify the delegate that the given document was added to a target. */
+  addReference(
+    txn: PersistenceTransaction,
+    doc: DocumentKey
+  ): PersistencePromise<void>;
+
+  /** Notify the delegate that the given document was removed from a target. */
+  removeReference(
+    txn: PersistenceTransaction,
+    doc: DocumentKey
+  ): PersistencePromise<void>;
+
+  /**
+   * Notify the delegate that a target was removed. The delegate may, but is not obligated to,
+   * actually delete the target and associated data.
+   */
+  removeTarget(
+    txn: PersistenceTransaction,
+    queryData: QueryData
+  ): PersistencePromise<void>;
+
+  /** Notify the delegate that a document is no longer being mutated by the user. */
+  removeMutationReference(
+    txn: PersistenceTransaction,
+    doc: DocumentKey
+  ): PersistencePromise<void>;
+
+  /** Notify the delegate that a limbo document was updated. */
+  updateLimboDocument(
+    txn: PersistenceTransaction,
+    doc: DocumentKey
+  ): PersistencePromise<void>;
+}
 
 /**
  * Persistence is the lowest-level shared interface to persistent storage in
@@ -87,6 +146,8 @@ export interface Persistence {
    * Whether or not this persistence instance has been started.
    */
   readonly started: boolean;
+
+  readonly referenceDelegate: ReferenceDelegate;
 
   /**
    * Releases any resources held during eager shutdown.
@@ -156,6 +217,15 @@ export interface Persistence {
   getRemoteDocumentCache(): RemoteDocumentCache;
 
   /**
+   * Returns an IndexManager instance that manages our persisted query indexes.
+   *
+   * Note: The implementation is free to return the same instance every time
+   * this is called. In particular, the memory-backed implementation does this
+   * to emulate the persisted implementation to the extent possible.
+   */
+  getIndexManager(): IndexManager;
+
+  /**
    * Performs an operation inside a persistence transaction. Any reads or writes
    * against persistence must be performed within a transaction. Writes will be
    * committed atomically once the transaction completes.
@@ -167,16 +237,18 @@ export interface Persistence {
    *
    * @param action A description of the action performed by this transaction,
    * used for logging.
-   * @param requirePrimaryLease Whether this transaction can only be executed
-   * by the primary client. If the primary lease cannot be acquired, the
-   * transactionOperation will not be run, and the returned promise will be
-   * rejected with a FAILED_PRECONDITION error.
+   * @param mode The underlying mode of the IndexedDb transaction. Can be
+   * 'readonly`, 'readwrite' or 'readwrite-primary'. Transactions marked
+   * 'readwrite-primary' can only be executed by the primary client. In this
+   * mode, the transactionOperation will not be run if the primary lease cannot
+   * be acquired and the returned promise will be rejected with a
+   * FAILED_PRECONDITION error.
    * @param transactionOperation The operation to run inside a transaction.
    * @return A promise that is resolved once the transaction completes.
    */
   runTransaction<T>(
     action: string,
-    requirePrimaryLease: boolean,
+    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>

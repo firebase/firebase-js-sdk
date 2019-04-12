@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +27,7 @@ export class RequestMap {
   private id_: number;
 
   constructor() {
-    this.id_ = constants.minSafeInteger;
+    this.id_ = constants.MIN_SAFE_INTEGER;
   }
 
   /**

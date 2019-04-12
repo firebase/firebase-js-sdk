@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +16,6 @@
  */
 
 import { assert, fail } from './assert';
-import { AnyJs } from './misc';
 
 /*
  * Implementation of an immutable SortedMap using a Left-leaning
@@ -141,6 +141,15 @@ export class SortedMap<K, V> {
       fn(k, v);
       return false;
     });
+  }
+
+  toString(): string {
+    const descriptions: string[] = [];
+    this.inorderTraversal((k, v) => {
+      descriptions.push(`${k}:${v}`);
+      return false;
+    });
+    return `{${descriptions.join(', ')}}`;
   }
 
   // Traverses the map in reverse key order and calls the specified action
@@ -567,4 +576,4 @@ export class LLRBEmptyNode<K, V> {
   }
 } // end LLRBEmptyNode
 
-LLRBNode.EMPTY = new LLRBEmptyNode<AnyJs, AnyJs>();
+LLRBNode.EMPTY = new LLRBEmptyNode<unknown, unknown>();

@@ -8,7 +8,7 @@
 The Firebase JavaScript SDK implements the client-side libraries used by
 applications using Firebase services. This SDK is distributed via:
 
-- CDN (`<script src="https://www.gstatic.com/firebasejs/4.0.0/firebase.js"></script>`)
+- CDN (`<script src="https://www.gstatic.com/firebasejs/5.5.3/firebase.js"></script>`)
 - [npm package](https://www.npmjs.com/package/firebase)
 - [Bower package](https://github.com/firebase/firebase-bower)
 
@@ -24,7 +24,8 @@ Current [Release Notes](https://firebase.google.com/support/release-notes/js)
 #### Node.js
 
 Before you can start working on the Firebase JS SDK, you need to have Node.js
-`8.0.0` or greater installed on your machine. 
+installed on your machine. The currently supported versions are `8.0.0` or greater,
+but smaller than `10.0.0`.
 
 To download Node.js visit https://nodejs.org/en/download/.
 
@@ -35,7 +36,7 @@ or [`N`](https://github.com/tj/n) to install and manage multiple node versions_
 
 In addition to Node.js we use `yarn` to facilitate multi package development.
 
-To install `yarn` follow the instructions listed on their website: 
+To install `yarn` follow the instructions listed on their website:
 https://yarnpkg.com/en/docs/install
 
 #### Java
@@ -69,6 +70,13 @@ by running the following at the root of the SDK:
 $ yarn
 ```
 
+Once you have installed all the dependencies, you can build the entire SDK by
+running the following command the root of the SDK:
+
+```bash
+$ yarn build
+```
+
 ## Testing the SDK
 
 ### Test Setup
@@ -84,23 +92,29 @@ them below.
 
 #### Authentication Support
 
-Visit the authentication config in your project and enable the `Anonymous` 
+Visit the authentication config in your project and enable the `Anonymous`
 sign-in provider to complete your project config.
 
 #### Automated Setup
 
-The remainder of the test setup can be done by running the following command at
-the root of the package:
+The remainder of the test setup requires choosing a test project. You can 
+choose the project manually or specify the project directly at the root of 
+the package.
 
 ```bash
-yarn test:setup
+# Select a project manually when running setup
+$ yarn test:setup
+
+# Specify the specific project for setup
+$ yarn test:setup --projectId=<your-test-project>
 ```
 
 ### Running the tests
 
 Each of the directories in the `integration` directory as well as the `packages`
-directory have their own test suites. These can be run altogether by running the
-following command at the root of the package:
+directory have their own test suites. You will need to build the SDK before
+running tests. Test suites can be run all together by running the following 
+command at the root of the package:
 
 ```bash
 $ yarn test
@@ -114,13 +128,13 @@ an individual package directory.
 ### Introduction
 
 The Firebase JS SDK is built with a series of individual packages that are all
-contained in this repository. Development is coordinated via [yarn 
-workspaces](https://yarnpkg.com/blog/2017/08/02/introducing-workspaces/) and 
+contained in this repository. Development is coordinated via [yarn
+workspaces](https://yarnpkg.com/blog/2017/08/02/introducing-workspaces/) and
 [Lerna](https://lernajs.io/) (a monorepo management tool).
 
 Each package in the `packages` directory, constitute a piece of our
 implementation. The SDK is built via a combination of all of these packages
-which are published under the [`firebase` 
+which are published under the [`firebase`
 scope](https://www.npmjs.com/search?q=scope%3Afirebase) on NPM.
 
 ### Helper Scripts
@@ -133,12 +147,12 @@ watch tasks as well as a sandbox server.
 You can run the dev script by running the following at the root of the package:
 
 ```bash
-yarn dev
+$ yarn dev
 ```
 
 ### Prepush Hooks
 
-As part of this repo, we use the NPM package [`husky`](https://npm.im/husky) to 
+As part of this repo, we use the NPM package [`husky`](https://npm.im/husky) to
 implement git hooks. We leverage the prepush hook to do two things:
 
 - Automated code styling (using [`prettier`](https://npm.im/prettier))

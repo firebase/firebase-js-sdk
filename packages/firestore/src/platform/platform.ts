@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +20,6 @@ import { ProtoByteString } from '../core/types';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
-import { AnyJs } from '../util/misc';
 
 /**
  * Provides a common interface to load anything platform dependent, e.g.
@@ -34,7 +34,7 @@ export interface Platform {
   newSerializer(databaseId: DatabaseId): JsonProtoSerializer;
 
   /** Formats an object as a JSON string, suitable for logging. */
-  formatJSON(value: AnyJs): string;
+  formatJSON(value: unknown): string;
 
   /** Converts a Base64 encoded string to a binary string. */
   atob(encoded: string): string;

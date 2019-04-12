@@ -80,8 +80,8 @@ list(ref).subscribe(changes => {
 list(ref)
   .pipe(
     map(changes => changes.map(c => { 
-      return { _key: c.snapshot.key, event: c.event, ...c.snapshot.val(); };
-    ))
+      return { _key: c.snapshot.key, event: c.event, ...c.snapshot.val() }
+    })
   )
   .subscribe(users => { console.log(users); })
 

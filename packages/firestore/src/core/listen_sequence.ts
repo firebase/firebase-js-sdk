@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +18,8 @@
 import { ListenSequenceNumber } from './types';
 
 /**
- * `SequenceNumberSyncer` defines the methods required to keep multiple instances of a `ListenSequence` in sync.
+ * `SequenceNumberSyncer` defines the methods required to keep multiple instances of a
+ * `ListenSequence` in sync.
  */
 export interface SequenceNumberSyncer {
   // Notify the syncer that a new sequence number has been used.
@@ -32,8 +34,8 @@ export interface SequenceNumberSyncer {
 /**
  * `ListenSequence` is a monotonic sequence. It is initialized with a minimum value to
  * exceed. All subsequent calls to next will return increasing values. If provided with a
- * `SequenceNumberSyncer`, it will additionally bump its next value when told of a new value, as well as write out
- * sequence numbers that it produces via `next()`.
+ * `SequenceNumberSyncer`, it will additionally bump its next value when told of a new value, as
+ * well as write out sequence numbers that it produces via `next()`.
  */
 export class ListenSequence {
   static readonly INVALID: ListenSequenceNumber = -1;

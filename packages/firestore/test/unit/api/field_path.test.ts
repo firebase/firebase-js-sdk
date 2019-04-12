@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,7 @@
  * limitations under the License.
  */
 
-import { field, expectEqual, expectNotEqual } from '../../util/helpers';
+import { expectEqual, expectNotEqual, field } from '../../util/helpers';
 
 describe('FieldPath', () => {
   it('support equality checking with isEqual()', () => {

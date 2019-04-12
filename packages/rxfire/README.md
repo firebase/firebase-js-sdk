@@ -117,10 +117,10 @@ const url$ = getDownloadURL(ref);
 
 ## Documentation
 
-- [Firestore](docs/firestore.md)
-- [Authentication](docs/auth.md)
-- [Storage](docs/storage.md)
-- [Realtime Database](docs/database.md)
+- [Firestore](https://github.com/firebase/firebase-js-sdk/blob/master/packages/rxfire/docs/firestore.md)
+- [Authentication](https://github.com/firebase/firebase-js-sdk/blob/master/packages/rxfire/docs/auth.md)
+- [Storage](https://github.com/firebase/firebase-js-sdk/blob/master/packages/rxfire/docs/storage.md)
+- [Realtime Database](https://github.com/firebase/firebase-js-sdk/blob/master/packages/rxfire/docs/database.md)
 
 ## Examples
 

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,12 +19,16 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
+import { TargetId } from '../core/types';
+import { primitiveComparator } from '../util/misc';
 import { Document, MaybeDocument } from './document';
 import { DocumentKey } from './document_key';
-import { primitiveComparator } from '../util/misc';
-import { TargetId } from '../core/types';
 
 /** Miscellaneous collection types / constants. */
+export type DocumentSizeEntry = {
+  maybeDocument: MaybeDocument;
+  size: number;
+};
 
 export type MaybeDocumentMap = SortedMap<DocumentKey, MaybeDocument>;
 const EMPTY_MAYBE_DOCUMENT_MAP = new SortedMap<DocumentKey, MaybeDocument>(
@@ -32,6 +37,20 @@ const EMPTY_MAYBE_DOCUMENT_MAP = new SortedMap<DocumentKey, MaybeDocument>(
 export function maybeDocumentMap(): MaybeDocumentMap {
   return EMPTY_MAYBE_DOCUMENT_MAP;
 }
+
+export type NullableMaybeDocumentMap = SortedMap<
+  DocumentKey,
+  MaybeDocument | null
+>;
+
+export function nullableMaybeDocumentMap(): NullableMaybeDocumentMap {
+  return maybeDocumentMap();
+}
+
+export type DocumentSizeEntries = {
+  maybeDocuments: NullableMaybeDocumentMap;
+  sizeMap: SortedMap<DocumentKey, number>;
+};
 
 export type DocumentMap = SortedMap<DocumentKey, Document>;
 const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(
@@ -51,8 +70,12 @@ export function documentVersionMap(): DocumentVersionMap {
 
 export type DocumentKeySet = SortedSet<DocumentKey>;
 const EMPTY_DOCUMENT_KEY_SET = new SortedSet(DocumentKey.comparator);
-export function documentKeySet(): DocumentKeySet {
-  return EMPTY_DOCUMENT_KEY_SET;
+export function documentKeySet(...keys: DocumentKey[]): DocumentKeySet {
+  let set = EMPTY_DOCUMENT_KEY_SET;
+  for (const key of keys) {
+    set = set.add(key);
+  }
+  return set;
 }
 
 export type TargetIdSet = SortedSet<TargetId>;

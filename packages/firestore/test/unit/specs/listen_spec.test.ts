@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +19,10 @@ import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
 import { deletedDoc, doc, filter, path } from '../../util/helpers';
 
+import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
 import { RpcError } from './spec_rpc_error';
-import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Listens:', [], () => {
   // Obviously this test won't hold with offline persistence enabled.
@@ -1215,6 +1216,35 @@ describeSpec('Listens:', [], () => {
         .watchAcksFull(query, 2000, docB)
         .client(1)
         .expectEvents(query, { added: [docB] });
+    }
+  );
+
+  specTest(
+    'Previous primary immediately regains primary lease',
+    ['multi-client'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 2000, { key: 'a' });
+
+      return (
+        client(0)
+          .userListens(query)
+          .watchAcksFull(query, 1000)
+          .expectEvents(query, {})
+          .client(1)
+          .stealPrimaryLease()
+          .expectListen(query, 'resume-token-1000')
+          .watchAcksFull(query, 2000, docA)
+          .shutdown()
+          .client(0)
+          .expectPrimaryState(true)
+          // The primary tab only discovers that it has lost its lease when it
+          // is already eligible to obtain it again.
+          .runTimer(TimerId.ClientMetadataRefresh)
+          .expectPrimaryState(true)
+          .expectListen(query, 'resume-token-2000')
+          .expectEvents(query, { added: [docA] })
+      );
     }
   );
 });

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,18 +22,31 @@ import '../../index';
 import { Reference } from '../../src/api/Reference';
 import { Query } from '../../src/api/Query';
 import { ConnectionTarget } from '../../src/api/test_access';
-import { RepoInfo } from '../../src/core/RepoInfo';
 
 export const TEST_PROJECT = require('../../../../config/project.json');
 
-const qs = {};
-if ('location' in this) {
-  const search = (this.location.search.substr(1) || '').split('&');
-  for (let i = 0; i < search.length; ++i) {
-    const parts = search[i].split('=');
-    qs[parts[0]] = parts[1] || true; // support for foo=
-  }
-}
+const EMULATOR_PORT = process.env.RTDB_EMULATOR_PORT;
+const EMULATOR_NAMESPACE = process.env.RTDB_EMULATOR_NAMESPACE;
+
+const USE_EMULATOR = !!EMULATOR_PORT;
+
+/*
+ * When running against the emulator, the hostname will be "localhost" rather
+ * than "<namespace>.firebaseio.com", and so we need to append the namespace
+ * as a query param.
+ *
+ * Some tests look for hostname only while others need full url (with the
+ * namespace provided as a query param), hence below declarations.
+ */
+export const DATABASE_ADDRESS = USE_EMULATOR
+  ? `http://localhost:${EMULATOR_PORT}`
+  : TEST_PROJECT.databaseURL;
+
+export const DATABASE_URL = USE_EMULATOR
+  ? `${DATABASE_ADDRESS}?ns=${EMULATOR_NAMESPACE}`
+  : TEST_PROJECT.databaseURL;
+
+console.log(`USE_EMULATOR: ${USE_EMULATOR}. DATABASE_URL: ${DATABASE_URL}.`);
 
 let numDatabases = 0;
 
@@ -57,6 +71,12 @@ export function patchFakeAuthFunctions(app) {
   return app;
 }
 
+export function createTestApp() {
+  const app = firebase.initializeApp({ databaseURL: DATABASE_URL });
+  patchFakeAuthFunctions(app);
+  return app;
+}
+
 /**
  * Gets or creates a root node to the test namespace. All calls sharing the
  * value of opt_i will share an app context.
@@ -73,10 +93,7 @@ export function getRootNode(i = 0, ref?: string) {
   try {
     app = firebase.app('TEST-' + i);
   } catch (e) {
-    app = firebase.initializeApp(
-      { databaseURL: TEST_PROJECT.databaseURL },
-      'TEST-' + i
-    );
+    app = firebase.initializeApp({ databaseURL: DATABASE_URL }, 'TEST-' + i);
     patchFakeAuthFunctions(app);
   }
   db = app.database();
@@ -119,7 +136,7 @@ export function pause(milliseconds: number) {
 }
 
 export function getPath(query: Query) {
-  return query.toString().replace(TEST_PROJECT.databaseURL, '');
+  return query.toString().replace(DATABASE_ADDRESS, '');
 }
 
 export function shuffle(arr, randFn = Math.random) {
@@ -187,9 +204,9 @@ export function testAuthTokenProvider(app) {
 let freshRepoId = 1;
 const activeFreshApps = [];
 
-export function getFreshRepo(url, path?) {
+export function getFreshRepo(path) {
   const app = firebase.initializeApp(
-    { databaseURL: url },
+    { databaseURL: DATABASE_URL },
     'ISOLATED_REPO_' + freshRepoId++
   );
   patchFakeAuthFunctions(app);
@@ -200,7 +217,7 @@ export function getFreshRepo(url, path?) {
 export function getFreshRepoFromReference(ref) {
   const host = ref.root.toString();
   const path = ref.toString().replace(host, '');
-  return getFreshRepo(host, path);
+  return getFreshRepo(path);
 }
 
 // Little helpers to get the currently cached snapshot / value.
@@ -242,4 +259,17 @@ export function testRepoInfo(url) {
   if (!match) throw new Error('Couldnt get Namespace from passed URL');
   const [, ns] = match;
   return new ConnectionTarget(`${ns}.firebaseio.com`, true, ns, false);
+}
+
+export function repoInfoForConnectionTest() {
+  if (USE_EMULATOR) {
+    return new ConnectionTarget(
+      /* host = */ `localhost:${EMULATOR_PORT}`,
+      /* secure (useSsl) = */ false, // emulator does not support https or wss
+      /* namespace = */ EMULATOR_NAMESPACE,
+      /* webSocketOnly = */ false
+    );
+  } else {
+    return testRepoInfo(TEST_PROJECT.databaseURL);
+  }
 }

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -296,7 +297,10 @@ describe('RxFire Database', () => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added]);
         obs
-          .pipe(skip(1), take(1))
+          .pipe(
+            skip(1),
+            take(1)
+          )
           .subscribe(changes => {
             const data = changes.map(change => change.snapshot.val());
             expect(data[3]).to.eql({ name: 'anotha one' });
@@ -335,7 +339,10 @@ describe('RxFire Database', () => {
         const aref = ref(rando());
         const obs = list(aref.orderByChild('name'), [ListenEvent.added]);
         obs
-          .pipe(skip(1), take(1))
+          .pipe(
+            skip(1),
+            take(1)
+          )
           .subscribe(changes => {
             const names = changes.map(change => change.snapshot.val().name);
             expect(names[0]).to.eql('anotha one');
@@ -357,7 +364,10 @@ describe('RxFire Database', () => {
           ListenEvent.added
         ]);
         obs
-          .pipe(skip(1), take(1))
+          .pipe(
+            skip(1),
+            take(1)
+          )
           .subscribe(changes => {
             const names = changes.map(change => change.snapshot.val().name);
             expect(names[0]).to.eql('zero');
@@ -377,7 +387,10 @@ describe('RxFire Database', () => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added, ListenEvent.removed]);
         const sub = obs
-          .pipe(skip(1), take(1))
+          .pipe(
+            skip(1),
+            take(1)
+          )
           .subscribe(changes => {
             const data = changes.map(change => change.snapshot.val());
             expect(data.length).to.eql(items.length - 1);
@@ -397,7 +410,10 @@ describe('RxFire Database', () => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added, ListenEvent.changed]);
         const sub = obs
-          .pipe(skip(1), take(1))
+          .pipe(
+            skip(1),
+            take(1)
+          )
           .subscribe(changes => {
             const data = changes.map(change => change.snapshot.val());
             expect(data[1].name).to.eql('lol');
@@ -417,7 +433,10 @@ describe('RxFire Database', () => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added, ListenEvent.moved]);
         const sub = obs
-          .pipe(skip(1), take(1))
+          .pipe(
+            skip(1),
+            take(1)
+          )
           .subscribe(changes => {
             const data = changes.map(change => change.snapshot.val());
             // We moved the first item to the last item, so we check that

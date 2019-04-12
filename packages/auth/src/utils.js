@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -464,6 +465,25 @@ fireauth.util.matchDomain = function(domainPattern, domain, scheme) {
         escapedDomainPattern + ')$', 'i');
     return re.test(domain);
   }
+};
+
+
+/**
+ * RegExp to detect if the email address given is valid.
+ * @const {!RegExp}
+ * @private
+ */
+fireauth.util.EMAIL_ADDRESS_REGEXP_ = /^[^@]+@[^@]+$/;
+
+
+/**
+ * Determines if it is a valid email address.
+ * @param {*} email The email address.
+ * @return {boolean} Whether the email address is valid.
+ */
+fireauth.util.isValidEmailAddress = function(email) {
+  return goog.isString(email) &&
+      fireauth.util.EMAIL_ADDRESS_REGEXP_.test(email);
 };
 
 
@@ -1427,7 +1447,7 @@ fireauth.util.persistsStorageWithIndexedDB = function() {
   // IE11, Edge when indexedDB is available (this is unavailable in InPrivate
   // mode). (SDK, OAuth handler and iframe)
   // Any environment where indexedDB is available (SDK only).
-  
+
   // In a browser environment, when an iframe and a popup web storage are not
   // synchronized, use the indexedDB fireauth.storage.Storage implementation.
   return (fireauth.util.isLocalStorageNotSynchronized() ||
@@ -1493,4 +1513,3 @@ fireauth.util.getActiveServiceWorker = function() {
   }
   return goog.Promise.resolve(/** @type {?ServiceWorker} */ (null));
 };
-

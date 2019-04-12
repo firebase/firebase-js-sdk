@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -939,6 +940,16 @@ function onPopupRedirectGenericProviderClick() {
 
 
 /**
+ * Performs the corresponding popup/redirect action for a SAML provider.
+ */
+function onPopupRedirectSamlProviderClick() {
+  var providerId = $('#popup-redirect-saml-providerid').val();
+  var provider = new firebase.auth.SAMLAuthProvider(providerId);
+  signInWithPopupRedirect(provider);
+}
+
+
+/**
  * Performs the corresponding popup/redirect action based on user's selection.
  * @param {!jQuery.Event} event The jQuery event object.
  */
@@ -1478,6 +1489,7 @@ function initApp(){
   $('#popup-redirect-get-redirect-result').click(onGetRedirectResult);
   $('#popup-redirect-add-custom-parameter')
       .click(onPopupRedirectAddCustomParam);
+  $('#popup-redirect-saml').click(onPopupRedirectSamlProviderClick);
 
   $('#action-code-settings-reset').click(onActionCodeSettingsReset);
 

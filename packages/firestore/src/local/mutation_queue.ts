@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,24 +22,13 @@ import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatch } from '../model/mutation_batch';
+import { SortedMap } from '../util/sorted_map';
 
-import { GarbageSource } from './garbage_source';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 
 /** A queue of mutations to apply to the remote store. */
-export interface MutationQueue extends GarbageSource {
-  /**
-   * Starts the mutation queue, performing any initial reads that might be
-   * required to establish invariants, etc.
-   *
-   * After starting, the mutation queue must guarantee that the
-   * highestAcknowledgedBatchId is less than nextBatchId. This prevents the
-   * local store from creating new batches that the mutation queue would
-   * consider erroneously acknowledged.
-   */
-  start(transaction: PersistenceTransaction): PersistencePromise<void>;
-
+export interface MutationQueue {
   /** Returns true if this queue contains no mutation batches. */
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean>;
 
@@ -64,10 +54,18 @@ export interface MutationQueue extends GarbageSource {
 
   /**
    * Creates a new mutation batch and adds it to this mutation queue.
+   *
+   * @param transaction The transaction this operation is scoped to.
+   * @param localWriteTime The original write time of this mutation.
+   * @param baseMutations Mutations that are used to populate the base values
+   * when this mutation is applied locally. These mutations are used to locally
+   * overwrite values that are persisted in the remote document cache.
+   * @param mutations The user-provided mutations in this mutation batch.
    */
   addMutationBatch(
     transaction: PersistenceTransaction,
     localWriteTime: Timestamp,
+    baseMutations: Mutation[],
     mutations: Mutation[]
   ): PersistencePromise<MutationBatch>;
 
@@ -85,6 +83,7 @@ export interface MutationQueue extends GarbageSource {
    * `removeMutationBatches()` has been called. Secondary clients return a
    * cached result until `removeCachedMutationKeys()` is invoked.
    */
+  // PORTING NOTE: Multi-tab only.
   lookupMutationKeys(
     transaction: PersistenceTransaction,
     batchId: BatchId
@@ -144,7 +143,7 @@ export interface MutationQueue extends GarbageSource {
   // TODO(mcg): This should really return an enumerator
   getAllMutationBatchesAffectingDocumentKeys(
     transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
+    documentKeys: SortedMap<DocumentKey, unknown>
   ): PersistencePromise<MutationBatch[]>;
 
   /**

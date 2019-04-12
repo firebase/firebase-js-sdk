@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +30,13 @@ export type DocumentData = { [field: string]: any };
  */
 export type UpdateData = { [fieldPath: string]: any };
 
+/**
+ * Constant used to indicate the LRU garbage collection should be disabled.
+ * Set this value as the `cacheSizeBytes` on the settings passed to the
+ * `Firestore` instance.
+ */
+export const CACHE_SIZE_UNLIMITED: number;
+
 /** Settings used to configure a `Firestore` instance. */
 export interface Settings {
   /** The hostname to connect to. */
@@ -37,46 +45,75 @@ export interface Settings {
   ssl?: boolean;
 
   /**
-   * Enables the use of `Timestamp`s for timestamp fields in
-   * `DocumentSnapshot`s.
+   * Specifies whether to use `Timestamp` objects for timestamp fields in
+   * `DocumentSnapshot`s. This is enabled by default and should not be
+   * disabled.
    *
-   * Currently, Firestore returns timestamp fields as `Date` but `Date` only
+   * Previously, Firestore returned timestamp fields as `Date` but `Date` only
    * supports millisecond precision, which leads to truncation and causes
-   * unexpected behavior when using a timestamp from a snapshot as a part
-   * of a subsequent query.
+   * unexpected behavior when using a timestamp from a snapshot as a part of a
+   * subsequent query.
    *
-   * Setting `timestampsInSnapshots` to true will cause Firestore to return
-   * `Timestamp` values instead of `Date` avoiding this kind of problem. To make
-   * this work you must also change any code that uses `Date` to use `Timestamp`
-   * instead.
+   * So now Firestore returns `Timestamp` values instead of `Date`, avoiding
+   * this kind of problem.
    *
-   * NOTE: in the future `timestampsInSnapshots: true` will become the
-   * default and this option will be removed so you should change your code to
-   * use Timestamp now and opt-in to this new behavior as soon as you can.
+   * To opt into the old behavior of returning `Date` objects, you can
+   * temporarily set `timestampsInSnapshots` to false.
+   *
+   * @deprecated This setting will be removed in a future release. You should
+   * update your code to expect `Timestamp` objects and stop using the
+   * `timestampsInSnapshots` setting.
    */
   timestampsInSnapshots?: boolean;
+
+  /**
+   * An approximate cache size threshold for the on-disk data. If the cache grows beyond this
+   * size, Firestore will start removing data that hasn't been recently used. The size is not a
+   * guarantee that the cache will stay below that size, only that if the cache exceeds the given
+   * size, cleanup will be attempted.
+   *
+   * The default value is 40 MB. The threshold must be set to at least 1 MB, and can be set to
+   * CACHE_SIZE_UNLIMITED to disable garbage collection.
+   */
+  cacheSizeBytes?: number;
+
+  /**
+   * Forces the SDK’s underlying network transport (WebChannel) to use
+   * long-polling. Each response from the backend will be closed immediately
+   * after the backend sends data (by default responses are kept open in case
+   * the backend has more data to send). This avoids incompatibility issues
+   * with certain proxies, antivirus software, etc. that incorrectly buffer
+   * traffic indefinitely. Use of this option will cause some performance
+   * degradation though.
+   *
+   * This setting may be removed in a future release. If you find yourself
+   * using it to work around a specific network reliability issue, please tell
+   * us about it in https://github.com/firebase/firebase-js-sdk/issues/1674.
+   *
+   * @webonly
+   */
+  experimentalForceLongPolling?: boolean;
 }
 
-// TODO(multitab): Uncomment when multi-tab is released publicly.
-// /**
-//  * Settings that can be passed to Firestore.enablePersistence() to configure
-//  * Firestore persistence.
-//  */
-// export interface PersistenceSettings {
-//   /**
-//    * Whether to synchronize the in-memory state of multiple tabs. Setting this
-//    * to 'true' in all open tabs enables shared access to local persistence,
-//    * shared execution of queries and latency-compensated local document updates
-//    * across all connected instances.
-//    *
-//    * To enable this mode, `experimentalTabSynchronization:true` needs to be set
-//    * globally in all active tabs. If omitted or set to 'false',
-//    * `enablePersistence()` will fail in all but the first tab.
-//    *
-//    * NOTE: This mode is not yet recommended for production use.
-//    */
-//   experimentalTabSynchronization?: boolean;
-// }
+/**
+ * Settings that can be passed to Firestore.enablePersistence() to configure
+ * Firestore persistence.
+ */
+export interface PersistenceSettings {
+  /**
+   * Whether to synchronize the in-memory state of multiple tabs. Setting this
+   * to 'true' in all open tabs enables shared access to local persistence,
+   * shared execution of queries and latency-compensated local document updates
+   * across all connected instances.
+   *
+   * To enable this mode, `experimentalTabSynchronization:true` needs to be set
+   * globally in all active tabs. If omitted or set to 'false',
+   * `enablePersistence()` will fail in all but the first tab.
+   *
+   * NOTE: This mode is not yet recommended for production use.
+   */
+  experimentalTabSynchronization?: boolean;
+}
 
 export type LogLevel = 'debug' | 'error' | 'silent';
 
@@ -112,33 +149,11 @@ export class FirebaseFirestore {
    *   * unimplemented: The browser is incompatible with the offline
    *     persistence implementation.
    *
+   * @param settings Optional settings object to configure persistence.
    * @return A promise that represents successfully enabling persistent
    * storage.
    */
-  enablePersistence(): Promise<void>;
-
-  // TODO(multitab): Uncomment when multi-tab is released publicly.
-  // /**
-  //  * Attempts to enable persistent storage, if possible.
-  //  *
-  //  * Must be called before any other methods (other than settings()).
-  //  *
-  //  * If this fails, enablePersistence() will reject the promise it returns.
-  //  * Note that even after this failure, the firestore instance will remain
-  //  * usable, however offline persistence will be disabled.
-  //  *
-  //  * There are several reasons why this can fail, which can be identified by
-  //  * the `code` on the error.
-  //  *
-  //  *   * failed-precondition: The app is already open in another browser tab.
-  //  *   * unimplemented: The browser is incompatible with the offline
-  //  *     persistence implementation.
-  //  *
-  //  * @param settings Optional settings object to configure persistence.
-  //  * @return A promise that represents successfully enabling persistent
-  //  * storage.
-  //  */
-  // enablePersistence(settings?: PersistenceSettings): Promise<void>;
+  enablePersistence(settings?: PersistenceSettings): Promise<void>;
 
   /**
    * Gets a `CollectionReference` instance that refers to the collection at
@@ -157,6 +172,20 @@ export class FirebaseFirestore {
    * @return The `DocumentReference` instance.
    */
   doc(documentPath: string): DocumentReference;
+
+  // TODO(b/116617988): Uncomment method and change jsdoc comment to "/**"
+  // once backend support is ready.
+  /*
+   * Creates and returns a new Query that includes all documents in the
+   * database that are contained in a collection or subcollection with the
+   * given collectionId.
+   *
+   * @param collectionId Identifies the collections to query over. Every
+   * collection or subcollection with this ID as the last segment of its path
+   * will be included. Cannot contain a slash.
+   * @return The created Query.
+   */
+  //collectionGroup(collectionId: string): Query;
 
   /**
    * Executes the given updateFunction and then attempts to commit the
@@ -1282,6 +1311,25 @@ export class FieldValue {
    * @return The FieldValue sentinel for use in a call to set() or update().
    */
   static arrayRemove(...elements: any[]): FieldValue;
+
+  /**
+   * Returns a special value that can be used with set() or update() that tells
+   * the server to increment the field's current value by the given value.
+   *
+   * If either the operand or the current field value uses floating point
+   * precision, all arithmetic will follow IEEE 754 semantics. If both values
+   * are integers, values outside of JavaScript's safe number range
+   * (`Number.MIN_SAFE_INTEGER` to `Number.MAX_SAFE_INTEGER`) are also subject
+   * to precision loss. Furthermore, once processed by the Firestore backend,
+   * all integer operations are capped between -2^63 and 2^63-1.
+   *
+   * If the current field value is not of type 'number', or if the field does
+   * not yet exist, the transformation will set the field to the given value.
+   *
+   * @param n The value to increment by.
+   * @return The FieldValue sentinel for use in a call to set() or update().
+   */
+  static increment(n: number): FieldValue;
 
   /**
    * Returns true if this `FieldValue` is equal to the provided one.

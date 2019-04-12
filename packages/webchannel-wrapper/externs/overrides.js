@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -61,3 +62,9 @@ goog.net.WebChannel.Options.backgroundChannelTest;
 
 /** @type {boolean|undefined} */
 goog.net.WebChannel.Options.fastHandshake;
+
+/** @type {!Object<string, boolean|number>|undefined} */
+goog.net.WebChannel.Options.internalChannelParams;
+
+/** @type {boolean|undefined} */
+goog.net.WebChannel.Options.forceLongPolling;

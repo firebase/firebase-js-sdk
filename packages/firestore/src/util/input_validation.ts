@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,11 +14,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { fail } from './assert';
 import { Code, FirestoreError } from './error';
-import { AnyJs } from './misc';
 import * as obj from './obj';
+
+/** Types accepted by validateType() and related methods for validation. */
+export type ValidationType =
+  | 'undefined'
+  | 'object'
+  | 'function'
+  | 'boolean'
+  | 'number'
+  | 'string'
+  | 'non-empty string';
+
+/**
+ * Validates that no arguments were passed in the invocation of functionName.
+ *
+ * Forward the magic "arguments" variable as second parameter on which the
+ * parameter validation is performed:
+ * validateNoArgs('myFunction', arguments);
+ */
+export function validateNoArgs(functionName: string, args: IArguments): void {
+  if (args.length !== 0) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Function ${functionName}() does not support arguments, ` +
+        'but was called with ' +
+        formatPlural(args.length, 'argument') +
+        '.'
+    );
+  }
+}
 
 /**
  * Validates the invocation of functionName has the exact number of arguments.
@@ -119,9 +147,9 @@ export function validateNamedArrayAtLeastNumberOfElements<T>(
  */
 export function validateArgType(
   functionName: string,
-  type: string,
+  type: ValidationType,
   position: number,
-  argument: AnyJs
+  argument: unknown
 ): void {
   validateType(functionName, type, `${ordinal(position)} argument`, argument);
 }
@@ -132,9 +160,9 @@ export function validateArgType(
  */
 export function validateOptionalArgType(
   functionName: string,
-  type: string,
+  type: ValidationType,
   position: number,
-  argument: AnyJs
+  argument: unknown
 ): void {
   if (argument !== undefined) {
     validateArgType(functionName, type, position, argument);
@@ -147,9 +175,9 @@ export function validateOptionalArgType(
  */
 export function validateNamedType(
   functionName: string,
-  type: string,
+  type: ValidationType,
   optionName: string,
-  argument: AnyJs
+  argument: unknown
 ): void {
   validateType(functionName, type, `${optionName} option`, argument);
 }
@@ -160,9 +188,9 @@ export function validateNamedType(
  */
 export function validateNamedOptionalType(
   functionName: string,
-  type: string,
+  type: ValidationType,
   optionName: string,
-  argument: AnyJs
+  argument: unknown
 ): void {
   if (argument !== undefined) {
     validateNamedType(functionName, type, optionName, argument);
@@ -236,9 +264,8 @@ export function validateNamedPropertyEquals<T>(
   const actualDescription = valueDescription(input);
   throw new FirestoreError(
     Code.INVALID_ARGUMENT,
-    `Invalid value ${actualDescription} provided to function ${functionName}() for option "${optionName}". Acceptable values: ${expectedDescription.join(
-      ', '
-    )}`
+    `Invalid value ${actualDescription} provided to function ${functionName}() for option ` +
+      `"${optionName}". Acceptable values: ${expectedDescription.join(', ')}`
   );
 }
 
@@ -264,14 +291,47 @@ export function validateNamedOptionalPropertyEquals<T>(
   }
 }
 
+/**
+ * Validates that the provided argument is a valid enum.
+ *
+ * @param functionName Function making the validation call.
+ * @param enums Array containing all possible values for the enum.
+ * @param position Position of the argument in `functionName`.
+ * @param argument Arugment to validate.
+ */
+export function validateStringEnum<T>(
+  functionName: string,
+  enums: string[],
+  position: number,
+  argument: unknown
+): void {
+  if (!enums.some(element => element === argument)) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Invalid value ${valueDescription(argument)} provided to function ` +
+        `${functionName}() for its ${ordinal(position)} argument. Acceptable ` +
+        `values: ${enums.join(', ')}`
+    );
+  }
+}
+
 /** Helper to validate the type of a provided input. */
 function validateType(
   functionName: string,
-  type: string,
+  type: ValidationType,
   inputName: string,
-  input: AnyJs
+  input: unknown
 ): void {
-  if (typeof input !== type || (type === 'object' && !isPlainObject(input))) {
+  let valid = false;
+  if (type === 'object') {
+    valid = isPlainObject(input);
+  } else if (type === 'non-empty string') {
+    valid = typeof input === 'string' && input !== '';
+  } else {
+    valid = typeof input === type;
+  }
+
+  if (!valid) {
     const description = valueDescription(input);
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
@@ -285,7 +345,7 @@ function validateType(
  * Returns true if it's a non-null object without a custom prototype
  * (i.e. excludes Array, Date, etc.).
  */
-export function isPlainObject(input: AnyJs): boolean {
+export function isPlainObject(input: unknown): boolean {
   return (
     typeof input === 'object' &&
     input !== null &&
@@ -295,7 +355,7 @@ export function isPlainObject(input: AnyJs): boolean {
 }
 
 /** Returns a string describing the type / value of the provided input. */
-export function valueDescription(input: AnyJs): string {
+export function valueDescription(input: unknown): string {
   if (input === undefined) {
     return 'undefined';
   } else if (input === null) {
@@ -311,7 +371,7 @@ export function valueDescription(input: AnyJs): string {
     if (input instanceof Array) {
       return 'an array';
     } else {
-      const customObjectName = tryGetCustomObjectType(input);
+      const customObjectName = tryGetCustomObjectType(input!);
       if (customObjectName) {
         return `a custom ${customObjectName} object`;
       } else {
@@ -341,7 +401,7 @@ export function tryGetCustomObjectType(input: object): string | null {
 export function validateDefined(
   functionName: string,
   position: number,
-  argument: AnyJs
+  argument: unknown
 ): void {
   if (argument === undefined) {
     throw new FirestoreError(
@@ -361,7 +421,7 @@ export function validateOptionNames(
   options: object,
   optionNames: string[]
 ): void {
-  obj.forEach(options as obj.Dict<AnyJs>, (key, _) => {
+  obj.forEach(options as obj.Dict<unknown>, (key, _) => {
     if (optionNames.indexOf(key) < 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -381,7 +441,7 @@ export function invalidClassError(
   functionName: string,
   type: string,
   position: number,
-  argument: AnyJs
+  argument: unknown
 ): Error {
   const description = valueDescription(argument);
   return new FirestoreError(

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,23 +15,23 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
 import { CredentialsProvider, Token } from '../api/credentials';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData } from '../local/query_data';
 import { Mutation, MutationResult } from '../model/mutation';
+import * as api from '../protos/firestore_proto_api';
 import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 
+import { CancelablePromise } from '../util/promise';
+import { isNullOrUndefined } from '../util/types';
 import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
 import { JsonProtoSerializer } from './serializer';
 import { WatchChange } from './watch_change';
-import { isNullOrUndefined } from '../util/types';
-import { CancelablePromise } from '../util/promise';
 
 const LOG_TAG = 'PersistentStream';
 

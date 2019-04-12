@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -26,9 +26,12 @@ import {
 } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
+import * as api from '../protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
 
+import { documentKeySet, DocumentKeySet } from '../model/collections';
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import {
   DbMutationBatch,
   DbNoDocument,
@@ -39,8 +42,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
-import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
-import { documentKeySet, DocumentKeySet } from '../model/collections';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -71,7 +72,9 @@ export class LocalSerializer {
   /** Encodes a document for storage locally. */
   toDbRemoteDocument(maybeDoc: MaybeDocument): DbRemoteDocument {
     if (maybeDoc instanceof Document) {
-      const doc = this.remoteSerializer.toDocument(maybeDoc);
+      const doc = maybeDoc.proto
+        ? maybeDoc.proto
+        : this.remoteSerializer.toDocument(maybeDoc);
       const hasCommittedMutations = maybeDoc.hasCommittedMutations;
       return new DbRemoteDocument(
         /* unknownDocument= */ null,
@@ -118,6 +121,9 @@ export class LocalSerializer {
 
   /** Encodes a batch of mutations into a DbMutationBatch for local storage. */
   toDbMutationBatch(userId: string, batch: MutationBatch): DbMutationBatch {
+    const serializedBaseMutations = batch.baseMutations.map(m =>
+      this.remoteSerializer.toMutation(m)
+    );
     const serializedMutations = batch.mutations.map(m =>
       this.remoteSerializer.toMutation(m)
     );
@@ -125,17 +131,26 @@ export class LocalSerializer {
       userId,
       batch.batchId,
       batch.localWriteTime.toMillis(),
+      serializedBaseMutations,
       serializedMutations
     );
   }
 
   /** Decodes a DbMutationBatch into a MutationBatch */
   fromDbMutationBatch(dbBatch: DbMutationBatch): MutationBatch {
+    const baseMutations = (dbBatch.baseMutations || []).map(m =>
+      this.remoteSerializer.fromMutation(m)
+    );
     const mutations = dbBatch.mutations.map(m =>
       this.remoteSerializer.fromMutation(m)
     );
     const timestamp = Timestamp.fromMillis(dbBatch.localWriteTimeMs);
-    return new MutationBatch(dbBatch.batchId, timestamp, mutations);
+    return new MutationBatch(
+      dbBatch.batchId,
+      timestamp,
+      baseMutations,
+      mutations
+    );
   }
 
   /*
@@ -175,6 +190,7 @@ export class LocalSerializer {
       query,
       dbTarget.targetId,
       QueryPurpose.Listen,
+      dbTarget.lastListenSequenceNumber,
       version,
       dbTarget.resumeToken
     );
@@ -216,7 +232,7 @@ export class LocalSerializer {
       queryData.query.canonicalId(),
       dbTimestamp,
       resumeToken,
-      0,
+      queryData.sequenceNumber,
       queryProto
     );
   }

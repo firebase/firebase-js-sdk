@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +24,7 @@ import {
 } from '../src/implementation/metadata';
 import { makeRequest } from '../src/implementation/request';
 import * as requests from '../src/implementation/requests';
-import { makeNormalUrl, makeUploadUrl } from '../src/implementation/url';
+import { makeUrl } from '../src/implementation/url';
 import * as fbsPromise from '../src/implementation/promise_external';
 import * as errors from '../src/implementation/error';
 import { RequestInfo } from '../src/implementation/requestinfo';
@@ -32,6 +33,7 @@ import { Metadata } from '../src/metadata';
 import { Reference } from '../src/reference';
 import { Service } from '../src/service';
 import { assertObjectIncludes, fakeXhrIo } from './testshared';
+import { DEFAULT_HOST } from '../src/implementation/constants';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
@@ -44,8 +46,6 @@ describe('Firebase Storage > Requests', () => {
   const smallBlob = new FbsBlob(new Blob(['a']));
   const smallBlobString = 'a';
   const bigBlob = new FbsBlob(new Blob([new ArrayBuffer(1024 * 1024)]));
-  const normalUrl = makeNormalUrl;
-  const uploadUrl = makeUploadUrl;
 
   const mappings = getMappings();
 
@@ -103,7 +103,7 @@ describe('Firebase Storage > Requests', () => {
     mappings
   );
   const downloadUrlFromServerResource =
-    'https://firebasestorage.googleapis.com/v0/b/' +
+    `https://${DEFAULT_HOST}/v0/b/` +
     normalBucket +
     '/o/' +
     encodeURIComponent(serverResource.name) +
@@ -124,7 +124,7 @@ describe('Firebase Storage > Requests', () => {
     reader.readAsText(blob);
     return fbsPromise.make((resolve, reject) => {
       reader.onload = () => {
-        resolve(reader.result);
+        resolve(reader.result as string);
       };
       reader.onerror = () => {
         reject(reader.error as Error);
@@ -178,7 +178,7 @@ describe('Firebase Storage > Requests', () => {
       const requestInfo = requests.getMetadata(authWrapper, location, mappings);
       assertObjectIncludes(
         {
-          url: normalUrl(url),
+          url: makeUrl(url),
           method: 'GET',
           body: null,
           headers: {},
@@ -211,7 +211,7 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: normalUrl(url),
+          url: makeUrl(url),
           method: 'GET',
           body: null,
           headers: {},
@@ -246,7 +246,7 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: normalUrl(url),
+          url: makeUrl(url),
           method: 'PATCH',
           body: metadataString,
           headers: { 'Content-Type': metadataContentType },
@@ -277,7 +277,7 @@ describe('Firebase Storage > Requests', () => {
       const requestInfo = requests.deleteObject(authWrapper, location);
       assertObjectIncludes(
         {
-          url: normalUrl(url),
+          url: makeUrl(url),
           method: 'DELETE',
           body: null,
           headers: {},
@@ -342,7 +342,7 @@ describe('Firebase Storage > Requests', () => {
 
       assertObjectIncludes(
         {
-          url: uploadUrl(url),
+          url: makeUrl(url),
           method: 'POST',
           urlParams: { name: location.path },
           headers: {
@@ -387,7 +387,7 @@ describe('Firebase Storage > Requests', () => {
       );
       assertObjectIncludes(
         {
-          url: uploadUrl(url),
+          url: makeUrl(url),
           method: 'POST',
           urlParams: { name: location.path },
           headers: {

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +22,6 @@ import * as args from './implementation/args';
 import { AuthWrapper } from './implementation/authwrapper';
 import { FbsBlob } from './implementation/blob';
 import * as errorsExports from './implementation/error';
-import { errors } from './implementation/error';
 import { Location } from './implementation/location';
 import * as metadata from './implementation/metadata';
 import * as object from './implementation/object';

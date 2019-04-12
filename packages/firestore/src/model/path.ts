@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +23,7 @@ export const DOCUMENT_KEY_NAME = '__name__';
 /**
  * Path represents an ordered sequence of string segments.
  */
-export abstract class Path {
+abstract class Path {
   private segments: string[];
   private offset: number;
   private len: number;
@@ -30,6 +31,14 @@ export abstract class Path {
   constructor(segments: string[], offset?: number, length?: number) {
     this.init(segments, offset, length);
   }
+
+  /**
+   * Returns a String representation.
+   *
+   * Implementing classes are required to provide deterministic implementations as
+   * the String representation is used to obtain canonical Query IDs.
+   */
+  abstract toString(): string;
 
   /**
    * An initialization method that can be called from outside the constructor.
@@ -116,8 +125,7 @@ export abstract class Path {
   }
 
   lastSegment(): string {
-    assert(!this.isEmpty(), "Can't call lastSegment() on empty path");
-    return this.segments[this.limit() - 1];
+    return this.get(this.length - 1);
   }
 
   get(index: number): string {

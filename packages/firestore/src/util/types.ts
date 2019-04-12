@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { AnyJs } from './misc';
 
 // Untyped Number alias we can use to check for ES6 methods / properties.
 // tslint:disable-next-line:no-any variable-name
@@ -43,7 +42,7 @@ export let MAX_SAFE_INTEGER: number =
  * Added to not rely on ES6 features.
  * @param value The value to test for being an integer
  */
-export let isInteger: (value: AnyJs) => boolean =
+export let isInteger: (value: unknown) => boolean =
   NumberAsAny.isInteger ||
   (value =>
     typeof value === 'number' &&
@@ -53,7 +52,7 @@ export let isInteger: (value: AnyJs) => boolean =
 /**
  * Returns whether a variable is either undefined or null.
  */
-export function isNullOrUndefined(value: AnyJs): boolean {
+export function isNullOrUndefined(value: unknown): boolean {
   return value === null || value === undefined;
 }
 
@@ -61,7 +60,7 @@ export function isNullOrUndefined(value: AnyJs): boolean {
  * Returns whether a value is an integer and in the safe integer range
  * @param value The value to test for being an integer and in the safe range
  */
-export function isSafeInteger(value: AnyJs): boolean {
+export function isSafeInteger(value: unknown): boolean {
   return (
     isInteger(value) &&
     (value as number) <= MAX_SAFE_INTEGER &&
@@ -72,7 +71,7 @@ export function isSafeInteger(value: AnyJs): boolean {
 /**
  * Safely checks if the number is NaN.
  */
-export function safeIsNaN(value: AnyJs): boolean {
+export function safeIsNaN(value: unknown): boolean {
   if (NumberAsAny.IsNaN) {
     return NumberAsAny.IsNaN(value);
   } else {

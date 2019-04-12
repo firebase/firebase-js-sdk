@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +29,10 @@ require('firebase/<PACKAGE>');
 
 ES Modules:
 import firebase from 'firebase/app';
+import 'firebase/<PACKAGE>';
+
+Typescript:
+import * as firebase from 'firebase/app';
 import 'firebase/<PACKAGE>';
 `);
 

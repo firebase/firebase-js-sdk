@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -878,8 +879,10 @@ describe('Transaction Tests', function() {
   it('Transaction from value callback.', function(done) {
     const ref = getRandomNode() as Reference;
     const COUNT = 1;
+    let transactionsOutstanding = 0;
     ref.on('value', function(snap) {
       let shouldCommit = true;
+      transactionsOutstanding++;
       ref.transaction(
         function(current) {
           if (current == null) {
@@ -889,13 +892,13 @@ describe('Transaction Tests', function() {
           } else {
             shouldCommit = false;
           }
-
-          if (snap.val() === COUNT) {
-            done();
-          }
         },
         function(error, committed, snap) {
           expect(committed).to.equal(shouldCommit);
+          transactionsOutstanding--;
+          if (transactionsOutstanding === 0) {
+            done();
+          }
         }
       );
     });

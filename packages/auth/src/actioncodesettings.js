@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -52,7 +53,7 @@ fireauth.ActionCodeSettings.prototype.initialize_ = function(settingsObj) {
              (typeof continueUrl === 'string' && !continueUrl.length)) {
     throw new fireauth.AuthError(fireauth.authenum.Error.INVALID_CONTINUE_URI);
   }
-  /** @private {string} The continue URL. */
+  /** @const @private {string} The continue URL. */
   this.continueUrl_ = /** @type {string} */ (continueUrl);
 
   // Validate Android parameters.
@@ -140,8 +141,23 @@ fireauth.ActionCodeSettings.prototype.initialize_ = function(settingsObj) {
         fireauth.ActionCodeSettings.RawField.HANDLE_CODE_IN_APP +
         ' property must be a boolean when specified.');
   }
-  /** @private {boolean} Whether the code can be handled in app. */
+  /** @const @private {boolean} Whether the code can be handled in app. */
   this.canHandleCodeInApp_ = !!canHandleCodeInApp;
+
+  // Validate dynamicLinkDomain.
+  var dynamicLinkDomain = settingsObj[
+      fireauth.ActionCodeSettings.RawField.DYNAMIC_LINK_DOMAIN];
+  if (typeof dynamicLinkDomain !== 'undefined' &&
+      (typeof dynamicLinkDomain !== 'string' ||
+       (typeof dynamicLinkDomain === 'string' &&
+        !dynamicLinkDomain.length))) {
+    throw new fireauth.AuthError(
+        fireauth.authenum.Error.ARGUMENT_ERROR,
+        fireauth.ActionCodeSettings.RawField.DYNAMIC_LINK_DOMAIN +
+        ' property must be a non empty string when specified.');
+  }
+  /** @const @private {?string} The FDL domain. */
+  this.dynamicLinkDomain_ = dynamicLinkDomain || null;
 };
 
 
@@ -155,6 +171,7 @@ fireauth.ActionCodeSettings.RequestField = {
   ANDROID_PACKAGE_NAME: 'androidPackageName',
   CAN_HANDLE_CODE_IN_APP: 'canHandleCodeInApp',
   CONTINUE_URL: 'continueUrl',
+  DYNAMIC_LINK_DOMAIN: 'dynamicLinkDomain',
   IOS_BUNDLE_ID: 'iOSBundleId'
 };
 
@@ -165,6 +182,7 @@ fireauth.ActionCodeSettings.RequestField = {
  */
 fireauth.ActionCodeSettings.RawField = {
   ANDROID: 'android',
+  DYNAMIC_LINK_DOMAIN: 'dynamicLinkDomain',
   HANDLE_CODE_IN_APP: 'handleCodeInApp',
   IOS: 'iOS',
   URL: 'url'
@@ -212,6 +230,8 @@ fireauth.ActionCodeSettings.prototype.buildRequest = function() {
         this.installApp_;
   }
   request[fireauth.ActionCodeSettings.RequestField.IOS_BUNDLE_ID] = this.ibi_;
+  request[fireauth.ActionCodeSettings.RequestField.DYNAMIC_LINK_DOMAIN] =
+      this.dynamicLinkDomain_;
   // Remove null fields.
   for (var key in request) {
     if (request[key] === null) {

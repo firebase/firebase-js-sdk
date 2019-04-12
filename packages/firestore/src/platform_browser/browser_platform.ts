@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +21,6 @@ import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 
 import { WebChannelConnection } from './webchannel_connection';
-import { AnyJs } from '../util/misc';
 
 export class BrowserPlatform implements Platform {
   readonly base64Available: boolean;
@@ -47,7 +47,7 @@ export class BrowserPlatform implements Platform {
     return new JsonProtoSerializer(databaseId, { useProto3Json: true });
   }
 
-  formatJSON(value: AnyJs): string {
+  formatJSON(value: unknown): string {
     return JSON.stringify(value);
   }
 

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,7 +17,7 @@
 
 function toBase64(arrayBuffer: ArrayBuffer | Uint8Array): string {
   const uint8Version = new Uint8Array(arrayBuffer);
-  return btoa(String.fromCharCode.apply(null, uint8Version));
+  return btoa(String.fromCharCode(...uint8Version));
 }
 
 export function arrayBufferToBase64(

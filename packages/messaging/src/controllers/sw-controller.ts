@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +23,7 @@ import {
   MessagePayload,
   NotificationDetails
 } from '../interfaces/message-payload';
-import { ERROR_CODES, errorFactory } from '../models/errors';
+import { ErrorCode, errorFactory } from '../models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import {
   InternalMessage,
@@ -134,7 +135,7 @@ export class SwController extends BaseController {
     try {
       registration = await this.getSWRegistration_();
     } catch (err) {
-      throw errorFactory.create(ERROR_CODES.UNABLE_TO_RESUBSCRIBE, {
+      throw errorFactory.create(ErrorCode.UNABLE_TO_RESUBSCRIBE, {
         message: err
       });
     }
@@ -268,7 +269,7 @@ export class SwController extends BaseController {
    */
   setBackgroundMessageHandler(callback: BgMessageHandler): void {
     if (!callback || typeof callback !== 'function') {
-      throw errorFactory.create(ERROR_CODES.BG_HANDLER_FUNCTION_EXPECTED);
+      throw errorFactory.create(ErrorCode.BG_HANDLER_FUNCTION_EXPECTED);
     }
 
     this.bgMessageHandler = callback;
@@ -316,7 +317,7 @@ export class SwController extends BaseController {
     // NOTE: This returns a promise in case this API is abstracted later on to
     // do additional work
     if (!client) {
-      throw errorFactory.create(ERROR_CODES.NO_WINDOW_CLIENT_TO_MSG);
+      throw errorFactory.create(ErrorCode.NO_WINDOW_CLIENT_TO_MSG);
     }
 
     client.postMessage(message);
@@ -332,7 +333,11 @@ export class SwController extends BaseController {
     const clientList = await getClientList();
 
     return clientList.some(
-      (client: WindowClient) => client.visibilityState === 'visible'
+      (client: WindowClient) =>
+        client.visibilityState === 'visible' &&
+        // Ignore chrome-extension clients as that matches the background pages
+        // of extensions, which are always considered visible.
+        !client.url.startsWith('chrome-extension://')
     );
   }
 
@@ -371,7 +376,7 @@ export class SwController extends BaseController {
   async getPublicVapidKey_(): Promise<Uint8Array> {
     const swReg = await this.getSWRegistration_();
     if (!swReg) {
-      throw errorFactory.create(ERROR_CODES.SW_REGISTRATION_EXPECTED);
+      throw errorFactory.create(ErrorCode.SW_REGISTRATION_EXPECTED);
     }
 
     const vapidKeyFromDatabase = await this.getVapidDetailsModel().getVapidFromSWScope(

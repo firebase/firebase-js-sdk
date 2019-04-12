@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -433,7 +434,7 @@ function testAuthEventManager_initialize_automatically_pendingRedirect() {
         mode, popupRedirectResult, error, opt_eventId) {
     },
     'getAuthEventHandlerFinisher': function(mode, opt_eventId) {
-      return function(requestUri, sessionId) {
+      return function(requestUri, sessionId, postBody) {
         return goog.Promise.resolve(expectedResult);
       };
     }
@@ -498,7 +499,7 @@ function testAuthEventManager_initialize_automatically_volatileStorage() {
         mode, popupRedirectResult, error, opt_eventId) {
     },
     'getAuthEventHandlerFinisher': function(mode, opt_eventId) {
-      return function(requestUri, sessionId) {
+      return function(requestUri, sessionId, postBody) {
         return goog.Promise.resolve(expectedResult);
       };
     }
@@ -770,32 +771,44 @@ function testAuthEventManager_testEventToProcessor() {
       fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP,
       '1234',
       'http://www.example.com/#response',
-      'SESSION_ID');
+      'SESSION_ID',
+      null,
+      'POST_BODY');
   var signInViaRedirectEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
       '1234',
       'http://www.example.com/#response',
-      'SESSION_ID');
+      'SESSION_ID',
+      null,
+      'POST_BODY');
   var linkViaPopupEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.LINK_VIA_POPUP,
       '1234',
       'http://www.example.com/#response',
-      'SESSION_ID');
+      'SESSION_ID',
+      null,
+      'POST_BODY');
   var linkViaRedirectEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.LINK_VIA_REDIRECT,
       '1234',
       'http://www.example.com/#response',
-      'SESSION_ID');
+      'SESSION_ID',
+      null,
+      'POST_BODY');
   var reauthViaPopupEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.REAUTH_VIA_POPUP,
       '1234',
       'http://www.example.com/#response',
-      'SESSION_ID');
+      'SESSION_ID',
+      null,
+      'POST_BODY');
   var reauthViaRedirectEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.REAUTH_VIA_REDIRECT,
       '1234',
       'http://www.example.com/#response',
-      'SESSION_ID');
+      'SESSION_ID',
+      null,
+      'POST_BODY');
   var manager = fireauth.AuthEventManager.getManager(
       authDomain1, apiKey1, appName1);
   manager.initialize();
@@ -1679,9 +1692,11 @@ function testProcessRedirect_success_cordovahandler() {
     return true;
   };
   handler.getAuthEventHandlerFinisher = function(mode, opt_eventId) {
-    return function(requestUri, sessionId) {
+    return function(requestUri, sessionId, postBody) {
       assertEquals(incomingUrl, requestUri);
       assertEquals(sessionId, rawSessionId);
+      // postBody not supported in Cordova flow.
+      assertNull(postBody);
       return goog.Promise.resolve(expectedResult);
     };
   };
@@ -1891,9 +1906,11 @@ function testGetRedirectResult_success_cordovahandler() {
     return true;
   };
   handler.getAuthEventHandlerFinisher = function(mode, opt_eventId) {
-    return function(requestUri, sessionId) {
+    return function(requestUri, sessionId, postBody) {
       assertEquals(incomingUrl, requestUri);
       assertEquals(sessionId, rawSessionId);
+      // postBody not supported in Cordova flow.
+      assertNull(postBody);
       return goog.Promise.resolve(expectedResult);
     };
   };
@@ -2351,7 +2368,7 @@ function testProcessAuthEvent_redirectErrorAuthEvent() {
 }
 
 
-function testProcessAuthEvent_finisher_successfulPopupAuthEvent() {
+function testProcessAuthEvent_finisher_successfulPopupAuthEvent_noPostBody() {
   // Browser only environment.
   asyncTestCase.waitForSignals(1);
   var expectedPopupResponse = {
@@ -2361,9 +2378,10 @@ function testProcessAuthEvent_finisher_successfulPopupAuthEvent() {
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaPopup', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId) {
+    return function(requestUri, sessionId, postBody) {
       assertEquals('http://www.example.com/#response', requestUri);
       assertEquals('SESSION_ID', sessionId);
+      assertNull(postBody);
       return goog.Promise.resolve(expectedPopupResponse);
     };
   };
@@ -2374,7 +2392,7 @@ function testProcessAuthEvent_finisher_successfulPopupAuthEvent() {
       'SESSION_ID');
   var manager = fireauth.AuthEventManager.getManager(
       authDomain1, apiKey1, appName1);
-  manager.getPopupAuthEventProcessor().processAuthEvent(
+  manager.popupAuthEventProcessor_.processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Resolve popup with success.
     assertEquals(1, handler.resolvePendingPopupEvent.getCallCount());
@@ -2394,7 +2412,54 @@ function testProcessAuthEvent_finisher_successfulPopupAuthEvent() {
 }
 
 
-function testProcessAuthEvent_finisher_errorPopupAuthEvent() {
+function testProcessAuthEvent_finisher_successfulPopupAuthEvent_withPostBody() {
+  // Browser only environment.
+  asyncTestCase.waitForSignals(1);
+  var expectedPopupResponse = {
+    'user': {},
+    'credential': {}
+  };
+  handler.getAuthEventHandlerFinisher = function(mode, eventId) {
+    assertEquals('linkViaPopup', mode);
+    assertEquals('1234', eventId);
+    return function(requestUri, sessionId, postBody) {
+      assertEquals('http://www.example.com/callback', requestUri);
+      assertEquals('SESSION_ID', sessionId);
+      assertEquals('POST_BODY', postBody);
+      return goog.Promise.resolve(expectedPopupResponse);
+    };
+  };
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      'linkViaPopup',
+      '1234',
+      'http://www.example.com/callback',
+      'SESSION_ID',
+      null,
+      // Set POST body to Auth event.
+      'POST_BODY');
+  var manager = fireauth.AuthEventManager.getManager(
+      authDomain1, apiKey1, appName1);
+  manager.popupAuthEventProcessor_.processAuthEvent(
+      expectedAuthEvent, handler).then(function() {
+    // Resolve popup with success.
+    assertEquals(1, handler.resolvePendingPopupEvent.getCallCount());
+    assertEquals(
+        'linkViaPopup',
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(0));
+    assertObjectEquals(
+        expectedPopupResponse,
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(1));
+    assertNull(
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(2));
+    assertEquals(
+        '1234',
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(3));
+    asyncTestCase.signal();
+  });
+}
+
+
+function testProcessAuthEvent_finisher_errorPopupAuthEvent_noPostBody() {
   // Browser only environment.
   asyncTestCase.waitForSignals(1);
   var expectedError =
@@ -2402,9 +2467,10 @@ function testProcessAuthEvent_finisher_errorPopupAuthEvent() {
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaPopup', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId) {
+    return function(requestUri, sessionId, postBody) {
       assertEquals('http://www.example.com/#response', requestUri);
       assertEquals('SESSION_ID', sessionId);
+      assertNull(postBody);
       return goog.Promise.reject(expectedError);
     };
   };
@@ -2415,7 +2481,7 @@ function testProcessAuthEvent_finisher_errorPopupAuthEvent() {
       'SESSION_ID');
   var manager = fireauth.AuthEventManager.getManager(
       authDomain1, apiKey1, appName1);
-  manager.getPopupAuthEventProcessor().processAuthEvent(
+  manager.popupAuthEventProcessor_.processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Resolve popup with error.
     assertEquals(1, handler.resolvePendingPopupEvent.getCallCount());
@@ -2436,15 +2502,62 @@ function testProcessAuthEvent_finisher_errorPopupAuthEvent() {
 }
 
 
-function testProcessAuthEvent_finisher_successfulRedirectAuthEvent() {
+function testProcessAuthEvent_finisher_errorPopupAuthEvent_postBody() {
+  // Browser only environment.
+  asyncTestCase.waitForSignals(1);
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  handler.getAuthEventHandlerFinisher = function(mode, eventId) {
+    assertEquals('linkViaPopup', mode);
+    assertEquals('1234', eventId);
+    return function(requestUri, sessionId, postBody) {
+      assertEquals('http://www.example.com/callback', requestUri);
+      assertEquals('SESSION_ID', sessionId);
+      assertEquals('POST_BODY', postBody);
+      return goog.Promise.reject(expectedError);
+    };
+  };
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      'linkViaPopup',
+      '1234',
+      'http://www.example.com/callback',
+      'SESSION_ID',
+      null,
+      // Set POST body to Auth event.
+      'POST_BODY');
+  var manager = fireauth.AuthEventManager.getManager(
+      authDomain1, apiKey1, appName1);
+  manager.popupAuthEventProcessor_.processAuthEvent(
+      expectedAuthEvent, handler).then(function() {
+    // Resolve popup with error.
+    assertEquals(1, handler.resolvePendingPopupEvent.getCallCount());
+    assertEquals(
+        'linkViaPopup',
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(0));
+    assertObjectEquals(
+        null,
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(1));
+    assertErrorEquals(
+        expectedError,
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(2));
+    assertEquals(
+        '1234',
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(3));
+    asyncTestCase.signal();
+  });
+}
+
+
+function testProcessAuthEvent_finisher_successfulRedirect_noPostBody() {
   clock = new goog.testing.MockClock(true);
   asyncTestCase.waitForSignals(2);
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaRedirect', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId) {
+    return function(requestUri, sessionId, postBody) {
       assertEquals('http://www.example.com/#response', requestUri);
       assertEquals('SESSION_ID', sessionId);
+      assertNull(postBody);
       // Once the handler is called, the redirect event cannot timeout.
       clock.tick(timeoutDelay);
       return goog.Promise.resolve(expectedRedirectResult);
@@ -2465,7 +2578,7 @@ function testProcessAuthEvent_finisher_successfulRedirectAuthEvent() {
     assertObjectEquals(expectedRedirectResult, result);
     asyncTestCase.signal();
   });
-  manager.getRedirectAuthEventProcessor().processAuthEvent(
+  manager.redirectAuthEventProcessor_.processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Popup resolve should not be called as this is not a popup event.
     assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
@@ -2474,14 +2587,57 @@ function testProcessAuthEvent_finisher_successfulRedirectAuthEvent() {
 }
 
 
-function testProcessAuthEvent_finisher_errorRedirectAuthEvent() {
+function testProcessAuthEvent_finisher_successfulRedirectAuthEvent_postBody() {
+  clock = new goog.testing.MockClock(true);
   asyncTestCase.waitForSignals(2);
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaRedirect', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId) {
+    return function(requestUri, sessionId, postBody) {
+      assertEquals('http://www.example.com/callback', requestUri);
+      assertEquals('SESSION_ID', sessionId);
+      assertEquals('POST_BODY', postBody);
+      // Once the handler is called, the redirect event cannot timeout.
+      clock.tick(timeoutDelay);
+      return goog.Promise.resolve(expectedRedirectResult);
+    };
+  };
+  var expectedRedirectResult = {
+    'user': {},
+    'credential': {}
+  };
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      'linkViaRedirect',
+      '1234',
+      'http://www.example.com/callback',
+      'SESSION_ID',
+      null,
+      // Set POST body to Auth event.
+      'POST_BODY');
+  var manager = fireauth.AuthEventManager.getManager(
+      authDomain1, apiKey1, appName1);
+  manager.getRedirectResult().then(function(result) {
+    assertObjectEquals(expectedRedirectResult, result);
+    asyncTestCase.signal();
+  });
+  manager.redirectAuthEventProcessor_.processAuthEvent(
+      expectedAuthEvent, handler).then(function() {
+    // Popup resolve should not be called as this is not a popup event.
+    assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
+    asyncTestCase.signal();
+  });
+}
+
+
+function testProcessAuthEvent_finisher_errorRedirectAuthEvent_noPostBody() {
+  asyncTestCase.waitForSignals(2);
+  handler.getAuthEventHandlerFinisher = function(mode, eventId) {
+    assertEquals('linkViaRedirect', mode);
+    assertEquals('1234', eventId);
+    return function(requestUri, sessionId, postBody) {
       assertEquals('http://www.example.com/#response', requestUri);
       assertEquals('SESSION_ID', sessionId);
+      assertNull(postBody);
       return goog.Promise.reject(expectedError);
     };
   };
@@ -2498,7 +2654,44 @@ function testProcessAuthEvent_finisher_errorRedirectAuthEvent() {
     assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });
-  manager.getRedirectAuthEventProcessor().processAuthEvent(
+  manager.redirectAuthEventProcessor_.processAuthEvent(
+      expectedAuthEvent, handler).then(function() {
+    // Popup resolve should not be called as this is not a popup event.
+    assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
+    asyncTestCase.signal();
+  });
+}
+
+
+function testProcessAuthEvent_finisher_errorRedirectAuthEvent_postBody() {
+  asyncTestCase.waitForSignals(2);
+  handler.getAuthEventHandlerFinisher = function(mode, eventId) {
+    assertEquals('linkViaRedirect', mode);
+    assertEquals('1234', eventId);
+    return function(requestUri, sessionId, postBody) {
+      assertEquals('http://www.example.com/callback', requestUri);
+      assertEquals('SESSION_ID', sessionId);
+      assertEquals('POST_BODY', postBody);
+      return goog.Promise.reject(expectedError);
+    };
+  };
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      'linkViaRedirect',
+      '1234',
+      'http://www.example.com/callback',
+      'SESSION_ID',
+      null,
+      // Set POST body to Auth event.
+      'POST_BODY');
+  var manager = fireauth.AuthEventManager.getManager(
+      authDomain1, apiKey1, appName1);
+  manager.getRedirectResult().thenCatch(function(error) {
+    assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+  manager.redirectAuthEventProcessor_.processAuthEvent(
       expectedAuthEvent, handler).then(function() {
     // Popup resolve should not be called as this is not a popup event.
     assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
@@ -2602,7 +2795,7 @@ function testRedirectResult_overwritePreviousRedirectResult() {
   // the operation is not pending.
   asyncTestCase.waitForSignals(2);
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
-    return function(requestUri, sessionId) {
+    return function(requestUri, sessionId, postBody) {
       // Iterate through results array each call.
       return goog.Promise.resolve(results[index++]);
     };

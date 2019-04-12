@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,17 +17,14 @@
 
 import { expect } from 'chai';
 import firebase from '@firebase/app';
-import { TEST_PROJECT, patchFakeAuthFunctions } from './helpers/util';
+import { DATABASE_ADDRESS, createTestApp } from './helpers/util';
 import '../index';
 
 describe('Database Tests', function() {
   let defaultApp;
 
   beforeEach(function() {
-    defaultApp = firebase.initializeApp({
-      databaseURL: TEST_PROJECT.databaseURL
-    });
-    patchFakeAuthFunctions(defaultApp);
+    defaultApp = createTestApp();
   });
 
   afterEach(function() {
@@ -180,7 +178,7 @@ describe('Database Tests', function() {
 
   it('Can get refFromURL()', function() {
     const db = (firebase as any).database();
-    const ref = db.refFromURL(TEST_PROJECT.databaseURL + '/path/to/data');
+    const ref = db.refFromURL(DATABASE_ADDRESS + '/path/to/data');
     expect(ref.key).to.equal('data');
   });
 

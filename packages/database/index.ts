@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +19,7 @@ import firebase from '@firebase/app';
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Database } from './src/api/Database';
+import { DataSnapshot } from './src/api/DataSnapshot';
 import { Query } from './src/api/Query';
 import { Reference } from './src/api/Reference';
 import { enableLogging } from './src/core/util/util';
@@ -39,6 +41,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
       Reference,
       Query,
       Database,
+      DataSnapshot,
       enableLogging,
       INTERNAL,
       ServerValue,

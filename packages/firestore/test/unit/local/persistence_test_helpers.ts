@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,33 +15,34 @@
  * limitations under the License.
  */
 
+import { User } from '../../../src/auth/user';
 import { DatabaseId, DatabaseInfo } from '../../../src/core/database_info';
-import { ListenSequenceNumber } from '../../../src/core/types';
 import { SequenceNumberSyncer } from '../../../src/core/listen_sequence';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { MemoryPersistence } from '../../../src/local/memory_persistence';
-import { SimpleDb } from '../../../src/local/simple_db';
-import { JsonProtoSerializer } from '../../../src/remote/serializer';
-import {
-  WebStorageSharedClientState,
-  ClientId
-} from '../../../src/local/shared_client_state';
 import {
   BatchId,
   MutationBatchState,
   OnlineState,
   TargetId
 } from '../../../src/core/types';
-import { AsyncQueue } from '../../../src/util/async_queue';
-import { User } from '../../../src/auth/user';
+import { ListenSequenceNumber } from '../../../src/core/types';
+import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
+import { LocalSerializer } from '../../../src/local/local_serializer';
+import { LruParams } from '../../../src/local/lru_garbage_collector';
+import { MemoryPersistence } from '../../../src/local/memory_persistence';
+import {
+  ClientId,
+  WebStorageSharedClientState
+} from '../../../src/local/shared_client_state';
 import {
   QueryTargetState,
   SharedClientStateSyncer
 } from '../../../src/local/shared_client_state_syncer';
+import { SimpleDb } from '../../../src/local/simple_db';
+import { PlatformSupport } from '../../../src/platform/platform';
+import { JsonProtoSerializer } from '../../../src/remote/serializer';
+import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
 import { AutoId } from '../../../src/util/misc';
-import { PlatformSupport } from '../../../src/platform/platform';
-import { LocalSerializer } from '../../../src/local/local_serializer';
 
 /** The prefix used by the keys that Firestore writes to Local Storage. */
 const LOCAL_STORAGE_PREFIX = 'firestore_';
@@ -50,40 +52,41 @@ export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
   writeSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}
 };
 
-/** The Database ID used by most tests that access IndexedDb. */
-export const INDEXEDDB_TEST_DATABASE_ID = new DatabaseId('test-project');
+/** The Database ID used by most tests that use a serializer. */
+export const TEST_DATABASE_ID = new DatabaseId('test-project');
 
-/** The DatabaseInfo used by most tests that access IndexedDb. */
-const INDEXEDDB_TEST_DATABASE_INFO = new DatabaseInfo(
-  INDEXEDDB_TEST_DATABASE_ID,
-  'PersistenceTestHelpers',
+/** The DatabaseInfo used by tests that need a serializer. */
+const TEST_DATABASE_INFO = new DatabaseInfo(
+  TEST_DATABASE_ID,
+  '[PersistenceTestHelpers]',
   'host',
-  /*ssl=*/ false
+  /*ssl=*/ false,
+  /*forceLongPolling=*/ false
 );
 
 /** The persistence prefix used for testing in IndexedBD and LocalStorage. */
 export const TEST_PERSISTENCE_PREFIX = IndexedDbPersistence.buildStoragePrefix(
-  INDEXEDDB_TEST_DATABASE_INFO
+  TEST_DATABASE_INFO
 );
 
 /**
  * The database name used by tests that access IndexedDb. To be used in
- * conjunction with `INDEXEDDB_TEST_DATABASE_INFO` and
- * `INDEXEDDB_TEST_DATABASE_ID`.
+ * conjunction with `TEST_DATABASE_INFO` and
+ * `TEST_DATABASE_ID`.
  */
 export const INDEXEDDB_TEST_DATABASE_NAME =
-  IndexedDbPersistence.buildStoragePrefix(INDEXEDDB_TEST_DATABASE_INFO) +
+  IndexedDbPersistence.buildStoragePrefix(TEST_DATABASE_INFO) +
   IndexedDbPersistence.MAIN_DATABASE;
 
+const JSON_SERIALIZER = new JsonProtoSerializer(TEST_DATABASE_ID, {
+  useProto3Json: true
+});
+
 /**
- * IndexedDb serializer that uses `INDEXEDDB_TEST_DATABASE_ID` as its database
+ * IndexedDb serializer that uses `TEST_DATABASE_ID` as its database
  * id.
  */
-export const INDEXEDDB_TEST_SERIALIZER = new LocalSerializer(
-  new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
-    useProto3Json: true
-  })
-);
+export const TEST_SERIALIZER = new LocalSerializer(JSON_SERIALIZER);
 
 /**
  * Creates and starts an IndexedDbPersistence instance for testing, destroying
@@ -93,17 +96,16 @@ export async function testIndexedDbPersistence(
   options: {
     dontPurgeData?: boolean;
     synchronizeTabs?: boolean;
-  } = {}
+    queue?: AsyncQueue;
+  } = {},
+  lruParams: LruParams = LruParams.DEFAULT
 ): Promise<IndexedDbPersistence> {
-  const queue = new AsyncQueue();
+  const queue = options.queue || new AsyncQueue();
   const clientId = AutoId.newId();
   const prefix = `${TEST_PERSISTENCE_PREFIX}/`;
   if (!options.dontPurgeData) {
     await SimpleDb.delete(prefix + IndexedDbPersistence.MAIN_DATABASE);
   }
-  const serializer = new JsonProtoSerializer(INDEXEDDB_TEST_DATABASE_ID, {
-    useProto3Json: true
-  });
   const platform = PlatformSupport.getPlatform();
   return options.synchronizeTabs
     ? IndexedDbPersistence.createMultiClientIndexedDbPersistence(
@@ -111,7 +113,8 @@ export async function testIndexedDbPersistence(
         clientId,
         platform,
         queue,
-        serializer,
+        JSON_SERIALIZER,
+        lruParams,
         { sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER }
       )
     : IndexedDbPersistence.createIndexedDbPersistence(
@@ -119,14 +122,24 @@ export async function testIndexedDbPersistence(
         clientId,
         platform,
         queue,
-        serializer
+        JSON_SERIALIZER,
+        lruParams
       );
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
-export async function testMemoryPersistence(): Promise<MemoryPersistence> {
-  const persistence = new MemoryPersistence(AutoId.newId());
-  return persistence;
+export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
+  return MemoryPersistence.createEagerPersistence(AutoId.newId());
+}
+
+export async function testMemoryLruPersistence(
+  params: LruParams = LruParams.DEFAULT
+): Promise<MemoryPersistence> {
+  return MemoryPersistence.createLruPersistence(
+    AutoId.newId(),
+    JSON_SERIALIZER,
+    params
+  );
 }
 
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {

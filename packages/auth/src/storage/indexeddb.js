@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -399,7 +400,7 @@ fireauth.storage.IndexedDB.prototype.onIDBRequest_ =
       }
     };
     request.onerror = function(event) {
-      reject(new Error(event.target.errorCode));
+      reject(event.target.error);
     };
   });
 };
@@ -566,7 +567,7 @@ fireauth.storage.IndexedDB.prototype.sync_ = function() {
               }
             };
             request.onerror = function(event) {
-              reject(new Error(event.target.errorCode));
+              reject(event.target.error);
             };
           });
         }

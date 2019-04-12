@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import { Hash } from './hash';
 
 /**
  * @fileoverview SHA-1 cryptographic hash.
@@ -37,11 +36,10 @@ import { Hash } from './hash';
  *
  * The properties declared here are discussed in the above algorithm document.
  * @constructor
- * @extends {Hash}
  * @final
  * @struct
  */
-export class Sha1 extends Hash {
+export class Sha1 {
   /**
    * Holds the previous values of accumulated variables a-e in the compress_
    * function.
@@ -82,9 +80,9 @@ export class Sha1 extends Hash {
    */
   private total_: number = 0;
 
-  constructor() {
-    super();
+  blockSize: number;
 
+  constructor() {
     this.blockSize = 512 / 8;
 
     this.pad_[0] = 128;

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,7 +19,7 @@ import { assert } from 'chai';
 
 import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
-import { ERROR_CODES } from '../src/models/errors';
+import { ErrorCode } from '../src/models/errors';
 
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { describe } from './testing-utils/messaging-test-runner';
@@ -53,7 +54,7 @@ describe('Firebase Messaging > new *Controller()', () => {
       } catch (err) {
         caughtError = err;
       }
-      assert.equal('messaging/' + ERROR_CODES.BAD_SENDER_ID, caughtError.code);
+      assert.equal('messaging/' + ErrorCode.BAD_SENDER_ID, caughtError.code);
     });
   });
 

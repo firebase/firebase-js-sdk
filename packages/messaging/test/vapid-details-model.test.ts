@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,7 +18,7 @@
 import { assert } from 'chai';
 
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
-import { ERROR_CODES } from '../src/models/errors';
+import { ErrorCode } from '../src/models/errors';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
 import { deleteDatabase } from './testing-utils/db-helper';
@@ -52,7 +53,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SCOPE, err.code);
           }
         );
       }
@@ -66,7 +67,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_VAPID_KEY, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_VAPID_KEY, err.code);
           }
         );
       }
@@ -86,7 +87,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SCOPE, err.code);
           }
         );
       });
@@ -117,7 +118,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
             throw new Error('Expected promise to reject');
           },
           err => {
-            assert.equal('messaging/' + ERROR_CODES.BAD_SCOPE, err.code);
+            assert.equal('messaging/' + ErrorCode.BAD_SCOPE, err.code);
           }
         );
       }
@@ -131,7 +132,7 @@ describe('Firebase Messaging > VapidDetailsModel.saveVapidDetails()', () => {
         },
         err => {
           assert.equal(
-            'messaging/' + ERROR_CODES.DELETE_SCOPE_NOT_FOUND,
+            'messaging/' + ErrorCode.DELETE_SCOPE_NOT_FOUND,
             err.code
           );
         }

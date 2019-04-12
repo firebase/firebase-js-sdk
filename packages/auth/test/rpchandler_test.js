@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +26,8 @@ goog.require('fireauth.AuthErrorWithCredential');
 goog.require('fireauth.AuthProvider');
 goog.require('fireauth.FacebookAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
+goog.require('fireauth.OAuthCredential');
+goog.require('fireauth.OAuthProvider');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.common.testHelper');
@@ -2634,7 +2637,7 @@ function testEmailLinkSignIn_invalidEmailError() {
   // Test when invalid email is passed in emailLinkSignIn request.
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
-  rpcHandler.emailLinkSignIn('user@invalid', 'OTP_CODE')
+  rpcHandler.emailLinkSignIn('user.invalid', 'OTP_CODE')
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -2743,7 +2746,7 @@ function testVerifyPassword_invalidEmailError() {
   // Test when invalid email is passed in verifyPassword request.
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
-  rpcHandler.verifyPassword('uid123@invalid', 'mysupersecretpassword')
+  rpcHandler.verifyPassword('uid123.invalid', 'mysupersecretpassword')
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -2845,7 +2848,7 @@ function testCreateAccount_invalidEmailError() {
   // Test when invalid email is passed in setAccountInfo request.
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
-  rpcHandler.createAccount('uid123@invalid', 'mysupersecretpassword')
+  rpcHandler.createAccount('uid123.invalid', 'mysupersecretpassword')
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -2992,6 +2995,183 @@ function testVerifyAssertion_success() {
 
 
 /**
+ * Tests successful verifyAssertion RPC call with nonce passed via sessionId.
+ */
+function testVerifyAssertion_withSessionIdNonce_success() {
+  var serverResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider'
+  };
+  // Expected response should have nonce appended.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider',
+    'nonce': 'NONCE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'NONCE',
+        'requestUri': 'http://localhost/callback#id_token=ID_TOKEN&state=STATE',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'sessionId': 'NONCE',
+    'requestUri': 'http://localhost/callback#id_token=ID_TOKEN&state=STATE'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertion RPC call with nonce passed via postBody.
+ */
+function testVerifyAssertion_withPostBodyNonce_success() {
+  var serverResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider',
+  };
+  // Expected response should have nonce appended.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider',
+    'nonce': 'NONCE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertion RPC call with pendingToken in response.
+ */
+function testVerifyAssertion_pendingTokenResponse_success() {
+  // Nonce should not be injected since pending token is present in response.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'pendingToken': 'PENDING_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertion RPC call with pendingToken in request.
+ */
+function testVerifyAssertion_pendingTokenRequest_success() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'pendingToken': 'PENDING_TOKEN2',
+    'oauthExpireIn': 3600
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'pendingToken': 'PENDING_TOKEN',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertion({
+    'pendingToken': 'PENDING_TOKEN',
+    'requestUri': 'http://localhost'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests verifyAssertion RPC call with invalid/expired pendingToken in request.
+ */
+function testVerifyAssertion_pendingTokenRequest_serverCaughtError() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
+      'relyingparty/verifyAssertion?key=apiKey';
+  var requestBody = {
+    'pendingToken': 'PENDING_TOKEN',
+    'requestUri': 'http://localhost',
+    'returnIdpCredential': true,
+    'returnSecureToken': true
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_IDP_RESPONSE] =
+      fireauth.authenum.Error.INVALID_IDP_RESPONSE;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_PENDING_TOKEN] =
+      fireauth.authenum.Error.INVALID_IDP_RESPONSE;
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.verifyAssertion(requestBody);
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
  * Tests verifyAssertion RPC call with no recovery errorMessage.
  */
 function testVerifyAssertion_returnIdpCredential_noRecoveryError() {
@@ -3088,6 +3268,172 @@ function testVerifyAssertionForLinking_success() {
 
 
 /**
+ * Tests successful verifyAssertion for linking RPC call with nonce passed in
+ * sessionId field.
+ */
+function testVerifyAssertionForLinking_withSessionIdNonce_success() {
+  var serverResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider'
+  };
+  // Expected response should have nonce appended.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider',
+    'nonce': 'NONCE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'idToken': 'existingIdToken',
+        'sessionId': 'NONCE',
+        'requestUri': 'http://localhost/callback#id_token=ID_TOKEN&state=STATE',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'idToken': 'existingIdToken',
+    'sessionId': 'NONCE',
+    'requestUri': 'http://localhost/callback#id_token=ID_TOKEN&state=STATE'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertion for linking RPC call with nonce passed in
+ * postBody field.
+ */
+function testVerifyAssertionForLinking_withPostBodyNonce_success() {
+  var serverResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider',
+  };
+  // Expected response should have nonce appended.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider',
+    'nonce': 'NONCE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'idToken': 'existingIdToken',
+        'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'idToken': 'existingIdToken',
+    'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertion for linking RPC call with pending token
+ * returned in response.
+ */
+function testVerifyAssertionForLinking_pendingTokenResponse_success() {
+  // Nonce should not be injected since pending token is returned.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'pendingToken': 'PENDING_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'idToken': 'existingIdToken',
+        'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertion({
+    'idToken': 'existingIdToken',
+    'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertion for linking RPC call with pending token
+ * in request.
+ */
+function testVerifyAssertionForLinking_pendingTokenRequest_success() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'pendingToken': 'PENDING_TOKEN2',
+    'oauthExpireIn': 3600
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'idToken': 'existingIdToken',
+        'pendingToken': 'PENDING_TOKEN',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertion({
+    'idToken': 'existingIdToken',
+    'pendingToken': 'PENDING_TOKEN',
+    'requestUri': 'http://localhost'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
  * Tests verifyAssertion for linking RPC call with no recovery errorMessage.
  */
 function testVerifyAssertionForLinking_returnIdpCredential_noRecoveryError() {
@@ -3156,8 +3502,8 @@ function testVerifyAssertion_serverCaughtError() {
   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
       'relyingparty/verifyAssertion?key=apiKey';
   var requestBody = {
-    'postBody': 'id_token=googleIdToken&access_token=accessToken&provider_id=' +
-        'google.com',
+    'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&' +
+        'nonce=invalid',
     'requestUri': 'http://localhost',
     'returnIdpCredential': true,
     'returnSecureToken': true
@@ -3173,6 +3519,8 @@ function testVerifyAssertion_serverCaughtError() {
       fireauth.authenum.Error.OPERATION_NOT_ALLOWED;
   errorMap[fireauth.RpcHandler.ServerError.USER_CANCELLED] =
       fireauth.authenum.Error.USER_CANCELLED;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_OR_INVALID_NONCE] =
+      fireauth.authenum.Error.MISSING_OR_INVALID_NONCE;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyAssertion(requestBody);
@@ -3242,6 +3590,152 @@ function testVerifyAssertion_needConfirmationError_oauthResponseAndEmail() {
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
       });
+}
+
+
+/**
+ * Tests need confirmation verifyAssertionForIdToken Auth linking error with
+ * nonce passed via postBody.
+ */
+function testVerifyAssertion_needConfirmationError_nonceIdToken() {
+  // Expected error thrown with OIDC credential containing nonce.
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
+      'OIDC_ID_TOKEN', null, 'NONCE');
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.NEED_CONFIRMATION,
+      {
+        email: 'user@example.com',
+        credential: credential
+      });
+  var serverResponse = {
+    'needConfirmation': true,
+    'email': 'user@example.com',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=' +
+            'NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests need confirmation verifyAssertionForIdToken Auth linking error with
+ * nonce passed via sessionId.
+ */
+function testVerifyAssertion_needConfirmationError_idTokenSessionId() {
+  // Expected error thrown with OIDC credential containing nonce.
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
+      'OIDC_ID_TOKEN', null, 'NONCE');
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.NEED_CONFIRMATION,
+      {
+        email: 'user@example.com',
+        credential: credential
+      });
+  var serverResponse = {
+    'needConfirmation': true,
+    'email': 'user@example.com',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider',
+        'sessionId': 'NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider',
+    'sessionId': 'NONCE',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests need confirmation verifyAssertionForIdToken Auth linking error with
+ * pendingToken in response.
+ */
+function testVerifyAssertion_needConfirmationError_pendingToken() {
+  // Expected error thrown with OIDC credential containing pending token and
+  // no nonce.
+  var credential = new fireauth.OAuthCredential(
+      'oidc.provider',
+      {
+        'pendingToken': 'PENDING_TOKEN',
+        'idToken': 'OIDC_ID_TOKEN'
+      },
+      'oidc.provider');
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.NEED_CONFIRMATION,
+      {
+        email: 'user@example.com',
+        credential: credential
+      });
+  var serverResponse = {
+    'needConfirmation': true,
+    'email': 'user@example.com',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider',
+    'pendingToken': 'PENDING_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=' +
+            'NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
 }
 
 
@@ -3380,6 +3874,161 @@ function testVerifyAssertion_credAlreadyInUseError_oauthResponseAndEmail() {
 
 
 /**
+ * Tests verifyAssertionForIdToken when FEDERATED_USER_ID_ALREADY_LINKED error
+ * is returned by the server with nonce passed via postBody.
+ */
+function testVerifyAssertion_credAlreadyInUseError_nonceIdToken() {
+  // Expected error thrown with OIDC credential containing nonce.
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
+      'OIDC_ID_TOKEN', null, 'NONCE');
+  // Credential already in use error returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        email: 'user@example.com',
+        credential: credential
+      });
+  var serverResponse = {
+    'kind': 'identitytoolkit#VerifyAssertionResponse',
+    'errorMessage': 'FEDERATED_USER_ID_ALREADY_LINKED',
+    'email': 'user@example.com',
+    'oauthExpireIn': 5183999,
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=' +
+            'NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests verifyAssertionForIdToken when FEDERATED_USER_ID_ALREADY_LINKED error
+ * is returned by the server with nonce passed via sessionId.
+ */
+function testVerifyAssertion_credAlreadyInUseError_idTokenSessionId() {
+  // Expected error thrown with OIDC credential containing nonce.
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
+      'OIDC_ID_TOKEN', null, 'NONCE');
+  // Credential already in use error returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        email: 'user@example.com',
+        credential: credential
+      });
+  var serverResponse = {
+    'kind': 'identitytoolkit#VerifyAssertionResponse',
+    'errorMessage': 'FEDERATED_USER_ID_ALREADY_LINKED',
+    'email': 'user@example.com',
+    'oauthExpireIn': 5183999,
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider',
+        'sessionId': 'NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider',
+    'sessionId': 'NONCE',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests verifyAssertionForIdToken when FEDERATED_USER_ID_ALREADY_LINKED error
+ * is returned by the server with pending token in response.
+ */
+function testVerifyAssertion_credAlreadyInUseError_pendingToken() {
+  // Expected error thrown with OIDC credential containing pending token and no
+  // nonce.
+  var credential = new fireauth.OAuthCredential(
+      'oidc.provider',
+      {
+        'pendingToken': 'PENDING_TOKEN',
+        'idToken': 'OIDC_ID_TOKEN'
+      },
+      'oidc.provider');
+  // Credential already in use error returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        email: 'user@example.com',
+        credential: credential
+      });
+  var serverResponse = {
+    'kind': 'identitytoolkit#VerifyAssertionResponse',
+    'errorMessage': 'FEDERATED_USER_ID_ALREADY_LINKED',
+    'email': 'user@example.com',
+    'oauthExpireIn': 5183999,
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider',
+    'pendingToken': 'PENDING_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=' +
+            'NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
  * Tests verifyAssertionForIdToken when EMAIL_EXISTS error
  * is returned by the server.
  */
@@ -3419,12 +4068,166 @@ function testVerifyAssertion_emailExistsError_oauthResponseAndEmail() {
   rpcHandler.verifyAssertion({
     'postBody': 'access_token=accessToken&provider_id=facebook.com',
     'requestUri': 'http://localhost'
-  }).thenCatch(
-      function(error) {
-        assertTrue(error instanceof fireauth.AuthErrorWithCredential);
-        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
-        asyncTestCase.signal();
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests verifyAssertionForIdToken when EMAIL_EXISTS error
+ * is returned by the server with nonce in postBody.
+ */
+function testVerifyAssertion_emailExistsError_nonceIdToken() {
+  // Expected error thrown with OIDC credential containing nonce.
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
+      'OIDC_ID_TOKEN', null, 'NONCE');
+  // Credential already in use error returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.EMAIL_EXISTS,
+      {
+        email: 'user@example.com',
+        credential: credential
       });
+  var serverResponse = {
+    'kind': 'identitytoolkit#VerifyAssertionResponse',
+    'errorMessage': 'EMAIL_EXISTS',
+    'email': 'user@example.com',
+    'oauthExpireIn': 5183999,
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=' +
+            'NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests verifyAssertionForIdToken when EMAIL_EXISTS error
+ * is returned by the server with nonce in sessionId.
+ */
+function testVerifyAssertion_emailExistsError_idTokenSessionId() {
+  // Expected error thrown with OIDC credential containing nonce.
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
+      'OIDC_ID_TOKEN', null, 'NONCE');
+  // Credential already in use error returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.EMAIL_EXISTS,
+      {
+        email: 'user@example.com',
+        credential: credential
+      });
+  var serverResponse = {
+    'kind': 'identitytoolkit#VerifyAssertionResponse',
+    'errorMessage': 'EMAIL_EXISTS',
+    'email': 'user@example.com',
+    'oauthExpireIn': 5183999,
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider',
+        'sessionId': 'NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider',
+    'sessionId': 'NONCE',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests verifyAssertionForIdToken when EMAIL_EXISTS error
+ * is returned by the server with pendingToken in response.
+ */
+function testVerifyAssertion_emailExistsError_pendingToken() {
+  // Expected error thrown with OIDC credential containing no nonce since
+  // pending token returned from server.
+  var credential = new fireauth.OAuthCredential(
+      'oidc.provider',
+      {
+        'pendingToken': 'PENDING_TOKEN',
+        'idToken': 'OIDC_ID_TOKEN'
+      },
+      'oidc.provider');
+  // Credential already in use error returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.EMAIL_EXISTS,
+      {
+        email: 'user@example.com',
+        credential: credential
+      });
+  var serverResponse = {
+    'kind': 'identitytoolkit#VerifyAssertionResponse',
+    'errorMessage': 'EMAIL_EXISTS',
+    'email': 'user@example.com',
+    'oauthExpireIn': 5183999,
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'providerId': 'oidc.provider',
+    'pendingToken': 'PENDING_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=' +
+            'NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=OIDC_ID_TOKEN&provider_id=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
 }
 
 
@@ -3462,6 +4265,172 @@ function testVerifyAssertionForExisting_success() {
         assertEquals(expectedResponse, response);
         asyncTestCase.signal();
       });
+}
+
+
+/**
+ * Tests successful verifyAssertionForExisting RPC call with nonce passed via
+ * sessionId.
+ */
+function testVerifyAssertionForExisting_withSessionIdNonce_success() {
+  var serverResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider'
+  };
+  // Expected response should have nonce appended.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider',
+    'nonce': 'NONCE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'NONCE',
+        'requestUri': 'http://localhost/callback#id_token=ID_TOKEN&state=STATE',
+        'returnIdpCredential': true,
+        // autoCreate flag should be passed and set to false.
+        'autoCreate': false,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertionForExisting({
+    'sessionId': 'NONCE',
+    'requestUri': 'http://localhost/callback#id_token=ID_TOKEN&state=STATE'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertionForExisting RPC call with nonce passed via
+ * postBody.
+ */
+function testVerifyAssertionForExisting_withPostBodyNonce_success() {
+  var serverResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider',
+  };
+  // Expected response should have nonce appended.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider',
+    'nonce': 'NONCE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        // autoCreate flag should be passed and set to false.
+        'autoCreate': false,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.verifyAssertionForExisting({
+    'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertionForExisting RPC call with pendingToken in
+ * response.
+ */
+function testVerifyAssertionForExisting_pendingTokenResponse_success() {
+  // Nonce should not be injected since pending token is present in response.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'pendingToken': 'PENDING_TOKEN',
+    'oauthExpireIn': 3600,
+    'providerId': 'oidc.provider'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        // autoCreate flag should be passed and set to false.
+        'autoCreate': false,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertionForExisting({
+    'postBody': 'id_token=ID_TOKEN&providerId=oidc.provider&nonce=NONCE',
+    'requestUri': 'http://localhost'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertionForExisting RPC call with pendingToken in
+ * request.
+ */
+function testVerifyAssertionForExisting_pendingTokenRequest_success() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthIdToken': 'OIDC_ID_TOKEN',
+    'pendingToken': 'PENDING_TOKEN2',
+    'oauthExpireIn': 3600
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'pendingToken': 'PENDING_TOKEN',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        // autoCreate flag should be passed and set to false.
+        'autoCreate': false,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertionForExisting({
+    'pendingToken': 'PENDING_TOKEN',
+    'requestUri': 'http://localhost'
+  }).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
 }
 
 
@@ -3660,7 +4629,8 @@ function testSendSignInLinkToEmail_success_actionCodeSettings() {
     'androidPackageName': 'com.example.android',
     'androidInstallApp': true,
     'androidMinimumVersion': '12',
-    'canHandleCodeInApp': true
+    'canHandleCodeInApp': true,
+    'dynamicLinkDomain': 'example.page.link'
   };
   var expectedResponse = {'email': userEmail};
   asyncTestCase.waitForSignals(1);
@@ -3676,7 +4646,8 @@ function testSendSignInLinkToEmail_success_actionCodeSettings() {
         'androidPackageName': 'com.example.android',
         'androidInstallApp': true,
         'androidMinimumVersion': '12',
-        'canHandleCodeInApp': true
+        'canHandleCodeInApp': true,
+        'dynamicLinkDomain': 'example.page.link'
       }),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
@@ -3745,7 +4716,7 @@ function testSendSignInLinkToEmail_invalidEmailError() {
   };
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
-  rpcHandler.sendSignInLinkToEmail('user@invalid', additionalRequestData)
+  rpcHandler.sendSignInLinkToEmail('user.invalid', additionalRequestData)
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -3825,6 +4796,8 @@ function testSendSignInLinkToEmail_serverCaughtError() {
       fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID;
   errorMap[fireauth.RpcHandler.ServerError.UNAUTHORIZED_DOMAIN] =
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
+      fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendSignInLinkToEmail(userEmail, {});
@@ -3843,7 +4816,8 @@ function testSendPasswordResetEmail_success_actionCodeSettings() {
     'androidPackageName': 'com.example.android',
     'androidInstallApp': true,
     'androidMinimumVersion': '12',
-    'canHandleCodeInApp': true
+    'canHandleCodeInApp': true,
+    'dynamicLinkDomain': 'example.page.link'
   };
   var expectedResponse = {
     'email': userEmail
@@ -3861,7 +4835,8 @@ function testSendPasswordResetEmail_success_actionCodeSettings() {
         'androidPackageName': 'com.example.android',
         'androidInstallApp': true,
         'androidMinimumVersion': '12',
-        'canHandleCodeInApp': true
+        'canHandleCodeInApp': true,
+        'dynamicLinkDomain': 'example.page.link'
       }),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
@@ -3943,7 +4918,7 @@ function testSendPasswordResetEmail_invalidEmailError() {
   // Test when invalid email is passed in getOobCode request.
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
-  rpcHandler.sendPasswordResetEmail('user@exampl', {})
+  rpcHandler.sendPasswordResetEmail('user.invalid', {})
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -4012,6 +4987,8 @@ function testSendPasswordResetEmail_caughtServerError() {
       fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID;
   errorMap[fireauth.RpcHandler.ServerError.UNAUTHORIZED_DOMAIN] =
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
+      fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendPasswordResetEmail(userEmail, {});
@@ -4034,7 +5011,8 @@ function testSendEmailVerification_success_actionCodeSettings() {
     'androidPackageName': 'com.example.android',
     'androidInstallApp': true,
     'androidMinimumVersion': '12',
-    'canHandleCodeInApp': true
+    'canHandleCodeInApp': true,
+    'dynamicLinkDomain': 'example.page.link'
   };
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
@@ -4049,7 +5027,8 @@ function testSendEmailVerification_success_actionCodeSettings() {
         'androidPackageName': 'com.example.android',
         'androidInstallApp': true,
         'androidMinimumVersion': '12',
-        'canHandleCodeInApp': true
+        'canHandleCodeInApp': true,
+        'dynamicLinkDomain': 'example.page.link'
       }),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
@@ -4176,6 +5155,8 @@ function testSendEmailVerification_caughtServerError() {
       fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID;
   errorMap[fireauth.RpcHandler.ServerError.UNAUTHORIZED_DOMAIN] =
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
+      fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendEmailVerification(idToken, {});
@@ -4823,7 +5804,7 @@ function testUpdateEmail_invalidEmail() {
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.INVALID_EMAIL);
   asyncTestCase.waitForSignals(1);
-  rpcHandler.updateEmail('ID_TOKEN', 'newuser@exam')
+  rpcHandler.updateEmail('ID_TOKEN', 'newuser.invalid')
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
@@ -5020,7 +6001,7 @@ function testEmailLinkSignInForLinking_invalidEmailError() {
   asyncTestCase.waitForSignals(1);
   // Test when request is invalid.
   rpcHandler.emailLinkSignInForLinking(
-      'ID_TOKEN', 'user@invalid', 'OTP_CODE')
+      'ID_TOKEN', 'user.invalid', 'OTP_CODE')
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.INVALID_EMAIL),
@@ -5263,6 +6244,98 @@ function testGetAuthUri_success() {
       ['scope1', 'scope2', 'scope3'],
       'user@example.com').then(function(response) {
     assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful getAuthUri request for a SAML Auth flow.
+ */
+function testGetAuthUri_success_saml() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  var expectedResponse = {
+    'authUri': 'https://www.example.com/samlp/?SAMLRequest=1234567890',
+    'providerId': 'saml.provider',
+    'registered': false,
+    'sessionId': 'SESSION_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuth' +
+      'Uri?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'providerId': 'saml.provider',
+        'continueUri': 'http://localhost/widget'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.getAuthUri(
+      'saml.provider',
+      'http://localhost/widget',
+      // Custom parameters should be ignored.
+      expectedCustomParameters,
+      // Scopes should be ignored.
+      ['scope1', 'scope2', 'scope3'],
+      null).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests getAuthUri request with no continue URI.
+ */
+function testGetAuthUri_error_missingContinueUri() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.MISSING_CONTINUE_URI);
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.getAuthUri(
+      'saml.provider',
+      null,
+      // Custom parameters should be ignored.
+      expectedCustomParameters,
+      // Scopes should be ignored.
+      ['scope1', 'scope2', 'scope3'],
+      'user@example.com').thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests getAuthUri request with no provider ID.
+ */
+function testGetAuthUri_error_missingProviderId() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.INTERNAL_ERROR,
+      'A provider ID must be provided in the request.');
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.getAuthUri(
+      // No provider ID.
+      null,
+      'http://localhost/widget',
+      // Custom parameters should be ignored.
+      expectedCustomParameters,
+      // Scopes should be ignored.
+      ['scope1', 'scope2', 'scope3'],
+      'user@example.com').thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });
 }
@@ -5573,6 +6646,8 @@ function testSendVerificationCode_caughtServerError() {
       fireauth.authenum.Error.MISSING_PHONE_NUMBER;
   errorMap[fireauth.RpcHandler.ServerError.QUOTA_EXCEEDED] =
       fireauth.authenum.Error.QUOTA_EXCEEDED;
+  errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
+      fireauth.authenum.Error.REJECTED_CREDENTIAL;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendVerificationCode(requestBody);
@@ -5779,6 +6854,8 @@ function testVerifyPhoneNumber_caughtServerError() {
       fireauth.authenum.Error.MISSING_SESSION_INFO;
   errorMap[fireauth.RpcHandler.ServerError.SESSION_EXPIRED] =
       fireauth.authenum.Error.CODE_EXPIRED;
+  errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
+      fireauth.authenum.Error.REJECTED_CREDENTIAL;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyPhoneNumber(requestBody);

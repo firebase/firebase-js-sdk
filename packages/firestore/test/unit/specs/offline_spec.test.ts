@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,9 +19,9 @@ import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
 import { doc, path } from '../../util/helpers';
 
+import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
 import { spec } from './spec_builder';
-import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Offline:', [], () => {
   specTest('Empty queries are resolved if client goes offline', [], () => {
@@ -62,7 +63,8 @@ describeSpec('Offline:', [], () => {
   specTest(
     'Removing all listeners delays "Offline" status on next listen',
     ['eager-gc'],
-    'Marked as no-lru because when a listen is re-added, it gets a new target id rather than reusing one',
+    'Marked as no-lru because when a listen is re-added, it gets a new target id rather than ' +
+      'reusing one',
     () => {
       const query = Query.atPath(path('collection'));
       return (

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -399,13 +400,16 @@ describe('Firebase Messaging > *SwController', () => {
 
           return [
             {
-              visibilityState: 'hidden'
+              visibilityState: 'hidden',
+              url: 'https://example.com'
             },
             {
-              visibilityState: 'prerender'
+              visibilityState: 'prerender',
+              url: 'https://firebase.com'
             },
             {
-              visibilityState: 'unloaded'
+              visibilityState: 'unloaded',
+              url: 'https://google.com'
             }
           ];
         }
@@ -427,16 +431,20 @@ describe('Firebase Messaging > *SwController', () => {
 
           return [
             {
-              visibilityState: 'hidden'
+              visibilityState: 'hidden',
+              url: 'https://example.com'
             },
             {
-              visibilityState: 'prerender'
+              visibilityState: 'prerender',
+              url: 'https://firebase.com'
             },
             {
-              visibilityState: 'unloaded'
+              visibilityState: 'unloaded',
+              url: 'https://google.com'
             },
             {
-              visibilityState: 'visible'
+              visibilityState: 'visible',
+              url: 'https://mozilla.org'
             }
           ];
         }
@@ -446,6 +454,29 @@ describe('Firebase Messaging > *SwController', () => {
       const swController = new SwController(app);
       const result = await swController.hasVisibleClients_();
       expect(result).to.equal(true);
+    });
+
+    it('should return false when a chrome-extension client is visible', async () => {
+      const clients = {
+        matchAll: async (options: Partial<ClientQueryOptions>) => {
+          expect(options).to.deep.equal({
+            type: 'window',
+            includeUncontrolled: true
+          });
+
+          return [
+            {
+              visibilityState: 'visible',
+              url: 'chrome-extension://example.com'
+            }
+          ];
+        }
+      };
+      sandbox.stub(self, 'clients').value(clients);
+
+      const swController = new SwController(app);
+      const result = await swController.hasVisibleClients_();
+      expect(result).to.equal(false);
     });
   });
 
@@ -764,7 +795,7 @@ describe('Firebase Messaging > *SwController', () => {
 
           sandbox
             .stub(swController, 'getWindowClient_')
-            .callsFake(async () => fakeWindowClient);
+            .callsFake(async () => fakeWindowClient as WindowClient);
           const attemptToMessageClientStub = sandbox
             .stub(swController, 'attemptToMessageClient_')
             .callsFake(async () => {});
@@ -914,7 +945,7 @@ describe('Firebase Messaging > *SwController', () => {
     it('should hook up push events', () => {
       const listeners: { [key: string]: (e: Event) => void } = {};
       sandbox.stub(self, 'addEventListener').callsFake((eventName, eventCb) => {
-        listeners[eventName] = eventCb;
+        listeners[eventName] = eventCb as any;
       });
       const onPushStub = sandbox.stub(SwController.prototype, 'onPush');
       const pushEvent = new Event('push');
@@ -931,7 +962,7 @@ describe('Firebase Messaging > *SwController', () => {
     it('should hook up subscription change events', () => {
       const listeners: { [key: string]: (e: Event) => void } = {};
       sandbox.stub(self, 'addEventListener').callsFake((eventName, eventCb) => {
-        listeners[eventName] = eventCb;
+        listeners[eventName] = eventCb as any;
       });
       const onSubChangeStub = sandbox.stub(
         SwController.prototype,
@@ -957,7 +988,7 @@ describe('Firebase Messaging > *SwController', () => {
     it('should hook up notification click events', () => {
       const listeners: { [key: string]: (e: Event) => void } = {};
       sandbox.stub(self, 'addEventListener').callsFake((eventName, eventCb) => {
-        listeners[eventName] = eventCb;
+        listeners[eventName] = eventCb as any;
       });
       const onNotificationClickStub = sandbox.stub(
         SwController.prototype,
@@ -1016,7 +1047,7 @@ describe('Firebase Messaging > *SwController', () => {
       const controller = new SwController(app);
       sandbox
         .stub(VapidDetailsModel.prototype, 'getVapidFromSWScope')
-        .callsFake(async () => null);
+        .callsFake(async () => undefined);
       const pubKey = await controller.getPublicVapidKey_();
       expect(pubKey).to.equal(DEFAULT_PUBLIC_VAPID_KEY);
     });

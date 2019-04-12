@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,11 +15,11 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
-import { addEqualityMatcher } from '../../util/equality_matcher';
 
 apiDescribe('Firestore', persistence => {
   addEqualityMatcher();

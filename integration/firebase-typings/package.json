@@ -6,9 +6,9 @@
     "test": "tsc index.ts --outDir dist"
   },
   "dependencies": {
-    "firebase": "5.4.2"
+    "firebase": "5.9.4"
   },
   "devDependencies": {
-    "typescript": "2.8.1"
+    "typescript": "3.3.4000"
   }
 }

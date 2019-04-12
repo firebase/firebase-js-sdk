@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,13 +60,6 @@ goog.net.WebChannel.EventType['MESSAGE'] =
 goog.events.EventTarget.prototype['listen'] =
   goog.events.EventTarget.prototype.listen;
 
-// goog.net.XhrIoPool
-goog.require('goog.net.XhrIoPool');
-goog.net.XhrIoPool.prototype['getObject'] =
-  goog.net.XhrIoPool.prototype.getObject;
-goog.net.XhrIoPool.prototype['releaseObject'] =
-  goog.net.XhrIoPool.prototype.releaseObject;
-
 // goog.net.XhrIo
 goog.require('goog.net.XhrIo');
 goog.net.XhrIo.prototype['listenOnce'] = goog.net.XhrIo.prototype.listenOnce;
@@ -80,8 +74,6 @@ goog.net.XhrIo.prototype['getResponseJson'] =
   goog.net.XhrIo.prototype.getResponseJson;
 goog.net.XhrIo.prototype['getResponseText'] =
   goog.net.XhrIo.prototype.getResponseText;
-goog.net.XhrIo.prototype['getResponseText'] =
-  goog.net.XhrIo.prototype.getResponseText;
 goog.net.XhrIo.prototype['send'] = goog.net.XhrIo.prototype.send;
 
 /**
@@ -94,5 +86,5 @@ module['exports'] = {
   'ErrorCode': goog.net.ErrorCode,
   'EventType': goog.net.EventType,
   'WebChannel': goog.net.WebChannel,
-  'XhrIoPool': goog.net.XhrIoPool
+  'XhrIo': goog.net.XhrIo
 };

@@ -10,10 +10,12 @@ env:
 before_install:
   # Yarn defaults to an old version, make sure we
   # get an up to date version
-  - npm install -g yarn
+  - npm install -g yarn@1.13.0
   - '[ "${NPM_TOKEN+x}" ] && echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > $HOME/.npmrc || echo "Skipping .npmrc creation";'
+
 before_script:
   - cp config/ci.config.json config/project.json
+  - yarn build
 
 # Misc Addons/Configs
 dist: trusty
@@ -35,17 +37,17 @@ jobs:
     - script: yarn test:saucelabs
     - script: yarn test:saucelabs --database-firestore-only
   include:
-    - stage: test
+    - name: Node.js and Browser (Chrome) Test
+      stage: test
       script: xvfb-run yarn test
       after_success: yarn test:coverage
-      env: '#= chrome headless test'
-    - stage: test
+    - name: Cross Browser Test for SDKs except Database and Firestore
+      stage: test
       script: yarn test:saucelabs
-      env: '#= cross browser test: all packages except database and firestore'
       if: type = push
-    - stage: test
+    - name: Cross Browser Test for Database and Firestore SDK
+      stage: test
       script: yarn test:saucelabs --database-firestore-only
-      env: '#= cross browser test: database and firestore (allow_failures)'
       if: type = push
     - stage: deploy
       script: skip

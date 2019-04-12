@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,9 +15,7 @@
  * limitations under the License.
  */
 
-import resolve from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
-import commonjs from 'rollup-plugin-commonjs';
 import replace from 'rollup-plugin-replace';
 import pkg from './package.json';
 
@@ -31,40 +30,44 @@ const plugins = [
     values: {
       JSCORE_VERSION: firebasePkg.version
     }
-  }),
-  resolve(),
-  commonjs()
+  })
 ];
 
-const external = Object.keys(
+const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
+
 export default [
   {
     input: 'index.ts',
     output: [
-      { file: pkg.browser, format: 'cjs' },
-      { file: pkg.module, format: 'es' }
+      { file: pkg.browser, format: 'cjs', sourcemap: true },
+      { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins,
-    external
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'index.node.ts',
     output: {
       file: pkg.main,
-      format: 'cjs'
+      format: 'cjs',
+      sourcemap: true
     },
     plugins,
-    external
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
     input: 'index.rn.ts',
     output: {
       file: pkg['react-native'],
-      format: 'cjs'
+      format: 'cjs',
+      sourcemap: true
     },
     plugins,
-    external: [...external, 'react-native']
+    external: id =>
+      [...deps, 'react-native'].some(
+        dep => id === dep || id.startsWith(`${dep}/`)
+      )
   }
 ];

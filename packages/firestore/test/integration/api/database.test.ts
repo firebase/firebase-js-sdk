@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,11 +18,14 @@
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { expect } from 'chai';
 import * as firestore from '@firebase/firestore-types';
+import { expect } from 'chai';
 
-import { EventsAccumulator } from '../util/events_accumulator';
+import { fail } from '../../../src/util/assert';
+import { Code } from '../../../src/util/error';
+import { query } from '../../util/api_helpers';
 import { Deferred } from '../../util/promise';
+import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
@@ -31,9 +35,6 @@ import {
   withTestDoc,
   withTestDocAndInitialData
 } from '../util/helpers';
-import { query } from '../../util/api_helpers';
-import { fail } from '../../../src/util/assert';
-import { Code } from '../../../src/util/error';
 
 chai.use(chaiAsPromised);
 
@@ -185,6 +186,34 @@ apiDescribe('Database', persistence => {
           expect(docSnapshot.get('time')).to.be.an.instanceof(Timestamp);
           expect(docSnapshot.get('nested.time')).to.be.an.instanceof(Timestamp);
         });
+    });
+  });
+
+  it('can merge empty object', async () => {
+    await withTestDoc(persistence, async doc => {
+      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
+      const unsubscribe = doc.onSnapshot(accumulator.storeEvent);
+      await accumulator
+        .awaitEvent()
+        .then(() => doc.set({}))
+        .then(() => accumulator.awaitEvent())
+        .then(docSnapshot => expect(docSnapshot.data()).to.be.deep.equal({}))
+        .then(() => doc.set({ a: {} }, { mergeFields: ['a'] }))
+        .then(() => accumulator.awaitEvent())
+        .then(docSnapshot =>
+          expect(docSnapshot.data()).to.be.deep.equal({ a: {} })
+        )
+        .then(() => doc.set({ b: {} }, { merge: true }))
+        .then(() => accumulator.awaitEvent())
+        .then(docSnapshot =>
+          expect(docSnapshot.data()).to.be.deep.equal({ a: {}, b: {} })
+        )
+        .then(() => doc.get({ source: 'server' }))
+        .then(docSnapshot => {
+          expect(docSnapshot.data()).to.be.deep.equal({ a: {}, b: {} });
+        });
+
+      unsubscribe();
     });
   });
 

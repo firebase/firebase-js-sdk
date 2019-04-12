@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +18,12 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { makeConstructorPrivate } from '../util/api';
-import { validateAtLeastNumberOfArgs } from '../util/input_validation';
-import { AnyJs } from '../util/misc';
+import {
+  validateArgType,
+  validateAtLeastNumberOfArgs,
+  validateExactNumberOfArgs,
+  validateNoArgs
+} from '../util/input_validation';
 
 /**
  * An opaque base class for FieldValue sentinel objects in our public API,
@@ -26,28 +31,36 @@ import { AnyJs } from '../util/misc';
  */
 // tslint:disable-next-line:class-as-namespace  We use this as a base class.
 export abstract class FieldValueImpl implements firestore.FieldValue {
-  protected constructor(readonly methodName: string) {}
+  protected constructor(readonly _methodName: string) {}
 
   static delete(): FieldValueImpl {
+    validateNoArgs('FieldValue.delete', arguments);
     return DeleteFieldValueImpl.instance;
   }
 
   static serverTimestamp(): FieldValueImpl {
+    validateNoArgs('FieldValue.serverTimestamp', arguments);
     return ServerTimestampFieldValueImpl.instance;
   }
 
-  static arrayUnion(...elements: AnyJs[]): FieldValueImpl {
+  static arrayUnion(...elements: unknown[]): FieldValueImpl {
     validateAtLeastNumberOfArgs('FieldValue.arrayUnion', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we need access to the Firestore instance.
     return new ArrayUnionFieldValueImpl(elements);
   }
 
-  static arrayRemove(...elements: AnyJs[]): FieldValueImpl {
+  static arrayRemove(...elements: unknown[]): FieldValueImpl {
     validateAtLeastNumberOfArgs('FieldValue.arrayRemove', arguments, 1);
     // NOTE: We don't actually parse the data until it's used in set() or
     // update() since we need access to the Firestore instance.
     return new ArrayRemoveFieldValueImpl(elements);
+  }
+
+  static increment(n: number): FieldValueImpl {
+    validateArgType('FieldValue.increment', 'number', 1, n);
+    validateExactNumberOfArgs('FieldValue.increment', arguments, 1);
+    return new NumericIncrementFieldValueImpl(n);
   }
 
   isEqual(other: FieldValueImpl): boolean {
@@ -72,14 +85,20 @@ export class ServerTimestampFieldValueImpl extends FieldValueImpl {
 }
 
 export class ArrayUnionFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _elements: AnyJs[]) {
+  constructor(readonly _elements: unknown[]) {
     super('FieldValue.arrayUnion');
   }
 }
 
 export class ArrayRemoveFieldValueImpl extends FieldValueImpl {
-  constructor(readonly _elements: AnyJs[]) {
+  constructor(readonly _elements: unknown[]) {
     super('FieldValue.arrayRemove');
+  }
+}
+
+export class NumericIncrementFieldValueImpl extends FieldValueImpl {
+  constructor(readonly _operand: number) {
+    super('FieldValue.increment');
   }
 }
 

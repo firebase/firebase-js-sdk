@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,7 +16,6 @@
  */
 import { FirebaseStorageError } from './error';
 import * as promiseimpl from './promise_external';
-import * as RequestExports from './request';
 import { Request } from './request';
 
 /**

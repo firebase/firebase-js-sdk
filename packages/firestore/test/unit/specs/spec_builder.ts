@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,18 +26,18 @@ import {
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import {
-  isPermanentError,
+  isPermanentWriteError,
   mapCodeFromRpcCode,
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
 import { assert } from '../../../src/util/assert';
 import { fail } from '../../../src/util/assert';
 import { Code } from '../../../src/util/error';
-import { AnyJs } from '../../../src/util/misc';
 import * as objUtils from '../../../src/util/obj';
 import { isNullOrUndefined } from '../../../src/util/types';
 import { TestSnapshotVersion } from '../../util/helpers';
 
+import { TimerId } from '../../../src/util/async_queue';
 import { RpcError } from './spec_rpc_error';
 import {
   runSpec,
@@ -50,7 +51,6 @@ import {
   SpecWriteAck,
   SpecWriteFailure
 } from './spec_test_runner';
-import { TimerId } from '../../../src/util/async_queue';
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.
@@ -273,7 +273,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userSets(key: string, value: JsonObject<AnyJs>): this {
+  userSets(key: string, value: JsonObject<unknown>): this {
     this.nextStep();
     this.currentStep = {
       userSet: [key, value]
@@ -281,7 +281,7 @@ export class SpecBuilder {
     return this;
   }
 
-  userPatches(key: string, value: JsonObject<AnyJs>): this {
+  userPatches(key: string, value: JsonObject<unknown>): this {
     this.nextStep();
     this.currentStep = {
       userPatch: [key, value]
@@ -504,7 +504,8 @@ export class SpecBuilder {
 
     // If this is a permanent error, the write is not expected to be sent
     // again.
-    const isPermanentFailure = isPermanentError(mapCodeFromRpcCode(error.code));
+    const code = mapCodeFromRpcCode(error.code);
+    const isPermanentFailure = isPermanentWriteError(code);
     const keepInQueue =
       options.keepInQueue !== undefined
         ? options.keepInQueue
@@ -820,6 +821,9 @@ export class SpecBuilder {
   private static queryToSpec(query: Query): SpecQuery {
     // TODO(dimond): full query support
     const spec: SpecQuery = { path: query.path.canonicalString() };
+    if (query.collectionGroup !== null) {
+      spec.collectionGroup = query.collectionGroup;
+    }
     if (query.hasLimit()) {
       spec.limit = query.limit!;
     }

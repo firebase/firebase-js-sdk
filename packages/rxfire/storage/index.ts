@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -57,7 +58,7 @@ export function putString(
 export function percentage(task: storage.UploadTask) {
   return fromTask(task).pipe(
     map(s => ({
-      progress: s.bytesTransferred / s.totalBytes * 100,
+      progress: (s.bytesTransferred / s.totalBytes) * 100,
       snapshot: s
     }))
   );

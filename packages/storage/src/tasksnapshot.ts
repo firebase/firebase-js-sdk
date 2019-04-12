@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,6 @@
  * limitations under the License.
  */
 import { TaskState } from './implementation/taskenums';
-import * as type from './implementation/type';
 import { Metadata } from './metadata';
 import { Reference } from './reference';
 import { UploadTask } from './task';

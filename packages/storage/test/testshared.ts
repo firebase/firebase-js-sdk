@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -40,9 +41,9 @@ export function makeFakeApp(
   };
   app.options = {};
   if (type.isDef(bucket_arg)) {
-    app.options[constants.configOption] = bucket_arg;
+    app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucket_arg;
   } else {
-    app.options[constants.configOption] = bucket;
+    app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucket;
   }
   return app as FirebaseApp;
 }

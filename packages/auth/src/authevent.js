@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,14 +33,25 @@ goog.require('fireauth.authenum.Error');
  * @param {?string=} opt_sessionId The session ID used to prevent session
  *     fixation attacks.
  * @param {?fireauth.AuthError=} opt_error The optional error encountered.
+ * @param {?string=} opt_postBody The optional POST body.
  * @constructor
  */
 fireauth.AuthEvent = function(
-    type, opt_eventId, opt_urlResponse, opt_sessionId, opt_error) {
+    type, opt_eventId, opt_urlResponse, opt_sessionId, opt_error,
+    opt_postBody) {
+  /** @const @private {!fireauth.AuthEvent.Type} The Auth event type. */
   this.type_ = type;
+  /** @const @private {?string} The Auth event ID. */
   this.eventId_ = opt_eventId || null;
+  /** @const @private {?string} The callback URL with the sign in response. */
   this.urlResponse_ = opt_urlResponse || null;
+  /** @const @private {?string} The sign in operation session ID. */
   this.sessionId_ = opt_sessionId || null;
+  /** @const @private {?string} The POST body string if available. */
+  this.postBody_ = opt_postBody || null;
+  /**
+   * @const @private {?fireauth.AuthError} The Auth event error if available.
+   */
   this.error_ = opt_error || null;
   if (!this.urlResponse_ && !this.error_) {
     // Either URL or error is required. They can't be both null.
@@ -52,6 +64,7 @@ fireauth.AuthEvent = function(
     throw new fireauth.AuthError(fireauth.authenum.Error.INVALID_AUTH_EVENT);
   }
 };
+
 
 
 /**
@@ -117,6 +130,12 @@ fireauth.AuthEvent.prototype.getSessionId = function() {
 };
 
 
+/** @return {?string} The POST body of the Auth event, if available. */
+fireauth.AuthEvent.prototype.getPostBody = function() {
+  return this.postBody_;
+};
+
+
 /** @return {?fireauth.AuthError} The error of Auth event. */
 fireauth.AuthEvent.prototype.getError = function() {
   return this.error_;
@@ -136,6 +155,7 @@ fireauth.AuthEvent.prototype.toPlainObject = function() {
     'eventId': this.eventId_,
     'urlResponse': this.urlResponse_,
     'sessionId': this.sessionId_,
+    'postBody': this.postBody_,
     'error': this.error_ && this.error_.toPlainObject()
   };
 };
@@ -154,7 +174,8 @@ fireauth.AuthEvent.fromPlainObject = function(rawResponse) {
         response['urlResponse'],
         response['sessionId'],
         response['error'] &&
-            fireauth.AuthError.fromPlainObject(response['error'])
+            fireauth.AuthError.fromPlainObject(response['error']),
+        response['postBody']
         );
   }
   return null;

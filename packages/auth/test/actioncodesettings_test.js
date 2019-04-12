@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +52,8 @@ function testActionCodeSettings_success_allParameters() {
       'installApp': true,
       'minimumVersion': '12'
     },
-    'handleCodeInApp': true
+    'handleCodeInApp': true,
+    'dynamicLinkDomain': 'example.page.link'
   };
   var expectedRequest = {
     'continueUrl': 'https://www.example.com/?state=abc',
@@ -59,7 +61,8 @@ function testActionCodeSettings_success_allParameters() {
     'androidPackageName': 'com.example.android',
     'androidInstallApp': true,
     'androidMinimumVersion': '12',
-    'canHandleCodeInApp': true
+    'canHandleCodeInApp': true,
+    'dynamicLinkDomain': 'example.page.link'
   };
   var actionCodeSettings = new fireauth.ActionCodeSettings(settings);
   assertObjectEquals(expectedRequest, actionCodeSettings.buildRequest());
@@ -76,6 +79,24 @@ function testActionCodeSettings_success_partialParameters() {
   var expectedRequest = {
     'continueUrl': 'https://www.example.com/?state=abc',
     'canHandleCodeInApp': false
+  };
+  var actionCodeSettings = new fireauth.ActionCodeSettings(settings);
+  assertObjectEquals(expectedRequest, actionCodeSettings.buildRequest());
+}
+
+
+function testActionCodeSettings_success_partialParameters_fdlDomain() {
+  var settings = {
+    'url': 'https://www.example.com/?state=abc',
+    // Will be ignored.
+    'iOS': {},
+    'android': {},
+    'dynamicLinkDomain': 'example.page.link'
+  };
+  var expectedRequest = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'canHandleCodeInApp': false,
+    'dynamicLinkDomain': 'example.page.link'
   };
   var actionCodeSettings = new fireauth.ActionCodeSettings(settings);
   assertObjectEquals(expectedRequest, actionCodeSettings.buildRequest());
@@ -100,6 +121,26 @@ function testActionCodeSettings_success_partialParameters_android() {
 }
 
 
+function testActionCodeSettings_success_partialParameters_android_fdlDomain() {
+  var settings = {
+    'url': 'https://www.example.com/?state=abc',
+    'android': {
+      'packageName': 'com.example.android'
+    },
+    'dynamicLinkDomain': 'example.page.link'
+  };
+  var expectedRequest = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'androidPackageName': 'com.example.android',
+    'androidInstallApp': false,
+    'canHandleCodeInApp': false,
+    'dynamicLinkDomain': 'example.page.link'
+  };
+  var actionCodeSettings = new fireauth.ActionCodeSettings(settings);
+  assertObjectEquals(expectedRequest, actionCodeSettings.buildRequest());
+}
+
+
 function testActionCodeSettings_success_partialParameters_ios() {
   var settings = {
     'url': 'https://www.example.com/?state=abc',
@@ -111,6 +152,25 @@ function testActionCodeSettings_success_partialParameters_ios() {
     'continueUrl': 'https://www.example.com/?state=abc',
     'iOSBundleId': 'com.example.ios',
     'canHandleCodeInApp': false
+  };
+  var actionCodeSettings = new fireauth.ActionCodeSettings(settings);
+  assertObjectEquals(expectedRequest, actionCodeSettings.buildRequest());
+}
+
+
+function testActionCodeSettings_success_partialParameters_ios_fdlDomain() {
+  var settings = {
+    'url': 'https://www.example.com/?state=abc',
+    'iOS': {
+      'bundleId': 'com.example.ios'
+    },
+    'dynamicLinkDomain': 'example.page.link'
+  };
+  var expectedRequest = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'iOSBundleId': 'com.example.ios',
+    'canHandleCodeInApp': false,
+    'dynamicLinkDomain': 'example.page.link'
   };
   var actionCodeSettings = new fireauth.ActionCodeSettings(settings);
   assertObjectEquals(expectedRequest, actionCodeSettings.buildRequest());
@@ -255,6 +315,32 @@ function testActionCodeSettings_error_ios() {
         'iOS': {
           'bundleId': {}
         }
+      },
+      'auth/argument-error');
+}
+
+
+function testActionCodeSettings_error_dynamicLinkDomain() {
+  // Invalid dynamic link domain.
+  assertActionCodeSettingsErrorThrown(
+      {
+        'url': 'https://www.example.com/?state=abc',
+        'dynamicLinkDomain': ['example.page.link']
+
+      },
+      'auth/argument-error');
+  // Dynamic link domain set to empty string.
+  assertActionCodeSettingsErrorThrown(
+      {
+        'url': 'https://www.example.com/?state=abc',
+        'dynamicLinkDomain': ''
+      },
+      'auth/argument-error');
+  // Dynamic link domain set to null.
+  assertActionCodeSettingsErrorThrown(
+      {
+        'url': 'https://www.example.com/?state=abc',
+        'dynamicLinkDomain': null
       },
       'auth/argument-error');
 }

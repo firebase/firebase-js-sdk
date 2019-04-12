@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +17,13 @@
 
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import { deletedDoc, doc, expectEqual, key } from '../../util/helpers';
 
 import { testIndexedDbPersistence } from './persistence_test_helpers';
-import { TestRemoteDocumentCache } from './test_remote_document_cache';
+import {
+  TestIndexedDbRemoteDocumentCache,
+  TestRemoteDocumentCache
+} from './test_remote_document_cache';
 import { TestRemoteDocumentChangeBuffer } from './test_remote_document_change_buffer';
 
 let persistence: IndexedDbPersistence;
@@ -36,13 +39,10 @@ describe('RemoteDocumentChangeBuffer', () => {
   beforeEach(() => {
     return testIndexedDbPersistence().then(p => {
       persistence = p;
-      cache = new TestRemoteDocumentCache(
-        persistence,
-        persistence.getRemoteDocumentCache()
-      );
+      cache = new TestIndexedDbRemoteDocumentCache(persistence);
       buffer = new TestRemoteDocumentChangeBuffer(
         persistence,
-        new RemoteDocumentChangeBuffer(cache.cache)
+        cache.newChangeBuffer()
       );
 
       // Add a couple initial items to the cache.
@@ -65,6 +65,8 @@ describe('RemoteDocumentChangeBuffer', () => {
 
   it('can apply changes', async () => {
     const newADoc = doc('coll/a', 43, { new: 'data' });
+    // need to read first
+    await buffer.getEntry(newADoc.key);
     buffer.addEntry(newADoc);
     expectEqual(await buffer.getEntry(key('coll/a')), newADoc);
 

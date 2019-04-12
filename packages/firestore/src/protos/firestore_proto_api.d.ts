@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -122,7 +123,7 @@ export interface IValueNullValueEnum {
   values(): Array<ValueNullValue>;
 }
 export declare const ValueNullValueEnum: IValueNullValueEnum;
-export declare namespace firestoreV1beta1ApiClientInterfaces {
+export declare namespace firestoreV1ApiClientInterfaces {
   interface ArrayValue {
     values?: Array<Value>;
   }
@@ -214,6 +215,7 @@ export declare namespace firestoreV1beta1ApiClientInterfaces {
     setToServerValue?: FieldTransformSetToServerValue;
     appendMissingElements?: ArrayValue;
     removeAllFromArray?: ArrayValue;
+    increment?: Value;
   }
   interface Filter {
     compositeFilter?: CompositeFilter;
@@ -383,60 +385,60 @@ export declare namespace firestoreV1beta1ApiClientInterfaces {
     transformResults?: Array<Value>;
   }
 }
-export declare type ArrayValue = firestoreV1beta1ApiClientInterfaces.ArrayValue;
-export declare type BatchGetDocumentsRequest = firestoreV1beta1ApiClientInterfaces.BatchGetDocumentsRequest;
-export declare type BatchGetDocumentsResponse = firestoreV1beta1ApiClientInterfaces.BatchGetDocumentsResponse;
-export declare type BeginTransactionRequest = firestoreV1beta1ApiClientInterfaces.BeginTransactionRequest;
-export declare type BeginTransactionResponse = firestoreV1beta1ApiClientInterfaces.BeginTransactionResponse;
-export declare type CollectionSelector = firestoreV1beta1ApiClientInterfaces.CollectionSelector;
-export declare type CommitRequest = firestoreV1beta1ApiClientInterfaces.CommitRequest;
-export declare type CommitResponse = firestoreV1beta1ApiClientInterfaces.CommitResponse;
-export declare type CompositeFilter = firestoreV1beta1ApiClientInterfaces.CompositeFilter;
-export declare type Cursor = firestoreV1beta1ApiClientInterfaces.Cursor;
-export declare type Document = firestoreV1beta1ApiClientInterfaces.Document;
-export declare type DocumentChange = firestoreV1beta1ApiClientInterfaces.DocumentChange;
-export declare type DocumentDelete = firestoreV1beta1ApiClientInterfaces.DocumentDelete;
-export declare type DocumentMask = firestoreV1beta1ApiClientInterfaces.DocumentMask;
-export declare type DocumentRemove = firestoreV1beta1ApiClientInterfaces.DocumentRemove;
-export declare type DocumentTransform = firestoreV1beta1ApiClientInterfaces.DocumentTransform;
-export declare type DocumentsTarget = firestoreV1beta1ApiClientInterfaces.DocumentsTarget;
-export declare type Empty = firestoreV1beta1ApiClientInterfaces.Empty;
-export declare type ExistenceFilter = firestoreV1beta1ApiClientInterfaces.ExistenceFilter;
-export declare type FieldFilter = firestoreV1beta1ApiClientInterfaces.FieldFilter;
-export declare type FieldReference = firestoreV1beta1ApiClientInterfaces.FieldReference;
-export declare type FieldTransform = firestoreV1beta1ApiClientInterfaces.FieldTransform;
-export declare type Filter = firestoreV1beta1ApiClientInterfaces.Filter;
-export declare type Index = firestoreV1beta1ApiClientInterfaces.Index;
-export declare type IndexField = firestoreV1beta1ApiClientInterfaces.IndexField;
-export declare type LatLng = firestoreV1beta1ApiClientInterfaces.LatLng;
-export declare type ListCollectionIdsRequest = firestoreV1beta1ApiClientInterfaces.ListCollectionIdsRequest;
-export declare type ListCollectionIdsResponse = firestoreV1beta1ApiClientInterfaces.ListCollectionIdsResponse;
-export declare type ListDocumentsResponse = firestoreV1beta1ApiClientInterfaces.ListDocumentsResponse;
-export declare type ListIndexesResponse = firestoreV1beta1ApiClientInterfaces.ListIndexesResponse;
-export declare type ListenRequest = firestoreV1beta1ApiClientInterfaces.ListenRequest;
-export declare type ListenResponse = firestoreV1beta1ApiClientInterfaces.ListenResponse;
-export declare type MapValue = firestoreV1beta1ApiClientInterfaces.MapValue;
-export declare type Operation = firestoreV1beta1ApiClientInterfaces.Operation;
-export declare type Order = firestoreV1beta1ApiClientInterfaces.Order;
-export declare type Precondition = firestoreV1beta1ApiClientInterfaces.Precondition;
-export declare type Projection = firestoreV1beta1ApiClientInterfaces.Projection;
-export declare type QueryTarget = firestoreV1beta1ApiClientInterfaces.QueryTarget;
-export declare type ReadOnly = firestoreV1beta1ApiClientInterfaces.ReadOnly;
-export declare type ReadWrite = firestoreV1beta1ApiClientInterfaces.ReadWrite;
-export declare type RollbackRequest = firestoreV1beta1ApiClientInterfaces.RollbackRequest;
-export declare type RunQueryRequest = firestoreV1beta1ApiClientInterfaces.RunQueryRequest;
-export declare type RunQueryResponse = firestoreV1beta1ApiClientInterfaces.RunQueryResponse;
-export declare type Status = firestoreV1beta1ApiClientInterfaces.Status;
-export declare type StructuredQuery = firestoreV1beta1ApiClientInterfaces.StructuredQuery;
-export declare type Target = firestoreV1beta1ApiClientInterfaces.Target;
-export declare type TargetChange = firestoreV1beta1ApiClientInterfaces.TargetChange;
-export declare type TransactionOptions = firestoreV1beta1ApiClientInterfaces.TransactionOptions;
-export declare type UnaryFilter = firestoreV1beta1ApiClientInterfaces.UnaryFilter;
-export declare type Value = firestoreV1beta1ApiClientInterfaces.Value;
-export declare type Write = firestoreV1beta1ApiClientInterfaces.Write;
-export declare type WriteRequest = firestoreV1beta1ApiClientInterfaces.WriteRequest;
-export declare type WriteResponse = firestoreV1beta1ApiClientInterfaces.WriteResponse;
-export declare type WriteResult = firestoreV1beta1ApiClientInterfaces.WriteResult;
+export declare type ArrayValue = firestoreV1ApiClientInterfaces.ArrayValue;
+export declare type BatchGetDocumentsRequest = firestoreV1ApiClientInterfaces.BatchGetDocumentsRequest;
+export declare type BatchGetDocumentsResponse = firestoreV1ApiClientInterfaces.BatchGetDocumentsResponse;
+export declare type BeginTransactionRequest = firestoreV1ApiClientInterfaces.BeginTransactionRequest;
+export declare type BeginTransactionResponse = firestoreV1ApiClientInterfaces.BeginTransactionResponse;
+export declare type CollectionSelector = firestoreV1ApiClientInterfaces.CollectionSelector;
+export declare type CommitRequest = firestoreV1ApiClientInterfaces.CommitRequest;
+export declare type CommitResponse = firestoreV1ApiClientInterfaces.CommitResponse;
+export declare type CompositeFilter = firestoreV1ApiClientInterfaces.CompositeFilter;
+export declare type Cursor = firestoreV1ApiClientInterfaces.Cursor;
+export declare type Document = firestoreV1ApiClientInterfaces.Document;
+export declare type DocumentChange = firestoreV1ApiClientInterfaces.DocumentChange;
+export declare type DocumentDelete = firestoreV1ApiClientInterfaces.DocumentDelete;
+export declare type DocumentMask = firestoreV1ApiClientInterfaces.DocumentMask;
+export declare type DocumentRemove = firestoreV1ApiClientInterfaces.DocumentRemove;
+export declare type DocumentTransform = firestoreV1ApiClientInterfaces.DocumentTransform;
+export declare type DocumentsTarget = firestoreV1ApiClientInterfaces.DocumentsTarget;
+export declare type Empty = firestoreV1ApiClientInterfaces.Empty;
+export declare type ExistenceFilter = firestoreV1ApiClientInterfaces.ExistenceFilter;
+export declare type FieldFilter = firestoreV1ApiClientInterfaces.FieldFilter;
+export declare type FieldReference = firestoreV1ApiClientInterfaces.FieldReference;
+export declare type FieldTransform = firestoreV1ApiClientInterfaces.FieldTransform;
+export declare type Filter = firestoreV1ApiClientInterfaces.Filter;
+export declare type Index = firestoreV1ApiClientInterfaces.Index;
+export declare type IndexField = firestoreV1ApiClientInterfaces.IndexField;
+export declare type LatLng = firestoreV1ApiClientInterfaces.LatLng;
+export declare type ListCollectionIdsRequest = firestoreV1ApiClientInterfaces.ListCollectionIdsRequest;
+export declare type ListCollectionIdsResponse = firestoreV1ApiClientInterfaces.ListCollectionIdsResponse;
+export declare type ListDocumentsResponse = firestoreV1ApiClientInterfaces.ListDocumentsResponse;
+export declare type ListIndexesResponse = firestoreV1ApiClientInterfaces.ListIndexesResponse;
+export declare type ListenRequest = firestoreV1ApiClientInterfaces.ListenRequest;
+export declare type ListenResponse = firestoreV1ApiClientInterfaces.ListenResponse;
+export declare type MapValue = firestoreV1ApiClientInterfaces.MapValue;
+export declare type Operation = firestoreV1ApiClientInterfaces.Operation;
+export declare type Order = firestoreV1ApiClientInterfaces.Order;
+export declare type Precondition = firestoreV1ApiClientInterfaces.Precondition;
+export declare type Projection = firestoreV1ApiClientInterfaces.Projection;
+export declare type QueryTarget = firestoreV1ApiClientInterfaces.QueryTarget;
+export declare type ReadOnly = firestoreV1ApiClientInterfaces.ReadOnly;
+export declare type ReadWrite = firestoreV1ApiClientInterfaces.ReadWrite;
+export declare type RollbackRequest = firestoreV1ApiClientInterfaces.RollbackRequest;
+export declare type RunQueryRequest = firestoreV1ApiClientInterfaces.RunQueryRequest;
+export declare type RunQueryResponse = firestoreV1ApiClientInterfaces.RunQueryResponse;
+export declare type Status = firestoreV1ApiClientInterfaces.Status;
+export declare type StructuredQuery = firestoreV1ApiClientInterfaces.StructuredQuery;
+export declare type Target = firestoreV1ApiClientInterfaces.Target;
+export declare type TargetChange = firestoreV1ApiClientInterfaces.TargetChange;
+export declare type TransactionOptions = firestoreV1ApiClientInterfaces.TransactionOptions;
+export declare type UnaryFilter = firestoreV1ApiClientInterfaces.UnaryFilter;
+export declare type Value = firestoreV1ApiClientInterfaces.Value;
+export declare type Write = firestoreV1ApiClientInterfaces.Write;
+export declare type WriteRequest = firestoreV1ApiClientInterfaces.WriteRequest;
+export declare type WriteResponse = firestoreV1ApiClientInterfaces.WriteResponse;
+export declare type WriteResult = firestoreV1ApiClientInterfaces.WriteResult;
 export declare type ProjectsDatabasesDocumentsApiClient$Xgafv = '1' | '2';
 export interface IProjectsDatabasesDocumentsApiClient$XgafvEnum {
   1: ProjectsDatabasesDocumentsApiClient$Xgafv;

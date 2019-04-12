@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,43 +15,39 @@
  * limitations under the License.
  */
 
-import resolve from 'rollup-plugin-node-resolve';
 import typescript from 'rollup-plugin-typescript2';
-import commonjs from 'rollup-plugin-commonjs';
 import pkg from './package.json';
 
 const plugins = [
   typescript({
     typescript: require('typescript')
-  }),
-  resolve(),
-  commonjs()
+  })
 ];
 
-const external = Object.keys(
+const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
 export default [
+  /**
+   * Node.js Build
+   */
+  {
+    input: 'index.node.ts',
+    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
+    plugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
   /**
    * Browser Builds
    */
   {
     input: 'index.ts',
     output: [
-      { file: pkg.browser, format: 'cjs' },
-      { file: pkg.module, format: 'es' }
+      { file: pkg.browser, format: 'cjs', sourcemap: true },
+      { file: pkg.module, format: 'es', sourcemap: true }
     ],
     plugins,
-    external
-  },
-  /**
-   * Node.js Build
-   */
-  {
-    input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs' }],
-    plugins,
-    external
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

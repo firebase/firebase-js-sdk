@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,6 +25,7 @@ goog.require('fireauth.Auth');
 goog.require('fireauth.AuthCredential');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.AuthProvider');
+goog.require('fireauth.EmailAuthCredential');
 goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.FacebookAuthProvider');
 goog.require('fireauth.GithubAuthProvider');
@@ -34,6 +36,8 @@ goog.require('fireauth.OAuthProvider');
 goog.require('fireauth.PhoneAuthCredential');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.RpcHandler');
+goog.require('fireauth.SAMLAuthCredential');
+goog.require('fireauth.SAMLAuthProvider');
 goog.require('fireauth.TwitterAuthProvider');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.common.testHelper');
@@ -373,6 +377,91 @@ function testOAuthCredential() {
     'postBody': 'id_token=exampleIdToken&access_token=exampleAccessToken' +
         '&providerId=example.com'
   });
+
+  // Test toJSON and fromJSON for current OAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.OAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
+}
+
+
+function testOAuthCredential_idTokenNonce() {
+  // Test using an OIDC ID token/nonce credential.
+  var provider = new fireauth.OAuthProvider('oidc.provider');
+  var authCredential = provider.credential(
+      'OIDC_ID_TOKEN', null, 'NONCE');
+  assertEquals('OIDC_ID_TOKEN', authCredential['idToken']);
+  assertEquals('NONCE', authCredential['nonce']);
+  assertUndefined(authCredential['accessToken']);
+  assertEquals('oidc.provider', authCredential['providerId']);
+  assertEquals('oidc.provider', authCredential['signInMethod']);
+  authCredential.getIdTokenProvider(rpcHandler);
+  assertObjectEquals(
+      {
+        'oauthIdToken': 'OIDC_ID_TOKEN',
+        'nonce': 'NONCE',
+        'providerId': 'oidc.provider',
+        'signInMethod': 'oidc.provider'
+      },
+      authCredential.toPlainObject());
+
+  // Confirm expected verifyAssertion request sent. nonce is passed in postBody.
+  assertRpcHandlerVerifyAssertion({
+    'requestUri': 'http://localhost',
+    'postBody': 'id_token=OIDC_ID_TOKEN&providerId=oidc.provider&nonce=NONCE'
+  });
+
+  // Test toJSON and fromJSON for current OAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.OAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
+}
+
+
+function testOAuthCredential_pendingToken() {
+  // Test using an OIDC ID token/pending token credential.
+  var authCredential = new fireauth.OAuthCredential(
+      'oidc.provider',
+      {
+        'pendingToken': 'PENDING_TOKEN',
+        // Nonce should be ignored.
+        'nonce': 'NONCE',
+        'idToken': 'OIDC_ID_TOKEN'
+      },
+      'oidc.provider');
+  assertEquals('OIDC_ID_TOKEN', authCredential['idToken']);
+  assertUndefined('NONCE', authCredential['nonce']);
+  assertUndefined(authCredential['accessToken']);
+  assertEquals('oidc.provider', authCredential['providerId']);
+  assertEquals('oidc.provider', authCredential['signInMethod']);
+  authCredential.getIdTokenProvider(rpcHandler);
+  assertObjectEquals(
+      {
+        'oauthIdToken': 'OIDC_ID_TOKEN',
+        'pendingToken': 'PENDING_TOKEN',
+        'providerId': 'oidc.provider',
+        'signInMethod': 'oidc.provider'
+      },
+      authCredential.toPlainObject());
+  // Confirm only pending token passed in request.
+  assertRpcHandlerVerifyAssertion({
+    'requestUri': 'http://localhost',
+    'pendingToken': 'PENDING_TOKEN'
+  });
+
+  // Test toJSON and fromJSON for current OAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.OAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
 }
 
 
@@ -507,6 +596,81 @@ function testOAuthProvider_getCredentialFromResponse_idTokenOnly() {
 }
 
 
+function testOAuthProvider_getCredentialFromResponse_idTokenAndNonce() {
+  // Test Auth credential from response with ID token/nonce.
+  var provider = new fireauth.OAuthProvider('example.com');
+  authCredential = provider.credential('exampleIdToken', null, 'NONCE');
+  assertObjectEquals(
+      authCredential.toPlainObject(),
+      fireauth.AuthProvider.getCredentialFromResponse({
+        'oauthIdToken': 'exampleIdToken',
+        'providerId': 'example.com',
+        // This will be injected in rpcHandler.
+        'nonce': 'NONCE'
+      }).toPlainObject());
+}
+
+
+function testOAuthProvider_getCredentialFromResponse_pendingTokenIdToken() {
+  // Test Auth credential from response with ID token/pending token.
+  var authCredential = new fireauth.OAuthCredential(
+      'oidc.provider',
+      {
+        'pendingToken': 'PENDING_TOKEN',
+        'idToken': 'OIDC_ID_TOKEN'
+      },
+      'oidc.provider');
+  assertObjectEquals(
+      authCredential.toPlainObject(),
+      fireauth.AuthProvider.getCredentialFromResponse({
+        'oauthIdToken': 'OIDC_ID_TOKEN',
+        'pendingToken': 'PENDING_TOKEN',
+        'providerId': 'oidc.provider'
+      }).toPlainObject());
+}
+
+
+function testOAuthProvider_getCredentialFromResponse_pendingTokenAccessToken() {
+  // Test Auth credential from response with access token/pending token.
+  var authCredential = new fireauth.OAuthCredential(
+      'oidc.provider',
+      {
+        'pendingToken': 'PENDING_TOKEN',
+        'accessToken': 'ACCESS_TOKEN'
+      },
+      'oidc.provider');
+  assertObjectEquals(
+      authCredential.toPlainObject(),
+      fireauth.AuthProvider.getCredentialFromResponse({
+        'oauthAccessToken': 'ACCESS_TOKEN',
+        'pendingToken': 'PENDING_TOKEN',
+        'providerId': 'oidc.provider'
+      }).toPlainObject());
+}
+
+
+function testOAuthProvider_getCredentialFromResponse_pendingTokenAndNonce() {
+  // Test nonce ignored for pending token.
+  var authCredential = new fireauth.OAuthCredential(
+      'oidc.provider',
+      {
+        'pendingToken': 'PENDING_TOKEN',
+        'idToken': 'OIDC_ID_TOKEN'
+      },
+      'oidc.provider');
+  assertObjectEquals(
+      authCredential.toPlainObject(),
+      fireauth.AuthProvider.getCredentialFromResponse({
+        'oauthIdToken': 'OIDC_ID_TOKEN',
+        'pendingToken': 'PENDING_TOKEN',
+        'providerId': 'oidc.provider',
+        // This shouldn't be injected but if it did, it will be ignored in
+        // favor of pending token.
+        'nonce': 'NONCE'
+      }).toPlainObject());
+}
+
+
 function testOAuthCredential_linkToIdToken() {
   var provider = new fireauth.OAuthProvider('example.com');
   var authCredential = provider.credential(
@@ -540,6 +704,196 @@ function testOAuthCredential_matchIdTokenWithUid() {
 }
 
 
+function testOAuthCredential_withNonce_linkToIdToken() {
+  var provider = new fireauth.OAuthProvider('oidc.provider');
+  var authCredential = provider.credential(
+      'exampleIdToken', null, 'NONCE');
+  var p = authCredential.linkToIdToken(rpcHandler, 'myIdToken');
+  // Confirm expected verifyAssertion request for linking flow using ID
+  // token/nonce.
+  assertRpcHandlerVerifyAssertionForLinking({
+    'requestUri': 'http://localhost',
+    // nonce is appended to postBody.
+    'postBody': 'id_token=exampleIdToken&providerId=oidc.provider' +
+        '&nonce=NONCE',
+    'idToken': 'myIdToken'
+  });
+  return p;
+}
+
+
+function testOAuthCredential_withNonce_matchIdTokenWithUid() {
+  // Mock idToken parsing.
+  initializeIdTokenMocks('ID_TOKEN', '1234');
+
+  var provider = new fireauth.OAuthProvider('oidc.provider');
+  var authCredential = provider.credential(
+      'exampleIdToken', null, 'NONCE');
+  var p = authCredential.matchIdTokenWithUid(rpcHandler, '1234');
+  // Confirm expected verifyAssertion request for matchIdToken flow using ID
+  // token/nonce.
+  assertRpcHandlerVerifyAssertionForExisting({
+    'requestUri': 'http://localhost',
+    // nonce is appended to postBody.
+    'postBody': 'id_token=exampleIdToken&providerId=oidc.provider' +
+        '&nonce=NONCE',
+  });
+  return p;
+}
+
+
+function testOAuthCredential_withPendingToken_linkToIdToken() {
+  var authCredential = new fireauth.OAuthCredential(
+      'oidc.provider',
+      {
+        'pendingToken': 'PENDING_TOKEN',
+        'idToken': 'OIDC_ID_TOKEN'
+      },
+      'oidc.provider');
+  var p = authCredential.linkToIdToken(rpcHandler, 'myIdToken');
+  // Confirm expected verifyAssertion request for linking flow using pending
+  // token.
+  assertRpcHandlerVerifyAssertionForLinking({
+    'requestUri': 'http://localhost',
+    'pendingToken': 'PENDING_TOKEN',
+    'idToken': 'myIdToken'
+  });
+  return p;
+}
+
+
+function testOAuthCredential_withPendingToken_matchIdTokenWithUid() {
+  // Mock idToken parsing.
+  initializeIdTokenMocks('ID_TOKEN', '1234');
+
+  var authCredential = new fireauth.OAuthCredential(
+      'oidc.provider',
+      {
+        'pendingToken': 'PENDING_TOKEN',
+        'idToken': 'OIDC_ID_TOKEN'
+      },
+      'oidc.provider');
+  var p = authCredential.matchIdTokenWithUid(rpcHandler, '1234');
+  // Confirm expected verifyAssertion request for match ID token flow using
+  // pending token.
+  assertRpcHandlerVerifyAssertionForExisting({
+    'requestUri': 'http://localhost',
+    'pendingToken': 'PENDING_TOKEN'
+  });
+  return p;
+}
+
+
+function testSAMLAuthCredential() {
+  var authCredential = new fireauth.SAMLAuthCredential(
+      'saml.provider', 'PENDING_TOKEN');
+  assertEquals('saml.provider', authCredential['providerId']);
+  assertEquals('saml.provider', authCredential['signInMethod']);
+  authCredential.getIdTokenProvider(rpcHandler);
+  assertObjectEquals(
+      {
+        'pendingToken': 'PENDING_TOKEN',
+        'providerId': 'saml.provider',
+        'signInMethod': 'saml.provider'
+      },
+      authCredential.toPlainObject());
+  assertRpcHandlerVerifyAssertion({
+    'requestUri': 'http://localhost',
+    'pendingToken': 'PENDING_TOKEN'
+  });
+
+  // Test toJSON and fromJSON for current SAMLAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.SAMLAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
+}
+
+
+function testSAMLAuthCredential_linkToIdToken() {
+  var authCredential = new fireauth.SAMLAuthCredential(
+      'saml.provider', 'PENDING_TOKEN');
+  var p = authCredential.linkToIdToken(rpcHandler, 'myIdToken');
+  // Confirm expected verifyAssertion request for linking flow using pending
+  // token.
+  assertRpcHandlerVerifyAssertionForLinking({
+    'requestUri': 'http://localhost',
+    'pendingToken': 'PENDING_TOKEN',
+    'idToken': 'myIdToken'
+  });
+  return p;
+}
+
+
+function testSAMLAuthCredential_matchIdTokenWithUid() {
+  // Mock idToken parsing.
+  initializeIdTokenMocks('ID_TOKEN', '1234');
+
+  var authCredential = new fireauth.SAMLAuthCredential(
+      'saml.provider', 'PENDING_TOKEN');
+  var p = authCredential.matchIdTokenWithUid(rpcHandler, '1234');
+  // Confirm expected verifyAssertion request for match ID token flow using
+  // pending token.
+  assertRpcHandlerVerifyAssertionForExisting({
+    'requestUri': 'http://localhost',
+    'pendingToken': 'PENDING_TOKEN'
+  });
+  return p;
+}
+
+
+function testSAMLAuthProvider_constructor() {
+  var provider = new fireauth.SAMLAuthProvider('saml.provider');
+  assertTrue(provider['isOAuthProvider']);
+  assertEquals('saml.provider', provider['providerId']);
+  // Should not throw an error.
+  assertNotThrows(function() {
+    fireauth.AuthProvider.checkIfOAuthSupported(provider);
+  });
+  // This is unused as of now and no reserved parameters used.
+  var expectedParameters = {
+    // Valid Facebook OAuth 2.0 parameters.
+    'display': 'popup',
+    'auth_type': 'rerequest',
+    'locale': 'pt_BR',
+    // Reserved parameters below should be filtered out.
+    'client_id': 'CLIENT_ID',
+    'response_type': 'token',
+    'scope': 'scope1',
+    'redirect_uri': 'https://www.evil.com',
+    'state': 'STATE'
+  };
+  provider.setCustomParameters(expectedParameters);
+  assertObjectEquals(expectedParameters, provider.getCustomParameters());
+  assertNull(fireauth.AuthProvider.getCredentialFromResponse({
+    'providerId': 'saml.provider'
+  }));
+}
+
+
+function testSAMLAuthCredential_getCredentialFromResponse() {
+  // Confirm expected SAML Auth credential constructed with SAML pending token.
+  var authCredential = new fireauth.SAMLAuthCredential(
+      'saml.provider', 'PENDING_TOKEN');
+  assertObjectEquals(
+      authCredential.toPlainObject(),
+      fireauth.AuthProvider.getCredentialFromResponse({
+        'pendingToken': 'PENDING_TOKEN',
+        'providerId': 'saml.provider'
+      }).toPlainObject());
+}
+
+
+function testSAMLAuthProvider_invalid() {
+  // SAML provider initialized with an invalid provider ID.
+  assertThrows(function() {
+    new fireauth.SAMLAuthProvider('provider.com');
+  });
+}
+
+
 /**
  * Test Facebook Auth credential.
  */
@@ -564,6 +918,15 @@ function testFacebookAuthCredential() {
         'signInMethod': fireauth.idp.SignInMethod.FACEBOOK
       },
       authCredential.toPlainObject());
+
+  // Test toJSON and fromJSON for current Facebook OAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.OAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
+
   assertRpcHandlerVerifyAssertion({
     // requestUri should be http://localhost regardless of current URL.
     'requestUri': 'http://localhost',
@@ -776,6 +1139,15 @@ function testGithubAuthCredential() {
         'signInMethod':fireauth.idp.SignInMethod.GITHUB
       },
       authCredential.toPlainObject());
+
+  // Test toJSON and fromJSON for current GitHub OAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.OAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
+
   assertRpcHandlerVerifyAssertion({
     // requestUri should be http://localhost regardless of current URL.
     'requestUri': 'http://localhost',
@@ -967,6 +1339,15 @@ function testGoogleAuthCredential() {
         'signInMethod': fireauth.idp.SignInMethod.GOOGLE
       },
       authCredential.toPlainObject());
+
+  // Test toJSON and fromJSON for current Google OAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.OAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
+
   assertRpcHandlerVerifyAssertion({
     // requestUri should be http://localhost regardless of current URL.
     'requestUri': 'http://localhost',
@@ -1240,6 +1621,15 @@ function testTwitterAuthCredential() {
         'signInMethod': fireauth.idp.SignInMethod.TWITTER
       },
       authCredential.toPlainObject());
+
+  // Test toJSON and fromJSON for current Twitter OAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.OAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
+
   authCredential.getIdTokenProvider(rpcHandler);
   assertRpcHandlerVerifyAssertion({
     // requestUri should be http://localhost regardless of current URL.
@@ -1430,6 +1820,14 @@ function testEmailAuthCredential() {
   fireauth.common.testHelper.assertErrorEquals(expectedError, error);
   assertEquals(fireauth.idp.ProviderId.PASSWORD, provider['providerId']);
   assertFalse(provider['isOAuthProvider']);
+
+  // Test toJSON and fromJSON for current email/password EmailAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.EmailAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
 }
 
 
@@ -1492,6 +1890,15 @@ function testEmailAuthCredentialWithLink() {
         'signInMethod': 'emailLink'
       },
       authCredential.toPlainObject());
+
+  // Test toJSON and fromJSON for current email/link EmailAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.EmailAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
+
   assertEquals(fireauth.idp.ProviderId.PASSWORD, authCredential['providerId']);
   assertEquals(
       fireauth.idp.SignInMethod.EMAIL_LINK, authCredential['signInMethod']);
@@ -1529,6 +1936,15 @@ function testEmailAuthCredentialWithLink_deepLink() {
         'signInMethod': 'emailLink'
       },
       authCredential.toPlainObject());
+
+  // Test toJSON and fromJSON for current email/link EmailAuthCredential.
+  assertObjectEquals(
+      authCredential,
+      fireauth.EmailAuthCredential.fromJSON(authCredential.toPlainObject()));
+  assertObjectEquals(
+      authCredential,
+      fireauth.AuthCredential.fromPlainObject(authCredential.toPlainObject()));
+
   assertEquals(fireauth.idp.ProviderId.PASSWORD, authCredential['providerId']);
   assertEquals(
       fireauth.idp.SignInMethod.EMAIL_LINK, authCredential['signInMethod']);
@@ -1899,6 +2315,15 @@ function testPhoneAuthCredential() {
       fireauth.AuthProvider.getCredentialFromResponse({
         'providerId': 'phone'
       }));
+
+  // Test toJSON and fromJSON for current verificationId/verificationCode
+  // PhoneAuthCredential.
+  assertObjectEquals(
+      credential,
+      fireauth.PhoneAuthCredential.fromJSON(credential.toPlainObject()));
+  assertObjectEquals(
+      credential,
+      fireauth.AuthCredential.fromPlainObject(credential.toPlainObject()));
 }
 
 
@@ -2085,6 +2510,14 @@ function testPhoneAuthCredential_temporaryProof() {
     'temporaryProof': temporaryProof,
     'phoneNumber': phoneNumber
   }, credential.toPlainObject());
+
+  // Test toJSON and fromJSON for current temporaryProof PhoneAuthCredential.
+  assertObjectEquals(
+      credential,
+      fireauth.PhoneAuthCredential.fromJSON(credential.toPlainObject()));
+  assertObjectEquals(
+      credential,
+      fireauth.AuthCredential.fromPlainObject(credential.toPlainObject()));
 }
 
 

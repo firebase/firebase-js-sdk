@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,13 +22,17 @@ import {
   DocumentMap,
   documentMap,
   MaybeDocumentMap,
-  maybeDocumentMap
+  maybeDocumentMap,
+  NullableMaybeDocumentMap,
+  nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
 
+import { assert } from '../util/assert';
+import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -42,7 +47,8 @@ import { RemoteDocumentCache } from './remote_document_cache';
 export class LocalDocumentsView {
   constructor(
     private remoteDocumentCache: RemoteDocumentCache,
-    private mutationQueue: MutationQueue
+    private mutationQueue: MutationQueue,
+    private indexManager: IndexManager
   ) {}
 
   /**
@@ -74,6 +80,23 @@ export class LocalDocumentsView {
     });
   }
 
+  // Returns the view of the given `docs` as they would appear after applying
+  // all mutations in the given `batches`.
+  private applyLocalMutationsToDocuments(
+    transaction: PersistenceTransaction,
+    docs: NullableMaybeDocumentMap,
+    batches: MutationBatch[]
+  ): NullableMaybeDocumentMap {
+    let results = nullableMaybeDocumentMap();
+    docs.forEach((key, localView) => {
+      for (const batch of batches) {
+        localView = batch.applyToLocalView(key, localView);
+      }
+      results = results.insert(key, localView);
+    });
+    return results;
+  }
+
   /**
    * Gets the local view of the documents identified by `keys`.
    *
@@ -84,28 +107,37 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     keys: DocumentKeySet
   ): PersistencePromise<MaybeDocumentMap> {
+    return this.remoteDocumentCache
+      .getEntries(transaction, keys)
+      .next(docs => this.getLocalViewOfDocuments(transaction, docs));
+  }
+
+  /**
+   * Similar to `getDocuments`, but creates the local view from the given
+   * `baseDocs` without retrieving documents from the local store.
+   */
+  getLocalViewOfDocuments(
+    transaction: PersistenceTransaction,
+    baseDocs: NullableMaybeDocumentMap
+  ): PersistencePromise<MaybeDocumentMap> {
     return this.mutationQueue
-      .getAllMutationBatchesAffectingDocumentKeys(transaction, keys)
+      .getAllMutationBatchesAffectingDocumentKeys(transaction, baseDocs)
       .next(batches => {
-        const promises = [] as Array<PersistencePromise<void>>;
+        const docs = this.applyLocalMutationsToDocuments(
+          transaction,
+          baseDocs,
+          batches
+        );
         let results = maybeDocumentMap();
-        keys.forEach(key => {
-          promises.push(
-            this.getDocumentInternal(transaction, key, batches).next(
-              maybeDoc => {
-                // TODO(http://b/32275378): Don't conflate missing / deleted.
-                if (!maybeDoc) {
-                  maybeDoc = new NoDocument(
-                    key,
-                    SnapshotVersion.forDeletedDoc()
-                  );
-                }
-                results = results.insert(key, maybeDoc);
-              }
-            )
-          );
+        docs.forEach((key, maybeDoc) => {
+          // TODO(http://b/32275378): Don't conflate missing / deleted.
+          if (!maybeDoc) {
+            maybeDoc = new NoDocument(key, SnapshotVersion.forDeletedDoc());
+          }
+          results = results.insert(key, maybeDoc);
         });
-        return PersistencePromise.waitFor(promises).next(() => results);
+
+        return results;
       });
   }
 
@@ -114,8 +146,10 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {
-    if (DocumentKey.isDocumentKey(query.path)) {
+    if (query.isDocumentQuery()) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
+    } else if (query.isCollectionGroupQuery()) {
+      return this.getDocumentsMatchingCollectionGroupQuery(transaction, query);
     } else {
       return this.getDocumentsMatchingCollectionQuery(transaction, query);
     }
@@ -135,6 +169,37 @@ export class LocalDocumentsView {
         return result;
       }
     );
+  }
+
+  private getDocumentsMatchingCollectionGroupQuery(
+    transaction: PersistenceTransaction,
+    query: Query
+  ): PersistencePromise<DocumentMap> {
+    assert(
+      query.path.isEmpty(),
+      'Currently we only support collection group queries at the root.'
+    );
+    const collectionId = query.collectionGroup!;
+    let results = documentMap();
+    return this.indexManager
+      .getCollectionParents(transaction, collectionId)
+      .next(parents => {
+        // Perform a collection query against each parent that contains the
+        // collectionId and aggregate the results.
+        return PersistencePromise.forEach(parents, parent => {
+          const collectionQuery = query.asCollectionQueryAtPath(
+            parent.child(collectionId)
+          );
+          return this.getDocumentsMatchingCollectionQuery(
+            transaction,
+            collectionQuery
+          ).next(r => {
+            r.forEach((key, doc) => {
+              results = results.insert(key, doc);
+            });
+          });
+        }).next(() => results);
+      });
   }
 
   private getDocumentsMatchingCollectionQuery(

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
 import { Blob } from '../api/blob';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
@@ -48,12 +48,21 @@ import {
   TransformMutation
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
+import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { AnyJs } from '../util/misc';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
+import { NumberValue } from '../model/field_value';
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
+  ServerTimestampTransform,
+  TransformOperation
+} from '../model/transform_operation';
+import { ApiClientObjectMap } from '../protos/firestore_proto_api';
 import { ExistenceFilter } from './existence_filter';
 import { mapCodeFromRpcCode, mapRpcCodeFromCode } from './rpc_error';
 import {
@@ -63,13 +72,6 @@ import {
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { ApiClientObjectMap } from '../protos/firestore_proto_api';
-import {
-  TransformOperation,
-  ServerTimestampTransform,
-  ArrayUnionTransformOperation,
-  ArrayRemoveTransformOperation
-} from '../model/transform_operation';
 
 const DIRECTIONS = (() => {
   const dirs: { [dir: string]: api.OrderDirection } = {};
@@ -92,7 +94,7 @@ const OPERATORS = (() => {
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
 
-function assertPresent(value: AnyJs, description: string): void {
+function assertPresent(value: unknown, description: string): void {
   assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
 }
 
@@ -340,16 +342,15 @@ export class JsonProtoSerializer {
   }
 
   toQueryPath(path: ResourcePath): string {
-    if (path.length === 0) {
-      // If the path is empty, the backend requires we leave off the /documents
-      // at the end.
-      return this.encodedDatabaseId;
-    }
     return this.toResourceName(this.databaseId, path);
   }
 
   fromQueryPath(name: string): ResourcePath {
     const resourceName = this.fromResourceName(name);
+    // In v1beta1 queries for collections at the root did not have a trailing
+    // "/documents". In v1 all resource paths contain "/documents". Preserve the
+    // ability to read the v1beta1 form for compatibility with queries persisted
+    // in the local query cache.
     if (resourceName.length === 4) {
       return ResourcePath.EMPTY_PATH;
     }
@@ -581,7 +582,7 @@ export class JsonProtoSerializer {
     const key = this.fromName(doc.found!.name!);
     const version = this.fromVersion(doc.found!.updateTime!);
     const fields = this.fromFields(doc.found!.fields || {});
-    return new Document(key, version, fields, {});
+    return new Document(key, version, fields, {}, doc.found!);
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -726,7 +727,15 @@ export class JsonProtoSerializer {
       const key = this.fromName(entityChange.document!.name!);
       const version = this.fromVersion(entityChange.document!.updateTime!);
       const fields = this.fromFields(entityChange.document!.fields || {});
-      const doc = new Document(key, version, fields, {});
+      // The document may soon be re-serialized back to protos in order to store it in local
+      // persistence. Memoize the encoded form to avoid encoding it again.
+      const doc = new Document(
+        key,
+        version,
+        fields,
+        {},
+        entityChange.document!
+      );
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(
@@ -947,6 +956,11 @@ export class JsonProtoSerializer {
           values: transform.elements.map(v => this.toValue(v))
         }
       };
+    } else if (transform instanceof NumericIncrementTransformOperation) {
+      return {
+        fieldPath: fieldTransform.field.canonicalString(),
+        increment: this.toValue(transform.operand)
+      };
     } else {
       throw fail('Unknown transform: ' + fieldTransform.transform);
     }
@@ -972,6 +986,15 @@ export class JsonProtoSerializer {
       transform = new ArrayRemoveTransformOperation(
         values.map(v => this.fromValue(v))
       );
+    } else if (hasTag(proto, type, 'increment')) {
+      const operand = this.fromValue(proto.increment!);
+      assert(
+        operand instanceof NumberValue,
+        'NUMERIC_ADD transform requires a NumberValue'
+      );
+      transform = new NumericIncrementTransformOperation(
+        operand as NumberValue
+      );
     } else {
       fail('Unknown transform proto: ' + JSON.stringify(proto));
     }
@@ -996,10 +1019,20 @@ export class JsonProtoSerializer {
   toQueryTarget(query: Query): api.QueryTarget {
     // Dissect the path into parent, collectionId, and optional key filter.
     const result: api.QueryTarget = { structuredQuery: {} };
-    if (query.path.isEmpty()) {
-      result.parent = this.toQueryPath(ResourcePath.EMPTY_PATH);
+    const path = query.path;
+    if (query.collectionGroup !== null) {
+      assert(
+        path.length % 2 === 0,
+        'Collection Group queries should be within a document path or root.'
+      );
+      result.parent = this.toQueryPath(path);
+      result.structuredQuery!.from = [
+        {
+          collectionId: query.collectionGroup,
+          allDescendants: true
+        }
+      ];
     } else {
-      const path = query.path;
       assert(
         path.length % 2 !== 0,
         'Document queries with filters are not supported.'
@@ -1038,13 +1071,18 @@ export class JsonProtoSerializer {
 
     const query = target.structuredQuery!;
     const fromCount = query.from ? query.from.length : 0;
+    let collectionGroup: string | null = null;
     if (fromCount > 0) {
       assert(
         fromCount === 1,
         'StructuredQuery.from with more than one collection is not supported.'
       );
       const from = query.from![0];
-      path = path.child(from.collectionId!);
+      if (from.allDescendants) {
+        collectionGroup = from.collectionId!;
+      } else {
+        path = path.child(from.collectionId!);
+      }
     }
 
     let filterBy: Filter[] = [];
@@ -1072,7 +1110,15 @@ export class JsonProtoSerializer {
       endAt = this.fromCursor(query.endAt);
     }
 
-    return new Query(path, orderBy, filterBy, limit, startAt, endAt);
+    return new Query(
+      path,
+      collectionGroup,
+      orderBy,
+      filterBy,
+      limit,
+      startAt,
+      endAt
+    );
   }
 
   toListenRequestLabels(
@@ -1124,11 +1170,10 @@ export class JsonProtoSerializer {
 
   private toFilter(filters: Filter[]): api.Filter | undefined {
     if (filters.length === 0) return;
-    const protos = filters.map(
-      filter =>
-        filter instanceof RelationFilter
-          ? this.toRelationFilter(filter)
-          : this.toUnaryFilter(filter)
+    const protos = filters.map(filter =>
+      filter instanceof RelationFilter
+        ? this.toRelationFilter(filter)
+        : this.toUnaryFilter(filter)
     );
     if (protos.length === 1) {
       return protos[0];
@@ -1304,15 +1349,19 @@ export class JsonProtoSerializer {
   }
 
   toDocumentMask(fieldMask: FieldMask): api.DocumentMask {
+    const canonicalFields: string[] = [];
+    fieldMask.fields.forEach(field =>
+      canonicalFields.push(field.canonicalString())
+    );
     return {
-      fieldPaths: fieldMask.fields.map(field => field.canonicalString())
+      fieldPaths: canonicalFields
     };
   }
 
   fromDocumentMask(proto: api.DocumentMask): FieldMask {
     const paths = proto.fieldPaths || [];
     const fields = paths.map(path => FieldPath.fromServerFormat(path));
-    return new FieldMask(fields);
+    return FieldMask.fromArray(fields);
   }
 }
 

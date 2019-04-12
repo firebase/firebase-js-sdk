@@ -40,7 +40,7 @@ you should use the
 
 Include Firebase in your web application via a `<script>` tag:
 
-```
+```html
 <script src="https://www.gstatic.com/firebasejs/${JSCORE_VERSION}/firebase.js"></script>
 
 <script>
@@ -75,15 +75,15 @@ $ npm install --save firebase
 
 In your code, you can access Firebase using:
 
-```
+```js
 var firebase = require('firebase');
 var app = firebase.initializeApp({ ... });
 ```
 
 If you are using ES6 imports or TypeScript:
 
-```
-import firebase from 'firebase';
+```js
+import * as firebase from 'firebase';
 var app = firebase.initializeApp({ ... });
 ```
 
@@ -107,7 +107,7 @@ you need. The individually installable services are:
 From the CDN, include the individual services you use (include `firebase-app`
 first):
 
-```
+```html
 <script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-database.js"></script>
@@ -125,7 +125,7 @@ first):
 When using the firebase npm package, you can `require()` just the services that
 you use:
 
-```
+```js
 var firebase = require('firebase/app');
 require('firebase/auth');
 require('firebase/database');
@@ -136,9 +136,9 @@ var app = firebase.initializeApp({ ... });
 If you are using TypeScript with the npm package, you can import just the
 services you use:
 
-```
+```js
 // This import loads the firebase namespace along with all its type information.
-import firebase from 'firebase/app';
+import * as firebase from 'firebase/app';
 
 // These imports load individual services into the firebase namespace.
 import 'firebase/auth';
@@ -167,11 +167,25 @@ $ npm install --save firebase
 
 In your code, you can access Firebase using:
 
-```
+```js
 var firebase = require('firebase');
 var app = firebase.initializeApp({ ... });
 // ...
 ```
+
+If you are using native ES6 module with --experimental-modules flag, you should do:
+
+```js
+// This import loads the firebase namespace.
+import firebase from 'firebase/app';
+
+// These imports load individual services into the firebase namespace.
+import 'firebase/auth';
+import 'firebase/database';
+```
+
+_Known issue for typescript users with --experimental-modules: you have to set allowSyntheticDefaultImports to true in tsconfig.json to pass the type check. Use it with caution since it makes the assumption that all modules have a default export, which might not be the case for the other dependencies you have. And Your code will break if you try to import the default export from a module that doesn't have default export._
+
 
 Firebase Storage is not included in the server side Firebase npm module.
 Instead, you can use the
@@ -183,7 +197,7 @@ $ npm install --save google-cloud
 
 In your code, you can access your Storage bucket using:
 
-```
+```js
 var gcloud = require('google-cloud')({ ... });
 var gcs = gcloud.storage();
 var bucket = gcs.bucket('<your-firebase-storage-bucket>');

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -479,6 +480,22 @@ function testMatchDomain_dotsInPatternEscaped() {
       'domain.com', 'abc.domainacom', 'http'));
   assertFalse(fireauth.util.matchDomain(
       'abc.def.com', 'abczdefzcom', 'http'));
+}
+
+
+function testIsValidEmailAddress() {
+  assertTrue(fireauth.util.isValidEmailAddress('test@abc.com'));
+  assertTrue(fireauth.util.isValidEmailAddress('abc@def'));
+  // International email addresses.
+  assertTrue(fireauth.util.isValidEmailAddress('Pelé@example.com'));
+  assertTrue(fireauth.util.isValidEmailAddress('我買@屋企.香港'));
+  // Invalid email addresses.
+  assertFalse(fireauth.util.isValidEmailAddress('abcdef'));
+  assertFalse(fireauth.util.isValidEmailAddress('abc.def'));
+  // Non-string.
+  assertFalse(fireauth.util.isValidEmailAddress(123));
+  assertFalse(fireauth.util.isValidEmailAddress(null));
+  assertFalse(fireauth.util.isValidEmailAddress(undefined));
 }
 
 

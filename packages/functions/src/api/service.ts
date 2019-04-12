@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +21,8 @@ import {
   FirebaseFunctions,
   FunctionsErrorCode,
   HttpsCallable,
-  HttpsCallableResult
+  HttpsCallableResult,
+  HttpsCallableOptions
 } from '@firebase/functions-types';
 import { _errorForResponse, HttpsErrorImpl } from './error';
 import { ContextProvider } from '../context';
@@ -32,6 +34,20 @@ import { Serializer } from '../serializer';
 interface HttpResponse {
   status: number;
   json: any;
+}
+
+/**
+ * Returns a Promise that will be rejected after the given duration.
+ * The error will be of type HttpsErrorImpl.
+ *
+ * @param millis Number of milliseconds to wait before rejecting.
+ */
+function failAfter(millis: number): Promise<HttpResponse> {
+  return new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new HttpsErrorImpl('deadline-exceeded', 'deadline-exceeded'));
+    }, millis);
+  });
 }
 
 /**
@@ -87,9 +103,9 @@ export class Service implements FirebaseFunctions {
    * Returns a reference to the callable https trigger with the given name.
    * @param name The name of the trigger.
    */
-  httpsCallable(name: string): HttpsCallable {
+  httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
     let callable = <HttpsCallable>(data?: any) => {
-      return this.call(name, data);
+      return this.call(name, data, options || {});
     };
     return callable;
   }
@@ -117,7 +133,7 @@ export class Service implements FirebaseFunctions {
       });
     } catch (e) {
       // This could be an unhandled error on the backend, or it could be a
-      // network error. There's no way to no, since an unhandled error on the
+      // network error. There's no way to know, since an unhandled error on the
       // backend will fail to set the proper CORS header, and thus will be
       // treated as a network error by fetch.
       return {
@@ -142,7 +158,11 @@ export class Service implements FirebaseFunctions {
    * @param name The name of the callable trigger.
    * @param data The data to pass as params to the function.s
    */
-  private async call(name: string, data: any): Promise<HttpsCallableResult> {
+  private async call(
+    name: string,
+    data: any,
+    options: HttpsCallableOptions
+  ): Promise<HttpsCallableResult> {
     const url = this._url(name);
 
     // Encode any special types, such as dates, in the input data.
@@ -159,7 +179,13 @@ export class Service implements FirebaseFunctions {
       headers.append('Firebase-Instance-ID-Token', context.instanceIdToken);
     }
 
-    const response = await this.postJSON(url, body, headers);
+    // Default timeout to 70s, but let the options override it.
+    const timeout = options.timeout || 70000;
+
+    const response = await Promise.race([
+      this.postJSON(url, body, headers),
+      failAfter(timeout)
+    ]);
 
     // Check for an error status, regardless of http status.
     const error = _errorForResponse(

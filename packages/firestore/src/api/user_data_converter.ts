@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,7 +20,7 @@ import * as firestore from '@firebase/firestore-types';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
-import { FieldValue, ObjectValue } from '../model/field_value';
+import { FieldValue, NumberValue, ObjectValue } from '../model/field_value';
 import {
   ArrayValue,
   BlobValue,
@@ -45,30 +46,33 @@ import { FieldPath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
-import { AnyJs, primitiveComparator } from '../util/misc';
+import { primitiveComparator } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Dict } from '../util/obj';
 import { SortedMap } from '../util/sorted_map';
 import * as typeUtils from '../util/types';
 
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation,
+  NumericIncrementTransformOperation,
+  ServerTimestampTransform
+} from '../model/transform_operation';
+import { SortedSet } from '../util/sorted_set';
 import { Blob } from './blob';
 import {
   FieldPath as ExternalFieldPath,
   fromDotSeparatedString
 } from './field_path';
 import {
+  ArrayRemoveFieldValueImpl,
+  ArrayUnionFieldValueImpl,
   DeleteFieldValueImpl,
   FieldValueImpl,
-  ServerTimestampFieldValueImpl,
-  ArrayUnionFieldValueImpl,
-  ArrayRemoveFieldValueImpl
+  NumericIncrementFieldValueImpl,
+  ServerTimestampFieldValueImpl
 } from './field_value';
 import { GeoPoint } from './geo_point';
-import {
-  ServerTimestampTransform,
-  ArrayUnionTransformOperation,
-  ArrayRemoveTransformOperation
-} from '../model/transform_operation';
 
 const RESERVED_FIELD_REGEX = /^__.*__$/;
 
@@ -282,7 +286,7 @@ class ParseContext {
  *
  * It can also throw an Error which will be wrapped into a friendly message.
  */
-export type DataPreConverter = (input: AnyJs) => AnyJs;
+export type DataPreConverter = (input: unknown) => unknown;
 
 /**
  * A placeholder object for DocumentReferences in this file, in order to
@@ -301,7 +305,7 @@ export class UserDataConverter {
   constructor(private preConverter: DataPreConverter) {}
 
   /** Parse document data from a non-merge set() call. */
-  parseSetData(methodName: string, input: AnyJs): ParsedSetData {
+  parseSetData(methodName: string, input: unknown): ParsedSetData {
     const context = new ParseContext(
       UserDataSource.Set,
       methodName,
@@ -321,7 +325,7 @@ export class UserDataConverter {
   /** Parse document data from a set() call with '{merge:true}'. */
   parseMergeData(
     methodName: string,
-    input: AnyJs,
+    input: unknown,
     fieldPaths?: Array<string | firestore.FieldPath>
   ): ParsedSetData {
     const context = new ParseContext(
@@ -336,10 +340,10 @@ export class UserDataConverter {
     let fieldTransforms: FieldTransform[];
 
     if (!fieldPaths) {
-      fieldMask = new FieldMask(context.fieldMask);
+      fieldMask = FieldMask.fromArray(context.fieldMask);
       fieldTransforms = context.fieldTransforms;
     } else {
-      const validatedFieldPaths: FieldPath[] = [];
+      let validatedFieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
 
       for (const stringOrFieldPath of fieldPaths) {
         let fieldPath: FieldPath;
@@ -364,10 +368,10 @@ export class UserDataConverter {
           );
         }
 
-        validatedFieldPaths.push(fieldPath);
+        validatedFieldPaths = validatedFieldPaths.add(fieldPath);
       }
 
-      fieldMask = new FieldMask(validatedFieldPaths);
+      fieldMask = FieldMask.fromSet(validatedFieldPaths);
       fieldTransforms = context.fieldTransforms.filter(transform =>
         fieldMask.covers(transform.field)
       );
@@ -380,7 +384,7 @@ export class UserDataConverter {
   }
 
   /** Parse update data from an update() call. */
-  parseUpdateData(methodName: string, input: AnyJs): ParsedUpdateData {
+  parseUpdateData(methodName: string, input: unknown): ParsedUpdateData {
     const context = new ParseContext(
       UserDataSource.Update,
       methodName,
@@ -388,26 +392,26 @@ export class UserDataConverter {
     );
     validatePlainObject('Data must be an object, but it was:', context, input);
 
-    const fieldMaskPaths = [] as FieldPath[];
+    let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
     let updateData = ObjectValue.EMPTY;
-    objUtils.forEach(input as Dict<AnyJs>, (key, value) => {
+    objUtils.forEach(input as Dict<unknown>, (key, value) => {
       const path = fieldPathFromDotSeparatedString(methodName, key);
 
       const childContext = context.childContextForFieldPath(path);
       value = this.runPreConverter(value, childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths.push(path);
+        fieldMaskPaths = fieldMaskPaths.add(path);
       } else {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
-          fieldMaskPaths.push(path);
+          fieldMaskPaths = fieldMaskPaths.add(path);
           updateData = updateData.set(path, parsedValue);
         }
       }
     });
 
-    const mask = new FieldMask(fieldMaskPaths);
+    const mask = FieldMask.fromSet(fieldMaskPaths);
     return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
   }
 
@@ -415,8 +419,8 @@ export class UserDataConverter {
   parseUpdateVarargs(
     methodName: string,
     field: string | ExternalFieldPath,
-    value: AnyJs,
-    moreFieldsAndValues: AnyJs[]
+    value: unknown,
+    moreFieldsAndValues: unknown[]
   ): ParsedUpdateData {
     const context = new ParseContext(
       UserDataSource.Update,
@@ -443,7 +447,7 @@ export class UserDataConverter {
       values.push(moreFieldsAndValues[i + 1]);
     }
 
-    const fieldMaskPaths = [] as FieldPath[];
+    let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
     let updateData = ObjectValue.EMPTY;
 
     for (let i = 0; i < keys.length; ++i) {
@@ -452,17 +456,17 @@ export class UserDataConverter {
       const value = this.runPreConverter(values[i], childContext);
       if (value instanceof DeleteFieldValueImpl) {
         // Add it to the field mask, but don't add anything to updateData.
-        fieldMaskPaths.push(path);
+        fieldMaskPaths = fieldMaskPaths.add(path);
       } else {
         const parsedValue = this.parseData(value, childContext);
         if (parsedValue != null) {
-          fieldMaskPaths.push(path);
+          fieldMaskPaths = fieldMaskPaths.add(path);
           updateData = updateData.set(path, parsedValue);
         }
       }
     }
 
-    const mask = new FieldMask(fieldMaskPaths);
+    const mask = FieldMask.fromSet(fieldMaskPaths);
     return new ParsedUpdateData(updateData, mask, context.fieldTransforms);
   }
 
@@ -470,7 +474,7 @@ export class UserDataConverter {
    * Parse a "query value" (e.g. value in a where filter or a value in a cursor
    * bound).
    */
-  parseQueryValue(methodName: string, input: AnyJs): FieldValue {
+  parseQueryValue(methodName: string, input: unknown): FieldValue {
     const context = new ParseContext(
       UserDataSource.Argument,
       methodName,
@@ -486,7 +490,7 @@ export class UserDataConverter {
   }
 
   /** Sends data through this.preConverter, handling any thrown errors. */
-  private runPreConverter(input: AnyJs, context: ParseContext): AnyJs {
+  private runPreConverter(input: unknown, context: ParseContext): unknown {
     try {
       return this.preConverter(input);
     } catch (e) {
@@ -504,11 +508,11 @@ export class UserDataConverter {
    * @return The parsed value, or null if the value was a FieldValue sentinel
    * that should not be included in the resulting parsed data.
    */
-  private parseData(input: AnyJs, context: ParseContext): FieldValue | null {
+  private parseData(input: unknown, context: ParseContext): FieldValue | null {
     input = this.runPreConverter(input, context);
     if (looksLikeJsonObject(input)) {
       validatePlainObject('Unsupported field value:', context, input);
-      return this.parseObject(input as Dict<AnyJs>, context);
+      return this.parseObject(input as Dict<unknown>, context);
     } else if (input instanceof FieldValueImpl) {
       // FieldValues usually parse into transforms (except FieldValue.delete())
       // in which case we do not want to include this field in our parsed data
@@ -530,28 +534,38 @@ export class UserDataConverter {
         if (context.arrayElement) {
           throw context.createError('Nested arrays are not supported');
         }
-        return this.parseArray(input as AnyJs[], context);
+        return this.parseArray(input as unknown[], context);
       } else {
         return this.parseScalarValue(input, context);
       }
     }
   }
 
-  private parseObject(obj: Dict<AnyJs>, context: ParseContext): FieldValue {
+  private parseObject(obj: Dict<unknown>, context: ParseContext): FieldValue {
     let result = new SortedMap<string, FieldValue>(primitiveComparator);
-    objUtils.forEach(obj, (key: string, val: AnyJs) => {
-      const parsedValue = this.parseData(
-        val,
-        context.childContextForField(key)
-      );
-      if (parsedValue != null) {
-        result = result.insert(key, parsedValue);
+
+    if (objUtils.isEmpty(obj)) {
+      // If we encounter an empty object, we explicitly add it to the update
+      // mask to ensure that the server creates a map entry.
+      if (context.path && context.path.length > 0) {
+        context.fieldMask.push(context.path);
       }
-    });
+    } else {
+      objUtils.forEach(obj, (key: string, val: unknown) => {
+        const parsedValue = this.parseData(
+          val,
+          context.childContextForField(key)
+        );
+        if (parsedValue != null) {
+          result = result.insert(key, parsedValue);
+        }
+      });
+    }
+
     return new ObjectValue(result);
   }
 
-  private parseArray(array: AnyJs[], context: ParseContext): FieldValue {
+  private parseArray(array: unknown[], context: ParseContext): FieldValue {
     const result = [] as FieldValue[];
     let entryIndex = 0;
     for (const entry of array) {
@@ -581,12 +595,12 @@ export class UserDataConverter {
     // Sentinels are only supported with writes, and not within arrays.
     if (!isWrite(context.dataSource)) {
       throw context.createError(
-        `${value.methodName}() can only be used with update() and set()`
+        `${value._methodName}() can only be used with update() and set()`
       );
     }
     if (context.path === null) {
       throw context.createError(
-        `${value.methodName}() is not currently supported inside arrays`
+        `${value._methodName}() is not currently supported inside arrays`
       );
     }
 
@@ -618,7 +632,7 @@ export class UserDataConverter {
       );
     } else if (value instanceof ArrayUnionFieldValueImpl) {
       const parsedElements = this.parseArrayTransformElements(
-        value.methodName,
+        value._methodName,
         value._elements
       );
       const arrayUnion = new ArrayUnionTransformOperation(parsedElements);
@@ -627,12 +641,21 @@ export class UserDataConverter {
       );
     } else if (value instanceof ArrayRemoveFieldValueImpl) {
       const parsedElements = this.parseArrayTransformElements(
-        value.methodName,
+        value._methodName,
         value._elements
       );
       const arrayRemove = new ArrayRemoveTransformOperation(parsedElements);
       context.fieldTransforms.push(
         new FieldTransform(context.path, arrayRemove)
+      );
+    } else if (value instanceof NumericIncrementFieldValueImpl) {
+      const operand = this.parseQueryValue(
+        'FieldValue.increment',
+        value._operand
+      ) as NumberValue;
+      const numericIncrement = new NumericIncrementTransformOperation(operand);
+      context.fieldTransforms.push(
+        new FieldTransform(context.path, numericIncrement)
       );
     } else {
       fail('Unknown FieldValue type: ' + value);
@@ -644,7 +667,7 @@ export class UserDataConverter {
    *
    * @return The parsed value
    */
-  private parseScalarValue(value: AnyJs, context: ParseContext): FieldValue {
+  private parseScalarValue(value: unknown, context: ParseContext): FieldValue {
     if (value === null) {
       return NullValue.INSTANCE;
     } else if (typeof value === 'number') {
@@ -684,7 +707,7 @@ export class UserDataConverter {
 
   private parseArrayTransformElements(
     methodName: string,
-    elements: AnyJs[]
+    elements: unknown[]
   ): FieldValue[] {
     return elements.map((element, i) => {
       // Although array transforms are used with writes, the actual elements
@@ -707,7 +730,7 @@ export class UserDataConverter {
  * GeoPoints, etc. are not considered to look like JSON objects since they map
  * to specific FieldValue types other than ObjectValue.
  */
-function looksLikeJsonObject(input: AnyJs): boolean {
+function looksLikeJsonObject(input: unknown): boolean {
   return (
     typeof input === 'object' &&
     input !== null &&
@@ -724,7 +747,7 @@ function looksLikeJsonObject(input: AnyJs): boolean {
 function validatePlainObject(
   message: string,
   context: ParseContext,
-  input: AnyJs
+  input: unknown
 ): void {
   if (!looksLikeJsonObject(input) || !isPlainObject(input)) {
     const description = valueDescription(input);

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,10 +19,14 @@ import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
-import { FieldPath as ExternalFieldPath } from './field_path';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
-import { FirestoreClient } from '../core/firestore_client';
+import {
+  FirestoreClient,
+  IndexedDbPersistenceSettings,
+  InternalPersistenceSettings,
+  MemoryPersistenceSettings
+} from '../core/firestore_client';
 import {
   Bound,
   Direction,
@@ -33,6 +38,7 @@ import {
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
+import { LruParams } from '../local/lru_garbage_collector';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
@@ -40,7 +46,8 @@ import {
   FieldValue,
   FieldValueOptions,
   ObjectValue,
-  RefValue
+  RefValue,
+  ServerTimestampValue
 } from '../model/field_value';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
@@ -57,19 +64,21 @@ import {
   validateBetweenNumberOfArgs,
   validateDefined,
   validateExactNumberOfArgs,
-  validateNamedOptionalType,
   validateNamedOptionalPropertyEquals,
+  validateNamedOptionalType,
   validateNamedType,
   validateOptionalArgType,
+  validateOptionalArrayElements,
   validateOptionNames,
-  valueDescription,
-  validateOptionalArrayElements
+  validateStringEnum,
+  valueDescription
 } from '../util/input_validation';
 import * as log from '../util/log';
 import { LogLevel } from '../util/log';
-import { AnyJs, AutoId } from '../util/misc';
+import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
+import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
   CredentialsProvider,
@@ -100,7 +109,15 @@ import {
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
-const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = false;
+const DEFAULT_TIMESTAMPS_IN_SNAPSHOTS = true;
+const DEFAULT_FORCE_LONG_POLLING = false;
+
+/**
+ * Constant used to indicate the LRU garbage collection should be disabled.
+ * Set this value as the `cacheSizeBytes` on the settings passed to the
+ * `Firestore` instance.
+ */
+export const CACHE_SIZE_UNLIMITED = LruParams.COLLECTION_DISABLED;
 
 // enablePersistence() defaults:
 const DEFAULT_SYNCHRONIZE_TABS = false;
@@ -127,12 +144,16 @@ export interface FirestoreDatabase {
  */
 class FirestoreSettings {
   /** The hostname to connect to. */
-  host: string;
+  readonly host: string;
 
   /** Whether to use SSL when connecting. */
-  ssl: boolean;
+  readonly ssl: boolean;
 
-  timestampsInSnapshots: boolean;
+  readonly timestampsInSnapshots: boolean;
+
+  readonly cacheSizeBytes: number;
+
+  readonly forceLongPolling: boolean;
 
   // Can be a google-auth-library or gapi client.
   // tslint:disable-next-line:no-any
@@ -149,7 +170,7 @@ class FirestoreSettings {
       this.host = DEFAULT_HOST;
       this.ssl = DEFAULT_SSL;
     } else {
-      validateNamedType('settings', 'string', 'host', settings.host);
+      validateNamedType('settings', 'non-empty string', 'host', settings.host);
       this.host = settings.host;
 
       validateNamedOptionalType('settings', 'boolean', 'ssl', settings.ssl);
@@ -159,7 +180,9 @@ class FirestoreSettings {
       'host',
       'ssl',
       'credentials',
-      'timestampsInSnapshots'
+      'timestampsInSnapshots',
+      'cacheSizeBytes',
+      'experimentalForceLongPolling'
     ]);
 
     validateNamedOptionalType(
@@ -176,10 +199,76 @@ class FirestoreSettings {
       'timestampsInSnapshots',
       settings.timestampsInSnapshots
     );
+
+    // Nobody should set timestampsInSnapshots anymore, but the error depends on
+    // whether they set it to true or false...
+    if (settings.timestampsInSnapshots === true) {
+      log.error(`
+  The timestampsInSnapshots setting now defaults to true and you no
+  longer need to explicitly set it. In a future release, the setting
+  will be removed entirely and so it is recommended that you remove it
+  from your firestore.settings() call now.`);
+    } else if (settings.timestampsInSnapshots === false) {
+      log.error(`
+  The timestampsInSnapshots setting will soon be removed. YOU MUST UPDATE
+  YOUR CODE.
+
+  To hide this warning, stop using the timestampsInSnapshots setting in your
+  firestore.settings({ ... }) call.
+
+  Once you remove the setting, Timestamps stored in Cloud Firestore will be
+  read back as Firebase Timestamp objects instead of as system Date objects.
+  So you will also need to update code expecting a Date to instead expect a
+  Timestamp. For example:
+
+  // Old:
+  const date = snapshot.get('created_at');
+  // New:
+  const timestamp = snapshot.get('created_at'); const date =
+  timestamp.toDate();
+
+  Please audit all existing usages of Date when you enable the new
+  behavior.`);
+    }
     this.timestampsInSnapshots = objUtils.defaulted(
       settings.timestampsInSnapshots,
       DEFAULT_TIMESTAMPS_IN_SNAPSHOTS
     );
+
+    validateNamedOptionalType(
+      'settings',
+      'number',
+      'cacheSizeBytes',
+      settings.cacheSizeBytes
+    );
+    if (settings.cacheSizeBytes === undefined) {
+      this.cacheSizeBytes = LruParams.DEFAULT_CACHE_SIZE_BYTES;
+    } else {
+      if (
+        settings.cacheSizeBytes !== CACHE_SIZE_UNLIMITED &&
+        settings.cacheSizeBytes < LruParams.MINIMUM_CACHE_SIZE_BYTES
+      ) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `cacheSizeBytes must be at least ${
+            LruParams.MINIMUM_CACHE_SIZE_BYTES
+          }`
+        );
+      } else {
+        this.cacheSizeBytes = settings.cacheSizeBytes;
+      }
+    }
+
+    validateNamedOptionalType(
+      'settings',
+      'boolean',
+      'experimentalForceLongPolling',
+      settings.experimentalForceLongPolling
+    );
+    this.forceLongPolling =
+      settings.experimentalForceLongPolling === undefined
+        ? DEFAULT_FORCE_LONG_POLLING
+        : settings.experimentalForceLongPolling;
   }
 
   isEqual(other: FirestoreSettings): boolean {
@@ -187,7 +276,9 @@ class FirestoreSettings {
       this.host === other.host &&
       this.ssl === other.ssl &&
       this.timestampsInSnapshots === other.timestampsInSnapshots &&
-      this.credentials === other.credentials
+      this.credentials === other.credentials &&
+      this.cacheSizeBytes === other.cacheSizeBytes &&
+      this.forceLongPolling === other.forceLongPolling
     );
   }
 }
@@ -199,39 +290,6 @@ class FirestoreConfig {
   firebaseApp: FirebaseApp;
   settings: FirestoreSettings;
   persistence: boolean;
-}
-
-// TODO(multitab): Replace with Firestore.PersistenceSettings
-// tslint:disable-next-line:no-any The definition for these settings is private
-export type _PersistenceSettings = any;
-
-/**
- * Encapsulates the settings that can be used to configure Firestore
- * persistence.
- */
-export class PersistenceSettings {
-  /** Whether to enable multi-tab synchronization. */
-  experimentalTabSynchronization: boolean;
-
-  constructor(readonly enabled: boolean, settings?: _PersistenceSettings) {
-    assert(
-      enabled || !settings,
-      'Can only provide PersistenceSettings with persistence enabled'
-    );
-    settings = settings || {};
-    this.experimentalTabSynchronization = objUtils.defaulted(
-      settings.experimentalTabSynchronization,
-      DEFAULT_SYNCHRONIZE_TABS
-    );
-  }
-
-  isEqual(other: PersistenceSettings): boolean {
-    return (
-      this.enabled === other.enabled &&
-      this.experimentalTabSynchronization ===
-        other.experimentalTabSynchronization
-    );
-  }
 }
 
 /**
@@ -327,7 +385,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this._firestoreClient!.disableNetwork();
   }
 
-  enablePersistence(settings?: _PersistenceSettings): Promise<void> {
+  enablePersistence(settings?: firestore.PersistenceSettings): Promise<void> {
     if (this._firestoreClient) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -336,9 +394,15 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           'any other methods on a Firestore object.'
       );
     }
-
     return this.configureClient(
-      new PersistenceSettings(/* enabled= */ true, settings)
+      new IndexedDbPersistenceSettings(
+        this._config.settings.cacheSizeBytes,
+        settings !== undefined &&
+          objUtils.defaulted(
+            settings.experimentalTabSynchronization,
+            DEFAULT_SYNCHRONIZE_TABS
+          )
+      )
     );
   }
 
@@ -346,44 +410,18 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
       // tslint:disable-next-line:no-floating-promises
-      this.configureClient(new PersistenceSettings(/* enabled= */ false));
+      this.configureClient(new MemoryPersistenceSettings());
     }
     return this._firestoreClient as FirestoreClient;
   }
 
   private configureClient(
-    persistenceSettings: PersistenceSettings
+    persistenceSettings: InternalPersistenceSettings
   ): Promise<void> {
     assert(
       !!this._config.settings.host,
       'FirestoreSettings.host cannot be falsey'
     );
-
-    if (!this._config.settings.timestampsInSnapshots) {
-      log.error(`
-The behavior for Date objects stored in Firestore is going to change
-AND YOUR APP MAY BREAK.
-To hide this warning and ensure your app does not break, you need to add the
-following code to your app before calling any other Cloud Firestore methods:
-
-  const firestore = firebase.firestore();
-  const settings = {/* your settings... */ timestampsInSnapshots: true};
-  firestore.settings(settings);
-
-With this change, timestamps stored in Cloud Firestore will be read back as
-Firebase Timestamp objects instead of as system Date objects. So you will also
-need to update code expecting a Date to instead expect a Timestamp. For example:
-
-  // Old:
-  const date = snapshot.get('created_at');
-  // New:
-  const timestamp = snapshot.get('created_at');
-  const date = timestamp.toDate();
-
-Please audit all existing usages of Date when you enable the new behavior. In a
-future release, the behavior will change to the new behavior, so if you do not
-follow these steps, YOUR APP MAY BREAK.`);
-    }
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
@@ -391,10 +429,11 @@ follow these steps, YOUR APP MAY BREAK.`);
       this._config.databaseId,
       this._config.persistenceKey,
       this._config.settings.host,
-      this._config.settings.ssl
+      this._config.settings.ssl,
+      this._config.settings.forceLongPolling
     );
 
-    const preConverter = (value: AnyJs) => {
+    const preConverter = (value: unknown) => {
       if (value instanceof DocumentReference) {
         const thisDb = this._config.databaseId;
         const otherDb = value.firestore._config.databaseId;
@@ -425,28 +464,9 @@ follow these steps, YOUR APP MAY BREAK.`);
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
     const options = app.options as objUtils.Dict<{}>;
     if (!objUtils.contains(options, 'projectId')) {
-      // TODO(b/62673263): We can safely remove the special handling of
-      // 'firestoreId' once alpha testers have upgraded.
-      if (objUtils.contains(options, 'firestoreId')) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          '"firestoreId" is now specified as "projectId" in ' +
-            'firebase.initializeApp.'
-        );
-      }
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         '"projectId" not provided in firebase.initializeApp.'
-      );
-    }
-
-    if (objUtils.contains(options, 'firestoreOptions')) {
-      // TODO(b/62673263): We can safely remove the special handling of
-      // 'firestoreOptions' once alpha testers have upgraded.
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        '"firestoreOptions" values are now specified with ' +
-          'Firestore.settings()'
       );
     }
 
@@ -483,29 +503,39 @@ follow these steps, YOUR APP MAY BREAK.`);
 
   collection(pathString: string): firestore.CollectionReference {
     validateExactNumberOfArgs('Firestore.collection', arguments, 1);
-    validateArgType('Firestore.collection', 'string', 1, pathString);
-    if (!pathString) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Must provide a non-empty collection path to collection()'
-      );
-    }
-
+    validateArgType('Firestore.collection', 'non-empty string', 1, pathString);
     this.ensureClientConfigured();
     return new CollectionReference(ResourcePath.fromString(pathString), this);
   }
 
   doc(pathString: string): firestore.DocumentReference {
     validateExactNumberOfArgs('Firestore.doc', arguments, 1);
-    validateArgType('Firestore.doc', 'string', 1, pathString);
-    if (!pathString) {
+    validateArgType('Firestore.doc', 'non-empty string', 1, pathString);
+    this.ensureClientConfigured();
+    return DocumentReference.forPath(ResourcePath.fromString(pathString), this);
+  }
+
+  // TODO(b/116617988): Fix name, uncomment d.ts definitions, and update CHANGELOG.md.
+  _collectionGroup(collectionId: string): firestore.Query {
+    validateExactNumberOfArgs('Firestore.collectionGroup', arguments, 1);
+    validateArgType(
+      'Firestore.collectionGroup',
+      'non-empty string',
+      1,
+      collectionId
+    );
+    if (collectionId.indexOf('/') >= 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Must provide a non-empty document path to doc()'
+        `Invalid collection ID '${collectionId}' passed to function ` +
+          `Firestore.collectionGroup(). Collection IDs must not contain '/'.`
       );
     }
     this.ensureClientConfigured();
-    return DocumentReference.forPath(ResourcePath.fromString(pathString), this);
+    return new Query(
+      new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+      this
+    );
   }
 
   runTransaction<T>(
@@ -541,7 +571,7 @@ follow these steps, YOUR APP MAY BREAK.`);
 
   static setLogLevel(level: firestore.LogLevel): void {
     validateExactNumberOfArgs('Firestore.setLogLevel', arguments, 1);
-    validateArgType('Firestore.setLogLevel', 'string', 1, level);
+    validateArgType('Firestore.setLogLevel', 'non-empty string', 1, level);
     switch (level) {
       case 'debug':
         log.setLogLevel(log.LogLevel.DEBUG);
@@ -649,14 +679,14 @@ export class Transaction implements firestore.Transaction {
   update(
     documentRef: firestore.DocumentReference,
     field: string | ExternalFieldPath,
-    value: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): Transaction;
   update(
     documentRef: firestore.DocumentReference,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
-    value?: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value?: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): Transaction {
     let ref;
     let parsed;
@@ -746,14 +776,14 @@ export class WriteBatch implements firestore.WriteBatch {
   update(
     documentRef: firestore.DocumentReference,
     field: string | ExternalFieldPath,
-    value: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): WriteBatch;
   update(
     documentRef: firestore.DocumentReference,
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
-    value?: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value?: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): WriteBatch {
     this.verifyNotCommitted();
 
@@ -864,7 +894,12 @@ export class DocumentReference implements firestore.DocumentReference {
 
   collection(pathString: string): firestore.CollectionReference {
     validateExactNumberOfArgs('DocumentReference.collection', arguments, 1);
-    validateArgType('DocumentReference.collection', 'string', 1, pathString);
+    validateArgType(
+      'DocumentReference.collection',
+      'non-empty string',
+      1,
+      pathString
+    );
     if (!pathString) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -908,13 +943,13 @@ export class DocumentReference implements firestore.DocumentReference {
   update(value: firestore.UpdateData): Promise<void>;
   update(
     field: string | ExternalFieldPath,
-    value: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): Promise<void>;
   update(
     fieldOrUpdateData: string | ExternalFieldPath | firestore.UpdateData,
-    value?: AnyJs,
-    ...moreFieldsAndValues: AnyJs[]
+    value?: unknown,
+    ...moreFieldsAndValues: unknown[]
   ): Promise<void> {
     let parsed;
 
@@ -968,7 +1003,7 @@ export class DocumentReference implements firestore.DocumentReference {
     onCompletion?: CompleteFn
   ): Unsubscribe;
 
-  onSnapshot(...args: AnyJs[]): Unsubscribe {
+  onSnapshot(...args: unknown[]): Unsubscribe {
     validateBetweenNumberOfArgs(
       'DocumentReference.onSnapshot',
       arguments,
@@ -1077,16 +1112,8 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.DocumentSnapshot> {
-    if (options) {
-      validateOptionNames('DocumentReference.get', options, ['source']);
-      validateNamedOptionalPropertyEquals(
-        'DocumentReference.get',
-        'options',
-        'source',
-        options.source,
-        ['default', 'server', 'cache']
-      );
-    }
+    validateBetweenNumberOfArgs('DocumentReference.get', arguments, 0, 1);
+    validateGetOptions('DocumentReference.get', options);
     return new Promise(
       (resolve: Resolver<firestore.DocumentSnapshot>, reject: Rejecter) => {
         if (options && options.source === 'cache') {
@@ -1214,7 +1241,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
   get(
     fieldPath: string | ExternalFieldPath,
     options?: firestore.SnapshotOptions
-  ): AnyJs {
+  ): unknown {
     validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
     options = validateSnapshotOptions('DocumentSnapshot.get', options);
     if (this._document) {
@@ -1275,7 +1302,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     return result;
   }
 
-  private convertValue(value: FieldValue, options: FieldValueOptions): AnyJs {
+  private convertValue(value: FieldValue, options: FieldValueOptions): unknown {
     if (value instanceof ObjectValue) {
       return this.convertObject(value, options);
     } else if (value instanceof ArrayValue) {
@@ -1302,7 +1329,10 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     }
   }
 
-  private convertArray(data: ArrayValue, options: FieldValueOptions): AnyJs[] {
+  private convertArray(
+    data: ArrayValue,
+    options: FieldValueOptions
+  ): unknown[] {
     return data.internalValue.map(value => {
       return this.convertValue(value, options);
     });
@@ -1337,11 +1367,13 @@ export class Query implements firestore.Query {
   where(
     field: string | ExternalFieldPath,
     opStr: firestore.WhereFilterOp,
-    value: AnyJs
+    value: unknown
   ): firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
-    validateArgType('Query.where', 'string', 2, opStr);
     validateDefined('Query.where', 3, value);
+    // Enumerated from the WhereFilterOp type in index.d.ts.
+    const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];
+    validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
@@ -1354,15 +1386,6 @@ export class Query implements firestore.Query {
         );
       }
       if (typeof value === 'string') {
-        if (value.indexOf('/') !== -1) {
-          // TODO(dimond): Allow slashes once ancestor queries are supported
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Function Query.where() requires its third parameter to be a ' +
-              'valid document ID if the first parameter is ' +
-              'FieldPath.documentId(), but it contains a slash.'
-          );
-        }
         if (value === '') {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
@@ -1371,8 +1394,28 @@ export class Query implements firestore.Query {
               'FieldPath.documentId(), but it was an empty string.'
           );
         }
-        const path = this._query.path.child(new ResourcePath([value]));
-        assert(path.length % 2 === 0, 'Path should be a document key');
+        if (
+          !this._query.isCollectionGroupQuery() &&
+          value.indexOf('/') !== -1
+        ) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid third parameter to Query.where(). When querying a collection by ` +
+              `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
+              `'${value}' contains a slash.`
+          );
+        }
+        const path = this._query.path.child(ResourcePath.fromString(value));
+        if (!DocumentKey.isDocumentKey(path)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid third parameter to Query.where(). When querying a collection group by ` +
+              `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+              `but '${path}' is not because it has an odd number of segments (${
+                path.length
+              }).`
+          );
+        }
         fieldValue = new RefValue(
           this.firestore._databaseId,
           new DocumentKey(path)
@@ -1405,7 +1448,12 @@ export class Query implements firestore.Query {
     directionStr?: firestore.OrderByDirection
   ): firestore.Query {
     validateBetweenNumberOfArgs('Query.orderBy', arguments, 1, 2);
-    validateOptionalArgType('Query.orderBy', 'string', 2, directionStr);
+    validateOptionalArgType(
+      'Query.orderBy',
+      'non-empty string',
+      2,
+      directionStr
+    );
     let direction: Direction;
     if (directionStr === undefined || directionStr === 'asc') {
       direction = Direction.ASCENDING;
@@ -1452,8 +1500,8 @@ export class Query implements firestore.Query {
   }
 
   startAt(
-    docOrField: AnyJs | firestore.DocumentSnapshot,
-    ...fields: AnyJs[]
+    docOrField: unknown | firestore.DocumentSnapshot,
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.startAt', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1466,8 +1514,8 @@ export class Query implements firestore.Query {
   }
 
   startAfter(
-    docOrField: AnyJs | firestore.DocumentSnapshot,
-    ...fields: AnyJs[]
+    docOrField: unknown | firestore.DocumentSnapshot,
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.startAfter', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1480,8 +1528,8 @@ export class Query implements firestore.Query {
   }
 
   endBefore(
-    docOrField: AnyJs | firestore.DocumentSnapshot,
-    ...fields: AnyJs[]
+    docOrField: unknown | firestore.DocumentSnapshot,
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.endBefore', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1494,8 +1542,8 @@ export class Query implements firestore.Query {
   }
 
   endAt(
-    docOrField: AnyJs | firestore.DocumentSnapshot,
-    ...fields: AnyJs[]
+    docOrField: unknown | firestore.DocumentSnapshot,
+    ...fields: unknown[]
   ): firestore.Query {
     validateAtLeastNumberOfArgs('Query.endAt', arguments, 1);
     const bound = this.boundFromDocOrFields(
@@ -1519,8 +1567,8 @@ export class Query implements firestore.Query {
   /** Helper function to create a bound from a document or fields */
   private boundFromDocOrFields(
     methodName: string,
-    docOrField: AnyJs | firestore.DocumentSnapshot,
-    fields: AnyJs[],
+    docOrField: unknown | firestore.DocumentSnapshot,
+    fields: unknown[],
     before: boolean
   ): Bound {
     validateDefined(methodName, 1, docOrField);
@@ -1554,7 +1602,8 @@ export class Query implements firestore.Query {
    * position.
    *
    * Will throw if the document does not contain all fields of the order by
-   * of the query.
+   * of the query or if any of the fields in the order by are an uncommitted
+   * server timestamp.
    */
   private boundFromDocument(
     methodName: string,
@@ -1575,7 +1624,16 @@ export class Query implements firestore.Query {
         components.push(new RefValue(this.firestore._databaseId, doc.key));
       } else {
         const value = doc.field(orderBy.field);
-        if (value !== undefined) {
+        if (value instanceof ServerTimestampValue) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            'Invalid query. You are trying to start or end a query using a ' +
+              'document for which the field "' +
+              orderBy.field +
+              '" is an uncommitted server timestamp. (Since the value of ' +
+              'this field is unknown, you cannot start/end a query with it.)'
+          );
+        } else if (value !== undefined) {
           components.push(value);
         } else {
           const field = orderBy.field.canonicalString();
@@ -1596,7 +1654,7 @@ export class Query implements firestore.Query {
    */
   private boundFromFields(
     methodName: string,
-    values: AnyJs[],
+    values: unknown[],
     before: boolean
   ): Bound {
     // Use explicit order by's because it has to match the query the user made
@@ -1622,14 +1680,28 @@ export class Query implements firestore.Query {
               `${methodName}(), but got a ${typeof rawValue}`
           );
         }
-        if (rawValue.indexOf('/') !== -1) {
+        if (
+          !this._query.isCollectionGroupQuery() &&
+          rawValue.indexOf('/') !== -1
+        ) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
-            `Invalid query. Document ID '${rawValue}' contains a slash in ` +
-              `${methodName}()`
+            `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
+              `the value passed to ${methodName}() must be a plain document ID, but ` +
+              `'${rawValue}' contains a slash.`
           );
         }
-        const key = new DocumentKey(this._query.path.child(rawValue));
+        const path = this._query.path.child(ResourcePath.fromString(rawValue));
+        if (!DocumentKey.isDocumentKey(path)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid query. When querying a collection group and ordering by ` +
+              `FieldPath.documentId(), the value passed to ${methodName}() must result in a ` +
+              `valid document path, but '${path}' is not because it contains an odd number ` +
+              `of segments.`
+          );
+        }
+        const key = new DocumentKey(path);
         components.push(new RefValue(this.firestore._databaseId, key));
       } else {
         const wrapped = this.firestore._dataConverter.parseQueryValue(
@@ -1660,7 +1732,7 @@ export class Query implements firestore.Query {
     onCompletion?: CompleteFn
   ): Unsubscribe;
 
-  onSnapshot(...args: AnyJs[]): Unsubscribe {
+  onSnapshot(...args: unknown[]): Unsubscribe {
     validateBetweenNumberOfArgs('Query.onSnapshot', arguments, 1, 4);
     let options: firestore.SnapshotListenOptions = {};
     let observer: PartialObserver<firestore.QuerySnapshot>;
@@ -1741,6 +1813,7 @@ export class Query implements firestore.Query {
 
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot> {
     validateBetweenNumberOfArgs('Query.get', arguments, 0, 1);
+    validateGetOptions('Query.get', options);
     return new Promise(
       (resolve: Resolver<firestore.QuerySnapshot>, reject: Rejecter) => {
         if (options && options.source === 'cache') {
@@ -1889,7 +1962,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
 
   forEach(
     callback: (result: firestore.QueryDocumentSnapshot) => void,
-    thisArg?: AnyJs
+    thisArg?: unknown
   ): void {
     validateBetweenNumberOfArgs('QuerySnapshot.forEach', arguments, 1, 2);
     validateArgType('QuerySnapshot.forEach', 'function', 1, callback);
@@ -2042,7 +2115,12 @@ export class CollectionReference extends Query
     if (arguments.length === 0) {
       pathString = AutoId.newId();
     }
-    validateArgType('CollectionReference.doc', 'string', 1, pathString);
+    validateArgType(
+      'CollectionReference.doc',
+      'non-empty string',
+      1,
+      pathString
+    );
     if (pathString === '') {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -2088,7 +2166,8 @@ function validateSetOptions(
   if (options.mergeFields !== undefined && options.merge !== undefined) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" and "mergeFields".`
+      `Invalid options passed to function ${methodName}(): You cannot specify both "merge" ` +
+        `and "mergeFields".`
     );
   }
 
@@ -2112,6 +2191,23 @@ function validateSnapshotOptions(
     ['estimate', 'previous', 'none']
   );
   return options;
+}
+
+function validateGetOptions(
+  methodName: string,
+  options: firestore.GetOptions | undefined
+): void {
+  validateOptionalArgType(methodName, 'object', 1, options);
+  if (options) {
+    validateOptionNames(methodName, options, ['source']);
+    validateNamedOptionalPropertyEquals(
+      methodName,
+      'options',
+      'source',
+      options.source,
+      ['default', 'server', 'cache']
+    );
+  }
 }
 
 function validateReference(

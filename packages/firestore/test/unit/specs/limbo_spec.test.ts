@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,9 +18,9 @@
 import { Query } from '../../../src/core/query';
 import { deletedDoc, doc, filter, path } from '../../util/helpers';
 
+import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
-import { TimerId } from '../../../src/util/async_queue';
 
 describeSpec('Limbo Documents:', [], () => {
   specTest(

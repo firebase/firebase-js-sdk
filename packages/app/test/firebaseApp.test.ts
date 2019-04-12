@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,7 +21,7 @@ import {
   _FirebaseNamespace,
   FirebaseService
 } from '@firebase/app-types/private';
-import { createFirebaseNamespace } from '../src/firebaseApp';
+import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { assert } from 'chai';
 
 describe('Firebase App Class', () => {

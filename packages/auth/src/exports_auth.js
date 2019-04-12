@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,6 +32,7 @@ goog.require('fireauth.InvalidOriginError');
 goog.require('fireauth.OAuthProvider');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.RecaptchaVerifier');
+goog.require('fireauth.SAMLAuthProvider');
 goog.require('fireauth.TwitterAuthProvider');
 goog.require('fireauth.args');
 goog.require('fireauth.authStorage.Persistence');
@@ -490,7 +492,9 @@ fireauth.exportlib.exportPrototypeMethods(
           fireauth.args.or(fireauth.args.string(), fireauth.args.null(),
               'idToken', true),
           fireauth.args.or(fireauth.args.string(), fireauth.args.null(),
-              'accessToken', true)
+              'accessToken', true),
+          fireauth.args.or(fireauth.args.string(), fireauth.args.null(),
+              'nonce', true)
         ]
       },
       setCustomParameters: {
@@ -602,6 +606,10 @@ fireauth.exportlib.exportPrototypeMethods(
         'TwitterAuthProvider', fireauth.TwitterAuthProvider, []);
     fireauth.exportlib.exportFunction(namespace,
         'OAuthProvider', fireauth.OAuthProvider, [
+          fireauth.args.string('providerId')
+        ]);
+    fireauth.exportlib.exportFunction(namespace,
+        'SAMLAuthProvider', fireauth.SAMLAuthProvider, [
           fireauth.args.string('providerId')
         ]);
     fireauth.exportlib.exportFunction(namespace,

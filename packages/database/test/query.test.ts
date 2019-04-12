@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -368,6 +369,8 @@ describe('Query Tests', function() {
       .true;
 
     // Refs with different repos
+    // NOTE: getFreshRepo() no longer takes a hostname, so this test needs to be reworked.
+    // Same in info.test.ts.
     // var rootRefDifferentRepo = TESTS.getFreshRepo(TEST_ALT_NAMESPACE);
     // rootRefDifferentRepo.database.goOffline();
 
@@ -1520,8 +1523,7 @@ describe('Query Tests', function() {
     });
 
     const snapAcc = EventAccumulatorFactory.waitsForCount(1);
-    f
-      .startAt(null)
+    f.startAt(null)
       .endAt(null)
       .on('value', snap => {
         snapAcc.addEvent(snap.val());

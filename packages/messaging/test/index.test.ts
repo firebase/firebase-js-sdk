@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +25,7 @@ import {
 } from '@firebase/app-types/private';
 
 import { registerMessaging } from '../index';
-import { ERROR_CODES } from '../src/models/errors';
+import { ErrorCode } from '../src/models/errors';
 
 import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
@@ -99,9 +100,7 @@ describe('Firebase Messaging > registerMessaging', () => {
         try {
           factoryMethod(fakeApp);
         } catch (e) {
-          expect(e.code).to.equal(
-            'messaging/' + ERROR_CODES.UNSUPPORTED_BROWSER
-          );
+          expect(e.code).to.equal('messaging/' + ErrorCode.UNSUPPORTED_BROWSER);
           return;
         }
         throw new Error('Expected getToken to throw ');

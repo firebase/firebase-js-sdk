@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,15 +16,15 @@
  */
 
 import { ParsedSetData, ParsedUpdateData } from '../api/user_data_converter';
-import { SnapshotVersion } from './snapshot_version';
 import { documentVersionMap } from '../model/collections';
-import { NoDocument, Document } from '../model/document';
+import { Document, NoDocument } from '../model/document';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { Datastore } from '../remote/datastore';
-import { Code, FirestoreError } from '../util/error';
 import { fail } from '../util/assert';
+import { Code, FirestoreError } from '../util/error';
+import { SnapshotVersion } from './snapshot_version';
 
 /**
  * Internal transaction object responsible for accumulating the mutations to

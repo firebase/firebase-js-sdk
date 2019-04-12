@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,13 +19,21 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
+  mode: 'development',
   devtool: 'source-map',
   module: {
     rules: [
       {
         test: /\.tsx?$/,
         exclude: /node_modules/,
-        use: 'ts-loader'
+        use: {
+          loader: 'ts-loader',
+          options: {
+            compilerOptions: {
+              module: 'commonjs'
+            }
+          }
+        }
       },
       {
         test: /\.[tj]sx?$/,
@@ -45,5 +54,11 @@ module.exports = {
   resolve: {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
     extensions: ['.js', '.ts']
-  }
+  },
+  plugins: [
+    new webpack.EnvironmentPlugin([
+      'RTDB_EMULATOR_PORT',
+      'RTDB_EMULATOR_NAMESPACE'
+    ])
+  ]
 };

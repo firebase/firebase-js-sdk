@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -78,4 +79,18 @@ function testGetIdpSetting_twitter() {
        'oauth_signature_method', 'oauth_timestamp', 'oauth_token',
        'oauth_version'],
       fireauth.idp.getReservedOAuthParams('twitter.com'));
+}
+
+
+function testIsSaml() {
+  assertTrue(fireauth.idp.isSaml('saml.provider'));
+  assertTrue(fireauth.idp.isSaml('saml.'));
+  assertFalse(fireauth.idp.isSaml('saMl.provider'));
+  assertFalse(fireauth.idp.isSaml(null));
+  assertFalse(fireauth.idp.isSaml(undefined));
+  for (var key in fireauth.idp.ProviderId) {
+    assertFalse(fireauth.idp.isSaml(fireauth.idp.ProviderId[key]));
+  }
+  assertFalse(fireauth.idp.isSaml('generic.com'));
+  assertFalse(fireauth.idp.isSaml('asaml.b'));
 }

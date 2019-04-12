@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -382,6 +383,27 @@ describe('Query', () => {
     // .addOrderBy(orderBy(DOCUMENT_KEY_NAME, 'desc'))
     // .withUpperBound(lip3, 'exclusive');
 
+    const relativeReference = ref('project1/database1', 'col/doc');
+    const absoluteReference = ref(
+      'project1/database1',
+      'projects/project1/databases/database1/documents/col/doc',
+      5
+    );
+
+    const q16a = Query.atPath(path('foo')).addFilter(
+      filter('object', '==', { ref: relativeReference })
+    );
+    const q16b = Query.atPath(path('foo')).addFilter(
+      filter('object', '==', { ref: absoluteReference })
+    );
+
+    const q17a = Query.atPath(path('foo')).addFilter(
+      filter('array', '==', [relativeReference])
+    );
+    const q17b = Query.atPath(path('foo')).addFilter(
+      filter('array', '==', [absoluteReference])
+    );
+
     const queries = [
       [q1a, q1b],
       [q2a, q2b],
@@ -395,9 +417,11 @@ describe('Query', () => {
       [q10a],
       [q11a],
       [q12a],
-      [q13a]
+      [q13a],
       //[q14a],
       //[q15a],
+      [q16a, q16b],
+      [q17a, q17b]
     ];
 
     expectEqualitySets(queries, (q1, q2) => {

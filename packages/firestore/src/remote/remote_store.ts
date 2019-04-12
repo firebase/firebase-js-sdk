@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -27,30 +28,30 @@ import {
 } from '../model/mutation_batch';
 import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
+import { FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
+import { ignoreIfPrimaryLeaseLoss } from '../local/indexeddb_persistence';
+import { DocumentKeySet } from '../model/collections';
+import { AsyncQueue } from '../util/async_queue';
 import { Datastore } from './datastore';
+import { OnlineStateTracker } from './online_state_tracker';
 import {
   PersistentListenStream,
   PersistentWriteStream
 } from './persistent_stream';
 import { RemoteSyncer } from './remote_syncer';
-import { isPermanentError } from './rpc_error';
+import { isPermanentError, isPermanentWriteError } from './rpc_error';
 import {
   DocumentWatchChange,
   ExistenceFilterChange,
+  TargetMetadataProvider,
   WatchChange,
   WatchChangeAggregator,
-  TargetMetadataProvider,
   WatchTargetChange,
   WatchTargetChangeState
 } from './watch_change';
-import { OnlineStateTracker } from './online_state_tracker';
-import { AsyncQueue } from '../util/async_queue';
-import { DocumentKeySet } from '../model/collections';
-import { isPrimaryLeaseLostError } from '../local/indexeddb_persistence';
 
 const LOG_TAG = 'RemoteStore';
 
@@ -442,7 +443,8 @@ export class RemoteStore implements TargetMetadataProvider {
       const requestQueryData = new QueryData(
         queryData.query,
         targetId,
-        QueryPurpose.ExistenceFilterMismatch
+        QueryPurpose.ExistenceFilterMismatch,
+        queryData.sequenceNumber
       );
       this.sendWatchRequest(requestQueryData);
     });
@@ -563,23 +565,7 @@ export class RemoteStore implements TargetMetadataProvider {
           this.writeStream.writeMutations(batch.mutations);
         }
       })
-      .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
-  }
-
-  /**
-   * Verifies the error thrown by an LocalStore operation. If a LocalStore
-   * operation fails because the primary lease has been taken by another client,
-   * we ignore the error. All other errors are re-thrown.
-   *
-   * @param err An error returned by a LocalStore operation.
-   * @return A Promise that resolves after we recovered, or the original error.
-   */
-  private ignoreIfPrimaryLeaseLoss(err: FirestoreError): void {
-    if (isPrimaryLeaseLostError(err)) {
-      log.debug(LOG_TAG, 'Unexpectedly lost primary lease');
-    } else {
-      throw err;
-    }
+      .catch(ignoreIfPrimaryLeaseLoss);
   }
 
   private onMutationResult(
@@ -643,9 +629,10 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async handleHandshakeError(error: FirestoreError): Promise<void> {
-    // Reset the token if it's a permanent error or the error code is
-    // ABORTED, signaling the write stream is no longer valid.
-    if (isPermanentError(error.code) || error.code === Code.ABORTED) {
+    // Reset the token if it's a permanent error, signaling the write stream is
+    // no longer valid. Note that the handshake does not count as a write: see
+    // comments on isPermanentWriteError for details.
+    if (isPermanentError(error.code)) {
       log.debug(
         LOG_TAG,
         'RemoteStore error before completed handshake; resetting stream token: ',
@@ -655,7 +642,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
       return this.localStore
         .setLastStreamToken(emptyByteString())
-        .catch(err => this.ignoreIfPrimaryLeaseLoss(err));
+        .catch(ignoreIfPrimaryLeaseLoss);
     } else {
       // Some other error, don't reset stream token. Our stream logic will
       // just retry with exponential backoff.
@@ -663,7 +650,9 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async handleWriteError(error: FirestoreError): Promise<void> {
-    if (isPermanentError(error.code)) {
+    // Only handle permanent errors here. If it's transient, just let the retry
+    // logic kick in.
+    if (isPermanentWriteError(error.code)) {
       // This was a permanent error, the request itself was the problem
       // so it's not going to succeed if we resend it.
       const batch = this.writePipeline.shift()!;

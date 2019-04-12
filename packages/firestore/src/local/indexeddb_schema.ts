@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,19 +15,21 @@
  * limitations under the License.
  */
 
-import * as api from '../protos/firestore_proto_api';
-import { BatchId } from '../core/types';
-import { TargetId } from '../core/types';
+import { BatchId, ListenSequenceNumber, TargetId } from '../core/types';
 import { ResourcePath } from '../model/path';
+import * as api from '../protos/firestore_proto_api';
 import { assert } from '../util/assert';
 
-import { encode, EncodedResourcePath } from './encoded_resource_path';
-import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
-import { PersistencePromise } from './persistence_promise';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
+import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
+import { getHighestListenSequenceNumber } from './indexeddb_query_cache';
+import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import { LocalSerializer } from './local_serializer';
+import { MemoryCollectionParentIndex } from './memory_index_manager';
+import { PersistencePromise } from './persistence_promise';
+import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
 
 /**
  * Schema Version for the Web client:
@@ -39,8 +42,11 @@ import { LocalSerializer } from './local_serializer';
  *    https://github.com/firebase/firebase-ios-sdk/issues/1548
  * 4. Multi-Tab Support.
  * 5. Removal of held write acks.
+ * 6. Create document global for tracking document cache size.
+ * 7. Ensure every cached document has a sentinel row with a sequence number.
+ * 8. Add collection-parent index for Collection Group queries.
  */
-export const SCHEMA_VERSION = 5;
+export const SCHEMA_VERSION = 8;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -108,7 +114,41 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
       p = p.next(() => this.removeAcknowledgedMutations(txn));
     }
 
+    if (fromVersion < 6 && toVersion >= 6) {
+      p = p.next(() => {
+        createDocumentGlobalStore(db);
+        return this.addDocumentGlobal(txn);
+      });
+    }
+
+    if (fromVersion < 7 && toVersion >= 7) {
+      p = p.next(() => this.ensureSequenceNumbers(txn));
+    }
+
+    if (fromVersion < 8 && toVersion >= 8) {
+      p = p.next(() => this.createCollectionParentIndex(db, txn));
+    }
+
     return p;
+  }
+
+  private addDocumentGlobal(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    let byteCount = 0;
+    return txn
+      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+      .iterate((_, doc) => {
+        byteCount += dbDocumentSize(doc);
+      })
+      .next(() => {
+        const metadata = new DbRemoteDocumentGlobal(byteCount);
+        return txn
+          .store<DbRemoteDocumentGlobalKey, DbRemoteDocumentGlobal>(
+            DbRemoteDocumentGlobal.store
+          )
+          .put(DbRemoteDocumentGlobal.key, metadata);
+      });
   }
 
   private removeAcknowledgedMutations(
@@ -138,17 +178,109 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
               );
               const batch = this.serializer.fromDbMutationBatch(dbBatch);
 
-              return removeMutationBatch(txn, queue.userId, batch).next();
+              return removeMutationBatch(txn, queue.userId, batch).next(
+                () => {}
+              );
             });
           });
       });
     });
   }
+
+  /**
+   * Ensures that every document in the remote document cache has a corresponding sentinel row
+   * with a sequence number. Missing rows are given the most recently used sequence number.
+   */
+  private ensureSequenceNumbers(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    const documentTargetStore = txn.store<
+      DbTargetDocumentKey,
+      DbTargetDocument
+    >(DbTargetDocument.store);
+    const documentsStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
+      DbRemoteDocument.store
+    );
+
+    return getHighestListenSequenceNumber(txn).next(currentSequenceNumber => {
+      const writeSentinelKey = (
+        path: ResourcePath
+      ): PersistencePromise<void> => {
+        return documentTargetStore.put(
+          new DbTargetDocument(0, encode(path), currentSequenceNumber)
+        );
+      };
+
+      const promises: Array<PersistencePromise<void>> = [];
+      return documentsStore
+        .iterate((key, doc) => {
+          const path = new ResourcePath(key);
+          const docSentinelKey = sentinelKey(path);
+          promises.push(
+            documentTargetStore.get(docSentinelKey).next(maybeSentinel => {
+              if (!maybeSentinel) {
+                return writeSentinelKey(path);
+              } else {
+                return PersistencePromise.resolve();
+              }
+            })
+          );
+        })
+        .next(() => PersistencePromise.waitFor(promises));
+    });
+  }
+
+  private createCollectionParentIndex(
+    db: IDBDatabase,
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
+    // Create the index.
+    db.createObjectStore(DbCollectionParent.store, {
+      keyPath: DbCollectionParent.keyPath
+    });
+
+    const collectionParentsStore = txn.store<
+      DbCollectionParentKey,
+      DbCollectionParent
+    >(DbCollectionParent.store);
+
+    // Helper to add an index entry iff we haven't already written it.
+    const cache = new MemoryCollectionParentIndex();
+    const addEntry = collectionPath => {
+      if (cache.add(collectionPath)) {
+        const collectionId = collectionPath.lastSegment();
+        const parentPath = collectionPath.popLast();
+        return collectionParentsStore.put({
+          collectionId,
+          parent: encode(parentPath)
+        });
+      }
+    };
+
+    // Index existing remote documents.
+    return txn
+      .store<DbRemoteDocumentKey, DbRemoteDocument>(DbRemoteDocument.store)
+      .iterate({ keysOnly: true }, (pathSegments, _) => {
+        const path = new ResourcePath(pathSegments);
+        return addEntry(path.popLast());
+      })
+      .next(() => {
+        // Index existing mutations.
+        return txn
+          .store<DbDocumentMutationKey, DbDocumentMutation>(
+            DbDocumentMutation.store
+          )
+          .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
+            const path = decode(encodedPath);
+            return addEntry(path.popLast());
+          });
+      });
+  }
 }
 
-// TODO(mikelehen): Get rid of "as any" if/when TypeScript fixes their types.
-// https://github.com/Microsoft/TypeScript/issues/14322
-type KeyPath = any; // tslint:disable-line:no-any
+function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
+  return [0, encode(path)];
+}
 
 /**
  * Wrapper class to store timestamps (seconds and nanos) in IndexedDb objects.
@@ -223,6 +355,8 @@ export class DbMutationQueue {
      * by the server. All MutationBatches in this queue with batchIds less
      * than or equal to this value are considered to have been acknowledged by
      * the server.
+     *
+     * NOTE: this is deprecated and no longer used by the code.
      */
     public lastAcknowledgedBatchId: number,
     /**
@@ -275,6 +409,19 @@ export class DbMutationBatch {
      * epoch.
      */
     public localWriteTimeMs: number,
+    /**
+     * A list of "mutations" that represent a partial base state from when this
+     * write batch was initially created. During local application of the write
+     * batch, these baseMutations are applied prior to the real writes in order
+     * to override certain document fields from the remote document cache. This
+     * is necessary in the case of non-idempotent writes (e.g. `increment()`
+     * transforms) to make sure that the local view of the modified documents
+     * doesn't flicker if the remote document cache receives the result of the
+     * non-idempotent write before the write is removed from the queue.
+     *
+     * These mutations are never sent to the backend.
+     */
+    public baseMutations: api.Write[] | undefined,
     /**
      * A list of mutations to apply. All mutations will be applied atomically.
      *
@@ -466,6 +613,27 @@ export class DbRemoteDocument {
 }
 
 /**
+ * Contains a single entry that has metadata about the remote document cache.
+ */
+export class DbRemoteDocumentGlobal {
+  static store = 'remoteDocumentGlobal';
+
+  static key = 'remoteDocumentGlobalKey';
+
+  /**
+   * @param byteSize Approximately the total size in bytes of all the documents in the document
+   * cache.
+   */
+  constructor(public byteSize: number) {}
+}
+
+export type DbRemoteDocumentGlobalKey = typeof DbRemoteDocumentGlobal.key;
+
+function createDocumentGlobalStore(db: IDBDatabase): void {
+  db.createObjectStore(DbRemoteDocumentGlobal.store);
+}
+
+/**
  * A key in the 'targets' object store is a targetId of the query.
  */
 export type DbTargetKey = TargetId;
@@ -573,9 +741,14 @@ export class DbTarget {
 export type DbTargetDocumentKey = [TargetId, EncodedResourcePath];
 
 /**
- * An object representing an association between a target and a document.
- * Stored in the targetDocument object store to store the documents tracked by a
- * particular target.
+ * An object representing an association between a target and a document, or a
+ * sentinel row marking the last sequence number at which a document was used.
+ * Each document cached must have a corresponding sentinel row before lru
+ * garbage collection is enabled.
+ *
+ * The target associations and sentinel rows are co-located so that orphaned
+ * documents and their sequence numbers can be identified efficiently via a scan
+ * of this store.
  */
 export class DbTargetDocument {
   /** Name of the IndexedDb object store.  */
@@ -592,14 +765,26 @@ export class DbTargetDocument {
 
   constructor(
     /**
-     * The targetId identifying a target.
+     * The targetId identifying a target or 0 for a sentinel row.
      */
     public targetId: TargetId,
     /**
      * The path to the document, as encoded in the key.
      */
-    public path: EncodedResourcePath
-  ) {}
+    public path: EncodedResourcePath,
+    /**
+     * If this is a sentinel row, this should be the sequence number of the last
+     * time the document specified by `path` was used. Otherwise, it should be
+     * `undefined`.
+     */
+    public sequenceNumber?: ListenSequenceNumber
+  ) {
+    assert(
+      (targetId === 0) === (sequenceNumber !== undefined),
+      // tslint:disable-next-line:max-line-length
+      'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
+    );
+  }
 }
 
 /**
@@ -650,9 +835,42 @@ export class DbTargetGlobal {
   ) {}
 }
 
+/**
+ * The key for a DbCollectionParent entry, containing the collection ID
+ * and the parent path that contains it. Note that the parent path will be an
+ * empty path in the case of root-level collections.
+ */
+export type DbCollectionParentKey = [string, EncodedResourcePath];
+
+/**
+ * An object representing an association between a Collection id (e.g. 'messages')
+ * to a parent path (e.g. '/chats/123') that contains it as a (sub)collection.
+ * This is used to efficiently find all collections to query when performing
+ * a Collection Group query.
+ */
+export class DbCollectionParent {
+  /** Name of the IndexedDb object store. */
+  static store = 'collectionParents';
+
+  /** Keys are automatically assigned via the collectionId, parent properties. */
+  static keyPath = ['collectionId', 'parent'];
+
+  constructor(
+    /**
+     * The collectionId (e.g. 'messages')
+     */
+    public collectionId: string,
+    /**
+     * The path to the parent (either a document location or an empty path for
+     * a root-level collection).
+     */
+    public parent: EncodedResourcePath
+  ) {}
+}
+
 function createQueryCache(db: IDBDatabase): void {
   const targetDocumentsStore = db.createObjectStore(DbTargetDocument.store, {
-    keyPath: DbTargetDocument.keyPath as KeyPath
+    keyPath: DbTargetDocument.keyPath
   });
   targetDocumentsStore.createIndex(
     DbTargetDocument.documentTargetsIndex,
@@ -725,7 +943,7 @@ export class DbRemoteDocumentChanges {
 /*
  * The key for DbRemoteDocumentChanges, consisting of an auto-incrementing
  * number.
-*/
+ */
 export type DbRemoteDocumentChangesKey = number;
 
 function createRemoteDocumentChangesStore(db: IDBDatabase): void {
@@ -798,9 +1016,17 @@ export const V4_STORES = [
   DbRemoteDocumentChanges.store
 ];
 
+// V5 does not change the set of stores.
+
+export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
+
+// V7 does not change the set of stores.
+
+export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
+
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
  * used when creating transactions so that access across all stores is done
  * atomically.
  */
-export const ALL_STORES = V4_STORES;
+export const ALL_STORES = V8_STORES;

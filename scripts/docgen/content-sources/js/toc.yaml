@@ -1,0 +1,165 @@
+toc:
+- title: "firebase"
+  path: /docs/reference/js/firebase
+  section:
+  - title: "FirebaseError"
+    path: /docs/reference/js/firebase.FirebaseError
+
+- title: "firebase.app"
+  path: /docs/reference/js/firebase.app
+  section:
+  - title: "App"
+    path: /docs/reference/js/firebase.app.App
+
+- title: "firebase.auth"
+  path: /docs/reference/js/firebase.auth
+  section:
+  - title: "Auth"
+    path: /docs/reference/js/firebase.auth.Auth
+  - title: "ActionCodeInfo"
+    path: /docs/reference/js/firebase.auth.ActionCodeInfo
+  - title: "ApplicationVerifier"
+    path: /docs/reference/js/firebase.auth.ApplicationVerifier
+  - title: "AuthCredential"
+    path: /docs/reference/js/firebase.auth.AuthCredential
+  - title: "AuthSettings"
+    path: /docs/reference/js/firebase.auth.AuthSettings
+  - title: "OAuthCredential"
+    path: /docs/reference/js/firebase.auth.OAuthCredential
+  - title: "AuthProvider"
+    path: /docs/reference/js/firebase.auth.AuthProvider
+  - title: "ConfirmationResult"
+    path: /docs/reference/js/firebase.auth.ConfirmationResult
+  - title: "EmailAuthProvider"
+    path: /docs/reference/js/firebase.auth.EmailAuthProvider
+  - title: "Error"
+    path: /docs/reference/js/firebase.auth.Error
+  - title: "FacebookAuthProvider"
+    path: /docs/reference/js/firebase.auth.FacebookAuthProvider
+  - title: "GithubAuthProvider"
+    path: /docs/reference/js/firebase.auth.GithubAuthProvider
+  - title: "GoogleAuthProvider"
+    path: /docs/reference/js/firebase.auth.GoogleAuthProvider
+  - title: "IdTokenResult"
+    path: /docs/reference/js/firebase.auth.IDTokenResult
+  - title: "TwitterAuthProvider"
+    path: /docs/reference/js/firebase.auth.TwitterAuthProvider
+  - title: "OAuthProvider"
+    path: /docs/reference/js/firebase.auth.OAuthProvider
+  - title: "PhoneAuthProvider"
+    path: /docs/reference/js/firebase.auth.PhoneAuthProvider
+  - title: "SAMLAuthProvider"
+    path: /docs/reference/js/firebase.auth.SAMLAuthProvider
+  - title: "RecaptchaVerifier"
+    path: /docs/reference/js/firebase.auth.RecaptchaVerifier
+  - title: "UserMetadata"
+    path: /docs/reference/js/firebase.auth.UserMetadata
+  - title: "User"
+    path: /docs/reference/js/firebase.User
+  - title: "UserInfo"
+    path: /docs/reference/js/firebase.UserInfo
+
+- title: "firebase.database"
+  path: /docs/reference/js/firebase.database
+  section:
+  - title: "Database"
+    path: /docs/reference/js/firebase.database.Database
+  - title: "DataSnapshot"
+    path: /docs/reference/js/firebase.database.DataSnapshot
+  - title: "OnDisconnect"
+    path: /docs/reference/js/firebase.database.OnDisconnect
+  - title: "Reference"
+    path: /docs/reference/js/firebase.database.Reference
+  - title: "ServerValue"
+    path: /docs/reference/js/firebase.database.ServerValue
+  - title: "ThenableReference"
+    path: /docs/reference/js/firebase.database.ThenableReference
+  - title: "Query"
+    path: /docs/reference/js/firebase.database.Query
+- title: "firebase.firestore"
+  path: /docs/reference/js/firebase.firestore
+  section:
+  - title: "Blob"
+    path: /docs/reference/js/firebase.firestore.Blob
+  - title: "CollectionReference"
+    path: /docs/reference/js/firebase.firestore.CollectionReference
+  - title: "DocumentChange"
+    path: /docs/reference/js/firebase.firestore.DocumentChange
+  - title: "DocumentReference"
+    path: /docs/reference/js/firebase.firestore.DocumentReference
+  - title: "DocumentSnapshot"
+    path: /docs/reference/js/firebase.firestore.DocumentSnapshot
+  - title: "FieldPath"
+    path: /docs/reference/js/firebase.firestore.FieldPath
+  - title: "FieldValue"
+    path: /docs/reference/js/firebase.firestore.FieldValue
+  - title: "Firestore"
+    path: /docs/reference/js/firebase.firestore.Firestore
+  - title: "FirestoreError"
+    path: /docs/reference/js/firebase.firestore.FirestoreError
+  - title: "GeoPoint"
+    path: /docs/reference/js/firebase.firestore.GeoPoint
+  - title: "GetOptions"
+    path: /docs/reference/js/firebase.firestore.GetOptions
+  - title: "PersistenceSettings"
+    path: /docs/reference/js/firebase.firestore.PersistenceSettings
+  - title: "Query"
+    path: /docs/reference/js/firebase.firestore.Query
+  - title: "QueryDocumentSnapshot"
+    path: /docs/reference/js/firebase.firestore.QueryDocumentSnapshot
+  - title: "QuerySnapshot"
+    path: /docs/reference/js/firebase.firestore.QuerySnapshot
+  - title: "SetOptions"
+    path: /docs/reference/js/firebase.firestore.SetOptions
+  - title: "Settings"
+    path: /docs/reference/js/firebase.firestore.Settings
+  - title: "SnapshotListenOptions"
+    path: /docs/reference/js/firebase.firestore.SnapshotListenOptions
+  - title: "SnapshotMetadata"
+    path: /docs/reference/js/firebase.firestore.SnapshotMetadata
+  - title: "SnapshotOptions"
+    path: /docs/reference/js/firebase.firestore.SnapshotOptions
+  - title: "TimeStamp"
+    path: /docs/reference/js/firebase.firestore.TimeStamp
+  - title: "Transaction"
+    path: /docs/reference/js/firebase.firestore.Transaction
+  - title: "WriteBatch"
+    path: /docs/reference/js/firebase.firestore.WriteBatch
+
+- title: "firebase.functions"
+  path: /docs/reference/js/firebase.functions
+  section:
+  - title: "Functions"
+    path: /docs/reference/js/firebase.functions.Functions
+  - title: "HttpsCallable"
+    path: /docs/reference/js/firebase.functions.HttpsCallable
+  - title: "HttpsCallableOptions"
+    path: /docs/reference/js/firebase.functions.HttpsCallableOptions
+  - title: "HttpsCallableResult"
+    path: /docs/reference/js/firebase.functions.HttpsCallableResult
+  - title: "HttpsError"
+    path: /docs/reference/js/firebase.functions.HttpsError
+
+- title: "firebase.messaging"
+  path: /docs/reference/js/firebase.messaging
+  section:
+  - title: "Messaging"
+    path: /docs/reference/js/firebase.messaging.Messaging
+
+- title: "firebase.storage"
+  path: /docs/reference/js/firebase.storage
+  section:
+  - title: "Storage"
+    path: /docs/reference/js/firebase.storage.Storage
+  - title: "FullMetadata"
+    path: /docs/reference/js/firebase.storage.FullMetadata
+  - title: "Reference"
+    path: /docs/reference/js/firebase.storage.Reference
+  - title: "SettableMetadata"
+    path: /docs/reference/js/firebase.storage.SettableMetadata
+  - title: "UploadMetadata"
+    path: /docs/reference/js/firebase.storage.UploadMetadata
+  - title: "UploadTask"
+    path: /docs/reference/js/firebase.storage.UploadTask
+  - title: "UploadTaskSnapshot"
+    path: /docs/reference/js/firebase.storage.UploadTaskSnapshot

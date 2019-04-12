@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,6 +19,7 @@ import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { PublicBlob } from '../api/blob';
 import {
+  CACHE_SIZE_UNLIMITED,
   Firestore,
   PublicCollectionReference,
   PublicDocumentReference,
@@ -50,7 +52,8 @@ const firestoreNamespace = {
   CollectionReference: PublicCollectionReference,
   FieldPath,
   FieldValue: PublicFieldValue,
-  setLogLevel: Firestore.setLogLevel
+  setLogLevel: Firestore.setLogLevel,
+  CACHE_SIZE_UNLIMITED
 };
 
 /**

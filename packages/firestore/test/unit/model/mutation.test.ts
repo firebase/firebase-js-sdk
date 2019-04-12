@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,10 +16,11 @@
  */
 
 import { expect } from 'chai';
-import { Timestamp } from '../../../src/api/timestamp';
 import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
+import { Timestamp } from '../../../src/api/timestamp';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import {
+  IntegerValue,
   ServerTimestampValue,
   TimestampValue
 } from '../../../src/model/field_value';
@@ -27,6 +29,12 @@ import {
   MutationResult,
   Precondition
 } from '../../../src/model/mutation';
+import {
+  ArrayRemoveTransformOperation,
+  ArrayUnionTransformOperation
+} from '../../../src/model/transform_operation';
+import { Dict } from '../../../src/util/obj';
+import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   DELETE_SENTINEL,
   deletedDoc,
@@ -43,13 +51,6 @@ import {
   wrap,
   wrapObject
 } from '../../util/helpers';
-import { addEqualityMatcher } from '../../util/equality_matcher';
-import { Dict } from '../../../src/util/obj';
-import { AnyJs } from '../../../src/util/misc';
-import {
-  ArrayRemoveTransformOperation,
-  ArrayUnionTransformOperation
-} from '../../../src/model/transform_operation';
 
 describe('Mutation', () => {
   addEqualityMatcher();
@@ -346,17 +347,25 @@ describe('Mutation', () => {
   });
 
   function verifyTransform(
-    baseData: Dict<AnyJs>,
-    transformData: Dict<AnyJs>,
-    expectedData: Dict<AnyJs>
+    baseData: Dict<unknown>,
+    transformData: Dict<unknown> | Array<Dict<unknown>>,
+    expectedData: Dict<unknown>
   ): void {
     const baseDoc = doc('collection/key', 0, baseData);
-    const transform = transformMutation('collection/key', transformData);
-    const transformedDoc = transform.applyToLocalView(
-      baseDoc,
-      baseDoc,
-      timestamp
-    );
+    let transformedDoc: MaybeDocument | null = baseDoc;
+
+    const transforms = Array.isArray(transformData)
+      ? transformData
+      : [transformData];
+
+    for (const transformData of transforms) {
+      const transform = transformMutation('collection/key', transformData);
+      transformedDoc = transform.applyToLocalView(
+        transformedDoc,
+        transformedDoc,
+        timestamp
+      );
+    }
 
     const expectedDoc = doc('collection/key', 0, expectedData, {
       hasLocalMutations: true
@@ -390,7 +399,7 @@ describe('Mutation', () => {
     );
   });
 
-  it('can apply server-acked array transforms to documents', () => {
+  it('can apply server-acked array transforms to document', () => {
     const docData = { array1: [1, 2], array2: ['a', 'b'] };
     const baseDoc = doc('collection/key', 0, docData);
     const transform = transformMutation('collection/key', {
@@ -412,6 +421,87 @@ describe('Mutation', () => {
         { array1: [1, 2, 3], array2: ['b'] },
         { hasCommittedMutations: true }
       )
+    );
+  });
+
+  it('can apply numeric add transform to document', () => {
+    const baseDoc = {
+      longPlusLong: 1,
+      longPlusDouble: 2,
+      doublePlusLong: 3.3,
+      doublePlusDouble: 4.0,
+      longPlusNan: 5,
+      doublePlusNan: 6.6,
+      longPlusInfinity: 7,
+      doublePlusInfinity: 8.8
+    };
+    const transform = {
+      longPlusLong: FieldValue.increment(1),
+      longPlusDouble: FieldValue.increment(2.2),
+      doublePlusLong: FieldValue.increment(3),
+      doublePlusDouble: FieldValue.increment(4.4),
+      longPlusNan: FieldValue.increment(Number.NaN),
+      doublePlusNan: FieldValue.increment(Number.NaN),
+      longPlusInfinity: FieldValue.increment(Number.POSITIVE_INFINITY),
+      doublePlusInfinity: FieldValue.increment(Number.POSITIVE_INFINITY)
+    };
+    const expected = {
+      longPlusLong: 2,
+      longPlusDouble: 4.2,
+      doublePlusLong: 6.3,
+      doublePlusDouble: 8.4,
+      longPlusNan: Number.NaN,
+      doublePlusNan: Number.NaN,
+      longPlusInfinity: Number.POSITIVE_INFINITY,
+      doublePlusInfinity: Number.POSITIVE_INFINITY
+    };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply numeric add transform to unexpected type', () => {
+    const baseDoc = { string: 'zero' };
+    const transform = { string: FieldValue.increment(1) };
+    const expected = { string: 1 };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply numeric add transform to missing field', () => {
+    const baseDoc = {};
+    const transform = { missing: FieldValue.increment(1) };
+    const expected = { missing: 1 };
+    verifyTransform(baseDoc, transform, expected);
+  });
+
+  it('can apply numeric add transforms consecutively', () => {
+    const baseDoc = { number: 1 };
+    const transform1 = { number: FieldValue.increment(2) };
+    const transform2 = { number: FieldValue.increment(3) };
+    const transform3 = { number: FieldValue.increment(4) };
+    const expected = { number: 10 };
+    verifyTransform(baseDoc, [transform1, transform2, transform3], expected);
+  });
+
+  // PORTING NOTE: The `increment()` overflow/underflow tests from Android/iOS
+  // are not applicable to Web since we expose JavaScript's number arithmetic
+  // directly.
+
+  it('can apply server-acked numeric add transform to document', () => {
+    const docData = { sum: 1 };
+    const baseDoc = doc('collection/key', 0, docData);
+    const transform = transformMutation('collection/key', {
+      sum: FieldValue.increment(2)
+    });
+
+    const mutationResult = new MutationResult(version(1), [
+      new IntegerValue(3)
+    ]);
+    const transformedDoc = transform.applyToRemoteDocument(
+      baseDoc,
+      mutationResult
+    );
+
+    expect(transformedDoc).to.deep.equal(
+      doc('collection/key', 1, { sum: 3 }, { hasCommittedMutations: true })
     );
   });
 
@@ -482,7 +572,9 @@ describe('Mutation', () => {
     );
     const transformResult = new MutationResult(version(7), []);
     const docV7Unknown = unknownDoc('collection/key', 7);
-    const docV7Deleted = deletedDoc('collection/key', 7);
+    const docV7Deleted = deletedDoc('collection/key', 7, {
+      hasCommittedMutations: true
+    });
     const docV7Committed = doc(
       'collection/key',
       7,

@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +29,7 @@ import {
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { MessagePayload } from '../interfaces/message-payload';
 import { TokenDetails } from '../interfaces/token-details';
-import { ERROR_CODES, errorFactory } from '../models/errors';
+import { ErrorCode, errorFactory } from '../models/errors';
 import { IidModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
@@ -56,7 +57,7 @@ export abstract class BaseController implements FirebaseMessaging {
       !app.options[SENDER_ID_OPTION_NAME] ||
       typeof app.options[SENDER_ID_OPTION_NAME] !== 'string'
     ) {
-      throw errorFactory.create(ERROR_CODES.BAD_SENDER_ID);
+      throw errorFactory.create(ErrorCode.BAD_SENDER_ID);
     }
 
     this.messagingSenderId = app.options[SENDER_ID_OPTION_NAME]!;
@@ -78,7 +79,7 @@ export abstract class BaseController implements FirebaseMessaging {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
     if (currentPermission === 'denied') {
-      throw errorFactory.create(ERROR_CODES.NOTIFICATIONS_BLOCKED);
+      throw errorFactory.create(ErrorCode.NOTIFICATIONS_BLOCKED);
     } else if (currentPermission !== 'granted') {
       // We must wait for permission to be granted
       return null;
@@ -281,15 +282,15 @@ export abstract class BaseController implements FirebaseMessaging {
   //
 
   requestPermission(): Promise<void> {
-    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   useServiceWorker(registration: ServiceWorkerRegistration): void {
-    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   usePublicVapidKey(b64PublicKey: string): void {
-    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   onMessage(
@@ -297,7 +298,7 @@ export abstract class BaseController implements FirebaseMessaging {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
-    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   onTokenRefresh(
@@ -305,7 +306,7 @@ export abstract class BaseController implements FirebaseMessaging {
     error?: ErrorFn,
     completed?: CompleteFn
   ): Unsubscribe {
-    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_WINDOW);
+    throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   //
@@ -313,7 +314,7 @@ export abstract class BaseController implements FirebaseMessaging {
   //
 
   setBackgroundMessageHandler(callback: BgMessageHandler): void {
-    throw errorFactory.create(ERROR_CODES.AVAILABLE_IN_SW);
+    throw errorFactory.create(ErrorCode.AVAILABLE_IN_SW);
   }
 
   //

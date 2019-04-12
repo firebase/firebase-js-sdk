@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -75,5 +76,7 @@ exports.getCurrentSha = async () => {
 };
 
 exports.hasDiff = async () => {
-  return !!await git.diff();
+  const diff = await git.diff();
+  console.log(diff);
+  return !!diff;
 };

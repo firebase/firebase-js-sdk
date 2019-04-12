@@ -14,7 +14,7 @@ The `fromTask()` function creates an observable that emits progress changes.
 
 #### TypeScript Example
 ```ts
-import { fromTask } from 'rxfire/firestore';
+import { fromTask } from 'rxfire/storage';
 import * as firebase from 'firebase';
 import 'firebase/storage';
 
@@ -42,7 +42,7 @@ The `percentage()` function creates an observable that emits percentage of the u
 
 #### TypeScript Example
 ```ts
-import { percentage } from 'rxfire/firestore';
+import { percentage } from 'rxfire/storage';
 import * as firebase from 'firebase';
 import 'firebase/storage';
 

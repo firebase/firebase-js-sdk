@@ -1,4 +1,5 @@
 /**
+ * @license
  * Copyright 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,10 +18,9 @@
 import { expect } from 'chai';
 import * as Long from 'long';
 
-import * as api from '../../../../src/protos/firestore_proto_api';
 import { Blob } from '../../../../src/api/blob';
-import { GeoPoint } from '../../../../src/api/geo_point';
 import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
+import { GeoPoint } from '../../../../src/api/geo_point';
 import { Timestamp } from '../../../../src/api/timestamp';
 import { DatabaseId } from '../../../../src/core/database_info';
 import {
@@ -41,6 +41,8 @@ import {
   SetMutation
 } from '../../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
+import { loadProtos } from '../../../../src/platform_node/load_protos';
+import * as api from '../../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../../src/remote/serializer';
 import {
   DocumentWatchChange,
@@ -48,7 +50,6 @@ import {
   WatchTargetChangeState
 } from '../../../../src/remote/watch_change';
 import { Code, FirestoreError } from '../../../../src/util/error';
-import { AnyJs } from '../../../../src/util/misc';
 import * as obj from '../../../../src/util/obj';
 import * as types from '../../../../src/util/types';
 import { addEqualityMatcher } from '../../../util/equality_matcher';
@@ -71,14 +72,13 @@ import {
   wrap,
   wrapObject
 } from '../../../util/helpers';
-import { loadProtos } from '../../../../src/platform_node/load_protos';
 
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
   const protos = loadProtos();
-  const ds = protos['google']['firestore']['v1beta1'];
+  const ds = protos['google']['firestore']['v1'];
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
@@ -90,6 +90,7 @@ describe('Serializer', () => {
       query,
       1,
       QueryPurpose.Listen,
+      2,
       SnapshotVersion.MIN,
       emptyResumeToken
     );
@@ -99,7 +100,7 @@ describe('Serializer', () => {
     /**
      * Verifies that the given object can be parsed as a datastore Value proto.
      */
-    function expectValue(obj: AnyJs, tag: string): Chai.Assertion {
+    function expectValue(obj: unknown, tag: string): Chai.Assertion {
       const proto = new ds.Value(obj);
       expect(proto.value_type).to.equal(tag);
       return expect(proto[tag]);
@@ -604,7 +605,7 @@ describe('Serializer', () => {
     // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
     it.skip('converts a weird path', () => {
       const expected: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
-      const mask = new FieldMask([
+      const mask = FieldMask.fromArray([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
       ]);
       const actual = s.toDocumentMask(mask);
@@ -617,7 +618,7 @@ describe('Serializer', () => {
 
     // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
     it.skip('converts a weird path', () => {
-      const expected = new FieldMask([
+      const expected = FieldMask.fromArray([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
       ]);
       const proto: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
@@ -639,7 +640,7 @@ describe('Serializer', () => {
   describe('toMutation / fromMutation', () => {
     addEqualityMatcher();
 
-    function verifyMutation(mutation: Mutation, proto: AnyJs): void {
+    function verifyMutation(mutation: Mutation, proto: unknown): void {
       const serialized = s.toMutation(mutation);
       expect(serialized).to.deep.equal(proto);
       expect(s.fromMutation(serialized)).to.deep.equal(mutation);
@@ -697,6 +698,24 @@ describe('Serializer', () => {
           fieldTransforms: [
             { fieldPath: 'a', setToServerValue: 'REQUEST_TIME' },
             { fieldPath: 'bar.baz', setToServerValue: 'REQUEST_TIME' }
+          ]
+        },
+        currentDocument: { exists: true }
+      };
+      verifyMutation(mutation, proto);
+    });
+
+    it('TransformMutation (Numeric Add transform)', () => {
+      const mutation = transformMutation('baz/quux', {
+        integer: FieldValue.increment(42),
+        double: FieldValue.increment(13.37)
+      });
+      const proto = {
+        transform: {
+          document: s.toName(mutation.key),
+          fieldTransforms: [
+            { fieldPath: 'integer', increment: { integerValue: '42' } },
+            { fieldPath: 'double', increment: { doubleValue: 13.37 } }
           ]
         },
         currentDocument: { exists: true }
@@ -871,16 +890,21 @@ describe('Serializer', () => {
 
   it('encodes listen request labels', () => {
     const query = Query.atPath(path('collection/key'));
-    let queryData = new QueryData(query, 2, QueryPurpose.Listen);
+    let queryData = new QueryData(query, 2, QueryPurpose.Listen, 3);
 
     let result = s.toListenRequestLabels(queryData);
     expect(result).to.be.null;
 
-    queryData = new QueryData(query, 2, QueryPurpose.LimboResolution);
+    queryData = new QueryData(query, 2, QueryPurpose.LimboResolution, 3);
     result = s.toListenRequestLabels(queryData);
     expect(result).to.deep.equal({ 'goog-listen-tags': 'limbo-document' });
 
-    queryData = new QueryData(query, 2, QueryPurpose.ExistenceFilterMismatch);
+    queryData = new QueryData(
+      query,
+      2,
+      QueryPurpose.ExistenceFilterMismatch,
+      3
+    );
     result = s.toListenRequestLabels(queryData);
     expect(result).to.deep.equal({
       'goog-listen-tags': 'existence-filter-mismatch'
@@ -905,7 +929,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       expect(result).to.deep.equal({
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'messages' }],
             orderBy: [
@@ -948,7 +972,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             where: {
@@ -986,7 +1010,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             where: {
@@ -1087,7 +1111,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1113,7 +1137,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1148,7 +1172,7 @@ describe('Serializer', () => {
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
@@ -1184,13 +1208,14 @@ describe('Serializer', () => {
           q,
           1,
           QueryPurpose.Listen,
+          4,
           SnapshotVersion.MIN,
           new Uint8Array([1, 2, 3])
         )
       );
       const expected = {
         query: {
-          parent: 'projects/p/databases/d',
+          parent: 'projects/p/databases/d/documents',
           structuredQuery: {
             from: [{ collectionId: 'docs' }],
             orderBy: [
