@@ -31,7 +31,6 @@ import {
   apiDescribe,
   withTestCollection,
   withTestDb,
-  withTestDbNoShutdown,
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData
