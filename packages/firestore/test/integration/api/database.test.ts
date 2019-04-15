@@ -31,6 +31,7 @@ import {
   apiDescribe,
   withTestCollection,
   withTestDb,
+  withTestDbNoShutdown,
   withTestDbs,
   withTestDoc,
   withTestDocAndInitialData
@@ -918,19 +919,20 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('rejects subsequent method calls after shutdown() is called', async () => {
-    return withTestDoc(persistence, docRef => {
-      const firestore = docRef.firestore;
-
-      return firestore.INTERNAL.delete().then(() => {
-        expect(() => {
-          firestore.disableNetwork();
-        }).to.throw(
-          'The client has already been shutdown. Please restart the client.'
-        );
+  (persistence ? it : it.skip)(
+    'rejects subsequent method calls after shutdown() is called',
+    async () => {
+      return withTestDbNoShutdown(persistence, db => {
+        return db.INTERNAL.delete().then(() => {
+          expect(() => {
+            db.disableNetwork();
+          }).to.throw(
+            'The client has already been shutdown. Please restart the client.'
+          );
+        });
       });
-    });
-  });
+    }
+  );
 
   it('can get documents while offline', async () => {
     await withTestDoc(persistence, async docRef => {
