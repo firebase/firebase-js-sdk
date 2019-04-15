@@ -97,7 +97,12 @@ describe('Serializer', () => {
   }
 
   describe('convertsValue', () => {
-    function expectRoundTrip(value: fieldValue.FieldValue, proto: api.Value, tag: string, serializer: JsonProtoSerializer = s) {
+    function expectRoundTrip(
+      value: fieldValue.FieldValue,
+      proto: api.Value,
+      tag: string,
+      serializer: JsonProtoSerializer = s
+    ) {
       const actual: api.Value = serializer.toValue(value);
 
       // Unlike the other ports, protobufjs doesn't seem to expose a
@@ -120,7 +125,9 @@ describe('Serializer', () => {
     it('converts BooleanValue', () => {
       const examples = [true, false];
       for (const example of examples) {
-        const value: fieldValue.FieldValue = fieldValue.BooleanValue.of(example);
+        const value: fieldValue.FieldValue = fieldValue.BooleanValue.of(
+          example
+        );
         const proto: api.Value = { booleanValue: example };
         expectRoundTrip(value, proto, 'booleanValue');
       }
@@ -137,7 +144,9 @@ describe('Serializer', () => {
         types.MAX_SAFE_INTEGER
       ];
       for (const example of examples) {
-        const value: fieldValue.FieldValue = new fieldValue.IntegerValue(example);
+        const value: fieldValue.FieldValue = new fieldValue.IntegerValue(
+          example
+        );
         const proto: api.Value = { integerValue: '' + example };
         expectRoundTrip(value, proto, 'integerValue');
       }
@@ -157,7 +166,9 @@ describe('Serializer', () => {
         Number.NEGATIVE_INFINITY
       ];
       for (const example of examples) {
-        const value: fieldValue.FieldValue = new fieldValue.DoubleValue(example);
+        const value: fieldValue.FieldValue = new fieldValue.DoubleValue(
+          example
+        );
         const proto: api.Value = { doubleValue: example };
         expectRoundTrip(value, proto, 'doubleValue');
       }
@@ -173,7 +184,9 @@ describe('Serializer', () => {
         '(╯°□°）╯︵ ┻━┻'
       ];
       for (const example of examples) {
-        const value: fieldValue.FieldValue = new fieldValue.StringValue(example);
+        const value: fieldValue.FieldValue = new fieldValue.StringValue(
+          example
+        );
         const proto: api.Value = { stringValue: example };
         expectRoundTrip(value, proto, 'stringValue');
       }
@@ -191,8 +204,12 @@ describe('Serializer', () => {
       ];
 
       for (let i = 0; i < examples.length; i++) {
-        const value: fieldValue.FieldValue = new fieldValue.TimestampValue(Timestamp.fromDate(examples[i]));
-        const proto: api.Value = { timestampValue: expectedJson[i] as unknown as string };
+        const value: fieldValue.FieldValue = new fieldValue.TimestampValue(
+          Timestamp.fromDate(examples[i])
+        );
+        const proto: api.Value = {
+          timestampValue: (expectedJson[i] as unknown) as string
+        };
         expectRoundTrip(value, proto, 'timestampValue');
       }
     });
@@ -207,7 +224,9 @@ describe('Serializer', () => {
         }
       };
 
-      const value: fieldValue.FieldValue = new fieldValue.GeoPointValue(example);
+      const value: fieldValue.FieldValue = new fieldValue.GeoPointValue(
+        example
+      );
       const proto: api.Value = expected;
       expectRoundTrip(value, proto, 'geoPointValue');
     });
@@ -217,7 +236,7 @@ describe('Serializer', () => {
       const example = Blob.fromUint8Array(new Uint8Array(bytes));
 
       const expected = {
-        bytesValue: new Uint8Array(bytes) as unknown as string
+        bytesValue: (new Uint8Array(bytes) as unknown) as string
       };
 
       /*
@@ -248,13 +267,15 @@ describe('Serializer', () => {
 
     it('converts ArrayValue', () => {
       const value: fieldValue.FieldValue = wrap([true, 'foo']);
-      const proto: api.Value = { arrayValue: { values: [{booleanValue: true}, {stringValue: 'foo'}]}};
+      const proto: api.Value = {
+        arrayValue: { values: [{ booleanValue: true }, { stringValue: 'foo' }] }
+      };
       expectRoundTrip(value, proto, 'arrayValue');
     });
 
     it('converts empty ArrayValue', () => {
       const value: fieldValue.FieldValue = wrap([]);
-      const proto: api.Value = { arrayValue: { values: []}};
+      const proto: api.Value = { arrayValue: { values: [] } };
       expectRoundTrip(value, proto, 'arrayValue');
     });
 
