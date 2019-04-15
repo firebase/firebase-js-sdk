@@ -16,7 +16,6 @@
  */
 
 import { expect } from 'chai';
-import * as Long from 'long';
 
 import { Blob } from '../../../../src/api/blob';
 import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
@@ -41,7 +40,6 @@ import {
   SetMutation
 } from '../../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
-import { loadProtos } from '../../../../src/platform_node/load_protos';
 import * as api from '../../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../../src/remote/serializer';
 import {
@@ -77,8 +75,6 @@ describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
-  const protos = loadProtos();
-  const ds = protos['google']['firestore']['v1'];
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
@@ -104,7 +100,7 @@ describe('Serializer', () => {
       proto: api.Value,
       tag: string,
       serializer: JsonProtoSerializer = s
-    ) {
+    ): void {
       const actual: api.Value = serializer.toValue(value);
 
       // Unlike the other ports, protobufjs doesn't seem to expose a
