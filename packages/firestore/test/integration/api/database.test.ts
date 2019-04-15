@@ -924,9 +924,7 @@ apiDescribe('Database', persistence => {
       return db.INTERNAL.delete().then(() => {
         expect(() => {
           db.disableNetwork();
-        }).to.throw(
-          'The client has already been shutdown.'
-        );
+        }).to.throw('The client has already been shutdown.');
       });
     });
   });
