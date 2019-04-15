@@ -108,7 +108,7 @@ export class FirestoreClient {
   private lruScheduler?: LruScheduler;
 
   private readonly clientId = AutoId.newId();
-  private isClientShutdown = false;
+  private isShutdown = false;
 
   // PORTING NOTE: SharedClientState is only used for multi-tab web.
   private sharedClientState: SharedClientState;
@@ -164,7 +164,7 @@ export class FirestoreClient {
    *     unconditionally resolved.
    */
   start(persistenceSettings: InternalPersistenceSettings): Promise<void> {
-    this.checkClientRunning();
+    this.verifyClientRunning();
     // We defer our initialization until we get the current user from
     // setChangeListener(). We block the async queue until we got the initial
     // user and the initialization is completed. This will prevent any scheduled
@@ -210,7 +210,7 @@ export class FirestoreClient {
 
   /** Enables the network connection and requeues all pending operations. */
   enableNetwork(): Promise<void> {
-    this.checkClientRunning();
+    this.verifyClientRunning();
     return this.asyncQueue.enqueue(() => {
       return this.syncEngine.enableNetwork();
     });
@@ -304,13 +304,13 @@ export class FirestoreClient {
    * Checks that the client has not been shutdown. Ensures that other methods on
    * this class cannot be called after the client is shutdown.
    */
-  private checkClientRunning(): void {
-    if (this.isClientShutdown === false) {
+  private verifyClientRunning(): void {
+    if (this.isShutdown === false) {
       return;
     }
     throw new FirestoreError(
       Code.FAILED_PRECONDITION,
-      'The client has already been shutdown. Please restart the client.'
+      'The client has already been shutdown.'
     );
   }
 
@@ -483,7 +483,7 @@ export class FirestoreClient {
 
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
-    this.checkClientRunning();
+    this.verifyClientRunning();
     return this.asyncQueue.enqueue(() => {
       return this.syncEngine.disableNetwork();
     });
@@ -492,7 +492,9 @@ export class FirestoreClient {
   shutdown(options?: {
     purgePersistenceWithDataLoss?: boolean;
   }): Promise<void> {
-    this.checkClientRunning();
+    if (this.isShutdown === true) {
+      return Promise.resolve();
+    }
     return this.asyncQueue.enqueue(async () => {
       // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
       if (this.lruScheduler) {
@@ -508,7 +510,7 @@ export class FirestoreClient {
       // RemoteStore as it will prevent the RemoteStore from retrieving
       // auth tokens.
       this.credentials.removeChangeListener();
-      this.isClientShutdown = true;
+      this.isShutdown = true;
     });
   }
 
@@ -517,7 +519,7 @@ export class FirestoreClient {
     observer: Observer<ViewSnapshot>,
     options: ListenOptions
   ): QueryListener {
-    this.checkClientRunning();
+    this.verifyClientRunning();
     const listener = new QueryListener(query, observer, options);
     this.asyncQueue.enqueueAndForget(() => {
       return this.eventMgr.listen(listener);
@@ -526,14 +528,14 @@ export class FirestoreClient {
   }
 
   unlisten(listener: QueryListener): void {
-    this.checkClientRunning();
+    this.verifyClientRunning();
     this.asyncQueue.enqueueAndForget(() => {
       return this.eventMgr.unlisten(listener);
     });
   }
 
   getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document | null> {
-    this.checkClientRunning();
+    this.verifyClientRunning();
     return this.asyncQueue
       .enqueue(() => {
         return this.localStore.readDocument(docKey);
@@ -556,7 +558,7 @@ export class FirestoreClient {
   }
 
   getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
-    this.checkClientRunning();
+    this.verifyClientRunning();
     return this.asyncQueue
       .enqueue(() => {
         return this.localStore.executeQuery(query);
@@ -576,7 +578,7 @@ export class FirestoreClient {
   }
 
   write(mutations: Mutation[]): Promise<void> {
-    this.checkClientRunning();
+    this.verifyClientRunning();
     const deferred = new Deferred<void>();
     this.asyncQueue.enqueueAndForget(() =>
       this.syncEngine.write(mutations, deferred)
@@ -585,14 +587,13 @@ export class FirestoreClient {
   }
 
   databaseId(): DatabaseId {
-    this.checkClientRunning();
     return this.databaseInfo.databaseId;
   }
 
   transaction<T>(
     updateFunction: (transaction: Transaction) => Promise<T>
   ): Promise<T> {
-    this.checkClientRunning();
+    this.verifyClientRunning();
     // We have to wait for the async queue to be sure syncEngine is initialized.
     return this.asyncQueue
       .enqueue(async () => {})

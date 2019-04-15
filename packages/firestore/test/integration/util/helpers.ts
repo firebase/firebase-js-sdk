@@ -144,26 +144,6 @@ export function withTestDb(
   });
 }
 
-/**
- * Does not invoke shutdown at the end of the test. Caller must manually
- * shutdown the DB.
- */
-export function withTestDbNoShutdown(
-  persistence: boolean,
-  fn: (db: firestore.FirebaseFirestore) => Promise<void>
-): Promise<void> {
-  return withTestDbsSettings(
-    persistence,
-    DEFAULT_PROJECT_ID,
-    DEFAULT_SETTINGS,
-    1,
-    /* invokeShutdown= */ false,
-    ([db]) => {
-      return fn(db);
-    }
-  );
-}
-
 /** Runs provided fn with a db for an alternate project id. */
 export function withAlternateTestDb(
   persistence: boolean,
@@ -174,7 +154,6 @@ export function withAlternateTestDb(
     ALT_PROJECT_ID,
     DEFAULT_SETTINGS,
     1,
-    /* invokeShutdown= */ true,
     ([db]) => {
       return fn(db);
     }
@@ -191,7 +170,6 @@ export function withTestDbs(
     DEFAULT_PROJECT_ID,
     DEFAULT_SETTINGS,
     numDbs,
-    /* invokeShutdown= */ true,
     fn
   );
 }
@@ -203,7 +181,6 @@ export function withTestDbsSettings(
   projectId: string,
   settings: firestore.Settings,
   numDbs: number,
-  invokeShutdown: boolean,
   fn: (db: firestore.FirebaseFirestore[]) => Promise<void>
 ): Promise<void> {
   if (numDbs === 0) {
@@ -236,13 +213,11 @@ export function withTestDbsSettings(
       return wipeDb(dbs[0]).then(() =>
         dbs.reduce(
           (chain, db) =>
-            chain.then(() => {
-              if (invokeShutdown === true) {
-                db.INTERNAL.delete.bind(this, {
-                  purgePersistenceWithDataLoss: true
-                });
-              }
-            }),
+            chain.then(
+              db.INTERNAL.delete.bind(this, {
+                purgePersistenceWithDataLoss: true
+              })
+            ),
           Promise.resolve()
         )
       );
@@ -313,7 +288,6 @@ export function withTestCollectionSettings(
     DEFAULT_PROJECT_ID,
     settings,
     2,
-    /* invokeShutdown= */ true,
     ([testDb, setupDb]) => {
       // Abuse .doc() to get a random ID.
       const collectionId = 'test-collection-' + testDb.collection('x').doc().id;

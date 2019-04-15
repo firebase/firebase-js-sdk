@@ -498,9 +498,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       // The client must be initalized to ensure that all subsequent API usage
       // throws an exception.
       this.ensureClientConfigured();
-      if (this._firestoreClient) {
-        return this._firestoreClient.shutdown(options);
-      }
+      return this._firestoreClient!.shutdown(options);
     }
   };
 

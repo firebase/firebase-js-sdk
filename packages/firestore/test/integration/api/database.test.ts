@@ -920,12 +920,12 @@ apiDescribe('Database', persistence => {
   });
 
   it('rejects subsequent method calls after shutdown() is called', async () => {
-    return withTestDbNoShutdown(persistence, db => {
+    return withTestDb(persistence, db => {
       return db.INTERNAL.delete().then(() => {
         expect(() => {
           db.disableNetwork();
         }).to.throw(
-          'The client has already been shutdown. Please restart the client.'
+          'The client has already been shutdown.'
         );
       });
     });
