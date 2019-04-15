@@ -495,6 +495,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     delete: async (options?: {
       purgePersistenceWithDataLoss?: boolean;
     }): Promise<void> => {
+      this.ensureClientConfigured();
       if (this._firestoreClient) {
         return this._firestoreClient.shutdown(options);
       }

@@ -919,20 +919,17 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  (persistence ? it : it.skip)(
-    'rejects subsequent method calls after shutdown() is called',
-    async () => {
-      return withTestDbNoShutdown(persistence, db => {
-        return db.INTERNAL.delete().then(() => {
-          expect(() => {
-            db.disableNetwork();
-          }).to.throw(
-            'The client has already been shutdown. Please restart the client.'
-          );
-        });
+  it('rejects subsequent method calls after shutdown() is called', async () => {
+    return withTestDbNoShutdown(persistence, db => {
+      return db.INTERNAL.delete().then(() => {
+        expect(() => {
+          db.disableNetwork();
+        }).to.throw(
+          'The client has already been shutdown. Please restart the client.'
+        );
       });
-    }
-  );
+    });
+  });
 
   it('can get documents while offline', async () => {
     await withTestDoc(persistence, async docRef => {
