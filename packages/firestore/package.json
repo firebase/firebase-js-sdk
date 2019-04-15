@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
@@ -15,7 +15,7 @@
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.node.ts --opts ../../config/mocha.node.opts",
-    "test:node:persistence": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
+    "test:node:persistence": "USE_MOCK_PERSISTENCE=YES TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --require ts-node/register --file index.node.ts --require test/util/node_persistence.ts --opts ../../config/mocha.node.opts",
     "test:emulator": "ts-node ../../scripts/emulator-testing/firestore-test-runner.ts",
     "prepare": "npm run build"
   },
@@ -27,9 +27,9 @@
     "dist"
   ],
   "dependencies": {
-    "@firebase/firestore-types": "1.1.1",
-    "@firebase/logger": "0.1.10",
-    "@firebase/webchannel-wrapper": "0.2.16",
+    "@firebase/firestore-types": "1.1.2",
+    "@firebase/logger": "0.1.11",
+    "@firebase/webchannel-wrapper": "0.2.17",
     "grpc": "1.19.0",
     "tslib": "1.9.3"
   },
