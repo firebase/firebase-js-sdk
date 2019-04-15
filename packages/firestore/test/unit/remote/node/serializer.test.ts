@@ -97,6 +97,8 @@ describe('Serializer', () => {
   }
 
   describe('convertsValue', () => {
+    addEqualityMatcher();
+
     function expectRoundTrip(
       value: fieldValue.FieldValue,
       proto: api.Value,
@@ -214,6 +216,32 @@ describe('Serializer', () => {
       }
     });
 
+    it('converts TimestampValue from string', () => {
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123456Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
+      );
+    });
+
     it('converts GeoPointValue', () => {
       const example = new GeoPoint(1.23, 4.56);
 
@@ -238,11 +266,6 @@ describe('Serializer', () => {
       const expected = {
         bytesValue: (new Uint8Array(bytes) as unknown) as string
       };
-
-      /*
-      const obj = s.toValue(new fieldValue.BlobValue(example));
-      expect(obj).to.deep.equal(expected);
-      */
 
       const value: fieldValue.FieldValue = new fieldValue.BlobValue(example);
       const proto: api.Value = expected;
@@ -350,6 +373,18 @@ describe('Serializer', () => {
 
       expectRoundTrip(objValue, proto, 'mapValue');
       // clang-format on
+    });
+
+    it('converts RefValue', () => {
+      const example = 'projects/project1/databases/database1/documents/docs/1';
+
+      const expected = new fieldValue.RefValue(
+        dbId('project1', 'database1'),
+        key('docs/1')
+      );
+
+      const obj = s.fromValue({ referenceValue: example });
+      expect(obj).to.deep.equal(expected);
     });
   });
 
