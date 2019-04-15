@@ -74,7 +74,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
     // Cancels all ongoing requests when resolved.
     this.cancelAllRequests = new Promise(resolve => {
       this.deleteService = () => {
-        resolve();
+        return resolve();
       };
     });
   }
@@ -85,8 +85,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
 
   INTERNAL = {
     delete: (): Promise<void> => {
-      this.deleteService();
-      return Promise.resolve();
+      return this.deleteService();
     }
   };
 
@@ -206,7 +205,10 @@ export class Service implements FirebaseFunctions, FirebaseService {
 
     // If service was deleted, interrupted response returns undefined.
     if (!response) {
-      return;
+      throw new HttpsErrorImpl(
+        'cancelled',
+        'Firebase Functions instance was deleted.'
+      );
     }
 
     // Check for an error status, regardless of http status.
