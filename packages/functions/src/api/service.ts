@@ -203,7 +203,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
       this.cancelAllRequests
     ]);
 
-    // If service was deleted, interrupted response returns undefined.
+    // If service was deleted, interrupted response throws an error.
     if (!response) {
       throw new HttpsErrorImpl(
         'cancelled',
