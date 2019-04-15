@@ -146,7 +146,7 @@ export function withTestDb(
 
 /**
  * Does not invoke shutdown at the end of the test. Caller must manually
- * shutdown the DB. 
+ * shutdown the DB.
  */
 export function withTestDbNoShutdown(
   persistence: boolean,
