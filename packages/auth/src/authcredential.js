@@ -635,23 +635,31 @@ fireauth.OAuthProvider.prototype.getScopes = function() {
  * Initializes an OAuth AuthCredential. At least one of ID token or access token
  * must be defined. When providing an OIDC ID token with a nonce encoded, the
  * raw nonce must also be provided.
- * @param {?string=} opt_idToken The optional OAuth ID token.
+ * @param {?Object|string} optionsOrIdToken Either the options object containing
+ *     the ID token, access token and raw nonce or the ID token string.
  * @param {?string=} opt_accessToken The optional OAuth access token.
- * @param {?string=} opt_rawNonce The optional raw nonce.
  * @return {!fireauth.AuthCredential} The Auth credential object.
  */
-fireauth.OAuthProvider.prototype.credential = function(opt_idToken,
-    opt_accessToken, opt_rawNonce) {
-  if (!opt_idToken && !opt_accessToken) {
+fireauth.OAuthProvider.prototype.credential =
+    function(optionsOrIdToken, opt_accessToken) {
+  var oauthResponse;
+  if (goog.isObject(optionsOrIdToken)) {
+    oauthResponse = {
+      'idToken': optionsOrIdToken['idToken'] || null,
+      'accessToken': optionsOrIdToken['accessToken'] || null,
+      'nonce': optionsOrIdToken['rawNonce'] || null
+    };
+  } else {
+    oauthResponse = {
+      'idToken': optionsOrIdToken || null,
+      'accessToken': opt_accessToken || null
+    };
+  }
+  if (!oauthResponse['idToken'] && !oauthResponse['accessToken']) {
     throw new fireauth.AuthError(fireauth.authenum.Error.ARGUMENT_ERROR,
         'credential failed: must provide the ID token and/or the access ' +
         'token.');
   }
-  var oauthResponse = {
-    'idToken': opt_idToken || null,
-    'accessToken': opt_accessToken || null,
-    'nonce': opt_rawNonce || null
-  };
   // For OAuthCredential, sign in method is same as providerId.
   return new fireauth.OAuthCredential(this['providerId'],
                                       oauthResponse,
@@ -694,8 +702,9 @@ fireauth.FacebookAuthProvider.credential = function(accessTokenOrObject) {
   if (goog.isObject(accessTokenOrObject)) {
     accessToken = accessTokenOrObject['accessToken'];
   }
-  return new fireauth.FacebookAuthProvider().credential(null,
-      /** @type {string} */ (accessToken));
+  return new fireauth.FacebookAuthProvider().credential({
+    'accessToken': /** @type {string} */ (accessToken)
+  });
 };
 
 
@@ -734,8 +743,9 @@ fireauth.GithubAuthProvider.credential = function(accessTokenOrObject) {
   if (goog.isObject(accessTokenOrObject)) {
     accessToken = accessTokenOrObject['accessToken'];
   }
-  return new fireauth.GithubAuthProvider().credential(null,
-      /** @type {string} */ (accessToken));
+  return new fireauth.GithubAuthProvider().credential({
+    'accessToken': /** @type {string} */ (accessToken)
+  });
 };
 
 
@@ -779,8 +789,10 @@ fireauth.GoogleAuthProvider.credential =
     idToken = idTokenOrObject['idToken'];
     accessToken = idTokenOrObject['accessToken'];
   }
-  return new fireauth.GoogleAuthProvider().credential(
-      /** @type {string} */ (idToken), /** @type {string} */ (accessToken));
+  return new fireauth.GoogleAuthProvider().credential({
+    'idToken':  /** @type {string} */ (idToken),
+    'accessToken': /** @type {string} */ (accessToken)
+  });
 };
 
 
@@ -1387,8 +1399,11 @@ fireauth.AuthProvider.getCredentialFromResponse = function(response) {
                 providerId);
           }
         }
-        return new fireauth.OAuthProvider(providerId).credential(
-            idToken, accessToken, rawNonce);
+        return new fireauth.OAuthProvider(providerId).credential({
+          'idToken': idToken,
+          'accessToken': accessToken,
+          'rawNonce': rawNonce
+        });
     }
   } catch (e) {
     return null;
@@ -1401,10 +1416,12 @@ fireauth.AuthProvider.getCredentialFromResponse = function(response) {
  * Note, unlike getCredentialFromResponse which constructs the AuthCredential
  * from a server response, this helper constructs credential from the toJSON()
  * result.
- * @param {?Object} json The JSON representation to construct credential from.
+ * @param {!Object|string} json The JSON representation to construct credential
+ *     from.
  * @return {?fireauth.AuthCredential} The corresponding AuthCredential.
  */
 fireauth.AuthProvider.getCredentialFromJSON = function(json) {
+  var obj = goog.isString(json) ? JSON.parse(json) : json;
   var credential;
   var fromJSON = [
     fireauth.OAuthCredential.fromJSON,
@@ -1413,7 +1430,7 @@ fireauth.AuthProvider.getCredentialFromJSON = function(json) {
     fireauth.SAMLAuthCredential.fromJSON
   ];
   for (var i = 0; i < fromJSON.length; i++) {
-    credential = fromJSON[i](json);
+    credential = fromJSON[i](obj);
     if (credential) {
       return credential;
     }
@@ -1424,7 +1441,7 @@ fireauth.AuthProvider.getCredentialFromJSON = function(json) {
 
 /**
  * Constructs an Auth credential from a JSON representation.
- * @param {?Object} json The JSON representation to construct credential from.
+ * @param {!Object|string} json The JSON representation to construct credential from.
  * @return {?fireauth.AuthCredential} The corresponding AuthCredential.
  */
 fireauth.AuthCredential.fromPlainObject =
