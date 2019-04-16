@@ -72,7 +72,6 @@ import {
   WatchTargetChangeState
 } from './watch_change';
 
-
 import api = google.firestore.v1;
 
 const DIRECTIONS = (() => {
@@ -194,7 +193,7 @@ export class JsonProtoSerializer {
     return {
       seconds: timestamp.seconds,
       nanos: timestamp.nanoseconds
-    }
+    };
   }
 
   private fromTimestamp(date: string | google.protobuf.ITimestamp): Timestamp {
@@ -874,7 +873,9 @@ export class JsonProtoSerializer {
 
   private fromPrecondition(precondition: api.IPrecondition): Precondition {
     if (precondition.updateTime !== undefined) {
-      return Precondition.updateTime(this.fromVersion(precondition.updateTime!));
+      return Precondition.updateTime(
+        this.fromVersion(precondition.updateTime!)
+      );
     } else if (precondition.exists !== undefined) {
       return Precondition.exists(precondition.exists!);
     } else {
@@ -914,7 +915,9 @@ export class JsonProtoSerializer {
     }
   }
 
-  private toFieldTransform(fieldTransform: FieldTransform): api.DocumentTransform.IFieldTransform {
+  private toFieldTransform(
+    fieldTransform: FieldTransform
+  ): api.DocumentTransform.IFieldTransform {
     const transform = fieldTransform.transform;
     if (transform instanceof ServerTimestampTransform) {
       return {
@@ -945,7 +948,9 @@ export class JsonProtoSerializer {
     }
   }
 
-  private fromFieldTransform(proto: api.DocumentTransform.IFieldTransform): FieldTransform {
+  private fromFieldTransform(
+    proto: api.DocumentTransform.IFieldTransform
+  ): FieldTransform {
     // tslint:disable-next-line:no-any We need to match generated Proto types.
     const type = (proto as any)['transform_type'];
     let transform: TransformOperation | null = null;
@@ -1076,7 +1081,7 @@ export class JsonProtoSerializer {
 
     let limit: number | null = null;
     if (query.limit) {
-      limit =  this.fromInt32Value(query.limit.value!) ;
+      limit = this.fromInt32Value(query.limit.value!);
     }
 
     let startAt: Bound | null = null;
@@ -1160,7 +1165,9 @@ export class JsonProtoSerializer {
     return { compositeFilter: { op: 'AND', filters: protos } };
   }
 
-  private fromFilter(filter: api.StructuredQuery.IFilter  | undefined): Filter[] {
+  private fromFilter(
+    filter: api.StructuredQuery.IFilter | undefined
+  ): Filter[] {
     if (!filter) {
       return [];
     } else if (filter.unaryFilter !== undefined) {
@@ -1176,7 +1183,9 @@ export class JsonProtoSerializer {
     }
   }
 
-  private toOrder(orderBys: OrderBy[]): api.StructuredQuery.IOrder[] | undefined {
+  private toOrder(
+    orderBys: OrderBy[]
+  ): api.StructuredQuery.IOrder[] | undefined {
     if (orderBys.length === 0) return;
     return orderBys.map(order => this.toPropertyOrder(order));
   }
@@ -1204,7 +1213,9 @@ export class JsonProtoSerializer {
   }
 
   // visible for testing
-  fromDirection(dir: api.StructuredQuery.Direction | undefined): Direction | undefined {
+  fromDirection(
+    dir: api.StructuredQuery.Direction | undefined
+  ): Direction | undefined {
     switch (dir) {
       case 'ASCENDING':
         return Direction.ASCENDING;
@@ -1245,7 +1256,9 @@ export class JsonProtoSerializer {
     return { fieldPath: path.canonicalString() };
   }
 
-  fromFieldPathReference(fieldReference: api.StructuredQuery.IFieldReference): FieldPath {
+  fromFieldPathReference(
+    fieldReference: api.StructuredQuery.IFieldReference
+  ): FieldPath {
     return FieldPath.fromServerFormat(fieldReference.fieldPath!);
   }
 
