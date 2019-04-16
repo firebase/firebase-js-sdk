@@ -2691,7 +2691,7 @@ declare namespace firebase.auth {
      * stringified representation of the object. When string is provided,
      * JSON.parse would be called first. If the JSON input does not represent
      * an`AuthCredential`, null is returned.
-     * @param {!Object|string} json The plain object representation of an
+     * @param json The plain object representation of an
      *     AuthCredential.
      */
     static fromJSON(json: Object | string): AuthCredential | null;
