@@ -2668,7 +2668,7 @@ declare namespace firebase.auth {
    * requirements.
    *
    */
-  interface AuthCredential {
+  abstract class AuthCredential {
     /**
      * The authentication provider ID for the credential.
      * For example, 'facebook.com', or 'google.com'.
@@ -2681,6 +2681,20 @@ declare namespace firebase.auth {
      * {@link firebase.auth.Auth.fetchSignInMethodsForEmail}.
      */
     signInMethod: string;
+    /**
+     * Returns a JSON-serializable representation of this object.
+     */
+    toJSON(): Object;
+    /**
+     * Static method to deserialize a JSON representation of an object into an
+     * {@link firebase.auth.AuthCredential}. Input can be either Object or the
+     * stringified representation of the object. When string is provided,
+     * JSON.parse would be called first. If the JSON input does not represent
+     * an`AuthCredential`, null is returned.
+     * @param {!Object|string} json The plain object representation of an
+     *     AuthCredential.
+     */
+    static fromJSON(json: Object | string): AuthCredential | null;
   }
 
   /**
@@ -2689,7 +2703,8 @@ declare namespace firebase.auth {
    * credential requirements.
    *
    */
-  interface OAuthCredential extends AuthCredential {
+  class OAuthCredential extends AuthCredential {
+    private constructor();
     /**
      * The OAuth ID token associated with the credential if it belongs to an
      * OIDC provider, such as `google.com`.

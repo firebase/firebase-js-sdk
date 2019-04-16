@@ -3599,8 +3599,10 @@ function testVerifyAssertion_needConfirmationError_oauthResponseAndEmail() {
  */
 function testVerifyAssertion_needConfirmationError_nonceIdToken() {
   // Expected error thrown with OIDC credential containing nonce.
-  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
-      'OIDC_ID_TOKEN', null, 'NONCE');
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential({
+    'idToken': 'OIDC_ID_TOKEN',
+    'rawNonce': 'NONCE'
+  });
   var expectedError = new fireauth.AuthErrorWithCredential(
       fireauth.authenum.Error.NEED_CONFIRMATION,
       {
@@ -3645,8 +3647,10 @@ function testVerifyAssertion_needConfirmationError_nonceIdToken() {
  */
 function testVerifyAssertion_needConfirmationError_idTokenSessionId() {
   // Expected error thrown with OIDC credential containing nonce.
-  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
-      'OIDC_ID_TOKEN', null, 'NONCE');
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential({
+    'idToken': 'OIDC_ID_TOKEN',
+    'rawNonce': 'NONCE'
+  });
   var expectedError = new fireauth.AuthErrorWithCredential(
       fireauth.authenum.Error.NEED_CONFIRMATION,
       {
@@ -3879,8 +3883,10 @@ function testVerifyAssertion_credAlreadyInUseError_oauthResponseAndEmail() {
  */
 function testVerifyAssertion_credAlreadyInUseError_nonceIdToken() {
   // Expected error thrown with OIDC credential containing nonce.
-  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
-      'OIDC_ID_TOKEN', null, 'NONCE');
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential({
+    'idToken': 'OIDC_ID_TOKEN',
+    'rawNonce': 'NONCE'
+  });
   // Credential already in use error returned.
   var expectedError = new fireauth.AuthErrorWithCredential(
       fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
@@ -3928,8 +3934,10 @@ function testVerifyAssertion_credAlreadyInUseError_nonceIdToken() {
  */
 function testVerifyAssertion_credAlreadyInUseError_idTokenSessionId() {
   // Expected error thrown with OIDC credential containing nonce.
-  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
-      'OIDC_ID_TOKEN', null, 'NONCE');
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential({
+    'idToken': 'OIDC_ID_TOKEN',
+    'rawNonce': 'NONCE'
+  });
   // Credential already in use error returned.
   var expectedError = new fireauth.AuthErrorWithCredential(
       fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
@@ -4082,8 +4090,10 @@ function testVerifyAssertion_emailExistsError_oauthResponseAndEmail() {
  */
 function testVerifyAssertion_emailExistsError_nonceIdToken() {
   // Expected error thrown with OIDC credential containing nonce.
-  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
-      'OIDC_ID_TOKEN', null, 'NONCE');
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential({
+    'idToken': 'OIDC_ID_TOKEN',
+    'rawNonce': 'NONCE'
+  });
   // Credential already in use error returned.
   var expectedError = new fireauth.AuthErrorWithCredential(
       fireauth.authenum.Error.EMAIL_EXISTS,
@@ -4131,8 +4141,10 @@ function testVerifyAssertion_emailExistsError_nonceIdToken() {
  */
 function testVerifyAssertion_emailExistsError_idTokenSessionId() {
   // Expected error thrown with OIDC credential containing nonce.
-  var credential = new fireauth.OAuthProvider('oidc.provider').credential(
-      'OIDC_ID_TOKEN', null, 'NONCE');
+  var credential = new fireauth.OAuthProvider('oidc.provider').credential({
+    'idToken': 'OIDC_ID_TOKEN',
+    'rawNonce': 'NONCE'
+  });
   // Credential already in use error returned.
   var expectedError = new fireauth.AuthErrorWithCredential(
       fireauth.authenum.Error.EMAIL_EXISTS,

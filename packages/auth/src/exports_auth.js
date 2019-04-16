@@ -18,20 +18,25 @@
 goog.provide('fireauth.exports');
 
 goog.require('fireauth.Auth');
+goog.require('fireauth.AuthCredential');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.AuthErrorWithCredential');
 goog.require('fireauth.AuthSettings');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.ConfirmationResult');
+goog.require('fireauth.EmailAuthCredential');
 goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.FacebookAuthProvider');
 goog.require('fireauth.GRecaptchaMockFactory');
 goog.require('fireauth.GithubAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
 goog.require('fireauth.InvalidOriginError');
+goog.require('fireauth.OAuthCredential');
 goog.require('fireauth.OAuthProvider');
+goog.require('fireauth.PhoneAuthCredential');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.RecaptchaVerifier');
+goog.require('fireauth.SAMLAuthCredential');
 goog.require('fireauth.SAMLAuthProvider');
 goog.require('fireauth.TwitterAuthProvider');
 goog.require('fireauth.args');
@@ -397,11 +402,28 @@ fireauth.exportlib.exportPrototypeMethods(
     });
 
 fireauth.exportlib.exportFunction(
+    fireauth.AuthCredential, 'fromJSON',
+    fireauth.AuthCredential.fromPlainObject, [
+      fireauth.args.or(fireauth.args.string(), fireauth.args.object(), 'json')
+    ]);
+
+fireauth.exportlib.exportFunction(
     fireauth.EmailAuthProvider, 'credential',
     fireauth.EmailAuthProvider.credential, [
       fireauth.args.string('email'),
       fireauth.args.string('password')
     ]);
+
+fireauth.exportlib.exportPrototypeMethods(
+    fireauth.EmailAuthCredential.prototype, {
+     toPlainObject: {
+        name: 'toJSON',
+        // This shouldn't take an argument but a blank string is being passed
+        // on JSON.stringify and causing this to fail with an argument error.
+        // So allow an optional string.
+        args: [fireauth.args.string(null, true)]
+      }
+    });
 
 fireauth.exportlib.exportPrototypeMethods(
     fireauth.FacebookAuthProvider.prototype, {
@@ -489,12 +511,12 @@ fireauth.exportlib.exportPrototypeMethods(
       credential: {
         name: 'credential',
         args: [
+          fireauth.args.or(
+              fireauth.args.string(),
+              fireauth.args.or(fireauth.args.object(), fireauth.args.null()),
+              'optionsOrIdToken'),
           fireauth.args.or(fireauth.args.string(), fireauth.args.null(),
-              'idToken', true),
-          fireauth.args.or(fireauth.args.string(), fireauth.args.null(),
-              'accessToken', true),
-          fireauth.args.or(fireauth.args.string(), fireauth.args.null(),
-              'nonce', true)
+              'accessToken', true)
         ]
       },
       setCustomParameters: {
@@ -502,6 +524,29 @@ fireauth.exportlib.exportPrototypeMethods(
         args: [fireauth.args.object('customOAuthParameters')]
       }
     });
+
+fireauth.exportlib.exportPrototypeMethods(
+    fireauth.OAuthCredential.prototype, {
+     toPlainObject: {
+        name: 'toJSON',
+        // This shouldn't take an argument but a blank string is being passed
+        // on JSON.stringify and causing this to fail with an argument error.
+        // So allow an optional string.
+        args: [fireauth.args.string(null, true)]
+      }
+    });
+
+fireauth.exportlib.exportPrototypeMethods(
+    fireauth.SAMLAuthCredential.prototype, {
+     toPlainObject: {
+        name: 'toJSON',
+        // This shouldn't take an argument but a blank string is being passed
+        // on JSON.stringify and causing this to fail with an argument error.
+        // So allow an optional string.
+        args: [fireauth.args.string(null, true)]
+      }
+    });
+
 fireauth.exportlib.exportFunction(
     fireauth.PhoneAuthProvider, 'credential',
     fireauth.PhoneAuthProvider.credential, [
@@ -516,6 +561,17 @@ fireauth.exportlib.exportPrototypeMethods(
           fireauth.args.string('phoneNumber'),
           fireauth.args.applicationVerifier()
         ]
+      }
+    });
+
+fireauth.exportlib.exportPrototypeMethods(
+    fireauth.PhoneAuthCredential.prototype, {
+     toPlainObject: {
+        name: 'toJSON',
+        // This shouldn't take an argument but a blank string is being passed
+        // on JSON.stringify and causing this to fail with an argument error.
+        // So allow an optional string.
+        args: [fireauth.args.string(null, true)]
       }
     });
 
@@ -592,6 +648,7 @@ fireauth.exportlib.exportPrototypeMethods(
 
     var namespace = {
       'Auth': fireauth.Auth,
+      'AuthCredential': fireauth.AuthCredential,
       'Error': fireauth.AuthError
     };
     fireauth.exportlib.exportFunction(namespace,
