@@ -190,9 +190,7 @@ export class SimpleDb {
   /** Parse User Agent to determine iOS version. Returns 0 if not found. */
   static getIOSVersion(ua: string): number {
     const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
-    const version = iOSVersionRegex
-      ? iOSVersionRegex[1].split('_')[0]
-      : '0';
+    const version = iOSVersionRegex ? iOSVersionRegex[1].split('_')[0] : '0';
     return parseInt(version);
   }
 
