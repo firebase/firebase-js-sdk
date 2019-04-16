@@ -163,7 +163,7 @@ export class SimpleDb {
     // like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';
 
     // iOS Safari: Disable for users running iOS version < 10.
-    const iOSVersion = getIOSVersion(ua);
+    const iOSVersion = SimpleDb.getIOSVersion(ua);
     const isUnsupportedIOS = 0 < iOSVersion && iOSVersion < 10;
 
     if (
