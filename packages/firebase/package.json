@@ -47,14 +47,14 @@
   },
   "devDependencies": {
     "git-rev-sync": "1.12.0",
-    "rollup": "1.7.3",
-    "rollup-plugin-commonjs": "9.2.2",
+    "rollup": "1.10.0",
+    "rollup-plugin-commonjs": "9.3.4",
     "rollup-plugin-license": "0.8.1",
-    "rollup-plugin-node-resolve": "4.0.1",
+    "rollup-plugin-node-resolve": "4.2.3",
     "rollup-plugin-sourcemaps": "0.4.2",
     "rollup-plugin-typescript2": "0.20.1",
     "rollup-plugin-uglify": "6.0.2",
-    "typescript": "3.3.4000"
+    "typescript": "3.4.3"
   },
   "typings": "index.d.ts"
 }
