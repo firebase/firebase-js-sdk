@@ -162,16 +162,16 @@ export class SimpleDb {
     // ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML,
     // like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';
 
-    const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
-    const webkit = !!ua.match(/WebKit/i);
-    const iOSSafari = iOS && webkit && !ua.match(/CriOS/i);
-    console.log('is iOSSafari?: ', iOSSafari);
+    // iOS Safari: Disable for users running iOS version < 10.
+    const iOSSafari =
+      (!!ua.match(/iPad/i) || !!ua.match(/iPhone/i)) && !!ua.match(/WebKit/i);
+    const isUnsupportedIOS = iOSSafari && SimpleDb.getIOSVersion(ua) < 10;
 
     if (
       ua.indexOf('MSIE ') > 0 ||
       ua.indexOf('Trident/') > 0 ||
       ua.indexOf('Edge/') > 0 ||
-      iOSSafari
+      isUnsupportedIOS
     ) {
       return false;
     } else {
@@ -185,6 +185,15 @@ export class SimpleDb {
     store: string
   ): SimpleDbStore<KeyType, ValueType> {
     return txn.store<KeyType, ValueType>(store);
+  }
+
+  /** Parse User Agent to determine iOS version. Returns 0 if not found. */
+  static getIOSVersion(ua: string): number {
+    const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
+    const version = iOSVersionRegex
+      ? iOSVersionRegex[1].split('_')[0]
+      : '0';
+    return parseInt(version);
   }
 
   constructor(private db: IDBDatabase) {}

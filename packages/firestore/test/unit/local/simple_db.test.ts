@@ -121,6 +121,18 @@ describe('SimpleDb', () => {
 
   after(() => SimpleDb.delete(dbName));
 
+  it('regex test', () => {
+    const iPhoneSafariAgent10 =
+      'Mozilla/5.0 (iPhone; CPU iPhone OS 10_14_4 like Mac OS X)' +
+      ' AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B411' +
+      ' Safari/600.1.4';
+    const iPadSafariAgent9 =
+      'Mozilla/5.0 (iPad; CPU iPad OS 9_0 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko)' +
+      ' Version/9.0 Mobile/13A344 Safari/601';
+    expect(SimpleDb.getIOSVersion(iPhoneSafariAgent10)).to.equal(10);
+    expect(SimpleDb.getIOSVersion(iPadSafariAgent9)).to.equal(9);
+  });
+
   it('can get', async () => {
     await runTransaction(store => {
       return store
