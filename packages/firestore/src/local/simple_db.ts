@@ -163,9 +163,8 @@ export class SimpleDb {
     // like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';
 
     // iOS Safari: Disable for users running iOS version < 10.
-    const iOSSafari =
-      (!!ua.match(/iPad/i) || !!ua.match(/iPhone/i)) && !!ua.match(/WebKit/i);
-    const isUnsupportedIOS = iOSSafari && SimpleDb.getIOSVersion(ua) < 10;
+    const iOSVersion = getIOSVersion(ua);
+    const isUnsupportedIOS = 0 < iOSVersion && iOSVersion < 10;
 
     if (
       ua.indexOf('MSIE ') > 0 ||
@@ -187,10 +186,10 @@ export class SimpleDb {
     return txn.store<KeyType, ValueType>(store);
   }
 
-  /** Parse User Agent to determine iOS version. Returns 0 if not found. */
+  /** Parse User Agent to determine iOS version. Returns -1 if not found. */
   static getIOSVersion(ua: string): number {
     const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
-    const version = iOSVersionRegex ? iOSVersionRegex[1].split('_')[0] : '0';
+    const version = iOSVersionRegex ? iOSVersionRegex[1].split('_')[0] : '-1';
     return parseInt(version);
   }
 
