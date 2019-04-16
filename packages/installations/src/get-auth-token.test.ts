@@ -31,6 +31,7 @@ import {
   RequestStatus,
   UnregisteredInstallationEntry
 } from './interfaces/installation-entry';
+import { getFakeApp } from './testing/get-fake-app';
 import './testing/setup';
 import { sleep } from './util/sleep';
 
@@ -163,16 +164,7 @@ const setupInstallationEntryMap: Map<string, () => Promise<void>> = new Map([
 ]);
 
 describe('getAuthToken', () => {
-  const app: FirebaseApp = {
-    name: 'app',
-    delete: async () => {},
-    automaticDataCollectionEnabled: true,
-    options: {
-      projectId: 'projectId',
-      apiKey: 'apiKey',
-      appId: 'appId'
-    }
-  };
+  const app: FirebaseApp = getFakeApp();
   let createInstallationSpy: SinonStub<
     [AppConfig, InProgressInstallationEntry],
     Promise<RegisteredInstallationEntry>

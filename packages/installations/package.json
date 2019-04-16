@@ -44,8 +44,12 @@
     "tslint-plugin-prettier": "2.0.1",
     "typescript": "3.3.4000"
   },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
+  },
   "dependencies": {
-    "@firebase/app-types": "0.x",
+    "@firebase/installations-types": "0.0.1",
     "@firebase/util": "0.2.11",
     "idb": "3.0.2"
   }

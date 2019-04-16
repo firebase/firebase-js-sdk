@@ -17,22 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 
-export function getFakeApp(): FirebaseApp {
-  return {
-    name: 'name',
-    options: {
-      apiKey: 'apiKey',
-      projectId: 'projectId',
-      authDomain: 'authDomain',
-      messagingSenderId: 'messagingSenderId',
-      databaseURL: 'databaseUrl',
-      storageBucket: 'storageBucket',
-      appId: 'appId'
-    },
-    automaticDataCollectionEnabled: true,
-    delete: async () => {},
-    // This won't be used in tests.
-    // tslint:disable-next-line:no-any
-    installations: null as any
-  };
+export interface FirebaseInstallations {
+  getFid(): Promise<string>;
+  getAuthToken(): Promise<string>;
 }

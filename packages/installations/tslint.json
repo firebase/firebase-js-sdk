@@ -17,6 +17,7 @@
       true,
       ["chai", "chai-as-promised", "sinon", "sinon-chai"]
     ],
+    "no-submodule-imports": false,
     "no-unnecessary-type-assertion": true,
     "object-literal-sort-keys": false,
     "prefer-method-signature": true,
