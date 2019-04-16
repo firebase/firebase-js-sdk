@@ -63,7 +63,7 @@ async function completeInstallationRegistration(
 async function fetchAuthToken(appConfig: AppConfig): Promise<string> {
   let tokenPromise: Promise<CompletedAuthToken> | undefined;
   const entry = await update(
-    appConfig.appId,
+    appConfig,
     (oldEntry?: InstallationEntry): RegisteredInstallationEntry => {
       if (!isEntryRegistered(oldEntry)) {
         throw ERROR_FACTORY.create(ErrorCode.NOT_REGISTERED);
@@ -75,7 +75,7 @@ async function fetchAuthToken(appConfig: AppConfig): Promise<string> {
         return oldEntry;
       } else if (oldAuthToken.requestStatus === RequestStatus.IN_PROGRESS) {
         // There already is a token request in progress.
-        tokenPromise = waitUntilAuthTokenRequest(appConfig.appId);
+        tokenPromise = waitUntilAuthTokenRequest(appConfig);
         return oldEntry;
       } else {
         // No token or token expired.
@@ -100,18 +100,18 @@ async function fetchAuthToken(appConfig: AppConfig): Promise<string> {
  * Call only if FID is registered and Auth Token request is in progress.
  */
 async function waitUntilAuthTokenRequest(
-  appId: string
+  appConfig: AppConfig
 ): Promise<CompletedAuthToken> {
   // Unfortunately, there is no way of reliably observing when a value in
   // IndexedDB changes (yet, see https://github.com/WICG/indexed-db-observers),
   // so we need to poll.
 
-  let entry = await updateAuthTokenRequest(appId);
+  let entry = await updateAuthTokenRequest(appConfig);
   while (entry.authToken.requestStatus === RequestStatus.IN_PROGRESS) {
     // generateAuthToken still in progress.
     await sleep(100);
 
-    entry = await updateAuthTokenRequest(appId);
+    entry = await updateAuthTokenRequest(appConfig);
   }
 
   const authToken = entry.authToken;
@@ -131,10 +131,10 @@ async function waitUntilAuthTokenRequest(
  * Returns the updated InstallationEntry.
  */
 function updateAuthTokenRequest(
-  appId: string
+  appConfig: AppConfig
 ): Promise<RegisteredInstallationEntry> {
   return update(
-    appId,
+    appConfig,
     (oldEntry?: InstallationEntry): RegisteredInstallationEntry => {
       if (!isEntryRegistered(oldEntry)) {
         throw ERROR_FACTORY.create(ErrorCode.NOT_REGISTERED);
@@ -163,19 +163,19 @@ async function fetchAuthTokenFromServer(
       ...installationEntry,
       authToken
     };
-    await set(appConfig.appId, updatedInstallationEntry);
+    await set(appConfig, updatedInstallationEntry);
     return authToken;
   } catch (e) {
     if (isServerError(e) && (e.serverCode === 401 || e.serverCode === 404)) {
       // Server returned a "FID not found" or a "Invalid authentication" error.
       // Generate a new ID next time.
-      await remove(appConfig.appId);
+      await remove(appConfig);
     } else {
       const updatedInstallationEntry: RegisteredInstallationEntry = {
         ...installationEntry,
         authToken: { requestStatus: RequestStatus.NOT_STARTED }
       };
-      await set(appConfig.appId, updatedInstallationEntry);
+      await set(appConfig, updatedInstallationEntry);
     }
     throw e;
   }

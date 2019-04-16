@@ -17,9 +17,19 @@
 
 import { expect } from 'chai';
 import { clear, get, remove, set, update } from './idb-manager';
+import { AppConfig } from './interfaces/app-config';
+import { getFakeAppConfig } from './testing/get-fake-app';
 import './testing/setup';
 
 describe('idb manager', () => {
+  let appConfig1: AppConfig;
+  let appConfig2: AppConfig;
+
+  beforeEach(() => {
+    appConfig1 = { ...getFakeAppConfig(), appName: 'appName1' };
+    appConfig2 = { ...getFakeAppConfig(), appName: 'appName2' };
+  });
+
   afterEach(async () => {
     // Clear the database after each test.
     await clear();
@@ -27,50 +37,50 @@ describe('idb manager', () => {
 
   describe('get / set', () => {
     it('sets a value and then gets the same value back', async () => {
-      await set('key', 'value');
-      const value = await get<string>('key');
+      await set(appConfig1, 'value');
+      const value = await get<string>(appConfig1);
       expect(value).to.equal('value');
     });
 
     it('gets undefined for a key that does not exist', async () => {
-      const value = await get<string>('key');
+      const value = await get<string>(appConfig1);
       expect(value).to.be.undefined;
     });
 
     it('sets and gets multiple values with different keys', async () => {
-      await set('key', 'value');
-      await set('key2', 'value2');
-      expect(await get<string>('key')).to.equal('value');
-      expect(await get<string>('key2')).to.equal('value2');
+      await set(appConfig1, 'value');
+      await set(appConfig2, 'value2');
+      expect(await get<string>(appConfig1)).to.equal('value');
+      expect(await get<string>(appConfig2)).to.equal('value2');
     });
 
     it('overwrites a value', async () => {
-      await set('key', 'value');
-      await set('key', 'newValue');
-      expect(await get<string>('key')).to.equal('newValue');
+      await set(appConfig1, 'value');
+      await set(appConfig1, 'newValue');
+      expect(await get<string>(appConfig1)).to.equal('newValue');
     });
   });
 
   describe('remove', () => {
     it('deletes a key', async () => {
-      await set('key', 'value');
-      await remove('key');
-      expect(await get<string>('key')).to.be.undefined;
+      await set(appConfig1, 'value');
+      await remove(appConfig1);
+      expect(await get<string>(appConfig1)).to.be.undefined;
     });
 
     it('does not throw if key does not exist', async () => {
-      await remove('key');
-      expect(await get<string>('key')).to.be.undefined;
+      await remove(appConfig1);
+      expect(await get<string>(appConfig1)).to.be.undefined;
     });
   });
 
   describe('clear', () => {
     it('deletes all keys', async () => {
-      await set('key', 'value');
-      await set('key2', 'value2');
+      await set(appConfig1, 'value');
+      await set(appConfig2, 'value2');
       await clear();
-      expect(await get('key')).to.be.undefined;
-      expect(await get('key2')).to.be.undefined;
+      expect(await get(appConfig1)).to.be.undefined;
+      expect(await get(appConfig2)).to.be.undefined;
     });
   });
 
@@ -78,9 +88,9 @@ describe('idb manager', () => {
     it('gets and sets a value atomically, returns the new value', async () => {
       let isGetCalled = false;
 
-      await set('key', 'value');
+      await set(appConfig1, 'value');
 
-      const resultPromise = update<string, string>('key', oldValue => {
+      const resultPromise = update<string, string>(appConfig1, oldValue => {
         // get is already called for the same key, but it will only complete
         // after update transaction finishes, at which point it will return the
         // new value.
@@ -91,7 +101,7 @@ describe('idb manager', () => {
       });
 
       // Called immediately after update, but before update completed.
-      const getPromise = get<string>('key');
+      const getPromise = get<string>(appConfig1);
       isGetCalled = true;
 
       // Update returns the new value
@@ -104,9 +114,9 @@ describe('idb manager', () => {
     it('can change the type of the value', async () => {
       let isGetCalled = false;
 
-      await set('key', 'value');
+      await set(appConfig1, 'value');
 
-      const resultPromise = update<string, number>('key', oldValue => {
+      const resultPromise = update<string, number>(appConfig1, oldValue => {
         // get is already called for the same key, but it will only complete
         // after update transaction finishes, at which point it will return the
         // new value.
@@ -117,7 +127,7 @@ describe('idb manager', () => {
       });
 
       // Called immediately after update, but before update completed.
-      const getPromise = get<number>('key');
+      const getPromise = get<number>(appConfig1);
       isGetCalled = true;
 
       // Update returns the new value

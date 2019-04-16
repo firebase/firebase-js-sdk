@@ -28,6 +28,7 @@ import {
   RequestStatus,
   UnregisteredInstallationEntry
 } from '../interfaces/installation-entry';
+import { getFakeAppConfig } from '../testing/get-fake-app';
 import '../testing/setup';
 import * as fidGenerator from './generate-fid';
 import { getInstallationEntry } from './get-installation-entry';
@@ -36,17 +37,14 @@ import { sleep } from './sleep';
 const FID = 'cry-of-the-black-birds';
 
 describe('getInstallationEntry', () => {
-  const appConfig: AppConfig = {
-    projectId: 'projectId',
-    apiKey: 'apiKey',
-    appId: 'appId'
-  };
+  let appConfig: AppConfig;
   let createInstallationSpy: SinonStub<
     [AppConfig, InProgressInstallationEntry],
     Promise<RegisteredInstallationEntry>
   >;
 
   beforeEach(() => {
+    appConfig = getFakeAppConfig();
     createInstallationSpy = stub(api, 'createInstallation').callsFake(
       async (_, installationEntry): Promise<RegisteredInstallationEntry> => {
         await sleep(50); // Request would take some time
@@ -77,24 +75,24 @@ describe('getInstallationEntry', () => {
   });
 
   it('saves the InstallationEntry in the database before returning it', async () => {
-    const oldDbEntry = await get<InstallationEntry>(appConfig.appId);
+    const oldDbEntry = await get<InstallationEntry>(appConfig);
     expect(oldDbEntry).to.be.undefined;
 
     const { installationEntry } = await getInstallationEntry(appConfig);
 
-    const newDbEntry = await get<InstallationEntry>(appConfig.appId);
+    const newDbEntry = await get<InstallationEntry>(appConfig);
     expect(newDbEntry).to.deep.equal(installationEntry);
   });
 
   it('saves the InstallationEntry in the database if app is offline', async () => {
     stub(navigator, 'onLine').value(false);
 
-    const oldDbEntry = await get<InstallationEntry>(appConfig.appId);
+    const oldDbEntry = await get<InstallationEntry>(appConfig);
     expect(oldDbEntry).to.be.undefined;
 
     const { installationEntry } = await getInstallationEntry(appConfig);
 
-    const newDbEntry = await get<InstallationEntry>(appConfig.appId);
+    const newDbEntry = await get<InstallationEntry>(appConfig);
     expect(newDbEntry).to.deep.equal(installationEntry);
   });
 
@@ -108,12 +106,12 @@ describe('getInstallationEntry', () => {
     );
     expect(registrationPromise).to.be.an.instanceOf(Promise);
 
-    const oldDbEntry = await get<InstallationEntry>(appConfig.appId);
+    const oldDbEntry = await get<InstallationEntry>(appConfig);
     expect(oldDbEntry).to.deep.equal(installationEntry);
 
     await registrationPromise;
 
-    const newDbEntry = await get<InstallationEntry>(appConfig.appId);
+    const newDbEntry = await get<InstallationEntry>(appConfig);
     expect(newDbEntry!.registrationStatus).to.deep.equal(
       RequestStatus.COMPLETED
     );
@@ -137,12 +135,12 @@ describe('getInstallationEntry', () => {
       RequestStatus.IN_PROGRESS
     );
 
-    const oldDbEntry = await get<InstallationEntry>(appConfig.appId);
+    const oldDbEntry = await get<InstallationEntry>(appConfig);
     expect(oldDbEntry).to.deep.equal(installationEntry);
 
     await expect(registrationPromise).to.eventually.be.rejected;
 
-    const newDbEntry = await get<InstallationEntry>(appConfig.appId);
+    const newDbEntry = await get<InstallationEntry>(appConfig);
     expect(newDbEntry!.registrationStatus).to.deep.equal(
       RequestStatus.NOT_STARTED
     );
@@ -166,12 +164,12 @@ describe('getInstallationEntry', () => {
       RequestStatus.IN_PROGRESS
     );
 
-    const oldDbEntry = await get<InstallationEntry>(appConfig.appId);
+    const oldDbEntry = await get<InstallationEntry>(appConfig);
     expect(oldDbEntry).to.deep.equal(installationEntry);
 
     await expect(registrationPromise).to.eventually.be.rejected;
 
-    const newDbEntry = await get<InstallationEntry>(appConfig.appId);
+    const newDbEntry = await get<InstallationEntry>(appConfig);
     expect(newDbEntry).to.be.undefined;
   });
 
@@ -268,7 +266,7 @@ describe('getInstallationEntry', () => {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       };
-      await set(appConfig.appId, unregisteredInstallationEntry);
+      await set(appConfig, unregisteredInstallationEntry);
     });
 
     it('returns a pending InstallationEntry and triggers createInstallation', async () => {
@@ -311,7 +309,7 @@ describe('getInstallationEntry', () => {
         registrationStatus: RequestStatus.IN_PROGRESS,
         registrationTime: 1_000_000
       };
-      await set(appConfig.appId, inProgressInstallationEntry);
+      await set(appConfig, inProgressInstallationEntry);
     });
 
     it("returns the same InstallationEntry if the request hasn't timed out", async () => {
@@ -362,7 +360,7 @@ describe('getInstallationEntry', () => {
         refreshToken: 'refreshToken',
         authToken: { requestStatus: RequestStatus.NOT_STARTED }
       };
-      await set(appConfig.appId, registeredInstallationEntry);
+      await set(appConfig, registeredInstallationEntry);
     });
 
     it('returns the InstallationEntry from the database', async () => {

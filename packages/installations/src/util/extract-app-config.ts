@@ -24,11 +24,12 @@ export function extractAppConfig(app: FirebaseApp): AppConfig {
     throw ERROR_FACTORY.create(ErrorCode.MISSING_APP_CONFIG_VALUES);
   }
 
+  const appName = app.name;
   const { projectId, apiKey, appId } = app.options;
 
-  if (!projectId || !apiKey || !appId) {
+  if (!appName || !projectId || !apiKey || !appId) {
     throw ERROR_FACTORY.create(ErrorCode.MISSING_APP_CONFIG_VALUES);
   }
 
-  return { projectId, apiKey, appId };
+  return { appName, projectId, apiKey, appId };
 }

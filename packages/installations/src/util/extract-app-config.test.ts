@@ -23,19 +23,23 @@ import '../testing/setup';
 import { extractAppConfig } from './extract-app-config';
 
 describe('extractAppConfig', () => {
-  const expected: AppConfig = {
-    apiKey: 'apiKey',
-    projectId: 'projectId',
-    appId: 'appId'
-  };
-
   it('returns AppConfig if the argument is a FirebaseApp object that includes an appId', () => {
     const firebaseApp = getFakeApp();
+    const expected: AppConfig = {
+      appName: 'appName',
+      apiKey: 'apiKey',
+      projectId: 'projectId',
+      appId: '1:777777777777:web:d93b5ca1475efe57'
+    };
     expect(extractAppConfig(firebaseApp)).to.deep.equal(expected);
   });
 
   it('throws if a necessary value is missing', () => {
     let firebaseApp = getFakeApp();
+    delete firebaseApp.name;
+    expect(() => extractAppConfig(firebaseApp)).to.throw(FirebaseError);
+
+    firebaseApp = getFakeApp();
     delete firebaseApp.options;
     expect(() => extractAppConfig(firebaseApp)).to.throw(FirebaseError);
 

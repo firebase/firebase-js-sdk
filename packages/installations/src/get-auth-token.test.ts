@@ -33,6 +33,7 @@ import {
 } from './interfaces/installation-entry';
 import { getFakeApp } from './testing/get-fake-app';
 import './testing/setup';
+import { extractAppConfig } from './util/extract-app-config';
 import { sleep } from './util/sleep';
 
 const FID = 'dont-talk-to-strangers';
@@ -43,10 +44,13 @@ const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
  * A map of different states of the database and a function that creates the
  * said state.
  */
-const setupInstallationEntryMap: Map<string, () => Promise<void>> = new Map([
+const setupInstallationEntryMap: Map<
+  string,
+  (appConfig: AppConfig) => Promise<void>
+> = new Map([
   [
     'existing and valid auth token',
-    async () => {
+    async (appConfig: AppConfig) => {
       const entry: RegisteredInstallationEntry = {
         fid: FID,
         registrationStatus: RequestStatus.COMPLETED,
@@ -58,12 +62,12 @@ const setupInstallationEntryMap: Map<string, () => Promise<void>> = new Map([
           creationTime: Date.now()
         }
       };
-      set('appId', entry);
+      set(appConfig, entry);
     }
   ],
   [
     'expired auth token',
-    async () => {
+    async (appConfig: AppConfig) => {
       const entry: RegisteredInstallationEntry = {
         fid: FID,
         registrationStatus: RequestStatus.COMPLETED,
@@ -75,12 +79,12 @@ const setupInstallationEntryMap: Map<string, () => Promise<void>> = new Map([
           creationTime: Date.now() - 2 * ONE_WEEK_MS
         }
       };
-      set('appId', entry);
+      set(appConfig, entry);
     }
   ],
   [
     'pending auth token',
-    async () => {
+    async (appConfig: AppConfig) => {
       const entry: RegisteredInstallationEntry = {
         fid: FID,
         registrationStatus: RequestStatus.COMPLETED,
@@ -91,7 +95,7 @@ const setupInstallationEntryMap: Map<string, () => Promise<void>> = new Map([
         }
       };
 
-      set('appId', entry);
+      set(appConfig, entry);
 
       // Finish pending request in 10 ms
       sleep(50).then(() => {
@@ -104,13 +108,13 @@ const setupInstallationEntryMap: Map<string, () => Promise<void>> = new Map([
             creationTime: Date.now()
           }
         };
-        set('appId', updatedEntry);
+        set(appConfig, updatedEntry);
       });
     }
   ],
   [
     'no auth token',
-    async () => {
+    async (appConfig: AppConfig) => {
       const entry: RegisteredInstallationEntry = {
         fid: FID,
         registrationStatus: RequestStatus.COMPLETED,
@@ -119,19 +123,19 @@ const setupInstallationEntryMap: Map<string, () => Promise<void>> = new Map([
           requestStatus: RequestStatus.NOT_STARTED
         }
       };
-      set('appId', entry);
+      set(appConfig, entry);
     }
   ],
   [
     'pending fid registration',
-    async () => {
+    async (appConfig: AppConfig) => {
       const entry: InProgressInstallationEntry = {
         fid: FID,
         registrationStatus: RequestStatus.IN_PROGRESS,
         registrationTime: Date.now() - 3 * 1000
       };
 
-      set('appId', entry);
+      set(appConfig, entry);
 
       // Finish pending request in 10 ms
       sleep(50).then(async () => {
@@ -146,25 +150,26 @@ const setupInstallationEntryMap: Map<string, () => Promise<void>> = new Map([
             creationTime: Date.now()
           }
         };
-        set('appId', updatedEntry);
+        set(appConfig, updatedEntry);
       });
     }
   ],
   [
     'unregistered fid',
-    async () => {
+    async (appConfig: AppConfig) => {
       const entry: UnregisteredInstallationEntry = {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       };
 
-      set('appId', entry);
+      set(appConfig, entry);
     }
   ]
 ]);
 
 describe('getAuthToken', () => {
-  const app: FirebaseApp = getFakeApp();
+  let app: FirebaseApp;
+  let appConfig: AppConfig;
   let createInstallationSpy: SinonStub<
     [AppConfig, InProgressInstallationEntry],
     Promise<RegisteredInstallationEntry>
@@ -175,6 +180,9 @@ describe('getAuthToken', () => {
   >;
 
   beforeEach(() => {
+    app = getFakeApp();
+    appConfig = extractAppConfig(app);
+
     createInstallationSpy = stub(api, 'createInstallation').callsFake(
       async (_, installationEntry) => {
         await sleep(50); // Request would take some time
@@ -216,7 +224,9 @@ describe('getAuthToken', () => {
   describe('basic functionality', () => {
     for (const [title, setup] of setupInstallationEntryMap.entries()) {
       describe(`when ${title} in the DB`, () => {
-        beforeEach(setup);
+        beforeEach(() => {
+          setup(appConfig);
+        });
 
         it('resolves with an auth token', async () => {
           const token = await getAuthToken(app);
@@ -226,7 +236,7 @@ describe('getAuthToken', () => {
         it('saves the token in the DB', async () => {
           const token = await getAuthToken(app);
           const installationEntry = await get<RegisteredInstallationEntry>(
-            app.options.appId
+            appConfig
           );
           expect(installationEntry).not.to.be.undefined;
           expect(installationEntry!.registrationStatus).to.equal(
@@ -281,7 +291,7 @@ describe('getAuthToken', () => {
           requestStatus: RequestStatus.NOT_STARTED
         }
       };
-      await set(app.options.appId, installationEntry);
+      await set(appConfig, installationEntry);
     });
 
     it('gets the token by calling generateAuthToken', async () => {
@@ -314,7 +324,7 @@ describe('getAuthToken', () => {
         });
 
         await expect(getAuthToken(app)).to.eventually.be.rejected;
-        await expect(get(app.options.appId)).to.eventually.be.undefined;
+        await expect(get(appConfig)).to.eventually.be.undefined;
       });
 
       it('removes the FID from the DB if the server returns a 404 response', async () => {
@@ -328,7 +338,7 @@ describe('getAuthToken', () => {
         });
 
         await expect(getAuthToken(app)).to.eventually.be.rejected;
-        await expect(get(app.options.appId)).to.eventually.be.undefined;
+        await expect(get(appConfig)).to.eventually.be.undefined;
       });
 
       it('does not remove the FID from the DB if the server returns any other response', async () => {
@@ -342,7 +352,7 @@ describe('getAuthToken', () => {
         });
 
         await expect(getAuthToken(app)).to.eventually.be.rejected;
-        await expect(get(app.options.appId)).to.eventually.deep.equal(
+        await expect(get(appConfig)).to.eventually.deep.equal(
           installationEntry
         );
       });
@@ -362,7 +372,7 @@ describe('getAuthToken', () => {
           creationTime: Date.now()
         }
       };
-      await set(app.options.appId, installationEntry);
+      await set(appConfig, installationEntry);
     });
 
     it('does not call any server APIs', async () => {
@@ -394,7 +404,7 @@ describe('getAuthToken', () => {
           creationTime: Date.now() - ONE_WEEK_MS + TOKEN_EXPIRATION_BUFFER + 10
         }
       };
-      await set(app.options.appId, installationEntry);
+      await set(appConfig, installationEntry);
     });
 
     it('returns a different token after expiration', async () => {
@@ -424,7 +434,7 @@ describe('getAuthToken', () => {
           creationTime: Date.now() - 2 * ONE_WEEK_MS
         }
       };
-      await set(app.options.appId, installationEntry);
+      await set(appConfig, installationEntry);
     });
 
     it('throws if the app is offline', async () => {

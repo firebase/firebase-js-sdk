@@ -16,6 +16,7 @@
  */
 
 import { DB, openDb } from 'idb';
+import { AppConfig } from './interfaces/app-config';
 
 const DATABASE_NAME = 'firebase-installations-database';
 const DATABASE_VERSION = 1;
@@ -38,8 +39,9 @@ const dbPromise: Promise<DB> = openDb(
 
 /** Gets record(s) from the objectStore that match the given key. */
 export async function get<ReturnType>(
-  key: IDBValidKey
+  appConfig: AppConfig
 ): Promise<ReturnType | undefined> {
+  const key = getKey(appConfig);
   const db = await dbPromise;
   return db
     .transaction(OBJECT_STORE_NAME)
@@ -49,9 +51,10 @@ export async function get<ReturnType>(
 
 /** Assigns or overwrites the record for the given key with the given value. */
 export async function set<ValueType>(
-  key: IDBValidKey,
+  appConfig: AppConfig,
   value: ValueType
 ): Promise<ValueType> {
+  const key = getKey(appConfig);
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   tx.objectStore(OBJECT_STORE_NAME).put(value, key);
@@ -60,7 +63,8 @@ export async function set<ValueType>(
 }
 
 /** Removes record(s) from the objectStore that match the given key. */
-export async function remove(key: IDBValidKey): Promise<void> {
+export async function remove(appConfig: AppConfig): Promise<void> {
+  const key = getKey(appConfig);
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   tx.objectStore(OBJECT_STORE_NAME).delete(key);
@@ -74,9 +78,10 @@ export async function remove(key: IDBValidKey): Promise<void> {
  * @return Updated value
  */
 export async function update<OldType, NewType>(
-  key: IDBValidKey,
+  appConfig: AppConfig,
   updateFn: (previousValue: OldType | undefined) => NewType
 ): Promise<NewType> {
+  const key = getKey(appConfig);
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   const store = tx.objectStore(OBJECT_STORE_NAME);
@@ -102,4 +107,8 @@ export async function clear(): Promise<void> {
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   tx.objectStore(OBJECT_STORE_NAME).clear();
   return tx.complete;
+}
+
+function getKey(appConfig: AppConfig): string {
+  return `${appConfig.appName}!${appConfig.appId}`;
 }

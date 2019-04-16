@@ -44,7 +44,7 @@ export async function getInstallationEntry(
 
   return {
     installationEntry: await update(
-      appConfig.appId,
+      appConfig,
       (oldEntry?: InstallationEntry): InstallationEntry => {
         const installationEntry = updateOrCreateFid(oldEntry);
         const entryWithPromise = triggerRegistrationIfNecessary(
@@ -113,7 +113,7 @@ function triggerRegistrationIfNecessary(
   ) {
     return {
       installationEntry,
-      registrationPromise: waitUntilFidRegistration(appConfig.appId)
+      registrationPromise: waitUntilFidRegistration(appConfig)
     };
   } else {
     return { installationEntry };
@@ -130,15 +130,15 @@ async function registerInstallation(
       appConfig,
       installationEntry
     );
-    await set(appConfig.appId, registeredInstallationEntry);
+    await set(appConfig, registeredInstallationEntry);
   } catch (e) {
     if (isServerError(e) && e.serverCode === 409) {
       // Server returned a "FID can not be used" error.
       // Generate a new ID next time.
-      await remove(appConfig.appId);
+      await remove(appConfig);
     } else {
       // Registration failed. Set FID as not registered.
-      await set(appConfig.appId, {
+      await set(appConfig, {
         fid: installationEntry.fid,
         registrationStatus: RequestStatus.NOT_STARTED
       });
@@ -148,17 +148,17 @@ async function registerInstallation(
 }
 
 /** Call if FID registration is pending. */
-async function waitUntilFidRegistration(appId: string): Promise<void> {
+async function waitUntilFidRegistration(appConfig: AppConfig): Promise<void> {
   // Unfortunately, there is no way of reliably observing when a value in
   // IndexedDB changes (yet, see https://github.com/WICG/indexed-db-observers),
   // so we need to poll.
 
-  let entry: InstallationEntry = await updateInstallationRequest(appId);
+  let entry: InstallationEntry = await updateInstallationRequest(appConfig);
   while (entry.registrationStatus === RequestStatus.IN_PROGRESS) {
     // createInstallation request still in progress.
     await sleep(100);
 
-    entry = await updateInstallationRequest(appId);
+    entry = await updateInstallationRequest(appConfig);
   }
 
   if (entry.registrationStatus === RequestStatus.NOT_STARTED) {
@@ -174,9 +174,11 @@ async function waitUntilFidRegistration(appId: string): Promise<void> {
  *
  * Returns the updated InstallationEntry.
  */
-function updateInstallationRequest(appId: string): Promise<InstallationEntry> {
+function updateInstallationRequest(
+  appConfig: AppConfig
+): Promise<InstallationEntry> {
   return update(
-    appId,
+    appConfig,
     (oldEntry?: InstallationEntry): InstallationEntry => {
       if (!oldEntry) {
         throw ERROR_FACTORY.create(ErrorCode.INSTALLATION_NOT_FOUND);

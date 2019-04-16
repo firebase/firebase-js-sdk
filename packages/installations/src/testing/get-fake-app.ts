@@ -16,10 +16,12 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { AppConfig } from '../interfaces/app-config';
+import { extractAppConfig } from '../util/extract-app-config';
 
 export function getFakeApp(): FirebaseApp {
   return {
-    name: 'name',
+    name: 'appName',
     options: {
       apiKey: 'apiKey',
       projectId: 'projectId',
@@ -27,7 +29,7 @@ export function getFakeApp(): FirebaseApp {
       messagingSenderId: 'messagingSenderId',
       databaseURL: 'databaseUrl',
       storageBucket: 'storageBucket',
-      appId: 'appId'
+      appId: '1:777777777777:web:d93b5ca1475efe57'
     },
     automaticDataCollectionEnabled: true,
     delete: async () => {},
@@ -35,4 +37,8 @@ export function getFakeApp(): FirebaseApp {
     // tslint:disable-next-line:no-any
     installations: null as any
   };
+}
+
+export function getFakeAppConfig(): AppConfig {
+  return extractAppConfig(getFakeApp());
 }

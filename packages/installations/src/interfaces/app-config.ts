@@ -16,6 +16,7 @@
  */
 
 export interface AppConfig {
+  readonly appName: string;
   readonly projectId: string;
   readonly apiKey: string;
   readonly appId: string;

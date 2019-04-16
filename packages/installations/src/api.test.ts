@@ -35,6 +35,7 @@ import {
   RequestStatus
 } from './interfaces/installation-entry';
 import { compareHeaders } from './testing/compare-headers';
+import { getFakeAppConfig } from './testing/get-fake-app';
 import './testing/setup';
 
 const FID = 'defenders-of-the-faith';
@@ -44,11 +45,7 @@ describe('api', () => {
   let fetchSpy: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
 
   beforeEach(async () => {
-    appConfig = {
-      apiKey: 'apiKey',
-      projectId: 'projectId',
-      appId: '1:777777777777:web:d93b5ca1475efe57'
-    };
+    appConfig = getFakeAppConfig();
   });
 
   afterEach(() => {
