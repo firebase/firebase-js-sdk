@@ -16,12 +16,12 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "core-js": "3.0.0",
+    "core-js": "3.0.1",
     "promise-polyfill": "8.1.0",
     "whatwg-fetch": "2.0.4"
   },
   "devDependencies": {
-    "rollup": "1.7.3",
+    "rollup": "1.10.0",
     "rollup-plugin-typescript2": "0.20.1"
   },
   "repository": {
