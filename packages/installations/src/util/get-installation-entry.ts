@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-import { FirebaseError } from '@firebase/util';
 import { createInstallation } from '../api';
-import { SERVICE } from '../constants';
-import { ErrorCode } from '../errors';
+import { ERROR_FACTORY, ErrorCode, isServerError } from '../errors';
 import { remove, set, update } from '../idb-manager';
 import { AppConfig } from '../interfaces/app-config';
 import {
@@ -28,11 +26,13 @@ import {
 } from '../interfaces/installation-entry';
 import { generateFid } from './generate-fid';
 import { hasInstallationRequestTimedOut } from './request-time-out-checks';
+import { sleep } from './sleep';
 
 export interface InstallationEntryWithRegistrationPromise {
   installationEntry: InstallationEntry;
   registrationPromise?: Promise<void>;
 }
+
 /**
  * Updates and returns the InstallationEntry from the database.
  * Also triggers a registration request if it is necessary and possible.
@@ -78,17 +78,25 @@ function updateOrCreateFid(
 }
 
 /**
- * If the Firebase Installation is not registered yet and the app is online,
- * this will trigger the registration and return an InProgressInstallationEntry.
+ * If the Firebase Installation is not registered yet, this will trigger the registration
+ * and return an InProgressInstallationEntry.
  */
 function triggerRegistrationIfNecessary(
   appConfig: AppConfig,
   installationEntry: InstallationEntry
 ): InstallationEntryWithRegistrationPromise {
-  if (
-    installationEntry.registrationStatus === RequestStatus.NOT_STARTED &&
-    navigator.onLine
-  ) {
+  if (installationEntry.registrationStatus === RequestStatus.NOT_STARTED) {
+    if (!navigator.onLine) {
+      // Registration required but app is offline.
+      const registrationPromiseWithError = Promise.reject(
+        ERROR_FACTORY.create(ErrorCode.APP_OFFLINE)
+      );
+      return {
+        installationEntry,
+        registrationPromise: registrationPromiseWithError
+      };
+    }
+
     // Try registering. Change status to IN_PROGRESS.
     const inProgressEntry: InProgressInstallationEntry = {
       fid: installationEntry.fid,
@@ -100,6 +108,13 @@ function triggerRegistrationIfNecessary(
       inProgressEntry
     );
     return { installationEntry: inProgressEntry, registrationPromise };
+  } else if (
+    installationEntry.registrationStatus === RequestStatus.IN_PROGRESS
+  ) {
+    return {
+      installationEntry,
+      registrationPromise: waitUntilFidRegistration(appConfig.appId)
+    };
   } else {
     return { installationEntry };
   }
@@ -117,17 +132,12 @@ async function registerInstallation(
     );
     await set(appConfig.appId, registeredInstallationEntry);
   } catch (e) {
-    if (
-      e instanceof FirebaseError &&
-      e.code === `${SERVICE}/${ErrorCode.CREATE_INSTALLATION_REQUEST_FAILED}` &&
-      // FirebaseError doesn't have the best typings.
-      // tslint:disable-next-line:no-any
-      (e as any).serverCode === 409
-    ) {
+    if (isServerError(e) && e.serverCode === 409) {
       // Server returned a "FID can not be used" error.
       // Generate a new ID next time.
       await remove(appConfig.appId);
     } else {
+      // Registration failed. Set FID as not registered.
       await set(appConfig.appId, {
         fid: installationEntry.fid,
         registrationStatus: RequestStatus.NOT_STARTED
@@ -135,4 +145,51 @@ async function registerInstallation(
     }
     throw e;
   }
+}
+
+/** Call if FID registration is pending. */
+async function waitUntilFidRegistration(appId: string): Promise<void> {
+  // Unfortunately, there is no way of reliably observing when a value in
+  // IndexedDB changes (yet, see https://github.com/WICG/indexed-db-observers),
+  // so we need to poll.
+
+  let entry: InstallationEntry = await updateInstallationRequest(appId);
+  while (entry.registrationStatus === RequestStatus.IN_PROGRESS) {
+    // createInstallation request still in progress.
+    await sleep(100);
+
+    entry = await updateInstallationRequest(appId);
+  }
+
+  if (entry.registrationStatus === RequestStatus.NOT_STARTED) {
+    throw ERROR_FACTORY.create(ErrorCode.CREATE_INSTALLATION_FAILED);
+  }
+}
+
+/**
+ * Called only if there is a CreateInstallation request in progress.
+ *
+ * Updates the InstallationEntry in the DB based on the status of the
+ * CreateInstallation request.
+ *
+ * Returns the updated InstallationEntry.
+ */
+function updateInstallationRequest(appId: string): Promise<InstallationEntry> {
+  return update(
+    appId,
+    (oldEntry?: InstallationEntry): InstallationEntry => {
+      if (!oldEntry) {
+        throw ERROR_FACTORY.create(ErrorCode.INSTALLATION_NOT_FOUND);
+      }
+
+      if (hasInstallationRequestTimedOut(oldEntry)) {
+        return {
+          fid: oldEntry.fid,
+          registrationStatus: RequestStatus.NOT_STARTED
+        };
+      }
+
+      return oldEntry;
+    }
+  );
 }

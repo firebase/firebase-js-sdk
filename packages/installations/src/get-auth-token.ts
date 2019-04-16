@@ -16,10 +16,9 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseError } from '@firebase/util';
 import { generateAuthToken } from './api';
-import { SERVICE, TOKEN_EXPIRATION_BUFFER } from './constants';
-import { ERROR_FACTORY, ErrorCode } from './errors';
+import { TOKEN_EXPIRATION_BUFFER } from './constants';
+import { ERROR_FACTORY, ErrorCode, isServerError } from './errors';
 import { remove, set, update } from './idb-manager';
 import { AppConfig } from './interfaces/app-config';
 import {
@@ -32,36 +31,33 @@ import {
 } from './interfaces/installation-entry';
 import { extractAppConfig } from './util/extract-app-config';
 import { getInstallationEntry } from './util/get-installation-entry';
-import {
-  hasAuthTokenRequestTimedOut,
-  hasInstallationRequestTimedOut
-} from './util/request-time-out-checks';
+import { hasAuthTokenRequestTimedOut } from './util/request-time-out-checks';
 import { sleep } from './util/sleep';
 
 export async function getAuthToken(app: FirebaseApp): Promise<string> {
   const appConfig = extractAppConfig(app);
 
-  const { installationEntry, registrationPromise } = await getInstallationEntry(
-    appConfig
-  );
-  if (registrationPromise) {
-    // A new createInstallation request was created. Wait until it finishes.
-    await registrationPromise;
-  } else if (
-    installationEntry.registrationStatus === RequestStatus.IN_PROGRESS
-  ) {
-    // There is an active createInstallation request. Wait until it finishes.
-    await waitUntilFidRegistration(appConfig.appId);
-  } else if (
-    installationEntry.registrationStatus === RequestStatus.NOT_STARTED
-  ) {
-    // Installation ID can't be registered.
-    throw ERROR_FACTORY.create(ErrorCode.CREATE_INSTALLATION_FAILED);
-  }
+  await completeInstallationRegistration(appConfig);
 
   // At this point we either have a Registered Installation in the DB, or we've
   // already thrown an error.
   return fetchAuthToken(appConfig);
+}
+
+async function completeInstallationRegistration(
+  appConfig: AppConfig
+): Promise<void> {
+  const { installationEntry, registrationPromise } = await getInstallationEntry(
+    appConfig
+  );
+
+  if (registrationPromise) {
+    // A createInstallation request is in progress. Wait until it finishes.
+    await registrationPromise;
+  } else if (installationEntry.registrationStatus !== RequestStatus.COMPLETED) {
+    // Installation ID can't be registered.
+    throw ERROR_FACTORY.create(ErrorCode.CREATE_INSTALLATION_FAILED);
+  }
 }
 
 async function fetchAuthToken(appConfig: AppConfig): Promise<string> {
@@ -157,57 +153,6 @@ function updateAuthTokenRequest(
   );
 }
 
-/** Call if FID registration is pending. */
-async function waitUntilFidRegistration(
-  appId: string
-): Promise<RegisteredInstallationEntry> {
-  // Unfortunately, there is no way of reliably observing when a value in
-  // IndexedDB changes (yet, see https://github.com/WICG/indexed-db-observers),
-  // so we need to poll.
-
-  let entry: InstallationEntry = await updateInstallationRequest(appId);
-  while (entry.registrationStatus === RequestStatus.IN_PROGRESS) {
-    // createInstallation request still in progress.
-    await sleep(100);
-
-    entry = await updateInstallationRequest(appId);
-  }
-
-  if (entry.registrationStatus === RequestStatus.NOT_STARTED) {
-    throw ERROR_FACTORY.create(ErrorCode.CREATE_INSTALLATION_FAILED);
-  } else {
-    return entry;
-  }
-}
-
-/**
- * Called only if there is a CreateInstallation request in progress.
- *
- * Updates the InstallationEntry in the DB based on the status of the
- * CreateInstallation request.
- *
- * Returns the updated InstallationEntry.
- */
-function updateInstallationRequest(appId: string): Promise<InstallationEntry> {
-  return update(
-    appId,
-    (oldEntry?: InstallationEntry): InstallationEntry => {
-      if (!oldEntry) {
-        throw ERROR_FACTORY.create(ErrorCode.INSTALLATION_NOT_FOUND);
-      }
-
-      if (hasInstallationRequestTimedOut(oldEntry)) {
-        return {
-          fid: oldEntry.fid,
-          registrationStatus: RequestStatus.NOT_STARTED
-        };
-      }
-
-      return oldEntry;
-    }
-  );
-}
-
 async function fetchAuthTokenFromServer(
   appConfig: AppConfig,
   installationEntry: RegisteredInstallationEntry
@@ -221,13 +166,7 @@ async function fetchAuthTokenFromServer(
     await set(appConfig.appId, updatedInstallationEntry);
     return authToken;
   } catch (e) {
-    if (
-      e instanceof FirebaseError &&
-      e.code === `${SERVICE}/${ErrorCode.GENERATE_TOKEN_REQUEST_FAILED}` &&
-      // FirebaseError doesn't have the best typings.
-      // tslint:disable-next-line:no-any
-      ((e as any).serverCode === 401 || (e as any).serverCode === 404)
-    ) {
+    if (isServerError(e) && (e.serverCode === 401 || e.serverCode === 404)) {
       // Server returned a "FID not found" or a "Invalid authentication" error.
       // Generate a new ID next time.
       await remove(appConfig.appId);

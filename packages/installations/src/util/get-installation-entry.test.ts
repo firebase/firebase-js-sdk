@@ -228,19 +228,37 @@ describe('getInstallationEntry', () => {
     it('does not trigger createInstallation REST call on subsequent calls', async () => {
       await getInstallationEntry(appConfig);
       await getInstallationEntry(appConfig);
+
       expect(createInstallationSpy).to.be.calledOnce;
     });
 
-    it('does not return a registrationPromise on subsequent calls', async () => {
+    it('returns a registrationPromise on subsequent calls before initial promise resolves', async () => {
       const { registrationPromise: promise1 } = await getInstallationEntry(
         appConfig
       );
       const { registrationPromise: promise2 } = await getInstallationEntry(
         appConfig
       );
+
       expect(createInstallationSpy).to.be.calledOnce;
       expect(promise1).to.be.an.instanceOf(Promise);
+      expect(promise2).to.be.an.instanceOf(Promise);
+    });
+
+    it('does not return a registrationPromise on subsequent calls after initial promise resolves', async () => {
+      const { registrationPromise: promise1 } = await getInstallationEntry(
+        appConfig
+      );
+      expect(promise1).to.be.an.instanceOf(Promise);
+
+      await promise1;
+
+      const { registrationPromise: promise2 } = await getInstallationEntry(
+        appConfig
+      );
       expect(promise2).to.be.undefined;
+
+      expect(createInstallationSpy).to.be.calledOnce;
     });
   });
 

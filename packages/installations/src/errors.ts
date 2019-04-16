@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ErrorFactory } from '@firebase/util';
+import { ErrorFactory, FirebaseError } from '@firebase/util';
 import { SERVICE, SERVICE_NAME } from './constants';
 
 export const enum ErrorCode {
@@ -48,3 +48,23 @@ export const ERROR_FACTORY = new ErrorFactory(
   SERVICE_NAME,
   ERROR_DESCRIPTION_MAP
 );
+
+export interface ServerErrorData {
+  serverCode: number;
+  serverMessage: string;
+  serverStatus: string;
+}
+
+export type ServerError = FirebaseError & ServerErrorData;
+
+/** Returns true if error is a FirebaseError that is based on an error from the server. */
+export function isServerError(error: unknown): error is ServerError {
+  if (!(error instanceof FirebaseError)) {
+    return false;
+  }
+
+  return (
+    error.code.includes(ErrorCode.CREATE_INSTALLATION_REQUEST_FAILED) ||
+    error.code.includes(ErrorCode.GENERATE_TOKEN_REQUEST_FAILED)
+  );
+}

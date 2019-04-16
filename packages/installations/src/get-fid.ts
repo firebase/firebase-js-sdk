@@ -21,6 +21,12 @@ import { getInstallationEntry } from './util/get-installation-entry';
 
 export async function getFid(app: FirebaseApp): Promise<string> {
   const appConfig = extractAppConfig(app);
-  const { installationEntry } = await getInstallationEntry(appConfig);
+  const { installationEntry, registrationPromise } = await getInstallationEntry(
+    appConfig
+  );
+  if (registrationPromise) {
+    // Suppress registration errors as they are not a problem for getFid.
+    registrationPromise.catch(() => {});
+  }
   return installationEntry.fid;
 }
