@@ -1,4 +1,4 @@
-// Copyright 2018 Google LLC.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ syntax = "proto3";
 
 package google.firestore.v1;
 
-import "google/api/annotations.proto";
 import "google/firestore/v1/common.proto";
 import "google/firestore/v1/document.proto";
 import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
 
 option csharp_namespace = "Google.Cloud.Firestore.V1";
 option go_package = "google.golang.org/genproto/googleapis/firestore/v1;firestore";
@@ -42,7 +42,7 @@ message Write {
     // `projects/{project_id}/databases/{database_id}/documents/{document_path}`.
     string delete = 2;
 
-    // Applies a tranformation to a document.
+    // Applies a transformation to a document.
     // At most one `transform` per document is allowed in a given request.
     // An `update` cannot follow a `transform` on the same document in a given
     // request.

@@ -27,6 +27,10 @@ function cleanup {
   echo "Deleted temp working directory $WORK_DIR"
 }
 
+# Capture location of pbjs / pbts before we pushd.
+PBJS="$(npm bin)/pbjs"
+PBTS="$(npm bin)/pbts"
+
 # register the cleanup function to be called on the EXIT signal
 trap cleanup EXIT
 
@@ -57,5 +61,18 @@ cp googleapis/google/type/latlng.proto \
 mkdir -p "${PROTOS_DIR}/google/protobuf"
 cp protobuf/src/google/protobuf/{any,empty,struct,timestamp,wrappers}.proto \
    "${PROTOS_DIR}/google/protobuf/"
+
+# Generate the Protobuf typings
+"${PBJS}" --proto_path=. --js_out=import_style=commonjs,binary:library \
+  --target=static --no-create --no-encode --no-decode --no-verify \
+  --no-convert --no-delimited --force-enum-string --force-number -o \
+  firestore_proto_api.js  "${PROTOS_DIR}/google/firestore/v1/*.proto" \
+  "${PROTOS_DIR}/google/protobuf/*.proto" "${PROTOS_DIR}/google/type/*.proto" \
+  "${PROTOS_DIR}/google/rpc/*.proto" "${PROTOS_DIR}/google/api/*.proto" \
+  "${PROTOS_DIR}/google/longrunning/*.proto"
+"${PBTS}" -o firestore_proto_api.d.ts firestore_proto_api.js
+
+# Copy typings into source repo
+cp firestore_proto_api.d.ts ${PROTOS_DIR}
 
 popd

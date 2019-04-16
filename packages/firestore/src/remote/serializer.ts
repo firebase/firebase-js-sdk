@@ -48,7 +48,6 @@ import {
   TransformMutation
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
-import * as api from '../protos/firestore_proto_api';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
@@ -62,7 +61,7 @@ import {
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
-import { ApiClientObjectMap } from '../protos/firestore_proto_api';
+import { google } from '../protos/firestore_proto_api';
 import { ExistenceFilter } from './existence_filter';
 import { mapCodeFromRpcCode, mapRpcCodeFromCode } from './rpc_error';
 import {
@@ -73,15 +72,18 @@ import {
   WatchTargetChangeState
 } from './watch_change';
 
+
+import api = google.firestore.v1;
+
 const DIRECTIONS = (() => {
-  const dirs: { [dir: string]: api.OrderDirection } = {};
+  const dirs: { [dir: string]: api.StructuredQuery.Direction } = {};
   dirs[Direction.ASCENDING.name] = 'ASCENDING';
   dirs[Direction.DESCENDING.name] = 'DESCENDING';
   return dirs;
 })();
 
 const OPERATORS = (() => {
-  const ops: { [op: string]: api.FieldFilterOp } = {};
+  const ops: { [op: string]: api.StructuredQuery.FieldFilter.Operator } = {};
   ops[RelationOp.LESS_THAN.name] = 'LESS_THAN';
   ops[RelationOp.LESS_THAN_OR_EQUAL.name] = 'LESS_THAN_OR_EQUAL';
   ops[RelationOp.GREATER_THAN.name] = 'GREATER_THAN';
@@ -107,13 +109,6 @@ function parseInt64(value: number | string): number {
   } else {
     return fail("can't parse " + value);
   }
-}
-
-// This is a supplement to the generated proto interfaces, which fail to account
-// for the fact that a timestamp may be encoded as either a string OR this.
-interface TimestampProto {
-  seconds?: string;
-  nanos?: number;
 }
 
 export interface SerializerOptions {
@@ -147,17 +142,11 @@ export class JsonProtoSerializer {
     }
   }
 
-  private unsafeCastProtoByteString(byteString: ProtoByteString): string {
-    // byteStrings can be either string or UInt8Array, but the typings say
-    // it's always a string. Cast as string to avoid type check failing
-    return byteString as string;
-  }
-
-  fromRpcStatus(status: api.Status): FirestoreError {
+  fromRpcStatus(status: google.rpc.IStatus): FirestoreError {
     const code =
       status.code === undefined
         ? Code.UNKNOWN
-        : mapCodeFromRpcCode(status.code);
+        : mapCodeFromRpcCode(status.code!);
     return new FirestoreError(code, status.message || '');
   }
 
@@ -200,20 +189,15 @@ export class JsonProtoSerializer {
 
   /**
    * Returns a value for a Date that's appropriate to put into a proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as returning "string" because that's what
-   * our generated proto interfaces say dates must be. But it's easier and safer
-   * to actually return a Timestamp proto.
    */
-  private toTimestamp(timestamp: Timestamp): string {
+  private toTimestamp(timestamp: Timestamp): google.protobuf.ITimestamp {
     return {
       seconds: timestamp.seconds,
       nanos: timestamp.nanoseconds
-      // tslint:disable-next-line:no-any
-    } as any;
+    }
   }
 
-  private fromTimestamp(date: string | TimestampProto): Timestamp {
+  private fromTimestamp(date: string | google.protobuf.ITimestamp): Timestamp {
     // The json interface (for the browser) will return an iso timestamp string,
     // while the proto js library (for node) will return a
     // google.protobuf.Timestamp instance.
@@ -257,17 +241,12 @@ export class JsonProtoSerializer {
 
   /**
    * Returns a value for bytes that's appropriate to put in a proto.
-   * DO NOT USE THIS FOR ANYTHING ELSE.
-   * This method cheats. It's typed as returning "string" because that's what
-   * our generated proto interfaces say bytes must be. But it should return
-   * an Uint8Array in Node.
    */
-  private toBytes(bytes: Blob): string {
+  private toBytes(bytes: Blob): Uint8Array | string {
     if (this.options.useProto3Json) {
       return bytes.toBase64();
     } else {
-      // The typings say it's a string, but it needs to be a Uint8Array in Node.
-      return this.unsafeCastProtoByteString(bytes.toUint8Array());
+      return bytes.toUint8Array();
     }
   }
 
@@ -292,11 +271,11 @@ export class JsonProtoSerializer {
     }
   }
 
-  toVersion(version: SnapshotVersion): string {
+  toVersion(version: SnapshotVersion): google.protobuf.ITimestamp {
     return this.toTimestamp(version.toTimestamp());
   }
 
-  fromVersion(version: string): SnapshotVersion {
+  fromVersion(version: string | google.protobuf.ITimestamp): SnapshotVersion {
     assert(!!version, "Trying to deserialize version that isn't set");
     return SnapshotVersion.fromTimestamp(this.fromTimestamp(version));
   }
@@ -395,13 +374,13 @@ export class JsonProtoSerializer {
     );
   }
 
-  toValue(val: fieldValue.FieldValue): api.Value {
+  toValue(val: fieldValue.FieldValue): api.IValue {
     if (val instanceof fieldValue.NullValue) {
       return { nullValue: 'NULL_VALUE' };
     } else if (val instanceof fieldValue.BooleanValue) {
       return { booleanValue: val.value() };
     } else if (val instanceof fieldValue.IntegerValue) {
-      return { integerValue: '' + val.value() };
+      return { integerValue: val.value() };
     } else if (val instanceof fieldValue.DoubleValue) {
       const doubleValue = val.value();
       if (this.options.useProto3Json) {
@@ -436,7 +415,7 @@ export class JsonProtoSerializer {
       };
     } else if (val instanceof fieldValue.BlobValue) {
       return {
-        bytesValue: this.toBytes(val.value())
+        bytesValue: val.value().toUint8Array()
       };
     } else if (val instanceof fieldValue.RefValue) {
       return {
@@ -447,7 +426,7 @@ export class JsonProtoSerializer {
     }
   }
 
-  fromValue(obj: api.Value): fieldValue.FieldValue {
+  fromValue(obj: api.IValue): fieldValue.FieldValue {
     // tslint:disable-next-line:no-any
     const type = (obj as any)['value_type'];
     if (hasTag(obj, type, 'nullValue')) {
@@ -540,8 +519,8 @@ export class JsonProtoSerializer {
     );
   }
 
-  toFields(fields: fieldValue.ObjectValue): { [key: string]: api.Value } {
-    const result: { [key: string]: api.Value } = {};
+  toFields(fields: fieldValue.ObjectValue): { [key: string]: api.IValue } {
+    const result: { [key: string]: api.IValue } = {};
     fields.forEach((key, value) => {
       result[key] = this.toValue(value);
     });
@@ -565,7 +544,7 @@ export class JsonProtoSerializer {
   }
 
   toArrayValue(array: fieldValue.ArrayValue): api.ArrayValue {
-    const result: api.Value[] = [];
+    const result: api.IValue[] = [];
     array.forEach(value => {
       result.push(this.toValue(value));
     });
@@ -612,7 +591,7 @@ export class JsonProtoSerializer {
 
   private toWatchTargetChangeState(
     state: WatchTargetChangeState
-  ): api.TargetChangeTargetChangeType {
+  ): api.TargetChange.TargetChangeType {
     switch (state) {
       case WatchTargetChangeState.Added:
         return 'ADD';
@@ -671,7 +650,7 @@ export class JsonProtoSerializer {
       }
     }
     if (watchChange instanceof WatchTargetChange) {
-      let cause: api.Status | undefined = undefined;
+      let cause: google.rpc.IStatus | undefined = undefined;
       if (watchChange.cause) {
         cause = {
           code: mapRpcCodeFromCode(watchChange.cause.code),
@@ -682,7 +661,7 @@ export class JsonProtoSerializer {
         targetChange: {
           targetChangeType: this.toWatchTargetChangeState(watchChange.state),
           targetIds: watchChange.targetIds,
-          resumeToken: this.unsafeCastProtoByteString(watchChange.resumeToken),
+          resumeToken: watchChange.resumeToken as Uint8Array,
           cause
         }
       };
@@ -778,7 +757,7 @@ export class JsonProtoSerializer {
   }
 
   fromWatchTargetChangeState(
-    state: api.TargetChangeTargetChangeType
+    state: api.TargetChange.TargetChangeType
   ): WatchTargetChangeState {
     if (state === 'NO_CHANGE') {
       return WatchTargetChangeState.NoChange;
@@ -814,8 +793,8 @@ export class JsonProtoSerializer {
     return this.fromVersion(targetChange.readTime);
   }
 
-  toMutation(mutation: Mutation): api.Write {
-    let result: api.Write;
+  toMutation(mutation: Mutation): api.IWrite {
+    let result: api.IWrite;
     if (mutation instanceof SetMutation) {
       result = {
         update: this.toMutationDocument(mutation.key, mutation.value)
@@ -857,7 +836,7 @@ export class JsonProtoSerializer {
       const key = this.fromName(proto.update.name!);
       const value = this.fromFields(proto.update.fields || {});
       if (proto.updateMask) {
-        const fieldMask = this.fromDocumentMask(proto.updateMask);
+        const fieldMask = this.fromDocumentMask(proto.updateMask!);
         return new PatchMutation(key, value, fieldMask, precondition);
       } else {
         return new SetMutation(key, value, precondition);
@@ -880,7 +859,7 @@ export class JsonProtoSerializer {
     }
   }
 
-  private toPrecondition(precondition: Precondition): api.Precondition {
+  private toPrecondition(precondition: Precondition): api.IPrecondition {
     assert(!precondition.isNone, "Can't serialize an empty precondition");
     if (precondition.updateTime !== undefined) {
       return {
@@ -893,11 +872,11 @@ export class JsonProtoSerializer {
     }
   }
 
-  private fromPrecondition(precondition: api.Precondition): Precondition {
+  private fromPrecondition(precondition: api.IPrecondition): Precondition {
     if (precondition.updateTime !== undefined) {
-      return Precondition.updateTime(this.fromVersion(precondition.updateTime));
+      return Precondition.updateTime(this.fromVersion(precondition.updateTime!));
     } else if (precondition.exists !== undefined) {
-      return Precondition.exists(precondition.exists);
+      return Precondition.exists(precondition.exists!);
     } else {
       return Precondition.NONE;
     }
@@ -935,7 +914,7 @@ export class JsonProtoSerializer {
     }
   }
 
-  private toFieldTransform(fieldTransform: FieldTransform): api.FieldTransform {
+  private toFieldTransform(fieldTransform: FieldTransform): api.DocumentTransform.IFieldTransform {
     const transform = fieldTransform.transform;
     if (transform instanceof ServerTimestampTransform) {
       return {
@@ -966,7 +945,7 @@ export class JsonProtoSerializer {
     }
   }
 
-  private fromFieldTransform(proto: api.FieldTransform): FieldTransform {
+  private fromFieldTransform(proto: api.DocumentTransform.IFieldTransform): FieldTransform {
     // tslint:disable-next-line:no-any We need to match generated Proto types.
     const type = (proto as any)['transform_type'];
     let transform: TransformOperation | null = null;
@@ -1002,11 +981,11 @@ export class JsonProtoSerializer {
     return new FieldTransform(fieldPath, transform!);
   }
 
-  toDocumentsTarget(query: Query): api.DocumentsTarget {
+  toDocumentsTarget(query: Query): api.Target.IDocumentsTarget {
     return { documents: [this.toQueryPath(query.path)] };
   }
 
-  fromDocumentsTarget(documentsTarget: api.DocumentsTarget): Query {
+  fromDocumentsTarget(documentsTarget: api.Target.IDocumentsTarget): Query {
     const count = documentsTarget.documents!.length;
     assert(
       count === 1,
@@ -1016,9 +995,9 @@ export class JsonProtoSerializer {
     return Query.atPath(this.fromQueryPath(name));
   }
 
-  toQueryTarget(query: Query): api.QueryTarget {
+  toQueryTarget(query: Query): api.Target.IQueryTarget {
     // Dissect the path into parent, collectionId, and optional key filter.
-    const result: api.QueryTarget = { structuredQuery: {} };
+    const result: api.Target.IQueryTarget = { structuredQuery: {} };
     const path = query.path;
     if (query.collectionGroup !== null) {
       assert(
@@ -1053,7 +1032,7 @@ export class JsonProtoSerializer {
 
     const limit = this.toInt32Value(query.limit);
     if (limit !== undefined) {
-      result.structuredQuery!.limit = limit;
+      result.structuredQuery!.limit = { value: limit };
     }
 
     if (query.startAt) {
@@ -1066,7 +1045,7 @@ export class JsonProtoSerializer {
     return result;
   }
 
-  fromQueryTarget(target: api.QueryTarget): Query {
+  fromQueryTarget(target: api.Target.IQueryTarget): Query {
     let path = this.fromQueryPath(target.parent!);
 
     const query = target.structuredQuery!;
@@ -1097,7 +1076,7 @@ export class JsonProtoSerializer {
 
     let limit: number | null = null;
     if (query.limit) {
-      limit = this.fromInt32Value(query.limit);
+      limit =  this.fromInt32Value(query.limit.value!) ;
     }
 
     let startAt: Bound | null = null;
@@ -1148,7 +1127,7 @@ export class JsonProtoSerializer {
   }
 
   toTarget(queryData: QueryData): api.Target {
-    let result: api.Target;
+    let result: api.ITarget;
     const query = queryData.query;
 
     if (query.isDocumentQuery()) {
@@ -1168,7 +1147,7 @@ export class JsonProtoSerializer {
     return result;
   }
 
-  private toFilter(filters: Filter[]): api.Filter | undefined {
+  private toFilter(filters: Filter[]): api.StructuredQuery.IFilter | undefined {
     if (filters.length === 0) return;
     const protos = filters.map(filter =>
       filter instanceof RelationFilter
@@ -1181,7 +1160,7 @@ export class JsonProtoSerializer {
     return { compositeFilter: { op: 'AND', filters: protos } };
   }
 
-  private fromFilter(filter: api.Filter | undefined): Filter[] {
+  private fromFilter(filter: api.StructuredQuery.IFilter  | undefined): Filter[] {
     if (!filter) {
       return [];
     } else if (filter.unaryFilter !== undefined) {
@@ -1197,12 +1176,12 @@ export class JsonProtoSerializer {
     }
   }
 
-  private toOrder(orderBys: OrderBy[]): api.Order[] | undefined {
+  private toOrder(orderBys: OrderBy[]): api.StructuredQuery.IOrder[] | undefined {
     if (orderBys.length === 0) return;
     return orderBys.map(order => this.toPropertyOrder(order));
   }
 
-  private fromOrder(orderBys: api.Order[]): OrderBy[] {
+  private fromOrder(orderBys: api.StructuredQuery.IOrder[]): OrderBy[] {
     return orderBys.map(order => this.fromPropertyOrder(order));
   }
 
@@ -1213,19 +1192,19 @@ export class JsonProtoSerializer {
     };
   }
 
-  private fromCursor(cursor: api.Cursor): Bound {
+  private fromCursor(cursor: api.ICursor): Bound {
     const before = !!cursor.before;
     const position = cursor.values!.map(component => this.fromValue(component));
     return new Bound(position, before);
   }
 
   // visible for testing
-  toDirection(dir: Direction): api.OrderDirection {
+  toDirection(dir: Direction): api.StructuredQuery.Direction {
     return DIRECTIONS[dir.name];
   }
 
   // visible for testing
-  fromDirection(dir: api.OrderDirection | undefined): Direction | undefined {
+  fromDirection(dir: api.StructuredQuery.Direction | undefined): Direction | undefined {
     switch (dir) {
       case 'ASCENDING':
         return Direction.ASCENDING;
@@ -1237,11 +1216,11 @@ export class JsonProtoSerializer {
   }
 
   // visible for testing
-  toOperatorName(op: RelationOp): api.FieldFilterOp {
+  toOperatorName(op: RelationOp): api.StructuredQuery.FieldFilter.Operator {
     return OPERATORS[op.name];
   }
 
-  fromOperatorName(op: api.FieldFilterOp): RelationOp {
+  fromOperatorName(op: api.StructuredQuery.FieldFilter.Operator): RelationOp {
     switch (op) {
       case 'EQUAL':
         return RelationOp.EQUAL;
@@ -1262,31 +1241,31 @@ export class JsonProtoSerializer {
     }
   }
 
-  toFieldPathReference(path: FieldPath): api.FieldReference {
+  toFieldPathReference(path: FieldPath): api.StructuredQuery.IFieldReference {
     return { fieldPath: path.canonicalString() };
   }
 
-  fromFieldPathReference(fieldReference: api.FieldReference): FieldPath {
+  fromFieldPathReference(fieldReference: api.StructuredQuery.IFieldReference): FieldPath {
     return FieldPath.fromServerFormat(fieldReference.fieldPath!);
   }
 
   // visible for testing
-  toPropertyOrder(orderBy: OrderBy): api.Order {
+  toPropertyOrder(orderBy: OrderBy): api.StructuredQuery.IOrder {
     return {
       field: this.toFieldPathReference(orderBy.field),
       direction: this.toDirection(orderBy.dir)
     };
   }
 
-  fromPropertyOrder(orderBy: api.Order): OrderBy {
+  fromPropertyOrder(orderBy: api.StructuredQuery.IOrder): OrderBy {
     return new OrderBy(
       this.fromFieldPathReference(orderBy.field!),
-      this.fromDirection(orderBy.direction)
+      this.fromDirection(orderBy.direction!)
     );
   }
 
   // visible for testing
-  toRelationFilter(filter: Filter): api.Filter {
+  toRelationFilter(filter: Filter): api.StructuredQuery.IFilter {
     if (filter instanceof RelationFilter) {
       return {
         fieldFilter: {
@@ -1300,7 +1279,7 @@ export class JsonProtoSerializer {
     }
   }
 
-  fromRelationFilter(filter: api.Filter): Filter {
+  fromRelationFilter(filter: api.StructuredQuery.IFilter): Filter {
     return new RelationFilter(
       this.fromFieldPathReference(filter.fieldFilter!.field!),
       this.fromOperatorName(filter.fieldFilter!.op!),
@@ -1309,7 +1288,7 @@ export class JsonProtoSerializer {
   }
 
   // visible for testing
-  toUnaryFilter(filter: Filter): api.Filter {
+  toUnaryFilter(filter: Filter): api.StructuredQuery.IFilter {
     if (filter instanceof NanFilter) {
       return {
         unaryFilter: {
@@ -1329,7 +1308,7 @@ export class JsonProtoSerializer {
     }
   }
 
-  fromUnaryFilter(filter: api.Filter): Filter {
+  fromUnaryFilter(filter: api.StructuredQuery.IFilter): Filter {
     switch (filter.unaryFilter!.op!) {
       case 'IS_NAN':
         const nanField = this.fromFieldPathReference(
@@ -1348,7 +1327,7 @@ export class JsonProtoSerializer {
     }
   }
 
-  toDocumentMask(fieldMask: FieldMask): api.DocumentMask {
+  toDocumentMask(fieldMask: FieldMask): api.IDocumentMask {
     const canonicalFields: string[] = [];
     fieldMask.fields.forEach(field =>
       canonicalFields.push(field.canonicalString())
@@ -1358,7 +1337,7 @@ export class JsonProtoSerializer {
     };
   }
 
-  fromDocumentMask(proto: api.DocumentMask): FieldMask {
+  fromDocumentMask(proto: api.IDocumentMask): FieldMask {
     const paths = proto.fieldPaths || [];
     const fields = paths.map(path => FieldPath.fromServerFormat(path));
     return FieldMask.fromArray(fields);
