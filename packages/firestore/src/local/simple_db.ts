@@ -162,10 +162,16 @@ export class SimpleDb {
     // ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML,
     // like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';
 
+    const iOS = !!ua.match(/iPad/i) || !!ua.match(/iPhone/i);
+    const webkit = !!ua.match(/WebKit/i);
+    const iOSSafari = iOS && webkit && !ua.match(/CriOS/i);
+    console.log('is iOSSafari?: ', iOSSafari);
+
     if (
       ua.indexOf('MSIE ') > 0 ||
       ua.indexOf('Trident/') > 0 ||
-      ua.indexOf('Edge/') > 0
+      ua.indexOf('Edge/') > 0 ||
+      iOSSafari
     ) {
       return false;
     } else {
