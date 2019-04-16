@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.2.11",
+  "version": "0.2.13",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -17,7 +17,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/storage-types": "0.2.7",
+    "@firebase/storage-types": "0.2.9",
     "tslib": "1.9.3"
   },
   "peerDependencies": {
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/chai": "4.1.7",
     "@types/mocha": "5.2.6",
-    "@types/sinon": "7.0.9",
+    "@types/sinon": "7.0.11",
     "chai": "4.2.0",
     "karma": "4.0.1",
     "karma-chrome-launcher": "2.2.0",
@@ -39,12 +39,12 @@
     "karma-spec-reporter": "0.0.32",
     "karma-webpack": "3.0.5",
     "npm-run-all": "4.1.5",
-    "rollup": "1.6.0",
-    "rollup-plugin-typescript2": "0.19.3",
-    "sinon": "7.2.7",
+    "rollup": "1.10.0",
+    "rollup-plugin-typescript2": "0.20.1",
+    "sinon": "7.3.1",
     "source-map-loader": "0.2.4",
     "ts-loader": "5.3.3",
-    "typescript": "3.3.3",
+    "typescript": "3.4.3",
     "webpack": "4.29.6"
   },
   "repository": {

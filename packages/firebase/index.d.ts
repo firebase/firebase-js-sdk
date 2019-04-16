@@ -362,6 +362,8 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * // Creates the provider object.
@@ -577,6 +579,8 @@ declare namespace firebase {
      *     console.</dd>
      * </dl>
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * // Creates the provider object.
@@ -624,6 +628,8 @@ declare namespace firebase {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
+     *
+     * @webonly
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -852,13 +858,13 @@ declare namespace firebase {
    * initialized.
    *
    * @example
-   * ```
+   * ```javascript
    * // Return the default app
    * var app = firebase.app();
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Return a named app
    * var otherApp = firebase.app("otherApp");
    * ```
@@ -886,13 +892,13 @@ declare namespace firebase {
    * specific app.
    *
    * @example
-   * ```
+   * ```javascript
    *
    * // Get the Auth service for the default app
    * var defaultAuth = firebase.auth();
    * ```
    * @example
-   * ```
+   * ```javascript
    *
    * // Get the Auth service for a given app
    * var otherAuth = firebase.auth(otherApp);
@@ -915,13 +921,13 @@ declare namespace firebase {
    * constants and methods associated with the `Database` service.
    *
    * @example
-   * ```
+   * ```javascript
    * // Get the Database service for the default app
    * var defaultDatabase = firebase.database();
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Get the Database service for a specific app
    * var otherDatabase = firebase.database(app);
    * ```
@@ -942,11 +948,11 @@ declare namespace firebase {
    *   https://firebase.google.com/docs/web/setup#add_firebase_to_your_app
    *   Add Firebase to your app} and
    * {@link
-   *   https://firebase.google.com/docs/web/setup#initialize_multiple_apps
-   *   Initialize multiple apps} for detailed documentation.
+   *   https://firebase.google.com/docs/web/setup#multiple-projects
+   *   Initialize multiple projects} for detailed documentation.
    *
    * @example
-   * ```
+   * ```javascript
    *
    * // Initialize default app
    * // Retrieve your own options values by adding a web app on
@@ -961,7 +967,7 @@ declare namespace firebase {
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    *
    * // Initialize another app
    * var otherApp = firebase.initializeApp({
@@ -992,14 +998,16 @@ declare namespace firebase {
    * generating notifications if the push message payload has a `notification`
    * parameter.
    *
+   * @webonly
+   *
    * @example
-   * ```
+   * ```javascript
    * // Get the Messaging service for the default app
    * var defaultMessaging = firebase.messaging();
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Get the Messaging service for a given app
    * var otherMessaging = firebase.messaging(otherApp);
    * ```
@@ -1020,14 +1028,16 @@ declare namespace firebase {
    * {@link firebase.storage.Storage `Storage`} service associated with a
    * specific app.
    *
+   * @webonly
+   *
    * @example
-   * ```
+   * ```javascript
    * // Get the Storage service for the default app
    * var defaultStorage = firebase.storage();
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Get the Storage service for a given app
    * var otherStorage = firebase.storage(otherApp);
    * ```
@@ -1039,6 +1049,9 @@ declare namespace firebase {
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
 
+  /**
+   * @webonly
+   */
   function functions(app?: firebase.app.App): firebase.functions.Functions;
 }
 
@@ -1095,6 +1108,8 @@ declare namespace firebase.app {
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * var messaging = app.messaging();
@@ -1139,6 +1154,8 @@ declare namespace firebase.app {
      * Gets the {@link firebase.storage.Storage `Storage`} service for the current
      * app, optionally initialized with a custom storage bucket.
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * var storage = app.storage();
@@ -1156,10 +1173,16 @@ declare namespace firebase.app {
      */
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
+    /**
+     * @webonly
+     */
     functions(region?: string): firebase.functions.Functions;
   }
 }
 
+/**
+ * @webonly
+ */
 declare namespace firebase.functions {
   /**
    * An HttpsCallableResult wraps a single result from a function call.
@@ -1701,6 +1724,8 @@ declare namespace firebase.auth {
      *     for your Firebase project. Edit the list of authorized domains from the
      *     Firebase console.</dd>
      * </dl>
+     *
+     * @webonly
      *
      * @example
      * ```javascript
@@ -2508,6 +2533,8 @@ declare namespace firebase.auth {
      *     console.</dd>
      * </dl>
      *
+     * @webonly
+     *
      * @example
      * ```javascript
      * // Creates the provider object.
@@ -2568,6 +2595,8 @@ declare namespace firebase.auth {
      *     Firebase project. Edit the list of authorized domains from the Firebase
      *     console.</dd>
      * </dl>
+     *
+     * @webonly
      *
      * @param provider The provider to authenticate.
      *     The provider has to be an OAuth provider. Non-OAuth providers like {@link
@@ -2639,7 +2668,7 @@ declare namespace firebase.auth {
    * requirements.
    *
    */
-  interface AuthCredential {
+  abstract class AuthCredential {
     /**
      * The authentication provider ID for the credential.
      * For example, 'facebook.com', or 'google.com'.
@@ -2652,6 +2681,20 @@ declare namespace firebase.auth {
      * {@link firebase.auth.Auth.fetchSignInMethodsForEmail}.
      */
     signInMethod: string;
+    /**
+     * Returns a JSON-serializable representation of this object.
+     */
+    toJSON(): Object;
+    /**
+     * Static method to deserialize a JSON representation of an object into an
+     * {@link firebase.auth.AuthCredential}. Input can be either Object or the
+     * stringified representation of the object. When string is provided,
+     * JSON.parse would be called first. If the JSON input does not represent
+     * an`AuthCredential`, null is returned.
+     * @param {!Object|string} json The plain object representation of an
+     *     AuthCredential.
+     */
+    static fromJSON(json: Object | string): AuthCredential | null;
   }
 
   /**
@@ -2660,7 +2703,8 @@ declare namespace firebase.auth {
    * credential requirements.
    *
    */
-  interface OAuthCredential extends AuthCredential {
+  class OAuthCredential extends AuthCredential {
+    private constructor();
     /**
      * The OAuth ID token associated with the credential if it belongs to an
      * OIDC provider, such as `google.com`.
@@ -2846,7 +2890,7 @@ declare namespace firebase.auth {
    * Facebook auth provider.
    *
    * @example
-   * ```
+   * ```javascript
    * // Sign in using a redirect.
    * firebase.auth().getRedirectResult().then(function(result) {
    *   if (result.credential) {
@@ -2862,7 +2906,7 @@ declare namespace firebase.auth {
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Sign in using a popup.
    * var provider = new firebase.auth.FacebookAuthProvider();
    * provider.addScope('user_birthday');
@@ -2926,13 +2970,13 @@ declare namespace firebase.auth {
   }
 
   /**
-   * Github auth provider.
+   * GitHub auth provider.
    *
    * GitHub requires an OAuth 2.0 redirect, so you can either handle the redirect
    * directly, or use the signInWithPopup handler:
    *
    * @example
-   * ```
+   * ```javascript
    * // Using a redirect.
    * firebase.auth().getRedirectResult().then(function(result) {
    *   if (result.credential) {
@@ -2963,7 +3007,7 @@ declare namespace firebase.auth {
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // With popup.
    * var provider = new firebase.auth.GithubAuthProvider();
    *  provider.addScope('repo');
@@ -3044,7 +3088,7 @@ declare namespace firebase.auth {
    * Google auth provider.
    *
    * @example
-   * ```
+   * ```javascript
    * // Using a redirect.
    * firebase.auth().getRedirectResult().then(function(result) {
    *   if (result.credential) {
@@ -3062,7 +3106,7 @@ declare namespace firebase.auth {
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Using a popup.
    * var provider = new firebase.auth.GoogleAuthProvider();
    * provider.addScope('profile');
@@ -3138,7 +3182,7 @@ declare namespace firebase.auth {
    * Generic OAuth provider.
    *
    * @example
-   * ```
+   * ```javascript
    * // Using a redirect.
    * firebase.auth().getRedirectResult().then(function(result) {
    *   if (result.credential) {
@@ -3155,7 +3199,7 @@ declare namespace firebase.auth {
    * firebase.auth().signInWithRedirect(provider);
    * ```
    * @example
-   * ```
+   * ```javascript
    * // Using a popup.
    * var provider = new firebase.auth.OAuthProvider('google.com');
    * provider.addScope('profile');
@@ -3173,6 +3217,7 @@ declare namespace firebase.auth {
    * @param providerId The associated provider ID, such as `github.com`.
    */
   class OAuthProvider implements firebase.auth.AuthProvider {
+    constructor(providerId: string);
     providerId: string;
     /**
      * @param scope Provider OAuth scope to add.
@@ -3263,7 +3308,7 @@ declare namespace firebase.auth {
    * Phone number auth provider.
    *
    * @example
-   * ```
+   * ```javascript
    * // 'recaptcha-container' is the ID of an element in the DOM.
    * var applicationVerifier = new firebase.auth.RecaptchaVerifier(
    *     'recaptcha-container');
@@ -3358,6 +3403,9 @@ declare namespace firebase.auth {
   /**
    * An {@link https://www.google.com/recaptcha/ reCAPTCHA}-based application
    * verifier.
+   *
+   * @webonly
+   *
    * @param container The reCAPTCHA container parameter. This
    *     has different meaning depending on whether the reCAPTCHA is hidden or
    *     visible. For a visible reCAPTCHA the container must be empty. If a string
@@ -3375,6 +3423,7 @@ declare namespace firebase.auth {
    */
   class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
   /**
+   * @webonly
    * @hidden
    */
   class RecaptchaVerifier_Instance
@@ -3410,7 +3459,7 @@ declare namespace firebase.auth {
    * Twitter auth provider.
    *
    * @example
-   * ```
+   * ```javascript
    * // Using a redirect.
    * firebase.auth().getRedirectResult().then(function(result) {
    *   if (result.credential) {
@@ -3426,7 +3475,7 @@ declare namespace firebase.auth {
    * firebase.auth().signInWithRedirect(provider);
    * ```
    * @example
-   * ```
+   * ```javascript
    * // Using a popup.
    * var provider = new firebase.auth.TwitterAuthProvider();
    * firebase.auth().signInWithPopup(provider).then(function(result) {
@@ -4434,35 +4483,35 @@ declare namespace firebase.database {
      * sibling child by sort order, or `null` if it is the first child.
      *
      * @example **Handle a new value:**
-     * ```
+     * ```javascript
      * ref.on('value', function(dataSnapshot) {
      *   ...
      * });
      * ```
      *
      * @example **Handle a new child:**
-     * ```
+     * ```javascript
      * ref.on('child_added', function(childSnapshot, prevChildKey) {
      *   ...
      * });
      * ```
      *
      * @example **Handle child removal:**
-     * ```
+     * ```javascript
      * ref.on('child_removed', function(oldChildSnapshot) {
      *   ...
      * });
      * ```
      *
      * @example **Handle child data changes:**
-     * ```
+     * ```javascript
      * ref.on('child_changed', function(childSnapshot, prevChildKey) {
      *   ...
      * });
      * ```
      *
      * @example **Handle child ordering changes:**
-     * ```
+     * ```javascript
      * ref.on('child_moved', function(childSnapshot, prevChildKey) {
      *   ...
      * });
@@ -5111,25 +5160,25 @@ declare namespace firebase.database {
    * Logs debugging information to the console.
    *
    * @example
-   * ```
+   * ```javascript
    * // Enable logging
    * firebase.database.enableLogging(true);
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Disable logging
    * firebase.database.enableLogging(false);
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Enable logging across page refreshes
    * firebase.database.enableLogging(true, true);
    * ```
    *
    * @example
-   * ```
+   * ```javascript
    * // Provide custom logger which prefixes log statements with "[FIREBASE]"
    * firebase.database.enableLogging(function(message) {
    *   console.log("[FIREBASE]", message);
@@ -5155,7 +5204,7 @@ declare namespace firebase.database.ServerValue {
    * servers.
    *
    * @example
-   * ```
+   * ```javascript
    * var sessionsRef = firebase.database().ref("sessions");
    * sessionsRef.push({
    *   startedAt: firebase.database.ServerValue.TIMESTAMP
@@ -5165,6 +5214,9 @@ declare namespace firebase.database.ServerValue {
   var TIMESTAMP: Object;
 }
 
+/**
+ * @webonly
+ */
 declare namespace firebase.messaging {
   /**
    * The Firebase Messaging service interface.
@@ -5269,6 +5321,9 @@ declare namespace firebase.messaging {
   function isSupported(): boolean;
 }
 
+/**
+ * @webonly
+ */
 declare namespace firebase.storage {
   /**
    * The full set of object metadata, including read-only properties.
@@ -5677,7 +5732,7 @@ declare namespace firebase.storage {
      * function to unregister the associated callbacks.
      *
      * @example **Pass callbacks separately or in an object.**
-     * ```
+     * ```javascript
      * var next = function(snapshot) {};
      * var error = function(error) {};
      * var complete = function() {};
@@ -5710,7 +5765,7 @@ declare namespace firebase.storage {
      * ```
      *
      * @example **Any callback is optional.**
-     * ```
+     * ```javascript
      * // Just listening for completion, this is legal.
      * uploadTask.on(
      *     firebase.storage.TaskEvent.STATE_CHANGED,
@@ -5735,7 +5790,7 @@ declare namespace firebase.storage {
      * ```
      *
      * @example **Use the returned function to remove callbacks.**
-     * ```
+     * ```javascript
      * var unsubscribe = uploadTask.on(
      *     firebase.storage.TaskEvent.STATE_CHANGED,
      *     function(snapshot) {
@@ -5772,7 +5827,10 @@ declare namespace firebase.storage {
      */
     on(
       event: firebase.storage.TaskEvent,
-      nextOrObserver?: firebase.Observer<any> | null | ((a: Object) => any),
+      nextOrObserver?:
+        | firebase.Observer<UploadTaskSnapshot>
+        | null
+        | ((a: UploadTaskSnapshot) => any),
       error?: ((a: Error) => any) | null,
       complete?: (firebase.Unsubscribe) | null
     ): Function;
@@ -5904,6 +5962,24 @@ declare namespace firebase.firestore {
      * CACHE_SIZE_UNLIMITED to disable garbage collection.
      */
     cacheSizeBytes?: number;
+
+    /**
+     * Forces the SDK’s underlying network transport (WebChannel) to use
+     * long-polling. Each response from the backend will be closed immediately
+     * after the backend sends data (by default responses are kept open in
+     * case the backend has more data to send). This avoids incompatibility
+     * issues with certain proxies, antivirus software, etc. that incorrectly
+     * buffer traffic indefinitely. Use of this option will cause some
+     * performance degradation though.
+     *
+     * This setting may be removed in a future release. If you find yourself
+     * using it to work around a specific network reliability issue, please
+     * tell us about it in
+     * https://github.com/firebase/firebase-js-sdk/issues/1674.
+     *
+     * @webonly
+     */
+    experimentalForceLongPolling?: boolean;
   }
 
   /**
@@ -7131,7 +7207,7 @@ declare namespace firebase.firestore {
   }
 
   /**
-   * The type of of a `DocumentChange` may be 'added', 'removed', or 'modified'.
+   * The type of a `DocumentChange` may be 'added', 'removed', or 'modified'.
    */
   export type DocumentChangeType = 'added' | 'removed' | 'modified';
 
@@ -7256,6 +7332,25 @@ declare namespace firebase.firestore {
      * @return The FieldValue sentinel for use in a call to `set()` or `update()`.
      */
     static arrayRemove(...elements: any[]): FieldValue;
+
+    /**
+     * Returns a special value that can be used with `set()` or `update()` that tells
+     * the server to increment the field's current value by the given value.
+     *
+     * If either the operand or the current field value uses floating point precision,
+     * all arithmetic follows IEEE 754 semantics. If both values are integers,
+     * values outside of JavaScript's safe number range (`Number.MIN_SAFE_INTEGER` to
+     * `Number.MAX_SAFE_INTEGER`) are also subject to precision loss. Furthermore,
+     * once processed by the Firestore backend, all integer operations are capped
+     * between -2^63 and 2^63-1.
+     *
+     * If the current field value is not of type `number`, or if the field does not
+     * yet exist, the transformation sets the field to the given value.
+     *
+     * @param n The value to increment by.
+     * @return The FieldValue sentinel for use in a call to `set()` or `update()`.
+     */
+    static increment(n: number): FieldValue;
 
     /**
      * Returns true if this `FieldValue` is equal to the provided one.

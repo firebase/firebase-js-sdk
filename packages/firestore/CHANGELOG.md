@@ -1,20 +1,29 @@
 # Unreleased
+- [feature] Added an `experimentalForceLongPolling` setting that that can be
+  used to work around proxies that prevent the Firestore client from connecting
+  to the Firestore backend.
+
+# 1.1.1
+- [changed] Increased a connection timeout that could lead to large writes
+  perputually retrying without ever succeeding (#1447).
+- [fixed] Fixed an issue with IndexedDb persistence that triggered an internal
+  assert for Queries that use nested DocumentReferences in where() clauses
+  (#1524, #1596).
+- [fixed] Fixed an issue where transactions in a Node.JS app could be sent
+  without auth credentials, leading to Permission Denied errors.
+
+# 1.1.0
 - [feature] Added `FieldValue.increment()`, which can be used in `update()`
   and `set(..., {merge:true})` to increment or decrement numeric field
   values safely without transactions.
-- [changed] Improved performance when querying over documents that contain
-  subcollections.
 - [changed] Prepared the persistence layer to support collection group queries.
   While this feature is not yet available, all schema changes are included
   in this release. Once you upgrade, you will not be able to use an older version
   of the Firestore SDK with persistence enabled.
-- [fixed] Fixed an issue with IndexedDb persistence that triggered an internal
-  assert for Queries that use nested DocumentReferences in where() clauses
-  (#1524, #1596).
-- [changed] Increased a connection timeout that could lead to large writes
-  perputually retrying without ever succeeding (#1447).
-- [fixed] Fixed an issue where transactions in a Node.JS app could be sent
-  without auth credentials, leading to Permission Denied errors.
+
+# 1.0.5
+- [changed] Improved performance when querying over documents that contain
+  subcollections.
 
 # 1.0.4
 - [fixed] Fixed an uncaught promise error occurring when `enablePersistence()`

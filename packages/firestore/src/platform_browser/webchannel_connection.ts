@@ -61,11 +61,13 @@ const XHR_TIMEOUT_SECS = 15;
 export class WebChannelConnection implements Connection {
   private readonly databaseId: DatabaseId;
   private readonly baseUrl: string;
+  private readonly forceLongPolling: boolean;
 
   constructor(info: DatabaseInfo) {
     this.databaseId = info.databaseId;
     const proto = info.ssl ? 'https' : 'http';
     this.baseUrl = proto + '://' + info.host;
+    this.forceLongPolling = info.forceLongPolling;
   }
 
   /**
@@ -217,7 +219,8 @@ export class WebChannelConnection implements Connection {
         // set it very large (5-10 minutes) and rely on the browser's builtin
         // timeouts to kick in if the request isn't working.
         forwardChannelRequestTimeoutMs: 10 * 60 * 1000
-      }
+      },
+      forceLongPolling: this.forceLongPolling
     };
 
     this.modifyHeadersForRequest(request.initMessageHeaders, token);

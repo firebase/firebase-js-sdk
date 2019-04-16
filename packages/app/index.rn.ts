@@ -17,7 +17,7 @@
 
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { createFirebaseNamespace } from './src/firebaseApp';
+import { createFirebaseNamespace } from './src/firebaseNamespace';
 
 /**
  * To avoid having to include the @types/react-native package, which breaks
