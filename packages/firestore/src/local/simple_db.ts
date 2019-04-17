@@ -166,16 +166,15 @@ export class SimpleDb {
     const iOSVersion = SimpleDb.getIOSVersion(ua);
     const isUnsupportedIOS = 0 < iOSVersion && iOSVersion < 10;
 
-    // Android browser: Disable for userse running version < 4.4.
-    const androidVersion = SimpleDb.getAndroidVersion(ua);
-    const isUnsupportedAndroid = 0 < androidVersion && androidVersion < 4.4;
+    // Checks whether IndexedDB is supported on the browser
+    const noIndexedDB = typeof window === 'undefined' || window.indexedDB == null;
 
     if (
       ua.indexOf('MSIE ') > 0 ||
       ua.indexOf('Trident/') > 0 ||
       ua.indexOf('Edge/') > 0 ||
       isUnsupportedIOS ||
-      isUnsupportedAndroid
+      noIndexedDB
     ) {
       return false;
     } else {
@@ -196,19 +195,6 @@ export class SimpleDb {
   static getIOSVersion(ua: string): number {
     const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
     const version = iOSVersionRegex ? iOSVersionRegex[1].split('_')[0] : '-1';
-    return Number(version);
-  }
-
-  // visible for testing
-  /** Parse User Agent to determine Android version. Returns -1 if not found. */
-  static getAndroidVersion(ua: string): number {
-    const androidVersionRegex = ua.match(/Android ([\d.]+)/i);
-    const version = androidVersionRegex
-      ? androidVersionRegex[1]
-          .split('.')
-          .slice(0, 2)
-          .join('.')
-      : '-1';
     return Number(version);
   }
 
