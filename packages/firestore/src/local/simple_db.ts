@@ -190,7 +190,8 @@ export class SimpleDb {
   ): SimpleDbStore<KeyType, ValueType> {
     return txn.store<KeyType, ValueType>(store);
   }
-
+  
+  // visible for testing
   /** Parse User Agent to determine iOS version. Returns -1 if not found. */
   static getIOSVersion(ua: string): number {
     const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
@@ -198,9 +199,10 @@ export class SimpleDb {
     return Number(version);
   }
 
+  // visible for testing
   /** Parse User Agent to determine Android version. Returns -1 if not found. */
   static getAndroidVersion(ua: string): number {
-    const androidVersionRegex = ua.match(/Android (\d+(?:\.\d+)+)/i);
+    const androidVersionRegex = ua.match(/Android ([\d.]+)/i);
     const version = androidVersionRegex
       ? androidVersionRegex[1]
           .split('.')
