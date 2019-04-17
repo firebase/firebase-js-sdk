@@ -166,9 +166,9 @@ export class SimpleDb {
     const iOSVersion = SimpleDb.getIOSVersion(ua);
     const isUnsupportedIOS = 0 < iOSVersion && iOSVersion < 10;
 
-    // Android browser: Disable for userse running version < 4.4.
+    // Android browser: Disable for userse running version < 4.5.
     const androidVersion = SimpleDb.getAndroidVersion(ua);
-    const isUnsupportedAndroid = 0 < androidVersion && androidVersion < 4.4;
+    const isUnsupportedAndroid = 0 < androidVersion && androidVersion < 4.5;
 
     if (
       ua.indexOf('MSIE ') > 0 ||
