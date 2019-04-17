@@ -166,16 +166,11 @@ export class SimpleDb {
     const iOSVersion = SimpleDb.getIOSVersion(ua);
     const isUnsupportedIOS = 0 < iOSVersion && iOSVersion < 10;
 
-    // Checks whether IndexedDB is supported on the browser
-    const noIndexedDB =
-      typeof window === 'undefined' || window.indexedDB == null;
-
     if (
       ua.indexOf('MSIE ') > 0 ||
       ua.indexOf('Trident/') > 0 ||
       ua.indexOf('Edge/') > 0 ||
-      isUnsupportedIOS ||
-      noIndexedDB
+      isUnsupportedIOS
     ) {
       return false;
     } else {
