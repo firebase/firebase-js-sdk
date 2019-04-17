@@ -176,7 +176,6 @@ export class SimpleDb {
       ua.indexOf('Edge/') > 0 ||
       isUnsupportedIOS ||
       isUnsupportedAndroid
-
     ) {
       return false;
     } else {
