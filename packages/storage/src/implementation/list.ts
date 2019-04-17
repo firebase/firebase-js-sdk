@@ -42,7 +42,7 @@ interface ListResultResponse {
   nextPageToken?: string;
 }
 
-const MAXR_ESULTS_KEY = 'maxResults';
+const MAX_RESULTS_KEY = 'maxResults';
 const PAGE_TOKEN_KEY = 'pageToken';
 const PREFIXES_KEY = 'prefixes';
 const ITEMS_KEY = 'items';
