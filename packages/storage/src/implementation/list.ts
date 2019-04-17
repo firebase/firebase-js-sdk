@@ -95,8 +95,8 @@ export function listOptionsValidator(p: any) {
     throw 'Expected ListOptions object.';
   }
   for (const key in p) {
-    if (key === MAXR_ESULTS_KEY) {
-      if (!type.isInteger(p[MAXR_ESULTS_KEY]) || p[MAXR_ESULTS_KEY] <= 0) {
+    if (key === MAX_RESULTS_KEY) {
+      if (!type.isInteger(p[MAX_RESULTS_KEY]) || p[MAX_RESULTS_KEY] <= 0) {
         throw 'Expected maxResults to be a positive number.';
       }
     } else if (key === PAGE_TOKEN_KEY) {
