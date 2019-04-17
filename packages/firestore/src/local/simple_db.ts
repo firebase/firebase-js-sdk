@@ -167,7 +167,8 @@ export class SimpleDb {
     const isUnsupportedIOS = 0 < iOSVersion && iOSVersion < 10;
 
     // Checks whether IndexedDB is supported on the browser
-    const noIndexedDB = typeof window === 'undefined' || window.indexedDB == null;
+    const noIndexedDB =
+      typeof window === 'undefined' || window.indexedDB == null;
 
     if (
       ua.indexOf('MSIE ') > 0 ||
