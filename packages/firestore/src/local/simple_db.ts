@@ -190,7 +190,7 @@ export class SimpleDb {
   ): SimpleDbStore<KeyType, ValueType> {
     return txn.store<KeyType, ValueType>(store);
   }
-  
+
   // visible for testing
   /** Parse User Agent to determine iOS version. Returns -1 if not found. */
   static getIOSVersion(ua: string): number {
