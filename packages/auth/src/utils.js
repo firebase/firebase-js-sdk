@@ -636,12 +636,13 @@ fireauth.util.isOpenerAnIframe = function(opt_win) {
 
 
 /**
- * @param {?Object=} opt_global The optional global scope.
+ * @param {?Object=} global The optional global scope.
  * @return {boolean} Whether current environment is a worker.
  */
-fireauth.util.isWorker = function(opt_global) {
-  var scope = opt_global || goog.global;
-  return typeof scope['window'] !== 'object' &&
+fireauth.util.isWorker = function(global) {
+  var scope = global || goog.global;
+  // WorkerGlobalScope only defined in worker environment.
+  return typeof scope['WorkerGlobalScope'] !== 'undefined' &&
          typeof scope['importScripts'] === 'function';
 };
 

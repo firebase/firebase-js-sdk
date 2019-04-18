@@ -557,6 +557,7 @@ function testGetEnvironment_worker() {
 function testIsWorker() {
   assertFalse(fireauth.util.isWorker({'window': {}}));
   assertTrue(fireauth.util.isWorker({
+    'WorkerGlobalScope': function() {},
     'importScripts': function() {}
   }));
 }
