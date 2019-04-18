@@ -732,6 +732,10 @@ export class IndexedDbPersistence implements Persistence {
     );
   }
 
+  static async clearPersistence(dbName: string): Promise<void> {
+    await SimpleDb.delete(dbName);
+  }
+
   get started(): boolean {
     return this._started;
   }

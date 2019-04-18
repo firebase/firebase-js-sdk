@@ -480,6 +480,14 @@ export class FirestoreClient {
     return this.syncEngine.handleCredentialChange(user);
   }
 
+  clearPersistence(): Promise<void> {
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+      this.databaseInfo
+    );
+    const dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
+    return IndexedDbPersistence.clearPersistence(dbName);
+  }
+
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
     this.verifyNotShutdown();
