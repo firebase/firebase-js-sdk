@@ -17,8 +17,15 @@
 
 import * as protoLoader from '@grpc/proto-loader';
 import * as grpc from 'grpc';
-import { resolve } from 'path';
+import * as path from 'path';
 import * as ProtobufJS from 'protobufjs';
+
+export const protoLoaderOptions = {
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: true
+};
 
 /**
  * Loads the protocol buffer definitions for Firestore.
@@ -26,43 +33,44 @@ import * as ProtobufJS from 'protobufjs';
  * @returns The GrpcObject representing our protos.
  */
 export function loadProtos(): grpc.GrpcObject {
-  const root = resolve(
+  const root = path.resolve(
     __dirname,
     process.env.FIRESTORE_PROTO_ROOT || '../protos'
   );
-  const firestoreProtoFile = root + '/google/firestore/v1/firestore.proto';
+  const firestoreProtoFile = path.join(
+    root,
+    'google/firestore/v1/firestore.proto'
+  );
 
-  // Beware that converting fields to camel case (the default behaviour with
-  // protoLoader) does not convert the tag fields in oneof groups (!!!). This
-  // will likely be fixed when we upgrade to protobufjs 6.x
   const packageDefinition = protoLoader.loadSync(firestoreProtoFile, {
-    longs: String,
-    enums: String,
-    defaults: true,
-    oneofs: true,
-    includeDirs: [root]
+    ...protoLoaderOptions,
+    ...{ includeDirs: [root] }
   });
 
   return grpc.loadPackageDefinition(packageDefinition);
 }
 
-export function loadRawProtos(): any {
-  const options = {
-    // Beware that converting fields to camel case does not convert the tag
-    // fields in oneof groups (!!!). This will likely be fixed when we upgrade
-    // to protobufjs 6.x
-    convertFieldsToCamelCase: true
-  };
-  const root = resolve(
+export function loadRawProtos(): ProtobufJS.Root {
+  const root = path.resolve(
     __dirname,
     process.env.FIRESTORE_PROTO_ROOT || '../protos'
   );
-  const firestoreProtoFile = {
+  const firestoreProtoFile = path.join(
     root,
-    file: 'google/firestore/v1/firestore.proto'
+    'google/firestore/v1/firestore.proto'
+  );
+
+  const protoRoot = new ProtobufJS.Root();
+  // Override the resolvePath function to look for protos in the 'root'
+  // directory.
+  protoRoot.resolvePath = (origin: string, target: string) => {
+    if (path.isAbsolute(target)) {
+      return target;
+    }
+    return path.join(root, target);
   };
 
-  let builder = ProtobufJS.newBuilder(options);
-  builder = ProtobufJS.loadProtoFile(firestoreProtoFile, builder);
-  return builder.build();
+  protoRoot.loadSync(firestoreProtoFile);
+  protoRoot.resolveAll();
+  return protoRoot;
 }

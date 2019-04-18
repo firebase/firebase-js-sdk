@@ -78,7 +78,13 @@ describe('Serializer', () => {
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
   const protos = loadRawProtos();
-  const ds = protos['google']['firestore']['v1'];
+
+  // tslint:disable:variable-name
+  const ValueMessage = protos.lookupType('google.firestore.v1.Value');
+  const LatLngMessage = protos.lookupType('google.type.LatLng');
+  const TimestampMessage = protos.lookupType('google.protobuf.Timestamp');
+  const MapValueMessage = protos.lookupType('google.firestore.v1.MapValue');
+  // tslint:enable:variable-name
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
@@ -100,9 +106,9 @@ describe('Serializer', () => {
     /**
      * Verifies that the given object can be parsed as a datastore Value proto.
      */
-    function expectValue(obj: unknown, tag: string): Chai.Assertion {
-      const proto = new ds.Value(obj);
-      expect(proto.value_type).to.equal(tag);
+    function expectValue(obj: api.Value, tag: string): Chai.Assertion {
+      const proto = ValueMessage.fromObject(obj);
+      expect(proto['valueType']).to.equal(tag);
       return expect(proto[tag]);
     }
 
@@ -207,7 +213,7 @@ describe('Serializer', () => {
         const expected = { timestampValue: expectedJson[i] };
         expect(obj).to.deep.equal(expected);
         expectValue(obj, 'timestampValue').to.deep.equal(
-          new protos['google']['protobuf'].Timestamp(expectedJson[i]),
+          TimestampMessage.fromObject(expectedJson[i]),
           'for date ' + example
         );
       }
@@ -226,7 +232,7 @@ describe('Serializer', () => {
       const obj = s.toValue(new fieldValue.GeoPointValue(example));
       expect(obj).to.deep.equal(expected);
       expectValue(obj, 'geoPointValue').to.deep.equal(
-        new protos['google']['type'].LatLng(1.23, 4.56)
+        LatLngMessage.fromObject(expected.geoPointValue)
       );
     });
 
@@ -273,7 +279,9 @@ describe('Serializer', () => {
       const obj = s.toValue(fieldValue.ObjectValue.EMPTY);
       expect(obj).to.deep.equal({ mapValue: { fields: {} } });
 
-      expectValue(obj, 'mapValue').to.deep.equal(new ds.MapValue());
+      expectValue(obj, 'mapValue').to.deep.equal(
+        MapValueMessage.fromObject({})
+      );
     });
 
     it('converts nested ObjectValues', () => {
@@ -340,11 +348,8 @@ describe('Serializer', () => {
       const obj = s.toValue(objValue);
       expect(obj).to.deep.equal(expectedJson);
 
-      // Compare the raw object representation rather than the Message because
-      // occasionally Jasmine will hang trying to generate the string form in
-      // the event of an inequality.
-      expect(new ds.Value(obj).toRaw(true, true)).to.deep.equal(
-        new ds.Value(expectedJson).toRaw(true, true)
+      expectValue(obj, 'mapValue').to.deep.equal(
+        MapValueMessage.fromObject(expectedJson.mapValue)
       );
       // clang-format on
     });
@@ -355,7 +360,7 @@ describe('Serializer', () => {
 
     it('converts NullValue', () => {
       const proto: api.Value = { nullValue: 'NULL_VALUE' };
-      expect(new ds.Value(proto).value_type).to.equal('nullValue');
+      expect(ValueMessage.fromObject(proto)['valueType']).to.equal('nullValue');
       expect(s.fromValue(proto)).to.equal(fieldValue.NullValue.INSTANCE);
     });
 
@@ -363,7 +368,9 @@ describe('Serializer', () => {
       const examples = [true, false];
       for (const example of examples) {
         const proto = { booleanValue: example };
-        expect(new ds.Value(proto).value_type).to.equal('booleanValue');
+        expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
+          'booleanValue'
+        );
         expect(s.fromValue(proto)).to.deep.equal(
           fieldValue.BooleanValue.of(example)
         );
@@ -382,7 +389,9 @@ describe('Serializer', () => {
       ];
       for (const example of examples) {
         const proto: api.Value = { integerValue: '' + example };
-        expect(new ds.Value(proto).value_type).to.equal('integerValue');
+        expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
+          'integerValue'
+        );
         expect(s.fromValue(proto)).to.deep.equal(
           new fieldValue.IntegerValue(example)
         );
@@ -404,7 +413,9 @@ describe('Serializer', () => {
       ];
       for (const example of examples) {
         const proto = { doubleValue: example };
-        expect(new ds.Value(proto).value_type).to.equal('doubleValue');
+        expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
+          'doubleValue'
+        );
         expect(s.fromValue(proto)).to.deep.equal(
           new fieldValue.DoubleValue(example)
         );
@@ -422,7 +433,9 @@ describe('Serializer', () => {
       ];
       for (const example of examples) {
         const proto = { stringValue: example };
-        expect(new ds.Value(proto).value_type).to.equal('stringValue');
+        expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
+          'stringValue'
+        );
         expect(s.fromValue(proto)).to.deep.equal(
           new fieldValue.StringValue(example)
         );
@@ -433,7 +446,9 @@ describe('Serializer', () => {
       const proto = {
         arrayValue: { values: [{ booleanValue: true }, { stringValue: 'foo' }] }
       };
-      expect(new ds.Value(proto).value_type).to.equal('arrayValue');
+      expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
+        'arrayValue'
+      );
       expect(s.fromValue(proto)).to.deep.equal(
         new fieldValue.ArrayValue([
           fieldValue.BooleanValue.TRUE,
@@ -444,13 +459,17 @@ describe('Serializer', () => {
 
     it('converts empty ArrayValue', () => {
       const proto = { arrayValue: {} };
-      expect(new ds.Value(proto).value_type).to.equal('arrayValue');
+      expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
+        'arrayValue'
+      );
       expect(s.fromValue(proto)).to.deep.equal(new fieldValue.ArrayValue([]));
     });
 
     it('converts ObjectValue.EMPTY', () => {
       const proto = { mapValue: { fields: {} } };
-      expect(new ds.Value(proto).mapValue).to.deep.equal(new ds.MapValue());
+      expect(ValueMessage.fromObject(proto)['mapValue']).to.deep.equal(
+        MapValueMessage.fromObject({})
+      );
       expect(s.fromValue(proto)).to.deep.equal(fieldValue.ObjectValue.EMPTY);
     });
 
@@ -471,7 +490,9 @@ describe('Serializer', () => {
         // because the proto interface definition isn't comprehensive.
         // tslint:disable-next-line:no-any
         const proto: api.Value = { timestampValue: example as any };
-        expect(new ds.Value(proto).value_type).to.equal('timestampValue');
+        expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
+          'timestampValue'
+        );
         expect(s.fromValue(proto)).to.deep.equal(
           new fieldValue.TimestampValue(Timestamp.fromDate(date))
         );
