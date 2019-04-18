@@ -69,5 +69,15 @@ export default [
       [...deps, 'react-native'].some(
         dep => id === dep || id.startsWith(`${dep}/`)
       )
+  },
+  {
+    input: 'index.lite.ts',
+    output: {
+      file: 'dist/index.lite.js',
+      format: 'esm',
+      sourcemap: true
+    },
+    plugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,11 @@ import {
 import {
   _FirebaseApp,
   _FirebaseNamespace,
-  FirebaseService,
-  FirebaseAppInternals
+  FirebaseService
 } from '@firebase/app-types/private';
 import { deepCopy, deepExtend } from '@firebase/util';
-import { error, AppError } from './errors';
-import { DEFAULT_ENTRY_NAME } from './constants';
+import { error, AppError } from '../errors';
+import { DEFAULT_ENTRY_NAME } from '../constants';
 
 interface ServicesCache {
   [name: string]: {
@@ -36,22 +35,19 @@ interface ServicesCache {
   };
 }
 
-// An array to capture listeners before the true auth functions
-// exist
-let tokenListeners: any[] = [];
-
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
  */
-export class FirebaseAppImpl implements FirebaseApp {
+export class FirebaseAppLiteImpl implements FirebaseApp {
   private readonly options_: FirebaseOptions;
   private readonly name_: string;
   private isDeleted_ = false;
   private services_: ServicesCache = {};
   private automaticDataCollectionEnabled_: boolean;
 
-  INTERNAL: FirebaseAppInternals;
+  // lite version has an empty INTERNAL namespace
+  readonly INTERNAL = {};
 
   constructor(
     options: FirebaseOptions,
@@ -62,20 +58,6 @@ export class FirebaseAppImpl implements FirebaseApp {
     this.automaticDataCollectionEnabled_ =
       config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);
-    this.INTERNAL = {
-      getUid: () => null,
-      getToken: () => Promise.resolve(null),
-      addAuthTokenListener: (callback: (token: string | null) => void) => {
-        tokenListeners.push(callback);
-        // Make sure callback is called, asynchronously, in the absence of the auth module
-        setTimeout(() => callback(null), 0);
-      },
-      removeAuthTokenListener: callback => {
-        tokenListeners = tokenListeners.filter(
-          listener => listener !== callback
-        );
-      }
-    };
   }
 
   get automaticDataCollectionEnabled(): boolean {
@@ -178,22 +160,6 @@ export class FirebaseAppImpl implements FirebaseApp {
   private extendApp(props: { [name: string]: any }): void {
     // Copy the object onto the FirebaseAppImpl prototype
     deepExtend(this, props);
-
-    /**
-     * If the app has overwritten the addAuthTokenListener stub, forward
-     * the active token listeners on to the true fxn.
-     *
-     * TODO: This function is required due to our current module
-     * structure. Once we are able to rely strictly upon a single module
-     * implementation, this code should be refactored and Auth should
-     * provide these stubs and the upgrade logic
-     */
-    if (props.INTERNAL && props.INTERNAL.addAuthTokenListener) {
-      tokenListeners.forEach(listener => {
-        this.INTERNAL.addAuthTokenListener(listener);
-      });
-      tokenListeners = [];
-    }
   }
 
   /**
@@ -206,9 +172,3 @@ export class FirebaseAppImpl implements FirebaseApp {
     }
   }
 }
-
-// Prevent dead-code elimination of these methods w/o invalid property
-// copying.
-(FirebaseAppImpl.prototype.name && FirebaseAppImpl.prototype.options) ||
-  FirebaseAppImpl.prototype.delete ||
-  console.log('dc');
