@@ -2800,6 +2800,8 @@ function testCreateAccount_serverCaughtError() {
       fireauth.authenum.Error.OPERATION_NOT_ALLOWED;
   errorMap[fireauth.RpcHandler.ServerError.WEAK_PASSWORD] =
       fireauth.authenum.Error.WEAK_PASSWORD;
+  errorMap[fireauth.RpcHandler.ServerError.ADMIN_ONLY_OPERATION] =
+      fireauth.authenum.Error.ADMIN_ONLY_OPERATION;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.createAccount(email, password);
@@ -2894,6 +2896,8 @@ function testDeleteAccount_serverCaughtError() {
       fireauth.authenum.Error.TOKEN_EXPIRED;
   errorMap[fireauth.RpcHandler.ServerError.USER_DISABLED] =
       fireauth.authenum.Error.USER_DISABLED;
+  errorMap[fireauth.RpcHandler.ServerError.ADMIN_ONLY_OPERATION] =
+      fireauth.authenum.Error.ADMIN_ONLY_OPERATION;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.deleteAccount('ID_TOKEN');
