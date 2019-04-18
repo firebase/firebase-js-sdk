@@ -316,9 +316,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   _dataConverter: UserDataConverter;
 
-  constructor(
-    databaseIdOrApp: FirestoreDatabase | FirebaseApp
-  ) {
+  constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
     this.isClientRunning = false;
     const config = new FirestoreConfig();
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
@@ -482,7 +480,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._config.credentials,
       this._queue
     );
-    
+
     this.isClientRunning = true;
     return this._firestoreClient.start(persistenceSettings);
   }
