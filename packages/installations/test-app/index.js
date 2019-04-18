@@ -63,25 +63,11 @@ function getInputValue(elementId) {
 }
 
 function getFid() {
-  const projectId = getInputValue('projectId');
-  const apiKey = getInputValue('apiKey');
-  const appId = getInputValue('appId');
-  printRequest(
-    'Get FID',
-    FirebaseInstallations.getFid({ options: { projectId, apiKey, appId } })
-  );
+  printRequest('Get FID', FirebaseInstallations.getFid(getApp()));
 }
 
 function getAuthToken() {
-  const projectId = getInputValue('projectId');
-  const apiKey = getInputValue('apiKey');
-  const appId = getInputValue('appId');
-  printRequest(
-    'Get Auth Token',
-    FirebaseInstallations.getAuthToken({
-      options: { projectId, apiKey, appId }
-    })
-  );
+  printRequest('Get Auth Token', FirebaseInstallations.getAuthToken(getApp()));
 }
 
 async function printRequest(requestInfo, promise) {
@@ -101,6 +87,17 @@ async function printRequest(requestInfo, promise) {
 function format(o) {
   const escapedString = JSON.stringify(o, null, 2);
   return `<span class="formatted-content">${escapedString}</span>`;
+}
+
+function getApp() {
+  const appName = getInputValue('appName');
+  const projectId = getInputValue('projectId');
+  const apiKey = getInputValue('apiKey');
+  const appId = getInputValue('appId');
+  return {
+    name: appName,
+    options: { projectId, apiKey, appId }
+  };
 }
 
 getElement('getFid').onclick = getFid;
