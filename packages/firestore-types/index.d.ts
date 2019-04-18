@@ -216,6 +216,8 @@ export class FirebaseFirestore {
    */
   app: any;
 
+  clearPersistence(): Promise<void>;
+
   /**
    * Re-enables use of the network for this Firestore instance after a prior
    * call to disableNetwork().

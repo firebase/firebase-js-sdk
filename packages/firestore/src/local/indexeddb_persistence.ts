@@ -697,7 +697,7 @@ export class IndexedDbPersistence implements Persistence {
     // we successfully deleted its metadata from IndexedDb.
     this.removeClientZombiedEntry();
     if (deleteData) {
-      await SimpleDb.delete(this.dbName);
+      IndexedDbPersistence.clearPersistence(this.dbName);
     }
   }
 
@@ -730,6 +730,10 @@ export class IndexedDbPersistence implements Persistence {
           );
       }
     );
+  }
+
+  static async clearPersistence(dbName: string): Promise<void> {
+    await SimpleDb.delete(dbName);
   }
 
   get started(): boolean {

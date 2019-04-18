@@ -928,6 +928,38 @@ apiDescribe('Database', persistence => {
     });
   });
 
+  it('can clear persistence if the client has not been initialized', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+
+      await firestore.disableNetwork();
+      await expect(docRef.get()).to.eventually.be.rejectedWith(
+        'Failed to get document because the client is offline.'
+      );
+
+      const writePromise = docRef.set({ foo: 'bar' });
+      const doc = await docRef.get();
+      expect(doc.metadata.fromCache).to.be.true;
+
+      await firestore.INTERNAL.delete();
+      await firestore.clearPersistence();
+
+      const doc2 = await docRef.get();
+      expect(doc2.metadata.fromCache).to.be.false;
+      expect(doc2.data()).to.deep.equal({ foo: 'bar' });
+    });
+  });
+
+  it('can not clear persistence if the client is running', async () => {
+    return withTestDoc(persistence, docRef => {
+      const firestore = docRef.firestore;
+      expect(() => {
+        firestore.clearPersistence();
+      }).to.throw('Persistence cannot be cleared while the client is running');
+      return Promise.resolve();
+    });
+  });
+
   it('can get documents while offline', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
