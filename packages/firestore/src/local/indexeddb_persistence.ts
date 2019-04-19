@@ -697,7 +697,7 @@ export class IndexedDbPersistence implements Persistence {
     // we successfully deleted its metadata from IndexedDb.
     this.removeClientZombiedEntry();
     if (deleteData) {
-      IndexedDbPersistence.clearPersistence(this.dbName);
+      await IndexedDbPersistence.clearPersistence(this.dbName);
     }
   }
 
