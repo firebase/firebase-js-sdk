@@ -36,25 +36,25 @@
   "module": "dist/index.esm.js",
   "react-native": "dist/index.rn.cjs.js",
   "dependencies": {
-    "@firebase/app": "0.3.15",
-    "@firebase/auth": "0.9.8",
-    "@firebase/database": "0.3.18",
-    "@firebase/firestore": "1.1.4",
-    "@firebase/functions": "0.4.4",
-    "@firebase/messaging": "0.3.17",
-    "@firebase/polyfill": "0.3.11",
-    "@firebase/storage": "0.2.13"
+    "@firebase/app": "0.3.16",
+    "@firebase/auth": "0.10.0",
+    "@firebase/database": "0.3.19",
+    "@firebase/firestore": "1.2.0",
+    "@firebase/functions": "0.4.5",
+    "@firebase/messaging": "0.3.18",
+    "@firebase/polyfill": "0.3.12",
+    "@firebase/storage": "0.2.14"
   },
   "devDependencies": {
     "git-rev-sync": "1.12.0",
-    "rollup": "1.10.0",
+    "rollup": "1.10.1",
     "rollup-plugin-commonjs": "9.3.4",
     "rollup-plugin-license": "0.8.1",
     "rollup-plugin-node-resolve": "4.2.3",
     "rollup-plugin-sourcemaps": "0.4.2",
     "rollup-plugin-typescript2": "0.20.1",
     "rollup-plugin-uglify": "6.0.2",
-    "typescript": "3.4.3"
+    "typescript": "3.4.4"
   },
   "typings": "index.d.ts"
 }

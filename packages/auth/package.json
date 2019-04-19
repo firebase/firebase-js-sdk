@@ -19,15 +19,15 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/auth-types": "0.5.6"
+    "@firebase/auth-types": "0.6.0"
   },
   "devDependencies": {
     "del": "4.1.0",
     "express": "4.16.4",
-    "firebase-functions": "2.2.1",
-    "firebase-tools": "6.6.0",
-    "google-closure-compiler": "20190325.0.0",
-    "google-closure-library": "20190325.0.0",
+    "firebase-functions": "2.3.0",
+    "firebase-tools": "6.7.0",
+    "google-closure-compiler": "20190415.0.0",
+    "google-closure-library": "20190415.0.0",
     "gulp": "4.0.0",
     "gulp-sourcemaps": "2.6.5",
     "protractor": "6.0.0"
