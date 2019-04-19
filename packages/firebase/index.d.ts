@@ -5477,11 +5477,12 @@ declare namespace firebase.storage {
      * List items and sub-directories within this directory.
      *
      * "/" is treated as a path delimiter. Firebase storage does not support
-     * invalid object path that ends with "/" or contains two consecutive "//".
+     * invalid object paths that ends with "/" or contains two consecutive "//".
      * All invalid objects in GCS will be filtered.
      *
      * @param options.maxResults If set, limits the total number of `prefixes`
-     *      and `items` to return.
+     *      and `items` to return. The default and maximum maxResults is 1000.
+     *      Use the nextPageToken to retrieve more objects.
      * @param options.pageToken The `nextPageToken` from a previous call to
      *      list(). If provided, listing is resumed from the previous position.
      * @return A promise that resolves with the items and sub-directories.
@@ -5520,8 +5521,6 @@ declare namespace firebase.storage {
     maxResults?: number | null;
     /**
      * A pageToken returned from a previous call to list().
-     * If set, resumes list from the previous location. prefixes and items already listed
-     * will not show up.
      */
     pageToken?: string | null;
   }
