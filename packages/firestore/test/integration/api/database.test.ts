@@ -970,7 +970,7 @@ apiDescribe('Database', persistence => {
     }
   );
 
-  it('can not clear persistence if the client is running', async () => {
+  it('can not clear persistence if the client has been initialized', async () => {
     return withTestDoc(persistence, docRef => {
       const firestore = docRef.firestore;
       expect(() => {
