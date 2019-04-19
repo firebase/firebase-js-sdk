@@ -19,7 +19,10 @@ import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { deletedDoc, doc, expectEqual, key } from '../../util/helpers';
 
-import { TEST_PERSISTENCE_PREFIX, testIndexedDbPersistence } from './persistence_test_helpers';
+import {
+  TEST_PERSISTENCE_PREFIX,
+  testIndexedDbPersistence
+} from './persistence_test_helpers';
 import {
   TestIndexedDbRemoteDocumentCache,
   TestRemoteDocumentCache

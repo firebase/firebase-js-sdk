@@ -1,4 +1,3 @@
-
 /**
  * @license
  * Copyright 2017 Google Inc.
@@ -218,7 +217,12 @@ export function withTestDbsSettings(
           (chain, db) =>
             chain
               .then(db.INTERNAL.delete.bind(this))
-              .then(IndexedDbPersistence.clearPersistence.bind(this, TEST_PERSISTENCE_PREFIX)),
+              .then(
+                IndexedDbPersistence.clearPersistence.bind(
+                  this,
+                  TEST_PERSISTENCE_PREFIX
+                )
+              ),
           Promise.resolve()
         )
       );

@@ -89,7 +89,9 @@ function genericLruGarbageCollectorTests(
   afterEach(async () => {
     await queue.enqueue(async () => {
       await persistence.shutdown();
-      await IndexedDbPersistence.clearPersistence(PersistenceTestHelpers.TEST_PERSISTENCE_PREFIX);
+      await IndexedDbPersistence.clearPersistence(
+        PersistenceTestHelpers.TEST_PERSISTENCE_PREFIX
+      );
     });
   });
 

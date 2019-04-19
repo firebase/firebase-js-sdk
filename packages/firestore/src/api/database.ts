@@ -451,7 +451,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
-    
+
     this.isClientRunning = true;
     const databaseInfo = this.getDatabaseInfo();
 
