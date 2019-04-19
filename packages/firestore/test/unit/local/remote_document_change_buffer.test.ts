@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { deletedDoc, doc, expectEqual, key } from '../../util/helpers';
 
-import { testIndexedDbPersistence } from './persistence_test_helpers';
+import { TEST_PERSISTENCE_PREFIX, testIndexedDbPersistence } from './persistence_test_helpers';
 import {
   TestIndexedDbRemoteDocumentCache,
   TestRemoteDocumentCache
@@ -50,7 +50,10 @@ describe('RemoteDocumentChangeBuffer', () => {
     });
   });
 
-  afterEach(() => persistence.shutdown(/* deleteData= */ true));
+  afterEach(async () => {
+    await persistence.shutdown();
+    await IndexedDbPersistence.clearPersistence(TEST_PERSISTENCE_PREFIX);
+  });
 
   it('can read unchanged entry', async () => {
     const maybeDoc = await buffer.getEntry(key('coll/a'));

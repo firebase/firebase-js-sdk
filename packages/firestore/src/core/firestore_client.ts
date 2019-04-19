@@ -509,9 +509,14 @@ export class FirestoreClient {
       }
       await this.remoteStore.shutdown();
       await this.sharedClientState.shutdown();
-      await this.persistence.shutdown(
-        options && options.purgePersistenceWithDataLoss
-      );
+      await this.persistence.shutdown();
+
+      if (options && options.purgePersistenceWithDataLoss) {
+        const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+          this.databaseInfo
+        );
+        IndexedDbPersistence.clearPersistence(persistenceKey);
+      }
 
       // `removeChangeListener` must be called after shutting down the
       // RemoteStore as it will prevent the RemoteStore from retrieving

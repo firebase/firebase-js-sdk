@@ -301,7 +301,10 @@ function genericLocalStoreTests(
     localStore = new LocalStore(persistence, User.UNAUTHENTICATED);
   });
 
-  afterEach(() => persistence.shutdown(/* deleteData= */ true));
+  afterEach(async () => {
+    await persistence.shutdown();
+    await IndexedDbPersistence.clearPersistence(persistenceHelpers.TEST_PERSISTENCE_PREFIX);
+  });
 
   function expectLocalStore(): LocalStoreTester {
     return new LocalStoreTester(localStore, gcIsEager);
