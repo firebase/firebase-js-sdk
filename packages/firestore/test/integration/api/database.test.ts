@@ -932,8 +932,6 @@ apiDescribe('Database', persistence => {
     'can clear persistence if the client has not been initialized',
     async () => {
       await withTestDoc(persistence, async docRef => {
-        // Write data to cache.
-        const firestore = docRef.firestore;
         await docRef.set({ foo: 'bar' });
         const docSnap = await docRef.get({ source: 'cache' });
         await expect(docSnap.data()).to.deep.equal({ foo: 'bar' });
@@ -953,8 +951,7 @@ apiDescribe('Database', persistence => {
         expect(docSnap2.exists).to.be.true;
         expect(docSnap2.data()).to.deep.equal({ foo: 'bar' });
 
-        // Verify data in cache is gone if clearPersistence() is called.
-
+        // Verify data in cache is cleared if clearPersistence() is called.
         await app2.delete();
         await firestore2.clearPersistence();
         const app3 = firebase.initializeApp(options, name);

@@ -411,17 +411,17 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   clearPersistence(): Promise<void> {
+    if (this.isClientRunning) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'Persistence cannot be cleared while the client is running'
+      );
+    }
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       this.getDatabaseInfo()
     );
     const dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
-    if (!this.isClientRunning) {
-      return IndexedDbPersistence.clearPersistence(dbName);
-    }
-    throw new FirestoreError(
-      Code.FAILED_PRECONDITION,
-      'Persistence cannot be cleared while the client is running'
-    );
+    return IndexedDbPersistence.clearPersistence(dbName);
   }
 
   ensureClientConfigured(): FirestoreClient {

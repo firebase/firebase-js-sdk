@@ -216,6 +216,11 @@ export class FirebaseFirestore {
    */
   app: any;
 
+  /**
+   * Clears the persistence cache. This can only called when the client is not running.
+   *
+   * @return A promise that is resolved once the persistence has been cleared.
+   */
   clearPersistence(): Promise<void>;
 
   /**
