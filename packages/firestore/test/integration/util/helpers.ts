@@ -217,8 +217,8 @@ export function withTestDbsSettings(
           (chain, db) =>
             chain
               .then(() => db.INTERNAL.delete())
-              .then(
-                () => IndexedDbPersistence.clearPersistence(TEST_PERSISTENCE_PREFIX)
+              .then(() =>
+                IndexedDbPersistence.clearPersistence(TEST_PERSISTENCE_PREFIX)
               ),
           Promise.resolve()
         )
