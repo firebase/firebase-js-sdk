@@ -515,13 +515,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   INTERNAL = {
-    delete: async (options?: {
-      purgePersistenceWithDataLoss?: boolean;
-    }): Promise<void> => {
+    delete: async (): Promise<void> => {
       // The client must be initalized to ensure that all subsequent API usage
       // throws an exception.
       this.ensureClientConfigured();
-      return this._firestoreClient!.shutdown(options).then(() => {
+      return this._firestoreClient!.shutdown().then(() => {
         this.isClientRunning = false;
       });
     }

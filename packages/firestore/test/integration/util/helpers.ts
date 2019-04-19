@@ -1,3 +1,4 @@
+
 /**
  * @license
  * Copyright 2017 Google Inc.
@@ -16,6 +17,8 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
+import { IndexedDbPersistence } from './../../../src/local/indexeddb_persistence';
+import { TEST_PERSISTENCE_PREFIX } from './../../unit/local/persistence_test_helpers';
 import firebase from './firebase_export';
 
 /**
@@ -213,11 +216,9 @@ export function withTestDbsSettings(
       return wipeDb(dbs[0]).then(() =>
         dbs.reduce(
           (chain, db) =>
-            chain.then(
-              db.INTERNAL.delete.bind(this, {
-                purgePersistenceWithDataLoss: true
-              })
-            ),
+            chain
+              .then(db.INTERNAL.delete.bind(this))
+              .then(IndexedDbPersistence.clearPersistence.bind(this, TEST_PERSISTENCE_PREFIX)),
           Promise.resolve()
         )
       );
