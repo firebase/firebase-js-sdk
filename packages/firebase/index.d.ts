@@ -5474,35 +5474,50 @@ declare namespace firebase.storage {
      */
     updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
     /**
-     * List items and sub-directories within this directory.
+     * List items(files) and prefixes(folders) with this prefix of ref.name+'/'.
      *
-     * "/" is treated as a path delimiter. Firebase storage does not support
-     * invalid object paths that ends with "/" or contains two consecutive "/"s.
-     * All invalid objects in GCS will be filtered.
+     * GCS is a key-blob store. Firebase storage impose the semantic of '/'
+     * delimited folder structure.
+     * Objects whose paths, aside from the prefix, contain '/' will have
+     * their path, truncated after the '/', returned in prefixes.
+     * Duplicate prefixes are omitted.
+     * Objects whose paths, aside from the prefix, do not contain '/' will
+     * be returned in items.
+     *
+     * Firebase storage does not support invalid object paths that end with
+     * "/" or contain two consecutive "/"s. All invalid objects in GCS will be
+     * filtered by GCS.
+     * list() may fail if there are too many invalid objects in the bucket.
      *
      * @param options.maxResults If set, limits the total number of `prefixes`
      *      and `items` to return. The default and maximum maxResults is 1000.
      *      Use the nextPageToken to retrieve more objects.
      * @param options.pageToken The `nextPageToken` from a previous call to
      *      list(). If provided, listing is resumed from the previous position.
-     * @return A promise that resolves with the items and sub-directories.
-     *      `prefixes` contains references to sub-directories and `items`
+     * @return A promise that resolves with the items and prefixes.
+     *      `prefixes` contains references to sub-folders and `items`
      *      contains references to objects in this folder. `nextPageToken`
-     *      can be passed as `options.pageToken` to get the rest of results.
+     *      can be used to get the rest of the results.
      */
     list(options?: ListOptions): Promise<ListResult>;
   }
 
   /**
-   * Result returned by list()
+   * Result returned by list().
    */
   interface ListResult {
     /**
-     * References to sub-directories. You can call list() on them to get its contents.
+     * References to sub-folders. You can call list() on them to get its contents.
+     * GCS's
+     *
+     * Folder is implict using '/' as the delimiter.
+     * For example, if you have two objects '/a/b/1' and '/a/b/2', list('/a')
+     * will return '/a/b' as a prefix.
      */
     prefixes: Reference[];
     /**
-     * Objects in this directory. You can call getMetadate() and getDownloadUrl() on them.
+     * Objects in this directory.
+     * You can call getMetadate() and getDownloadUrl() on them.
      */
     items: Reference[];
     /**
@@ -5512,11 +5527,11 @@ declare namespace firebase.storage {
   }
 
   /**
-   * The options list() accepts
+   * The options list() accepts.
    */
   interface ListOptions {
     /**
-     * The maximum number of results returned.
+     * The maximum number of results (items+prefixs) returned.
      */
     maxResults?: number | null;
     /**

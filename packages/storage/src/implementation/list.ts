@@ -43,6 +43,7 @@ interface ListResultResponse {
 }
 
 const MAX_RESULTS_KEY = 'maxResults';
+const MAX_MAX_RESULTS = 1000;
 const PAGE_TOKEN_KEY = 'pageToken';
 const PREFIXES_KEY = 'prefixes';
 const ITEMS_KEY = 'items';
@@ -77,7 +78,7 @@ function fromBackendResponse(
   return listResult;
 }
 
-export function fromResposneString(
+export function fromResponseString(
   authWrapper: AuthWrapper,
   resourceString: string
 ): ListResult | null {
@@ -98,6 +99,9 @@ export function listOptionsValidator(p: any) {
     if (key === MAX_RESULTS_KEY) {
       if (!type.isInteger(p[MAX_RESULTS_KEY]) || p[MAX_RESULTS_KEY] <= 0) {
         throw 'Expected maxResults to be a positive number.';
+      }
+      if (p[MAX_RESULTS_KEY] > 1000) {
+        throw `Expected maxResults to be less than or equal to ${MAX_MAX_RESULTS}.`;
       }
     } else if (key === PAGE_TOKEN_KEY) {
       if (!type.isString(p[PAGE_TOKEN_KEY])) {

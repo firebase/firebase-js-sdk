@@ -425,13 +425,17 @@ describe('Firebase Storage > Reference', () => {
           'storage/invalid-argument'
         );
       });
-      it('throws on non-positive maxResults', () => {
+      it('throws on invalid maxResults', () => {
         testShared.assertThrows(
           testShared.bind(child.list, child, { maxResults: 0 }),
           'storage/invalid-argument'
         );
         testShared.assertThrows(
           testShared.bind(child.list, child, { maxResults: -4 }),
+          'storage/invalid-argument'
+        );
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: 1001 }),
           'storage/invalid-argument'
         );
       });

@@ -65,7 +65,7 @@ export function listHandler(
   authWrapper: AuthWrapper
 ): (p1: XhrIo, p2: string) => ListResult {
   function handler(xhr: XhrIo, text: string): ListResult {
-    const listResult = ListResultUtils.fromResposneString(authWrapper, text);
+    const listResult = ListResultUtils.fromResponseString(authWrapper, text);
     handlerCheck(listResult !== null);
     return listResult as ListResult;
   }
