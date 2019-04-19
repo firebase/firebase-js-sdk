@@ -26,7 +26,8 @@ import { ListResult } from '../list';
 
 /**
  * Represents the simplified object metadata returned by List API.
- * Other fields are filtered because list does not grant permission to get metadata.
+ * Other fields are filtered because list in Firebase Rules does not grant
+ * the permission to read the metadata.
  */
 interface ListMetadataResponse {
   name: string;
