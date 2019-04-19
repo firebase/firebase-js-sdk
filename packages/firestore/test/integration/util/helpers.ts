@@ -216,12 +216,9 @@ export function withTestDbsSettings(
         dbs.reduce(
           (chain, db) =>
             chain
-              .then(db.INTERNAL.delete.bind(this))
+              .then(() => db.INTERNAL.delete())
               .then(
-                IndexedDbPersistence.clearPersistence.bind(
-                  this,
-                  TEST_PERSISTENCE_PREFIX
-                )
+                () => IndexedDbPersistence.clearPersistence(TEST_PERSISTENCE_PREFIX)
               ),
           Promise.resolve()
         )
