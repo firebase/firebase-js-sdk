@@ -420,8 +420,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       this.getDatabaseInfo()
     );
-    const dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
-    return IndexedDbPersistence.clearPersistence(dbName);
+    return IndexedDbPersistence.clearPersistence(persistenceKey);
   }
 
   ensureClientConfigured(): FirestoreClient {
@@ -452,7 +451,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
-
+    
+    this.isClientRunning = true;
     const databaseInfo = this.getDatabaseInfo();
 
     const preConverter = (value: unknown) => {
@@ -481,7 +481,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._queue
     );
 
-    this.isClientRunning = true;
     return this._firestoreClient.start(persistenceSettings);
   }
 
