@@ -929,19 +929,15 @@ apiDescribe('Database', persistence => {
   });
 
   (persistence ? it : it.skip)(
-    'can clear persistence if the client has not been initialized',
+    'maintains persistence after restarting app',
     async () => {
       await withTestDoc(persistence, async docRef => {
         await docRef.set({ foo: 'bar' });
-        const docSnap = await docRef.get({ source: 'cache' });
-        await expect(docSnap.data()).to.deep.equal({ foo: 'bar' });
-
         const path = docRef.path;
         const app = docRef.firestore.app;
         const name = app.name;
         const options = app.options;
 
-        // Verify data in cache persists after restart.
         await app.delete();
         const app2 = firebase.initializeApp(options, name);
         const firestore2 = firebase.firestore!(app2);
@@ -949,23 +945,30 @@ apiDescribe('Database', persistence => {
         const docRef2 = firestore2.doc(path);
         const docSnap2 = await docRef2.get({ source: 'cache' });
         expect(docSnap2.exists).to.be.true;
-        expect(docSnap2.data()).to.deep.equal({ foo: 'bar' });
+      });
+    }
+  );
 
-        // Verify data in cache is cleared if clearPersistence() is called.
-        await app2.delete();
-        await firestore2.clearPersistence();
-        const app3 = firebase.initializeApp(options, name);
-        const firestore3 = firebase.firestore!(app3);
-        await firestore3.enablePersistence();
-        const docRef3 = firestore3.doc(path);
+  (persistence ? it : it.skip)(
+    'can clear persistence if the client has not been initialized',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        const firestore = docRef.firestore;
+        await docRef.set({ foo: 'bar' });
+        const path = docRef.path;
+        const app = docRef.firestore.app;
+        const name = app.name;
+        const options = app.options;
+
+        await app.delete();
+        await firestore.clearPersistence();
+        const app2 = firebase.initializeApp(options, name);
+        const firestore2 = firebase.firestore!(app2);
+        await firestore2.enablePersistence();
+        const docRef2 = firestore2.doc(path);
         await expect(
-          docRef3.get({ source: 'cache' })
-        ).to.eventually.be.rejectedWith(
-          'Failed to get document from cache. (However, this document may ' +
-            "exist on the server. Run again without setting 'source' in " +
-            'the GetOptions to attempt to retrieve the document from the ' +
-            'server.)'
-        );
+          docRef2.get({ source: 'cache' })
+        ).to.eventually.be.rejectedWith('Failed to get document from cache.');
       });
     }
   );
