@@ -5477,7 +5477,7 @@ declare namespace firebase.storage {
      * List items and sub-directories within this directory.
      *
      * "/" is treated as a path delimiter. Firebase storage does not support
-     * invalid object paths that ends with "/" or contains two consecutive "//".
+     * invalid object paths that ends with "/" or contains two consecutive "/"s.
      * All invalid objects in GCS will be filtered.
      *
      * @param options.maxResults If set, limits the total number of `prefixes`
