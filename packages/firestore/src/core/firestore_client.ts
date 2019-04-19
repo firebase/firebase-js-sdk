@@ -489,7 +489,7 @@ export class FirestoreClient {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Failed to delete the IndexedDB database. This probably means that you have an open tab' +
-          ' that is still connected'
+          ' that is still has an open connection.'
       );
     });
   }
