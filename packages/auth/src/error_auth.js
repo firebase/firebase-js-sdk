@@ -113,6 +113,7 @@ fireauth.AuthError.ERROR_CODE_PREFIX = 'auth/';
  * @enum {string}
  */
 fireauth.authenum.Error = {
+  ADMIN_ONLY_OPERATION: 'admin-restricted-operation',
   ARGUMENT_ERROR: 'argument-error',
   APP_NOT_AUTHORIZED: 'app-not-authorized',
   APP_NOT_INSTALLED: 'app-not-installed',
@@ -198,6 +199,8 @@ fireauth.authenum.Error = {
  * @private {!Object<string, string>}
  */
 fireauth.AuthError.MESSAGES_ = {};
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.ADMIN_ONLY_OPERATION] =
+    'This operation is restricted to administrators only.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.ARGUMENT_ERROR] = '';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.APP_NOT_AUTHORIZED] =
     'This app, identified by the domain where it\'s hosted, is not ' +
@@ -277,9 +280,6 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_CERT_HASH] =
     'The SHA-1 certificate hash provided is invalid.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_IDP_RESPONSE] =
     'The supplied auth credential is malformed or has expired.';
-fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_PERSISTENCE] =
-    'The specified persistence type is invalid. It can only be local, ' +
-    'session or none.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_MESSAGE_PAYLOAD] =
     'The email template corresponding to this action contains invalid charac' +
     'ters in its message. Please fix by going to the Auth email templates se' +
@@ -298,6 +298,9 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_OOB_CODE] =
     'expired, or has already been used.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_PASSWORD] =
     'The password is invalid or the user does not have a password.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_PERSISTENCE] =
+    'The specified persistence type is invalid. It can only be local, ' +
+    'session or none.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_PHONE_NUMBER] =
     'The format of the phone number provided is incorrect. Please enter the ' +
     'phone number in a format that can be parsed into E.164 format. E.164 ' +

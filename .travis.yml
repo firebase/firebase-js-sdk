@@ -8,11 +8,17 @@ env:
   global:
     - CXX=g++-4.8
 before_install:
-  # Yarn defaults to an old version, make sure we
-  # get an up to date version
-  - npm install -g yarn@1.13.0
+  # Yarn defaults to an old version, make sure we get an up to date version
+  - npm install -g yarn@1.15.2
   - '[ "${NPM_TOKEN+x}" ] && echo "//registry.npmjs.org/:_authToken=\${NPM_TOKEN}" > $HOME/.npmrc || echo "Skipping .npmrc creation";'
-
+install:
+  # --frozen-lockfile doesn’t generate a yarn.lock lockfile and should fail if an update is needed.
+  # This will make sure that yarn.lock file in the PR is consistent with package.json.
+  #
+  # Due to a yarn issue (https://github.com/yarnpkg/yarn/issues/5840), --frozen-lockfile doesn't
+  # actually fail if an update is required, but integrity check from tools/pretest.js will catch
+  # the issue, so it still works as expected.
+  - yarn install --frozen-lockfile
 before_script:
   - cp config/ci.config.json config/project.json
   - yarn build
