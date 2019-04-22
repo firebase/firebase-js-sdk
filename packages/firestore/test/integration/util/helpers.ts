@@ -16,8 +16,6 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import { FirebaseApp } from './../../../../app-types/index.d';
-import { DocumentReference } from './../../../../firestore-types/index.d';
 import { clearTestPersistence } from './../../unit/local/persistence_test_helpers';
 import firebase from './firebase_export';
 
