@@ -207,8 +207,8 @@ export class FirebaseFirestore {
 
   /**
    * Creates a write batch, used for performing multiple writes as a single
-   * atomic operation. The maximum number of writes that can be passed to a commit operation or
-   * performed in a transaction is 500.
+   * atomic operation. The maximum number of writes that can be passed to a
+   * commit operation or performed in a transaction is 500.
    *
    * @return
    *   A `WriteBatch` that can be used to atomically execute multiple writes.
