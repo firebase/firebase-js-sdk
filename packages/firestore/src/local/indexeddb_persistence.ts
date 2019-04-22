@@ -729,9 +729,12 @@ export class IndexedDbPersistence implements Persistence {
     );
   }
 
-  static clearPersistence(persistenceKey: string): Promise<void> {
+  static async clearPersistence(persistenceKey: string): Promise<void> {
+    if (!IndexedDbPersistence.isAvailable()) {
+      return Promise.resolve();
+    }
     const dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
-    return SimpleDb.delete(dbName);
+    await SimpleDb.delete(dbName);
   }
 
   get started(): boolean {

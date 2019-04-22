@@ -28,6 +28,7 @@ import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
+  _clearPersistence,
   apiDescribe,
   withTestCollection,
   withTestDb,
@@ -933,7 +934,6 @@ apiDescribe('Database', persistence => {
     async () => {
       await withTestDoc(persistence, async docRef => {
         await docRef.set({ foo: 'bar' });
-        const path = docRef.path;
         const app = docRef.firestore.app;
         const name = app.name;
         const options = app.options;
@@ -942,7 +942,7 @@ apiDescribe('Database', persistence => {
         const app2 = firebase.initializeApp(options, name);
         const firestore2 = firebase.firestore!(app2);
         await firestore2.enablePersistence();
-        const docRef2 = firestore2.doc(path);
+        const docRef2 = firestore2.doc(docRef.path);
         const docSnap2 = await docRef2.get({ source: 'cache' });
         expect(docSnap2.exists).to.be.true;
       });
@@ -953,19 +953,17 @@ apiDescribe('Database', persistence => {
     'can clear persistence if the client has not been initialized',
     async () => {
       await withTestDoc(persistence, async docRef => {
-        const firestore = docRef.firestore;
         await docRef.set({ foo: 'bar' });
-        const path = docRef.path;
         const app = docRef.firestore.app;
         const name = app.name;
         const options = app.options;
 
         await app.delete();
-        await firestore.clearPersistence();
+        await _clearPersistence(firestore);
         const app2 = firebase.initializeApp(options, name);
         const firestore2 = firebase.firestore!(app2);
         await firestore2.enablePersistence();
-        const docRef2 = firestore2.doc(path);
+        const docRef2 = firestore2.doc(docRef.path);
         await expect(
           docRef2.get({ source: 'cache' })
         ).to.eventually.be.rejectedWith('Failed to get document from cache.');
@@ -974,12 +972,11 @@ apiDescribe('Database', persistence => {
   );
 
   it('can not clear persistence if the client has been initialized', async () => {
-    return withTestDoc(persistence, docRef => {
+    await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      expect(() => {
-        firestore.clearPersistence();
-      }).to.throw('Persistence cannot be cleared while the client is running');
-      return Promise.resolve();
+      await expect(_clearPersistence(firestore)).to.eventually.be.rejectedWith(
+        'Persistence cannot be cleared while the client is running'
+      );
     });
   });
 

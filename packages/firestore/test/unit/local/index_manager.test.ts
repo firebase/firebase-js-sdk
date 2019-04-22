@@ -63,9 +63,7 @@ function genericIndexManagerTests(
   afterEach(async () => {
     if (persistence.started) {
       await persistence.shutdown();
-      await IndexedDbPersistence.clearPersistence(
-        persistenceHelpers.TEST_PERSISTENCE_PREFIX
-      );
+      await persistenceHelpers.clearTestPersistence();
     }
   });
 

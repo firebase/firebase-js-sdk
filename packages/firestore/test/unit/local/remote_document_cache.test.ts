@@ -102,9 +102,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
 
   afterEach(async () => {
     await persistence.shutdown();
-    await IndexedDbPersistence.clearPersistence(
-      persistenceHelpers.TEST_PERSISTENCE_PREFIX
-    );
+    await persistenceHelpers.clearTestPersistence();
   });
 
   function addEntries(

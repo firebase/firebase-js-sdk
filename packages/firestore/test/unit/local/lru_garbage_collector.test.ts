@@ -89,9 +89,7 @@ function genericLruGarbageCollectorTests(
   afterEach(async () => {
     await queue.enqueue(async () => {
       await persistence.shutdown();
-      await IndexedDbPersistence.clearPersistence(
-        PersistenceTestHelpers.TEST_PERSISTENCE_PREFIX
-      );
+      await PersistenceTestHelpers.clearTestPersistence();
     });
   });
 
@@ -109,9 +107,7 @@ function genericLruGarbageCollectorTests(
     if (persistence && persistence.started) {
       await queue.enqueue(async () => {
         await persistence.shutdown();
-        await IndexedDbPersistence.clearPersistence(
-          PersistenceTestHelpers.TEST_PERSISTENCE_PREFIX
-        );
+        await PersistenceTestHelpers.clearTestPersistence();
       });
     }
     lruParams = params;

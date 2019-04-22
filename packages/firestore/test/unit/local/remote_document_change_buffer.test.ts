@@ -20,7 +20,7 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { deletedDoc, doc, expectEqual, key } from '../../util/helpers';
 
 import {
-  TEST_PERSISTENCE_PREFIX,
+  clearTestPersistence,
   testIndexedDbPersistence
 } from './persistence_test_helpers';
 import {
@@ -55,7 +55,7 @@ describe('RemoteDocumentChangeBuffer', () => {
 
   afterEach(async () => {
     await persistence.shutdown();
-    await IndexedDbPersistence.clearPersistence(TEST_PERSISTENCE_PREFIX);
+    await clearTestPersistence();
   });
 
   it('can read unchanged entry', async () => {

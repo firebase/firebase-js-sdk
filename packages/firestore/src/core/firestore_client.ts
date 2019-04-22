@@ -480,20 +480,6 @@ export class FirestoreClient {
     return this.syncEngine.handleCredentialChange(user);
   }
 
-  clearPersistence(): Promise<void> {
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      this.databaseInfo
-    );
-    const dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
-    return IndexedDbPersistence.clearPersistence(dbName).catch(() => {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'Failed to delete the IndexedDB database. This probably means that you have an open tab' +
-          ' that still has an open connection.'
-      );
-    });
-  }
-
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
     this.verifyNotShutdown();

@@ -308,7 +308,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // are already set to synchronize on the async queue.
   private _firestoreClient: FirestoreClient | undefined;
 
-  private isClientRunning: boolean;
+  private clientRunning: boolean;
 
   // Public for use in tests.
   // TODO(mikelehen): Use modularized initialization instead.
@@ -317,7 +317,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
-    this.isClientRunning = false;
+    this.clientRunning = false;
     const config = new FirestoreConfig();
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -411,14 +411,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   clearPersistence(): Promise<void> {
-    if (this.isClientRunning) {
+    if (this.clientRunning) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Persistence cannot be cleared while the client is running'
       );
     }
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      this.getDatabaseInfo()
+      this.makeDatabaseInfo()
     );
     return IndexedDbPersistence.clearPersistence(persistenceKey);
   }
@@ -432,7 +432,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this._firestoreClient as FirestoreClient;
   }
 
-  private getDatabaseInfo(): DatabaseInfo {
+  private makeDatabaseInfo(): DatabaseInfo {
     return new DatabaseInfo(
       this._config.databaseId,
       this._config.persistenceKey,
@@ -452,8 +452,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
-    this.isClientRunning = true;
-    const databaseInfo = this.getDatabaseInfo();
+    this.clientRunning = true;
+    const databaseInfo = this.makeDatabaseInfo();
 
     const preConverter = (value: unknown) => {
       if (value instanceof DocumentReference) {
@@ -520,7 +520,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       // throws an exception.
       this.ensureClientConfigured();
       return this._firestoreClient!.shutdown().then(() => {
-        this.isClientRunning = false;
+        this.clientRunning = false;
       });
     }
   };

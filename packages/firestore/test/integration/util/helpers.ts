@@ -16,8 +16,9 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import { IndexedDbPersistence } from './../../../src/local/indexeddb_persistence';
-import { TEST_PERSISTENCE_PREFIX } from './../../unit/local/persistence_test_helpers';
+import { FirebaseApp } from './../../../../app-types/index.d';
+import { DocumentReference } from './../../../../firestore-types/index.d';
+import { clearTestPersistence } from './../../unit/local/persistence_test_helpers';
 import firebase from './firebase_export';
 
 /**
@@ -107,6 +108,12 @@ function apiDescribeInternal(
   }
 }
 
+// TODO(b/131094514): Remove after clearPersistence() is updated in index.d.ts.
+// tslint:disable-next-line:no-any
+export async function _clearPersistence(firestore: any): Promise<void> {
+  await firestore.clearPersistence();
+}
+
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(
   docSet: firestore.QuerySnapshot
@@ -178,7 +185,7 @@ export function withTestDbs(
 
 let appCount = 0;
 
-export function withTestDbsSettings(
+export async function withTestDbsSettings(
   persistence: boolean,
   projectId: string,
   settings: firestore.Settings,
@@ -210,32 +217,33 @@ export function withTestDbsSettings(
     promises.push(ready);
   }
 
-  return Promise.all(promises).then((dbs: firestore.FirebaseFirestore[]) => {
-    const cleanup = () => {
-      return wipeDb(dbs[0]).then(() =>
-        dbs.reduce(
-          (chain, db) =>
-            chain
-              .then(() => db.INTERNAL.delete())
-              .then(() =>
-                IndexedDbPersistence.clearPersistence(TEST_PERSISTENCE_PREFIX)
-              ),
-          Promise.resolve()
-        )
-      );
-    };
+  const dbs = await Promise.all(promises);
 
-    return fn(dbs).then(
-      () => cleanup(),
-      err => {
-        // Do cleanup but propagate original error.
-        return cleanup().then(
-          () => Promise.reject(err),
-          () => Promise.reject(err)
-        );
-      }
-    );
-  });
+  try {
+    await fn(dbs);
+  } finally {
+    await wipeDb(dbs[0]);
+    for (let i = 0; i < dbs.length; i++) {
+      await dbs[i].INTERNAL.delete();
+    }
+    if (persistence) {
+      await clearTestPersistence();
+    }
+  }
+}
+
+export async function restartFirestore(
+  docRef: DocumentReference,
+  clearPersistence?: boolean
+): Promise<FirebaseApp> {
+  const app = docRef.firestore.app;
+  const name = app.name;
+  const options = app.options;
+  await app.delete();
+  if (clearPersistence) {
+    await _clearPersistence(docRef.firestore);
+  }
+  return firebase.initializeApp(options, name);
 }
 
 export function withTestDoc(
