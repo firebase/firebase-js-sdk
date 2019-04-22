@@ -232,20 +232,6 @@ export async function withTestDbsSettings(
   }
 }
 
-export async function restartFirestore(
-  docRef: DocumentReference,
-  clearPersistence?: boolean
-): Promise<FirebaseApp> {
-  const app = docRef.firestore.app;
-  const name = app.name;
-  const options = app.options;
-  await app.delete();
-  if (clearPersistence) {
-    await _clearPersistence(docRef.firestore);
-  }
-  return firebase.initializeApp(options, name);
-}
-
 export function withTestDoc(
   persistence: boolean,
   fn: (doc: firestore.DocumentReference) => Promise<void>
