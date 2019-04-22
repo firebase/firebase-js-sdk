@@ -224,9 +224,10 @@ export class FirebaseFirestore {
    * than settings()) on startup. If the client is still running, an exception
    * `code` will be thrown.
    *
-   *   * failed-precondition: The app is still running in a browser tab.
+   *   * failed-precondition: The client is still running in a browser tab.
    *
-   * @return A promise that is resolved once the persistence has been cleared.
+   * @return A promise that is resolved once the persistent storage has been
+   * cleared.
    */
   clearPersistence(): Promise<void>;
 
