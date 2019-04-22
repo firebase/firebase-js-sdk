@@ -221,7 +221,8 @@ export class FirebaseFirestore {
    * Clears the persistent storage.
    *
    * Must be called after the app is shutdown or before other methods (other
-   * than settings()). If the client is still running, an exception `code` will be thrown.
+   * than settings()) on startup. If the client is still running, an exception
+   * `code` will be thrown.
    *
    *   * failed-precondition: The app is still running in a browser tab.
    *

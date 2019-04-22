@@ -5988,7 +5988,8 @@ declare namespace firebase.firestore {
     /**
      * Attempts to enable persistent storage, if possible.
      *
-     * Must be called before any other methods (other than settings()).
+     * Must be called before any other methods (other than settings() and
+     * clearPersistence()).
      *
      * If this fails, enablePersistence() will reject the promise it returns.
      * Note that even after this failure, the firestore instance will remain
@@ -6061,7 +6062,13 @@ declare namespace firebase.firestore {
     app: firebase.app.App;
 
     /**
-     * Clears the persistence cache. This can only be called when the client is not running.
+     * Clears the persistent storage.
+     *
+     * Must be called after the app is shutdown or before other methods (other
+     * than settings()) on startup. If the client is still running, an exception
+     * `code` will be thrown.
+     *
+     *   * failed-precondition: The app is still running in a browser tab.
      *
      * @return A promise that is resolved once the persistence has been cleared.
      */
