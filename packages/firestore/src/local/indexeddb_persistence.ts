@@ -671,7 +671,7 @@ export class IndexedDbPersistence implements Persistence {
       });
   }
 
-  async shutdown(deleteData?: boolean): Promise<void> {
+  async shutdown(): Promise<void> {
     // The shutdown() operations are idempotent and can be called even when
     // start() aborted (e.g. because it couldn't acquire the persistence lease).
     this._started = false;
@@ -696,9 +696,6 @@ export class IndexedDbPersistence implements Persistence {
     // Remove the entry marking the client as zombied from LocalStorage since
     // we successfully deleted its metadata from IndexedDb.
     this.removeClientZombiedEntry();
-    if (deleteData) {
-      await SimpleDb.delete(this.dbName);
-    }
   }
 
   /**
@@ -730,6 +727,14 @@ export class IndexedDbPersistence implements Persistence {
           );
       }
     );
+  }
+
+  static async clearPersistence(persistenceKey: string): Promise<void> {
+    if (!IndexedDbPersistence.isAvailable()) {
+      return Promise.resolve();
+    }
+    const dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
+    await SimpleDb.delete(dbName);
   }
 
   get started(): boolean {
