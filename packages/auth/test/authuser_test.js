@@ -8787,9 +8787,15 @@ function testUser_linkWithPopup_timeout() {
   oAuthSignInHandlerInstance.startPopupTimeout(
       ignoreArgument, ignoreArgument, ignoreArgument)
       .$does(function(popupWin, onError, delay) {
+        // Do nothing on first call to simulate timeout.
+        return new goog.Promise(function(resolve, reject) {});
+      }).$once();
+  oAuthSignInHandlerInstance.startPopupTimeout(
+      ignoreArgument, ignoreArgument, ignoreArgument)
+      .$does(function(popupWin, onError, delay) {
         recordedHandler(expectedAuthEvent);
         return new goog.Promise(function(resolve, reject) {});
-      }).$times(2);
+      }).$once();
   mockControl.$replayAll();
   // Set the backend user info with no linked providers.
   stubs.replace(
@@ -8965,9 +8971,15 @@ function testUser_reauthenticateWithPopup_timeout() {
   oAuthSignInHandlerInstance.startPopupTimeout(
       ignoreArgument, ignoreArgument, ignoreArgument)
       .$does(function(popupWin, onError, delay) {
+        // Do nothing on first call to simulate timeout.
+        return new goog.Promise(function(resolve, reject) {});
+      }).$once();
+  oAuthSignInHandlerInstance.startPopupTimeout(
+      ignoreArgument, ignoreArgument, ignoreArgument)
+      .$does(function(popupWin, onError, delay) {
         recordedHandler(expectedAuthEvent);
         return new goog.Promise(function(resolve, reject) {});
-      }).$times(2);
+      }).$once();
   mockControl.$replayAll();
   // The expected popup window object.
   var expectedPopup = {

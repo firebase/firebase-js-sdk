@@ -214,6 +214,14 @@ function testAuthEvent_error() {
 
 
 function testAuthEvent() {
+  var unknownEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.UNKNOWN,
+      null,
+      null,
+      null,
+      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR));
+  assertEquals('unknown', unknownEvent.getUid());
+
   assertEquals(
       fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP,
       authEvent.getType());
@@ -225,6 +233,7 @@ function testAuthEvent() {
   assertNull(authEvent.getEventId());
   assertNull(authEvent.getError());
   assertFalse(authEvent.hasError());
+  assertEquals('signInViaPopup-SESSION_ID', authEvent.getUid());
 
   assertEquals(
       fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
@@ -235,6 +244,7 @@ function testAuthEvent() {
       authEvent2.getError());
   assertTrue(authEvent2.hasError());
   assertNull(authEvent2.getPostBody());
+  assertEquals('signInViaRedirect-12345678', authEvent2.getUid());
 }
 
 
