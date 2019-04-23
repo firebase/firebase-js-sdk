@@ -864,7 +864,7 @@ abstract class TestRunner {
     // We don't delete the persisted data here since multi-clients may still
     // be accessing it. Instead, we manually remove it at the end of the
     // test run.
-    await this.persistence.shutdown(/* deleteData= */ false);
+    await this.persistence.shutdown();
     this.started = false;
   }
 
@@ -872,7 +872,7 @@ abstract class TestRunner {
     // Reinitialize everything.
     // No local store to shutdown.
     await this.remoteStore.shutdown();
-    await this.persistence.shutdown(/* deleteData= */ false);
+    await this.persistence.shutdown();
 
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
