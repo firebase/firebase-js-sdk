@@ -220,14 +220,14 @@ export class FirebaseFirestore {
   /**
    * Clears the persistent storage.
    *
-   * Must be called after the app is shutdown or before other methods (other
-   * than settings()) on startup. If the client is still running, an exception
-   * `code` will be thrown.
-   *
-   *   * failed-precondition: The client is still running in a browser tab.
+   * Must be called while the client is not started (after the app is shutdown
+   * or when the app is first initialized). On startup, this method must called
+   * before other methods (other than settings()). If the client is still
+   * running, an exception with the a code of `failed-precondition` will be
+   * thrown.
    *
    * @return A promise that is resolved once the persistent storage has been
-   * cleared.
+   * cleared. Otherwise, the promise rejects with an error.
    */
   clearPersistence(): Promise<void>;
 
