@@ -410,7 +410,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
   }
 
-  clearPersistence(): Promise<void> {
+  _clearPersistence(): Promise<void> {
     if (this.clientRunning) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,

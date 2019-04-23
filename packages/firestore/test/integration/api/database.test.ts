@@ -959,7 +959,7 @@ apiDescribe('Database', persistence => {
         const options = app.options;
 
         await app.delete();
-        await _clearPersistence(firestore);
+        await _clearPersistence(docRef.firestore);
         const app2 = firebase.initializeApp(options, name);
         const firestore2 = firebase.firestore!(app2);
         await firestore2.enablePersistence();
