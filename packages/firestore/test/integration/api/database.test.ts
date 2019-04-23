@@ -28,8 +28,8 @@ import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
-  clearPersistence,
   apiDescribe,
+  clearPersistence,
   withTestCollection,
   withTestDb,
   withTestDbs,
