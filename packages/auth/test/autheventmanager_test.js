@@ -723,6 +723,7 @@ function testAuthEventManager_subscribeAndUnsubscribe() {
 
 function testAuthEventManager_testEventToProcessor() {
   var recordedHandler;
+  clock = new goog.testing.MockClock(true);
   asyncTestCase.waitForSignals(1);
   // This test is not environment specific.
   stubs.replace(
@@ -737,6 +738,9 @@ function testAuthEventManager_testEventToProcessor() {
           'addAuthEventListener': function(handler) {
             recordedHandler = handler;
             asyncTestCase.signal();
+          },
+          'removeAuthEventListener': function(handler) {
+            recordedHandler = null;
           },
           'initializeAndWait': function() { return goog.Promise.resolve(); },
           'shouldBeInitializedEarly': function() {
@@ -917,6 +921,76 @@ function testAuthEventManager_testEventToProcessor() {
       3,
       fireauth.PopupAuthEventProcessor.prototype.processAuthEvent.
           getCallCount());
+
+  // Duplicate events with event IDs or session IDs should be ignored.
+  assertFalse(recordedHandler(signInViaPopupEvent));
+  assertFalse(recordedHandler(signInViaRedirectEvent));
+  assertFalse(recordedHandler(linkViaPopupEvent));
+  assertFalse(recordedHandler(linkViaRedirectEvent));
+  assertFalse(recordedHandler(reauthViaPopupEvent));
+  assertFalse(recordedHandler(reauthViaRedirectEvent));
+  assertEquals(
+      4,
+      fireauth.RedirectAuthEventProcessor.prototype.processAuthEvent.
+          getCallCount());
+  assertEquals(
+      3,
+      fireauth.PopupAuthEventProcessor.prototype.processAuthEvent.
+          getCallCount());
+  // Unknown events are allowed to be duplicated.
+  assertTrue(recordedHandler(unknownEvent));
+  assertEquals(
+      5,
+      fireauth.RedirectAuthEventProcessor.prototype.processAuthEvent.
+          getCallCount());
+  assertEquals(
+      3,
+      fireauth.PopupAuthEventProcessor.prototype.processAuthEvent.
+          getCallCount());
+
+  // Reset should clear processed events.
+  manager.reset();
+  manager.initialize();
+  assertTrue(recordedHandler(signInViaPopupEvent));
+  assertEquals(
+      5,
+      fireauth.RedirectAuthEventProcessor.prototype.processAuthEvent.
+          getCallCount());
+  assertEquals(
+      4,
+      fireauth.PopupAuthEventProcessor.prototype.processAuthEvent.
+          getCallCount());
+  assertFalse(recordedHandler(signInViaPopupEvent));
+
+  // Simulate 1 millisecond before cachebuster triggers.
+  clock.tick(fireauth.AuthEventManager.EVENT_DUPLICATION_CACHE_DURATION - 1);
+  // Event uid should still be saved.
+  assertFalse(recordedHandler(signInViaPopupEvent));
+  // Simulate one more millisecond to clear cache.
+  clock.tick(1);
+  // Event uid should be cleared.
+  assertTrue(recordedHandler(signInViaPopupEvent));
+  // This should be cached until next time cache is cleared.
+  clock.tick(fireauth.AuthEventManager.EVENT_DUPLICATION_CACHE_DURATION - 1);
+  assertFalse(recordedHandler(signInViaPopupEvent));
+  clock.tick(1);
+  assertTrue(recordedHandler(signInViaPopupEvent));
+
+  // Halfway through timeout duration.
+  clock.tick(fireauth.AuthEventManager.EVENT_DUPLICATION_CACHE_DURATION / 2);
+  // Trigger second event.
+  assertTrue(recordedHandler(linkViaPopupEvent));
+  // Halfway through timeout.
+  clock.tick(fireauth.AuthEventManager.EVENT_DUPLICATION_CACHE_DURATION / 2);
+  // Both events still cached (second event should reset the counter).
+  assertFalse(recordedHandler(signInViaPopupEvent));
+  assertFalse(recordedHandler(linkViaPopupEvent));
+  // Trigger timeout (half timeout duration).
+  clock.tick(fireauth.AuthEventManager.EVENT_DUPLICATION_CACHE_DURATION / 2);
+  // Cache should be cleared from both events (full timeout duration from last
+  // event).
+  assertTrue(recordedHandler(signInViaPopupEvent));
+  assertTrue(recordedHandler(linkViaPopupEvent));
 }
 
 

@@ -118,6 +118,23 @@ fireauth.AuthEvent.prototype.getEventId = function() {
 };
 
 
+/** @return {string} The event unique identifier. */
+fireauth.AuthEvent.prototype.getUid = function() {
+  var components = [];
+  components.push(this.type_);
+  if (this.eventId_) {
+    components.push(this.eventId_);
+  }
+  if (this.sessionId_) {
+    components.push(this.sessionId_);
+  }
+  if (this.tenantId_) {
+    components.push(this.tenantId_);
+  }
+  return components.join('-');
+};
+
+
 /** @return {?string} The url response of Auth event. */
 fireauth.AuthEvent.prototype.getUrlResponse = function() {
   return this.urlResponse_;
