@@ -62,12 +62,12 @@ function getInputValue(elementId) {
   return element.value;
 }
 
-function getFid() {
-  printRequest('Get FID', FirebaseInstallations.getFid(getApp()));
+function getId() {
+  printRequest('Get ID', FirebaseInstallations.getId(getApp()));
 }
 
-function getAuthToken() {
-  printRequest('Get Auth Token', FirebaseInstallations.getAuthToken(getApp()));
+function getToken() {
+  printRequest('Get Token', FirebaseInstallations.getToken(getApp()));
 }
 
 async function printRequest(requestInfo, promise) {
@@ -100,6 +100,6 @@ function getApp() {
   };
 }
 
-getElement('getFid').onclick = getFid;
-getElement('getAuthToken').onclick = getAuthToken;
+getElement('getId').onclick = getId;
+getElement('getToken').onclick = getToken;
 getElement('clearDb').onclick = clearDb;

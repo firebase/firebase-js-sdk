@@ -20,7 +20,7 @@ import { ERROR_FACTORY, ErrorCode } from '../errors';
 import { AppConfig } from '../interfaces/app-config';
 
 export function extractAppConfig(app: FirebaseApp): AppConfig {
-  if (!app.options) {
+  if (!app || !app.options) {
     throw ERROR_FACTORY.create(ErrorCode.MISSING_APP_CONFIG_VALUES);
   }
 

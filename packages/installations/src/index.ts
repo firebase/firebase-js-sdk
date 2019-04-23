@@ -15,5 +15,5 @@
  * limitations under the License.
  */
 
-export { getFid } from './get-fid';
-export { getAuthToken } from './get-auth-token';
+export { getId } from './get-id';
+export { getToken } from './get-token';

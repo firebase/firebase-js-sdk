@@ -3,7 +3,6 @@
   "compilerOptions": {
     "lib": ["es2017", "dom"],
     "downlevelIteration": true,
-    "declaration": false /* Declarations are handled by dts-bundle-generator. */,
 
     "strict": true,
     "noUnusedLocals": true,

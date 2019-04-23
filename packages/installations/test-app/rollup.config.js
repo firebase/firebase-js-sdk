@@ -36,7 +36,10 @@ export default [
       sourcemap: true
     },
     plugins: [
-      typescriptPlugin({ typescript }),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: { compilerOptions: { declaration: false } }
+      }),
       replace({
         __VERSION__: pkg.version
       }),

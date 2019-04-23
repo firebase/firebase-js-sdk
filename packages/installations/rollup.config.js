@@ -24,7 +24,7 @@ const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 
 export default [
   {
-    input: 'src/index.ts',
+    input: 'index.ts',
     output: [
       { file: pkg.main, format: 'cjs', sourcemap: true },
       { file: pkg.module, format: 'es', sourcemap: true }

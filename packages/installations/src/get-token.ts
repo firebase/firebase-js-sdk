@@ -34,7 +34,7 @@ import { getInstallationEntry } from './util/get-installation-entry';
 import { hasAuthTokenRequestTimedOut } from './util/request-time-out-checks';
 import { sleep } from './util/sleep';
 
-export async function getAuthToken(app: FirebaseApp): Promise<string> {
+export async function getToken(app: FirebaseApp): Promise<string> {
   const appConfig = extractAppConfig(app);
 
   await completeInstallationRegistration(appConfig);

@@ -21,7 +21,7 @@ import { restore, SinonStub, stub } from 'sinon';
 import * as api from './api';
 import { TOKEN_EXPIRATION_BUFFER } from './constants';
 import { ERROR_FACTORY, ErrorCode } from './errors';
-import { getAuthToken } from './get-auth-token';
+import { getToken } from './get-token';
 import { clear, get, set } from './idb-manager';
 import { AppConfig } from './interfaces/app-config';
 import {
@@ -167,7 +167,7 @@ const setupInstallationEntryMap: Map<
   ]
 ]);
 
-describe('getAuthToken', () => {
+describe('getToken', () => {
   let app: FirebaseApp;
   let appConfig: AppConfig;
   let createInstallationSpy: SinonStub<
@@ -229,12 +229,12 @@ describe('getAuthToken', () => {
         });
 
         it('resolves with an auth token', async () => {
-          const token = await getAuthToken(app);
+          const token = await getToken(app);
           expect(token).to.equal(AUTH_TOKEN);
         });
 
         it('saves the token in the DB', async () => {
-          const token = await getAuthToken(app);
+          const token = await getToken(app);
           const installationEntry = await get<RegisteredInstallationEntry>(
             appConfig
           );
@@ -251,8 +251,8 @@ describe('getAuthToken', () => {
         });
 
         it('returns the same token on subsequent calls', async () => {
-          const token1 = await getAuthToken(app);
-          const token2 = await getAuthToken(app);
+          const token1 = await getToken(app);
+          const token2 = await getToken(app);
           expect(token1).to.equal(token2);
         });
       });
@@ -261,21 +261,21 @@ describe('getAuthToken', () => {
 
   describe('when there is no FID in the DB', () => {
     it('gets the token by registering a new FID', async () => {
-      await getAuthToken(app);
+      await getToken(app);
       expect(createInstallationSpy).to.be.called;
       expect(generateAuthTokenSpy).not.to.be.called;
     });
 
     it('does not register a new FID on subsequent calls', async () => {
-      await getAuthToken(app);
-      await getAuthToken(app);
+      await getToken(app);
+      await getToken(app);
       expect(createInstallationSpy).to.be.calledOnce;
     });
 
     it('throws if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      await expect(getAuthToken(app)).to.eventually.be.rejected;
+      await expect(getToken(app)).to.eventually.be.rejected;
     });
   });
 
@@ -295,21 +295,21 @@ describe('getAuthToken', () => {
     });
 
     it('gets the token by calling generateAuthToken', async () => {
-      await getAuthToken(app);
+      await getToken(app);
       expect(generateAuthTokenSpy).to.be.called;
       expect(createInstallationSpy).not.to.be.called;
     });
 
     it('does not call generateAuthToken on subsequent calls', async () => {
-      await getAuthToken(app);
-      await getAuthToken(app);
+      await getToken(app);
+      await getToken(app);
       expect(generateAuthTokenSpy).to.be.calledOnce;
     });
 
     it('throws if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      await expect(getAuthToken(app)).to.eventually.be.rejected;
+      await expect(getToken(app)).to.eventually.be.rejected;
     });
 
     describe('and the server returns an error', () => {
@@ -323,7 +323,7 @@ describe('getAuthToken', () => {
           });
         });
 
-        await expect(getAuthToken(app)).to.eventually.be.rejected;
+        await expect(getToken(app)).to.eventually.be.rejected;
         await expect(get(appConfig)).to.eventually.be.undefined;
       });
 
@@ -337,7 +337,7 @@ describe('getAuthToken', () => {
           });
         });
 
-        await expect(getAuthToken(app)).to.eventually.be.rejected;
+        await expect(getToken(app)).to.eventually.be.rejected;
         await expect(get(appConfig)).to.eventually.be.undefined;
       });
 
@@ -351,7 +351,7 @@ describe('getAuthToken', () => {
           });
         });
 
-        await expect(getAuthToken(app)).to.eventually.be.rejected;
+        await expect(getToken(app)).to.eventually.be.rejected;
         await expect(get(appConfig)).to.eventually.deep.equal(
           installationEntry
         );
@@ -376,7 +376,7 @@ describe('getAuthToken', () => {
     });
 
     it('does not call any server APIs', async () => {
-      await getAuthToken(app);
+      await getToken(app);
       expect(createInstallationSpy).not.to.be.called;
       expect(generateAuthTokenSpy).not.to.be.called;
     });
@@ -384,7 +384,7 @@ describe('getAuthToken', () => {
     it('works even if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      const token = await getAuthToken(app);
+      const token = await getToken(app);
       expect(token).to.equal(AUTH_TOKEN);
     });
   });
@@ -408,13 +408,13 @@ describe('getAuthToken', () => {
     });
 
     it('returns a different token after expiration', async () => {
-      const token1 = await getAuthToken(app);
+      const token1 = await getToken(app);
       expect(token1).to.equal(DB_AUTH_TOKEN);
 
       // Wait until token expiration
       await sleep(100);
 
-      const token2 = await getAuthToken(app);
+      const token2 = await getToken(app);
       expect(token2).to.equal(AUTH_TOKEN);
 
       expect(token1).not.to.equal(token2);
@@ -440,7 +440,7 @@ describe('getAuthToken', () => {
     it('throws if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      await expect(getAuthToken(app)).to.eventually.be.rejected;
+      await expect(getToken(app)).to.eventually.be.rejected;
     });
   });
 });

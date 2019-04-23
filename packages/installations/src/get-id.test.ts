@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { restore, SinonStub, stub } from 'sinon';
-import { getFid } from './get-fid';
+import { getId } from './get-id';
 import { AppConfig } from './interfaces/app-config';
 import { RequestStatus } from './interfaces/installation-entry';
 import { getFakeApp } from './testing/get-fake-app';
@@ -26,7 +26,7 @@ import * as getInstallationEntryModule from './util/get-installation-entry';
 
 const FID = 'children-of-the-damned';
 
-describe('getFid', () => {
+describe('getId', () => {
   let getInstallationEntrySpy: SinonStub<
     [AppConfig],
     Promise<getInstallationEntryModule.InstallationEntryWithRegistrationPromise>
@@ -50,7 +50,7 @@ describe('getFid', () => {
 
   it('returns the FID in InstallationEntry returned by getInstallationEntry', async () => {
     const firebaseApp = getFakeApp();
-    const fid = await getFid(firebaseApp);
+    const fid = await getId(firebaseApp);
     expect(fid).to.equal(FID);
     expect(getInstallationEntrySpy).to.be.calledOnce;
   });

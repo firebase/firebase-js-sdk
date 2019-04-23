@@ -22,16 +22,20 @@ import {
 } from '@firebase/app-types/private';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
-import { getAuthToken, getFid } from './src';
+import { getId, getToken } from './src';
+import { extractAppConfig } from './src/util/extract-app-config';
 
 export function registerInstallations(instance: _FirebaseNamespace): void {
   const installationsName = 'installations';
 
   const factoryMethod: FirebaseServiceFactory = app => {
+    // Throws if app isn't configured properly.
+    extractAppConfig(app);
+
     return {
       app,
-      getFid: () => getFid(app),
-      getAuthToken: () => getAuthToken(app)
+      getId: () => getId(app),
+      getToken: () => getToken(app)
     };
   };
 

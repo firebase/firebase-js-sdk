@@ -18,6 +18,6 @@
 import { FirebaseApp } from '@firebase/app-types';
 
 export interface FirebaseInstallations {
-  getFid(): Promise<string>;
-  getAuthToken(): Promise<string>;
+  getId(): Promise<string>;
+  getToken(): Promise<string>;
 }
