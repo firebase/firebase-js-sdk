@@ -114,7 +114,7 @@ export class MemoryPersistence implements Persistence {
     );
   }
 
-  shutdown(deleteData?: boolean): Promise<void> {
+  shutdown(): Promise<void> {
     // No durable state to ensure is closed on shutdown.
     this._started = false;
     return Promise.resolve();

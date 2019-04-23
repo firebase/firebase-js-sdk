@@ -24,22 +24,6 @@ import { uglify } from 'rollup-plugin-uglify';
 import pkg from './package.json';
 
 import appPkg from './app/package.json';
-import authPkg from './auth/package.json';
-import databasePkg from './database/package.json';
-import firestorePkg from './firestore/package.json';
-import functionsPkg from './functions/package.json';
-import messagingPkg from './messaging/package.json';
-import storagePkg from './storage/package.json';
-
-const pkgsByName = {
-  app: appPkg,
-  auth: authPkg,
-  database: databasePkg,
-  firestore: firestorePkg,
-  functions: functionsPkg,
-  messaging: messagingPkg,
-  storage: storagePkg
-};
 
 const plugins = [
   sourcemaps(),
@@ -88,17 +72,9 @@ const appBuilds = [
   }
 ];
 
-const components = [
-  'auth',
-  'database',
-  'firestore',
-  'functions',
-  'messaging',
-  'storage'
-];
-const componentBuilds = components
+const componentBuilds = pkg.components
   .map(component => {
-    const pkg = pkgsByName[component];
+    const pkg = require(`./${component}/package.json`);
     return [
       {
         input: `${component}/index.ts`,

@@ -142,6 +142,11 @@ export async function testMemoryLruPersistence(
   );
 }
 
+/** Clears the persistence in tests */
+export async function clearTestPersistence(): Promise<void> {
+  await IndexedDbPersistence.clearPersistence(TEST_PERSISTENCE_PREFIX);
+}
+
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   constructor(private readonly activeClients: ClientId[]) {}
   async applyBatchState(
