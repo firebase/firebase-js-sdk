@@ -223,8 +223,8 @@ export async function withTestDbsSettings(
     await fn(dbs);
   } finally {
     await wipeDb(dbs[0]);
-    for (let i = 0; i < dbs.length; i++) {
-      await dbs[i].INTERNAL.delete();
+    for (const db of dbs) {
+      await db.INTERNAL.delete();
     }
     if (persistence) {
       await clearTestPersistence();
