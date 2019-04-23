@@ -974,7 +974,7 @@ apiDescribe('Database', persistence => {
   it('can not clear persistence if the client has been initialized', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await expect(firestore.clearPersistence()).to.eventually.be.rejectedWith(
+      await expect(() => firestore.clearPersistence()).to.throw(
         'Persistence cannot be cleared while the client is running'
       );
     });
