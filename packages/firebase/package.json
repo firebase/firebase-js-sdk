@@ -58,6 +58,7 @@
   },
   "typings": "index.d.ts",
   "components": [
+    "app",
     "auth",
     "database",
     "firestore",
