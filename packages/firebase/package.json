@@ -56,5 +56,13 @@
     "rollup-plugin-uglify": "6.0.2",
     "typescript": "3.4.3"
   },
-  "typings": "index.d.ts"
+  "typings": "index.d.ts",
+  "components": [
+    "auth",
+    "database",
+    "firestore",
+    "functions",
+    "messaging",
+    "storage"
+  ]
 }
