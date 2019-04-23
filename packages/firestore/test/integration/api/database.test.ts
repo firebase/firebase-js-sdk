@@ -28,7 +28,7 @@ import { Deferred } from '../../util/promise';
 import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
-  _clearPersistence,
+  clearPersistence,
   apiDescribe,
   withTestCollection,
   withTestDb,
@@ -959,7 +959,7 @@ apiDescribe('Database', persistence => {
         const options = app.options;
 
         await app.delete();
-        await _clearPersistence(docRef.firestore);
+        await clearPersistence(docRef.firestore);
         const app2 = firebase.initializeApp(options, name);
         const firestore2 = firebase.firestore!(app2);
         await firestore2.enablePersistence();
@@ -974,7 +974,7 @@ apiDescribe('Database', persistence => {
   it('can not clear persistence if the client has been initialized', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await expect(_clearPersistence(firestore)).to.eventually.be.rejectedWith(
+      await expect(clearPersistence(firestore)).to.eventually.be.rejectedWith(
         'Persistence cannot be cleared while the client is running'
       );
     });
