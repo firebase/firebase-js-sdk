@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 import * as Long from 'long';
+import * as ProtobufJS from 'protobufjs';
 
 import { Blob } from '../../../../src/api/blob';
 import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
@@ -41,7 +42,10 @@ import {
   SetMutation
 } from '../../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
-import { loadRawProtos } from '../../../../src/platform_node/load_protos';
+import {
+  loadRawProtos,
+  protoLoaderOptions
+} from '../../../../src/platform_node/load_protos';
 import * as api from '../../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../../src/remote/serializer';
 import {
@@ -83,6 +87,7 @@ describe('Serializer', () => {
   const ValueMessage = protos.lookupType('google.firestore.v1.Value');
   const LatLngMessage = protos.lookupType('google.type.LatLng');
   const TimestampMessage = protos.lookupType('google.protobuf.Timestamp');
+  const ArrayValueMessage = protos.lookupType('google.firestore.v1.ArrayValue');
   const MapValueMessage = protos.lookupType('google.firestore.v1.MapValue');
   // tslint:enable:variable-name
 
@@ -102,29 +107,124 @@ describe('Serializer', () => {
     );
   }
 
-  describe('toValue', () => {
+  describe('converts value', () => {
+    addEqualityMatcher();
+
     /**
-     * Verifies that the given object can be parsed as a datastore Value proto.
+     * Ensures we can encode/decode a FieldValue to json proto and vice versa.
      */
-    function expectValue(obj: api.Value, tag: string): Chai.Assertion {
-      const proto = ValueMessage.fromObject(obj);
-      expect(proto['valueType']).to.equal(tag);
-      return expect(proto[tag]);
+    function expectFieldValueJsonProtoRoundTrip(
+      value: fieldValue.FieldValue,
+      jsonProto: api.Value,
+      serializer: JsonProtoSerializer = s
+    ): void {
+      const actualProto: api.Value = serializer.toValue(value);
+      expect(actualProto).to.deep.equal(jsonProto);
+      expect(serializer.fromValue(jsonProto)).to.deep.equal(value);
+    }
+
+    /**
+     * Ensures we can convert a json proto to a protobufjs message and vice
+     * versa.
+     *
+     * @param messageField The relevant proto field as we expect it to be
+     *     encoded by protobufjs.
+     */
+    function expectJsonProtoProtobufjsMessageRoundTrip(
+      jsonProto: api.Value,
+      messageField: {},
+      tag: string
+    ): void {
+      const msg: ProtobufJS.Message = ValueMessage.fromObject(jsonProto);
+      expect(msg[tag]).to.deep.equal(messageField);
+
+      const roundTripProto: api.Value = ValueMessage.toObject(
+        ValueMessage.create({ [tag]: messageField }),
+        protoLoaderOptions
+      );
+
+      // Our json protos don't always round trip exactly through protobufjs,
+      // due to a combination of our protoLoaderOptions options as well as how
+      // protobufjs works. Specifically:
+      // 1) protobufjs adds a virtual 'valueType' parameter for our oneof field
+      // 2) all long fields are converted from a number to a string.
+      // 3) Byte fields are always returns as a Uint8Array rather than as a
+      //    (base64 encoded) string, even if that's otherwise how it's encoded
+      //    on the wire.
+      // (There may be other scenarios too, but none yet apply).
+      //
+      // Our serializer can deal with these discrepencies. For the purpose of
+      // this test, we'll:
+      // a) delete the 'valueType' virtual field
+      // b) convert timestampValue.seconds from string to int.
+      // c) base64.encode bytesValue if the expected value is a string.
+      delete roundTripProto['valueType'];
+      if (
+        roundTripProto.timestampValue &&
+        typeof roundTripProto.timestampValue['seconds'] === 'string'
+      ) {
+        roundTripProto.timestampValue['seconds'] = Number(
+          roundTripProto.timestampValue['seconds']
+        );
+      }
+      if (
+        typeof jsonProto.bytesValue === 'string' &&
+        typeof roundTripProto.bytesValue === 'object'
+      ) {
+        roundTripProto.bytesValue = Buffer.from(
+          roundTripProto.bytesValue
+        ).toString('base64');
+      }
+      expect(roundTripProto).to.deep.equal(jsonProto);
+    }
+
+    /**
+     * Ensures we can convert a FieldValue through the serializer, protobufjs,
+     * and then back again and get the same result.
+     */
+    function expectFullRoundTrip(
+      value: fieldValue.FieldValue,
+      serializer: JsonProtoSerializer = s
+    ): void {
+      const actual: fieldValue.FieldValue = serializer.fromValue(
+        ValueMessage.toObject(
+          ValueMessage.fromObject(serializer.toValue(value)),
+          protoLoaderOptions
+        )
+      );
+      expect(actual.isEqual(value)).to.be.true;
     }
 
     it('converts NullValue', () => {
-      const obj = s.toValue(fieldValue.NullValue.INSTANCE);
-      expect(obj).to.deep.equal({ nullValue: 'NULL_VALUE' });
-      // protobuf.js generates it differently.
-      expectValue(obj, 'nullValue').to.equal(0);
+      const value: fieldValue.FieldValue = fieldValue.NullValue.INSTANCE;
+      const proto: api.Value = { nullValue: 'NULL_VALUE' };
+      const protobufjsField = 0;
+
+      expectFieldValueJsonProtoRoundTrip(value, proto);
+      expectJsonProtoProtobufjsMessageRoundTrip(
+        proto,
+        protobufjsField,
+        'nullValue'
+      );
+      expectFullRoundTrip(value);
     });
 
     it('converts BooleanValue', () => {
       const examples = [true, false];
       for (const example of examples) {
-        const obj = s.toValue(fieldValue.BooleanValue.of(example));
-        expect(obj).to.deep.equal({ booleanValue: example });
-        expectValue(obj, 'booleanValue').to.equal(example);
+        const value: fieldValue.FieldValue = fieldValue.BooleanValue.of(
+          example
+        );
+        const proto: api.Value = { booleanValue: example };
+        const protobufjsField = example;
+
+        expectFieldValueJsonProtoRoundTrip(value, proto);
+        expectJsonProtoProtobufjsMessageRoundTrip(
+          proto,
+          protobufjsField,
+          'booleanValue'
+        );
+        expectFullRoundTrip(value);
       }
     });
 
@@ -139,14 +239,19 @@ describe('Serializer', () => {
         types.MAX_SAFE_INTEGER
       ];
       for (const example of examples) {
-        const obj = s.toValue(new fieldValue.IntegerValue(example));
-        expect(obj).to.deep.equal({ integerValue: '' + example });
-
-        const longVal = Long.fromString(example.toString(), false);
-        expectValue(obj, 'integerValue').to.deep.equal(
-          longVal,
-          'for integer ' + example
+        const value: fieldValue.FieldValue = new fieldValue.IntegerValue(
+          example
         );
+        const proto: api.Value = { integerValue: '' + example };
+        const protobufjsField = Long.fromString(example.toString(), false);
+
+        expectFieldValueJsonProtoRoundTrip(value, proto);
+        expectJsonProtoProtobufjsMessageRoundTrip(
+          proto,
+          protobufjsField,
+          'integerValue'
+        );
+        expectFullRoundTrip(value);
       }
     });
 
@@ -164,13 +269,19 @@ describe('Serializer', () => {
         Number.NEGATIVE_INFINITY
       ];
       for (const example of examples) {
-        const obj = s.toValue(new fieldValue.DoubleValue(example));
-
-        expect(obj).to.deep.equal({ doubleValue: example });
-        expectValue(obj, 'doubleValue').to.deep.equal(
-          example,
-          'for double ' + example
+        const value: fieldValue.FieldValue = new fieldValue.DoubleValue(
+          example
         );
+        const proto: api.Value = { doubleValue: example };
+        const protobufjsField = example;
+
+        expectFieldValueJsonProtoRoundTrip(value, proto);
+        expectJsonProtoProtobufjsMessageRoundTrip(
+          proto,
+          protobufjsField,
+          'doubleValue'
+        );
+        expectFullRoundTrip(value);
       }
     });
 
@@ -184,17 +295,23 @@ describe('Serializer', () => {
         '(╯°□°）╯︵ ┻━┻'
       ];
       for (const example of examples) {
-        const obj = s.toValue(new fieldValue.StringValue(example));
-        expect(obj).to.deep.equal({ stringValue: example });
-
-        expectValue(obj, 'stringValue').to.deep.equal(
-          example,
-          'for string ' + example
+        const value: fieldValue.FieldValue = new fieldValue.StringValue(
+          example
         );
+        const proto: api.Value = { stringValue: example };
+        const protobufjsField = example;
+
+        expectFieldValueJsonProtoRoundTrip(value, proto);
+        expectJsonProtoProtobufjsMessageRoundTrip(
+          proto,
+          protobufjsField,
+          'stringValue'
+        );
+        expectFullRoundTrip(value);
       }
     });
 
-    it('converts TimestampValue', () => {
+    it('converts TimestampValue from proto', () => {
       const examples = [
         new Date(Date.UTC(2016, 0, 2, 10, 20, 50, 850)),
         new Date(Date.UTC(2016, 5, 17, 10, 50, 15, 0))
@@ -206,17 +323,46 @@ describe('Serializer', () => {
       ];
 
       for (let i = 0; i < examples.length; i++) {
-        const example = examples[i];
-        const obj = s.toValue(
-          new fieldValue.TimestampValue(Timestamp.fromDate(example))
+        const value: fieldValue.FieldValue = new fieldValue.TimestampValue(
+          Timestamp.fromDate(examples[i])
         );
-        const expected = { timestampValue: expectedJson[i] };
-        expect(obj).to.deep.equal(expected);
-        expectValue(obj, 'timestampValue').to.deep.equal(
-          TimestampMessage.fromObject(expectedJson[i]),
-          'for date ' + example
+        const proto: api.Value = { timestampValue: expectedJson[i] };
+        const protobufjsField = TimestampMessage.fromObject(expectedJson[i]);
+
+        expectFieldValueJsonProtoRoundTrip(value, proto);
+        expectJsonProtoProtobufjsMessageRoundTrip(
+          proto,
+          protobufjsField,
+          'timestampValue'
         );
+        expectFullRoundTrip(value);
       }
+    });
+
+    it('converts TimestampValue from string', () => {
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123456Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
+      );
     });
 
     it('converts GeoPointValue', () => {
@@ -229,11 +375,19 @@ describe('Serializer', () => {
         }
       };
 
-      const obj = s.toValue(new fieldValue.GeoPointValue(example));
-      expect(obj).to.deep.equal(expected);
-      expectValue(obj, 'geoPointValue').to.deep.equal(
-        LatLngMessage.fromObject(expected.geoPointValue)
+      const value: fieldValue.FieldValue = new fieldValue.GeoPointValue(
+        example
       );
+      const proto: api.Value = expected;
+      const protobufjsField = LatLngMessage.fromObject(expected.geoPointValue);
+
+      expectFieldValueJsonProtoRoundTrip(value, proto);
+      expectJsonProtoProtobufjsMessageRoundTrip(
+        proto,
+        protobufjsField,
+        'geoPointValue'
+      );
+      expectFullRoundTrip(value);
     });
 
     it('converts BlobValue to Uint8Array', () => {
@@ -244,8 +398,17 @@ describe('Serializer', () => {
         bytesValue: new Uint8Array(bytes)
       };
 
-      const obj = s.toValue(new fieldValue.BlobValue(example));
-      expect(obj).to.deep.equal(expected);
+      const value: fieldValue.FieldValue = new fieldValue.BlobValue(example);
+      const proto: api.Value = expected;
+      const protobufjsField = new Uint8Array(bytes);
+
+      expectFieldValueJsonProtoRoundTrip(value, proto);
+      expectJsonProtoProtobufjsMessageRoundTrip(
+        proto,
+        protobufjsField,
+        'bytesValue'
+      );
+      expectFullRoundTrip(value);
     });
 
     it('converts BlobValue to Base64 string', () => {
@@ -258,30 +421,56 @@ describe('Serializer', () => {
       const serializer = new JsonProtoSerializer(partition, {
         useProto3Json: true
       });
-      const obj = serializer.toValue(new fieldValue.BlobValue(example));
-      expect(obj).to.deep.equal(expected);
+
+      const value: fieldValue.FieldValue = new fieldValue.BlobValue(example);
+      const proto: api.Value = expected;
+      const protobufjsField = new Uint8Array(bytes);
+
+      expectFieldValueJsonProtoRoundTrip(value, proto, serializer);
+      expectJsonProtoProtobufjsMessageRoundTrip(
+        proto,
+        protobufjsField,
+        'bytesValue'
+      );
+      expectFullRoundTrip(value, serializer);
     });
 
     it('converts ArrayValue', () => {
-      const data = [true, 'foo'];
-      const obj = s.toValue(wrap(data));
-      expect(obj).to.deep.equal({
+      const value: fieldValue.FieldValue = wrap([true, 'foo']);
+      const proto: api.Value = {
         arrayValue: { values: [{ booleanValue: true }, { stringValue: 'foo' }] }
-      });
+      };
+
+      expectFieldValueJsonProtoRoundTrip(value, proto);
+      expectFullRoundTrip(value);
     });
 
     it('converts empty ArrayValue', () => {
-      const obj = s.toValue(wrap([]));
-      expect(obj).to.deep.equal({ arrayValue: { values: [] } });
+      const value: fieldValue.FieldValue = wrap([]);
+      const proto: api.Value = { arrayValue: { values: [] } };
+      const protobufjsField = ArrayValueMessage.fromObject({});
+
+      expectFieldValueJsonProtoRoundTrip(value, proto);
+      expectJsonProtoProtobufjsMessageRoundTrip(
+        proto,
+        protobufjsField,
+        'arrayValue'
+      );
+      expectFullRoundTrip(value);
     });
 
     it('converts ObjectValue.EMPTY', () => {
-      const obj = s.toValue(fieldValue.ObjectValue.EMPTY);
-      expect(obj).to.deep.equal({ mapValue: { fields: {} } });
+      const value: fieldValue.FieldValue = fieldValue.ObjectValue.EMPTY;
+      const proto: api.Value = { mapValue: { fields: {} } };
+      const protobufjsField = MapValueMessage.fromObject({});
 
-      expectValue(obj, 'mapValue').to.deep.equal(
-        MapValueMessage.fromObject({})
+      expectFieldValueJsonProtoRoundTrip(value, proto);
+      expectJsonProtoProtobufjsMessageRoundTrip(
+        proto,
+        protobufjsField,
+        'mapValue'
       );
+      expectFullRoundTrip(value);
     });
 
     it('converts nested ObjectValues', () => {
@@ -345,233 +534,32 @@ describe('Serializer', () => {
           }
         }
       };
-      const obj = s.toValue(objValue);
-      expect(obj).to.deep.equal(expectedJson);
-
-      expectValue(obj, 'mapValue').to.deep.equal(
-        MapValueMessage.fromObject(expectedJson.mapValue)
-      );
       // clang-format on
-    });
-  });
 
-  describe('fromValue', () => {
-    addEqualityMatcher();
+      const value: fieldValue.FieldValue = objValue;
+      const proto: api.Value = expectedJson;
 
-    it('converts NullValue', () => {
-      const proto: api.Value = { nullValue: 'NULL_VALUE' };
-      expect(ValueMessage.fromObject(proto)['valueType']).to.equal('nullValue');
-      expect(s.fromValue(proto)).to.equal(fieldValue.NullValue.INSTANCE);
-    });
-
-    it('converts BooleanValue', () => {
-      const examples = [true, false];
-      for (const example of examples) {
-        const proto = { booleanValue: example };
-        expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
-          'booleanValue'
-        );
-        expect(s.fromValue(proto)).to.deep.equal(
-          fieldValue.BooleanValue.of(example)
-        );
-      }
-    });
-
-    it('converts IntegerValue', () => {
-      const examples = [
-        types.MIN_SAFE_INTEGER,
-        -100,
-        -1,
-        0,
-        1,
-        100,
-        types.MAX_SAFE_INTEGER
-      ];
-      for (const example of examples) {
-        const proto: api.Value = { integerValue: '' + example };
-        expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
-          'integerValue'
-        );
-        expect(s.fromValue(proto)).to.deep.equal(
-          new fieldValue.IntegerValue(example)
-        );
-      }
-    });
-
-    it('converts DoubleValue', () => {
-      const examples = [
-        Number.MIN_VALUE,
-        -10.0,
-        -1.0,
-        0.0,
-        1.0,
-        10.0,
-        Number.MAX_VALUE,
-        NaN,
-        Number.POSITIVE_INFINITY,
-        Number.NEGATIVE_INFINITY
-      ];
-      for (const example of examples) {
-        const proto = { doubleValue: example };
-        expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
-          'doubleValue'
-        );
-        expect(s.fromValue(proto)).to.deep.equal(
-          new fieldValue.DoubleValue(example)
-        );
-      }
-    });
-
-    it('converts StringValue', () => {
-      const examples = [
-        '',
-        'a',
-        'abc def',
-        'æ',
-        '\u0000\ud7ff\ue000\uffff',
-        '(╯°□°）╯︵ ┻━┻'
-      ];
-      for (const example of examples) {
-        const proto = { stringValue: example };
-        expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
-          'stringValue'
-        );
-        expect(s.fromValue(proto)).to.deep.equal(
-          new fieldValue.StringValue(example)
-        );
-      }
-    });
-
-    it('converts ArrayValue', () => {
-      const proto = {
-        arrayValue: { values: [{ booleanValue: true }, { stringValue: 'foo' }] }
-      };
-      expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
-        'arrayValue'
-      );
-      expect(s.fromValue(proto)).to.deep.equal(
-        new fieldValue.ArrayValue([
-          fieldValue.BooleanValue.TRUE,
-          new fieldValue.StringValue('foo')
-        ])
-      );
-    });
-
-    it('converts empty ArrayValue', () => {
-      const proto = { arrayValue: {} };
-      expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
-        'arrayValue'
-      );
-      expect(s.fromValue(proto)).to.deep.equal(new fieldValue.ArrayValue([]));
-    });
-
-    it('converts ObjectValue.EMPTY', () => {
-      const proto = { mapValue: { fields: {} } };
-      expect(ValueMessage.fromObject(proto)['mapValue']).to.deep.equal(
-        MapValueMessage.fromObject({})
-      );
-      expect(s.fromValue(proto)).to.deep.equal(fieldValue.ObjectValue.EMPTY);
-    });
-
-    it('converts TimestampValue from proto', () => {
-      const examples = [
-        { seconds: '1451730050', nanos: 850000000 },
-        { seconds: '1466160615', nanos: 0 }
-      ];
-      const expectedValues = [
-        new Date(Date.UTC(2016, 0, 2, 10, 20, 50, 850)),
-        new Date(Date.UTC(2016, 5, 17, 10, 50, 15, 0))
-      ];
-
-      for (let i = 0; i < examples.length; i++) {
-        const example = examples[i];
-        const date = expectedValues[i];
-        // We have to trick it into thinking the timestampValue is a string,
-        // because the proto interface definition isn't comprehensive.
-        // tslint:disable-next-line:no-any
-        const proto: api.Value = { timestampValue: example as any };
-        expect(ValueMessage.fromObject(proto)['valueType']).to.equal(
-          'timestampValue'
-        );
-        expect(s.fromValue(proto)).to.deep.equal(
-          new fieldValue.TimestampValue(Timestamp.fromDate(date))
-        );
-      }
-    });
-
-    it('converts TimestampValue from string', () => {
-      expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123456Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
-      );
-
-      expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
-      );
-
-      expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
-      );
-
-      expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
-      );
-    });
-
-    it('converts GeoPointValue', () => {
-      const proto = {
-        geoPointValue: {
-          latitude: 1.23,
-          longitude: 4.56
-        }
-      };
-
-      expect(s.fromValue(proto)).to.deep.equal(
-        new fieldValue.GeoPointValue(new GeoPoint(1.23, 4.56))
-      );
-    });
-
-    it('converts BlobValue from Uint8Array', () => {
-      const bytes = [0, 1, 2, 3, 4, 5];
-      const proto = {
-        // The types say it's a string, but it's actually a Uint8Array in Node
-        // tslint:disable-next-line:no-any
-        bytesValue: new Uint8Array(bytes) as any
-      };
-      const blob = Blob.fromUint8Array(new Uint8Array(bytes));
-      expect(s.fromValue(proto)).to.deep.equal(new fieldValue.BlobValue(blob));
-    });
-
-    it('converts BlobValue from string', () => {
-      const base64 = 'AAECAwQF';
-      const bytes = [0, 1, 2, 3, 4, 5];
-      const proto = { bytesValue: base64 };
-      const blob = Blob.fromUint8Array(new Uint8Array(bytes));
-      const serializer = new JsonProtoSerializer(partition, {
-        useProto3Json: true
-      });
-      expect(serializer.fromValue(proto)).to.deep.equal(
-        new fieldValue.BlobValue(blob)
-      );
+      expectFieldValueJsonProtoRoundTrip(value, proto);
+      expectFullRoundTrip(value);
     });
 
     it('converts RefValue', () => {
       const example = 'projects/project1/databases/database1/documents/docs/1';
 
-      const expected = new fieldValue.RefValue(
+      const value: fieldValue.FieldValue = new fieldValue.RefValue(
         dbId('project1', 'database1'),
         key('docs/1')
       );
+      const proto: api.Value = { referenceValue: example };
+      const protobufjsField = example;
 
-      const obj = s.fromValue({ referenceValue: example });
-      expect(obj).to.deep.equal(expected);
+      expectFieldValueJsonProtoRoundTrip(value, proto);
+      expectJsonProtoProtobufjsMessageRoundTrip(
+        proto,
+        protobufjsField,
+        'referenceValue'
+      );
+      expectFullRoundTrip(value);
     });
   });
 

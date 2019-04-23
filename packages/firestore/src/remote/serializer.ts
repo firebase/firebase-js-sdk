@@ -284,10 +284,6 @@ export class JsonProtoSerializer {
       );
       return Blob.fromBase64String(blob);
     } else {
-      assert(
-        !this.options.useProto3Json,
-        'Expected bytes to be passed in as string, but got something else instead.'
-      );
       return Blob.fromUint8Array(blob);
     }
   }
