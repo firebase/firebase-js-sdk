@@ -62,7 +62,8 @@ function genericIndexManagerTests(
 
   afterEach(async () => {
     if (persistence.started) {
-      await persistence.shutdown(/* deleteData= */ true);
+      await persistence.shutdown();
+      await persistenceHelpers.clearTestPersistence();
     }
   });
 

@@ -38,6 +38,7 @@ import {
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
+import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LruParams } from '../local/lru_garbage_collector';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -307,6 +308,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // are already set to synchronize on the async queue.
   private _firestoreClient: FirestoreClient | undefined;
 
+  private clientRunning: boolean;
+
   // Public for use in tests.
   // TODO(mikelehen): Use modularized initialization instead.
   readonly _queue = new AsyncQueue();
@@ -314,6 +317,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
+    this.clientRunning = false;
     const config = new FirestoreConfig();
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -406,6 +410,19 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
   }
 
+  _clearPersistence(): Promise<void> {
+    if (this.clientRunning) {
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'Persistence cannot be cleared while the client is running'
+      );
+    }
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+      this.makeDatabaseInfo()
+    );
+    return IndexedDbPersistence.clearPersistence(persistenceKey);
+  }
+
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
@@ -413,6 +430,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this.configureClient(new MemoryPersistenceSettings());
     }
     return this._firestoreClient as FirestoreClient;
+  }
+
+  private makeDatabaseInfo(): DatabaseInfo {
+    return new DatabaseInfo(
+      this._config.databaseId,
+      this._config.persistenceKey,
+      this._config.settings.host,
+      this._config.settings.ssl,
+      this._config.settings.forceLongPolling
+    );
   }
 
   private configureClient(
@@ -425,13 +452,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
-    const databaseInfo = new DatabaseInfo(
-      this._config.databaseId,
-      this._config.persistenceKey,
-      this._config.settings.host,
-      this._config.settings.ssl,
-      this._config.settings.forceLongPolling
-    );
+    this.clientRunning = true;
+    const databaseInfo = this.makeDatabaseInfo();
 
     const preConverter = (value: unknown) => {
       if (value instanceof DocumentReference) {
@@ -458,6 +480,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._config.credentials,
       this._queue
     );
+
     return this._firestoreClient.start(persistenceSettings);
   }
 
@@ -492,13 +515,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   INTERNAL = {
-    delete: async (options?: {
-      purgePersistenceWithDataLoss?: boolean;
-    }): Promise<void> => {
+    delete: async (): Promise<void> => {
       // The client must be initalized to ensure that all subsequent API usage
       // throws an exception.
       this.ensureClientConfigured();
-      return this._firestoreClient!.shutdown(options);
+      await this._firestoreClient!.shutdown();
+      this.clientRunning = false;
     }
   };
 

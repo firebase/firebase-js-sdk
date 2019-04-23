@@ -78,7 +78,10 @@ function genericMutationQueueTests(): void {
     );
   });
 
-  afterEach(() => persistence.shutdown(/* deleteData= */ true));
+  afterEach(async () => {
+    await persistence.shutdown();
+    await persistenceHelpers.clearTestPersistence();
+  });
 
   /**
    * Creates a new MutationBatch with the next batch ID and a set of dummy

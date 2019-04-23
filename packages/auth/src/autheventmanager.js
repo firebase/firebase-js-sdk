@@ -50,6 +50,12 @@ goog.require('goog.array');
  * @constructor
  */
 fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
+  /**
+   * @private {!Object<string, boolean>} The map of processed auth event IDs.
+   */
+  this.processedEvents_ = {};
+  /** @private {number} The last saved processed event time in milliseconds. */
+  this.lastProcessedEventTime_ = 0;
   /** @private {string} The Auth domain. */
   this.authDomain_ = authDomain;
   /** @private {string} The browser API key. */
@@ -112,6 +118,14 @@ fireauth.AuthEventManager = function(authDomain, apiKey, appName) {
 
 
 /**
+ * @const {number} The number of milliseconds since the last processed
+ *     event before the event duplication cache is cleared. This is currently
+ *     10 minutes.
+ */
+fireauth.AuthEventManager.EVENT_DUPLICATION_CACHE_DURATION = 10 * 60 * 1000;
+
+
+/**
  * @return {!fireauth.RedirectAuthEventProcessor} The redirect event processor.
  */
 fireauth.AuthEventManager.prototype.getRedirectAuthEventProcessor = function() {
@@ -167,6 +181,7 @@ fireauth.AuthEventManager.prototype.reset = function() {
       fireauth.AuthEventManager.instantiateOAuthSignInHandler(
           this.authDomain_, this.apiKey_, this.appName_,
           firebase.SDK_VERSION || null);
+  this.processedEvents_ = {};
 };
 
 
@@ -342,6 +357,48 @@ fireauth.AuthEventManager.prototype.unsubscribe = function(handler) {
 
 
 /**
+ * @param {?fireauth.AuthEvent} authEvent External Auth event to check.
+ * @return {boolean} Whether the event was previously processed.
+ * @private
+ */
+fireauth.AuthEventManager.prototype.hasProcessedAuthEvent_ =
+    function(authEvent) {
+  // Prevent duplicate event tracker from growing too large.
+  if (goog.now() - this.lastProcessedEventTime_ >=
+      fireauth.AuthEventManager.EVENT_DUPLICATION_CACHE_DURATION) {
+    this.processedEvents_ = {};
+    this.lastProcessedEventTime_ = 0;
+  }
+  if (authEvent && authEvent.getUid() &&
+      this.processedEvents_.hasOwnProperty(authEvent.getUid())) {
+    // If event is already processed, ignore it.
+    return true;
+  }
+  return false;
+};
+
+
+/**
+ * Saves the provided event uid to prevent processing duplication.
+ * @param {?fireauth.AuthEvent} authEvent External Auth event to track in
+ *     processed list of events.
+ * @private
+ */
+fireauth.AuthEventManager.prototype.saveProcessedAuthEvent_ =
+    function(authEvent) {
+  if (authEvent &&
+      (authEvent.getSessionId() || authEvent.getEventId())) {
+    // Save processed event ID. We keep the cache for 10 minutes to prevent it
+    // from growing too large.
+    this.processedEvents_[
+        /** @type {string} */ (authEvent.getUid())] = true;
+    // Save last processing time.
+    this.lastProcessedEventTime_ = goog.now();
+  }
+};
+
+
+/**
  * Handles external Auth event detected by the OAuth sign-in handler.
  * @param {?fireauth.AuthEvent} authEvent External Auth event detected by
  *     iframe.
@@ -356,6 +413,10 @@ fireauth.AuthEventManager.prototype.handleAuthEvent_ = function(authEvent) {
   if (!authEvent) {
     throw new fireauth.AuthError(fireauth.authenum.Error.INVALID_AUTH_EVENT);
   }
+  if (this.hasProcessedAuthEvent_(authEvent)) {
+    // If event is already processed, ignore it.
+    return false;
+  }
   // Initialize event processed status to false. When set to false, the event is
   // not clear to delete in the OAuth helper iframe as the owner of this event
   // could be a user in another tab.
@@ -368,6 +429,9 @@ fireauth.AuthEventManager.prototype.handleAuthEvent_ = function(authEvent) {
       var eventManager = this.typeToManager_[authEvent.getType()];
       if (eventManager) {
         eventManager.processAuthEvent(authEvent, potentialHandler);
+        // Prevent events with event IDs or session IDs from duplicate
+        // processing.
+        this.saveProcessedAuthEvent_(authEvent);
       }
       // Event has been processed, free to clear in OAuth helper.
       processed = true;

@@ -87,7 +87,10 @@ function genericLruGarbageCollectorTests(
   });
 
   afterEach(async () => {
-    await queue.enqueue(() => persistence.shutdown(/* deleteData= */ true));
+    await queue.enqueue(async () => {
+      await persistence.shutdown();
+      await PersistenceTestHelpers.clearTestPersistence();
+    });
   });
 
   let persistence: Persistence;
@@ -102,7 +105,10 @@ function genericLruGarbageCollectorTests(
     params: LruParams = LruParams.DEFAULT
   ): Promise<void> {
     if (persistence && persistence.started) {
-      await queue.enqueue(() => persistence.shutdown(/* deleteData= */ true));
+      await queue.enqueue(async () => {
+        await persistence.shutdown();
+        await PersistenceTestHelpers.clearTestPersistence();
+      });
     }
     lruParams = params;
     persistence = await newPersistence(params, queue);

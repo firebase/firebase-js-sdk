@@ -100,7 +100,10 @@ describe('IndexedDbRemoteDocumentCache', () => {
     cache = new TestIndexedDbRemoteDocumentCache(persistence);
   });
 
-  afterEach(() => persistence.shutdown(/* deleteData= */ true));
+  afterEach(async () => {
+    await persistence.shutdown();
+    await persistenceHelpers.clearTestPersistence();
+  });
 
   function addEntries(
     txn: PersistenceTransaction,
@@ -151,7 +154,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
   it('skips previous changes', async () => {
     // Add a document to simulate a previous run.
     await cache.addEntries([doc('a/1', 1, DOC_DATA)]);
-    await persistence.shutdown(/* deleteData= */ false);
+    await persistence.shutdown();
 
     // Start a new run of the persistence layer
     persistence = await persistenceHelpers.testIndexedDbPersistence({
