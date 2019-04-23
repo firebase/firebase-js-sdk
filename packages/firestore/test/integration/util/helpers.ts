@@ -107,7 +107,9 @@ function apiDescribeInternal(
 }
 
 // TODO(b/131094514): Remove after clearPersistence() is updated in index.d.ts.
-export async function _clearPersistence(firestore: firestore.FirebaseFirestore): Promise<void> {
+export async function _clearPersistence(
+  firestore: firestore.FirebaseFirestore
+): Promise<void> {
   // tslint:disable-next-line:no-any
   await (firestore as any).clearPersistence();
 }
