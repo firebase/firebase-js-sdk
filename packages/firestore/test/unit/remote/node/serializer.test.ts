@@ -41,7 +41,7 @@ import {
   SetMutation
 } from '../../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
-import { loadProtos } from '../../../../src/platform_node/load_protos';
+import { loadRawProtos } from '../../../../src/platform_node/load_protos';
 import * as api from '../../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../../src/remote/serializer';
 import {
@@ -77,7 +77,7 @@ describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
   const emptyResumeToken = new Uint8Array(0);
-  const protos = loadProtos();
+  const protos = loadRawProtos();
   const ds = protos['google']['firestore']['v1'];
 
   /**
