@@ -103,18 +103,25 @@ export class FirebaseError extends Error {
   }
 }
 
-export class ErrorFactory<ErrorCode extends string> {
+export class ErrorFactory<
+  ErrorCode extends string,
+  ErrorParams extends { readonly [K in ErrorCode]?: ErrorData } = {}
+> {
   constructor(
     private readonly service: string,
     private readonly serviceName: string,
     private readonly errors: ErrorMap<ErrorCode>
   ) {}
 
-  create(code: ErrorCode, data: ErrorData = {}): FirebaseError {
+  create<K extends ErrorCode>(
+    code: K,
+    ...data: K extends keyof ErrorParams ? [ErrorParams[K]] : []
+  ): FirebaseError {
+    const customData = data[0] || {};
     const fullCode = `${this.service}/${code}`;
     const template = this.errors[code];
 
-    const message = template ? replaceTemplate(template, data) : 'Error';
+    const message = template ? replaceTemplate(template, customData) : 'Error';
     // Service Name: Error message (service/code).
     const fullMessage = `${this.serviceName}: ${message} (${fullCode}).`;
 
@@ -123,14 +130,14 @@ export class ErrorFactory<ErrorCode extends string> {
     // Keys with an underscore at the end of their name are not included in
     // error.data for some reason.
     // TODO: Replace with Object.entries when lib is updated to es2017.
-    for (const key of Object.keys(data)) {
+    for (const key of Object.keys(customData)) {
       if (key.slice(-1) !== '_') {
         if (key in error) {
           console.warn(
             `Overwriting FirebaseError base field "${key}" can cause unexpected behavior.`
           );
         }
-        error[key] = data[key];
+        error[key] = customData[key];
       }
     }
 
