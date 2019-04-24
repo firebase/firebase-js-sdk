@@ -4388,8 +4388,8 @@ declare namespace firebase.database {
      * must also be called on any child listeners to remove the callback.
      *
      * If a callback is not specified, all callbacks for the specified eventType
-     * will be removed. Similarly, if no eventType or callback is specified, all
-     * callbacks for the `Reference` will be removed.
+     * will be removed. Similarly, if no eventType is specified, all callbacks
+     * for the `Reference` will be removed.
      *
      * @example
      * ```javascript
@@ -4414,16 +4414,17 @@ declare namespace firebase.database {
      * ```
      *
      * @param eventType One of the following strings: "value",
-     *   "child_added", "child_changed", "child_removed", or "child_moved."
-     * @param callback The
-     *   callback function that was passed to `on()`.
+     *   "child_added", "child_changed", "child_removed", or "child_moved." If
+     *   omitted, all callbacks for the `Reference` will be removed.
+     * @param callback The callback function that was passed to `on()` or
+     *   `undefined` to remove all callbacks.
      * @param context The context that was passed to `on()`.
      */
     off(
       eventType?: EventType,
       callback?: (a: firebase.database.DataSnapshot, b?: string | null) => any,
       context?: Object | null
-    ): any;
+    ): void;
 
     /**
      * Listens for data changes at a particular location.
@@ -4539,10 +4540,10 @@ declare namespace firebase.database {
      */
     on(
       eventType: EventType,
-      callback: (a: firebase.database.DataSnapshot | null, b?: string) => any,
+      callback: (a: firebase.database.DataSnapshot, b?: string | null) => any,
       cancelCallbackOrContext?: Object | null,
       context?: Object | null
-    ): (a: firebase.database.DataSnapshot | null, b?: string) => any;
+    ): (a: firebase.database.DataSnapshot | null, b?: string | null) => any;
 
     /**
      * Listens for exactly one event of the specified event type, and then stops
@@ -4579,10 +4580,13 @@ declare namespace firebase.database {
      */
     once(
       eventType: EventType,
-      successCallback?: (a: firebase.database.DataSnapshot, b?: string) => any,
-      failureCallbackOrContext?: Object | null,
+      successCallback?: (
+        a: firebase.database.DataSnapshot,
+        b?: string | null
+      ) => any,
+      failureCallbackOrContext?: ((a: Error) => void) | Object | null,
       context?: Object | null
-    ): Promise<DataSnapshot>;
+    ): Promise<firebase.database.DataSnapshot>;
     /**
      * Generates a new `Query` object ordered by the specified child key.
      *
