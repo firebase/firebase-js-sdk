@@ -6031,6 +6031,11 @@ declare namespace firebase.firestore {
      * has changed, Cloud Firestore retries the `updateFunction`. If it fails to
      * commit after 5 attempts, the transaction fails.
      *
+     * The maximum number of writes allowed in a single transaction is 500, but
+     * note that each usage of `FieldValue.serverTimestamp()`,
+     * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
+     * `FieldValue.increment()` inside a transaction counts as an additional write.
+     *
      * @param updateFunction
      *   The function to execute within the transaction context.
      *
@@ -6047,7 +6052,10 @@ declare namespace firebase.firestore {
 
     /**
      * Creates a write batch, used for performing multiple writes as a single
-     * atomic operation.
+     * atomic operation. The maximum number of writes allowed in a single WriteBatch
+     * is 500, but note that each usage of `FieldValue.serverTimestamp()`,
+     * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
+     * `FieldValue.increment()` inside a WriteBatch counts as an additional write.
      *
      * @return
      *   A `WriteBatch` that can be used to atomically execute multiple writes.

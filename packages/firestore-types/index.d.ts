@@ -193,8 +193,14 @@ export class FirebaseFirestore {
    * transaction has changed, the updateFunction will be retried. If it fails
    * to commit after 5 attempts, the transaction will fail.
    *
+   * The maximum number of writes allowed in a single transaction is 500, but
+   * note that each usage of `FieldValue.serverTimestamp()`,
+   * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
+   * `FieldValue.increment()` inside a transaction counts as an additional write.
+   *
    * @param updateFunction The function to execute within the transaction
    * context.
+   *
    * @return If the transaction completed successfully or was explicitly
    * aborted (by the updateFunction returning a failed Promise), the Promise
    * returned by the updateFunction will be returned here. Else if the
@@ -206,8 +212,14 @@ export class FirebaseFirestore {
   ): Promise<T>;
 
   /**
-   * Creates a write batch, used for performing multiple writes as a single
-   * atomic operation.
+   *  Creates a write batch, used for performing multiple writes as a single
+   * atomic operation. The maximum number of writes allowed in a single WriteBatch
+   * is 500, but note that each usage of `FieldValue.serverTimestamp()`,
+   * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
+   * `FieldValue.increment()` inside a WriteBatch counts as an additional write.
+   *
+   * @return
+   *   A `WriteBatch` that can be used to atomically execute multiple writes.
    */
   batch(): WriteBatch;
 
