@@ -49,7 +49,7 @@ import { DataSnapshot } from './DataSnapshot';
 let __referenceConstructor: new (repo: Repo, path: Path) => Query;
 
 export interface SnapshotCallback {
-  (a: DataSnapshot, b?: string | null): any;
+  (a: DataSnapshot, b?: string): any;
 }
 
 /**
@@ -198,8 +198,8 @@ export class Query {
   on(
     eventType: string,
     callback: SnapshotCallback,
-    cancelCallbackOrContext?: ((a: Error) => any) | Object | null,
-    context?: Object | null
+    cancelCallbackOrContext?: ((a: Error) => any) | Object,
+    context?: Object
   ): SnapshotCallback {
     validateArgCount('Query.on', 2, 4, arguments.length);
     validateEventType('Query.on', 1, eventType, false);
@@ -264,11 +264,7 @@ export class Query {
    * @param {(function(!DataSnapshot, ?string=))=} callback
    * @param {Object=} context
    */
-  off(
-    eventType?: string,
-    callback?: SnapshotCallback,
-    context?: Object | null
-  ): void {
+  off(eventType?: string, callback?: SnapshotCallback, context?: Object) {
     validateArgCount('Query.off', 0, 3, arguments.length);
     validateEventType('Query.off', 1, eventType, true);
     validateCallback('Query.off', 2, callback, true);
@@ -297,15 +293,15 @@ export class Query {
    * Attaches a listener, waits for the first event, and then removes the listener
    * @param {!string} eventType
    * @param {!function(!DataSnapshot, string=)} userCallback
-   * @param failureCallbackOrContext
+   * @param cancelOrContext
    * @param context
    * @return {!firebase.Promise}
    */
   once(
     eventType: string,
     userCallback?: SnapshotCallback,
-    failureCallbackOrContext?: ((a: Error) => void) | Object | null,
-    context?: Object | null
+    cancelOrContext?: ((a: Error) => void) | Object,
+    context?: Object
   ): Promise<DataSnapshot> {
     validateArgCount('Query.once', 1, 4, arguments.length);
     validateEventType('Query.once', 1, eventType, false);
@@ -313,7 +309,7 @@ export class Query {
 
     const ret = Query.getCancelAndContextArgs_(
       'Query.once',
-      failureCallbackOrContext,
+      cancelOrContext,
       context
     );
 
@@ -635,8 +631,8 @@ export class Query {
    */
   private static getCancelAndContextArgs_(
     fnName: string,
-    cancelOrContext?: ((a: Error) => void) | Object | null,
-    context?: Object | null
+    cancelOrContext?: ((a: Error) => void) | Object,
+    context?: Object
   ): { cancel: ((a: Error) => void) | null; context: Object | null } {
     const ret: {
       cancel: ((a: Error) => void) | null;
