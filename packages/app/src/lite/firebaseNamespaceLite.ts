@@ -46,7 +46,7 @@ export function createFirebaseNamespaceLite(): FirebaseNamespace {
     allowMultipleInstances?: boolean
   ) {
     // only allow performance to register with firebase lite
-    if (name !== 'performance') {
+    if (name !== 'performance' && name !== 'installations') {
       throw Error(`${name} cannot register with the standalone perf instance`);
     }
 
