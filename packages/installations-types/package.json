@@ -1,8 +1,7 @@
 {
   "name": "@firebase/installations-types",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "@firebase/installations Types",
-  "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {

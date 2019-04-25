@@ -1,10 +1,9 @@
 {
   "name": "@firebase/installations",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
-  "private": true,
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
@@ -17,7 +16,8 @@
     "lint:fix": "yarn lint --fix && prettier --write 'src/**/*.ts'",
     "serve": "yarn serve:build && yarn serve:host",
     "serve:build": "rollup -c test-app/rollup.config.js",
-    "serve:host": "http-server -c-1 test-app"
+    "serve:host": "http-server -c-1 test-app",
+    "prepare": "yarn build"
   },
   "devDependencies": {
     "@types/chai": "4.1.7",
@@ -48,7 +48,7 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/installations-types": "0.0.1",
+    "@firebase/installations-types": "0.1.0",
     "@firebase/util": "0.x",
     "idb": "3.0.2"
   }
