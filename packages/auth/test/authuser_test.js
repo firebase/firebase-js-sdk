@@ -1549,7 +1549,7 @@ function testUser_getIdTokenResult_expiredToken_reauth() {
       assertEquals(1, userInvalidateCounter);
       // Assume user reauthenticated.
       // This should resolve.
-      user.reauthenticateAndRetrieveDataWithCredential(credential)
+      user.reauthenticateWithCredential(credential)
           .then(function(result) {
             // Set via reauthentication.
             assertEquals(
@@ -1696,7 +1696,7 @@ function testUser_getIdToken_expiredToken_reauthAfterInvalidation() {
       assertEquals(1, userInvalidateCounter);
       // Assume user reauthenticated.
       // This should resolve.
-      user.reauthenticateAndRetrieveDataWithCredential(credential)
+      user.reauthenticateWithCredential(credential)
           .then(function(result) {
             // Set via reauthentication.
             assertEquals(
@@ -2013,7 +2013,7 @@ function testUser_getIdToken_expiredToken_reauthBeforeInvalidation() {
   assertEquals(tokenResponse['refreshToken'], user['refreshToken']);
   // Call reauthenticate, this should succeed and not trigger user invalidation
   // event.
-  user.reauthenticateAndRetrieveDataWithCredential(credential)
+  user.reauthenticateWithCredential(credential)
       .then(function(result) {
         // Set via reauthentication.
         assertEquals(validTokenResponse['refreshToken'], user['refreshToken']);
@@ -2907,20 +2907,18 @@ function testUpdateProfile_userDestroyed() {
 }
 
 
-function testReauthenticateWithCredential_success() {
-  // Test that reauthenticateWithCredential calls
-  // reauthenticateAndRetrieveDataWithCredential underneath and returns void, on
-  // success.
+function testReauthenticateAndRetrieveDataWithCredential_success() {
+  // Test that reauthenticateAndRetrieveDataWithCredential calls
+  // reauthenticateWithCredential underneath.
   // Record deprecation warning calls.
   stubs.replace(
       fireauth.deprecation,
       'log',
       goog.testing.recordFunction());
-  // Stub reauthenticateAndRetrieveDataWithCredential and confirm promise
-  // resolves with void.
+  // Stub reauthenticateWithCredential.
   stubs.replace(
       fireauth.AuthUser.prototype,
-      'reauthenticateAndRetrieveDataWithCredential',
+      'reauthenticateWithCredential',
       function(cred) {
         assertEquals(expectedGoogleCredential, cred);
         return goog.Promise.resolve(expectedResponse);
@@ -2934,11 +2932,11 @@ function testReauthenticateWithCredential_success() {
     'additionalUserInfo': expectedAdditionalUserInfo,
     'operationType': fireauth.constants.OperationType.REAUTHENTICATE
   };
-  // reauthenticateWithCredential using Google OAuth credential.
-  user.reauthenticateWithCredential(expectedGoogleCredential)
-      .then(function(response) {
-        // Confirm no response returned.
-        assertUndefined(response);
+  // reauthenticateAndRetrieveDataWithCredential using Google OAuth credential.
+  user.reauthenticateAndRetrieveDataWithCredential(expectedGoogleCredential)
+      .then(function(result) {
+        // Confirm expected response returned.
+        assertEquals(expectedResponse, result);
         asyncTestCase.signal();
       });
   // Confirm warning shown.
@@ -2951,9 +2949,9 @@ function testReauthenticateWithCredential_success() {
 }
 
 
-function testReauthenticateWithCredential_error() {
-  // Test that reauthenticateWithCredential calls
-  // reauthenticateAndRetrieveDataWithCredential underneath and funnels any
+function testReauthenticateAndRetrieveDataWithCredential_error() {
+  // Test that reauthenticateAndRetrieveDataWithCredential calls
+  // reauthenticateWithCredential underneath and funnels any
   // underlying error thrown.
   // Record deprecation warning calls.
   stubs.replace(
@@ -2962,7 +2960,7 @@ function testReauthenticateWithCredential_error() {
       goog.testing.recordFunction());
   stubs.replace(
       fireauth.AuthUser.prototype,
-      'reauthenticateAndRetrieveDataWithCredential',
+      'reauthenticateWithCredential',
       function(cred) {
         assertEquals(expectedGoogleCredential, cred);
         return goog.Promise.reject(expectedError);
@@ -2972,8 +2970,8 @@ function testReauthenticateWithCredential_error() {
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.INTERNAL_ERROR);
   var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
-  // reauthenticateWithCredential using Google OAuth credential.
-  user.reauthenticateWithCredential(expectedGoogleCredential)
+  // reauthenticateAndRetrieveDataWithCredential using Google OAuth credential.
+  user.reauthenticateAndRetrieveDataWithCredential(expectedGoogleCredential)
       .thenCatch(function(error) {
         // Confirm expected error.
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);
@@ -2989,7 +2987,7 @@ function testReauthenticateWithCredential_error() {
 }
 
 
-function testReauthenticateAndRetrieveDataWithCredential() {
+function testReauthenticateWithCredential() {
   var credential = /** @type {!fireauth.AuthCredential} */ ({
     matchIdTokenWithUid: function() {
       return goog.Promise.resolve(expectedReauthenticateTokenResponse);
@@ -3018,7 +3016,7 @@ function testReauthenticateAndRetrieveDataWithCredential() {
         asyncTestCase.signal();
       });
   assertNoUserInvalidatedEvents(user);
-  user.reauthenticateAndRetrieveDataWithCredential(credential)
+  user.reauthenticateWithCredential(credential)
       .then(function(result) {
         // Expected result returned.
         fireauth.common.testHelper.assertUserCredentialResponse(
@@ -3043,7 +3041,7 @@ function testReauthenticateAndRetrieveDataWithCredential() {
 }
 
 
-function testReauthenticateAndRetrieveDataWithCredential_userMismatch() {
+function testReauthenticateWithCredential_userMismatch() {
   var expectedError =
       new fireauth.AuthError(fireauth.authenum.Error.USER_MISMATCH);
   var credential = /** @type {!fireauth.AuthCredential} */ ({
@@ -3057,7 +3055,7 @@ function testReauthenticateAndRetrieveDataWithCredential_userMismatch() {
   assertNoStateEvents(user);
   assertNoTokenEvents(user);
   assertNoUserInvalidatedEvents(user);
-  user.reauthenticateAndRetrieveDataWithCredential(credential)
+  user.reauthenticateWithCredential(credential)
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(
             expectedError,
@@ -3068,7 +3066,7 @@ function testReauthenticateAndRetrieveDataWithCredential_userMismatch() {
 }
 
 
-function testReauthenticateAndRetrieveDataWithCredential_fail() {
+function testReauthenticateWithCredential_fail() {
   var error = new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
   var credential = /** @type {!fireauth.AuthCredential} */ ({
     matchIdTokenWithUid: function() {
@@ -3081,7 +3079,7 @@ function testReauthenticateAndRetrieveDataWithCredential_fail() {
   assertNoStateEvents(user);
   assertNoTokenEvents(user);
   assertNoUserInvalidatedEvents(user);
-  user.reauthenticateAndRetrieveDataWithCredential(credential)
+  user.reauthenticateWithCredential(credential)
       .thenCatch(function(actualError) {
         fireauth.common.testHelper.assertErrorEquals(error, actualError);
         asyncTestCase.signal();
@@ -3090,9 +3088,9 @@ function testReauthenticateAndRetrieveDataWithCredential_fail() {
 }
 
 
-function testLinkWithCredential_success() {
-  // Test that linkWithCredential calls linkAndRetrieveDataWithCredential
-  // underneath and returns the user only, on success.
+function testLinkAndRetrieveDataWithCredential_success() {
+  // Test that linkAndRetrieveDataWithCredential calls linkWithCredential
+  // underneath.
   // Record deprecation warning calls.
   stubs.replace(
       fireauth.deprecation,
@@ -3102,7 +3100,7 @@ function testLinkWithCredential_success() {
   // for linkWithCredential with only the user returned.
   stubs.replace(
       fireauth.AuthUser.prototype,
-      'linkAndRetrieveDataWithCredential',
+      'linkWithCredential',
       function(cred) {
         assertEquals(expectedGoogleCredential, cred);
         return goog.Promise.resolve(expectedResponse);
@@ -3116,12 +3114,13 @@ function testLinkWithCredential_success() {
     'additionalUserInfo': expectedAdditionalUserInfo,
     'operationType': fireauth.constants.OperationType.LINK
   };
-  // linkWithCredential using Google OAuth credential.
-  user.linkWithCredential(expectedGoogleCredential).then(function(response) {
-    // Confirm expected user response.
-    assertEquals(user, response);
-    asyncTestCase.signal();
-  });
+  // linkAndRetrieveDataWithCredential using Google OAuth credential.
+  user.linkAndRetrieveDataWithCredential(expectedGoogleCredential)
+      .then(function(result) {
+        // Confirm expected response returned.
+        assertEquals(expectedResponse, result);
+        asyncTestCase.signal();
+      });
   // Confirm warning shown.
   /** @suppress {missingRequire} */
   assertEquals(1, fireauth.deprecation.log.getCallCount());
@@ -3132,8 +3131,8 @@ function testLinkWithCredential_success() {
 }
 
 
-function testLinkWithCredential_error() {
-  // Test that linkWithCredential calls linkAndRetrieveDataWithCredential
+function testLinkAndRetrieveDataWithCredential_error() {
+  // Test that linkAndRetrieveDataWithCredential calls linkWithCredential
   // underneath and funnels any underlying error thrown.
   // Record deprecation warning calls.
   stubs.replace(
@@ -3142,7 +3141,7 @@ function testLinkWithCredential_error() {
       goog.testing.recordFunction());
   stubs.replace(
       fireauth.AuthUser.prototype,
-      'linkAndRetrieveDataWithCredential',
+      'linkWithCredential',
       function(cred) {
         assertEquals(expectedGoogleCredential, cred);
         return goog.Promise.reject(expectedError);
@@ -3152,12 +3151,13 @@ function testLinkWithCredential_error() {
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.INTERNAL_ERROR);
   var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
-  // linkWithCredential using Google OAuth credential.
-  user.linkWithCredential(expectedGoogleCredential).thenCatch(function(error) {
-    // Confirm expected error.
-    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
-    asyncTestCase.signal();
-  });
+  // linkAndRetrieveDataWithCredential using Google OAuth credential.
+  user.linkAndRetrieveDataWithCredential(expectedGoogleCredential)
+      .thenCatch(function(error) {
+        // Confirm expected error.
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
   // Confirm warning shown.
   /** @suppress {missingRequire} */
   assertEquals(1, fireauth.deprecation.log.getCallCount());
@@ -3168,7 +3168,7 @@ function testLinkWithCredential_error() {
 }
 
 
-function testLinkAndRetrieveDataWithCredential_emailAndPassword() {
+function testLinkWithCredential_emailAndPassword() {
   var email = 'me@foo.com';
   var password = 'myPassword';
   stubs.replace(
@@ -3184,8 +3184,7 @@ function testLinkAndRetrieveDataWithCredential_emailAndPassword() {
         return goog.Promise.resolve({
           'email': email,
           'idToken': 'newStsToken',
-          'refreshToken': 'newRefreshToken',
-          'expiresIn': 3600
+          'refreshToken': 'newRefreshToken'
         });
       });
 
@@ -3224,7 +3223,7 @@ function testLinkAndRetrieveDataWithCredential_emailAndPassword() {
   assertNoUserInvalidatedEvents(user);
   var credential = fireauth.EmailAuthProvider.credential(email,
       password);
-  user.linkAndRetrieveDataWithCredential(credential)
+  user.linkWithCredential(credential)
       .then(function(result) {
         // Expected result returned.
         fireauth.common.testHelper.assertUserCredentialResponse(
@@ -3256,7 +3255,7 @@ function testLinkAndRetrieveDataWithCredential_emailAndPassword() {
 }
 
 
-function testLinkAndRetrieveDataWithCredential_federatedIdP() {
+function testLinkWithCredential_federatedIdP() {
   stubs.replace(
       fireauth.RpcHandler.prototype,
       'getAccountInfoByIdToken',
@@ -3293,7 +3292,7 @@ function testLinkAndRetrieveDataWithCredential_federatedIdP() {
         asyncTestCase.signal();
       });
   assertNoUserInvalidatedEvents(user);
-  user.linkAndRetrieveDataWithCredential(expectedGoogleCredential)
+  user.linkWithCredential(expectedGoogleCredential)
       .then(function(result) {
         // Expected result returned.
         fireauth.common.testHelper.assertUserCredentialResponse(
@@ -3322,7 +3321,7 @@ function testLinkAndRetrieveDataWithCredential_federatedIdP() {
 }
 
 
-function testLinkAndRetrieveDataWithCredential_alreadyLinked() {
+function testLinkWithCredential_alreadyLinked() {
   // User on server has the federated provider linked already.
   getAccountInfoResponse['users'][0]['providerUserInfo']
       .push(getAccountInfoResponseGoogleProviderData);
@@ -3345,7 +3344,7 @@ function testLinkAndRetrieveDataWithCredential_alreadyLinked() {
   var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
   var credential = fireauth.GoogleAuthProvider.credential(null,
       'googleAccessToken');
-  user.linkAndRetrieveDataWithCredential(credential)
+  user.linkWithCredential(credential)
       .thenCatch(function(actualError) {
         fireauth.common.testHelper.assertErrorEquals(error, actualError);
         asyncTestCase.signal();
@@ -3354,7 +3353,7 @@ function testLinkAndRetrieveDataWithCredential_alreadyLinked() {
 }
 
 
-function testLinkAndRetrieveDataWithCredential_fail() {
+function testLinkWithCredential_fail() {
   stubs.replace(
       fireauth.RpcHandler.prototype,
       'getAccountInfoByIdToken',
@@ -3377,7 +3376,7 @@ function testLinkAndRetrieveDataWithCredential_fail() {
   });
   assertNoTokenEvents(user);
   assertNoUserInvalidatedEvents(user);
-  user.linkAndRetrieveDataWithCredential(credential)
+  user.linkWithCredential(credential)
       .thenCatch(function(actualError) {
         fireauth.common.testHelper.assertErrorEquals(error, actualError);
         asyncTestCase.signal();
@@ -10755,11 +10754,11 @@ function testLinkWithPhoneNumber_success() {
   phoneAuthProviderInstance.verifyPhoneNumber(
       expectedPhoneNumber, appVerifier)
       .$returns(goog.Promise.resolve(expectedVerificationId)).$once();
-  // Code confirmation should call linkAndRetrieveDataWithCredential with the
+  // Code confirmation should call linkWithCredential with the
   // expected credential.
   stubs.replace(
       fireauth.AuthUser.prototype,
-      'linkAndRetrieveDataWithCredential',
+      'linkWithCredential',
       goog.testing.recordFunction(function(cred) {
         // Confirm expected credential passed.
         assertObjectEquals(
@@ -10778,17 +10777,17 @@ function testLinkWithPhoneNumber_success() {
         assertEquals(
             expectedVerificationId, confirmationResult['verificationId']);
         // Code confirmation should return the same response as the underlying
-        // linkAndRetrieveDataWithCredential.
+        // linkWithCredential.
         assertEquals(expectedPromise, confirmationResult.confirm(expectedCode));
-        // Confirm linkAndRetrieveDataWithCredential called once.
+        // Confirm linkWithCredential called once.
         assertEquals(
             1,
-            fireauth.AuthUser.prototype.linkAndRetrieveDataWithCredential
+            fireauth.AuthUser.prototype.linkWithCredential
                 .getCallCount());
-        // Confirm linkAndRetrieveDataWithCredential is bound to current user.
+        // Confirm linkWithCredential is bound to current user.
         assertEquals(
             user,
-            fireauth.AuthUser.prototype.linkAndRetrieveDataWithCredential
+            fireauth.AuthUser.prototype.linkWithCredential
                 .getLastCall().getThis());
         asyncTestCase.signal();
       });
@@ -10865,8 +10864,7 @@ function testReauthenticateWithPhoneNumber_success() {
   var expectedCode = '123456';
   var expectedCredential = fireauth.PhoneAuthProvider.credential(
       expectedVerificationId, expectedCode);
-  // Expected promise to be returned by
-  // reauthenticateAndRetrieveDataWithCredential.
+  // Expected promise to be returned by reauthenticateWithCredential.
   var expectedPromise = new goog.Promise(function(resolve, reject) {});
   // Phone Auth provider instance.
   var phoneAuthProviderInstance =
@@ -10884,11 +10882,11 @@ function testReauthenticateWithPhoneNumber_success() {
   phoneAuthProviderInstance.verifyPhoneNumber(
       expectedPhoneNumber, appVerifier)
       .$returns(goog.Promise.resolve(expectedVerificationId)).$once();
-  // Code confirmation should call reauthenticateAndRetrieveDataWithCredential
+  // Code confirmation should call reauthenticateWithCredential
   // with the expected credential.
   stubs.replace(
       fireauth.AuthUser.prototype,
-      'reauthenticateAndRetrieveDataWithCredential',
+      'reauthenticateWithCredential',
       goog.testing.recordFunction(function(cred) {
         // Confirm expected credential passed.
         assertObjectEquals(
@@ -10907,19 +10905,18 @@ function testReauthenticateWithPhoneNumber_success() {
         assertEquals(
             expectedVerificationId, confirmationResult['verificationId']);
         // Code confirmation should return the same response as the underlying
-        // reauthenticateAndRetrieveDataWithCredential.
+        // reauthenticateWithCredential.
         assertEquals(expectedPromise, confirmationResult.confirm(expectedCode));
-        // Confirm reauthenticateAndRetrieveDataWithCredential called once.
+        // Confirm reauthenticateWithCredential called once.
         assertEquals(
             1,
             fireauth.AuthUser.prototype
-                .reauthenticateAndRetrieveDataWithCredential.getCallCount());
-        // Confirm reauthenticateAndRetrieveDataWithCredential is bound to
-        // current user.
+                .reauthenticateWithCredential.getCallCount());
+        // Confirm reauthenticateWithCredential is bound to current user.
         assertEquals(
             user,
             fireauth.AuthUser.prototype
-                .reauthenticateAndRetrieveDataWithCredential
+                .reauthenticateWithCredential
                 .getLastCall()
                 .getThis());
         asyncTestCase.signal();
@@ -10943,8 +10940,7 @@ function testReauthenticateWithPhoneNumber_success_skipInvalidation() {
   var expectedCode = '123456';
   var expectedCredential = fireauth.PhoneAuthProvider.credential(
       expectedVerificationId, expectedCode);
-  // Expected promise to be returned by
-  // reauthenticateAndRetrieveDataWithCredential.
+  // Expected promise to be returned by reauthenticateWithCredential.
   var expectedPromise = new goog.Promise(function(resolve, reject) {});
   // Mock StsTokenManager.prototype.getToken.
   var getToken = mockControl.createMethodMock(
@@ -10969,11 +10965,11 @@ function testReauthenticateWithPhoneNumber_success_skipInvalidation() {
   phoneAuthProviderInstance.verifyPhoneNumber(
       expectedPhoneNumber, appVerifier)
       .$returns(goog.Promise.resolve(expectedVerificationId)).$once();
-  // Code confirmation should call reauthenticateAndRetrieveDataWithCredential
+  // Code confirmation should call reauthenticateWithCredential
   // with the expected credential.
   stubs.replace(
       fireauth.AuthUser.prototype,
-      'reauthenticateAndRetrieveDataWithCredential',
+      'reauthenticateWithCredential',
       goog.testing.recordFunction(function(cred) {
         // Confirm expected credential passed.
         assertObjectEquals(
@@ -10998,18 +10994,18 @@ function testReauthenticateWithPhoneNumber_success_skipInvalidation() {
     assertEquals(
         expectedVerificationId, confirmationResult['verificationId']);
     // Code confirmation should return the same response as the underlying
-    // reauthenticateAndRetrieveDataWithCredential.
+    // reauthenticateWithCredential.
     assertEquals(expectedPromise, confirmationResult.confirm(expectedCode));
-    // Confirm reauthenticateAndRetrieveDataWithCredential called once.
+    // Confirm reauthenticateWithCredential called once.
     assertEquals(
         1,
-        fireauth.AuthUser.prototype.reauthenticateAndRetrieveDataWithCredential
+        fireauth.AuthUser.prototype.reauthenticateWithCredential
             .getCallCount());
-    // Confirm reauthenticateAndRetrieveDataWithCredential is bound to current
+    // Confirm reauthenticateWithCredential is bound to current
     // user.
     assertEquals(
         user,
-        fireauth.AuthUser.prototype.reauthenticateAndRetrieveDataWithCredential
+        fireauth.AuthUser.prototype.reauthenticateWithCredential
             .getLastCall().getThis());
     asyncTestCase.signal();
   });
