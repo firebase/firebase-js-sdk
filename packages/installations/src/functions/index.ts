@@ -17,3 +17,4 @@
 
 export { getId } from './get-id';
 export { getToken } from './get-token';
+export { deleteInstallation } from './delete-installation';

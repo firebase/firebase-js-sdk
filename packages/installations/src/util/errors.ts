@@ -25,7 +25,8 @@ export const enum ErrorCode {
   NOT_REGISTERED = 'not-registered',
   INSTALLATION_NOT_FOUND = 'installation-not-found',
   REQUEST_FAILED = 'request-failed',
-  APP_OFFLINE = 'app-offline'
+  APP_OFFLINE = 'app-offline',
+  DELETE_PENDING_REGISTRATION = 'delete-pending-registration'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -37,7 +38,9 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.INSTALLATION_NOT_FOUND]: 'Firebase Installation not found.',
   [ErrorCode.REQUEST_FAILED]:
     '{$requestName} request failed with error "{$serverCode} {$serverStatus}: {$serverMessage}"',
-  [ErrorCode.APP_OFFLINE]: 'Could not process request. Application offline.'
+  [ErrorCode.APP_OFFLINE]: 'Could not process request. Application offline.',
+  [ErrorCode.DELETE_PENDING_REGISTRATION]:
+    "Can't delete installation while there is a pending registration request."
 };
 
 export const ERROR_FACTORY = new ErrorFactory(

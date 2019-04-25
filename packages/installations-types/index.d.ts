@@ -20,4 +20,5 @@ import { FirebaseApp } from '@firebase/app-types';
 export interface FirebaseInstallations {
   getId(): Promise<string>;
   getToken(): Promise<string>;
+  delete(): Promise<void>;
 }

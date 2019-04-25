@@ -22,7 +22,7 @@ import {
 } from '@firebase/app-types/private';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
-import { getId, getToken } from './functions';
+import { deleteInstallation, getId, getToken } from './functions';
 import { extractAppConfig } from './helpers/extract-app-config';
 
 export function registerInstallations(instance: _FirebaseNamespace): void {
@@ -35,7 +35,8 @@ export function registerInstallations(instance: _FirebaseNamespace): void {
     return {
       app,
       getId: () => getId(app),
-      getToken: () => getToken(app)
+      getToken: () => getToken(app),
+      delete: () => deleteInstallation(app)
     };
   };
 

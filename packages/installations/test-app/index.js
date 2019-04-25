@@ -70,6 +70,13 @@ function getToken() {
   printRequest('Get Token', FirebaseInstallations.getToken(getApp()));
 }
 
+function deleteInstallation() {
+  printRequest(
+    'Delete Installation',
+    FirebaseInstallations.deleteInstallation(getApp())
+  );
+}
+
 async function printRequest(requestInfo, promise) {
   const requestsElement = getElement('requests');
   requestsElement.innerHTML = '<p><b>Loading...</b></p>' + requestLogs.join('');
@@ -102,4 +109,5 @@ function getApp() {
 
 getElement('getId').onclick = getId;
 getElement('getToken').onclick = getToken;
+getElement('deleteInstallation').onclick = deleteInstallation;
 getElement('clearDb').onclick = clearDb;
