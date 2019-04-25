@@ -17,12 +17,12 @@
 
 import { expect } from 'chai';
 import { restore, SinonStub, stub } from 'sinon';
+import * as getInstallationEntryModule from '../helpers/get-installation-entry';
+import { AppConfig } from '../interfaces/app-config';
+import { RequestStatus } from '../interfaces/installation-entry';
+import { getFakeApp } from '../testing/get-fake-app';
+import '../testing/setup';
 import { getId } from './get-id';
-import { AppConfig } from './interfaces/app-config';
-import { RequestStatus } from './interfaces/installation-entry';
-import { getFakeApp } from './testing/get-fake-app';
-import './testing/setup';
-import * as getInstallationEntryModule from './util/get-installation-entry';
 
 const FID = 'children-of-the-damned';
 

@@ -15,21 +15,5 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
-import { ERROR_FACTORY, ErrorCode } from '../errors';
-import { AppConfig } from '../interfaces/app-config';
-
-export function extractAppConfig(app: FirebaseApp): AppConfig {
-  if (!app || !app.options) {
-    throw ERROR_FACTORY.create(ErrorCode.MISSING_APP_CONFIG_VALUES);
-  }
-
-  const appName = app.name;
-  const { projectId, apiKey, appId } = app.options;
-
-  if (!appName || !projectId || !apiKey || !appId) {
-    throw ERROR_FACTORY.create(ErrorCode.MISSING_APP_CONFIG_VALUES);
-  }
-
-  return { appName, projectId, apiKey, appId };
-}
+export { getId } from './get-id';
+export { getToken } from './get-token';

@@ -16,11 +16,11 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { generateAuthToken } from './api';
-import { TOKEN_EXPIRATION_BUFFER } from './constants';
-import { ERROR_FACTORY, ErrorCode, isServerError } from './errors';
-import { remove, set, update } from './idb-manager';
-import { AppConfig } from './interfaces/app-config';
+import { generateAuthToken } from '../api/generate-auth-token';
+import { extractAppConfig } from '../helpers/extract-app-config';
+import { getInstallationEntry } from '../helpers/get-installation-entry';
+import { remove, set, update } from '../helpers/idb-manager';
+import { AppConfig } from '../interfaces/app-config';
 import {
   AuthToken,
   CompletedAuthToken,
@@ -28,11 +28,10 @@ import {
   InstallationEntry,
   RegisteredInstallationEntry,
   RequestStatus
-} from './interfaces/installation-entry';
-import { extractAppConfig } from './util/extract-app-config';
-import { getInstallationEntry } from './util/get-installation-entry';
-import { hasAuthTokenRequestTimedOut } from './util/request-time-out-checks';
-import { sleep } from './util/sleep';
+} from '../interfaces/installation-entry';
+import { PENDING_TIMEOUT_MS, TOKEN_EXPIRATION_BUFFER } from '../util/constants';
+import { ERROR_FACTORY, ErrorCode, isServerError } from '../util/errors';
+import { sleep } from '../util/sleep';
 
 export async function getToken(app: FirebaseApp): Promise<string> {
   const appConfig = extractAppConfig(app);
@@ -217,4 +216,11 @@ function makeAuthTokenRequestInProgressEntry(
     ...oldEntry,
     authToken: inProgressAuthToken
   };
+}
+
+function hasAuthTokenRequestTimedOut(authToken: AuthToken): boolean {
+  return (
+    authToken.requestStatus === RequestStatus.IN_PROGRESS &&
+    authToken.requestTime + PENDING_TIMEOUT_MS < Date.now()
+  );
 }

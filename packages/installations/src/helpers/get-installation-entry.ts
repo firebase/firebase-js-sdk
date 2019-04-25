@@ -15,18 +15,18 @@
  * limitations under the License.
  */
 
-import { createInstallation } from '../api';
-import { ERROR_FACTORY, ErrorCode, isServerError } from '../errors';
-import { remove, set, update } from '../idb-manager';
+import { createInstallation } from '../api/create-installation';
 import { AppConfig } from '../interfaces/app-config';
 import {
   InProgressInstallationEntry,
   InstallationEntry,
   RequestStatus
 } from '../interfaces/installation-entry';
+import { PENDING_TIMEOUT_MS } from '../util/constants';
+import { ERROR_FACTORY, ErrorCode, isServerError } from '../util/errors';
+import { sleep } from '../util/sleep';
 import { generateFid } from './generate-fid';
-import { hasInstallationRequestTimedOut } from './request-time-out-checks';
-import { sleep } from './sleep';
+import { remove, set, update } from './idb-manager';
 
 export interface InstallationEntryWithRegistrationPromise {
   installationEntry: InstallationEntry;
@@ -193,5 +193,14 @@ function updateInstallationRequest(
 
       return oldEntry;
     }
+  );
+}
+
+function hasInstallationRequestTimedOut(
+  installationEntry: InstallationEntry
+): boolean {
+  return (
+    installationEntry.registrationStatus === RequestStatus.IN_PROGRESS &&
+    installationEntry.registrationTime + PENDING_TIMEOUT_MS < Date.now()
   );
 }

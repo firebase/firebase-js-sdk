@@ -18,23 +18,24 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import { restore, SinonStub, stub } from 'sinon';
-import * as api from './api';
-import { TOKEN_EXPIRATION_BUFFER } from './constants';
-import { ERROR_FACTORY, ErrorCode } from './errors';
-import { getToken } from './get-token';
-import { clear, get, set } from './idb-manager';
-import { AppConfig } from './interfaces/app-config';
+import * as createInstallationModule from '../api/create-installation';
+import * as generateAuthTokenModule from '../api/generate-auth-token';
+import { extractAppConfig } from '../helpers/extract-app-config';
+import { clear, get, set } from '../helpers/idb-manager';
+import { AppConfig } from '../interfaces/app-config';
 import {
   CompletedAuthToken,
   InProgressInstallationEntry,
   RegisteredInstallationEntry,
   RequestStatus,
   UnregisteredInstallationEntry
-} from './interfaces/installation-entry';
-import { getFakeApp } from './testing/get-fake-app';
-import './testing/setup';
-import { extractAppConfig } from './util/extract-app-config';
-import { sleep } from './util/sleep';
+} from '../interfaces/installation-entry';
+import { getFakeApp } from '../testing/get-fake-app';
+import '../testing/setup';
+import { TOKEN_EXPIRATION_BUFFER } from '../util/constants';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { sleep } from '../util/sleep';
+import { getToken } from './get-token';
 
 const FID = 'dont-talk-to-strangers';
 const AUTH_TOKEN = 'authTokenFromServer';
@@ -183,35 +184,37 @@ describe('getToken', () => {
     app = getFakeApp();
     appConfig = extractAppConfig(app);
 
-    createInstallationSpy = stub(api, 'createInstallation').callsFake(
-      async (_, installationEntry) => {
-        await sleep(50); // Request would take some time
-        const result: RegisteredInstallationEntry = {
-          fid: installationEntry.fid,
-          registrationStatus: RequestStatus.COMPLETED,
-          refreshToken: 'refreshToken',
-          authToken: {
-            token: AUTH_TOKEN,
-            expiresIn: ONE_WEEK_MS,
-            requestStatus: RequestStatus.COMPLETED,
-            creationTime: Date.now()
-          }
-        };
-        return result;
-      }
-    );
-    generateAuthTokenSpy = stub(api, 'generateAuthToken').callsFake(
-      async () => {
-        await sleep(50); // Request would take some time
-        const result: CompletedAuthToken = {
+    createInstallationSpy = stub(
+      createInstallationModule,
+      'createInstallation'
+    ).callsFake(async (_, installationEntry) => {
+      await sleep(50); // Request would take some time
+      const result: RegisteredInstallationEntry = {
+        fid: installationEntry.fid,
+        registrationStatus: RequestStatus.COMPLETED,
+        refreshToken: 'refreshToken',
+        authToken: {
           token: AUTH_TOKEN,
           expiresIn: ONE_WEEK_MS,
           requestStatus: RequestStatus.COMPLETED,
           creationTime: Date.now()
-        };
-        return result;
-      }
-    );
+        }
+      };
+      return result;
+    });
+    generateAuthTokenSpy = stub(
+      generateAuthTokenModule,
+      'generateAuthToken'
+    ).callsFake(async () => {
+      await sleep(50); // Request would take some time
+      const result: CompletedAuthToken = {
+        token: AUTH_TOKEN,
+        expiresIn: ONE_WEEK_MS,
+        requestStatus: RequestStatus.COMPLETED,
+        creationTime: Date.now()
+      };
+      return result;
+    });
   });
 
   afterEach(async () => {
@@ -316,7 +319,8 @@ describe('getToken', () => {
       it('removes the FID from the DB if the server returns a 401 response', async () => {
         generateAuthTokenSpy.callsFake(async () => {
           await sleep(50); // Request would take some time
-          throw ERROR_FACTORY.create(ErrorCode.GENERATE_TOKEN_REQUEST_FAILED, {
+          throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
+            requestName: 'Generate Auth Token',
             serverCode: 401,
             serverStatus: 'UNAUTHENTICATED',
             serverMessage: 'Invalid Authentication.'
@@ -330,7 +334,8 @@ describe('getToken', () => {
       it('removes the FID from the DB if the server returns a 404 response', async () => {
         generateAuthTokenSpy.callsFake(async () => {
           await sleep(50); // Request would take some time
-          throw ERROR_FACTORY.create(ErrorCode.GENERATE_TOKEN_REQUEST_FAILED, {
+          throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
+            requestName: 'Generate Auth Token',
             serverCode: 404,
             serverStatus: 'NOT_FOUND',
             serverMessage: 'FID not found.'
@@ -344,7 +349,8 @@ describe('getToken', () => {
       it('does not remove the FID from the DB if the server returns any other response', async () => {
         generateAuthTokenSpy.callsFake(async () => {
           await sleep(50); // Request would take some time
-          throw ERROR_FACTORY.create(ErrorCode.GENERATE_TOKEN_REQUEST_FAILED, {
+          throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
+            requestName: 'Generate Auth Token',
             serverCode: 500,
             serverStatus: 'INTERNAL',
             serverMessage: 'Internal server error.'

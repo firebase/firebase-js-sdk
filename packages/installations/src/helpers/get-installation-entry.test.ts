@@ -17,9 +17,7 @@
 
 import { AssertionError, expect } from 'chai';
 import { restore, SinonStub, stub } from 'sinon';
-import * as api from '../api';
-import { ERROR_FACTORY, ErrorCode } from '../errors';
-import { clear, get, set } from '../idb-manager';
+import * as createInstallationModule from '../api/create-installation';
 import { AppConfig } from '../interfaces/app-config';
 import {
   InProgressInstallationEntry,
@@ -30,9 +28,11 @@ import {
 } from '../interfaces/installation-entry';
 import { getFakeAppConfig } from '../testing/get-fake-app';
 import '../testing/setup';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
+import { sleep } from '../util/sleep';
 import * as fidGenerator from './generate-fid';
 import { getInstallationEntry } from './get-installation-entry';
-import { sleep } from './sleep';
+import { clear, get, set } from './idb-manager';
 
 const FID = 'cry-of-the-black-birds';
 
@@ -45,7 +45,10 @@ describe('getInstallationEntry', () => {
 
   beforeEach(() => {
     appConfig = getFakeAppConfig();
-    createInstallationSpy = stub(api, 'createInstallation').callsFake(
+    createInstallationSpy = stub(
+      createInstallationModule,
+      'createInstallation'
+    ).callsFake(
       async (_, installationEntry): Promise<RegisteredInstallationEntry> => {
         await sleep(50); // Request would take some time
         const registeredInstallationEntry: RegisteredInstallationEntry = {
@@ -120,7 +123,8 @@ describe('getInstallationEntry', () => {
   it('saves the InstallationEntry in the database when registration fails', async () => {
     createInstallationSpy.callsFake(async () => {
       await sleep(50); // Request would take some time
-      throw ERROR_FACTORY.create(ErrorCode.CREATE_INSTALLATION_REQUEST_FAILED, {
+      throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
+        requestName: 'Create Installation',
         serverCode: 500,
         serverStatus: 'INTERNAL',
         serverMessage: 'Internal server error.'
@@ -149,7 +153,8 @@ describe('getInstallationEntry', () => {
   it('removes the InstallationEntry from the database when registration fails with 409', async () => {
     createInstallationSpy.callsFake(async () => {
       await sleep(50); // Request would take some time
-      throw ERROR_FACTORY.create(ErrorCode.CREATE_INSTALLATION_REQUEST_FAILED, {
+      throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
+        requestName: 'Create Installation',
         serverCode: 409,
         serverStatus: 'INVALID_ARGUMENT',
         serverMessage: 'FID can not be used.'

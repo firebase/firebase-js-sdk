@@ -16,7 +16,7 @@
  */
 
 import { DB, openDb } from 'idb';
-import { AppConfig } from './interfaces/app-config';
+import { AppConfig } from '../interfaces/app-config';
 
 const DATABASE_NAME = 'firebase-installations-database';
 const DATABASE_VERSION = 1;

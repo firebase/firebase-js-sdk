@@ -16,18 +16,20 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { extractAppConfig } from './util/extract-app-config';
-import { getInstallationEntry } from './util/get-installation-entry';
+import { AppConfig } from '../interfaces/app-config';
+import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
-export async function getId(app: FirebaseApp): Promise<string> {
-  const appConfig = extractAppConfig(app);
-  const { installationEntry, registrationPromise } = await getInstallationEntry(
-    appConfig
-  );
-  if (registrationPromise) {
-    // Suppress registration errors as they are not a problem for getId.
-    registrationPromise.catch(() => {});
+export function extractAppConfig(app: FirebaseApp): AppConfig {
+  if (!app || !app.options) {
+    throw ERROR_FACTORY.create(ErrorCode.MISSING_APP_CONFIG_VALUES);
   }
 
-  return installationEntry.fid;
+  const appName = app.name;
+  const { projectId, apiKey, appId } = app.options;
+
+  if (!appName || !projectId || !apiKey || !appId) {
+    throw ERROR_FACTORY.create(ErrorCode.MISSING_APP_CONFIG_VALUES);
+  }
+
+  return { appName, projectId, apiKey, appId };
 }

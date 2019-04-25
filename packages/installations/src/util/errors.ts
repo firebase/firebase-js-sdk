@@ -24,8 +24,7 @@ export const enum ErrorCode {
   GENERATE_TOKEN_FAILED = 'generate-token-failed',
   NOT_REGISTERED = 'not-registered',
   INSTALLATION_NOT_FOUND = 'installation-not-found',
-  CREATE_INSTALLATION_REQUEST_FAILED = 'create-installation-request-failed',
-  GENERATE_TOKEN_REQUEST_FAILED = 'generate-token-request-failed',
+  REQUEST_FAILED = 'request-failed',
   APP_OFFLINE = 'app-offline'
 }
 
@@ -36,10 +35,8 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.GENERATE_TOKEN_FAILED]: 'Could not generate Auth Token.',
   [ErrorCode.NOT_REGISTERED]: 'Firebase Installation is not registered.',
   [ErrorCode.INSTALLATION_NOT_FOUND]: 'Firebase Installation not found.',
-  [ErrorCode.CREATE_INSTALLATION_REQUEST_FAILED]:
-    'Create Installation request failed with error "{$serverCode} {$serverStatus}: {$serverMessage}"',
-  [ErrorCode.GENERATE_TOKEN_REQUEST_FAILED]:
-    'Generate Auth Token request failed with error "{$serverCode} {$serverStatus}: {$serverMessage}"',
+  [ErrorCode.REQUEST_FAILED]:
+    '{$requestName} request failed with error "{$serverCode} {$serverStatus}: {$serverMessage}"',
   [ErrorCode.APP_OFFLINE]: 'Could not process request. Application offline.'
 };
 
@@ -59,12 +56,8 @@ export type ServerError = FirebaseError & ServerErrorData;
 
 /** Returns true if error is a FirebaseError that is based on an error from the server. */
 export function isServerError(error: unknown): error is ServerError {
-  if (!(error instanceof FirebaseError)) {
-    return false;
-  }
-
   return (
-    error.code.includes(ErrorCode.CREATE_INSTALLATION_REQUEST_FAILED) ||
-    error.code.includes(ErrorCode.GENERATE_TOKEN_REQUEST_FAILED)
+    error instanceof FirebaseError &&
+    error.code.includes(ErrorCode.REQUEST_FAILED)
   );
 }

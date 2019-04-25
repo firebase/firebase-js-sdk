@@ -16,8 +16,8 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { extractAppConfig } from '../helpers/extract-app-config';
 import { AppConfig } from '../interfaces/app-config';
-import { extractAppConfig } from '../util/extract-app-config';
 
 export function getFakeApp(): FirebaseApp {
   return {

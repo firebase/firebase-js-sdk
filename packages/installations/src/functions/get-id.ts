@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
-export interface CreateInstallationResponse {
-  readonly refreshToken: string;
-  readonly authToken: GenerateAuthTokenResponse;
-}
+import { FirebaseApp } from '@firebase/app-types';
+import { extractAppConfig } from '../helpers/extract-app-config';
+import { getInstallationEntry } from '../helpers/get-installation-entry';
 
-export interface GenerateAuthTokenResponse {
-  readonly token: string;
-
-  /**
-   * Encoded as a string with the suffix 's' (indicating seconds), preceded by
-   * the number of seconds.
-   *
-   * Example: "604800s".
-   */
-  readonly expiresIn: string;
+export async function getId(app: FirebaseApp): Promise<string> {
+  const appConfig = extractAppConfig(app);
+  const { installationEntry, registrationPromise } = await getInstallationEntry(
+    appConfig
+  );
+  if (registrationPromise) {
+    // Suppress registration errors as they are not a problem for getId.
+    registrationPromise.catch(() => {});
+  }
+  return installationEntry.fid;
 }

@@ -28,7 +28,7 @@ import typescript from 'typescript';
  */
 export default [
   {
-    input: 'src/index.ts',
+    input: 'src/functions/index.ts',
     output: {
       name: 'FirebaseInstallations',
       file: 'test-app/sdk.js',
