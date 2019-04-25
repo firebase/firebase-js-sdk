@@ -70,7 +70,6 @@ firebase.auth.AuthCredential.prototype.providerId;
  */
 firebase.auth.AuthCredential.prototype.signInMethod;
 
-
 /**
  * Static method to deserialize a JSON representation of an object into an
  * {@link firebase.auth.AuthCredential}. Input can be either Object or the
@@ -83,13 +82,11 @@ firebase.auth.AuthCredential.prototype.signInMethod;
  */
 firebase.auth.AuthCredential.fromJSON = function(json) {};
 
-
 /**
  * Returns a JSON-serializable representation of this object.
  * @return {!Object} The plain object representation of the `AuthCredential`.
  */
 firebase.auth.AuthCredential.prototype.toJSON = function() {};
-
 
 /**
  * Interface that represents the OAuth credentials returned by an OAuth

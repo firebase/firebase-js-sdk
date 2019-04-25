@@ -40,7 +40,9 @@ export interface User extends UserInfo {
   reauthenticateAndRetrieveDataWithCredential(
     credential: AuthCredential
   ): Promise<UserCredential>;
-  reauthenticateWithCredential(credential: AuthCredential): Promise<UserCredential>;
+  reauthenticateWithCredential(
+    credential: AuthCredential
+  ): Promise<UserCredential>;
   reauthenticateWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier
