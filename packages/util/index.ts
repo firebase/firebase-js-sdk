@@ -28,9 +28,8 @@ export {
 } from './src/environment';
 export {
   ErrorFactory,
-  ErrorList,
+  ErrorMap,
   FirebaseError,
-  patchCapture,
   StringLike
 } from './src/errors';
 export { jsonEval, stringify } from './src/json';
