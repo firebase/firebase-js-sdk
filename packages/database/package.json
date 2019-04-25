@@ -17,7 +17,7 @@
     "test:browser": "karma start --single-run",
     "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file src/nodePatches.ts --opts ../../config/mocha.node.opts",
     "test:emulator": "ts-node --compiler-options='{\"module\":\"commonjs\"}' ../../scripts/emulator-testing/database-test-runner.ts",
-    "prepare": "npm run build"
+    "prepare": "yarn build"
   },
   "license": "Apache-2.0",
   "peerDependencies": {

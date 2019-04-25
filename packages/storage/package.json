@@ -13,7 +13,7 @@
     "dev": "rollup -c -w",
     "test": "run-p test:browser",
     "test:browser": "karma start --single-run",
-    "prepare": "npm run build"
+    "prepare": "yarn build"
   },
   "license": "Apache-2.0",
   "dependencies": {

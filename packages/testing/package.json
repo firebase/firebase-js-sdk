@@ -11,7 +11,7 @@
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --opts ../../config/mocha.node.opts",
-    "prepare": "npm run build"
+    "prepare": "yarn build"
   },
   "license": "Apache-2.0",
   "dependencies": {

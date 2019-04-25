@@ -4,7 +4,7 @@
   "scripts": {
     "serve": "firebase serve --only functions",
     "shell": "firebase experimental:functions:shell",
-    "start": "npm run shell",
+    "start": "yarn shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },

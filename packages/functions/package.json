@@ -17,7 +17,7 @@
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.node.ts --opts ../../config/mocha.node.opts",
     "test:emulator": "env FIREBASE_FUNCTIONS_EMULATOR_ORIGIN=http://localhost:5005 run-p test:node",
-    "prepare": "npm run build"
+    "prepare": "yarn build"
   },
   "license": "Apache-2.0",
   "peerDependencies": {

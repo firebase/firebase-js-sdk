@@ -13,9 +13,9 @@
     "build": "gulp",
     "demo": "./buildtools/run_demo.sh",
     "generate-test-files": "./buildtools/generate_test_files.sh",
-    "prepare": "npm run build",
-    "serve": "npm run build && npm run generate-test-files && gulp serve",
-    "test": "npm run generate-test-files && ./buildtools/run_tests.sh"
+    "prepare": "yarn build",
+    "serve": "yarn build && yarn generate-test-files && gulp serve",
+    "test": "yarn generate-test-files && ./buildtools/run_tests.sh"
   },
   "license": "Apache-2.0",
   "dependencies": {

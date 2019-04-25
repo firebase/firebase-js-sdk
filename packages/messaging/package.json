@@ -14,7 +14,7 @@
     "test": "run-p test:karma type-check lint",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "prepare": "npm run build",
+    "prepare": "yarn build",
     "type-check": "tsc --noEmit",
     "lint": "tslint -p .",
     "lint:fix": "yarn lint --fix"

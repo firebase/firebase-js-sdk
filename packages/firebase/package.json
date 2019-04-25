@@ -30,7 +30,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "prepare": "npm run build"
+    "prepare": "yarn build"
   },
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",

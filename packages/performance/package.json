@@ -15,7 +15,7 @@
     "test": "run-p test:browser",
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "prepare": "npm run build",
+    "prepare": "yarn build",
     "prettier": "prettier --write 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'"
   },
   "peerDependencies": {
