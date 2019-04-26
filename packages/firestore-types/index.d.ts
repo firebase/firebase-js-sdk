@@ -120,7 +120,7 @@ export interface PersistenceSettings {
    *
    * @deprecated This setting is deprecated. To enabled synchronization between
    * multiple tabs, please use `synchronizeTabs: true` instead.
-  */
+   */
   experimentalTabSynchronization?: boolean;
 }
 
