@@ -1,4 +1,8 @@
 # Unreleased
+- [changed] Deprecated the `experimentalTabSynchronization` setting in favor of 
+  `synchronizeTabs`. If you use multi-tab synchronization, it is recommended
+  that you update your call to `enablePersistence()`. Firestore logs an error
+  if you continue to use `experimentalTabSynchronization`.
 - [feature] Added an `experimentalForceLongPolling` setting that that can be
   used to work around proxies that prevent the Firestore client from connecting
   to the Firestore backend.

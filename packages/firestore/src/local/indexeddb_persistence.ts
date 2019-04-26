@@ -103,7 +103,7 @@ const PRIMARY_LEASE_LOST_ERROR_MSG =
 const PRIMARY_LEASE_EXCLUSIVE_ERROR_MSG =
   'Another tab has exclusive access to the persistence layer. ' +
   'To allow shared access, make sure to invoke ' +
-  '`enablePersistence()` with `experimentalTabSynchronization:true` in all tabs.';
+  '`enablePersistence()` with `synchronizeTabs:true` in all tabs.';
 const UNSUPPORTED_PLATFORM_ERROR_MSG =
   'This platform is either missing' +
   ' IndexedDB or is known to have an incomplete implementation. Offline' +
@@ -130,7 +130,7 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * layer. This allows multiple browser tabs to read and write to IndexedDb and
  * to synchronize state even without network connectivity. Shared access is
  * currently optional and not enabled unless all clients invoke
- * `enablePersistence()` with `{experimentalTabSynchronization:true}`.
+ * `enablePersistence()` with `{synchronizeTabs:true}`.
  *
  * In multi-tab mode, if multiple clients are active at the same time, the SDK
  * will designate one client as the “primary client”. An effort is made to pick
@@ -165,8 +165,8 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * LocalStorage which acts as an indicator that another tab should go ahead and
  * take the primary lease immediately regardless of the current lease timestamp.
  *
- * TODO(b/114226234): Remove `experimentalTabSynchronization` section when
- * multi-tab is no longer optional.
+ * TODO(b/114226234): Remove `synchronizeTabs` section when multi-tab is no
+ * longer optional.
  */
 export type MultiClientParams = {
   sequenceNumberSyncer: SequenceNumberSyncer;
