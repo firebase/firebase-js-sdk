@@ -404,10 +404,10 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (settings) {
       if (settings.experimentalTabSynchronization !== undefined) {
         log.error(
-          'The `experimentalTabSynchronization` setting has been renamed to ' +
-            '`synchronizeTabs`. In a future release, the setting  will be removed ' +
-            'and it is recommended that you remove it from your ' +
-            'firestore.enablePersistence() call now.'
+          "The 'experimentalTabSynchronization' setting has been renamed to " +
+            "'synchronizeTabs'. In a future release, the setting will be removed " +
+            'and it is recommended that you update your ' +
+            "firestore.enablePersistence() call to use 'synchronizeTabs'."
         );
       }
       synchronizeTabs = objUtils.defaulted(
