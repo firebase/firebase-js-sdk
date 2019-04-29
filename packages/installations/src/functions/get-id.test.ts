@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { restore, SinonStub, stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import * as getInstallationEntryModule from '../helpers/get-installation-entry';
 import { AppConfig } from '../interfaces/app-config';
 import { RequestStatus } from '../interfaces/installation-entry';
@@ -42,10 +42,6 @@ describe('getId', () => {
         registrationStatus: RequestStatus.NOT_STARTED
       }
     });
-  });
-
-  afterEach(() => {
-    restore();
   });
 
   it('returns the FID in InstallationEntry returned by getInstallationEntry', async () => {

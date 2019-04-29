@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { restore, SinonStub, stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import { CreateInstallationResponse } from '../interfaces/api-response';
 import { AppConfig } from '../interfaces/app-config';
 import {
@@ -61,10 +61,6 @@ describe('api', () => {
     fetchSpy = stub(self, 'fetch').resolves(
       new Response(JSON.stringify(response))
     );
-  });
-
-  afterEach(() => {
-    restore();
   });
 
   it('registers a pending InstallationEntry', async () => {

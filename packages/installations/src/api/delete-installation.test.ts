@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { restore, SinonStub, stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import { AppConfig } from '../interfaces/app-config';
 import {
   RegisteredInstallationEntry,
@@ -51,10 +51,6 @@ describe('deleteInstallation', () => {
     };
 
     fetchSpy = stub(self, 'fetch').resolves(new Response());
-  });
-
-  afterEach(() => {
-    restore();
   });
 
   it('calls the deleteInstallation server API with correct parameters', async () => {

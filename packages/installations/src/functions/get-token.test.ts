@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
-import { restore, SinonStub, stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import * as createInstallationModule from '../api/create-installation';
 import * as generateAuthTokenModule from '../api/generate-auth-token';
 import { extractAppConfig } from '../helpers/extract-app-config';
@@ -218,8 +218,6 @@ describe('getToken', () => {
   });
 
   afterEach(async () => {
-    restore();
-
     // Clear the database after each test.
     await clear();
   });

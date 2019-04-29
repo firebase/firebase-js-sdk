@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { restore, SinonStub, stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import { GenerateAuthTokenResponse } from '../interfaces/api-response';
 import { AppConfig } from '../interfaces/app-config';
 import {
@@ -62,10 +62,6 @@ describe('generateAuthToken', () => {
     fetchSpy = stub(self, 'fetch').resolves(
       new Response(JSON.stringify(response))
     );
-  });
-
-  afterEach(() => {
-    restore();
   });
 
   it('fetches a new Authentication Token', async () => {

@@ -17,7 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
-import { restore, SinonStub, stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import * as deleteInstallationModule from '../api/delete-installation';
 import { extractAppConfig } from '../helpers/extract-app-config';
 import { get, set } from '../helpers/idb-manager';
@@ -54,10 +54,6 @@ describe('deleteInstallation', () => {
     ).callsFake(
       () => sleep(50) // Request would take some time
     );
-  });
-
-  afterEach(() => {
-    restore();
   });
 
   it('resolves without calling server API if there is no installation', async () => {

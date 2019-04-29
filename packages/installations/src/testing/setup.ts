@@ -15,9 +15,14 @@
  * limitations under the License.
  */
 
-import * as chai from 'chai';
+import { use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
+import { restore } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 
-chai.use(chaiAsPromised);
-chai.use(sinonChai);
+use(chaiAsPromised);
+use(sinonChai);
+
+afterEach(() => {
+  restore();
+});

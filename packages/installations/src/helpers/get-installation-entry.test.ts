@@ -16,7 +16,7 @@
  */
 
 import { AssertionError, expect } from 'chai';
-import { restore, SinonStub, stub } from 'sinon';
+import { SinonStub, stub } from 'sinon';
 import * as createInstallationModule from '../api/create-installation';
 import { AppConfig } from '../interfaces/app-config';
 import {
@@ -68,8 +68,6 @@ describe('getInstallationEntry', () => {
   });
 
   afterEach(async () => {
-    restore();
-
     // Wait until createInstallation completes
     await sleep(100);
 

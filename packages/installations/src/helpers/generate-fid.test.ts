@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { restore, stub } from 'sinon';
+import { stub } from 'sinon';
 import '../testing/setup';
 import { generateFid } from './generate-fid';
 
@@ -56,10 +56,6 @@ const EXPECTED_FIDS = [
 const VALID_FID = /^[cdef][A-Za-z0-9_-]{21}$/;
 
 describe('generateFid', () => {
-  afterEach(() => {
-    restore();
-  });
-
   it('deterministically generates FIDs based on crypto.getRandomValues', () => {
     let randomValueIndex = 0;
     stub(crypto, 'getRandomValues').callsFake(array => {
