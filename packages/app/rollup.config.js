@@ -34,9 +34,9 @@ const es5BuildPlugins = [
     typescript
   }),
   replace({
-    delimiters: ['${', '}'],
+    delimiters: ['__', '__'],
     values: {
-      JSCORE_VERSION: firebasePkg.version
+      JSCORE_VERSION: JSON.stringify(firebasePkg.version)
     }
   })
 ];
@@ -99,9 +99,9 @@ const es2017BuildPlugins = [
     }
   }),
   replace({
-    delimiters: ['${', '}'],
+    delimiters: ['__', '__'],
     values: {
-      JSCORE_VERSION: firebasePkg.version
+      JSCORE_VERSION: JSON.stringify(firebasePkg.version)
     }
   })
 ];

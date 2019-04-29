@@ -28,7 +28,10 @@ const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 const es5BuildPlugins = [
   typescriptPlugin({ typescript }),
   replace({
-    __VERSION__: pkg.version
+    delimiters: ['__', '__'],
+    values: {
+      VERSION: JSON.stringify(pkg.version)
+    }
   })
 ];
 
@@ -57,7 +60,10 @@ const es2017BuildPlugins = [
     }
   }),
   replace({
-    __VERSION__: pkg.version
+    delimiters: ['__', '__'],
+    values: {
+      VERSION: JSON.stringify(pkg.version)
+    }
   })
 ];
 
