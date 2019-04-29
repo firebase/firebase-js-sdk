@@ -69,10 +69,13 @@ export function addEqualityMatcher(): void {
         return function(...args): void {
           if (isActive) {
             const [right, msg] = args;
-            utils.flag(this, 'message', msg);
             const left = utils.flag(this, 'object');
 
-            new chai.Assertion(left).assert(
+            // These are used by chai to log the relevant stack trace.
+            const ssfi = utils.flag(this, 'ssfi');
+            const lockssfi = utils.flag(this, 'lockssfi');
+
+            new chai.Assertion(left, msg, ssfi, lockssfi).assert(
               customDeepEqual(left, right),
               'expected #{act} to roughly deeply equal #{exp}',
               'expected #{act} to not roughly deeply equal #{exp}',
