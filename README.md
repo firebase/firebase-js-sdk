@@ -3,6 +3,7 @@
 <!-- BADGES -->
 [![Build Status](https://travis-ci.org/firebase/firebase-js-sdk.svg?branch=master)](https://travis-ci.org/firebase/firebase-js-sdk)
 [![Build Status](https://saucelabs.com/buildstatus/firebase-oss)](https://saucelabs.com/u/firebase-oss)
+[![Version](https://img.shields.io/npm/v/firebase.svg?label=version)](https://www.npmjs.com/package/firebase)
 <!-- END BADGES -->
 
 The Firebase JavaScript SDK implements the client-side libraries used by
@@ -15,7 +16,7 @@ applications using Firebase services. This SDK is distributed via:
 To get started using Firebase, see
 [Add Firebase to your JavaScript Project](https://firebase.google.com/docs/web/setup).
 
-Current [Release Notes](https://firebase.google.com/support/release-notes/js)
+[![Release Notes](https://img.shields.io/npm/v/firebase.svg?style=flat-square&label=Release%20Notes%20for&labelColor=039be5&color=666)](https://firebase.google.com/support/release-notes/js)
 
 ## SDK Dev Workflow
 
