@@ -20,11 +20,12 @@ import * as grpc from 'grpc';
 import * as path from 'path';
 import * as ProtobufJS from 'protobufjs';
 
-export const protoLoaderOptions = {
+/** Used by tests so we can match @grpc/proto-loader behavior. */
+export const protoLoaderOptions: ProtobufJS.IConversionOptions = {
   longs: String,
   enums: String,
   defaults: true,
-  oneofs: true
+  oneofs: false
 };
 
 /**
@@ -44,12 +45,13 @@ export function loadProtos(): grpc.GrpcObject {
 
   const packageDefinition = protoLoader.loadSync(firestoreProtoFile, {
     ...protoLoaderOptions,
-    ...{ includeDirs: [root] }
+    includeDirs: [root]
   });
 
   return grpc.loadPackageDefinition(packageDefinition);
 }
 
+/** Used by tests so we can directly create ProtobufJS proto message objects from JSON protos. */
 export function loadRawProtos(): ProtobufJS.Root {
   const root = path.resolve(
     __dirname,

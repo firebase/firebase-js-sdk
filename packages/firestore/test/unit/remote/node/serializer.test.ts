@@ -111,120 +111,69 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     /**
-     * Ensures we can encode/decode a FieldValue to json proto and vice versa.
-     */
-    function expectFieldValueJsonProtoRoundTrip(
-      value: fieldValue.FieldValue,
-      jsonProto: api.Value,
-      serializer: JsonProtoSerializer = s
-    ): void {
-      const actualProto: api.Value = serializer.toValue(value);
-      expect(actualProto).to.deep.equal(jsonProto);
-      expect(serializer.fromValue(jsonProto)).to.deep.equal(value);
-    }
-
-    /**
-     * Ensures we can convert a json proto to a protobufjs message and vice
-     * versa.
+     * Verifies full round-trip of encoding/decoding fieldValue objects:
      *
-     * @param messageField The relevant proto field as we expect it to be
-     *     encoded by protobufjs.
+     * 1. Encoding: FieldValue => JSON proto => protobufJS proto
+     * 2. Decoding: protobufJS proto => JSON proto => FieldValue
      */
-    function expectJsonProtoProtobufjsMessageRoundTrip(
-      jsonProto: api.Value,
-      messageField: {},
-      tag: string
-    ): void {
-      const msg: ProtobufJS.Message = ValueMessage.fromObject(jsonProto);
-      expect(msg[tag]).to.deep.equal(messageField);
+    function verifyFieldValueRoundTrip(opts: {
+      /** The FieldValue to test. */
+      value: fieldValue.FieldValue;
+      /** The expected one_of field to be used (e.g. 'nullValue') */
+      valueType: string;
+      /** The expected JSON value for the field (e.g. 'NULL_VALUE') */
+      jsonValue: unknown;
+      /**
+       * The expected protobufJs value for the field (e.g. `0`).
+       * If omitted, it's expected to be the same as jsonValue.
+       */
+      protobufJsValue?: unknown;
+    }): void {
+      const { value, valueType, jsonValue } = opts;
+      const protobufJsValue =
+        opts.protobufJsValue !== undefined
+          ? opts.protobufJsValue
+          : opts.jsonValue;
 
-      const roundTripProto: api.Value = ValueMessage.toObject(
-        ValueMessage.create({ [tag]: messageField }),
+      // Convert FieldValue to JSON and verify.
+      const actualJsonProto = s.toValue(value);
+      expect(actualJsonProto).to.deep.equal({ [valueType]: jsonValue });
+
+      // Convert JSON to protobufjs and verify value.
+      const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
+        actualJsonProto
+      );
+      expect(actualProtobufjsProto[valueType]).to.deep.equal(protobufJsValue);
+
+      // Convert protobufjs back to JSON.
+      const returnJsonProto = ValueMessage.toObject(
+        actualProtobufjsProto,
         protoLoaderOptions
       );
+      expect(returnJsonProto).to.deep.equal({ [valueType]: jsonValue });
 
-      // Our json protos don't always round trip exactly through protobufjs,
-      // due to a combination of our protoLoaderOptions options as well as how
-      // protobufjs works. Specifically:
-      // 1) protobufjs adds a virtual 'valueType' parameter for our oneof field
-      // 2) all long fields are converted from a number to a string.
-      // 3) Byte fields are always returns as a Uint8Array rather than as a
-      //    (base64 encoded) string, even if that's otherwise how it's encoded
-      //    on the wire.
-      // (There may be other scenarios too, but none yet apply).
-      //
-      // Our serializer can deal with these discrepencies. For the purpose of
-      // this test, we'll:
-      // a) delete the 'valueType' virtual field
-      // b) convert timestampValue.seconds from string to int.
-      // c) base64.encode bytesValue if the expected value is a string.
-      delete roundTripProto['valueType'];
-      if (
-        roundTripProto.timestampValue &&
-        typeof roundTripProto.timestampValue['seconds'] === 'string'
-      ) {
-        roundTripProto.timestampValue['seconds'] = Number(
-          roundTripProto.timestampValue['seconds']
-        );
-      }
-      if (
-        typeof jsonProto.bytesValue === 'string' &&
-        typeof roundTripProto.bytesValue === 'object'
-      ) {
-        roundTripProto.bytesValue = Buffer.from(
-          roundTripProto.bytesValue
-        ).toString('base64');
-      }
-      expect(roundTripProto).to.deep.equal(jsonProto);
-    }
-
-    /**
-     * Ensures we can convert a FieldValue through the serializer, protobufjs,
-     * and then back again and get the same result.
-     */
-    function expectFullRoundTrip(
-      value: fieldValue.FieldValue,
-      serializer: JsonProtoSerializer = s
-    ): void {
-      const actual: fieldValue.FieldValue = serializer.fromValue(
-        ValueMessage.toObject(
-          ValueMessage.fromObject(serializer.toValue(value)),
-          protoLoaderOptions
-        )
-      );
-      expect(actual.isEqual(value)).to.be.true;
+      // Convert JSON back to FieldValue.
+      const actualReturnFieldValue = s.fromValue(returnJsonProto);
+      expect(actualReturnFieldValue.isEqual(value)).to.be.true;
     }
 
     it('converts NullValue', () => {
-      const value: fieldValue.FieldValue = fieldValue.NullValue.INSTANCE;
-      const proto: api.Value = { nullValue: 'NULL_VALUE' };
-      const protobufjsField = 0;
-
-      expectFieldValueJsonProtoRoundTrip(value, proto);
-      expectJsonProtoProtobufjsMessageRoundTrip(
-        proto,
-        protobufjsField,
-        'nullValue'
-      );
-      expectFullRoundTrip(value);
+      verifyFieldValueRoundTrip({
+        value: fieldValue.NullValue.INSTANCE,
+        valueType: 'nullValue',
+        jsonValue: 'NULL_VALUE',
+        protobufJsValue: 0
+      });
     });
 
     it('converts BooleanValue', () => {
       const examples = [true, false];
       for (const example of examples) {
-        const value: fieldValue.FieldValue = fieldValue.BooleanValue.of(
-          example
-        );
-        const proto: api.Value = { booleanValue: example };
-        const protobufjsField = example;
-
-        expectFieldValueJsonProtoRoundTrip(value, proto);
-        expectJsonProtoProtobufjsMessageRoundTrip(
-          proto,
-          protobufjsField,
-          'booleanValue'
-        );
-        expectFullRoundTrip(value);
+        verifyFieldValueRoundTrip({
+          value: fieldValue.BooleanValue.of(example),
+          valueType: 'booleanValue',
+          jsonValue: example
+        });
       }
     });
 
@@ -239,19 +188,15 @@ describe('Serializer', () => {
         types.MAX_SAFE_INTEGER
       ];
       for (const example of examples) {
-        const value: fieldValue.FieldValue = new fieldValue.IntegerValue(
-          example
-        );
-        const proto: api.Value = { integerValue: '' + example };
-        const protobufjsField = Long.fromString(example.toString(), false);
-
-        expectFieldValueJsonProtoRoundTrip(value, proto);
-        expectJsonProtoProtobufjsMessageRoundTrip(
-          proto,
-          protobufjsField,
-          'integerValue'
-        );
-        expectFullRoundTrip(value);
+        verifyFieldValueRoundTrip({
+          value: new fieldValue.IntegerValue(example),
+          valueType: 'integerValue',
+          jsonValue: '' + example,
+          protobufJsValue: Long.fromString(
+            example.toString(),
+            /*unsigned=*/ false
+          )
+        });
       }
     });
 
@@ -269,19 +214,11 @@ describe('Serializer', () => {
         Number.NEGATIVE_INFINITY
       ];
       for (const example of examples) {
-        const value: fieldValue.FieldValue = new fieldValue.DoubleValue(
-          example
-        );
-        const proto: api.Value = { doubleValue: example };
-        const protobufjsField = example;
-
-        expectFieldValueJsonProtoRoundTrip(value, proto);
-        expectJsonProtoProtobufjsMessageRoundTrip(
-          proto,
-          protobufjsField,
-          'doubleValue'
-        );
-        expectFullRoundTrip(value);
+        verifyFieldValueRoundTrip({
+          value: new fieldValue.DoubleValue(example),
+          valueType: 'doubleValue',
+          jsonValue: example
+        });
       }
     });
 
@@ -295,19 +232,11 @@ describe('Serializer', () => {
         '(╯°□°）╯︵ ┻━┻'
       ];
       for (const example of examples) {
-        const value: fieldValue.FieldValue = new fieldValue.StringValue(
-          example
-        );
-        const proto: api.Value = { stringValue: example };
-        const protobufjsField = example;
-
-        expectFieldValueJsonProtoRoundTrip(value, proto);
-        expectJsonProtoProtobufjsMessageRoundTrip(
-          proto,
-          protobufjsField,
-          'stringValue'
-        );
-        expectFullRoundTrip(value);
+        verifyFieldValueRoundTrip({
+          value: new fieldValue.StringValue(example),
+          valueType: 'stringValue',
+          jsonValue: example
+        });
       }
     });
 
@@ -318,24 +247,17 @@ describe('Serializer', () => {
       ];
 
       const expectedJson = [
-        { seconds: 1451730050, nanos: 850000000 },
-        { seconds: 1466160615, nanos: 0 }
+        { seconds: '1451730050', nanos: 850000000 },
+        { seconds: '1466160615', nanos: 0 }
       ];
 
       for (let i = 0; i < examples.length; i++) {
-        const value: fieldValue.FieldValue = new fieldValue.TimestampValue(
-          Timestamp.fromDate(examples[i])
-        );
-        const proto: api.Value = { timestampValue: expectedJson[i] };
-        const protobufjsField = TimestampMessage.fromObject(expectedJson[i]);
-
-        expectFieldValueJsonProtoRoundTrip(value, proto);
-        expectJsonProtoProtobufjsMessageRoundTrip(
-          proto,
-          protobufjsField,
-          'timestampValue'
-        );
-        expectFullRoundTrip(value);
+        verifyFieldValueRoundTrip({
+          value: new fieldValue.TimestampValue(Timestamp.fromDate(examples[i])),
+          valueType: 'timestampValue',
+          jsonValue: expectedJson[i],
+          protobufJsValue: TimestampMessage.fromObject(expectedJson[i])
+        });
       }
     });
 
@@ -367,51 +289,32 @@ describe('Serializer', () => {
 
     it('converts GeoPointValue', () => {
       const example = new GeoPoint(1.23, 4.56);
-
       const expected = {
-        geoPointValue: {
-          latitude: 1.23,
-          longitude: 4.56
-        }
+        latitude: 1.23,
+        longitude: 4.56
       };
 
-      const value: fieldValue.FieldValue = new fieldValue.GeoPointValue(
-        example
-      );
-      const proto: api.Value = expected;
-      const protobufjsField = LatLngMessage.fromObject(expected.geoPointValue);
-
-      expectFieldValueJsonProtoRoundTrip(value, proto);
-      expectJsonProtoProtobufjsMessageRoundTrip(
-        proto,
-        protobufjsField,
-        'geoPointValue'
-      );
-      expectFullRoundTrip(value);
+      verifyFieldValueRoundTrip({
+        value: new fieldValue.GeoPointValue(example),
+        valueType: 'geoPointValue',
+        jsonValue: expected,
+        protobufJsValue: LatLngMessage.fromObject(expected)
+      });
     });
 
     it('converts BlobValue to Uint8Array', () => {
       const bytes = [0, 1, 2, 3, 4, 5];
       const example = Blob.fromUint8Array(new Uint8Array(bytes));
+      const expected = new Uint8Array(bytes);
 
-      const expected = {
-        bytesValue: new Uint8Array(bytes)
-      };
-
-      const value: fieldValue.FieldValue = new fieldValue.BlobValue(example);
-      const proto: api.Value = expected;
-      const protobufjsField = new Uint8Array(bytes);
-
-      expectFieldValueJsonProtoRoundTrip(value, proto);
-      expectJsonProtoProtobufjsMessageRoundTrip(
-        proto,
-        protobufjsField,
-        'bytesValue'
-      );
-      expectFullRoundTrip(value);
+      verifyFieldValueRoundTrip({
+        value: new fieldValue.BlobValue(example),
+        valueType: 'bytesValue',
+        jsonValue: expected
+      });
     });
 
-    it('converts BlobValue to Base64 string', () => {
+    it('converts BlobValue to Base64 string (useProto3Json=true)', () => {
       const base64 = 'AAECAwQF';
       const bytes = [0, 1, 2, 3, 4, 5];
       const example = Blob.fromUint8Array(new Uint8Array(bytes));
@@ -421,60 +324,42 @@ describe('Serializer', () => {
       const serializer = new JsonProtoSerializer(partition, {
         useProto3Json: true
       });
-
-      const value: fieldValue.FieldValue = new fieldValue.BlobValue(example);
-      const proto: api.Value = expected;
-      const protobufjsField = new Uint8Array(bytes);
-
-      expectFieldValueJsonProtoRoundTrip(value, proto, serializer);
-      expectJsonProtoProtobufjsMessageRoundTrip(
-        proto,
-        protobufjsField,
-        'bytesValue'
-      );
-      expectFullRoundTrip(value, serializer);
+      const obj = serializer.toValue(new fieldValue.BlobValue(example));
+      expect(obj).to.deep.equal(expected);
     });
 
     it('converts ArrayValue', () => {
-      const value: fieldValue.FieldValue = wrap([true, 'foo']);
-      const proto: api.Value = {
-        arrayValue: { values: [{ booleanValue: true }, { stringValue: 'foo' }] }
+      const value = wrap([true, 'foo']);
+      const jsonValue = {
+        values: [{ booleanValue: true }, { stringValue: 'foo' }]
       };
-
-      expectFieldValueJsonProtoRoundTrip(value, proto);
-      expectFullRoundTrip(value);
+      verifyFieldValueRoundTrip({
+        value,
+        valueType: 'arrayValue',
+        jsonValue,
+        protobufJsValue: ArrayValueMessage.fromObject(jsonValue)
+      });
     });
 
     it('converts empty ArrayValue', () => {
-      const value: fieldValue.FieldValue = wrap([]);
-      const proto: api.Value = { arrayValue: { values: [] } };
-      const protobufjsField = ArrayValueMessage.fromObject({});
-
-      expectFieldValueJsonProtoRoundTrip(value, proto);
-      expectJsonProtoProtobufjsMessageRoundTrip(
-        proto,
-        protobufjsField,
-        'arrayValue'
-      );
-      expectFullRoundTrip(value);
+      verifyFieldValueRoundTrip({
+        value: wrap([]),
+        valueType: 'arrayValue',
+        jsonValue: { values: [] },
+        protobufJsValue: ArrayValueMessage.fromObject({})
+      });
     });
 
     it('converts ObjectValue.EMPTY', () => {
-      const value: fieldValue.FieldValue = fieldValue.ObjectValue.EMPTY;
-      const proto: api.Value = { mapValue: { fields: {} } };
-      const protobufjsField = MapValueMessage.fromObject({});
-
-      expectFieldValueJsonProtoRoundTrip(value, proto);
-      expectJsonProtoProtobufjsMessageRoundTrip(
-        proto,
-        protobufjsField,
-        'mapValue'
-      );
-      expectFullRoundTrip(value);
+      verifyFieldValueRoundTrip({
+        value: wrap({}),
+        valueType: 'mapValue',
+        jsonValue: { fields: {} },
+        protobufJsValue: MapValueMessage.fromObject({})
+      });
     });
 
     it('converts nested ObjectValues', () => {
-      // clang-format off
       const original = {
         b: true,
         d: Number.MAX_VALUE,
@@ -493,7 +378,7 @@ describe('Serializer', () => {
       const objValue = wrapObject(original);
       expect(objValue.value()).to.deep.equal(original);
 
-      const expectedJson = {
+      const expectedJson: api.Value = {
         mapValue: {
           fields: {
             b: { booleanValue: true },
@@ -534,32 +419,27 @@ describe('Serializer', () => {
           }
         }
       };
-      // clang-format on
 
-      const value: fieldValue.FieldValue = objValue;
-      const proto: api.Value = expectedJson;
-
-      expectFieldValueJsonProtoRoundTrip(value, proto);
-      expectFullRoundTrip(value);
+      verifyFieldValueRoundTrip({
+        value: objValue,
+        valueType: 'mapValue',
+        jsonValue: expectedJson.mapValue,
+        protobufJsValue: MapValueMessage.fromObject(expectedJson.mapValue!)
+      });
     });
 
     it('converts RefValue', () => {
       const example = 'projects/project1/databases/database1/documents/docs/1';
-
       const value: fieldValue.FieldValue = new fieldValue.RefValue(
         dbId('project1', 'database1'),
         key('docs/1')
       );
-      const proto: api.Value = { referenceValue: example };
-      const protobufjsField = example;
 
-      expectFieldValueJsonProtoRoundTrip(value, proto);
-      expectJsonProtoProtobufjsMessageRoundTrip(
-        proto,
-        protobufjsField,
-        'referenceValue'
-      );
-      expectFullRoundTrip(value);
+      verifyFieldValueRoundTrip({
+        value,
+        valueType: 'referenceValue',
+        jsonValue: example
+      });
     });
   });
 
@@ -767,7 +647,7 @@ describe('Serializer', () => {
       const proto = {
         update: s.toMutationDocument(mutation.key, mutation.value),
         currentDocument: {
-          updateTime: { seconds: 0, nanos: 4000 }
+          updateTime: { seconds: '0', nanos: 4000 }
         }
       };
       verifyMutation(mutation, proto);
