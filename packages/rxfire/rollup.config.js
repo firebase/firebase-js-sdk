@@ -18,8 +18,9 @@
 import { resolve } from 'path';
 import resolveModule from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
-import typescript from 'rollup-plugin-typescript2';
+import typescriptPlugin from 'rollup-plugin-typescript2';
 import { uglify } from 'rollup-plugin-uglify';
+import typescript from 'typescript';
 import pkg from './package.json';
 
 import authPkg from './auth/package.json';
@@ -38,8 +39,8 @@ const pkgsByName = {
 
 const plugins = [
   resolveModule(),
-  typescript({
-    typescript: require('typescript')
+  typescriptPlugin({
+    typescript
   }),
   commonjs()
 ];

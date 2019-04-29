@@ -7,6 +7,9 @@
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "react-native": "dist/index.rn.cjs.js",
+  "esm2017": "dist/index.esm2017.js",
+  "lite": "dist/index.lite.js",
+  "lite-esm2017": "dist/index.lite.esm2017.js",
   "files": [
     "dist"
   ],

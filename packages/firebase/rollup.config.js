@@ -19,8 +19,10 @@ import { resolve } from 'path';
 import resolveModule from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
 import sourcemaps from 'rollup-plugin-sourcemaps';
-import typescript from 'rollup-plugin-typescript2';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import typescript from 'typescript';
 import { uglify } from 'rollup-plugin-uglify';
+import { terser } from 'rollup-plugin-terser';
 import pkg from './package.json';
 
 import appPkg from './app/package.json';
@@ -46,8 +48,8 @@ const pkgsByName = {
 const plugins = [
   sourcemaps(),
   resolveModule(),
-  typescript({
-    typescript: require('typescript')
+  typescriptPlugin({
+    typescript
   }),
   commonjs()
 ];
@@ -195,6 +197,57 @@ const completeBuilds = [
     output: { file: pkg['react-native'], format: 'cjs', sourcemap: true },
     plugins,
     external
+  },
+  /**
+   * Performance script Build
+   */
+  {
+    input: 'src/index.perf.ts',
+    output: {
+      file: 'firebase-performance-standalone.js',
+      format: 'umd',
+      sourcemap: true,
+      name: GLOBAL_NAME
+    },
+    plugins: [
+      sourcemaps(),
+      resolveModule({
+        mainFields: ['lite', 'module', 'main']
+      }),
+      typescriptPlugin({
+        typescript
+      }),
+      commonjs(),
+      uglify()
+    ]
+  },
+  /**
+   * Performance script Build in ES2017
+   */
+  {
+    input: 'src/index.perf.ts',
+    output: {
+      file: 'firebase-performance-standalone.es2017.js',
+      format: 'umd',
+      sourcemap: true,
+      name: GLOBAL_NAME
+    },
+    plugins: [
+      sourcemaps(),
+      resolveModule({
+        mainFields: ['lite-esm2017', 'esm2017', 'module', 'main']
+      }),
+      typescriptPlugin({
+        typescript,
+        tsconfigOverride: {
+          compilerOptions: {
+            target: 'es2017'
+          }
+        }
+      }),
+      commonjs(),
+      terser()
+    ]
   }
 ];
 

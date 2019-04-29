@@ -15,15 +15,23 @@
  * limitations under the License.
  */
 
-import typescript from 'rollup-plugin-typescript2';
+import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
+import typescript from 'typescript';
 import pkg from './package.json';
 
 import firebasePkg from '../firebase/package.json';
 
-const plugins = [
-  typescript({
-    typescript: require('typescript')
+const deps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
+
+/**
+ * ES5 Builds
+ */
+const es5BuildPlugins = [
+  typescriptPlugin({
+    typescript
   }),
   replace({
     delimiters: ['${', '}'],
@@ -33,18 +41,14 @@ const plugins = [
   })
 ];
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
-export default [
+const es5Builds = [
   {
     input: 'index.ts',
     output: [
       { file: pkg.browser, format: 'cjs', sourcemap: true },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
-    plugins,
+    plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -54,7 +58,7 @@ export default [
       format: 'cjs',
       sourcemap: true
     },
-    plugins,
+    plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -64,7 +68,7 @@ export default [
       format: 'cjs',
       sourcemap: true
     },
-    plugins,
+    plugins: es5BuildPlugins,
     external: id =>
       [...deps, 'react-native'].some(
         dep => id === dep || id.startsWith(`${dep}/`)
@@ -73,11 +77,59 @@ export default [
   {
     input: 'index.lite.ts',
     output: {
-      file: 'dist/index.lite.js',
-      format: 'esm',
+      file: pkg.lite,
+      format: 'es',
       sourcemap: true
     },
-    plugins,
+    plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
+
+/**
+ * ES2017 Builds
+ */
+const es2017BuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    }
+  }),
+  replace({
+    delimiters: ['${', '}'],
+    values: {
+      JSCORE_VERSION: firebasePkg.version
+    }
+  })
+];
+
+const es2017Builds = [
+  /**
+   *  Browser Builds
+   */
+  {
+    input: 'index.ts',
+    output: {
+      file: pkg.esm2017,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'index.lite.ts',
+    output: {
+      file: pkg['lite-esm2017'],
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default [...es5Builds, ...es2017Builds];

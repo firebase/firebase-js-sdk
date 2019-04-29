@@ -14,13 +14,21 @@
  * limitations under the License.
  */
 
-import typescript from 'rollup-plugin-typescript2';
+import typescriptPlugin from 'rollup-plugin-typescript2';
 import replace from 'rollup-plugin-replace';
+import typescript from 'typescript';
 import pkg from './package.json';
 
-const plugins = [
-  typescript({
-    typescript: require('typescript')
+const deps = Object.keys(
+  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
+);
+
+/**
+ * ES5 Builds
+ */
+const es5BuildPlugins = [
+  typescriptPlugin({
+    typescript
   }),
   replace({
     delimiters: ['<', '>'],
@@ -30,16 +38,46 @@ const plugins = [
   })
 ];
 
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
+const es5Builds = [
+  {
+    input: 'index.ts',
+    output: [
+      { file: pkg.main, format: 'cjs', sourcemap: true },
+      { file: pkg.module, format: 'es', sourcemap: true }
+    ],
+    plugins: es5BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
 
-export default {
-  input: 'index.ts',
-  output: [
-    { file: pkg.main, format: 'cjs', sourcemap: true },
-    { file: pkg.module, format: 'es', sourcemap: true }
-  ],
-  plugins,
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-};
+/**
+ * ES2017 Builds
+ */
+
+const es2017BuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    }
+  }),
+  replace({
+    delimiters: ['<', '>'],
+    values: {
+      PERF_SDK_VERSION: pkg.version
+    }
+  })
+];
+
+const es2017Builds = [
+  {
+    input: 'index.ts',
+    output: [{ file: pkg.esm2017, format: 'es', sourcemap: true }],
+    plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default [...es5Builds, ...es2017Builds];

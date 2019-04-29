@@ -22,19 +22,56 @@ import typescript from 'typescript';
 
 const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 
-export default [
+/**
+ * ES5 Builds
+ */
+const es5BuildPlugins = [
+  typescriptPlugin({ typescript }),
+  replace({
+    __VERSION__: pkg.version
+  })
+];
+
+const es5Builds = [
   {
     input: 'src/index.ts',
     output: [
       { file: pkg.main, format: 'cjs', sourcemap: true },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
-    plugins: [
-      typescriptPlugin({ typescript }),
-      replace({
-        __VERSION__: pkg.version
-      })
-    ],
+    plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
+
+/**
+ * ES2017 Builds
+ */
+const es2017BuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    }
+  }),
+  replace({
+    __VERSION__: pkg.version
+  })
+];
+
+const es2017Builds = [
+  {
+    input: 'src/index.ts',
+    output: {
+      file: pkg.esm2017,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default [...es5Builds, ...es2017Builds];

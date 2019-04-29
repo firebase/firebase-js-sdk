@@ -15,14 +15,15 @@
  * limitations under the License.
  */
 
-import typescript from 'rollup-plugin-typescript2';
+import typescriptPlugin from 'rollup-plugin-typescript2';
 import pkg from './package.json';
 import replace from 'rollup-plugin-replace';
 import copy from 'rollup-plugin-copy-assets';
+import typescript from 'typescript';
 
 const plugins = [
-  typescript({
-    typescript: require('typescript')
+  typescriptPlugin({
+    typescript
   })
 ];
 

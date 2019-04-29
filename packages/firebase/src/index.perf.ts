@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,7 @@
  * limitations under the License.
  */
 
-import typescriptPlugin from 'rollup-plugin-typescript2';
-import typescript from 'typescript';
-import pkg from './package.json';
+import firebase from '@firebase/app';
+import '@firebase/performance';
 
-const plugins = [
-  typescriptPlugin({
-    typescript
-  })
-];
-
-const deps = Object.keys(
-  Object.assign({}, pkg.peerDependencies, pkg.dependencies)
-);
-
-export default {
-  input: 'index.ts',
-  output: [
-    { file: pkg.main, format: 'cjs', sourcemap: true },
-    { file: pkg.module, format: 'es', sourcemap: true }
-  ],
-  plugins,
-  external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-};
+export default firebase;

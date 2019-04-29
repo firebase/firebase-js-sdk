@@ -6,6 +6,7 @@
   "main": "dist/index.cjs.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
   "files": [
     "dist"
   ],
@@ -23,10 +24,11 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/logger": "0.x",
-    "@firebase/installations": "0.x",
-    "@firebase/util": "0.x",
-    "@firebase/performance-types": "0.0.1"
+    "@firebase/logger": "0.1.1",
+    "@firebase/installations": "0.1.0",
+    "@firebase/util": "0.2.13",
+    "@firebase/performance-types": "0.0.1",
+    "tslib": "1.9.3"
   },
   "license": "Apache-2.0",
   "devDependencies": {
