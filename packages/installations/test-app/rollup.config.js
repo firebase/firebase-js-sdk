@@ -41,7 +41,10 @@ export default [
         tsconfigOverride: { compilerOptions: { declaration: false } }
       }),
       replace({
-        __VERSION__: pkg.version
+        delimiters: ['__', '__'],
+        values: {
+          VERSION: pkg.version
+        }
       }),
       resolve(),
       commonjs(),

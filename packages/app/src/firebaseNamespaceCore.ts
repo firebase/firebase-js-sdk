@@ -62,7 +62,7 @@ export function createFirebaseNamespaceCore(
     initializeApp: initializeApp,
     app: app as any,
     apps: null as any,
-    SDK_VERSION: '${JSCORE_VERSION}',
+    SDK_VERSION: __JSCORE_VERSION__,
     INTERNAL: {
       registerService,
       removeApp,

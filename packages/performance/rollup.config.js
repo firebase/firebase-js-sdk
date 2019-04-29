@@ -31,9 +31,9 @@ const es5BuildPlugins = [
     typescript
   }),
   replace({
-    delimiters: ['<', '>'],
+    delimiters: ['__', '__'],
     values: {
-      PERF_SDK_VERSION: pkg.version
+      PERF_SDK_VERSION: JSON.stringify(pkg.version)
     }
   })
 ];
@@ -64,9 +64,9 @@ const es2017BuildPlugins = [
     }
   }),
   replace({
-    delimiters: ['<', '>'],
+    delimiters: ['__', '__'],
     values: {
-      PERF_SDK_VERSION: pkg.version
+      PERF_SDK_VERSION: JSON.stringify(pkg.version)
     }
   })
 ];
