@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.4.5",
+  "version": "0.4.6",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -64,8 +64,8 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@firebase/functions-types": "0.3.4",
-    "@firebase/messaging-types": "0.2.10",
+    "@firebase/functions-types": "0.3.5",
+    "@firebase/messaging-types": "0.2.11",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.9.3"
   },
