@@ -13,7 +13,8 @@
     "firebase",
     "functions",
     "realtime",
-    "storage"
+    "storage",
+    "performance"
   ],
   "scripts": {
     "dev": "lerna run --parallel --scope @firebase/* --scope firebase --scope rxfire dev",
@@ -32,7 +33,7 @@
     "test:saucelabs": "karma start config/karma.saucelabs.js --single-run",
     "docgen:js": "node scripts/docgen/generate-docs.js --api js",
     "docgen:node": "node scripts/docgen/generate-docs.js --api node",
-    "docgen": "npm run docgen:js; npm run docgen:node",
+    "docgen": "yarn docgen:js; yarn docgen:node",
     "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'"
   },
   "repository": {

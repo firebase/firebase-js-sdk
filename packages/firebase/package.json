@@ -11,7 +11,8 @@
     "Firebase",
     "firebase",
     "realtime",
-    "storage"
+    "storage",
+    "performance"
   ],
   "files": [
     "**/dist/",
@@ -29,7 +30,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "prepare": "npm run build"
+    "prepare": "yarn build"
   },
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
@@ -43,7 +44,8 @@
     "@firebase/functions": "0.4.5",
     "@firebase/messaging": "0.3.18",
     "@firebase/polyfill": "0.3.12",
-    "@firebase/storage": "0.2.14"
+    "@firebase/storage": "0.2.14",
+    "@firebase/performance": "0.2.0"
   },
   "devDependencies": {
     "git-rev-sync": "1.12.0",
@@ -54,6 +56,7 @@
     "rollup-plugin-sourcemaps": "0.4.2",
     "rollup-plugin-typescript2": "0.21.0",
     "rollup-plugin-uglify": "6.0.2",
+    "rollup-plugin-terser": "4.0.4",
     "typescript": "3.4.5"
   },
   "typings": "index.d.ts",
@@ -64,6 +67,7 @@
     "firestore",
     "functions",
     "messaging",
-    "storage"
+    "storage",
+    "performance"
   ]
 }

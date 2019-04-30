@@ -1,0 +1,27 @@
+{
+  "extends": [
+    "tslint:latest",
+    "tslint-no-unused-expression-chai",
+    "tslint-config-prettier"
+  ],
+  "rulesDirectory": ["tslint-plugin-prettier"],
+  "rules": {
+    "prettier": true,
+    "interface-name": [true, "never-prefix"],
+    "member-access": [true, "no-public"],
+    "member-ordering": [true, { "order": "statics-first" }],
+    "no-any": true,
+    "no-empty": [true, "allow-empty-functions"],
+    "no-default-export": true,
+    "no-implicit-dependencies": [
+      true,
+      ["chai", "chai-as-promised", "sinon", "sinon-chai"]
+    ],
+    "no-submodule-imports": false,
+    "no-unnecessary-type-assertion": true,
+    "object-literal-sort-keys": false,
+    "prefer-method-signature": true,
+    "typedef": [true, "call-signature"],
+    "unified-signatures": false
+  }
+}

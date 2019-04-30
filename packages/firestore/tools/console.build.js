@@ -20,7 +20,8 @@
  * This file creates a build target for it.
  */
 const rollup = require('rollup');
-const typescript = require('rollup-plugin-typescript2');
+const typescriptPlugin = require('rollup-plugin-typescript2');
+const typescript = require('typescript');
 const resolve = require('rollup-plugin-node-resolve');
 const uglify = require('rollup-plugin-uglify');
 const fs = require('fs');
@@ -29,8 +30,8 @@ const fs_writeFile = util.promisify(fs.writeFile);
 
 const plugins = [
   resolve(),
-  typescript({
-    typescript: require('typescript')
+  typescriptPlugin({
+    typescript
   }),
   uglify({
     output: {
