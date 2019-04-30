@@ -16,17 +16,27 @@
  */
 
 import { expect } from 'chai';
+import { SinonFakeTimers, useFakeTimers } from 'sinon';
 import '../testing/setup';
 import { sleep } from './sleep';
 
 describe('sleep', () => {
-  it('returns a promise that resolves after a given amount of time', async () => {
-    const t0 = performance.now();
-    await sleep(100);
-    const t1 = performance.now();
+  let clock: SinonFakeTimers;
 
-    // 2 ms margin of error
-    expect(t1 - t0).to.be.above(98);
-    expect(t1 - t0).to.be.below(102);
+  beforeEach(() => {
+    clock = useFakeTimers();
+  });
+
+  afterEach(() => {
+    clock.restore();
+  });
+
+  it('returns a promise that resolves after a given amount of time', async () => {
+    const sleepPromise = sleep(100);
+    expect(sleepPromise).not.to.be.fulfilled;
+    clock.tick(99);
+    expect(sleepPromise).not.to.be.fulfilled;
+    clock.tick(1);
+    expect(sleepPromise).to.be.fulfilled;
   });
 });
