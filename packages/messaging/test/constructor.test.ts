@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { assert } from 'chai';
 
 import { SwController } from '../src/controllers/sw-controller';
@@ -27,41 +28,39 @@ import { describe } from './testing-utils/messaging-test-runner';
 describe('Firebase Messaging > new *Controller()', () => {
   it('should handle bad input', () => {
     const badInputs = [
-      makeFakeApp(),
+      makeFakeApp({
+        messagingSenderId: undefined
+      } as any),
       makeFakeApp({
         messagingSenderId: {}
-      }),
+      } as any),
       makeFakeApp({
         messagingSenderId: []
-      }),
+      } as any),
       makeFakeApp({
         messagingSenderId: true
-      }),
+      } as any),
       makeFakeApp({
         messagingSenderId: 1234567890
-      })
+      } as any)
     ];
     badInputs.forEach(badInput => {
-      let caughtError;
       try {
         new WindowController(badInput);
         new SwController(badInput);
 
-        console.warn(
-          'Bad Input should have thrown: ',
-          JSON.stringify(badInput)
+        assert.fail(
+          `Bad Input should have thrown: ${JSON.stringify(badInput)}`
         );
-      } catch (err) {
-        caughtError = err;
+      } catch (e) {
+        assert.instanceOf(e, FirebaseError);
+        assert.equal('messaging/' + ErrorCode.BAD_SENDER_ID, e.code);
       }
-      assert.equal('messaging/' + ErrorCode.BAD_SENDER_ID, caughtError.code);
     });
   });
 
   it('should be able to handle good input', () => {
-    const app = makeFakeApp({
-      messagingSenderId: '1234567890'
-    });
+    const app = makeFakeApp();
     new WindowController(app);
     new SwController(app);
   });
