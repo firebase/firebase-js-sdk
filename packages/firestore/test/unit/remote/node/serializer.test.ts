@@ -80,6 +80,9 @@ import {
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
+  const proto3JsonSerializer = new JsonProtoSerializer(partition, {
+    useProto3Json: true
+  });
   const emptyResumeToken = new Uint8Array(0);
   const protos = loadRawProtos();
 
@@ -124,36 +127,47 @@ describe('Serializer', () => {
       /** The expected JSON value for the field (e.g. 'NULL_VALUE') */
       jsonValue: unknown;
       /**
-       * The expected protobufJs value for the field (e.g. `0`).
-       * If omitted, it's expected to be the same as jsonValue.
+       * The expected protobufJs value for the field (e.g. `0`). This is
+       * largely inconsequential (we only rely on the JSON representation), but
+       * it can be useful for debugging issues. If omitted, it's assumed to be
+       * the same as jsonValue.
        */
       protobufJsValue?: unknown;
+      /**
+       * If true, uses the proto3Json serializer (and skips the round-trip
+       * through protobufJs).
+       */
+      useProto3Json?: boolean;
     }): void {
       const { value, valueType, jsonValue } = opts;
       const protobufJsValue =
         opts.protobufJsValue !== undefined
           ? opts.protobufJsValue
           : opts.jsonValue;
+      const serializer = opts.useProto3Json ? proto3JsonSerializer : s;
 
       // Convert FieldValue to JSON and verify.
-      const actualJsonProto = s.toValue(value);
+      const actualJsonProto = serializer.toValue(value);
       expect(actualJsonProto).to.deep.equal({ [valueType]: jsonValue });
 
-      // Convert JSON to protobufjs and verify value.
-      const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
-        actualJsonProto
-      );
-      expect(actualProtobufjsProto[valueType]).to.deep.equal(protobufJsValue);
+      // If we're using protobufJs JSON (not Proto3Json), then round-trip through protobufjs.
+      if (!opts.useProto3Json) {
+        // Convert JSON to protobufjs and verify value.
+        const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
+          actualJsonProto
+        );
+        expect(actualProtobufjsProto[valueType]).to.deep.equal(protobufJsValue);
 
-      // Convert protobufjs back to JSON.
-      const returnJsonProto = ValueMessage.toObject(
-        actualProtobufjsProto,
-        protoLoaderOptions
-      );
-      expect(returnJsonProto).to.deep.equal({ [valueType]: jsonValue });
+        // Convert protobufjs back to JSON.
+        const returnJsonProto = ValueMessage.toObject(
+          actualProtobufjsProto,
+          protoLoaderOptions
+        );
+        expect(returnJsonProto).to.deep.equal(actualJsonProto);
+      }
 
       // Convert JSON back to FieldValue.
-      const actualReturnFieldValue = s.fromValue(returnJsonProto);
+      const actualReturnFieldValue = serializer.fromValue(actualJsonProto);
       expect(actualReturnFieldValue.isEqual(value)).to.be.true;
     }
 
@@ -316,16 +330,12 @@ describe('Serializer', () => {
 
     it('converts BlobValue to Base64 string (useProto3Json=true)', () => {
       const base64 = 'AAECAwQF';
-      const bytes = [0, 1, 2, 3, 4, 5];
-      const example = Blob.fromUint8Array(new Uint8Array(bytes));
-
-      const expected = { bytesValue: base64 };
-
-      const serializer = new JsonProtoSerializer(partition, {
+      verifyFieldValueRoundTrip({
+        value: new fieldValue.BlobValue(Blob.fromBase64String(base64)),
+        valueType: 'bytesValue',
+        jsonValue: base64,
         useProto3Json: true
       });
-      const obj = serializer.toValue(new fieldValue.BlobValue(example));
-      expect(obj).to.deep.equal(expected);
     });
 
     it('converts ArrayValue', () => {
