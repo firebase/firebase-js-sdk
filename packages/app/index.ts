@@ -48,7 +48,7 @@ if (self && 'firebase' in self) {
   `);
 
   const sdkVersion = ((self as any).firebase as FirebaseNamespace).SDK_VERSION;
-  if (sdkVersion.includes('LITE')) {
+  if (sdkVersion && sdkVersion.indexOf('LITE') >= 0) {
     console.warn(`
     Warning: You are trying to load Firebase while using Firebase Performance standalone script.
     You should load Firebase Performance with this instance of Firebase to avoid loading duplicate code.
