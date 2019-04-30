@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ErrorFactory } from '@firebase/util';
+import { ErrorFactory, ErrorMap } from '@firebase/util';
 
 export const enum ErrorCode {
   AVAILABLE_IN_WINDOW = 'only-available-in-window',
@@ -59,7 +59,7 @@ export const enum ErrorCode {
   PUBLIC_KEY_DECRYPTION_FAILED = 'public-vapid-key-decryption-failed'
 }
 
-export const ERROR_MAP: { [code in ErrorCode]: string } = {
+export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.AVAILABLE_IN_WINDOW]:
     'This method is available in a Window context.',
   [ErrorCode.AVAILABLE_IN_SW]:
@@ -156,7 +156,7 @@ export const ERROR_MAP: { [code in ErrorCode]: string } = {
     'The public VAPID key did not equal ' + '65 bytes when decrypted.'
 };
 
-export const errorFactory: ErrorFactory<string> = new ErrorFactory(
+export const errorFactory = new ErrorFactory(
   'messaging',
   'Messaging',
   ERROR_MAP

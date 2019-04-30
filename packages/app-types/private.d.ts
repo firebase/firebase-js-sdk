@@ -22,7 +22,7 @@
 
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { Observer, Subscribe } from '@firebase/util';
-import { FirebaseError } from '@firebase/util';
+import { FirebaseError, ErrorFactory } from '@firebase/util';
 
 export interface FirebaseServiceInternals {
   /**
@@ -59,18 +59,6 @@ export interface FirebaseServiceFactory {
  */
 export interface FirebaseServiceNamespace<T extends FirebaseService> {
   (app?: FirebaseApp): T;
-}
-
-export interface FirebaseErrorFactory<T> {
-  create(code: T, data?: { [prop: string]: any }): FirebaseError;
-}
-
-export interface FirebaseErrorFactoryClass {
-  new (
-    service: string,
-    serviceName: string,
-    errors: { [code: string]: string }
-  ): FirebaseErrorFactory<any>;
 }
 
 export interface FirebaseAuthTokenData {
@@ -155,6 +143,6 @@ export interface _FirebaseNamespace extends FirebaseNamespace {
     /**
      * Use to construct all thrown FirebaseError's.
      */
-    ErrorFactory: FirebaseErrorFactoryClass;
+    ErrorFactory: typeof ErrorFactory;
   };
 }
