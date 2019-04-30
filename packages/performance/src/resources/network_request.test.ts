@@ -15,44 +15,35 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
-import {
-  NetworkRequest,
-  createNetworkRequestEntry
-} from '../../src/resources/network_request';
+import { stub, restore } from 'sinon';
+import { createNetworkRequestEntry } from '../../src/resources/network_request';
 import { expect } from 'chai';
-import { Api } from '../../src/services/api_service';
-import * as perfLogger from '../../src/services/perf_logger';
+import { Api } from '../services/api_service';
+import * as perfLogger from '../services/perf_logger';
+import { setupApi } from '../services/api_service';
+import '../../test/setup';
 
 describe('Firebase Performance > network_request', () => {
-  const sandbox = sinon.createSandbox();
-  let mockApi;
+  setupApi(window);
 
   beforeEach(() => {
-    mockApi = {
-      mark: sandbox.spy(),
-      measure: sandbox.spy(),
-      getEntriesByName: sandbox.spy(),
-      getEntriesByType: sandbox.spy(),
-      getTimeOrigin: sandbox.stub().returns(1528521843799.5032)
-    };
-    sandbox.stub(Api, 'getInstance').returns(mockApi);
-    sandbox.stub(perfLogger, 'logNetworkRequest');
+    stub(Api.prototype, 'getTimeOrigin').returns(1528521843799.5032);
+    stub(perfLogger, 'logNetworkRequest');
   });
 
   afterEach(() => {
-    sandbox.restore();
+    restore();
   });
 
   describe('#createNetworkRequestEntry', () => {
     it('logs network request when all required fields present', () => {
-      const PERFORMANCE_ENTRY: PerformanceResourceTiming = {
+      const PERFORMANCE_ENTRY = ({
         name: 'http://some.test.website.com',
         transferSize: 500,
         startTime: 1645352.632345,
         responseStart: 1645360.244323,
         responseEnd: 1645360.832443
-      };
+      } as unknown) as PerformanceResourceTiming;
 
       const EXPECTED_NETWORK_REQUEST = {
         url: 'http://some.test.website.com',
@@ -71,29 +62,17 @@ describe('Firebase Performance > network_request', () => {
       ).to.be.true;
     });
 
-    it('logs network request without timeToResponseInitiatedUs when responseStart is absent', () => {
-      const PERFORMANCE_ENTRY: PerformanceResourceTiming = {
+    it('doesnt log network request when responseStart is absent', () => {
+      const PERFORMANCE_ENTRY = ({
         name: 'http://some.test.website.com',
         transferSize: 500,
         startTime: 1645352.632345,
         responseEnd: 1645360.832443
-      };
-
-      const EXPECTED_NETWORK_REQUEST: NetworkRequest = {
-        url: 'http://some.test.website.com',
-        responsePayloadBytes: 500,
-        startTimeUs: 1528523489152135,
-        timeToResponseInitiatedUs: undefined,
-        timeToResponseCompletedUs: 8200
-      };
+      } as unknown) as PerformanceResourceTiming;
 
       createNetworkRequestEntry(PERFORMANCE_ENTRY);
 
-      expect(
-        (perfLogger.logNetworkRequest as any).calledWith(
-          EXPECTED_NETWORK_REQUEST
-        )
-      ).to.be.true;
+      expect(perfLogger.logNetworkRequest).to.not.have.been.called;
     });
   });
 });

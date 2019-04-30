@@ -48,7 +48,6 @@ export class Trace implements PerformanceTrace {
   private traceMeasure!: string;
 
   /**
-   *
    * @param name The name of the trace.
    * @param isAuto If the trace is auto-instrumented.
    * @param traceMeasureName The name of the measure marker in user timing specification. This field
@@ -80,7 +79,7 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Start a trace. The measurement of the duration starts at this point.
+   * Starts a trace. The measurement of the duration starts at this point.
    */
   start(): void {
     if (this.state !== TraceState.UNINITIALIZED) {
@@ -93,7 +92,7 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Stop the trace. The measurement of the duration of the trace stops at this point and trace
+   * Stops the trace. The measurement of the duration of the trace stops at this point and trace
    * is logged.
    */
   stop(): void {
@@ -114,7 +113,7 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Record a trace with predetermined values. If this method is used a trace is created and logged
+   * Records a trace with predetermined values. If this method is used a trace is created and logged
    * directly. No need to use start and stop methods.
    * @param startTime Trace start time since epoch in millisec
    * @param duration The duraction of the trace in millisec
@@ -144,7 +143,7 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Increment a custom metric by a certain number or 1 if number not specified. Will create a new
+   * Increments a custom metric by a certain number or 1 if number not specified. Will create a new
    * custom metric if one with the given name does not exist.
    * @param counter Name of the custom metric
    * @param num Increment by value
@@ -157,7 +156,7 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Set a custom metric to a specified value. Will create a new custom metric if one with the
+   * Sets a custom metric to a specified value. Will create a new custom metric if one with the
    * given name does not exist.
    * @param counter Name of the custom metric
    * @param num Set custom metric to this value
@@ -176,7 +175,7 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Set a custom attribute of a trace to a certain value.
+   * Sets a custom attribute of a trace to a certain value.
    * @param attr
    * @param value
    */
@@ -185,7 +184,7 @@ export class Trace implements PerformanceTrace {
   }
 
   /**
-   * Retrieve the value a custom attribute of a trace is set to.
+   * Retrieves the value a custom attribute of a trace is set to.
    * @param attr
    */
   getAttribute(attr: string): string | undefined {

@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-// This is temporary for EAP purposes. Remove before Beta release.
-import 'firebase/app';
-
 import firebase from '@firebase/app';
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import {
@@ -29,6 +26,7 @@ import { setupApi } from './src/services/api_service';
 import { SettingsService } from './src/services/settings_service';
 import { consoleLogger } from './src/utils/console_logger';
 import { ERROR_FACTORY, ErrorCode } from './src/utils/errors';
+import { FirebasePerformance } from '@firebase/performance-types';
 
 const DEFAULT_ENTRY_NAME = '[DEFAULT]';
 
@@ -62,31 +60,10 @@ if (window && fetch && Promise) {
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {
     performance?: {
-      (app?: FirebaseApp): PerformanceController;
+      (app?: FirebaseApp): FirebasePerformance;
     };
   }
   interface FirebaseApp {
-    performance?(): PerformanceController;
-  }
-}
-
-// This is temporary for EAP purposes. Remove before Beta release.
-declare module 'firebase' {
-  function performance(app?: any): PerformanceController;
-
-  namespace app {
-    interface App {
-      performance(): PerformanceController;
-    }
-  }
-}
-
-declare module 'firebase/app' {
-  function performance(app?: any): PerformanceController;
-
-  namespace app {
-    interface App {
-      performance(): PerformanceController;
-    }
+    performance?(): FirebasePerformance;
   }
 }

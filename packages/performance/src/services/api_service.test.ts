@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import { stub, createSandbox } from 'sinon';
-import { use, expect } from 'chai';
+import { stub } from 'sinon';
+import { expect } from 'chai';
 import { Api, setupApi } from './api_service';
-import * as sinonChai from 'sinon-chai';
-use(sinonChai);
+import '../../test/setup';
 
 describe('Firebase Performance > api_service', () => {
   const PAGE_URL = 'http://www.test.com/abcd?a=2';
@@ -31,28 +30,23 @@ describe('Firebase Performance > api_service', () => {
     toJSON: () => {}
   };
 
-  const sandbox = createSandbox();
   const mockWindow = { ...self };
 
   let api: Api;
 
   beforeEach(() => {
-    sandbox.stub(mockWindow.performance, 'mark');
-    sandbox.stub(mockWindow.performance, 'measure');
-    sandbox
-      .stub(mockWindow.performance, 'getEntriesByType')
-      .returns([PERFORMANCE_ENTRY]);
-    sandbox
-      .stub(mockWindow.performance, 'getEntriesByName')
-      .returns([PERFORMANCE_ENTRY]);
+    stub(mockWindow.performance, 'mark');
+    stub(mockWindow.performance, 'measure');
+    stub(mockWindow.performance, 'getEntriesByType').returns([
+      PERFORMANCE_ENTRY
+    ]);
+    stub(mockWindow.performance, 'getEntriesByName').returns([
+      PERFORMANCE_ENTRY
+    ]);
     // This is to make sure the test page is not changed by changing the href of location object.
     mockWindow.location = { ...self.location, href: PAGE_URL };
     setupApi(mockWindow);
     api = Api.getInstance();
-  });
-
-  afterEach(() => {
-    sandbox.restore();
   });
 
   describe('getUrl', () => {
@@ -91,7 +85,7 @@ describe('Firebase Performance > api_service', () => {
     });
 
     it('does not throw if the browser does not include underlying api', () => {
-      api = new Api(({ performance: undefined } as any) as Window);
+      api = new Api(({ performance: undefined } as unknown) as Window);
 
       expect(() => {
         api.getEntriesByType('paint');

@@ -16,10 +16,10 @@
  */
 
 import { expect } from 'chai';
-import { PerformanceController } from '../src/controllers/perf';
-import { Trace } from '../src/resources/trace';
-import { setupApi } from '../src/services/api_service';
-import * as firebase from 'firebase/app';
+import { PerformanceController } from '../controllers/perf';
+import { Trace } from '../resources/trace';
+import { setupApi } from '../services/api_service';
+import { FirebaseApp } from '@firebase/app-types';
 
 describe('Firebase Performance Test', () => {
   setupApi(window);
@@ -33,7 +33,10 @@ describe('Firebase Performance Test', () => {
     messagingSenderId: 'sender-id',
     appId: '1:111:web:a1234'
   };
-  let fakeFirebaseApp = firebase.initializeApp(fakeFirebaseConfig);
+
+  let fakeFirebaseApp = ({
+    options: fakeFirebaseConfig
+  } as unknown) as FirebaseApp;
 
   describe('#trace', () => {
     it('creates a custom trace', () => {

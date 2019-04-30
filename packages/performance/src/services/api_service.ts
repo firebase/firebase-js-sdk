@@ -27,7 +27,7 @@ declare global {
 let apiInstance: Api | undefined;
 let windowInstance: Window | undefined;
 
-type EntryType =
+export type EntryType =
   | 'mark'
   | 'measure'
   | 'paint'

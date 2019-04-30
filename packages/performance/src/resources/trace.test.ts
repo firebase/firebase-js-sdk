@@ -15,35 +15,29 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
-import { Trace } from '../../src/resources/trace';
+import { spy, stub, restore } from 'sinon';
+import { Trace } from '../resources/trace';
 import { expect } from 'chai';
-import { Api } from '../../src/services/api_service';
-import * as perfLogger from '../../src/services/perf_logger';
+import { Api } from '../services/api_service';
+import * as perfLogger from '../services/perf_logger';
+import { setupApi } from '../services/api_service';
+import '../../test/setup';
 
 describe('Firebase Performance > trace', () => {
-  const sandbox = sinon.createSandbox();
+  setupApi(window);
   let trace: Trace;
-  let mockApi;
   const createTrace = () => {
     return new Trace('test');
   };
 
   beforeEach(() => {
-    mockApi = {
-      mark: sandbox.spy(),
-      measure: sandbox.spy(),
-      getEntriesByName: sandbox.spy(),
-      getEntriesByType: sandbox.spy(),
-      getTimeOrigin: sandbox.spy()
-    };
-    sandbox.stub(Api, 'getInstance').returns(mockApi);
-    sandbox.stub(perfLogger, 'logTrace');
+    spy(Api.prototype, 'mark');
+    stub(perfLogger, 'logTrace');
     trace = createTrace();
   });
 
   afterEach(() => {
-    sandbox.restore();
+    restore();
   });
 
   describe('#start', () => {
@@ -52,7 +46,7 @@ describe('Firebase Performance > trace', () => {
     });
 
     it('uses the underlying api method', () => {
-      expect(mockApi.mark.calledOnce).to.be.true;
+      expect(Api.getInstance().mark).to.be.calledOnce;
     });
 
     it('throws if a trace is started twice', () => {
@@ -65,7 +59,7 @@ describe('Firebase Performance > trace', () => {
       trace.start();
       trace.stop();
 
-      expect(mockApi.mark.calledTwice).to.be.true;
+      expect(Api.getInstance().mark).to.be.calledTwice;
     });
 
     it('logs the trace', () => {

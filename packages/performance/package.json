@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance",
-  "version": "0.0.3",
+  "version": "0.2.0",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -13,7 +13,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "test:browser",
+    "test": "run-p test:browser",
     "test:browser": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prepare": "yarn build",
@@ -33,6 +33,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@types/chai": "4.1.7",
+    "@types/chai-as-promised": "7.1.0",
     "@types/mocha": "5.2.6",
     "@types/sinon": "7.0.11",
     "@types/sinon-chai": "3.2.2",

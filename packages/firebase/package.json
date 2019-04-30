@@ -45,7 +45,7 @@
     "@firebase/messaging": "0.3.18",
     "@firebase/polyfill": "0.3.12",
     "@firebase/storage": "0.2.14",
-    "@firebase/performance": "0.0.3"
+    "@firebase/performance": "0.2.0"
   },
   "devDependencies": {
     "git-rev-sync": "1.12.0",

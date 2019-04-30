@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { createSandbox } from 'sinon';
-import { use, expect } from 'chai';
+import { stub } from 'sinon';
+import { expect } from 'chai';
 import { SettingsService } from './settings_service';
 import {
   getIid,
@@ -24,24 +24,18 @@ import {
   getAuthenticationToken,
   getAuthTokenPromise
 } from './iid_service';
-import * as sinonChai from 'sinon-chai';
-import * as chaiAsPromised from 'chai-as-promised';
 import { FirebaseApp } from '@firebase/app-types';
-
-use(sinonChai);
-use(chaiAsPromised);
+import '../../test/setup';
 
 describe('Firebase Perofmrance > iid_service', () => {
-  const sandbox = createSandbox();
-
   const IID = 'fid';
   const AUTH_TOKEN = 'authToken';
-  const getId = sandbox.stub().resolves(IID);
-  const getToken = sandbox.stub().resolves(AUTH_TOKEN);
+  const getId = stub().resolves(IID);
+  const getToken = stub().resolves(AUTH_TOKEN);
 
   SettingsService.prototype.firebaseAppInstance = ({
     installations: () => ({ getId, getToken })
-  } as any) as FirebaseApp;
+  } as unknown) as FirebaseApp;
 
   describe('getIidPromise', () => {
     it('provides iid', async () => {
