@@ -15,14 +15,26 @@
  * limitations under the License.
  */
 
-declare const window: { firebase: any };
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 
-import { FirebaseApp } from '@firebase/app-types';
-
-export function makeFakeApp(options: object = {}): FirebaseApp {
-  window.firebase = window.firebase || {};
-  const app: any = {};
-  app.INTERNAL = window.firebase.INTERNAL;
-  app.options = options;
-  return app;
+export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
+  options = {
+    apiKey: 'apiKey',
+    projectId: 'projectId',
+    authDomain: 'authDomain',
+    messagingSenderId: '1234567890',
+    databaseURL: 'databaseUrl',
+    storageBucket: 'storageBucket',
+    appId: '1:777777777777:web:d93b5ca1475efe57',
+    ...options
+  };
+  return {
+    name: 'appName',
+    options,
+    automaticDataCollectionEnabled: true,
+    delete: async () => {},
+    // This won't be used in tests.
+    // tslint:disable-next-line:no-any
+    messaging: null as any
+  };
 }

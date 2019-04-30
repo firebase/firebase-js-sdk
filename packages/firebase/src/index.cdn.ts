@@ -34,5 +34,6 @@ import '../firestore';
 import '../functions';
 import '../messaging';
 import '../storage';
+import '../performance';
 
 export default firebase;

@@ -5,6 +5,7 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
   "files": [
     "dist"
   ],
@@ -14,7 +15,7 @@
     "test": "run-p test:karma type-check lint",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
-    "prepare": "npm run build",
+    "prepare": "yarn build",
     "type-check": "tsc --noEmit",
     "lint": "tslint -p .",
     "lint:fix": "yarn lint --fix"

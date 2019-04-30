@@ -22,6 +22,7 @@ export type FirebaseOptions = {
   projectId?: string;
   storageBucket?: string;
   messagingSenderId?: string;
+  appId?: string;
   [name: string]: any;
 };
 
