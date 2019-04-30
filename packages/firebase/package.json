@@ -67,6 +67,7 @@
     "firestore",
     "functions",
     "messaging",
-    "storage"
+    "storage",
+    "performance"
   ]
 }
