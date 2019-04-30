@@ -116,5 +116,5 @@ describe('generateFid', () => {
         expect(occurrence).to.be.below(expectedOccurrence * 1.1);
       });
     }
-  }).timeout(5000);
+  }).timeout(30000);
 });
