@@ -30,30 +30,15 @@ goog.require('fireauth.util');
  * @enum {string}
  */
 fireauth.deprecation.Deprecations = {
-  CREATE_USER_WITH_EMAIL_AND_PASSWORD: 'firebase.auth.Auth.prototype.createUs' +
-      'erAndRetrieveDataWithEmailAndPassword is deprecated. Please use fireba' +
-      'se.auth.Auth.prototype.createUserWithEmailAndPassword instead.',
-  FETCH_PROVIDERS_FOR_EMAIL: 'firebase.auth.Auth.prototype.fetchProvidersForE' +
-      'mail is deprecated. Please use firebase.auth.Auth.prototype.fetchSignI' +
-      'nMethodsForEmail instead.',
-  LINK_WITH_CREDENTIAL: 'firebase.User.prototype.linkWithCredential is deprec' +
-      'ated. Please use firebase.User.prototype.linkAndRetrieveDataWithCreden' +
+  LINK_WITH_CREDENTIAL: 'firebase.User.prototype.linkAndRetrieveDataWithCrede' +
+      'ntial is deprecated. Please use firebase.User.prototype.linkWithCreden' +
       'tial instead.',
-  REAUTH_WITH_CREDENTIAL: 'firebase.User.prototype.reauthenticateWithCredenti' +
-      'al is deprecated. Please use firebase.User.prototype.reauthenticateAnd' +
-      'RetrieveDataWithCredential instead.',
-  SIGN_IN_ANONYMOUSLY: 'firebase.auth.Auth.prototype.signInAnonymouslyAndRetr' +
-      'ieveData is deprecated. Please use firebase.auth.Auth.prototype.signIn' +
-      'Anonymously instead.',
-  SIGN_IN_WITH_CREDENTIAL: 'firebase.auth.Auth.prototype.signInWithCredential' +
-      ' is deprecated. Please use firebase.auth.Auth.prototype.signInAndRetri' +
-      'eveDataWithCredential instead.',
-  SIGN_IN_WITH_CUSTOM_TOKEN: 'firebase.auth.Auth.prototype.signInAndRetrieveD' +
-      'ataWithCustomToken is deprecated. Please use firebase.auth.Auth.protot' +
-      'ype.signInWithCustomToken instead.',
-  SIGN_IN_WITH_EMAIL_AND_PASSWORD: 'firebase.auth.Auth.prototype.signInAndRet' +
-      'rieveDataWithEmailAndPassword is deprecated. Please use firebase.auth.' +
-      'Auth.prototype.signInWithEmailAndPassword instead.'
+  REAUTH_WITH_CREDENTIAL: 'firebase.User.prototype.reauthenticateAndRetrieveD' +
+      'ataWithCredential is deprecated. Please use firebase.User.prototype.re' +
+      'authenticateWithCredential instead.',
+  SIGN_IN_WITH_CREDENTIAL: 'firebase.auth.Auth.prototype.signInAndRetrieveDat' +
+      'aWithCredential is deprecated. Please use firebase.auth.Auth.prototype' +
+      '.signInWithCredential instead.'
 };
 
 
