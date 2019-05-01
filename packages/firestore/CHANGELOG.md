@@ -1,6 +1,11 @@
-# Unreleased (I/O)
+
+# Unreleased
+- [changed] Deprecated the `experimentalTabSynchronization` setting in favor of 
+  `synchronizeTabs`. If you use multi-tab synchronization, it is recommended
+  that you update your call to `enablePersistence()`. Firestore logs an error
+  if you continue to use `experimentalTabSynchronization`.
 - [feature] You can now query across all collections in your database with a
-given collection ID using the `FirebaseFirestore.collectionGroup()` method.
+  given collection ID using the `FirebaseFirestore.collectionGroup()` method.
 
 # 1.1.4
 - [feature] Added an `experimentalForceLongPolling` setting that that can be
