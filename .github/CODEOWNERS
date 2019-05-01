@@ -13,9 +13,9 @@
 #  Used for approving minor changes, large-scale refactorings, and emergency situations.
 #  (secret team to avoid review requests)
 #
-#   - @Feiyang1 
-#   - @hiranya911 
-#   - @mikelehen 
+#   - @Feiyang1
+#   - @hiranya911
+#   - @mikelehen
 #   - @bojeil-google
 #   - @depoll
 #   - @hsubox76
@@ -27,9 +27,9 @@
 #  Used for approving firestore changes.
 #  (secret team to avoid review requests)
 #
-# - @mikelehen 
-# - @schmidt-sebastian 
-# - @wilhuff 
+# - @mikelehen
+# - @schmidt-sebastian
+# - @wilhuff
 # - @gsoltis
 # - @var-const
 # - @rsgowman
@@ -67,3 +67,11 @@ packages/testing  @tonymeng @ryanpbrewster @firebase/jssdk-global-approvers
 
 # RxFire Code
 packages/rxfire @davideast @jamesdaniels @firebase/jssdk-global-approvers
+
+# Installations
+packages/installations @mmermerkaya @andirayo @firebase/jssdk-global-approvers
+packages/installations-types @mmermerkaya @andirayo @firebase/jssdk-global-approvers
+
+# Performance Code
+packages/performance  @alikn @zijianjoy @firebase/jssdk-global-approvers
+packages/performance-types  @alikn @zijianjoy @firebase/jssdk-global-approvers

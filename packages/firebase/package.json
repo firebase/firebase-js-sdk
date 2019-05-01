@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "5.10.1",
+  "version": "5.11.0",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -11,7 +11,8 @@
     "Firebase",
     "firebase",
     "realtime",
-    "storage"
+    "storage",
+    "performance"
   ],
   "files": [
     "**/dist/",
@@ -29,32 +30,34 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "prepare": "npm run build"
+    "prepare": "yarn build"
   },
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "react-native": "dist/index.rn.cjs.js",
   "dependencies": {
-    "@firebase/app": "0.3.16",
-    "@firebase/auth": "0.10.1",
-    "@firebase/database": "0.3.19",
-    "@firebase/firestore": "1.2.1",
-    "@firebase/functions": "0.4.5",
-    "@firebase/messaging": "0.3.18",
-    "@firebase/polyfill": "0.3.12",
-    "@firebase/storage": "0.2.14"
+    "@firebase/app": "0.3.17",
+    "@firebase/auth": "0.10.2",
+    "@firebase/database": "0.3.20",
+    "@firebase/firestore": "1.2.2",
+    "@firebase/functions": "0.4.6",
+    "@firebase/messaging": "0.3.19",
+    "@firebase/polyfill": "0.3.13",
+    "@firebase/storage": "0.2.15",
+    "@firebase/performance": "0.2.0"
   },
   "devDependencies": {
     "git-rev-sync": "1.12.0",
-    "rollup": "1.10.0",
+    "rollup": "1.10.1",
     "rollup-plugin-commonjs": "9.3.4",
     "rollup-plugin-license": "0.8.1",
     "rollup-plugin-node-resolve": "4.2.3",
     "rollup-plugin-sourcemaps": "0.4.2",
-    "rollup-plugin-typescript2": "0.20.1",
+    "rollup-plugin-typescript2": "0.21.0",
     "rollup-plugin-uglify": "6.0.2",
-    "typescript": "3.4.3"
+    "rollup-plugin-terser": "4.0.4",
+    "typescript": "3.4.5"
   },
   "typings": "index.d.ts",
   "components": [
@@ -64,6 +67,7 @@
     "firestore",
     "functions",
     "messaging",
-    "storage"
+    "storage",
+    "performance"
   ]
 }

@@ -71,17 +71,17 @@ export interface Query {
     eventType?: EventType,
     callback?: (a: DataSnapshot, b?: string | null) => any,
     context?: Object | null
-  ): any;
+  ): void;
   on(
     eventType: EventType,
-    callback: (a: DataSnapshot | null, b?: string) => any,
-    cancelCallbackOrContext?: Object | null,
+    callback: (a: DataSnapshot, b?: string | null) => any,
+    cancelCallbackOrContext?: ((a: Error) => any) | Object | null,
     context?: Object | null
-  ): (a: DataSnapshot | null, b?: string) => any;
+  ): (a: DataSnapshot, b?: string | null) => any;
   once(
     eventType: EventType,
-    successCallback?: (a: DataSnapshot, b?: string) => any,
-    failureCallbackOrContext?: Object | null,
+    successCallback?: (a: DataSnapshot, b?: string | null) => any,
+    failureCallbackOrContext?: ((a: Error) => void) | Object | null,
     context?: Object | null
   ): Promise<DataSnapshot>;
   orderByChild(path: string): Query;

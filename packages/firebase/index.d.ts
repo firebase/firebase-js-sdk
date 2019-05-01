@@ -1053,6 +1053,30 @@ declare namespace firebase {
    * @webonly
    */
   function functions(app?: firebase.app.App): firebase.functions.Functions;
+
+  /**
+   * Gets the {@link firebase.performance.Performance `Performance`} service.
+   *
+   * `firebase.performance()` can be called with no arguments to access the default
+   * app's {@link firebase.performance.Performance `Performance`} service.
+   * The {@link firebase.performance.Performance `Performance`} service does not work with
+   * any other app.
+   *
+   * @webonly
+   *
+   * @example
+   * ```javascript
+   * // Get the Performance service for the default app
+   * const defaultPerformance = firebase.performance();
+   * ```
+   *
+   * @param app The app to create a performance service for. Performance Monitoring only works with
+   * the default app.
+   * If not passed, uses the default app.
+   */
+  function performance(
+    app?: firebase.app.App
+  ): firebase.performance.Performance;
 }
 
 declare namespace firebase.app {
@@ -1177,6 +1201,133 @@ declare namespace firebase.app {
      * @webonly
      */
     functions(region?: string): firebase.functions.Functions;
+    /**
+     * Gets the {@link firebase.performance.Performance `Performance`} service for the
+     * current app. If the current app is not the default one, throws an error.
+     *
+     * @webonly
+     *
+     * @example
+     * ```javascript
+     * const perf = app.performance();
+     * // The above is shorthand for:
+     * // const perf = firebase.performance(app);
+     * ```
+     */
+    performance(): firebase.performance.Performance;
+  }
+}
+
+/**
+ * @webonly
+ */
+declare namespace firebase.performance {
+  /**
+   * The Firebase Performance Monitoring service interface.
+   *
+   * Do not call this constructor directly. Instead, use
+   * {@link firebase.performance `firebase.performance()`}.
+   */
+  export interface Performance {
+    /**
+     * Creates an uninitialized instance of {@link firebase.performance.Trace `trace`} and returns
+     * it.
+     *
+     * @param traceName The name of the trace instance.
+     * @return The Trace instance.
+     */
+    trace(traceName: string): Trace;
+
+    /**
+     * Controls the logging of automatic traces and HTTP/S network monitoring.
+     */
+    instrumentationEnabled: boolean;
+    /**
+     * Controls the logging of custom traces.
+     */
+    dataCollectionEnabled: boolean;
+  }
+
+  export interface Trace {
+    /**
+     * Starts the timing for the {@link firebase.performance.Trace `trace`} instance.
+     */
+    start(): void;
+    /**
+     * Stops the timing of the {@link firebase.performance.Trace `trace`} instance and logs the
+     * data of the instance.
+     */
+    stop(): void;
+    /**
+     * Records a {@link firebase.performance.Trace `trace`} from given parameters. This provides a
+     * direct way to use {@link firebase.performance.Trace `trace`} without a need to start/stop.
+     * This is useful for use cases in which the {@link firebase.performance.Trace `trace`} cannot
+     * directly be used (e.g. if the duration was captured before the Performance SDK was loaded).
+     *
+     * @param startTime Trace start time since epoch in millisec.
+     * @param duration The duraction of the trace in millisec.
+     * @param options An object which can optionally hold maps of custom metrics and
+     * custom attributes.
+     */
+    record(
+      startTime: number,
+      duration: number,
+      options?: {
+        metrics?: { [key: string]: number };
+        attributes?: { [key: string]: string };
+      }
+    ): void;
+    /**
+     * Adds to the value of a custom metric. If a custom metric with the provided name does not
+     * exist, it creates one with that name and the value equal to the given number.
+     *
+     * @param metricName The name of the custom metric.
+     * @param num The number to be added to the value of the custom metric. If not provided, it
+     * uses a default value of one.
+     */
+    incrementMetric(metricName: string, num?: number): void;
+    /**
+     * Sets the value of the specified custom metric to the given number regardless of whether
+     * a metric with that name already exists on the {@link firebase.performance.Trace `trace`}
+     * instance or not.
+     *
+     * @param metricName Name of the custom metric.
+     * @param num Value to of the custom metric.
+     */
+    putMetric(metricName: string, num: number): void;
+    /**
+     * Returns the value of the custom metric by that name. If a custom metric with that name does
+     * not exist returns zero.
+     *
+     * @param metricName Name of the custom metric.
+     */
+    getMetric(metricName: string): number;
+    /**
+     * Set a custom attribute of a {@link firebase.performance.Trace `trace`} to a certain value.
+     *
+     * @param attr Name of the custom attribute.
+     * @param value Value of the custom attribute.
+     */
+    putAttribute(attr: string, value: string): void;
+    /**
+     * Retrieves the value that the custom attribute is set to.
+     *
+     * @param attr Name of the custom attribute.
+     */
+    getAttribute(attr: string): string | undefined;
+    /**
+     * Removes the specified custom attribute from a {@link firebase.performance.Trace `trace`}
+     * instance.
+     *
+     * @param attr Name of the custom attribute.
+     */
+
+    removeAttribute(attr: string): void;
+    /**
+     * Returns a map of all custom attributes of a {@link firebase.performance.Trace `trace`}
+     * instance.
+     */
+    getAttributes(): { [key: string]: string };
   }
 }
 
@@ -4388,8 +4539,8 @@ declare namespace firebase.database {
      * must also be called on any child listeners to remove the callback.
      *
      * If a callback is not specified, all callbacks for the specified eventType
-     * will be removed. Similarly, if no eventType or callback is specified, all
-     * callbacks for the `Reference` will be removed.
+     * will be removed. Similarly, if no eventType is specified, all callbacks
+     * for the `Reference` will be removed.
      *
      * @example
      * ```javascript
@@ -4414,16 +4565,17 @@ declare namespace firebase.database {
      * ```
      *
      * @param eventType One of the following strings: "value",
-     *   "child_added", "child_changed", "child_removed", or "child_moved."
-     * @param callback The
-     *   callback function that was passed to `on()`.
+     *   "child_added", "child_changed", "child_removed", or "child_moved." If
+     *   omitted, all callbacks for the `Reference` will be removed.
+     * @param callback The callback function that was passed to `on()` or
+     *   `undefined` to remove all callbacks.
      * @param context The context that was passed to `on()`.
      */
     off(
       eventType?: EventType,
       callback?: (a: firebase.database.DataSnapshot, b?: string | null) => any,
       context?: Object | null
-    ): any;
+    ): void;
 
     /**
      * Listens for data changes at a particular location.
@@ -4539,10 +4691,10 @@ declare namespace firebase.database {
      */
     on(
       eventType: EventType,
-      callback: (a: firebase.database.DataSnapshot | null, b?: string) => any,
+      callback: (a: firebase.database.DataSnapshot, b?: string | null) => any,
       cancelCallbackOrContext?: Object | null,
       context?: Object | null
-    ): (a: firebase.database.DataSnapshot | null, b?: string) => any;
+    ): (a: firebase.database.DataSnapshot | null, b?: string | null) => any;
 
     /**
      * Listens for exactly one event of the specified event type, and then stops
@@ -4579,10 +4731,13 @@ declare namespace firebase.database {
      */
     once(
       eventType: EventType,
-      successCallback?: (a: firebase.database.DataSnapshot, b?: string) => any,
-      failureCallbackOrContext?: Object | null,
+      successCallback?: (
+        a: firebase.database.DataSnapshot,
+        b?: string | null
+      ) => any,
+      failureCallbackOrContext?: ((a: Error) => void) | Object | null,
       context?: Object | null
-    ): Promise<DataSnapshot>;
+    ): Promise<firebase.database.DataSnapshot>;
     /**
      * Generates a new `Query` object ordered by the specified child key.
      *
@@ -6033,6 +6188,18 @@ declare namespace firebase.firestore {
      * @return The `DocumentReference` instance.
      */
     doc(documentPath: string): DocumentReference;
+
+    /**
+     * Creates and returns a new Query that includes all documents in the
+     * database that are contained in a collection or subcollection with the
+     * given collectionId.
+     *
+     * @param collectionId Identifies the collections to query over. Every
+     * collection or subcollection with this ID as the last segment of its path
+     * will be included. Cannot contain a slash.
+     * @return The created Query.
+     */
+    collectionGroup(collectionId: string): Query;
 
     /**
      * Executes the given `updateFunction` and then attempts to commit the changes

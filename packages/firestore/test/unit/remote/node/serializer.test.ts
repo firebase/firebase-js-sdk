@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 import * as Long from 'long';
+import * as ProtobufJS from 'protobufjs';
 
 import { Blob } from '../../../../src/api/blob';
 import { PublicFieldValue as FieldValue } from '../../../../src/api/field_value';
@@ -41,7 +42,10 @@ import {
   SetMutation
 } from '../../../../src/model/mutation';
 import { DOCUMENT_KEY_NAME, FieldPath } from '../../../../src/model/path';
-import { loadProtos } from '../../../../src/platform_node/load_protos';
+import {
+  loadRawProtos,
+  protoLoaderOptions
+} from '../../../../src/platform_node/load_protos';
 import * as api from '../../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../../src/remote/serializer';
 import {
@@ -76,9 +80,19 @@ import {
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
   const s = new JsonProtoSerializer(partition, { useProto3Json: false });
+  const proto3JsonSerializer = new JsonProtoSerializer(partition, {
+    useProto3Json: true
+  });
   const emptyResumeToken = new Uint8Array(0);
-  const protos = loadProtos();
-  const ds = protos['google']['firestore']['v1'];
+  const protos = loadRawProtos();
+
+  // tslint:disable:variable-name
+  const ValueMessage = protos.lookupType('google.firestore.v1.Value');
+  const LatLngMessage = protos.lookupType('google.type.LatLng');
+  const TimestampMessage = protos.lookupType('google.protobuf.Timestamp');
+  const ArrayValueMessage = protos.lookupType('google.firestore.v1.ArrayValue');
+  const MapValueMessage = protos.lookupType('google.firestore.v1.MapValue');
+  // tslint:enable:variable-name
 
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
@@ -96,29 +110,84 @@ describe('Serializer', () => {
     );
   }
 
-  describe('toValue', () => {
+  describe('converts value', () => {
+    addEqualityMatcher();
+
     /**
-     * Verifies that the given object can be parsed as a datastore Value proto.
+     * Verifies full round-trip of encoding/decoding fieldValue objects:
+     *
+     * 1. Encoding: FieldValue => JSON proto => protobufJS proto
+     * 2. Decoding: protobufJS proto => JSON proto => FieldValue
      */
-    function expectValue(obj: unknown, tag: string): Chai.Assertion {
-      const proto = new ds.Value(obj);
-      expect(proto.value_type).to.equal(tag);
-      return expect(proto[tag]);
+    function verifyFieldValueRoundTrip(opts: {
+      /** The FieldValue to test. */
+      value: fieldValue.FieldValue;
+      /** The expected one_of field to be used (e.g. 'nullValue') */
+      valueType: string;
+      /** The expected JSON value for the field (e.g. 'NULL_VALUE') */
+      jsonValue: unknown;
+      /**
+       * The expected protobufJs value for the field (e.g. `0`). This is
+       * largely inconsequential (we only rely on the JSON representation), but
+       * it can be useful for debugging issues. If omitted, it's assumed to be
+       * the same as jsonValue.
+       */
+      protobufJsValue?: unknown;
+      /**
+       * If true, uses the proto3Json serializer (and skips the round-trip
+       * through protobufJs).
+       */
+      useProto3Json?: boolean;
+    }): void {
+      const { value, valueType, jsonValue } = opts;
+      const protobufJsValue =
+        opts.protobufJsValue !== undefined
+          ? opts.protobufJsValue
+          : opts.jsonValue;
+      const serializer = opts.useProto3Json ? proto3JsonSerializer : s;
+
+      // Convert FieldValue to JSON and verify.
+      const actualJsonProto = serializer.toValue(value);
+      expect(actualJsonProto).to.deep.equal({ [valueType]: jsonValue });
+
+      // If we're using protobufJs JSON (not Proto3Json), then round-trip through protobufjs.
+      if (!opts.useProto3Json) {
+        // Convert JSON to protobufjs and verify value.
+        const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
+          actualJsonProto
+        );
+        expect(actualProtobufjsProto[valueType]).to.deep.equal(protobufJsValue);
+
+        // Convert protobufjs back to JSON.
+        const returnJsonProto = ValueMessage.toObject(
+          actualProtobufjsProto,
+          protoLoaderOptions
+        );
+        expect(returnJsonProto).to.deep.equal(actualJsonProto);
+      }
+
+      // Convert JSON back to FieldValue.
+      const actualReturnFieldValue = serializer.fromValue(actualJsonProto);
+      expect(actualReturnFieldValue.isEqual(value)).to.be.true;
     }
 
     it('converts NullValue', () => {
-      const obj = s.toValue(fieldValue.NullValue.INSTANCE);
-      expect(obj).to.deep.equal({ nullValue: 'NULL_VALUE' });
-      // protobuf.js generates it differently.
-      expectValue(obj, 'nullValue').to.equal(0);
+      verifyFieldValueRoundTrip({
+        value: fieldValue.NullValue.INSTANCE,
+        valueType: 'nullValue',
+        jsonValue: 'NULL_VALUE',
+        protobufJsValue: 0
+      });
     });
 
     it('converts BooleanValue', () => {
       const examples = [true, false];
       for (const example of examples) {
-        const obj = s.toValue(fieldValue.BooleanValue.of(example));
-        expect(obj).to.deep.equal({ booleanValue: example });
-        expectValue(obj, 'booleanValue').to.equal(example);
+        verifyFieldValueRoundTrip({
+          value: fieldValue.BooleanValue.of(example),
+          valueType: 'booleanValue',
+          jsonValue: example
+        });
       }
     });
 
@@ -133,14 +202,15 @@ describe('Serializer', () => {
         types.MAX_SAFE_INTEGER
       ];
       for (const example of examples) {
-        const obj = s.toValue(new fieldValue.IntegerValue(example));
-        expect(obj).to.deep.equal({ integerValue: '' + example });
-
-        const longVal = Long.fromString(example.toString(), false);
-        expectValue(obj, 'integerValue').to.deep.equal(
-          longVal,
-          'for integer ' + example
-        );
+        verifyFieldValueRoundTrip({
+          value: new fieldValue.IntegerValue(example),
+          valueType: 'integerValue',
+          jsonValue: '' + example,
+          protobufJsValue: Long.fromString(
+            example.toString(),
+            /*unsigned=*/ false
+          )
+        });
       }
     });
 
@@ -158,13 +228,11 @@ describe('Serializer', () => {
         Number.NEGATIVE_INFINITY
       ];
       for (const example of examples) {
-        const obj = s.toValue(new fieldValue.DoubleValue(example));
-
-        expect(obj).to.deep.equal({ doubleValue: example });
-        expectValue(obj, 'doubleValue').to.deep.equal(
-          example,
-          'for double ' + example
-        );
+        verifyFieldValueRoundTrip({
+          value: new fieldValue.DoubleValue(example),
+          valueType: 'doubleValue',
+          jsonValue: example
+        });
       }
     });
 
@@ -178,106 +246,130 @@ describe('Serializer', () => {
         '(╯°□°）╯︵ ┻━┻'
       ];
       for (const example of examples) {
-        const obj = s.toValue(new fieldValue.StringValue(example));
-        expect(obj).to.deep.equal({ stringValue: example });
-
-        expectValue(obj, 'stringValue').to.deep.equal(
-          example,
-          'for string ' + example
-        );
+        verifyFieldValueRoundTrip({
+          value: new fieldValue.StringValue(example),
+          valueType: 'stringValue',
+          jsonValue: example
+        });
       }
     });
 
-    it('converts TimestampValue', () => {
+    it('converts TimestampValue from proto', () => {
       const examples = [
         new Date(Date.UTC(2016, 0, 2, 10, 20, 50, 850)),
         new Date(Date.UTC(2016, 5, 17, 10, 50, 15, 0))
       ];
 
       const expectedJson = [
-        { seconds: 1451730050, nanos: 850000000 },
-        { seconds: 1466160615, nanos: 0 }
+        { seconds: '1451730050', nanos: 850000000 },
+        { seconds: '1466160615', nanos: 0 }
       ];
 
       for (let i = 0; i < examples.length; i++) {
-        const example = examples[i];
-        const obj = s.toValue(
-          new fieldValue.TimestampValue(Timestamp.fromDate(example))
-        );
-        const expected = { timestampValue: expectedJson[i] };
-        expect(obj).to.deep.equal(expected);
-        expectValue(obj, 'timestampValue').to.deep.equal(
-          new protos['google']['protobuf'].Timestamp(expectedJson[i]),
-          'for date ' + example
-        );
+        verifyFieldValueRoundTrip({
+          value: new fieldValue.TimestampValue(Timestamp.fromDate(examples[i])),
+          valueType: 'timestampValue',
+          jsonValue: expectedJson[i],
+          protobufJsValue: TimestampMessage.fromObject(expectedJson[i])
+        });
       }
+    });
+
+    it('converts TimestampValue from string', () => {
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123456Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
+      );
+
+      expect(
+        s.fromValue({ timestampValue: '2017-03-07T07:42:58Z' })
+      ).to.deep.equal(
+        new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
+      );
     });
 
     it('converts GeoPointValue', () => {
       const example = new GeoPoint(1.23, 4.56);
-
       const expected = {
-        geoPointValue: {
-          latitude: 1.23,
-          longitude: 4.56
-        }
+        latitude: 1.23,
+        longitude: 4.56
       };
 
-      const obj = s.toValue(new fieldValue.GeoPointValue(example));
-      expect(obj).to.deep.equal(expected);
-      expectValue(obj, 'geoPointValue').to.deep.equal(
-        new protos['google']['type'].LatLng(1.23, 4.56)
-      );
+      verifyFieldValueRoundTrip({
+        value: new fieldValue.GeoPointValue(example),
+        valueType: 'geoPointValue',
+        jsonValue: expected,
+        protobufJsValue: LatLngMessage.fromObject(expected)
+      });
     });
 
     it('converts BlobValue to Uint8Array', () => {
       const bytes = [0, 1, 2, 3, 4, 5];
       const example = Blob.fromUint8Array(new Uint8Array(bytes));
+      const expected = new Uint8Array(bytes);
 
-      const expected = {
-        bytesValue: new Uint8Array(bytes)
-      };
-
-      const obj = s.toValue(new fieldValue.BlobValue(example));
-      expect(obj).to.deep.equal(expected);
+      verifyFieldValueRoundTrip({
+        value: new fieldValue.BlobValue(example),
+        valueType: 'bytesValue',
+        jsonValue: expected
+      });
     });
 
-    it('converts BlobValue to Base64 string', () => {
+    it('converts BlobValue to Base64 string (useProto3Json=true)', () => {
       const base64 = 'AAECAwQF';
-      const bytes = [0, 1, 2, 3, 4, 5];
-      const example = Blob.fromUint8Array(new Uint8Array(bytes));
-
-      const expected = { bytesValue: base64 };
-
-      const serializer = new JsonProtoSerializer(partition, {
+      verifyFieldValueRoundTrip({
+        value: new fieldValue.BlobValue(Blob.fromBase64String(base64)),
+        valueType: 'bytesValue',
+        jsonValue: base64,
         useProto3Json: true
       });
-      const obj = serializer.toValue(new fieldValue.BlobValue(example));
-      expect(obj).to.deep.equal(expected);
     });
 
     it('converts ArrayValue', () => {
-      const data = [true, 'foo'];
-      const obj = s.toValue(wrap(data));
-      expect(obj).to.deep.equal({
-        arrayValue: { values: [{ booleanValue: true }, { stringValue: 'foo' }] }
+      const value = wrap([true, 'foo']);
+      const jsonValue = {
+        values: [{ booleanValue: true }, { stringValue: 'foo' }]
+      };
+      verifyFieldValueRoundTrip({
+        value,
+        valueType: 'arrayValue',
+        jsonValue,
+        protobufJsValue: ArrayValueMessage.fromObject(jsonValue)
       });
     });
 
     it('converts empty ArrayValue', () => {
-      const obj = s.toValue(wrap([]));
-      expect(obj).to.deep.equal({ arrayValue: { values: [] } });
+      verifyFieldValueRoundTrip({
+        value: wrap([]),
+        valueType: 'arrayValue',
+        jsonValue: { values: [] },
+        protobufJsValue: ArrayValueMessage.fromObject({})
+      });
     });
 
     it('converts ObjectValue.EMPTY', () => {
-      const obj = s.toValue(fieldValue.ObjectValue.EMPTY);
-      expect(obj).to.deep.equal({ mapValue: { fields: {} } });
-
-      expectValue(obj, 'mapValue').to.deep.equal(new ds.MapValue());
+      verifyFieldValueRoundTrip({
+        value: wrap({}),
+        valueType: 'mapValue',
+        jsonValue: { fields: {} },
+        protobufJsValue: MapValueMessage.fromObject({})
+      });
     });
 
     it('converts nested ObjectValues', () => {
-      // clang-format off
       const original = {
         b: true,
         d: Number.MAX_VALUE,
@@ -296,7 +388,7 @@ describe('Serializer', () => {
       const objValue = wrapObject(original);
       expect(objValue.value()).to.deep.equal(original);
 
-      const expectedJson = {
+      const expectedJson: api.Value = {
         mapValue: {
           fields: {
             b: { booleanValue: true },
@@ -337,220 +429,27 @@ describe('Serializer', () => {
           }
         }
       };
-      const obj = s.toValue(objValue);
-      expect(obj).to.deep.equal(expectedJson);
 
-      // Compare the raw object representation rather than the Message because
-      // occasionally Jasmine will hang trying to generate the string form in
-      // the event of an inequality.
-      expect(new ds.Value(obj).toRaw(true, true)).to.deep.equal(
-        new ds.Value(expectedJson).toRaw(true, true)
-      );
-      // clang-format on
-    });
-  });
-
-  describe('fromValue', () => {
-    addEqualityMatcher();
-
-    it('converts NullValue', () => {
-      const proto: api.Value = { nullValue: 'NULL_VALUE' };
-      expect(new ds.Value(proto).value_type).to.equal('nullValue');
-      expect(s.fromValue(proto)).to.equal(fieldValue.NullValue.INSTANCE);
-    });
-
-    it('converts BooleanValue', () => {
-      const examples = [true, false];
-      for (const example of examples) {
-        const proto = { booleanValue: example };
-        expect(new ds.Value(proto).value_type).to.equal('booleanValue');
-        expect(s.fromValue(proto)).to.deep.equal(
-          fieldValue.BooleanValue.of(example)
-        );
-      }
-    });
-
-    it('converts IntegerValue', () => {
-      const examples = [
-        types.MIN_SAFE_INTEGER,
-        -100,
-        -1,
-        0,
-        1,
-        100,
-        types.MAX_SAFE_INTEGER
-      ];
-      for (const example of examples) {
-        const proto: api.Value = { integerValue: '' + example };
-        expect(new ds.Value(proto).value_type).to.equal('integerValue');
-        expect(s.fromValue(proto)).to.deep.equal(
-          new fieldValue.IntegerValue(example)
-        );
-      }
-    });
-
-    it('converts DoubleValue', () => {
-      const examples = [
-        Number.MIN_VALUE,
-        -10.0,
-        -1.0,
-        0.0,
-        1.0,
-        10.0,
-        Number.MAX_VALUE,
-        NaN,
-        Number.POSITIVE_INFINITY,
-        Number.NEGATIVE_INFINITY
-      ];
-      for (const example of examples) {
-        const proto = { doubleValue: example };
-        expect(new ds.Value(proto).value_type).to.equal('doubleValue');
-        expect(s.fromValue(proto)).to.deep.equal(
-          new fieldValue.DoubleValue(example)
-        );
-      }
-    });
-
-    it('converts StringValue', () => {
-      const examples = [
-        '',
-        'a',
-        'abc def',
-        'æ',
-        '\u0000\ud7ff\ue000\uffff',
-        '(╯°□°）╯︵ ┻━┻'
-      ];
-      for (const example of examples) {
-        const proto = { stringValue: example };
-        expect(new ds.Value(proto).value_type).to.equal('stringValue');
-        expect(s.fromValue(proto)).to.deep.equal(
-          new fieldValue.StringValue(example)
-        );
-      }
-    });
-
-    it('converts ArrayValue', () => {
-      const proto = {
-        arrayValue: { values: [{ booleanValue: true }, { stringValue: 'foo' }] }
-      };
-      expect(new ds.Value(proto).value_type).to.equal('arrayValue');
-      expect(s.fromValue(proto)).to.deep.equal(
-        new fieldValue.ArrayValue([
-          fieldValue.BooleanValue.TRUE,
-          new fieldValue.StringValue('foo')
-        ])
-      );
-    });
-
-    it('converts empty ArrayValue', () => {
-      const proto = { arrayValue: {} };
-      expect(new ds.Value(proto).value_type).to.equal('arrayValue');
-      expect(s.fromValue(proto)).to.deep.equal(new fieldValue.ArrayValue([]));
-    });
-
-    it('converts ObjectValue.EMPTY', () => {
-      const proto = { mapValue: { fields: {} } };
-      expect(new ds.Value(proto).mapValue).to.deep.equal(new ds.MapValue());
-      expect(s.fromValue(proto)).to.deep.equal(fieldValue.ObjectValue.EMPTY);
-    });
-
-    it('converts TimestampValue from proto', () => {
-      const examples = [
-        { seconds: '1451730050', nanos: 850000000 },
-        { seconds: '1466160615', nanos: 0 }
-      ];
-      const expectedValues = [
-        new Date(Date.UTC(2016, 0, 2, 10, 20, 50, 850)),
-        new Date(Date.UTC(2016, 5, 17, 10, 50, 15, 0))
-      ];
-
-      for (let i = 0; i < examples.length; i++) {
-        const example = examples[i];
-        const date = expectedValues[i];
-        // We have to trick it into thinking the timestampValue is a string,
-        // because the proto interface definition isn't comprehensive.
-        // tslint:disable-next-line:no-any
-        const proto: api.Value = { timestampValue: example as any };
-        expect(new ds.Value(proto).value_type).to.equal('timestampValue');
-        expect(s.fromValue(proto)).to.deep.equal(
-          new fieldValue.TimestampValue(Timestamp.fromDate(date))
-        );
-      }
-    });
-
-    it('converts TimestampValue from string', () => {
-      expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123456Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
-      );
-
-      expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916123Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
-      );
-
-      expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58.916Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
-      );
-
-      expect(
-        s.fromValue({ timestampValue: '2017-03-07T07:42:58Z' })
-      ).to.deep.equal(
-        new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
-      );
-    });
-
-    it('converts GeoPointValue', () => {
-      const proto = {
-        geoPointValue: {
-          latitude: 1.23,
-          longitude: 4.56
-        }
-      };
-
-      expect(s.fromValue(proto)).to.deep.equal(
-        new fieldValue.GeoPointValue(new GeoPoint(1.23, 4.56))
-      );
-    });
-
-    it('converts BlobValue from Uint8Array', () => {
-      const bytes = [0, 1, 2, 3, 4, 5];
-      const proto = {
-        // The types say it's a string, but it's actually a Uint8Array in Node
-        // tslint:disable-next-line:no-any
-        bytesValue: new Uint8Array(bytes) as any
-      };
-      const blob = Blob.fromUint8Array(new Uint8Array(bytes));
-      expect(s.fromValue(proto)).to.deep.equal(new fieldValue.BlobValue(blob));
-    });
-
-    it('converts BlobValue from string', () => {
-      const base64 = 'AAECAwQF';
-      const bytes = [0, 1, 2, 3, 4, 5];
-      const proto = { bytesValue: base64 };
-      const blob = Blob.fromUint8Array(new Uint8Array(bytes));
-      const serializer = new JsonProtoSerializer(partition, {
-        useProto3Json: true
+      verifyFieldValueRoundTrip({
+        value: objValue,
+        valueType: 'mapValue',
+        jsonValue: expectedJson.mapValue,
+        protobufJsValue: MapValueMessage.fromObject(expectedJson.mapValue!)
       });
-      expect(serializer.fromValue(proto)).to.deep.equal(
-        new fieldValue.BlobValue(blob)
-      );
     });
 
     it('converts RefValue', () => {
       const example = 'projects/project1/databases/database1/documents/docs/1';
-
-      const expected = new fieldValue.RefValue(
+      const value: fieldValue.FieldValue = new fieldValue.RefValue(
         dbId('project1', 'database1'),
         key('docs/1')
       );
 
-      const obj = s.fromValue({ referenceValue: example });
-      expect(obj).to.deep.equal(expected);
+      verifyFieldValueRoundTrip({
+        value,
+        valueType: 'referenceValue',
+        jsonValue: example
+      });
     });
   });
 
@@ -758,7 +657,7 @@ describe('Serializer', () => {
       const proto = {
         update: s.toMutationDocument(mutation.key, mutation.value),
         currentDocument: {
-          updateTime: { seconds: 0, nanos: 4000 }
+          updateTime: { seconds: '0', nanos: 4000 }
         }
       };
       verifyMutation(mutation, proto);
