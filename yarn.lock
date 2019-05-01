@@ -837,10 +837,10 @@
     through2 "^2.0.0"
     xdg-basedir "^3.0.0"
 
-"@grpc/proto-loader@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.4.0.tgz#a823a51eb2fde58369bef1deb5445fd808d70901"
-  integrity sha512-Jm6o+75uWT7E6+lt8edg4J1F/9+BedOjaMgwE14pxS/AO43/0ZqK+rCLVVrXLoExwSAZvgvOD2B0ivy3Spsspw==
+"@grpc/proto-loader@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.5.0.tgz#6d21930530db6089ed68a90f10a22b76fdc3387d"
+  integrity sha512-kF5toaC4A7PRjAuIxE0fYAv8WarJ6JELYlmHpkoo4EGTFvXUsQwVfyj2bgPV2023M77s2TtDn36wPMJB0sz8nA==
   dependencies:
     lodash.camelcase "^4.3.0"
     protobufjs "^6.8.6"
@@ -1820,6 +1820,11 @@
   resolved "https://registry.npmjs.org/@types/node/-/node-11.13.7.tgz#85dbb71c510442d00c0631f99dae957ce44fd104"
   integrity sha512-suFHr6hcA9mp8vFrZTgrmqW2ZU3mbWsryQtQlY/QvwTISCw7nw/j+bCQPPohqmskhmqa5wLNuMHTTsc+xf1MQg==
 
+"@types/node@^10.1.0":
+  version "10.14.4"
+  resolved "https://registry.npmjs.org/@types/node/-/node-10.14.4.tgz#1c586b991457cbb58fef51bc4e0cfcfa347714b5"
+  integrity sha512-DT25xX/YgyPKiHFOpNuANIQIVvYEwCWXgK2jYYwqgaMrYE6+tq+DtmMwlD3drl6DJbUwtlIDnn0d7tIn/EbXBg==
+
 "@types/node@^11.13.5":
   version "11.13.8"
   resolved "https://registry.npmjs.org/@types/node/-/node-11.13.8.tgz#e5d71173c95533be9842b2c798978f095f912aab"
@@ -1829,11 +1834,6 @@
   version "2.4.0"
   resolved "https://registry.npmjs.org/@types/normalize-package-data/-/normalize-package-data-2.4.0.tgz#e486d0d97396d79beedd0a6e33f4534ff6b4973e"
   integrity sha512-f5j5b/Gf71L+dbqxIpQ4Z2WlmI/mPJ0fOkGGmFgtb6sAu97EPczzbS3/tJKxmcYDj55OX6ssqwDAWOHIYDRDGA==
-
-"@types/node@^10.1.0":
-  version "10.14.4"
-  resolved "https://registry.npmjs.org/@types/node/-/node-10.14.4.tgz#1c586b991457cbb58fef51bc4e0cfcfa347714b5"
-  integrity sha512-DT25xX/YgyPKiHFOpNuANIQIVvYEwCWXgK2jYYwqgaMrYE6+tq+DtmMwlD3drl6DJbUwtlIDnn0d7tIn/EbXBg==
 
 "@types/request@2.48.1":
   version "2.48.1"
