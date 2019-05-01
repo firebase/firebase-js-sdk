@@ -70,7 +70,6 @@ firebase.auth.AuthCredential.prototype.providerId;
  */
 firebase.auth.AuthCredential.prototype.signInMethod;
 
-
 /**
  * Static method to deserialize a JSON representation of an object into an
  * {@link firebase.auth.AuthCredential}. Input can be either Object or the
@@ -83,13 +82,11 @@ firebase.auth.AuthCredential.prototype.signInMethod;
  */
 firebase.auth.AuthCredential.fromJSON = function(json) {};
 
-
 /**
  * Returns a JSON-serializable representation of this object.
  * @return {!Object} The plain object representation of the `AuthCredential`.
  */
 firebase.auth.AuthCredential.prototype.toJSON = function() {};
-
 
 /**
  * Interface that represents the OAuth credentials returned by an OAuth
@@ -336,9 +333,6 @@ firebase.User.prototype.sendEmailVerification = function(actionCodeSettings) {};
 /**
  * Links the user account with the given credentials.
  *
- * This method is deprecated. Use
- * {@link firebase.User#linkAndRetrieveDataWithCredential} instead.
- *
  * <h4>Error Codes</h4>
  * <dl>
  * <dt>auth/provider-already-linked</dt>
@@ -369,7 +363,7 @@ firebase.User.prototype.sendEmailVerification = function(actionCodeSettings) {};
  *     ({@link firebase.auth.AuthCredential}) fields are also provided.
  *     You have to link the credential to the existing user with that email if
  *     you wish to continue signing in with that credential. To do so, call
- *     {@link firebase.auth.Auth#fetchProvidersForEmail}, sign in to
+ *     {@link firebase.auth.Auth#fetchSignInMethodsForEmail}, sign in to
  *     <code>error.email</code> via one of the providers returned and then
  *     {@link firebase.User#linkWithCredential} the original credential to that
  *     newly signed in user.</dd>
@@ -395,13 +389,16 @@ firebase.User.prototype.sendEmailVerification = function(actionCodeSettings) {};
  * </dl>
  *
  * @param {!firebase.auth.AuthCredential} credential The auth credential.
- * @return {!firebase.Promise<!firebase.User>}
+ * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
 firebase.User.prototype.linkWithCredential = function(credential) {};
 
 /**
  * Links the user account with the given credentials, and returns any available
  * additional user information, such as user name.
+ *
+ * This method is deprecated. Use
+ * {@link firebase.User#linkWithCredential} instead.
  *
  * <h4>Error Codes</h4>
  * <dl>
@@ -433,7 +430,7 @@ firebase.User.prototype.linkWithCredential = function(credential) {};
  *     ({@link firebase.auth.AuthCredential}) fields are also provided.
  *     You have to link the credential to the existing user with that email if
  *     you wish to continue signing in with that credential. To do so, call
- *     {@link firebase.auth.Auth#fetchProvidersForEmail}, sign in to
+ *     {@link firebase.auth.Auth#fetchSignInMethodsForEmail}, sign in to
  *     <code>error.email</code> via one of the providers returned and then
  *     {@link firebase.User#linkWithCredential} the original credential to that
  *     newly signed in user.</dd>
@@ -531,9 +528,6 @@ firebase.User.prototype.unlink = function(providerId) {};
  * such as {@link firebase.User#updatePassword} that require tokens from recent
  * sign-in attempts.
  *
- * This method is deprecated. Use
- * {@link firebase.User#reauthenticateAndRetrieveDataWithCredential} instead.
- *
  * <h4>Error Codes</h4>
  * <dl>
  * <dt>auth/user-mismatch</dt>
@@ -564,7 +558,7 @@ firebase.User.prototype.unlink = function(providerId) {};
  * </dl>
  *
  * @param {!firebase.auth.AuthCredential} credential
- * @return {!firebase.Promise<void>}
+ * @return {!firebase.Promise<firebase.auth.UserCredential>}
  */
 firebase.User.prototype.reauthenticateWithCredential = function(credential) {};
 
@@ -573,6 +567,9 @@ firebase.User.prototype.reauthenticateWithCredential = function(credential) {};
  * additional user information, such as user name. Use before operations
  * such as {@link firebase.User#updatePassword} that require tokens from recent
  * sign-in attempts.
+ *
+ * This method is deprecated. Use
+ * {@link firebase.User#reauthenticateWithCredential} instead.
  *
  * <h4>Error Codes</h4>
  * <dl>
@@ -1060,60 +1057,6 @@ firebase.auth.Auth.prototype.settings;
 
 /**
  * Creates a new user account associated with the specified email address and
- * password and returns any additional user info data or credentials.
- *
- * This method is deprecated. Use
- * {@link firebase.auth.Auth#createUserWithEmailAndPassword} instead.
- *
- * On successful creation of the user account, this user will also be
- * signed in to your application.
- *
- * User account creation can fail if the account already exists or the password
- * is invalid.
- *
- * Note: The email address acts as a unique identifier for the user and
- * enables an email-based password reset.  This function will create
- * a new user account and set the initial user password.
- *
- * <h4>Error Codes</h4>
- * <dl>
- * <dt>auth/email-already-in-use</dt>
- * <dd>Thrown if there already exists an account with the given email
- *     address.</dd>
- * <dt>auth/invalid-email</dt>
- * <dd>Thrown if the email address is not valid.</dd>
- * <dt>auth/operation-not-allowed</dt>
- * <dd>Thrown if email/password accounts are not enabled. Enable email/password
- *     accounts in the Firebase Console, under the Auth tab.</dd>
- * <dt>auth/weak-password</dt>
- * <dd>Thrown if the password is not strong enough.</dd>
- * </dl>
- *
- * @example
- * firebase.auth().createUserAndRetrieveDataWithEmailAndPassword(email, password)
- *     .catch(function(error) {
- *       // Handle Errors here.
- *       var errorCode = error.code;
- *       var errorMessage = error.message;
- *       if (errorCode == 'auth/weak-password') {
- *         alert('The password is too weak.');
- *       } else {
- *         alert(errorMessage);
- *       }
- *       console.log(error);
- *     });
- *
- * @param {string} email The user's email address.
- * @param {string} password The user's chosen password.
- * @return {!firebase.Promise<!firebase.auth.UserCredential>}
- */
-firebase.auth.Auth.prototype.createUserAndRetrieveDataWithEmailAndPassword = function(
-  email,
-  password
-) {};
-
-/**
- * Creates a new user account associated with the specified email address and
  * password.
  *
  * On successful creation of the user account, this user will also be
@@ -1162,24 +1105,6 @@ firebase.auth.Auth.prototype.createUserWithEmailAndPassword = function(
   email,
   password
 ) {};
-
-/**
- * Gets the list of provider IDs that can be used to sign in for the given email
- * address. Useful for an "identifier-first" sign-in flow.
- *
- * This method is deprecated. Use
- * {@link firebase.auth.Auth#fetchSignInMethodsForEmail} instead.
- *
- * <h4>Error Codes</h4>
- * <dl>
- * <dt>auth/invalid-email</dt>
- * <dd>Thrown if the email address is not valid.</dd>
- * </dl>
- *
- * @param {string} email An email address.
- * @return {!firebase.Promise<!Array<string>>}
- */
-firebase.auth.Auth.prototype.fetchProvidersForEmail = function(email) {};
 
 /**
  * Gets the list of possible sign in methods for the given email address. This
@@ -1443,15 +1368,12 @@ firebase.auth.Auth.prototype.confirmPasswordReset = function(
 /**
  * Asynchronously signs in with the given credentials.
  *
- * This method is deprecated. Use
- * {@link firebase.auth.Auth#signInAndRetrieveDataWithCredential} instead.
- *
  * <h4>Error Codes</h4>
  * <dl>
  * <dt>auth/account-exists-with-different-credential</dt>
  * <dd>Thrown if there already exists an account with the email address
  *     asserted by the credential. Resolve this by calling
- *     {@link firebase.auth.Auth#fetchProvidersForEmail} and then asking the
+ *     {@link firebase.auth.Auth#fetchSignInMethodsForEmail} and then asking the
  *     user to sign in using one of the returned providers. Once the user is
  *     signed in, the original credential can be linked to the user with
  *     {@link firebase.User#linkWithCredential}.</dd>
@@ -1501,7 +1423,7 @@ firebase.auth.Auth.prototype.confirmPasswordReset = function(
  *  });
  *
  * @param {!firebase.auth.AuthCredential} credential The auth credential.
- * @return {!firebase.Promise<!firebase.User>}
+ * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
 firebase.auth.Auth.prototype.signInWithCredential = function(credential) {};
 
@@ -1509,12 +1431,15 @@ firebase.auth.Auth.prototype.signInWithCredential = function(credential) {};
  * Asynchronously signs in with the given credentials, and returns any available
  * additional user information, such as user name.
  *
+ * This method is deprecated. Use
+ * {@link firebase.auth.Auth#signInWithCredential} instead.
+ *
  * <h4>Error Codes</h4>
  * <dl>
  * <dt>auth/account-exists-with-different-credential</dt>
  * <dd>Thrown if there already exists an account with the email address
  *     asserted by the credential. Resolve this by calling
- *     {@link firebase.auth.Auth#fetchProvidersForEmail} and then asking the
+ *     {@link firebase.auth.Auth#fetchSignInMethodsForEmail} and then asking the
  *     user to sign in using one of the returned providers. Once the user is
  *     signed in, the original credential can be linked to the user with
  *     {@link firebase.User#linkWithCredential}.</dd>
@@ -1560,47 +1485,6 @@ firebase.auth.Auth.prototype.signInAndRetrieveDataWithCredential = function(
 ) {};
 
 /**
- * Signs in a user asynchronously using a custom token and returns any
- * additional user info data or credentials.
- *
- * This method is deprecated. Use
- * {@link firebase.auth.Auth#signInWithCustomToken} instead.
- *
- * Custom tokens are used to integrate Firebase Auth with existing auth systems,
- * and must be generated by the auth backend.
- *
- * Fails with an error if the token is invalid, expired, or not accepted by the
- * Firebase Auth service.
- *
- * <h4>Error Codes</h4>
- * <dl>
- * <dt>auth/custom-token-mismatch</dt>
- * <dd>Thrown if the custom token is for a different Firebase App.</dd>
- * <dt>auth/invalid-custom-token</dt>
- * <dd>Thrown if the custom token format is incorrect.</dd>
- * </dl>
- *
- * @example
- * firebase.auth().signInAndRetrieveDataWithCustomToken(token)
- *     .catch(function(error) {
- *       // Handle Errors here.
- *       var errorCode = error.code;
- *       var errorMessage = error.message;
- *       if (errorCode === 'auth/invalid-custom-token') {
- *         alert('The token you provided is not valid.');
- *       } else {
- *         console.error(error);
- *       }
- *     });
- *
- * @param {string} token The custom token to sign in with.
- * @return {!firebase.Promise<!firebase.auth.UserCredential>}
- */
-firebase.auth.Auth.prototype.signInAndRetrieveDataWithCustomToken = function(
-  token
-) {};
-
-/**
  * Asynchronously signs in using a custom token.
  *
  * Custom tokens are used to integrate Firebase Auth with existing auth systems,
@@ -1633,59 +1517,6 @@ firebase.auth.Auth.prototype.signInAndRetrieveDataWithCustomToken = function(
  * @return {!firebase.Promise<!firebase.auth.UserCredential>}
  */
 firebase.auth.Auth.prototype.signInWithCustomToken = function(token) {};
-
-/**
- * Asynchronously signs in using an email and password and returns any additional
- * user info data or credentials.
- *
- * This method is deprecated. Use
- * {@link firebase.auth.Auth#signInWithEmailAndPassword} instead.
- *
- * Fails with an error if the email address and password do not match.
- *
- * Note: The user's password is NOT the password used to access the user's email
- * account. The email address serves as a unique identifier for the user, and
- * the password is used to access the user's account in your Firebase project.
- *
- * See also:
- * {@link firebase.auth.Auth#createUserAndRetrieveDataWithEmailAndPassword}.
- *
- * <h4>Error Codes</h4>
- * <dl>
- * <dt>auth/invalid-email</dt>
- * <dd>Thrown if the email address is not valid.</dd>
- * <dt>auth/user-disabled</dt>
- * <dd>Thrown if the user corresponding to the given email has been
- *     disabled.</dd>
- * <dt>auth/user-not-found</dt>
- * <dd>Thrown if there is no user corresponding to the given email.</dd>
- * <dt>auth/wrong-password</dt>
- * <dd>Thrown if the password is invalid for the given email, or the account
- *     corresponding to the email does not have a password set.</dd>
- * </dl>
- *
- * @example
- * firebase.auth().signInAndRetrieveDataWithEmailAndPassword(email, password)
- *     .catch(function(error) {
- *       // Handle Errors here.
- *       var errorCode = error.code;
- *       var errorMessage = error.message;
- *       if (errorCode === 'auth/wrong-password') {
- *         alert('Wrong password.');
- *       } else {
- *         alert(errorMessage);
- *       }
- *       console.log(error);
- *     });
- *
- * @param {string} email The users email address.
- * @param {string} password The users password.
- * @return {!firebase.Promise<!firebase.auth.UserCredential>}
- */
-firebase.auth.Auth.prototype.signInAndRetrieveDataWithEmailAndPassword = function(
-  email,
-  password
-) {};
 
 /**
  * Asynchronously signs in using an email and password.
@@ -1860,41 +1691,6 @@ firebase.auth.ConfirmationResult.prototype.verificationId;
 firebase.auth.ConfirmationResult.prototype.confirm = function(
   verificationCode
 ) {};
-
-/**
- * Signs in a user anonymously and returns any additional user info data or
- * credentials.
- *
- * This method is deprecated. Use
- * {@link firebase.auth.Auth#signInAnonymously} instead.
- *
- * If there is already an anonymous user signed in, that user with
- * additional date will be returned; otherwise, a new anonymous user
- * identity will be created and returned.
- *
- * <h4>Error Codes</h4>
- * <dl>
- * <dt>auth/operation-not-allowed</dt>
- * <dd>Thrown if anonymous accounts are not enabled. Enable anonymous accounts
- *     in the Firebase Console, under the Auth tab.</dd>
- * </dl>
- *
- * @example
- * firebase.auth().signInAnonymouslyAndRetrieveData().catch(function(error) {
- *   // Handle Errors here.
- *   var errorCode = error.code;
- *   var errorMessage = error.message;
- *
- *   if (errorCode === 'auth/operation-not-allowed') {
- *     alert('You must enable Anonymous auth in the Firebase Console.');
- *   } else {
- *     console.error(error);
- *   }
- * });
- *
- * @return {!firebase.Promise<!firebase.auth.UserCredential>}
- */
-firebase.auth.Auth.prototype.signInAnonymouslyAndRetrieveData = function() {};
 
 /**
  * Asynchronously signs in as an anonymous user.
