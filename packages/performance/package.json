@@ -24,9 +24,9 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/logger": "0.1.1",
+    "@firebase/logger": "0.1.13",
     "@firebase/installations": "0.1.0",
-    "@firebase/util": "0.2.13",
+    "@firebase/util": "0.2.14",
     "@firebase/performance-types": "0.0.1",
     "tslib": "1.9.3"
   },
