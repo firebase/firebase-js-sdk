@@ -420,7 +420,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       this.makeDatabaseInfo()
     );
-    return IndexedDbPersistence.clearPersistence(persistenceKey);
+    return this._queue.enqueue(() => {
+      return IndexedDbPersistence.clearPersistence(persistenceKey);
+    });
   }
 
   ensureClientConfigured(): FirestoreClient {
