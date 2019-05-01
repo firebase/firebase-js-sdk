@@ -72,7 +72,9 @@ export class IidModel {
 
       responseData = await response.json();
     } catch (err) {
-      throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_FAILED);
+      throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_FAILED, {
+        errorInfo: err
+      });
     }
 
     if (responseData.error) {
@@ -144,7 +146,9 @@ export class IidModel {
       );
       responseData = await response.json();
     } catch (err) {
-      throw errorFactory.create(ErrorCode.TOKEN_UPDATE_FAILED);
+      throw errorFactory.create(ErrorCode.TOKEN_UPDATE_FAILED, {
+        errorInfo: err
+      });
     }
 
     if (responseData.error) {
@@ -196,7 +200,9 @@ export class IidModel {
         });
       }
     } catch (err) {
-      throw errorFactory.create(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED);
+      throw errorFactory.create(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED, {
+        errorInfo: err
+      });
     }
   }
 }
