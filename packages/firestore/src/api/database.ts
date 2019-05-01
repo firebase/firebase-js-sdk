@@ -423,8 +423,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
     const deferred = new Deferred<void>();
     this._queue.enqueueAndForget(async () => {
-      await IndexedDbPersistence.clearPersistence(persistenceKey);
-      deferred.resolve();
+      try {
+        await IndexedDbPersistence.clearPersistence(persistenceKey);
+        deferred.resolve();
+      } catch (e) {
+        deferred.reject(e);
+      }
     });
     return deferred.promise;
   }
