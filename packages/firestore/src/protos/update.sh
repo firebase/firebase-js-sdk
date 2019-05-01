@@ -55,7 +55,7 @@ cp googleapis/google/type/latlng.proto \
    "${PROTOS_DIR}/google/type/"
 
 mkdir -p "${PROTOS_DIR}/google/protobuf"
-cp protobuf/src/google/protobuf/{any,empty,struct,timestamp,wrappers}.proto \
+cp protobuf/src/google/protobuf/{any,empty,struct,timestamp,wrappers,descriptor}.proto \
    "${PROTOS_DIR}/google/protobuf/"
 
 popd
