@@ -126,6 +126,7 @@ declare namespace firebase {
     getIdToken(forceRefresh?: boolean): Promise<string>;
     isAnonymous: boolean;
     /**
+     * @deprecated
      * Links the user account with the given credentials and returns any available
      * additional user information, such as user name.
      *
@@ -428,6 +429,7 @@ declare namespace firebase {
     phoneNumber: string | null;
     providerData: (firebase.UserInfo | null)[];
     /**
+     * @deprecated
      * Re-authenticates a user using a fresh credential, and returns any available
      * additional user information, such as user name. Use before operations
      * such as {@link firebase.User.updatePassword} that require tokens from recent
@@ -1958,6 +1960,7 @@ declare namespace firebase.auth {
     setPersistence(persistence: firebase.auth.Auth.Persistence): Promise<void>;
 
     /**
+     * @deprecated
      * Asynchronously signs in with the given credentials, and returns any available
      * additional user information, such as user name.
      *
