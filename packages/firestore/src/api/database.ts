@@ -1,4 +1,3 @@
-import { Deferred } from './../util/promise';
 /**
  * @license
  * Copyright 2017 Google Inc.
@@ -80,6 +79,7 @@ import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
+import { Deferred } from './../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
