@@ -1,3 +1,4 @@
+import { Deferred } from './../util/promise';
 /**
  * @license
  * Copyright 2017 Google Inc.
@@ -420,9 +421,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       this.makeDatabaseInfo()
     );
-    return this._queue.enqueue(() => {
-      return IndexedDbPersistence.clearPersistence(persistenceKey);
+    const deferred = new Deferred<void>();
+    this._queue.enqueueAndForget(async () => {
+      await IndexedDbPersistence.clearPersistence(persistenceKey);
+      deferred.resolve();
     });
+    return deferred.promise;
   }
 
   ensureClientConfigured(): FirestoreClient {
