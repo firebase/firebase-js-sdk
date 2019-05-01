@@ -51,13 +51,13 @@ describe('deleteInstallation', () => {
     deleteInstallationSpy = stub(
       deleteInstallationModule,
       'deleteInstallation'
-    ).callsFake(
-      () => sleep(50) // Request would take some time
-    );
+    ).callsFake(async () => {
+      await sleep(100); // Request would take some time
+    });
   });
 
   it('resolves without calling server API if there is no installation', async () => {
-    await expect(deleteInstallation(app)).to.eventually.be.fulfilled;
+    await expect(deleteInstallation(app)).to.be.fulfilled;
     expect(deleteInstallationSpy).not.to.have.been.called;
   });
 
@@ -68,7 +68,7 @@ describe('deleteInstallation', () => {
     };
     await set(appConfig, entry);
 
-    await expect(deleteInstallation(app)).to.eventually.be.fulfilled;
+    await expect(deleteInstallation(app)).to.be.fulfilled;
     expect(deleteInstallationSpy).not.to.have.been.called;
     await expect(get(appConfig)).to.eventually.be.undefined;
   });
@@ -81,7 +81,7 @@ describe('deleteInstallation', () => {
     };
     await set(appConfig, entry);
 
-    await expect(deleteInstallation(app)).to.eventually.be.rejectedWith(
+    await expect(deleteInstallation(app)).to.be.rejectedWith(
       ErrorCode.DELETE_PENDING_REGISTRATION
     );
     expect(deleteInstallationSpy).not.to.have.been.called;
@@ -102,7 +102,7 @@ describe('deleteInstallation', () => {
     await set(appConfig, entry);
     stub(navigator, 'onLine').value(false);
 
-    await expect(deleteInstallation(app)).to.eventually.be.rejectedWith(
+    await expect(deleteInstallation(app)).to.be.rejectedWith(
       ErrorCode.APP_OFFLINE
     );
     expect(deleteInstallationSpy).not.to.have.been.called;
@@ -122,7 +122,7 @@ describe('deleteInstallation', () => {
     };
     await set(appConfig, entry);
 
-    await expect(deleteInstallation(app)).to.eventually.be.fulfilled;
+    await expect(deleteInstallation(app)).to.be.fulfilled;
     expect(deleteInstallationSpy).to.have.been.calledOnceWith(appConfig, entry);
     await expect(get(appConfig)).to.eventually.be.undefined;
   });
