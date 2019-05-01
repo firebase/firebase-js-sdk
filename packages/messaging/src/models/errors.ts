@@ -63,16 +63,16 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.AVAILABLE_IN_WINDOW]:
     'This method is available in a Window context.',
   [ErrorCode.AVAILABLE_IN_SW]:
-    'This method is available in a service worker ' + 'context.',
+    'This method is available in a service worker context.',
   [ErrorCode.SHOULD_BE_INHERITED]:
-    'This method should be overriden by ' + 'extended classes.',
+    'This method should be overriden by extended classes.',
   [ErrorCode.BAD_SENDER_ID]:
     "Please ensure that 'messagingSenderId' is set " +
     'correctly in the options passed into firebase.initializeApp().',
   [ErrorCode.PERMISSION_DEFAULT]:
-    'The required permissions were not granted and ' + 'dismissed instead.',
+    'The required permissions were not granted and dismissed instead.',
   [ErrorCode.PERMISSION_BLOCKED]:
-    'The required permissions were not granted and ' + 'blocked instead.',
+    'The required permissions were not granted and blocked instead.',
   [ErrorCode.UNSUPPORTED_BROWSER]:
     "This browser doesn't support the API's " +
     'required to use the firebase SDK.',
@@ -81,26 +81,27 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
     'We are unable to register the ' +
     'default service worker. {$browserErrorMessage}',
   [ErrorCode.SW_REGISTRATION_EXPECTED]:
-    'A service worker registration was the ' + 'expected input.',
+    'A service worker registration was the expected input.',
   [ErrorCode.GET_SUBSCRIPTION_FAILED]:
     'There was an error when trying to get ' +
     'any existing Push Subscriptions.',
   [ErrorCode.INVALID_SAVED_TOKEN]:
     'Unable to access details of the saved token.',
   [ErrorCode.SW_REG_REDUNDANT]:
-    'The service worker being used for push was made ' + 'redundant.',
+    'The service worker being used for push was made redundant.',
   [ErrorCode.TOKEN_SUBSCRIBE_FAILED]:
-    'A problem occured while subscribing the ' + 'user to FCM: {$message}',
+    'A problem occured while subscribing the user to FCM: {$errorInfo}',
   [ErrorCode.TOKEN_SUBSCRIBE_NO_TOKEN]:
-    'FCM returned no token when subscribing ' + 'the user to push.',
+    'FCM returned no token when subscribing the user to push.',
   [ErrorCode.TOKEN_SUBSCRIBE_NO_PUSH_SET]:
-    'FCM returned an invalid response ' + 'when getting an FCM token.',
+    'FCM returned an invalid response when getting an FCM token.',
   [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]:
-    'A problem occured while unsubscribing the ' + 'user from FCM: {$message}',
+    'A problem occured while unsubscribing the ' +
+    'user from FCM: {$errorInfo}',
   [ErrorCode.TOKEN_UPDATE_FAILED]:
-    'A problem occured while updating the ' + 'user from FCM: {$message}',
+    'A problem occured while updating the user from FCM: {$errorInfo}',
   [ErrorCode.TOKEN_UPDATE_NO_TOKEN]:
-    'FCM returned no token when updating ' + 'the user to push.',
+    'FCM returned no token when updating the user to push.',
   [ErrorCode.USE_SW_BEFORE_GET_TOKEN]:
     'The useServiceWorker() method may only be called once and must be ' +
     'called before calling getToken() to ensure your service worker is used.',
@@ -114,13 +115,13 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
     'The deletion attempt for service worker ' +
     'scope could not be performed as the scope was not found.',
   [ErrorCode.BG_HANDLER_FUNCTION_EXPECTED]:
-    'The input to ' + 'setBackgroundMessageHandler() must be a function.',
+    'The input to setBackgroundMessageHandler() must be a function.',
   [ErrorCode.NO_WINDOW_CLIENT_TO_MSG]:
-    'An attempt was made to message a ' + 'non-existant window client.',
+    'An attempt was made to message a non-existant window client.',
   [ErrorCode.UNABLE_TO_RESUBSCRIBE]:
     'There was an error while re-subscribing ' +
     'the FCM token for push messaging. Will have to resubscribe the ' +
-    'user on next visit. {$message}',
+    'user on next visit. {$errorInfo}',
   [ErrorCode.NO_FCM_TOKEN_FOR_RESUBSCRIBE]:
     'Could not find an FCM token ' +
     'and as a result, unable to resubscribe. Will have to resubscribe the ' +
@@ -139,7 +140,7 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.BAD_VAPID_KEY]:
     'The public VAPID key is not a Uint8Array with 65 bytes.',
   [ErrorCode.BAD_SUBSCRIPTION]:
-    'The subscription must be a valid ' + 'PushSubscription.',
+    'The subscription must be a valid PushSubscription.',
   [ErrorCode.BAD_TOKEN]:
     'The FCM Token used for storage / lookup was not ' +
     'a valid token string.',
@@ -153,7 +154,7 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
     'The usePublicVapidKey() method may only be called once and must be ' +
     'called before calling getToken() to ensure your VAPID key is used.',
   [ErrorCode.PUBLIC_KEY_DECRYPTION_FAILED]:
-    'The public VAPID key did not equal ' + '65 bytes when decrypted.'
+    'The public VAPID key did not equal 65 bytes when decrypted.'
 };
 
 export const errorFactory = new ErrorFactory(
