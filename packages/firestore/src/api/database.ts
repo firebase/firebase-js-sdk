@@ -398,14 +398,30 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           'any other methods on a Firestore object.'
       );
     }
+
+    let synchronizeTabs = false;
+
+    if (settings) {
+      if (settings.experimentalTabSynchronization !== undefined) {
+        log.error(
+          "The 'experimentalTabSynchronization' setting has been renamed to " +
+            "'synchronizeTabs'. In a future release, the setting will be removed " +
+            'and it is recommended that you update your ' +
+            "firestore.enablePersistence() call to use 'synchronizeTabs'."
+        );
+      }
+      synchronizeTabs = objUtils.defaulted(
+        settings.synchronizeTabs !== undefined
+          ? settings.synchronizeTabs
+          : settings.experimentalTabSynchronization,
+        DEFAULT_SYNCHRONIZE_TABS
+      );
+    }
+
     return this.configureClient(
       new IndexedDbPersistenceSettings(
         this._config.settings.cacheSizeBytes,
-        settings !== undefined &&
-          objUtils.defaulted(
-            settings.experimentalTabSynchronization,
-            DEFAULT_SYNCHRONIZE_TABS
-          )
+        synchronizeTabs
       )
     );
   }
