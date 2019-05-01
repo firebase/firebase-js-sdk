@@ -36,9 +36,9 @@ fireauth.deprecation.Deprecations = {
   REAUTH_WITH_CREDENTIAL: 'firebase.User.prototype.reauthenticateAndRetrieveD' +
       'ataWithCredential is deprecated. Please use firebase.User.prototype.re' +
       'authenticateWithCredential instead.',
-  SIGN_IN_WITH_CREDENTIAL: 'firebase.auth.Auth.prototype.signInWithCredential' +
-      ' is deprecated. Please use firebase.auth.Auth.prototype.signInAndRetri' +
-      'eveDataWithCredential instead.'
+  SIGN_IN_WITH_CREDENTIAL: 'firebase.auth.Auth.prototype.signInAndRetrieveDat' +
+      'aWithCredential is deprecated. Please use firebase.auth.Auth.prototype' +
+      '.signInWithCredential instead.'
 };
 
 
