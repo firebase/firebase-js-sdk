@@ -40,6 +40,22 @@ to false and "main" to true:
 https://github.com/rollup/rollup-plugin-node-resolve
 `);
 
+// Firebase Lite detection
+if (self && 'firebase' in self) {
+  console.warn(`
+    Warning: Firebase is already defined in the global scope. Please make sure
+    Firebase library is only loaded once.
+  `);
+
+  const sdkVersion = ((self as any).firebase as FirebaseNamespace).SDK_VERSION;
+  if (sdkVersion && sdkVersion.indexOf('LITE') >= 0) {
+    console.warn(`
+    Warning: You are trying to load Firebase while using Firebase Performance standalone script.
+    You should load Firebase Performance with this instance of Firebase to avoid loading duplicate code.
+    `);
+  }
+}
+
 export const firebase = createFirebaseNamespace();
 
 export default firebase;

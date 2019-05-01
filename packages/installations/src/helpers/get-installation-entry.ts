@@ -1,0 +1,206 @@
+/**
+ * @license
+ * Copyright 2019 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { createInstallation } from '../api/create-installation';
+import { AppConfig } from '../interfaces/app-config';
+import {
+  InProgressInstallationEntry,
+  InstallationEntry,
+  RequestStatus
+} from '../interfaces/installation-entry';
+import { PENDING_TIMEOUT_MS } from '../util/constants';
+import { ERROR_FACTORY, ErrorCode, isServerError } from '../util/errors';
+import { sleep } from '../util/sleep';
+import { generateFid } from './generate-fid';
+import { remove, set, update } from './idb-manager';
+
+export interface InstallationEntryWithRegistrationPromise {
+  installationEntry: InstallationEntry;
+  registrationPromise?: Promise<void>;
+}
+
+/**
+ * Updates and returns the InstallationEntry from the database.
+ * Also triggers a registration request if it is necessary and possible.
+ */
+export async function getInstallationEntry(
+  appConfig: AppConfig
+): Promise<InstallationEntryWithRegistrationPromise> {
+  let registrationPromise: Promise<void> | undefined;
+
+  return {
+    installationEntry: await update(
+      appConfig,
+      (oldEntry?: InstallationEntry): InstallationEntry => {
+        const installationEntry = updateOrCreateFid(oldEntry);
+        const entryWithPromise = triggerRegistrationIfNecessary(
+          appConfig,
+          installationEntry
+        );
+        registrationPromise = entryWithPromise.registrationPromise;
+        return entryWithPromise.installationEntry;
+      }
+    ),
+    registrationPromise
+  };
+}
+
+function updateOrCreateFid(
+  oldEntry: InstallationEntry | undefined
+): InstallationEntry {
+  const entry: InstallationEntry = oldEntry || {
+    fid: generateFid(),
+    registrationStatus: RequestStatus.NOT_STARTED
+  };
+
+  if (hasInstallationRequestTimedOut(entry)) {
+    return {
+      fid: entry.fid,
+      registrationStatus: RequestStatus.NOT_STARTED
+    };
+  }
+
+  return entry;
+}
+
+/**
+ * If the Firebase Installation is not registered yet, this will trigger the registration
+ * and return an InProgressInstallationEntry.
+ */
+function triggerRegistrationIfNecessary(
+  appConfig: AppConfig,
+  installationEntry: InstallationEntry
+): InstallationEntryWithRegistrationPromise {
+  if (installationEntry.registrationStatus === RequestStatus.NOT_STARTED) {
+    if (!navigator.onLine) {
+      // Registration required but app is offline.
+      const registrationPromiseWithError = Promise.reject(
+        ERROR_FACTORY.create(ErrorCode.APP_OFFLINE)
+      );
+      return {
+        installationEntry,
+        registrationPromise: registrationPromiseWithError
+      };
+    }
+
+    // Try registering. Change status to IN_PROGRESS.
+    const inProgressEntry: InProgressInstallationEntry = {
+      fid: installationEntry.fid,
+      registrationStatus: RequestStatus.IN_PROGRESS,
+      registrationTime: Date.now()
+    };
+    const registrationPromise = registerInstallation(
+      appConfig,
+      inProgressEntry
+    );
+    return { installationEntry: inProgressEntry, registrationPromise };
+  } else if (
+    installationEntry.registrationStatus === RequestStatus.IN_PROGRESS
+  ) {
+    return {
+      installationEntry,
+      registrationPromise: waitUntilFidRegistration(appConfig)
+    };
+  } else {
+    return { installationEntry };
+  }
+}
+
+/** This will be executed only once for each new Firebase Installation. */
+async function registerInstallation(
+  appConfig: AppConfig,
+  installationEntry: InProgressInstallationEntry
+): Promise<void> {
+  try {
+    const registeredInstallationEntry = await createInstallation(
+      appConfig,
+      installationEntry
+    );
+    await set(appConfig, registeredInstallationEntry);
+  } catch (e) {
+    if (isServerError(e) && e.serverCode === 409) {
+      // Server returned a "FID can not be used" error.
+      // Generate a new ID next time.
+      await remove(appConfig);
+    } else {
+      // Registration failed. Set FID as not registered.
+      await set(appConfig, {
+        fid: installationEntry.fid,
+        registrationStatus: RequestStatus.NOT_STARTED
+      });
+    }
+    throw e;
+  }
+}
+
+/** Call if FID registration is pending. */
+async function waitUntilFidRegistration(appConfig: AppConfig): Promise<void> {
+  // Unfortunately, there is no way of reliably observing when a value in
+  // IndexedDB changes (yet, see https://github.com/WICG/indexed-db-observers),
+  // so we need to poll.
+
+  let entry: InstallationEntry = await updateInstallationRequest(appConfig);
+  while (entry.registrationStatus === RequestStatus.IN_PROGRESS) {
+    // createInstallation request still in progress.
+    await sleep(100);
+
+    entry = await updateInstallationRequest(appConfig);
+  }
+
+  if (entry.registrationStatus === RequestStatus.NOT_STARTED) {
+    throw ERROR_FACTORY.create(ErrorCode.CREATE_INSTALLATION_FAILED);
+  }
+}
+
+/**
+ * Called only if there is a CreateInstallation request in progress.
+ *
+ * Updates the InstallationEntry in the DB based on the status of the
+ * CreateInstallation request.
+ *
+ * Returns the updated InstallationEntry.
+ */
+function updateInstallationRequest(
+  appConfig: AppConfig
+): Promise<InstallationEntry> {
+  return update(
+    appConfig,
+    (oldEntry?: InstallationEntry): InstallationEntry => {
+      if (!oldEntry) {
+        throw ERROR_FACTORY.create(ErrorCode.INSTALLATION_NOT_FOUND);
+      }
+
+      if (hasInstallationRequestTimedOut(oldEntry)) {
+        return {
+          fid: oldEntry.fid,
+          registrationStatus: RequestStatus.NOT_STARTED
+        };
+      }
+
+      return oldEntry;
+    }
+  );
+}
+
+function hasInstallationRequestTimedOut(
+  installationEntry: InstallationEntry
+): boolean {
+  return (
+    installationEntry.registrationStatus === RequestStatus.IN_PROGRESS &&
+    installationEntry.registrationTime + PENDING_TIMEOUT_MS < Date.now()
+  );
+}

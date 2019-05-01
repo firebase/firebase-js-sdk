@@ -1,0 +1,56 @@
+{
+  "name": "@firebase/installations",
+  "version": "0.1.0",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "types": "dist/index.d.ts",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "rollup -c",
+    "test": "yarn type-check && yarn test:karma && yarn lint",
+    "test:karma": "karma start --single-run",
+    "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "type-check": "tsc -p . --noEmit",
+    "lint": "tslint --project .",
+    "lint:fix": "yarn lint --fix && prettier --write 'src/**/*.ts'",
+    "serve": "yarn serve:build && yarn serve:host",
+    "serve:build": "rollup -c test-app/rollup.config.js",
+    "serve:host": "http-server -c-1 test-app",
+    "prepare": "yarn build"
+  },
+  "devDependencies": {
+    "@types/chai": "4.1.7",
+    "@types/chai-as-promised": "7.1.0",
+    "@types/mocha": "5.2.6",
+    "@types/sinon": "7.0.11",
+    "@types/sinon-chai": "3.2.2",
+    "chai": "4.2.0",
+    "chai-as-promised": "7.1.1",
+    "http-server": "0.11.1",
+    "mocha": "6.1.4",
+    "rollup": "1.10.1",
+    "rollup-plugin-commonjs": "9.3.4",
+    "rollup-plugin-node-resolve": "4.2.3",
+    "rollup-plugin-replace": "2.2.0",
+    "rollup-plugin-typescript2": "0.21.0",
+    "rollup-plugin-uglify": "6.0.2",
+    "sinon": "7.3.2",
+    "sinon-chai": "3.3.0",
+    "tslint": "5.16.0",
+    "tslint-config-prettier": "1.18.0",
+    "tslint-no-unused-expression-chai": "0.1.4",
+    "tslint-plugin-prettier": "2.0.1",
+    "typescript": "3.4.5"
+  },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
+  },
+  "dependencies": {
+    "@firebase/installations-types": "0.1.0",
+    "@firebase/util": "0.2.14",
+    "idb": "3.0.2"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "extends": "../../config/tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es2017", "dom"],
+    "downlevelIteration": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"]
+}
