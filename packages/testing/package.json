@@ -19,7 +19,7 @@
     "@firebase/logger": "0.1.13",
     "@firebase/util": "0.2.14",
     "@types/request": "2.48.1",
-    "grpc": "1.20.0",
+    "grpc": "1.20.2",
     "request": "2.88.0"
   },
   "devDependencies": {
