@@ -109,7 +109,7 @@ const setupInstallationEntryMap: Map<
             creationTime: Date.now()
           }
         };
-        await set(appConfig, updatedEntry);
+        set(appConfig, updatedEntry);
       });
     }
   ],
@@ -151,7 +151,7 @@ const setupInstallationEntryMap: Map<
             creationTime: Date.now()
           }
         };
-        await set(appConfig, updatedEntry);
+        set(appConfig, updatedEntry);
       });
     }
   ],
@@ -220,9 +220,7 @@ describe('getToken', () => {
   describe('basic functionality', () => {
     for (const [title, setup] of setupInstallationEntryMap.entries()) {
       describe(`when ${title} in the DB`, () => {
-        beforeEach(async () => {
-          await setup(appConfig);
-        });
+        beforeEach(() => setup(appConfig));
 
         it('resolves with an auth token', async () => {
           const token = await getToken(app);

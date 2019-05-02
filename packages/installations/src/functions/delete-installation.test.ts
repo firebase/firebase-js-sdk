@@ -51,9 +51,9 @@ describe('deleteInstallation', () => {
     deleteInstallationSpy = stub(
       deleteInstallationModule,
       'deleteInstallation'
-    ).callsFake(async () => {
-      await sleep(100); // Request would take some time
-    });
+    ).callsFake(
+      () => sleep(100) // Request would take some time
+    );
   });
 
   it('resolves without calling server API if there is no installation', async () => {
