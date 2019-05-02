@@ -136,7 +136,7 @@ export class SwController extends BaseController {
       registration = await this.getSWRegistration_();
     } catch (err) {
       throw errorFactory.create(ErrorCode.UNABLE_TO_RESUBSCRIBE, {
-        message: err
+        errorInfo: err
       });
     }
 
