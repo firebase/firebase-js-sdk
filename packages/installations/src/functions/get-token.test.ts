@@ -17,11 +17,11 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
 import * as createInstallationModule from '../api/create-installation';
 import * as generateAuthTokenModule from '../api/generate-auth-token';
 import { extractAppConfig } from '../helpers/extract-app-config';
-import { clear, get, set } from '../helpers/idb-manager';
+import { get, set } from '../helpers/idb-manager';
 import { AppConfig } from '../interfaces/app-config';
 import {
   CompletedAuthToken,
@@ -63,7 +63,7 @@ const setupInstallationEntryMap: Map<
           creationTime: Date.now()
         }
       };
-      set(appConfig, entry);
+      await set(appConfig, entry);
     }
   ],
   [
@@ -80,7 +80,7 @@ const setupInstallationEntryMap: Map<
           creationTime: Date.now() - 2 * ONE_WEEK_MS
         }
       };
-      set(appConfig, entry);
+      await set(appConfig, entry);
     }
   ],
   [
@@ -96,10 +96,10 @@ const setupInstallationEntryMap: Map<
         }
       };
 
-      set(appConfig, entry);
+      await set(appConfig, entry);
 
-      // Finish pending request in 10 ms
-      sleep(50).then(() => {
+      // Finish pending request after 500 ms
+      sleep(500).then(async () => {
         const updatedEntry: RegisteredInstallationEntry = {
           ...entry,
           authToken: {
@@ -124,7 +124,7 @@ const setupInstallationEntryMap: Map<
           requestStatus: RequestStatus.NOT_STARTED
         }
       };
-      set(appConfig, entry);
+      await set(appConfig, entry);
     }
   ],
   [
@@ -136,10 +136,10 @@ const setupInstallationEntryMap: Map<
         registrationTime: Date.now() - 3 * 1000
       };
 
-      set(appConfig, entry);
+      await set(appConfig, entry);
 
-      // Finish pending request in 10 ms
-      sleep(50).then(async () => {
+      // Finish pending request after 500 ms
+      sleep(500).then(async () => {
         const updatedEntry: RegisteredInstallationEntry = {
           fid: FID,
           registrationStatus: RequestStatus.COMPLETED,
@@ -163,7 +163,7 @@ const setupInstallationEntryMap: Map<
         registrationStatus: RequestStatus.NOT_STARTED
       };
 
-      set(appConfig, entry);
+      await set(appConfig, entry);
     }
   ]
 ]);
@@ -188,7 +188,7 @@ describe('getToken', () => {
       createInstallationModule,
       'createInstallation'
     ).callsFake(async (_, installationEntry) => {
-      await sleep(50); // Request would take some time
+      await sleep(100); // Request would take some time
       const result: RegisteredInstallationEntry = {
         fid: installationEntry.fid,
         registrationStatus: RequestStatus.COMPLETED,
@@ -206,7 +206,7 @@ describe('getToken', () => {
       generateAuthTokenModule,
       'generateAuthToken'
     ).callsFake(async () => {
-      await sleep(50); // Request would take some time
+      await sleep(100); // Request would take some time
       const result: CompletedAuthToken = {
         token: AUTH_TOKEN,
         expiresIn: ONE_WEEK_MS,
@@ -217,17 +217,10 @@ describe('getToken', () => {
     });
   });
 
-  afterEach(async () => {
-    // Clear the database after each test.
-    await clear();
-  });
-
   describe('basic functionality', () => {
     for (const [title, setup] of setupInstallationEntryMap.entries()) {
       describe(`when ${title} in the DB`, () => {
-        beforeEach(() => {
-          setup(appConfig);
-        });
+        beforeEach(() => setup(appConfig));
 
         it('resolves with an auth token', async () => {
           const token = await getToken(app);
@@ -276,7 +269,7 @@ describe('getToken', () => {
     it('throws if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      await expect(getToken(app)).to.eventually.be.rejected;
+      await expect(getToken(app)).to.be.rejected;
     });
   });
 
@@ -310,13 +303,12 @@ describe('getToken', () => {
     it('throws if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      await expect(getToken(app)).to.eventually.be.rejected;
+      await expect(getToken(app)).to.be.rejected;
     });
 
     describe('and the server returns an error', () => {
       it('removes the FID from the DB if the server returns a 401 response', async () => {
         generateAuthTokenSpy.callsFake(async () => {
-          await sleep(50); // Request would take some time
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 401,
@@ -325,13 +317,12 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(app)).to.eventually.be.rejected;
+        await expect(getToken(app)).to.be.rejected;
         await expect(get(appConfig)).to.eventually.be.undefined;
       });
 
       it('removes the FID from the DB if the server returns a 404 response', async () => {
         generateAuthTokenSpy.callsFake(async () => {
-          await sleep(50); // Request would take some time
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 404,
@@ -340,13 +331,12 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(app)).to.eventually.be.rejected;
+        await expect(getToken(app)).to.be.rejected;
         await expect(get(appConfig)).to.eventually.be.undefined;
       });
 
       it('does not remove the FID from the DB if the server returns any other response', async () => {
         generateAuthTokenSpy.callsFake(async () => {
-          await sleep(50); // Request would take some time
           throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
             requestName: 'Generate Auth Token',
             serverCode: 500,
@@ -355,7 +345,7 @@ describe('getToken', () => {
           });
         });
 
-        await expect(getToken(app)).to.eventually.be.rejected;
+        await expect(getToken(app)).to.be.rejected;
         await expect(get(appConfig)).to.eventually.deep.equal(
           installationEntry
         );
@@ -395,8 +385,10 @@ describe('getToken', () => {
 
   describe('when there is an auth token that is about to expire in the DB', () => {
     const DB_AUTH_TOKEN = 'authTokenFromDB';
+    let clock: SinonFakeTimers;
 
     beforeEach(async () => {
+      clock = useFakeTimers({ shouldAdvanceTime: true });
       const installationEntry: RegisteredInstallationEntry = {
         fid: FID,
         registrationStatus: RequestStatus.COMPLETED,
@@ -405,7 +397,9 @@ describe('getToken', () => {
           token: DB_AUTH_TOKEN,
           expiresIn: ONE_WEEK_MS,
           requestStatus: RequestStatus.COMPLETED,
-          creationTime: Date.now() - ONE_WEEK_MS + TOKEN_EXPIRATION_BUFFER + 10
+          creationTime:
+            // Expires in ten minutes
+            Date.now() - ONE_WEEK_MS + TOKEN_EXPIRATION_BUFFER + 10 * 60 * 1000
         }
       };
       await set(appConfig, installationEntry);
@@ -415,13 +409,12 @@ describe('getToken', () => {
       const token1 = await getToken(app);
       expect(token1).to.equal(DB_AUTH_TOKEN);
 
-      // Wait until token expiration
-      await sleep(100);
+      // Wait 30 minutes.
+      clock.tick('30:00');
 
       const token2 = await getToken(app);
-      expect(token2).to.equal(AUTH_TOKEN);
-
-      expect(token1).not.to.equal(token2);
+      await expect(token2).to.equal(AUTH_TOKEN);
+      await expect(token2).not.to.equal(token1);
     });
   });
 
@@ -444,7 +437,7 @@ describe('getToken', () => {
     it('throws if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      await expect(getToken(app)).to.eventually.be.rejected;
+      await expect(getToken(app)).to.be.rejected;
     });
   });
 });

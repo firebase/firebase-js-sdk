@@ -16,7 +16,7 @@
  */
 
 import { AssertionError, expect } from 'chai';
-import { SinonStub, stub } from 'sinon';
+import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
 import * as createInstallationModule from '../api/create-installation';
 import { AppConfig } from '../interfaces/app-config';
 import {
@@ -32,11 +32,12 @@ import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
 import * as fidGenerator from './generate-fid';
 import { getInstallationEntry } from './get-installation-entry';
-import { clear, get, set } from './idb-manager';
+import { get, set } from './idb-manager';
 
 const FID = 'cry-of-the-black-birds';
 
 describe('getInstallationEntry', () => {
+  let clock: SinonFakeTimers;
   let appConfig: AppConfig;
   let createInstallationSpy: SinonStub<
     [AppConfig, InProgressInstallationEntry],
@@ -44,13 +45,14 @@ describe('getInstallationEntry', () => {
   >;
 
   beforeEach(() => {
+    clock = useFakeTimers();
     appConfig = getFakeAppConfig();
     createInstallationSpy = stub(
       createInstallationModule,
       'createInstallation'
     ).callsFake(
       async (_, installationEntry): Promise<RegisteredInstallationEntry> => {
-        await sleep(50); // Request would take some time
+        await sleep(100); // Request would take some time
         const registeredInstallationEntry: RegisteredInstallationEntry = {
           fid: installationEntry.fid,
           registrationStatus: RequestStatus.COMPLETED,
@@ -65,14 +67,6 @@ describe('getInstallationEntry', () => {
         return registeredInstallationEntry;
       }
     );
-  });
-
-  afterEach(async () => {
-    // Wait until createInstallation completes
-    await sleep(100);
-
-    // Clear the database after each test.
-    await clear();
   });
 
   it('saves the InstallationEntry in the database before returning it', async () => {
@@ -110,7 +104,8 @@ describe('getInstallationEntry', () => {
     const oldDbEntry = await get<InstallationEntry>(appConfig);
     expect(oldDbEntry).to.deep.equal(installationEntry);
 
-    await registrationPromise;
+    clock.next(); // Finish registration request.
+    await expect(registrationPromise).to.be.fulfilled;
 
     const newDbEntry = await get<InstallationEntry>(appConfig);
     expect(newDbEntry!.registrationStatus).to.deep.equal(
@@ -120,7 +115,7 @@ describe('getInstallationEntry', () => {
 
   it('saves the InstallationEntry in the database when registration fails', async () => {
     createInstallationSpy.callsFake(async () => {
-      await sleep(50); // Request would take some time
+      await sleep(100); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
         requestName: 'Create Installation',
         serverCode: 500,
@@ -136,11 +131,13 @@ describe('getInstallationEntry', () => {
     expect(installationEntry.registrationStatus).to.equal(
       RequestStatus.IN_PROGRESS
     );
+    expect(registrationPromise).to.be.an.instanceOf(Promise);
 
     const oldDbEntry = await get<InstallationEntry>(appConfig);
     expect(oldDbEntry).to.deep.equal(installationEntry);
 
-    await expect(registrationPromise).to.eventually.be.rejected;
+    clock.next(); // Finish registration request.
+    await expect(registrationPromise).to.be.rejected;
 
     const newDbEntry = await get<InstallationEntry>(appConfig);
     expect(newDbEntry!.registrationStatus).to.deep.equal(
@@ -150,7 +147,7 @@ describe('getInstallationEntry', () => {
 
   it('removes the InstallationEntry from the database when registration fails with 409', async () => {
     createInstallationSpy.callsFake(async () => {
-      await sleep(50); // Request would take some time
+      await sleep(100); // Request would take some time
       throw ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
         requestName: 'Create Installation',
         serverCode: 409,
@@ -170,7 +167,8 @@ describe('getInstallationEntry', () => {
     const oldDbEntry = await get<InstallationEntry>(appConfig);
     expect(oldDbEntry).to.deep.equal(installationEntry);
 
-    await expect(registrationPromise).to.eventually.be.rejected;
+    clock.next(); // Finish registration request.
+    await expect(registrationPromise).to.be.rejected;
 
     const newDbEntry = await get<InstallationEntry>(appConfig);
     expect(newDbEntry).to.be.undefined;
@@ -252,7 +250,8 @@ describe('getInstallationEntry', () => {
       );
       expect(promise1).to.be.an.instanceOf(Promise);
 
-      await promise1;
+      clock.next(); // Finish registration request.
+      await expect(promise1).to.be.fulfilled;
 
       const { registrationPromise: promise2 } = await getInstallationEntry(
         appConfig
