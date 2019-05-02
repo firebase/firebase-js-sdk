@@ -62,7 +62,6 @@ export function createFirebaseNamespaceCore(
     initializeApp: initializeApp,
     app: app as any,
     apps: null as any,
-    Promise: Promise,
     SDK_VERSION: '${JSCORE_VERSION}',
     INTERNAL: {
       registerService,
@@ -244,7 +243,6 @@ export function createFirebaseNamespaceCore(
     }
 
     const useService = name;
-    const options = app.options;
 
     return useService;
   }

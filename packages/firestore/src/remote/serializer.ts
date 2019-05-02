@@ -207,7 +207,7 @@ export class JsonProtoSerializer {
    */
   private toTimestamp(timestamp: Timestamp): string {
     return {
-      seconds: timestamp.seconds,
+      seconds: '' + timestamp.seconds,
       nanos: timestamp.nanoseconds
       // tslint:disable-next-line:no-any
     } as any;
@@ -286,7 +286,7 @@ export class JsonProtoSerializer {
     } else {
       assert(
         !this.options.useProto3Json,
-        'Expected bytes to be passed in as string, but got something else instead.'
+        'Expected bytes to be passed in as Uint8Array, but got a string instead.'
       );
       return Blob.fromUint8Array(blob);
     }
@@ -448,15 +448,13 @@ export class JsonProtoSerializer {
   }
 
   fromValue(obj: api.Value): fieldValue.FieldValue {
-    // tslint:disable-next-line:no-any
-    const type = (obj as any)['value_type'];
-    if (hasTag(obj, type, 'nullValue')) {
+    if ('nullValue' in obj) {
       return fieldValue.NullValue.INSTANCE;
-    } else if (hasTag(obj, type, 'booleanValue')) {
+    } else if ('booleanValue' in obj) {
       return fieldValue.BooleanValue.of(obj.booleanValue!);
-    } else if (hasTag(obj, type, 'integerValue')) {
+    } else if ('integerValue' in obj) {
       return new fieldValue.IntegerValue(parseInt64(obj.integerValue!));
-    } else if (hasTag(obj, type, 'doubleValue')) {
+    } else if ('doubleValue' in obj) {
       if (this.options.useProto3Json) {
         // Proto 3 uses the string values 'NaN' and 'Infinity'.
         if ((obj.doubleValue as {}) === 'NaN') {
@@ -469,30 +467,30 @@ export class JsonProtoSerializer {
       }
 
       return new fieldValue.DoubleValue(obj.doubleValue!);
-    } else if (hasTag(obj, type, 'stringValue')) {
+    } else if ('stringValue' in obj) {
       return new fieldValue.StringValue(obj.stringValue!);
-    } else if (hasTag(obj, type, 'mapValue')) {
+    } else if ('mapValue' in obj) {
       return this.fromFields(obj.mapValue!.fields || {});
-    } else if (hasTag(obj, type, 'arrayValue')) {
+    } else if ('arrayValue' in obj) {
       // "values" is not present if the array is empty
       assertPresent(obj.arrayValue, 'arrayValue');
       const values = obj.arrayValue!.values || [];
       return new fieldValue.ArrayValue(values.map(v => this.fromValue(v)));
-    } else if (hasTag(obj, type, 'timestampValue')) {
+    } else if ('timestampValue' in obj) {
       assertPresent(obj.timestampValue, 'timestampValue');
       return new fieldValue.TimestampValue(
         this.fromTimestamp(obj.timestampValue!)
       );
-    } else if (hasTag(obj, type, 'geoPointValue')) {
+    } else if ('geoPointValue' in obj) {
       assertPresent(obj.geoPointValue, 'geoPointValue');
       const latitude = obj.geoPointValue!.latitude || 0;
       const longitude = obj.geoPointValue!.longitude || 0;
       return new fieldValue.GeoPointValue(new GeoPoint(latitude, longitude));
-    } else if (hasTag(obj, type, 'bytesValue')) {
+    } else if ('bytesValue' in obj) {
       assertPresent(obj.bytesValue, 'bytesValue');
       const blob = this.fromBlob(obj.bytesValue!);
       return new fieldValue.BlobValue(blob);
-    } else if (hasTag(obj, type, 'referenceValue')) {
+    } else if ('referenceValue' in obj) {
       assertPresent(obj.referenceValue, 'referenceValue');
       const resourceName = this.fromResourceName(obj.referenceValue!);
       const dbId = new DatabaseId(resourceName.get(1), resourceName.get(3));
@@ -600,11 +598,9 @@ export class JsonProtoSerializer {
   }
 
   fromMaybeDocument(result: api.BatchGetDocumentsResponse): MaybeDocument {
-    // tslint:disable-next-line:no-any
-    const type = (result as any)['result'];
-    if (hasTag(result, type, 'found')) {
+    if ('found' in result) {
       return this.fromFound(result);
-    } else if (hasTag(result, type, 'missing')) {
+    } else if ('missing' in result) {
       return this.fromMissing(result);
     }
     return fail('invalid batch get response: ' + JSON.stringify(result));
@@ -691,10 +687,8 @@ export class JsonProtoSerializer {
   }
 
   fromWatchChange(change: api.ListenResponse): WatchChange {
-    // tslint:disable-next-line:no-any
-    const type = (change as any)['response_type'];
     let watchChange: WatchChange;
-    if (hasTag(change, type, 'targetChange')) {
+    if ('targetChange' in change) {
       assertPresent(change.targetChange, 'targetChange');
       // proto3 default value is unset in JSON (undefined), so use 'NO_CHANGE'
       // if unset
@@ -712,7 +706,7 @@ export class JsonProtoSerializer {
         resumeToken,
         cause || null
       );
-    } else if (hasTag(change, type, 'documentChange')) {
+    } else if ('documentChange' in change) {
       assertPresent(change.documentChange, 'documentChange');
       assertPresent(change.documentChange!.document, 'documentChange.name');
       assertPresent(
@@ -744,7 +738,7 @@ export class JsonProtoSerializer {
         doc.key,
         doc
       );
-    } else if (hasTag(change, type, 'documentDelete')) {
+    } else if ('documentDelete' in change) {
       assertPresent(change.documentDelete, 'documentDelete');
       assertPresent(change.documentDelete!.document, 'documentDelete.document');
       const docDelete = change.documentDelete!;
@@ -755,14 +749,14 @@ export class JsonProtoSerializer {
       const doc = new NoDocument(key, version);
       const removedTargetIds = docDelete.removedTargetIds || [];
       watchChange = new DocumentWatchChange([], removedTargetIds, doc.key, doc);
-    } else if (hasTag(change, type, 'documentRemove')) {
+    } else if ('documentRemove' in change) {
       assertPresent(change.documentRemove, 'documentRemove');
       assertPresent(change.documentRemove!.document, 'documentRemove');
       const docRemove = change.documentRemove!;
       const key = this.fromName(docRemove.document!);
       const removedTargetIds = docRemove.removedTargetIds || [];
       watchChange = new DocumentWatchChange([], removedTargetIds, key, null);
-    } else if (hasTag(change, type, 'filter')) {
+    } else if ('filter' in change) {
       // TODO(dimond): implement existence filter parsing with strategy.
       assertPresent(change.filter, 'filter');
       assertPresent(change.filter!.targetId, 'filter.targetId');
@@ -799,9 +793,7 @@ export class JsonProtoSerializer {
     // We have only reached a consistent snapshot for the entire stream if there
     // is a read_time set and it applies to all targets (i.e. the list of
     // targets is empty). The backend is guaranteed to send such responses.
-    // tslint:disable-next-line:no-any
-    const type = (change as any)['response_type'];
-    if (!hasTag(change, type, 'targetChange')) {
+    if (!('targetChange' in change)) {
       return SnapshotVersion.MIN;
     }
     const targetChange = change.targetChange!;
@@ -967,26 +959,24 @@ export class JsonProtoSerializer {
   }
 
   private fromFieldTransform(proto: api.FieldTransform): FieldTransform {
-    // tslint:disable-next-line:no-any We need to match generated Proto types.
-    const type = (proto as any)['transform_type'];
     let transform: TransformOperation | null = null;
-    if (hasTag(proto, type, 'setToServerValue')) {
+    if ('setToServerValue' in proto) {
       assert(
         proto.setToServerValue === 'REQUEST_TIME',
         'Unknown server value transform proto: ' + JSON.stringify(proto)
       );
       transform = ServerTimestampTransform.instance;
-    } else if (hasTag(proto, type, 'appendMissingElements')) {
+    } else if ('appendMissingElements' in proto) {
       const values = proto.appendMissingElements!.values || [];
       transform = new ArrayUnionTransformOperation(
         values.map(v => this.fromValue(v))
       );
-    } else if (hasTag(proto, type, 'removeAllFromArray')) {
+    } else if ('removeAllFromArray' in proto) {
       const values = proto.removeAllFromArray!.values || [];
       transform = new ArrayRemoveTransformOperation(
         values.map(v => this.fromValue(v))
       );
-    } else if (hasTag(proto, type, 'increment')) {
+    } else if ('increment' in proto) {
       const operand = this.fromValue(proto.increment!);
       assert(
         operand instanceof NumberValue,
@@ -1363,36 +1353,4 @@ export class JsonProtoSerializer {
     const fields = paths.map(path => FieldPath.fromServerFormat(path));
     return FieldMask.fromArray(fields);
   }
-}
-
-/**
- * Checks for a specific oneof tag in a protocol buffer message.
- *
- * This intentionally accommodates two distinct cases:
- *
- * 1) Messages containing a type tag: these are the format produced by GRPC in
- * return values. These may contain default-value mappings for all tags in the
- * oneof but the type tag specifies which one was actually set.
- *
- * 2) Messages that don't contain a type tag: these are the format required by
- * GRPC as inputs. If we emitted objects with type tags, ProtoBuf.js would
- * choke claiming that the tags aren't fields in the Message.
- *
- * Allowing both formats here makes the serializer able to consume the outputs
- * it produces: for all messages it supports, fromX(toX(value)) == value.
- *
- * Note that case 2 suffers from ambiguity: if multiple tags are present
- * without a type tag then the callers are structured in such a way that the
- * first invocation will win. Since we only parse in this mode when parsing
- * the output of a serialize method this works, but it's not a general
- * solution.
- *
- * Unfortunately there is no general solution here because proto3 makes it
- * impossible to distinguish unset from explicitly set fields: both have the
- * default value for the type. Without the type tag but multiple value tags
- * it's possible to have default values for each tag in the oneof and not be
- * able to know which was actually in effect.
- */
-function hasTag(obj: {}, type: string, tag: string): boolean {
-  return type === tag || (!type && tag in obj);
 }

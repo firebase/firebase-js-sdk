@@ -1123,11 +1123,27 @@ fireauth.AuthUser.prototype.extractLinkedAccounts_ = function(resp) {
  * Reauthenticates a user using a fresh credential, to be used before operations
  * such as updatePassword that require tokens from recent login attempts. It
  * also returns any additional user info data or credentials returned form the
- * backend.
+ * backend. It has been deprecated in favor of reauthenticateWithCredential.
  * @param {!fireauth.AuthCredential} credential
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.AuthUser.prototype.reauthenticateAndRetrieveDataWithCredential =
+    function(credential) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.REAUTH_WITH_CREDENTIAL);
+  return this.reauthenticateWithCredential(credential);
+};
+
+
+/**
+ * Reauthenticates a user using a fresh credential, to be used before operations
+ * such as updatePassword that require tokens from recent login attempts. It
+ * also returns any additional user info data or credentials returned form the
+ * backend.
+ * @param {!fireauth.AuthCredential} credential
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.AuthUser.prototype.reauthenticateWithCredential =
     function(credential) {
   var self = this;
   var userCredential = null;
@@ -1159,25 +1175,6 @@ fireauth.AuthUser.prototype.reauthenticateAndRetrieveDataWithCredential =
 
 
 /**
- * Reauthenticates a user using a fresh credential, to be used before operations
- * such as updatePassword that require tokens from recent login attempts. It has
- * been deprecated in favor of reauthenticateAndRetrieveDataWithCredential.
- * @param {!fireauth.AuthCredential} credential
- * @return {!goog.Promise<void>}
- */
-fireauth.AuthUser.prototype.reauthenticateWithCredential =
-    function(credential) {
-  fireauth.deprecation.log(
-      fireauth.deprecation.Deprecations.REAUTH_WITH_CREDENTIAL);
-  // Get reauthenticateAndRetrieveDataWithCredential result and return void.
-  return this.reauthenticateAndRetrieveDataWithCredential(credential)
-      .then(function(result) {
-        // Do not return anything. Promise should resolve with void.
-      });
-};
-
-
-/**
  * Reloads the user and then checks if a provider is already linked. If so,
  * this returns a Promise that rejects. Note that state change listeners are not
  * notified on success, so that operations using this can make changes and then
@@ -1205,13 +1202,28 @@ fireauth.AuthUser.prototype.checkIfAlreadyLinked_ =
 
 /**
  * Links a provider to the current user and returns any additional user info
- * data or credentials returned form the backend.
+ * data or credentials returned form the backend. It has been deprecated in
+ * favor of linkWithCredential.
  * @param {!fireauth.AuthCredential} credential The credential from the Auth
  *     provider.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.AuthUser.prototype.linkAndRetrieveDataWithCredential =
     function(credential) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.LINK_WITH_CREDENTIAL);
+  return this.linkWithCredential(credential);
+};
+
+
+/**
+ * Links a provider to the current user and returns any additional user info
+ * data or credentials returned form the backend.
+ * @param {!fireauth.AuthCredential} credential The credential from the Auth
+ *     provider.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.AuthUser.prototype.linkWithCredential = function(credential) {
   var self = this;
   var userCredential = null;
   // Register this pending promise. This will also check for user invalidation.
@@ -1239,24 +1251,6 @@ fireauth.AuthUser.prototype.linkAndRetrieveDataWithCredential =
 
 
 /**
- * Links a provider to the current user. It has been deprecated in favor of
- * linkAndRetrieveDataWithCredential.
- * @param {!fireauth.AuthCredential} credential The credential from the Auth
- *     provider.
- * @return {!goog.Promise<!fireauth.AuthUser>}
- */
-fireauth.AuthUser.prototype.linkWithCredential = function(credential) {
-  fireauth.deprecation.log(
-      fireauth.deprecation.Deprecations.LINK_WITH_CREDENTIAL);
-  // Get linkAndRetrieveDataWithCredential result and return the user only.
-  return this.linkAndRetrieveDataWithCredential(credential)
-      .then(function(result) {
-        return result['user'];
-      });
-};
-
-
-/**
  * Links a phone number using the App verifier instance and returns a
  * promise that resolves with the confirmation result which on confirmation
  * will resolve with the UserCredential object.
@@ -1280,7 +1274,7 @@ fireauth.AuthUser.prototype.linkWithPhoneNumber =
                     phoneNumber,
                     appVerifier,
                     // This will check again if the credential is linked.
-                    goog.bind(self.linkAndRetrieveDataWithCredential, self));
+                    goog.bind(self.linkWithCredential, self));
               })));
 };
 
@@ -1307,7 +1301,7 @@ fireauth.AuthUser.prototype.reauthenticateWithPhoneNumber =
                 self.getAuth_(),
                 phoneNumber,
                 appVerifier,
-                goog.bind(self.reauthenticateAndRetrieveDataWithCredential,
+                goog.bind(self.reauthenticateWithCredential,
                     self));
           }),
           // Skip invalidation check as reauthentication could revalidate a

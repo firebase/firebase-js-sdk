@@ -126,8 +126,12 @@ declare namespace firebase {
     getIdToken(forceRefresh?: boolean): Promise<string>;
     isAnonymous: boolean;
     /**
+     * @deprecated
      * Links the user account with the given credentials and returns any available
      * additional user information, such as user name.
+     *
+     * This method is deprecated. Use
+     * {@link firebase.User.linkWithCredential} instead.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -159,7 +163,7 @@ declare namespace firebase {
      *     ({@link firebase.auth.AuthCredential}) fields are also provided.
      *     You have to link the credential to the existing user with that email if
      *     you wish to continue signing in with that credential. To do so, call
-     *     {@link firebase.auth.Auth.fetchProvidersForEmail}, sign in to
+     *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail}, sign in to
      *     <code>error.email</code> via one of the providers returned and then
      *     {@link firebase.User.linkWithCredential} the original credential to that
      *     newly signed in user.</dd>
@@ -192,9 +196,6 @@ declare namespace firebase {
     /**
      * Links the user account with the given credentials.
      *
-     * This method is deprecated. Use
-     * {@link firebase.User.linkAndRetrieveDataWithCredential} instead.
-     *
      * <h4>Error Codes</h4>
      * <dl>
      * <dt>auth/provider-already-linked</dt>
@@ -225,7 +226,7 @@ declare namespace firebase {
      *     ({@link firebase.auth.AuthCredential}) fields are also provided.
      *     You have to link the credential to the existing user with that email if
      *     you wish to continue signing in with that credential. To do so, call
-     *     {@link firebase.auth.Auth.fetchProvidersForEmail}, sign in to
+     *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail}, sign in to
      *     <code>error.email</code> via one of the providers returned and then
      *     {@link firebase.User.linkWithCredential} the original credential to that
      *     newly signed in user.</dd>
@@ -254,7 +255,7 @@ declare namespace firebase {
      */
     linkWithCredential(
       credential: firebase.auth.AuthCredential
-    ): Promise<firebase.User>;
+    ): Promise<firebase.auth.UserCredential>;
     /**
      * Links the user account with the given phone number.
      *
@@ -334,7 +335,7 @@ declare namespace firebase {
      *     ({@link firebase.auth.AuthCredential}) fields are also provided.
      *     You have to link the credential to the existing user with that email if
      *     you wish to continue signing in with that credential. To do so, call
-     *     {@link firebase.auth.Auth.fetchProvidersForEmail}, sign in to
+     *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail}, sign in to
      *     <code>error.email</code> via one of the providers returned and then
      *     {@link firebase.User.linkWithCredential} the original credential to that
      *     newly signed in user.</dd>
@@ -428,10 +429,14 @@ declare namespace firebase {
     phoneNumber: string | null;
     providerData: (firebase.UserInfo | null)[];
     /**
+     * @deprecated
      * Re-authenticates a user using a fresh credential, and returns any available
      * additional user information, such as user name. Use before operations
      * such as {@link firebase.User.updatePassword} that require tokens from recent
      * sign-in attempts.
+     *
+     * This method is deprecated. Use
+     * {@link firebase.User.reauthenticateWithCredential} instead.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -472,9 +477,6 @@ declare namespace firebase {
      * such as {@link firebase.User.updatePassword} that require tokens from recent
      * sign-in attempts.
      *
-     * This method is deprecated. Use
-     * {@link firebase.User.reauthenticateAndRetrieveDataWithCredential} instead.
-     *
      * <h4>Error Codes</h4>
      * <dl>
      * <dt>auth/user-mismatch</dt>
@@ -508,7 +510,7 @@ declare namespace firebase {
      */
     reauthenticateWithCredential(
       credential: firebase.auth.AuthCredential
-    ): Promise<void>;
+    ): Promise<firebase.auth.UserCredential>;
     /**
      * Re-authenticates a user using a fresh credential. Use before operations
      * such as {@link firebase.User.updatePassword} that require tokens from recent
@@ -1672,59 +1674,6 @@ declare namespace firebase.auth {
      * @param newPassword The new password.
      */
     confirmPasswordReset(code: string, newPassword: string): Promise<void>;
-    /**
-     * Creates a new user account associated with the specified email address and
-     * password and returns any additional user info data or credentials.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.auth.Auth.createUserWithEmailAndPassword} instead.
-     *
-     * On successful creation of the user account, this user will also be
-     * signed in to your application.
-     *
-     * User account creation can fail if the account already exists or the password
-     * is invalid.
-     *
-     * Note: The email address acts as a unique identifier for the user and
-     * enables an email-based password reset.  This function will create
-     * a new user account and set the initial user password.
-     *
-     * <h4>Error Codes</h4>
-     * <dl>
-     * <dt>auth/email-already-in-use</dt>
-     * <dd>Thrown if there already exists an account with the given email
-     *     address.</dd>
-     * <dt>auth/invalid-email</dt>
-     * <dd>Thrown if the email address is not valid.</dd>
-     * <dt>auth/operation-not-allowed</dt>
-     * <dd>Thrown if email/password accounts are not enabled. Enable email/password
-     *     accounts in the Firebase Console, under the Auth tab.</dd>
-     * <dt>auth/weak-password</dt>
-     * <dd>Thrown if the password is not strong enough.</dd>
-     * </dl>
-     *
-     * @example
-     * ```javascript
-     * firebase.auth().createUserAndRetrieveDataWithEmailAndPassword(email, password)
-     *     .catch(function(error) {
-     *       // Handle Errors here.
-     *       var errorCode = error.code;
-     *       var errorMessage = error.message;
-     *       if (errorCode == 'auth/weak-password') {
-     *         alert('The password is too weak.');
-     *       } else {
-     *         alert(errorMessage);
-     *       }
-     *       console.log(error);
-     *     });
-     * ```
-     * @param email The user's email address.
-     * @param password The user's chosen password.
-     */
-    createUserAndRetrieveDataWithEmailAndPassword(
-      email: string,
-      password: string
-    ): Promise<firebase.auth.UserCredential>;
 
     /**
      * Creates a new user account associated with the specified email address and
@@ -1782,21 +1731,6 @@ declare namespace firebase.auth {
     currentUser: firebase.User | null;
 
     /**
-     * Gets the list of provider IDs that can be used to sign in for the given email
-     * address. Useful for an "identifier-first" sign-in flow.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.auth.Auth.fetchSignInMethodsForEmail} instead.
-     *
-     * <h4>Error Codes</h4>
-     * <dl>
-     * <dt>auth/invalid-email</dt>
-     * <dd>Thrown if the email address is not valid.</dd>
-     * </dl>
-     */
-    fetchProvidersForEmail(email: string): Promise<Array<string>>;
-
-    /**
      * Gets the list of possible sign in methods for the given email address. This
      * is useful to differentiate methods of sign-in for the same provider,
      * eg. `EmailAuthProvider` which has 2 methods of sign-in, email/password and
@@ -1826,7 +1760,7 @@ declare namespace firebase.auth {
      * <dt>auth/account-exists-with-different-credential</dt>
      * <dd>Thrown if there already exists an account with the email address
      *     asserted by the credential. Resolve this by calling
-     *     {@link firebase.auth.Auth.fetchProvidersForEmail} with the error.email
+     *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail} with the error.email
      *     and then asking the user to sign in using one of the returned providers.
      *     Once the user is signed in, the original credential retrieved from the
      *     error.credential can be linked to the user with
@@ -1858,7 +1792,7 @@ declare namespace firebase.auth {
      *     ({@link firebase.auth.AuthCredential}) fields are also provided.
      *     You have to link the credential to the existing user with that email if
      *     you wish to continue signing in with that credential. To do so, call
-     *     {@link firebase.auth.Auth.fetchProvidersForEmail}, sign in to
+     *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail}, sign in to
      *     <code>error.email</code> via one of the providers returned and then
      *     {@link firebase.User.linkWithCredential} the original credential to that
      *     newly signed in user.</dd>
@@ -1912,7 +1846,7 @@ declare namespace firebase.auth {
      *   // In case of auth/account-exists-with-different-credential error,
      *   // you can fetch the providers using this:
      *   if (error.code === 'auth/account-exists-with-different-credential') {
-     *     auth.fetchProvidersForEmail(email).then(function(providers) {
+     *     auth.fetchSignInMethodsForEmail(email).then(function(providers) {
      *       // The returned 'providers' is a list of the available providers
      *       // linked to the email address. Please refer to the guide for a more
      *       // complete explanation on how to recover from this error.
@@ -2177,15 +2111,19 @@ declare namespace firebase.auth {
     setPersistence(persistence: firebase.auth.Auth.Persistence): Promise<void>;
 
     /**
+     * @deprecated
      * Asynchronously signs in with the given credentials, and returns any available
      * additional user information, such as user name.
+     *
+     * This method is deprecated. Use
+     * {@link firebase.auth.Auth.signInWithCredential} instead.
      *
      * <h4>Error Codes</h4>
      * <dl>
      * <dt>auth/account-exists-with-different-credential</dt>
      * <dd>Thrown if there already exists an account with the email address
      *     asserted by the credential. Resolve this by calling
-     *     {@link firebase.auth.Auth.fetchProvidersForEmail} and then asking the
+     *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail} and then asking the
      *     user to sign in using one of the returned providers. Once the user is
      *     signed in, the original credential can be linked to the user with
      *     {@link firebase.User.linkWithCredential}.</dd>
@@ -2261,52 +2199,14 @@ declare namespace firebase.auth {
     signInAnonymously(): Promise<firebase.auth.UserCredential>;
 
     /**
-     * Signs in a user anonymously and returns any additional user info data or
-     * credentials.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.auth.Auth.signInAnonymously} instead.
-     *
-     * If there is already an anonymous user signed in, that user with
-     * additional date will be returned; otherwise, a new anonymous user
-     * identity will be created and returned.
-     *
-     * <h4>Error Codes</h4>
-     * <dl>
-     * <dt>auth/operation-not-allowed</dt>
-     * <dd>Thrown if anonymous accounts are not enabled. Enable anonymous accounts
-     *     in the Firebase Console, under the Auth tab.</dd>
-     * </dl>
-     *
-     * @example
-     * ```javascript
-     * firebase.auth().signInAnonymouslyAndRetrieveData().catch(function(error) {
-     *   // Handle Errors here.
-     *   var errorCode = error.code;
-     *   var errorMessage = error.message;
-     *
-     *   if (errorCode === 'auth/operation-not-allowed') {
-     *     alert('You must enable Anonymous auth in the Firebase Console.');
-     *   } else {
-     *     console.error(error);
-     *   }
-     * });
-     * ```
-     */
-    signInAnonymouslyAndRetrieveData(): Promise<firebase.auth.UserCredential>;
-
-    /**
      * Asynchronously signs in with the given credentials.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.auth.Auth.signInAndRetrieveDataWithCredential} instead.
      *
      * <h4>Error Codes</h4>
      * <dl>
      * <dt>auth/account-exists-with-different-credential</dt>
      * <dd>Thrown if there already exists an account with the email address
      *     asserted by the credential. Resolve this by calling
-     *     {@link firebase.auth.Auth.fetchProvidersForEmail} and then asking the
+     *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail} and then asking the
      *     user to sign in using one of the returned providers. Once the user is
      *     signed in, the original credential can be linked to the user with
      *     {@link firebase.User.linkWithCredential}.</dd>
@@ -2361,7 +2261,7 @@ declare namespace firebase.auth {
      */
     signInWithCredential(
       credential: firebase.auth.AuthCredential
-    ): Promise<firebase.User>;
+    ): Promise<firebase.auth.UserCredential>;
     /**
      * Asynchronously signs in using a custom token.
      *
@@ -2396,47 +2296,6 @@ declare namespace firebase.auth {
      * @param token The custom token to sign in with.
      */
     signInWithCustomToken(token: string): Promise<firebase.auth.UserCredential>;
-    /**
-     * Signs in a user asynchronously using a custom token and returns any
-     * additional user info data or credentials.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.auth.Auth.signInWithCustomToken} instead.
-     *
-     * Custom tokens are used to integrate Firebase Auth with existing auth systems,
-     * and must be generated by the auth backend.
-     *
-     * Fails with an error if the token is invalid, expired, or not accepted by the
-     * Firebase Auth service.
-     *
-     * <h4>Error Codes</h4>
-     * <dl>
-     * <dt>auth/custom-token-mismatch</dt>
-     * <dd>Thrown if the custom token is for a different Firebase App.</dd>
-     * <dt>auth/invalid-custom-token</dt>
-     * <dd>Thrown if the custom token format is incorrect.</dd>
-     * </dl>
-     *
-     * @example
-     * ```javascript
-     * firebase.auth().signInAndRetrieveDataWithCustomToken(token)
-     *     .catch(function(error) {
-     *       // Handle Errors here.
-     *       var errorCode = error.code;
-     *       var errorMessage = error.message;
-     *       if (errorCode === 'auth/invalid-custom-token') {
-     *         alert('The token you provided is not valid.');
-     *       } else {
-     *         console.error(error);
-     *       }
-     *     });
-     * ```
-     *
-     * @param token The custom token to sign in with.
-     */
-    signInAndRetrieveDataWithCustomToken(
-      token: string
-    ): Promise<firebase.auth.UserCredential>;
     /**
      * Asynchronously signs in using an email and password.
      *
@@ -2486,59 +2345,6 @@ declare namespace firebase.auth {
       password: string
     ): Promise<firebase.auth.UserCredential>;
 
-    /**
-     * Asynchronously signs in using an email and password and returns any additional
-     * user info data or credentials.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.auth.Auth.signInWithEmailAndPassword} instead.
-     *
-     * Fails with an error if the email address and password do not match.
-     *
-     * Note: The user's password is NOT the password used to access the user's email
-     * account. The email address serves as a unique identifier for the user, and
-     * the password is used to access the user's account in your Firebase project.
-     *
-     * See also:
-     * {@link firebase.auth.Auth.createUserAndRetrieveDataWithEmailAndPassword}.
-     *
-     * <h4>Error Codes</h4>
-     * <dl>
-     * <dt>auth/invalid-email</dt>
-     * <dd>Thrown if the email address is not valid.</dd>
-     * <dt>auth/user-disabled</dt>
-     * <dd>Thrown if the user corresponding to the given email has been
-     *     disabled.</dd>
-     * <dt>auth/user-not-found</dt>
-     * <dd>Thrown if there is no user corresponding to the given email.</dd>
-     * <dt>auth/wrong-password</dt>
-     * <dd>Thrown if the password is invalid for the given email, or the account
-     *     corresponding to the email does not have a password set.</dd>
-     * </dl>
-     *
-     * @example
-     * ```javascript
-     * firebase.auth().signInAndRetrieveDataWithEmailAndPassword(email, password)
-     *     .catch(function(error) {
-     *       // Handle Errors here.
-     *       var errorCode = error.code;
-     *       var errorMessage = error.message;
-     *       if (errorCode === 'auth/wrong-password') {
-     *         alert('Wrong password.');
-     *       } else {
-     *         alert(errorMessage);
-     *       }
-     *       console.log(error);
-     *     });
-     * ```
-     *
-     * @param email The users email address.
-     * @param password The users password.
-     */
-    signInAndRetrieveDataWithEmailAndPassword(
-      email: string,
-      password: string
-    ): Promise<firebase.auth.UserCredential>;
     /**
      * Asynchronously signs in using a phone number. This method sends a code via
      * SMS to the given phone number, and returns a
@@ -2646,7 +2452,7 @@ declare namespace firebase.auth {
      * <dt>auth/account-exists-with-different-credential</dt>
      * <dd>Thrown if there already exists an account with the email address
      *     asserted by the credential. Resolve this by calling
-     *     {@link firebase.auth.Auth.fetchProvidersForEmail} with the error.email
+     *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail} with the error.email
      *     and then asking the user to sign in using one of the returned providers.
      *     Once the user is signed in, the original credential retrieved from the
      *     error.credential can be linked to the user with
@@ -2710,7 +2516,7 @@ declare namespace firebase.auth {
      *   // In case of auth/account-exists-with-different-credential error,
      *   // you can fetch the providers using this:
      *   if (error.code === 'auth/account-exists-with-different-credential') {
-     *     auth.fetchProvidersForEmail(email).then(function(providers) {
+     *     auth.fetchSignInMethodsForEmail(email).then(function(providers) {
      *       // The returned 'providers' is a list of the available providers
      *       // linked to the email address. Please refer to the guide for a more
      *       // complete explanation on how to recover from this error.
@@ -4539,8 +4345,8 @@ declare namespace firebase.database {
      * must also be called on any child listeners to remove the callback.
      *
      * If a callback is not specified, all callbacks for the specified eventType
-     * will be removed. Similarly, if no eventType or callback is specified, all
-     * callbacks for the `Reference` will be removed.
+     * will be removed. Similarly, if no eventType is specified, all callbacks
+     * for the `Reference` will be removed.
      *
      * @example
      * ```javascript
@@ -4565,16 +4371,17 @@ declare namespace firebase.database {
      * ```
      *
      * @param eventType One of the following strings: "value",
-     *   "child_added", "child_changed", "child_removed", or "child_moved."
-     * @param callback The
-     *   callback function that was passed to `on()`.
+     *   "child_added", "child_changed", "child_removed", or "child_moved." If
+     *   omitted, all callbacks for the `Reference` will be removed.
+     * @param callback The callback function that was passed to `on()` or
+     *   `undefined` to remove all callbacks.
      * @param context The context that was passed to `on()`.
      */
     off(
       eventType?: EventType,
       callback?: (a: firebase.database.DataSnapshot, b?: string | null) => any,
       context?: Object | null
-    ): any;
+    ): void;
 
     /**
      * Listens for data changes at a particular location.
@@ -4690,10 +4497,10 @@ declare namespace firebase.database {
      */
     on(
       eventType: EventType,
-      callback: (a: firebase.database.DataSnapshot | null, b?: string) => any,
+      callback: (a: firebase.database.DataSnapshot, b?: string | null) => any,
       cancelCallbackOrContext?: Object | null,
       context?: Object | null
-    ): (a: firebase.database.DataSnapshot | null, b?: string) => any;
+    ): (a: firebase.database.DataSnapshot | null, b?: string | null) => any;
 
     /**
      * Listens for exactly one event of the specified event type, and then stops
@@ -4730,10 +4537,13 @@ declare namespace firebase.database {
      */
     once(
       eventType: EventType,
-      successCallback?: (a: firebase.database.DataSnapshot, b?: string) => any,
-      failureCallbackOrContext?: Object | null,
+      successCallback?: (
+        a: firebase.database.DataSnapshot,
+        b?: string | null
+      ) => any,
+      failureCallbackOrContext?: ((a: Error) => void) | Object | null,
       context?: Object | null
-    ): Promise<DataSnapshot>;
+    ): Promise<firebase.database.DataSnapshot>;
     /**
      * Generates a new `Query` object ordered by the specified child key.
      *
@@ -6093,11 +5903,20 @@ declare namespace firebase.firestore {
      * shared execution of queries and latency-compensated local document updates
      * across all connected instances.
      *
-     * To enable this mode, `experimentalTabSynchronization:true` needs to be set
-     * globally in all active tabs. If omitted or set to 'false',
-     * `enablePersistence()` will fail in all but the first tab.
+     * To enable this mode, `synchronizeTabs:true` needs to be set globally in all
+     * active tabs. If omitted or set to 'false', `enablePersistence()` will fail
+     * in all but the first tab.
+     */
+    synchronizeTabs?: boolean;
+
+    /**
+     * Whether to synchronize the in-memory state of multiple tabs. Setting this
+     * to 'true' in all open tabs enables shared access to local persistence,
+     * shared execution of queries and latency-compensated local document updates
+     * across all connected instances.
      *
-     * NOTE: This mode is not yet recommended for production use.
+     * @deprecated This setting is deprecated. To enabled synchronization between
+     * multiple tabs, please use `synchronizeTabs: true` instead.
      */
     experimentalTabSynchronization?: boolean;
   }
@@ -6175,6 +5994,18 @@ declare namespace firebase.firestore {
      * @return The `DocumentReference` instance.
      */
     doc(documentPath: string): DocumentReference;
+
+    /**
+     * Creates and returns a new Query that includes all documents in the
+     * database that are contained in a collection or subcollection with the
+     * given collectionId.
+     *
+     * @param collectionId Identifies the collections to query over. Every
+     * collection or subcollection with this ID as the last segment of its path
+     * will be included. Cannot contain a slash.
+     * @return The created Query.
+     */
+    collectionGroup(collectionId: string): Query;
 
     /**
      * Executes the given `updateFunction` and then attempts to commit the changes

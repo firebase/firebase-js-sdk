@@ -27,7 +27,7 @@ export interface User extends UserInfo {
   linkAndRetrieveDataWithCredential(
     credential: AuthCredential
   ): Promise<UserCredential>;
-  linkWithCredential(credential: AuthCredential): Promise<User>;
+  linkWithCredential(credential: AuthCredential): Promise<UserCredential>;
   linkWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier
@@ -40,7 +40,9 @@ export interface User extends UserInfo {
   reauthenticateAndRetrieveDataWithCredential(
     credential: AuthCredential
   ): Promise<UserCredential>;
-  reauthenticateWithCredential(credential: AuthCredential): Promise<void>;
+  reauthenticateWithCredential(
+    credential: AuthCredential
+  ): Promise<UserCredential>;
   reauthenticateWithPhoneNumber(
     phoneNumber: string,
     applicationVerifier: ApplicationVerifier
@@ -277,12 +279,7 @@ export class FirebaseAuth {
     email: string,
     password: string
   ): Promise<UserCredential>;
-  createUserAndRetrieveDataWithEmailAndPassword(
-    email: string,
-    password: string
-  ): Promise<UserCredential>;
   currentUser: User | null;
-  fetchProvidersForEmail(email: string): Promise<Array<string>>;
   fetchSignInMethodsForEmail(email: string): Promise<Array<string>>;
   isSignInWithEmailLink(emailLink: string): boolean;
   getRedirectResult(): Promise<UserCredential>;
@@ -311,15 +308,9 @@ export class FirebaseAuth {
     credential: AuthCredential
   ): Promise<UserCredential>;
   signInAnonymously(): Promise<UserCredential>;
-  signInAnonymouslyAndRetrieveData(): Promise<UserCredential>;
-  signInWithCredential(credential: AuthCredential): Promise<User>;
+  signInWithCredential(credential: AuthCredential): Promise<UserCredential>;
   signInWithCustomToken(token: string): Promise<UserCredential>;
-  signInAndRetrieveDataWithCustomToken(token: string): Promise<UserCredential>;
   signInWithEmailAndPassword(
-    email: string,
-    password: string
-  ): Promise<UserCredential>;
-  signInAndRetrieveDataWithEmailAndPassword(
     email: string,
     password: string
   ): Promise<UserCredential>;

@@ -30,11 +30,6 @@ describe('idb manager', () => {
     appConfig2 = { ...getFakeAppConfig(), appName: 'appName2' };
   });
 
-  afterEach(async () => {
-    // Clear the database after each test.
-    await clear();
-  });
-
   describe('get / set', () => {
     it('sets a value and then gets the same value back', async () => {
       await set(appConfig1, 'value');

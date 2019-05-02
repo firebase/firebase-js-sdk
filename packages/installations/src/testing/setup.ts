@@ -19,10 +19,12 @@ import { use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { restore } from 'sinon';
 import * as sinonChai from 'sinon-chai';
+import { clear } from '../helpers/idb-manager';
 
 use(chaiAsPromised);
 use(sinonChai);
 
-afterEach(() => {
+afterEach(async () => {
   restore();
+  await clear();
 });
