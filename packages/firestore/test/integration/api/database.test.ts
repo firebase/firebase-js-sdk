@@ -21,6 +21,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
+import { SimpleDb } from '../../../src/local/simple_db';
 import { fail } from '../../../src/util/assert';
 import { Code } from '../../../src/util/error';
 import { query } from '../../util/api_helpers';
@@ -967,6 +968,27 @@ apiDescribe('Database', persistence => {
         await expect(
           docRef2.get({ source: 'cache' })
         ).to.eventually.be.rejectedWith('Failed to get document from cache.');
+      });
+    }
+  );
+
+  (persistence ? it : it.skip)(
+    'will reject the promise if clear persistence fails',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        const oldDelete = SimpleDb.delete;
+        try {
+          SimpleDb.delete = (name: string): Promise<void> => {
+            return Promise.reject('Failed to delete the database.');
+          };
+          const firestore = docRef.firestore;
+          await firestore.app.delete();
+          await expect(
+            clearPersistence(firestore)
+          ).to.eventually.be.rejectedWith('Failed to delete the database.');
+        } finally {
+          SimpleDb.delete = oldDelete;
+        }
       });
     }
   );

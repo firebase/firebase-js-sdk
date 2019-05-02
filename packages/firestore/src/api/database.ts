@@ -79,6 +79,7 @@ import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
+import { Deferred } from './../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
@@ -436,7 +437,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       this.makeDatabaseInfo()
     );
-    return IndexedDbPersistence.clearPersistence(persistenceKey);
+    const deferred = new Deferred<void>();
+    this._queue.enqueueAndForget(async () => {
+      try {
+        await IndexedDbPersistence.clearPersistence(persistenceKey);
+        deferred.resolve();
+      } catch (e) {
+        deferred.reject(e);
+      }
+    });
+    return deferred.promise;
   }
 
   ensureClientConfigured(): FirestoreClient {
