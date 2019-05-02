@@ -975,9 +975,9 @@ apiDescribe('Database', persistence => {
   (persistence ? it : it.skip)(
     'will reject the promise if clear persistence fails',
     async () => {
-      const oldDelete = SimpleDb.delete;
-      try {
-        await withTestDoc(persistence, async docRef => {
+      await withTestDoc(persistence, async docRef => {
+        const oldDelete = SimpleDb.delete;
+        try {
           SimpleDb.delete = (name: string): Promise<void> => {
             return Promise.reject('Failed to delete the database.');
           };
@@ -986,11 +986,10 @@ apiDescribe('Database', persistence => {
           await expect(
             clearPersistence(firestore)
           ).to.eventually.be.rejectedWith('Failed to delete the database.');
+        } finally {
           SimpleDb.delete = oldDelete;
-        });
-      } finally {
-        SimpleDb.delete = oldDelete;
-      }
+        }
+      });
     }
   );
 
