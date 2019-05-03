@@ -22,36 +22,72 @@ const path = require('path');
 const karmaBase = require('./karma.base');
 
 /**
+ * Custom SauceLabs Launchers
+ */
+const sauceLabsBrowsers = {
+  // Desktop
+  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
+  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
+  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
+  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest'),
+  IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest')
+
+  // Mobile
+  // Safari_iOS: appiumLauncher('Safari', 'iPhone Simulator', 'iOS', '11.2'),
+  // Chrome_Android: appiumLauncher('Chrome', 'Android Emulator', 'Android', '6.0')
+};
+
+const packageConfigs = {
+  messaging: {
+    browsers: ['Chrome_Windows', 'Edge_Windows', 'Firefox_Windows']
+  }
+}
+
+/**
  * Gets a list of file patterns for test, defined individually
  * in karma.conf.js in each package under worksapce packages or
  * integration.
  */
 function getTestFiles() {
   let root = path.resolve(__dirname, '..');
-  configs = argv['database-firestore-only']
-    ? glob.sync('packages/{database,firestore}/karma.conf.js')
-    : glob.sync('{packages,integration}/*/karma.conf.js', {
-        // Excluded due to flakiness or long run time.
-        ignore: [
-          'packages/database/*',
-          'packages/firestore/*',
-          'integration/firestore/*',
-          'integration/messaging/*'
-        ]
-      });
-  files = configs.map(x => {
-    let patterns = require(path.join(root, x)).files;
-    let dirname = path.dirname(x);
-    return patterns.map(p => path.join(dirname, p));
-  });
-  return [].concat(...files);
+  // console.log('DIRNAME', __dirname);
+  // const packageName = 'app';
+  const testFile = argv['testfile'];
+  // configs = glob.sync(`{packages,integration}/${packageName}/karma.conf.js`);
+  // configs = argv['database-firestore-only']
+  //   ? glob.sync('packages/{database,firestore}/karma.conf.js')
+  //   : glob.sync('{packages,integration}/*/karma.conf.js', {
+  //       // Excluded due to flakiness or long run time.
+  //       ignore: [
+  //         'packages/database/*',
+  //         'packages/firestore/*',
+  //         'integration/firestore/*',
+  //         'integration/messaging/*'
+  //       ]
+  //     });
+  // files = configs.map(x => {
+  //   let patterns = require(path.join(root, x)).files;
+  //   let dirname = path.dirname(x);
+  //   return patterns.map(p => path.join(dirname, p));
+  // });
+  // return [].concat(...files);
+  const match = testFile.match(/\/(.+)\/karma\.conf\.js/);
+  const packageName = match[1];
+  let patterns = require(path.join(root, testFile)).files;
+  let dirname = path.dirname(testFile);
+  return { packageName, files: patterns.map(p => path.join(dirname, p)) };
+  // return [];
 }
 
 function seleniumLauncher(browserName, platform, version) {
+  const testFile = argv['testfile'];
+  const match = testFile.match(/\/(.+)\/karma\.conf\.js/);
+  const packageName = match[1];
   return {
     base: 'SauceLabs',
     browserName: browserName,
     extendedDebugging: 'true',
+    name: packageName + '-' + browserName,
     recordLogs: 'true',
     recordVideo: 'true',
     recordScreenshots: 'true',
@@ -81,27 +117,13 @@ function appiumLauncher(
   };
 }
 
-/**
- * Custom SauceLabs Launchers
- */
-const sauceLabsBrowsers = {
-  // Desktop
-  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
-  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
-  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
-  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest'),
-  IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest')
-
-  // Mobile
-  // Safari_iOS: appiumLauncher('Safari', 'iPhone Simulator', 'iOS', '11.2'),
-  // Chrome_Android: appiumLauncher('Chrome', 'Android Emulator', 'Android', '6.0')
-};
-
 module.exports = function(config) {
+  const { packageName, files: testFiles } = getTestFiles();
+
   const karmaConfig = Object.assign({}, karmaBase, {
     basePath: '../',
 
-    files: ['packages/polyfill/index.ts', ...getTestFiles()],
+    files: ['packages/polyfill/index.ts', ...testFiles],
 
     logLevel: config.LOG_INFO,
 
@@ -132,7 +154,7 @@ module.exports = function(config) {
     port: 9876,
 
     retryLimit: 3,
-
+    
     // concurrency: 10,
 
     specReporter: {
@@ -152,7 +174,7 @@ module.exports = function(config) {
     },
 
     sauceLabs: {
-      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
+      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER + '-' + packageName,
       username: process.env.SAUCE_USERNAME,
       accessKey: process.env.SAUCE_ACCESS_KEY,
       startConnect: true,
