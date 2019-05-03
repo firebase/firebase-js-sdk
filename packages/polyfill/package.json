@@ -21,7 +21,7 @@
     "whatwg-fetch": "2.0.4"
   },
   "devDependencies": {
-    "rollup": "1.10.1",
+    "rollup": "1.11.0",
     "rollup-plugin-typescript2": "0.21.0"
   },
   "repository": {

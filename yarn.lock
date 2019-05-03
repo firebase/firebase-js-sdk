@@ -5976,6 +5976,51 @@ firebase-tools@6.7.1:
   optionalDependencies:
     "@google-cloud/functions-emulator" "^1.0.0-beta.5"
 
+firebase-tools@6.8.0:
+  version "6.8.0"
+  resolved "https://registry.npmjs.org/firebase-tools/-/firebase-tools-6.8.0.tgz#fdb68d3585d8b0393d6baaaff0e81a1ecab514d5"
+  integrity sha512-vFJ15ApoQJs6gZdWw9mOGw4Hjivwa2qsuDDHoPMh0xUlGrvrel6UtEHn0+rrpYAYf/fu8xW/u1kL5z8H8RTINg==
+  dependencies:
+    JSONStream "^1.2.1"
+    archiver "^2.1.1"
+    cjson "^0.3.1"
+    cli-color "^1.2.0"
+    cli-table "^0.3.1"
+    commander "^2.8.1"
+    configstore "^1.2.0"
+    cross-env "^5.1.3"
+    cross-spawn "^4.0.0"
+    csv-streamify "^3.0.4"
+    didyoumean "^1.2.1"
+    es6-set "^0.1.4"
+    exit-code "^1.0.2"
+    filesize "^3.1.3"
+    firebase "2.x.x"
+    fs-extra "^0.23.1"
+    glob "^7.1.2"
+    google-auto-auth "^0.7.2"
+    inquirer "^0.12.0"
+    is "^3.2.1"
+    jsonschema "^1.0.2"
+    jsonwebtoken "^8.2.1"
+    lodash "^4.17.10"
+    minimatch "^3.0.4"
+    opn "^5.5.0"
+    ora "0.2.3"
+    portfinder "^1.0.13"
+    progress "^2.0.0"
+    request "^2.87.0"
+    semver "^5.0.3"
+    superstatic "^6.0.1"
+    tar "^4.3.0"
+    tmp "0.0.33"
+    universal-analytics "^0.4.16"
+    update-notifier "^2.5.0"
+    uuid "^3.0.0"
+    winston "^1.0.1"
+  optionalDependencies:
+    "@google-cloud/functions-emulator" "^1.0.0-beta.5"
+
 firebase@2.x.x:
   version "2.4.2"
   resolved "https://registry.npmjs.org/firebase/-/firebase-2.4.2.tgz#4e1119ec0396ca561d8a7acbff1630feac6c0a31"
@@ -7225,10 +7270,10 @@ humanize-ms@^1.2.1:
   dependencies:
     ms "^2.0.0"
 
-husky@2.1.0:
-  version "2.1.0"
-  resolved "https://registry.npmjs.org/husky/-/husky-2.1.0.tgz#f486dd063596ad3aad4bbbcd8673ca5bface3caa"
-  integrity sha512-FHsqdIJPmQX/89Xg/761RMFCPSNNG2eiQMxChGP081NTohHexEuu/4nYh5m4TcFKq4xm+DqaGp8J/EUnkzL1Aw==
+husky@2.2.0:
+  version "2.2.0"
+  resolved "https://registry.npmjs.org/husky/-/husky-2.2.0.tgz#4dda4370ba0f145b6594be4a4e4e4d4c82a6f2d5"
+  integrity sha512-lG33E7zq6v//H/DQIojPEi1ZL9ebPFt3MxUMD8MR0lrS2ljEPiuUUxlziKIs/o9EafF0chL7bAtLQkcPvXmdnA==
   dependencies:
     cosmiconfig "^5.2.0"
     execa "^1.0.0"
