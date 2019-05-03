@@ -21,10 +21,17 @@ const karma = require('karma');
 const path = require('path');
 const karmaBase = require('./karma.base');
 
+// karma.conf.js test configuration file to run.
+const testFile = argv['testfile'];
+if (!testFile) {
+  console.error('No test file path provided.');
+  process.exit(1);
+}
+
 /**
  * Custom SauceLabs Launchers
  */
-const sauceLabsBrowsers = {
+const browserMap = {
   // Desktop
   Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
   Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
@@ -37,10 +44,44 @@ const sauceLabsBrowsers = {
   // Chrome_Android: appiumLauncher('Chrome', 'Android Emulator', 'Android', '6.0')
 };
 
+/**
+ * Any special options per package.
+ */
 const packageConfigs = {
   messaging: {
-    browsers: ['Chrome_Windows', 'Edge_Windows', 'Firefox_Windows']
+    // Messaging only supports these two browsers.
+    browsers: ['Chrome_Windows', 'Firefox_Windows']
   }
+}
+
+/**
+ * Gets the browser/launcher map for this package.
+ * 
+ * @param {string} packageName Name of package being tested (e.g., "firestore")
+ */
+function getSauceLabsBrowsers(packageName) {
+  if (packageConfigs[packageName]) {
+    const filteredBrowserMap = {};
+    for (const browserKey in browserMap) {
+      if (packageConfigs[packageName].browsers.includes(browserKey)) {
+        filteredBrowserMap[browserKey] = browserMap[browserKey];
+      }
+    }
+    return filteredBrowserMap;
+  } else {
+    return browserMap;
+  }
+}
+
+/**
+ * Get package name from package path command line arg.
+ */
+function getPackageLabels() {
+  const match = testFile.match(/([a-zA-Z]+)\/([a-zA-Z]+)\/karma\.conf\.js/);
+  return {
+    type: match[1],
+    name: match[2],
+  };
 }
 
 /**
@@ -50,44 +91,22 @@ const packageConfigs = {
  */
 function getTestFiles() {
   let root = path.resolve(__dirname, '..');
-  // console.log('DIRNAME', __dirname);
-  // const packageName = 'app';
-  const testFile = argv['testfile'];
-  // configs = glob.sync(`{packages,integration}/${packageName}/karma.conf.js`);
-  // configs = argv['database-firestore-only']
-  //   ? glob.sync('packages/{database,firestore}/karma.conf.js')
-  //   : glob.sync('{packages,integration}/*/karma.conf.js', {
-  //       // Excluded due to flakiness or long run time.
-  //       ignore: [
-  //         'packages/database/*',
-  //         'packages/firestore/*',
-  //         'integration/firestore/*',
-  //         'integration/messaging/*'
-  //       ]
-  //     });
-  // files = configs.map(x => {
-  //   let patterns = require(path.join(root, x)).files;
-  //   let dirname = path.dirname(x);
-  //   return patterns.map(p => path.join(dirname, p));
-  // });
-  // return [].concat(...files);
-  const match = testFile.match(/\/(.+)\/karma\.conf\.js/);
-  const packageName = match[1];
+  const { name: packageName } = getPackageLabels();
   let patterns = require(path.join(root, testFile)).files;
   let dirname = path.dirname(testFile);
   return { packageName, files: patterns.map(p => path.join(dirname, p)) };
-  // return [];
 }
 
 function seleniumLauncher(browserName, platform, version) {
-  const testFile = argv['testfile'];
-  const match = testFile.match(/\/(.+)\/karma\.conf\.js/);
-  const packageName = match[1];
+  const { name, type } = getPackageLabels();
+  const testName = type === 'integration'
+    ? `${type}-${name}-${browserName}`
+    : `${name}-${browserName}`;
   return {
     base: 'SauceLabs',
     browserName: browserName,
     extendedDebugging: 'true',
-    name: packageName + '-' + browserName,
+    name: testName,
     recordLogs: 'true',
     recordVideo: 'true',
     recordScreenshots: 'true',
@@ -119,6 +138,7 @@ function appiumLauncher(
 
 module.exports = function(config) {
   const { packageName, files: testFiles } = getTestFiles();
+  const sauceLabsBrowsers = getSauceLabsBrowsers(packageName);
 
   const karmaConfig = Object.assign({}, karmaBase, {
     basePath: '../',

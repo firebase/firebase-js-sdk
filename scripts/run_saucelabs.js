@@ -18,10 +18,18 @@
 const { spawn } = require('child-process-promise');
 const glob = require('glob');
 
-const testFiles = glob.sync(`{packages,integration}/*/karma.conf.js`);
+// Get all karma.conf.js files that need to be run.
+const testFiles = glob.sync(`{packages,integration}/*/karma.conf.js`)
+  // Automated tests in integration/firestore are currently disabled.
+  .filter(name => !name.includes('integration/firestore'));
 
+/**
+ * Runs a set of SauceLabs browser tests based on this karma config file.
+ * 
+ * @param {string} testFile Path to karma.conf.js file that defines this test group.
+ */
 function runTest(testFile) {
-  const promise = spawn('yarn', ['test:saucelabs', `--testfile`, testFile]);
+  const promise = spawn('yarn', ['saucelabsSingle', `--testfile`, testFile]);
   const childProcess = promise.childProcess;
 
   childProcess.stdout.on('data', data => {
@@ -38,6 +46,9 @@ function runTest(testFile) {
     });
 }
 
+/**
+ * Runs next file in testFiles queue as long as there are files in the queue.
+ */
 async function runNextTest() {
   if (!testFiles.length) return;
   const nextFile = testFiles.shift();
