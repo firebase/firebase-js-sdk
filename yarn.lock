@@ -6045,21 +6045,6 @@ firebase@2.x.x:
   dependencies:
     faye-websocket ">=0.6.0"
 
-firebase@5.11.1:
-  version "5.11.1"
-  resolved "https://registry.npmjs.org/firebase/-/firebase-5.11.1.tgz#e7d376265545d7b0538b4679a96145c26a2b5c39"
-  integrity sha512-cop2UHytKas8WJZTovZqhpZIgwRfsvegijyOjgmMJoaOHCnyH4eymPneglgXsK5ExOdxJSTC4QD5qETrdL3dMw==
-  dependencies:
-    "@firebase/app" "0.3.17"
-    "@firebase/auth" "0.10.2"
-    "@firebase/database" "0.3.20"
-    "@firebase/firestore" "1.2.2"
-    "@firebase/functions" "0.4.6"
-    "@firebase/messaging" "0.3.19"
-    "@firebase/performance" "0.2.1"
-    "@firebase/polyfill" "0.3.13"
-    "@firebase/storage" "0.2.15"
-
 flagged-respawn@^1.0.0:
   version "1.0.0"
   resolved "https://registry.npmjs.org/flagged-respawn/-/flagged-respawn-1.0.0.tgz#4e79ae9b2eb38bf86b3bb56bf3e0a56aa5fcabd7"
