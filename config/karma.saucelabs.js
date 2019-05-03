@@ -52,11 +52,11 @@ const packageConfigs = {
     // Messaging only supports these two browsers.
     browsers: ['Chrome_Windows', 'Firefox_Windows']
   }
-}
+};
 
 /**
  * Gets the browser/launcher map for this package.
- * 
+ *
  * @param {string} packageName Name of package being tested (e.g., "firestore")
  */
 function getSauceLabsBrowsers(packageName) {
@@ -80,7 +80,7 @@ function getPackageLabels() {
   const match = testFile.match(/([a-zA-Z]+)\/([a-zA-Z]+)\/karma\.conf\.js/);
   return {
     type: match[1],
-    name: match[2],
+    name: match[2]
   };
 }
 
@@ -99,9 +99,10 @@ function getTestFiles() {
 
 function seleniumLauncher(browserName, platform, version) {
   const { name, type } = getPackageLabels();
-  const testName = type === 'integration'
-    ? `${type}-${name}-${browserName}`
-    : `${name}-${browserName}`;
+  const testName =
+    type === 'integration'
+      ? `${type}-${name}-${browserName}`
+      : `${name}-${browserName}`;
   return {
     base: 'SauceLabs',
     browserName: browserName,
@@ -174,7 +175,7 @@ module.exports = function(config) {
     port: 9876,
 
     retryLimit: 3,
-    
+
     // concurrency: 10,
 
     specReporter: {
