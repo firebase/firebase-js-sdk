@@ -7349,10 +7349,10 @@ iconv-lite@^0.4.24, iconv-lite@^0.4.4, iconv-lite@~0.4.13:
   dependencies:
     safer-buffer ">= 2.1.2 < 3"
 
-idb@4.0.3:
-  version "4.0.3"
-  resolved "https://registry.npmjs.org/idb/-/idb-4.0.3.tgz#b454a51ba0c45038a9a7be6898ca996aa74f9a37"
-  integrity sha512-moRlNNe0Gsvp4jAwz5cJ7scjyNTVA/cESKGCobULaljfaKZ970y8NDNCseHdMY+YxNXH58Z1V+7tTyf0GZyKqw==
+idb@3.0.2:
+  version "3.0.2"
+  resolved "https://registry.npmjs.org/idb/-/idb-3.0.2.tgz#c8e9122d5ddd40f13b60ae665e4862f8b13fa384"
+  integrity sha512-+FLa/0sTXqyux0o6C+i2lOR0VoS60LU/jzUo5xjfY6+7sEEgy4Gz1O7yFBXvjd7N0NyIGWIRg8DcQSLEG+VSPw==
 
 ieee754@^1.1.4:
   version "1.1.12"
