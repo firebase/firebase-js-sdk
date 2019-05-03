@@ -6875,6 +6875,17 @@ grpc@1.20.2:
     node-pre-gyp "^0.13.0"
     protobufjs "^5.0.3"
 
+grpc@1.20.3:
+  version "1.20.3"
+  resolved "https://registry.npmjs.org/grpc/-/grpc-1.20.3.tgz#a74d36718f1e89c4a64f2fb9441199c3c8f78978"
+  integrity sha512-GsEsi0NVj6usS/xor8pF/xDbDiwZQR59aZl5NUZ59Sy2bdPQFZ3UePr5wevZjHboirRCIQCKRI1cCgvSWUe2ag==
+  dependencies:
+    lodash.camelcase "^4.3.0"
+    lodash.clone "^4.5.0"
+    nan "^2.13.2"
+    node-pre-gyp "^0.13.0"
+    protobufjs "^5.0.3"
+
 gtoken@^1.2.1, gtoken@^1.2.3:
   version "1.2.3"
   resolved "https://registry.npmjs.org/gtoken/-/gtoken-1.2.3.tgz#5509571b8afd4322e124cf66cf68115284c476d8"
