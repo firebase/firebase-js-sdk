@@ -36,7 +36,7 @@
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "5.11.1",
+    "firebase": "5.11.0",
     "rxjs": "^6.5.1",
     "rollup": "1.11.0",
     "rollup-plugin-commonjs": "9.3.4",

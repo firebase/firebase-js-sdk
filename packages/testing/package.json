@@ -15,7 +15,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "5.11.1",
+    "firebase": "5.11.0",
     "@firebase/logger": "0.1.13",
     "@firebase/util": "0.2.14",
     "@types/request": "2.48.1",
