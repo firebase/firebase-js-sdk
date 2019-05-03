@@ -222,7 +222,7 @@ describe('QueryListener', () => {
     const listener = queryListener(query, [], events);
 
     listener.onError(Error('bad'));
-    expect(events[0].message).to.deep.equal('bad');
+    expect(events[0]).to.deep.equal(new Error('bad'));
   });
 
   it('raises event for empty collection after sync', () => {

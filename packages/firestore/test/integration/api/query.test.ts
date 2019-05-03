@@ -560,20 +560,20 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  // it('throws custom error when using docChanges as property', () => {
-  //   const querySnap = querySnapshot('foo/bar', {}, {}, keys(), false, false);
+  it('throws custom error when using docChanges as property', () => {
+    const querySnap = querySnapshot('foo/bar', {}, {}, keys(), false, false);
 
-  //   const expectedError =
-  //     'QuerySnapshot.docChanges has been changed from a property into a method';
+    const expectedError =
+      'QuerySnapshot.docChanges has been changed from a property into a method';
 
-  //   // tslint:disable-next-line:no-any We are testing invalid API usage.
-  //   const docChange = querySnap.docChanges as any;
-  //   expect(() => docChange.length).to.throw(expectedError);
-  //   expect(() => {
-  //     for (const _ of docChange) {
-  //     }
-  //   }).to.throw(expectedError);
-  // });
+    // tslint:disable-next-line:no-any We are testing invalid API usage.
+    const docChange = querySnap.docChanges as any;
+    expect(() => docChange.length).to.throw(expectedError);
+    expect(() => {
+      for (const _ of docChange) {
+      }
+    }).to.throw(expectedError);
+  });
 
   it('can query collection groups', async () => {
     await withTestDb(persistence, async db => {

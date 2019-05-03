@@ -123,7 +123,7 @@ describe('AsyncQueue', () => {
       const dummyOp = () => Promise.reject('dummyOp should not be run');
       expect(() => {
         queue.enqueueAndForget(dummyOp);
-      }).to.throw(/already failed:/);
+      }).to.throw(/already failed:.*Simulated Error/);
 
       // Finally, restore log level.
       setLogLevel(oldLogLevel);
