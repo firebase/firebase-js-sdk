@@ -10,8 +10,8 @@
     "firebase": "5.11.0"
   },
   "devDependencies": {
-    "@babel/core": "7.4.3",
-    "@babel/preset-env": "7.4.3",
+    "@babel/core": "7.4.4",
+    "@babel/preset-env": "7.4.4",
     "chai": "4.2.0",
     "karma": "4.1.0",
     "karma-babel-preprocessor": "8.0.0",
