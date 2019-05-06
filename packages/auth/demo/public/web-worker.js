@@ -143,7 +143,7 @@ var runWorkerTests = function(googleIdToken) {
         });
       })
       .then(function() {
-        return firebase.auth().signInAndRetrieveDataWithCredential(
+        return firebase.auth().signInWithCredential(
             oauthCredential);
       })
       .then(function(result) {
@@ -152,7 +152,7 @@ var runWorkerTests = function(googleIdToken) {
             !result.credential ||
             !result.additionalUserInfo) {
           throw new Error(
-              'signInAndRetrieveDataWithCredential unexpectedly failed!');
+              'signInWithCredential unexpectedly failed!');
         }
         return firebase.auth().signOut();
       })
