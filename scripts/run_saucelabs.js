@@ -16,26 +16,54 @@
  */
 
 const { spawn } = require('child-process-promise');
+const yargs = require('yargs');
 const glob = require('glob');
 
+// Check for 'files' flag to run on specified karma.conf.js files instead of
+// on all files.
+const { files } = yargs
+  .option('files', {
+    default: [],
+    describe: 'specify individual karma.conf.js files to run on',
+    type: 'array'
+  })
+  .version(false)
+  .help().argv;
+
 // Get all karma.conf.js files that need to be run.
-const testFiles = glob
-  .sync(`{packages,integration}/*/karma.conf.js`)
-  // Automated tests in integration/firestore are currently disabled.
-  .filter(name => !name.includes('integration/firestore'));
+const testFiles = files.length
+  ? files
+  : glob
+      .sync(`{packages,integration}/*/karma.conf.js`)
+      // Automated tests in integration/firestore are currently disabled.
+      .filter(name => !name.includes('integration/firestore'));
+
+// Get CI build number or generate one if running locally.
+const buildNumber =
+  process.env.TRAVIS_BUILD_NUMBER ||
+  `local_${process.env.USER}_${new Date().getTime()}`;
 
 /**
  * Runs a set of SauceLabs browser tests based on this karma config file.
  *
- * @param {string} testFile Path to karma.conf.js file that defines this test group.
+ * @param {string} testFile Path to karma.conf.js file that defines this test
+ * group.
  */
 function runTest(testFile) {
-  const promise = spawn('yarn', ['saucelabsSingle', `--testfile`, testFile]);
+  const promise = spawn('yarn', [
+    'test:saucelabs:single',
+    '--testfile',
+    testFile,
+    '--buildNumber',
+    buildNumber
+  ]);
   const childProcess = promise.childProcess;
 
   childProcess.stdout.on('data', data => {
     console.log(`[${testFile}]:`, data.toString());
   });
+
+  // Lerna's normal output goes to stderr for some reason.
   childProcess.stderr.on('data', data => {
     console.log(`[${testFile}]:`, data.toString());
   });
@@ -56,7 +84,7 @@ async function runNextTest() {
   try {
     await runTest(nextFile);
   } catch (e) {
-    console.error(`[${nextFile}] ERROR in runTest:`, e.message);
+    console.error(`[${nextFile}] ERROR:`, e.message);
   }
   runNextTest();
 }

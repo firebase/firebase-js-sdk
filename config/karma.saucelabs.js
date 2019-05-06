@@ -16,8 +16,6 @@
  */
 
 const argv = require('yargs').argv;
-const glob = require('glob');
-const karma = require('karma');
 const path = require('path');
 const karmaBase = require('./karma.base');
 
@@ -141,6 +139,24 @@ module.exports = function(config) {
   const { packageName, files: testFiles } = getTestFiles();
   const sauceLabsBrowsers = getSauceLabsBrowsers(packageName);
 
+  const sauceLabsConfig = {
+    tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER + '-' + packageName,
+    build: process.env.TRAVIS_BUILD_NUMBER || argv['buildNumber'],
+    username: process.env.SAUCE_USERNAME,
+    accessKey: process.env.SAUCE_ACCESS_KEY,
+    startConnect: true,
+    connectOptions: {
+      // Realtime Database uses WebSockets to connect to firebaseio.com
+      // so we have to set noSslBumpDomains. Theoretically SSL Bumping
+      // only needs to be disabled for 'firebaseio.com'. However, we are
+      // seeing much longer test time with that configuration, so leave
+      // it as 'all' for now.
+      // See https://wiki.saucelabs.com/display/DOCS/Troubleshooting+Sauce+Connect
+      // for more details.
+      noSslBumpDomains: 'all'
+    }
+  };
+
   const karmaConfig = Object.assign({}, karmaBase, {
     basePath: '../',
 
@@ -194,22 +210,7 @@ module.exports = function(config) {
       overviewColumn: false
     },
 
-    sauceLabs: {
-      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER + '-' + packageName,
-      username: process.env.SAUCE_USERNAME,
-      accessKey: process.env.SAUCE_ACCESS_KEY,
-      startConnect: true,
-      connectOptions: {
-        // Realtime Database uses WebSockets to connect to firebaseio.com
-        // so we have to set noSslBumpDomains. Theoretically SSL Bumping
-        // only needs to be disabled for 'firebaseio.com'. However, we are
-        // seeing much longer test time with that configuration, so leave
-        // it as 'all' for now.
-        // See https://wiki.saucelabs.com/display/DOCS/Troubleshooting+Sauce+Connect
-        // for more details.
-        noSslBumpDomains: 'all'
-      }
-    }
+    sauceLabs: sauceLabsConfig
   });
 
   config.set(karmaConfig);
