@@ -135,6 +135,11 @@ export class MemoryPersistence implements Persistence {
     return primaryStateListener(true);
   }
 
+  setTriggerShutdownListener(): void {
+    // No op.
+    console.warn('Memory persistence shutdownlistener');
+  }
+
   setNetworkEnabled(networkEnabled: boolean): void {
     // No op.
   }

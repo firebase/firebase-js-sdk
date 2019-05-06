@@ -104,6 +104,7 @@ import {
 } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
+  clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
@@ -550,6 +551,8 @@ abstract class TestRunner {
       return step.enableNetwork!
         ? this.doEnableNetwork()
         : this.doDisableNetwork();
+    } else if ('clearPersistence' in step) {
+      return this.doClearPersistence();
     } else if ('restart' in step) {
       return this.doRestart();
     } else if ('shutdown' in step) {
@@ -866,6 +869,10 @@ abstract class TestRunner {
     // test run.
     await this.persistence.shutdown();
     this.started = false;
+  }
+
+  private async doClearPersistence(): Promise<void> {
+    await clearTestPersistence();
   }
 
   private async doRestart(): Promise<void> {
@@ -1340,6 +1347,9 @@ export interface SpecStep {
 
   /** Enable or disable RemoteStore's network connection. */
   enableNetwork?: boolean;
+
+  /** Clears the persistent storage in IndexedDB. */
+  clearPersistence?: true;
 
   /** Changes the metadata state of a client instance. */
   applyClientState?: SpecClientState; // PORTING NOTE: Only used by web multi-tab tests

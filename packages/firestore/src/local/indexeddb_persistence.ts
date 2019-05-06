@@ -63,7 +63,8 @@ import {
   Persistence,
   PersistenceTransaction,
   PrimaryStateListener,
-  ReferenceDelegate
+  ReferenceDelegate,
+  TriggerShutdownListener
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
@@ -263,6 +264,9 @@ export class IndexedDbPersistence implements Persistence {
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
+  private triggerShutdownListener: TriggerShutdownListener = () =>
+    Promise.resolve();
+
   private readonly queryCache: IndexedDbQueryCache;
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
@@ -330,6 +334,13 @@ export class IndexedDbPersistence implements Persistence {
     )
       .then(db => {
         this.simpleDb = db;
+        this.simpleDb.setVersionChangeListener(async event => {
+          console.warn('Version change event received in IDB persistence', event);
+          // Check if an attempt is made to delete IndexedDB.
+          if (event.newVersion === null) {
+            await this.triggerShutdownListener();
+          }
+        });
         // NOTE: This is expected to fail sometimes (in the case of another tab already
         // having the persistence lock), so it's the first thing we should do.
         return this.updateClientMetadataAndTryBecomePrimary();
@@ -385,6 +396,15 @@ export class IndexedDbPersistence implements Persistence {
       }
     };
     return primaryStateListener(this.isPrimary);
+  }
+
+  setTriggerShutdownListener(
+    triggerShutdownListener: TriggerShutdownListener
+  ): void {
+    console.warn('IndexedDB TriggerShutdownListener set');
+    this.triggerShutdownListener = async ()=> {
+      return triggerShutdownListener();
+    };
   }
 
   setNetworkEnabled(networkEnabled: boolean): void {

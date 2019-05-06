@@ -291,4 +291,26 @@ describeSpec('Persistence:', [], () => {
         .expectPrimaryState(true)
     );
   });
+
+  specTest(
+    'clearPersistence() shuts down other clients',
+    ['multi-client', 'durable-persistence', 'exclusive'],
+    () => {
+      const query = Query.atPath(path('collection'));
+      const docA = doc('collection/a', 1000, { key: 'a' });
+
+      return (
+        client(0)
+        .becomeVisible()
+        .client(1)
+        .client(2)
+        .client(0)
+        .shutdown()
+        .clearPersistence()
+        .client(1)
+        .userListens(query)
+        // .expectEvents(query, {errorCode: 'failed-precondition'})
+      );
+    }
+  );
 });

@@ -17,7 +17,7 @@
 
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { debug } from '../util/log';
+import { debug, error } from '../util/log';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
@@ -212,7 +212,23 @@ export class SimpleDb {
     return Number(version);
   }
 
-  constructor(private db: IDBDatabase) {}
+  private versionChangeListener: (
+    event: IDBVersionChangeEvent
+  ) => Promise<void>;
+
+  constructor(private db: IDBDatabase) {
+    this.db.onversionchange = (event: IDBVersionChangeEvent) => {
+      this.versionChangeListener(event);
+    };
+  }
+
+  setVersionChangeListener(
+    versionChangeListener: (event: IDBVersionChangeEvent) => Promise<void>
+  ): void {
+    this.versionChangeListener = async event => {
+      return versionChangeListener(event);
+    };
+  }
 
   runTransaction<T>(
     mode: 'readonly' | 'readwrite',

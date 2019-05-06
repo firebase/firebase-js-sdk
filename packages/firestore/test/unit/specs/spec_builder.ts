@@ -347,6 +347,14 @@ export class SpecBuilder {
     return this;
   }
 
+  clearPersistence(): this {
+    this.nextStep();
+    this.currentStep = {
+      clearPersistence: true
+    };
+    return this;
+  }
+
   restart(): this {
     this.nextStep();
     this.currentStep = {

@@ -51,6 +51,8 @@ export abstract class PersistenceTransaction {
  */
 export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
 
+export type TriggerShutdownListener = () => Promise<void>;
+
 /**
  * A ReferenceDelegate instance handles all of the hooks into the document-reference lifecycle. This
  * includes being added to a target, being removed from a target, being subject to mutation, and
@@ -164,6 +166,10 @@ export interface Persistence {
   setPrimaryStateListener(
     primaryStateListener: PrimaryStateListener
   ): Promise<void>;
+
+  setTriggerShutdownListener(
+    triggerShutdownListener: TriggerShutdownListener
+  ): void;
 
   /**
    * Adjusts the current network state in the client's metadata, potentially

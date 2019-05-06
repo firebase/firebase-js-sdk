@@ -183,6 +183,8 @@ export class FirestoreClient {
     const persistenceResult = new Deferred<void>();
 
     let initialized = false;
+    console.warn('START CALLED');
+
     this.credentials.setChangeListener(user => {
       if (!initialized) {
         initialized = true;
@@ -399,6 +401,7 @@ export class FirestoreClient {
     maybeLruGc: LruGarbageCollector | null
   ): Promise<void> {
     debug(LOG_TAG, 'Initializing. user=', user.uid);
+    console.warn('INITIALIZE REST');
     return this.platform
       .loadConnection(this.databaseInfo)
       .then(async connection => {
@@ -469,6 +472,11 @@ export class FirestoreClient {
               this.lruScheduler.stop();
             }
           }
+        });
+        console.warn('calling TriggerShutdownListener', this.persistence);
+        await this.persistence.setTriggerShutdownListener(async () => {
+          console.warn('Firestore client received notice to shutdown');
+          await this.shutdown();
         });
       });
   }
