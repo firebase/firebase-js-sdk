@@ -26,6 +26,7 @@
   "dependencies": {
     "@firebase/app-types": "0.3.10",
     "@firebase/util": "0.2.14",
+    "@firebase/logger": "0.1.13",
     "tslib": "1.9.3",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"

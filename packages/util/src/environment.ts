@@ -21,7 +21,7 @@ import { CONSTANTS } from './constants';
  * Returns navigator.userAgent string or '' if it's not defined.
  * @return {string} user agent string
  */
-export const getUA = function() {
+export function getUA(): string {
   if (
     typeof navigator !== 'undefined' &&
     typeof navigator['userAgent'] === 'string'
@@ -40,7 +40,7 @@ export const getUA = function() {
  *
  * @return {boolean} isMobileCordova
  */
-export const isMobileCordova = function() {
+export function isMobileCordova(): boolean {
   return (
     typeof window !== 'undefined' &&
     !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
@@ -49,21 +49,42 @@ export const isMobileCordova = function() {
 };
 
 /**
+ * Detect Node.js.
+ *
+ * @return {boolean} True if Node.js environment is detected.
+ * Node detection logic from: https://github.com/iliakan/detect-node/
+ */
+export function isNode(): boolean {
+  try {
+      return Object.prototype.toString.call(global.process) === '[object process]';
+  } catch (e) {
+      return false;
+  }
+}
+
+/**
+ * Detect Browser Environment
+ */
+export function isBrowser(): boolean {
+  return typeof window !== 'undefined';
+}
+
+/**
  * Detect React Native.
  *
  * @return {boolean} True if ReactNative environment is detected.
  */
-export const isReactNative = function() {
+export function isReactNative(): boolean {
   return (
     typeof navigator === 'object' && navigator['product'] === 'ReactNative'
   );
 };
 
 /**
- * Detect Node.js.
+ * Detect whether the current SDK build is the Node version.
  *
- * @return {boolean} True if Node.js environment is detected.
+ * @return {boolean} True if it's the Node SDK build.
  */
-export const isNodeSdk = function() {
+export function isNodeSdk(): boolean {
   return CONSTANTS.NODE_CLIENT === true || CONSTANTS.NODE_ADMIN === true;
 };
