@@ -47,8 +47,8 @@ const browserMap = {
  */
 const packageConfigs = {
   messaging: {
-    // Messaging only supports these two browsers.
-    browsers: ['Chrome_Windows', 'Firefox_Windows']
+    // Messaging currently only supports these browsers.
+    browsers: ['Chrome_Windows', 'Firefox_Windows', 'Edge_Windows']
   }
 };
 
