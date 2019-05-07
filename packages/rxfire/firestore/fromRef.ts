@@ -20,7 +20,10 @@ import { Observable } from 'rxjs';
 
 function _fromRef(ref: any): Observable<any> {
   return new Observable(subscriber => {
-    const unsubscribe = ref.onSnapshot(subscriber);
+    const unsubscribe = ref.onSnapshot(
+      subscriber.next.bind(subscriber),
+      subscriber.error.bind(subscriber)
+    );
     return { unsubscribe };
   });
 }
