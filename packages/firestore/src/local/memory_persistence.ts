@@ -135,7 +135,7 @@ export class MemoryPersistence implements Persistence {
     return primaryStateListener(true);
   }
 
-  setTriggerShutdownListener(): void {
+  setDatabaseDeletedListener(): void {
     // No op.
   }
 

@@ -296,9 +296,6 @@ describeSpec('Persistence:', [], () => {
     'clearPersistence() shuts down other clients',
     ['multi-client', 'exclusive'],
     () => {
-      const query = Query.atPath(path('collection'));
-      const docA = doc('collection/a', 1000, { key: 'a' });
-
       return client(0)
         .becomeVisible()
         .client(1)

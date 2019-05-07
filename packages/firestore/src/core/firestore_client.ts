@@ -183,10 +183,10 @@ export class FirestoreClient {
     const persistenceResult = new Deferred<void>();
 
     let initialized = false;
-
     this.credentials.setChangeListener(user => {
       if (!initialized) {
         initialized = true;
+
         this.initializePersistence(persistenceSettings, persistenceResult, user)
           .then(maybeLruGc => this.initializeRest(user, maybeLruGc))
           .then(initializationDone.resolve, initializationDone.reject);
@@ -470,7 +470,10 @@ export class FirestoreClient {
             }
           }
         });
-        await this.persistence.setTriggerShutdownListener(async () => {
+
+        // If the persistence database has been deleted in another client,
+        // shutdown the current client.
+        await this.persistence.setDatabaseDeletedListener(async () => {
           await this.shutdown();
         });
       });

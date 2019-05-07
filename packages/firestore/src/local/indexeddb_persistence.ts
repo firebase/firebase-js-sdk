@@ -60,11 +60,11 @@ import {
 } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import {
+  DatabaseDeletedListener,
   Persistence,
   PersistenceTransaction,
   PrimaryStateListener,
-  ReferenceDelegate,
-  TriggerShutdownListener
+  ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
@@ -264,7 +264,8 @@ export class IndexedDbPersistence implements Persistence {
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
-  private triggerShutdownListener: TriggerShutdownListener = () =>
+  /** A listener to notify on version change events that require the client to be shutdown. */
+  private databaseDeletedListener: DatabaseDeletedListener = () =>
     Promise.resolve();
 
   private readonly queryCache: IndexedDbQueryCache;
@@ -337,7 +338,7 @@ export class IndexedDbPersistence implements Persistence {
         this.simpleDb.setVersionChangeListener(async event => {
           // Check if an attempt is made to delete IndexedDB.
           if (event.newVersion === null) {
-            await this.triggerShutdownListener();
+            await this.databaseDeletedListener();
           }
         });
         // NOTE: This is expected to fail sometimes (in the case of another tab already
@@ -397,11 +398,11 @@ export class IndexedDbPersistence implements Persistence {
     return primaryStateListener(this.isPrimary);
   }
 
-  setTriggerShutdownListener(
-    triggerShutdownListener: TriggerShutdownListener
+  setDatabaseDeletedListener(
+    databaseDeletedListener: DatabaseDeletedListener
   ): void {
-    this.triggerShutdownListener = async () => {
-      return triggerShutdownListener();
+    this.databaseDeletedListener = async () => {
+      return databaseDeletedListener();
     };
   }
 

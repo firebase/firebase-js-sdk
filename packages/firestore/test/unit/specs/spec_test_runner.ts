@@ -480,7 +480,7 @@ abstract class TestRunner {
       this.syncEngine.applyPrimaryState(isPrimary)
     );
 
-    await this.persistence.setTriggerShutdownListener(async () => {
+    await this.persistence.setDatabaseDeletedListener(async () => {
       await this.shutdown();
     });
 
@@ -575,9 +575,6 @@ abstract class TestRunner {
   }
 
   private async doListen(listenSpec: SpecUserListen): Promise<void> {
-    if (!this.started) {
-      console.warn('shutdown');
-    }
     const expectedTargetId = listenSpec[0];
     const querySpec = listenSpec[1];
     const query = this.parseQuery(querySpec);
