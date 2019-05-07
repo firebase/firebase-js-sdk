@@ -385,6 +385,14 @@ export class SpecBuilder {
     return this;
   }
 
+  assertIsShutdown(): this {
+    this.nextStep();
+    this.currentStep = {
+      assertIsShutdown: true
+    };
+    return this;
+  }
+
   /** Overrides the currently expected set of active targets. */
   expectActiveTargets(
     ...targets: Array<{ query: Query; resumeToken: string }>

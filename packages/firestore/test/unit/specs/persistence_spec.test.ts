@@ -294,7 +294,7 @@ describeSpec('Persistence:', [], () => {
 
   specTest(
     'clearPersistence() shuts down other clients',
-    ['multi-client', 'durable-persistence', 'exclusive'],
+    ['multi-client', 'exclusive'],
     () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 1000, { key: 'a' });
@@ -308,8 +308,9 @@ describeSpec('Persistence:', [], () => {
         .shutdown()
         .clearPersistence()
         .client(1)
-        .userListens(query)
-        // .expectEvents(query, {errorCode: 'failed-precondition'})
+        .assertIsShutdown()
+        .client(2)
+        .assertIsShutdown()
       );
     }
   );

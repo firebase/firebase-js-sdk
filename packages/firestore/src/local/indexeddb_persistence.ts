@@ -335,7 +335,6 @@ export class IndexedDbPersistence implements Persistence {
       .then(db => {
         this.simpleDb = db;
         this.simpleDb.setVersionChangeListener(async event => {
-          console.warn('Version change event received in IDB persistence', event);
           // Check if an attempt is made to delete IndexedDB.
           if (event.newVersion === null) {
             await this.triggerShutdownListener();
@@ -401,7 +400,6 @@ export class IndexedDbPersistence implements Persistence {
   setTriggerShutdownListener(
     triggerShutdownListener: TriggerShutdownListener
   ): void {
-    console.warn('IndexedDB TriggerShutdownListener set');
     this.triggerShutdownListener = async ()=> {
       return triggerShutdownListener();
     };

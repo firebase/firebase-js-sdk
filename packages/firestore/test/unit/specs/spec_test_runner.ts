@@ -1,3 +1,4 @@
+import { SpecWriteFailure } from './spec_test_runner';
 /**
  * @license
  * Copyright 2017 Google Inc.
@@ -479,6 +480,10 @@ abstract class TestRunner {
       this.syncEngine.applyPrimaryState(isPrimary)
     );
 
+    await this.persistence.setTriggerShutdownListener(async () => {
+      await this.shutdown();
+    });
+
     this.started = true;
   }
 
@@ -557,6 +562,8 @@ abstract class TestRunner {
       return this.doRestart();
     } else if ('shutdown' in step) {
       return this.doShutdown();
+    } else if ('assertIsShutdown' in step) {
+      return this.doAssertIsShutdown();
     } else if ('applyClientState' in step) {
       // PORTING NOTE: Only used by web multi-tab tests.
       return this.doApplyClientState(step.applyClientState!);
@@ -568,6 +575,9 @@ abstract class TestRunner {
   }
 
   private async doListen(listenSpec: SpecUserListen): Promise<void> {
+    if (!this.started) {
+      console.warn('shutdown');
+    }
     const expectedTargetId = listenSpec[0];
     const querySpec = listenSpec[1];
     const query = this.parseQuery(querySpec);
@@ -869,6 +879,11 @@ abstract class TestRunner {
     // test run.
     await this.persistence.shutdown();
     this.started = false;
+  }
+
+  /** Asserts that the client is shutdown by  */
+  private async doAssertIsShutdown(): Promise<void> {
+    expect(this.started).to.equal(false);
   }
 
   private async doClearPersistence(): Promise<void> {
@@ -1366,6 +1381,10 @@ export interface SpecStep {
 
   /** Shut down the client and close it network connection. */
   shutdown?: true;
+
+  /** Assert that the firestore client is shutdown. */
+  assertIsShutdown?: true;
+  
   /**
    * Optional list of expected events.
    * If not provided, the test will fail if the step causes events to be raised.
