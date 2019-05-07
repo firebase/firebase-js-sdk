@@ -299,8 +299,7 @@ describeSpec('Persistence:', [], () => {
       const query = Query.atPath(path('collection'));
       const docA = doc('collection/a', 1000, { key: 'a' });
 
-      return (
-        client(0)
+      return client(0)
         .becomeVisible()
         .client(1)
         .client(2)
@@ -310,8 +309,7 @@ describeSpec('Persistence:', [], () => {
         .client(1)
         .assertIsShutdown()
         .client(2)
-        .assertIsShutdown()
-      );
+        .assertIsShutdown();
     }
   );
 });

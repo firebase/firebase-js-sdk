@@ -400,7 +400,7 @@ export class IndexedDbPersistence implements Persistence {
   setTriggerShutdownListener(
     triggerShutdownListener: TriggerShutdownListener
   ): void {
-    this.triggerShutdownListener = async ()=> {
+    this.triggerShutdownListener = async () => {
       return triggerShutdownListener();
     };
   }

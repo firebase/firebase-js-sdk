@@ -1384,7 +1384,7 @@ export interface SpecStep {
 
   /** Assert that the firestore client is shutdown. */
   assertIsShutdown?: true;
-  
+
   /**
    * Optional list of expected events.
    * If not provided, the test will fail if the step causes events to be raised.
