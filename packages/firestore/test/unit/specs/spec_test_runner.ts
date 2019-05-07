@@ -1,4 +1,3 @@
-import { SpecWriteFailure } from './spec_test_runner';
 /**
  * @license
  * Copyright 2017 Google Inc.

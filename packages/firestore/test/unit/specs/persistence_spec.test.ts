@@ -294,7 +294,7 @@ describeSpec('Persistence:', [], () => {
 
   specTest(
     'clearPersistence() shuts down other clients',
-    ['multi-client', 'exclusive'],
+    ['multi-client'],
     () => {
       return client(0)
         .becomeVisible()
