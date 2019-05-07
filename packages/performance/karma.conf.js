@@ -22,7 +22,7 @@ module.exports = function(config) {
   config.set({
     ...karmaBase,
     // files to load into karma
-    files: files,
+    files,
     preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
