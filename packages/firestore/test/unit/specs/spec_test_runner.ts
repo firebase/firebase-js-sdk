@@ -561,8 +561,8 @@ abstract class TestRunner {
       return this.doRestart();
     } else if ('shutdown' in step) {
       return this.doShutdown();
-    } else if ('assertIsShutdown' in step) {
-      return this.doAssertIsShutdown();
+    } else if ('expectIsShutdown' in step) {
+      return this.doExpectIsShutdown();
     } else if ('applyClientState' in step) {
       // PORTING NOTE: Only used by web multi-tab tests.
       return this.doApplyClientState(step.applyClientState!);
@@ -878,7 +878,7 @@ abstract class TestRunner {
   }
 
   /** Asserts that the client is shutdown by  */
-  private async doAssertIsShutdown(): Promise<void> {
+  private async doExpectIsShutdown(): Promise<void> {
     expect(this.started).to.equal(false);
   }
 
