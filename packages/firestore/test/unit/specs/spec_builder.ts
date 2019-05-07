@@ -385,10 +385,10 @@ export class SpecBuilder {
     return this;
   }
 
-  assertIsShutdown(): this {
+  expectIsShutdown(): this {
     this.nextStep();
     this.currentStep = {
-      assertIsShutdown: true
+      expectIsShutdown: true
     };
     return this;
   }

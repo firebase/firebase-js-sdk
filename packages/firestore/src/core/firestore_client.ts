@@ -471,8 +471,8 @@ export class FirestoreClient {
           }
         });
 
-        // If the persistence database has been deleted in another client,
-        // shutdown the current client.
+        // When a user calls clearPersistence() in one client, all other clientfs
+        // need to shut down to allow the delete to succeed.
         await this.persistence.setDatabaseDeletedListener(async () => {
           await this.shutdown();
         });

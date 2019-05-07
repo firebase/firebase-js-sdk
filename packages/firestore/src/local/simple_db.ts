@@ -212,20 +212,12 @@ export class SimpleDb {
     return Number(version);
   }
 
-  private versionChangeListener: (
-    event: IDBVersionChangeEvent
-  ) => Promise<void>;
-
-  constructor(private db: IDBDatabase) {
-    this.db.onversionchange = (event: IDBVersionChangeEvent) => {
-      return this.versionChangeListener(event);
-    };
-  }
+  constructor(private db: IDBDatabase) {}
 
   setVersionChangeListener(
-    versionChangeListener: (event: IDBVersionChangeEvent) => Promise<void>
+    versionChangeListener: (event: IDBVersionChangeEvent) => void
   ): void {
-    this.versionChangeListener = async event => {
+    this.db.onversionchange = (event: IDBVersionChangeEvent) => {
       return versionChangeListener(event);
     };
   }

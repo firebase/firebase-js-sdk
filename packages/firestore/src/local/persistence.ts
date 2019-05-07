@@ -52,14 +52,6 @@ export abstract class PersistenceTransaction {
 export type PrimaryStateListener = (isPrimary: boolean) => Promise<void>;
 
 /**
- * Callback type for when the underlying database has been deleted. This
- * callback can be registered with the persistence layer to get notified when
- * the database has received a version change event indicating that it has
- * been deleted.
- */
-export type DatabaseDeletedListener = () => Promise<void>;
-
-/**
  * A ReferenceDelegate instance handles all of the hooks into the document-reference lifecycle. This
  * includes being added to a target, being removed from a target, being subject to mutation, and
  * being mutated by the user.
@@ -180,7 +172,7 @@ export interface Persistence {
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setDatabaseDeletedListener(
-    databaseDeletedListener: DatabaseDeletedListener
+    databaseDeletedListener: () => Promise<void>
   ): void;
 
   /**

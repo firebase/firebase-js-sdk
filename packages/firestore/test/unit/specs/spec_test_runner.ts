@@ -1379,7 +1379,7 @@ export interface SpecStep {
   shutdown?: true;
 
   /** Assert that the firestore client is shutdown. */
-  assertIsShutdown?: true;
+  expectIsShutdown?: true;
 
   /**
    * Optional list of expected events.

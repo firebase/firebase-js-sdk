@@ -60,7 +60,6 @@ import {
 } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import {
-  DatabaseDeletedListener,
   Persistence,
   PersistenceTransaction,
   PrimaryStateListener,
@@ -264,10 +263,6 @@ export class IndexedDbPersistence implements Persistence {
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
-  /** A listener to notify on version change events that require the client to be shutdown. */
-  private databaseDeletedListener: DatabaseDeletedListener = () =>
-    Promise.resolve();
-
   private readonly queryCache: IndexedDbQueryCache;
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
@@ -335,12 +330,6 @@ export class IndexedDbPersistence implements Persistence {
     )
       .then(db => {
         this.simpleDb = db;
-        this.simpleDb.setVersionChangeListener(async event => {
-          // Check if an attempt is made to delete IndexedDB.
-          if (event.newVersion === null) {
-            await this.databaseDeletedListener();
-          }
-        });
         // NOTE: This is expected to fail sometimes (in the case of another tab already
         // having the persistence lock), so it's the first thing we should do.
         return this.updateClientMetadataAndTryBecomePrimary();
@@ -399,11 +388,14 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   setDatabaseDeletedListener(
-    databaseDeletedListener: DatabaseDeletedListener
+    databaseDeletedListener: () => Promise<void>
   ): void {
-    this.databaseDeletedListener = async () => {
-      return databaseDeletedListener();
-    };
+    this.simpleDb.setVersionChangeListener(async event => {
+      // Check if an attempt is made to delete IndexedDB.
+      if (event.newVersion === null) {
+        await databaseDeletedListener();
+      }
+    });
   }
 
   setNetworkEnabled(networkEnabled: boolean): void {

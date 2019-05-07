@@ -304,9 +304,9 @@ describeSpec('Persistence:', [], () => {
         .shutdown()
         .clearPersistence()
         .client(1)
-        .assertIsShutdown()
+        .expectIsShutdown()
         .client(2)
-        .assertIsShutdown();
+        .expectIsShutdown();
     }
   );
 });
