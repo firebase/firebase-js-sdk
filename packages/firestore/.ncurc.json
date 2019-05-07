@@ -2,6 +2,7 @@
     "upgrade": true,
     "reject": [
         "long",
-        "karma-sauce-launcher"
+        "karma-sauce-launcher",
+        "rollup-plugin-copy-assets"
     ]
 }

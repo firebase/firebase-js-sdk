@@ -147,9 +147,9 @@ function getRemoteConfig(
 function processConfig(
   config: RemoteConfigResponse | undefined
 ): RemoteConfigResponse | undefined {
-  if (!config || !config.entries) return config;
+  if (!config) return config;
   const settingsServiceInstance = SettingsService.getInstance();
-  const entries = config.entries;
+  const entries = config.entries || {};
   if (entries.fpr_enabled !== undefined) {
     // TODO: Change the assignment of loggingEnabled once the received type is known.
     settingsServiceInstance.loggingEnabled =
