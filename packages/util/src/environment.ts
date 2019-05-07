@@ -30,7 +30,7 @@ export function getUA(): string {
   } else {
     return '';
   }
-};
+}
 
 /**
  * Detect Cordova / PhoneGap / Ionic frameworks on a mobile device.
@@ -46,7 +46,7 @@ export function isMobileCordova(): boolean {
     !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
     /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA())
   );
-};
+}
 
 /**
  * Detect Node.js.
@@ -56,9 +56,11 @@ export function isMobileCordova(): boolean {
  */
 export function isNode(): boolean {
   try {
-      return Object.prototype.toString.call(global.process) === '[object process]';
+    return (
+      Object.prototype.toString.call(global.process) === '[object process]'
+    );
   } catch (e) {
-      return false;
+    return false;
   }
 }
 
@@ -78,7 +80,7 @@ export function isReactNative(): boolean {
   return (
     typeof navigator === 'object' && navigator['product'] === 'ReactNative'
   );
-};
+}
 
 /**
  * Detect whether the current SDK build is the Node version.
@@ -87,4 +89,4 @@ export function isReactNative(): boolean {
  */
 export function isNodeSdk(): boolean {
   return CONSTANTS.NODE_CLIENT === true || CONSTANTS.NODE_ADMIN === true;
-};
+}

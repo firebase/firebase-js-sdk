@@ -41,7 +41,7 @@ if (isBrowser() && 'firebase' in self) {
 const firebaseNamespace = createFirebaseNamespace();
 const initializeApp = firebaseNamespace.initializeApp;
 
-firebaseNamespace.initializeApp = function () {
+firebaseNamespace.initializeApp = function() {
   // Environment check before initializing app
   // Do the check in initializeApp, so people have a chance to disable it by setting logLevel
   // in @firebase/logger
@@ -62,7 +62,7 @@ firebaseNamespace.initializeApp = function () {
   }
 
   return initializeApp.apply(undefined, arguments);
-}
+};
 
 export const firebase = firebaseNamespace;
 
