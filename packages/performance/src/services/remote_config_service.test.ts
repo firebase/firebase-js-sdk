@@ -176,5 +176,21 @@ describe('Performance Monitoring > remote_config_service', () => {
 
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
     });
+
+    it('uses secondary configs if the response does not have any fields', async () => {
+      // Expired local config.
+      const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
+      storageGetItemStub.callsFake(
+        storageGetItemFakeFactory(
+          EXPIRY_LOCAL_STORAGE_VALUE,
+          'not a valid config and should not be used'
+        )
+      );
+      const STRINGIFIED_PARTIAL_CONFIG = '{"state":"NO TEMPLATE"}';
+      fetchStub.resolves(new Response(STRINGIFIED_PARTIAL_CONFIG));
+      await getConfig(IID);
+
+      expect(SettingsService.getInstance().loggingEnabled).to.be.true;
+    });
   });
 });
