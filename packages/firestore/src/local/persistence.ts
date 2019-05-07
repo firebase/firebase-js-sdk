@@ -176,7 +176,7 @@ export interface Persistence {
   /**
    * Registers a listener that gets called when the database receives a
    * version change event indicating that it has deleted.
-   * 
+   *
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setDatabaseDeletedListener(
