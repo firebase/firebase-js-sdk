@@ -387,6 +387,17 @@ export class IndexedDbPersistence implements Persistence {
     return primaryStateListener(this.isPrimary);
   }
 
+  setDatabaseDeletedListener(
+    databaseDeletedListener: () => Promise<void>
+  ): void {
+    this.simpleDb.setVersionChangeListener(async event => {
+      // Check if an attempt is made to delete IndexedDB.
+      if (event.newVersion === null) {
+        await databaseDeletedListener();
+      }
+    });
+  }
+
   setNetworkEnabled(networkEnabled: boolean): void {
     if (this.networkEnabled !== networkEnabled) {
       this.networkEnabled = networkEnabled;
