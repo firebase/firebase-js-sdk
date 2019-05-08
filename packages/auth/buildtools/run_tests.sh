@@ -62,6 +62,10 @@ function evalModule {
   do
     if [ -f "$basedir/$1" ]; then
       eval "$basedir/$1 ${@:2}"
+      ret=$?
+      if [ $ret -ne 0 ]; then
+        exit $ret
+      fi    
       break
     fi
   done
