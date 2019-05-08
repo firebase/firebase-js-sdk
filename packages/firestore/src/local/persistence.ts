@@ -166,6 +166,16 @@ export interface Persistence {
   ): Promise<void>;
 
   /**
+   * Registers a listener that gets called when the database receives a
+   * version change event indicating that it has deleted.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  setDatabaseDeletedListener(
+    databaseDeletedListener: () => Promise<void>
+  ): void;
+
+  /**
    * Adjusts the current network state in the client's metadata, potentially
    * affecting the primary lease.
    *

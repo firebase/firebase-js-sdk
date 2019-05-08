@@ -291,4 +291,22 @@ describeSpec('Persistence:', [], () => {
         .expectPrimaryState(true)
     );
   });
+
+  specTest(
+    'clearPersistence() shuts down other clients',
+    ['multi-client'],
+    () => {
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .client(2)
+        .client(0)
+        .shutdown()
+        .clearPersistence()
+        .client(1)
+        .expectIsShutdown()
+        .client(2)
+        .expectIsShutdown();
+    }
+  );
 });

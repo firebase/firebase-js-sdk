@@ -470,6 +470,12 @@ export class FirestoreClient {
             }
           }
         });
+
+        // When a user calls clearPersistence() in one client, all other clientfs
+        // need to shut down to allow the delete to succeed.
+        await this.persistence.setDatabaseDeletedListener(async () => {
+          await this.shutdown();
+        });
       });
   }
 
