@@ -1305,12 +1305,12 @@ fireauth.Auth.prototype.onIdTokenChanged = function(
   // promise as required by specs.
   if (this.isStateResolved_) {
     // The observer cannot be called synchronously. We're using the
-    // firebase.Promise implementation as otherwise it creates weird behavior
+    // native Promise implementation as otherwise it creates weird behavior
     // where the order of promises resolution would not be as expected.
     // It is due to the fact fireauth and firebase.app use their own
     // and different promises library and this leads to calls resolutions order
     // being different from the promises registration order.
-    firebase.Promise.resolve().then(function() {
+    Promise.resolve().then(function() {
       if (goog.isFunction(nextOrObserver)) {
         nextOrObserver(self.currentUser_());
       } else if (goog.isFunction(nextOrObserver['next'])) {
@@ -1347,12 +1347,12 @@ fireauth.Auth.prototype.onAuthStateChanged = function(
   // promise as required by specs.
   if (this.isStateResolved_) {
     // The observer cannot be called synchronously. We're using the
-    // firebase.Promise implementation as otherwise it creates weird behavior
+    // native Promise implementation as otherwise it creates weird behavior
     // where the order of promises resolution would not be as expected.
     // It is due to the fact fireauth and firebase.app use their own
     // and different promises library and this leads to calls resolutions order
     // being different from the promises registration order.
-    firebase.Promise.resolve().then(function() {
+    Promise.resolve().then(function() {
       // This ensures that the first time notifyAuthListeners_ is triggered,
       // it has the correct UID before triggering the user state change
       // listeners.
@@ -1752,7 +1752,7 @@ fireauth.Auth.prototype.addUserChangeListener_ = function(listener) {
 /**
  * Deletes the Auth instance, handling cancellation of all pending async Auth
  * operations.
- * @return {!firebase.Promise<void>}
+ * @return {!Promise<void>}
  */
 fireauth.Auth.prototype.delete = function() {
   this.deleted_ = true;
@@ -1773,7 +1773,7 @@ fireauth.Auth.prototype.delete = function() {
     this.authEventManager_.unsubscribe(this);
     this.authEventManager_.clearRedirectResult();
   }
-  return firebase.Promise.resolve();
+  return Promise.resolve();
 };
 
 
