@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import '../../test/setup';
+
 import { stub } from 'sinon';
 import { expect } from 'chai';
 import {
@@ -24,7 +26,6 @@ import {
 import { setupApi } from './api_service';
 import { SettingsService } from './settings_service';
 import { FirebaseApp } from '@firebase/app-types';
-import '../../test/setup';
 
 describe('Firebase Perofmrance > initialization_service', () => {
   const IID = 'fid';

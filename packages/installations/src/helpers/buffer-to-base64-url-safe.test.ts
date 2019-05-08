@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
 import '../testing/setup';
+
+import { expect } from 'chai';
 import { bufferToBase64UrlSafe } from './buffer-to-base64-url-safe';
 
 const TYPED_ARRAY_REPRESENTATION = new TextEncoder().encode('hello world');

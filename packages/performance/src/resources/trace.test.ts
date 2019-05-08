@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-import { spy, stub, restore } from 'sinon';
+import '../../test/setup';
+
+import { spy, stub } from 'sinon';
 import { Trace } from '../resources/trace';
 import { expect } from 'chai';
 import { Api } from '../services/api_service';
 import * as perfLogger from '../services/perf_logger';
 import { setupApi } from '../services/api_service';
-import '../../test/setup';
 
 describe('Firebase Performance > trace', () => {
   setupApi(window);
@@ -34,10 +35,6 @@ describe('Firebase Performance > trace', () => {
     spy(Api.prototype, 'mark');
     stub(perfLogger, 'logTrace');
     trace = createTrace();
-  });
-
-  afterEach(() => {
-    restore();
   });
 
   describe('#start', () => {

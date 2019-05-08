@@ -27,6 +27,7 @@ export * from './src/deepCopy';
 export * from './src/deferred';
 export * from './src/environment';
 export * from './src/errors';
+export * from './src/global';
 export * from './src/json';
 export * from './src/jwt';
 export * from './src/obj';

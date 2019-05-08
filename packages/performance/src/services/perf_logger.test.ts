@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import '../../test/setup';
+
 import { stub, SinonStub, useFakeTimers, SinonFakeTimers } from 'sinon';
 import { Trace } from '../resources/trace';
 import { LogHandler, Logger, LogLevel } from '@firebase/logger';
@@ -27,7 +29,6 @@ import { FirebaseApp } from '@firebase/app-types';
 import * as initializationService from './initialization_service';
 import * as attributeUtils from '../utils/attributes_utils';
 import { createNetworkRequestEntry } from '../resources/network_request';
-import '../../test/setup';
 
 describe('Performance Monitoring > perf_logger', () => {
   const IID = 'idasdfsffe';

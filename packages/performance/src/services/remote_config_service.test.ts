@@ -14,6 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import '../../test/setup';
+
 import { stub, SinonStub, useFakeTimers, SinonFakeTimers } from 'sinon';
 import { expect } from 'chai';
 import { SettingsService } from './settings_service';
@@ -22,7 +25,6 @@ import { setupApi } from './api_service';
 import * as iidService from './iid_service';
 import { getConfig } from './remote_config_service';
 import { FirebaseApp } from '@firebase/app-types';
-import '../../test/setup';
 
 describe('Performance Monitoring > remote_config_service', () => {
   const IID = 'asd123';

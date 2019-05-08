@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 
+import '../testing/setup';
+
 import { FirebaseError } from '@firebase/util';
 import { expect } from 'chai';
 import { AppConfig } from '../interfaces/app-config';
 import { getFakeApp } from '../testing/get-fake-app';
-import '../testing/setup';
 import { extractAppConfig } from './extract-app-config';
 
 describe('extractAppConfig', () => {

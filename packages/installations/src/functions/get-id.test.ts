@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
+import '../testing/setup';
+
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import * as getInstallationEntryModule from '../helpers/get-installation-entry';
 import { AppConfig } from '../interfaces/app-config';
 import { RequestStatus } from '../interfaces/installation-entry';
 import { getFakeApp } from '../testing/get-fake-app';
-import '../testing/setup';
 import { getId } from './get-id';
 
 const FID = 'children-of-the-damned';

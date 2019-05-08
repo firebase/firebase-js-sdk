@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import '../testing/setup';
+
 import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
@@ -31,7 +33,6 @@ import {
   UnregisteredInstallationEntry
 } from '../interfaces/installation-entry';
 import { getFakeApp } from '../testing/get-fake-app';
-import '../testing/setup';
 import { TOKEN_EXPIRATION_BUFFER } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';

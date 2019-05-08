@@ -15,7 +15,9 @@
  * limitations under the License.
  */
 
-import { restore, stub } from 'sinon';
+import '../../test/setup';
+
+import { stub } from 'sinon';
 import { expect } from 'chai';
 import { Api } from '../services/api_service';
 
@@ -25,8 +27,6 @@ import {
   getServiceWorkerStatus,
   getEffectiveConnectionType
 } from './attributes_utils';
-
-import '../../test/setup';
 
 describe('Firebase Performance > attribute_utils', () => {
   describe('#getServiceWorkerStatus', () => {
@@ -62,10 +62,6 @@ describe('Firebase Performance > attribute_utils', () => {
   });
 
   describe('#getVisibilityState', () => {
-    afterEach(() => {
-      restore();
-    });
-
     it('returns visible when document is visible', () => {
       stub(Api, 'getInstance').returns(({
         document: {
@@ -104,10 +100,6 @@ describe('Firebase Performance > attribute_utils', () => {
   });
 
   describe('#getEffectiveConnectionType', () => {
-    afterEach(() => {
-      restore();
-    });
-
     it('returns EffectiveConnectionType.CONNECTION_SLOW_2G when slow-2g', () => {
       stub(Api, 'getInstance').returns(({
         navigator: {

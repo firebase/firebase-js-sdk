@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import '../testing/setup';
+
 import { AssertionError, expect } from 'chai';
 import { SinonFakeTimers, SinonStub, stub, useFakeTimers } from 'sinon';
 import * as createInstallationModule from '../api/create-installation';
@@ -27,7 +29,6 @@ import {
   UnregisteredInstallationEntry
 } from '../interfaces/installation-entry';
 import { getFakeAppConfig } from '../testing/get-fake-app';
-import '../testing/setup';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
 import * as fidGenerator from './generate-fid';

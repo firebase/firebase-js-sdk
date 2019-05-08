@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import '../../test/setup';
+
 import { expect } from 'chai';
 import { PerformanceController } from '../controllers/perf';
 import { Trace } from '../resources/trace';

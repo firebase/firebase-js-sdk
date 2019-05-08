@@ -15,13 +15,14 @@
  * limitations under the License.
  */
 
-import { stub, restore } from 'sinon';
+import '../../test/setup';
+
+import { stub } from 'sinon';
 import { createNetworkRequestEntry } from '../../src/resources/network_request';
 import { expect } from 'chai';
 import { Api } from '../services/api_service';
 import * as perfLogger from '../services/perf_logger';
 import { setupApi } from '../services/api_service';
-import '../../test/setup';
 
 describe('Firebase Performance > network_request', () => {
   setupApi(window);
@@ -29,10 +30,6 @@ describe('Firebase Performance > network_request', () => {
   beforeEach(() => {
     stub(Api.prototype, 'getTimeOrigin').returns(1528521843799.5032);
     stub(perfLogger, 'logNetworkRequest');
-  });
-
-  afterEach(() => {
-    restore();
   });
 
   describe('#createNetworkRequestEntry', () => {

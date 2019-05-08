@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import '../testing/setup';
+
 import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
@@ -29,7 +31,6 @@ import {
   UnregisteredInstallationEntry
 } from '../interfaces/installation-entry';
 import { getFakeApp } from '../testing/get-fake-app';
-import '../testing/setup';
 import { ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
 import { deleteInstallation } from './delete-installation';

@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import '../../test/setup';
+
 import {
   spy,
   stub,
@@ -29,7 +31,6 @@ import * as iidService from './iid_service';
 import { setupOobResources } from './oob_resources_service';
 import { createNetworkRequestEntry } from '../resources/network_request';
 import { Trace } from '../resources/trace';
-import '../../test/setup';
 
 describe('Firebase Performance > oob_resources_service', () => {
   const MOCK_ID = 'idasdfsffe';

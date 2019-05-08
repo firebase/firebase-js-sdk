@@ -15,11 +15,14 @@
  * limitations under the License.
  */
 
+import { root } from '@firebase/util';
 import { use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { restore } from 'sinon';
 import * as sinonChai from 'sinon-chai';
 import { clear } from '../helpers/idb-manager';
+
+root.__VERSION__ = '__VERSION__';
 
 use(chaiAsPromised);
 use(sinonChai);

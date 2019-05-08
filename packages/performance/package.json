@@ -13,8 +13,7 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "run-p test:browser",
-    "test:browser": "karma start --single-run",
+    "test": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prepare": "yarn build",
     "prettier": "prettier --write '{src,test}/**/*.{js,ts}'"

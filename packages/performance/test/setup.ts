@@ -19,9 +19,13 @@ import { restore } from 'sinon';
 import { use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as sinonChai from 'sinon-chai';
+import { root } from '@firebase/util';
+
+root.__PERF_SDK_VERSION__ = '__PERF_SDK_VERSION__';
 
 use(chaiAsPromised);
 use(sinonChai);
+
 afterEach(() => {
   restore();
 });

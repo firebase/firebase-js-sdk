@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import '../testing/setup';
+
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import { AppConfig } from '../interfaces/app-config';
@@ -24,7 +26,6 @@ import {
 } from '../interfaces/installation-entry';
 import { compareHeaders } from '../testing/compare-headers';
 import { getFakeAppConfig } from '../testing/get-fake-app';
-import '../testing/setup';
 import {
   INSTALLATIONS_API_URL,
   INTERNAL_AUTH_VERSION

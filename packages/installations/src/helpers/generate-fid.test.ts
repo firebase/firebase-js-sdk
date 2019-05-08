@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
+import '../testing/setup';
+
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import '../testing/setup';
 import { generateFid } from './generate-fid';
 
 /** A few random values to generate a FID from. */
