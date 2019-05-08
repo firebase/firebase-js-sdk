@@ -43,13 +43,18 @@ const DATABASE_ADDRESS_DEFAULT: string = 'localhost:9000';
 const DATABASE_ADDRESS: string =
   process.env[DATABASE_ADDRESS_ENV] || DATABASE_ADDRESS_DEFAULT;
 
-/** If this environment variable is set, use it for the Firestore emulator. */
-const FIRESTORE_ADDRESS_ENV: string = 'FIREBASE_FIRESTORE_EMULATOR_ADDRESS';
+/** If any of environment variable is set, use it for the Firestore emulator. */
+const FIRESTORE_ADDRESS_ENVS: string[] = [
+  'FIRESTORE_EMULATOR_HOST',
+  'FIREBASE_FIRESTORE_EMULATOR_ADDRESS'
+];
 /** The default address for the local Firestore emulator. */
 const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
 /** The actual address for the Firestore emulator */
-const FIRESTORE_ADDRESS: string =
-  process.env[FIRESTORE_ADDRESS_ENV] || FIRESTORE_ADDRESS_DEFAULT;
+const FIRESTORE_ADDRESS: string = FIRESTORE_ADDRESS_ENVS.reduce(
+  (addr, name) => process.env[name] || addr,
+  FIRESTORE_ADDRESS_DEFAULT
+);
 
 /** Passing this in tells the emulator to treat you as an admin. */
 const ADMIN_TOKEN = 'owner';
