@@ -30,7 +30,7 @@
     "google-closure-library": "20190415.0.0",
     "gulp": "4.0.1",
     "gulp-sourcemaps": "2.6.5",
-    "protractor": "6.0.0"
+    "protractor": "5.4.2"
   },
   "repository": {
     "directory": "packages/auth",
