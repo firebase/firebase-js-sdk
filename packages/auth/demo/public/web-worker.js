@@ -24,10 +24,6 @@ importScripts('/dist/firebase-app.js');
 importScripts('/dist/firebase-auth.js');
 importScripts('config.js');
 
-// Polyfill Promise in case it is not supported.
-if (typeof Promise === 'undefined') {
-  var Promise = firebase.Promise;
-}
 
 // Initialize the Firebase app in the web worker.
 firebase.initializeApp(config);
