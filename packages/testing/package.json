@@ -1,6 +1,6 @@
 {
   "name": "@firebase/testing",
-  "version": "0.9.2",
+  "version": "0.9.3",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -15,7 +15,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "firebase": "6.0.0",
+    "firebase": "6.0.1",
     "@firebase/logger": "0.1.13",
     "@firebase/util": "0.2.14",
     "@types/request": "2.48.1",
