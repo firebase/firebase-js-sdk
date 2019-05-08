@@ -27,6 +27,7 @@ before_script:
 dist: trusty
 sudo: required
 addons:
+  firefox: "66.0"
   apt:
     sources:
       - google-chrome
