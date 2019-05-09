@@ -30,7 +30,9 @@ const { files } = yargs
   .version(false)
   .help().argv;
 
-// Get all karma.conf.js files that need to be run.
+/** Get all karma.conf.js files that need to be run.
+ *  runNextTest() pulls filenames one-by-one from this queue.
+ */
 const testFiles = files.length
   ? files
   : glob
@@ -58,6 +60,7 @@ function runTest(testFile) {
     buildNumber
   ]);
   const childProcess = promise.childProcess;
+  let exitCode = 0;
 
   childProcess.stdout.on('data', data => {
     console.log(`[${testFile}]:`, data.toString());
@@ -68,25 +71,43 @@ function runTest(testFile) {
     console.log(`[${testFile}]:`, data.toString());
   });
 
+  // Capture exit code of this single package test run
+  childProcess.on('exit', (code) => {
+    exitCode = code;
+  });
+
   return promise
-    .then(() => console.log(`[${testFile}] ******* DONE *******`))
+    .then(() => {
+      console.log(`[${testFile}] ******* DONE *******`);
+      return exitCode;
+    })
     .catch(err => {
       console.error(`[${testFile}] ERROR:`, err.message);
+      return exitCode;
     });
 }
 
 /**
  * Runs next file in testFiles queue as long as there are files in the queue.
+ * 
+ * @param {number} maxExitCode Current highest exit code from all processes
+ * run so far. When main process is complete, it will exit with highest code
+ * of all child processes.  This allows any failing test to result in a CI
+ * build failure for the whole Saucelabs run.
  */
-async function runNextTest() {
-  if (!testFiles.length) return;
+async function runNextTest(maxExitCode = 0) {
+  // When test queue is empty, exit with code 0 if no tests failed or
+  // 1 if any tests failed.
+  if (!testFiles.length) process.exit(maxExitCode);
   const nextFile = testFiles.shift();
+  let exitCode;
   try {
-    await runTest(nextFile);
+    exitCode = await runTest(nextFile);
   } catch (e) {
     console.error(`[${nextFile}] ERROR:`, e.message);
+    exitCode = 1;
   }
-  runNextTest();
+  runNextTest(Math.max(exitCode, maxExitCode));
 }
 
 runNextTest();
