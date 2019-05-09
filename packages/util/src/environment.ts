@@ -68,7 +68,7 @@ export function isNode(): boolean {
  * Detect Browser Environment
  */
 export function isBrowser(): boolean {
-  return typeof window !== 'undefined';
+  return typeof self === 'object' && self.self === self;
 }
 
 /**
