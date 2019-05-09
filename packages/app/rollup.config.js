@@ -31,9 +31,7 @@ const es5BuildPlugins = [
   typescriptPlugin({
     typescript
   }),
-  json({
-    preferConst: true
-  })
+  json()
 ];
 
 const es5Builds = [
