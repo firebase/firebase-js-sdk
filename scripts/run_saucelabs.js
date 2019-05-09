@@ -54,16 +54,15 @@ const buildNumber =
  */
 async function runTest(testFile) {
   // Run pretest if this dir has a package.json with a pretest script.
-  const testFileDir = path.resolve(__dirname, '../') + '/' + path.dirname(testFile);
+  const testFileDir =
+    path.resolve(__dirname, '../') + '/' + path.dirname(testFile);
   const pkgPath = testFileDir + '/package.json';
   if (await exists(pkgPath)) {
     const pkg = require(pkgPath);
     if (pkg.scripts.pretest) {
-      await spawn('yarn', [
-        '--cwd',
-        testFileDir,
-        'pretest'
-      ], { stdio: 'inherit' });
+      await spawn('yarn', ['--cwd', testFileDir, 'pretest'], {
+        stdio: 'inherit'
+      });
     }
   }
 
@@ -87,7 +86,7 @@ async function runTest(testFile) {
   });
 
   // Capture exit code of this single package test run
-  childProcess.on('exit', (code) => {
+  childProcess.on('exit', code => {
     exitCode = code;
   });
 
@@ -104,7 +103,7 @@ async function runTest(testFile) {
 
 /**
  * Runs next file in testFiles queue as long as there are files in the queue.
- * 
+ *
  * @param {number} maxExitCode Current highest exit code from all processes
  * run so far. When main process is complete, it will exit with highest code
  * of all child processes.  This allows any failing test to result in a CI
