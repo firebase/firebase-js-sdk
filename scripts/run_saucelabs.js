@@ -16,13 +16,15 @@
  */
 
 const { spawn } = require('child-process-promise');
+const { exists } = require('mz/fs');
 const yargs = require('yargs');
 const glob = require('glob');
+const path = require('path');
 
-// Check for 'files' flag to run on specified karma.conf.js files instead of
-// on all files.
-const { files } = yargs
-  .option('files', {
+// Check for 'configFiles' flag to run on specified karma.conf.js files instead
+// of on all files.
+const { configFiles } = yargs
+  .option('configFiles', {
     default: [],
     describe: 'specify individual karma.conf.js files to run on',
     type: 'array'
@@ -30,11 +32,10 @@ const { files } = yargs
   .version(false)
   .help().argv;
 
-/** Get all karma.conf.js files that need to be run.
- *  runNextTest() pulls filenames one-by-one from this queue.
- */
-const testFiles = files.length
-  ? files
+// Get all karma.conf.js files that need to be run.
+// runNextTest() pulls filenames one-by-one from this queue.
+const testFiles = configFiles.length
+  ? configFiles
   : glob
       .sync(`{packages,integration}/*/karma.conf.js`)
       // Automated tests in integration/firestore are currently disabled.
@@ -51,10 +52,24 @@ const buildNumber =
  * @param {string} testFile Path to karma.conf.js file that defines this test
  * group.
  */
-function runTest(testFile) {
+async function runTest(testFile) {
+  // Run pretest if this dir has a package.json with a pretest script.
+  const testFileDir = path.resolve(__dirname, '../') + '/' + path.dirname(testFile);
+  const pkgPath = testFileDir + '/package.json';
+  if (await exists(pkgPath)) {
+    const pkg = require(pkgPath);
+    if (pkg.scripts.pretest) {
+      await spawn('yarn', [
+        '--cwd',
+        testFileDir,
+        'pretest'
+      ], { stdio: 'inherit' });
+    }
+  }
+
   const promise = spawn('yarn', [
     'test:saucelabs:single',
-    '--testfile',
+    '--testConfigFile',
     testFile,
     '--buildNumber',
     buildNumber

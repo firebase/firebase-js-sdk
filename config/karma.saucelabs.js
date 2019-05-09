@@ -20,8 +20,8 @@ const path = require('path');
 const karmaBase = require('./karma.base');
 
 // karma.conf.js test configuration file to run.
-const testFile = argv['testfile'];
-if (!testFile) {
+const testConfigFile = argv['testConfigFile'];
+if (!testConfigFile) {
   console.error('No test file path provided.');
   process.exit(1);
 }
@@ -75,7 +75,7 @@ function getSauceLabsBrowsers(packageName) {
  * Get package name from package path command line arg.
  */
 function getPackageLabels() {
-  const match = testFile.match(/([a-zA-Z]+)\/([a-zA-Z]+)\/karma\.conf\.js/);
+  const match = testConfigFile.match(/([a-zA-Z]+)\/([a-zA-Z]+)\/karma\.conf\.js/);
   return {
     type: match[1],
     name: match[2]
@@ -90,8 +90,8 @@ function getPackageLabels() {
 function getTestFiles() {
   let root = path.resolve(__dirname, '..');
   const { name: packageName } = getPackageLabels();
-  let patterns = require(path.join(root, testFile)).files;
-  let dirname = path.dirname(testFile);
+  let patterns = require(path.join(root, testConfigFile)).files;
+  let dirname = path.dirname(testConfigFile);
   return { packageName, files: patterns.map(p => path.join(dirname, p)) };
 }
 

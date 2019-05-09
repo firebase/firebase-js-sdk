@@ -29,7 +29,6 @@
     "pretest:coverage": "mkdirp coverage",
     "test:coverage": "lcov-result-merger 'packages/**/lcov.info' | coveralls",
     "test:setup": "node tools/config.js",
-    "pretest:saucelabs": "lerna run --parallel pretest",
     "test:saucelabs": "node scripts/run_saucelabs.js",
     "test:saucelabs:single": "karma start config/karma.saucelabs.js --single-run",
     "docgen:js": "node scripts/docgen/generate-docs.js --api js",
