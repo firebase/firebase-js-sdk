@@ -1359,44 +1359,6 @@ function testAuth_onAuthStateChanged() {
 }
 
 
-function testFetchProvidersForEmail() {
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  var email = 'foo@bar.com';
-  var expectedProviders = ['bar.com', 'google.com'];
-
-  asyncTestCase.waitForSignals(1);
-
-  // Simulate successful RpcHandler fetchProvidersForIdentifier.
-  stubs.replace(
-      fireauth.RpcHandler.prototype,
-      'fetchProvidersForIdentifier',
-      function(data) {
-        assertObjectEquals(email, data);
-        return goog.Promise.resolve(expectedProviders);
-      });
-
-  app1 = firebase.initializeApp(config1, appId1);
-  auth1 = app1.auth();
-  auth1.fetchProvidersForEmail(email)
-      .then(function(providers) {
-        assertArrayEquals(expectedProviders, providers);
-        asyncTestCase.signal();
-      });
-  assertAuthTokenListenerCalledOnce(auth1);
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.FETCH_PROVIDERS_FOR_EMAIL,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
-}
-
-
 function testFetchSignInMethodsForEmail() {
   var email = 'foo@bar.com';
   var expectedSignInMethods = ['password', 'google.com'];
@@ -4197,93 +4159,6 @@ function testAuth_signInWithCustomToken_error() {
 }
 
 
-function testAuth_signInAndRetrieveDataWithCustomToken_success() {
-  // Tests successful signInAndRetrieveDataWithCustomToken.
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  var expectedCustomToken = 'CUSTOM_TOKEN';
-  // Initialize expected user.
-  var user1 = new fireauth.AuthUser(
-      config3, expectedTokenResponse, accountInfo);
-  var expectedResult = {
-    'user': user1,
-    'credential': null,
-    'additionalUserInfo': {'providerId': null, 'isNewUser': false},
-    'operationType': fireauth.constants.OperationType.SIGN_IN
-  };
-  stubs.replace(
-      fireauth.Auth.prototype,
-      'signInWithCustomToken',
-      function(customToken) {
-        assertEquals(expectedCustomToken, customToken);
-        return goog.Promise.resolve(
-            fireauth.object.makeReadonlyCopy(expectedResult));
-      });
-  asyncTestCase.waitForSignals(1);
-  app1 = firebase.initializeApp(config3, appId1);
-  auth1 = app1.auth();
-  // Sign in and retrieve data with custom token.
-  auth1.signInAndRetrieveDataWithCustomToken(expectedCustomToken)
-      .then(function(result) {
-        // Returned user credential should match expected one.
-        fireauth.common.testHelper.assertUserCredentialResponse(
-            expectedResult['user'],
-            expectedResult['credential'],
-            expectedResult['additionalUserInfo'],
-            expectedResult['operationType'],
-            result);
-        asyncTestCase.signal();
-      });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.SIGN_IN_WITH_CUSTOM_TOKEN,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
-}
-
-
-function testAuth_signInAndRetrieveDataWithCustomToken_error() {
-  // Tests unsuccessful signInAndRetrieveDataWithCustomToken.
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  // Expected RPC error.
-  var expectedError =
-      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
-  var expectedCustomToken = 'CUSTOM_TOKEN';
-  stubs.replace(
-      fireauth.Auth.prototype,
-      'signInWithCustomToken',
-      function(customToken) {
-        assertEquals(expectedCustomToken, customToken);
-        return goog.Promise.reject(expectedError);
-      });
-  asyncTestCase.waitForSignals(1);
-  app1 = firebase.initializeApp(config3, appId1);
-  auth1 = app1.auth();
-  // signInAndRetrieveDataWithCustomToken should throw the expected error.
-  auth1.signInAndRetrieveDataWithCustomToken(expectedCustomToken)
-      .thenCatch(function(err) {
-        fireauth.common.testHelper.assertErrorEquals(expectedError, err);
-        asyncTestCase.signal();
-      });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.SIGN_IN_WITH_CUSTOM_TOKEN,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
-}
-
-
 function testAuth_signInWithEmailLink_success() {
   // Tests successful signInWithEmailLink.
   fireauth.AuthEventManager.ENABLED = true;
@@ -4575,99 +4450,6 @@ function testAuth_signInWithEmailAndPassword_error() {
 }
 
 
-function testAuth_signInAndRetrieveDataWithEmailAndPassword_success() {
-  // Tests successful signInAndRetrieveDataWithEmailAndPassword.
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  fireauth.AuthEventManager.ENABLED = true;
-  // Expected email and password.
-  var expectedEmail = 'user@example.com';
-  var expectedPass = 'password';
-  // Initialize expected user.
-  var user1 = new fireauth.AuthUser(
-      config3, expectedTokenResponse4, accountInfo);
-  var expectedResult = {
-    'user': user1,
-    'credential': null,
-    'additionalUserInfo': {'providerId': 'password', 'isNewUser': false},
-    'operationType': fireauth.constants.OperationType.SIGN_IN
-  };
-  stubs.replace(
-      fireauth.Auth.prototype,
-      'signInWithEmailAndPassword',
-      function(email, password) {
-        assertEquals(expectedEmail, email);
-        assertEquals(expectedPass, password);
-        return goog.Promise.resolve(
-            fireauth.object.makeReadonlyCopy(expectedResult));
-      });
-  asyncTestCase.waitForSignals(1);
-  app1 = firebase.initializeApp(config3, appId1);
-  auth1 = app1.auth();
-  // Sign in and retrieve data with email and password.
-  auth1.signInAndRetrieveDataWithEmailAndPassword(expectedEmail, expectedPass)
-      .then(function(result) {
-        fireauth.common.testHelper.assertUserCredentialResponse(
-            expectedResult['user'],
-            expectedResult['credential'],
-            expectedResult['additionalUserInfo'],
-            expectedResult['operationType'],
-            result);
-        asyncTestCase.signal();
-      });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.SIGN_IN_WITH_EMAIL_AND_PASSWORD,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
-}
-
-
-function testAuth_signInAndRetrieveDataWithEmailAndPassword_error() {
-  // Tests unsuccessful signInAndRetrieveDataWithEmailAndPassword.
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  fireauth.AuthEventManager.ENABLED = true;
-  // Expected email and password.
-  var expectedEmail = 'user@example.com';
-  var expectedPass = 'password';
-  // Expected RPC error.
-  var expectedError =
-      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
-  stubs.replace(
-      fireauth.Auth.prototype,
-      'signInWithEmailAndPassword',
-      function(email, password) {
-        assertEquals(expectedEmail, email);
-        assertEquals(expectedPass, password);
-        return goog.Promise.reject(expectedError);
-      });
-  asyncTestCase.waitForSignals(1);
-  app1 = firebase.initializeApp(config3, appId1);
-  auth1 = app1.auth();
-  auth1.signInAndRetrieveDataWithEmailAndPassword(expectedEmail, expectedPass)
-      .thenCatch(function(error) {
-        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
-        asyncTestCase.signal();
-      });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.SIGN_IN_WITH_EMAIL_AND_PASSWORD,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
-}
-
-
 function testAuth_createUserWithEmailAndPassword_success() {
   // Tests successful createUserWithEmailAndPassword.
   fireauth.AuthEventManager.ENABLED = true;
@@ -4767,101 +4549,9 @@ function testAuth_createUserWithEmailAndPassword_error() {
 }
 
 
-function testAuth_createUserAndRetrieveDataWithEmailAndPassword_success() {
-  // Tests successful createUserAndRetrieveDataWithEmailAndPassword.
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  // Expected email and password.
-  var expectedEmail = 'user@example.com';
-  var expectedPass = 'password';
-  // Initialize expected user.
-  var user1 = new fireauth.AuthUser(
-      config3, expectedTokenResponse4, accountInfo);
-  var expectedResult = {
-    'user': user1,
-    'credential': null,
-    'additionalUserInfo': {'providerId': 'password', 'isNewUser': true},
-    'operationType': fireauth.constants.OperationType.SIGN_IN
-  };
-  stubs.replace(
-      fireauth.Auth.prototype,
-      'createUserWithEmailAndPassword',
-      function(email, password) {
-        assertEquals(expectedEmail, email);
-        assertEquals(expectedPass, password);
-        return goog.Promise.resolve(
-            fireauth.object.makeReadonlyCopy(expectedResult));
-      });
-  asyncTestCase.waitForSignals(1);
-  app1 = firebase.initializeApp(config3, appId1);
-  auth1 = app1.auth();
-  auth1.createUserAndRetrieveDataWithEmailAndPassword(
-      expectedEmail, expectedPass)
-      .then(function(result) {
-        fireauth.common.testHelper.assertUserCredentialResponse(
-            expectedResult['user'],
-            expectedResult['credential'],
-            expectedResult['additionalUserInfo'],
-            expectedResult['operationType'],
-            result);
-        asyncTestCase.signal();
-      });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.CREATE_USER_WITH_EMAIL_AND_PASSWORD,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
-}
-
-
-function testAuth_createUserAndRetrieveDataWithEmailAndPassword_error() {
-  // Tests unsuccessful createUserAndRetrieveDataWithEmailAndPassword.
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  // Expected email and password.
-  var expectedEmail = 'user@example.com';
-  var expectedPass = 'password';
-  // Expected RPC error.
-  var expectedError =
-      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
-  stubs.replace(
-      fireauth.Auth.prototype,
-      'createUserWithEmailAndPassword',
-      function(email, password) {
-        assertEquals(expectedEmail, email);
-        assertEquals(expectedPass, password);
-        return goog.Promise.reject(expectedError);
-      });
-  asyncTestCase.waitForSignals(1);
-  app1 = firebase.initializeApp(config3, appId1);
-  auth1 = app1.auth();
-  auth1.createUserAndRetrieveDataWithEmailAndPassword(
-      expectedEmail, expectedPass)
-      .thenCatch(function(error) {
-        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
-        asyncTestCase.signal();
-      });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.CREATE_USER_WITH_EMAIL_AND_PASSWORD,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
-}
-
-
-function testAuth_signInWithCredential_success() {
-  // Stub signInAndRetrieveDataWithCredential and confirm same response is used
-  // for signInWithCredential without only the user returned.
+function testAuth_signInAndRetrieveDataWithCredential_success() {
+  // Stub signInWithCredential and confirm same response is used for
+  // signInAndRetrieveDataWithCredential.
   // Record deprecation warning calls.
   stubs.replace(
       fireauth.deprecation,
@@ -4869,7 +4559,7 @@ function testAuth_signInWithCredential_success() {
       goog.testing.recordFunction());
   stubs.replace(
       fireauth.Auth.prototype,
-      'signInAndRetrieveDataWithCredential',
+      'signInWithCredential',
       function(cred) {
         assertEquals(expectedGoogleCredential, cred);
         return goog.Promise.resolve(expectedResponse);
@@ -4890,11 +4580,11 @@ function testAuth_signInWithCredential_success() {
     'additionalUserInfo': expectedAdditionalUserInfo,
     'operationType': fireauth.constants.OperationType.SIGN_IN
   };
-  // signInWithCredential using Google OAuth credential.
-  auth1.signInWithCredential(expectedGoogleCredential)
-      .then(function(user) {
+  // signInAndRetrieveDataWithCredential using Google OAuth credential.
+  auth1.signInAndRetrieveDataWithCredential(expectedGoogleCredential)
+      .then(function(userCredential) {
         // Confirm expected response.
-        assertEquals(user1, user);
+        assertEquals(expectedResponse, userCredential);
         asyncTestCase.signal();
       });
   // Confirm warning shown.
@@ -4907,9 +4597,9 @@ function testAuth_signInWithCredential_success() {
 }
 
 
-function testAuth_signInWithCredential_error() {
-  // Stub signInAndRetrieveDataWithCredential and confirm same error is thrown
-  // for signInWithCredential.
+function testAuth_signInAndRetrieveDataWithCredential_error() {
+  // Stub signInWithCredential and confirm same error is thrown for
+  // signInAndRetrieveDataWithCredential.
   // Record deprecation warning calls.
   stubs.replace(
       fireauth.deprecation,
@@ -4917,7 +4607,7 @@ function testAuth_signInWithCredential_error() {
       goog.testing.recordFunction());
   stubs.replace(
       fireauth.Auth.prototype,
-      'signInAndRetrieveDataWithCredential',
+      'signInWithCredential',
       function(cred) {
         assertEquals(expectedGoogleCredential, cred);
         return goog.Promise.reject(expectedError);
@@ -4931,8 +4621,8 @@ function testAuth_signInWithCredential_error() {
   // Expected error.
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.NEED_CONFIRMATION);
-  // signInWithCredential using Google OAuth credential.
-  auth1.signInWithCredential(expectedGoogleCredential)
+  // signInAndRetrieveDataWithCredential using Google OAuth credential.
+  auth1.signInAndRetrieveDataWithCredential(expectedGoogleCredential)
       .thenCatch(function(error) {
         // Confirm expected error.
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);
@@ -4948,9 +4638,8 @@ function testAuth_signInWithCredential_error() {
 }
 
 
-function testAuth_signInAndRetrieveDataWithCredential_success() {
-  // Tests successful signInAndRetrieveDataWithCredential using OAuth
-  // credential.
+function testAuth_signInWithCredential_success() {
+  // Tests successful signInWithCredential using OAuth credential.
   fireauth.AuthEventManager.ENABLED = true;
   // Simulate successful RpcHandler verifyAssertion.
   stubs.replace(
@@ -4996,8 +4685,8 @@ function testAuth_signInAndRetrieveDataWithCredential_success() {
   // Initialize expected user.
   var user1 = new fireauth.AuthUser(
       config3, expectedTokenResponse, accountInfo);
-  // signInAndRetrieveDataWithCredential using Google OAuth credential.
-  auth1.signInAndRetrieveDataWithCredential(expectedGoogleCredential)
+  // signInWithCredential using Google OAuth credential.
+  auth1.signInWithCredential(expectedGoogleCredential)
       .then(function(result) {
         // Confirm fireauth.Auth.prototype.signInWithIdTokenResponse is called
         // underneath. This will save the new user in storage and trigger auth
@@ -5029,9 +4718,9 @@ function testAuth_signInAndRetrieveDataWithCredential_success() {
 }
 
 
-function testAuth_signInAndRetrieveDataWithCredential_nonhttp_success() {
-  // Tests successful signInAndRetrieveDataWithCredential using OAuth credential
-  // in a non HTTP environment.
+function testAuth_signInWithCredential_nonhttp_success() {
+  // Tests successful signInWithCredential using OAuth credential in a non
+  // HTTP environment.
   fireauth.AuthEventManager.ENABLED = true;
   // Non http or https environment.
   stubs.replace(
@@ -5088,8 +4777,8 @@ function testAuth_signInAndRetrieveDataWithCredential_nonhttp_success() {
   // Initialize expected user.
   var user1 = new fireauth.AuthUser(
       config3, expectedTokenResponse, accountInfo);
-  // signInAndRetrieveDataWithCredential using Google OAuth credential.
-  auth1.signInAndRetrieveDataWithCredential(expectedGoogleCredential)
+  // signInWithCredential using Google OAuth credential.
+  auth1.signInWithCredential(expectedGoogleCredential)
       .then(function(result) {
         // Confirm fireauth.Auth.prototype.signInWithIdTokenResponse is called
         // underneath. This will save the new user in storage and trigger Auth
@@ -5121,9 +4810,8 @@ function testAuth_signInAndRetrieveDataWithCredential_nonhttp_success() {
 }
 
 
-function testAuth_signInAndRetrieveDataWithCredential_emailPassCredential() {
-  // Tests successful signInAndRetrieveDataWithCredential using email and
-  // password credential.
+function testAuth_signInWithCredential_emailPassCredential() {
+  // Tests successful signInWithCredential using email and password credential.
   fireauth.AuthEventManager.ENABLED = true;
   // Expected email and password.
   var expectedEmail = 'user@example.com';
@@ -5170,8 +4858,8 @@ function testAuth_signInAndRetrieveDataWithCredential_emailPassCredential() {
   auth1 = app1.auth();
   // Email/password credential.
   var cred = fireauth.EmailAuthProvider.credential(expectedEmail, expectedPass);
-  // signInAndRetrieveDataWithCredential using email and password credential.
-  auth1.signInAndRetrieveDataWithCredential(cred)
+  // signInWithCredential using email and password credential.
+  auth1.signInWithCredential(cred)
       .then(function(result) {
         // Confirm fireauth.Auth.prototype.signInWithIdTokenResponse is called
         // underneath. This will save the new user in storage and trigger Auth
@@ -5203,8 +4891,8 @@ function testAuth_signInAndRetrieveDataWithCredential_emailPassCredential() {
 }
 
 
-function testAuth_signInAndRetrieveDataWithCredential_error() {
-  // Tests unsuccessful signInAndRetrieveDataWithCredential.
+function testAuth_signInWithCredential_error() {
+  // Tests unsuccessful signInWithCredential.
   fireauth.AuthEventManager.ENABLED = true;
   // Expected rpc error.
   var expectedError = new fireauth.AuthError(
@@ -5237,9 +4925,9 @@ function testAuth_signInAndRetrieveDataWithCredential_error() {
   asyncTestCase.waitForSignals(1);
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
-  // signInAndRetrieveDataWithCredential with a Google credential should throw
+  // signInWithCredential with a Google credential should throw
   // the expected error.
-  auth1.signInAndRetrieveDataWithCredential(expectedGoogleCredential)
+  auth1.signInWithCredential(expectedGoogleCredential)
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
@@ -5440,80 +5128,6 @@ function testAuth_signInAnonymously_error() {
   auth1 = app1.auth();
   // signInAnonymously should fail with expected error.
   auth1.signInAnonymously().thenCatch(function(error) {
-    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
-    asyncTestCase.signal();
-  });
-}
-
-
-function testAuth_signInAnonymouslyAndRetrieveData_success() {
-  // Tests successful signInAnonymouslyAndRetrieveData.
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  // Initialize expected anonymous user.
-  var user1 = new fireauth.AuthUser(
-      config3, expectedTokenResponse, accountInfo);
-  var expectedResult = {
-    'user': user1,
-    'credential': null,
-    'additionalUserInfo': {'providerId': null, 'isNewUser': true},
-    'operationType': fireauth.constants.OperationType.SIGN_IN
-  };
-  stubs.replace(
-      fireauth.Auth.prototype,
-      'signInAnonymously',
-      function() {
-        user1.updateProperty('isAnonymous', true);
-        return goog.Promise.resolve(
-            fireauth.object.makeReadonlyCopy(expectedResult));
-      });
-  asyncTestCase.waitForSignals(1);
-  app1 = firebase.initializeApp(config3, appId1);
-  auth1 = app1.auth();
-  auth1.signInAnonymouslyAndRetrieveData().then(function(result) {
-    fireauth.common.testHelper.assertUserCredentialResponse(
-            expectedResult['user'],
-            expectedResult['credential'],
-            expectedResult['additionalUserInfo'],
-            expectedResult['operationType'],
-            result);
-    assertTrue(result['user']['isAnonymous']);
-    asyncTestCase.signal();
-  });
-  // Confirm warning shown.
-  /** @suppress {missingRequire} */
-  assertEquals(1, fireauth.deprecation.log.getCallCount());
-  /** @suppress {missingRequire} */
-  assertEquals(
-      fireauth.deprecation.Deprecations.SIGN_IN_ANONYMOUSLY,
-      fireauth.deprecation.log.getLastCall().getArgument(0));
-}
-
-
-function testAuth_signInAnonymouslyAndRetrieveData_error() {
-  // Tests unsuccessful signInAnonymouslyAndRetrieveData.
-  // Record deprecation warning calls.
-  stubs.replace(
-      fireauth.deprecation,
-      'log',
-      goog.testing.recordFunction());
-  // Expected RPC error.
-  var expectedError = new fireauth.AuthError(
-      fireauth.authenum.Error.INTERNAL_ERROR);
-  stubs.replace(
-      fireauth.Auth.prototype,
-      'signInAnonymously',
-      function() {
-        return goog.Promise.reject(expectedError);
-      });
-  asyncTestCase.waitForSignals(1);
-  app1 = firebase.initializeApp(config3, appId1);
-  auth1 = app1.auth();
-  // signInAnonymouslyAndRetrieveData should fail with expected error.
-  auth1.signInAnonymouslyAndRetrieveData().thenCatch(function(error) {
     fireauth.common.testHelper.assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });
@@ -9471,7 +9085,7 @@ function testAuth_signInWithPhoneNumber_success() {
       return goog.Promise.resolve(expectedRecaptchaToken);
     }
   };
-  // Expected promise to be returned by signInAndRetrieveDataWithCredential.
+  // Expected promise to be returned by signInWithCredential.
   var expectedPromise = new goog.Promise(function(resolve, reject) {});
   // Phone Auth provider instance.
   var phoneAuthProviderInstance =
@@ -9489,11 +9103,11 @@ function testAuth_signInWithPhoneNumber_success() {
   phoneAuthProviderInstance.verifyPhoneNumber(
       expectedPhoneNumber, appVerifier)
       .$returns(goog.Promise.resolve(expectedVerificationId)).$once();
-  // Code confirmation should call signInAndRetrieveDataWithCredential with the
-  // expected credential.
+  // Code confirmation should call signInWithCredential with the expected
+  // credential.
   stubs.replace(
       fireauth.Auth.prototype,
-      'signInAndRetrieveDataWithCredential',
+      'signInWithCredential',
       goog.testing.recordFunction(function(cred) {
         // Confirm expected credential passed.
         assertObjectEquals(
@@ -9517,12 +9131,11 @@ function testAuth_signInWithPhoneNumber_success() {
         // Confirm signInAndRetrieveDataWithCredential called once.
         assertEquals(
             1,
-            fireauth.Auth.prototype.signInAndRetrieveDataWithCredential
-                .getCallCount());
+            fireauth.Auth.prototype.signInWithCredential.getCallCount());
         // Confirm signInAndRetrieveDataWithCredential is bound to auth1.
         assertEquals(
             auth1,
-            fireauth.Auth.prototype.signInAndRetrieveDataWithCredential
+            fireauth.Auth.prototype.signInWithCredential
                 .getLastCall().getThis());
         asyncTestCase.signal();
       });

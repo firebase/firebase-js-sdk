@@ -135,6 +135,10 @@ export class MemoryPersistence implements Persistence {
     return primaryStateListener(true);
   }
 
+  setDatabaseDeletedListener(): void {
+    // No op.
+  }
+
   setNetworkEnabled(networkEnabled: boolean): void {
     // No op.
   }

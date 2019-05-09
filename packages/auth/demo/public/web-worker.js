@@ -24,10 +24,6 @@ importScripts('/dist/firebase-app.js');
 importScripts('/dist/firebase-auth.js');
 importScripts('config.js');
 
-// Polyfill Promise in case it is not supported.
-if (typeof Promise === 'undefined') {
-  var Promise = firebase.Promise;
-}
 
 // Initialize the Firebase app in the web worker.
 firebase.initializeApp(config);
@@ -143,7 +139,7 @@ var runWorkerTests = function(googleIdToken) {
         });
       })
       .then(function() {
-        return firebase.auth().signInAndRetrieveDataWithCredential(
+        return firebase.auth().signInWithCredential(
             oauthCredential);
       })
       .then(function(result) {
@@ -152,7 +148,7 @@ var runWorkerTests = function(googleIdToken) {
             !result.credential ||
             !result.additionalUserInfo) {
           throw new Error(
-              'signInAndRetrieveDataWithCredential unexpectedly failed!');
+              'signInWithCredential unexpectedly failed!');
         }
         return firebase.auth().signOut();
       })

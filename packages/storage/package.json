@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -18,7 +18,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/storage-types": "0.2.10",
+    "@firebase/storage-types": "0.2.11",
     "tslib": "1.9.3"
   },
   "peerDependencies": {
@@ -40,11 +40,11 @@
     "karma-spec-reporter": "0.0.32",
     "karma-webpack": "3.0.5",
     "npm-run-all": "4.1.5",
-    "rollup": "1.10.1",
+    "rollup": "1.11.0",
     "rollup-plugin-typescript2": "0.21.0",
     "sinon": "7.3.2",
     "source-map-loader": "0.2.4",
-    "ts-loader": "5.4.3",
+    "ts-loader": "5.4.5",
     "typescript": "3.4.5",
     "webpack": "4.30.0"
   },

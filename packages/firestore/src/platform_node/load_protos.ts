@@ -15,8 +15,18 @@
  * limitations under the License.
  */
 
+import * as protoLoader from '@grpc/proto-loader';
 import * as grpc from 'grpc';
-import { resolve } from 'path';
+import * as path from 'path';
+import * as ProtobufJS from 'protobufjs';
+
+/** Used by tests so we can match @grpc/proto-loader behavior. */
+export const protoLoaderOptions: ProtobufJS.IConversionOptions = {
+  longs: String,
+  enums: String,
+  defaults: true,
+  oneofs: false
+};
 
 /**
  * Loads the protocol buffer definitions for Firestore.
@@ -24,19 +34,45 @@ import { resolve } from 'path';
  * @returns The GrpcObject representing our protos.
  */
 export function loadProtos(): grpc.GrpcObject {
-  const options = {
-    // Beware that converting fields to camel case does not convert the tag
-    // fields in oneof groups (!!!). This will likely be fixed when we upgrade
-    // to protobufjs 6.x
-    convertFieldsToCamelCase: true
-  };
-  const root = resolve(
+  const root = path.resolve(
     __dirname,
     process.env.FIRESTORE_PROTO_ROOT || '../protos'
   );
-  const firestoreProtoFile = {
+  const firestoreProtoFile = path.join(
     root,
-    file: 'google/firestore/v1/firestore.proto'
+    'google/firestore/v1/firestore.proto'
+  );
+
+  const packageDefinition = protoLoader.loadSync(firestoreProtoFile, {
+    ...protoLoaderOptions,
+    includeDirs: [root]
+  });
+
+  return grpc.loadPackageDefinition(packageDefinition);
+}
+
+/** Used by tests so we can directly create ProtobufJS proto message objects from JSON protos. */
+export function loadRawProtos(): ProtobufJS.Root {
+  const root = path.resolve(
+    __dirname,
+    process.env.FIRESTORE_PROTO_ROOT || '../protos'
+  );
+  const firestoreProtoFile = path.join(
+    root,
+    'google/firestore/v1/firestore.proto'
+  );
+
+  const protoRoot = new ProtobufJS.Root();
+  // Override the resolvePath function to look for protos in the 'root'
+  // directory.
+  protoRoot.resolvePath = (origin: string, target: string) => {
+    if (path.isAbsolute(target)) {
+      return target;
+    }
+    return path.join(root, target);
   };
-  return grpc.load(firestoreProtoFile, /*format=*/ 'proto', options);
+
+  protoRoot.loadSync(firestoreProtoFile);
+  protoRoot.resolveAll();
+  return protoRoot;
 }

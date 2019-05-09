@@ -74,7 +74,7 @@ const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 export class IndexedDbPersistenceSettings {
   constructor(
     readonly cacheSizeBytes: number,
-    readonly experimentalTabSynchronization: boolean
+    readonly synchronizeTabs: boolean
   ) {}
 
   lruParams(): LruParams {
@@ -334,7 +334,7 @@ export class FirestoreClient {
 
     return Promise.resolve().then(async () => {
       if (
-        settings.experimentalTabSynchronization &&
+        settings.synchronizeTabs &&
         !WebStorageSharedClientState.isAvailable(this.platform)
       ) {
         throw new FirestoreError(
@@ -345,7 +345,7 @@ export class FirestoreClient {
 
       let persistence: IndexedDbPersistence;
       const lruParams = settings.lruParams();
-      if (settings.experimentalTabSynchronization) {
+      if (settings.synchronizeTabs) {
         this.sharedClientState = new WebStorageSharedClientState(
           this.asyncQueue,
           this.platform,
@@ -469,6 +469,12 @@ export class FirestoreClient {
               this.lruScheduler.stop();
             }
           }
+        });
+
+        // When a user calls clearPersistence() in one client, all other clientfs
+        // need to shut down to allow the delete to succeed.
+        await this.persistence.setDatabaseDeletedListener(async () => {
+          await this.shutdown();
         });
       });
   }

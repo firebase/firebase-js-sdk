@@ -79,6 +79,7 @@ import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
+import { Deferred } from './../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
@@ -398,14 +399,30 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           'any other methods on a Firestore object.'
       );
     }
+
+    let synchronizeTabs = false;
+
+    if (settings) {
+      if (settings.experimentalTabSynchronization !== undefined) {
+        log.error(
+          "The 'experimentalTabSynchronization' setting has been renamed to " +
+            "'synchronizeTabs'. In a future release, the setting will be removed " +
+            'and it is recommended that you update your ' +
+            "firestore.enablePersistence() call to use 'synchronizeTabs'."
+        );
+      }
+      synchronizeTabs = objUtils.defaulted(
+        settings.synchronizeTabs !== undefined
+          ? settings.synchronizeTabs
+          : settings.experimentalTabSynchronization,
+        DEFAULT_SYNCHRONIZE_TABS
+      );
+    }
+
     return this.configureClient(
       new IndexedDbPersistenceSettings(
         this._config.settings.cacheSizeBytes,
-        settings !== undefined &&
-          objUtils.defaulted(
-            settings.experimentalTabSynchronization,
-            DEFAULT_SYNCHRONIZE_TABS
-          )
+        synchronizeTabs
       )
     );
   }
@@ -420,7 +437,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       this.makeDatabaseInfo()
     );
-    return IndexedDbPersistence.clearPersistence(persistenceKey);
+    const deferred = new Deferred<void>();
+    this._queue.enqueueAndForget(async () => {
+      try {
+        await IndexedDbPersistence.clearPersistence(persistenceKey);
+        deferred.resolve();
+      } catch (e) {
+        deferred.reject(e);
+      }
+    });
+    return deferred.promise;
   }
 
   ensureClientConfigured(): FirestoreClient {
@@ -538,8 +564,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return DocumentReference.forPath(ResourcePath.fromString(pathString), this);
   }
 
-  // TODO(b/116617988): Fix name, uncomment d.ts definitions, and update CHANGELOG.md.
-  _collectionGroup(collectionId: string): firestore.Query {
+  collectionGroup(collectionId: string): firestore.Query {
     validateExactNumberOfArgs('Firestore.collectionGroup', arguments, 1);
     validateArgType(
       'Firestore.collectionGroup',

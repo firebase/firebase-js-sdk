@@ -78,7 +78,7 @@ export class IidModel {
     if (responseData.error) {
       const message = responseData.error.message;
       throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_FAILED, {
-        message: message
+        errorInfo: message
       });
     }
 
@@ -150,7 +150,7 @@ export class IidModel {
     if (responseData.error) {
       const message = responseData.error.message;
       throw errorFactory.create(ErrorCode.TOKEN_UPDATE_FAILED, {
-        message: message
+        errorInfo: message
       });
     }
 
@@ -192,7 +192,7 @@ export class IidModel {
       if (responseData.error) {
         const message = responseData.error.message;
         throw errorFactory.create(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED, {
-          message: message
+          errorInfo: message
         });
       }
     } catch (err) {

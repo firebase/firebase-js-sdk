@@ -24,19 +24,14 @@ describe('sleep', () => {
   let clock: SinonFakeTimers;
 
   beforeEach(() => {
-    clock = useFakeTimers();
-  });
-
-  afterEach(() => {
-    clock.restore();
+    clock = useFakeTimers({ shouldAdvanceTime: true });
   });
 
   it('returns a promise that resolves after a given amount of time', async () => {
-    const sleepPromise = sleep(100);
-    expect(sleepPromise).not.to.be.fulfilled;
-    clock.tick(99);
-    expect(sleepPromise).not.to.be.fulfilled;
-    clock.tick(1);
-    expect(sleepPromise).to.be.fulfilled;
+    const t0 = clock.now;
+    await sleep(100);
+    const t1 = clock.now;
+
+    expect(t1 - t0).to.equal(100);
   });
 });

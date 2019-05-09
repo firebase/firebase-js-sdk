@@ -98,10 +98,6 @@ export interface FirebaseNamespace {
    */
   apps: FirebaseApp[];
 
-  // Inherit the type information of our exported Promise implementation from
-  // es6-promises.
-  Promise: typeof Promise;
-
   // The current SDK version.
   SDK_VERSION: string;
 }

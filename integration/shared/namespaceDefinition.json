@@ -38,26 +38,6 @@
   "apps": {
     "__type": "array"
   },
-  "Promise": {
-    "__type": "function",
-    "resolve": {
-      "__type": "function"
-    },
-    "reject": {
-      "__type": "function"
-    },
-    "all": {
-      "__type": "function"
-    },
-    "prototype": {
-      "then": {
-        "__type": "function"
-      },
-      "catch": {
-        "__type": "function"
-      }
-    }
-  },
   "INTERNAL": {
     "__type": "object",
     "registerService": {
