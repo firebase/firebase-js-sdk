@@ -495,10 +495,10 @@ export class FirestoreClient {
   }
 
   shutdown(): Promise<void> {
-    if (this.isShutdown === true) {
-      return Promise.resolve();
-    }
     return this.asyncQueue.enqueue(async () => {
+      if (this.isShutdown === true) {
+        return Promise.resolve();
+      }
       // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
       if (this.lruScheduler) {
         this.lruScheduler.stop();
