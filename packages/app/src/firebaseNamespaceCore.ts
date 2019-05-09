@@ -214,7 +214,7 @@ export function createFirebaseNamespaceCore(
     namespace[name] = serviceNamespace;
 
     // Patch the FirebaseAppImpl prototype
-    firebaseAppImpl.prototype[name] = function (...args) {
+    firebaseAppImpl.prototype[name] = function(...args) {
       const serviceFxn = this._getService.bind(this, name);
       return serviceFxn.apply(this, allowMultipleInstances ? args : []);
     };

@@ -20,7 +20,6 @@ import json from 'rollup-plugin-json';
 import typescript from 'typescript';
 import pkg from './package.json';
 
-
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
