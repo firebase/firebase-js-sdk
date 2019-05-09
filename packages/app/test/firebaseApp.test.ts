@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-import './setup';
-
 import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import {
   _FirebaseApp,
