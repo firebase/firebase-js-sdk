@@ -19,7 +19,7 @@ import { CONSTANTS } from './constants';
 
 /**
  * Returns navigator.userAgent string or '' if it's not defined.
- * @return {string} user agent string
+ * @return user agent string
  */
 export function getUA(): string {
   if (
@@ -35,10 +35,9 @@ export function getUA(): string {
 /**
  * Detect Cordova / PhoneGap / Ionic frameworks on a mobile device.
  *
- * Deliberately does not rely on checking `file://` URLs (as this fails PhoneGap in the Ripple emulator) nor
- * Cordova `onDeviceReady`, which would normally wait for a callback.
- *
- * @return {boolean} isMobileCordova
+ * Deliberately does not rely on checking `file://` URLs (as this fails PhoneGap
+ * in the Ripple emulator) nor Cordova `onDeviceReady`, which would normally
+ * wait for a callback.
  */
 export function isMobileCordova(): boolean {
   return (
@@ -51,9 +50,9 @@ export function isMobileCordova(): boolean {
 /**
  * Detect Node.js.
  *
- * @return {boolean} True if Node.js environment is detected.
- * Node detection logic from: https://github.com/iliakan/detect-node/
+ * @return true if Node.js environment is detected.
  */
+// Node detection logic from: https://github.com/iliakan/detect-node/
 export function isNode(): boolean {
   try {
     return (
@@ -74,7 +73,7 @@ export function isBrowser(): boolean {
 /**
  * Detect React Native.
  *
- * @return {boolean} True if ReactNative environment is detected.
+ * @return true if ReactNative environment is detected.
  */
 export function isReactNative(): boolean {
   return (
@@ -85,7 +84,7 @@ export function isReactNative(): boolean {
 /**
  * Detect whether the current SDK build is the Node version.
  *
- * @return {boolean} True if it's the Node SDK build.
+ * @return true if it's the Node SDK build.
  */
 export function isNodeSdk(): boolean {
   return CONSTANTS.NODE_CLIENT === true || CONSTANTS.NODE_ADMIN === true;
