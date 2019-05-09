@@ -495,23 +495,22 @@ export class FirestoreClient {
   }
 
   shutdown(): Promise<void> {
-    if (this.isShutdown === true) {
-      return Promise.resolve();
-    }
     return this.asyncQueue.enqueue(async () => {
-      // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-      if (this.lruScheduler) {
-        this.lruScheduler.stop();
-      }
-      await this.remoteStore.shutdown();
-      await this.sharedClientState.shutdown();
-      await this.persistence.shutdown();
+      if (!this.isShutdown) {
+        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
+        if (this.lruScheduler) {
+          this.lruScheduler.stop();
+        }
+        await this.remoteStore.shutdown();
+        await this.sharedClientState.shutdown();
+        await this.persistence.shutdown();
 
-      // `removeChangeListener` must be called after shutting down the
-      // RemoteStore as it will prevent the RemoteStore from retrieving
-      // auth tokens.
-      this.credentials.removeChangeListener();
-      this.isShutdown = true;
+        // `removeChangeListener` must be called after shutting down the
+        // RemoteStore as it will prevent the RemoteStore from retrieving
+        // auth tokens.
+        this.credentials.removeChangeListener();
+        this.isShutdown = true;
+      }
     });
   }
 
