@@ -16,11 +16,9 @@
  */
 
 import typescriptPlugin from 'rollup-plugin-typescript2';
-import replace from 'rollup-plugin-replace';
+import json from 'rollup-plugin-json';
 import typescript from 'typescript';
 import pkg from './package.json';
-
-import firebasePkg from '../firebase/package.json';
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
@@ -33,12 +31,7 @@ const es5BuildPlugins = [
   typescriptPlugin({
     typescript
   }),
-  replace({
-    delimiters: ['__', '__'],
-    values: {
-      JSCORE_VERSION: JSON.stringify(firebasePkg.version)
-    }
-  })
+  json()
 ];
 
 const es5Builds = [
@@ -98,11 +91,8 @@ const es2017BuildPlugins = [
       }
     }
   }),
-  replace({
-    delimiters: ['__', '__'],
-    values: {
-      JSCORE_VERSION: JSON.stringify(firebasePkg.version)
-    }
+  json({
+    preferConst: true
   })
 ];
 

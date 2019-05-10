@@ -34,6 +34,7 @@ import { FirebaseAppImpl } from './firebaseApp';
 import { error, AppError } from './errors';
 import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
 import { DEFAULT_ENTRY_NAME } from './constants';
+import { version } from '../../firebase/package.json';
 
 function contains(obj: object, key: string) {
   return Object.prototype.hasOwnProperty.call(obj, key);
@@ -62,7 +63,7 @@ export function createFirebaseNamespaceCore(
     initializeApp: initializeApp,
     app: app as any,
     apps: null as any,
-    SDK_VERSION: __JSCORE_VERSION__,
+    SDK_VERSION: version,
     INTERNAL: {
       registerService,
       removeApp,
