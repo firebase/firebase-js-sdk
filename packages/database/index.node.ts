@@ -81,7 +81,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
       ServerValue,
       TEST_ACCESS
     },
-    undefined,
+    null,
     true
   );
 

@@ -21,7 +21,7 @@ import { contains, getCount, getAnyKey, every } from '@firebase/util';
 import { assert } from '@firebase/util';
 import { Path } from '../util/Path';
 import { Change } from './Change';
-import { Query, SnapshotCallback } from '../../api/Query';
+import { Query } from '../../api/Query';
 
 /**
  * An EventRegistration is basically an event type ('value', 'child_added', etc.) and a callback
@@ -125,12 +125,12 @@ export class ValueEventRegistration implements EventRegistration {
       const cancelCB = this.cancelCallback_;
       return function() {
         // We know that error exists, we checked above that this is a cancel event
-        cancelCB && cancelCB.call(ctx, (eventData as CancelEvent).error);
+        cancelCB.call(ctx, (eventData as CancelEvent).error);
       };
     } else {
       const cb = this.callback_;
       return function() {
-        cb && cb.call(ctx, (eventData as DataEvent).snapshot);
+        cb.call(ctx, (eventData as DataEvent).snapshot);
       };
     }
   }
@@ -187,7 +187,7 @@ export class ChildEventRegistration implements EventRegistration {
    */
   constructor(
     private callbacks_:
-      | { [k: string]: SnapshotCallback | undefined }
+      | ({ [k: string]: (d: DataSnapshot, s?: string | null) => void })
       | null,
     private cancelCallback_: ((e: Error) => void) | null,
     private context_?: Object
@@ -220,7 +220,7 @@ export class ChildEventRegistration implements EventRegistration {
    */
   createEvent(change: Change, query: Query): DataEvent {
     assert(change.childName != null, 'Child events should have a childName.');
-    const ref = query.getRef().child(/** @type {!string} */ (change.childName || ''));
+    const ref = query.getRef().child(/** @type {!string} */ (change.childName));
     const index = query.getQueryParams().getIndex();
     return new DataEvent(
       change.type as any,
@@ -243,12 +243,12 @@ export class ChildEventRegistration implements EventRegistration {
       const cancelCB = this.cancelCallback_;
       return function() {
         // We know that error exists, we checked above that this is a cancel event
-        cancelCB && cancelCB.call(ctx, (eventData as CancelEvent).error);
+        cancelCB.call(ctx, (eventData as CancelEvent).error);
       };
     } else {
-      const cb = this.callbacks_ && this.callbacks_[(eventData as DataEvent).eventType];
+      const cb = this.callbacks_[(eventData as DataEvent).eventType];
       return function() {
-        cb && cb.call(
+        cb.call(
           ctx,
           (eventData as DataEvent).snapshot,
           (eventData as DataEvent).prevName
@@ -273,8 +273,8 @@ export class ChildEventRegistration implements EventRegistration {
           // If count is not 1, exact match across all
 
           if (otherCount === 1) {
-            const otherKey /** @type {!string} */ = getAnyKey(other.callbacks_) || '';
-            const thisKey /** @type {!string} */ = getAnyKey(this.callbacks_) || '';
+            const otherKey /** @type {!string} */ = getAnyKey(other.callbacks_);
+            const thisKey /** @type {!string} */ = getAnyKey(this.callbacks_);
             return (
               thisKey === otherKey &&
               (!other.callbacks_[otherKey] ||
@@ -285,7 +285,7 @@ export class ChildEventRegistration implements EventRegistration {
             // Exact match on each key.
             return every(
               this.callbacks_,
-              (eventType, cb) => other.callbacks_ ? other.callbacks_[eventType] === cb : false
+              (eventType, cb) => other.callbacks_[eventType] === cb
             );
           }
         }

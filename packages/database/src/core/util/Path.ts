@@ -131,7 +131,7 @@ export class Path {
   parent(): Path | null {
     if (this.pieceNum_ >= this.pieces_.length) return null;
 
-    const pieces: Array<string> = [];
+    const pieces = [];
     for (let i = this.pieceNum_; i < this.pieces_.length - 1; i++)
       pieces.push(this.pieces_[i]);
 
@@ -143,7 +143,7 @@ export class Path {
    * @return {!Path}
    */
   child(childPathObj: string | Path): Path {
-    const pieces: Array<string> = [];
+    const pieces = [];
     for (let i = this.pieceNum_; i < this.pieces_.length; i++)
       pieces.push(this.pieces_[i]);
 

@@ -278,7 +278,7 @@ export class WriteTree {
               (!writeIdsToExclude ||
                 !~writeIdsToExclude.indexOf(write.writeId)) &&
               (write.path.contains(treePath) || treePath.contains(write.path))
-            ) || false;
+            );
           };
           const mergeAtPath = WriteTree.layerTree_(
             this.allWrites_,
@@ -398,7 +398,7 @@ export class WriteTree {
       const childMerge = this.visibleWrites_.childCompoundWrite(path);
       if (childMerge.isEmpty()) {
         // We're not shadowing at all. Case 1
-        return (existingServerSnap as Node).getChild(childPath);
+        return existingServerSnap.getChild(childPath);
       } else {
         // This could be more efficient if the serverNode + updates doesn't change the eventSnap
         // However this is tricky to find out, since user updates don't necessary change the server
@@ -406,7 +406,7 @@ export class WriteTree {
         // adds nodes, but doesn't change any existing writes. It is therefore not enough to
         // only check if the updates change the serverNode.
         // Maybe check if the merge tree contains these special cases and only do a full overwrite in that case?
-        return childMerge.apply((existingServerSnap as Node).getChild(childPath));
+        return childMerge.apply(existingServerSnap.getChild(childPath));
       }
     }
   }
@@ -486,7 +486,7 @@ export class WriteTree {
     }
     toIterate = toIterate.withIndex(index);
     if (!toIterate.isEmpty() && !toIterate.isLeafNode()) {
-      const nodes: Array<NamedNode> = [];
+      const nodes = [];
       const cmp = index.getCompare();
       const iter = reverse
         ? (toIterate as ChildrenNode).getReverseIteratorFrom(startPost, index)

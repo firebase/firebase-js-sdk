@@ -254,7 +254,7 @@ export class Query {
     const container = new ChildEventRegistration(
       callbacks,
       cancelCallback,
-      context || undefined
+      context
     );
     this.repo.addEventCallbackForQuery(this, container);
   }
@@ -270,7 +270,7 @@ export class Query {
     context?: Object | null
   ): void {
     validateArgCount('Query.off', 0, 3, arguments.length);
-    validateEventType('Query.off', 1, eventType || '', true);
+    validateEventType('Query.off', 1, eventType, true);
     validateCallback('Query.off', 2, callback, true);
     validateContextObject('Query.off', 3, context, true);
 
@@ -288,7 +288,7 @@ export class Query {
         callbacks = {};
         callbacks[eventType] = callback;
       }
-      container = new ChildEventRegistration(callbacks, null, context || undefined);
+      container = new ChildEventRegistration(callbacks, null, context || null);
     }
     this.repo.removeEventCallbackForQuery(this, container);
   }
@@ -498,7 +498,7 @@ export class Query {
   ): Query {
     validateArgCount('Query.startAt', 0, 2, arguments.length);
     validateFirebaseDataArg('Query.startAt', 1, value, this.path, true);
-    validateKey('Query.startAt', 2, name || undefined, true);
+    validateKey('Query.startAt', 2, name, true);
 
     const newParams = this.queryParams_.startAt(value, name);
     Query.validateLimit_(newParams);
@@ -529,7 +529,7 @@ export class Query {
   ): Query {
     validateArgCount('Query.endAt', 0, 2, arguments.length);
     validateFirebaseDataArg('Query.endAt', 1, value, this.path, true);
-    validateKey('Query.endAt', 2, name || undefined, true);
+    validateKey('Query.endAt', 2, name, true);
 
     const newParams = this.queryParams_.endAt(value, name);
     Query.validateLimit_(newParams);

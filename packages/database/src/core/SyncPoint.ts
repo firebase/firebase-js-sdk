@@ -149,7 +149,7 @@ export class SyncPoint {
           false
         ),
         new CacheNode(
-          /** @type {!Node} */ (serverCache as Node),
+          /** @type {!Node} */ (serverCache),
           serverCacheComplete,
           false
         )
