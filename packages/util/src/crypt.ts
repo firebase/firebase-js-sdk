@@ -17,7 +17,7 @@
 
 const stringToByteArray = function(str) {
   // TODO(user): Use native implementations if/when available
-  var out:Array<number> = [],
+  var out: Array<number> = [],
     p = 0;
   for (var i = 0; i < str.length; i++) {
     var c = str.charCodeAt(i);
@@ -54,7 +54,7 @@ const stringToByteArray = function(str) {
  */
 const byteArrayToString = function(bytes) {
   // TODO(user): Use native implementations if/when available
-  var out:Array<string> = [],
+  var out: Array<string> = [],
     pos = 0,
     c = 0;
   while (pos < bytes.length) {

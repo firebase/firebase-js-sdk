@@ -118,7 +118,7 @@ export const getAnyKey = function(obj) {
 };
 
 export const getValues = function(obj) {
-  var res:Array<any> = [];
+  var res: Array<any> = [];
   var i = 0;
   for (var key in obj) {
     res[i++] = obj[key];
