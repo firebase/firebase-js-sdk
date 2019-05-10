@@ -28,7 +28,7 @@ import { createFirebaseNamespaceCore } from '../firebaseNamespaceCore';
 export function createFirebaseNamespaceLite(): FirebaseNamespace {
   const namespace = createFirebaseNamespaceCore(FirebaseAppLiteImpl);
 
-  namespace.SDK_VERSION = '${JSCORE_VERSION}_LITE';
+  namespace.SDK_VERSION = `${namespace.SDK_VERSION}_LITE`;
 
   const registerService = (namespace as _FirebaseNamespace).INTERNAL
     .registerService;
