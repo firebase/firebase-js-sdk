@@ -18,9 +18,8 @@
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import resolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
-import replace from 'rollup-plugin-replace';
+import json from 'rollup-plugin-json';
 import { uglify } from 'rollup-plugin-uglify';
-import pkg from '../package.json';
 import typescript from 'typescript';
 
 /**
@@ -40,9 +39,7 @@ export default [
         typescript,
         tsconfigOverride: { compilerOptions: { declaration: false } }
       }),
-      replace({
-        __VERSION__: pkg.version
-      }),
+      json(),
       resolve(),
       commonjs(),
       uglify()

@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
+import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
-import replace from 'rollup-plugin-replace';
 import pkg from './package.json';
 import typescript from 'typescript';
 
@@ -25,12 +25,7 @@ const deps = Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies });
 /**
  * ES5 Builds
  */
-const es5BuildPlugins = [
-  typescriptPlugin({ typescript }),
-  replace({
-    __VERSION__: pkg.version
-  })
-];
+const es5BuildPlugins = [typescriptPlugin({ typescript }), json()];
 
 const es5Builds = [
   {
@@ -56,9 +51,7 @@ const es2017BuildPlugins = [
       }
     }
   }),
-  replace({
-    __VERSION__: pkg.version
-  })
+  json({ preferConst: true })
 ];
 
 const es2017Builds = [
