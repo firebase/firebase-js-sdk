@@ -25,6 +25,7 @@ import { Api, setupApi } from './api_service';
 import { SettingsService } from './settings_service';
 import { FirebaseApp } from '@firebase/app-types';
 import * as initializationService from './initialization_service';
+import { SDK_VERSION } from '../constants';
 import * as attributeUtils from '../utils/attributes_utils';
 import { createNetworkRequestEntry } from '../resources/network_request';
 import '../../test/setup';
@@ -83,7 +84,7 @@ describe('Performance Monitoring > perf_logger', () => {
       const START_TIME = 12345;
       const DURATION = 321;
       const EXPECTED_TRACE_MESSAGE = `{"application_info":{"google_app_id":"${APP_ID}",\
-"app_instance_id":"${IID}","web_app_info":{"sdk_version":"${__PERF_SDK_VERSION__}",\
+"app_instance_id":"${IID}","web_app_info":{"sdk_version":"${SDK_VERSION}",\
 "page_url":"${PAGE_URL}","service_worker_status":${SERVICE_WORKER_STATUS},\
 "visibility_state":${VISIBILITY_STATE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
 "application_process_state":0},"trace_metric":{"name":"${TRACE_NAME}","is_auto":false,\
@@ -137,7 +138,7 @@ describe('Performance Monitoring > perf_logger', () => {
           1000
       );
       const EXPECTED_NETWORK_MESSAGE = `{"application_info":{"google_app_id":"${APP_ID}",\
-"app_instance_id":"${IID}","web_app_info":{"sdk_version":"${__PERF_SDK_VERSION__}",\
+"app_instance_id":"${IID}","web_app_info":{"sdk_version":"${SDK_VERSION}",\
 "page_url":"${PAGE_URL}","service_worker_status":${SERVICE_WORKER_STATUS},\
 "visibility_state":${VISIBILITY_STATE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
 "application_process_state":0},\

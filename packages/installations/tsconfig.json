@@ -3,6 +3,7 @@
   "compilerOptions": {
     "lib": ["es2017", "dom"],
     "downlevelIteration": true,
+    "resolveJsonModule": true,
 
     "strict": true,
     "noUnusedLocals": true,
