@@ -29,7 +29,7 @@ import { FirebaseStorageError } from './error';
 import { Location } from './location';
 import * as MetadataUtils from './metadata';
 import * as object from './object';
-import { RequestInfo } from './requestinfo';
+import { RequestInfo, UrlParams } from './requestinfo';
 import * as type from './type';
 import * as UrlUtils from './url';
 import { XhrIo } from './xhrio';
@@ -62,7 +62,7 @@ export function metadataHandler(
 export function downloadUrlHandler(
   authWrapper: AuthWrapper,
   mappings: MetadataUtils.Mappings
-): (p1: XhrIo, p2: string) => string {
+): (p1: XhrIo, p2: string) => string | null {
   function handler(xhr: XhrIo, text: string): string | null {
     let metadata = MetadataUtils.fromResourceString(
       authWrapper,
@@ -271,7 +271,7 @@ export function multipartUpload(
   if (body === null) {
     throw errorsExports.cannotSliceBlob();
   }
-  let urlParams = { name: metadata['fullPath'] };
+  let urlParams: UrlParams = { name: metadata['fullPath'] || '' };
   let url = UrlUtils.makeUrl(urlPart);
   let method = 'POST';
   let timeout = authWrapper.maxUploadRetryTime();
@@ -332,14 +332,14 @@ export function createResumableUpload(
 ): RequestInfo<string> {
   let urlPart = location.bucketOnlyServerUrl();
   let metadata = metadataForUpload_(location, blob, opt_metadata);
-  let urlParams = { name: metadata['fullPath'] };
+  let urlParams: UrlParams = { name: metadata['fullPath'] || '' };
   let url = UrlUtils.makeUrl(urlPart);
   let method = 'POST';
   let headers = {
     'X-Goog-Upload-Protocol': 'resumable',
     'X-Goog-Upload-Command': 'start',
     'X-Goog-Upload-Header-Content-Length': blob.size(),
-    'X-Goog-Upload-Header-Content-Type': metadata['contentType'],
+    'X-Goog-Upload-Header-Content-Type': metadata['contentType'] || '',
     'Content-Type': 'application/json; charset=utf-8'
   };
   let body = MetadataUtils.toResourceString(metadata, mappings);

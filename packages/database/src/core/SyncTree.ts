@@ -163,7 +163,7 @@ export class SyncTree {
   ackUserWrite(writeId: number, revert: boolean = false) {
     const write = this.pendingWriteTree_.getWrite(writeId);
     const needToReevaluate = this.pendingWriteTree_.removeWrite(writeId);
-    if (!needToReevaluate) {
+    if (!needToReevaluate || !write) {
       return [];
     } else {
       let affectedTree = ImmutableTree.Empty;
@@ -350,7 +350,7 @@ export class SyncTree {
       const subtree = this.syncPointTree_.subtree(path);
       subtree.foreachChild(function(childName, childSyncPoint) {
         const completeCache = childSyncPoint.getCompleteServerCache(Path.Empty);
-        if (completeCache) {
+        if (completeCache && serverCache) {
           serverCache = serverCache.updateImmediateChild(
             childName,
             completeCache
@@ -381,7 +381,7 @@ export class SyncTree {
       serverCacheComplete
     );
     if (!viewAlreadyExists && !foundAncestorDefaultView) {
-      const view /** @type !View */ = syncPoint.viewForQuery(query);
+      const view /** @type !View */ = syncPoint.viewForQuery(query) as View;
       events = events.concat(this.setupListener_(query, view));
     }
     return events;
@@ -530,7 +530,7 @@ export class SyncTree {
     });
     return writeTree.calcCompleteEventCache(
       path,
-      serverCache,
+      serverCache || null,
       writeIdsToExclude,
       includeHiddenSets
     );
@@ -551,7 +551,7 @@ export class SyncTree {
       (relativePath, maybeChildSyncPoint, childMap) => {
         if (maybeChildSyncPoint && maybeChildSyncPoint.hasCompleteView()) {
           const completeView = maybeChildSyncPoint.getCompleteView();
-          return [completeView];
+          return [completeView as View];
         } else {
           // No complete view here, flatten any deeper listens into an array
           let views: View[] = [];
@@ -628,10 +628,12 @@ export class SyncTree {
     // The root of this subtree has our query. We're here because we definitely need to send a listen for that, but we
     // may need to shadow other listens as well.
     if (tag) {
-      assert(
-        !subtree.value.hasCompleteView(),
-        "If we're adding a query, it shouldn't be shadowed"
-      );
+      if (subtree.value) {
+        assert(
+          !subtree.value.hasCompleteView(),
+          "If we're adding a query, it shouldn't be shadowed"
+        );
+      }
     } else {
       // Shadow everything at or below this location, this is a default listener.
       const queriesToStop = subtree.fold<Query[]>(function(
@@ -644,7 +646,7 @@ export class SyncTree {
           maybeChildSyncPoint &&
           maybeChildSyncPoint.hasCompleteView()
         ) {
-          return [maybeChildSyncPoint.getCompleteView().getQuery()];
+          return [(maybeChildSyncPoint.getCompleteView() as View).getQuery()];
         } else {
           // No default listener here, flatten any deeper queries into an array
           let queries: Query[] = [];
@@ -787,7 +789,7 @@ export class SyncTree {
     queryPath: Path,
     operation: Operation
   ): Event[] {
-    const syncPoint = this.syncPointTree_.get(queryPath);
+    const syncPoint = this.syncPointTree_.get(queryPath) as SyncPoint;
     assert(syncPoint, "Missing sync point for query tag that we're tracking");
     const writesCache = this.pendingWriteTree_.childWrites(queryPath);
     return syncPoint.applyOperation(
@@ -855,7 +857,7 @@ export class SyncTree {
       }
 
       let events: Event[] = [];
-      const childName = operation.path.getFront();
+      const childName = operation.path.getFront() || '';
       const childOperation = operation.operationForChild(childName);
       const childTree = syncPointTree.children.get(childName);
       if (childTree && childOperation) {

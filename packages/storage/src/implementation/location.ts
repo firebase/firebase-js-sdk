@@ -63,7 +63,7 @@ export class Location {
   }
 
   static makeFromUrl(url: string): Location {
-    let location = null;
+    let location:Location|null = null;
     let bucketDomain = '([A-Za-z0-9.\\-_]+)';
 
     function gsModify(loc: Location) {

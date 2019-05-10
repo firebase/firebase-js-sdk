@@ -256,7 +256,7 @@ export class Sha1 {
 
   /** @override */
   digest() {
-    var digest = [];
+    var digest: Array<number> = [];
     var totalBits = this.total_ * 8;
 
     // Add pad 0x80 0x00*.

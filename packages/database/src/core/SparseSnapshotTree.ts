@@ -48,7 +48,7 @@ export class SparseSnapshotTree {
     if (this.value_ != null) {
       return this.value_.getChild(path);
     } else if (!path.isEmpty() && this.children_ != null) {
-      const childKey = path.getFront();
+      const childKey = path.getFront() || '';
       path = path.popFront();
       if (this.children_.contains(childKey)) {
         const childTree = this.children_.get(childKey) as SparseSnapshotTree;
@@ -79,7 +79,7 @@ export class SparseSnapshotTree {
         this.children_ = new CountedSet<string, SparseSnapshotTree>();
       }
 
-      const childKey = path.getFront();
+      const childKey = path.getFront() || '';
       if (!this.children_.contains(childKey)) {
         this.children_.add(childKey, new SparseSnapshotTree());
       }
@@ -118,7 +118,7 @@ export class SparseSnapshotTree {
           return this.forget(path);
         }
       } else if (this.children_ !== null) {
-        const childKey = path.getFront();
+        const childKey = path.getFront() || '';
         path = path.popFront();
         if (this.children_.contains(childKey)) {
           const safeToRemove = (this.children_.get(

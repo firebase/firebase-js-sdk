@@ -132,7 +132,7 @@ export class Repo {
     }
 
     authTokenProvider.addTokenChangeListener(token => {
-      this.server_.refreshAuthToken(token);
+      token && this.server_.refreshAuthToken(token);
     });
 
     // In the case of multiple Repos for the same repoInfo (i.e. there are multiple Firebase.Contexts being used),
@@ -240,7 +240,7 @@ export class Repo {
     data = this.interceptServerDataCallback_
       ? this.interceptServerDataCallback_(pathString, data)
       : data;
-    let events = [];
+    let events: Array<Event> = [];
     if (tag) {
       if (isMerge) {
         const taggedChildren = map(data as { [k: string]: any }, (raw: any) =>
@@ -602,7 +602,7 @@ export class Repo {
    */
   removeEventCallbackForQuery(
     query: Query,
-    eventRegistration: EventRegistration
+    eventRegistration: EventRegistration | null
   ) {
     // These are guaranteed not to raise events, since we're not passing in a cancelError. However, we can future-proof
     // a little bit by handling the return values anyways.

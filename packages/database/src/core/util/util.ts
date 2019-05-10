@@ -343,7 +343,7 @@ export const requireKey = function(
 export const ObjectToUniqueKey = function(obj: any): string {
   if (typeof obj !== 'object' || obj === null) return stringify(obj);
 
-  const keys = [];
+  const keys: Array<string> = [];
   for (let k in obj) {
     keys.push(k);
   }
@@ -378,7 +378,7 @@ export const splitStringBySize = function(
     return [str];
   }
 
-  const dataSegs = [];
+  const dataSegs: Array<string> = [];
   for (let c = 0; c < len; c += segsize) {
     if (c + segsize > len) {
       dataSegs.push(str.substring(c, len));

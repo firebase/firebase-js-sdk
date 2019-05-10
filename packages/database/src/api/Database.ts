@@ -32,7 +32,7 @@ import { RepoInfo } from '../core/RepoInfo';
  * @implements {FirebaseService}
  */
 export class Database implements FirebaseService {
-  INTERNAL: DatabaseInternals;
+  INTERNAL?: DatabaseInternals;
   private root_: Reference;
 
   static readonly ServerValue = {
@@ -141,7 +141,7 @@ export class Database implements FirebaseService {
 
 export class DatabaseInternals {
   /** @param {!Database} database */
-  constructor(public database: Database) {}
+  constructor(public database?: Database) {}
 
   /** @return {Promise<void>} */
   async delete(): Promise<void> {
@@ -150,7 +150,9 @@ export class DatabaseInternals {
 
     (this.database as any).repo_ = null;
     (this.database as any).root_ = null;
-    this.database.INTERNAL = null;
-    this.database = null;
+    if (this.database) {
+      this.database.INTERNAL = undefined;
+    }
+    this.database = undefined;
   }
 }

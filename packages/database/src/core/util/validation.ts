@@ -356,7 +356,7 @@ export const validateEventType = function(
 export const validateKey = function(
   fnName: string,
   argumentNumber: number,
-  key: string,
+  key: string | undefined,
   optional: boolean
 ) {
   if (optional && key === undefined) return;

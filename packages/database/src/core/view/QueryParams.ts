@@ -292,7 +292,7 @@ export class QueryParams {
     newParams.indexEndValue_ = indexValue;
     if (key !== undefined) {
       newParams.endNameSet_ = true;
-      newParams.indexEndName_ = key;
+      newParams.indexEndName_ = key || '';
     } else {
       newParams.endNameSet_ = false;
       newParams.indexEndName_ = '';

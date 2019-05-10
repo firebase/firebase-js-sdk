@@ -22,7 +22,7 @@ type CompleteFn = () => void;
 type Unsubscribe = () => void;
 
 type Subscribe<T> = (
-  next: NextFn<T> | { [name: string]: string | null },
+  next: NextFn<T> | { [name: string]: string | null } | null,
   error?: ErrorFn,
   complete?: CompleteFn
 ) => Unsubscribe;

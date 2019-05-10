@@ -455,7 +455,7 @@ export class UploadTask {
    */
   on(
     type: TaskEvent,
-    nextOrObserver = undefined,
+    nextOrObserver = null,
     error = undefined,
     completed = undefined
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {

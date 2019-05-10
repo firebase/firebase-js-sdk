@@ -91,10 +91,13 @@ export class SortedMapIterator<K, V, T> {
     }
   }
 
-  getNext(): T {
+  getNext(): T | null {
     if (this.nodeStack_.length === 0) return null;
 
     let node = this.nodeStack_.pop();
+
+    if (!node) return null;
+
     let result: T;
     if (this.resultGenerator_)
       result = this.resultGenerator_(node.key, node.value);
@@ -121,7 +124,7 @@ export class SortedMapIterator<K, V, T> {
     return this.nodeStack_.length > 0;
   }
 
-  peek(): T {
+  peek(): T | null {
     if (this.nodeStack_.length === 0) return null;
 
     const node = this.nodeStack_[this.nodeStack_.length - 1];
@@ -259,9 +262,9 @@ export class LLRBNode<K, V> {
   }
 
   /**
-   * @return {!K} The maximum key in the tree.
+   * @return {K} The maximum key in the tree.
    */
-  maxKey(): K {
+  maxKey(): K | null {
     if (this.right.isEmpty()) {
       return this.key;
     } else {
@@ -670,7 +673,7 @@ export class SortedMap<K, V> {
   getPredecessorKey(key: K): K | null {
     let cmp,
       node = this.root_,
-      rightParent = null;
+      rightParent: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null = null;
     while (!node.isEmpty()) {
       cmp = this.comparator_(key, node.key);
       if (cmp === 0) {
@@ -757,7 +760,7 @@ export class SortedMap<K, V> {
    */
   getIterator<T>(
     resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T> {
+  ): SortedMapIterator<K | null, V, T> {
     return new SortedMapIterator(
       this.root_,
       null,
@@ -770,7 +773,7 @@ export class SortedMap<K, V> {
   getIteratorFrom<T>(
     key: K,
     resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T> {
+  ): SortedMapIterator<K | null, V, T> {
     return new SortedMapIterator(
       this.root_,
       key,
@@ -783,7 +786,7 @@ export class SortedMap<K, V> {
   getReverseIteratorFrom<T>(
     key: K,
     resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T> {
+  ): SortedMapIterator<K | null, V, T> {
     return new SortedMapIterator(
       this.root_,
       key,
@@ -795,7 +798,7 @@ export class SortedMap<K, V> {
 
   getReverseIterator<T>(
     resultGenerator?: (k: K, v: V) => T
-  ): SortedMapIterator<K, V, T> {
+  ): SortedMapIterator<K | null, V, T> {
     return new SortedMapIterator(
       this.root_,
       null,
