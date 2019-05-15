@@ -5181,6 +5181,195 @@ function testSendEmailVerification_caughtServerError() {
 
 
 /**
+ * Tests successful verifyBeforeUpdateEmail RPC call with action code settings.
+ */
+function testVerifyBeforeUpdateEmail_success_actionCodeSettings() {
+  var idToken = 'ID_TOKEN';
+  var newEmail = 'newUser@example.com';
+  var currentEmail = 'user@example.com';
+  var expectedResponse = {
+    'email': currentEmail
+  };
+  var additionalRequestData = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'iOSBundleId': 'com.example.ios',
+    'androidPackageName': 'com.example.android',
+    'androidInstallApp': true,
+    'androidMinimumVersion': '12',
+    'canHandleCodeInApp': true,
+    'dynamicLinkDomain': 'example.page.link'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType':
+            fireauth.RpcHandler.GetOobCodeRequestType.VERIFY_AND_CHANGE_EMAIL,
+        'idToken': idToken,
+        'newEmail': newEmail,
+        'continueUrl': 'https://www.example.com/?state=abc',
+        'iOSBundleId': 'com.example.ios',
+        'androidPackageName': 'com.example.android',
+        'androidInstallApp': true,
+        'androidMinimumVersion': '12',
+        'canHandleCodeInApp': true,
+        'dynamicLinkDomain': 'example.page.link'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyBeforeUpdateEmail(idToken, newEmail, additionalRequestData)
+      .then(function(email) {
+        assertEquals(currentEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests successful verifyBeforeUpdateEmail RPC call with no action code
+ * settings.
+ */
+function testVerifyBeforeUpdateEmail_success_noActionCodeSettings() {
+  var idToken = 'ID_TOKEN';
+  var newEmail = 'newUser@example.com';
+  var currentEmail = 'user@example.com';
+  var expectedResponse = {
+    'email': currentEmail
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType':
+            fireauth.RpcHandler.GetOobCodeRequestType.VERIFY_AND_CHANGE_EMAIL,
+        'idToken': idToken,
+        'newEmail': newEmail
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyBeforeUpdateEmail(idToken, newEmail, {})
+      .then(function(email) {
+        assertEquals(currentEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests successful verifyBeforeUpdateEmail RPC call with custom locale and no
+ * action code settings.
+ */
+function testVerifyBeforeUpdateEmail_success_customLocale() {
+  var idToken = 'ID_TOKEN';
+  var newEmail = 'newUser@example.com';
+  var currentEmail = 'user@example.com';
+  var expectedResponse = {
+    'email': currentEmail
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType':
+            fireauth.RpcHandler.GetOobCodeRequestType.VERIFY_AND_CHANGE_EMAIL,
+        'idToken': idToken,
+        'newEmail': newEmail
+      }),
+      {
+        'Content-Type': 'application/json',
+        'X-Firebase-Locale': 'ar'
+      },
+      delay,
+      expectedResponse);
+  rpcHandler.updateCustomLocaleHeader('ar');
+  rpcHandler.verifyBeforeUpdateEmail(idToken, newEmail, {})
+      .then(function(email) {
+        assertEquals(currentEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid response verifyBeforeUpdateEmail error.
+ */
+function testVerifyBeforeUpdateEmail_unknownServerResponse() {
+  var idToken = 'ID_TOKEN';
+  var newEmail = 'newUser@example.com';
+  var expectedResponse = {};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType':
+            fireauth.RpcHandler.GetOobCodeRequestType.VERIFY_AND_CHANGE_EMAIL,
+        'idToken': idToken,
+        'newEmail': newEmail
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyBeforeUpdateEmail(idToken, newEmail, {})
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests server side verifyBeforeUpdateEmail error.
+ */
+function testVerifyBeforeUpdateEmail_caughtServerError() {
+  var idToken = 'ID_TOKEN';
+  var newEmail = 'newUser@example.com';
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/relyin' +
+      'gparty/getOobConfirmationCode?key=apiKey';
+  var requestBody = {
+    'requestType':
+        fireauth.RpcHandler.GetOobCodeRequestType.VERIFY_AND_CHANGE_EMAIL,
+    'idToken': idToken,
+    'newEmail': newEmail
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.EMAIL_NOT_FOUND] =
+      fireauth.authenum.Error.USER_DELETED;
+  errorMap[fireauth.RpcHandler.ServerError.EMAIL_EXISTS] =
+      fireauth.authenum.Error.EMAIL_EXISTS;
+  errorMap[fireauth.RpcHandler.ServerError.CREDENTIAL_TOO_OLD_LOGIN_AGAIN] =
+      fireauth.authenum.Error.CREDENTIAL_TOO_OLD_LOGIN_AGAIN;
+
+  // Action code settings related errors.
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_CONTINUE_URI] =
+      fireauth.authenum.Error.INVALID_CONTINUE_URI;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_ANDROID_PACKAGE_NAME] =
+      fireauth.authenum.Error.MISSING_ANDROID_PACKAGE_NAME;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_IOS_BUNDLE_ID] =
+      fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID;
+  errorMap[fireauth.RpcHandler.ServerError.UNAUTHORIZED_DOMAIN] =
+      fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
+      fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.verifyBeforeUpdateEmail(idToken, newEmail, {});
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
  * Tests successful confirmPasswordReset RPC call.
  */
 function testConfirmPasswordReset_success() {

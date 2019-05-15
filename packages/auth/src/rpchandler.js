@@ -296,6 +296,7 @@ fireauth.RpcHandler.GetOobCodeRequestType = {
   EMAIL_SIGNIN: 'EMAIL_SIGNIN',
   NEW_EMAIL_ACCEPT: 'NEW_EMAIL_ACCEPT',
   PASSWORD_RESET: 'PASSWORD_RESET',
+  VERIFY_AND_CHANGE_EMAIL: 'VERIFY_AND_CHANGE_EMAIL',
   VERIFY_EMAIL: 'VERIFY_EMAIL'
 };
 
@@ -1467,6 +1468,21 @@ fireauth.RpcHandler.validateEmailVerificationCodeRequest_ = function(request) {
 
 
 /**
+ * Validates a request for an email action for email verification before update.
+ * @param {!Object} request The getOobCode request data for email verification
+ *     before update.
+ * @private
+ */
+fireauth.RpcHandler.validateEmailVerificationCodeBeforeUpdateRequest_ =
+    function(request) {
+  if (request['requestType'] !=
+          fireauth.RpcHandler.GetOobCodeRequestType.VERIFY_AND_CHANGE_EMAIL) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  }
+};
+
+
+/**
  * Requests getOobCode endpoint for password reset, returns promise that
  * resolves with user's email.
  * @param {string} email The email account with the password to be reset.
@@ -1522,6 +1538,30 @@ fireauth.RpcHandler.prototype.sendEmailVerification =
   goog.object.extend(request, additionalRequestData);
   return this.invokeRpc_(
       fireauth.RpcHandler.ApiMethod.GET_EMAIL_VERIFICATION_CODE, request);
+};
+
+
+/**
+ * Requests getOobCode endpoint for email verification before updating the
+ * email.
+ * @param {string} idToken The idToken of the user updating his email.
+ * @param {string} newEmail The new email.
+ * @param {!Object} additionalRequestData Additional data to add to the request.
+ * @return {!goog.Promise<void>}
+ */
+fireauth.RpcHandler.prototype.verifyBeforeUpdateEmail =
+    function(idToken, newEmail, additionalRequestData) {
+  var request = {
+    'requestType':
+        fireauth.RpcHandler.GetOobCodeRequestType.VERIFY_AND_CHANGE_EMAIL,
+    'idToken': idToken,
+    'newEmail': newEmail
+  };
+  // Extend the original request with the additional data.
+  goog.object.extend(request, additionalRequestData);
+  return this.invokeRpc_(
+      fireauth.RpcHandler.ApiMethod.GET_EMAIL_VERIFICATION_CODE_BEFORE_UPDATE,
+      request);
 };
 
 
@@ -2050,6 +2090,14 @@ fireauth.RpcHandler.ApiMethod = {
     requestRequiredFields: ['idToken', 'requestType'],
     requestValidator: fireauth.RpcHandler.validateEmailVerificationCodeRequest_,
     responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+  },
+  GET_EMAIL_VERIFICATION_CODE_BEFORE_UPDATE: {
+    endpoint: 'getOobConfirmationCode',
+    requestRequiredFields: ['idToken', 'newEmail', 'requestType'],
+    requestValidator:
+        fireauth.RpcHandler.validateEmailVerificationCodeBeforeUpdateRequest_,
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   GET_OOB_CODE: {
     endpoint: 'getOobConfirmationCode',

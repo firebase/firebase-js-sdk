@@ -2065,7 +2065,7 @@ fireauth.AuthUser.prototype.finishPopupAndRedirectReauth =
 
 
 /**
- * Sends the email verification email to the email in the user's account.
+ * Sends the verification email to the email in the user's account.
  * @param {?Object=} opt_actionCodeSettings The optional action code settings
  *     object.
  * @return {!goog.Promise<void>}
@@ -2096,6 +2096,48 @@ fireauth.AuthUser.prototype.sendEmailVerification =
         if (self['email'] != email) {
           // Our local copy does not have an email. If the email changed,
           // reload the user.
+          return self.reload();
+        }
+      })
+      .then(function() {
+        // Return nothing.
+      }));
+};
+
+
+/**
+ * Sends the verification email before updating the email on the user.
+ * @param {string} newEmail The new email.
+ * @param {?Object=} opt_actionCodeSettings The optional action code settings
+ *     object.
+ * @return {!goog.Promise<void>}
+ */
+fireauth.AuthUser.prototype.verifyBeforeUpdateEmail =
+    function(newEmail, opt_actionCodeSettings) {
+  var self = this;
+  var idToken = null;
+  // Register this pending promise. This will also check for user invalidation.
+  return this.registerPendingPromise_(
+      // Wrap in promise as ActionCodeSettings constructor could throw a
+      // synchronous error if invalid arguments are specified.
+      this.getIdToken().then(function(latestIdToken) {
+        idToken = latestIdToken;
+        if (typeof opt_actionCodeSettings !== 'undefined' &&
+            // Ignore empty objects.
+            !goog.object.isEmpty(opt_actionCodeSettings)) {
+          return new fireauth.ActionCodeSettings(
+              /** @type {!Object} */ (opt_actionCodeSettings)).buildRequest();
+        }
+        return {};
+      })
+      .then(function(additionalRequestData) {
+        return self.rpcHandler_.verifyBeforeUpdateEmail(
+            /** @type {string} */ (idToken), newEmail, additionalRequestData);
+      })
+      .then(function(email) {
+        if (self['email'] != email) {
+          // If the local copy of the email on user is outdated, reload the
+          // user.
           return self.reload();
         }
       })

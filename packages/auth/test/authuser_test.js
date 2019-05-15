@@ -3737,9 +3737,8 @@ function testSendEmailVerification_localCopyWrongEmail() {
 
 
 function testSendEmailVerification_error() {
-  var expectedError = {
-    'error': fireauth.authenum.Error.INVALID_RESPONSE
-  };
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.INTERNAL_ERROR);
   // Simulate unsuccessful RpcHandler sendEmailVerification.
   stubs.replace(
       fireauth.RpcHandler.prototype,
@@ -3757,7 +3756,7 @@ function testSendEmailVerification_error() {
         fail('sendEmailVerification should not resolve!');
       })
       .thenCatch(function(error) {
-        assertObjectEquals(expectedError, error);
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
       });
   asyncTestCase.waitForSignals(1);
@@ -3800,6 +3799,177 @@ function testSendEmailVerification_actionCodeSettings_error() {
   assertNoTokenEvents(user);
   assertNoUserInvalidatedEvents(user);
   user.sendEmailVerification(settings).thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+  asyncTestCase.waitForSignals(1);
+}
+
+
+function testVerifyBeforeUpdateEmail_success() {
+  var newEmail = 'newUser@example.com';
+  // Simulate successful RpcHandler verifyBeforeUpdateEmail.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'verifyBeforeUpdateEmail',
+      function(idToken, email, actualActionCodeSettings) {
+        assertEquals('accessToken', idToken);
+        assertEquals(newEmail, email);
+        assertObjectEquals({}, actualActionCodeSettings);
+        // Returns the user's current email.
+        return goog.Promise.resolve('user@default.com');
+      });
+  var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  assertNoStateEvents(user);
+  assertNoTokenEvents(user);
+  assertNoUserInvalidatedEvents(user);
+  user.verifyBeforeUpdateEmail(newEmail).then(function() {
+    asyncTestCase.signal();
+  });
+  asyncTestCase.waitForSignals(1);
+}
+
+
+function testVerifyBeforeUpdateEmail_localCopyWrongEmail() {
+  var expectedEmail = 'user@email.com';
+  var newEmail = 'newUser@example.com';
+  // The backend has the email user@email.com associated with the account.
+  var updatedUserResponse = {
+    'users': [{
+      'localId': 'userId1',
+      'email': expectedEmail,
+      'emailVerified': true,
+      'providerUserInfo': [],
+      'photoUrl': '',
+      'passwordUpdatedAt': 0.0,
+      'disabled': false
+    }]
+  };
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      function(data) {
+        return goog.Promise.resolve(updatedUserResponse);
+      });
+
+  // The RPC should still succeed and return user@email.com.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'verifyBeforeUpdateEmail',
+      function(idToken, email, actualActionCodeSettings) {
+        assertEquals('accessToken', idToken);
+        assertEquals(newEmail, email);
+        assertObjectEquals({}, actualActionCodeSettings);
+        return goog.Promise.resolve(expectedEmail);
+      });
+
+  // This user does not have an email.
+  var user = new fireauth.AuthUser(config1, tokenResponse, {
+    'uid': 'userId1'
+  });
+  // User state change listener should be triggered on user reload.
+  var stateChangedCounter1 = 0;
+  user.addStateChangeListener(function(user) {
+    stateChangedCounter1++;
+    return goog.Promise.resolve();
+  });
+  assertNull(user['email']);
+  user.verifyBeforeUpdateEmail(newEmail).then(function() {
+    assertEquals(expectedEmail, user['email']);
+    assertEquals(1, stateChangedCounter1);
+    asyncTestCase.signal();
+  });
+
+  // This user has the wrong email.
+  var user2 = new fireauth.AuthUser(config1, tokenResponse, {
+    'uid': 'userId1',
+    'email': 'wrong@email.com'
+  });
+  // User state change listener should be triggered on user reload.
+  var stateChangedCounter2 = 0;
+  user2.addStateChangeListener(function(user) {
+    stateChangedCounter2++;
+    return goog.Promise.resolve();
+  });
+  user2.verifyBeforeUpdateEmail(newEmail).then(function() {
+    assertEquals(expectedEmail, user2['email']);
+    assertEquals(1, stateChangedCounter2);
+    asyncTestCase.signal();
+  });
+
+  asyncTestCase.waitForSignals(2);
+}
+
+
+function testVerifyBeforeUpdateEmail_error() {
+  var newEmail = 'newUser@example.com';
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.INTERNAL_ERROR);
+  // Simulate unsuccessful RpcHandler verifyBeforeUpdateEmail.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'verifyBeforeUpdateEmail',
+      function(idToken, email, actualActionCodeSettings) {
+        assertEquals('accessToken', idToken);
+        assertEquals(newEmail, email);
+        assertObjectEquals({}, actualActionCodeSettings);
+        return goog.Promise.reject(expectedError);
+      });
+  var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  assertNoStateEvents(user);
+  assertNoTokenEvents(user);
+  assertNoUserInvalidatedEvents(user);
+  user.verifyBeforeUpdateEmail(newEmail)
+      .then(function() {
+        fail('verifyBeforeUpdateEmail should not resolve!');
+      })
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+  asyncTestCase.waitForSignals(1);
+}
+
+
+function testVerifyBeforeUpdateEmail_actionCodeSettings_success() {
+  var newEmail = 'newUser@example.com';
+  // Simulate successful RpcHandler verifyBeforeUpdateEmail with action code
+  // settings.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'verifyBeforeUpdateEmail',
+      function(idToken, email, actualActionCodeSettings) {
+        assertObjectEquals(
+            new fireauth.ActionCodeSettings(actionCodeSettings).buildRequest(),
+            actualActionCodeSettings);
+        assertEquals('accessToken', idToken);
+        assertEquals(newEmail, email);
+        return goog.Promise.resolve('user@default.com');
+      });
+  var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  assertNoStateEvents(user);
+  assertNoTokenEvents(user);
+  assertNoUserInvalidatedEvents(user);
+  user.verifyBeforeUpdateEmail(newEmail, actionCodeSettings).then(function() {
+    asyncTestCase.signal();
+  });
+  asyncTestCase.waitForSignals(1);
+}
+
+
+function testVerifyBeforeUpdateEmail_actionCodeSettings_error() {
+  var newEmail = 'newUser@example.com';
+  // Simulate verifyBeforeUpdateEmail with invalid action code settings.
+  var settings = {
+    'url': ''
+  };
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.INVALID_CONTINUE_URI);
+  var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  assertNoStateEvents(user);
+  assertNoTokenEvents(user);
+  assertNoUserInvalidatedEvents(user);
+  user.verifyBeforeUpdateEmail(newEmail, settings).thenCatch(function(error) {
     fireauth.common.testHelper.assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });

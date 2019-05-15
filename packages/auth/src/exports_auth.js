@@ -314,6 +314,17 @@ fireauth.exportlib.exportPrototypeMethods(
       updateProfile: {
         name: 'updateProfile',
         args: [fireauth.args.object('profile')]
+      },
+      verifyBeforeUpdateEmail: {
+        name: 'verifyBeforeUpdateEmail',
+        args: [
+          fireauth.args.string('email'),
+          fireauth.args.or(
+              fireauth.args.object('opt_actionCodeSettings', true),
+              fireauth.args.null(null, true),
+              'opt_actionCodeSettings',
+              true)
+        ]
       }
     });
 
