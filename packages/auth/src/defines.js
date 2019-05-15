@@ -47,6 +47,15 @@ fireauth.constants.AuthEventType = {
 
 
 /**
+ * Enums for all second factor types.
+ * @enum {string}
+ */
+fireauth.constants.SecondFactorType = {
+  PHONE: 'phone'
+};
+
+
+/**
  * The settings of an Auth endpoint. The fields are:
  * <ul>
  * <li>firebaseAuthEndpoint: defines the Firebase Auth backend endpoint for
