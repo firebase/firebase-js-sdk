@@ -105,11 +105,16 @@ fireauth.RpcHandler = function(apiKey, opt_config, opt_firebaseClientVersion) {
    */
   this.secureTokenTimeout_ = config['secureTokenTimeout'] ||
       fireauth.RpcHandler.DEFAULT_SECURE_TOKEN_TIMEOUT_;
+  /** @private @const {!Object} The secure token server headers. */
   this.secureTokenHeaders_ = goog.object.clone(
       config['secureTokenHeaders'] ||
       fireauth.RpcHandler.DEFAULT_SECURE_TOKEN_HEADERS_);
+  /** @private @const {string} The Firebase Auth endpoint. */
   this.firebaseEndpoint_ = config['firebaseEndpoint'] ||
       fireauth.RpcHandler.FIREBASE_ENDPOINT_;
+  /** @private @const {string} The identity platform endpoint. */
+  this.identityPlatformEndpoint_ = config['identityPlatformEndpoint'] ||
+      fireauth.RpcHandler.IDENTITY_PLATFORM_ENDPOINT_;
   /**
    * @private @const {!fireauth.util.Delay} The delay for Firebase Auth endpoint
    *     network timeout.
@@ -364,6 +369,15 @@ fireauth.RpcHandler.DEFAULT_SECURE_TOKEN_HEADERS_ = {
  */
 fireauth.RpcHandler.FIREBASE_ENDPOINT_ =
     'https://www.googleapis.com/identitytoolkit/v3/relyingparty/';
+
+
+/**
+ * The Identity Platform endpoint.
+ * @const {string}
+ * @private
+ */
+fireauth.RpcHandler.IDENTITY_PLATFORM_ENDPOINT_ =
+    'https://identitytoolkit.googleapis.com/v2alpha1/';
 
 
 /**
@@ -739,7 +753,8 @@ fireauth.RpcHandler.serialize_ = function(data) {
 
 
 /**
- * Creates and executes a request for the given API method.
+ * Creates and executes a request for the given API method using the legacy
+ * Firebase Auth endpoint.
  * @param {string} method The API method.
  * @param {!fireauth.RpcHandler.HttpMethod} httpMethod The http request method.
  * @param {!Object} data The data for the API request. In the case of a GET
@@ -756,9 +771,60 @@ fireauth.RpcHandler.serialize_ = function(data) {
  */
 fireauth.RpcHandler.prototype.requestFirebaseEndpoint = function(
     method, httpMethod, data, opt_customErrorMap, opt_cachebuster) {
+  return this.requestAuthEndpoint_(
+      this.firebaseEndpoint_, method, httpMethod, data, opt_customErrorMap,
+      opt_cachebuster);
+};
+
+
+/**
+ * Creates and executes a request for the given API method using the identity
+ * platform endpoint.
+ * @param {string} method The API method.
+ * @param {!fireauth.RpcHandler.HttpMethod} httpMethod The http request method.
+ * @param {!Object} data The data for the API request. In the case of a GET
+ *     request, the contents of this object will be form encoded and appended
+ *     to the query string of the URL. No post body is sent in that case. If an
+ *     object value is specified, it will be converted to a string:
+ *     encodeURIComponent(String(value)).
+ * @param {?fireauth.RpcHandler.ServerErrorMap=} opt_customErrorMap A map
+ *     of server error codes to client errors to override default error
+ *     handling.
+ * @param {boolean=} opt_cachebuster Whether to append a unique string to
+ *     request to force backend to return an uncached response to request.
+ * @return {!goog.Promise<!Object>}
+ */
+fireauth.RpcHandler.prototype.requestIdentityPlatformEndpoint = function(
+    method, httpMethod, data, opt_customErrorMap, opt_cachebuster) {
+  return this.requestAuthEndpoint_(
+      this.identityPlatformEndpoint_, method, httpMethod, data,
+      opt_customErrorMap, opt_cachebuster);
+};
+
+
+/**
+ * Creates and executes a request for the given API method and Auth endpoint.
+ * @param {string} endpoint The Auth endpoint to use.
+ * @param {string} method The API method.
+ * @param {!fireauth.RpcHandler.HttpMethod} httpMethod The http request method.
+ * @param {!Object} data The data for the API request. In the case of a GET
+ *     request, the contents of this object will be form encoded and appended
+ *     to the query string of the URL. No post body is sent in that case. If an
+ *     object value is specified, it will be converted to a string:
+ *     encodeURIComponent(String(value)).
+ * @param {?fireauth.RpcHandler.ServerErrorMap=} opt_customErrorMap A map
+ *     of server error codes to client errors to override default error
+ *     handling.
+ * @param {boolean=} opt_cachebuster Whether to append a unique string to
+ *     request to force backend to return an uncached response to request.
+ * @return {!goog.Promise<!Object>}
+ * @private
+ */
+fireauth.RpcHandler.prototype.requestAuthEndpoint_ = function(
+    endpoint, method, httpMethod, data, opt_customErrorMap, opt_cachebuster) {
   var self = this;
   // Construct endpoint URL.
-  var uri = goog.Uri.parse(this.firebaseEndpoint_ + method);
+  var uri = goog.Uri.parse(endpoint + method);
   uri.setParameterValue('key', this.getApiKey());
   // Check whether to append cachebuster to request.
   if (opt_cachebuster) {
@@ -910,7 +976,7 @@ fireauth.RpcHandler.prototype.getAuthUri = function(
   if (opt_sessionId && providerId == fireauth.idp.ProviderId.GOOGLE) {
     request['authFlowType'] = 'CODE_FLOW';
   }
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.GET_AUTH_URI,
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.GET_AUTH_URI,
       request);
 };
 
@@ -931,7 +997,7 @@ fireauth.RpcHandler.prototype.fetchProvidersForIdentifier =
     'identifier': identifier,
     'continueUri': continueUri
   };
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.CREATE_AUTH_URI, request)
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.CREATE_AUTH_URI, request)
       .then(function(response) {
         return response[fireauth.RpcHandler.AuthServerField.ALL_PROVIDERS] ||
             [];
@@ -956,7 +1022,7 @@ fireauth.RpcHandler.prototype.fetchSignInMethodsForIdentifier = function(
     'identifier': identifier,
     'continueUri': continueUri
   };
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.CREATE_AUTH_URI, request)
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.CREATE_AUTH_URI, request)
       .then(function(response) {
         return response[fireauth.RpcHandler.AuthServerField.SIGNIN_METHODS] ||
             [];
@@ -969,7 +1035,7 @@ fireauth.RpcHandler.prototype.fetchSignInMethodsForIdentifier = function(
  * @return {!goog.Promise<!Array<string>>}
  */
 fireauth.RpcHandler.prototype.getAuthorizedDomains = function() {
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.GET_PROJECT_CONFIG, {})
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.GET_PROJECT_CONFIG, {})
       .then(function(response) {
         return response[
            fireauth.RpcHandler.AuthServerField.AUTHORIZED_DOMAINS] || [];
@@ -983,7 +1049,7 @@ fireauth.RpcHandler.prototype.getAuthorizedDomains = function() {
  * @return {!goog.Promise<!Object>}
  */
 fireauth.RpcHandler.prototype.getRecaptchaParam = function() {
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.GET_RECAPTCHA_PARAM, {});
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.GET_RECAPTCHA_PARAM, {});
 };
 
 
@@ -995,7 +1061,7 @@ fireauth.RpcHandler.prototype.getDynamicLinkDomain = function() {
   var request = {
     'returnDynamicLink': true
   };
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.RETURN_DYNAMIC_LINK, request);
 };
 
@@ -1012,7 +1078,7 @@ fireauth.RpcHandler.prototype.isIosBundleIdValid = function(iosBundleId) {
   };
   // This will either resolve if the identifier is valid or throw INVALID_APP_ID
   // if not.
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.GET_PROJECT_CONFIG, request)
       .then(function(result) {
         // Do not return anything.
@@ -1042,7 +1108,7 @@ fireauth.RpcHandler.prototype.isAndroidPackageNameValid =
   // valid or throw INVALID_APP_ID if not.
   // When sha1Cert is also passed, this will either resolve or fail with an
   // INVALID_CERT_HASH error.
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.GET_PROJECT_CONFIG, request)
       .then(function(result) {
         // Do not return anything.
@@ -1062,7 +1128,7 @@ fireauth.RpcHandler.prototype.isOAuthClientIdValid = function(clientId) {
   };
   // This will either resolve if the client ID is valid or throw
   // INVALID_OAUTH_CLIENT_ID if not.
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.GET_PROJECT_CONFIG, request)
       .then(function(result) {
         // Do not return anything.
@@ -1077,7 +1143,7 @@ fireauth.RpcHandler.prototype.isOAuthClientIdValid = function(clientId) {
  */
 fireauth.RpcHandler.prototype.getAccountInfoByIdToken = function(idToken) {
   var request = {'idToken': idToken};
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.GET_ACCOUNT_INFO,
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.GET_ACCOUNT_INFO,
       request);
 };
 
@@ -1102,7 +1168,7 @@ fireauth.RpcHandler.validateVerifyCustomTokenRequest_ = function(request) {
  */
 fireauth.RpcHandler.prototype.verifyCustomToken = function(token) {
   var request = {'token': token};
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.VERIFY_CUSTOM_TOKEN,
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.VERIFY_CUSTOM_TOKEN,
       request);
 };
 
@@ -1132,7 +1198,7 @@ fireauth.RpcHandler.prototype.verifyPassword = function(email, password) {
     'email': email,
     'password': password
   };
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.VERIFY_PASSWORD,
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.VERIFY_PASSWORD,
       request);
 };
 
@@ -1149,7 +1215,7 @@ fireauth.RpcHandler.prototype.emailLinkSignIn = function(email, oobCode) {
     'email': email,
     'oobCode': oobCode
   };
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.EMAIL_LINK_SIGNIN, request);
 };
 
@@ -1169,7 +1235,7 @@ fireauth.RpcHandler.prototype.emailLinkSignInForLinking =
     'email': email,
     'oobCode': oobCode
   };
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.EMAIL_LINK_SIGNIN_FOR_LINKING,
       request);
 };
@@ -1287,7 +1353,7 @@ fireauth.RpcHandler.prototype.createAccount = function(email, password) {
     'email': email,
     'password': password
   };
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.CREATE_ACCOUNT,
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.CREATE_ACCOUNT,
       request);
 };
 
@@ -1298,7 +1364,7 @@ fireauth.RpcHandler.prototype.createAccount = function(email, password) {
  * @return {!goog.Promise<!Object>}
  */
 fireauth.RpcHandler.prototype.signInAnonymously = function() {
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.SIGN_IN_ANONYMOUSLY, {});
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.SIGN_IN_ANONYMOUSLY, {});
 };
 
 
@@ -1311,7 +1377,7 @@ fireauth.RpcHandler.prototype.deleteAccount = function(idToken) {
   var request = {
     'idToken': idToken
   };
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.DELETE_ACCOUNT,
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.DELETE_ACCOUNT,
       request);
 };
 
@@ -1327,7 +1393,7 @@ fireauth.RpcHandler.prototype.updateEmail = function(idToken, newEmail) {
     'idToken': idToken,
     'email': newEmail
   };
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.SET_ACCOUNT_INFO,
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.SET_ACCOUNT_INFO,
       request);
 };
 
@@ -1356,7 +1422,7 @@ fireauth.RpcHandler.prototype.updatePassword = function(idToken, newPassword) {
     'idToken': idToken,
     'password': newPassword
   };
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.SET_ACCOUNT_INFO_SENSITIVE, request);
 };
 
@@ -1376,7 +1442,7 @@ fireauth.RpcHandler.prototype.updateEmailAndPassword = function(idToken,
     'email': newEmail,
     'password': newPassword
   };
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.SET_ACCOUNT_INFO_SENSITIVE, request);
 };
 
@@ -1422,7 +1488,7 @@ fireauth.RpcHandler.prototype.updateProfile = function(idToken, profileData) {
   if (fieldsToDelete.length) {
     data['deleteAttribute'] = fieldsToDelete;
   }
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.SET_ACCOUNT_INFO, data);
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.SET_ACCOUNT_INFO, data);
 };
 
 
@@ -1497,7 +1563,7 @@ fireauth.RpcHandler.prototype.sendPasswordResetEmail =
   };
   // Extend the original request with the additional data.
   goog.object.extend(request, additionalRequestData);
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.GET_OOB_CODE, request);
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.GET_OOB_CODE, request);
 };
 
 
@@ -1516,7 +1582,7 @@ fireauth.RpcHandler.prototype.sendSignInLinkToEmail = function(
   };
   // Extend the original request with the additional data.
   goog.object.extend(request, additionalRequestData);
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.GET_EMAIL_SIGNIN_CODE, request);
 };
 
@@ -1536,7 +1602,7 @@ fireauth.RpcHandler.prototype.sendEmailVerification =
   };
   // Extend the original request with the additional data.
   goog.object.extend(request, additionalRequestData);
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.GET_EMAIL_VERIFICATION_CODE, request);
 };
 
@@ -1559,7 +1625,7 @@ fireauth.RpcHandler.prototype.verifyBeforeUpdateEmail =
   };
   // Extend the original request with the additional data.
   goog.object.extend(request, additionalRequestData);
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.GET_EMAIL_VERIFICATION_CODE_BEFORE_UPDATE,
       request);
 };
@@ -1575,7 +1641,7 @@ fireauth.RpcHandler.prototype.verifyBeforeUpdateEmail =
 fireauth.RpcHandler.prototype.sendVerificationCode = function(request) {
   // In the future, we could support other types of assertions so for now,
   // we are keeping the request an object.
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.SEND_VERIFICATION_CODE, request);
 };
 
@@ -1588,7 +1654,7 @@ fireauth.RpcHandler.prototype.sendVerificationCode = function(request) {
  * @return {!goog.Promise<!Object>}
  */
 fireauth.RpcHandler.prototype.verifyPhoneNumber = function(request) {
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.VERIFY_PHONE_NUMBER, request);
 };
 
@@ -1601,7 +1667,7 @@ fireauth.RpcHandler.prototype.verifyPhoneNumber = function(request) {
  * @return {!goog.Promise<!Object>}
  */
 fireauth.RpcHandler.prototype.verifyPhoneNumberForLinking = function(request) {
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.VERIFY_PHONE_NUMBER_FOR_LINKING, request);
 };
 
@@ -1633,7 +1699,7 @@ fireauth.RpcHandler.validateVerifyPhoneNumberForLinkingResponse_ =
  */
 fireauth.RpcHandler.prototype.verifyPhoneNumberForExisting = function(request) {
   request['operation'] = 'REAUTH';
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.VERIFY_PHONE_NUMBER_FOR_EXISTING,
       request);
 };
@@ -1677,7 +1743,7 @@ fireauth.RpcHandler.prototype.deleteLinkedAccounts =
     'idToken': idToken,
     'deleteProvider': providersToDelete
   };
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.DELETE_LINKED_ACCOUNTS,
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.DELETE_LINKED_ACCOUNTS,
       request);
 };
 
@@ -1861,7 +1927,7 @@ fireauth.RpcHandler.prototype.verifyAssertion = function(request) {
   // FEDERATED_USER_ID_ALREADY_LINKED
   // EMAIL_EXISTS
   request['returnIdpCredential'] = true;
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.VERIFY_ASSERTION,
       request);
 };
@@ -1878,7 +1944,7 @@ fireauth.RpcHandler.prototype.verifyAssertionForLinking = function(request) {
   // FEDERATED_USER_ID_ALREADY_LINKED
   // EMAIL_EXISTS
   request['returnIdpCredential'] = true;
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.VERIFY_ASSERTION_FOR_LINKING,
       request);
 };
@@ -1899,7 +1965,7 @@ fireauth.RpcHandler.prototype.verifyAssertionForExisting = function(request) {
   request['returnIdpCredential'] = true;
   // Do not create a new account if the user doesn't exist.
   request['autoCreate'] = false;
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.VERIFY_ASSERTION_FOR_EXISTING,
       request);
 };
@@ -1947,7 +2013,7 @@ fireauth.RpcHandler.prototype.confirmPasswordReset =
     'oobCode': code,
     'newPassword': newPassword
   };
-  return this.invokeRpc_(fireauth.RpcHandler.ApiMethod.RESET_PASSWORD, request);
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.RESET_PASSWORD, request);
 };
 
 
@@ -1961,7 +2027,7 @@ fireauth.RpcHandler.prototype.checkActionCode = function(code) {
   var request = {
     'oobCode': code
   };
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.CHECK_ACTION_CODE, request);
 };
 
@@ -1976,7 +2042,7 @@ fireauth.RpcHandler.prototype.applyActionCode = function(code) {
   var request = {
     'oobCode': code
   };
-  return this.invokeRpc_(
+  return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.APPLY_OOB_CODE, request);
 };
 
@@ -2007,6 +2073,8 @@ fireauth.RpcHandler.prototype.applyActionCode = function(code) {
  *     will be returned.
  * <li>returnSecureToken: Set to true to explicitly request STS tokens instead
  *     of legacy Google Identity Toolkit tokens from the backend.
+ * <li>useIdentityPlatformEndpoint: Whether to use new identity platform
+ *     endpoints. The default is false.
  * </ul>
  * @typedef {{
  *   cachebuster: (boolean|undefined),
@@ -2018,7 +2086,8 @@ fireauth.RpcHandler.prototype.applyActionCode = function(code) {
  *   responsePreprocessor: ((function(!Object, !Object):!Object)|undefined),
  *   responseValidator: (function(!Object):void|undefined),
  *   responseField: (string|undefined),
- *   returnSecureToken: (boolean|undefined)
+ *   returnSecureToken: (boolean|undefined),
+ *   useIdentityPlatformEndpoint: (boolean|undefined)
  * }}
  */
 fireauth.RpcHandler.ApiMethodHandler;
@@ -2228,15 +2297,15 @@ fireauth.RpcHandler.USE_STS_TOKEN_PARAM_ = 'returnSecureToken';
  * @return {!goog.Promise} A promise that resolves with the results of the RPC.
  *     The format of the results can be modified in
  *     {@code fireauth.RpcHandler.ApiMethod}.
- * @private
  */
-fireauth.RpcHandler.prototype.invokeRpc_ = function(method, request) {
+fireauth.RpcHandler.prototype.invokeRpc = function(method, request) {
   if (!fireauth.object.hasNonEmptyFields(
       request, method.requestRequiredFields)) {
     return goog.Promise.reject(new fireauth.AuthError(
         fireauth.authenum.Error.INTERNAL_ERROR));
   }
 
+  var useIdentityPlatformEndpoint = !!method.useIdentityPlatformEndpoint;
   var httpMethod = method.httpMethod || fireauth.RpcHandler.HttpMethod.POST;
   var self = this;
   var response;
@@ -2248,8 +2317,11 @@ fireauth.RpcHandler.prototype.invokeRpc_ = function(method, request) {
           // Identity Toolkit token to STS token migration.
           request[fireauth.RpcHandler.USE_STS_TOKEN_PARAM_] = true;
         }
-        return self.requestFirebaseEndpoint(method.endpoint, httpMethod,
-            request, method.customErrorMap, method.cachebuster || false);
+        return useIdentityPlatformEndpoint ?
+            self.requestIdentityPlatformEndpoint(method.endpoint, httpMethod,
+                request, method.customErrorMap, method.cachebuster || false) :
+            self.requestFirebaseEndpoint(method.endpoint, httpMethod,
+                request, method.customErrorMap, method.cachebuster || false);
       })
       .then(function(tempResponse) {
         response = tempResponse;

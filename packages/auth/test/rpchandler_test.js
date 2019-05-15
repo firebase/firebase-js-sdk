@@ -31,6 +31,7 @@ goog.require('fireauth.OAuthProvider');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.common.testHelper');
+goog.require('fireauth.constants');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
 goog.require('goog.json');
@@ -69,6 +70,8 @@ var CURRENT_URL = 'http://www.example.com:8080/foo.htm';
 var clock;
 var mockControl;
 var delay = 30000;
+var identityPlatformEndpoint =
+    fireauth.constants.Endpoint.PRODUCTION.identityPlatformEndpoint;
 
 
 function setUp() {
@@ -1163,6 +1166,36 @@ function testRequestFirebaseEndpoint_success() {
 }
 
 
+function testRequestIdentityPlatformEndpoint_success() {
+  var expectedResponse = {
+    'status': 'success'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'key1': 'value1',
+        'key2': 'value2'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.requestIdentityPlatformEndpoint(
+      'method1',
+      'POST',
+      {
+        'key1': 'value1',
+        'key2': 'value2'
+      }).then(function(response) {
+    assertObjectEquals(
+        expectedResponse,
+        response);
+    asyncTestCase.signal();
+  });
+}
+
+
 function testRequestFirebaseEndpoint_updateClientVersion() {
   var expectedResponse = {
     'status': 'success'
@@ -1185,6 +1218,41 @@ function testRequestFirebaseEndpoint_updateClientVersion() {
   // Update client version.
   rpcHandler.updateClientVersion('Chrome/JsCore/3.0.0/FirebaseCore-web');
   rpcHandler.requestFirebaseEndpoint(
+      'method1',
+      'POST',
+      {
+        'key1': 'value1',
+        'key2': 'value2'
+      }).then(function(response) {
+    assertObjectEquals(
+        expectedResponse,
+        response);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testRequestIdentityPlatformEndpoint_updateClientVersion() {
+  var expectedResponse = {
+    'status': 'success'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'key1': 'value1',
+        'key2': 'value2'
+      }),
+      {
+        'Content-Type': 'application/json',
+        'X-Client-Version': 'Chrome/JsCore/3.0.0/FirebaseCore-web'
+      },
+      delay,
+      expectedResponse);
+  // Update client version.
+  rpcHandler.updateClientVersion('Chrome/JsCore/3.0.0/FirebaseCore-web');
+  rpcHandler.requestIdentityPlatformEndpoint(
       'method1',
       'POST',
       {
@@ -1234,6 +1302,40 @@ function testRequestFirebaseEndpoint_removeClientVersion() {
 }
 
 
+function testRequestIdentityPlatformEndpoint_removeClientVersion() {
+  var expectedResponse = {
+    'status': 'success'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'key1': 'value1',
+        'key2': 'value2'
+      }),
+      {
+        'Content-Type': 'application/json'
+      },
+      delay,
+      expectedResponse);
+  // Remove client version.
+  rpcHandler.updateClientVersion(null);
+  rpcHandler.requestIdentityPlatformEndpoint(
+      'method1',
+      'POST',
+      {
+        'key1': 'value1',
+        'key2': 'value2'
+      }).then(function(response) {
+    assertObjectEquals(
+        expectedResponse,
+        response);
+    asyncTestCase.signal();
+  });
+}
+
+
 function testRequestFirebaseEndpoint_setCustomLocaleHeader_success() {
   var expectedResponse = {
     'status': 'success'
@@ -1256,6 +1358,41 @@ function testRequestFirebaseEndpoint_setCustomLocaleHeader_success() {
   // Set French as custom Firebase locale header.
   rpcHandler.updateCustomLocaleHeader('fr');
   rpcHandler.requestFirebaseEndpoint(
+      'method1',
+      'POST',
+      {
+        'key1': 'value1',
+        'key2': 'value2'
+      }).then(function(response) {
+    assertObjectEquals(
+        expectedResponse,
+        response);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testRequestIdentityPlatformEndpoint_setCustomLocaleHeader_success() {
+  var expectedResponse = {
+    'status': 'success'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'key1': 'value1',
+        'key2': 'value2'
+      }),
+      {
+        'Content-Type': 'application/json',
+        'X-Firebase-Locale': 'fr'
+      },
+      delay,
+      expectedResponse);
+  // Set French as custom Firebase locale header.
+  rpcHandler.updateCustomLocaleHeader('fr');
+  rpcHandler.requestIdentityPlatformEndpoint(
       'method1',
       'POST',
       {
@@ -1308,6 +1445,43 @@ function testRequestFirebaseEndpoint_updateCustomLocaleHeader_success() {
 }
 
 
+function testRequestIdPlatformEndpoint_updateCustomLocaleHeader_success() {
+  var expectedResponse = {
+    'status': 'success'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'key1': 'value1',
+        'key2': 'value2'
+      }),
+      {
+        'Content-Type': 'application/json',
+        'X-Firebase-Locale': 'de'
+      },
+      delay,
+      expectedResponse);
+  // Set French as custom Firebase locale header.
+  rpcHandler.updateCustomLocaleHeader('fr');
+  // Change to German.
+  rpcHandler.updateCustomLocaleHeader('de');
+  rpcHandler.requestIdentityPlatformEndpoint(
+      'method1',
+      'POST',
+      {
+        'key1': 'value1',
+        'key2': 'value2'
+      }).then(function(response) {
+    assertObjectEquals(
+        expectedResponse,
+        response);
+    asyncTestCase.signal();
+  });
+}
+
+
 function testRequestFirebaseEndpoint_removeCustomLocaleHeader_success() {
   var expectedResponse = {
     'status': 'success'
@@ -1331,6 +1505,42 @@ function testRequestFirebaseEndpoint_removeCustomLocaleHeader_success() {
   // Remove custom locale header.
   rpcHandler.updateCustomLocaleHeader(null);
   rpcHandler.requestFirebaseEndpoint(
+      'method1',
+      'POST',
+      {
+        'key1': 'value1',
+        'key2': 'value2'
+      }).then(function(response) {
+    assertObjectEquals(
+        expectedResponse,
+        response);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testRequestIdPlatformEndpoint_removeCustomLocaleHeader_success() {
+  var expectedResponse = {
+    'status': 'success'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'key1': 'value1',
+        'key2': 'value2'
+      }),
+      {
+        'Content-Type': 'application/json'
+      },
+      delay,
+      expectedResponse);
+  // Set French as custom Firebase locale header.
+  rpcHandler.updateCustomLocaleHeader('fr');
+  // Remove custom locale header.
+  rpcHandler.updateCustomLocaleHeader(null);
+  rpcHandler.requestIdentityPlatformEndpoint(
       'method1',
       'POST',
       {
@@ -1382,6 +1592,42 @@ function testRequestFirebaseEndpoint_error() {
 }
 
 
+function testRequestIdentityPlatformEndpoint_error() {
+  // Error case.
+  var errorResponse = {
+    'error': {
+      'message': 'ERROR_CODE'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'key1': 'value1',
+        'key2': 'value2'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      errorResponse);
+  rpcHandler.requestIdentityPlatformEndpoint(
+      'method1',
+      'POST',
+      {
+        'key1': 'value1',
+        'key2': 'value2'
+      }).then(
+      function(response) {},
+      function(e) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError('internal-error',
+                goog.json.serialize(errorResponse)),
+            e);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testRequestFirebaseEndpoint_networkError() {
   assertSendXhrAndRunCallback(
       'https://www.googleapis.com/identitytoolkit/v3/relyingparty/method1?key' +
@@ -1392,6 +1638,25 @@ function testRequestFirebaseEndpoint_networkError() {
       delay,
       null);
   rpcHandler.requestFirebaseEndpoint('method1', 'POST', {'key1': 'value1'})
+      .then(null, function(e) {
+        fireauth.common.testHelper.assertErrorEquals(new fireauth.AuthError(
+            fireauth.authenum.Error.NETWORK_REQUEST_FAILED), e);
+        asyncTestCase.signal();
+      });
+  asyncTestCase.waitForSignals(1);
+}
+
+
+function testRequestIdentityPlatformEndpoint_networkError() {
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      goog.json.serialize({'key1': 'value1'}),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      null);
+  rpcHandler
+      .requestIdentityPlatformEndpoint('method1', 'POST', {'key1': 'value1'})
       .then(null, function(e) {
         fireauth.common.testHelper.assertErrorEquals(new fireauth.AuthError(
             fireauth.authenum.Error.NETWORK_REQUEST_FAILED), e);
@@ -1434,6 +1699,38 @@ function testRequestFirebaseEndpoint_keyInvalid() {
   asyncTestCase.waitForSignals(1);
 }
 
+
+function testRequestIdentityPlatformEndpoint_keyInvalid() {
+  // Error case.
+  var errorResponse = {
+    'error': {
+      'errors': [
+        {
+          'domain': 'usageLimits',
+          'reason': 'keyInvalid',
+          'message': 'Bad Request'
+        }
+      ],
+      'code': 400,
+      'message': 'Bad Request'
+    }
+  };
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      '{}',
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      errorResponse);
+  rpcHandler.requestIdentityPlatformEndpoint('method1', 'POST', {})
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INVALID_API_KEY),
+            error);
+        asyncTestCase.signal();
+      });
+  asyncTestCase.waitForSignals(1);
+}
 
 
 function testRequestFirebaseEndpoint_notAuthorized() {
@@ -1478,6 +1775,47 @@ function testRequestFirebaseEndpoint_notAuthorized() {
 }
 
 
+function testRequestIdentityPlatformEndpoint_notAuthorized() {
+  // Error case.
+  var errorResponse = {
+    'error': {
+      'errors': [
+        {
+          'domain': 'usageLimits',
+          'reason': 'ipRefererBlocked',
+          'message': 'There is a per-IP or per-Referer restriction ' +
+              'configured on your API key and the request does not match ' +
+              'these restrictions. Please use the Google Developers Console ' +
+              'to update your API key configuration if request from this IP ' +
+              'or referer should be allowed.',
+          'extendedHelp': 'https://console.developers.google.com'
+        }
+      ],
+      'code': 403,
+      'message': 'There is a per-IP or per-Referer restriction configured on ' +
+          'your API key and the request does not match these restrictions. ' +
+          'Please use the Google Developers Console to update your API key ' +
+          'configuration if request from this IP or referer should be allowed.'
+    }
+  };
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      '{}',
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      errorResponse);
+  rpcHandler.requestIdentityPlatformEndpoint('method1', 'POST', {})
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.APP_NOT_AUTHORIZED),
+            error);
+        asyncTestCase.signal();
+      });
+  asyncTestCase.waitForSignals(1);
+}
+
+
 function testRequestFirebaseEndpoint_customError() {
   // Error case.
   var errorResponse = {
@@ -1501,6 +1839,45 @@ function testRequestFirebaseEndpoint_customError() {
       delay,
       errorResponse);
   rpcHandler.requestFirebaseEndpoint(
+      'method1',
+      'POST',
+      {
+        'key1': 'value1',
+        'key2': 'value2'
+      },
+      errorMap).then(
+      function(response) {},
+      function(e) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INVALID_PASSWORD),
+            e);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testRequestIdentityPlatformEndpoint_customError() {
+  // Error case.
+  var errorResponse = {
+    'error': {
+      'message': 'ERROR_CODE'
+    }
+  };
+  var errorMap = {
+    'ERROR_CODE': fireauth.authenum.Error.INVALID_PASSWORD
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'method1?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'key1': 'value1',
+        'key2': 'value2'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      errorResponse);
+  rpcHandler.requestIdentityPlatformEndpoint(
       'method1',
       'POST',
       {
@@ -6262,7 +6639,39 @@ function testInvokeRpc() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       response);
-  rpcHandler.invokeRpc_(rpcMethod, request).then(function(actualResponse) {
+  rpcHandler.invokeRpc(rpcMethod, request).then(function(actualResponse) {
+    assertObjectEquals(response, actualResponse);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testInvokeRpc_useIdentityPlatformEndpoint() {
+  // Test RPC method with useIdentityPlatformEndpoint set to true uses
+  // identity platform endpoint.
+  asyncTestCase.waitForSignals(1);
+  var request = {
+    'myRequestKey': 'myRequestValue',
+    'myOtherRequestKey': 'myOtherRequestValue'
+  };
+  var response = {
+    'myResponseKey': 'myResponseValue',
+    'myOtherResponseKey': 'myOtherResponseValue'
+  };
+  // Define RPC method in identity platform.
+  var rpcMethod = {
+    endpoint: 'accounts/mfaEnrollment:start',
+    requireTenantId: true,
+    useIdentityPlatformEndpoint: true
+  };
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaEnrollment:start?key=apiKey',
+      'POST',
+      goog.json.serialize(request),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      response);
+  rpcHandler.invokeRpc(rpcMethod, request).then(function(actualResponse) {
     assertObjectEquals(response, actualResponse);
     asyncTestCase.signal();
   });
@@ -6284,7 +6693,7 @@ function testInvokeRpc_httpMethod() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       {});
-  rpcHandler.invokeRpc_(rpcMethod, request)
+  rpcHandler.invokeRpc(rpcMethod, request)
       .then(function() {
         asyncTestCase.signal();
       });
@@ -6304,7 +6713,7 @@ function testInvokeRpc_requiredFields() {
     requestRequiredFields: ['myRequestKey', 'keyThatIsNotThere'],
     requestValidator: function() {}
   };
-  rpcHandler.invokeRpc_(rpcMethod, request).then(fail, function(actualError) {
+  rpcHandler.invokeRpc(rpcMethod, request).then(fail, function(actualError) {
     fireauth.common.testHelper.assertErrorEquals(new fireauth.AuthError(
         fireauth.authenum.Error.INTERNAL_ERROR), actualError);
     asyncTestCase.signal();
@@ -6330,7 +6739,7 @@ function testInvokeRpc_requestError() {
       throw error;
     }
   };
-  rpcHandler.invokeRpc_(rpcMethod, request).then(fail, function(actualError) {
+  rpcHandler.invokeRpc(rpcMethod, request).then(fail, function(actualError) {
     assertObjectEquals(error, actualError);
     asyncTestCase.signal();
   });
@@ -6361,7 +6770,7 @@ function testInvokeRpc_responseError() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       response);
-  rpcHandler.invokeRpc_(rpcMethod, request).then(fail, function(actualError) {
+  rpcHandler.invokeRpc(rpcMethod, request).then(fail, function(actualError) {
     assertObjectEquals(error, actualError);
     asyncTestCase.signal();
   });
@@ -6387,7 +6796,7 @@ function testInvokeRpc_responseField() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       response);
-  rpcHandler.invokeRpc_(rpcMethod, request).then(function(actualValue) {
+  rpcHandler.invokeRpc(rpcMethod, request).then(function(actualValue) {
     assertObjectEquals('importantInfo', actualValue);
     asyncTestCase.signal();
   });
