@@ -2297,21 +2297,15 @@ fireauth.AuthUser.fromPlainObject = function(user) {
   };
   // Convert to server response format. Constructor does not take
   // stsTokenManager toPlainObject as that format is different than the return
-  // server response which is always used to initialize a user instance. It is
-  // also difficult to have toPlainObject equal server response due to expiresIn
-  // field in server response. toPlainObject will return an expiration time
-  // instead.
+  // server response which is always used to initialize a user instance.
   var stsTokenManagerResponse = {};
   if (user['stsTokenManager'] &&
-      user['stsTokenManager']['accessToken'] &&
-      user['stsTokenManager']['expirationTime']) {
+      user['stsTokenManager']['accessToken']) {
     stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.ID_TOKEN] =
         user['stsTokenManager']['accessToken'];
     // Refresh token could be expired.
     stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.REFRESH_TOKEN] =
         user['stsTokenManager']['refreshToken'] || null;
-    stsTokenManagerResponse[fireauth.RpcHandler.AuthServerField.EXPIRES_IN] =
-        (user['stsTokenManager']['expirationTime'] - goog.now()) / 1000;
   } else {
     // Token response is a required field.
     return null;

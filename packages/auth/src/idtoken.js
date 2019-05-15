@@ -26,39 +26,49 @@ goog.require('goog.crypt.base64');
 
 /**
  * Parses the token string into a {@code Token} object.
- * @param {!fireauth.IdToken.JsonToken} token The parsed JSON token.
+ * @param {?string} tokenString The JWT token string.
  * @constructor
  */
-fireauth.IdToken = function(token) {
-  /** @private {string} The issuer of the token. */
+fireauth.IdToken = function(tokenString) {
+  var token = fireauth.IdToken.parseIdTokenClaims(tokenString);
+  if (!(token && token['sub'] && token['iss'] &&
+        token['aud'] && token['exp'])) {
+    throw new Error('Invalid JWT');
+  }
+  /** @const @private {string} The plain JWT string. */
+  this.jwt_ = /** @type {string} */ (tokenString);
+  /** @const @private {string} The issuer of the token. */
   this.iss_ = token['iss'];
-  /** @private {string} The audience of the token. */
+  /** @const @private {string} The audience of the token. */
   this.aud_ = token['aud'];
-  /** @private {number} The expire time in seconds of the token. */
+  /** @const @private {number} The expire time in seconds of the token. */
   this.exp_ = token['exp'];
-  /** @private {string} The local user ID of the token. */
+  /** @const @private {string} The local user ID of the token. */
   this.localId_ = token['sub'];
   var now = goog.now() / 1000;
-  /** @private {number} The issue time in seconds of the token. */
+  /** @const @private {number} The issue time in seconds of the token. */
   this.iat_ = token['iat'] || (now > this.exp_ ? this.exp_ : now);
-  /** @private {?string} The email address of the token. */
+  /** @const @private {?string} The email address of the token. */
   this.email_ = token['email'] || null;
-  /** @private {boolean} Whether the user is verified. */
+  /** @const @private {boolean} Whether the user is verified. */
   this.verified_ = !!token['verified'];
-  /** @private {?string} The provider ID of the token. */
+  /** @const @private {?string} The provider ID of the token. */
   this.providerId_ = token['provider_id'] ||
       (token['firebase'] && token['firebase']['sign_in_provider']) ||
       null;
-  /** @private {boolean} Whether the user is anonymous. */
+  /** @const @private {?string} The tenant ID of the token. */
+  this.tenantId_ = (token['firebase'] && token['firebase']['tenant']) || null;
+  /** @const @private {boolean} Whether the user is anonymous. */
   this.anonymous_ = !!token['is_anonymous'] || this.providerId_ == 'anonymous';
-  /** @private {?string} The federated ID of the token. */
+  /** @const @private {?string} The federated ID of the token. */
   this.federatedId_ = token['federated_id'] || null;
-  /** @private {?string} The display name of the token. */
+  /** @const @private {?string} The display name of the token. */
   this.displayName_ = token['display_name'] || null;
-  /** @private {?string} The photo URL of the token. */
+  /** @const @private {?string} The photo URL of the token. */
   this.photoURL_ = token['photo_url'] || null;
   /**
-   * @private {?string} The phone number of the user identified by the token.
+   * @const @private {?string} The phone number of the user identified by the
+   *     token.
    */
   this.phoneNumber_ = token['phone_number'] || null;
 };
@@ -169,18 +179,26 @@ fireauth.IdToken.prototype.getPhoneNumber = function() {
 
 
 /**
+ * @return {string} The JWT string.
+ * @override
+ */
+fireauth.IdToken.prototype.toString = function() {
+  return this.jwt_;
+};
+
+
+/**
  * Parses the JWT token and extracts the information part without verifying the
  * token signature.
  * @param {string} tokenString The JWT token.
  * @return {?fireauth.IdToken} The decoded token.
  */
 fireauth.IdToken.parse = function(tokenString) {
-  var token = fireauth.IdToken.parseIdTokenClaims(tokenString);
-  if (token && token['sub'] && token['iss'] && token['aud'] && token['exp']) {
-    return new fireauth.IdToken(
-        /** @type {!fireauth.IdToken.JsonToken} */ (token));
+  try {
+    return new fireauth.IdToken(tokenString);
+  } catch (e) {
+    return null;
   }
-  return null;
 };
 
 /**

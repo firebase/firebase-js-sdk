@@ -191,6 +191,7 @@ function testParse_anonymous() {
       null,
       false,
       null);
+  assertEquals(tokenAnonymous, token.toString());
 }
 
 
@@ -209,6 +210,7 @@ function testParse_needPadding() {
       false,
       null);
   assertTrue(token.isExpired());
+  assertEquals(tokenGmail, token.toString());
 }
 
 
@@ -227,6 +229,7 @@ function testParse_noPadding() {
       false,
       null);
   assertTrue(token.isExpired());
+  assertEquals(tokenYahoo, token.toString());
 }
 
 
@@ -248,6 +251,7 @@ function testParse_unexpired() {
   // Check issuer of token.
   assertEquals('https://identitytoolkit.google.com/', token.getIssuer());
   assertFalse(token.isExpired());
+  assertEquals(tokenGoogleWithFederatedId, token.toString());
 }
 
 
@@ -266,6 +270,7 @@ function testParse_phoneAndFirebaseProviderId() {
       false,
       '+11234567890');
   assertEquals('https://securetoken.google.com/projectId', token.getIssuer());
+  assertEquals(tokenPhone, token.toString());
 }
 
 

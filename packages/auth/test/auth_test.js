@@ -106,13 +106,7 @@ var getAccountInfoResponse = {
 };
 // A sample JWT, along with its decoded contents.
 var idTokenGmail = {
-  jwt: 'HEADER.ew0KICAiaXNzIjogIkdJVGtpdCIsDQogICJleHAiOiAxMzI2NDM5' +
-    'MDQ0LA0KICAic3ViIjogIjY3OSIsDQogICJhdWQiOiAiMjA0MjQxNjMxNjg2IiwNCiAgImZl' +
-    'ZGVyYXRlZF9pZCI6ICJodHRwczovL3d3dy5nb29nbGUuY29tL2FjY291bnRzLzEyMzQ1Njc4' +
-    'OSIsDQogICJwcm92aWRlcl9pZCI6ICJnbWFpbC5jb20iLA0KICAiZW1haWwiOiAidGVzdDEy' +
-    'MzQ1NkBnbWFpbC5jb20iDQp9.SIGNATURE',
   data: {
-    exp: 1326439044,
     sub: '679',
     aud: '204241631686',
     provider_id: 'gmail.com',
@@ -129,7 +123,7 @@ var expectedAdditionalUserInfo;
 var expectedGoogleCredential;
 var expectedSamlTokenResponseWithIdPData;
 var expectedSamlAdditionalUserInfo;
-var now = 1449534145526;
+var now = goog.now();
 
 var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
 var mockControl;
@@ -157,6 +151,9 @@ var actionCodeSettings = {
 };
 var mockLocalStorage;
 var mockSessionStorage;
+var jwt1;
+var jwt2;
+var jwt3;
 
 
 function setUp() {
@@ -200,6 +197,15 @@ function setUp() {
       'getCurrentUrl',
       function() {return 'http://localhost';});
   initializeMockStorage();
+  jwt1 = fireauth.common.testHelper.createMockJwt(
+      {'group': '1'}, now + 3600 * 1000);
+  jwt2 = fireauth.common.testHelper.createMockJwt(
+      {'group': '2'}, now + 3600 * 1000);
+  jwt3 = fireauth.common.testHelper.createMockJwt(
+      {'group': '3'}, now + 3600 * 1000);
+  idTokenGmail.data.exp = now / 1000 + 3600;
+  idTokenGmail.jwt =
+      fireauth.common.testHelper.createMockJwt(idTokenGmail.data);
   // Initialize App and Auth instances.
   config1 = {
     apiKey: 'apiKey1'
@@ -219,41 +225,43 @@ function setUp() {
     'appName': 'appId1'
   };
   expectedTokenResponse = {
-    'idToken': 'ID_TOKEN',
-    'refreshToken': 'REFRESH_TOKEN',
-    'expiresIn': '3600'
+    'idToken': jwt1,
+    'refreshToken': 'REFRESH_TOKEN'
   };
   expectedTokenResponse2 = {
-    'idToken': 'ID_TOKEN2',
-    'refreshToken': 'REFRESH_TOKEN2',
-    'expiresIn': '3600'
+    'idToken': jwt2,
+    'refreshToken': 'REFRESH_TOKEN2'
   };
   expectedTokenResponse3 = {
-    'idToken': 'ID_TOKEN3',
-    'refreshToken': 'REFRESH_TOKEN3',
-    'expiresIn': '3600'
+    'idToken': jwt3,
+    'refreshToken': 'REFRESH_TOKEN3'
   };
   expectedTokenResponse4 = {
-    //Sample ID token with provider password and email user@example.com.
-    'idToken': 'HEAD.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlL' +
-               'mNvbS8xMjM0NTY3OCIsDQogICJwaWN0dXJlIjogImh0dHBzOi8vcGx1cy5' +
-               'nb29nbGUuY29tL2FiY2RlZmdoaWprbG1ub3BxcnN0dSIsDQogICJhdWQiO' +
-               'iAiMTIzNDU2NzgiLA0KICAiYXV0aF90aW1lIjogMTUxMDM1NzYyMiwNCiA' +
-               'gInVzZXJfaWQiOiAiYWJjZGVmZ2hpamtsbW5vcHFyc3R1IiwNCiAgInN1Y' +
-               'iI6ICJhYmNkZWZnaGlqa2xtbm9wcXJzdHUiLA0KICAiaWF0IjogMTUxMDM' +
-               '1NzYyMiwNCiAgImV4cCI6IDE1MTAzNjEyMjIsDQogICJlbWFpbCI6ICJ1c' +
-               '2VyQGV4YW1wbGUuY29tIiwNCiAgImVtYWlsX3ZlcmlmaWVkIjogdHJ1ZSw' +
-               'NCiAgImZpcmViYXNlIjogew0KICAgICJpZGVudGl0aWVzIjogew0KICAgI' +
-               'CAgImVtYWlsIjogWw0KICAgICAgICAidXNlckBleGFtcGxlLmNvbSINCiA' +
-               'gICAgIF0NCiAgICB9LA0KICAgICJzaWduX2luX3Byb3ZpZGVyIjogInBhc' +
-               '3N3b3JkIg0KICB9DQp9.SIGNATURE',
-    'refreshToken': 'REFRESH_TOKEN4',
-    'expiresIn': '3600'
+    // Sample ID token with provider password and email user@example.com.
+    'idToken': fireauth.common.testHelper.createMockJwt({
+      'iss': 'https://securetoken.google.com/12345678',
+      'picture': 'https://plus.google.com/abcdefghijklmnopqrstu',
+      'aud': '12345678',
+      'auth_time': 1510357622,
+      'sub': 'abcdefghijklmnopqrstu',
+      'iat': 1510357622,
+      'exp': now / 1000 + 3600,
+      'email': 'user@example.com',
+      'email_verified': true,
+      'firebase': {
+        'identities': {
+          'email': [
+            'user@example.com'
+          ]
+        },
+        'sign_in_provider': 'password'
+      }
+    }),
+    'refreshToken': 'REFRESH_TOKEN4'
   };
   expectedTokenResponseWithIdPData = {
-    'idToken': 'ID_TOKEN',
+    'idToken': jwt1,
     'refreshToken': 'REFRESH_TOKEN',
-    'expiresIn': '3600',
     // Credential returned.
     'providerId': 'google.com',
     'oauthAccessToken': 'googleAccessToken',
@@ -278,9 +286,8 @@ function setUp() {
   expectedGoogleCredential = fireauth.GoogleAuthProvider.credential(
       'googleIdToken', 'googleAccessToken');
   expectedSamlTokenResponseWithIdPData = {
-    'idToken': 'ID_TOKEN',
+    'idToken': jwt1,
     'refreshToken': 'REFRESH_TOKEN',
-    'expiresIn': '3600',
     'providerId': 'saml.provider',
     // Additional user info data.
     'rawUserInfo': '{"kind":"plus#person","displayName":"John Doe","na' +
@@ -301,7 +308,7 @@ function setUp() {
   rpcHandler = new fireauth.RpcHandler('apiKey1');
   token = new fireauth.StsTokenManager(rpcHandler);
   token.setRefreshToken('refreshToken');
-  token.setAccessToken('accessToken', now + 3600 * 1000);
+  token.setAccessToken(jwt1);
   ignoreArgument = goog.testing.mockmatchers.ignoreArgument;
   mockControl = new goog.testing.MockControl();
   mockControl.$resetAll();
@@ -807,9 +814,8 @@ function testAddAuthTokenListener_initialNullState() {
       function(opt_forceRefresh) {
         // Generate new token on next call to trigger listeners.
         return goog.Promise.resolve({
-          accessToken: 'accessToken',
-          refreshToken: 'refreshToken',
-          expirationTime: now + 3600 * 1000
+          accessToken: jwt2,
+          refreshToken: 'refreshToken'
         });
       });
   var listener1 = mockControl.createFunctionMock('listener1');
@@ -833,12 +839,12 @@ function testAddAuthTokenListener_initialNullState() {
     auth1.setCurrentUser_(user);
     user.getIdToken();
   });
-  listener1('accessToken').$does(function() {
+  listener1(jwt2).$does(function() {
     // Marker should confirm listener triggered after notifyAuthListeners_.
     assertEquals(2, marker);
     asyncTestCase.signal();
   });
-  listener2('accessToken').$does(function() {
+  listener2(jwt2).$does(function() {
     // Marker should confirm listener triggered after notifyAuthListeners_.
     assertEquals(2, marker);
     asyncTestCase.signal();
@@ -882,7 +888,7 @@ function testAddAuthTokenListener_initialValidState() {
         // Internally calls Auth user listeners.
         return goog.Promise.resolve();
       });
-  var currentAccessToken = 'ID_TOKEN';
+  var currentAccessToken = jwt1;
   stubs.replace(
       fireauth.StsTokenManager.prototype,
       'getToken',
@@ -890,8 +896,7 @@ function testAddAuthTokenListener_initialValidState() {
         // Generate new token on next call to trigger listeners.
         return goog.Promise.resolve({
           accessToken: currentAccessToken,
-          refreshToken: 'refreshToken',
-          expirationTime: now + 3600 * 1000
+          refreshToken: 'refreshToken'
         });
       });
   // Keep track of what is triggering the events.
@@ -900,7 +905,7 @@ function testAddAuthTokenListener_initialValidState() {
   var listener2 = mockControl.createFunctionMock('listener2');
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
-  listener1('ID_TOKEN').$does(function() {
+  listener1(jwt1).$does(function() {
     // Should be triggered after state is resolved.
     assertEquals(0, marker);
     marker++;
@@ -908,7 +913,7 @@ function testAddAuthTokenListener_initialValidState() {
     // immediately.
     auth1.addAuthTokenListener(listener2);
   });
-  listener2('ID_TOKEN').$does(function() {
+  listener2(jwt1).$does(function() {
     // Should be triggered after listener2 is added.
     assertEquals(1, marker);
     // Increment marker.
@@ -1030,8 +1035,7 @@ function testNotifyAuthListeners() {
       function(opt_forceRefresh) {
         return goog.Promise.resolve({
           accessToken: currentAccessToken,
-          refreshToken: 'refreshToken',
-          expirationTime: now + 3600 * 1000
+          refreshToken: 'refreshToken'
         });
       });
   // User reloaded.
@@ -1153,8 +1157,7 @@ function testNotifyAuthStateObservers() {
         counter++;
         return goog.Promise.resolve({
           accessToken: 'accessToken' + counter.toString(),
-          refreshToken: 'refreshToken',
-          expirationTime: now + 3600 * 1000
+          refreshToken: 'refreshToken'
         });
       });
   // Simulate user logged in.
@@ -1240,14 +1243,12 @@ function testAuth_onAuthStateChanged() {
         counter++;
         return goog.Promise.resolve({
           accessToken: 'accessToken' + counter.toString(),
-          refreshToken: 'refreshToken',
-          expirationTime: now + 3600 * 1000
+          refreshToken: 'refreshToken'
         });
       });
   var expectedTokenResponse2 = {
-    'idToken': 'ID_TOKEN2',
-    'refreshToken': 'REFRESH_TOKEN2',
-    'expiresIn': '3600'
+    'idToken': jwt2,
+    'refreshToken': 'REFRESH_TOKEN2'
   };
   // Simulate user initially logged in.
   stubs.replace(
@@ -2031,8 +2032,7 @@ function testAuth_signout() {
         counter++;
         return goog.Promise.resolve({
           'accessToken': 'ID_TOKEN' + counter.toString(),
-          'refreshToken': 'REFRESH_TOKEN',
-          'expirationTime': now + 3600 * 1000
+          'refreshToken': 'REFRESH_TOKEN'
         });
       });
   stubs.replace(
@@ -2143,8 +2143,7 @@ function testAuth_initState_signedInStatus() {
         counter++;
         return goog.Promise.resolve({
           'accessToken': 'ID_TOKEN' + counter.toString(),
-          'refreshToken': 'REFRESH_TOKEN',
-          'expirationTime': now + 3600 * 1000
+          'refreshToken': 'REFRESH_TOKEN'
         });
       });
   asyncTestCase.waitForSignals(4);
@@ -2353,8 +2352,7 @@ function testAuth_initState_signedInStatus_withRedirectUser() {
         counter++;
         return goog.Promise.resolve({
           'accessToken': 'ID_TOKEN' + counter.toString(),
-          'refreshToken': 'REFRESH_TOKEN',
-          'expirationTime': now + 3600 * 1000
+          'refreshToken': 'REFRESH_TOKEN'
         });
       });
   // New loaded user should be reloaded before being set as current user.
@@ -2484,8 +2482,7 @@ function testAuth_initState_signedInStatus_withRedirectUser_sameEventId() {
         counter++;
         return goog.Promise.resolve({
           'accessToken': 'ID_TOKEN' + counter.toString(),
-          'refreshToken': 'REFRESH_TOKEN',
-          'expirationTime': now + 3600 * 1000
+          'refreshToken': 'REFRESH_TOKEN'
         });
       });
   // New loaded user should not be reloaded before being set as current user.
@@ -2755,8 +2752,7 @@ function testAuth_initState_signedOutStatus() {
         counter++;
         return goog.Promise.resolve({
           'accessToken': 'ID_TOKEN' + counter.toString(),
-          'refreshToken': 'REFRESH_TOKEN',
-          'expirationTime': now + 3600 * 1000
+          'refreshToken': 'REFRESH_TOKEN'
         });
       });
   stubs.replace(
@@ -2848,8 +2844,7 @@ function testAuth_syncAuthChanges_sameUser() {
         counter++;
         return goog.Promise.resolve({
           'accessToken': 'NEW_ACCESS_TOKEN' + counter.toString(),
-          'refreshToken': 'NEW_REFRESH_TOKEN',
-          'expirationTime': goog.now() + 3600 * 1000
+          'refreshToken': 'NEW_REFRESH_TOKEN'
         });
       });
   var accountInfo1 = {
@@ -3947,7 +3942,7 @@ function testAuth_signInWithIdTokenResponse_newUserDifferentFromCurrent() {
 function testAuth_getIdToken_signedInUser() {
   // Tests getIdToken with a signed in user.
   fireauth.AuthEventManager.ENABLED = true;
-  var expectedToken = 'NEW_ACCESS_TOKEN';
+  var expectedToken = jwt2;
   // Simulate new access token return on a force refresh request to trigger Auth
   // state listener.
   stubs.replace(
@@ -3958,15 +3953,13 @@ function testAuth_getIdToken_signedInUser() {
         if (opt_refresh) {
           return goog.Promise.resolve({
             'accessToken': expectedToken,
-            'refreshToken': 'NEW_REFRESH_TOKEN',
-            'expirationTime': goog.now() + 3600 * 1000
+            'refreshToken': 'NEW_REFRESH_TOKEN'
           });
         }
         // Return cached one when called within syncAuthChange.
         return goog.Promise.resolve({
-          'accessToken': 'ID_TOKEN',
-          'refreshToken': 'REFRESH_TOKEN',
-          'expirationTime': goog.now() + 3600 * 1000
+          'accessToken': jwt1,
+          'refreshToken': 'REFRESH_TOKEN'
         });
       });
   // Simulate user loaded from storage.
@@ -4049,14 +4042,18 @@ function testAuth_signInWithCustomToken_success() {
   // Tests successful signInWithCustomToken.
   fireauth.AuthEventManager.ENABLED = true;
   var expectedCustomToken = 'CUSTOM_TOKEN';
-  var expectedIdToken = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2ds' +
-                        'ZS5jb20vMTIzNDU2NzgiLCJhdWQiOiIxMjM0NTY3OCIsImF1d' +
-                        'GhfdGltZSI6MTUxMTM3ODYyOSwidXNlcl9pZCI6ImFiY2RlZm' +
-                        'doaWprbG1ub3BxcnN0dSIsInN1YiI6ImFiY2RlZmdoaWprbG1' +
-                        'ub3BxcnN0dSIsImlhdCI6MTUxMTM3ODYzMCwiZXhwIjoxNTEx' +
-                        'MzgyMjMwLCJmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7fSwic' +
-                        '2lnbl9pbl9wcm92aWRlciI6ImN1c3RvbSJ9LCJhbGciOiJIUz' +
-                        'I1NiJ9.SIGNATURE';
+  var expectedIdToken = fireauth.common.testHelper.createMockJwt({
+    'iss': 'https://securetoken.google.com/12345678',
+    'aud': '12345678',
+    'auth_time': 1511378629,
+    'sub': 'abcdefghijklmnopqrstu',
+    'iat': 1511378630,
+    'exp': now / 1000 + 3600,
+    'firebase': {
+      'identities': {},
+      'sign_in_provider': 'custom'
+    }
+  });
   expectedTokenResponse['idToken'] = expectedIdToken;
   // Stub OAuth sign in handler.
   fakeOAuthSignInHandler();
@@ -4937,14 +4934,19 @@ function testAuth_signInWithCredential_error() {
 
 function testAuth_signInAnonymously_success() {
   // Tests successful signInAnonymously.
-  var expectedIdToken = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5' +
-                        'jb20vMTIzNDU2NzgiLCJwcm92aWRlcl9pZCI6ImFub255bW91cyI' +
-                        'sImF1ZCI6IjEyMzQ1Njc4IiwiYXV0aF90aW1lIjoxNTEwODc0NzQ' +
-                        '5LCJ1c2VyX2lkIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1Iiwic3V' +
-                        'iIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1IiwiaWF0IjoxNTEwODc' +
-                        '0NzQ5LCJleHAiOjE1MTA4NzgzNDksImZpcmViYXNlIjp7ImlkZW5' +
-                        '0aXRpZXMiOnt9LCJzaWduX2luX3Byb3ZpZGVyIjoiYW5vbnltb3V' +
-                        'zIn0sImFsZyI6IkhTMjU2In0.SIGNATURE';
+  var expectedIdToken = fireauth.common.testHelper.createMockJwt({
+    'iss': 'https://securetoken.google.com/12345678',
+    'provider_id': 'anonymous',
+    'aud': '12345678',
+    'auth_time': 1510874749,
+    'sub': 'abcdefghijklmnopqrstu',
+    'iat': 1510874749,
+    'exp': now / 1000 + 3600,
+    'firebase': {
+      'identities': {},
+      'sign_in_provider': 'anonymous'
+    }
+  });
   expectedTokenResponse['idToken'] = expectedIdToken;
   expectedTokenResponse['kind'] = 'identitytoolkit#SignupNewUserResponse';
   fireauth.AuthEventManager.ENABLED = true;
@@ -5007,14 +5009,19 @@ function testAuth_signInAnonymously_success() {
 
 function testAuth_signInAnonymously_anonymousUserAlreadySignedIn() {
   // Tests signInAnonymously when an anonymous user is already signed in.
-  var expectedIdToken = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5' +
-                        'jb20vMTIzNDU2NzgiLCJwcm92aWRlcl9pZCI6ImFub255bW91cyI' +
-                        'sImF1ZCI6IjEyMzQ1Njc4IiwiYXV0aF90aW1lIjoxNTEwODc0NzQ' +
-                        '5LCJ1c2VyX2lkIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1Iiwic3V' +
-                        'iIjoiYWJjZGVmZ2hpamtsbW5vcHFyc3R1IiwiaWF0IjoxNTEwODc' +
-                        '0NzQ5LCJleHAiOjE1MTA4NzgzNDksImZpcmViYXNlIjp7ImlkZW5' +
-                        '0aXRpZXMiOnt9LCJzaWduX2luX3Byb3ZpZGVyIjoiYW5vbnltb3V' +
-                        'zIn0sImFsZyI6IkhTMjU2In0.SIGNATURE';
+  var expectedIdToken = fireauth.common.testHelper.createMockJwt({
+    'iss': 'https://securetoken.google.com/12345678',
+    'provider_id': 'anonymous',
+    'aud': '12345678',
+    'auth_time': 1510874749,
+    'sub': 'abcdefghijklmnopqrstu',
+    'iat': 1510874749,
+    'exp': now / 1000 + 3600,
+    'firebase': {
+      'identities': {},
+      'sign_in_provider': 'anonymous'
+    }
+  });
   expectedTokenResponse['idToken'] = expectedIdToken;
   fireauth.AuthEventManager.ENABLED = true;
   // Simulate successful RpcHandler signInAnonymously.
@@ -5256,9 +5263,8 @@ function testAuth_finishPopupAndRedirectSignIn_noCredential() {
   asyncTestCase.waitForSignals(3);
   // Expected response does not contain Auth credential.
   var expectedResponse = {
-    'idToken': 'ID_TOKEN',
+    'idToken': jwt1,
     'refreshToken': 'REFRESH_TOKEN',
-    'expiresIn': '3600',
     'providerId': 'google.com'
   };
   // Add Additional IdP data.
@@ -8677,9 +8683,8 @@ function testAuth_invalidateSession_tokenExpired() {
           return goog.Promise.reject(expectedError);
         }
         return goog.Promise.resolve({
-          'accessToken': 'ID_TOKEN',
-          'refreshToken': 'REFRESH_TOKEN',
-          'expirationTime': now + 3600 * 1000
+          'accessToken': jwt1,
+          'refreshToken': 'REFRESH_TOKEN'
         });
       });
   stubs.replace(
@@ -8710,7 +8715,7 @@ function testAuth_invalidateSession_tokenExpired() {
         // Initial sign in.
         assertEquals(1, tokenChangeCounter);
         // Confirm ID token.
-        assertEquals('ID_TOKEN', token);
+        assertEquals(jwt1, token);
         // Force token error on next call.
         triggerTokenError = true;
         // Token error should be detected.
@@ -8754,9 +8759,8 @@ function testAuth_invalidateSession_userDisabled() {
           return goog.Promise.reject(expectedError);
         }
         return goog.Promise.resolve({
-          'accessToken': 'ID_TOKEN',
-          'refreshToken': 'REFRESH_TOKEN',
-          'expirationTime': now + 3600 * 1000
+          'accessToken': jwt1,
+          'refreshToken': 'REFRESH_TOKEN'
         });
       });
   stubs.replace(
@@ -8787,7 +8791,7 @@ function testAuth_invalidateSession_userDisabled() {
         // Initial sign in.
         assertEquals(1, tokenChangeCounter);
         // Confirm ID token.
-        assertEquals('ID_TOKEN', token);
+        assertEquals(jwt1, token);
         // Force token error on next call.
         triggerTokenError = true;
         // Token error should be detected.
@@ -8823,9 +8827,8 @@ function testAuth_invalidateSession_dispatchUserInvalidatedEvent() {
       'getToken',
       function() {
         return goog.Promise.resolve({
-          'accessToken': 'ID_TOKEN',
-          'refreshToken': 'REFRESH_TOKEN',
-          'expirationTime': now + 3600 * 1000
+          'accessToken': jwt1,
+          'refreshToken': 'REFRESH_TOKEN'
         });
       });
   stubs.replace(
@@ -8856,7 +8859,7 @@ function testAuth_invalidateSession_dispatchUserInvalidatedEvent() {
         // Initial sign in.
         assertEquals(1, tokenChangeCounter);
         // Confirm ID token.
-        assertEquals('ID_TOKEN', token);
+        assertEquals(jwt1, token);
         // Dispatch user invalidation event on current user.
         auth1.currentUser.dispatchEvent(
             fireauth.UserEventType.USER_INVALIDATED);

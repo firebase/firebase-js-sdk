@@ -84,20 +84,12 @@ var getAccountInfoResponseProviderData1 = null;
 var getAccountInfoResponseProviderData2 = null;
 // A sample JWT, along with its decoded contents.
 var idTokenGmail = {
-  jwt: 'HEADER.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcHJvamVjdE' +
-       'lkIiwiYXV0aF90aW1lIjoxNTIyNzE1MzI1LCJzdWIiOiI2NzkiLCJhdWQiOiJwcm9qZWN' +
-       '0SWQiLCJpYXQiOjE1MjI3NzY4MDcsImV4cCI6MTUyMjc4MDU3NSwiZmVkZXJhdGVkX2lk' +
-       'IjoiaHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS9hY2NvdW50cy8xMjM0NTY3ODkiLCJwcm92a' +
-       'WRlcl9pZCI6ImdtYWlsLmNvbSIsImVtYWlsIjoidGVzdDEyMzQ1NkBnbWFpbC5jb20iLC' +
-       'JmaXJlYmFzZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3QxMjM0NTZAZ21haWw' +
-       'uY29tIl19LCJzaWduX2luX3Byb3ZpZGVyIjoicGFzc3dvcmQifX0.SIGNATURE',
   data: {
     iss: 'https://securetoken.google.com/projectId',
     auth_time: 1522715325,
     sub: '679',
     aud: 'projectId',
     iat: 1522776807,
-    exp: 1522780575,
     provider_id: 'gmail.com',
     email: 'test123456@gmail.com',
     federated_id: 'https://www.google.com/accounts/123456789',
@@ -111,14 +103,17 @@ var idTokenGmail = {
     }
   }
 };
+var idTokenSaml = {
+  data: {
+    iss: 'https://securetoken.google.com/projectId',
+    sub: '679',
+    aud: 'projectId',
+    federated_id: 'https://www.example.com/saml/1234567890',
+    provider_id: 'saml.provider',
+    email: 'test123456@gmail.com'
+  }
+};
 var idTokenCustomClaims = {
-  jwt: 'HEADER.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vcHJvamVjdE' +
-       'lkIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImF1ZCI6InByb2plY3RJZCI' +
-       'sImF1dGhfdGltZSI6MTUyMjcxNTMyNSwic3ViIjoibmVwMnV3TkNLNFBxanZvS2piMElu' +
-       'VkpIbEdpMSIsImlhdCI6MTUyMjc3NjgwNywiZXhwIjoxNTIyNzgwNTc1LCJlbWFpbCI6I' +
-       'nRlc3R1c2VyQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFzZS' +
-       'I6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3R1c2VyQGdtYWlsLmNvbSJdfSwic2l' +
-       'nbl9pbl9wcm92aWRlciI6InBhc3N3b3JkIn19.SIGNATURE',
   data: {
     iss: 'https://securetoken.google.com/projectId',
     name: 'John Doe',
@@ -127,7 +122,6 @@ var idTokenCustomClaims = {
     auth_time: 1522715325,
     sub: 'nep2uwNCK4PqjvoKjb0InVJHlGi1',
     iat: 1522776807,
-    exp: 1522780575,
     email: "testuser@gmail.com",
     email_verified: true,
     firebase: {
@@ -139,27 +133,6 @@ var idTokenCustomClaims = {
       sign_in_provider: 'password'
     }
   }
-};
-var idTokenSaml = {
-  jwt: 'HEADER.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLmNvbS9wcm' +
-       '9qZWN0SWQiLA0KICAiZXhwIjogMTMyNjQzOTA0NCwNCiAgInN1YiI6ICI2NzkiLA0KICA' +
-       'iYXVkIjogInByb2plY3RJZCIsDQogICJmZWRlcmF0ZWRfaWQiOiAiaHR0cHM6Ly93d3cu' +
-       'ZXhhbXBsZS5jb20vc2FtbC8xMjM0NTY3ODkwIiwNCiAgInByb3ZpZGVyX2lkIjogInNhb' +
-       'WwucHJvdmlkZXIiLA0KICAiZW1haWwiOiAidGVzdDEyMzQ1NkBnbWFpbC5jb20iDQp9.S' +
-       'IGNATURE',
-  data: {
-    iss: 'https://securetoken.google.com/projectId',
-    exp: 1326439044,
-    sub: '679',
-    aud: 'projectId',
-    federated_id: 'https://www.example.com/saml/1234567890',
-    provider_id: 'saml.provider',
-    email: 'test123456@gmail.com'
-  }
-};
-var stsTokenResponse = {
-  'idToken': 'myIdToken',
-  'refreshToken': 'myRefreshToken'
 };
 var expectedTokenResponseWithIdPData;
 var expectedAdditionalUserInfo;
@@ -199,6 +172,8 @@ var lastLoginAt2 = '1506053999000';
 var createdAt2 = '1505980145000';
 var expectedSamlTokenResponseWithIdPData;
 var expectedSamlAdditionalUserInfo;
+var jwt;
+var newJwt;
 
 
 function setUp() {
@@ -212,6 +187,14 @@ function setUp() {
     apiKey: 'apiKey2',
     appName: 'appId2'
   };
+  idTokenGmail.data.exp = now / 1000 + 3600;
+  idTokenGmail.jwt =
+      fireauth.common.testHelper.createMockJwt(idTokenGmail.data);
+  idTokenSaml.data.exp = now / 1000 + 3600;
+  idTokenSaml.jwt = fireauth.common.testHelper.createMockJwt(idTokenSaml.data);
+  idTokenCustomClaims.data.exp = now / 1000 + 3600;
+  idTokenCustomClaims.jwt =
+      fireauth.common.testHelper.createMockJwt(idTokenCustomClaims.data);
   // Assume origin is a valid one.
   stubs.replace(
       fireauth.RpcHandler.prototype,
@@ -289,11 +272,14 @@ function setUp() {
   rpcHandler = new fireauth.RpcHandler('apiKey1');
   token = new fireauth.StsTokenManager(rpcHandler);
   token.setRefreshToken('refreshToken');
-  token.setAccessToken('accessToken', now + 3600 * 1000);
+  jwt = fireauth.common.testHelper.createMockJwt(
+      {'group': '1'}, now + 3600 * 1000);
+  newJwt = fireauth.common.testHelper.createMockJwt(
+      {'group': '2'}, now + 3600 * 1000);
+  token.setAccessToken(jwt);
   tokenResponse = {
-    'idToken': 'accessToken',
-    'refreshToken': 'refreshToken',
-    'expiresIn': 3600
+    'idToken': jwt,
+    'refreshToken': 'refreshToken'
   };
 
   // accountInfo in the format of a getAccountInfo response.
@@ -340,9 +326,8 @@ function setUp() {
     'phoneNumber': '+16505550101'
   };
   expectedTokenResponseWithIdPData = {
-    'idToken': 'newStsToken',
+    'idToken': newJwt,
     'refreshToken': 'newRefreshToken',
-    'expiresIn': '3600',
     // Credential returned.
     'providerId': 'google.com',
     'oauthAccessToken': 'googleAccessToken',
@@ -355,7 +340,6 @@ function setUp() {
   expectedReauthenticateTokenResponse = {
     'idToken': idTokenGmail.jwt,
     'refreshToken': 'myRefreshToken',
-    'expiresIn': 3600,
     // Credential returned.
     'providerId': 'google.com',
     'oauthAccessToken': 'googleAccessToken',
@@ -380,9 +364,8 @@ function setUp() {
   expectedGoogleCredential = fireauth.GoogleAuthProvider.credential(
       'googleIdToken', 'googleAccessToken');
   expectedSamlTokenResponseWithIdPData = {
-    'idToken': 'newIdToken',
+    'idToken': newJwt,
     'refreshToken': 'newRefreshToken',
-    'expiresIn': '3600',
     'providerId': 'saml.provider',
     // Additional user info data.
     'rawUserInfo': '{"kind":"plus#person","displayName":"John Doe","na' +
@@ -508,7 +491,7 @@ function assertNoDeleteEvents(user) {
 /**
  * Asserts that a method should fail when user is destroyed and no listeners
  * are triggered.
- * @param {!string} methodName The name of the method of AuthUser that should
+ * @param {string} methodName The name of the method of AuthUser that should
  *     fail if the user is destroyed.
  * @param {!Array} parameters The arguments to pass to the method.
  */
@@ -555,7 +538,7 @@ function testUser() {
 
   assertObjectEquals(
       new fireauth.UserMetadata(createdAt, lastLoginAt), user.metadata);
-  assertEquals('accessToken', user.lastAccessToken_);
+  assertEquals(jwt, user.lastAccessToken_);
   assertEquals('defaultUserId', user['uid']);
   assertEquals('defaultDisplayName', user['displayName']);
   assertNull(user['email']);
@@ -697,8 +680,9 @@ function testUser_copyUser_defaultConfig() {
 }
 
 function testUser_copyUser_expiredToken() {
-  // Mock the expired token by giving a negative expiresIn time offset.
-  tokenResponse['expiresIn'] = -3600;
+  // Mock the expired token.
+  tokenResponse['idToken'] =
+      fireauth.common.testHelper.createMockJwt(null, now - 5);
   stubs.replace(
       fireauth.RpcHandler.prototype,
       'requestStsToken',
@@ -889,7 +873,7 @@ function testUser_setUserAccountInfoFromToken_success() {
       'getAccountInfoByIdToken',
       function(data) {
         return new goog.Promise(function(resolve, reject) {
-          assertEquals('accessToken', data);
+          assertEquals(jwt, data);
           resolve(response);
         });
       });
@@ -939,7 +923,7 @@ function testSetUserAccountInfoFromToken_success_emailAndPassword() {
       'getAccountInfoByIdToken',
       function(data) {
         return new goog.Promise(function(resolve, reject) {
-          assertEquals('accessToken', data);
+          assertEquals(jwt, data);
           resolve(response);
         });
       });
@@ -980,7 +964,7 @@ function testSetUserAccountInfoFromToken_success_emailNoPassword() {
       'getAccountInfoByIdToken',
       function(data) {
         return new goog.Promise(function(resolve, reject) {
-          assertEquals('accessToken', data);
+          assertEquals(jwt, data);
           resolve(response);
         });
       });
@@ -1020,7 +1004,7 @@ function testSetUserAccountInfoFromToken_success_passwordNoEmail() {
       'getAccountInfoByIdToken',
       function(data) {
         return new goog.Promise(function(resolve, reject) {
-          assertEquals('accessToken', data);
+          assertEquals(jwt, data);
           resolve(response);
         });
       });
@@ -1115,7 +1099,7 @@ function testUser_reload_success() {
       fireauth.RpcHandler.prototype,
       'getAccountInfoByIdToken',
       function(idToken) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         user.copy(updatedUser);
         asyncTestCase.signal();
         return goog.Promise.resolve(myAccountInfo);
@@ -1178,7 +1162,7 @@ function testUser_reload_success_noCredentialUserLocallyNotAnonymous() {
       'getAccountInfoByIdToken',
       function(data) {
         return new goog.Promise(function(resolve, reject) {
-          assertEquals('accessToken', data);
+          assertEquals(jwt, data);
           asyncTestCase.signal();
           resolve(response);
         });
@@ -1228,7 +1212,7 @@ function testUser_reload_success_noCredentialUserLocallyAnonymous() {
       'getAccountInfoByIdToken',
       function(data) {
         return new goog.Promise(function(resolve, reject) {
-          assertEquals('accessToken', data);
+          assertEquals(jwt, data);
           asyncTestCase.signal();
           resolve(response);
         });
@@ -1392,9 +1376,9 @@ function testUser_getIdTokenResult() {
     fireauth.common.testHelper.assertIdTokenResult(
         idTokenResult,
         idTokenCustomClaims.jwt,
-        1522780575,
-        1522715325,
-        1522776807,
+        idTokenCustomClaims.data.exp,
+        idTokenCustomClaims.data.auth_time,
+        idTokenCustomClaims.data.iat,
         'password',
         null,
         idTokenCustomClaims.data);
@@ -1418,9 +1402,9 @@ function testUser_getIdTokenResult_forceRefresh() {
     fireauth.common.testHelper.assertIdTokenResult(
         idTokenResult,
         idTokenCustomClaims.jwt,
-        1522780575,
-        1522715325,
-        1522776807,
+        idTokenCustomClaims.data.exp,
+        idTokenCustomClaims.data.auth_time,
+        idTokenCustomClaims.data.iat,
         'password',
         null,
         idTokenCustomClaims.data);
@@ -1474,8 +1458,7 @@ function testUser_getIdTokenResult_expiredToken_reauth() {
   var validTokenResponse = {
     'idToken': expectedReauthenticateTokenResponse['idToken'],
     'accessToken': expectedReauthenticateTokenResponse['idToken'],
-    'refreshToken': expectedReauthenticateTokenResponse['refreshToken'],
-    'expiresIn': 3600
+    'refreshToken': expectedReauthenticateTokenResponse['refreshToken']
   };
   var credential = /** @type {!fireauth.AuthCredential} */ ({
     matchIdTokenWithUid: function() {
@@ -1574,9 +1557,9 @@ function testUser_getIdTokenResult_expiredToken_reauth() {
               fireauth.common.testHelper.assertIdTokenResult(
                   idTokenResult,
                   idTokenGmail.jwt,
-                  1522780575,
-                  1522715325,
-                  1522776807,
+                  idTokenGmail.data.exp,
+                  idTokenGmail.data.auth_time,
+                  idTokenGmail.data.iat,
                   'password',
                   null,
                   idTokenGmail.data);
@@ -1622,8 +1605,7 @@ function testUser_getIdToken_expiredToken_reauthAfterInvalidation() {
   var validTokenResponse = {
     'idToken': expectedReauthenticateTokenResponse['idToken'],
     'accessToken': expectedReauthenticateTokenResponse['idToken'],
-    'refreshToken': expectedReauthenticateTokenResponse['refreshToken'],
-    'expiresIn': 3600
+    'refreshToken': expectedReauthenticateTokenResponse['refreshToken']
   };
   var credential = /** @type {!fireauth.AuthCredential} */ ({
     matchIdTokenWithUid: function() {
@@ -1781,8 +1763,7 @@ function testUser_getIdToken_expiredToken_reauthWithPopupAfterInvalidation() {
   var validTokenResponse = {
     'idToken': expectedReauthenticateTokenResponse['idToken'],
     'accessToken': expectedReauthenticateTokenResponse['idToken'],
-    'refreshToken': expectedReauthenticateTokenResponse['refreshToken'],
-    'expiresIn': 3600
+    'refreshToken': expectedReauthenticateTokenResponse['refreshToken']
   };
   // The expected popup window object.
   var expectedPopup = {
@@ -1960,8 +1941,7 @@ function testUser_getIdToken_expiredToken_reauthBeforeInvalidation() {
   var validTokenResponse = {
     'idToken': expectedReauthenticateTokenResponse['idToken'],
     'accessToken': expectedReauthenticateTokenResponse['idToken'],
-    'refreshToken': expectedReauthenticateTokenResponse['refreshToken'],
-    'expiresIn': 3600
+    'refreshToken': expectedReauthenticateTokenResponse['refreshToken']
   };
   var credential = /** @type {!fireauth.AuthCredential} */ ({
     matchIdTokenWithUid: function() {
@@ -2094,8 +2074,7 @@ function testUser_getIdToken_expiredToken_reauthWithPopupBeforeInvalidation() {
   var validTokenResponse = {
     'idToken': expectedReauthenticateTokenResponse['idToken'],
     'accessToken': expectedReauthenticateTokenResponse['idToken'],
-    'refreshToken': expectedReauthenticateTokenResponse['refreshToken'],
-    'expiresIn': 3600
+    'refreshToken': expectedReauthenticateTokenResponse['refreshToken']
   };
   // The expected popup window object.
   var expectedPopup = {
@@ -2296,14 +2275,13 @@ function testUser_getIdToken_unchanged() {
       function(opt_forceRefresh) {
         // Token unchanged.
         return goog.Promise.resolve({
-          accessToken: 'accessToken',
-          refreshToken: 'refreshToken',
-          expirationTime: now + 3600 * 1000
+          accessToken: jwt,
+          refreshToken: 'refreshToken'
         });
       });
   user.getIdToken().then(function(stsAccessToken) {
     // Token unchanged.
-    assertEquals('accessToken', stsAccessToken);
+    assertEquals(jwt, stsAccessToken);
     asyncTestCase.signal();
   });
 }
@@ -2344,14 +2322,14 @@ function testUpdateTokensIfPresent_newTokens() {
       user, fireauth.UserEventType.TOKEN_CHANGED, function(event) {
         // Checks the tokens stored.
         user.getIdToken().then(function(idToken) {
-          assertEquals('newToken', idToken);
-          assertEquals('newToken', user.lastAccessToken_);
+          assertEquals(newJwt, idToken);
+          assertEquals(newJwt, user.lastAccessToken_);
           asyncTestCase.signal();
         });
       });
 
   user.updateTokensIfPresent_({
-    'idToken': 'newToken',
+    'idToken': newJwt,
     'refreshToken': 'newRefreshToken'
   });
 }
@@ -2425,7 +2403,7 @@ function testUpdateEmail_success() {
       fireauth.RpcHandler.prototype,
       'updateEmail',
       function(idToken, newEmail) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertEquals('newuser@example.com', newEmail);
         return goog.Promise.resolve(expectedResponse);
       });
@@ -2435,7 +2413,7 @@ function testUpdateEmail_success() {
       fireauth.RpcHandler.prototype,
       'getAccountInfoByIdToken',
       function(idToken) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         return goog.Promise.resolve({
           'users': [{
             'email': 'newuser@example.com',
@@ -2465,7 +2443,7 @@ function testUpdateEmail_error() {
       fireauth.RpcHandler.prototype,
       'updateEmail',
       function(idToken, newEmail) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertEquals('newuser@example.com', newEmail);
         return goog.Promise.reject(expectedError);
       });
@@ -2494,9 +2472,8 @@ function testUpdateEmail_userDestroyed() {
 
 function testUpdatePhoneNumber_success() {
   var expectedResponse = {
-   'idToken': 'myNewIdToken',
+   'idToken': newJwt,
    'refreshToken': 'myRefreshToken',
-   'expiresIn': '3600',
    'localId': 'myLocalId',
    'isNewUser': false,
    'phoneNumber': '+16505550101'
@@ -2524,7 +2501,7 @@ function testUpdatePhoneNumber_success() {
   var getAccountInfoByIdToken = mockControl.createMethodMock(
       fireauth.RpcHandler.prototype, 'getAccountInfoByIdToken');
   // New STS token should be used.
-  getAccountInfoByIdToken('myNewIdToken').$returns(
+  getAccountInfoByIdToken(newJwt).$returns(
       goog.Promise.resolve(getAccountInfoResponse)).$once();
 
   mockControl.$replayAll();
@@ -2558,7 +2535,7 @@ function testUpdatePhoneNumber_error() {
       fireauth.authenum.Error.INTERNAL_ERROR);
   var credential = fireauth.PhoneAuthProvider.credential('id', 'code');
   stubs.replace(credential, 'linkToIdToken', function(rpcHandler, idToken) {
-    assertEquals('accessToken', idToken);
+    assertEquals(jwt, idToken);
     return goog.Promise.reject(expectedError);
   });
 
@@ -2617,7 +2594,7 @@ function testUpdatePassword_success() {
       fireauth.RpcHandler.prototype,
       'updatePassword',
       function(idToken, newPassword) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertEquals('newPassword', newPassword);
         return goog.Promise.resolve(expectedResponse);
       });
@@ -2628,7 +2605,7 @@ function testUpdatePassword_success() {
       'getAccountInfoByIdToken',
       function(idToken) {
         reloaded++;
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         return goog.Promise.resolve({
           'users': [{
             'email': 'newuser@example.com'
@@ -2655,7 +2632,7 @@ function testUpdatePassword_error() {
       fireauth.RpcHandler.prototype,
       'updatePassword',
       function(idToken, newPassword) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertEquals('newPassword', newPassword);
         return goog.Promise.reject(expectedError);
       });
@@ -2698,7 +2675,7 @@ function testUpdateProfile_success() {
       fireauth.RpcHandler.prototype,
       'updateProfile',
       function(idToken, profileData) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertObjectEquals({
           'displayName': 'Jack Smith',
           'photoUrl': 'http://www.example.com/photo/photo.png'
@@ -2739,7 +2716,7 @@ function testUpdateProfile_success_withPasswordProvider() {
       fireauth.RpcHandler.prototype,
       'updateProfile',
       function(idToken, profileData) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertObjectEquals({
           'displayName': expectedDisplayName,
           'photoUrl': expectedPhotoUrl
@@ -2808,7 +2785,7 @@ function testUpdateProfile_success_withoutPasswordProvider() {
       fireauth.RpcHandler.prototype,
       'updateProfile',
       function(idToken, profileData) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertObjectEquals({
           'displayName': expectedDisplayName,
           'photoUrl': expectedPhotoUrl
@@ -2882,7 +2859,7 @@ function testUpdateProfile_error() {
       fireauth.RpcHandler.prototype,
       'updateProfile',
       function(idToken, profileData) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertObjectEquals({
           'displayName': 'Jack Smith',
           'photoUrl': 'http://www.example.com/photo/photo.png'
@@ -3179,14 +3156,14 @@ function testLinkWithCredential_emailAndPassword() {
       'updateEmailAndPassword',
       function(actualIdToken, actualEmail, actualPassword) {
         asyncTestCase.signal();
-        assertEquals('accessToken', actualIdToken);
+        assertEquals(jwt, actualIdToken);
         assertEquals(email, actualEmail);
         assertEquals(password, actualPassword);
         // No credential or additional user info returned when linking an email
         // and password credential.
         return goog.Promise.resolve({
           'email': email,
-          'idToken': 'newStsToken',
+          'idToken': newJwt,
           'refreshToken': 'newRefreshToken'
         });
       });
@@ -3251,7 +3228,7 @@ function testLinkWithCredential_emailAndPassword() {
         return user.getIdToken();
       })
       .then(function(returnedToken) {
-        assertEquals('newStsToken', returnedToken);
+        assertEquals(newJwt, returnedToken);
         asyncTestCase.signal();
       });
   asyncTestCase.waitForSignals(4);
@@ -3274,7 +3251,7 @@ function testLinkWithCredential_federatedIdP() {
             'id_token=googleIdToken&access_token=googleAccessToken&' +
             'providerId=google.com',
             request['postBody']);
-        assertEquals('accessToken', request['idToken']);
+        assertEquals(jwt, request['idToken']);
 
         // Update the backend user data.
         getAccountInfoResponse['users'][0]['providerUserInfo']
@@ -3317,7 +3294,7 @@ function testLinkWithCredential_federatedIdP() {
         return user.getIdToken();
       })
       .then(function(returnedToken) {
-        assertEquals('newStsToken', returnedToken);
+        assertEquals(newJwt, returnedToken);
         asyncTestCase.signal();
       });
   asyncTestCase.waitForSignals(4);
@@ -3408,7 +3385,7 @@ function testUnlink_success() {
       fireauth.RpcHandler.prototype,
       'deleteLinkedAccounts',
       function(idToken, providersToDelete) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         // providerId2 should be removed from user's original providers.
         assertArrayEquals(providersToDelete, ['providerId2']);
         var response = {
@@ -3547,7 +3524,7 @@ function testUnlink_phone() {
       fireauth.RpcHandler.prototype,
       'deleteLinkedAccounts',
       function(idToken, providersToDelete) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         // phone should be removed from user's original providers.
         assertArrayEquals(providersToDelete, ['phone']);
         var response = {
@@ -3606,7 +3583,7 @@ function testDelete_success() {
       fireauth.RpcHandler.prototype,
       'deleteAccount',
       function(idToken) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         return goog.Promise.resolve();
       });
   // Checks that destroy is called.
@@ -3637,7 +3614,7 @@ function testDelete_error() {
       fireauth.RpcHandler.prototype,
       'deleteAccount',
       function(idToken) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         return goog.Promise.reject(expectedError);
       });
   // Checks that destroy is not called.
@@ -3665,7 +3642,7 @@ function testSendEmailVerification_success() {
       fireauth.RpcHandler.prototype,
       'sendEmailVerification',
       function(idToken, actualActionCodeSettings) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertObjectEquals({}, actualActionCodeSettings);
         return goog.Promise.resolve('user@default.com');
       });
@@ -3707,7 +3684,7 @@ function testSendEmailVerification_localCopyWrongEmail() {
       fireauth.RpcHandler.prototype,
       'sendEmailVerification',
       function(idToken, actualActionCodeSettings) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertObjectEquals({}, actualActionCodeSettings);
         return goog.Promise.resolve(expectedEmail);
       });
@@ -3773,7 +3750,7 @@ function testSendEmailVerification_actionCodeSettings_success() {
         assertObjectEquals(
             new fireauth.ActionCodeSettings(actionCodeSettings).buildRequest(),
             actualActionCodeSettings);
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         return goog.Promise.resolve('user@default.com');
       });
   var user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
@@ -3813,7 +3790,7 @@ function testVerifyBeforeUpdateEmail_success() {
       fireauth.RpcHandler.prototype,
       'verifyBeforeUpdateEmail',
       function(idToken, email, actualActionCodeSettings) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertEquals(newEmail, email);
         assertObjectEquals({}, actualActionCodeSettings);
         // Returns the user's current email.
@@ -3857,7 +3834,7 @@ function testVerifyBeforeUpdateEmail_localCopyWrongEmail() {
       fireauth.RpcHandler.prototype,
       'verifyBeforeUpdateEmail',
       function(idToken, email, actualActionCodeSettings) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertEquals(newEmail, email);
         assertObjectEquals({}, actualActionCodeSettings);
         return goog.Promise.resolve(expectedEmail);
@@ -3910,7 +3887,7 @@ function testVerifyBeforeUpdateEmail_error() {
       fireauth.RpcHandler.prototype,
       'verifyBeforeUpdateEmail',
       function(idToken, email, actualActionCodeSettings) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertEquals(newEmail, email);
         assertObjectEquals({}, actualActionCodeSettings);
         return goog.Promise.reject(expectedError);
@@ -3942,7 +3919,7 @@ function testVerifyBeforeUpdateEmail_actionCodeSettings_success() {
         assertObjectEquals(
             new fireauth.ActionCodeSettings(actionCodeSettings).buildRequest(),
             actualActionCodeSettings);
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         assertEquals(newEmail, email);
         return goog.Promise.resolve('user@default.com');
       });
@@ -4167,7 +4144,7 @@ function testUser_toPlainObject() {
         'stsTokenManager': {
           'apiKey': 'apiKey1',
           'refreshToken': 'refreshToken',
-          'accessToken': 'accessToken',
+          'accessToken': jwt,
           'expirationTime': now + 3600 * 1000
         },
         'redirectEventId': '5678',
@@ -4221,7 +4198,7 @@ function testUser_toPlainObject_noMetadata() {
         'stsTokenManager': {
           'apiKey': 'apiKey1',
           'refreshToken': 'refreshToken',
-          'accessToken': 'accessToken',
+          'accessToken': jwt,
           'expirationTime': now + 3600 * 1000
         },
         'redirectEventId': '5678',
@@ -4299,7 +4276,7 @@ function testUser_fromPlainObject() {
         'stsTokenManager': {
           'apiKey': 'apiKey1',
           'refreshToken': 'refreshToken',
-          'accessToken': 'accessToken',
+          'accessToken': jwt,
           'expirationTime': now + 3600 * 1000
         },
         'redirectEventId': '5678',
@@ -4367,7 +4344,7 @@ function testUser_fromPlainObject_noMetadata() {
         'stsTokenManager': {
           'apiKey': 'apiKey1',
           'refreshToken': 'refreshToken',
-          'accessToken': 'accessToken',
+          'accessToken': jwt,
           'expirationTime': now + 3600 * 1000
         },
         'redirectEventId': '5678'
@@ -4421,7 +4398,7 @@ function testUser_fromPlainObject_tokenExpired() {
       'apiKey': 'apiKey1',
       // Expired refresh token.
       'refreshToken': null,
-      'accessToken': 'accessToken',
+      'accessToken': jwt,
       'expirationTime': now + 3600 * 1000
     },
     'lastLoginAt': lastLoginAt,
@@ -4515,7 +4492,7 @@ function testUser_initializeFromIdTokenResponse() {
               frameworks,
               fireauth.AuthUser.prototype.setFramework.getLastCall()
                   .getArgument(0));
-          assertEquals('accessToken', data);
+          assertEquals(jwt, data);
           resolve(response);
         });
       });
@@ -4535,11 +4512,11 @@ function testUser_initializeFromIdTokenResponse() {
         // Confirm STS token manager instance properly created.
         assertTrue(
             createdUser.stsTokenManager_ instanceof fireauth.StsTokenManager);
-        assertEquals('accessToken', createdUser.stsTokenManager_.accessToken_);
+        assertEquals(
+            jwt,
+            createdUser.stsTokenManager_.accessToken_.toString());
         assertEquals(
             'refreshToken', createdUser.stsTokenManager_.refreshToken_);
-        assertEquals(
-            now + 3600 * 1000, createdUser.stsTokenManager_.expirationTime_);
         asyncTestCase.signal();
       });
 }
@@ -4643,15 +4620,14 @@ function testUser_finishPopupAndRedirectLink_success_withoutPostBody() {
         {
           'requestUri': 'REQUEST_URI',
           'sessionId': 'SESSION_ID',
-          'idToken': 'accessToken',
+          'idToken': jwt,
           'postBody': null
         },
         data);
         asyncTestCase.signal();
         return goog.Promise.resolve({
-          'idToken': 'newIdToken',
+          'idToken': newJwt,
           'refreshToken': 'newRefreshToken',
-          'expiresIn': '3600',
           'providerId': 'google.com',
           'oauthAccessToken': 'ACCESS_TOKEN',
           'rawUserInfo': expectedTokenResponseWithIdPData['rawUserInfo']
@@ -4687,7 +4663,7 @@ function testUser_finishPopupAndRedirectLink_success_withoutPostBody() {
             user1, expectedCred, expectedAdditionalUserInfo,
             fireauth.constants.OperationType.LINK, response);
         // It should have updated the tokens.
-        assertEquals('newIdToken', user1['_lat']);
+        assertEquals(newJwt, user1['_lat']);
         assertEquals('newRefreshToken', user1.refreshToken);
         asyncTestCase.signal();
       });
@@ -4705,7 +4681,7 @@ function testUser_finishPopupAndRedirectLink_success_withPostBody() {
         {
           'requestUri': 'REQUEST_URI',
           'sessionId': 'SESSION_ID',
-          'idToken': 'accessToken',
+          'idToken': jwt,
           'postBody': 'POST_BODY'
         },
         data);
@@ -4742,7 +4718,7 @@ function testUser_finishPopupAndRedirectLink_success_withPostBody() {
             user1, null, expectedSamlAdditionalUserInfo,
             fireauth.constants.OperationType.LINK, response);
         // It should have updated the tokens.
-        assertEquals('newIdToken', user1['_lat']);
+        assertEquals(newJwt, user1['_lat']);
         assertEquals('newRefreshToken', user1.refreshToken);
         asyncTestCase.signal();
       });
@@ -4771,7 +4747,6 @@ function testUser_finishPopupAndRedirectReauth_success_withoutPostBody() {
           'idToken': idTokenGmail.jwt,
           'accessToken': idTokenGmail.jwt,
           'refreshToken': 'newRefreshToken',
-          'expiresIn': '3600',
           'providerId': 'google.com',
           'oauthAccessToken': 'ACCESS_TOKEN',
           'rawUserInfo': expectedTokenResponseWithIdPData['rawUserInfo']
@@ -4835,7 +4810,6 @@ function testUser_finishPopupAndRedirectReauth_success_withPostBody() {
           'idToken': idTokenSaml.jwt,
           'accessToken': idTokenSaml.jwt,
           'refreshToken': 'newRefreshToken',
-          'expiresIn': '3600',
           'providerId': 'saml.provider',
           'rawUserInfo': expectedSamlTokenResponseWithIdPData['rawUserInfo']
         });
@@ -4892,7 +4866,7 @@ function testUser_finishPopupAndRedirectLink_error() {
         {
           'requestUri': 'REQUEST_URI',
           'sessionId': 'SESSION_ID',
-          'idToken': 'accessToken',
+          'idToken': jwt,
           'postBody': null
         },
         data);
@@ -4968,15 +4942,14 @@ function testUser_finishPopupAndRedirectLink_noCredential() {
         {
           'requestUri': 'REQUEST_URI',
           'sessionId': 'SESSION_ID',
-          'idToken': 'accessToken',
+          'idToken': jwt,
           'postBody': null
         },
         data);
         asyncTestCase.signal();
         return goog.Promise.resolve({
-          'idToken': 'newIdToken',
+          'idToken': newJwt,
           'refreshToken': 'newRefreshToken',
-          'expiresIn': '3600',
           'providerId': 'google.com',
           'rawUserInfo': expectedTokenResponseWithIdPData['rawUserInfo']
         });
@@ -5001,7 +4974,7 @@ function testUser_finishPopupAndRedirectLink_noCredential() {
             fireauth.constants.OperationType.LINK, response);
         // It should have updated the tokens.
         assertEquals(
-            'newIdToken', user1.getStsTokenManager().accessToken_);
+            newJwt, user1.getStsTokenManager().accessToken_.toString());
         assertEquals(
             'newRefreshToken',
             user1.getStsTokenManager().refreshToken_);
@@ -7198,7 +7171,7 @@ function testUser_linkWithPopup_emailCredentialError() {
         {
           'requestUri': 'http://www.example.com/#response',
           'sessionId': 'SESSION_ID',
-          'idToken': 'accessToken',
+          'idToken': jwt,
           'postBody': null
         },
         data);
@@ -7284,7 +7257,6 @@ function testUser_reauthenticateWithPopup_userMismatchError() {
     'accessToken': idTokenGmail.jwt,
     'refreshToken': 'REFRESH_TOKEN',
     'oauthAccessToken': 'ACCESS_TOKEN',
-    'oauthExpireIn': 3600,
     'oauthAuthorizationCode': 'AUTHORIZATION_CODE'
   };
   // The expected popup event ID.

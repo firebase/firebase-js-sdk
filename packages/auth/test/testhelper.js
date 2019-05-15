@@ -25,6 +25,8 @@ goog.provide('fireauth.common.testHelper');
 goog.require('fireauth.storage.Factory');
 goog.require('fireauth.util');
 goog.require('goog.Promise');
+goog.require('goog.crypt.base64');
+goog.require('goog.object');
 
 goog.setTestOnly('fireauth.common.testHelper');
 
@@ -214,15 +216,6 @@ fireauth.common.testHelper.assertUserEqualsInWithDiffApikey = function(
     expectedObj['stsTokenManager']['apiKey'] = '';
     actualObj['stsTokenManager']['apiKey'] = '';
   }
-  var delta = expectedObj['stsTokenManager']['expirationTime'] -
-      actualObj['stsTokenManager']['expirationTime'];
-  // Confirm expiration times are close enough.
-  // The conversion back and forth from and to plain object, could result in
-  // some negligible difference.
-  assertTrue(Math.abs(delta) <= 1000);
-  // Overwrite expiration times and app names.
-  expectedObj['stsTokenManager']['expirationTime'] = 0;
-  actualObj['stsTokenManager']['expirationTime'] = 0;
   expectedObj['appName'] = '';
   actualObj['appName'] = '';
   assertObjectEquals(expectedObj, actualObj);
@@ -251,4 +244,36 @@ fireauth.common.testHelper.installMockStorages =
       function() {
         return mockSessionStorage;
       });
+};
+
+
+/**
+ * Creates a mock Firebase ID token JWT with the provided optional payload and
+ * optional expiration time.
+ * @param {?Object=} opt_payload The optional payload used to override default
+ *     hardcoded values.
+ * @param {number=} opt_expirationTime The optional expiration time in
+ *     milliseconds.
+ * @return {string} The mock JWT.
+ */
+fireauth.common.testHelper.createMockJwt =
+    function(opt_payload, opt_expirationTime) {
+  // JWT time units should not have decimals but to make testing easier,
+  // we will allow it.
+  var now = goog.now() / 1000;
+  var basePayload = {
+    'iss': 'https://securetoken.google.com/projectId',
+    'aud': 'projectId',
+    'sub': '12345678',
+    'auth_time': now,
+    'iat': now,
+    'exp': typeof opt_expirationTime === 'undefined' ?
+        now + 3600 : opt_expirationTime / 1000
+  };
+  // Extend base payload.
+  goog.object.extend(basePayload, opt_payload || {});
+  var encodedPayload =
+      goog.crypt.base64.encodeString(JSON.stringify(basePayload), true);
+  // Remove any trailing or leading dots from the payload component.
+  return 'HEAD.' + encodedPayload.replace(/^\.+|\.+$/g, '') + '.SIGNATURE';
 };

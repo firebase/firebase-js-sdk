@@ -90,9 +90,8 @@ function setUp() {
     'emailVerified': false
   };
   var tokenResponse = {
-    'idToken': 'accessToken',
-    'refreshToken': 'refreshToken',
-    'expiresIn': 3600
+    'idToken': fireauth.common.testHelper.createMockJwt(),
+    'refreshToken': 'refreshToken'
   };
   testUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
   testUser2 = new fireauth.AuthUser(config, tokenResponse, accountInfo2);
@@ -147,9 +146,8 @@ function testGetSetRemoveCurrentUser() {
     'emailVerified': true
   };
   var tokenResponse = {
-    'idToken': 'accessToken',
-    'refreshToken': 'refreshToken',
-    'expiresIn': 3600
+    'idToken': fireauth.common.testHelper.createMockJwt(),
+    'refreshToken': 'refreshToken'
   };
   expectedUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
   // Expected user with authDomain.
