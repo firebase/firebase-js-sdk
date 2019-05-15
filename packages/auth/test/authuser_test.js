@@ -1396,6 +1396,7 @@ function testUser_getIdTokenResult() {
         1522715325,
         1522776807,
         'password',
+        null,
         idTokenCustomClaims.data);
     asyncTestCase.signal();
   });
@@ -1421,6 +1422,7 @@ function testUser_getIdTokenResult_forceRefresh() {
         1522715325,
         1522776807,
         'password',
+        null,
         idTokenCustomClaims.data);
     asyncTestCase.signal();
   });
@@ -1576,6 +1578,7 @@ function testUser_getIdTokenResult_expiredToken_reauth() {
                   1522715325,
                   1522776807,
                   'password',
+                  null,
                   idTokenGmail.data);
               asyncTestCase.signal();
            });

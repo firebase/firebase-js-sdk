@@ -166,6 +166,7 @@ fireauth.common.testHelper.assertUserStorage =
  * @param {?number} authTime The expected auth time in seconds.
  * @param {?number} issuedAtTime The expected issued time in seconds.
  * @param {?string} signInProvider The expected sign-in provider.
+ * @param {?string} signInSecondFactor The expected sign-in second factor.
  * @param {!Object} claims The expected payload claims .
  */
 fireauth.common.testHelper.assertIdTokenResult = function (
@@ -175,6 +176,7 @@ fireauth.common.testHelper.assertIdTokenResult = function (
     authTime,
     issuedAtTime,
     signInProvider,
+    signInSecondFactor,
     claims) {
   assertEquals(token, idTokenResult['token']);
   assertEquals(fireauth.util.utcTimestampToDateString(expirationTime * 1000),
@@ -184,6 +186,7 @@ fireauth.common.testHelper.assertIdTokenResult = function (
   assertEquals(fireauth.util.utcTimestampToDateString(issuedAtTime * 1000),
       idTokenResult['issuedAtTime']);
   assertEquals(signInProvider, idTokenResult['signInProvider']);
+  assertEquals(signInSecondFactor, idTokenResult['signInSecondFactor']);
   assertObjectEquals(claims, idTokenResult['claims']);
 };
 
