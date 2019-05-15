@@ -65,6 +65,11 @@ var expectedStsTokenResponse = {
   'refresh_token': 'refreshToken',
   'expires_in': '3600'
 };
+// New token response without expires_in.
+var tokenResponse = {
+  'idToken': 'accessToken',
+  'refreshToken': 'refreshToken'
+};
 var asyncTestCase = goog.testing.AsyncTestCase.createAndInstall();
 var CURRENT_URL = 'http://www.example.com:8080/foo.htm';
 var clock;
@@ -7143,6 +7148,354 @@ function testGetAuthUri_error_noAuthUri() {
     fireauth.common.testHelper.assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });
+}
+
+
+/**
+ * Tests successful startPhoneMfaEnrollment RPC call.
+ */
+function testStartPhoneMfaEnrollment_success() {
+  var expectedRequest = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'PHONE_SMS',
+    'phoneEnrollmentInfo': {
+      'phoneNumber': '+15551234567',
+      'recaptchaToken': 'RECAPTCHA_TOKEN'
+    }
+  };
+  var expectedResponse = {
+    'phoneSessionInfo': {
+      'sessionInfo': 'SESSION_INFO'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaEnrollment:start?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.startPhoneMfaEnrollment(expectedRequest)
+      .then(function(sessionInfo) {
+        assertEquals(
+            expectedResponse['phoneSessionInfo']['sessionInfo'], sessionInfo);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid request startPhoneMfaEnrollment error for a missing phone
+ * number.
+ */
+function testStartPhoneMfaEnrollment_invalidRequest_missingPhoneNumber() {
+  // Missing phone number in request.
+  var expectedRequest = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'PHONE_SMS',
+    'phoneEnrollmentInfo': {
+      'recaptchaToken': 'RECAPTCHA_TOKEN'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.startPhoneMfaEnrollment(expectedRequest)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(
+                fireauth.authenum.Error.MISSING_PHONE_NUMBER),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid request startPhoneMfaEnrollment error for a missing recaptcha
+ * token.
+ */
+function testStartPhoneMfaEnrollment_invalidRequest_missingRecaptchaToken() {
+  // Missing recaptcha token in request.
+  var expectedRequest = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'PHONE_SMS',
+    'phoneEnrollmentInfo': {
+      'phoneNumber': '+15551234567'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.startPhoneMfaEnrollment(expectedRequest)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(
+                fireauth.authenum.Error.MISSING_APP_CREDENTIAL),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid request startPhoneMfaEnrollment error for an invalid MFA
+ * provider.
+ */
+function testStartPhoneMfaEnrollment_invalidRequest_invalidMfaProvider() {
+  // Invalid MFA provider in request.
+  var expectedRequest = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'UNKNOWN',
+    'phoneEnrollmentInfo': {
+      'phoneNumber': '+15551234567',
+      'recaptchaToken': 'RECAPTCHA_TOKEN'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.startPhoneMfaEnrollment(expectedRequest)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid response StartPhoneMfaEnrollment error.
+ */
+function testStartPhoneMfaEnrollment_unknownServerResponse() {
+  var expectedRequest = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'PHONE_SMS',
+    'phoneEnrollmentInfo': {
+      'phoneNumber': '+15551234567',
+      'recaptchaToken': 'RECAPTCHA_TOKEN'
+    }
+  };
+  // No sessionInfo returned.
+  var expectedResponse = {
+    'phoneSessionInfo': {
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaEnrollment:start?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.startPhoneMfaEnrollment(expectedRequest)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests server side StartPhoneMfaEnrollment error.
+ */
+function testStartPhoneMfaEnrollment_caughtServerError() {
+  var expectedUrl = identityPlatformEndpoint +
+      'accounts/mfaEnrollment:start?key=apiKey';
+  var requestBody = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'PHONE_SMS',
+    'phoneEnrollmentInfo': {
+      'phoneNumber': '+15551234567',
+      'recaptchaToken': 'RECAPTCHA_TOKEN'
+    }
+  };
+  var errorMap = {};
+  // All related server errors for StartPhoneMfaEnrollment.
+  errorMap[fireauth.RpcHandler.ServerError.CAPTCHA_CHECK_FAILED] =
+      fireauth.authenum.Error.CAPTCHA_CHECK_FAILED;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_APP_CREDENTIAL] =
+      fireauth.authenum.Error.INVALID_APP_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_PHONE_NUMBER] =
+      fireauth.authenum.Error.INVALID_PHONE_NUMBER;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_APP_CREDENTIAL] =
+      fireauth.authenum.Error.MISSING_APP_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_PHONE_NUMBER] =
+      fireauth.authenum.Error.MISSING_PHONE_NUMBER;
+  errorMap[fireauth.RpcHandler.ServerError.QUOTA_EXCEEDED] =
+      fireauth.authenum.Error.QUOTA_EXCEEDED;
+  errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
+      fireauth.authenum.Error.REJECTED_CREDENTIAL;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.startPhoneMfaEnrollment(requestBody);
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
+ * Tests successful finalizePhoneMfaEnrollment RPC call using an SMS code.
+ */
+function testFinalizePhoneMfaEnrollment_success() {
+  var expectedRequest = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'PHONE_SMS',
+    'phoneVerificationInfo': {
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaEnrollment:finalize?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      tokenResponse);
+  rpcHandler.finalizePhoneMfaEnrollment(expectedRequest)
+      .then(function(response) {
+        assertEquals(tokenResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid request finalizePhoneMfaEnrollment error for a missing
+ * sessionInfo.
+ */
+function testFinalizePhoneMfaEnrollment_invalidRequest_missingSessionInfo() {
+  var expectedRequest = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'PHONE_SMS',
+    'phoneVerificationInfo': {
+      'code': '123456'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.finalizePhoneMfaEnrollment(expectedRequest)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(
+                fireauth.authenum.Error.MISSING_SESSION_INFO),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid request finalizePhoneMfaEnrollment error for a missing code.
+ */
+function testFinalizePhoneMfaEnrollment_invalidRequest_missingCode() {
+  var expectedRequest = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'PHONE_SMS',
+    'phoneVerificationInfo': {
+      'sessionInfo': 'SESSION_INFO'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.finalizePhoneMfaEnrollment(expectedRequest)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.MISSING_CODE),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid request finalizePhoneMfaEnrollment error for invalid MFA
+ * provider.
+ */
+function testFinalizePhoneMfaEnrollment_invalidRequest_invalidMfaProvider() {
+  var expectedRequest = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'UNKNOWN',
+    'phoneVerificationInfo': {
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.finalizePhoneMfaEnrollment(expectedRequest)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests invalid response finalizePhoneMfaEnrollment error.
+ */
+function testFinalizePhoneMfaEnrollment_unknownServerResponse() {
+  var expectedRequest = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'PHONE_SMS',
+    'phoneVerificationInfo': {
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    }
+  };
+  // No idToken returned.
+  var expectedResponse = {};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaEnrollment:finalize?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.finalizePhoneMfaEnrollment(expectedRequest)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests server side finalizePhoneMfaEnrollment error.
+ */
+function testFinalizePhoneMfaEnrollment_caughtServerError() {
+  var expectedUrl = identityPlatformEndpoint +
+      'accounts/mfaEnrollment:finalize?key=apiKey';
+  var requestBody = {
+    'idToken': 'ID_TOKEN',
+    'mfaProvider': 'PHONE_SMS',
+    'phoneVerificationInfo': {
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    }
+  };
+  var errorMap = {};
+  // All related server errors for finalizePhoneMfaEnrollment.
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_CODE] =
+      fireauth.authenum.Error.INVALID_CODE;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_SESSION_INFO] =
+      fireauth.authenum.Error.INVALID_SESSION_INFO;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TEMPORARY_PROOF] =
+      fireauth.authenum.Error.INVALID_IDP_RESPONSE;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_CODE] =
+      fireauth.authenum.Error.MISSING_CODE;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_SESSION_INFO] =
+      fireauth.authenum.Error.MISSING_SESSION_INFO;
+  errorMap[fireauth.RpcHandler.ServerError.SESSION_EXPIRED] =
+      fireauth.authenum.Error.CODE_EXPIRED;
+  errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
+      fireauth.authenum.Error.REJECTED_CREDENTIAL;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.finalizePhoneMfaEnrollment(requestBody);
+  }, errorMap, expectedUrl, requestBody);
 }
 
 

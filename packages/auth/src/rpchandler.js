@@ -272,6 +272,7 @@ fireauth.RpcHandler.AuthServerField = {
   NEED_CONFIRMATION: 'needConfirmation',
   OAUTH_ID_TOKEN: 'oauthIdToken',
   PENDING_TOKEN: 'pendingToken',
+  PHONE_SESSION_INFO: 'phoneSessionInfo',
   POST_BODY: 'postBody',
   PROVIDER_ID: 'providerId',
   RECAPTCHA_SITE_KEY: 'recaptchaSiteKey',
@@ -303,6 +304,15 @@ fireauth.RpcHandler.GetOobCodeRequestType = {
   PASSWORD_RESET: 'PASSWORD_RESET',
   VERIFY_AND_CHANGE_EMAIL: 'VERIFY_AND_CHANGE_EMAIL',
   VERIFY_EMAIL: 'VERIFY_EMAIL'
+};
+
+
+/**
+ * Firebase Auth startMfaEnrollment mfaProvider possible values.
+ * @enum {string}
+ */
+fireauth.RpcHandler.MfaProvider = {
+  PHONE_SMS: 'PHONE_SMS'
 };
 
 
@@ -1706,6 +1716,92 @@ fireauth.RpcHandler.prototype.verifyPhoneNumberForExisting = function(request) {
 
 
 /**
+ * Validates a request for starting phone MFA enrollment.
+ * @param {!Object} request The startPhoneMfaEnrollment request data.
+ * @private
+ */
+fireauth.RpcHandler.validateStartPhoneMfaEnrollmentRequest_ =
+    function(request) {
+  if ((request['mfaProvider'] != fireauth.RpcHandler.MfaProvider.PHONE_SMS) ||
+      !request['phoneEnrollmentInfo']) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  }
+  if (!request['phoneEnrollmentInfo']['phoneNumber']) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.MISSING_PHONE_NUMBER);
+  }
+  if (!request['phoneEnrollmentInfo']['recaptchaToken']) {
+    throw new fireauth.AuthError(
+        fireauth.authenum.Error.MISSING_APP_CREDENTIAL);
+  }
+};
+
+
+/**
+ * Validates a response to a start phone MFA enrollment request.
+ * @param {!Object} response The server response data.
+ * @private
+ */
+fireauth.RpcHandler.validateStartPhoneMfaEnrollmentResponse_ =
+    function(response) {
+  if (!response[fireauth.RpcHandler.AuthServerField.PHONE_SESSION_INFO] ||
+      !response[fireauth.RpcHandler.AuthServerField.PHONE_SESSION_INFO]
+          [fireauth.RpcHandler.AuthServerField.SESSION_INFO]) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  }
+};
+
+
+/**
+ * Requests startMfaEnrollment endpoint for verifying the user's ownership of
+ * a phone number before enrolling to MFA. It resolves with a sessionInfo
+ * (verificationId) string.
+ * @param {!Object} request The enroll MFA request for phone.
+ * @return {!goog.Promise<string>}
+ */
+fireauth.RpcHandler.prototype.startPhoneMfaEnrollment = function(request) {
+  return this.invokeRpc(
+      fireauth.RpcHandler.ApiMethod.START_PHONE_MFA_ENROLLMENT, request)
+      .then(function(response) {
+        // Extract the sessionInfo(verificationId) from response.
+        return response[fireauth.RpcHandler.AuthServerField.PHONE_SESSION_INFO]
+            [fireauth.RpcHandler.AuthServerField.SESSION_INFO];
+      });
+};
+
+
+/**
+ * Validates a request for finalizing phone MFA enrollment.
+ * @param {!Object} request The finalizePhoneMfaEnrollment request data.
+ * @private
+ */
+fireauth.RpcHandler.validateFinalizePhoneMfaEnrollmentRequest_ =
+    function(request) {
+  if ((request['mfaProvider'] != fireauth.RpcHandler.MfaProvider.PHONE_SMS) ||
+      !request['phoneVerificationInfo']) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  }
+  if (!request['phoneVerificationInfo']['sessionInfo']) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.MISSING_SESSION_INFO);
+  }
+  if (!request['phoneVerificationInfo']['code']) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.MISSING_CODE);
+  }
+};
+
+
+/**
+ * Requests finalizeMfaEnrollment endpoint to finish the enrollment flow for
+ * phone MFA. It resolves with the MFA STS token response.
+ * @param {!Object} request The enroll MFA request for phone.
+ * @return {!goog.Promise<!Object>}
+ */
+fireauth.RpcHandler.prototype.finalizePhoneMfaEnrollment = function(request) {
+  return this.invokeRpc(
+      fireauth.RpcHandler.ApiMethod.FINALIZE_PHONE_MFA_ENROLLMENT, request);
+};
+
+
+/**
  * The custom error map for reauth with verifyPhoneNumber.
  * @private {!fireauth.RpcHandler.ServerErrorMap}
  */
@@ -2140,6 +2236,15 @@ fireauth.RpcHandler.ApiMethod = {
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
     returnSecureToken: true
   },
+  FINALIZE_PHONE_MFA_ENROLLMENT: {
+    endpoint: 'accounts/mfaEnrollment:finalize',
+    requestRequiredFields: ['idToken', 'mfaProvider', 'phoneVerificationInfo'],
+    requestValidator:
+        fireauth.RpcHandler.validateFinalizePhoneMfaEnrollmentRequest_,
+    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
+    requireTenantId: true,
+    useIdentityPlatformEndpoint: true
+  },
   GET_ACCOUNT_INFO: {
     endpoint: 'getAccountInfo'
   },
@@ -2226,6 +2331,16 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'signupNewUser',
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
     returnSecureToken: true
+  },
+  START_PHONE_MFA_ENROLLMENT: {
+    endpoint: 'accounts/mfaEnrollment:start',
+    requestRequiredFields: ['idToken', 'mfaProvider', 'phoneEnrollmentInfo'],
+    requestValidator:
+        fireauth.RpcHandler.validateStartPhoneMfaEnrollmentRequest_,
+    responseValidator:
+        fireauth.RpcHandler.validateStartPhoneMfaEnrollmentResponse_,
+    requireTenantId: true,
+    useIdentityPlatformEndpoint: true
   },
   VERIFY_ASSERTION: {
     endpoint: 'verifyAssertion',
