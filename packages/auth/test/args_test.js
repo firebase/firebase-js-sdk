@@ -22,6 +22,7 @@ goog.require('fireauth.AuthUser');
 goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
 goog.require('fireauth.PhoneAuthProvider');
+goog.require('fireauth.PhoneMultiFactorGenerator');
 goog.require('fireauth.args');
 goog.require('goog.Promise');
 goog.require('goog.dom');
@@ -765,4 +766,82 @@ function testValidate_argumentsObj_invalid() {
   });
   assertEquals('fooFunc failed: First argument "name" must be a valid ' +
       'string.', error.message);
+}
+
+
+function testValidate_multiFactorAssertion_valid() {
+  var expectedArgs = [fireauth.args.multiFactorAssertion()];
+  var cred = fireauth.PhoneAuthProvider.credential('verificationId', 'code');
+  var args = [fireauth.PhoneMultiFactorGenerator.assertion(cred)];
+  assertNotThrows(function() {
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+}
+
+
+function testValidate_multiFactorAssertion_invalid() {
+  var error = assertThrows(function() {
+    var expectedArgs = [fireauth.args.multiFactorAssertion()];
+    var args = ['foo'];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals(
+      'myFunc failed: First argument "multiFactorAssertion" must be a valid ' +
+      'multiFactorAssertion.',
+      error.message);
+}
+
+
+function testValidate_multiFactorAssertion_null() {
+  var error = assertThrows(function() {
+    var expectedArgs = [fireauth.args.multiFactorAssertion()];
+    var args = [null];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals(
+      'myFunc failed: First argument "multiFactorAssertion" must be a valid ' +
+      'multiFactorAssertion.',
+      error.message);
+}
+
+
+function testValidate_multiFactorAssertion_withType_valid() {
+  var expectedArgs = [fireauth.args.multiFactorAssertion('phone')];
+  var cred = fireauth.PhoneAuthProvider.credential('verificationId', 'code');
+  var args = [fireauth.PhoneMultiFactorGenerator.assertion(cred)];
+  fireauth.args.validate('myFunc', expectedArgs, args);
+}
+
+
+function testValidate_multiFactorAssertion_withType_invalid() {
+  var expectedMessage =
+      'myFunc failed: First argument "otherMultiFactorAssertion" ' +
+      'must be a valid other multiFactorAssertion.';
+  var expectedArgs = [fireauth.args.multiFactorAssertion('other')];
+  var error = assertThrows(function() {
+    var cred = fireauth.PhoneAuthProvider.credential('verificationId', 'code');
+    var args = [fireauth.PhoneMultiFactorGenerator.assertion(cred)];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals(expectedMessage, error.message);
+
+  error = assertThrows(function() {
+    var args = ['I am the wrong type'];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals(expectedMessage, error.message);
+}
+
+
+function testValidate_multiFactorAssertion_withTypeAndName_invalid() {
+  var expectedMessage = 'myFunc failed: First argument "myArgName" ' +
+      'must be a valid other multiFactorAssertion.';
+  var expectedArgs =
+      [fireauth.args.multiFactorAssertion('other', 'myArgName')];
+  var error = assertThrows(function() {
+    var cred = fireauth.PhoneAuthProvider.credential('verificationId', 'code');
+    var args = [fireauth.PhoneMultiFactorGenerator.assertion(cred)];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals(expectedMessage, error.message);
 }

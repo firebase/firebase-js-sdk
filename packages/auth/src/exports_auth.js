@@ -31,10 +31,14 @@ goog.require('fireauth.GRecaptchaMockFactory');
 goog.require('fireauth.GithubAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
 goog.require('fireauth.InvalidOriginError');
+goog.require('fireauth.MultiFactorError');
+goog.require('fireauth.MultiFactorResolver');
+goog.require('fireauth.MultiFactorUser');
 goog.require('fireauth.OAuthCredential');
 goog.require('fireauth.OAuthProvider');
 goog.require('fireauth.PhoneAuthCredential');
 goog.require('fireauth.PhoneAuthProvider');
+goog.require('fireauth.PhoneMultiFactorGenerator');
 goog.require('fireauth.RecaptchaVerifier');
 goog.require('fireauth.SAMLAuthCredential');
 goog.require('fireauth.SAMLAuthProvider');
@@ -599,6 +603,37 @@ fireauth.exportlib.exportPrototypeMethods(
         args: [fireauth.args.string(null, true)]
       }
     });
+fireauth.exportlib.exportPrototypeMethods(
+    fireauth.MultiFactorError.prototype, {
+      toJSON: {
+        name: 'toJSON',
+        // This shouldn't take an argument but a blank string is being passed
+        // on JSON.stringify and causing this to fail with an argument error.
+        // So allow an optional string.
+        args: [fireauth.args.string(null, true)]
+      }
+    });
+fireauth.exportlib.exportPrototypeMethods(
+    fireauth.MultiFactorResolver.prototype, {
+      resolveSignIn: {
+        name: 'resolveSignIn',
+        args: [fireauth.args.multiFactorAssertion()]
+      }
+    });
+fireauth.exportlib.exportPrototypeMethods(
+    fireauth.MultiFactorUser.prototype, {
+      getSession: {
+        name: 'getSession',
+        args: []
+      },
+      enroll: {
+        name: 'enroll',
+        args: [
+          fireauth.args.multiFactorAssertion(),
+          fireauth.args.string('displayName', true)
+        ]
+      }
+    });
 
 fireauth.exportlib.exportPrototypeMethods(
     fireauth.RecaptchaVerifier.prototype, {
@@ -615,6 +650,11 @@ fireauth.exportlib.exportPrototypeMethods(
         args: []
       }
     });
+
+fireauth.exportlib.exportFunction(
+    fireauth.PhoneMultiFactorGenerator, 'assertion',
+    fireauth.PhoneMultiFactorGenerator.assertion,
+    [fireauth.args.authCredential(fireauth.idp.ProviderId.PHONE)]);
 
 
 (function() {
@@ -676,6 +716,8 @@ fireauth.exportlib.exportPrototypeMethods(
           fireauth.args.object('recaptchaParameters', true),
           fireauth.args.firebaseApp(true)
         ]);
+    fireauth.exportlib.exportFunction(namespace,
+        'PhoneMultiFactorGenerator', fireauth.PhoneMultiFactorGenerator, []);
 
     // Register Auth service with firebase.App.
     firebase.INTERNAL.registerService(

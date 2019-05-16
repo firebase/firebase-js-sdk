@@ -444,6 +444,43 @@ fireauth.args.authCredential =
 
 
 /**
+ * Specifies an argument that implements the fireauth.MultiFactorAssertion
+ * interface.
+ * @param {?string=} requiredFactorId The required type of second factor.
+ * @param {?string=} optionalName The name of the argument.
+ * @param {?boolean=} optionalArg Whether or not this argument is optional.
+ *     Defaults to false.
+ * @return {!fireauth.args.Argument}
+ */
+fireauth.args.multiFactorAssertion =
+    function(requiredFactorId, optionalName, optionalArg) {
+  var name = optionalName ||
+      (requiredFactorId ?
+       requiredFactorId + 'MultiFactorAssertion' : 'multiFactorAssertion');
+  var typeLabel = requiredFactorId ?
+      'a valid ' + requiredFactorId + ' multiFactorAssertion' :
+      'a valid multiFactorAssertion';
+  return /** @type {!fireauth.args.Argument} */ ({
+    name: name,
+    typeLabel: typeLabel,
+    optional: !!optionalArg,
+    validator:
+        /** @type {function(!fireauth.MultiFactorAssertion) : boolean} */ (
+            function(assertion) {
+              if (!assertion) {
+                return false;
+              }
+              // If requiredFactorId is set, make sure it matches the
+              // assertion's factorId.
+              var matchesRequiredFactor = !requiredFactorId ||
+                  (assertion['factorId'] === requiredFactorId);
+              return !!(assertion.process && matchesRequiredFactor);
+            })
+  });
+};
+
+
+/**
  * Specifies an argument that implements the fireauth.AuthProvider interface.
  * @param {?string=} opt_name The name of the argument.
  * @param {?boolean=} opt_optional Whether or not this argument is optional.
