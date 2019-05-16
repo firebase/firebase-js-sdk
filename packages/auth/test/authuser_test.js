@@ -866,6 +866,17 @@ function testUser_stateChangeListeners() {
 }
 
 
+function testGetRpcHandler() {
+  user1 = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  user2 = new fireauth.AuthUser(config2, tokenResponse, accountInfo);
+
+  assertTrue(user1.getRpcHandler() instanceof fireauth.RpcHandler);
+  assertTrue(user2.getRpcHandler() instanceof fireauth.RpcHandler);
+  assertEquals(config1['apiKey'], user1.getRpcHandler().getApiKey());
+  assertEquals(config2['apiKey'], user2.getRpcHandler().getApiKey());
+}
+
+
 function testAddProviderData_sameProviderId() {
   var providerData1 = new fireauth.AuthUserInfo(
       'providerUserId1',
@@ -2540,7 +2551,7 @@ function testUpdateTokensIfPresent_newTokens() {
         });
       });
 
-  user.updateTokensIfPresent_({
+  user.updateTokensIfPresent({
     'idToken': newJwt,
     'refreshToken': 'newRefreshToken'
   });
@@ -2554,7 +2565,7 @@ function testUpdateTokensIfPresent_identicalTokens() {
   assertNoTokenEvents(user);
   assertNoUserInvalidatedEvents(user);
 
-  user.updateTokensIfPresent_(tokenResponse);
+  user.updateTokensIfPresent(tokenResponse);
   user.getIdToken().then(function(idToken) {
     assertEquals(tokenResponse['idToken'], idToken);
     asyncTestCase.signal();
@@ -2569,7 +2580,7 @@ function testUpdateTokensIfPresent_noTokens() {
   assertNoTokenEvents(user);
   assertNoUserInvalidatedEvents(user);
 
-  user.updateTokensIfPresent_({
+  user.updateTokensIfPresent({
     'email': 'user@default.com'
   });
   user.getIdToken().then(function(idToken) {
@@ -2894,10 +2905,10 @@ function testUpdateProfile_success() {
         }, profileData);
         return goog.Promise.resolve(expectedResponse);
       });
-  // Records calls to updateTokensIfPresent_.
+  // Records calls to updateTokensIfPresent.
   stubs.replace(
       user,
-      'updateTokensIfPresent_',
+      'updateTokensIfPresent',
       goog.testing.recordFunction());
 
   user.updateProfile({
@@ -2906,10 +2917,10 @@ function testUpdateProfile_success() {
   }).then(function() {
     assertEquals('Jack Smith', user['displayName']);
     assertEquals('http://www.example.com/photo/photo.png', user['photoURL']);
-    assertEquals(1, user.updateTokensIfPresent_.getCallCount());
+    assertEquals(1, user.updateTokensIfPresent.getCallCount());
     assertEquals(
         expectedResponse,
-        user.updateTokensIfPresent_.getLastCall().getArgument(0));
+        user.updateTokensIfPresent.getLastCall().getArgument(0));
     asyncTestCase.signal();
   });
 }

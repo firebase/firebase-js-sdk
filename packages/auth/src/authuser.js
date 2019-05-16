@@ -419,6 +419,15 @@ fireauth.AuthUser.prototype.getApiKey = function() {
 
 
 /**
+ * Returns the RPC handler of the user.
+ * @return {!fireauth.RpcHandler} The RPC handler.
+ */
+fireauth.AuthUser.prototype.getRpcHandler = function() {
+  return this.rpcHandler_;
+};
+
+
+/**
  * Used to initialize the current user's proactive token refresher utility.
  * @return {!fireauth.ProactiveRefresh} The user's proactive token refresh
  *     utility.
@@ -970,9 +979,8 @@ fireauth.AuthUser.isUserInvalidated_ = function(error) {
  * present and are different from the current ones, and notify the Auth
  * listeners.
  * @param {!Object} response The response from the server.
- * @private
  */
-fireauth.AuthUser.prototype.updateTokensIfPresent_ = function(response) {
+fireauth.AuthUser.prototype.updateTokensIfPresent = function(response) {
   if (response[fireauth.RpcHandler.AuthServerField.ID_TOKEN] &&
       this.lastAccessToken_ != response[
           fireauth.RpcHandler.AuthServerField.ID_TOKEN]) {
@@ -1137,7 +1145,7 @@ fireauth.AuthUser.prototype.reauthenticateWithCredential =
       .then(function(response) {
         // If the credential is valid and matches the current user ID, then
         // update the tokens accordingly.
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         // Get user credential.
         userCredential = self.getUserCredential_(
             response, fireauth.constants.OperationType.REAUTHENTICATE);
@@ -1335,7 +1343,7 @@ fireauth.AuthUser.prototype.getUserCredential_ =
 fireauth.AuthUser.prototype.finalizeLinking_ = function(response) {
   // The response may contain a new access token,
   // so we should update them just like a new sign in.
-  this.updateTokensIfPresent_(response);
+  this.updateTokensIfPresent(response);
   // This will take care of saving the updated state.
   var self = this;
   return this.reload().then(function() {
@@ -1358,7 +1366,7 @@ fireauth.AuthUser.prototype.updateEmail = function(newEmail) {
       })
       .then(function(response) {
         // Calls to SetAccountInfo may invalidate old tokens.
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         // Reloads the user to update emailVerified.
         return self.reload();
       }));
@@ -1379,7 +1387,7 @@ fireauth.AuthUser.prototype.updatePhoneNumber = function(phoneCredential) {
         return phoneCredential.linkToIdToken(self.rpcHandler_, idToken);
       })
       .then(function(response) {
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         return self.reload();
       }));
 };
@@ -1399,7 +1407,7 @@ fireauth.AuthUser.prototype.updatePassword = function(newPassword) {
         return self.rpcHandler_.updatePassword(idToken, newPassword);
       })
       .then(function(response) {
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         // Reloads the user in case email has also been updated and the user
         // was anonymous.
         return self.reload();
@@ -1431,7 +1439,7 @@ fireauth.AuthUser.prototype.updateProfile = function(profile) {
       })
       .then(function(response) {
         // Calls to SetAccountInfo may invalidate old tokens.
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         // Update properties.
         self.updateProperty('displayName',
             response[fireauth.AuthUser.SetAccountInfoField.DISPLAY_NAME] ||
@@ -2025,7 +2033,7 @@ fireauth.AuthUser.prototype.finishPopupAndRedirectReauth =
             response, fireauth.constants.OperationType.REAUTHENTICATE);
         // If the credential is valid and matches the current user ID, then
         // update the tokens accordingly.
-        self.updateTokensIfPresent_(response);
+        self.updateTokensIfPresent(response);
         // This could potentially validate an invalidated user. This happens in
         // the case a password reset was applied. The refresh token is expired.
         // Reauthentication should revalidate the user.

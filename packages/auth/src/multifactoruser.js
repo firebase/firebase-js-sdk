@@ -23,6 +23,7 @@
 
 goog.provide('fireauth.MultiFactorUser');
 
+goog.require('fireauth.MultiFactorAssertion');
 goog.require('fireauth.MultiFactorInfo');
 goog.require('fireauth.MultiFactorSession');
 goog.require('fireauth.UserEventType');
@@ -172,6 +173,32 @@ fireauth.MultiFactorUser.prototype.getSession = function() {
       .then(function(idToken) {
         return new fireauth.MultiFactorSession(idToken, null);
       });
+};
+
+
+/**
+ * Enrolls a second factor as identified by the multi-factor assertion for
+ * the current user.
+ * @param {!fireauth.MultiFactorAssertion} assertion The multi-factor assertion.
+ * @param {?string=} displayName The optional display name used to identify
+ *     the 2nd factor to the end user.
+ * @return {!goog.Promise<void>} A promise that resolves when the second factor
+ *     is enrolled.
+ */
+fireauth.MultiFactorUser.prototype.enroll = function(assertion, displayName) {
+  var self = this;
+  var rpcHandler = this.user_.getRpcHandler();
+  return this.getSession().then(function(session) {
+    return assertion.process(rpcHandler, session, displayName);
+  }).then(function(tokenResponse) {
+    // New tokens will be issued after enrollment of the new second factors.
+    // They need to be updated on the user.
+    self.user_.updateTokensIfPresent(tokenResponse);
+    // The user needs to be reloaded to get the new multi-factor information
+    // from server. USER_RELOADED event will be triggered and `enrolledFactors`
+    // will be updated.
+    return self.user_.reload();
+  });
 };
 
 
