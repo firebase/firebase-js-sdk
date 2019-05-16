@@ -7824,6 +7824,14 @@ function testStartPhoneMfaSignIn_caughtServerError() {
       fireauth.authenum.Error.QUOTA_EXCEEDED;
   errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
       fireauth.authenum.Error.REJECTED_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_MFA_PENDING_CREDENTIAL] =
+      fireauth.authenum.Error.INVALID_MFA_PENDING_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.MFA_ENROLLMENT_NOT_FOUND] =
+      fireauth.authenum.Error.MFA_ENROLLMENT_NOT_FOUND;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_MFA_ENROLLMENT_ID] =
+      fireauth.authenum.Error.MISSING_MFA_ENROLLMENT_ID;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_MFA_PENDING_CREDENTIAL] =
+      fireauth.authenum.Error.MISSING_MFA_PENDING_CREDENTIAL;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.startPhoneMfaSignIn(signInRequest);
@@ -7975,9 +7983,157 @@ function testFinalizePhoneMfaSignIn_caughtServerError() {
       fireauth.authenum.Error.CODE_EXPIRED;
   errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
       fireauth.authenum.Error.REJECTED_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_MFA_PENDING_CREDENTIAL] =
+      fireauth.authenum.Error.INVALID_MFA_PENDING_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_MFA_PENDING_CREDENTIAL] =
+      fireauth.authenum.Error.MISSING_MFA_PENDING_CREDENTIAL;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.finalizePhoneMfaSignIn(signInRequest);
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
+ * Tests a successful WithdrawMfa RPC call where the user session is maintained.
+ * A successful call to WithdrawMfa will either return a new idToken and
+ * refreshToken if the user session is maintained or no tokens if the session
+ * is revoked (this situation is tested below).
+ */
+function testWithdrawMfa_success_withMaintainedUserSession() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'refreshToken': 'REFRESH_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaEnrollment:withdraw?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'idToken': 'ID_TOKEN',
+        'mfaEnrollmentId': 'MFA_ENROLLMENT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_, delay, expectedResponse);
+
+  rpcHandler.withdrawMfa('ID_TOKEN', 'MFA_ENROLLMENT_ID')
+      .then(function(response) {
+        assertEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests a successful WithdrawMfa RPC call where the user session is revoked.
+ * In this case, the successful call returns an empty object indicating the user
+ * has been signed out.
+ */
+function testWithdrawMfa_success_withRevokedUserSession() {
+  var expectedResponse = {};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaEnrollment:withdraw?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'idToken': 'ID_TOKEN',
+        'mfaEnrollmentId': 'MFA_ENROLLMENT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+
+  rpcHandler.withdrawMfa('ID_TOKEN', 'MFA_ENROLLMENT_ID')
+      .then(function(response) {
+        assertEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests an invalid request WithdrawMfa with a missing mfaEnrollmentId.
+ */
+function testWithdrawMfa_invalidRequest_missingMfaEnrollmentId() {
+  asyncTestCase.waitForSignals(1);
+
+  // Tests with a missing mfaEnrollmentId in the request.
+  rpcHandler.withdrawMfa('ID_TOKEN', '')
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(
+                fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests an invalid request WithdrawMfa with a missing idToken.
+ */
+function testWithdrawMfa_invalidRequest_missingIdToken() {
+  asyncTestCase.waitForSignals(1);
+
+  // Tests with a missing idToken in the request.
+  rpcHandler.withdrawMfa('', 'MFA_ENROLLMENT_ID')
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(
+                fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests an invalid response from WithdrawMfa.
+ */
+function testWithdrawMfa_unknownServerResponse() {
+  // No refreshToken returned
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaEnrollment:withdraw?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'idToken': 'ID_TOKEN',
+        'mfaEnrollmentId': 'MFA_ENROLLMENT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+
+  rpcHandler.withdrawMfa('ID_TOKEN', 'MFA_ENROLLMENT_ID')
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests handling of server side WithdrawMfa errors.
+ */
+function testWithdrawMfa_caughtServerError() {
+  var expectedUrl = identityPlatformEndpoint +
+      'accounts/mfaEnrollment:withdraw?key=apiKey';
+  var idToken = 'ID_TOKEN';
+  var mfaEnrollmentId = 'MFA_ENROLLMENT_ID';
+  var requestBody = {
+    'idToken': idToken,
+    'mfaEnrollmentId': mfaEnrollmentId
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_ID_TOKEN] =
+      fireauth.authenum.Error.INVALID_AUTH;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.withdrawMfa(idToken, mfaEnrollmentId);
   }, errorMap, expectedUrl, requestBody);
 }
 

@@ -151,6 +151,7 @@ fireauth.authenum.Error = {
   INVALID_EMAIL: 'invalid-email',
   INVALID_IDP_RESPONSE: 'invalid-credential',
   INVALID_MESSAGE_PAYLOAD: 'invalid-message-payload',
+  INVALID_MFA_PENDING_CREDENTIAL: 'invalid-multi-factor-session',
   INVALID_OAUTH_CLIENT_ID: 'invalid-oauth-client-id',
   INVALID_OAUTH_PROVIDER: 'invalid-oauth-provider',
   INVALID_OOB_CODE: 'invalid-action-code',
@@ -162,6 +163,7 @@ fireauth.authenum.Error = {
   INVALID_RECIPIENT_EMAIL: 'invalid-recipient-email',
   INVALID_SENDER: 'invalid-sender',
   INVALID_SESSION_INFO: 'invalid-verification-id',
+  MFA_ENROLLMENT_NOT_FOUND: 'multi-factor-info-not-found',
   MFA_REQUIRED: 'multi-factor-auth-required',
   MISSING_ANDROID_PACKAGE_NAME: 'missing-android-pkg-name',
   MISSING_APP_CREDENTIAL: 'missing-app-credential',
@@ -170,6 +172,8 @@ fireauth.authenum.Error = {
   MISSING_CONTINUE_URI: 'missing-continue-uri',
   MISSING_IFRAME_START: 'missing-iframe-start',
   MISSING_IOS_BUNDLE_ID: 'missing-ios-bundle-id',
+  MISSING_MFA_ENROLLMENT_ID: 'missing-multi-factor-info',
+  MISSING_MFA_PENDING_CREDENTIAL: 'missing-multi-factor-session',
   MISSING_OR_INVALID_NONCE: 'missing-or-invalid-nonce',
   MISSING_PHONE_NUMBER: 'missing-phone-number',
   MISSING_SESSION_INFO: 'missing-verification-id',
@@ -293,6 +297,10 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_MESSAGE_PAYLOAD] =
     'The email template corresponding to this action contains invalid charac' +
     'ters in its message. Please fix by going to the Auth email templates se' +
     'ction in the Firebase Console.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.INVALID_MFA_PENDING_CREDENTIAL] =
+    'The request does not contain a valid proof of first factor successful ' +
+    'sign-in.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_OAUTH_PROVIDER] =
     'EmailAuthProvider is not supported for this operation. This operation ' +
     'only supports OAuth providers.';
@@ -327,6 +335,11 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_SENDER] =
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_SESSION_INFO] =
     'The verification ID used to create the phone auth credential is invalid.';
 fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.MFA_ENROLLMENT_NOT_FOUND] = 'The user does not ' +
+    'have a second factor matching the identifier provided.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MFA_REQUIRED] =
+    'Proof of ownership of a second factor is required to complete sign-in.';
+fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.MISSING_ANDROID_PACKAGE_NAME] = 'An Android ' +
     'Package Name must be provided if the Android App is required to be ' +
     'installed.';
@@ -345,6 +358,12 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_IFRAME_START] =
     'An internal error has occurred.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID] =
     'An iOS Bundle ID must be provided if an App Store ID is provided.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.MISSING_MFA_ENROLLMENT_ID] =
+    'No second factor identifier is provided.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.MISSING_MFA_PENDING_CREDENTIAL] =
+    'The request is missing proof of first factor successful sign-in.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_OR_INVALID_NONCE] =
     'The OIDC ID token requires a valid unhashed nonce.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_PHONE_NUMBER] =
@@ -353,8 +372,6 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_SESSION_INFO] =
     'The phone auth credential was created with an empty verification ID.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MODULE_DESTROYED] =
     'This instance of FirebaseApp has been deleted.';
-fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MFA_REQUIRED] =
-    'Proof of ownership of a second factor is required to complete sign-in.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.NEED_CONFIRMATION] =
     'An account already exists with the same email address but different ' +
     'sign-in credentials. Sign in using a provider associated with this ' +

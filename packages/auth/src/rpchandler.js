@@ -211,6 +211,7 @@ fireauth.RpcHandler.ServerError = {
   INVALID_IDP_RESPONSE: 'INVALID_IDP_RESPONSE',
   INVALID_IDENTIFIER: 'INVALID_IDENTIFIER',
   INVALID_MESSAGE_PAYLOAD: 'INVALID_MESSAGE_PAYLOAD',
+  INVALID_MFA_PENDING_CREDENTIAL: 'INVALID_MFA_PENDING_CREDENTIAL',
   INVALID_OAUTH_CLIENT_ID: 'INVALID_OAUTH_CLIENT_ID',
   INVALID_OOB_CODE: 'INVALID_OOB_CODE',
   INVALID_PASSWORD: 'INVALID_PASSWORD',
@@ -221,12 +222,15 @@ fireauth.RpcHandler.ServerError = {
   INVALID_SENDER: 'INVALID_SENDER',
   INVALID_SESSION_INFO: 'INVALID_SESSION_INFO',
   INVALID_TEMPORARY_PROOF: 'INVALID_TEMPORARY_PROOF',
+  MFA_ENROLLMENT_NOT_FOUND: 'MFA_ENROLLMENT_NOT_FOUND',
   MISSING_ANDROID_PACKAGE_NAME: 'MISSING_ANDROID_PACKAGE_NAME',
   MISSING_APP_CREDENTIAL: 'MISSING_APP_CREDENTIAL',
   MISSING_CODE: 'MISSING_CODE',
   MISSING_CONTINUE_URI: 'MISSING_CONTINUE_URI',
   MISSING_CUSTOM_TOKEN: 'MISSING_CUSTOM_TOKEN',
   MISSING_IOS_BUNDLE_ID: 'MISSING_IOS_BUNDLE_ID',
+  MISSING_MFA_ENROLLMENT_ID: 'MISSING_MFA_ENROLLMENT_ID',
+  MISSING_MFA_PENDING_CREDENTIAL: 'MISSING_MFA_PENDING_CREDENTIAL',
   MISSING_OOB_CODE: 'MISSING_OOB_CODE',
   MISSING_OR_INVALID_NONCE: 'MISSING_OR_INVALID_NONCE',
   MISSING_PASSWORD: 'MISSING_PASSWORD',
@@ -1878,6 +1882,41 @@ fireauth.RpcHandler.prototype.finalizePhoneMfaSignIn = function(request) {
 
 
 /**
+ * Validates the response for unenrolling a second factor. If the user is still
+ * considered signed in, the endpoint returns new tokens. However, if the
+ * user session is revoked no tokens will be returned.
+ * @param {!Object} response The server response data.
+ * @private
+ */
+fireauth.RpcHandler.validateWithdrawMfaResponse_ = function(response) {
+  var hasIdToken = !!response[fireauth.RpcHandler.AuthServerField.ID_TOKEN];
+  var hasRefreshToken =
+      !!response[fireauth.RpcHandler.AuthServerField.REFRESH_TOKEN];
+
+  if (hasIdToken ^ hasRefreshToken) {
+    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  }
+};
+
+
+/**
+ * Requests the withdraw endpoint to unenroll a second factor. Returns new
+ * tokens if the user is still considered signed in or no tokens if the user
+ * session is revoked and the user is being signed out.
+ * @param {string} idToken The ID token.
+ * @param {string} mfaEnrollmentId The MFA enrollment ID.
+ * @return {!goog.Promise<!Object>}
+ */
+fireauth.RpcHandler.prototype.withdrawMfa = function(idToken, mfaEnrollmentId) {
+  var request = {
+    'idToken': idToken,
+    'mfaEnrollmentId': mfaEnrollmentId
+  };
+  return this.invokeRpc(fireauth.RpcHandler.ApiMethod.WITHDRAW_MFA, request);
+};
+
+
+/**
  * The custom error map for reauth with verifyPhoneNumber.
  * @private {!fireauth.RpcHandler.ServerErrorMap}
  */
@@ -2485,6 +2524,13 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'verifyPhoneNumber',
     requestValidator: fireauth.RpcHandler.validateVerifyPhoneNumberRequest_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_
+  },
+  WITHDRAW_MFA: {
+    endpoint: 'accounts/mfaEnrollment:withdraw',
+    requestRequiredFields: ['idToken', 'mfaEnrollmentId'],
+    responseValidator: fireauth.RpcHandler.validateWithdrawMfaResponse_,
+    requireTenantId: true,
+    useIdentityPlatformEndpoint: true
   }
 };
 
@@ -2764,6 +2810,16 @@ fireauth.RpcHandler.getDeveloperError_ =
   // User actions (sign-up or deletion) disabled errors.
   errorMap[fireauth.RpcHandler.ServerError.ADMIN_ONLY_OPERATION] =
       fireauth.authenum.Error.ADMIN_ONLY_OPERATION;
+
+  // Multi-factor related errors.
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_MFA_PENDING_CREDENTIAL] =
+      fireauth.authenum.Error.INVALID_MFA_PENDING_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.MFA_ENROLLMENT_NOT_FOUND] =
+      fireauth.authenum.Error.MFA_ENROLLMENT_NOT_FOUND;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_MFA_PENDING_CREDENTIAL] =
+      fireauth.authenum.Error.MISSING_MFA_PENDING_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_MFA_ENROLLMENT_ID] =
+      fireauth.authenum.Error.MISSING_MFA_ENROLLMENT_ID;
 
   // Override errors set in the custom map.
   var customErrorMap = opt_customErrorMap || {};
