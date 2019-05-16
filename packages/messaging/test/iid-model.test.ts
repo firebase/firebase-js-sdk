@@ -24,8 +24,6 @@ import { IidModel } from '../src/models/iid-model';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { fetchMock } from './testing-utils/mock-fetch';
 
-import { describe } from './testing-utils/messaging-test-runner';
-
 const fcmSenderId = '1234567';
 const fcmToken = 'qwerty';
 const fcmPushSet = '7654321';

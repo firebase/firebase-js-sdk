@@ -20,7 +20,6 @@ import { expect } from 'chai';
 import { DbInterface } from '../src/models/db-interface';
 
 import { deleteDatabase } from './testing-utils/db-helper';
-import { describe } from './testing-utils/messaging-test-runner';
 
 const VALUE = {
   key: 'key-value',
