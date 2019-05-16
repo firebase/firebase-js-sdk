@@ -147,7 +147,7 @@ goog.inherits(fireauth.UserEvent, goog.events.Event);
 
 
 /**
- * Events dispatched by pages on containers.
+ * Events dispatched by the user.
  * @enum {string}
  */
 fireauth.UserEventType = {
@@ -161,7 +161,10 @@ fireauth.UserEventType = {
    * Dispatched when user session is invalidated. This could happen when the
    * following errors occur: user-disabled or user-token-expired.
    */
-  USER_INVALIDATED: 'userInvalidated'
+  USER_INVALIDATED: 'userInvalidated',
+
+  /** Dispatched when the user is reloaded. */
+  USER_RELOADED: 'userReloaded'
 };
 
 
@@ -728,7 +731,10 @@ fireauth.AuthUser.prototype.setAccountInfo = function(accountInfo) {
  *   phoneNumber: (?string|undefined),
  *   isAnonymous: ?boolean,
  *   createdAt: (?string|undefined),
- *   lastLoginAt: (?string|undefined)
+ *   lastLoginAt: (?string|undefined),
+ *   multiFactor: ({
+ *     enrolledFactors: (?Array<!fireauth.MultiFactorInfo>|undefined)
+ *   }|undefined)
  * }}
  */
 fireauth.AuthUser.AccountInfo;
@@ -1090,6 +1096,10 @@ fireauth.AuthUser.prototype.parseAccountInfo_ = function(resp) {
       user[fireauth.AuthUser.GetAccountInfoField.PASSWORD_HASH]) &&
       !(this['providerData'] && this['providerData'].length);
   this.updateProperty('isAnonymous', isAnonymous);
+  // Notify external listeners of the reload.
+  this.dispatchEvent(new fireauth.UserEvent(
+      fireauth.UserEventType.USER_RELOADED,
+      {userServerResponse: user}));
 };
 
 

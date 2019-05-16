@@ -174,6 +174,7 @@ var expectedSamlTokenResponseWithIdPData;
 var expectedSamlAdditionalUserInfo;
 var jwt;
 var newJwt;
+var userReloadedEventHandler;
 
 
 function setUp() {
@@ -880,6 +881,10 @@ function testUser_setUserAccountInfoFromToken_success() {
   asyncTestCase.waitForSignals(1);
   // Initialize user with no account info or provider data.
   user = new fireauth.AuthUser(config1, tokenResponse);
+  // Record event triggers on USER_RELOADED.
+  var userReloadedEventHandler = goog.testing.recordFunction();
+  goog.events.listen(
+      user, fireauth.UserEventType.USER_RELOADED, userReloadedEventHandler);
   var stateChangedCounter = 0;
   user.addStateChangeListener(function(user) {
     stateChangedCounter++;
@@ -887,9 +892,14 @@ function testUser_setUserAccountInfoFromToken_success() {
   });
   assertNoTokenEvents(user);
   assertNoUserInvalidatedEvents(user);
+  assertEquals(0, userReloadedEventHandler.getCallCount());
   user.reload().then(function() {
     assertEquals(1, stateChangedCounter);
     assertObjectEquals(expectedUser.toPlainObject(), user.toPlainObject());
+    // Confirm event triggered on reload with the expected properties.
+    assertEquals(1, userReloadedEventHandler.getCallCount());
+    var event = userReloadedEventHandler.getLastCall().getArgument(0);
+    assertObjectEquals(response.users[0], event.userServerResponse);
     asyncTestCase.signal();
   });
 }
@@ -928,9 +938,18 @@ function testSetUserAccountInfoFromToken_success_emailAndPassword() {
         });
       });
   user = new fireauth.AuthUser(config1, tokenResponse);
+  // Record event triggers on USER_RELOADED.
+  var userReloadedEventHandler = goog.testing.recordFunction();
+  goog.events.listen(
+      user, fireauth.UserEventType.USER_RELOADED, userReloadedEventHandler);
   asyncTestCase.waitForSignals(1);
+  assertEquals(0, userReloadedEventHandler.getCallCount());
   user.reload().then(function() {
-    assertObjectEquals(expectedUser, user);
+    assertObjectEquals(expectedUser.toPlainObject(), user.toPlainObject());
+    // Confirm event triggered on reload with the expected properties.
+    assertEquals(1, userReloadedEventHandler.getCallCount());
+    var event = userReloadedEventHandler.getLastCall().getArgument(0);
+    assertObjectEquals(response.users[0], event.userServerResponse);
     asyncTestCase.signal();
   });
 }
