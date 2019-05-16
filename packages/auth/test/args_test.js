@@ -325,7 +325,7 @@ function testValidate_phoneInfoOptions_valid() {
   // Test phoneInfoOptions for multi-factor enrollment.
   args = [{
     'phoneNumber': '+16505551234',
-    'multiFactorSession': {
+    'session': {
       'type': 'enroll',
       'getRawSession': function() {
         return goog.Promise.resolve('SESSION');
@@ -336,12 +336,26 @@ function testValidate_phoneInfoOptions_valid() {
     fireauth.args.validate('myFunc', expectedArgs, args);
   });
 
-  // Test phoneInfoOptions for multi-factor sign-in.
+  // Test phoneInfoOptions for multi-factor sign-in with multi-factor hint.
   args = [{
-    'multiFactorInfo': {
+    'multiFactorHint': {
       'uid': 'ENROLLMENT_ID'
     },
-    'multiFactorSession': {
+    'session': {
+      'type': 'signin',
+      'getRawSession': function() {
+        return goog.Promise.resolve('SESSION');
+      }
+    }
+  }];
+  assertNotThrows(function() {
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+
+  // Test phoneInfoOptions for multi-factor sign-in with multi-factor UID.
+  args = [{
+    'multiFactorUid': 'ENROLLMENT_ID',
+    'session': {
       'type': 'signin',
       'getRawSession': function() {
         return goog.Promise.resolve('SESSION');
@@ -354,13 +368,13 @@ function testValidate_phoneInfoOptions_valid() {
 }
 
 
-function testValidate_phoneInfoOptions_enrollWithPhoneInfo() {
-  // Test that session is for enrollment but multi-factor info is provided.
+function testValidate_phoneInfoOptions_enrollWithPhoneHint() {
+  // Test that session is for enrollment but multi-factor hint is provided.
   var error = assertThrows(function() {
     var expectedArgs = [fireauth.args.phoneInfoOptions()];
     var args = [{
-      'multiFactorInfo': {'uid': 'ENROLLMENT_ID'},
-      'multiFactorSession': {
+      'multiFactorHint': {'uid': 'ENROLLMENT_ID'},
+      'session': {
         'type': 'enroll',
         'getRawSession': function() {
           return goog.Promise.resolve('SESSION');
@@ -380,7 +394,7 @@ function testValidate_phoneInfoOptions_signInWithPhoneNumber() {
     var expectedArgs = [fireauth.args.phoneInfoOptions()];
     var args = [{
       'phoneNumber': '+16505551234',
-      'multiFactorSession': {
+      'session': {
         'type': 'signin',
         'getRawSession': function() {
           return goog.Promise.resolve('SESSION');
@@ -399,7 +413,7 @@ function testValidate_phoneInfoOptions_missingSession() {
   var error = assertThrows(function() {
     var expectedArgs = [fireauth.args.phoneInfoOptions()];
     var args = [{
-      'multiFactorInfo': {'uid': 'ENROLLMENT_ID'}
+      'multiFactorHint': {'uid': 'ENROLLMENT_ID'}
     }];
     fireauth.args.validate('myFunc', expectedArgs, args);
   });
@@ -415,7 +429,7 @@ function testValidate_phoneInfoOptions_invalidSession() {
     var args = [{
       'phoneNumber': '+16505551234',
       // Missing getRawSession.
-      'multiFactorSession': {
+      'session': {
         'type': 'enroll'
       }
     }];
@@ -426,15 +440,36 @@ function testValidate_phoneInfoOptions_invalidSession() {
 }
 
 
-function testValidate_phoneInfoOptions_invalidInfo() {
-  // Test with invalid multi-factor info.
+function testValidate_phoneInfoOptions_invalidHint() {
+  // Test with invalid multi-factor hint.
   var error = assertThrows(function() {
     var expectedArgs = [fireauth.args.phoneInfoOptions()];
     var args = [{
       // Missing uid.
-      'multiFactorInfo': {
+      'multiFactorHint': {
       },
-      'multiFactorSession': {
+      'session': {
+        'type': 'signin',
+        'getRawSession': function() {
+          return goog.Promise.resolve('SESSION');
+        }
+      }
+    }];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals('myFunc failed: First argument "phoneInfoOptions" must be ' +
+               'valid phone info options.', error.message);
+}
+
+
+function testValidate_phoneInfoOptions_invalidUid() {
+  // Test with invalid multi-factor UID.
+  var error = assertThrows(function() {
+    var expectedArgs = [fireauth.args.phoneInfoOptions()];
+    var args = [{
+      // Invalid UID.
+      'multiFactorUid': 1234567890,
+      'session': {
         'type': 'signin',
         'getRawSession': function() {
           return goog.Promise.resolve('SESSION');

@@ -2414,7 +2414,7 @@ function testVerifyPhoneNumber_enrollMfa() {
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
     'phoneNumber': phoneNumber,
-    'multiFactorSession': enrollSession
+    'session': enrollSession
   }, applicationVerifier).then(function(actualVerificationId) {
     assertEquals(verificationId, actualVerificationId);
   });
@@ -2471,12 +2471,12 @@ function testVerifyPhoneNumber_enrollMfa_reset_sendCodeTwice() {
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
     'phoneNumber': phoneNumber,
-    'multiFactorSession': enrollSession
+    'session': enrollSession
   }, applicationVerifier).then(function(actualVerificationId1) {
     assertEquals(verificationId1, actualVerificationId1);
     return provider.verifyPhoneNumber({
       'phoneNumber': phoneNumber,
-      'multiFactorSession': enrollSession
+      'session': enrollSession
     }, applicationVerifier);
   }).then(function(actualVerificationId2) {
     assertEquals(verificationId2, actualVerificationId2);
@@ -2519,7 +2519,7 @@ function testVerifyPhoneNumber_enrollMfa_reset_sendCodeError() {
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
     'phoneNumber': phoneNumber,
-    'multiFactorSession': enrollSession
+    'session': enrollSession
   }, applicationVerifier).then(fail, function(error) {
     assertEquals(1, applicationVerifier.reset.getCallCount());
     assertEquals(expectedError, error);
@@ -2558,7 +2558,7 @@ function testVerifyPhoneNumber_enrollMfa_getSessionError() {
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
     'phoneNumber': phoneNumber,
-    'multiFactorSession': enrollSession
+    'session': enrollSession
   }, applicationVerifier).then(fail, function(error) {
     assertEquals(1, applicationVerifier.reset.getCallCount());
     assertEquals(expectedError, error);
@@ -2601,7 +2601,7 @@ function testVerifyPhoneNumber_enrollMfa_defaultAuthInstance() {
   var provider = new fireauth.PhoneAuthProvider();
   return provider.verifyPhoneNumber({
     'phoneNumber': phoneNumber,
-    'multiFactorSession': enrollSession
+    'session': enrollSession
   }, applicationVerifier).then(function(actualVerificationId) {
     assertEquals(verificationId, actualVerificationId);
   });
@@ -2620,7 +2620,7 @@ function testVerifyPhoneNumber_enrollMfa_notRecaptcha() {
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
     'phoneNumber': '+16505550101',
-    'multiFactorSession': enrollSession
+    'session': enrollSession
   }, applicationVerifier).then(fail, function(error) {
     var expectedError = new fireauth.AuthError(
         fireauth.authenum.Error.ARGUMENT_ERROR);
@@ -2641,7 +2641,7 @@ function testVerifyPhoneNumber_enrollMfa_verifierReturnsUnexpectedType() {
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
     'phoneNumber': '+16505550101',
-    'multiFactorSession': enrollSession
+    'session': enrollSession
   }, applicationVerifier).then(fail, function(error) {
     var expectedError = new fireauth.AuthError(
         fireauth.authenum.Error.ARGUMENT_ERROR);
@@ -2663,15 +2663,15 @@ function testVerifyPhoneNumber_enrollMfa_verifierThrowsError() {
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
     'phoneNumber': '+16505550101',
-    'multiFactorSession': enrollSession
+    'session': enrollSession
   }, applicationVerifier).then(fail, function(error) {
     assertEquals(expectedError, error);
   });
 }
 
 
-function testVerifyPhoneNumber_signInMfa() {
-  var info = new fireauth.PhoneMultiFactorInfo({
+function testVerifyPhoneNumber_signInMfa_hint() {
+  var hint = new fireauth.PhoneMultiFactorInfo({
     'mfaEnrollmentId': 'ENROLLMENT_UID',
     'displayName': 'DISPLAY_NAME',
     'enrolledAt': now.toISOString(),
@@ -2706,8 +2706,46 @@ function testVerifyPhoneNumber_signInMfa() {
 
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
-    'multiFactorInfo': info,
-    'multiFactorSession': signInSession
+    'multiFactorHint': hint,
+    'session': signInSession
+  }, applicationVerifier).then(function(actualVerificationId) {
+    assertEquals(verificationId, actualVerificationId);
+  });
+}
+
+
+function testVerifyPhoneNumber_signInMfa_uid() {
+  var recaptchaToken = 'theRecaptchaToken';
+  var verificationId = 'theVerificationId';
+  var signInSession = new fireauth.MultiFactorSession(
+      null, 'MFA_PENDING_CREDENTIAL');
+
+  var applicationVerifier = {
+    'type': 'recaptcha',
+    'verify': function() {
+      return goog.Promise.resolve(recaptchaToken);
+    }
+  };
+  var expectedSignInRequest = {
+    'mfaPendingCredential': 'MFA_PENDING_CREDENTIAL',
+    'mfaEnrollmentId': 'ENROLLMENT_UID',
+    'phoneSignInInfo': {
+      'recaptchaToken': recaptchaToken
+    }
+  };
+  var auth = mockControl.createStrictMock(fireauth.Auth);
+  var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+  auth.getRpcHandler().$once().$returns(rpcHandler);
+  rpcHandler.startPhoneMfaSignIn(expectedSignInRequest)
+      .$once()
+      .$returns(goog.Promise.resolve(verificationId));
+
+  mockControl.$replayAll();
+
+  var provider = new fireauth.PhoneAuthProvider(auth);
+  return provider.verifyPhoneNumber({
+    'multiFactorUid': 'ENROLLMENT_UID',
+    'session': signInSession
   }, applicationVerifier).then(function(actualVerificationId) {
     assertEquals(verificationId, actualVerificationId);
   });
@@ -2715,7 +2753,7 @@ function testVerifyPhoneNumber_signInMfa() {
 
 
 function testVerifyPhoneNumber_signInMfa_reset_sendCodeTwice() {
-  var info = new fireauth.PhoneMultiFactorInfo({
+  var hint = new fireauth.PhoneMultiFactorInfo({
     'mfaEnrollmentId': 'ENROLLMENT_UID',
     'displayName': 'DISPLAY_NAME',
     'enrolledAt': now.toISOString(),
@@ -2769,13 +2807,13 @@ function testVerifyPhoneNumber_signInMfa_reset_sendCodeTwice() {
 
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
-    'multiFactorInfo': info,
-    'multiFactorSession': signInSession
+    'multiFactorHint': hint,
+    'session': signInSession
   }, applicationVerifier).then(function(actualVerificationId1) {
     assertEquals(verificationId1, actualVerificationId1);
     return provider.verifyPhoneNumber({
-      'multiFactorInfo': info,
-      'multiFactorSession': signInSession
+      'multiFactorHint': hint,
+      'session': signInSession
     }, applicationVerifier);
   }).then(function(actualVerificationId2) {
     assertEquals(verificationId2, actualVerificationId2);
@@ -2784,7 +2822,7 @@ function testVerifyPhoneNumber_signInMfa_reset_sendCodeTwice() {
 
 
 function testVerifyPhoneNumber_signInMfa_reset_sendCodeError() {
-  var info = new fireauth.PhoneMultiFactorInfo({
+  var hint = new fireauth.PhoneMultiFactorInfo({
     'mfaEnrollmentId': 'ENROLLMENT_UID',
     'displayName': 'DISPLAY_NAME',
     'enrolledAt': now.toISOString(),
@@ -2823,8 +2861,8 @@ function testVerifyPhoneNumber_signInMfa_reset_sendCodeError() {
 
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
-    'multiFactorInfo': info,
-    'multiFactorSession': signInSession
+    'multiFactorHint': hint,
+    'session': signInSession
   }, applicationVerifier).then(fail, function(error) {
     assertEquals(1, applicationVerifier.reset.getCallCount());
     assertEquals(expectedError, error);
@@ -2833,7 +2871,7 @@ function testVerifyPhoneNumber_signInMfa_reset_sendCodeError() {
 
 
 function testVerifyPhoneNumber_signInMfa_getSessionError() {
-  var info = new fireauth.PhoneMultiFactorInfo({
+  var hint = new fireauth.PhoneMultiFactorInfo({
     'mfaEnrollmentId': 'ENROLLMENT_UID',
     'displayName': 'DISPLAY_NAME',
     'enrolledAt': now.toISOString(),
@@ -2868,8 +2906,8 @@ function testVerifyPhoneNumber_signInMfa_getSessionError() {
 
   var provider = new fireauth.PhoneAuthProvider(auth);
   return provider.verifyPhoneNumber({
-    'multiFactorInfo': info,
-    'multiFactorSession': signInSession
+    'multiFactorHint': hint,
+    'session': signInSession
   }, applicationVerifier).then(fail, function(error) {
     assertEquals(1, applicationVerifier.reset.getCallCount());
     assertEquals(expectedError, error);
@@ -2879,7 +2917,7 @@ function testVerifyPhoneNumber_signInMfa_getSessionError() {
 
 function testVerifyPhoneNumber_signInMfa_defaultAuthInstance() {
   // Tests that verifyPhoneNumber works when using the default Auth instance.
-  var info = new fireauth.PhoneMultiFactorInfo({
+  var hint = new fireauth.PhoneMultiFactorInfo({
     'mfaEnrollmentId': 'ENROLLMENT_UID',
     'displayName': 'DISPLAY_NAME',
     'enrolledAt': now.toISOString(),
@@ -2917,8 +2955,8 @@ function testVerifyPhoneNumber_signInMfa_defaultAuthInstance() {
 
   var provider = new fireauth.PhoneAuthProvider();
   return provider.verifyPhoneNumber({
-    'multiFactorInfo': info,
-    'multiFactorSession': signInSession
+    'multiFactorHint': hint,
+    'session': signInSession
   }, applicationVerifier).then(function(actualVerificationId) {
     assertEquals(verificationId, actualVerificationId);
   });

@@ -522,21 +522,29 @@ fireauth.args.phoneInfoOptions = function(name, optional) {
           }
           // For multi-factor enrollment, phone number and MFA session should
           // be provided.
-          if (phoneInfoOptions['multiFactorSession'] &&
+          if (phoneInfoOptions['session'] &&
               phoneInfoOptions['phoneNumber']) {
             return fireauth.args.validateMultiFactorSession_(
-                       phoneInfoOptions['multiFactorSession'],
+                       phoneInfoOptions['session'],
                        fireauth.MultiFactorSession.Type.ENROLL) &&
                    goog.isString(phoneInfoOptions['phoneNumber']);
-          // For multi-factor sign-in, phone multi-factor info and MFA session
-          // should be provided.
-          } else if (phoneInfoOptions['multiFactorSession'] &&
-                     phoneInfoOptions['multiFactorInfo']) {
+          // For multi-factor sign-in, phone multi-factor hint and MFA session
+          // are provided.
+          } else if (phoneInfoOptions['session'] &&
+                     phoneInfoOptions['multiFactorHint']) {
             return fireauth.args.validateMultiFactorSession_(
-                       phoneInfoOptions['multiFactorSession'],
+                       phoneInfoOptions['session'],
                        fireauth.MultiFactorSession.Type.SIGN_IN) &&
                    fireauth.args.validateMultiFactorInfo_(
-                       phoneInfoOptions['multiFactorInfo']);
+                       phoneInfoOptions['multiFactorHint']);
+          // For multi-factor sign-in, phone multi-factor UID and MFA session
+          // are provided.
+          } else if (phoneInfoOptions['session'] &&
+                     phoneInfoOptions['multiFactorUid']) {
+            return fireauth.args.validateMultiFactorSession_(
+                       phoneInfoOptions['session'],
+                       fireauth.MultiFactorSession.Type.SIGN_IN) &&
+                   goog.isString(phoneInfoOptions['multiFactorUid']);
           // For single-factor sign-in, only phone number needs to be provided.
           } else if (phoneInfoOptions['phoneNumber']) {
             return goog.isString(phoneInfoOptions['phoneNumber']);

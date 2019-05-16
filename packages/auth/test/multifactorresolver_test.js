@@ -113,7 +113,7 @@ function tearDown() {
 
 
 function testMultiFactorResolver_valid() {
-  var expectedMultiFactorInfo = [
+  var expectedHints = [
     fireauth.MultiFactorInfo.fromServerResponse(enrollmentList[0]),
     fireauth.MultiFactorInfo.fromServerResponse(enrollmentList[1])
   ];
@@ -126,7 +126,7 @@ function testMultiFactorResolver_valid() {
   });
 
   assertEquals(auth, resolver.auth);
-  assertArrayEquals(expectedMultiFactorInfo, resolver.multiFactorInfo);
+  assertArrayEquals(expectedHints, resolver.hints);
   assertObjectEquals(expectedSession, resolver.session);
 }
 

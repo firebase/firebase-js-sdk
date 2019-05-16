@@ -1307,19 +1307,22 @@ fireauth.PhoneAuthProvider.PhoneSingleFactorInfoOptions_;
  * @private
  * @typedef {{
  *   phoneNumber: string,
- *   multiFactorSession: !fireauth.MultiFactorSession
+ *   session: !fireauth.MultiFactorSession
  * }}
  */
 fireauth.PhoneAuthProvider.PhoneMultiFactorEnrollInfoOptions_;
 
 
 /**
- * The phone info options for multi-factor sign-in. Multi-factor info and
- * multi-factor session are required.
+ * The phone info options for multi-factor sign-in. Either multi-factor hint or
+ * multi-factor UID and multi-factor session are required.
  * @private
  * @typedef {{
- *   multiFactorInfo: !fireauth.MultiFactorInfo,
- *   multiFactorSession: !fireauth.MultiFactorSession
+ *   multiFactorHint: !fireauth.MultiFactorInfo,
+ *   session: !fireauth.MultiFactorSession
+ * }|{
+ *   multiFactorUid: string,
+ *   session: !fireauth.MultiFactorSession
  * }}
  */
 fireauth.PhoneAuthProvider.PhoneMultiFactorSignInInfoOptions_;
@@ -1368,7 +1371,7 @@ fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
         switch (applicationVerifier['type']) {
           case 'recaptcha':
             var session = goog.isObject(phoneInfoOptions) ?
-                phoneInfoOptions['multiFactorSession'] : null;
+                phoneInfoOptions['session'] : null;
             // PhoneInfoOptions can be a phone number string for backward
             // compatibility.
             var phoneNumber = goog.isObject(phoneInfoOptions) ?
@@ -1391,10 +1394,13 @@ fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
                            fireauth.MultiFactorSession.Type.SIGN_IN) {
               verifyPromise = session.getRawSession()
                   .then(function(rawSession) {
+                    var mfaEnrollmentId =
+                        (phoneInfoOptions['multiFactorHint'] &&
+                         phoneInfoOptions['multiFactorHint']['uid']) ||
+                        phoneInfoOptions['multiFactorUid'];
                     return rpcHandler.startPhoneMfaSignIn({
                       'mfaPendingCredential': rawSession,
-                      'mfaEnrollmentId': phoneInfoOptions['multiFactorInfo'] &&
-                          phoneInfoOptions['multiFactorInfo']['uid'],
+                      'mfaEnrollmentId': mfaEnrollmentId,
                       'phoneSignInInfo': {
                         'recaptchaToken': assertion
                       }

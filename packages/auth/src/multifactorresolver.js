@@ -79,20 +79,20 @@ fireauth.MultiFactorResolver = function(
    * @const @private {!Array<!fireauth.MultiFactorInfo>} The list of
    *     multi-factor hints corresponding to the current user session.
    */
-  this.multiFactorInfo_ = [];
+  this.hints_ = [];
   var enrollmentList = errorResponse[
       fireauth.MultiFactorResolver.SignInResponseField.MFA_INFO] || [];
   var self = this;
   goog.array.forEach(enrollmentList, function(mfaEnrollment) {
     var info = fireauth.MultiFactorInfo.fromServerResponse(mfaEnrollment);
     if (info) {
-      self.multiFactorInfo_.push(info);
+      self.hints_.push(info);
     }
   });
   fireauth.object.setReadonlyProperty(this, 'auth', this.auth_);
   fireauth.object.setReadonlyProperty(this, 'session', this.session_);
   fireauth.object.setReadonlyProperty(
-      this, 'multiFactorInfo', this.multiFactorInfo_);
+      this, 'hints', this.hints_);
 };
 
 
