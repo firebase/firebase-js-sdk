@@ -281,6 +281,10 @@ export abstract class BaseController implements FirebaseMessaging {
   // The following methods should only be available in the window.
   //
 
+  /**
+   * @deprecated Use Notification.requestPermission() instead.
+   * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
+   */
   requestPermission(): Promise<void> {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
