@@ -83,6 +83,9 @@ var mockControl;
 var delay = 30000;
 var identityPlatformEndpoint =
     fireauth.constants.Endpoint.PRODUCTION.identityPlatformEndpoint;
+var now = new Date();
+var pendingCredResponse;
+var pendingCredResponseWithAdditionalInfo;
 
 
 function setUp() {
@@ -113,6 +116,26 @@ function setUp() {
   ignoreArgument = goog.testing.mockmatchers.ignoreArgument;
   mockControl = new goog.testing.MockControl();
   mockControl.$resetAll();
+  pendingCredResponse = {
+    'mfaInfo': {
+      'mfaEnrollmentId': 'ENROLLMENT_UID1',
+      'enrolledAt': now.toISOString(),
+      'phoneInfo': '+16505551234'
+    },
+    'mfaPendingCredential': 'PENDING_CREDENTIAL'
+  };
+  pendingCredResponseWithAdditionalInfo =
+      goog.object.clone(pendingCredResponse);
+  goog.object.extend(pendingCredResponseWithAdditionalInfo, {
+    // Credential returned.
+    'providerId': 'google.com',
+    'oauthAccessToken': 'googleAccessToken',
+    'oauthIdToken': 'googleIdToken',
+    'oauthExpireIn': 3600,
+    // Additional user info data.
+    'rawUserInfo': '{"kind":"plus#person","displayName":"John Doe",' +
+        '"name":{"givenName":"John","familyName":"Doe"}}'
+  });
 }
 
 
@@ -180,6 +203,8 @@ function assertServerErrorsAreHandled(methodToTest, errorMap, url, body) {
 
 
 function tearDown() {
+  pendingCredResponse = null;
+  pendingCredResponseWithAdditionalInfo = null;
   stubs.reset();
   rpcHandler = null;
   fireauth.RpcHandler.loadGApi_ = null;
@@ -2670,6 +2695,32 @@ function testVerifyCustomToken_success() {
 }
 
 
+function testVerifyCustomToken_multiFactorRequired() {
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED, null, pendingCredResponse);
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'verifyCustomToken?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'token': 'CUSTOM_TOKEN',
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      pendingCredResponse);
+  rpcHandler.verifyCustomToken('CUSTOM_TOKEN')
+      .then(fail)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            expectedError,
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testVerifyCustomToken_serverCaughtError() {
   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
       'relyingparty/verifyCustomToken?key=apiKey';
@@ -2957,6 +3008,33 @@ function testEmailLinkSignIn_success() {
 }
 
 
+function testEmailLinkSignIn_error_multiFactorRequired() {
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED, null, pendingCredResponse);
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'emailLinkSignin?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'email': 'user@example.com',
+        'oobCode': 'OTP_CODE',
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      pendingCredResponse);
+  rpcHandler.emailLinkSignIn('user@example.com', 'OTP_CODE')
+      .then(fail)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            expectedError,
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testEmailLinkSignIn_serverCaughtError() {
   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
                     'relyingparty/emailLinkSignin?key=apiKey';
@@ -3055,6 +3133,33 @@ function testVerifyPassword_success() {
   rpcHandler.verifyPassword('uid123@fake.com', 'mysupersecretpassword')
       .then(function(response) {
         assertEquals('ID_TOKEN', response['idToken']);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testVerifyPassword_error_multiFactorRequired() {
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED, null, pendingCredResponse);
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'verifyPassword?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'email': 'uid123@fake.com',
+        'password': 'mysupersecretpassword',
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      pendingCredResponse);
+  rpcHandler.verifyPassword('uid123@fake.com', 'mysupersecretpassword')
+      .then(fail)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(
+            expectedError,
+            error);
         asyncTestCase.signal();
       });
 }
@@ -3348,6 +3453,40 @@ function testSignInAnonymously_unknownServerResponse() {
             error);
         asyncTestCase.signal();
       });
+}
+
+
+/**
+ * Tests multi-factor required verifyAssertion RPC error.
+ */
+function testVerifyAssertion_error_multiFactorRequired() {
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED,
+      null,
+      pendingCredResponseWithAdditionalInfo);
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'verifyAssertion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      pendingCredResponseWithAdditionalInfo);
+  rpcHandler.verifyAssertion({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse'
+  }).then(fail, function(error) {
+    fireauth.common.testHelper.assertErrorEquals(
+        expectedError,
+        error);
+    asyncTestCase.signal();
+  });
 }
 
 
@@ -4669,6 +4808,42 @@ function testVerifyAssertionForExisting_success() {
         assertEquals(expectedResponse, response);
         asyncTestCase.signal();
       });
+}
+
+
+/**
+ * Tests multi-factor required verifyAssertionForExisting RPC error.
+ */
+function testVerifyAssertionForExisting_error_multiFactorRequired() {
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED,
+      null,
+      pendingCredResponseWithAdditionalInfo);
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'verifyAssertion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        'returnIdpCredential': true,
+        // autoCreate flag should be passed and set to false.
+        'autoCreate': false,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      pendingCredResponseWithAdditionalInfo);
+  rpcHandler.verifyAssertionForExisting({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse'
+  }).then(fail, function(error) {
+    fireauth.common.testHelper.assertErrorEquals(
+        expectedError,
+        error);
+    asyncTestCase.signal();
+  });
 }
 
 

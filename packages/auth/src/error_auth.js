@@ -29,13 +29,15 @@ goog.provide('fireauth.authenum.Error');
 /**
  * Error that can be returned to the developer.
  * @param {!fireauth.authenum.Error} code The short error code.
- * @param {?string=} opt_message The human-readable message.
+ * @param {?string=} message The human-readable message.
+ * @param {?Object=} serverResponse The raw server response.
  * @constructor
  * @extends {Error}
  */
-fireauth.AuthError = function(code, opt_message) {
+fireauth.AuthError = function(code, message, serverResponse) {
   this['code'] = fireauth.AuthError.ERROR_CODE_PREFIX + code;
-  this.message = opt_message || fireauth.AuthError.MESSAGES_[code] || '';
+  this.message = message || fireauth.AuthError.MESSAGES_[code] || '';
+  this.serverResponse = serverResponse || null;
 };
 goog.inherits(fireauth.AuthError, Error);
 
@@ -44,10 +46,14 @@ goog.inherits(fireauth.AuthError, Error);
  * @return {!Object} The plain object form of the error.
  */
 fireauth.AuthError.prototype.toPlainObject = function() {
-  return {
+  var obj = {
     'code': this['code'],
     'message': this.message
   };
+  if (this.serverResponse) {
+    obj['serverResponse'] = this.serverResponse;
+  }
+  return obj;
 };
 
 
@@ -75,7 +81,9 @@ fireauth.AuthError.fromPlainObject = function(response) {
     var code = fullCode.substring(
         fireauth.AuthError.ERROR_CODE_PREFIX.length);
     return new fireauth.AuthError(
-        /** @type {fireauth.authenum.Error} */ (code), response['message']);
+        /** @type {!fireauth.authenum.Error} */ (code),
+        response['message'],
+        response['serverResponse']);
   }
   return null;
 };
@@ -154,6 +162,7 @@ fireauth.authenum.Error = {
   INVALID_RECIPIENT_EMAIL: 'invalid-recipient-email',
   INVALID_SENDER: 'invalid-sender',
   INVALID_SESSION_INFO: 'invalid-verification-id',
+  MFA_REQUIRED: 'multi-factor-auth-required',
   MISSING_ANDROID_PACKAGE_NAME: 'missing-android-pkg-name',
   MISSING_APP_CREDENTIAL: 'missing-app-credential',
   MISSING_AUTH_DOMAIN: 'auth-domain-config-required',
@@ -344,6 +353,8 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_SESSION_INFO] =
     'The phone auth credential was created with an empty verification ID.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MODULE_DESTROYED] =
     'This instance of FirebaseApp has been deleted.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MFA_REQUIRED] =
+    'Proof of ownership of a second factor is required to complete sign-in.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.NEED_CONFIRMATION] =
     'An account already exists with the same email address but different ' +
     'sign-in credentials. Sign in using a provider associated with this ' +

@@ -269,6 +269,7 @@ fireauth.RpcHandler.AuthServerField = {
   ERROR_MESSAGE: 'errorMessage',
   EXPIRES_IN: 'expiresIn',
   ID_TOKEN: 'idToken',
+  MFA_PENDING_CREDENTIAL: 'mfaPendingCredential',
   NEED_CONFIRMATION: 'needConfirmation',
   OAUTH_ID_TOKEN: 'oauthIdToken',
   PENDING_TOKEN: 'pendingToken',
@@ -1254,11 +1255,21 @@ fireauth.RpcHandler.prototype.emailLinkSignInForLinking =
 
 /**
  * Validates a response that should contain an ID token.
+ * If no ID token is available, it checks if a multi-factor pending credential
+ * is available instead. In that case, it throws the MFA_REQUIRED error code.
  * @param {?Object} response The server response data.
  * @private
  */
 fireauth.RpcHandler.validateIdTokenResponse_ = function(response) {
   if (!response[fireauth.RpcHandler.AuthServerField.ID_TOKEN]) {
+    // User could be a second factor user.
+    // When second factor is required, a pending credential is returned.
+    if (response[fireauth.RpcHandler.AuthServerField.MFA_PENDING_CREDENTIAL]) {
+      throw new fireauth.AuthError(
+          fireauth.authenum.Error.MFA_REQUIRED,
+          null,
+          goog.object.clone(response));
+    }
     throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
   }
 };
@@ -1990,10 +2001,8 @@ fireauth.RpcHandler.validateVerifyAssertionForExistingResponse_ =
   }
   // Need confirmation should not be returned when do not create new user flag
   // is set.
-  // If no error found and ID token is missing, throw an internal error.
-  if (!response[fireauth.RpcHandler.AuthServerField.ID_TOKEN]) {
-    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
-  }
+  // Validate if ID token or multi-factor pending credential is available.
+  fireauth.RpcHandler.validateIdTokenResponse_(response);
 };
 
 
@@ -2041,10 +2050,8 @@ fireauth.RpcHandler.validateVerifyAssertionResponse_ = function(response) {
   if (error) {
     throw error;
   }
-  // If no error found and ID token is missing, throw an internal error.
-  if (!response[fireauth.RpcHandler.AuthServerField.ID_TOKEN]) {
-    throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
-  }
+  // Validate if ID token or multi-factor pending credential is available.
+  fireauth.RpcHandler.validateIdTokenResponse_(response);
 };
 
 
