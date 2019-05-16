@@ -21,6 +21,7 @@ goog.require('fireauth.Auth');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
+goog.require('fireauth.MultiFactorInfo');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.PhoneMultiFactorGenerator');
 goog.require('fireauth.args');
@@ -279,6 +280,37 @@ function testValidate_authProvider_invalid() {
   });
   assertEquals('myFunc failed: First argument "authProvider" must be a valid ' +
       'Auth provider.', error.message);
+}
+
+
+function testValidate_multiFactorInfo_valid() {
+  var expectedArgs = [fireauth.args.multiFactorInfo()];
+  // Test with a valid MulfiFactorInfo object.
+  var args = [fireauth.MultiFactorInfo.fromPlainObject({
+    'uid': 'ENROLLMENT_ID',
+    'displayName': 'My Phone',
+    'enrollmentTime': 'Thu, 18 Apr 2019 18:38:12 GMT',
+    'phoneNumber': '+16505551234'
+  })];
+  assertNotThrows(function() {
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+}
+
+
+function testValidate_multiFactorInfo_invalid() {
+  var error = assertThrows(function() {
+    var expectedArgs = [fireauth.args.multiFactorInfo()];
+    var args = [fireauth.MultiFactorInfo.fromPlainObject({
+      'uid': null,
+      'displayName': 'My Phone',
+      'enrollmentTime': 'Thu, 18 Apr 2019 18:38:12 GMT',
+      'phoneNumber': '+16505551234'
+    })];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals('myFunc failed: First argument "multiFactorInfo" must be a ' +
+      'valid multiFactorInfo.', error.message);
 }
 
 

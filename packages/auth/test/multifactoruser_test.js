@@ -47,13 +47,17 @@ var testUser;
 var config;
 var accountInfo;
 var accountInfo2;
+var accountInfoWithUid1;
 var singleFactorAccountInfo;
+var updatedTokenResponse;
 var tokenResponse;
 var expiredTokenResponse;
 var singleFactorTokenResponse;
 var getAccountInfoResponse1;
 var getAccountInfoResponse2;
-var getAccountInfoResponse3;
+var getAccountInfoResponseWithUid1;
+var getAccountInfoResponseWithUid2;
+var getAccountInfoResponseWithNoSecondFactors;
 
 
 function setUp() {
@@ -111,6 +115,24 @@ function setUp() {
       ]
     }
   };
+  accountInfoWithUid1 = {
+    'uid': 'defaultUserId',
+    'email': 'user@default.com',
+    'displayName': 'defaultDisplayName',
+    'photoURL': 'https://www.default.com/default/default.png',
+    'emailVerified': true,
+    'multiFactor': {
+      'enrolledFactors': [
+        {
+          'uid': 'ENROLLMENT_UID1',
+          'displayName': 'Work phone number',
+          'enrollmentTime': now.toUTCString(),
+          'factorId': fireauth.constants.SecondFactorType.PHONE,
+          'phoneNumber': '+16505551234'
+        }
+      ]
+    }
+  };
   // Single factor account info.
   singleFactorAccountInfo = {
     'uid': 'defaultUserId',
@@ -126,7 +148,7 @@ function setUp() {
         'sign_in_second_factor': 'phone'
       }
     }),
-    'refreshToken': 'REFRESH_TOKEN'
+    'refreshToken': 'REFRESH_TOKEN1'
   };
   expiredTokenResponse = {
     'idToken': fireauth.common.testHelper.createMockJwt({
@@ -135,7 +157,7 @@ function setUp() {
         'sign_in_second_factor': 'phone'
       }
     }, now - 1),
-    'refreshToken': 'REFRESH_TOKEN'
+    'refreshToken': 'REFRESH_TOKEN1'
   };
   singleFactorTokenResponse = {
     'idToken': fireauth.common.testHelper.createMockJwt({
@@ -143,7 +165,16 @@ function setUp() {
         'sign_in_provider': 'password'
       }
     }),
-    'refreshToken': 'REFRESH_TOKEN'
+    'refreshToken': 'REFRESH_TOKEN1'
+  };
+  updatedTokenResponse = {
+    'idToken': fireauth.common.testHelper.createMockJwt({
+      'firebase': {
+        'sign_in_provider': 'password',
+        'sign_in_second_factor': 'phone'
+      }
+    }) + 'UPDATED', // Modify the JWT string so the idToken is different.
+    'refreshToken': 'REFRESH_TOKEN2'
   };
   getAccountInfoResponse1 = {
     'users': [{
@@ -201,7 +232,7 @@ function setUp() {
       ]
     }]
   };
-  getAccountInfoResponse3 = {
+  getAccountInfoResponseWithUid1 = {
     'users': [{
       'localId': 'defaultUserId',
       'email': 'user@default.com',
@@ -222,6 +253,43 @@ function setUp() {
       ]
     }]
   };
+  getAccountInfoResponseWithUid2 = {
+    'users': [{
+      'localId': 'defaultUserId',
+      'email': 'user@default.com',
+      'emailVerified': true,
+      'displayName': 'defaultDisplayName',
+      'providerUserInfo': [],
+      'photoUrl': 'https://www.default.com/default/default.png',
+      'passwordUpdatedAt': 0.0,
+      'disabled': false,
+      'lastLoginAt': '1506050282000',
+      'createdAt': '1506050282000',
+      'mfaInfo': [
+         {
+          'mfaEnrollmentId': 'ENROLLMENT_UID2',
+          'displayName': 'Spouse phone number',
+          'enrolledAt': now.toISOString(),
+          'phoneInfo': '+16505556789'
+        }
+      ]
+    }]
+  };
+  getAccountInfoResponseWithNoSecondFactors = {
+    'users': [{
+      'localId': 'defaultUserId',
+      'email': 'user@default.com',
+      'emailVerified': true,
+      'displayName': 'defaultDisplayName',
+      'providerUserInfo': [],
+      'photoUrl': 'https://www.default.com/default/default.png',
+      'passwordUpdatedAt': 0.0,
+      'disabled': false,
+      'lastLoginAt': '1506050282000',
+      'createdAt': '1506050282000',
+      'mfaInfo': [{}]
+    }]
+  };
   testUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
   mockControl = new goog.testing.MockControl();
 }
@@ -232,13 +300,15 @@ function tearDown() {
   config = null;
   accountInfo = null;
   accountInfo2 = null;
+  accountInfoWithUid1 = null;
   singleFactorAccountInfo = null;
   tokenResponse = null;
   expiredTokenResponse = null;
   singleFactorTokenResponse = null;
   getAccountInfoResponse1 = null;
   getAccountInfoResponse2 = null;
-  getAccountInfoResponse3 = null;
+  getAccountInfoResponseWithUid1 = null;
+  getAccountInfoResponseWithNoSecondFactors = null;
   mockControl.$verifyAll();
   mockControl.$tearDown();
 }
@@ -411,7 +481,7 @@ function testMultiFactorUser_getSession_expired() {
       fireauth.RpcHandler.prototype, 'requestStsToken');
   requestStsToken({
     'grant_type': 'refresh_token',
-    'refresh_token': 'REFRESH_TOKEN'
+    'refresh_token': 'REFRESH_TOKEN1'
   }).$returns(goog.Promise.resolve({
     'access_token': newJwt,
     'refresh_token': 'REFRESH_TOKEN2',
@@ -449,7 +519,7 @@ function testMultiFactorUser_getSession_error() {
       fireauth.RpcHandler.prototype, 'requestStsToken');
   requestStsToken({
     'grant_type': 'refresh_token',
-    'refresh_token': 'REFRESH_TOKEN'
+    'refresh_token': 'REFRESH_TOKEN1'
   }).$returns(goog.Promise.reject(expectedError)).$once();
   mockControl.$replayAll();
 
@@ -492,7 +562,7 @@ function testMultiFactorUser_enroll_singleFactorUser() {
       // New MFA token will be issued after enrollment.
       .$returns(goog.Promise.resolve(tokenResponse));
   getAccountInfoByIdToken(tokenResponse.idToken)
-      .$returns(goog.Promise.resolve(getAccountInfoResponse3)).$once();
+      .$returns(goog.Promise.resolve(getAccountInfoResponseWithUid1)).$once();
   mockControl.$replayAll();
 
   var multiFactorUser = new fireauth.MultiFactorUser(
@@ -523,25 +593,8 @@ function testMultiFactorUser_enroll_multiFactorUser() {
   // name.
   var expectedSession = new fireauth.MultiFactorSession(
       tokenResponse.idToken);
-  // Create a multi-factor user with only one second-factor.
-  var accountInfoWithOneSecondFactor = {
-    'uid': 'defaultUserId',
-    'email': 'user@default.com',
-    'displayName': 'defaultDisplayName',
-    'photoURL': 'https://www.default.com/default/default.png',
-    'emailVerified': true,
-    'multiFactor': {
-      'enrolledFactors': [{
-        'uid': 'ENROLLMENT_UID1',
-        'displayName': 'Work phone number',
-        'enrollmentTime': now.toUTCString(),
-        'factorId': fireauth.constants.SecondFactorType.PHONE,
-        'phoneNumber': '+16505551234'
-      }]
-    }
-  };
   testUser = new fireauth.AuthUser(
-      config, tokenResponse, accountInfoWithOneSecondFactor);
+      config, tokenResponse, accountInfoWithUid1);
   var mockAssertion = mockControl.createStrictMock(
       fireauth.MultiFactorAssertion);
   var getAccountInfoByIdToken = mockControl.createMethodMock(
@@ -559,7 +612,7 @@ function testMultiFactorUser_enroll_multiFactorUser() {
         'sign_in_second_factor': 'phone'
       }
     }),
-    'refreshToken': 'REFRESH_TOKEN'
+    'refreshToken': 'REFRESH_TOKEN1'
   };
   var tokenChanged = 0;
   var stateChanged = 0;
@@ -575,7 +628,7 @@ function testMultiFactorUser_enroll_multiFactorUser() {
   mockControl.$replayAll();
 
   var multiFactorUser = new fireauth.MultiFactorUser(
-      testUser, accountInfoWithOneSecondFactor);
+      testUser, accountInfoWithUid1);
   assertEquals(1, multiFactorUser['enrolledFactors'].length);
   goog.events.listen(
       testUser, fireauth.UserEventType.TOKEN_CHANGED, function(event) {
@@ -612,7 +665,7 @@ function testMultiFactorUser_enroll_tokenExpired() {
 
   requestStsToken({
     'grant_type': 'refresh_token',
-    'refresh_token': 'REFRESH_TOKEN'
+    'refresh_token': 'REFRESH_TOKEN1'
   }).$returns(goog.Promise.reject(expectedError)).$once();
   mockAssertion.process(
       goog.testing.mockmatchers.ignoreArgument,
@@ -733,5 +786,402 @@ function testMultiFactorUser_enroll_userDeleted() {
         assertEquals(expectedError.code, error.code);
         assertEquals(0, tokenChanged);
         assertEquals(0, stateChanged);
+      });
+}
+
+
+function testMultiFactorUser_unenroll_success() {
+  // Tests that a second factor can be successfully unenrolled.
+  var tokenChanged = 0;
+  var stateChanged = 0;
+  var userInvalidated = 0;
+
+  // Set up mocks.
+  var withdrawMfa = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'withdrawMfa');
+  // First, expect withdrawMfa to be called with the original tokens, then
+  // it will return the updated pair.
+  withdrawMfa(tokenResponse.idToken, 'ENROLLMENT_UID1')
+      .$returns({
+        'idToken': updatedTokenResponse.idToken,
+        'refreshToken': updatedTokenResponse.refreshToken
+      }).$once();
+  // Next, expect getAccountInfoByToken to be called with the updated idToken.
+  var getAccountInfoByIdToken = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'getAccountInfoByIdToken');
+  getAccountInfoByIdToken(updatedTokenResponse.idToken)
+      .$returns(goog.Promise.resolve(getAccountInfoResponseWithUid2)).$once();
+  mockControl.$replayAll();
+
+  // Create the user with the intital pair of tokens and listen for events.
+  testUser = new fireauth.AuthUser(
+    config, tokenResponse, accountInfo);
+  var multiFactorUser = new fireauth.MultiFactorUser(
+      testUser, accountInfo);
+  goog.events.listen(
+      testUser, fireauth.UserEventType.TOKEN_CHANGED, function(event) {
+        tokenChanged++;
+      });
+  goog.events.listen(
+      testUser, fireauth.UserEventType.USER_INVALIDATED, function(event) {
+        userInvalidated++;
+      });
+  testUser.addStateChangeListener(function(user) {
+    stateChanged++;
+  });
+  assertEquals(2, multiFactorUser['enrolledFactors'].length);
+
+  // Run test.
+  return multiFactorUser.unenroll('ENROLLMENT_UID1')
+      .then(function(){
+        // The tokens should have been updated.
+        var tokens = testUser.getStsTokenManager().toPlainObject();
+        assertEquals(updatedTokenResponse.idToken, tokens['accessToken']);
+        assertEquals(updatedTokenResponse.refreshToken, tokens['refreshToken']);
+        assertEquals(1, tokenChanged);
+        // The first enrolled factor should have been removed.
+        assertEquals(1, multiFactorUser['enrolledFactors'].length);
+        assertObjectEquals(
+            fireauth.MultiFactorInfo.fromPlainObject(
+                accountInfo['multiFactor']['enrolledFactors'][1]),
+            multiFactorUser['enrolledFactors'][0]);
+        assertEquals(1, stateChanged);
+        // The user should not be invalidated.
+        assertEquals(0, userInvalidated);
+      });
+}
+
+
+function testMultiFactorUser_unenroll_successWithMultiFactorInfo() {
+  // Tests that a second factor can be successfully unenrolled when passed
+  // as a MultiFactorInfo object instead of as a string.
+  var tokenChanged = 0;
+  var stateChanged = 0;
+  var userInvalidated = 0;
+
+  // Set up mocks.
+  var withdrawMfa = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'withdrawMfa');
+  // First, expect withdrawMfa to be called with the original tokens, then
+  // it will return the updated pair.
+  withdrawMfa(tokenResponse.idToken, 'ENROLLMENT_UID1')
+      .$returns({
+        'idToken': updatedTokenResponse.idToken,
+        'refreshToken': updatedTokenResponse.refreshToken
+      }).$once();
+  // Next, expect getAccountInfoByToken to be called with the updated idToken.
+  var getAccountInfoByIdToken = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'getAccountInfoByIdToken');
+  getAccountInfoByIdToken(updatedTokenResponse.idToken)
+      .$returns(goog.Promise.resolve(getAccountInfoResponseWithUid2)).$once();
+  mockControl.$replayAll();
+
+  // Create the user with the intital pair of tokens and listen for events.
+  testUser = new fireauth.AuthUser(
+    config, tokenResponse, accountInfo);
+  var multiFactorUser = new fireauth.MultiFactorUser(
+      testUser, accountInfo);
+  goog.events.listen(
+      testUser, fireauth.UserEventType.TOKEN_CHANGED, function(event) {
+        tokenChanged++;
+      });
+  goog.events.listen(
+      testUser, fireauth.UserEventType.USER_INVALIDATED, function(event) {
+        userInvalidated++;
+      });
+  testUser.addStateChangeListener(function(user) {
+    stateChanged++;
+  });
+  assertEquals(2, multiFactorUser['enrolledFactors'].length);
+
+  // Run test.
+  var multiFactorInfo = fireauth.MultiFactorInfo.fromPlainObject({
+    'uid': 'ENROLLMENT_UID1',
+    'displayName': 'Work phone number',
+    'enrollmentTime': now.toUTCString(),
+    'phoneNumber': '+16505551234'
+  });
+  return multiFactorUser.unenroll(multiFactorInfo)
+      .then(function(){
+        // The tokens should have been updated.
+        var tokens = testUser.getStsTokenManager().toPlainObject();
+        assertEquals(updatedTokenResponse.idToken, tokens['accessToken']);
+        assertEquals(updatedTokenResponse.refreshToken, tokens['refreshToken']);
+        assertEquals(1, tokenChanged);
+        // The first enrolled factor should have been removed.
+        assertEquals(1, multiFactorUser['enrolledFactors'].length);
+        assertObjectEquals(
+            fireauth.MultiFactorInfo.fromPlainObject(
+                accountInfo['multiFactor']['enrolledFactors'][1]),
+            multiFactorUser['enrolledFactors'][0]);
+        assertEquals(1, stateChanged);
+        // The user should not be invalidated.
+        assertEquals(0, userInvalidated);
+      });
+}
+
+
+function testMultiFactorUser_unenroll_successRemovingAllSecondFactors() {
+  // Tests that the user can be downgraded to a single factor (all second
+  // factors on a user can be removed).
+  var tokenChanged = 0;
+  var stateChanged = 0;
+  var userInvalidated = 0;
+
+  // Set up mocks.
+  var withdrawMfa = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'withdrawMfa');
+  // First, expect withdrawMfa to be called with the original tokens, then
+  // it will return a single factor token response.
+  withdrawMfa(tokenResponse.idToken, 'ENROLLMENT_UID1')
+      .$returns({
+        'idToken': singleFactorTokenResponse.idToken,
+        'refreshToken': singleFactorTokenResponse.refreshToken
+      }).$once();
+  // Next, expect getAccountInfoByToken to be called with the updated idToken.
+  var getAccountInfoByIdToken = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'getAccountInfoByIdToken');
+  getAccountInfoByIdToken(singleFactorTokenResponse.idToken)
+      .$returns(goog.Promise.resolve(getAccountInfoResponseWithNoSecondFactors))
+      .$once();
+  mockControl.$replayAll();
+
+  // Create the user with the intital pair of tokens and listen for events.
+  testUser = new fireauth.AuthUser(
+      config, tokenResponse, accountInfoWithUid1);
+  var multiFactorUser = new fireauth.MultiFactorUser(
+      testUser, accountInfoWithUid1);
+  goog.events.listen(
+      testUser, fireauth.UserEventType.TOKEN_CHANGED, function(event) {
+        tokenChanged++;
+      });
+  goog.events.listen(
+      testUser, fireauth.UserEventType.USER_INVALIDATED, function(event) {
+        userInvalidated++;
+      });
+  testUser.addStateChangeListener(function(user) {
+    stateChanged++;
+  });
+  assertEquals(1, multiFactorUser['enrolledFactors'].length);
+
+  // Run test.
+  return multiFactorUser.unenroll('ENROLLMENT_UID1')
+      .then(function(){
+        // The tokens should have been updated.
+        var tokens = testUser.getStsTokenManager().toPlainObject();
+        assertEquals(
+            singleFactorTokenResponse.idToken,
+            tokens['accessToken']);
+        assertEquals(
+            singleFactorTokenResponse.refreshToken,
+            tokens['refreshToken']);
+        assertEquals(1, tokenChanged);
+        // All enrolled factors should be removed.
+        assertEquals(0, multiFactorUser['enrolledFactors'].length);
+        assertEquals(1, stateChanged);
+        // The user should not be invalidated.
+        assertEquals(0, userInvalidated);
+      });
+}
+
+
+function testMultiFactorUser_unenroll_successWithEmptyTokenResponse() {
+  // Tests the situation where the backend decides to revoke the user's session
+  // because they unenrolled the factor that they used to login with. In this
+  // case an empty object is returned instead of new tokens. The unenroll call
+  // should succeed, but the user should be invalidated.
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.TOKEN_EXPIRED);
+  var tokenChanged = 0;
+  var stateChanged = 0;
+  var userInvalidated = 0;
+
+  // Set up mocks.
+  var withdrawMfa = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'withdrawMfa');
+  withdrawMfa(tokenResponse.idToken, 'ENROLLMENT_UID1')
+      .$returns({}).$once(); // The empty token response.
+  var getAccountInfoByIdToken = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'getAccountInfoByIdToken');
+  getAccountInfoByIdToken(tokenResponse.idToken)
+      .$returns(goog.Promise.reject(expectedError)).$once();
+  mockControl.$replayAll();
+
+  // Create user.
+  testUser = new fireauth.AuthUser(
+    config, tokenResponse, accountInfo);
+  var multiFactorUser = new fireauth.MultiFactorUser(
+      testUser, accountInfo);
+  goog.events.listen(
+      testUser, fireauth.UserEventType.TOKEN_CHANGED, function(event) {
+        tokenChanged++;
+      });
+  goog.events.listen(
+      testUser, fireauth.UserEventType.USER_INVALIDATED, function(event) {
+        userInvalidated++;
+      });
+  testUser.addStateChangeListener(function(user) {
+    stateChanged++;
+  });
+  assertEquals(2, multiFactorUser['enrolledFactors'].length);
+
+  // Run test.
+  return multiFactorUser.unenroll('ENROLLMENT_UID1')
+      .then(function() {
+        assertEquals(0, tokenChanged);
+        assertEquals(0, stateChanged);
+        // The first enrolled factor should have been removed.
+        assertEquals(1, multiFactorUser['enrolledFactors'].length);
+        // The user should be invalidated.
+        assertEquals(1, userInvalidated);
+      });
+}
+
+
+function testMultiFactorUser_unenroll_tokenExpired() {
+  // Tests that unenroll will fail when the user's token is expired.
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.TOKEN_EXPIRED);
+  var tokenChanged = 0;
+  var stateChanged = 0;
+  var userInvalidated = 0;
+
+  // Set up mocks.
+  var requestStsToken = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'requestStsToken');
+  requestStsToken({
+    'grant_type': 'refresh_token',
+    'refresh_token': 'REFRESH_TOKEN1'
+  }).$returns(goog.Promise.reject(expectedError)).$once();
+  mockControl.$replayAll();
+
+  // Create user.
+  testUser = new fireauth.AuthUser(
+    config, expiredTokenResponse, accountInfoWithUid1);
+  var multiFactorUser = new fireauth.MultiFactorUser(
+      testUser, accountInfo);
+  goog.events.listen(
+      testUser, fireauth.UserEventType.TOKEN_CHANGED, function(event) {
+        tokenChanged++;
+      });
+  goog.events.listen(
+      testUser, fireauth.UserEventType.USER_INVALIDATED, function(event) {
+        userInvalidated++;
+      });
+  testUser.addStateChangeListener(function(user) {
+    stateChanged++;
+  });
+  assertEquals(2, multiFactorUser['enrolledFactors'].length);
+
+  // Run test.
+  return multiFactorUser.unenroll('ENROLLMENT_UID1')
+      .then(fail)
+      .thenCatch(function(error){
+        assertEquals(expectedError, error);
+        // The enrolled factors should be unchanged.
+        assertEquals(2, multiFactorUser['enrolledFactors'].length);
+        assertEquals(0, tokenChanged);
+        assertEquals(0, stateChanged);
+        // The user should be invalidated.
+        assertEquals(1, userInvalidated);
+      });
+}
+
+
+function testMultiFactorUser_unenroll_requiresRecentLogin() {
+  // Tests that unenroll will fail when the user's credentials are too old and
+  // they need to reauthenticate.
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.CREDENTIAL_TOO_OLD_LOGIN_AGAIN);
+  var tokenChanged = 0;
+  var stateChanged = 0;
+  var userInvalidated = 0;
+
+  // Set up mocks.
+  var withdrawMfa = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'withdrawMfa');
+  withdrawMfa(tokenResponse.idToken, 'ENROLLMENT_UID1')
+      .$returns(goog.Promise.reject(expectedError)).$once();
+  mockControl.$replayAll();
+
+  // Create user.
+  testUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  var multiFactorUser = new fireauth.MultiFactorUser(
+      testUser, accountInfo);
+  goog.events.listen(
+      testUser, fireauth.UserEventType.TOKEN_CHANGED, function(event) {
+        tokenChanged++;
+      });
+  goog.events.listen(
+      testUser, fireauth.UserEventType.USER_INVALIDATED, function(event) {
+        userInvalidated++;
+      });
+  testUser.addStateChangeListener(function(user) {
+    stateChanged++;
+  });
+  assertEquals(2, multiFactorUser['enrolledFactors'].length);
+
+  // Run test.
+  return multiFactorUser.unenroll('ENROLLMENT_UID1')
+      .then(fail)
+      .thenCatch(function(error){
+        assertEquals(expectedError, error);
+        // Tokens should be unchanged.
+        var tokens = testUser.getStsTokenManager().toPlainObject();
+        assertEquals(tokenResponse.idToken, tokens['accessToken']);
+        assertEquals(tokenResponse.refreshToken, tokens['refreshToken']);
+        // The enrolled factors should be unchanged.
+        assertEquals(2, multiFactorUser['enrolledFactors'].length);
+        assertEquals(0, tokenChanged);
+        assertEquals(0, stateChanged);
+        // The user should not be invalidated (since TOKEN_EXPIRED was not
+        // thrown).
+        assertEquals(0, userInvalidated);
+      });
+}
+
+
+function testMultiFactorUser_unenroll_userDeleted() {
+  // Tests that unenroll will fail when the user's account has been deleted.
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.MODULE_DESTROYED);
+  var tokenChanged = 0;
+  var stateChanged = 0;
+  var userInvalidated = 0;
+
+  // Create user.
+  testUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  var multiFactorUser = new fireauth.MultiFactorUser(
+      testUser, accountInfo);
+  goog.events.listen(
+      testUser, fireauth.UserEventType.TOKEN_CHANGED, function(event) {
+        tokenChanged++;
+      });
+  goog.events.listen(
+      testUser, fireauth.UserEventType.USER_INVALIDATED, function(event) {
+        userInvalidated++;
+      });
+  testUser.addStateChangeListener(function(user) {
+    stateChanged++;
+  });
+  assertEquals(2, multiFactorUser['enrolledFactors'].length);
+
+  // Run test.
+  testUser.destroy();
+  return multiFactorUser.unenroll('ENROLLMENT_UID1')
+      .then(fail)
+      .thenCatch(function(error){
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        // Tokens should be unchanged.
+        var tokens = testUser.getStsTokenManager().toPlainObject();
+        assertEquals(tokenResponse.idToken, tokens['accessToken']);
+        assertEquals(tokenResponse.refreshToken, tokens['refreshToken']);
+        // The enrolled factors should be unchanged.
+        assertEquals(2, multiFactorUser['enrolledFactors'].length);
+        assertEquals(0, tokenChanged);
+        assertEquals(0, stateChanged);
+        // The user should not be invalidated (since TOKEN_EXPIRED was not
+        // thrown).
+        assertEquals(0, userInvalidated);
       });
 }

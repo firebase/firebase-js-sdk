@@ -571,6 +571,24 @@ fireauth.args.validateMultiFactorInfo_ = function(info) {
 
 
 /**
+ * Specifies an argument that implements the fireauth.MultiFactorInfo
+ * interface.
+ * @param {?string=} name The name of the argument.
+ * @param {?boolean=} optional Whether or not this argument is optional.
+ *     Defaults to false.
+ * @return {!fireauth.args.Argument}
+ */
+fireauth.args.multiFactorInfo = function(name, optional) {
+  return /** @type {!fireauth.args.Argument} */ ({
+    name: name || 'multiFactorInfo',
+    typeLabel: 'a valid multiFactorInfo',
+    optional: !!optional,
+    validator: fireauth.args.validateMultiFactorInfo_
+  });
+};
+
+
+/**
  * Specifies an argument that implements the firebase.auth.ApplicationVerifier
  * interface.
  * @param {?boolean=} opt_optional Whether or not this argument is optional.

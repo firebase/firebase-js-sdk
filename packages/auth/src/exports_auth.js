@@ -632,6 +632,15 @@ fireauth.exportlib.exportPrototypeMethods(
           fireauth.args.multiFactorAssertion(),
           fireauth.args.string('displayName', true)
         ]
+      },
+      unenroll: {
+        name: 'unenroll',
+        args: [
+          fireauth.args.or(
+              fireauth.args.multiFactorInfo(),
+              fireauth.args.string(),
+              'multiFactorInfoIdentifier')
+        ]
       }
     });
 

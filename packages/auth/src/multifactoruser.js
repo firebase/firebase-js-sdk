@@ -203,6 +203,43 @@ fireauth.MultiFactorUser.prototype.enroll = function(assertion, displayName) {
 
 
 /**
+ * Removes a second factor from the current user. The factor to be removed can
+ * either be identified with the corresponding MultiFactorInfo object or with
+ * the second factor's uid string.
+ *
+ * As part of the unenrollment process, the backend may decide to log the user
+ * out. If so, this will still succeed and invalidate the user's state.
+ * @param {!fireauth.MultiFactorInfo|string} target The second factor to remove.
+ * @return {!goog.Promise<void>}
+ */
+fireauth.MultiFactorUser.prototype.unenroll = function(target) {
+  var self = this;
+  var uid = goog.isString(target) ? target : target['uid'];
+  var rpcHandler = this.user_.getRpcHandler();
+  return this.user_.getIdToken().then(function(idToken) {
+    return rpcHandler.withdrawMfa(idToken, uid);
+  }).then(function(tokenResponse) {
+    // Remove the second factor from the user's list.
+    var enrolledFactors = goog.array.filter(self.enrolledFactors_,
+      function(info) {
+        return info['uid'] != uid;
+      });
+    self.updateEnrolledFactors_(enrolledFactors);
+    // Depending on whether the backend decided to revoke the user's session,
+    // the tokenResponse may be empty. If the tokens were not updated (and they
+    // are now invalid), reloading the user will discover this and invalidate
+    // the user's state accordingly.
+    self.user_.updateTokensIfPresent(tokenResponse);
+    return self.user_.reload().thenCatch(function(error) {
+      if (error['code'] != 'auth/user-token-expired') {
+        throw error;
+      }
+    });
+  });
+};
+
+
+/**
  * @return {!Object} The plain object representation of the `MultiFactorUser`.
  */
 fireauth.MultiFactorUser.prototype.toPlainObject = function() {
