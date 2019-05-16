@@ -24,6 +24,7 @@ goog.provide('fireauth.storage.RedirectUserManagerTest');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.authStorage');
 goog.require('fireauth.common.testHelper');
+goog.require('fireauth.constants');
 goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.storage.RedirectUserManager');
 goog.require('goog.Promise');
@@ -44,6 +45,7 @@ var expectedUserWithAuthDomain;
 var stubs = new goog.testing.PropertyReplacer();
 var mockLocalStorage;
 var mockSessionStorage;
+var now = new Date();
 
 
 function setUp() {
@@ -99,7 +101,25 @@ function testGetSetRemoveRedirectUser() {
     'email': 'user@default.com',
     'displayName': 'defaultDisplayName',
     'photoURL': 'https://www.default.com/default/default.png',
-    'emailVerified': true
+    'emailVerified': true,
+    'multiFactor': {
+      'enrolledFactors': [
+        {
+          'uid': 'ENROLLMENT_UID1',
+          'displayName': 'Work phone number',
+          'enrollmentTime': now.toUTCString(),
+          'factorId': fireauth.constants.SecondFactorType.PHONE,
+          'phoneNumber': '+16505551234'
+        },
+        {
+          'uid': 'ENROLLMENT_UID2',
+          'displayName': 'Spouse phone number',
+          'enrollmentTime': now.toUTCString(),
+          'factorId': fireauth.constants.SecondFactorType.PHONE,
+          'phoneNumber': '+16505556789'
+        }
+      ]
+    }
   };
   var tokenResponse = {
     'idToken': fireauth.common.testHelper.createMockJwt(),
@@ -118,7 +138,7 @@ function testGetSetRemoveRedirectUser() {
         return redirectUserManager.getRedirectUser();
       })
       .then(function(user) {
-        assertObjectEquals(expectedUser, user);
+        fireauth.common.testHelper.assertUserEquals(expectedUser, user);
         return mockSessionStorage.get(storageKey);
       })
       .then(function(value) {
@@ -127,7 +147,8 @@ function testGetSetRemoveRedirectUser() {
         return redirectUserManager.getRedirectUser('project.firebaseapp.com');
       })
       .then(function(user) {
-        assertObjectEquals(expectedUserWithAuthDomain, user);
+        fireauth.common.testHelper.assertUserEquals(
+            expectedUserWithAuthDomain, user);
         return redirectUserManager.removeRedirectUser();
       })
       .then(function() {

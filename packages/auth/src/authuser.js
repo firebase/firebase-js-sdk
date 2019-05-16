@@ -24,8 +24,6 @@ goog.provide('fireauth.AuthUser');
 goog.provide('fireauth.AuthUser.AccountInfo');
 goog.provide('fireauth.AuthUserInfo');
 goog.provide('fireauth.TokenRefreshTime');
-goog.provide('fireauth.UserEvent');
-goog.provide('fireauth.UserEventType');
 goog.provide('fireauth.UserMetadata');
 
 goog.require('fireauth.ActionCodeSettings');
@@ -38,10 +36,13 @@ goog.require('fireauth.AuthEventManager');
 goog.require('fireauth.AuthProvider');
 goog.require('fireauth.ConfirmationResult');
 goog.require('fireauth.IdTokenResult');
+goog.require('fireauth.MultiFactorUser');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.ProactiveRefresh');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.StsTokenManager');
+goog.require('fireauth.UserEvent');
+goog.require('fireauth.UserEventType');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.constants');
 goog.require('fireauth.constants.AuthEventType');
@@ -123,48 +124,6 @@ fireauth.AuthUserInfo = function(
     'phoneNumber': opt_phoneNumber || null,
     'providerId': providerId
   });
-};
-
-
-
-/**
- * User custom event.
- * @param {string} type The event type.
- * @param {?Object=} opt_properties The optional properties to set to the custom
- *     event using same keys as object provided.
- * @constructor
- * @extends {goog.events.Event}
- */
-fireauth.UserEvent = function(type, opt_properties) {
-  goog.events.Event.call(this, type);
-  // If optional properties provided.
-  // Add each property to custom event.
-  for (var key in opt_properties) {
-    this[key] = opt_properties[key];
-  }
-};
-goog.inherits(fireauth.UserEvent, goog.events.Event);
-
-
-/**
- * Events dispatched by the user.
- * @enum {string}
- */
-fireauth.UserEventType = {
-  /** Dispatched when token is changed due to Auth event. */
-  TOKEN_CHANGED: 'tokenChanged',
-
-  /** Dispatched when user is deleted. */
-  USER_DELETED: 'userDeleted',
-
-  /**
-   * Dispatched when user session is invalidated. This could happen when the
-   * following errors occur: user-disabled or user-token-expired.
-   */
-  USER_INVALIDATED: 'userInvalidated',
-
-  /** Dispatched when the user is reloaded. */
-  USER_RELOADED: 'userReloaded'
 };
 
 
@@ -303,6 +262,14 @@ fireauth.AuthUser =
    * @private {?goog.events.EventTarget} The framework change event dispatcher.
    */
   this.frameworkChangeEventDispatcher_ = null;
+  /**
+   * @const @private {!fireauth.MultiFactorUser} The multifactor user instance.
+   */
+  this.multiFactorUser_ = new fireauth.MultiFactorUser(
+      this, /** @type {?fireauth.AuthUser.AccountInfo|undefined} */ (
+          opt_accountInfo));
+  fireauth.object.setReadonlyProperty(
+      this, 'multiFactor', this.multiFactorUser_);
 };
 goog.inherits(fireauth.AuthUser, goog.events.EventTarget);
 
@@ -536,7 +503,7 @@ fireauth.AuthUser.prototype.setLastAccessToken_ = function(lastAccessToken) {
 
 
 /**
- * @param {!function(!fireauth.AuthUser):!goog.Promise} listener The listener
+ * @param {function(!fireauth.AuthUser):!goog.Promise} listener The listener
  *     to state changes to add.
  */
 fireauth.AuthUser.prototype.addStateChangeListener = function(listener) {
@@ -545,7 +512,7 @@ fireauth.AuthUser.prototype.addStateChangeListener = function(listener) {
 
 
 /**
- * @param {!function(!fireauth.AuthUser):!goog.Promise} listener The listener
+ * @param {function(!fireauth.AuthUser):!goog.Promise} listener The listener
  *     to state changes to remove.
  */
 fireauth.AuthUser.prototype.removeStateChangeListener = function(listener) {
@@ -877,6 +844,12 @@ fireauth.AuthUser.prototype.copy = function(userToCopy) {
   this.stsTokenManager_.copy(userToCopy.getStsTokenManager());
   fireauth.object.setReadonlyProperty(
       this, 'refreshToken', this.stsTokenManager_.getRefreshToken());
+  // Copy multi-factor info to current user.
+  // This should be backward compatible.
+  // If the userToCopy is loaded from an older version, multiFactorUser
+  // enrolled factors will be initialized empty and copied empty to current
+  // multiFactorUser.
+  this.multiFactorUser_.copy(userToCopy.multiFactorUser_);
 };
 
 
@@ -1047,7 +1020,7 @@ fireauth.AuthUser.prototype.notifyUserInvalidatedListeners_ = function() {
 /**
  * Queries the backend using the provided ID token for all linked accounts to
  * build the Firebase user object.
- * @param {!string} idToken The ID token string.
+ * @param {string} idToken The ID token string.
  * @return {!goog.Promise<undefined>}
  * @private
  */
@@ -1107,7 +1080,7 @@ fireauth.AuthUser.prototype.parseAccountInfo_ = function(resp) {
  * Extracts the linked accounts from getAccountInfo response and returns an
  * array of corresponding provider data.
  * @param {!Object} resp The response object.
- * @return {!Array.<!fireauth.AuthUserInfo>} The linked accounts.
+ * @return {!Array<!fireauth.AuthUserInfo>} The linked accounts.
  * @private
  */
 fireauth.AuthUser.prototype.extractLinkedAccounts_ = function(resp) {
@@ -1729,7 +1702,7 @@ fireauth.AuthUser.prototype.reauthenticateWithPopup = function(provider) {
  * @param {!fireauth.AuthEvent.Type} mode The mode of operation (link or
  *     reauth).
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
- * @param {!function():!goog.Promise} additionalCheck The additional check to
+ * @param {function():!goog.Promise} additionalCheck The additional check to
  *     run before proceeding with the popup processing.
  * @param {boolean} isReauthOperation whether this is a reauth operation or not.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
@@ -1881,7 +1854,7 @@ fireauth.AuthUser.prototype.reauthenticateWithRedirect = function(provider) {
  * @param {!fireauth.AuthEvent.Type} mode The mode of operation (link or
  *     reauth).
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
- * @param {!function():!goog.Promise} additionalCheck The additional check to
+ * @param {function():!goog.Promise} additionalCheck The additional check to
  *     run before proceeding with the redirect processing.
  * @param {boolean} isReauthOperation whether this is a reauth operation or not.
  * @return {!goog.Promise<void>}
@@ -2286,6 +2259,8 @@ fireauth.AuthUser.prototype.toPlainObject = function() {
   goog.array.forEach(this['providerData'], function(userInfo) {
     obj['providerData'].push(fireauth.object.makeWritableCopy(userInfo));
   });
+  // Extend plain object with multi-factor user data.
+  goog.object.extend(obj, this.multiFactorUser_.toPlainObject());
   return obj;
 };
 

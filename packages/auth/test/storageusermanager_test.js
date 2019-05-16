@@ -24,6 +24,7 @@ goog.provide('fireauth.storage.UserManagerTest');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.authStorage');
 goog.require('fireauth.common.testHelper');
+goog.require('fireauth.constants');
 goog.require('fireauth.storage.MockStorage');
 goog.require('fireauth.storage.UserManager');
 goog.require('fireauth.util');
@@ -52,6 +53,7 @@ var testUser;
 var testUser2;
 var mockLocalStorage;
 var mockSessionStorage;
+var now = new Date();
 
 
 function setUp() {
@@ -80,7 +82,25 @@ function setUp() {
     'email': 'user@default.com',
     'displayName': 'defaultDisplayName',
     'photoURL': 'https://www.default.com/default/default.png',
-    'emailVerified': true
+    'emailVerified': true,
+    'multiFactor': {
+      'enrolledFactors': [
+        {
+          'uid': 'ENROLLMENT_UID1',
+          'displayName': 'Work phone number',
+          'enrollmentTime': now.toUTCString(),
+          'factorId': fireauth.constants.SecondFactorType.PHONE,
+          'phoneNumber': '+16505551234'
+        },
+        {
+          'uid': 'ENROLLMENT_UID2',
+          'displayName': 'Spouse phone number',
+          'enrollmentTime': now.toUTCString(),
+          'factorId': fireauth.constants.SecondFactorType.PHONE,
+          'phoneNumber': '+16505556789'
+        }
+      ]
+    }
   };
   var accountInfo2 = {
     'uid': 'defaultUserId2',
@@ -143,7 +163,25 @@ function testGetSetRemoveCurrentUser() {
     'email': 'user@default.com',
     'displayName': 'defaultDisplayName',
     'photoURL': 'https://www.default.com/default/default.png',
-    'emailVerified': true
+    'emailVerified': true,
+    'multiFactor': {
+      'enrolledFactors': [
+        {
+          'uid': 'ENROLLMENT_UID1',
+          'displayName': 'Work phone number',
+          'enrollmentTime': now.toUTCString(),
+          'factorId': fireauth.constants.SecondFactorType.PHONE,
+          'phoneNumber': '+16505551234'
+        },
+        {
+          'uid': 'ENROLLMENT_UID2',
+          'displayName': 'Spouse phone number',
+          'enrollmentTime': now.toUTCString(),
+          'factorId': fireauth.constants.SecondFactorType.PHONE,
+          'phoneNumber': '+16505556789'
+        }
+      ]
+    }
   };
   var tokenResponse = {
     'idToken': fireauth.common.testHelper.createMockJwt(),
@@ -171,7 +209,8 @@ function testGetSetRemoveCurrentUser() {
         return userManager.getCurrentUser('project.firebaseapp.com');
       })
       .then(function(user) {
-        assertObjectEquals(expectedUserWithAuthDomain, user);
+        fireauth.common.testHelper.assertUserEquals(
+            expectedUserWithAuthDomain, user);
         return userManager.removeCurrentUser();
       })
       .then(function() {
@@ -247,7 +286,7 @@ function testUserManager_initializedWithSession() {
   var userManager = new fireauth.storage.UserManager('appId1', storageManager);
   return userManager.getCurrentUser()
       .then(function(user) {
-        assertObjectEquals(testUser, user);
+        fireauth.common.testHelper.assertUserEquals(testUser, user);
         // User should be saved in session storage only with everything else
         // cleared.
         return fireauth.common.testHelper.assertUserStorage(
@@ -260,7 +299,7 @@ function testUserManager_initializedWithSession() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'session', testUser2, storageManager);
       });
@@ -290,7 +329,7 @@ function testUserManager_initializedWithSession_duplicateStorage() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser, user);
+        fireauth.common.testHelper.assertUserEquals(testUser, user);
         // User should be saved in session storage only with everything else
         // cleared.
         return fireauth.common.testHelper.assertUserStorage(
@@ -303,7 +342,7 @@ function testUserManager_initializedWithSession_duplicateStorage() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'session', testUser2, storageManager);
       });
@@ -324,7 +363,7 @@ function testUserManager_initializedWithInMemory() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser, user);
+        fireauth.common.testHelper.assertUserEquals(testUser, user);
         // User should be saved in memory only with everything else
         // cleared.
         return fireauth.common.testHelper.assertUserStorage(
@@ -351,7 +390,7 @@ function testUserManager_initializedWithLocal() {
   var userManager = new fireauth.storage.UserManager('appId1', storageManager);
   return userManager.getCurrentUser()
       .then(function(user) {
-        assertObjectEquals(testUser, user);
+        fireauth.common.testHelper.assertUserEquals(testUser, user);
         // User should be saved in local storage only with everything else
         // cleared.
         return fireauth.common.testHelper.assertUserStorage(
@@ -364,7 +403,7 @@ function testUserManager_initializedWithLocal() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'local', testUser2, storageManager);
       });
@@ -380,7 +419,7 @@ function testUserManager_initializedWithLocal_migratedFromLocalStorage() {
   var userManager = new fireauth.storage.UserManager('appId1', storageManager);
   return userManager.getCurrentUser()
       .then(function(user) {
-        assertObjectEquals(testUser, user);
+        fireauth.common.testHelper.assertUserEquals(testUser, user);
         // User should be cleared from window.localStorage.
         assertNull(window.localStorage.getItem(storageKey));
         // User should be saved in mock local storage only with everything else
@@ -396,7 +435,7 @@ function testUserManager_initializedWithLocal_migratedFromLocalStorage() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'local', testUser2, storageManager);
       });
@@ -415,7 +454,7 @@ function testUserManager_initializedWithLocal_multiplePersistentStorage() {
   var userManager = new fireauth.storage.UserManager('appId1', storageManager);
   return userManager.getCurrentUser()
       .then(function(user) {
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         // User should be ignored and cleared from window.localStorage.
         assertNull(window.localStorage.getItem(storageKey));
         // Existing user saved in mock local storage persisted with everything
@@ -430,7 +469,7 @@ function testUserManager_initializedWithLocal_multiplePersistentStorage() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser, user);
+        fireauth.common.testHelper.assertUserEquals(testUser, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'local', testUser, storageManager);
       });
@@ -450,7 +489,7 @@ function testUserManager_initializedWithDefault() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'local', testUser2, storageManager);
       });
@@ -473,7 +512,7 @@ function testUserManager_initializedWithSavedPersistence() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'session', testUser2, storageManager);
       });
@@ -528,7 +567,7 @@ function testUserManager_clearState_setPersistence() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'session', testUser2, storageManager);
       })
@@ -546,7 +585,7 @@ function testUserManager_clearState_setPersistence() {
         return userManager.getCurrentUser();
       })
       .then(function(user) {
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         // Internally switches to local storage.
         userManager.setPersistence('local');
         // Internally switches back to session storage.
@@ -563,7 +602,7 @@ function testUserManager_clearState_setPersistence() {
       })
       .then(function(user) {
         // Should only be saved in session storage.
-        assertObjectEquals(testUser, user);
+        fireauth.common.testHelper.assertUserEquals(testUser, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'session', testUser, storageManager);
       });
@@ -583,7 +622,7 @@ function testUserManager_existingState_setPersistence() {
   // Should be switched to session.
   return userManager.getCurrentUser()
       .then(function(user) {
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'session', testUser2, storageManager);
       })
@@ -630,7 +669,7 @@ function testUserManager_switchToLocalOnExternalEvents_noExistingUser() {
       })
       .then(function(user) {
         // User should be save in local storage.
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'local', testUser2, storageManager);
       })
@@ -663,7 +702,7 @@ function testUserManager_switchToLocalOnExternalEvents_existingUser() {
   // Should switch to session.
   return userManager.getCurrentUser()
       .then(function(user) {
-        assertObjectEquals(testUser, user);
+        fireauth.common.testHelper.assertUserEquals(testUser, user);
         // Confirm user stored in session
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'session', testUser, storageManager);
@@ -678,7 +717,7 @@ function testUserManager_switchToLocalOnExternalEvents_existingUser() {
       })
       .then(function(user) {
         // New user should be stored in local storage.
-        assertObjectEquals(testUser2, user);
+        fireauth.common.testHelper.assertUserEquals(testUser2, user);
         return fireauth.common.testHelper.assertUserStorage(
             'appId1', 'local', testUser2, storageManager);
       })

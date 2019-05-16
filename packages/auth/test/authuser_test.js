@@ -31,6 +31,8 @@ goog.require('fireauth.AuthUser');
 goog.require('fireauth.AuthUserInfo');
 goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
+goog.require('fireauth.MultiFactorInfo');
+goog.require('fireauth.MultiFactorUser');
 goog.require('fireauth.OAuthSignInHandler');
 goog.require('fireauth.PhoneAuthCredential');
 goog.require('fireauth.PhoneAuthProvider');
@@ -175,6 +177,8 @@ var expectedSamlAdditionalUserInfo;
 var jwt;
 var newJwt;
 var userReloadedEventHandler;
+var multiFactor;
+var mfaInfo;
 
 
 function setUp() {
@@ -225,6 +229,37 @@ function setUp() {
       function() {
         return now;
       });
+  multiFactor = {
+    'enrolledFactors': [
+      {
+        'uid': 'ENROLLMENT_UID1',
+        'displayName': 'Work phone number',
+        'enrollmentTime': new Date(now).toUTCString(),
+        'factorId': fireauth.constants.SecondFactorType.PHONE,
+        'phoneNumber': '+16505551234'
+      },
+      {
+        'uid': 'ENROLLMENT_UID2',
+        'displayName': null,
+        'enrollmentTime': new Date(now).toUTCString(),
+        'factorId': fireauth.constants.SecondFactorType.PHONE,
+        'phoneNumber': '+16505556789'
+      }
+    ]
+  };
+  mfaInfo = [
+    {
+      'mfaEnrollmentId': 'ENROLLMENT_UID1',
+      'displayName': 'Work phone number',
+      'enrolledAt': new Date(now).toISOString(),
+      'phoneInfo': '+16505551234'
+    },
+    {
+      'mfaEnrollmentId': 'ENROLLMENT_UID2',
+      'enrolledAt': new Date(now).toISOString(),
+      'phoneInfo': '+16505556789'
+    }
+  ];
   accountInfo = {
     'uid': 'defaultUserId',
     'email': 'user@default.com',
@@ -243,6 +278,16 @@ function setUp() {
     'phoneNumber': '+16505550101',
     'lastLoginAt': lastLoginAt,
     'createdAt': createdAt
+  };
+  accountInfoWithEnrolledFactors = {
+    'uid': 'defaultUserId',
+    'email': 'user@default.com',
+    'displayName': 'defaultDisplayName',
+    'photoURL': 'https://www.default.com/default/default.png',
+    'emailVerified': true,
+    'lastLoginAt': lastLoginAt,
+    'createdAt': createdAt,
+    'multiFactor': multiFactor
   };
   accountInfo2 = {
     'uid': '14584746072031976743',
@@ -413,6 +458,7 @@ function tearDown() {
   user = null;
   accountInfo = null;
   accountInfoWithPhone = null;
+  accountInfoWithEnrolledFactors = null;
   accountInfo2 = null;
   getAccountInfoResponse = null;
   getAccountInfoResponseProviderData1 = null;
@@ -425,6 +471,8 @@ function tearDown() {
   tokenResponse = null;
   config1 = null;
   config2 = null;
+  multiFactor = null;
+  mfaInfo = null;
   window.localStorage.clear();
   window.sessionStorage.clear();
   stubs.reset();
@@ -587,6 +635,19 @@ function testUser() {
 }
 
 
+function testUser_multiFactor() {
+  user = new fireauth.AuthUser(
+      config1, tokenResponse, accountInfoWithEnrolledFactors);
+  user.addProviderData(providerData1);
+  user.addProviderData(providerData2);
+
+  assertTrue(user.multiFactor instanceof fireauth.MultiFactorUser);
+  assertObjectEquals(
+      new fireauth.MultiFactorUser(user, accountInfoWithEnrolledFactors),
+      user.multiFactor);
+}
+
+
 function testUser_copyUser() {
   config1['authDomain'] = 'subdomain.firebaseapp.com';
   config2['authDomain'] = 'subdomain.firebaseapp.com';
@@ -680,6 +741,7 @@ function testUser_copyUser_defaultConfig() {
   assertNull(user.getRedirectEventId());
 }
 
+
 function testUser_copyUser_expiredToken() {
   // Mock the expired token.
   tokenResponse['idToken'] =
@@ -698,12 +760,40 @@ function testUser_copyUser_expiredToken() {
 }
 
 
+function testUser_copyUser_multiFactor() {
+  user1 = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  user2 = new fireauth.AuthUser(
+      config1, tokenResponse, accountInfoWithEnrolledFactors);
+  user3 = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  var multiFactorUser1 = user1.multiFactor;
+
+  user1.copy(user2);
+  // Same reference should be kept.
+  assertEquals(user1.multiFactor, multiFactorUser1);
+  assertObjectEquals(
+      new fireauth.MultiFactorUser(user2, accountInfoWithEnrolledFactors)
+          .toPlainObject(),
+      user1.multiFactor.toPlainObject());
+  assertEquals(user2, user1.multiFactor.getUser());
+
+  user1.copy(user3);
+  // Same reference should be kept.
+  assertEquals(user1.multiFactor, multiFactorUser1);
+  assertObjectEquals(
+      new fireauth.MultiFactorUser(user3, accountInfo).toPlainObject(),
+      user1.multiFactor.toPlainObject());
+  assertEquals(0, user1.multiFactor.enrolledFactors.length);
+  assertEquals(user3, user1.multiFactor.getUser());
+}
+
+
 function testUser_rpcHandlerEndpoints() {
   // Confirm expected endpoint config passed to underlying RPC handler.
   var endpoint = fireauth.constants.Endpoint.STAGING;
   var endpointConfig = {
     'firebaseEndpoint': endpoint.firebaseAuthEndpoint,
-    'secureTokenEndpoint': endpoint.secureTokenEndpoint
+    'secureTokenEndpoint': endpoint.secureTokenEndpoint,
+    'identityPlatformEndpoint': endpoint.identityPlatformEndpoint
   };
   stubs.replace(
       fireauth.constants,
@@ -895,7 +985,7 @@ function testUser_setUserAccountInfoFromToken_success() {
   assertEquals(0, userReloadedEventHandler.getCallCount());
   user.reload().then(function() {
     assertEquals(1, stateChangedCounter);
-    assertObjectEquals(expectedUser.toPlainObject(), user.toPlainObject());
+    fireauth.common.testHelper.assertUserEquals(expectedUser, user);
     // Confirm event triggered on reload with the expected properties.
     assertEquals(1, userReloadedEventHandler.getCallCount());
     var event = userReloadedEventHandler.getLastCall().getArgument(0);
@@ -945,7 +1035,7 @@ function testSetUserAccountInfoFromToken_success_emailAndPassword() {
   asyncTestCase.waitForSignals(1);
   assertEquals(0, userReloadedEventHandler.getCallCount());
   user.reload().then(function() {
-    assertObjectEquals(expectedUser.toPlainObject(), user.toPlainObject());
+    fireauth.common.testHelper.assertUserEquals(expectedUser, user);
     // Confirm event triggered on reload with the expected properties.
     assertEquals(1, userReloadedEventHandler.getCallCount());
     var event = userReloadedEventHandler.getLastCall().getArgument(0);
@@ -990,7 +1080,7 @@ function testSetUserAccountInfoFromToken_success_emailNoPassword() {
   user = new fireauth.AuthUser(config1, tokenResponse);
   asyncTestCase.waitForSignals(1);
   user.reload().then(function() {
-    assertObjectEquals(expectedUser, user);
+    assertObjectEquals(expectedUser.toPlainObject(), user.toPlainObject());
     asyncTestCase.signal();
   });
 }
@@ -1031,7 +1121,110 @@ function testSetUserAccountInfoFromToken_success_passwordNoEmail() {
   user = new fireauth.AuthUser(config1, tokenResponse);
   asyncTestCase.waitForSignals(1);
   user.reload().then(function() {
-    assertObjectEquals(expectedUser, user);
+    fireauth.common.testHelper.assertUserEquals(expectedUser, user);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testUser_setUserAccountInfoFromToken_multiFactor_success() {
+  var response = {
+    'users': [{
+      'localId': '14584746072031976743',
+      'email': 'uid123@fake.com',
+      'emailVerified': true,
+      'displayName': 'John Doe',
+      'providerUserInfo': [
+        {
+          'email': 'user@gmail.com',
+          'providerId': 'google.com',
+          'displayName': 'John G. Doe',
+          'photoUrl': 'https://lh5.googleusercontent.com/123456789/photo.jpg',
+          'federatedId': 'https://accounts.google.com/123456789',
+          'rawId': '123456789'
+        },
+        {
+          'providerId': 'twitter.com',
+          'displayName': 'John Gammell Doe',
+          'photoUrl': 'http://abs.twimg.com/sticky/default_profile_images/' +
+              'default_profile_3_normal.png',
+          'federatedId': 'http://twitter.com/987654321',
+          'rawId': '987654321'
+        }
+      ],
+      'photoUrl': 'http://abs.twimg.com/sticky/default_profile_images/' +
+          'default_profile_3_normal.png',
+      'passwordUpdatedAt': 0.0,
+      'disabled': false,
+      'mfaInfo': mfaInfo
+    }]
+  };
+  var expectedUser = new fireauth.AuthUser(config1, tokenResponse, {
+    'uid': '14584746072031976743',
+    'email': 'uid123@fake.com',
+    'displayName': 'John Doe',
+    'photoURL': 'http://abs.twimg.com/sticky/default_profile_images/defaul' +
+        't_profile_3_normal.png',
+    'emailVerified': true,
+    'multiFactor': multiFactor
+  });
+  expectedUser.addProviderData(new fireauth.AuthUserInfo(
+      '123456789',
+      'google.com',
+      'user@gmail.com',
+      'John G. Doe',
+      'https://lh5.googleusercontent.com/123456789/photo.jpg'));
+  expectedUser.addProviderData(new fireauth.AuthUserInfo(
+      '987654321',
+      'twitter.com',
+      null,
+      'John Gammell Doe',
+      'http://abs.twimg.com/sticky/default_profile_images/default_profile_' +
+      '3_normal.png'));
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      function(data) {
+        return new goog.Promise(function(resolve, reject) {
+          assertEquals(jwt, data);
+          resolve(response);
+        });
+      });
+  asyncTestCase.waitForSignals(1);
+  // Initialize user with no account info or provider data.
+  user = new fireauth.AuthUser(config1, tokenResponse);
+  var multiFactorUser = user.multiFactor;
+  assertEquals(0, user.multiFactor.enrolledFactors.length);
+  // Record event triggers on USER_RELOADED.
+  var userReloadedEventHandler = goog.testing.recordFunction();
+  goog.events.listen(
+      user, fireauth.UserEventType.USER_RELOADED, userReloadedEventHandler);
+  var stateChangedCounter = 0;
+  user.addStateChangeListener(function(user) {
+    stateChangedCounter++;
+    return goog.Promise.resolve();
+  });
+  assertNoTokenEvents(user);
+  assertNoUserInvalidatedEvents(user);
+  assertEquals(0, userReloadedEventHandler.getCallCount());
+
+  user.reload().then(function() {
+    assertEquals(1, stateChangedCounter);
+    fireauth.common.testHelper.assertUserEquals(expectedUser, user);
+    // Confirm event triggered on reload with the expected properties.
+    assertEquals(1, userReloadedEventHandler.getCallCount());
+    var event = userReloadedEventHandler.getLastCall().getArgument(0);
+    assertObjectEquals(response.users[0], event.userServerResponse);
+    // Confirm enrolled factors updated.
+    assertEquals(mfaInfo.length, user.multiFactor.enrolledFactors.length);
+    assertObjectEquals(
+        fireauth.MultiFactorInfo.fromServerResponse(mfaInfo[0]),
+        user.multiFactor.enrolledFactors[0]);
+    assertObjectEquals(
+        fireauth.MultiFactorInfo.fromServerResponse(mfaInfo[1]),
+        user.multiFactor.enrolledFactors[1]);
+    // Multifactor reference should not be updated.
+    assertEquals(multiFactorUser, user.multiFactor);
     asyncTestCase.signal();
   });
 }
@@ -4119,7 +4312,7 @@ function testUser_copy() {
   assertObjectNotEquals(user1, user2);
   user1.copy(user2);
   // user1 should now be equal to user2.
-  assertObjectEquals(user1, user2);
+  fireauth.common.testHelper.assertUserEquals(user1, user2);
 }
 
 
@@ -4168,7 +4361,10 @@ function testUser_toPlainObject() {
         },
         'redirectEventId': '5678',
         'lastLoginAt': lastLoginAt,
-        'createdAt': createdAt
+        'createdAt': createdAt,
+        'multiFactor': {
+          'enrolledFactors': []
+        }
       },
       user1.toPlainObject());
 }
@@ -4223,7 +4419,62 @@ function testUser_toPlainObject_noMetadata() {
         'redirectEventId': '5678',
         // Metadata should be null.
         'lastLoginAt': null,
-        'createdAt': null
+        'createdAt': null,
+        'multiFactor': {
+          'enrolledFactors': []
+        }
+      },
+      user1.toPlainObject());
+}
+
+
+function testUser_toPlainObject_enrolledFactors() {
+  providerData1 = new fireauth.AuthUserInfo(
+      'providerUserId1',
+      'providerId1',
+      'user1@example.com',
+      null,
+      'https://www.example.com/user1/photo.png',
+      '+11234567890');
+  config1['authDomain'] = 'www.example.com';
+  config1['appName'] = 'appId1';
+  var user1 = new fireauth.AuthUser(config1, tokenResponse,
+      accountInfoWithEnrolledFactors);
+  user1.addProviderData(providerData1);
+  // Confirm redirect event ID is added to plain object.
+  user1.setRedirectEventId('5678');
+  assertObjectEquals(
+      {
+        'uid': 'defaultUserId',
+        'displayName': 'defaultDisplayName',
+        'photoURL': 'https://www.default.com/default/default.png',
+        'email': 'user@default.com',
+        'emailVerified': true,
+        'isAnonymous': false,
+        'phoneNumber': null,
+        'providerData': [
+          {
+            'uid': 'providerUserId1',
+            'displayName': null,
+            'photoURL': 'https://www.example.com/user1/photo.png',
+            'email': 'user1@example.com',
+            'providerId': 'providerId1',
+            'phoneNumber': '+11234567890'
+          }
+        ],
+        'apiKey': 'apiKey1',
+        'authDomain': 'www.example.com',
+        'appName': 'appId1',
+        'stsTokenManager': {
+          'apiKey': 'apiKey1',
+          'refreshToken': 'refreshToken',
+          'accessToken': jwt,
+          'expirationTime': now + 3600 * 1000
+        },
+        'redirectEventId': '5678',
+        'lastLoginAt': lastLoginAt,
+        'createdAt': createdAt,
+        'multiFactor': multiFactor
       },
       user1.toPlainObject());
 }
@@ -4261,7 +4512,7 @@ function testUser_fromPlainObject() {
   accountInfo['apiKey'] = 'apiKey1';
   // Missing STS token response.
   assertNull(fireauth.AuthUser.fromPlainObject(accountInfo));
-  assertObjectEquals(
+  fireauth.common.testHelper.assertUserEquals(
       user1,
       fireauth.AuthUser.fromPlainObject({
         'uid': 'defaultUserId',
@@ -4329,7 +4580,7 @@ function testUser_fromPlainObject_noMetadata() {
   accountInfo['apiKey'] = 'apiKey1';
   // Missing STS token response.
   assertNull(fireauth.AuthUser.fromPlainObject(accountInfo));
-  assertObjectEquals(
+  fireauth.common.testHelper.assertUserEquals(
       user1,
       fireauth.AuthUser.fromPlainObject({
         'uid': 'defaultUserId',
@@ -4424,7 +4675,7 @@ function testUser_fromPlainObject_tokenExpired() {
     'createdAt': createdAt
   });
   // Confirm matching users with expired refresh token.
-  assertObjectEquals(user1, parsedUser);
+  fireauth.common.testHelper.assertUserEquals(user1, parsedUser);
   assertNull(parsedUser['refreshToken']);
   // No state or token changes should be triggered.
   assertNoStateEvents(parsedUser);
@@ -4436,6 +4687,70 @@ function testUser_fromPlainObject_tokenExpired() {
     fireauth.common.testHelper.assertErrorEquals(expectedError, error);
     asyncTestCase.signal();
   });
+}
+
+
+function testUser_fromPlainObject_enrolledFactors() {
+  providerData1 = new fireauth.AuthUserInfo(
+      'providerUserId1',
+      'providerId1',
+      'user1@example.com',
+      null,
+      'https://www.example.com/user1/photo.png');
+  config1['authDomain'] = 'www.example.com';
+  config1['appName'] = 'appId1';
+  var user1 = new fireauth.AuthUser(config1, tokenResponse,
+      accountInfoWithEnrolledFactors);
+  user1.addProviderData(providerData1);
+  user1.addProviderData(providerDataPhone);
+  // Confirm redirect event ID is populated from plain object.
+  user1.setRedirectEventId('5678');
+  // Missing API key.
+  assertNull(fireauth.AuthUser.fromPlainObject(accountInfo));
+  accountInfo['apiKey'] = 'apiKey1';
+  // Missing STS token response.
+  assertNull(fireauth.AuthUser.fromPlainObject(accountInfo));
+  fireauth.common.testHelper.assertUserEquals(
+      user1,
+      fireauth.AuthUser.fromPlainObject({
+        'uid': 'defaultUserId',
+        'displayName': 'defaultDisplayName',
+        'photoURL': 'https://www.default.com/default/default.png',
+        'email': 'user@default.com',
+        'emailVerified': true,
+        'isAnonymous': false,
+        'providerData': [
+          {
+            'uid': 'providerUserId1',
+            'displayName': null,
+            'photoURL': 'https://www.example.com/user1/photo.png',
+            'email': 'user1@example.com',
+            'providerId': 'providerId1',
+            'phoneNumber': null
+          },
+          {
+            'uid': '+16505550101',
+            'displayName': null,
+            'photoURL': null,
+            'email': null,
+            'providerId': 'phone',
+            'phoneNumber': '+16505550101'
+          }
+        ],
+        'apiKey': 'apiKey1',
+        'authDomain': 'www.example.com',
+        'appName': 'appId1',
+        'stsTokenManager': {
+          'apiKey': 'apiKey1',
+          'refreshToken': 'refreshToken',
+          'accessToken': jwt,
+          'expirationTime': now + 3600 * 1000
+        },
+        'redirectEventId': '5678',
+        'lastLoginAt': lastLoginAt,
+        'createdAt': createdAt,
+        'multiFactor': multiFactor
+      }));
 }
 
 
@@ -4536,6 +4851,78 @@ function testUser_initializeFromIdTokenResponse() {
             createdUser.stsTokenManager_.accessToken_.toString());
         assertEquals(
             'refreshToken', createdUser.stsTokenManager_.refreshToken_);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testUser_initializeFromIdTokenResponse_multiFactor() {
+  // GetAccountInfo response with multi-factor response.
+  var response = {
+    'users': [{
+      'localId': '14584746072031976743',
+      'email': 'uid123@fake.com',
+      'emailVerified': true,
+      'displayName': 'John Doe',
+      'providerUserInfo': [
+        {
+          'email': 'user@gmail.com',
+          'providerId': 'google.com',
+          'displayName': 'John G. Doe',
+          'photoUrl': 'https://lh5.googleusercontent.com/123456789/photo.jpg',
+          'federatedId': 'https://accounts.google.com/123456789',
+          'rawId': '123456789'
+        },
+        {
+          'providerId': 'twitter.com',
+          'displayName': 'John Gammell Doe',
+          'photoUrl': 'http://abs.twimg.com/sticky/default_profile_images/def' +
+              'ault_profile_3_normal.png',
+          'federatedId': 'http://twitter.com/987654321',
+          'rawId': '987654321'
+        }
+      ],
+      'photoUrl': 'http://abs.twimg.com/sticky/default_profile_images/defaul' +
+          't_profile_3_normal.png',
+      'passwordUpdatedAt': 0.0,
+      'disabled': false,
+      'mfaInfo': mfaInfo
+    }]
+  };
+  var expectedUser = new fireauth.AuthUser(config1, tokenResponse, {
+    'uid': '14584746072031976743',
+    'email': 'uid123@fake.com',
+    'displayName': 'John Doe',
+    'photoURL': 'http://abs.twimg.com/sticky/default_profile_images/defaul' +
+        't_profile_3_normal.png',
+    'emailVerified': true,
+    'multiFactor': multiFactor
+  });
+  expectedUser.addProviderData(new fireauth.AuthUserInfo(
+      '123456789',
+      'google.com',
+      'user@gmail.com',
+      'John G. Doe',
+      'https://lh5.googleusercontent.com/123456789/photo.jpg'));
+  expectedUser.addProviderData(new fireauth.AuthUserInfo(
+      '987654321',
+      'twitter.com',
+      null,
+      'John Gammell Doe',
+      'http://abs.twimg.com/sticky/default_profile_images/default_profile_' +
+      '3_normal.png'));
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      function(data) {
+        assertEquals(jwt, data);
+        return goog.Promise.resolve(response);
+      });
+  asyncTestCase.waitForSignals(1);
+  fireauth.AuthUser.initializeFromIdTokenResponse(config1, tokenResponse, null)
+      .then(function(createdUser) {
+        assertObjectEquals(
+            expectedUser.toPlainObject(), createdUser.toPlainObject());
         asyncTestCase.signal();
       });
 }

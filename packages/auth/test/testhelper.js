@@ -43,6 +43,16 @@ fireauth.common.testHelper.assertErrorEquals = function(expected, actual) {
 
 
 /**
+ * Asserts that two users are equivalent.
+ * @param {!fireauth.AuthUser} expected The expected user.
+ * @param {!fireauth.AuthUser} actual The actual user.
+ */
+fireauth.common.testHelper.assertUserEquals = function(expected, actual) {
+  assertObjectEquals(expected.toPlainObject(), actual.toPlainObject());
+};
+
+
+/**
  * Asserts that a user credential response matches the expected values.
  * @param {?fireauth.AuthUser} expectedUser The user to expect.
  * @param {?fireauth.AuthCredential} expectedCred The credential to expect.

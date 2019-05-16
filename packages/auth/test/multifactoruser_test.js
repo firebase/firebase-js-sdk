@@ -78,7 +78,7 @@ function setUp() {
           'enrollmentTime': now.toUTCString(),
           'factorId': fireauth.constants.SecondFactorType.PHONE,
           'phoneNumber': '+16505556789'
-        },
+        }
       ]
     }
   };
@@ -200,11 +200,11 @@ function tearDown() {
 }
 
 
-function testMultiFactorUser_enrolledFactors() {
+function testMultiFactorUser() {
   var info = [
-    new fireauth.MultiFactorInfo.fromPlainObject(
+    fireauth.MultiFactorInfo.fromPlainObject(
         accountInfo['multiFactor']['enrolledFactors'][0]),
-    new fireauth.MultiFactorInfo.fromPlainObject(
+    fireauth.MultiFactorInfo.fromPlainObject(
         accountInfo['multiFactor']['enrolledFactors'][1])
   ];
   testUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
@@ -213,6 +213,7 @@ function testMultiFactorUser_enrolledFactors() {
   assertEquals(2, multiFactorUser['enrolledFactors'].length);
   assertObjectEquals(info[0], multiFactorUser['enrolledFactors'][0]);
   assertObjectEquals(info[1], multiFactorUser['enrolledFactors'][1]);
+  assertEquals(testUser, multiFactorUser.getUser());
 }
 
 
@@ -225,13 +226,13 @@ function testMultiFactorUser_copy() {
       goog.Promise.resolve(getAccountInfoResponse1)).$once();
   mockControl.$replayAll();
   var info = [
-    new fireauth.MultiFactorInfo.fromPlainObject(
+    fireauth.MultiFactorInfo.fromPlainObject(
         accountInfo['multiFactor']['enrolledFactors'][0]),
-    new fireauth.MultiFactorInfo.fromPlainObject(
+    fireauth.MultiFactorInfo.fromPlainObject(
         accountInfo['multiFactor']['enrolledFactors'][1]),
-    new fireauth.MultiFactorInfo.fromPlainObject(
+    fireauth.MultiFactorInfo.fromPlainObject(
         accountInfo2['multiFactor']['enrolledFactors'][0]),
-    new fireauth.MultiFactorInfo.fromPlainObject(
+    fireauth.MultiFactorInfo.fromPlainObject(
         accountInfo2['multiFactor']['enrolledFactors'][1]),
   ];
   testUser = new fireauth.AuthUser(config, tokenResponse);
@@ -276,13 +277,13 @@ function testMultiFactorUser_copy() {
 
 function testMultiFactorUser_userReload() {
   var info = [
-    new fireauth.MultiFactorInfo.fromPlainObject(
+    fireauth.MultiFactorInfo.fromPlainObject(
         accountInfo['multiFactor']['enrolledFactors'][0]),
-    new fireauth.MultiFactorInfo.fromPlainObject(
+    fireauth.MultiFactorInfo.fromPlainObject(
         accountInfo['multiFactor']['enrolledFactors'][1]),
-    new fireauth.MultiFactorInfo.fromPlainObject(
+    fireauth.MultiFactorInfo.fromPlainObject(
         accountInfo2['multiFactor']['enrolledFactors'][0]),
-    new fireauth.MultiFactorInfo.fromPlainObject(
+    fireauth.MultiFactorInfo.fromPlainObject(
         accountInfo2['multiFactor']['enrolledFactors'][1]),
   ];
   var getAccountInfoByIdToken = mockControl.createMethodMock(
@@ -322,14 +323,16 @@ function testMultiFactorUser_toPlainObject() {
 
   assertObjectEquals(
       {
-        'multiFactor': goog.array.clone(
-            accountInfo['multiFactor']['enrolledFactors'])
+        'multiFactor': {
+          'enrolledFactors': goog.array.clone(
+              accountInfo['multiFactor']['enrolledFactors'])
+        }
       },
       multiFactorUser.toPlainObject());
 
   assertObjectEquals(
       {
-        'multiFactor': []
+        'multiFactor': {'enrolledFactors': []}
       },
       emptyMultiFactorUser.toPlainObject());
 }

@@ -86,6 +86,12 @@ fireauth.MultiFactorUser = function(user, accountInfo) {
 fireauth.MultiFactorUser.GET_ACCOUNT_INFO_MFA_INFO_ = 'mfaInfo';
 
 
+/** @return {!fireauth.AuthUser} The corresponding user. */
+fireauth.MultiFactorUser.prototype.getUser = function() {
+  return this.user_;
+};
+
+
 /**
  * Extracts the enrolled factors from getAccountInfo response and returns an
  * array of corresponding multi-factor info data.
@@ -174,8 +180,10 @@ fireauth.MultiFactorUser.prototype.getSession = function() {
  */
 fireauth.MultiFactorUser.prototype.toPlainObject = function() {
   return {
-    'multiFactor': goog.array.map(this.enrolledFactors_, function(info) {
-      return info.toPlainObject();
-    })
+    'multiFactor': {
+      'enrolledFactors': goog.array.map(this.enrolledFactors_, function(info) {
+        return info.toPlainObject();
+      })
+    }
   };
 };
