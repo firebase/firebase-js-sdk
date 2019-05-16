@@ -59,13 +59,19 @@ var expectedResponse = {
   'resp1': 'val1',
   'resp2': 'val2'
 };
+// STS token server response.
 var expectedStsTokenResponse = {
-  'idToken': 'accessToken',
   'access_token': 'accessToken',
   'refresh_token': 'refreshToken',
   'expires_in': '3600'
 };
-// New token response without expires_in.
+// Token response with expiresIn.
+var tokenResponseWithExpiresIn = {
+  'idToken': 'accessToken',
+  'refreshToken': 'refreshToken',
+  'expiresIn': '3600'
+};
+// New token response without expiresIn.
 var tokenResponse = {
   'idToken': 'accessToken',
   'refreshToken': 'refreshToken'
@@ -7407,30 +7413,6 @@ function testFinalizePhoneMfaEnrollment_invalidRequest_missingCode() {
 
 
 /**
- * Tests invalid request finalizePhoneMfaEnrollment error for invalid MFA
- * provider.
- */
-function testFinalizePhoneMfaEnrollment_invalidRequest_invalidMfaProvider() {
-  var expectedRequest = {
-    'idToken': 'ID_TOKEN',
-    'mfaProvider': 'UNKNOWN',
-    'phoneVerificationInfo': {
-      'sessionInfo': 'SESSION_INFO',
-      'code': '123456'
-    }
-  };
-  asyncTestCase.waitForSignals(1);
-  rpcHandler.finalizePhoneMfaEnrollment(expectedRequest)
-      .thenCatch(function(error) {
-        fireauth.common.testHelper.assertErrorEquals(
-            new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
-            error);
-        asyncTestCase.signal();
-      });
-}
-
-
-/**
  * Tests invalid response finalizePhoneMfaEnrollment error.
  */
 function testFinalizePhoneMfaEnrollment_unknownServerResponse() {
@@ -7495,6 +7477,296 @@ function testFinalizePhoneMfaEnrollment_caughtServerError() {
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.finalizePhoneMfaEnrollment(requestBody);
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
+ * Tests successful startPhoneMfaSignIn RPC call.
+ */
+function testStartPhoneMfaSignIn_success() {
+  var signInRequest = {
+    'mfaPendingCredential': 'MFA_PENDING_CREDENTIAL',
+    'mfaEnrollmentId': 'ENROLLMENT_ID',
+    'phoneSignInInfo': {
+      'recaptchaToken': 'RECAPTCHA_TOKEN'
+    }
+  };
+  var expectedRequest = goog.object.clone(signInRequest);
+  goog.object.extend(
+      expectedRequest,
+      {
+        'mfaProvider': 'PHONE_SMS'
+      });
+  var expectedResponse = {
+    'phoneResponseInfo': {
+      'sessionInfo': 'SESSION_INFO'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaSignIn:start?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.startPhoneMfaSignIn(signInRequest).then(function(sessionInfo) {
+    assertEquals(
+        expectedResponse['phoneResponseInfo']['sessionInfo'], sessionInfo);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests invalid request startPhoneMfaSignIn error for a missing recaptha token.
+ */
+function testStartPhoneMfaSignIn_invalidRequest_missingRecaptchaToken() {
+  // Missing recaptha token in request.
+  var signInRequest = {
+    'mfaPendingCredential': 'MFA_PENDING_CREDENTIAL',
+    'mfaEnrollmentId': 'ENROLLMENT_ID',
+    'phoneSignInInfo': {}
+  };
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.startPhoneMfaSignIn(signInRequest).thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(
+        new fireauth.AuthError(fireauth.authenum.Error.MISSING_APP_CREDENTIAL),
+        error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests invalid response StartPhoneMfaSignIn error.
+ */
+function testStartPhoneMfaSignIn_unknownServerResponse() {
+  var signInRequest = {
+    'mfaPendingCredential': 'MFA_PENDING_CREDENTIAL',
+    'mfaEnrollmentId': 'ENROLLMENT_ID',
+    'phoneSignInInfo': {
+      'recaptchaToken': 'RECAPTCHA_TOKEN'
+    }
+  };
+  var expectedRequest = goog.object.clone(signInRequest);
+  goog.object.extend(
+      expectedRequest,
+      {
+        'mfaProvider': 'PHONE_SMS'
+      });
+  // No sessionInfo returned.
+  var expectedResponse = {
+    'phoneResponseInfo': {
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaSignIn:start?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.startPhoneMfaSignIn(signInRequest).thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(
+        new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+        error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests server side StartPhoneMfaSignIn error.
+ */
+function testStartPhoneMfaSignIn_caughtServerError() {
+  var expectedUrl = identityPlatformEndpoint +
+      'accounts/mfaSignIn:start?key=apiKey';
+  var signInRequest = {
+    'mfaPendingCredential': 'MFA_PENDING_CREDENTIAL',
+    'mfaEnrollmentId': 'ENROLLMENT_ID',
+    'phoneSignInInfo': {
+      'recaptchaToken': 'RECAPTCHA_TOKEN'
+    }
+  };
+  var requestBody = goog.object.clone(signInRequest);
+  goog.object.extend(
+      requestBody,
+      {
+        'mfaProvider': 'PHONE_SMS'
+      });
+  var errorMap = {};
+  // All related server errors for StartPhoneMfaSignIn.
+  errorMap[fireauth.RpcHandler.ServerError.CAPTCHA_CHECK_FAILED] =
+      fireauth.authenum.Error.CAPTCHA_CHECK_FAILED;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_APP_CREDENTIAL] =
+      fireauth.authenum.Error.INVALID_APP_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_PHONE_NUMBER] =
+      fireauth.authenum.Error.INVALID_PHONE_NUMBER;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_APP_CREDENTIAL] =
+      fireauth.authenum.Error.MISSING_APP_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_PHONE_NUMBER] =
+      fireauth.authenum.Error.MISSING_PHONE_NUMBER;
+  errorMap[fireauth.RpcHandler.ServerError.QUOTA_EXCEEDED] =
+      fireauth.authenum.Error.QUOTA_EXCEEDED;
+  errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
+      fireauth.authenum.Error.REJECTED_CREDENTIAL;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.startPhoneMfaSignIn(signInRequest);
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
+ * Tests successful finalizePhoneMfaSignIn RPC call using an SMS code.
+ */
+function testFinalizePhoneMfaSignIn_success() {
+  var signInRequest = {
+    'mfaPendingCredential': 'MFA_PENDING_CREDENTIAL',
+    'phoneVerificationInfo': {
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    }
+  };
+  var expectedRequest = goog.object.clone(signInRequest);
+  goog.object.extend(
+      expectedRequest,
+      {
+        'mfaProvider': 'PHONE_SMS'
+      });
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaSignIn:finalize?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      tokenResponse);
+  rpcHandler.finalizePhoneMfaSignIn(signInRequest).then(function(response) {
+    assertEquals(tokenResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests invalid request finalizePhoneMfaSignIn error for a missing sessionInfo.
+ */
+function testFinalizePhoneMfaSignIn_invalidRequest_missingSessionInfo() {
+  // SessionInfo is missing in request.
+  var signInRequest = {
+    'mfaPendingCredential': 'MFA_PENDING_CREDENTIAL',
+    'phoneVerificationInfo': {
+      'code': '123456'
+    }
+  };
+  rpcHandler.finalizePhoneMfaSignIn(signInRequest).thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(
+        new fireauth.AuthError(fireauth.authenum.Error.MISSING_SESSION_INFO),
+        error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests invalid request finalizePhoneMfaSignIn error for a missing code.
+ */
+function testFinalizePhoneMfaSignIn_invalidRequest_missingCode() {
+  // Code is missing in request.
+  var signInRequest = {
+    'mfaPendingCredential': 'MFA_PENDING_CREDENTIAL',
+    'phoneVerificationInfo': {
+      'sessionInfo': 'SESSION_INFO'
+    }
+  };
+  asyncTestCase.waitForSignals(1);
+  rpcHandler.finalizePhoneMfaSignIn(signInRequest).thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(
+        new fireauth.AuthError(fireauth.authenum.Error.MISSING_CODE),
+        error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests invalid response finalizePhoneMfaSignIn error.
+ */
+function testFinalizePhoneMfaSignIn_unknownServerResponse() {
+  var signInRequest = {
+    'mfaPendingCredential': 'MFA_PENDING_CREDENTIAL',
+    'phoneVerificationInfo': {
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    }
+  };
+  var expectedRequest = goog.object.clone(signInRequest);
+  goog.object.extend(
+      expectedRequest,
+      {
+        'mfaProvider': 'PHONE_SMS'
+      });
+  // No idToken returned.
+  var expectedResponse = {};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      identityPlatformEndpoint + 'accounts/mfaSignIn:finalize?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.finalizePhoneMfaSignIn(signInRequest).thenCatch(function(error) {
+    fireauth.common.testHelper.assertErrorEquals(
+        new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR),
+        error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests server side finalizePhoneMfaSignIn error.
+ */
+function testFinalizePhoneMfaSignIn_caughtServerError() {
+  var expectedUrl = identityPlatformEndpoint +
+      'accounts/mfaSignIn:finalize?key=apiKey';
+  var signInRequest = {
+    'mfaPendingCredential': 'MFA_PENDING_CREDENTIAL',
+    'phoneVerificationInfo': {
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    }
+  };
+  var requestBody = goog.object.clone(signInRequest);
+  goog.object.extend(
+      requestBody,
+      {
+        'mfaProvider': 'PHONE_SMS'
+      });
+  var errorMap = {};
+  // All related server errors for finalizePhoneMfaSignIn.
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_CODE] =
+      fireauth.authenum.Error.INVALID_CODE;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_SESSION_INFO] =
+      fireauth.authenum.Error.INVALID_SESSION_INFO;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TEMPORARY_PROOF] =
+      fireauth.authenum.Error.INVALID_IDP_RESPONSE;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_CODE] =
+      fireauth.authenum.Error.MISSING_CODE;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_SESSION_INFO] =
+      fireauth.authenum.Error.MISSING_SESSION_INFO;
+  errorMap[fireauth.RpcHandler.ServerError.SESSION_EXPIRED] =
+      fireauth.authenum.Error.CODE_EXPIRED;
+  errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
+      fireauth.authenum.Error.REJECTED_CREDENTIAL;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.finalizePhoneMfaSignIn(signInRequest);
   }, errorMap, expectedUrl, requestBody);
 }
 
@@ -7638,9 +7910,9 @@ function testVerifyPhoneNumber_success_usingCode() {
       goog.json.serialize(expectedRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
-      expectedStsTokenResponse);
+      tokenResponseWithExpiresIn);
   rpcHandler.verifyPhoneNumber(expectedRequest).then(function(response) {
-    assertEquals(expectedStsTokenResponse, response);
+    assertEquals(tokenResponseWithExpiresIn, response);
     asyncTestCase.signal();
   });
 }
@@ -7666,10 +7938,10 @@ function testVerifyPhoneNumber_success_customLocale_usingCode() {
         'X-Firebase-Locale': 'ru'
       },
       delay,
-      expectedStsTokenResponse);
+      tokenResponseWithExpiresIn);
   rpcHandler.updateCustomLocaleHeader('ru');
   rpcHandler.verifyPhoneNumber(expectedRequest).then(function(response) {
-    assertEquals(expectedStsTokenResponse, response);
+    assertEquals(tokenResponseWithExpiresIn, response);
     asyncTestCase.signal();
   });
 }
@@ -7691,9 +7963,9 @@ function testVerifyPhoneNumber_success_usingTemporaryProof() {
       goog.json.serialize(expectedRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
-      expectedStsTokenResponse);
+      tokenResponseWithExpiresIn);
   rpcHandler.verifyPhoneNumber(expectedRequest).then(function(response) {
-    assertEquals(expectedStsTokenResponse, response);
+    assertEquals(tokenResponseWithExpiresIn, response);
     asyncTestCase.signal();
   });
 }
@@ -7850,10 +8122,10 @@ function testVerifyPhoneNumberForLinking_success_usingCode() {
       goog.json.serialize(expectedRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
-      expectedStsTokenResponse);
+      tokenResponseWithExpiresIn);
   rpcHandler.verifyPhoneNumberForLinking(expectedRequest)
       .then(function(response) {
-        assertEquals(expectedStsTokenResponse, response);
+        assertEquals(tokenResponseWithExpiresIn, response);
         asyncTestCase.signal();
       });
 }
@@ -8041,10 +8313,10 @@ function testVerifyPhoneNumberForExisting_success_usingCode() {
       goog.json.serialize(expectedRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
-      expectedStsTokenResponse);
+      tokenResponseWithExpiresIn);
   rpcHandler.verifyPhoneNumberForExisting(expectedRequest)
       .then(function(response) {
-        assertEquals(expectedStsTokenResponse, response);
+        assertEquals(tokenResponseWithExpiresIn, response);
         asyncTestCase.signal();
       });
 }
@@ -8068,10 +8340,10 @@ function testVerifyPhoneNumberForExisting_success_usingTemporaryProof() {
       goog.json.serialize(expectedRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
-      expectedStsTokenResponse);
+      tokenResponseWithExpiresIn);
   rpcHandler.verifyPhoneNumberForExisting(expectedRequest)
       .then(function(response) {
-        assertEquals(expectedStsTokenResponse, response);
+        assertEquals(tokenResponseWithExpiresIn, response);
         asyncTestCase.signal();
       });
 }
