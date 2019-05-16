@@ -1723,8 +1723,7 @@ fireauth.RpcHandler.prototype.verifyPhoneNumberForExisting = function(request) {
  */
 fireauth.RpcHandler.validateStartPhoneMfaEnrollmentRequest_ =
     function(request) {
-  if ((request['mfaProvider'] != fireauth.RpcHandler.MfaProvider.PHONE_SMS) ||
-      !request['phoneEnrollmentInfo']) {
+  if (!request['phoneEnrollmentInfo']) {
     throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
   }
   if (!request['phoneEnrollmentInfo']['phoneNumber']) {
@@ -1760,6 +1759,8 @@ fireauth.RpcHandler.validateStartPhoneMfaEnrollmentResponse_ =
  * @return {!goog.Promise<string>}
  */
 fireauth.RpcHandler.prototype.startPhoneMfaEnrollment = function(request) {
+  // Inject mfaProvider for Phone MFA enrollment.
+  request['mfaProvider'] = fireauth.RpcHandler.MfaProvider.PHONE_SMS;
   return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.START_PHONE_MFA_ENROLLMENT, request)
       .then(function(response) {
@@ -1796,6 +1797,8 @@ fireauth.RpcHandler.validateFinalizePhoneMfaRequest_ = function(request) {
  * @return {!goog.Promise<!Object>}
  */
 fireauth.RpcHandler.prototype.finalizePhoneMfaEnrollment = function(request) {
+  // Inject mfaProvider for Phone MFA enrollment.
+  request['mfaProvider'] = fireauth.RpcHandler.MfaProvider.PHONE_SMS;
   return this.invokeRpc(
       fireauth.RpcHandler.ApiMethod.FINALIZE_PHONE_MFA_ENROLLMENT, request);
 };
