@@ -43,6 +43,7 @@ goog.require('fireauth.DynamicLink');
 goog.require('fireauth.IdToken');
 goog.require('fireauth.MultiFactorAuthCredential');
 goog.require('fireauth.MultiFactorEnrollmentRequestIdentifier');
+goog.require('fireauth.MultiFactorSession');
 goog.require('fireauth.MultiFactorSignInRequestIdentifier');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.constants');
@@ -1289,15 +1290,19 @@ fireauth.PhoneAuthProvider = function(opt_auth) {
 
 
 /**
- * Initiates a phone number confirmation flow.
+ * Initiates a phone number confirmation flow. If session is provided, it is
+ * used to verify ownership of the second factor phone number.
+ *
  * @param {string} phoneNumber The user's phone number.
  * @param {!firebase.auth.ApplicationVerifier} applicationVerifier The
  *     application verifier for anti-abuse purposes.
+ * @param {?fireauth.MultiFactorSession=} session The optional multi-factor
+ *     session instance.
  * @return {!goog.Promise<string>} A Promise that resolves with the
  *     verificationId of the phone number confirmation flow.
  */
 fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
-    function(phoneNumber, applicationVerifier) {
+    function(phoneNumber, applicationVerifier, session) {
   var rpcHandler = this.auth_.getRpcHandler();
 
   // Convert the promise into a goog.Promise. If the applicationVerifier throws
@@ -1314,22 +1319,41 @@ fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
 
         switch (applicationVerifier['type']) {
           case 'recaptcha':
-            return rpcHandler
-                .sendVerificationCode(
-                    {'phoneNumber': phoneNumber, 'recaptchaToken': assertion})
-                .then(
-                    function(verificationId) {
-                      if (typeof applicationVerifier.reset === 'function') {
-                        applicationVerifier.reset();
+            var verifyPromise;
+            if (session &&
+                session.type == fireauth.MultiFactorSession.Type.ENROLL) {
+              verifyPromise = session.getRawSession()
+                  .then(function(rawSession) {
+                    return rpcHandler.startPhoneMfaEnrollment({
+                      'idToken': rawSession,
+                      'phoneEnrollmentInfo': {
+                        'phoneNumber': phoneNumber,
+                        'recaptchaToken': assertion
                       }
-                      return verificationId;
-                    },
-                    function(error) {
-                      if (typeof applicationVerifier.reset === 'function') {
-                        applicationVerifier.reset();
-                      }
-                      throw error;
                     });
+                  });
+            } else if (session &&
+                       session.type ==
+                           fireauth.MultiFactorSession.Type.SIGN_IN) {
+              // TODO: MFA sign in
+            } else {
+              verifyPromise = rpcHandler.sendVerificationCode({
+                'phoneNumber': phoneNumber,
+                'recaptchaToken': assertion
+              });
+            }
+            // Reset the applicationVerifier after code is sent.
+            return verifyPromise.then(function(verificationId) {
+              if (typeof applicationVerifier.reset === 'function') {
+                applicationVerifier.reset();
+              }
+              return verificationId;
+            }, function(error) {
+              if (typeof applicationVerifier.reset === 'function') {
+                applicationVerifier.reset();
+              }
+              throw error;
+            });
           default:
             throw new fireauth.AuthError(fireauth.authenum.Error.ARGUMENT_ERROR,
                 'Only firebase.auth.ApplicationVerifiers with ' +
