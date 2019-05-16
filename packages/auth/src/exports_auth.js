@@ -549,11 +549,11 @@ fireauth.exportlib.exportPrototypeMethods(
       verifyPhoneNumber: {
         name: 'verifyPhoneNumber',
         args: [
-          // TODO: Add an arg type for phoneInfoOption once the API is
-          // finalized.
-          fireauth.args.string('phoneNumber'),
-          fireauth.args.applicationVerifier(),
-          fireauth.args.object('session', true)
+          fireauth.args.or(
+              fireauth.args.string(),
+              fireauth.args.phoneInfoOptions(),
+              'phoneInfoOptions'),
+          fireauth.args.applicationVerifier()
         ]
       }
     });

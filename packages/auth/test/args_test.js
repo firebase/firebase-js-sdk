@@ -281,6 +281,140 @@ function testValidate_authProvider_invalid() {
 }
 
 
+function testValidate_phoneInfoOptions_valid() {
+  // Test phoneInfoOptions for single-factor sign-in.
+  var expectedArgs = [fireauth.args.phoneInfoOptions()];
+  var args = [{'phoneNumber': '+16505551234'}];
+  assertNotThrows(function() {
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+
+  // Test phoneInfoOptions for multi-factor enrollment.
+  args = [{
+    'phoneNumber': '+16505551234',
+    'multiFactorSession': {
+      'type': 'enroll',
+      'getRawSession': function() {
+        return goog.Promise.resolve('SESSION');
+      }
+    }
+  }];
+  assertNotThrows(function() {
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+
+  // Test phoneInfoOptions for multi-factor sign-in.
+  args = [{
+    'multiFactorInfo': {
+      'uid': 'ENROLLMENT_ID'
+    },
+    'multiFactorSession': {
+      'type': 'signin',
+      'getRawSession': function() {
+        return goog.Promise.resolve('SESSION');
+      }
+    }
+  }];
+  assertNotThrows(function() {
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+}
+
+
+function testValidate_phoneInfoOptions_enrollWithPhoneInfo() {
+  // Test that session is for enrollment but multi-factor info is provided.
+  var error = assertThrows(function() {
+    var expectedArgs = [fireauth.args.phoneInfoOptions()];
+    var args = [{
+      'multiFactorInfo': {'uid': 'ENROLLMENT_ID'},
+      'multiFactorSession': {
+        'type': 'enroll',
+        'getRawSession': function() {
+          return goog.Promise.resolve('SESSION');
+        }
+      }
+    }];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals('myFunc failed: First argument "phoneInfoOptions" must be ' +
+               'valid phone info options.', error.message);
+}
+
+
+function testValidate_phoneInfoOptions_signInWithPhoneNumber() {
+  // Test that session is for sign-in but phone number is provided.
+  var error = assertThrows(function() {
+    var expectedArgs = [fireauth.args.phoneInfoOptions()];
+    var args = [{
+      'phoneNumber': '+16505551234',
+      'multiFactorSession': {
+        'type': 'signin',
+        'getRawSession': function() {
+          return goog.Promise.resolve('SESSION');
+        }
+      }
+    }];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals('myFunc failed: First argument "phoneInfoOptions" must be ' +
+               'valid phone info options.', error.message);
+}
+
+
+function testValidate_phoneInfoOptions_missingSession() {
+  // Test that session is missing for multi-factor sign-in.
+  var error = assertThrows(function() {
+    var expectedArgs = [fireauth.args.phoneInfoOptions()];
+    var args = [{
+      'multiFactorInfo': {'uid': 'ENROLLMENT_ID'}
+    }];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals('myFunc failed: First argument "phoneInfoOptions" must be ' +
+               'valid phone info options.', error.message);
+}
+
+
+function testValidate_phoneInfoOptions_invalidSession() {
+  // Test with invalid multi-factor session.
+  var error = assertThrows(function() {
+    var expectedArgs = [fireauth.args.phoneInfoOptions()];
+    var args = [{
+      'phoneNumber': '+16505551234',
+      // Missing getRawSession.
+      'multiFactorSession': {
+        'type': 'enroll'
+      }
+    }];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals('myFunc failed: First argument "phoneInfoOptions" must be ' +
+               'valid phone info options.', error.message);
+}
+
+
+function testValidate_phoneInfoOptions_invalidInfo() {
+  // Test with invalid multi-factor info.
+  var error = assertThrows(function() {
+    var expectedArgs = [fireauth.args.phoneInfoOptions()];
+    var args = [{
+      // Missing uid.
+      'multiFactorInfo': {
+      },
+      'multiFactorSession': {
+        'type': 'signin',
+        'getRawSession': function() {
+          return goog.Promise.resolve('SESSION');
+        }
+      }
+    }];
+    fireauth.args.validate('myFunc', expectedArgs, args);
+  });
+  assertEquals('myFunc failed: First argument "phoneInfoOptions" must be ' +
+               'valid phone info options.', error.message);
+}
+
+
 function testValidate_or_valid_first() {
   fireauth.args.validate('myFunc', [
     fireauth.args.or(fireauth.args.string(), fireauth.args.bool())

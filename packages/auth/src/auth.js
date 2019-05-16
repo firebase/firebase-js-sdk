@@ -539,40 +539,13 @@ fireauth.Auth.prototype.finishPopupAndRedirectSignIn =
     this.popupTimeoutPromise_.cancel();
     this.popupTimeoutPromise_ = null;
   }
-  // This routine could be run before init state, make sure it waits for that to
-  // complete.
-  var credential = null;
-  var additionalUserInfo = null;
-  var idTokenResolver = self.rpcHandler_.verifyAssertion(request)
-      .then(function(response) {
-        // Get Auth credential from verify assert request and save it.
-        credential = fireauth.AuthProvider.getCredentialFromResponse(response);
-        // Get additional IdP data if available in the response.
-        additionalUserInfo = fireauth.AdditionalUserInfo.fromPlainObject(
-            response);
-        return response;
-      });
   // When state is ready, run verify assertion request.
   // This will only run either after initial and redirect state is ready for
   // popups or after initial state is ready for redirect resolution.
-  var p = self.authStateLoaded_.then(function() {
-    return idTokenResolver;
-  }).then(function(idTokenResponse) {
-    // Use ID token response to sign in the Auth user.
-    return self.signInWithIdTokenResponse(idTokenResponse);
-  }).then(function() {
-    // On sign in success, construct redirect and popup result and return a
-    // readonly copy of it.
-    return fireauth.object.makeReadonlyCopy({
-      'user': self.currentUser_(),
-      'credential': credential,
-      'additionalUserInfo': additionalUserInfo,
-      // Sign in operation type.
-      'operationType': fireauth.constants.OperationType.SIGN_IN
-    });
+  return self.authStateLoaded_.then(function() {
+    return self.signInWithIdTokenProvider_(
+        self.rpcHandler_.verifyAssertion(request));
   });
-  return /** @type {!goog.Promise<!fireauth.AuthEventManager.Result>} */ (
-      this.registerPendingPromise_(p));
 };
 
 

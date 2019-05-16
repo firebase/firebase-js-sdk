@@ -36,6 +36,7 @@ goog.require('fireauth.AuthEventManager');
 goog.require('fireauth.AuthProvider');
 goog.require('fireauth.ConfirmationResult');
 goog.require('fireauth.IdTokenResult');
+goog.require('fireauth.MultiFactorError');
 goog.require('fireauth.MultiFactorUser');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.ProactiveRefresh');
@@ -2188,7 +2189,59 @@ fireauth.AuthUser.prototype.registerPendingPromise_ =
     goog.array.remove(self.pendingPromises_, processedP);
   });
   // Return the promise.
-  return processedP;
+  return processedP
+      .thenCatch(function(error) {
+        var multiFactorError = null;
+        if (error && error['code'] === 'auth/multi-factor-auth-required') {
+          multiFactorError = fireauth.MultiFactorError.fromPlainObject(
+              error.toPlainObject(),
+              self.getAuth_(),
+              goog.bind(self.handleMultiFactorIdTokenResolver_, self));
+        }
+        throw multiFactorError || error;
+      });
+};
+
+
+/**
+ * Completes multi-factor sign-in. This is only relevant for re-authentication
+ * flows.
+ * @param {{idToken: string, refreshToken: string}} response The successful
+ *     sign-in response containing the new ID tokens.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>} A Promise that
+ *     resolves with the updated `UserCredential`.
+ * @private
+ */
+fireauth.AuthUser.prototype.handleMultiFactorIdTokenResolver_ =
+    function(response) {
+  var userCredential = null;
+  var self = this;
+  // Validate token response matches current user ID.
+  var p = fireauth.AuthCredential.verifyTokenResponseUid(
+      goog.Promise.resolve(response),
+      self['uid'])
+      .then(function(response) {
+        // Get credential from response if available.
+        userCredential = self.getUserCredential_(
+            response, fireauth.constants.OperationType.REAUTHENTICATE);
+        // If the credential is valid and matches the current user ID, then
+        // update the tokens accordingly.
+        self.updateTokensIfPresent(response);
+        // This could potentially validate an invalidated user.
+        self.userInvalidatedError_ = null;
+        // Reload the user with the latest profile.
+        return self.reload();
+      })
+      .then(function() {
+        // Return the user credential response.
+        return userCredential;
+      });
+  return /** @type {!goog.Promise<!fireauth.AuthEventManager.Result>} */ (
+      this.registerPendingPromise_(
+          p,
+          // Skip invalidation check as reauthentication could revalidate a
+          // user.
+          true));
 };
 
 

@@ -26,6 +26,7 @@ goog.provide('fireauth.args.Argument');
 goog.require('fireauth.Auth');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.AuthUser');
+goog.require('fireauth.MultiFactorSession');
 goog.require('fireauth.authenum.Error');
 
 
@@ -462,6 +463,73 @@ fireauth.args.authProvider = function(opt_name, opt_optional) {
                     provider.hasOwnProperty('isOAuthProvider'));
         })
   });
+};
+
+
+/**
+ * Specifies a phone info options argument.
+ * @param {?string=} name The name of the argument.
+ * @param {?boolean=} optional Whether or not this argument is optional.
+ *     Defaults to false.
+ * @return {!fireauth.args.Argument}
+ */
+fireauth.args.phoneInfoOptions = function(name, optional) {
+  return /** @type {!fireauth.args.Argument} */ ({
+    name: name || 'phoneInfoOptions',
+    typeLabel: 'valid phone info options',
+    optional: !!optional,
+    validator: /** @type {function(!Object) : boolean} */ (
+        function(phoneInfoOptions) {
+          if (!phoneInfoOptions) {
+            return false;
+          }
+          // For multi-factor enrollment, phone number and MFA session should
+          // be provided.
+          if (phoneInfoOptions['multiFactorSession'] &&
+              phoneInfoOptions['phoneNumber']) {
+            return fireauth.args.validateMultiFactorSession_(
+                       phoneInfoOptions['multiFactorSession'],
+                       fireauth.MultiFactorSession.Type.ENROLL) &&
+                   goog.isString(phoneInfoOptions['phoneNumber']);
+          // For multi-factor sign-in, phone multi-factor info and MFA session
+          // should be provided.
+          } else if (phoneInfoOptions['multiFactorSession'] &&
+                     phoneInfoOptions['multiFactorInfo']) {
+            return fireauth.args.validateMultiFactorSession_(
+                       phoneInfoOptions['multiFactorSession'],
+                       fireauth.MultiFactorSession.Type.SIGN_IN) &&
+                   fireauth.args.validateMultiFactorInfo_(
+                       phoneInfoOptions['multiFactorInfo']);
+          // For single-factor sign-in, only phone number needs to be provided.
+          } else if (phoneInfoOptions['phoneNumber']) {
+            return goog.isString(phoneInfoOptions['phoneNumber']);
+          }
+          return false;
+        })
+  });
+};
+
+
+/**
+ * @param {*} session The multi-factor session object.
+ * @param {!fireauth.MultiFactorSession.Type} type The session type.
+ * @return {boolean} Whether the seesion is a valid multi-factor session.
+ * @private
+ */
+fireauth.args.validateMultiFactorSession_ = function(session, type) {
+  return goog.isObject(session) && goog.isString(session.type) &&
+      session.type === type &&
+      goog.isFunction(session.getRawSession);
+};
+
+
+/**
+ * @param {*} info The multi-factor info object.
+ * @return {boolean} Whether the info is a valid multi-factor info.
+ * @private
+ */
+fireauth.args.validateMultiFactorInfo_ = function(info) {
+  return goog.isObject(info) && goog.isString(info['uid']);
 };
 
 

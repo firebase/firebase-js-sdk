@@ -74,7 +74,7 @@ fireauth.AuthCredential = function() {};
  *     idTokenPromise The RPC handler method that returns a promise which
  *     resolves with an ID token.
  */
-fireauth.AuthCredential.prototype.getIdTokenProvider;
+fireauth.AuthCredential.prototype.getIdTokenProvider = function(rpcHandler) {};
 
 
 /**
@@ -84,7 +84,8 @@ fireauth.AuthCredential.prototype.getIdTokenProvider;
  * @return {!goog.Promise<!Object>} A Promise that resolves when the accounts
  *     are linked.
  */
-fireauth.AuthCredential.prototype.linkToIdToken;
+fireauth.AuthCredential.prototype.linkToIdToken =
+    function(rpcHandler, idToken) {};
 
 
 /**
@@ -94,14 +95,15 @@ fireauth.AuthCredential.prototype.linkToIdToken;
  * @return {!goog.Promise<!Object>} A Promise that resolves when
  *     idToken UID match succeeds and returns the server response.
  */
-fireauth.AuthCredential.prototype.matchIdTokenWithUid;
+fireauth.AuthCredential.prototype.matchIdTokenWithUid =
+    function(rpcHandler, uid) {};
 
 
 /**
  * @return {!Object} The plain object representation of an Auth credential. This
  *     will be exposed as toJSON() externally.
  */
-fireauth.AuthCredential.prototype.toPlainObject;
+fireauth.AuthCredential.prototype.toPlainObject = function() {};
 
 
 /**
@@ -1290,19 +1292,65 @@ fireauth.PhoneAuthProvider = function(opt_auth) {
 
 
 /**
+ * The phone info options for single-factor sign-in. Only phone number is
+ * required.
+ * @private
+ * @typedef {{
+ *   phoneNumber: string
+ * }}
+ */
+fireauth.PhoneAuthProvider.PhoneSingleFactorInfoOptions_;
+
+/**
+ * The phone info options for multi-factor enrollment. Phone number and
+ * multi-factor session are required.
+ * @private
+ * @typedef {{
+ *   phoneNumber: string,
+ *   multiFactorSession: !fireauth.MultiFactorSession
+ * }}
+ */
+fireauth.PhoneAuthProvider.PhoneMultiFactorEnrollInfoOptions_;
+
+
+/**
+ * The phone info options for multi-factor sign-in. Multi-factor info and
+ * multi-factor session are required.
+ * @private
+ * @typedef {{
+ *   multiFactorInfo: !fireauth.MultiFactorInfo,
+ *   multiFactorSession: !fireauth.MultiFactorSession
+ * }}
+ */
+fireauth.PhoneAuthProvider.PhoneMultiFactorSignInInfoOptions_;
+
+
+/**
+ * The options for verifying the ownership of the phone number. It could be
+ * used for single-factor sign-in, multi-factor enrollment or multi-factor
+ * sign-in.
+ * @typedef {
+ *   !fireauth.PhoneAuthProvider.PhoneSingleFactorInfoOptions_|
+ *   !fireauth.PhoneAuthProvider.PhoneMultiFactorEnrollInfoOptions_|
+ *   !fireauth.PhoneAuthProvider.PhoneMultiFactorSignInInfoOptions_
+ * }
+ */
+fireauth.PhoneAuthProvider.PhoneInfoOptions;
+
+
+/**
  * Initiates a phone number confirmation flow. If session is provided, it is
  * used to verify ownership of the second factor phone number.
  *
- * @param {string} phoneNumber The user's phone number.
+ * @param {string|!fireauth.PhoneAuthProvider.PhoneInfoOptions} phoneInfoOptions
+ *     The user's phone options for verifying the ownship of the phone number.
  * @param {!firebase.auth.ApplicationVerifier} applicationVerifier The
  *     application verifier for anti-abuse purposes.
- * @param {?fireauth.MultiFactorSession=} session The optional multi-factor
- *     session instance.
  * @return {!goog.Promise<string>} A Promise that resolves with the
  *     verificationId of the phone number confirmation flow.
  */
 fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
-    function(phoneNumber, applicationVerifier, session) {
+    function(phoneInfoOptions, applicationVerifier) {
   var rpcHandler = this.auth_.getRpcHandler();
 
   // Convert the promise into a goog.Promise. If the applicationVerifier throws
@@ -1319,6 +1367,12 @@ fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
 
         switch (applicationVerifier['type']) {
           case 'recaptcha':
+            var session = goog.isObject(phoneInfoOptions) ?
+                phoneInfoOptions['multiFactorSession'] : null;
+            // PhoneInfoOptions can be a phone number string for backward
+            // compatibility.
+            var phoneNumber = goog.isObject(phoneInfoOptions) ?
+                phoneInfoOptions['phoneNumber'] : phoneInfoOptions;
             var verifyPromise;
             if (session &&
                 session.type == fireauth.MultiFactorSession.Type.ENROLL) {
@@ -1335,7 +1389,17 @@ fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
             } else if (session &&
                        session.type ==
                            fireauth.MultiFactorSession.Type.SIGN_IN) {
-              // TODO: MFA sign in
+              verifyPromise = session.getRawSession()
+                  .then(function(rawSession) {
+                    return rpcHandler.startPhoneMfaSignIn({
+                      'mfaPendingCredential': rawSession,
+                      'mfaEnrollmentId': phoneInfoOptions['multiFactorInfo'] &&
+                          phoneInfoOptions['multiFactorInfo']['uid'],
+                      'phoneSignInInfo': {
+                        'recaptchaToken': assertion
+                      }
+                    });
+                  });
             } else {
               verifyPromise = rpcHandler.sendVerificationCode({
                 'phoneNumber': phoneNumber,
