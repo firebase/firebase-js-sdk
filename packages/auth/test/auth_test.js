@@ -24,6 +24,7 @@ goog.provide('fireauth.AuthTest');
 goog.require('fireauth.ActionCodeInfo');
 goog.require('fireauth.ActionCodeSettings');
 goog.require('fireauth.Auth');
+goog.require('fireauth.AuthCredential');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.AuthErrorWithCredential');
 goog.require('fireauth.AuthEvent');
@@ -32,6 +33,9 @@ goog.require('fireauth.AuthSettings');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.EmailAuthProvider');
 goog.require('fireauth.GoogleAuthProvider');
+goog.require('fireauth.MultiFactorAssertion');
+goog.require('fireauth.MultiFactorInfo');
+goog.require('fireauth.MultiFactorSession');
 goog.require('fireauth.PhoneAuthProvider');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.SAMLAuthProvider');
@@ -154,6 +158,9 @@ var mockSessionStorage;
 var jwt1;
 var jwt2;
 var jwt3;
+var multiFactorErrorServerResponse;
+var multiFactorTokenResponse;
+var multiFactorGetAccountInfoResponse;
 
 
 function setUp() {
@@ -305,6 +312,67 @@ function setUp() {
     'providerId': 'saml.provider',
     'isNewUser': false
   };
+  multiFactorTokenResponse = {
+    'idToken': fireauth.common.testHelper.createMockJwt({
+      'sub': 'defaultUserId',
+      'firebase': {
+        'sign_in_provider': 'password',
+        'sign_in_second_factor': 'phone'
+      }
+    }),
+    'refreshToken': 'MULTI_FACTOR_REFRESH_TOKEN'
+  };
+  multiFactorErrorServerResponse = {
+    'mfaInfo': [
+      {
+        'mfaEnrollmentId': 'ENROLLMENT_UID1',
+        'enrolledAt': new Date(now).toISOString(),
+        'phoneInfo': '+*******1234'
+      },
+      {
+        'mfaEnrollmentId': 'ENROLLMENT_UID2',
+        'displayName': 'Spouse phone number',
+        'enrolledAt': new Date(now).toISOString(),
+        'phoneInfo': '+*******6789'
+      }
+    ],
+    'mfaPendingCredential': 'PENDING_CREDENTIAL',
+    // Credential returned.
+    'providerId': 'google.com',
+    'oauthAccessToken': 'googleAccessToken',
+    'oauthIdToken': 'googleIdToken',
+    'oauthExpireIn': 3600,
+    // Additional user info data.
+    'rawUserInfo': '{"kind":"plus#person","displayName":"John Doe",' +
+        '"name":{"givenName":"John","familyName":"Doe"}}'
+  };
+  multiFactorGetAccountInfoResponse = {
+    'users': [{
+      'localId': 'defaultUserId',
+      'email': 'user@default.com',
+      'emailVerified': true,
+      'displayName': 'defaultDisplayName',
+      'providerUserInfo': [],
+      'photoUrl': 'https://www.default.com/default/default.png',
+      'passwordUpdatedAt': 0.0,
+      'disabled': false,
+      'lastLoginAt': '1506050282000',
+      'createdAt': '1506050282000',
+      'mfaInfo': [
+        {
+          'mfaEnrollmentId': 'ENROLLMENT_UID1',
+          'enrolledAt': new Date(now).toISOString(),
+          'phoneInfo': '+16505551234'
+        },
+        {
+          'mfaEnrollmentId': 'ENROLLMENT_UID2',
+          'displayName': 'Spouse phone number',
+          'enrolledAt': new Date(now).toISOString(),
+          'phoneInfo': '+16505556789'
+        }
+      ]
+    }]
+  };
   rpcHandler = new fireauth.RpcHandler('apiKey1');
   token = new fireauth.StsTokenManager(rpcHandler);
   token.setRefreshToken('refreshToken');
@@ -358,6 +426,9 @@ function tearDown() {
   config1 = null;
   config2 = null;
   config3 = null;
+  multiFactorErrorServerResponse = null;
+  multiFactorTokenResponse = null;
+  multiFactorGetAccountInfoResponse = null;
   stubs.reset();
   try {
     mockControl.$verifyAll();
@@ -9609,5 +9680,501 @@ function testAuth_changedPersistence_returnFromRedirect() {
         }
       });
     });
+  });
+}
+
+
+/**
+ * Tests a multi-factor user signing in with a first factor credential and
+ * then recovering with a second factor assertion.
+ */
+function testSignInWithCredential_multiFactor_success() {
+  // Restore the mock reload method from setup.
+  stubs.restore(
+      fireauth.AuthUser.prototype,
+      'reload');
+  // Second factor requirement error returned from first factor sign-in.
+  var serverResponseError = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED,
+      null,
+      multiFactorErrorServerResponse);
+  var mockCredential = mockControl.createStrictMock(
+      fireauth.AuthCredential);
+  // Simulate first factor sign-in triggers second factor requirement.
+  mockCredential.getIdTokenProvider(ignoreArgument)
+      .$once()
+      .$does(function(rpcHandler) {
+        assertObjectEquals(auth1.getRpcHandler(), rpcHandler);
+        return goog.Promise.reject(serverResponseError);
+      });
+  var mockAssertion = mockControl.createStrictMock(
+      fireauth.MultiFactorAssertion);
+  var expectedSession = new fireauth.MultiFactorSession(
+      null,
+      multiFactorErrorServerResponse.mfaPendingCredential);
+  // Second factor assertion processing succeeds with updated tokens.
+  mockAssertion.process(ignoreArgument, ignoreArgument)
+      .$once()
+      .$does(function(rpcHandler, session) {
+        assertObjectEquals(auth1.getRpcHandler(),rpcHandler);
+        assertObjectEquals(expectedSession, session);
+        return goog.Promise.resolve(multiFactorTokenResponse);
+      });
+  var getAccountInfoByIdToken = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'getAccountInfoByIdToken');
+  getAccountInfoByIdToken(multiFactorTokenResponse.idToken)
+      .$once()
+      .$returns(goog.Promise.resolve(multiFactorGetAccountInfoResponse));
+
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+
+  var authStateListener = mockControl.createFunctionMock('authStateListener');
+  var idTokenListener = mockControl.createFunctionMock('idTokenListener');
+  auth1.onAuthStateChanged(authStateListener);
+  auth1.onIdTokenChanged(idTokenListener);
+  // The listeners will first be triggered right after registration with null
+  // user. The second time it will be triggered with the multi-factor user.
+  authStateListener(null).$once();
+  authStateListener(ignoreArgument).$once()
+      .$does(function(user) {
+        assertEquals(auth1.currentUser, user);
+      });
+  idTokenListener(null).$once();
+  idTokenListener(ignoreArgument).$once()
+      .$does(function(user) {
+        assertEquals(auth1.currentUser, user);
+      });
+  mockControl.$replayAll();
+
+  var unsubscribe = auth1.onAuthStateChanged(function(currentUser) {
+    // Sign in after the first time the listener being triggered with null
+    // user. Otherwise, since the listener is async, when the listener is
+    // triggered, the sign-in is not guaranteed to be completed.
+    auth1.signInAndRetrieveDataWithCredential(mockCredential)
+        .then(fail, function(error) {
+          // Error should be intercepted and repackaged.
+          assertEquals('auth/multi-factor-auth-required', error['code']);
+          assertEquals(auth1, error.resolver.auth);
+          return error.resolver.resolveSignIn(mockAssertion);
+        })
+        .then(function(result) {
+          // Expected result returned.
+          fireauth.common.testHelper.assertUserCredentialResponse(
+              // Expected current user returned.
+              auth1.currentUser,
+              // Expected credential returned.
+              expectedGoogleCredential,
+              // Expected additional user info.
+              expectedAdditionalUserInfo,
+              fireauth.constants.OperationType.SIGN_IN,
+              result);
+          // Enrolled factors updated.
+          assertArrayEquals(
+              [
+                fireauth.MultiFactorInfo.fromServerResponse(
+                    multiFactorGetAccountInfoResponse['users'][0].mfaInfo[0]),
+                fireauth.MultiFactorInfo.fromServerResponse(
+                    multiFactorGetAccountInfoResponse['users'][0].mfaInfo[1])
+              ],
+              auth1.currentUser.multiFactor.enrolledFactors);
+          assertEquals('defaultUserId', auth1.currentUser['uid']);
+          asyncTestCase.signal();
+        });
+    unsubscribe();
+  });
+}
+
+
+/**
+ * Tests a multi-factor user signing in with a first factor credential and
+ * then failing to recover with a second factor assertion.
+ */
+function testSignInWithCredential_multiFactor_assertionError() {
+  // Restore the mock reload method from setup.
+  stubs.restore(
+      fireauth.AuthUser.prototype,
+      'reload');
+  // Expected assertion processing error.
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.CODE_EXPIRED);
+  // Second factor requirement error returned from first factor sign-in.
+  var serverResponseError = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED,
+      null,
+      multiFactorErrorServerResponse);
+  var mockCredential = mockControl.createStrictMock(
+      fireauth.AuthCredential);
+  // Simulate first factor sign-in triggers second factor requirement.
+  mockCredential.getIdTokenProvider(ignoreArgument)
+      .$once()
+      .$does(function(rpcHandler) {
+        assertObjectEquals(auth1.getRpcHandler(), rpcHandler);
+        return goog.Promise.reject(serverResponseError);
+      });
+  var mockAssertion = mockControl.createStrictMock(
+      fireauth.MultiFactorAssertion);
+  var expectedSession = new fireauth.MultiFactorSession(
+      null,
+      multiFactorErrorServerResponse.mfaPendingCredential);
+  // Second factor assertion processing succeeds with updated tokens.
+  mockAssertion.process(ignoreArgument, ignoreArgument)
+      .$once()
+      .$does(function(rpcHandler, session) {
+        assertObjectEquals(auth1.getRpcHandler(),rpcHandler);
+        assertObjectEquals(expectedSession, session);
+        return goog.Promise.reject(expectedError);
+      });
+  var getAccountInfoByIdToken = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'getAccountInfoByIdToken');
+  getAccountInfoByIdToken(ignoreArgument)
+      .$times(0);
+
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+
+  var authStateListener = mockControl.createFunctionMock('authStateListener');
+  var idTokenListener = mockControl.createFunctionMock('idTokenListener');
+  auth1.onIdTokenChanged(idTokenListener);
+  auth1.onAuthStateChanged(authStateListener);
+  authStateListener(null).$once();
+  idTokenListener(null).$once();
+  mockControl.$replayAll();
+
+  auth1.signInAndRetrieveDataWithCredential(mockCredential)
+      .then(fail, function(error) {
+        // Error should be intercepted and repackaged.
+        assertEquals('auth/multi-factor-auth-required', error['code']);
+        assertEquals(auth1, error.resolver.auth);
+        return error.resolver.resolveSignIn(mockAssertion);
+      })
+      .then(fail, function(error) {
+       // Assertion error should be caught.
+        fireauth.common.testHelper.assertErrorEquals(
+            expectedError,
+            error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests a multi-factor user signing in with a popup and then recovering
+ * with a second factor assertion.
+ */
+function testAuth_signInWithPopup_multiFactor_success() {
+  // Restore the mock reload method from setup.
+  stubs.restore(
+      fireauth.AuthUser.prototype,
+      'reload');
+  fireauth.AuthEventManager.ENABLED = true;
+  // The expected popup window object.
+  var expectedPopup = {
+    'close': function() {}
+  };
+  var recordedHandler = null;
+  // The expected popup event ID.
+  var expectedEventId = '1234';
+  // Expected sign in via popup successful Auth event.
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP,
+      expectedEventId,
+      'http://www.example.com/#response',
+      'SESSION_ID');
+  // Replace random number generator.
+  stubs.replace(
+      fireauth.util,
+      'generateRandomString',
+      function() {
+        return '87654321';
+      });
+  // Simulate popup.
+  stubs.replace(
+      fireauth.util,
+      'popup',
+      function(url, name, width, height) {
+        assertNull(url);
+        assertEquals('87654321', name);
+        assertEquals(fireauth.idp.Settings.GOOGLE.popupWidth, width);
+        assertEquals(fireauth.idp.Settings.GOOGLE.popupHeight, height);
+        return expectedPopup;
+      });
+  // On success if popup is still opened, it will be closed.
+  stubs.replace(
+      fireauth.util,
+      'closeWindow',
+      function(win) {
+        assertEquals(expectedPopup, win);
+      });
+  // Generate expected event ID for popup.
+  stubs.replace(
+      fireauth.util,
+      'generateEventId',
+      function() {
+        return expectedEventId;
+      });
+  // Stub instantiateOAuthSignInHandler and save event dispatcher.
+  stubs.replace(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler',
+      function(authDomain, apiKey, appName) {
+        return {
+          'addAuthEventListener': function(handler) {
+            // auth1 should be subscribed.
+            var manager = fireauth.AuthEventManager.getManager(
+                config3['authDomain'], config3['apiKey'], app1.name);
+            assertTrue(manager.isSubscribed(auth1));
+            recordedHandler = handler;
+          },
+          'initializeAndWait': function() { return goog.Promise.resolve(); },
+          'shouldBeInitializedEarly': function() { return false; },
+          'hasVolatileStorage': function() { return false; },
+          'processPopup': function(
+              actualPopupWin,
+              actualMode,
+              actualProvider,
+              actualOnInit,
+              actualOnError,
+              actualEventId,
+              actualAlreadyRedirected) {
+            assertEquals(expectedPopup, actualPopupWin);
+            assertEquals(fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP, actualMode);
+            assertEquals(provider, actualProvider);
+            assertEquals(expectedEventId, actualEventId);
+            assertFalse(actualAlreadyRedirected);
+            actualOnInit();
+            return goog.Promise.resolve();
+          },
+          'startPopupTimeout': function(popupWin, onError, delay) {
+            recordedHandler(expectedAuthEvent);
+            return goog.Promise.resolve();
+          }
+        };
+      });
+
+ // Second factor requirement error returned from first factor sign-in.
+  var serverResponseError = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED,
+      null,
+      multiFactorErrorServerResponse);
+  var verifyAssertion = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'verifyAssertion');
+  // Simulate first factor sign-in triggers second factor requirement.
+  verifyAssertion({
+    'requestUri': 'http://www.example.com/#response',
+    'sessionId': 'SESSION_ID',
+    'postBody': null
+  }).$does(function(request) {
+    return goog.Promise.reject(serverResponseError);
+  });
+  var mockAssertion = mockControl.createStrictMock(
+      fireauth.MultiFactorAssertion);
+  var expectedSession = new fireauth.MultiFactorSession(
+      null,
+      multiFactorErrorServerResponse.mfaPendingCredential);
+  // Second factor assertion processing succeeds with updated tokens.
+  mockAssertion.process(ignoreArgument, ignoreArgument)
+      .$once()
+      .$does(function(rpcHandler, session) {
+        assertObjectEquals(auth1.getRpcHandler(),rpcHandler);
+        assertObjectEquals(expectedSession, session);
+        return goog.Promise.resolve(multiFactorTokenResponse);
+      });
+  var getAccountInfoByIdToken = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'getAccountInfoByIdToken');
+  getAccountInfoByIdToken(multiFactorTokenResponse.idToken)
+      .$once()
+      .$returns(goog.Promise.resolve(multiFactorGetAccountInfoResponse));
+
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  var provider = new fireauth.GoogleAuthProvider();
+
+  var authStateListener = mockControl.createFunctionMock('authStateListener');
+  var idTokenListener = mockControl.createFunctionMock('idTokenListener');
+  auth1.onAuthStateChanged(authStateListener);
+  auth1.onIdTokenChanged(idTokenListener);
+  // The listeners will first be triggered right after registration with null
+  // user. The second time it will be triggered with the multi-factor user.
+  authStateListener(null).$once();
+  authStateListener(ignoreArgument).$once()
+      .$does(function(user) {
+        assertEquals(auth1.currentUser, user);
+      });
+  idTokenListener(null).$once();
+  idTokenListener(ignoreArgument).$once()
+      .$does(function(user) {
+        assertEquals(auth1.currentUser, user);
+      });
+  mockControl.$replayAll();
+
+  var unsubscribe = auth1.onIdTokenChanged(function(currentUser) {
+    // Sign in after the first time the listener being triggered with null
+    // user. Otherwise, since the listener is async, when the listener is
+    // triggered, the sign-in is not guaranteed to be completed.
+    // Sign in with popup should reject with MFA_REQUIRED error.
+    auth1.signInWithPopup(provider).then(fail, function(error) {
+      // Error should be intercepted and repackaged.
+      assertEquals('auth/multi-factor-auth-required', error['code']);
+      assertEquals(auth1, error.resolver.auth);
+      return error.resolver.resolveSignIn(mockAssertion);
+    }).then(function(popupResult) {
+      // Expected result returned.
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          // Expected current user returned.
+          auth1.currentUser,
+          // Expected credential returned.
+          expectedGoogleCredential,
+          // Expected additional user info.
+          expectedAdditionalUserInfo,
+          fireauth.constants.OperationType.SIGN_IN,
+          popupResult);
+      // Enrolled factors updated.
+      assertArrayEquals(
+          [
+            fireauth.MultiFactorInfo.fromServerResponse(
+                multiFactorGetAccountInfoResponse['users'][0].mfaInfo[0]),
+            fireauth.MultiFactorInfo.fromServerResponse(
+                multiFactorGetAccountInfoResponse['users'][0].mfaInfo[1])
+          ],
+          auth1.currentUser.multiFactor.enrolledFactors);
+      assertEquals('defaultUserId', auth1.currentUser['uid']);
+      asyncTestCase.signal();
+    });
+    unsubscribe();
+  });
+}
+
+
+/**
+ * Tests a multi-factor user returning from sign-in with a redirect and then
+ * recovering with a second factor assertion.
+ */
+function testAuth_returnFromSignInWithRedirect_multiFactor_success() {
+  // Restore the mock reload method from setup.
+  stubs.restore(
+      fireauth.AuthUser.prototype,
+      'reload');
+  fireauth.AuthEventManager.ENABLED = true;
+  // Expected sign in via redirect successful Auth event.
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
+      null,
+      'http://www.example.com/#response',
+      'SESSION_ID');
+  // Stub instantiateOAuthSignInHandler.
+  stubs.replace(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler',
+      function(authDomain, apiKey, appName) {
+        return {
+          'addAuthEventListener': function(handler) {
+            // auth1 should be subscribed.
+            var manager = fireauth.AuthEventManager.getManager(
+                config3['authDomain'], config3['apiKey'], app1.name);
+            assertTrue(manager.isSubscribed(auth1));
+            // In this case run immediately with expected redirect event.
+            handler(expectedAuthEvent);
+          },
+          'initializeAndWait': function() { return goog.Promise.resolve(); },
+          'shouldBeInitializedEarly': function() { return false; },
+          'hasVolatileStorage': function() { return false; }
+        };
+      });
+
+  // Second factor requirement error returned from first factor sign-in.
+  var serverResponseError = new fireauth.AuthError(
+      fireauth.authenum.Error.MFA_REQUIRED,
+      null,
+      multiFactorErrorServerResponse);
+  var verifyAssertion = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'verifyAssertion');
+  // Simulate first factor sign-in triggers second factor requirement.
+  verifyAssertion({
+    'requestUri': 'http://www.example.com/#response',
+    'sessionId': 'SESSION_ID',
+    'postBody': null
+  }).$does(function(request) {
+    return goog.Promise.reject(serverResponseError);
+  });
+  var mockAssertion = mockControl.createStrictMock(
+      fireauth.MultiFactorAssertion);
+  var expectedSession = new fireauth.MultiFactorSession(
+      null,
+      multiFactorErrorServerResponse.mfaPendingCredential);
+  // Second factor assertion processing succeeds with updated tokens.
+  mockAssertion.process(ignoreArgument, ignoreArgument)
+      .$once()
+      .$does(function(rpcHandler, session) {
+        assertObjectEquals(auth1.getRpcHandler(),rpcHandler);
+        assertObjectEquals(expectedSession, session);
+        return goog.Promise.resolve(multiFactorTokenResponse);
+      });
+  var getAccountInfoByIdToken = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'getAccountInfoByIdToken');
+  getAccountInfoByIdToken(multiFactorTokenResponse.idToken)
+      .$once()
+      .$returns(goog.Promise.resolve(multiFactorGetAccountInfoResponse));
+
+  asyncTestCase.waitForSignals(1);
+  var pendingRedirectManager = new fireauth.storage.PendingRedirectManager(
+      config3['apiKey'] + ':' + appId1);
+  pendingRedirectManager.setPendingStatus();
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+
+  var authStateListener = mockControl.createFunctionMock('authStateListener');
+  var idTokenListener = mockControl.createFunctionMock('idTokenListener');
+  auth1.onAuthStateChanged(authStateListener);
+  auth1.onIdTokenChanged(idTokenListener);
+  // The listeners will first be triggered right after registration with null
+  // user. The second time it will be triggered with the multi-factor user.
+  authStateListener(null).$once();
+  authStateListener(ignoreArgument).$once()
+      .$does(function(user) {
+        assertEquals(auth1.currentUser, user);
+      });
+  idTokenListener(null).$once();
+  idTokenListener(ignoreArgument).$once()
+      .$does(function(user) {
+        assertEquals(auth1.currentUser, user);
+      });
+  mockControl.$replayAll();
+
+  var unsubscribe = auth1.onIdTokenChanged(function(currentUser) {
+    // Finish signing in with the second factor after the first time the
+    // listener is triggered with a null user. Otherwise, since the listener is
+    // async, it could be triggered only once with the signed in second factor
+    // user.
+    auth1.getRedirectResult().then(fail, function(error) {
+      // Error should be intercepted and repackaged.
+      assertEquals('auth/multi-factor-auth-required', error['code']);
+      assertEquals(auth1, error.resolver.auth);
+      return error.resolver.resolveSignIn(mockAssertion);
+    }).then(function(result) {
+      // Expected result returned.
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          // Expected current user returned.
+          auth1.currentUser,
+          // Expected credential returned.
+          expectedGoogleCredential,
+          // Expected additional user info.
+          expectedAdditionalUserInfo,
+          fireauth.constants.OperationType.SIGN_IN,
+          result);
+      // Enrolled factors updated.
+      assertArrayEquals(
+          [
+            fireauth.MultiFactorInfo.fromServerResponse(
+                multiFactorGetAccountInfoResponse['users'][0].mfaInfo[0]),
+            fireauth.MultiFactorInfo.fromServerResponse(
+                multiFactorGetAccountInfoResponse['users'][0].mfaInfo[1])
+          ],
+          auth1.currentUser.multiFactor.enrolledFactors);
+      assertEquals('defaultUserId', auth1.currentUser['uid']);
+      asyncTestCase.signal();
+    });
+    unsubscribe();
   });
 }

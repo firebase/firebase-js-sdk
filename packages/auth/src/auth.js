@@ -34,6 +34,7 @@ goog.require('fireauth.AuthSettings');
 goog.require('fireauth.AuthUser');
 goog.require('fireauth.ConfirmationResult');
 goog.require('fireauth.EmailAuthProvider');
+goog.require('fireauth.MultiFactorError');
 goog.require('fireauth.RpcHandler');
 goog.require('fireauth.UserEventType');
 goog.require('fireauth.authenum.Error');
@@ -1209,6 +1210,18 @@ fireauth.Auth.prototype.signInWithIdTokenProvider_ = function(idTokenPromise) {
             // When custom token is exchanged for idToken, continue sign in with
             // ID token and return firebase Auth user.
             return self.signInWithIdTokenResponse(idTokenResponse);
+          }, function(error) {
+            // Catch the MFA_REQUIRED error rejected in ID token promise and
+            // repackage it into a multi-factor error with additional IdP data
+            // if available.
+            var multiFactorError = null;
+            if (error && error['code'] === 'auth/multi-factor-auth-required') {
+              multiFactorError = fireauth.MultiFactorError.fromPlainObject(
+                  error.toPlainObject(),
+                  self,
+                  goog.bind(self.handleMultiFactorIdTokenResolver_, self));
+            }
+            throw multiFactorError || error;
           })
           .then(function() {
             // Resolve promise with a readonly user credential object.
@@ -1223,6 +1236,25 @@ fireauth.Auth.prototype.signInWithIdTokenProvider_ = function(idTokenPromise) {
               'operationType': fireauth.constants.OperationType.SIGN_IN
             });
           })));
+};
+
+
+/**
+ * Completes multi-factor sign-in with ID token response and additional IdP data
+ * if available.
+ * @param {{idToken: string, refreshToken: string}} response The successful
+ *     sign-in response containing the new ID tokens.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>} A Promise that
+ *     resolves with the updated `UserCredential`.
+ * @private
+ */
+fireauth.Auth.prototype.handleMultiFactorIdTokenResolver_ =
+    function(response) {
+  var self = this;
+  // Wait for state to be ready and then finish sign-in.
+  return this.redirectStateIsReady_.then(function() {
+    return self.signInWithIdTokenProvider_(goog.Promise.resolve(response));
+  });
 };
 
 
