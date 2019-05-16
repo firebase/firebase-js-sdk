@@ -57,13 +57,13 @@ function setUp() {
     {
       'mfaEnrollmentId': 'ENROLLMENT_UID1',
       'enrolledAt': now.toISOString(),
-      'phoneInfo': '+16505551234'
+      'phoneInfo': '+*******1234'
     },
     {
       'mfaEnrollmentId': 'ENROLLMENT_UID2',
       'displayName': 'Spouse phone number',
       'enrolledAt': now.toISOString(),
-      'phoneInfo': '+16505556789'
+      'phoneInfo': '+*******6789'
     }
   ];
   serverResponse = {
