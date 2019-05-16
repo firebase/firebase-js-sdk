@@ -6580,6 +6580,30 @@ function testUpdateEmail_invalidEmail() {
 }
 
 
+function testUpdateEmail_serverCaughtError() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
+                    'relyingparty/setAccountInfo?key=apiKey';
+  var email = 'newuser@example.com';
+  var idToken = 'ID_TOKEN';
+  var requestBody = {
+    'idToken': 'ID_TOKEN',
+    'email': email,
+    'returnSecureToken': true
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_EMAIL] =
+      fireauth.authenum.Error.INVALID_EMAIL;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_ID_TOKEN] =
+      fireauth.authenum.Error.INVALID_AUTH;
+  errorMap[fireauth.RpcHandler.ServerError.EMAIL_CHANGE_NEEDS_VERIFICATION] =
+      fireauth.authenum.Error.EMAIL_CHANGE_NEEDS_VERIFICATION;
+
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.updateEmail(idToken, email);
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
 function testUpdatePassword_success() {
   var expectedResponse = {
     'email': 'user@example.com',
@@ -7494,6 +7518,14 @@ function testStartPhoneMfaEnrollment_caughtServerError() {
       fireauth.authenum.Error.QUOTA_EXCEEDED;
   errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
       fireauth.authenum.Error.REJECTED_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.SECOND_FACTOR_LIMIT_EXCEEDED] =
+      fireauth.authenum.Error.SECOND_FACTOR_LIMIT_EXCEEDED;
+  errorMap[fireauth.RpcHandler.ServerError.SECOND_FACTOR_EXISTS] =
+      fireauth.authenum.Error.SECOND_FACTOR_EXISTS;
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_FIRST_FACTOR] =
+      fireauth.authenum.Error.UNSUPPORTED_FIRST_FACTOR;
+  errorMap[fireauth.RpcHandler.ServerError.UNVERIFIED_EMAIL] =
+      fireauth.authenum.Error.UNVERIFIED_EMAIL;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.startPhoneMfaEnrollment(enrollmentRequest);
@@ -7685,6 +7717,14 @@ function testFinalizePhoneMfaEnrollment_caughtServerError() {
       fireauth.authenum.Error.CODE_EXPIRED;
   errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
       fireauth.authenum.Error.REJECTED_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.SECOND_FACTOR_LIMIT_EXCEEDED] =
+      fireauth.authenum.Error.SECOND_FACTOR_LIMIT_EXCEEDED;
+  errorMap[fireauth.RpcHandler.ServerError.SECOND_FACTOR_EXISTS] =
+      fireauth.authenum.Error.SECOND_FACTOR_EXISTS;
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_FIRST_FACTOR] =
+      fireauth.authenum.Error.UNSUPPORTED_FIRST_FACTOR;
+  errorMap[fireauth.RpcHandler.ServerError.UNVERIFIED_EMAIL] =
+      fireauth.authenum.Error.UNVERIFIED_EMAIL;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.finalizePhoneMfaEnrollment(enrollmentRequest);
@@ -8131,6 +8171,10 @@ function testWithdrawMfa_caughtServerError() {
   var errorMap = {};
   errorMap[fireauth.RpcHandler.ServerError.INVALID_ID_TOKEN] =
       fireauth.authenum.Error.INVALID_AUTH;
+  errorMap[fireauth.RpcHandler.ServerError.MFA_ENROLLMENT_NOT_FOUND] =
+      fireauth.authenum.Error.MFA_ENROLLMENT_NOT_FOUND;
+  errorMap[fireauth.RpcHandler.ServerError.MISSING_MFA_ENROLLMENT_ID] =
+      fireauth.authenum.Error.MISSING_MFA_ENROLLMENT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.withdrawMfa(idToken, mfaEnrollmentId);

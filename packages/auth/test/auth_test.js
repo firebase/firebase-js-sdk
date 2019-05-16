@@ -9843,20 +9843,23 @@ function testSignInWithCredential_multiFactor_assertionError() {
   idTokenListener(null).$once();
   mockControl.$replayAll();
 
-  auth1.signInAndRetrieveDataWithCredential(mockCredential)
-      .then(fail, function(error) {
-        // Error should be intercepted and repackaged.
-        assertEquals('auth/multi-factor-auth-required', error['code']);
-        assertEquals(auth1, error.resolver.auth);
-        return error.resolver.resolveSignIn(mockAssertion);
-      })
-      .then(fail, function(error) {
-       // Assertion error should be caught.
-        fireauth.common.testHelper.assertErrorEquals(
-            expectedError,
-            error);
-        asyncTestCase.signal();
-      });
+  // Give enough time for listeners above to trigger before test ends.
+  var unsubscribe = auth1.onAuthStateChanged(function(currentUser) {
+    auth1.signInWithCredential(mockCredential).then(fail, function(error) {
+      // Error should be intercepted and repackaged.
+      assertEquals('auth/multi-factor-auth-required', error['code']);
+      assertEquals(auth1, error.resolver.auth);
+      return error.resolver.resolveSignIn(mockAssertion);
+    })
+    .then(fail, function(error) {
+     // Assertion error should be caught.
+      fireauth.common.testHelper.assertErrorEquals(
+          expectedError,
+          error);
+      asyncTestCase.signal();
+    });
+    unsubscribe();
+  });
 }
 
 

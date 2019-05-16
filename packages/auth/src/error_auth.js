@@ -133,6 +133,7 @@ fireauth.authenum.Error = {
   CREDENTIAL_MISMATCH: 'custom-token-mismatch',
   CREDENTIAL_TOO_OLD_LOGIN_AGAIN: 'requires-recent-login',
   DYNAMIC_LINK_NOT_ACTIVATED: 'dynamic-link-not-activated',
+  EMAIL_CHANGE_NEEDS_VERIFICATION: 'email-change-needs-verification',
   EMAIL_EXISTS: 'email-already-in-use',
   EXPIRED_OOB_CODE: 'expired-action-code',
   EXPIRED_POPUP_REQUEST: 'cancelled-popup-request',
@@ -192,11 +193,15 @@ fireauth.authenum.Error = {
   REDIRECT_CANCELLED_BY_USER: 'redirect-cancelled-by-user',
   REDIRECT_OPERATION_PENDING: 'redirect-operation-pending',
   REJECTED_CREDENTIAL: 'rejected-credential',
+  SECOND_FACTOR_EXISTS: 'second-factor-already-in-use',
+  SECOND_FACTOR_LIMIT_EXCEEDED: 'maximum-second-factor-count-exceeded',
   TIMEOUT: 'timeout',
   TOKEN_EXPIRED: 'user-token-expired',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'too-many-requests',
   UNAUTHORIZED_DOMAIN: 'unauthorized-continue-uri',
+  UNSUPPORTED_FIRST_FACTOR: 'unsupported-first-factor',
   UNSUPPORTED_PERSISTENCE: 'unsupported-persistence-type',
+  UNVERIFIED_EMAIL: 'unverified-email',
   USER_CANCELLED: 'user-cancelled',
   USER_DELETED: 'user-not-found',
   USER_DISABLED: 'user-disabled',
@@ -247,6 +252,9 @@ fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.DYNAMIC_LINK_NOT_ACTIVATED] = 'Please activate ' +
     'Dynamic Links in the Firebase Console and agree to the terms and ' +
     'conditions.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.EMAIL_CHANGE_NEEDS_VERIFICATION] =
+    'Multi-factor users must always have a verified email.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.EMAIL_EXISTS] =
     'The email address is already in use by another account.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.EXPIRED_OOB_CODE] =
@@ -411,6 +419,11 @@ fireauth.AuthError.MESSAGES_[
     'A redirect sign-in operation is already pending.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.REJECTED_CREDENTIAL] =
     'The request contains malformed or mismatching credentials.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.SECOND_FACTOR_EXISTS] =
+    'The second factor is already enrolled on this account.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.SECOND_FACTOR_LIMIT_EXCEEDED] =
+    'The maximum allowed number of second factors on a user has been exceeded.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TIMEOUT] =
     'The operation has timed out.';
 fireauth.AuthError.MESSAGES_[
@@ -423,8 +436,14 @@ fireauth.AuthError.MESSAGES_[
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNAUTHORIZED_DOMAIN] =
     'The domain of the continue URL is not whitelisted.  Please whitelist ' +
     'the domain in the Firebase console.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.UNSUPPORTED_FIRST_FACTOR] = 'Enrolling a second ' +
+    'factor or signing in with a multi-factor account requires sign-in with ' +
+    'a supported first factor.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNSUPPORTED_PERSISTENCE] =
     'The current environment does not support the specified persistence type.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNVERIFIED_EMAIL] =
+    'The operation requires a verified email.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_CANCELLED] =
     'User did not grant your application the permissions it requested.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_DELETED] =
