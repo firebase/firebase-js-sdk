@@ -112,7 +112,6 @@ fireauth.AuthErrorWithCredential.prototype.toJSON = function() {
  * @param {?Object|undefined} response The object response to convert to a
  *     fireauth.AuthErrorWithCredential.
  * @return {?fireauth.AuthError} The error representation of the response.
- * @override
  */
 fireauth.AuthErrorWithCredential.fromPlainObject = function(response) {
   // Code included.

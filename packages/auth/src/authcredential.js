@@ -36,10 +36,14 @@ goog.provide('fireauth.SAMLAuthCredential');
 goog.provide('fireauth.SAMLAuthProvider');
 goog.provide('fireauth.TwitterAuthProvider');
 
+goog.forwardDeclare('fireauth.RpcHandler');
 goog.require('fireauth.ActionCodeUrl');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.DynamicLink');
 goog.require('fireauth.IdToken');
+goog.require('fireauth.MultiFactorAuthCredential');
+goog.require('fireauth.MultiFactorEnrollmentRequestIdentifier');
+goog.require('fireauth.MultiFactorSignInRequestIdentifier');
 goog.require('fireauth.authenum.Error');
 goog.require('fireauth.constants');
 goog.require('fireauth.idp');
@@ -49,8 +53,6 @@ goog.require('goog.Promise');
 goog.require('goog.Uri');
 goog.require('goog.array');
 goog.require('goog.object');
-
-goog.forwardDeclare('fireauth.RpcHandler');
 
 
 
@@ -691,7 +693,6 @@ fireauth.object.setReadonlyProperty(fireauth.FacebookAuthProvider,
  * @param {string} accessTokenOrObject The Facebook access token, or object
  *     containing the token for FirebaseUI backwards compatibility.
  * @return {!fireauth.AuthCredential} The Auth credential object.
- * @override
  */
 fireauth.FacebookAuthProvider.credential = function(accessTokenOrObject) {
   if (!accessTokenOrObject) {
@@ -732,7 +733,6 @@ fireauth.object.setReadonlyProperty(fireauth.GithubAuthProvider,
  * @param {string} accessTokenOrObject The GitHub access token, or object
  *     containing the token for FirebaseUI backwards compatibility.
  * @return {!fireauth.AuthCredential} The Auth credential object.
- * @override
  */
 fireauth.GithubAuthProvider.credential = function(accessTokenOrObject) {
   if (!accessTokenOrObject) {
@@ -780,7 +780,6 @@ fireauth.object.setReadonlyProperty(fireauth.GoogleAuthProvider,
  * @param {?string=} accessToken The Google access token. If null or
  *     undefined, we expect the ID token to have been passed.
  * @return {!fireauth.AuthCredential} The Auth credential object.
- * @override
  */
 fireauth.GoogleAuthProvider.credential =
     function(idTokenOrObject, accessToken) {
@@ -822,7 +821,6 @@ fireauth.object.setReadonlyProperty(fireauth.TwitterAuthProvider,
  *     containing the token for FirebaseUI backwards compatibility.
  * @param {string} secret The Twitter secret.
  * @return {!fireauth.AuthCredential} The Auth credential object.
- * @override
  */
 fireauth.TwitterAuthProvider.credential = function(tokenOrObject, secret) {
   var tokenObject = tokenOrObject;
@@ -974,7 +972,6 @@ fireauth.EmailAuthProvider = function() {
  * @param {string} email The credential email.
  * @param {string} password The credential password.
  * @return {!fireauth.EmailAuthCredential} The Auth credential object.
- * @override
  */
 fireauth.EmailAuthProvider.credential = function(email, password) {
   return new fireauth.EmailAuthCredential(email, password);
@@ -1031,11 +1028,14 @@ fireauth.object.setReadonlyProperties(fireauth.EmailAuthProvider, {
 
 
 /**
- * A credential for phone number sign-in.
+ * A credential for phone number sign-in. Phone credentials can also be used as
+ * second factor assertions.
+ * A `PhoneAuthCredential` is also a `MultiFactorAuthCredential`. A
+ * `PhoneMultiFactorAssertion` requires a `PhoneAuthCredential`.
  * @param {!fireauth.PhoneAuthCredential.Parameters_} params The credential
  *     parameters that prove the user owns the claimed phone number.
  * @constructor
- * @implements {fireauth.AuthCredential}
+ * @implements {fireauth.MultiFactorAuthCredential}
  */
 fireauth.PhoneAuthCredential = function(params) {
   // Either verification ID and code, or phone number temporary proof must be
@@ -1055,6 +1055,11 @@ fireauth.PhoneAuthCredential = function(params) {
 
   fireauth.object.setReadonlyProperty(this, 'providerId',
       fireauth.idp.ProviderId.PHONE);
+  /**
+   * @public {string} The provider ID required by the
+   *     `fireauth.MultiFactorAuthCredential` interface.
+   */
+  this.providerId = fireauth.idp.ProviderId.PHONE;
 
   fireauth.object.setReadonlyProperty(
       this, 'signInMethod', fireauth.idp.SignInMethod.PHONE);
@@ -1216,6 +1221,50 @@ fireauth.PhoneAuthCredential.prototype.makeVerifyPhoneNumberRequest_ =
 
 
 /**
+ * Finalizes the 2nd factor enrollment flow with the current AuthCredential
+ * using the enrollment request identifier.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler instance.
+ * @param {!fireauth.MultiFactorEnrollmentRequestIdentifier} enrollmentRequest
+ *     The enrollment request identifying the user.
+ * @return {!goog.Promise<{idToken: string, refreshToken: string}>} A promise
+ *     that resolves with the updated ID and refresh tokens.
+ * @override
+ */
+fireauth.PhoneAuthCredential.prototype.finalizeMfaEnrollment =
+    function(rpcHandler, enrollmentRequest) {
+  goog.object.extend(
+      enrollmentRequest,
+      {
+        'phoneVerificationInfo': this.makeVerifyPhoneNumberRequest_()
+      });
+  return /** @type {!goog.Promise<{idToken: string, refreshToken: string}>} */ (
+      rpcHandler.finalizePhoneMfaEnrollment(enrollmentRequest));
+};
+
+
+/**
+ * Finalizes the 2nd factor sign-in flow with the current AuthCredential
+ * using the sign-in request identifier.
+ * @param {!fireauth.RpcHandler} rpcHandler The RPC handler instance.
+ * @param {!fireauth.MultiFactorSignInRequestIdentifier} signInRequest
+ *     The sign-in request identifying the user.
+ * @return {!goog.Promise<{idToken: string, refreshToken: string}>} A promise
+ *     that resolves with the signed in user's ID and refresh tokens.
+ * @override
+ */
+fireauth.PhoneAuthCredential.prototype.finalizeMfaSignIn =
+    function(rpcHandler, signInRequest) {
+  goog.object.extend(
+      signInRequest,
+      {
+        'phoneVerificationInfo': this.makeVerifyPhoneNumberRequest_()
+      });
+  return /** @type {!goog.Promise<{idToken: string, refreshToken: string}>} */ (
+      rpcHandler.finalizePhoneMfaSignIn(signInRequest));
+};
+
+
+/**
  * Phone Auth provider implementation.
  * @param {?fireauth.Auth=} opt_auth The Firebase Auth instance.
  * @constructor
@@ -1298,7 +1347,6 @@ fireauth.PhoneAuthProvider.prototype.verifyPhoneNumber =
  * @param {string} verificationCode The verification code that was sent to the
  *     user's phone.
  * @return {!fireauth.PhoneAuthCredential}
- * @override
  */
 fireauth.PhoneAuthProvider.credential =
     function(verificationId, verificationCode) {

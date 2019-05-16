@@ -63,6 +63,22 @@ var app = firebase.initializeApp({
   apiKey: 'myApiKey'
 });
 var auth = new fireauth.Auth(app);
+var jwt = fireauth.common.testHelper.createMockJwt({
+  'firebase': {
+    'sign_in_provider': 'password'
+  }
+});
+var factorDisplayName = 'Work phone number';
+var pendingCredential = 'MFA_PENDING_CREDENTIAL';
+var successTokenResponse = {
+  'idToken': fireauth.common.testHelper.createMockJwt({
+    'firebase': {
+      'sign_in_provider': 'password',
+      'sign_in_second_factor': 'phone'
+    }
+  }),
+  'refreshToken': 'REFRESH_TOKEN'
+};
 
 
 function setUp() {
@@ -2572,6 +2588,166 @@ function testPhoneAuthCredential_matchIdTokenWithUid_mismatch() {
         fireauth.common.testHelper.assertErrorEquals(
             new fireauth.AuthError(fireauth.authenum.Error.USER_MISMATCH),
             error);
+      });
+}
+
+
+function testPhoneAuthCredential_finalizeMfaEnrollment_success() {
+  var verificationId = 'SESSION_INFO';
+  var verificationCode = '123456';
+  var expectedEnrollRequest = {
+    'idToken': jwt,
+    'displayName': factorDisplayName,
+    'phoneVerificationInfo': {
+      'sessionInfo': verificationId,
+      'code': verificationCode
+    }
+  };
+  var enrollmentRequestIdentifier = {
+    'idToken': jwt,
+    'displayName': factorDisplayName
+  };
+  var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+  rpcHandler.finalizePhoneMfaEnrollment(expectedEnrollRequest)
+      .$once()
+      .$returns(goog.Promise.resolve(successTokenResponse));
+
+  mockControl.$replayAll();
+
+  var credential = fireauth.PhoneAuthProvider.credential(
+      verificationId, verificationCode);
+  return credential
+      .finalizeMfaEnrollment(rpcHandler, enrollmentRequestIdentifier)
+      .then(function(result) {
+        assertObjectEquals(successTokenResponse, result);
+      });
+}
+
+
+function testPhoneAuthCredential_finalizeMfaEnrollment_success_noDisplayName() {
+  var verificationId = 'SESSION_INFO';
+  var verificationCode = '123456';
+  var expectedEnrollRequest = {
+    'idToken': jwt,
+    'phoneVerificationInfo': {
+      'sessionInfo': verificationId,
+      'code': verificationCode
+    }
+  };
+  var enrollmentRequestIdentifier = {
+    'idToken': jwt
+  };
+  var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+  rpcHandler.finalizePhoneMfaEnrollment(expectedEnrollRequest)
+      .$once()
+      .$returns(goog.Promise.resolve(successTokenResponse));
+
+  mockControl.$replayAll();
+
+  var credential = fireauth.PhoneAuthProvider.credential(
+      verificationId, verificationCode);
+  return credential
+      .finalizeMfaEnrollment(rpcHandler, enrollmentRequestIdentifier)
+      .then(function(result) {
+        assertObjectEquals(successTokenResponse, result);
+      });
+}
+
+
+function testPhoneAuthCredential_finalizeMfaEnrollment_error() {
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.CODE_EXPIRED);
+  var verificationId = 'SESSION_INFO';
+  var verificationCode = '123456';
+  var expectedEnrollRequest = {
+    'idToken': jwt,
+    'displayName': factorDisplayName,
+    'phoneVerificationInfo': {
+      'sessionInfo': verificationId,
+      'code': verificationCode
+    }
+  };
+  var enrollmentRequestIdentifier = {
+    'idToken': jwt,
+    'displayName': factorDisplayName
+  };
+  var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+  rpcHandler.finalizePhoneMfaEnrollment(expectedEnrollRequest)
+      .$once()
+      .$returns(goog.Promise.reject(expectedError));
+
+  mockControl.$replayAll();
+
+  var credential = fireauth.PhoneAuthProvider.credential(
+      verificationId, verificationCode);
+  return credential
+      .finalizeMfaEnrollment(rpcHandler, enrollmentRequestIdentifier)
+      .then(fail)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+      });
+}
+
+
+function testPhoneAuthCredential_finalizeMfaSignIn_success() {
+  var verificationId = 'SESSION_INFO';
+  var verificationCode = '123456';
+  var expectedSignInRequest = {
+    'mfaPendingCredential': pendingCredential,
+    'phoneVerificationInfo': {
+      'sessionInfo': verificationId,
+      'code': verificationCode
+    }
+  };
+  var signInRequestIdentifier = {
+    'mfaPendingCredential': pendingCredential
+  };
+  var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+  rpcHandler.finalizePhoneMfaSignIn(expectedSignInRequest)
+      .$once()
+      .$returns(goog.Promise.resolve(successTokenResponse));
+
+  mockControl.$replayAll();
+
+  var credential = fireauth.PhoneAuthProvider.credential(
+      verificationId, verificationCode);
+  return credential
+      .finalizeMfaSignIn(rpcHandler, signInRequestIdentifier)
+      .then(function(result) {
+        assertObjectEquals(successTokenResponse, result);
+      });
+}
+
+
+function testPhoneAuthCredential_finalizeMfaSignIn_error() {
+  var expectedError = new fireauth.AuthError(
+      fireauth.authenum.Error.CODE_EXPIRED);
+  var verificationId = 'SESSION_INFO';
+  var verificationCode = '123456';
+  var expectedSignInRequest = {
+    'mfaPendingCredential': pendingCredential,
+    'phoneVerificationInfo': {
+      'sessionInfo': verificationId,
+      'code': verificationCode
+    }
+  };
+  var signInRequestIdentifier = {
+    'mfaPendingCredential': pendingCredential
+  };
+  var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+  rpcHandler.finalizePhoneMfaSignIn(expectedSignInRequest)
+      .$once()
+      .$returns(goog.Promise.reject(expectedError));
+
+  mockControl.$replayAll();
+
+  var credential = fireauth.PhoneAuthProvider.credential(
+      verificationId, verificationCode);
+  return credential
+      .finalizeMfaSignIn(rpcHandler, signInRequestIdentifier)
+      .then(fail)
+      .thenCatch(function(error) {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
       });
 }
 
