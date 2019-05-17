@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import babel from 'rollup-plugin-babel';
 import json from 'rollup-plugin-json';
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
@@ -65,4 +66,40 @@ const es2017Builds = [
   }
 ];
 
-export default [...es5Builds, ...es2017Builds];
+/**
+ * Syntax Builds
+ */
+const syntaxBuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'esnext'
+      }
+    }
+  }),
+  babel({
+    presets: [
+      [
+        '@babel/env',
+        {
+          targets: { esmodules: true },
+          loose: true,
+          modules: false,
+        },
+      ],
+    ],
+  }),
+  json({ preferConst: true })
+];
+
+const syntaxBuilds = [
+  {
+    input: 'index.ts',
+    output: [{ file: pkg.syntax.esmodules, format: 'es', sourcemap: true }],
+    plugins: syntaxBuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default [...es5Builds, ...es2017Builds, ...syntaxBuilds];
