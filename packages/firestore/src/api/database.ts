@@ -433,15 +433,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       try {
         if (
           this._firestoreClient !== undefined &&
-          !this._firestoreClient.isShutdown()
+          !this._firestoreClient.clientShutdown
         ) {
-          deferred.reject(
-            new FirestoreError(
-              Code.FAILED_PRECONDITION,
-              'Persistence cannot be cleared while this firestore instance is running.'
-            )
+          throw new FirestoreError(
+            Code.FAILED_PRECONDITION,
+            'Persistence cannot be cleared while this firestore instance is running.'
           );
-          return;
         }
         await IndexedDbPersistence.clearPersistence(persistenceKey);
         deferred.resolve();

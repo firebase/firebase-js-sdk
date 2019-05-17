@@ -108,7 +108,7 @@ export class FirestoreClient {
   private lruScheduler?: LruScheduler;
 
   private readonly clientId = AutoId.newId();
-  private _isShutdown = false;
+  private _clientShutdown = false;
 
   // PORTING NOTE: SharedClientState is only used for multi-tab web.
   private sharedClientState: SharedClientState;
@@ -305,7 +305,7 @@ export class FirestoreClient {
    * this class cannot be called after the client is shutdown.
    */
   private verifyNotShutdown(): void {
-    if (this._isShutdown) {
+    if (this._clientShutdown) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'The client has already been shutdown.'
@@ -496,7 +496,7 @@ export class FirestoreClient {
 
   shutdown(): Promise<void> {
     return this.asyncQueue.enqueue(async () => {
-      if (!this._isShutdown) {
+      if (!this._clientShutdown) {
         // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
         if (this.lruScheduler) {
           this.lruScheduler.stop();
@@ -509,7 +509,7 @@ export class FirestoreClient {
         // RemoteStore as it will prevent the RemoteStore from retrieving
         // auth tokens.
         this.credentials.removeChangeListener();
-        this._isShutdown = true;
+        this._clientShutdown = true;
       }
     });
   }
@@ -590,8 +590,8 @@ export class FirestoreClient {
     return this.databaseInfo.databaseId;
   }
 
-  isShutdown(): boolean {
-    return this._isShutdown;
+  get clientShutdown(): boolean {
+    return this._clientShutdown;
   }
 
   transaction<T>(
