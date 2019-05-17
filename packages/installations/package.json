@@ -51,6 +51,7 @@
   "dependencies": {
     "@firebase/installations-types": "0.1.0",
     "@firebase/util": "0.2.15",
-    "idb": "3.0.2"
+    "idb": "3.0.2",
+    "tslib": "1.9.3"
   }
 }
