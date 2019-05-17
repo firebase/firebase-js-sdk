@@ -309,8 +309,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // are already set to synchronize on the async queue.
   private _firestoreClient: FirestoreClient | undefined;
 
-  private clientRunning: boolean;
-
   // Public for use in tests.
   // TODO(mikelehen): Use modularized initialization instead.
   readonly _queue = new AsyncQueue();
@@ -318,7 +316,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
-    this.clientRunning = false;
     const config = new FirestoreConfig();
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
@@ -428,18 +425,21 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   _clearPersistence(): Promise<void> {
-    if (this.clientRunning) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'Persistence cannot be cleared while the client is running'
-      );
-    }
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       this.makeDatabaseInfo()
     );
     const deferred = new Deferred<void>();
     this._queue.enqueueAndForget(async () => {
       try {
+        if (
+          this._firestoreClient !== undefined &&
+          !this._firestoreClient.clientShutdown
+        ) {
+          throw new FirestoreError(
+            Code.FAILED_PRECONDITION,
+            'Persistence cannot be cleared while this firestore instance is running.'
+          );
+        }
         await IndexedDbPersistence.clearPersistence(persistenceKey);
         deferred.resolve();
       } catch (e) {
@@ -478,7 +478,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
-    this.clientRunning = true;
     const databaseInfo = this.makeDatabaseInfo();
 
     const preConverter = (value: unknown) => {
@@ -546,7 +545,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       // throws an exception.
       this.ensureClientConfigured();
       await this._firestoreClient!.shutdown();
-      this.clientRunning = false;
     }
   };
 
