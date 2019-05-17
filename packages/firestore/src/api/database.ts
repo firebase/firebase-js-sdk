@@ -438,7 +438,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           deferred.reject(
             new FirestoreError(
               Code.FAILED_PRECONDITION,
-              'Persistence cannot be cleared while the client is running.'
+              'Persistence cannot be cleared while this firestore instance is running.'
             )
           );
           return;

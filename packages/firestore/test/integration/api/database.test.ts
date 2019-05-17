@@ -997,7 +997,7 @@ apiDescribe('Database', persistence => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
       await expect(clearPersistence(firestore)).to.eventually.be.rejectedWith(
-        'Persistence cannot be cleared while the client is running.'
+        'Persistence cannot be cleared while this firestore instance is running.'
       );
     });
   });
