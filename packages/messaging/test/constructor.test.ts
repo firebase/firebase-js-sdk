@@ -23,7 +23,6 @@ import { WindowController } from '../src/controllers/window-controller';
 import { ErrorCode } from '../src/models/errors';
 
 import { makeFakeApp } from './testing-utils/make-fake-app';
-import { describe } from './testing-utils/messaging-test-runner';
 
 describe('Firebase Messaging > new *Controller()', () => {
   it('should handle bad input', () => {
