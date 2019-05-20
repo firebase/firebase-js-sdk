@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import * as grpc from 'grpc';
+import * as grpc from '@grpc/grpc-js';
 
 import firebase from '@firebase/app';
 const SDK_VERSION = firebase.SDK_VERSION;
 
-const grpcVersion = require('grpc/package.json').version;
+const grpcVersion = require('@grpc/grpc-js/package.json').version;
 
 import { Token } from '../api/credentials';
 import { DatabaseInfo } from '../core/database_info';
@@ -97,14 +97,7 @@ export class GrpcConnection implements Connection {
         : grpc.credentials.createInsecure();
       this.cachedStub = new this.firestore.Firestore(
         this.databaseInfo.host,
-        credentials,
-        {
-          // We do our own connection backoff (that for example is aware of whether or
-          // not a write stream error is permanent or not) so we don't want gRPC to do
-          // backoff on top of that. 100ms is the minimum value that gRPC allows.
-          'grpc.initial_reconnect_backoff_ms': 100,
-          'grpc.max_reconnect_backoff_ms': 100
-        }
+        credentials
       );
     }
     return this.cachedStub;
