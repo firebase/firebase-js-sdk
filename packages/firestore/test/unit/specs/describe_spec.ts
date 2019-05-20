@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+import { ExclusiveTestFunction, PendingTestFunction } from 'mocha';
+
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { assert } from '../../../src/util/assert';
 import { addEqualityMatcher } from '../../util/equality_matcher';
@@ -47,7 +49,8 @@ const KNOWN_TAGS = [
 ];
 
 // TODO(mrschmidt): Make this configurable with mocha options.
-const RUN_BENCHMARK_TESTS = false;
+const RUN_BENCHMARK_TESTS = true;
+const BENCHMARK_TEST_TIMEOUT_MS = 10 * 1000;
 
 // The format of one describeSpec written to a JSON file.
 interface SpecOutputFormat {
@@ -79,7 +82,10 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 }
 
 /** Gets the test runner based on the specified tags. */
-function getTestRunner(tags, persistenceEnabled): Function {
+function getTestRunner(
+  tags,
+  persistenceEnabled
+): ExclusiveTestFunction | PendingTestFunction {
   if (tags.indexOf(NO_WEB_TAG) >= 0) {
     return it.skip;
   } else if (
@@ -99,6 +105,15 @@ function getTestRunner(tags, persistenceEnabled): Function {
     return it.only;
   } else {
     return it;
+  }
+}
+
+/** If required, returns a custom test timeout for long-running tests */
+function getTestTimeout(tags): number | undefined {
+  if (tags.indexOf(BENCHMARK_TAG) >= 0) {
+    return BENCHMARK_TEST_TIMEOUT_MS;
+  } else {
+    return undefined;
   }
 }
 
@@ -153,9 +168,10 @@ export function specTest(
     for (const usePersistence of persistenceModes) {
       const spec = builder();
       const runner = getTestRunner(tags, usePersistence);
+      const timeout = getTestTimeout(tags);
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
-      runner(fullName, async () => {
+      const testFunction = runner(fullName, async () => {
         const start = Date.now();
         await spec.runAsTest(fullName, usePersistence);
         const end = Date.now();
@@ -164,6 +180,10 @@ export function specTest(
           console.log(`Runtime: ${end - start} ms.`);
         }
       });
+
+      if (timeout !== undefined) {
+        testFunction.timeout(timeout);
+      }
     }
   } else {
     assert(
