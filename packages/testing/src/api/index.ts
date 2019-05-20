@@ -25,8 +25,14 @@ import { resolve } from 'path';
 
 export { database, firestore } from 'firebase';
 
-const ROOT = resolve(__dirname, process.env.FIRESTORE_EMULATOR_PROTO_ROOT || '../protos');
-const PROTO_FILE = resolve(ROOT, 'google/firestore/emulator/v1/firestore_emulator.proto');
+const ROOT = resolve(
+  __dirname,
+  process.env.FIRESTORE_EMULATOR_PROTO_ROOT || '../protos'
+);
+const PROTO_FILE = resolve(
+  ROOT,
+  'google/firestore/emulator/v1/firestore_emulator.proto'
+);
 const PKG_DEF = protoLoader.loadSync(PROTO_FILE, { includeDirs: [ROOT] });
 const PROTOS = grpc.loadPackageDefinition(PKG_DEF);
 const EMULATOR = PROTOS['google']['firestore']['emulator']['v1'];
@@ -198,7 +204,7 @@ export function loadFirestoreRules(
 
   let client = new EMULATOR.FirestoreEmulator(
     FIRESTORE_ADDRESS,
-    grpc.credentials.createInsecure(),
+    grpc.credentials.createInsecure()
   );
   return new Promise((resolve, reject) => {
     client.setSecurityRules(
