@@ -65,10 +65,9 @@ import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 
-/** The DOMException code for an aborted operation. */
+/** DOMException error code constants. */
+const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;
-
-/** The DOMException code for quota exceeded. */
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
 export class IndexedDbPersistenceSettings {
@@ -108,7 +107,7 @@ export class FirestoreClient {
   private lruScheduler?: LruScheduler;
 
   private readonly clientId = AutoId.newId();
-  private isShutdown = false;
+  private _clientShutdown = false;
 
   // PORTING NOTE: SharedClientState is only used for multi-tab web.
   private sharedClientState: SharedClientState;
@@ -255,8 +254,8 @@ export class FirestoreClient {
           }
 
           console.warn(
-            'Error enabling offline storage. Falling back to' +
-              ' storage disabled: ' +
+            'Error enabling offline persistence. Falling back to' +
+              ' persistence disabled: ' +
               error
           );
           return this.startMemoryPersistence();
@@ -285,15 +284,22 @@ export class FirestoreClient {
       typeof DOMException !== 'undefined' &&
       error instanceof DOMException
     ) {
-      // We fall back to memory persistence if we cannot write the primary
-      // lease. This can happen can during a schema migration, or if we run out
-      // of quota when we try to write the primary lease.
-      // For both the `QuotaExceededError` and the  `AbortError`, it is safe to
-      // fall back to memory persistence since all modifications to IndexedDb
-      // failed to commit.
+      // There are a few known circumstances where we can open IndexedDb but
+      // trying to read/write will fail (e.g. quota exceeded). For
+      // well-understood cases, we attempt to detect these and then gracefully
+      // fall back to memory persistence.
+      // NOTE: Rather than continue to add to this list, we could decide to
+      // always fall back, with the risk that we might accidentally hide errors
+      // representing actual SDK bugs.
       return (
+        // When the browser is out of quota we could get either quota exceeded
+        // or an aborted error depending on whether the error happened during
+        // schema migration.
         error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
-        error.code === DOM_EXCEPTION_ABORTED
+        error.code === DOM_EXCEPTION_ABORTED ||
+        // Firefox Private Browsing mode disables IndexedDb and returns
+        // INVALID_STATE for any usage.
+        error.code === DOM_EXCEPTION_INVALID_STATE
       );
     }
 
@@ -305,7 +311,7 @@ export class FirestoreClient {
    * this class cannot be called after the client is shutdown.
    */
   private verifyNotShutdown(): void {
-    if (this.isShutdown) {
+    if (this._clientShutdown) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'The client has already been shutdown.'
@@ -496,7 +502,7 @@ export class FirestoreClient {
 
   shutdown(): Promise<void> {
     return this.asyncQueue.enqueue(async () => {
-      if (!this.isShutdown) {
+      if (!this._clientShutdown) {
         // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
         if (this.lruScheduler) {
           this.lruScheduler.stop();
@@ -509,7 +515,7 @@ export class FirestoreClient {
         // RemoteStore as it will prevent the RemoteStore from retrieving
         // auth tokens.
         this.credentials.removeChangeListener();
-        this.isShutdown = true;
+        this._clientShutdown = true;
       }
     });
   }
@@ -588,6 +594,10 @@ export class FirestoreClient {
 
   databaseId(): DatabaseId {
     return this.databaseInfo.databaseId;
+  }
+
+  get clientShutdown(): boolean {
+    return this._clientShutdown;
   }
 
   transaction<T>(

@@ -18,6 +18,9 @@ To get started using Firebase, see
 
 [![Release Notes](https://img.shields.io/npm/v/firebase.svg?style=flat-square&label=Release%20Notes%20for&labelColor=039be5&color=666)](https://firebase.google.com/support/release-notes/js)
 
+## Supported Environments
+Please see [Environment Support](https://firebase.google.com/support/guides/environments_js-sdk).
+
 ## SDK Dev Workflow
 
 ### Prerequisites

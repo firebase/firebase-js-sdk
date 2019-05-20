@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-export const SDK_VERSION = '<PERF_SDK_VERSION>';
+import { version } from '../package.json';
+
+export const SDK_VERSION = version;
 /** The prefix for start User Timing marks used for creating Traces. */
 export const TRACE_START_MARK_PREFIX = 'FB-PERF-TRACE-START';
 /** The prefix for stop User Timing marks used for creating Traces. */

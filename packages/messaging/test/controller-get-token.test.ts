@@ -34,7 +34,6 @@ import { VapidDetailsModel } from '../src/models/vapid-details-model';
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
-import { describe } from './testing-utils/messaging-test-runner';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 

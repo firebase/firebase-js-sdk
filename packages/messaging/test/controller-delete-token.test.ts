@@ -30,8 +30,6 @@ import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
-import { describe } from './testing-utils/messaging-test-runner';
-
 let FAKE_SUBSCRIPTION: PushSubscription;
 let EXAMPLE_TOKEN_SAVE: any;
 

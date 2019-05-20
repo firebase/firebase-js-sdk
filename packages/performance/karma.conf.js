@@ -16,14 +16,18 @@
 
 const karmaBase = require('../../config/karma.base');
 
+const files = [`test/**/*`, 'src/**/*.test.ts'];
+
 module.exports = function(config) {
   config.set({
     ...karmaBase,
     // files to load into karma
-    files: [`test/**/*`, 'src/**/*.test.ts'],
+    files,
     preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
   });
 };
+
+module.exports.files = files;
