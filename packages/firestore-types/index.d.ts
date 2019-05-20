@@ -106,11 +106,20 @@ export interface PersistenceSettings {
    * shared execution of queries and latency-compensated local document updates
    * across all connected instances.
    *
-   * To enable this mode, `experimentalTabSynchronization:true` needs to be set
-   * globally in all active tabs. If omitted or set to 'false',
-   * `enablePersistence()` will fail in all but the first tab.
+   * To enable this mode, `synchronizeTabs:true` needs to be set globally in all
+   * active tabs. If omitted or set to 'false', `enablePersistence()` will fail
+   * in all but the first tab.
+   */
+  synchronizeTabs?: boolean;
+
+  /**
+   * Whether to synchronize the in-memory state of multiple tabs. Setting this
+   * to 'true' in all open tabs enables shared access to local persistence,
+   * shared execution of queries and latency-compensated local document updates
+   * across all connected instances.
    *
-   * NOTE: This mode is not yet recommended for production use.
+   * @deprecated This setting is deprecated. To enabled synchronization between
+   * multiple tabs, please use `synchronizeTabs: true` instead.
    */
   experimentalTabSynchronization?: boolean;
 }
@@ -173,9 +182,7 @@ export class FirebaseFirestore {
    */
   doc(documentPath: string): DocumentReference;
 
-  // TODO(b/116617988): Uncomment method and change jsdoc comment to "/**"
-  // once backend support is ready.
-  /*
+  /**
    * Creates and returns a new Query that includes all documents in the
    * database that are contained in a collection or subcollection with the
    * given collectionId.
@@ -185,7 +192,7 @@ export class FirebaseFirestore {
    * will be included. Cannot contain a slash.
    * @return The created Query.
    */
-  //collectionGroup(collectionId: string): Query;
+  collectionGroup(collectionId: string): Query;
 
   /**
    * Executes the given updateFunction and then attempts to commit the
@@ -193,8 +200,14 @@ export class FirebaseFirestore {
    * transaction has changed, the updateFunction will be retried. If it fails
    * to commit after 5 attempts, the transaction will fail.
    *
+   * The maximum number of writes allowed in a single transaction is 500, but
+   * note that each usage of `FieldValue.serverTimestamp()`,
+   * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
+   * `FieldValue.increment()` inside a transaction counts as an additional write.
+   *
    * @param updateFunction The function to execute within the transaction
    * context.
+   *
    * @return If the transaction completed successfully or was explicitly
    * aborted (by the updateFunction returning a failed Promise), the Promise
    * returned by the updateFunction will be returned here. Else if the
@@ -206,8 +219,14 @@ export class FirebaseFirestore {
   ): Promise<T>;
 
   /**
-   * Creates a write batch, used for performing multiple writes as a single
-   * atomic operation.
+   *  Creates a write batch, used for performing multiple writes as a single
+   * atomic operation. The maximum number of writes allowed in a single WriteBatch
+   * is 500, but note that each usage of `FieldValue.serverTimestamp()`,
+   * `FieldValue.arrayUnion()`, `FieldValue.arrayRemove()`, or
+   * `FieldValue.increment()` inside a WriteBatch counts as an additional write.
+   *
+   * @return
+   *   A `WriteBatch` that can be used to atomically execute multiple writes.
    */
   batch(): WriteBatch;
 

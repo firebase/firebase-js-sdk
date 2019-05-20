@@ -22,6 +22,7 @@ export type FirebaseOptions = {
   projectId?: string;
   storageBucket?: string;
   messagingSenderId?: string;
+  appId?: string;
   [name: string]: any;
 };
 
@@ -96,10 +97,6 @@ export interface FirebaseNamespace {
    * A (read-only) array of all the initialized Apps.
    */
   apps: FirebaseApp[];
-
-  // Inherit the type information of our exported Promise implementation from
-  // es6-promises.
-  Promise: typeof Promise;
 
   // The current SDK version.
   SDK_VERSION: string;

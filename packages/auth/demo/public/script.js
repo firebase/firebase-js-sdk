@@ -307,7 +307,7 @@ function onSetPersistence() {
 function onSignUp() {
   var email = $('#signup-email').val();
   var password = $('#signup-password').val();
-  auth.createUserAndRetrieveDataWithEmailAndPassword(email, password)
+  auth.createUserWithEmailAndPassword(email, password)
       .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
@@ -318,7 +318,7 @@ function onSignUp() {
 function onSignInWithEmailAndPassword() {
   var email = $('#signin-email').val();
   var password = $('#signin-password').val();
-  auth.signInAndRetrieveDataWithEmailAndPassword(email, password)
+  auth.signInWithEmailAndPassword(email, password)
       .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
@@ -344,7 +344,7 @@ function onLinkWithEmailLink() {
   var link = $('#link-with-email-link-link').val() || undefined;
   var credential = firebase.auth.EmailAuthProvider
       .credentialWithLink(email, link);
-  activeUser().linkAndRetrieveDataWithCredential(credential)
+  activeUser().linkWithCredential(credential)
       .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
@@ -357,7 +357,7 @@ function onReauthenticateWithEmailLink() {
   var link = $('#link-with-email-link-link').val() || undefined;
   var credential = firebase.auth.EmailAuthProvider
       .credentialWithLink(email, link);
-  activeUser().reauthenticateAndRetrieveDataWithCredential(credential)
+  activeUser().reauthenticateWithCredential(credential)
       .then(function(result) {
         logAdditionalUserInfo(result);
         refreshUserData();
@@ -374,7 +374,7 @@ function onSignInWithCustomToken(event) {
   // The token can be directly specified on the html element.
   var token = $('#user-custom-token').val();
 
-  auth.signInAndRetrieveDataWithCustomToken(token)
+  auth.signInWithCustomToken(token)
       .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
@@ -383,7 +383,7 @@ function onSignInWithCustomToken(event) {
  * Signs in anonymously.
  */
 function onSignInAnonymously() {
-  auth.signInAnonymouslyAndRetrieveData()
+  auth.signInAnonymously()
       .then(onAuthUserCredentialSuccess, onAuthError);
 }
 
@@ -396,7 +396,7 @@ function onSignInWithGenericIdPCredential() {
   var idToken = $('#signin-generic-idp-id-token').val();
   var accessToken = $('#signin-generic-idp-access-token').val();
   var provider = new firebase.auth.OAuthProvider(providerId);
-  auth.signInAndRetrieveDataWithCredential(
+  auth.signInWithCredential(
       provider.credential(idToken, accessToken))
       .then(onAuthUserCredentialSuccess, onAuthError);
 }
@@ -525,7 +525,7 @@ function onReauthConfirmPhoneVerification() {
   var verificationCode = $('#link-reauth-phone-verification-code').val();
   var credential = firebase.auth.PhoneAuthProvider.credential(
       verificationId, verificationCode);
-  activeUser().reauthenticateAndRetrieveDataWithCredential(credential)
+  activeUser().reauthenticateWithCredential(credential)
       .then(function(result) {
         logAdditionalUserInfo(result);
         refreshUserData();
@@ -544,14 +544,14 @@ function signInOrLinkCredential(credential) {
       alertError('You need to sign in before linking an account.');
       return;
     }
-    activeUser().linkAndRetrieveDataWithCredential(credential)
+    activeUser().linkWithCredential(credential)
         .then(function(result) {
           logAdditionalUserInfo(result);
           refreshUserData();
           alertSuccess('Provider linked!');
         }, onAuthError);
   } else {
-    auth.signInAndRetrieveDataWithCredential(credential)
+    auth.signInWithCredential(credential)
         .then(onAuthUserCredentialSuccess, onAuthError);
   }
 }
@@ -716,27 +716,10 @@ function onConfirmPasswordReset() {
 
 
 /**
- * Gets the list of IDPs that can be used to log in for the given email address.
- */
-function onFetchProvidersForEmail() {
-  var email = $('#fetch-providers-email').val();
-  auth.fetchProvidersForEmail(email).then(function(providers) {
-    log('Providers for ' + email + ' :');
-    log(providers);
-    if (providers.length == 0) {
-      alertSuccess('Providers for ' + email + ': N/A');
-    } else {
-      alertSuccess('Providers for ' + email +': ' + providers.join(', '));
-    }
-  }, onAuthError);
-}
-
-
-/**
  * Gets the list of possible sign in methods for the given email address.
  */
 function onFetchSignInMethodsForEmail() {
-  var email = $('#fetch-providers-email').val();
+  var email = $('#fetch-sign-in-methods-email').val();
   auth.fetchSignInMethodsForEmail(email).then(function(signInMethods) {
     log('Sign in methods for ' + email + ' :');
     log(signInMethods);
@@ -765,7 +748,7 @@ function onGetProviderData() {
 function onLinkWithEmailAndPassword() {
   var email = $('#link-email').val();
   var password = $('#link-password').val();
-  activeUser().linkAndRetrieveDataWithCredential(
+  activeUser().linkWithCredential(
       firebase.auth.EmailAuthProvider.credential(email, password))
       .then(onAuthUserCredentialSuccess, onAuthError);
 }
@@ -779,7 +762,7 @@ function onLinkWithGenericIdPCredential() {
   var idToken = $('#link-generic-idp-id-token').val();
   var accessToken = $('#link-generic-idp-access-token').val();
   var provider = new firebase.auth.OAuthProvider(providerId);
-  activeUser().linkAndRetrieveDataWithCredential(
+  activeUser().linkWithCredential(
       provider.credential(idToken, accessToken))
       .then(onAuthUserCredentialSuccess, onAuthError);
 }
@@ -1500,7 +1483,6 @@ function initApp(){
   $('#set-language-code').click(onSetLanguageCode);
   $('#use-device-language').click(onUseDeviceLanguage);
 
-  $('#fetch-providers-for-email').click(onFetchProvidersForEmail);
   $('#fetch-sign-in-methods-for-email').click(onFetchSignInMethodsForEmail);
 
   $('#run-web-worker-tests').click(onRunWebWorkTests);

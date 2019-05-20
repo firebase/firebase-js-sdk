@@ -38,6 +38,7 @@ import {
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
+import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LruParams } from '../local/lru_garbage_collector';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -78,6 +79,7 @@ import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
+import { Deferred } from './../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
@@ -394,16 +396,57 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           'any other methods on a Firestore object.'
       );
     }
+
+    let synchronizeTabs = false;
+
+    if (settings) {
+      if (settings.experimentalTabSynchronization !== undefined) {
+        log.error(
+          "The 'experimentalTabSynchronization' setting has been renamed to " +
+            "'synchronizeTabs'. In a future release, the setting will be removed " +
+            'and it is recommended that you update your ' +
+            "firestore.enablePersistence() call to use 'synchronizeTabs'."
+        );
+      }
+      synchronizeTabs = objUtils.defaulted(
+        settings.synchronizeTabs !== undefined
+          ? settings.synchronizeTabs
+          : settings.experimentalTabSynchronization,
+        DEFAULT_SYNCHRONIZE_TABS
+      );
+    }
+
     return this.configureClient(
       new IndexedDbPersistenceSettings(
         this._config.settings.cacheSizeBytes,
-        settings !== undefined &&
-          objUtils.defaulted(
-            settings.experimentalTabSynchronization,
-            DEFAULT_SYNCHRONIZE_TABS
-          )
+        synchronizeTabs
       )
     );
+  }
+
+  _clearPersistence(): Promise<void> {
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
+      this.makeDatabaseInfo()
+    );
+    const deferred = new Deferred<void>();
+    this._queue.enqueueAndForget(async () => {
+      try {
+        if (
+          this._firestoreClient !== undefined &&
+          !this._firestoreClient.clientShutdown
+        ) {
+          throw new FirestoreError(
+            Code.FAILED_PRECONDITION,
+            'Persistence cannot be cleared while this firestore instance is running.'
+          );
+        }
+        await IndexedDbPersistence.clearPersistence(persistenceKey);
+        deferred.resolve();
+      } catch (e) {
+        deferred.reject(e);
+      }
+    });
+    return deferred.promise;
   }
 
   ensureClientConfigured(): FirestoreClient {
@@ -413,6 +456,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this.configureClient(new MemoryPersistenceSettings());
     }
     return this._firestoreClient as FirestoreClient;
+  }
+
+  private makeDatabaseInfo(): DatabaseInfo {
+    return new DatabaseInfo(
+      this._config.databaseId,
+      this._config.persistenceKey,
+      this._config.settings.host,
+      this._config.settings.ssl,
+      this._config.settings.forceLongPolling
+    );
   }
 
   private configureClient(
@@ -425,13 +478,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
-    const databaseInfo = new DatabaseInfo(
-      this._config.databaseId,
-      this._config.persistenceKey,
-      this._config.settings.host,
-      this._config.settings.ssl,
-      this._config.settings.forceLongPolling
-    );
+    const databaseInfo = this.makeDatabaseInfo();
 
     const preConverter = (value: unknown) => {
       if (value instanceof DocumentReference) {
@@ -458,6 +505,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._config.credentials,
       this._queue
     );
+
     return this._firestoreClient.start(persistenceSettings);
   }
 
@@ -492,13 +540,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   INTERNAL = {
-    delete: async (options?: {
-      purgePersistenceWithDataLoss?: boolean;
-    }): Promise<void> => {
+    delete: async (): Promise<void> => {
       // The client must be initalized to ensure that all subsequent API usage
       // throws an exception.
       this.ensureClientConfigured();
-      return this._firestoreClient!.shutdown(options);
+      await this._firestoreClient!.shutdown();
     }
   };
 
@@ -516,8 +562,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return DocumentReference.forPath(ResourcePath.fromString(pathString), this);
   }
 
-  // TODO(b/116617988): Fix name, uncomment d.ts definitions, and update CHANGELOG.md.
-  _collectionGroup(collectionId: string): firestore.Query {
+  collectionGroup(collectionId: string): firestore.Query {
     validateExactNumberOfArgs('Firestore.collectionGroup', arguments, 1);
     validateArgType(
       'Firestore.collectionGroup',

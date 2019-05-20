@@ -151,11 +151,8 @@ export interface Persistence {
 
   /**
    * Releases any resources held during eager shutdown.
-   *
-   * @param deleteData Whether to delete the persisted data. This causes
-   * irrecoverable data loss and should only be used to delete test data.
    */
-  shutdown(deleteData?: boolean): Promise<void>;
+  shutdown(): Promise<void>;
 
   /**
    * Registers a listener that gets called when the primary state of the
@@ -167,6 +164,16 @@ export interface Persistence {
   setPrimaryStateListener(
     primaryStateListener: PrimaryStateListener
   ): Promise<void>;
+
+  /**
+   * Registers a listener that gets called when the database receives a
+   * version change event indicating that it has deleted.
+   *
+   * PORTING NOTE: This is only used for Web multi-tab.
+   */
+  setDatabaseDeletedListener(
+    databaseDeletedListener: () => Promise<void>
+  ): void;
 
   /**
    * Adjusts the current network state in the client's metadata, potentially

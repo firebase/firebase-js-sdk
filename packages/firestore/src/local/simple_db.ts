@@ -162,10 +162,20 @@ export class SimpleDb {
     // ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML,
     // like Gecko) Chrome/39.0.2171.71 Safari/537.36 Edge/12.0';
 
+    // iOS Safari: Disable for users running iOS version < 10.
+    const iOSVersion = SimpleDb.getIOSVersion(ua);
+    const isUnsupportedIOS = 0 < iOSVersion && iOSVersion < 10;
+
+    // Android browser: Disable for userse running version < 4.5.
+    const androidVersion = SimpleDb.getAndroidVersion(ua);
+    const isUnsupportedAndroid = 0 < androidVersion && androidVersion < 4.5;
+
     if (
       ua.indexOf('MSIE ') > 0 ||
       ua.indexOf('Trident/') > 0 ||
-      ua.indexOf('Edge/') > 0
+      ua.indexOf('Edge/') > 0 ||
+      isUnsupportedIOS ||
+      isUnsupportedAndroid
     ) {
       return false;
     } else {
@@ -181,7 +191,36 @@ export class SimpleDb {
     return txn.store<KeyType, ValueType>(store);
   }
 
+  // visible for testing
+  /** Parse User Agent to determine iOS version. Returns -1 if not found. */
+  static getIOSVersion(ua: string): number {
+    const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
+    const version = iOSVersionRegex ? iOSVersionRegex[1].split('_')[0] : '-1';
+    return Number(version);
+  }
+
+  // visible for testing
+  /** Parse User Agent to determine Android version. Returns -1 if not found. */
+  static getAndroidVersion(ua: string): number {
+    const androidVersionRegex = ua.match(/Android ([\d.]+)/i);
+    const version = androidVersionRegex
+      ? androidVersionRegex[1]
+          .split('.')
+          .slice(0, 2)
+          .join('.')
+      : '-1';
+    return Number(version);
+  }
+
   constructor(private db: IDBDatabase) {}
+
+  setVersionChangeListener(
+    versionChangeListener: (event: IDBVersionChangeEvent) => void
+  ): void {
+    this.db.onversionchange = (event: IDBVersionChangeEvent) => {
+      return versionChangeListener(event);
+    };
+  }
 
   runTransaction<T>(
     mode: 'readonly' | 'readwrite',

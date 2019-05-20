@@ -114,7 +114,7 @@ export class MemoryPersistence implements Persistence {
     );
   }
 
-  shutdown(deleteData?: boolean): Promise<void> {
+  shutdown(): Promise<void> {
     // No durable state to ensure is closed on shutdown.
     this._started = false;
     return Promise.resolve();
@@ -133,6 +133,10 @@ export class MemoryPersistence implements Persistence {
   ): Promise<void> {
     // All clients using memory persistence act as primary.
     return primaryStateListener(true);
+  }
+
+  setDatabaseDeletedListener(): void {
+    // No op.
   }
 
   setNetworkEnabled(networkEnabled: boolean): void {

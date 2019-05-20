@@ -17,29 +17,53 @@
 
 import { FirebaseNamespace } from '@firebase/app-types';
 import { createFirebaseNamespace } from './src/firebaseNamespace';
+import { isNode, isBrowser } from '@firebase/util';
+import { Logger } from '@firebase/logger';
 
-// Node detection logic from: https://github.com/iliakan/detect-node/
-let isNode = false;
-try {
-  isNode =
-    Object.prototype.toString.call(global.process) === '[object process]';
-} catch (e) {}
+const logger = new Logger('@firebase/app');
 
-isNode &&
-  console.warn(`
-Warning: This is a browser-targeted Firebase bundle but it appears it is being
-run in a Node environment.  If running in a Node environment, make sure you
-are using the bundle specified by the "main" field in package.json.
+// Firebase Lite detection
+if (isBrowser() && 'firebase' in self) {
+  logger.warn(`
+    Warning: Firebase is already defined in the global scope. Please make sure
+    Firebase library is only loaded once.
+  `);
 
-If you are using Webpack, you can specify "main" as the first item in
-"resolve.mainFields":
-https://webpack.js.org/configuration/resolve/#resolvemainfields
+  const sdkVersion = ((self as any).firebase as FirebaseNamespace).SDK_VERSION;
+  if (sdkVersion && sdkVersion.indexOf('LITE') >= 0) {
+    logger.warn(`
+    Warning: You are trying to load Firebase while using Firebase Performance standalone script.
+    You should load Firebase Performance with this instance of Firebase to avoid loading duplicate code.
+    `);
+  }
+}
 
-If using Rollup, use the rollup-plugin-node-resolve plugin and set "module"
-to false and "main" to true:
-https://github.com/rollup/rollup-plugin-node-resolve
-`);
+const firebaseNamespace = createFirebaseNamespace();
+const initializeApp = firebaseNamespace.initializeApp;
 
-export const firebase = createFirebaseNamespace();
+firebaseNamespace.initializeApp = function() {
+  // Environment check before initializing app
+  // Do the check in initializeApp, so people have a chance to disable it by setting logLevel
+  // in @firebase/logger
+  if (isNode()) {
+    logger.warn(`
+      Warning: This is a browser-targeted Firebase bundle but it appears it is being
+      run in a Node environment.  If running in a Node environment, make sure you
+      are using the bundle specified by the "main" field in package.json.
+      
+      If you are using Webpack, you can specify "main" as the first item in
+      "resolve.mainFields":
+      https://webpack.js.org/configuration/resolve/#resolvemainfields
+      
+      If using Rollup, use the rollup-plugin-node-resolve plugin and set "module"
+      to false and "main" to true:
+      https://github.com/rollup/rollup-plugin-node-resolve
+      `);
+  }
+
+  return initializeApp.apply(undefined, arguments);
+};
+
+export const firebase = firebaseNamespace;
 
 export default firebase;

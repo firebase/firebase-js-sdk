@@ -104,6 +104,7 @@ import {
 } from '../../util/helpers';
 import { SharedFakeWebStorage, TestPlatform } from '../../util/test_platform';
 import {
+  clearTestPersistence,
   INDEXEDDB_TEST_DATABASE_NAME,
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
@@ -478,6 +479,10 @@ abstract class TestRunner {
       this.syncEngine.applyPrimaryState(isPrimary)
     );
 
+    await this.persistence.setDatabaseDeletedListener(async () => {
+      await this.shutdown();
+    });
+
     this.started = true;
   }
 
@@ -550,10 +555,14 @@ abstract class TestRunner {
       return step.enableNetwork!
         ? this.doEnableNetwork()
         : this.doDisableNetwork();
+    } else if ('clearPersistence' in step) {
+      return this.doClearPersistence();
     } else if ('restart' in step) {
       return this.doRestart();
     } else if ('shutdown' in step) {
       return this.doShutdown();
+    } else if ('expectIsShutdown' in step) {
+      return this.doExpectIsShutdown();
     } else if ('applyClientState' in step) {
       // PORTING NOTE: Only used by web multi-tab tests.
       return this.doApplyClientState(step.applyClientState!);
@@ -864,15 +873,24 @@ abstract class TestRunner {
     // We don't delete the persisted data here since multi-clients may still
     // be accessing it. Instead, we manually remove it at the end of the
     // test run.
-    await this.persistence.shutdown(/* deleteData= */ false);
+    await this.persistence.shutdown();
     this.started = false;
+  }
+
+  /** Asserts that the client is shutdown by  */
+  private async doExpectIsShutdown(): Promise<void> {
+    expect(this.started).to.equal(false);
+  }
+
+  private async doClearPersistence(): Promise<void> {
+    await clearTestPersistence();
   }
 
   private async doRestart(): Promise<void> {
     // Reinitialize everything.
     // No local store to shutdown.
     await this.remoteStore.shutdown();
-    await this.persistence.shutdown(/* deleteData= */ false);
+    await this.persistence.shutdown();
 
     // We have to schedule the starts, otherwise we could end up with
     // interleaved events.
@@ -1341,6 +1359,9 @@ export interface SpecStep {
   /** Enable or disable RemoteStore's network connection. */
   enableNetwork?: boolean;
 
+  /** Clears the persistent storage in IndexedDB. */
+  clearPersistence?: true;
+
   /** Changes the metadata state of a client instance. */
   applyClientState?: SpecClientState; // PORTING NOTE: Only used by web multi-tab tests
 
@@ -1356,6 +1377,10 @@ export interface SpecStep {
 
   /** Shut down the client and close it network connection. */
   shutdown?: true;
+
+  /** Assert that the firestore client is shutdown. */
+  expectIsShutdown?: true;
+
   /**
    * Optional list of expected events.
    * If not provided, the test will fail if the step causes events to be raised.

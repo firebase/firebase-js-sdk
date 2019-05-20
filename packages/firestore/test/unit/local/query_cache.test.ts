@@ -77,7 +77,7 @@ describe('IndexedDbQueryCache', () => {
       originalSequenceNumber,
       snapshotVersion
     );
-    await db1.shutdown(/* deleteData= */ false);
+    await db1.shutdown();
 
     const db2 = await persistenceHelpers.testIndexedDbPersistence({
       dontPurgeData: true
@@ -88,7 +88,8 @@ describe('IndexedDbQueryCache', () => {
     );
     const actualSnapshotVersion = await queryCache2.getLastRemoteSnapshotVersion();
     expect(snapshotVersion.isEqual(actualSnapshotVersion)).to.be.true;
-    await db2.shutdown(/* deleteData= */ true);
+    await db2.shutdown();
+    await persistenceHelpers.clearTestPersistence();
   });
 });
 
@@ -139,7 +140,8 @@ function genericQueryCacheTests(
 
   afterEach(async () => {
     if (persistence.started) {
-      await persistence.shutdown(/* deleteData= */ true);
+      await persistence.shutdown();
+      await persistenceHelpers.clearTestPersistence();
     }
   });
 

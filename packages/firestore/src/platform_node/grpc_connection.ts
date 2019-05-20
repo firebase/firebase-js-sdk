@@ -97,14 +97,7 @@ export class GrpcConnection implements Connection {
         : grpc.credentials.createInsecure();
       this.cachedStub = new this.firestore.Firestore(
         this.databaseInfo.host,
-        credentials,
-        {
-          // We do our own connection backoff (that for example is aware of whether or
-          // not a write stream error is permanent or not) so we don't want gRPC to do
-          // backoff on top of that. 100ms is the minimum value that gRPC allows.
-          'grpc.initial_reconnect_backoff_ms': 100,
-          'grpc.max_reconnect_backoff_ms': 100
-        }
+        credentials
       );
     }
     return this.cachedStub;

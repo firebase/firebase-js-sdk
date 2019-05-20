@@ -21,6 +21,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
+import { SimpleDb } from '../../../src/local/simple_db';
 import { fail } from '../../../src/util/assert';
 import { Code } from '../../../src/util/error';
 import { query } from '../../util/api_helpers';
@@ -29,6 +30,7 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  clearPersistence,
   withTestCollection,
   withTestDb,
   withTestDbs,
@@ -925,6 +927,78 @@ apiDescribe('Database', persistence => {
           db.disableNetwork();
         }).to.throw('The client has already been shutdown.');
       });
+    });
+  });
+
+  (persistence ? it : it.skip)(
+    'maintains persistence after restarting app',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        await docRef.set({ foo: 'bar' });
+        const app = docRef.firestore.app;
+        const name = app.name;
+        const options = app.options;
+
+        await app.delete();
+        const app2 = firebase.initializeApp(options, name);
+        const firestore2 = firebase.firestore!(app2);
+        await firestore2.enablePersistence();
+        const docRef2 = firestore2.doc(docRef.path);
+        const docSnap2 = await docRef2.get({ source: 'cache' });
+        expect(docSnap2.exists).to.be.true;
+      });
+    }
+  );
+
+  (persistence ? it : it.skip)(
+    'can clear persistence if the client has not been initialized',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        await docRef.set({ foo: 'bar' });
+        const app = docRef.firestore.app;
+        const name = app.name;
+        const options = app.options;
+
+        await app.delete();
+        await clearPersistence(docRef.firestore);
+        const app2 = firebase.initializeApp(options, name);
+        const firestore2 = firebase.firestore!(app2);
+        await firestore2.enablePersistence();
+        const docRef2 = firestore2.doc(docRef.path);
+        await expect(
+          docRef2.get({ source: 'cache' })
+        ).to.eventually.be.rejectedWith('Failed to get document from cache.');
+      });
+    }
+  );
+
+  (persistence ? it : it.skip)(
+    'will reject the promise if clear persistence fails',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        const oldDelete = SimpleDb.delete;
+        try {
+          SimpleDb.delete = (name: string): Promise<void> => {
+            return Promise.reject('Failed to delete the database.');
+          };
+          const firestore = docRef.firestore;
+          await firestore.app.delete();
+          await expect(
+            clearPersistence(firestore)
+          ).to.eventually.be.rejectedWith('Failed to delete the database.');
+        } finally {
+          SimpleDb.delete = oldDelete;
+        }
+      });
+    }
+  );
+
+  it('can not clear persistence if the client has been initialized', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await expect(clearPersistence(firestore)).to.eventually.be.rejectedWith(
+        'Persistence cannot be cleared while this firestore instance is running.'
+      );
     });
   });
 

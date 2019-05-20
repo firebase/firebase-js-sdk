@@ -15,36 +15,33 @@
  * limitations under the License.
  */
 
-import typescript from 'rollup-plugin-typescript2';
-import replace from 'rollup-plugin-replace';
+import typescriptPlugin from 'rollup-plugin-typescript2';
+import json from 'rollup-plugin-json';
+import typescript from 'typescript';
 import pkg from './package.json';
-
-import firebasePkg from '../firebase/package.json';
-
-const plugins = [
-  typescript({
-    typescript: require('typescript')
-  }),
-  replace({
-    delimiters: ['${', '}'],
-    values: {
-      JSCORE_VERSION: firebasePkg.version
-    }
-  })
-];
 
 const deps = Object.keys(
   Object.assign({}, pkg.peerDependencies, pkg.dependencies)
 );
 
-export default [
+/**
+ * ES5 Builds
+ */
+const es5BuildPlugins = [
+  typescriptPlugin({
+    typescript
+  }),
+  json()
+];
+
+const es5Builds = [
   {
     input: 'index.ts',
     output: [
       { file: pkg.browser, format: 'cjs', sourcemap: true },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
-    plugins,
+    plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -54,7 +51,7 @@ export default [
       format: 'cjs',
       sourcemap: true
     },
-    plugins,
+    plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   {
@@ -64,10 +61,65 @@ export default [
       format: 'cjs',
       sourcemap: true
     },
-    plugins,
+    plugins: es5BuildPlugins,
     external: id =>
       [...deps, 'react-native'].some(
         dep => id === dep || id.startsWith(`${dep}/`)
       )
+  },
+  {
+    input: 'index.lite.ts',
+    output: {
+      file: pkg.lite,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es5BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
 ];
+
+/**
+ * ES2017 Builds
+ */
+const es2017BuildPlugins = [
+  typescriptPlugin({
+    typescript,
+    tsconfigOverride: {
+      compilerOptions: {
+        target: 'es2017'
+      }
+    }
+  }),
+  json({
+    preferConst: true
+  })
+];
+
+const es2017Builds = [
+  /**
+   *  Browser Builds
+   */
+  {
+    input: 'index.ts',
+    output: {
+      file: pkg.esm2017,
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  {
+    input: 'index.lite.ts',
+    output: {
+      file: pkg['lite-esm2017'],
+      format: 'es',
+      sourcemap: true
+    },
+    plugins: es2017BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  }
+];
+
+export default [...es5Builds, ...es2017Builds];

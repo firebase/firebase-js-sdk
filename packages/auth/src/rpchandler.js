@@ -184,6 +184,7 @@ fireauth.RpcHandler.HttpMethod = {
  * @enum {string}
  */
 fireauth.RpcHandler.ServerError = {
+  ADMIN_ONLY_OPERATION: 'ADMIN_ONLY_OPERATION',
   CAPTCHA_CHECK_FAILED: 'CAPTCHA_CHECK_FAILED',
   CORS_UNSUPPORTED: 'CORS_UNSUPPORTED',
   CREDENTIAL_MISMATCH: 'CREDENTIAL_MISMATCH',
@@ -2431,6 +2432,10 @@ fireauth.RpcHandler.getDeveloperError_ =
   // getProjectConfig errors when sha1Cert is passed.
   errorMap[fireauth.RpcHandler.ServerError.INVALID_CERT_HASH] =
       fireauth.authenum.Error.INVALID_CERT_HASH;
+
+  // User actions (sign-up or deletion) disabled errors.
+  errorMap[fireauth.RpcHandler.ServerError.ADMIN_ONLY_OPERATION] =
+      fireauth.authenum.Error.ADMIN_ONLY_OPERATION;
 
   // Override errors set in the custom map.
   var customErrorMap = opt_customErrorMap || {};
