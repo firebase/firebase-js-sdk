@@ -204,7 +204,7 @@ export class Reference {
   }
 
   /**
-   * List all items and prefixes under the current storage reference.
+   * List all items (files) and prefixes (folders) under this storage reference.
    *
    * It is a helper method for calling list() recursively until there is no
    * more results. The default pagination size is 200.
@@ -245,20 +245,30 @@ export class Reference {
   }
 
   /**
-   * List items and prefixes within this directory.
+   * List items (files) and prefixes (folders) under this storage reference.
    *
-   * "/" is treated as a path delimiter. Firebase storage does not support
-   * invalid object path that ends with "/" or contains two consecutive "//".
-   * All invalid objects in GCS will be filtered.
+   * GCS is a key-blob store. Firebase storage impose the semantic of '/'
+   * delimited folder structure.
+   * Objects whose paths, aside from the prefix, contain '/' will have
+   * their path, truncated after the '/', returned in prefixes.
+   * Duplicate prefixes are omitted.
+   * Objects whose paths, aside from the prefix, do not contain '/' will
+   * be returned in items.
+   *
+   * Firebase storage does not support invalid object paths that end with
+   * "/" or contain two consecutive "/"s. All invalid objects in GCS will be
+   * filtered by GCS.
+   * list() may fail if there are too many invalid objects in the bucket.
    *
    * @param options.maxResults If set, limits the total number of `prefixes`
-   *      and `items` to return.
+   *      and `items` to return. The default and maximum maxResults is 1000.
+   *      Use the nextPageToken to retrieve more objects.
    * @param options.pageToken The `nextPageToken` from a previous call to
    *      list(). If provided, listing is resumed from the previous position.
    * @return A promise that resolves with the items and prefixes.
-   *      `prefixes` contains references to prefixes and `items`
+   *      `prefixes` contains references to sub-folders and `items`
    *      contains references to objects in this folder. `nextPageToken`
-   *      can be passed as `options.pageToken` to get the rest of results.
+   *      can be used to get the rest of the results.
    */
   list(options?: ListOptions | null): Promise<ListResult> {
     args.validate('list', [listOptionSpec(true)], arguments);

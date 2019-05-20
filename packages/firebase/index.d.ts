@@ -5435,7 +5435,24 @@ declare namespace firebase.storage {
      */
     updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
     /**
-     * List items(files) and prefixes(folders) with this prefix of ref.name+'/'.
+     * List all items (files) and prefixes (folders) under this storage reference.
+     *
+     * It is a helper method for calling list() recursively until there is no
+     * more results. The default pagination size is 200.
+     *
+     * Note: the results may not be a consistent snapshot if objects are changed
+     * between paginating requests.
+     *
+     * Warning: If there are
+     *
+     * @return A promise that resolves with all the items and prefixes under
+     *      the current storage reference. `prefixes` contains references to
+     *      sub-directories and `items` contains references to objects in this
+     *      folder. `nextPageToken` is never returned.
+     */
+    listAll(): Promise<ListResult>;
+    /**
+     * List items (files) and prefixes (folders) under this storage reference.
      *
      * GCS is a key-blob store. Firebase storage impose the semantic of '/'
      * delimited folder structure.
@@ -5468,10 +5485,10 @@ declare namespace firebase.storage {
    */
   interface ListResult {
     /**
-     * References to sub-folders. You can call list() on them to get its contents.
-     * GCS's
+     * References to prefixes (sub-folders). You can call list() on them to
+     * get its contents.
      *
-     * Folders are implict based on '/' in the object paths.
+     * Folders are implicit based on '/' in the object paths.
      * For example, if a bucket has two objects '/a/b/1' and '/a/b/2', list('/a')
      * will return '/a/b' as a prefix.
      */
@@ -5492,7 +5509,7 @@ declare namespace firebase.storage {
    */
   interface ListOptions {
     /**
-     * The maximum number of results (items+prefixs) returned.
+     * The maximum number of results (items and prefixes) returned.
      */
     maxResults?: number | null;
     /**
