@@ -65,10 +65,9 @@ import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
 
-/** The DOMException code for an aborted operation. */
+/** DOMException error code constants. */
+const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;
-
-/** The DOMException code for quota exceeded. */
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
 export class IndexedDbPersistenceSettings {
@@ -255,8 +254,8 @@ export class FirestoreClient {
           }
 
           console.warn(
-            'Error enabling offline storage. Falling back to' +
-              ' storage disabled: ' +
+            'Error enabling offline persistence. Falling back to' +
+              ' persistence disabled: ' +
               error
           );
           return this.startMemoryPersistence();
@@ -285,15 +284,22 @@ export class FirestoreClient {
       typeof DOMException !== 'undefined' &&
       error instanceof DOMException
     ) {
-      // We fall back to memory persistence if we cannot write the primary
-      // lease. This can happen can during a schema migration, or if we run out
-      // of quota when we try to write the primary lease.
-      // For both the `QuotaExceededError` and the  `AbortError`, it is safe to
-      // fall back to memory persistence since all modifications to IndexedDb
-      // failed to commit.
+      // There are a few known circumstances where we can open IndexedDb but
+      // trying to read/write will fail (e.g. quota exceeded). For
+      // well-understood cases, we attempt to detect these and then gracefully
+      // fall back to memory persistence.
+      // NOTE: Rather than continue to add to this list, we could decide to
+      // always fall back, with the risk that we might accidentally hide errors
+      // representing actual SDK bugs.
       return (
+        // When the browser is out of quota we could get either quota exceeded
+        // or an aborted error depending on whether the error happened during
+        // schema migration.
         error.code === DOM_EXCEPTION_QUOTA_EXCEEDED ||
-        error.code === DOM_EXCEPTION_ABORTED
+        error.code === DOM_EXCEPTION_ABORTED ||
+        // Firefox Private Browsing mode disables IndexedDb and returns
+        // INVALID_STATE for any usage.
+        error.code === DOM_EXCEPTION_INVALID_STATE
       );
     }
 
