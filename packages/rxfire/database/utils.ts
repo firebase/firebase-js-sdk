@@ -26,14 +26,15 @@ export function isNil(obj: any): boolean {
  * that is populated with all the Realtime Database child events.
  * @param events
  */
-export function validateEventsArray(events?: ListenEvent[]) {
+export function validateEventsArray(events?: ListenEvent[]): ListenEvent[] {
+  let validatedEvents: ListenEvent[] = [];
   if (isNil(events) || events!.length === 0) {
-    events = [
+    validatedEvents = [
       ListenEvent.added,
       ListenEvent.removed,
       ListenEvent.changed,
       ListenEvent.moved
     ];
   }
-  return events;
+  return validatedEvents;
 }

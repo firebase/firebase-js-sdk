@@ -42,11 +42,11 @@ export function list(
   query: database.Query,
   events?: ListenEvent[]
 ): Observable<QueryChange[]> {
-  events = validateEventsArray(events);
+  const eventsToList = validateEventsArray(events);
   return fromOnce(query).pipe(
     switchMap(change => {
       const childEvent$ = [of(change)];
-      events.forEach(event => childEvent$.push(fromRef(query, event)));
+      eventsToList.forEach(event => childEvent$.push(fromRef(query, event)));
       return merge(...childEvent$).pipe(scan(buildView, []));
     }),
     distinctUntilChanged()
@@ -94,11 +94,11 @@ function buildView(current: QueryChange[], change: QueryChange) {
   const { snapshot, prevKey, event } = change;
   const { key } = snapshot;
   const currentKeyPosition = positionFor(current, key);
-  const afterPreviousKeyPosition = positionAfter(current, prevKey);
+  const afterPreviousKeyPosition = positionAfter(current, prevKey || undefined);
   switch (event) {
     case ListenEvent.value:
       if (change.snapshot && change.snapshot.exists()) {
-        let prevKey = null;
+        let prevKey: string | null = null;
         change.snapshot.forEach(snapshot => {
           const action: QueryChange = {
             snapshot,
