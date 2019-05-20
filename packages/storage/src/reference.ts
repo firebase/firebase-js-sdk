@@ -204,7 +204,45 @@ export class Reference {
   }
 
   /**
-   * List items and sub-directories within this directory.
+   * List all items and prefixes under the current storage reference.
+   *
+   * It is a helper method for calling list() recursively until there is no
+   * more results. The default pagination size is 200.
+   *
+   * Note: the results may not be a consistent snapshot if objects are changed
+   * between paginating requests.
+   *
+   * Warning: If there are
+   *
+   * @return A promise that resolves with all the items and prefixes under
+   *      the current storage reference. `prefixes` contains references to
+   *      sub-directories and `items` contains references to objects in this
+   *      folder. `nextPageToken` is never returned.
+   */
+  listAll(): Promise<ListResult> {
+    args.validate('listAll', [], arguments);
+    const accumulator = {
+      prefixes: [],
+      items: [],
+    };
+    return this.listAllHelper(accumulator, null).then(() => accumulator);
+  }
+
+  private async listAllHelper(accumulator: ListResult, pageToken?: string): Promise<void> {
+    let opt: ListOptions  = {
+      maxResults: 1,
+      pageToken,
+    };
+    const nextPage =  await this.list(opt);
+    Array.prototype.push.apply(accumulator.prefixes, nextPage.prefixes);
+    Array.prototype.push.apply(accumulator.items, nextPage.items);
+    if (nextPage.nextPageToken) {
+      await this.listAllHelper(accumulator, nextPage.nextPageToken);
+    }
+  }
+
+  /**
+   * List items and prefixes within this directory.
    *
    * "/" is treated as a path delimiter. Firebase storage does not support
    * invalid object path that ends with "/" or contains two consecutive "//".
@@ -214,8 +252,8 @@ export class Reference {
    *      and `items` to return.
    * @param options.pageToken The `nextPageToken` from a previous call to
    *      list(). If provided, listing is resumed from the previous position.
-   * @return A promise that resolves with the items and sub-directories.
-   *      `prefixes` contains references to sub-directories and `items`
+   * @return A promise that resolves with the items and prefixes.
+   *      `prefixes` contains references to prefixes and `items`
    *      contains references to objects in this folder. `nextPageToken`
    *      can be passed as `options.pageToken` to get the rest of results.
    */

@@ -105,7 +105,7 @@ export function listOptionsValidator(p: any) {
         throw `Expected maxResults to be less than or equal to ${MAX_MAX_RESULTS}.`;
       }
     } else if (key === PAGE_TOKEN_KEY) {
-      if (!type.isString(p[PAGE_TOKEN_KEY])) {
+      if (p[PAGE_TOKEN_KEY] && !type.isString(p[PAGE_TOKEN_KEY])) {
         throw 'Expected pageToken to be string.';
       }
     } else {
