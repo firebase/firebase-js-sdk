@@ -49,7 +49,7 @@ const KNOWN_TAGS = [
 ];
 
 // TODO(mrschmidt): Make this configurable with mocha options.
-const RUN_BENCHMARK_TESTS = true;
+const RUN_BENCHMARK_TESTS = false;
 const BENCHMARK_TEST_TIMEOUT_MS = 10 * 1000;
 
 // The format of one describeSpec written to a JSON file.
@@ -171,7 +171,7 @@ export function specTest(
       const timeout = getTestTimeout(tags);
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
-      const testFunction = runner(fullName, async () => {
+      const queuedTest = runner(fullName, async () => {
         const start = Date.now();
         await spec.runAsTest(fullName, usePersistence);
         const end = Date.now();
@@ -182,7 +182,7 @@ export function specTest(
       });
 
       if (timeout !== undefined) {
-        testFunction.timeout(timeout);
+        queuedTest.timeout(timeout);
       }
     }
   } else {
