@@ -57,14 +57,14 @@ describe('Firebase Storage > Reference', () => {
       const s = makeStorage('gs://test-bucket/this/ismyobject?hello');
       assert.equal(s.toString(), 'gs://test-bucket/this/ismyobject?hello');
     });
-    it('doesn\'t URL-decode on a gs:// string', () => {
+    it("doesn't URL-decode on a gs:// string", () => {
       const s = makeStorage('gs://test-bucket/%3F');
       assert.equal(s.toString(), 'gs://test-bucket/%3F');
     });
     it('ignores URL params and fragments on an http URL', () => {
       const s = makeStorage(
         `http://${DEFAULT_HOST}/v0/b/test-bucket/o/my/object.txt` +
-        '?ignoreme#please'
+          '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
     });
@@ -78,7 +78,7 @@ describe('Firebase Storage > Reference', () => {
     it('ignores URL params and fragments on an https URL', () => {
       const s = makeStorage(
         `https://${DEFAULT_HOST}/v0/b/test-bucket/o/my/object.txt` +
-        '?ignoreme#please'
+          '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
     });
@@ -92,7 +92,7 @@ describe('Firebase Storage > Reference', () => {
   });
 
   describe('toString', () => {
-    it('Doesn\'t add trailing slash', () => {
+    it("Doesn't add trailing slash", () => {
       const s = makeStorage('gs://test-bucket/foo');
       assert.equal(s.toString(), 'gs://test-bucket/foo');
     });
@@ -177,7 +177,7 @@ describe('Firebase Storage > Reference', () => {
     });
   });
 
-  it('Doesn\'t send Authorization on null auth token', done => {
+  it("Doesn't send Authorization on null auth token", done => {
     function newSend(
       xhrio: TestingXhrIo,
       url: string,
@@ -302,7 +302,7 @@ describe('Firebase Storage > Reference', () => {
           'storage/invalid-argument'
         );
       });
-      it('doesn\'t throw on good metadata', () => {
+      it("doesn't throw on good metadata", () => {
         const goodMetadata = {
           md5Hash: 'a',
           cacheControl: 'done',
@@ -489,14 +489,14 @@ describe('Firebase Storage > Reference', () => {
   });
 
   describe('non-root operations', () => {
-    it('put doesn\'t throw', () => {
+    it("put doesn't throw", () => {
       assert.doesNotThrow(() => {
         child.put(new Blob(['a']));
         child.put(new Uint8Array(10));
         child.put(new ArrayBuffer(10));
       });
     });
-    it('putString doesn\'t throw', () => {
+    it("putString doesn't throw", () => {
       assert.doesNotThrow(() => {
         child.putString('raw', StringFormat.RAW);
         child.putString('aaaa', StringFormat.BASE64);
@@ -507,22 +507,22 @@ describe('Firebase Storage > Reference', () => {
         );
       });
     });
-    it('delete doesn\'t throw', () => {
+    it("delete doesn't throw", () => {
       assert.doesNotThrow(() => {
         child.delete();
       });
     });
-    it('getMetadata doesn\'t throw', () => {
+    it("getMetadata doesn't throw", () => {
       assert.doesNotThrow(() => {
         child.getMetadata();
       });
     });
-    it('listAll doesn\'t throw', () => {
+    it("listAll doesn't throw", () => {
       assert.doesNotThrow(() => {
         child.listAll();
       });
     });
-    it('list doesn\'t throw', () => {
+    it("list doesn't throw", () => {
       assert.doesNotThrow(() => {
         child.list();
       });
@@ -539,12 +539,12 @@ describe('Firebase Storage > Reference', () => {
         child.list({ maxResults: 4, pageToken: null });
       });
     });
-    it('updateMetadata doesn\'t throw', () => {
+    it("updateMetadata doesn't throw", () => {
       assert.doesNotThrow(() => {
         child.updateMetadata({} as Metadata);
       });
     });
-    it('getDownloadURL doesn\'t throw', () => {
+    it("getDownloadURL doesn't throw", () => {
       assert.doesNotThrow(() => {
         child.getDownloadURL();
       });
@@ -576,12 +576,12 @@ describe('Firebase Storage > Reference', () => {
         'storage/invalid-root-operation'
       );
     });
-    it('listAll doesn\'t throws', () => {
+    it("listAll doesn't throws", () => {
       assert.doesNotThrow(() => {
         root.listAll();
       });
     });
-    it('list doesn\'t throws', () => {
+    it("list doesn't throws", () => {
       assert.doesNotThrow(() => {
         root.list();
       });

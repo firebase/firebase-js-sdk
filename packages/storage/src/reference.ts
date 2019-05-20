@@ -223,17 +223,20 @@ export class Reference {
     args.validate('listAll', [], arguments);
     const accumulator = {
       prefixes: [],
-      items: [],
+      items: []
     };
     return this.listAllHelper(accumulator, null).then(() => accumulator);
   }
 
-  private async listAllHelper(accumulator: ListResult, pageToken?: string): Promise<void> {
-    let opt: ListOptions  = {
+  private async listAllHelper(
+    accumulator: ListResult,
+    pageToken?: string
+  ): Promise<void> {
+    let opt: ListOptions = {
       maxResults: 1,
-      pageToken,
+      pageToken
     };
-    const nextPage =  await this.list(opt);
+    const nextPage = await this.list(opt);
     Array.prototype.push.apply(accumulator.prefixes, nextPage.prefixes);
     Array.prototype.push.apply(accumulator.items, nextPage.items);
     if (nextPage.nextPageToken) {
