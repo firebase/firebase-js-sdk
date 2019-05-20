@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { spy as Spy } from 'sinon';
+import { spy as Spy, SinonSpy } from 'sinon';
 import { Logger, LogLevel } from '../src/logger';
 import { setLogLevel } from '../index';
 import { debug } from 'util';
@@ -24,7 +24,7 @@ import { debug } from 'util';
 describe('@firebase/logger', () => {
   const message = 'Hello there!';
   let client: Logger;
-  const spies = {
+  const spies: { [key: string]: SinonSpy | null } = {
     logSpy: null,
     infoSpy: null,
     warnSpy: null,
@@ -44,10 +44,10 @@ describe('@firebase/logger', () => {
   });
 
   afterEach(() => {
-    spies.logSpy.restore();
-    spies.infoSpy.restore();
-    spies.warnSpy.restore();
-    spies.errorSpy.restore();
+    spies.logSpy && spies.logSpy.restore();
+    spies.infoSpy && spies.infoSpy.restore();
+    spies.warnSpy && spies.warnSpy.restore();
+    spies.errorSpy && spies.errorSpy.restore();
   });
 
   function testLog(message, channel, shouldLog) {
