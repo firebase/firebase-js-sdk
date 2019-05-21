@@ -707,7 +707,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
-    log.debug(LOG_TAG, 'RemoteStore restarting streams for new credential');
+      log.debug(LOG_TAG, 'RemoteStore restarting streams for new credential');
       await this.restartNetwork();
     }
   }
