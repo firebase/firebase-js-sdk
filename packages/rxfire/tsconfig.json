@@ -5,6 +5,7 @@
     "declaration": true
   },
   "exclude": [
-    "dist/**/*"
+    "dist/**/*",
+    "test/**/*"
   ]
 }
