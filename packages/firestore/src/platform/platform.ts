@@ -20,6 +20,7 @@ import { ProtoByteString } from '../core/types';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
+import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 
 /**
  * Provides a common interface to load anything platform dependent, e.g.
@@ -31,6 +32,7 @@ import { fail } from '../util/assert';
 // use in our client.
 export interface Platform {
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection>;
+  newConnectivityMonitor(): ConnectivityMonitor;
   newSerializer(databaseId: DatabaseId): JsonProtoSerializer;
 
   /** Formats an object as a JSON string, suitable for logging. */
