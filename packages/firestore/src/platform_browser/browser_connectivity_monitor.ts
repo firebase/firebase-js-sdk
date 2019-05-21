@@ -28,6 +28,8 @@ const LOG_TAG = 'ConnectivityMonitor';
  * Browser implementation of ConnectivityMonitor.
  */
 export class BrowserConnectivityMonitor implements ConnectivityMonitor {
+  private readonly networkAvailableListener = () => this.onNetworkAvailable();
+  private readonly networkUnavailableListener = () => this.onNetworkUnavailable();
   private callbacks: ConnectivityMonitorCallback[] = [];
 
   constructor() {
@@ -39,15 +41,13 @@ export class BrowserConnectivityMonitor implements ConnectivityMonitor {
   }
 
   shutdown(): void {
-    const self = this;
-    window.removeEventListener('online', self.onNetworkAvailable);
-    window.removeEventListener('offline', self.onNetworkUnavailable);
+    window.removeEventListener('online', this.networkAvailableListener);
+    window.removeEventListener('offline', this.networkUnavailableListener);
   }
 
   private configureNetworkMonitoring(): void {
-    const self = this;
-    window.addEventListener('online', self.onNetworkAvailable);
-    window.addEventListener('offline', self.onNetworkUnavailable);
+    window.addEventListener('online', this.networkAvailableListener);
+    window.addEventListener('offline', this.networkUnavailableListener);
   }
 
   private onNetworkAvailable(): void {
