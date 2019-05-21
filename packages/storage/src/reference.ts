@@ -206,15 +206,16 @@ export class Reference {
   /**
    * List all items (files) and prefixes (folders) under this storage reference.
    *
-   * It is a helper method for calling list() recursively until there is no
-   * more results. The default pagination size is 200.
+   * This is a helper method for calling list() repeatedly until there are no
+   * more results. The default pagination size is 1000.
    *
-   * Note: the results may not be a consistent snapshot if objects are changed
+   * Note: The results may not be a consistent snapshot if objects are changed
    * between paginating requests.
    *
-   * Warning: If there are
+   * Warning: listAll may potentially consume too many resources if there are
+   * too many results.
    *
-   * @return A promise that resolves with all the items and prefixes under
+   * @return A Promise that resolves with all the items and prefixes under
    *      the current storage reference. `prefixes` contains references to
    *      sub-directories and `items` contains references to objects in this
    *      folder. `nextPageToken` is never returned.
@@ -233,13 +234,13 @@ export class Reference {
     pageToken?: string
   ): Promise<void> {
     let opt: ListOptions = {
-      maxResults: 1,
+      // maxResults is 1000 by default.
       pageToken
     };
     const nextPage = await this.list(opt);
-    Array.prototype.push.apply(accumulator.prefixes, nextPage.prefixes);
-    Array.prototype.push.apply(accumulator.items, nextPage.items);
-    if (nextPage.nextPageToken) {
+    accumulator.prefixes(...nextPage.prefixes);
+    accumulator.items(...nextPage.items);
+    if (nextPage.nextPageToken === undefined) {
       await this.listAllHelper(accumulator, nextPage.nextPageToken);
     }
   }
@@ -247,18 +248,14 @@ export class Reference {
   /**
    * List items (files) and prefixes (folders) under this storage reference.
    *
-   * GCS is a key-blob store. Firebase storage impose the semantic of '/'
+   * GCS is a key-blob store. Firebase Storage imposes the semantic of '/'
    * delimited folder structure.
-   * Objects whose paths, aside from the prefix, contain '/' will have
-   * their path, truncated after the '/', returned in prefixes.
-   * Duplicate prefixes are omitted.
-   * Objects whose paths, aside from the prefix, do not contain '/' will
-   * be returned in items.
+   * Refer to GCS's List API if you want to learn more.
    *
-   * Firebase storage does not support invalid object paths that end with
-   * "/" or contain two consecutive "/"s. All invalid objects in GCS will be
-   * filtered by GCS.
-   * list() may fail if there are too many invalid objects in the bucket.
+   * To adhere to Firebase Rules's Semantics, Firebase storage does not
+   * support objects whose paths end with "/" or contain two consecutive
+   * "/"s. Firebase Storage List API will filter these unsupported objects.
+   * list() may fail if there are too many unsupported objects in the bucket.
    *
    * @param options.maxResults If set, limits the total number of `prefixes`
    *      and `items` to return. The default and maximum maxResults is 1000.

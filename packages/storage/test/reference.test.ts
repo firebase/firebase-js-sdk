@@ -576,12 +576,12 @@ describe('Firebase Storage > Reference', () => {
         'storage/invalid-root-operation'
       );
     });
-    it("listAll doesn't throws", () => {
+    it("listAll doesn't throw", () => {
       assert.doesNotThrow(() => {
         root.listAll();
       });
     });
-    it("list doesn't throws", () => {
+    it("list doesn't throw", () => {
       assert.doesNotThrow(() => {
         root.list();
       });
