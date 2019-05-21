@@ -29,7 +29,8 @@ const LOG_TAG = 'ConnectivityMonitor';
  */
 export class BrowserConnectivityMonitor implements ConnectivityMonitor {
   private readonly networkAvailableListener = () => this.onNetworkAvailable();
-  private readonly networkUnavailableListener = () => this.onNetworkUnavailable();
+  private readonly networkUnavailableListener = () =>
+    this.onNetworkUnavailable();
   private callbacks: ConnectivityMonitorCallback[] = [];
 
   constructor() {
