@@ -32,6 +32,20 @@ export type ConnectivityMonitorCallback = (status: NetworkStatus) => void;
  * that each platform will have its own system-dependent implementation.
  */
 export interface ConnectivityMonitor {
+  /** 
+   * Adds a callback to be called when connectivity changes. 
+   * 
+   * Callbacks are not made on the initial state of connectivity, since this
+   * monitor is primarily used for resetting backoff in the remote store when
+   * connectivity changes. As such, the initial connectivity state is 
+   * irrelevant here.
+   */
   addCallback(callback: ConnectivityMonitorCallback): void;
+
+  /**
+   * Stops monitoring connectivity. After this call completes, no further
+   * callbacks will be triggered. After shutdown() is called, no further calls
+   * are allowed on this instance.
+   */
   shutdown(): void;
 }
