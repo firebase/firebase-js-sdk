@@ -455,9 +455,9 @@ export class UploadTask {
    */
   on(
     type: TaskEvent,
-    nextOrObserver = null,
-    error = undefined,
-    completed = undefined
+    nextOrObserver: NextFn<UploadTaskSnapshot> | { [name: string]: any } | null | undefined = undefined,
+    error: ErrorFn | null | undefined = undefined,
+    completed: CompleteFn | null | undefined = undefined
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
     function typeValidator(_p: any) {
       if (type !== TaskEvent.STATE_CHANGED) {
@@ -505,9 +505,10 @@ export class UploadTask {
         nextOrObserver:
           | NextFn<UploadTaskSnapshot>
           | { [name: string]: string | null }
-          | null,
-        error?: ErrorFn | null,
-        opt_complete?: CompleteFn | null
+          | null
+          | undefined,
+        error?: ErrorFn | null | undefined,
+        opt_complete?: CompleteFn | null | undefined
       ) {
         if (specs !== null) {
           fbsArgs.validate('on', specs, arguments);
@@ -633,13 +634,13 @@ export class UploadTask {
         break;
       case TaskState.CANCELED:
       case TaskState.ERROR:
-        if (observer.error !== null) {
+        if (observer.error) {
           fbsAsync(observer.error.bind(observer, this.error_ as Error))();
         }
         break;
       default:
         // TODO(andysoto): assert(false);
-        if (observer.error !== null) {
+        if (observer.error) {
           fbsAsync(observer.error.bind(observer, this.error_ as Error))();
         }
     }

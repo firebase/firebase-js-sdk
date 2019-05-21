@@ -20,6 +20,7 @@ import { XhrIoPool } from '../src/implementation/xhriopool';
 import { Service } from '../src/service';
 import * as testShared from './testshared';
 import { DEFAULT_HOST } from '../src/implementation/constants';
+import { FirebaseStorageError } from '../src/implementation/error';
 
 const fakeAppGs = testShared.makeFakeApp(null, 'gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp(null, 'gs://mybucket/');
@@ -45,19 +46,19 @@ describe('Firebase Storage > Service', () => {
       const error = testShared.assertThrows(() => {
         service.ref('gs://bucket/object');
       }, 'storage/invalid-argument');
-      assert.match(error.message, /refFromURL/);
+      error && assert.match(error.message, /refFromURL/);
     });
     it('Throws calling ref with an http:// URL', () => {
       const error = testShared.assertThrows(() => {
         service.ref(`http://${DEFAULT_HOST}/etc`);
       }, 'storage/invalid-argument');
-      assert.match(error.message, /refFromURL/);
+      error && assert.match(error.message, /refFromURL/);
     });
     it('Throws calling ref with an https:// URL', () => {
       const error = testShared.assertThrows(() => {
         service.ref(`https://${DEFAULT_HOST}/etc`);
       }, 'storage/invalid-argument');
-      assert.match(error.message, /refFromURL/);
+      error && assert.match(error.message, /refFromURL/);
     });
   });
   describe('custom bucket constructor', () => {
@@ -111,7 +112,7 @@ describe('Firebase Storage > Service', () => {
       const error = testShared.assertThrows(() => {
         new Service(testShared.fakeApp, xhrIoPool, 'gs://bucket/object/');
       }, 'storage/invalid-default-bucket');
-      assert.match(error.message, /Invalid default bucket/);
+      error && assert.match(error.message, /Invalid default bucket/);
     });
   });
   describe('default bucket config', () => {
@@ -135,7 +136,7 @@ describe('Firebase Storage > Service', () => {
       const error = testShared.assertThrows(() => {
         service.refFromURL('path/to/child');
       }, 'storage/invalid-argument');
-      assert.match(error.message, /invalid/i);
+      error && assert.match(error.message, /invalid/i);
     });
     it('Works with gs:// URLs', () => {
       const ref = service.refFromURL('gs://mybucket/child/path/image.png');
@@ -304,7 +305,7 @@ describe('Firebase Storage > Service', () => {
         ref.put(new Blob(['a'])).on(
           TaskEvent.STATE_CHANGED,
           null,
-          err => {
+          (err: FirebaseStorageError) => {
             assert.equal(err.code, 'storage/app-deleted');
             resolve();
           },

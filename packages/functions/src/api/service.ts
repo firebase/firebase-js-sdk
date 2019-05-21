@@ -110,7 +110,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
    * @param origin The origin of the local emulator, such as
    * "http://localhost:5005".
    */
-  useFunctionsEmulator(origin: string) {
+  useFunctionsEmulator(origin: string | null) {
     this.emulatorOrigin = origin;
   }
 

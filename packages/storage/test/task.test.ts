@@ -217,7 +217,7 @@ describe('Firebase Storage > Upload Task', () => {
           assert.fail('Unexpected upload failure');
         },
         () => {
-          resolve(null);
+          resolve();
         }
       );
     });
@@ -244,7 +244,7 @@ describe('Firebase Storage > Upload Task', () => {
       mappings,
       smallBlob
     );
-    const promise: Promise<string> = task.then<string>(
+    const promise: Promise<string | null> = task.then<string | null>(
       snapshot => {
         assert.fail('task completed, but should have failed');
         return null;
@@ -308,7 +308,7 @@ describe('Firebase Storage > Upload Task', () => {
         function() {
           assert.isFalse(badComplete);
           assert.equal(resumed, 1);
-          resolve(null);
+          resolve();
         }
       );
     });
@@ -328,7 +328,7 @@ describe('Firebase Storage > Upload Task', () => {
           assert.fail('Unexpected upload failure');
         },
         complete: () => {
-          resolve(null);
+          resolve();
         }
       });
     });
@@ -372,8 +372,8 @@ describe('Firebase Storage > Upload Task', () => {
     const fixedAssertTrue = promiseAssertWrapper(assert.isTrue);
     const fixedAssertFail = promiseAssertWrapper(assert.fail);
 
-    const events = [];
-    const progress = [];
+    const events: string[] = [];
+    const progress: Array<number[]> = [];
     let complete = 0;
     function addCallbacks(task) {
       let lastState;
@@ -464,7 +464,7 @@ describe('Firebase Storage > Upload Task', () => {
         mappings,
         blob
       );
-      const events2 = [];
+      const events2: string[] = [];
 
       (function() {
         let lastState;

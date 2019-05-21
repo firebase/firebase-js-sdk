@@ -41,11 +41,11 @@ let batch = (items: any[]) => {
 };
 
 describe('RxFire Database', () => {
-  let app: app.App = null;
-  let database: database.Database = null;
+  let app: app.App | null = null;
+  let database: database.Database | null = null;
   let ref = (path: string) => {
-    app.database().goOffline();
-    return app.database().ref(path);
+    app!.database().goOffline();
+    return app!.database().ref(path);
   };
 
   function prepareList(
@@ -85,7 +85,7 @@ describe('RxFire Database', () => {
   });
 
   afterEach((done: MochaDone) => {
-    app.delete().then(() => done());
+    app && app.delete().then(() => done());
   });
 
   describe('fromRef', () => {
@@ -147,7 +147,7 @@ describe('RxFire Database', () => {
           count = count + 1;
           const { event, snapshot } = change;
           expect(event).to.equal(ListenEvent.added);
-          expect(snapshot.val()).to.eql(data[snapshot.key]);
+          expect(snapshot.val()).to.eql(data[snapshot.key || '']);
           if (count === items.length) {
             done();
             sub.unsubscribe();
@@ -396,7 +396,7 @@ describe('RxFire Database', () => {
             expect(data.length).to.eql(items.length - 1);
           })
           .add(done);
-        app.database().goOnline();
+        app && app.database().goOnline();
         aref.set(itemsObj).then(() => {
           aref.child(items[0].key).remove();
         });
@@ -419,7 +419,7 @@ describe('RxFire Database', () => {
             expect(data[1].name).to.eql('lol');
           })
           .add(done);
-        app.database().goOnline();
+        app && app.database().goOnline();
         aref.set(itemsObj).then(() => {
           aref.child(items[1].key).update({ name: 'lol' });
         });
@@ -444,7 +444,7 @@ describe('RxFire Database', () => {
             expect(data[data.length - 1]).to.eql(items[0]);
           })
           .add(done);
-        app.database().goOnline();
+        app && app.database().goOnline();
         aref.set(itemsObj).then(() => {
           aref.child(items[0].key).setPriority('a', () => {});
         });
@@ -542,7 +542,7 @@ describe('RxFire Database', () => {
             expect(data).to.eql(copy);
           })
           .add(done);
-        app.database().goOnline();
+        app && app.database().goOnline();
         ref.set(itemsObj).then(() => {
           ref.child(items[0].key).update({ name });
         });

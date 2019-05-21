@@ -93,8 +93,9 @@ describe('FirebaseError', () => {
 
   it('has stack', () => {
     const e = ERROR_FACTORY.create('generic-error');
+    assert.isDefined(e.stack);
     // Multi-line match trick - .* does not match \n
-    assert.match(e.stack, /FirebaseError[\s\S]/);
+    assert.match(e.stack as string, /FirebaseError[\s\S]/);
   });
 
   it('has function names in stack trace in correct order', () => {

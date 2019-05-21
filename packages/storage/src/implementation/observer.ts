@@ -15,16 +15,17 @@
  * limitations under the License.
  */
 import * as type from './type';
+import { FirebaseStorageError } from './error';
 
 type NextFn<T> = (value: T) => void;
-type ErrorFn = (error: Error) => void;
+type ErrorFn = (error: Error | FirebaseStorageError) => void;
 type CompleteFn = () => void;
 type Unsubscribe = () => void;
 
 type Subscribe<T> = (
-  next: NextFn<T> | { [name: string]: string | null } | null,
-  error?: ErrorFn,
-  complete?: CompleteFn
+  next: NextFn<T> | { [name: string]: string | null } | null | undefined,
+  error: ErrorFn | null | undefined,
+  complete: CompleteFn | null | undefined
 ) => Unsubscribe;
 
 export { NextFn, ErrorFn, CompleteFn, Unsubscribe, Subscribe };
@@ -34,12 +35,12 @@ export { NextFn, ErrorFn, CompleteFn, Unsubscribe, Subscribe };
  */
 export class Observer<T> {
   next: NextFn<T> | null;
-  error: ErrorFn | null;
+  error: ErrorFn | null | undefined;
   complete: CompleteFn | null;
 
   constructor(
-    nextOrObserver: NextFn<T> | { [name: string]: string | null } | null,
-    opt_error?: ErrorFn | null,
+    nextOrObserver: NextFn<T> | { [name: string]: string | null } | null | undefined,
+    opt_error?: ErrorFn | null | undefined,
     opt_complete?: CompleteFn | null
   ) {
     let asFunctions =

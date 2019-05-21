@@ -62,7 +62,7 @@ describe('@firebase/logger', () => {
     } call \`console.${channel}\` if \`.${channel}\` is called`, () => {
       client[channel](message);
       expect(
-        spies[`${channel}Spy`] && spies[`${channel}Spy`].called,
+        spies[`${channel}Spy`]!.called,
         `Expected ${channel} to ${shouldLog ? '' : 'not'} log`
       ).to.be[shouldLog ? 'true' : 'false'];
     });

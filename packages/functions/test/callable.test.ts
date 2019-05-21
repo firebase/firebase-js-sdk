@@ -69,7 +69,7 @@ describe('Firebase Functions > Call', () => {
     functions = new Service(app, region);
     if (useEmulator) {
       functions.useFunctionsEmulator(
-        process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN
+        process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!
       );
     }
   });

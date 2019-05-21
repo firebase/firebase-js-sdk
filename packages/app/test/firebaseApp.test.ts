@@ -161,8 +161,8 @@ function executeFirebaseTests() {
           const [app, , instanceIdentifier] = args;
           return new TestService(app, instanceIdentifier);
         },
-        null,
-        null,
+        undefined,
+        undefined,
         true
       );
       firebase.initializeApp({});
@@ -200,8 +200,8 @@ function executeFirebaseTests() {
           const [app, , instanceIdentifier] = args;
           return new TestService(app, instanceIdentifier);
         },
-        null,
-        null,
+        undefined,
+        undefined,
         false // <-- multi instance flag
       );
       firebase.initializeApp({});
@@ -268,11 +268,13 @@ function executeFirebaseTests() {
       // service's value.
       return (app as _FirebaseApp).INTERNAL.getToken()
         .then(token => {
-          assert.equal('tokenFor0', token.accessToken);
+          assert.isNotNull(token);
+          assert.equal('tokenFor0', token!.accessToken);
           return (app2 as _FirebaseApp).INTERNAL.getToken();
         })
         .then(token => {
-          assert.equal('tokenFor1', token.accessToken);
+          assert.isNotNull(token);
+          assert.equal('tokenFor1', token!.accessToken);
         });
     });
   });

@@ -48,7 +48,7 @@ export function makeFakeApp(
   return app as FirebaseApp;
 }
 
-export function makePool(sendHook: SendHook): XhrIoPool {
+export function makePool(sendHook: SendHook | null): XhrIoPool {
   const pool: any = {
     createXhrIo: function() {
       return new TestingXhrIo(sendHook);
@@ -93,7 +93,7 @@ export function bind(f: Function, ctx: any, ...args: any[]): () => void {
   };
 }
 
-export function assertThrows(f: () => void, code: Code): FirebaseStorageError {
+export function assertThrows(f: () => void, code: Code): FirebaseStorageError | null {
   let captured: FirebaseStorageError | null = null;
   expect(() => {
     try {
@@ -104,8 +104,9 @@ export function assertThrows(f: () => void, code: Code): FirebaseStorageError {
     }
   }).to.throw();
   expect(captured).to.be.an.instanceof(FirebaseStorageError);
+  // @ts-ignore Compiler thinks catch block is unreachable.
   expect(captured.code).to.equal(code);
-  return captured as FirebaseStorageError;
+  return captured as FirebaseStorageError | null;
 }
 
 export function assertUint8ArrayEquals(arr1: Uint8Array, arr2: Uint8Array) {

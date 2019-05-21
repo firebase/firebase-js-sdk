@@ -31,7 +31,7 @@ function makeFakeService(app: FirebaseApp, sendHook: SendHook): Service {
   return new Service(app, testShared.makePool(sendHook));
 }
 
-function makeStorage(url: string) {
+function makeStorage(url: string): Reference {
   function maker(wrapper, loc) {
     return ({} as any) as Reference;
   }
@@ -106,11 +106,11 @@ describe('Firebase Storage > Reference', () => {
       assert.isNull(root.parent);
     });
     it('Returns root one level down', () => {
-      assert.equal(child.parent.toString(), 'gs://test-bucket/');
+      assert.equal(child.parent!.toString(), 'gs://test-bucket/');
     });
     it('Works correctly with empty levels', () => {
       const s = makeStorage('gs://test-bucket/a///');
-      assert.equal(s.parent.toString(), 'gs://test-bucket/a/');
+      assert.equal(s.parent!.toString(), 'gs://test-bucket/a/');
     });
   });
 
@@ -185,7 +185,7 @@ describe('Firebase Storage > Reference', () => {
       headers?: Headers
     ) {
       assert.isDefined(headers);
-      assert.isUndefined(headers['Authorization']);
+      assert.isUndefined(headers!['Authorization']);
       done();
     }
 
@@ -205,7 +205,7 @@ describe('Firebase Storage > Reference', () => {
     ) {
       assert.isDefined(headers);
       assert.equal(
-        headers['Authorization'],
+        headers!['Authorization'],
         'Firebase ' + testShared.authToken
       );
       done();
@@ -222,7 +222,7 @@ describe('Firebase Storage > Reference', () => {
       const task = child.putString('hello', StringFormat.RAW, {
         contentType: 'lol/wut'
       } as Metadata);
-      assert.equal(task.snapshot.metadata.contentType, 'lol/wut');
+      assert.equal(task.snapshot.metadata!.contentType, 'lol/wut');
       task.cancel();
     });
     it('Uses embedded content type in DATA_URL format', () => {
@@ -230,7 +230,7 @@ describe('Firebase Storage > Reference', () => {
         'data:lol/wat;base64,aaaa',
         StringFormat.DATA_URL
       );
-      assert.equal(task.snapshot.metadata.contentType, 'lol/wat');
+      assert.equal(task.snapshot.metadata!.contentType, 'lol/wat');
       task.cancel();
     });
     it('Lets metadata.contentType override embedded content type in DATA_URL format', () => {
@@ -239,7 +239,7 @@ describe('Firebase Storage > Reference', () => {
         StringFormat.DATA_URL,
         { contentType: 'tomato/soup' } as Metadata
       );
-      assert.equal(task.snapshot.metadata.contentType, 'tomato/soup');
+      assert.equal(task.snapshot.metadata!.contentType, 'tomato/soup');
       task.cancel();
     });
   });
