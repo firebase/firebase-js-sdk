@@ -5437,11 +5437,11 @@ declare namespace firebase.storage {
     /**
      * List all items (files) and prefixes (folders) under this storage reference.
      *
-     * This is a helper method for calling list() repeatedly until there are no
-     * more results. The default pagination size is 1000.
+     * This is a helper method for calling list() repeatedly until there are
+     * no more results. The default pagination size is 1000.
      *
-     * Note: The results may not be a consistent snapshot if objects are changed
-     * between paginating requests.
+     * Note: The results may not be a consistent snapshot if objects are
+     * changed while this operation is running.
      *
      * Warning: listAll may potentially consume too many resources if there are
      * too many results.

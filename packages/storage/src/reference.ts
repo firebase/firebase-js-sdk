@@ -212,8 +212,8 @@ export class Reference {
    * Note: The results may not be a consistent snapshot if objects are changed
    * between paginating requests.
    *
-   * Warning: listAll may potentially consume too many resources if there are
-   * too many results.
+   * This is a helper method for calling list() repeatedly until there are
+   * no more results. The default pagination size is 1000.
    *
    * @return A Promise that resolves with all the items and prefixes under
    *      the current storage reference. `prefixes` contains references to
