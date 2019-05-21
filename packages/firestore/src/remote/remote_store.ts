@@ -35,6 +35,7 @@ import * as objUtils from '../util/obj';
 import { ignoreIfPrimaryLeaseLoss } from '../local/indexeddb_persistence';
 import { DocumentKeySet } from '../model/collections';
 import { AsyncQueue } from '../util/async_queue';
+import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
 import { Datastore } from './datastore';
 import { OnlineStateTracker } from './online_state_tracker';
 import {
@@ -108,6 +109,7 @@ export class RemoteStore implements TargetMetadataProvider {
    */
   private listenTargets: { [targetId: number]: QueryData } = {};
 
+  private connectivityMonitor: ConnectivityMonitor;
   private watchStream: PersistentListenStream;
   private writeStream: PersistentWriteStream;
   private watchChangeAggregator: WatchChangeAggregator | null = null;
@@ -130,8 +132,22 @@ export class RemoteStore implements TargetMetadataProvider {
     /** The client-side proxy for interacting with the backend. */
     private datastore: Datastore,
     asyncQueue: AsyncQueue,
-    onlineStateHandler: (onlineState: OnlineState) => void
+    onlineStateHandler: (onlineState: OnlineState) => void,
+    connectivityMonitor: ConnectivityMonitor
   ) {
+    this.connectivityMonitor = connectivityMonitor;
+    this.connectivityMonitor.addCallback((status: NetworkStatus) => {
+      asyncQueue.enqueueAndForget(async () => {
+        if (this.canUseNetwork()) {
+          log.debug(
+            LOG_TAG,
+            'Restarting streams for network reachability change.'
+          );
+          await this.restartNetwork();
+        }
+      });
+    });
+
     this.onlineStateTracker = new OnlineStateTracker(
       asyncQueue,
       onlineStateHandler
@@ -212,6 +228,7 @@ export class RemoteStore implements TargetMetadataProvider {
     log.debug(LOG_TAG, 'RemoteStore shutting down.');
     this.networkEnabled = false;
     await this.disableNetworkInternal();
+    this.connectivityMonitor.shutdown();
 
     // Set the OnlineState to Unknown (rather than Offline) to avoid potentially
     // triggering spurious listener events with cached data, etc.
@@ -678,16 +695,20 @@ export class RemoteStore implements TargetMetadataProvider {
     return new Transaction(this.datastore);
   }
 
+  private async restartNetwork(): Promise<void> {
+    this.networkEnabled = false;
+    await this.disableNetworkInternal();
+    this.onlineStateTracker.set(OnlineState.Unknown);
+    await this.enableNetwork();
+  }
+
   async handleCredentialChange(): Promise<void> {
     if (this.canUseNetwork()) {
       // Tear down and re-create our network streams. This will ensure we get a fresh auth token
       // for the new user and re-fill the write pipeline with new mutations from the LocalStore
       // (since mutations are per-user).
-      log.debug(LOG_TAG, 'RemoteStore restarting streams for new credential');
-      this.networkEnabled = false;
-      await this.disableNetworkInternal();
-      this.onlineStateTracker.set(OnlineState.Unknown);
-      await this.enableNetwork();
+    log.debug(LOG_TAG, 'RemoteStore restarting streams for new credential');
+      await this.restartNetwork();
     }
   }
 
