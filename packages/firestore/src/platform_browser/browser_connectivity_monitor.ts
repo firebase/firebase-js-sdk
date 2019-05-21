@@ -18,6 +18,7 @@
 import { debug } from '../util/log';
 import {
   ConnectivityMonitor,
+  ConnectivityMonitorCallback,
   NetworkStatus
 } from './../remote/connectivity_monitor';
 
@@ -27,7 +28,7 @@ const LOG_TAG = 'ConnectivityMonitor';
  * Browser implementation of ConnectivityMonitor.
  */
 export class BrowserConnectivityMonitor implements ConnectivityMonitor {
-  private callbacks: Array<{ (status: NetworkStatus): void }> = [];
+  private callbacks: ConnectivityMonitorCallback[] = [];
 
   constructor() {
     this.configureNetworkMonitoring();
@@ -38,13 +39,15 @@ export class BrowserConnectivityMonitor implements ConnectivityMonitor {
   }
 
   shutdown(): void {
-    window.removeEventListener('online', this.onNetworkAvailable);
-    window.removeEventListener('offline', this.onNetworkUnavailable);
+    const self = this;
+    window.removeEventListener('online', self.onNetworkAvailable);
+    window.removeEventListener('offline', self.onNetworkUnavailable);
   }
 
   private configureNetworkMonitoring(): void {
-    window.addEventListener('online', this.onNetworkAvailable);
-    window.addEventListener('offline', this.onNetworkUnavailable);
+    const self = this;
+    window.addEventListener('online', self.onNetworkAvailable);
+    window.addEventListener('offline', self.onNetworkUnavailable);
   }
 
   private onNetworkAvailable(): void {

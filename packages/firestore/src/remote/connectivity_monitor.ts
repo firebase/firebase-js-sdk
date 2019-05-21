@@ -14,13 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/**
+ * The set of network states is deliberately simplified -- we only care about
+ * states such that transition between them should break currently
+ * established connections.
+ */
 export const enum NetworkStatus {
   AVAILABLE,
   UNAVAILABLE
 }
 
-/** Interface for monitoring changes in network connectivity/reachability. */
+export type ConnectivityMonitorCallback = (status: NetworkStatus) => void;
+
+/**
+ * A base class for monitoring changes in network connectivity; it is expected
+ * that each platform will have its own system-dependent implementation.
+ */
 export interface ConnectivityMonitor {
-  addCallback(callback: (status: NetworkStatus) => void): void;
+  addCallback(callback: ConnectivityMonitorCallback): void;
   shutdown(): void;
 }
