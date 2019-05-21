@@ -8,5 +8,6 @@
 
     // Exclude installed dependencies from searches too
     "**/node_modules": true
-  }
+  },
+  "editor.tabSize": 2
 }
