@@ -373,7 +373,7 @@ describe('Firebase Storage > Upload Task', () => {
     const fixedAssertFail = promiseAssertWrapper(assert.fail);
 
     const events: string[] = [];
-    const progress: Array<number[]> = [];
+    const progress: number[][] = [];
     let complete = 0;
     function addCallbacks(task) {
       let lastState;

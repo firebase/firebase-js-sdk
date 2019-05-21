@@ -43,32 +43,32 @@ export class Sha1 {
   /**
    * Holds the previous values of accumulated variables a-e in the compress_
    * function.
-   * @type {!Array<number>}
+   * @type {!number[]}
    * @private
    */
-  private chain_: Array<number> = [];
+  private chain_: number[] = [];
 
   /**
    * A buffer holding the partially computed hash result.
-   * @type {!Array<number>}
+   * @type {!number[]}
    * @private
    */
-  private buf_: Array<number> = [];
+  private buf_: number[] = [];
 
   /**
    * An array of 80 bytes, each a part of the message to be hashed.  Referred to
    * as the message schedule in the docs.
-   * @type {!Array<number>}
+   * @type {!number[]}
    * @private
    */
-  private W_: Array<number> = [];
+  private W_: number[] = [];
 
   /**
    * Contains data needed to pad messages less than 64 bytes.
-   * @type {!Array<number>}
+   * @type {!number[]}
    * @private
    */
-  private pad_: Array<number> = [];
+  private pad_: number[] = [];
 
   /**
    * @private {number}
@@ -106,7 +106,7 @@ export class Sha1 {
 
   /**
    * Internal compress helper function.
-   * @param {!Array<number>|!Uint8Array|string} buf Block to compress.
+   * @param {!number[]|!Uint8Array|string} buf Block to compress.
    * @param {number=} opt_offset Offset of the block in the buffer.
    * @private
    */
@@ -256,7 +256,7 @@ export class Sha1 {
 
   /** @override */
   digest() {
-    var digest: Array<number> = [];
+    var digest: number[] = [];
     var totalBits = this.total_ * 8;
 
     // Add pad 0x80 0x00*.

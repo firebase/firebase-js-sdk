@@ -78,7 +78,7 @@ export function dataFromString(
 }
 
 export function utf8Bytes_(string: string): Uint8Array {
-  let b: Array<number> = [];
+  let b: number[] = [];
   for (let i = 0; i < string.length; i++) {
     let c = string.charCodeAt(i);
     if (c <= 127) {

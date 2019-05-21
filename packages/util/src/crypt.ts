@@ -17,7 +17,7 @@
 
 const stringToByteArray = function(str) {
   // TODO(user): Use native implementations if/when available
-  var out: Array<number> = [],
+  var out: number[] = [],
     p = 0;
   for (var i = 0; i < str.length; i++) {
     var c = str.charCodeAt(i);
@@ -49,7 +49,7 @@ const stringToByteArray = function(str) {
 /**
  * Turns an array of numbers into the string given by the concatenation of the
  * characters to which the numbers correspond.
- * @param {Array<number>} bytes Array of numbers representing characters.
+ * @param {number[]} bytes Array of numbers representing characters.
  * @return {string} Stringification of the array.
  */
 const byteArrayToString = function(bytes) {
@@ -152,7 +152,7 @@ export const base64 = {
   /**
    * Base64-encode an array of bytes.
    *
-   * @param {Array<number>|Uint8Array} input An array of bytes (numbers with
+   * @param {number[]|Uint8Array} input An array of bytes (numbers with
    *     value in [0, 255]) to encode.
    * @param {boolean=} opt_webSafe Boolean indicating we should use the
    *     alternative alphabet.
@@ -165,11 +165,11 @@ export const base64 = {
 
     this.init_();
 
-    var byteToCharMap: Array<number> = opt_webSafe
+    var byteToCharMap: number[] = opt_webSafe
       ? this.byteToCharMapWebSafe_
       : this.byteToCharMap_;
 
-    var output: Array<number> = [];
+    var output: number[] = [];
 
     for (var i = 0; i < input.length; i += 3) {
       var byte1 = input[i];
@@ -249,7 +249,7 @@ export const base64 = {
    *
    * @param {string} input Input to decode.
    * @param {boolean=} opt_webSafe True if we should use the web-safe alphabet.
-   * @return {!Array<number>} bytes representing the decoded value.
+   * @return {!number[]} bytes representing the decoded value.
    */
   decodeStringToByteArray(input, opt_webSafe) {
     this.init_();
@@ -258,7 +258,7 @@ export const base64 = {
       ? this.charToByteMapWebSafe_
       : this.charToByteMap_;
 
-    var output: Array<number> = [];
+    var output: number[] = [];
 
     for (var i = 0; i < input.length; ) {
       var byte1 = charToByteMap[input.charAt(i++)];
