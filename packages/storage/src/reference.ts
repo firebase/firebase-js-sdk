@@ -240,7 +240,7 @@ export class Reference {
     const nextPage = await this.list(opt);
     accumulator.prefixes.push(...nextPage.prefixes);
     accumulator.items.push(...nextPage.items);
-    if (nextPage.nextPageToken === undefined) {
+    if (nextPage.nextPageToken !== undefined) {
       await this.listAllHelper(accumulator, nextPage.nextPageToken);
     }
   }
