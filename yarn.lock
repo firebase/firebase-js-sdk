@@ -893,6 +893,13 @@
     through2 "^2.0.0"
     xdg-basedir "^3.0.0"
 
+"@grpc/grpc-js@0.4.0":
+  version "0.4.0"
+  resolved "https://registry.npmjs.org/@grpc/grpc-js/-/grpc-js-0.4.0.tgz#b20a6abf1346ce7fd696a042f83d10c94e143881"
+  integrity sha512-UbGDPnstJamJrSiHzCSwSavIX260IfLOZLRJYDqRKJA/jmVZa3hPMWDjhFrcCKDq2MLc/O/nauFED3r4khcZrA==
+  dependencies:
+    semver "^6.0.0"
+
 "@grpc/proto-loader@^0.5.0":
   version "0.5.0"
   resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.5.0.tgz#6d21930530db6089ed68a90f10a22b76fdc3387d"
@@ -6894,17 +6901,6 @@ grpc@1.20.2:
   version "1.20.2"
   resolved "https://registry.npmjs.org/grpc/-/grpc-1.20.2.tgz#be94dcce68f4756170ff19db5faaaa7d0587d2b2"
   integrity sha512-sJS1Ri8bxwh2F1IUwJ2c2w5SKY6/cleWuheO8gIvlUbJAtUWZEATVF+QCR4fgNnQWnYWPXm7oEeNoxh/93u9cg==
-  dependencies:
-    lodash.camelcase "^4.3.0"
-    lodash.clone "^4.5.0"
-    nan "^2.13.2"
-    node-pre-gyp "^0.13.0"
-    protobufjs "^5.0.3"
-
-grpc@1.20.3:
-  version "1.20.3"
-  resolved "https://registry.npmjs.org/grpc/-/grpc-1.20.3.tgz#a74d36718f1e89c4a64f2fb9441199c3c8f78978"
-  integrity sha512-GsEsi0NVj6usS/xor8pF/xDbDiwZQR59aZl5NUZ59Sy2bdPQFZ3UePr5wevZjHboirRCIQCKRI1cCgvSWUe2ag==
   dependencies:
     lodash.camelcase "^4.3.0"
     lodash.clone "^4.5.0"
