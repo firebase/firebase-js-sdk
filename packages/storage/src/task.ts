@@ -455,7 +455,11 @@ export class UploadTask {
    */
   on(
     type: TaskEvent,
-    nextOrObserver: NextFn<UploadTaskSnapshot> | { [name: string]: any } | null | undefined = undefined,
+    nextOrObserver:
+      | NextFn<UploadTaskSnapshot>
+      | { [name: string]: any }
+      | null
+      | undefined = undefined,
     error: ErrorFn | null | undefined = undefined,
     completed: CompleteFn | null | undefined = undefined
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
