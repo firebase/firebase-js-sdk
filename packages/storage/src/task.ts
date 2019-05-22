@@ -455,13 +455,12 @@ export class UploadTask {
    */
   on(
     type: TaskEvent,
-    nextOrObserver:
+    nextOrObserver?:
       | NextFn<UploadTaskSnapshot>
       | { [name: string]: any }
-      | null
-      | undefined = undefined,
-    error: ErrorFn | null | undefined = undefined,
-    completed: CompleteFn | null | undefined = undefined
+      | null,
+    error?: ErrorFn | null,
+    completed?: CompleteFn | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
     function typeValidator(_p: any) {
       if (type !== TaskEvent.STATE_CHANGED) {
@@ -509,10 +508,9 @@ export class UploadTask {
         nextOrObserver:
           | NextFn<UploadTaskSnapshot>
           | { [name: string]: string | null }
-          | null
-          | undefined,
-        error?: ErrorFn | null | undefined,
-        opt_complete?: CompleteFn | null | undefined
+          | null,
+        error?: ErrorFn | null,
+        opt_complete?: CompleteFn | null
       ) {
         if (specs !== null) {
           fbsArgs.validate('on', specs, arguments);
@@ -627,12 +625,12 @@ export class UploadTask {
     switch (externalState) {
       case TaskState.RUNNING:
       case TaskState.PAUSED:
-        if (observer.next !== null) {
+        if (observer.next) {
           fbsAsync(observer.next.bind(observer, this.snapshot))();
         }
         break;
       case TaskState.SUCCESS:
-        if (observer.complete !== null) {
+        if (observer.complete) {
           fbsAsync(observer.complete.bind(observer))();
         }
         break;

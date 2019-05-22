@@ -54,7 +54,7 @@ const stringToByteArray = function(str) {
  */
 const byteArrayToString = function(bytes) {
   // TODO(user): Use native implementations if/when available
-  var out: Array<string> = [],
+  var out: string[] = [],
     pos = 0,
     c = 0;
   while (pos < bytes.length) {

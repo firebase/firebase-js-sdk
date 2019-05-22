@@ -298,7 +298,7 @@ describe('Firebase Storage > Requests', () => {
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
     ];
-    const promises: Promise<void>[] = [];
+    const promises: Array<Promise<void>> = [];
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;

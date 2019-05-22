@@ -271,7 +271,7 @@ export function multipartUpload(
   if (body === null) {
     throw errorsExports.cannotSliceBlob();
   }
-  let urlParams: UrlParams = { name: metadata['fullPath'] || '' };
+  let urlParams: UrlParams = { name: metadata['fullPath']! };
   let url = UrlUtils.makeUrl(urlPart);
   let method = 'POST';
   let timeout = authWrapper.maxUploadRetryTime();

@@ -23,9 +23,9 @@ type CompleteFn = () => void;
 type Unsubscribe = () => void;
 
 type Subscribe<T> = (
-  next: NextFn<T> | { [name: string]: string | null } | null | undefined,
-  error: ErrorFn | null | undefined,
-  complete: CompleteFn | null | undefined
+  next?: NextFn<T> | { [name: string]: string | null } | null,
+  error?: ErrorFn | null,
+  complete?: CompleteFn | null
 ) => Unsubscribe;
 
 export { NextFn, ErrorFn, CompleteFn, Unsubscribe, Subscribe };
@@ -34,17 +34,16 @@ export { NextFn, ErrorFn, CompleteFn, Unsubscribe, Subscribe };
  * @struct
  */
 export class Observer<T> {
-  next: NextFn<T> | null;
-  error: ErrorFn | null | undefined;
-  complete: CompleteFn | null;
+  next?: NextFn<T> | null;
+  error?: ErrorFn | null;
+  complete?: CompleteFn | null;
 
   constructor(
-    nextOrObserver:
+    nextOrObserver?:
       | NextFn<T>
       | { [name: string]: string | null }
-      | null
-      | undefined,
-    opt_error?: ErrorFn | null | undefined,
+      | null,
+    opt_error?: ErrorFn | null,
     opt_complete?: CompleteFn | null
   ) {
     let asFunctions =

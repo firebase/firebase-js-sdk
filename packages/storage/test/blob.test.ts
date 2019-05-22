@@ -41,19 +41,17 @@ describe('Firebase Storage > Blob', () => {
 
   it('Slicing works', () => {
     const blob = new FbsBlob(new Uint8Array([1, 2, 3, 4, 5, 6, 7]));
-    const sliced = blob.slice(1, 5);
-    assert.isNotNull(sliced);
+    const sliced = blob.slice(1, 5)!;
     testShared.assertUint8ArrayEquals(
-      sliced!.uploadData() as Uint8Array,
+      sliced.uploadData() as Uint8Array,
       new Uint8Array([2, 3, 4, 5])
     );
   });
   it('Blobs are merged with strings correctly', () => {
     const blob = new FbsBlob(new Uint8Array([1, 2, 3, 4]));
-    const merged = FbsBlob.getBlob('what', blob, '\ud83d\ude0a ');
-    assert.isNotNull(merged);
+    const merged = FbsBlob.getBlob('what', blob, '\ud83d\ude0a ')!;
     testShared.assertUint8ArrayEquals(
-      merged!.uploadData() as Uint8Array,
+      merged.uploadData() as Uint8Array,
       new Uint8Array([
         0x77,
         0x68,

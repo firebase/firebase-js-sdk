@@ -41,8 +41,8 @@ let batch = (items: any[]) => {
 };
 
 describe('RxFire Database', () => {
-  let app: app.App | null = null;
-  let database: database.Database | null = null;
+  let app: app.App;
+  let database: database.Database;
   let ref = (path: string) => {
     app!.database().goOffline();
     return app!.database().ref(path);
@@ -85,7 +85,7 @@ describe('RxFire Database', () => {
   });
 
   afterEach((done: MochaDone) => {
-    app && app.delete().then(() => done());
+    app.delete().then(() => done());
   });
 
   describe('fromRef', () => {
@@ -396,7 +396,7 @@ describe('RxFire Database', () => {
             expect(data.length).to.eql(items.length - 1);
           })
           .add(done);
-        app && app.database().goOnline();
+        app.database().goOnline();
         aref.set(itemsObj).then(() => {
           aref.child(items[0].key).remove();
         });
@@ -419,7 +419,7 @@ describe('RxFire Database', () => {
             expect(data[1].name).to.eql('lol');
           })
           .add(done);
-        app && app.database().goOnline();
+        app.database().goOnline();
         aref.set(itemsObj).then(() => {
           aref.child(items[1].key).update({ name: 'lol' });
         });
@@ -444,7 +444,7 @@ describe('RxFire Database', () => {
             expect(data[data.length - 1]).to.eql(items[0]);
           })
           .add(done);
-        app && app.database().goOnline();
+        app.database().goOnline();
         aref.set(itemsObj).then(() => {
           aref.child(items[0].key).setPriority('a', () => {});
         });
@@ -542,7 +542,7 @@ describe('RxFire Database', () => {
             expect(data).to.eql(copy);
           })
           .add(done);
-        app && app.database().goOnline();
+        app.database().goOnline();
         ref.set(itemsObj).then(() => {
           ref.child(items[0].key).update({ name });
         });

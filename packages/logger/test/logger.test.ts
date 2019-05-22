@@ -24,12 +24,7 @@ import { debug } from 'util';
 describe('@firebase/logger', () => {
   const message = 'Hello there!';
   let client: Logger;
-  const spies: { [key: string]: SinonSpy | null } = {
-    logSpy: null,
-    infoSpy: null,
-    warnSpy: null,
-    errorSpy: null
-  };
+  let spies: { [key: string]: SinonSpy };
   /**
    * Before each test, instantiate a new instance of Logger and establish spies
    * on all of the console methods so we can assert against them as needed
@@ -37,17 +32,19 @@ describe('@firebase/logger', () => {
   beforeEach(() => {
     client = new Logger('@firebase/test-logger');
 
-    spies.logSpy = Spy(console, 'log');
-    spies.infoSpy = Spy(console, 'info');
-    spies.warnSpy = Spy(console, 'warn');
-    spies.errorSpy = Spy(console, 'error');
+    spies = {
+      logSpy: Spy(console, 'log'),
+      infoSpy: Spy(console, 'info'),
+      warnSpy: Spy(console, 'warn'),
+      errorSpy: Spy(console, 'error')
+    }
   });
 
   afterEach(() => {
-    spies.logSpy && spies.logSpy.restore();
-    spies.infoSpy && spies.infoSpy.restore();
-    spies.warnSpy && spies.warnSpy.restore();
-    spies.errorSpy && spies.errorSpy.restore();
+    spies.logSpy.restore();
+    spies.infoSpy.restore();
+    spies.warnSpy.restore();
+    spies.errorSpy.restore();
   });
 
   function testLog(message, channel, shouldLog) {

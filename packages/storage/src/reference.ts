@@ -175,7 +175,7 @@ export class Reference {
     let data = fbsString.dataFromString(format, string);
     let metadata = object.clone<Metadata>(opt_metadata);
     if (!type.isDef(metadata['contentType']) && type.isDef(data.contentType)) {
-      metadata['contentType'] = data.contentType || undefined;
+      metadata['contentType'] = data.contentType!;
     }
     return new UploadTask(
       this,

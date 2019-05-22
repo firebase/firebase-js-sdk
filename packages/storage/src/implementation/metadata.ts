@@ -70,7 +70,7 @@ export function getMappings(): Mappings {
   if (mappings_) {
     return mappings_;
   }
-  let mappings: Array<Mapping> = [];
+  const mappings: Mapping[] = [];
   mappings.push(new Mapping('bucket'));
   mappings.push(new Mapping('generation'));
   mappings.push(new Mapping('metageneration'));

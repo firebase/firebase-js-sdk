@@ -17,7 +17,7 @@
 
 import { ListenEvent } from './interfaces';
 
-export function isNil(obj: any): boolean {
+export function isNil(obj: any): obj is null | undefined {
   return obj === undefined || obj === null;
 }
 
@@ -27,14 +27,13 @@ export function isNil(obj: any): boolean {
  * @param events
  */
 export function validateEventsArray(events?: ListenEvent[]): ListenEvent[] {
-  let validatedEvents: ListenEvent[] = [];
   if (isNil(events) || events!.length === 0) {
-    validatedEvents = [
+    events = [
       ListenEvent.added,
       ListenEvent.removed,
       ListenEvent.changed,
       ListenEvent.moved
     ];
   }
-  return validatedEvents;
+  return events;
 }

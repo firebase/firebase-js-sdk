@@ -42,11 +42,13 @@ export function list(
   query: database.Query,
   events?: ListenEvent[]
 ): Observable<QueryChange[]> {
-  const eventsToList = validateEventsArray(events);
+  const eventsList = validateEventsArray(events);
   return fromOnce(query).pipe(
     switchMap(change => {
       const childEvent$ = [of(change)];
-      eventsToList.forEach(event => childEvent$.push(fromRef(query, event)));
+      for (const event of eventsList) {
+        childEvent$.push(fromRef(query, event));
+      }
       return merge(...childEvent$).pipe(scan(buildView, []));
     }),
     distinctUntilChanged()

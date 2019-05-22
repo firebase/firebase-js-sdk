@@ -67,8 +67,8 @@ const seedTest = firestore => {
 };
 
 describe('RxFire Firestore', () => {
-  let app: app.App | null = null;
-  let firestore: firestore.Firestore | null = null;
+  let app: app.App;
+  let firestore: firestore.Firestore;
 
   /**
    * Each test runs inside it's own app instance and the app
@@ -88,7 +88,7 @@ describe('RxFire Firestore', () => {
   });
 
   afterEach((done: MochaDone) => {
-    app && app.delete().then(() => done());
+    app.delete().then(() => done());
   });
 
   describe('collection', () => {
