@@ -332,14 +332,14 @@ export function createResumableUpload(
 ): RequestInfo<string> {
   let urlPart = location.bucketOnlyServerUrl();
   let metadata = metadataForUpload_(location, blob, opt_metadata);
-  let urlParams: UrlParams = { name: metadata['fullPath'] || '' };
+  let urlParams: UrlParams = { name: metadata['fullPath']! };
   let url = UrlUtils.makeUrl(urlPart);
   let method = 'POST';
   let headers = {
     'X-Goog-Upload-Protocol': 'resumable',
     'X-Goog-Upload-Command': 'start',
     'X-Goog-Upload-Header-Content-Length': blob.size(),
-    'X-Goog-Upload-Header-Content-Type': metadata['contentType'] || '',
+    'X-Goog-Upload-Header-Content-Type': metadata['contentType']!,
     'Content-Type': 'application/json; charset=utf-8'
   };
   let body = MetadataUtils.toResourceString(metadata, mappings);

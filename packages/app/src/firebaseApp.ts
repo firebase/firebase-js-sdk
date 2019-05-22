@@ -116,9 +116,7 @@ export class FirebaseAppImpl implements FirebaseApp {
         return Promise.all(
           services
             .filter(service => 'INTERNAL' in service)
-            .map(service => {
-              return service.INTERNAL!.delete();
-            })
+            .map(service => service.INTERNAL!.delete())
         );
       })
       .then(

@@ -18,7 +18,7 @@
 import { database } from 'firebase';
 import { QueryChange, ListenEvent } from '../interfaces';
 import { Observable, of, merge, from } from 'rxjs';
-import { validateEventsArray, isNil } from '../utils';
+import { validateEventsArray } from '../utils';
 import { fromRef } from '../fromRef';
 import { switchMap, scan, distinctUntilChanged, map } from 'rxjs/operators';
 import { changeToData } from '../object';
@@ -80,7 +80,7 @@ function positionFor(changes: QueryChange[], key) {
 }
 
 function positionAfter(changes: QueryChange[], prevKey?: string) {
-  if (isNil(prevKey)) {
+  if (prevKey == null) {
     return 0;
   } else {
     const i = positionFor(changes, prevKey);
