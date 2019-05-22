@@ -39,10 +39,7 @@ export class Observer<T> {
   complete?: CompleteFn | null;
 
   constructor(
-    nextOrObserver?:
-      | NextFn<T>
-      | { [name: string]: string | null }
-      | null,
+    nextOrObserver?: NextFn<T> | { [name: string]: string | null } | null,
     opt_error?: ErrorFn | null,
     opt_complete?: CompleteFn | null
   ) {

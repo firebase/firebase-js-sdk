@@ -37,7 +37,7 @@ describe('@firebase/logger', () => {
       infoSpy: Spy(console, 'info'),
       warnSpy: Spy(console, 'warn'),
       errorSpy: Spy(console, 'error')
-    }
+    };
   });
 
   afterEach(() => {

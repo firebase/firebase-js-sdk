@@ -117,7 +117,7 @@ export class FirebaseAppImpl implements FirebaseApp {
           services
             .filter(service => 'INTERNAL' in service)
             .map(service => {
-              return service.INTERNAL!.delete()
+              return service.INTERNAL!.delete();
             })
         );
       })
