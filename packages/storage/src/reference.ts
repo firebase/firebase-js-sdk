@@ -244,7 +244,7 @@ export class Reference {
       await this.listAllHelper(accumulator, nextPage.nextPageToken);
     }
   }
-  
+
   /**
    * List items (files) and prefixes (folders) under this storage reference.
    *
