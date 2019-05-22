@@ -1,4 +1,3 @@
-import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 /**
  * @license
  * Copyright 2017 Google Inc.
