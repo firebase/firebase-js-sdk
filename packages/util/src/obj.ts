@@ -15,159 +15,138 @@
  * limitations under the License.
  */
 
-/* eslint-disable */
-// will enable after https://github.com/firebase/firebase-js-sdk/pull/1811 is merged
+type Keys<T> = Extract<keyof T, string>;
+type Values<T> = T[keyof T];
 
-interface UtilObject<V> {
-  [key: string]: V;
+export function contains<T extends object>(obj: T, key: keyof T): boolean {
+  return Object.prototype.hasOwnProperty.call(obj, key);
 }
 
-// See http://www.devthought.com/2012/01/18/an-object-is-not-a-hash/
-export const contains = function<V>(obj: UtilObject<V>, key: string): boolean {
-  return Object.prototype.hasOwnProperty.call(obj, key);
-};
-
-export const safeGet = function<V>(
-  obj: UtilObject<V>,
-  key: string
-): V | undefined {
-  if (Object.prototype.hasOwnProperty.call(obj, key)) return obj[key];
-  // else return undefined.
-};
+export function safeGet<T extends object, K extends keyof T>(
+  obj: T,
+  key: K
+): T[K] | undefined {
+  if (Object.prototype.hasOwnProperty.call(obj, key)) {
+    return obj[key];
+  } else {
+    return undefined;
+  }
+}
 
 /**
  * Enumerates the keys/values in an object, excluding keys defined on the prototype.
  *
- * @param {?Object.<K,V>} obj Object to enumerate.
- * @param {!function(K, V)} fn Function to call for each key and value.
- * @template K,V
+ * @param obj Object to enumerate.
+ * @param fn Function to call for each key and value.
  */
-export const forEach = function<V>(
-  obj: UtilObject<V>,
-  fn: (key: string, value: V) => void
-): void {
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      fn(key, obj[key]);
-    }
+export function forEach<T extends object>(
+  obj: T,
+  fn: (key: Keys<T>, value: Values<T>) => void
+) {
+  for (const key of Object.keys(obj)) {
+    // Object.keys() doesn't return an Array<keyof T>
+    // https://github.com/microsoft/TypeScript/pull/12253#issuecomment-263132208
+    fn(key as Keys<T>, obj[key as Keys<T>]);
   }
-};
+}
 
 /**
  * Copies all the (own) properties from one object to another.
- * @param {!Object} objTo
- * @param {!Object} objFrom
- * @return {!Object} objTo
  */
-export const extend = function<V>(
-  objTo: UtilObject<V>,
-  objFrom: UtilObject<V>
-): UtilObject<V> {
-  forEach(objFrom, function(key, value) {
-    objTo[key] = value;
-  });
-  return objTo;
-};
+export function extend<T extends object, U extends object>(
+  objTo: T,
+  objFrom: U
+): T & U {
+  return Object.assign(objTo, objFrom);
+}
 
 /**
  * Returns a clone of the specified object.
- * @param {!Object} obj
- * @return {!Object} cloned obj.
+ * @return cloned obj.
  */
-export const clone = function<V>(obj: UtilObject<V>) {
-  return extend({}, obj);
-};
+export function clone<T extends object>(obj: T): T {
+  return { ...obj };
+}
 
 /**
- * Returns true if obj has typeof "object" and is not null.  Unlike goog.isObject(), does not return true
- * for functions.
+ * Returns true if obj has typeof "object" and is not null.  Unlike goog.isObject(),
+ * does not return true for functions.
  */
-export const isNonNullObject = function<V>(obj: UtilObject<V>): boolean {
+export function isNonNullObject(obj: unknown): obj is object {
   return typeof obj === 'object' && obj !== null;
-};
+}
 
-export const isEmpty = function<V>(obj: UtilObject<V>) {
-  for (var key in obj) {
-    return false;
+export function isEmpty(obj: object): obj is {} {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      return false;
+    }
   }
   return true;
-};
+}
 
-export const getCount = function<V>(obj: UtilObject<V>): number {
-  var rv = 0;
-  for (var key in obj) {
-    rv++;
+export function getCount(obj: object): number {
+  return Object.keys(obj).length;
+}
+
+export function map<T extends object, V, U extends { [key in keyof T]: V }>(
+  obj: T,
+  fn: (value: Values<T>, key: Keys<T>, obj: T) => V,
+  opt_obj?: unknown
+): U {
+  const res: Partial<U> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    res[key as Keys<T>] = fn.call(opt_obj, value, key, obj);
   }
-  return rv;
-};
+  return res as U;
+}
 
-export const map = function<V>(
-  obj: UtilObject<V>,
-  fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown,
-  context?: unknown
-) {
-  var res: UtilObject<V> = {};
-  for (var key in obj) {
-    res[key] = fn.call(context, obj[key], key, obj);
+export function findKey<T extends object>(
+  obj: T,
+  fn: <K extends Keys<T>>(value: T[K], key: K, obj: T) => boolean,
+  opt_this?: unknown
+): keyof T | undefined {
+  for (const [key, value] of Object.entries(obj)) {
+    if (fn.call(opt_this, value, key, obj)) {
+      return key as keyof T;
+    }
   }
-  return res;
-};
+  return undefined;
+}
 
-export const findKey = function<V>(
-  obj: UtilObject<V>,
-  fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown,
-  context?: unknown
-) {
-  for (var key in obj) {
-    if (fn.call(context, obj[key], key, obj)) {
+export function findValue<T extends object>(
+  obj: T,
+  fn: (value: Values<T>, key: Keys<T>, obj: T) => boolean,
+  opt_this?: unknown
+): Values<T> | undefined {
+  const key = findKey(obj, fn, opt_this);
+  return key && obj[key];
+}
+
+export function getAnyKey<T extends object>(obj: T): keyof T | undefined {
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       return key;
     }
   }
   return undefined;
-};
-
-export const findValue = function<V>(
-  obj: UtilObject<V>,
-  fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown,
-  context?: unknown
-) {
-  var key = findKey(obj, fn, context);
-  return key && obj[key];
-};
-
-export const getAnyKey = function<V>(obj: UtilObject<V>) {
-  for (var key in obj) {
-    return key;
-  }
-};
-
-export const getValues = function<V>(obj: UtilObject<V>) {
-  var res: V[] = [];
-  var i = 0;
-  for (var key in obj) {
-    res[i++] = obj[key];
-  }
-  return res;
-};
+}
 
 /**
  * Tests whether every key/value pair in an object pass the test implemented
  * by the provided function
  *
- * @param {?Object.<K,V>} obj Object to test.
- * @param {!function(K, V)} fn Function to call for each key and value.
- * @template K,V
+ * @param obj Object to test.
+ * @param fn Function to call for each key and value.
  */
-export const every = function<V>(
-  obj: UtilObject<V>,
-  fn: (k: string, v?: V) => boolean
+export function every<T extends object>(
+  obj: T,
+  fn: (key: Keys<T>, value: Values<T>) => boolean
 ): boolean {
-  for (let key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      if (!fn(key, obj[key])) {
-        return false;
-      }
+  for (const [key, value] of Object.entries(obj)) {
+    if (!fn(key as Keys<T>, value)) {
+      return false;
     }
   }
   return true;
-};
+}

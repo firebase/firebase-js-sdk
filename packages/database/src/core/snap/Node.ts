@@ -116,8 +116,8 @@ export interface Node {
   forEachChild(index: Index, action: (a: string, b: Node) => void): any;
 
   /**
-   * @param {boolean=} exportFormat True for export format (also wire protocol format).
-   * @return {*} Value of this node as JSON.
+   * @param exportFormat True for export format (also wire protocol format).
+   * @return Value of this node as JSON.
    */
   val(exportFormat?: boolean): unknown;
 
