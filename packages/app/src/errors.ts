@@ -40,8 +40,10 @@ const ERRORS: ErrorMap<AppError> = {
     'Firebase App instance.'
 };
 
-const appErrors = new ErrorFactory<AppError>('app', 'Firebase', ERRORS);
+type ErrorParams = { [key in AppError]: { name: string } };
 
-export function error(code: AppError, args?: { [name: string]: any }) {
-  throw appErrors.create(code, args);
-}
+export const ERROR_FACTORY = new ErrorFactory<AppError, ErrorParams>(
+  'app',
+  'Firebase',
+  ERRORS
+);
