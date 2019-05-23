@@ -16,6 +16,7 @@
  */
 import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app-types';
+import { contains, forEach } from '@firebase/util';
 import * as constants from '../src/implementation/constants';
 import { Code, FirebaseStorageError } from '../src/implementation/error';
 import * as type from '../src/implementation/type';

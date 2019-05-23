@@ -5,16 +5,11 @@
     "importHelpers": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
-    "lib": [
-      "es2015",
-      "dom"
-    ],
+    "lib": ["es2017", "dom"],
     "module": "ES2015",
     "moduleResolution": "node",
     "sourceMap": true,
     "target": "es5",
-    "typeRoots": [
-      "../node_modules/@types"
-    ]
+    "typeRoots": ["../node_modules/@types"]
   }
 }

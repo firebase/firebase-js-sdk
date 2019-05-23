@@ -70,12 +70,12 @@ export class IndexMap {
     const sortedMap = safeGet(this.indexes_, indexKey);
     if (!sortedMap) throw new Error('No index defined for ' + indexKey);
 
-    if (sortedMap === fallbackObject) {
+    if (sortedMap instanceof SortedMap) {
+      return sortedMap;
+    } else {
       // The index exists, but it falls back to just name comparison. Return null so that the calling code uses the
       // regular child map
       return null;
-    } else {
-      return sortedMap as SortedMap<NamedNode, Node>;
     }
   }
 
