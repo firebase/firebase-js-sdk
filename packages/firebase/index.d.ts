@@ -1131,6 +1131,20 @@ declare namespace firebase.app {
      */
     delete(): Promise<any>;
     /**
+     * Gets the {@link firebase.installations.Installations `Installations`} service for the
+     * current app.
+     *
+     * @webonly
+     *
+     * @example
+     * ```javascript
+     * const installations = app.installations();
+     * // The above is shorthand for:
+     * // const installations = firebase.installations(app);
+     * ```
+     */
+    installations(): firebase.installations.Installations;
+    /**
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
      *
@@ -1217,6 +1231,39 @@ declare namespace firebase.app {
      * ```
      */
     performance(): firebase.performance.Performance;
+  }
+}
+
+/**
+ * @webonly
+ */
+declare namespace firebase.installations {
+  /**
+   * The Firebase Installations service interface.
+   *
+   * Do not call this constructor directly. Instead, use
+   * {@link firebase.installations `firebase.installations()`}.
+   */
+  export interface Installations {
+    /**
+     * Creates a Firebase Installation if there isn't one for the app and
+     * returns the Installation ID.
+     *
+     * @return Firebase Installation ID
+     */
+    getId(): Promise<string>;
+
+    /**
+     * Returns an Authentication Token for the current Firebase Installation.
+     *
+     * @return Firebase Installation Authentication Token
+     */
+    getToken(): Promise<string>;
+
+    /**
+     * Deletes the Firebase Installation and all associated data.
+     */
+    delete(): Promise<void>;
   }
 }
 
