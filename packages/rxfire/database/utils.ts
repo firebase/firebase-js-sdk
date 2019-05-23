@@ -23,7 +23,7 @@ import { ListenEvent } from './interfaces';
  * @param events
  */
 export function validateEventsArray(events?: ListenEvent[]): ListenEvent[] {
-  if (events == null || events!.length === 0) {
+  if (events == null || events.length === 0) {
     events = [
       ListenEvent.added,
       ListenEvent.removed,

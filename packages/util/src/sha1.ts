@@ -43,14 +43,12 @@ export class Sha1 {
   /**
    * Holds the previous values of accumulated variables a-e in the compress_
    * function.
-   * @type {!number[]}
    * @private
    */
   private chain_: number[] = [];
 
   /**
    * A buffer holding the partially computed hash result.
-   * @type {!number[]}
    * @private
    */
   private buf_: number[] = [];
@@ -58,14 +56,12 @@ export class Sha1 {
   /**
    * An array of 80 bytes, each a part of the message to be hashed.  Referred to
    * as the message schedule in the docs.
-   * @type {!number[]}
    * @private
    */
   private W_: number[] = [];
 
   /**
    * Contains data needed to pad messages less than 64 bytes.
-   * @type {!number[]}
    * @private
    */
   private pad_: number[] = [];

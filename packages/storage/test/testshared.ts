@@ -107,7 +107,9 @@ export function assertThrows(
     }
   }).to.throw();
   expect(captured).to.be.an.instanceof(FirebaseStorageError);
-  // @ts-ignore Compiler thinks catch block is unreachable.
+  // @ts-ignore Compiler does not know callback is invoked immediately and
+  // thinks catch block is unreachable. This is an open TS issue:
+  // https://github.com/microsoft/TypeScript/issues/11498
   expect(captured.code).to.equal(code);
   return captured as FirebaseStorageError | null;
 }

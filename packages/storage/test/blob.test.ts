@@ -78,9 +78,8 @@ describe('Firebase Storage > Blob', () => {
     const blob1 = new FbsBlob(arr1, true);
     const blob2 = new FbsBlob(arr2, true);
 
-    const concatenated = FbsBlob.getBlob(blob1, blob2);
+    const concatenated = FbsBlob.getBlob(blob1, blob2)!;
 
-    assert.isNotNull(concatenated);
     assert.equal(20, concatenated!.size());
   });
 });
