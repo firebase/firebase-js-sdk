@@ -183,7 +183,7 @@ declare namespace firebase {
      *     {@link firebase.auth.PhoneAuthProvider.credential}  and the verification
      *     ID of the credential is not valid.</dd>
      * </dl>
-     * 
+     *
      * @deprecated  This method is deprecated. Use
      * {@link firebase.User.linkWithCredential} instead.
      *
