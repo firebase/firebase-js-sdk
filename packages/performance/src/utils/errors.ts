@@ -43,7 +43,12 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.RC_NOT_OK]: 'RC response is not ok'
 };
 
-export const ERROR_FACTORY = new ErrorFactory(
+interface ErrorParams {
+  [ErrorCode.TRACE_STARTED_BEFORE]: { traceName: string };
+  [ErrorCode.TRACE_STOPPED_BEFORE]: { traceName: string };
+}
+
+export const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(
   SERVICE,
   SERVICE_NAME,
   ERROR_DESCRIPTION_MAP

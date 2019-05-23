@@ -31,7 +31,7 @@ import {
 } from '@firebase/app-types/private';
 import { deepExtend, patchProperty } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
-import { error, AppError } from './errors';
+import { ERROR_FACTORY, AppError } from './errors';
 import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { version } from '../../firebase/package.json';
@@ -105,7 +105,7 @@ export function createFirebaseNamespaceCore(
   function app(name?: string): FirebaseApp {
     name = name || DEFAULT_ENTRY_NAME;
     if (!contains(apps, name)) {
-      error(AppError.NO_APP, { name: name });
+      throw ERROR_FACTORY.create(AppError.NO_APP, { name: name });
     }
     return apps[name];
   }
@@ -134,11 +134,11 @@ export function createFirebaseNamespaceCore(
     const { name } = config;
 
     if (typeof name !== 'string' || !name) {
-      error(AppError.BAD_APP_NAME, { name: String(name) });
+      throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, { name: String(name) });
     }
 
     if (contains(apps, name)) {
-      error(AppError.DUPLICATE_APP, { name: name });
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { name: name });
     }
 
     const app = new firebaseAppImpl(
@@ -177,7 +177,7 @@ export function createFirebaseNamespaceCore(
   ): FirebaseServiceNamespace<FirebaseService> {
     // Cannot re-register a service that already exists
     if (factories[name]) {
-      error(AppError.DUPLICATE_SERVICE, { name: name });
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_SERVICE, { name: name });
     }
 
     // Capture the service factory for later service instantiation
@@ -198,7 +198,9 @@ export function createFirebaseNamespaceCore(
       if (typeof appArg[name] !== 'function') {
         // Invalid argument.
         // This happens in the following case: firebase.storage('gs:/')
-        error(AppError.INVALID_APP_ARGUMENT, { name: name });
+        throw ERROR_FACTORY.create(AppError.INVALID_APP_ARGUMENT, {
+          name: name
+        });
       }
 
       // Forward service instance lookup to the FirebaseApp.
