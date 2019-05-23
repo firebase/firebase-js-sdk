@@ -54,6 +54,7 @@
 
 .firebase-docs .deprecated-tag-section {
     border-bottom: 1px solid #eee;
+    padding-top: 10px;
 }
 
 .firebase-docs dt.tag-deprecated {
