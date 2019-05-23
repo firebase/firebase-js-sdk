@@ -21,6 +21,7 @@ import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 
+import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
 import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
 
@@ -46,7 +47,11 @@ export class BrowserPlatform implements Platform {
   }
 
   newConnectivityMonitor(): ConnectivityMonitor {
-    return new BrowserConnectivityMonitor();
+    if (this.window !== undefined) {
+      return new BrowserConnectivityMonitor();
+    } else {
+      return new NoopConnectivityMonitor();
+    }
   }
 
   newSerializer(databaseId: DatabaseId): JsonProtoSerializer {
