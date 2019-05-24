@@ -92,6 +92,9 @@ export class WindowController extends BaseController {
    * Request permission if it is not currently granted
    *
    * @return Resolves if the permission was granted, otherwise rejects
+   *
+   * @deprecated Use Notification.requestPermission() instead.
+   * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
    */
   async requestPermission(): Promise<void> {
     if (this.getNotificationPermission_() === 'granted') {

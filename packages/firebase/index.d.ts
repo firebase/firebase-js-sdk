@@ -5300,6 +5300,9 @@ declare namespace firebase.messaging {
      *
      * @return The promise resolves if permission is
      *   granted. Otherwise, the promise is rejected with an error.
+     *
+     * @deprecated Use Notification.requestPermission() instead.
+     * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
      */
     requestPermission(): Promise<void>;
     /**
