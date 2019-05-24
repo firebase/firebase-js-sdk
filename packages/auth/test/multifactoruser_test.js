@@ -337,7 +337,7 @@ function testMultiFactorUser_copy() {
   getAccountInfoByIdToken(tokenResponse.idToken).$returns(
       goog.Promise.resolve(getAccountInfoResponse1)).$once();
   getAccountInfoByIdToken(tokenResponse.idToken).$returns(
-      goog.Promise.resolve(getAccountInfoResponse1)).$once();
+      goog.Promise.resolve(getAccountInfoResponse2)).$once();
   mockControl.$replayAll();
   var info = [
     fireauth.MultiFactorInfo.fromPlainObject(
@@ -365,23 +365,28 @@ function testMultiFactorUser_copy() {
 
   // Copy multiFactorUser2 to multiFactorUser1.
   multiFactorUser1.copy(multiFactorUser2);
-  assertObjectEquals(multiFactorUser2, multiFactorUser1);
-  // Enrolled factors should be updated on multiFactorUser1.
+  assertEquals(2, multiFactorUser1.enrolledFactors.length);
+  // Enrolled factors should be updated on multiFactorUser1 (copied from
+  // multiFactorUser2).
   assertObjectEquals(info[2], multiFactorUser1['enrolledFactors'][0]);
   assertObjectEquals(info[3], multiFactorUser1['enrolledFactors'][1]);
+  assertEquals(testUser, multiFactorUser1.getUser());
+  assertEquals(testUser2, multiFactorUser2.getUser());
 
-  // First user reload should not trigger changes to enrolledFactors anymore.
+  // First user reload should still trigger changes to enrolledFactors as the
+  // same user is still linked to multiFactorUser1.
   return testUser.reload()
       .then(function() {
-        // Enrolled factors should not be updated on multiFactorUser1.
+        // Enrolled factors should be updated on multiFactorUser1.
         assertEquals(2, multiFactorUser1['enrolledFactors'].length);
-        assertObjectEquals(info[2], multiFactorUser1['enrolledFactors'][0]);
-        assertObjectEquals(info[3], multiFactorUser1['enrolledFactors'][1]);
-        // Reload second user. This should update the enrolled factors.
+        assertObjectEquals(info[0], multiFactorUser1['enrolledFactors'][0]);
+        assertObjectEquals(info[1], multiFactorUser1['enrolledFactors'][1]);
+        // Reload second user. This should not update the enrolled factors on
+        // multiFactorUser1.
         return testUser2.reload();
       })
       .then(function() {
-        // Enrolled factors should be updated on multiFactorUser1.
+        // multiFactorUser1 is unchanged.
         assertEquals(2, multiFactorUser1['enrolledFactors'].length);
         assertObjectEquals(info[0], multiFactorUser1['enrolledFactors'][0]);
         assertObjectEquals(info[1], multiFactorUser1['enrolledFactors'][1]);

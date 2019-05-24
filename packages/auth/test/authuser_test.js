@@ -856,7 +856,8 @@ function testUser_copyUser_multiFactor() {
       new fireauth.MultiFactorUser(user2, accountInfoWithEnrolledFactors)
           .toPlainObject(),
       user1.multiFactor.toPlainObject());
-  assertEquals(user2, user1.multiFactor.getUser());
+  // user1.multiFactor user reference should keep pointing to user1.
+  assertEquals(user1, user1.multiFactor.getUser());
 
   user1.copy(user3);
   // Same reference should be kept.
@@ -865,7 +866,8 @@ function testUser_copyUser_multiFactor() {
       new fireauth.MultiFactorUser(user3, accountInfo).toPlainObject(),
       user1.multiFactor.toPlainObject());
   assertEquals(0, user1.multiFactor.enrolledFactors.length);
-  assertEquals(user3, user1.multiFactor.getUser());
+  // user1.multiFactor user reference should keep pointing to user1.
+  assertEquals(user1, user1.multiFactor.getUser());
 }
 
 

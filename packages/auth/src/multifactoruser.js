@@ -142,23 +142,10 @@ fireauth.MultiFactorUser.prototype.updateEnrolledFactors_ =
 
 /**
  * Copies the list of enrolled factors on the user. This facilitates copying a
- * user to another user.
+ * user to another user. The underlying user reference is not updated.
  * @param {!fireauth.MultiFactorUser} multiFactorUser The instance to copy.
  */
 fireauth.MultiFactorUser.prototype.copy = function(multiFactorUser) {
-  if (this.user_ != multiFactorUser.user_) {
-    // Remove listener on old user.
-    goog.events.unlisten(
-        this.user_,
-        fireauth.UserEventType.USER_RELOADED,
-        this.userReloadedListener_);
-    this.user_ = multiFactorUser.user_;
-    // Add listener on new user.
-    goog.events.listen(
-        this.user_,
-        fireauth.UserEventType.USER_RELOADED,
-        this.userReloadedListener_);
-  }
   this.updateEnrolledFactors_(multiFactorUser.enrolledFactors_);
 };
 
