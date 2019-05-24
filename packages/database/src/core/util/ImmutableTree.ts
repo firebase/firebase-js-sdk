@@ -18,7 +18,6 @@
 import { SortedMap } from './SortedMap';
 import { Path } from './Path';
 import { stringCompare } from './util';
-import { forEach } from '@firebase/util';
 
 let emptyChildrenSingleton: SortedMap<string, ImmutableTree<null>>;
 
@@ -50,9 +49,9 @@ export class ImmutableTree<T> {
    */
   static fromObject<T>(obj: { [k: string]: T }): ImmutableTree<T> {
     let tree: ImmutableTree<T> = ImmutableTree.Empty;
-    forEach(obj, (childPath: string, childSnap: T) => {
+    for (const [childPath, childSnap] of Object.entries(obj)) {
       tree = tree.set(new Path(childPath), childSnap);
-    });
+    }
     return tree;
   }
 

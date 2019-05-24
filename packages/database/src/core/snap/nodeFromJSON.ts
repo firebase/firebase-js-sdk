@@ -18,7 +18,7 @@
 import { ChildrenNode } from './ChildrenNode';
 import { LeafNode } from './LeafNode';
 import { NamedNode, Node } from './Node';
-import { forEach, contains } from '@firebase/util';
+import { contains } from '@firebase/util';
 import { assert } from '@firebase/util';
 import { buildChildSet } from './childSet';
 import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
@@ -69,17 +69,17 @@ export function nodeFromJSON(
     const children: NamedNode[] = [];
     let childrenHavePriority = false;
     const hinzeJsonObj: { [k: string]: any } = json as object;
-    forEach(hinzeJsonObj, (key: string, child: any) => {
-      if (typeof key !== 'string' || key.substring(0, 1) !== '.') {
+    for (const [key, child] of Object.entries(hinzeJsonObj)) {
+      if (key.substring(0, 1) !== '.') {
         // Ignore metadata nodes
-        const childNode = nodeFromJSON(hinzeJsonObj[key]);
+        const childNode = nodeFromJSON(child);
         if (!childNode.isEmpty()) {
           childrenHavePriority =
             childrenHavePriority || !childNode.getPriority().isEmpty();
           children.push(new NamedNode(key, childNode));
         }
       }
-    });
+    }
 
     if (children.length == 0) {
       return ChildrenNode.EMPTY_NODE;
@@ -113,7 +113,7 @@ export function nodeFromJSON(
     }
   } else {
     let node: Node = ChildrenNode.EMPTY_NODE;
-    forEach(json, (key, childData) => {
+    for (const [key, childData] of Object.entries(json)) {
       if (contains(json, key)) {
         if (key.substring(0, 1) !== '.') {
           // ignore metadata nodes.
@@ -122,7 +122,7 @@ export function nodeFromJSON(
             node = node.updateImmediateChild(key, childNode);
         }
       }
-    });
+    }
 
     return node.updatePriority(nodeFromJSON(priority));
   }

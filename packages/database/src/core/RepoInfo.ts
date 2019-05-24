@@ -16,7 +16,6 @@
  */
 
 import { assert } from '@firebase/util';
-import { forEach } from '@firebase/util';
 import { PersistentStorage } from './storage/storage';
 import { LONG_POLLING, WEBSOCKET } from '../realtime/Constants';
 
@@ -102,9 +101,9 @@ export class RepoInfo {
 
     const pairs: string[] = [];
 
-    forEach(params, (key: string, value: string) => {
+    for (const [key, value] of Object.entries(params)) {
       pairs.push(key + '=' + value);
-    });
+    }
 
     return connURL + pairs.join('&');
   }

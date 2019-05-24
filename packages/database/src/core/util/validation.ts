@@ -16,7 +16,7 @@
  */
 
 import { Path, ValidationPath } from './Path';
-import { forEach, contains, safeGet } from '@firebase/util';
+import { contains, safeGet } from '@firebase/util';
 import { isInvalidJSONNumber } from './util';
 import { errorPrefix as errorPrefixFxn } from '@firebase/util';
 import { stringLength } from '@firebase/util';
@@ -173,7 +173,7 @@ export const validateFirebaseData = function(
   if (data && typeof data === 'object') {
     let hasDotValue = false,
       hasActualChild = false;
-    forEach(data, function(key: string, value: any) {
+    for (const [key, value] of Object.entries(data)) {
       if (key === '.value') {
         hasDotValue = true;
       } else if (key !== '.priority' && key !== '.sv') {
@@ -194,7 +194,7 @@ export const validateFirebaseData = function(
       path.push(key);
       validateFirebaseData(errorPrefix, value, path);
       path.pop();
-    });
+    }
 
     if (hasDotValue && hasActualChild) {
       throw new Error(
@@ -286,7 +286,7 @@ export const validateFirebaseMergeDataArg = function(
   }
 
   const mergePaths: Path[] = [];
-  forEach(data, function(key: string, value: any) {
+  for (const [key, value] of Object.entries(data)) {
     const curPath = new Path(key);
     validateFirebaseData(errorPrefix, value, path.child(curPath));
     if (curPath.getBack() === '.priority') {
@@ -301,7 +301,7 @@ export const validateFirebaseMergeDataArg = function(
       }
     }
     mergePaths.push(curPath);
-  });
+  }
   validateFirebaseMergePaths(errorPrefix, mergePaths);
 };
 

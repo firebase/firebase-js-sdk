@@ -17,7 +17,6 @@
 
 import { ImmutableTree } from './util/ImmutableTree';
 import { Path } from './util/Path';
-import { forEach } from '@firebase/util';
 import { Node, NamedNode } from './snap/Node';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { assert } from '@firebase/util';
@@ -70,9 +69,9 @@ export class CompoundWrite {
    */
   addWrites(path: Path, updates: { [name: string]: Node }): CompoundWrite {
     let newWrite = this as CompoundWrite;
-    forEach(updates, function(childKey: string, node: Node) {
+    for (const [childKey, node] of Object.entries(updates)) {
       newWrite = newWrite.addWrite(path.child(childKey), node);
-    });
+    }
     return newWrite;
   }
 

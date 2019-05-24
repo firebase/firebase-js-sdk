@@ -27,7 +27,7 @@ import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
 import { stringify } from '@firebase/util';
 import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
-import { map, forEach, isEmpty } from '@firebase/util';
+import { map, isEmpty } from '@firebase/util';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { StatsManager } from './stats/StatsManager';
 import { StatsReporter } from './stats/StatsReporter';
@@ -403,14 +403,14 @@ export class Repo {
     let empty = true;
     const serverValues = this.generateServerValues();
     const changedChildren: { [k: string]: Node } = {};
-    forEach(childrenToMerge, (changedKey: string, changedValue: any) => {
+    for (const [changedKey, changedValue] of Object.entries(childrenToMerge)) {
       empty = false;
       const newNodeUnresolved = nodeFromJSON(changedValue);
       changedChildren[changedKey] = resolveDeferredValueSnapshot(
         newNodeUnresolved,
         serverValues
       );
-    });
+    }
 
     if (!empty) {
       const writeId = this.getNextWriteId_();
@@ -440,10 +440,10 @@ export class Repo {
         }
       );
 
-      forEach(childrenToMerge, (changedPath: string) => {
+      for (const changedPath of Object.keys(childrenToMerge)) {
         const affectedPath = this.abortTransactions_(path.child(changedPath));
         this.rerunTransactions_(affectedPath);
-      });
+      }
 
       // We queued the events above, so just flush the queue here
       this.eventQueue_.raiseEventsForChangedPath(path, []);
@@ -566,10 +566,12 @@ export class Repo {
       childrenToMerge,
       (status, errorReason) => {
         if (status === 'ok') {
-          forEach(childrenToMerge, (childName: string, childNode: any) => {
+          for (const [childName, childNode] of Object.entries(
+            childrenToMerge
+          )) {
             const newChildNode = nodeFromJSON(childNode);
             this.onDisconnect_.remember(path.child(childName), newChildNode);
-          });
+          }
         }
         this.callOnCompleteCallback(onComplete, status, errorReason);
       }
@@ -651,11 +653,14 @@ export class Repo {
       0
     );
 
-    forEach(stats, (stat: string, value: any) => {
+    for (const [stat, value] of Object.entries(stats)) {
+      let paddedStat = stat;
       // pad stat names to be the same length (plus 2 extra spaces).
-      for (let i = stat.length; i < longestName + 2; i++) stat += ' ';
-      console.log(stat + value);
-    });
+      for (let i = stat.length; i < longestName + 2; i++) {
+        paddedStat += ' ';
+      }
+      console.log(paddedStat + value);
+    }
   }
 
   statsIncrementCounter(metric: string) {

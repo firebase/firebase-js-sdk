@@ -21,7 +21,6 @@ declare const window: any;
 declare const Windows: any;
 
 import { assert } from '@firebase/util';
-import { forEach } from '@firebase/util';
 import { base64 } from '@firebase/util';
 import { Sha1 } from '@firebase/util';
 import { stringToByteArray } from '@firebase/util';
@@ -392,13 +391,10 @@ export const splitStringBySize = function(
 /**
  * Apply a function to each (key, value) pair in an object or
  * apply a function to each (index, value) pair in an array
- * @param {!(Object|Array)} obj The object or array to iterate over
- * @param {function(?, ?)} fn The function to apply
+ * @param obj The object or array to iterate over
+ * @param fn The function to apply
  */
-export const each = function(
-  obj: Object | Array<any>,
-  fn: (v?: any, k?: any) => void
-) {
+export function each(obj: object | Array<any>, fn: (v: any, k: any) => void) {
   if (Array.isArray(obj)) {
     for (let i = 0; i < obj.length; ++i) {
       fn(i, obj[i]);
@@ -410,9 +406,11 @@ export const each = function(
      * a single impl that does a key, value callback. So we invert
      * to not have to touch the `each` code points
      */
-    forEach(obj, (key: any, val: any) => fn(val, key));
+    for (const [key, value] of Object.entries(obj)) {
+      fn(value, key);
+    }
   }
-};
+}
 
 /**
  * Like goog.bind, but doesn't bother to create a closure if opt_context is null/undefined.
