@@ -5247,15 +5247,15 @@ declare namespace firebase.messaging {
       completed?: firebase.CompleteFn
     ): firebase.Unsubscribe;
     /**
-     * @deprecated Use Notification.requestPermission() instead.
-     * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
-     *
      * Notification permissions are required to send a user push messages.
      * Calling this method displays the permission dialog to the user and
      * resolves if the permission is granted.
      *
      * @return The promise resolves if permission is
      *   granted. Otherwise, the promise is rejected with an error.
+     *
+     * @deprecated Use Notification.requestPermission() instead.
+     * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
      */
     requestPermission(): Promise<void>;
     /**
