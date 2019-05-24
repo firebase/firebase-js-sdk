@@ -82,7 +82,10 @@ export interface UserInfo {
 declare namespace User {
   export interface MultiFactor {
     enrolledFactors: Array<MultiFactorInfo>;
-    enroll(assertion: MultiFactorAssertion, displayName?: string | null): Promise<void>;
+    enroll(
+      assertion: MultiFactorAssertion,
+      displayName?: string | null
+    ): Promise<void>;
     getSession(): Promise<MultiFactorSession>;
     unenroll(option: MultiFactorInfo | string): Promise<void>;
   }
@@ -240,9 +243,10 @@ export class PhoneAuthProvider_Instance implements AuthProvider {
   ): Promise<string>;
 }
 
-export type PhoneInfoOptions = PhoneSingleFactorInfoOptions | 
-                               PhoneMultiFactorEnrollInfoOptions | 
-                               PhoneMultiFactorSignInInfoOptions;
+export type PhoneInfoOptions =
+  | PhoneSingleFactorInfoOptions
+  | PhoneMultiFactorEnrollInfoOptions
+  | PhoneMultiFactorSignInInfoOptions;
 
 export interface PhoneSingleFactorInfoOptions {
   phoneNumber: string;
@@ -347,7 +351,9 @@ export class PhoneMultiFactorAssertion extends MultiFactorAssertion {
 export class PhoneMultiFactorGenerator {
   private constructor();
   static FACTOR_ID: string;
-  static assertion(phoneAuthCredential: PhoneAuthCredential): PhoneMultiFactorAssertion;
+  static assertion(
+    phoneAuthCredential: PhoneAuthCredential
+  ): PhoneMultiFactorAssertion;
 }
 
 export class FirebaseAuth {
