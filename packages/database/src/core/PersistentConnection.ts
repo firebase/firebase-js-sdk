@@ -16,7 +16,7 @@
  */
 
 import firebase from '@firebase/app';
-import { forEach, contains, isEmpty, getCount, safeGet } from '@firebase/util';
+import { contains, isEmpty, safeGet } from '@firebase/util';
 import { stringify } from '@firebase/util';
 import { assert } from '@firebase/util';
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
@@ -901,7 +901,7 @@ export class PersistentConnection extends ServerActions {
     if (this.listens_[normalizedPathString] !== undefined) {
       listen = this.listens_[normalizedPathString][queryId];
       delete this.listens_[normalizedPathString][queryId];
-      if (getCount(this.listens_[normalizedPathString]) === 0) {
+      if (isEmpty(this.listens_[normalizedPathString])) {
         delete this.listens_[normalizedPathString];
       }
     } else {
@@ -948,11 +948,11 @@ export class PersistentConnection extends ServerActions {
 
     // Puts depend on having received the corresponding data update from the server before they complete, so we must
     // make sure to send listens before puts.
-    forEach(this.listens_, (_pathString, queries) => {
-      forEach(queries, (_key, listenSpec) => {
+    for (const queries of Object.values(this.listens_)) {
+      for (const listenSpec of Object.values(queries)) {
         this.sendListen_(listenSpec);
-      });
-    });
+      }
+    }
 
     for (let i = 0; i < this.outstandingPuts_.length; i++) {
       if (this.outstandingPuts_[i]) this.sendPut_(i);

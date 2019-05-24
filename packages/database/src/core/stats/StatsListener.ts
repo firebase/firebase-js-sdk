@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { clone, forEach } from '@firebase/util';
 import { StatsCollection } from './StatsCollection';
 
 /**
@@ -32,11 +31,11 @@ export class StatsListener {
   get(): { [k: string]: number } {
     const newStats = this.collection_.get();
 
-    const delta: typeof newStats = clone(newStats);
+    const delta = { ...newStats };
     if (this.last_) {
-      forEach(this.last_, (stat: string, value: number) => {
+      for (const [stat, value] of Object.entries(this.last_)) {
         delta[stat] = delta[stat] - value;
-      });
+      }
     }
     this.last_ = newStats;
 
