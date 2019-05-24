@@ -52,13 +52,12 @@ async function doLicenseCommit() {
   );
 
   // Files with no @license tag.
-  const appendedFileContents = await Promise.all(paths.map(path => fs.readFile(path)));
+  const appendedFileContents = await Promise.all(
+    paths.map(path => fs.readFile(path))
+  );
   const filesMissingTagPaths = appendedFileContents
     .map((buffer, idx) => ({ buffer, path: paths[idx] }))
-    .filter(
-      ({ buffer }) =>
-        String(buffer).match(/@license/) == null
-    );
+    .filter(({ buffer }) => String(buffer).match(/@license/) == null);
 
   await Promise.all(
     filesMissingTagPaths.map(({ buffer, path }) => {
@@ -66,7 +65,7 @@ async function doLicenseCommit() {
       let newLines = [];
       for (const line of lines) {
         if (line.match(/Copyright \d{4} Google Inc\./)) {
-          newLines.push('* @license')
+          newLines.push('* @license');
         }
         newLines.push(line);
       }
