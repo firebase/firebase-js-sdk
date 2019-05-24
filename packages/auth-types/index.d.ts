@@ -35,6 +35,7 @@ export interface User extends UserInfo {
   linkWithPopup(provider: AuthProvider): Promise<UserCredential>;
   linkWithRedirect(provider: AuthProvider): Promise<void>;
   metadata: UserMetadata;
+  multiFactor: User.MultiFactor;
   phoneNumber: string | null;
   providerData: (UserInfo | null)[];
   reauthenticateAndRetrieveDataWithCredential(
@@ -63,6 +64,10 @@ export interface User extends UserInfo {
     displayName?: string | null;
     photoURL?: string | null;
   }): Promise<void>;
+  verifyBeforeUpdateEmail(
+    newEmail: string,
+    actionCodeSettings?: ActionCodeSettings | null
+  ): Promise<void>;
 }
 
 export interface UserInfo {
@@ -72,6 +77,15 @@ export interface UserInfo {
   photoURL: string | null;
   providerId: string;
   uid: string;
+}
+
+declare namespace User {
+  export interface MultiFactor {
+    enrolledFactors: Array<MultiFactorInfo>;
+    enroll(assertion: MultiFactorAssertion, displayName?: string | null): Promise<void>;
+    getSession(): Promise<MultiFactorSession>;
+    unenroll(option: MultiFactorInfo | string): Promise<void>;
+  }
 }
 
 export interface ActionCodeInfo {
@@ -136,6 +150,18 @@ export class EmailAuthProvider_Instance implements AuthProvider {
 export interface Error {
   code: string;
   message: string;
+}
+
+export class AuthError implements Error {
+  private constructor();
+  code: string;
+  message: string;
+  credential?: AuthCredential;
+}
+
+export class MultiFactorError extends AuthError {
+  private constructor();
+  resolver: MultiFactorResolver;
 }
 
 export class FacebookAuthProvider extends FacebookAuthProvider_Instance {
@@ -209,9 +235,28 @@ export class PhoneAuthProvider_Instance implements AuthProvider {
   constructor(auth?: FirebaseAuth | null);
   providerId: string;
   verifyPhoneNumber(
-    phoneNumber: string,
+    phoneInfoOptions: PhoneInfoOptions | string,
     applicationVerifier: ApplicationVerifier
   ): Promise<string>;
+}
+
+export type PhoneInfoOptions = PhoneSingleFactorInfoOptions | 
+                               PhoneMultiFactorEnrollInfoOptions | 
+                               PhoneMultiFactorSignInInfoOptions;
+
+export interface PhoneSingleFactorInfoOptions {
+  phoneNumber: string;
+}
+
+export interface PhoneMultiFactorEnrollInfoOptions {
+  phoneNumber: string;
+  session: MultiFactorSession;
+}
+
+export interface PhoneMultiFactorSignInInfoOptions {
+  multiFactorHint?: MultiFactorInfo;
+  multiFactorUid?: string;
+  session: MultiFactorSession;
 }
 
 export class RecaptchaVerifier extends RecaptchaVerifier_Instance {}
@@ -258,8 +303,51 @@ export class OAuthCredential extends AuthCredential {
   secret?: string;
 }
 
+export class PhoneAuthCredential extends AuthCredential {
+  private constructor();
+}
+
 export interface AuthSettings {
   appVerificationDisabledForTesting: boolean;
+}
+
+export class MultiFactorSession {
+  private constructor();
+}
+
+export class MultiFactorAssertion {
+  private constructor();
+  factorId: string;
+}
+
+export class MultiFactorResolver {
+  private constructor();
+  auth: FirebaseAuth;
+  session: MultiFactorSession;
+  hints: Array<MultiFactorInfo>;
+  resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;
+}
+
+export interface MultiFactorInfo {
+  uid: string;
+  displayName?: string | null;
+  enrollmentTime: string;
+  factorId: string;
+}
+
+export interface PhoneMultiFactorInfo extends MultiFactorInfo {
+  phoneNumber: string;
+}
+
+export class PhoneMultiFactorAssertion extends MultiFactorAssertion {
+  private constructor();
+  phoneNumber: string;
+}
+
+export class PhoneMultiFactorGenerator {
+  private constructor();
+  static FACTOR_ID: string;
+  static assertion(phoneAuthCredential: PhoneAuthCredential): PhoneMultiFactorAssertion;
 }
 
 export class FirebaseAuth {
