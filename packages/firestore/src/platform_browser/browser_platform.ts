@@ -47,7 +47,7 @@ export class BrowserPlatform implements Platform {
   }
 
   newConnectivityMonitor(): ConnectivityMonitor {
-    if (this.window !== undefined) {
+    if (this.window) {
       return new BrowserConnectivityMonitor();
     } else {
       return new NoopConnectivityMonitor();
