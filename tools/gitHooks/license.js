@@ -35,8 +35,9 @@ async function doLicenseCommit() {
     ignore: ['**/node_modules/**', '**/dist/**']
   });
 
+  // Files with no license block at all.
   const fileContents = await Promise.all(paths.map(path => fs.readFile(path)));
-  const filesMissingPaths = fileContents
+  const filesMissingLicensePaths = fileContents
     .map((buffer, idx) => ({ buffer, path: paths[idx] }))
     .filter(
       ({ buffer }) =>
@@ -44,9 +45,32 @@ async function doLicenseCommit() {
     );
 
   await Promise.all(
-    filesMissingPaths.map(({ buffer, path }) => {
+    filesMissingLicensePaths.map(({ buffer, path }) => {
       const contents = Buffer.concat([new Buffer(licenseHeader), buffer]);
       return fs.writeFile(path, contents, 'utf8');
+    })
+  );
+
+  // Files with no @license tag.
+  const appendedFileContents = await Promise.all(paths.map(path => fs.readFile(path)));
+  const filesMissingTagPaths = appendedFileContents
+    .map((buffer, idx) => ({ buffer, path: paths[idx] }))
+    .filter(
+      ({ buffer }) =>
+        String(buffer).match(/@license/) == null
+    );
+
+  await Promise.all(
+    filesMissingTagPaths.map(({ buffer, path }) => {
+      const lines = String(buffer).split('\n');
+      let newLines = [];
+      for (const line of lines) {
+        if (line.match(/Copyright \d{4} Google Inc\./)) {
+          newLines.push('* @license')
+        }
+        newLines.push(line);
+      }
+      return fs.writeFile(path, newLines.join('\n'), 'utf8');
     })
   );
 
