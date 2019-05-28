@@ -96,7 +96,7 @@ export function bind(f: Function, ctx: any, ...args: any[]): () => void {
 export function assertThrows(
   f: () => void,
   code: Code
-): FirebaseStorageError | null {
+): FirebaseStorageError {
   let captured: FirebaseStorageError | null = null;
   expect(() => {
     try {
@@ -106,12 +106,14 @@ export function assertThrows(
       throw e;
     }
   }).to.throw();
-  expect(captured).to.be.an.instanceof(FirebaseStorageError);
   // @ts-ignore Compiler does not know callback is invoked immediately and
   // thinks catch block is unreachable. This is an open TS issue:
   // https://github.com/microsoft/TypeScript/issues/11498
+  expect(captured).to.be.an.instanceof(FirebaseStorageError);
+  // @ts-ignore See above.
   expect(captured.code).to.equal(code);
-  return captured as FirebaseStorageError | null;
+  // @ts-ignore See above.
+  return captured as FirebaseStorageError;
 }
 
 export function assertUint8ArrayEquals(arr1: Uint8Array, arr2: Uint8Array) {

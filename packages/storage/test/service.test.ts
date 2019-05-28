@@ -46,19 +46,19 @@ describe('Firebase Storage > Service', () => {
       const error = testShared.assertThrows(() => {
         service.ref('gs://bucket/object');
       }, 'storage/invalid-argument');
-      error && assert.match(error.message, /refFromURL/);
+      assert.match(error.message, /refFromURL/);
     });
     it('Throws calling ref with an http:// URL', () => {
       const error = testShared.assertThrows(() => {
         service.ref(`http://${DEFAULT_HOST}/etc`);
       }, 'storage/invalid-argument');
-      error && assert.match(error.message, /refFromURL/);
+      assert.match(error.message, /refFromURL/);
     });
     it('Throws calling ref with an https:// URL', () => {
       const error = testShared.assertThrows(() => {
         service.ref(`https://${DEFAULT_HOST}/etc`);
       }, 'storage/invalid-argument');
-      error && assert.match(error.message, /refFromURL/);
+      assert.match(error.message, /refFromURL/);
     });
   });
   describe('custom bucket constructor', () => {
