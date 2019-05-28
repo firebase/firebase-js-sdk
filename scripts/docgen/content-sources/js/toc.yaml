@@ -140,6 +140,12 @@ toc:
   - title: "HttpsError"
     path: /docs/reference/js/firebase.functions.HttpsError
 
+- title: "firebase.installations"
+  path: /docs/reference/js/firebase.installations
+  section:
+  - title: "Installations"
+    path: /docs/reference/js/firebase.installations.Installations
+
 - title: "firebase.messaging"
   path: /docs/reference/js/firebase.messaging
   section:

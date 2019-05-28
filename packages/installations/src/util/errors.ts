@@ -43,7 +43,13 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
     "Can't delete installation while there is a pending registration request."
 };
 
-export const ERROR_FACTORY = new ErrorFactory(
+interface ErrorParams {
+  [ErrorCode.REQUEST_FAILED]: {
+    requestName: string;
+  } & ServerErrorData;
+}
+
+export const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(
   SERVICE,
   SERVICE_NAME,
   ERROR_DESCRIPTION_MAP

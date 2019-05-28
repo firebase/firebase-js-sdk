@@ -1,5 +1,9 @@
 
 # Unreleased
+- [changed] Firestore now recovers more quickly after network connectivity
+  changes (airplane mode, Wi-Fi availability, etc.).
+
+# 1.3.0
 - [changed] Deprecated the `experimentalTabSynchronization` setting in favor of 
   `synchronizeTabs`. If you use multi-tab synchronization, it is recommended
   that you update your call to `enablePersistence()`. Firestore logs an error
