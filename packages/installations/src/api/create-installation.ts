@@ -27,7 +27,8 @@ import {
   extractAuthTokenInfoFromResponse,
   getErrorFromResponse,
   getHeaders,
-  getInstallationsEndpoint
+  getInstallationsEndpoint,
+  retryIfServerError
 } from './common';
 
 export async function createInstallation(
@@ -50,7 +51,7 @@ export async function createInstallation(
     body: JSON.stringify(body)
   };
 
-  const response = await fetch(endpoint, request);
+  const response = await retryIfServerError(() => fetch(endpoint, request));
   if (response.ok) {
     const responseValue: CreateInstallationResponse = await response.json();
     const registeredInstallationEntry: RegisteredInstallationEntry = {

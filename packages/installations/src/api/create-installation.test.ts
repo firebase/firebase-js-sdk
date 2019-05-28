@@ -32,6 +32,7 @@ import {
   INTERNAL_AUTH_VERSION,
   PACKAGE_VERSION
 } from '../util/constants';
+import { ErrorResponse } from './common';
 import { createInstallation } from './create-installation';
 
 const FID = 'defenders-of-the-faith';
@@ -40,6 +41,7 @@ describe('createInstallation', () => {
   let appConfig: AppConfig;
   let fetchSpy: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
   let inProgressInstallationEntry: InProgressInstallationEntry;
+  let response: CreateInstallationResponse;
 
   beforeEach(() => {
     appConfig = getFakeAppConfig();
@@ -49,22 +51,21 @@ describe('createInstallation', () => {
       registrationStatus: RequestStatus.IN_PROGRESS,
       registrationTime: Date.now()
     };
+
+    response = {
+      refreshToken: 'refreshToken',
+      authToken: {
+        token:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+        expiresIn: '604800s'
+      }
+    };
+    fetchSpy = stub(self, 'fetch');
   });
 
   describe('successful request', () => {
     beforeEach(() => {
-      const response: CreateInstallationResponse = {
-        refreshToken: 'refreshToken',
-        authToken: {
-          token:
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-          expiresIn: '604800s'
-        }
-      };
-
-      fetchSpy = stub(self, 'fetch').resolves(
-        new Response(JSON.stringify(response))
-      );
+      fetchSpy.resolves(new Response(JSON.stringify(response)));
     });
 
     it('registers a pending InstallationEntry', async () => {
@@ -104,8 +105,8 @@ describe('createInstallation', () => {
   });
 
   describe('failed request', () => {
-    beforeEach(() => {
-      const response = {
+    it('throws a FirebaseError with the error information from the server', async () => {
+      const errorResponse: ErrorResponse = {
         error: {
           code: 409,
           message: 'Requested entity already exists',
@@ -113,15 +114,32 @@ describe('createInstallation', () => {
         }
       };
 
-      fetchSpy = stub(self, 'fetch').resolves(
-        new Response(JSON.stringify(response), { status: 409 })
+      fetchSpy.resolves(
+        new Response(JSON.stringify(errorResponse), { status: 409 })
       );
-    });
 
-    it('throws a FirebaseError with the error information from the server', async () => {
       await expect(
         createInstallation(appConfig, inProgressInstallationEntry)
       ).to.be.rejectedWith(FirebaseError);
+    });
+
+    it('retries once if the server returns a 5xx error', async () => {
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: 500,
+          message: 'Internal server error',
+          status: 'SERVER_ERROR'
+        }
+      };
+
+      fetchSpy
+        .onCall(0)
+        .resolves(new Response(JSON.stringify(errorResponse), { status: 500 }));
+      fetchSpy.onCall(1).resolves(new Response(JSON.stringify(response)));
+
+      await expect(createInstallation(appConfig, inProgressInstallationEntry))
+        .to.be.fulfilled;
+      expect(fetchSpy).to.be.calledTwice;
     });
   });
 });
