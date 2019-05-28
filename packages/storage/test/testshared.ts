@@ -93,10 +93,7 @@ export function bind(f: Function, ctx: any, ...args: any[]): () => void {
   };
 }
 
-export function assertThrows(
-  f: () => void,
-  code: Code
-): FirebaseStorageError {
+export function assertThrows(f: () => void, code: Code): FirebaseStorageError {
   let captured: FirebaseStorageError | null = null;
   expect(() => {
     try {
