@@ -124,4 +124,3 @@ toc:
     path: /docs/reference/node/firebase.firestore.Transaction
   - title: "WriteBatch"
     path: /docs/reference/node/firebase.firestore.WriteBatch
-
