@@ -5455,6 +5455,8 @@ declare namespace firebase.storage {
     /**
      * List items (files) and prefixes (folders) under this storage reference.
      *
+     * List API is only available for Firebase Rules Version 2.
+     *
      * GCS is a key-blob store. Firebase Storage imposes the semantic of '/'
      * delimited folder structure.
      * Refer to GCS's List API if you want to learn more.
