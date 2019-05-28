@@ -259,11 +259,7 @@ export class Reference {
    * "/"s. Firebase Storage List API will filter these unsupported objects.
    * list() may fail if there are too many unsupported objects in the bucket.
    *
-   * @param options.maxResults If set, limits the total number of `prefixes`
-   *      and `items` to return. The default and maximum maxResults is 1000.
-   *      Use the nextPageToken to retrieve more objects.
-   * @param options.pageToken The `nextPageToken` from a previous call to
-   *      list(). If provided, listing is resumed from the previous position.
+   * @param options See ListOptions for details.
    * @return A Promise that resolves with the items and prefixes.
    *      `prefixes` contains references to sub-folders and `items`
    *      contains references to objects in this folder. `nextPageToken`
