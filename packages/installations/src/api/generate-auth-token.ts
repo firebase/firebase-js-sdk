@@ -56,7 +56,7 @@ export async function generateAuthToken(
     );
     return completedAuthToken;
   } else {
-    throw getErrorFromResponse('Generate Auth Token', response);
+    throw await getErrorFromResponse('Generate Auth Token', response);
   }
 }
 

@@ -37,7 +37,7 @@ export async function deleteInstallation(
 
   const response = await fetch(endpoint, request);
   if (!response.ok) {
-    throw getErrorFromResponse('Delete Installation', response);
+    throw await getErrorFromResponse('Delete Installation', response);
   }
 }
 

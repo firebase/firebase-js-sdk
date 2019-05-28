@@ -61,6 +61,6 @@ export async function createInstallation(
     };
     return registeredInstallationEntry;
   } else {
-    throw getErrorFromResponse('Create Installation', response);
+    throw await getErrorFromResponse('Create Installation', response);
   }
 }

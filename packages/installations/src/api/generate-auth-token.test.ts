@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import { GenerateAuthTokenResponse } from '../interfaces/api-response';
@@ -52,49 +53,77 @@ describe('generateAuthToken', () => {
         requestStatus: RequestStatus.NOT_STARTED
       }
     };
-
-    const response: GenerateAuthTokenResponse = {
-      token:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-      expiresIn: '604800s'
-    };
-
-    fetchSpy = stub(self, 'fetch').resolves(
-      new Response(JSON.stringify(response))
-    );
   });
 
-  it('fetches a new Authentication Token', async () => {
-    const completedAuthToken: CompletedAuthToken = await generateAuthToken(
-      appConfig,
-      registeredInstallationEntry
-    );
-    expect(completedAuthToken.requestStatus).to.equal(RequestStatus.COMPLETED);
-  });
+  describe('successful request', () => {
+    beforeEach(() => {
+      const response: GenerateAuthTokenResponse = {
+        token:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+        expiresIn: '604800s'
+      };
 
-  it('calls the generateAuthToken server API with correct parameters', async () => {
-    const expectedHeaders = new Headers({
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      Authorization: `${INTERNAL_AUTH_VERSION} refreshToken`,
-      'x-goog-api-key': 'apiKey'
+      fetchSpy = stub(self, 'fetch').resolves(
+        new Response(JSON.stringify(response))
+      );
     });
-    const expectedBody = {
-      installation: {
-        sdkVersion: PACKAGE_VERSION
-      }
-    };
-    const expectedRequest: RequestInit = {
-      method: 'POST',
-      headers: expectedHeaders,
-      body: JSON.stringify(expectedBody)
-    };
-    const expectedEndpoint = `${INSTALLATIONS_API_URL}/projects/projectId/installations/${FID}/authTokens:generate`;
 
-    await generateAuthToken(appConfig, registeredInstallationEntry);
+    it('fetches a new Authentication Token', async () => {
+      const completedAuthToken: CompletedAuthToken = await generateAuthToken(
+        appConfig,
+        registeredInstallationEntry
+      );
+      expect(completedAuthToken.requestStatus).to.equal(
+        RequestStatus.COMPLETED
+      );
+    });
 
-    expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
-    const actualHeaders = fetchSpy.lastCall.lastArg.headers;
-    compareHeaders(expectedHeaders, actualHeaders);
+    it('calls the generateAuthToken server API with correct parameters', async () => {
+      const expectedHeaders = new Headers({
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `${INTERNAL_AUTH_VERSION} refreshToken`,
+        'x-goog-api-key': 'apiKey'
+      });
+      const expectedBody = {
+        installation: {
+          sdkVersion: PACKAGE_VERSION
+        }
+      };
+      const expectedRequest: RequestInit = {
+        method: 'POST',
+        headers: expectedHeaders,
+        body: JSON.stringify(expectedBody)
+      };
+      const expectedEndpoint = `${INSTALLATIONS_API_URL}/projects/projectId/installations/${FID}/authTokens:generate`;
+
+      await generateAuthToken(appConfig, registeredInstallationEntry);
+
+      expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
+      const actualHeaders = fetchSpy.lastCall.lastArg.headers;
+      compareHeaders(expectedHeaders, actualHeaders);
+    });
+  });
+
+  describe('failed request', () => {
+    beforeEach(() => {
+      const response = {
+        error: {
+          code: 409,
+          message: 'Requested entity already exists',
+          status: 'ALREADY_EXISTS'
+        }
+      };
+
+      fetchSpy = stub(self, 'fetch').resolves(
+        new Response(JSON.stringify(response), { status: 409 })
+      );
+    });
+
+    it('throws a FirebaseError with the error information from the server', async () => {
+      await expect(
+        generateAuthToken(appConfig, registeredInstallationEntry)
+      ).to.be.rejectedWith(FirebaseError);
+    });
   });
 });
