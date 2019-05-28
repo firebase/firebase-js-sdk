@@ -5484,6 +5484,85 @@ declare namespace firebase.storage {
      *     including if the object did not exist.
      */
     updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
+    /**
+     * List all items (files) and prefixes (folders) under this storage reference.
+     *
+     * This is a helper method for calling list() repeatedly until there are
+     * no more results. The default pagination size is 1000.
+     *
+     * Note: The results may not be consistent if objects are changed while this
+     * operation is running.
+     *
+     * Warning: listAll may potentially consume too many resources if there are
+     * too many results.
+     *
+     * @return A Promise that resolves with all the items and prefixes under
+     *      the current storage reference. `prefixes` contains references to
+     *      sub-directories and `items` contains references to objects in this
+     *      folder. `nextPageToken` is never returned.
+     */
+    listAll(): Promise<ListResult>;
+    /**
+     * List items (files) and prefixes (folders) under this storage reference.
+     *
+     * List API is only available for Firebase Rules Version 2.
+     *
+     * GCS is a key-blob store. Firebase Storage imposes the semantic of '/'
+     * delimited folder structure.
+     * Refer to GCS's List API if you want to learn more.
+     *
+     * To adhere to Firebase Rules's Semantics, Firebase Storage does not
+     * support objects whose paths end with "/" or contain two consecutive
+     * "/"s. Firebase Storage List API will filter these unsupported objects.
+     * list() may fail if there are too many unsupported objects in the bucket.
+     *
+     * @param options See ListOptions for details.
+     * @return A Promise that resolves with the items and prefixes.
+     *      `prefixes` contains references to sub-folders and `items`
+     *      contains references to objects in this folder. `nextPageToken`
+     *      can be used to get the rest of the results.
+     */
+    list(options?: ListOptions): Promise<ListResult>;
+  }
+
+  /**
+   * Result returned by list().
+   */
+  interface ListResult {
+    /**
+     * References to prefixes (sub-folders). You can call list() on them to
+     * get its contents.
+     *
+     * Folders are implicit based on '/' in the object paths.
+     * For example, if a bucket has two objects '/a/b/1' and '/a/b/2', list('/a')
+     * will return '/a/b' as a prefix.
+     */
+    prefixes: Reference[];
+    /**
+     * Objects in this directory.
+     * You can call getMetadate() and getDownloadUrl() on them.
+     */
+    items: Reference[];
+    /**
+     * If set, there might be more results for this list. Use this token to resume the list.
+     */
+    nextPageToken: string | null;
+  }
+
+  /**
+   * The options list() accepts.
+   */
+  interface ListOptions {
+    /**
+     * If set, limits the total number of `prefixes` and `items` to return.
+     * The default and maximum maxResults is 1000.
+     */
+    maxResults?: number | null;
+    /**
+     * The `nextPageToken` from a previous call to list(). If provided,
+     * listing is resumed from the previous position.
+     */
+    pageToken?: string | null;
   }
 
   /**

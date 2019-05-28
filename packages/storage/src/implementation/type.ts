@@ -46,6 +46,10 @@ export function isString(p: any): boolean {
   return typeof p === 'string' || p instanceof String;
 }
 
+export function isInteger(p: any): boolean {
+  return isNumber(p) && Number.isInteger(p);
+}
+
 export function isNumber(p: any): boolean {
   return typeof p === 'number' || p instanceof Number;
 }

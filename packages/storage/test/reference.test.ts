@@ -35,6 +35,7 @@ function makeStorage(url: string) {
   function maker(wrapper, loc) {
     return ({} as any) as Reference;
   }
+
   const authWrapper = new AuthWrapper(
     null,
     maker,
@@ -396,6 +397,66 @@ describe('Firebase Storage > Reference', () => {
       });
     });
 
+    describe('listAll', () => {
+      it('throws on number arg', () => {
+        testShared.assertThrows(
+          testShared.bind(child.listAll, child, 1),
+          'storage/invalid-argument-count'
+        );
+      });
+    });
+
+    describe('list', () => {
+      it('throws on invalid option', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, 'invalid-option'),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on number arg', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, 1, 2),
+          'storage/invalid-argument-count'
+        );
+      });
+      it('throws on non-string pageToken', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { pageToken: { x: 1 } }),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on non-int maxResults', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: '4' }),
+          'storage/invalid-argument'
+        );
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: 1.2 }),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on invalid maxResults', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: 0 }),
+          'storage/invalid-argument'
+        );
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: -4 }),
+          'storage/invalid-argument'
+        );
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: 1001 }),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on unkonw option', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { unknown: 'ok' }),
+          'storage/invalid-argument'
+        );
+      });
+    });
+
     describe('updateMetadata', () => {
       it('throws on no args', () => {
         testShared.assertThrows(
@@ -456,6 +517,28 @@ describe('Firebase Storage > Reference', () => {
         child.getMetadata();
       });
     });
+    it("listAll doesn't throw", () => {
+      assert.doesNotThrow(() => {
+        child.listAll();
+      });
+    });
+    it("list doesn't throw", () => {
+      assert.doesNotThrow(() => {
+        child.list();
+      });
+      assert.doesNotThrow(() => {
+        child.list({ pageToken: 'xxx', maxResults: 4 });
+      });
+      assert.doesNotThrow(() => {
+        child.list({ pageToken: 'xxx' });
+      });
+      assert.doesNotThrow(() => {
+        child.list({ maxResults: 4 });
+      });
+      assert.doesNotThrow(() => {
+        child.list({ maxResults: 4, pageToken: null });
+      });
+    });
     it("updateMetadata doesn't throw", () => {
       assert.doesNotThrow(() => {
         child.updateMetadata({} as Metadata);
@@ -492,6 +575,19 @@ describe('Firebase Storage > Reference', () => {
         root.getMetadata.bind(root),
         'storage/invalid-root-operation'
       );
+    });
+    it("listAll doesn't throw", () => {
+      assert.doesNotThrow(() => {
+        root.listAll();
+      });
+    });
+    it("list doesn't throw", () => {
+      assert.doesNotThrow(() => {
+        root.list();
+      });
+      assert.doesNotThrow(() => {
+        root.list({ pageToken: 'xxx', maxResults: 4 });
+      });
     });
     it('updateMetadata throws', () => {
       testShared.assertThrows(
