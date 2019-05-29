@@ -229,18 +229,18 @@ describe('getToken', () => {
 
         it('saves the token in the DB', async () => {
           const token = await getToken(app);
-          const installationEntry = await get<RegisteredInstallationEntry>(
+          const installationEntry = (await get(
             appConfig
-          );
+          )) as RegisteredInstallationEntry;
           expect(installationEntry).not.to.be.undefined;
-          expect(installationEntry!.registrationStatus).to.equal(
+          expect(installationEntry.registrationStatus).to.equal(
             RequestStatus.COMPLETED
           );
-          expect(installationEntry!.authToken.requestStatus).to.equal(
+          expect(installationEntry.authToken.requestStatus).to.equal(
             RequestStatus.COMPLETED
           );
           expect(
-            (installationEntry!.authToken as CompletedAuthToken).token
+            (installationEntry.authToken as CompletedAuthToken).token
           ).to.equal(token);
         });
 
