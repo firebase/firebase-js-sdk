@@ -157,7 +157,15 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
     'The public VAPID key did not equal 65 bytes when decrypted.'
 };
 
-export const errorFactory = new ErrorFactory(
+interface ErrorParams {
+  [ErrorCode.FAILED_DEFAULT_REGISTRATION]: { browserErrorMessage: string };
+  [ErrorCode.TOKEN_SUBSCRIBE_FAILED]: { errorInfo: string };
+  [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]: { errorInfo: string };
+  [ErrorCode.TOKEN_UPDATE_FAILED]: { errorInfo: string };
+  [ErrorCode.UNABLE_TO_RESUBSCRIBE]: { errorInfo: string };
+}
+
+export const errorFactory = new ErrorFactory<ErrorCode, ErrorParams>(
   'messaging',
   'Messaging',
   ERROR_MAP

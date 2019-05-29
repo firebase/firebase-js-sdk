@@ -6,7 +6,7 @@
     "test": "karma start --single-run"
   },
   "dependencies": {
-    "firebase": "6.0.2"
+    "firebase": "6.0.4"
   },
   "devDependencies": {
     "@babel/core": "7.4.4",

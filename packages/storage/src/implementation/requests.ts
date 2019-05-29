@@ -20,6 +20,7 @@
  */
 
 import { Metadata } from '../metadata';
+import { ListResult } from '../list';
 
 import * as array from './array';
 import { AuthWrapper } from './authwrapper';
@@ -28,6 +29,7 @@ import * as errorsExports from './error';
 import { FirebaseStorageError } from './error';
 import { Location } from './location';
 import * as MetadataUtils from './metadata';
+import * as ListResultUtils from './list';
 import * as object from './object';
 import { RequestInfo, UrlParams } from './requestinfo';
 import * as type from './type';
@@ -55,6 +57,17 @@ export function metadataHandler(
     );
     handlerCheck(metadata !== null);
     return metadata as Metadata;
+  }
+  return handler;
+}
+
+export function listHandler(
+  authWrapper: AuthWrapper
+): (p1: XhrIo, p2: string) => ListResult {
+  function handler(xhr: XhrIo, text: string): ListResult {
+    const listResult = ListResultUtils.fromResponseString(authWrapper, text);
+    handlerCheck(listResult !== null);
+    return listResult as ListResult;
   }
   return handler;
 }
@@ -140,6 +153,43 @@ export function getMetadata(
     timeout
   );
   requestInfo.errorHandler = objectErrorHandler(location);
+  return requestInfo;
+}
+
+export function list(
+  authWrapper: AuthWrapper,
+  location: Location,
+  delimiter?: string,
+  pageToken?: string,
+  maxResults?: number
+): RequestInfo<ListResult> {
+  let urlParams = {};
+  if (location.isRoot) {
+    urlParams['prefix'] = '';
+  } else {
+    urlParams['prefix'] = location.path + '/';
+  }
+  if (delimiter && delimiter.length > 0) {
+    urlParams['delimiter'] = delimiter;
+  }
+  if (pageToken) {
+    urlParams['pageToken'] = pageToken;
+  }
+  if (maxResults) {
+    urlParams['maxResults'] = maxResults;
+  }
+  const urlPart = location.bucketOnlyServerUrl();
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'GET';
+  const timeout = authWrapper.maxOperationRetryTime();
+  const requestInfo = new RequestInfo(
+    url,
+    method,
+    listHandler(authWrapper),
+    timeout
+  );
+  requestInfo.urlParams = urlParams;
+  requestInfo.errorHandler = sharedErrorHandler(location);
   return requestInfo;
 }
 

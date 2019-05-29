@@ -26,7 +26,7 @@ import {
   FirebaseService
 } from '@firebase/app-types/private';
 import { deepCopy, deepExtend } from '@firebase/util';
-import { error, AppError } from '../errors';
+import { ERROR_FACTORY, AppError } from '../errors';
 import { DEFAULT_ENTRY_NAME } from '../constants';
 
 interface ServicesCache {
@@ -168,7 +168,7 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
    */
   private checkDestroyed_(): void {
     if (this.isDeleted_) {
-      error(AppError.APP_DELETED, { name: this.name_ });
+      throw ERROR_FACTORY.create(AppError.APP_DELETED, { name: this.name_ });
     }
   }
 }

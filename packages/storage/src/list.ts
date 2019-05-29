@@ -14,27 +14,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Reference } from './reference';
 
-import { FirebaseApp } from '@firebase/app-types';
+/**
+ * @fileoverview Documentation for ListOptions and ListResult format.
+ */
+export type ListOptions = {
+  maxResults?: number | null;
+  pageToken?: string | null;
+};
 
-export interface FirebaseInstallations {
-  /**
-   * Creates a Firebase Installation if there isn't one for the app and
-   * returns the Installation ID.
-   *
-   * @return Firebase Installation ID
-   */
-  getId(): Promise<string>;
-
-  /**
-   * Returns an Authentication Token for the current Firebase Installation.
-   *
-   * @return Firebase Installation Authentication Token
-   */
-  getToken(): Promise<string>;
-
-  /**
-   * Deletes the Firebase Installation and all associated data.
-   */
-  delete(): Promise<void>;
-}
+export type ListResult = {
+  prefixes: Reference[];
+  items: Reference[];
+  nextPageToken?: string | null;
+};

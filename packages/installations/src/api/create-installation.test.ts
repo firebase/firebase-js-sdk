@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import { CreateInstallationResponse } from '../interfaces/api-response';
@@ -35,7 +36,7 @@ import { createInstallation } from './create-installation';
 
 const FID = 'defenders-of-the-faith';
 
-describe('api', () => {
+describe('createInstallation', () => {
   let appConfig: AppConfig;
   let fetchSpy: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
   let inProgressInstallationEntry: InProgressInstallationEntry;
@@ -48,53 +49,79 @@ describe('api', () => {
       registrationStatus: RequestStatus.IN_PROGRESS,
       registrationTime: Date.now()
     };
-
-    const response: CreateInstallationResponse = {
-      refreshToken: 'refreshToken',
-      authToken: {
-        token:
-          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
-        expiresIn: '604800s'
-      }
-    };
-
-    fetchSpy = stub(self, 'fetch').resolves(
-      new Response(JSON.stringify(response))
-    );
   });
 
-  it('registers a pending InstallationEntry', async () => {
-    const registeredInstallationEntry = await createInstallation(
-      appConfig,
-      inProgressInstallationEntry
-    );
-    expect(registeredInstallationEntry.registrationStatus).to.equal(
-      RequestStatus.COMPLETED
-    );
-  });
+  describe('successful request', () => {
+    beforeEach(() => {
+      const response: CreateInstallationResponse = {
+        refreshToken: 'refreshToken',
+        authToken: {
+          token:
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+          expiresIn: '604800s'
+        }
+      };
 
-  it('calls the createInstallation server API with correct parameters', async () => {
-    const expectedHeaders = new Headers({
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      'x-goog-api-key': 'apiKey'
+      fetchSpy = stub(self, 'fetch').resolves(
+        new Response(JSON.stringify(response))
+      );
     });
-    const expectedBody = {
-      fid: FID,
-      authVersion: INTERNAL_AUTH_VERSION,
-      appId: appConfig.appId,
-      sdkVersion: PACKAGE_VERSION
-    };
-    const expectedRequest: RequestInit = {
-      method: 'POST',
-      headers: expectedHeaders,
-      body: JSON.stringify(expectedBody)
-    };
-    const expectedEndpoint = `${INSTALLATIONS_API_URL}/projects/projectId/installations`;
 
-    await createInstallation(appConfig, inProgressInstallationEntry);
-    expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
-    const actualHeaders = fetchSpy.lastCall.lastArg.headers;
-    compareHeaders(expectedHeaders, actualHeaders);
+    it('registers a pending InstallationEntry', async () => {
+      const registeredInstallationEntry = await createInstallation(
+        appConfig,
+        inProgressInstallationEntry
+      );
+      expect(registeredInstallationEntry.registrationStatus).to.equal(
+        RequestStatus.COMPLETED
+      );
+    });
+
+    it('calls the createInstallation server API with correct parameters', async () => {
+      const expectedHeaders = new Headers({
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        'x-goog-api-key': 'apiKey'
+      });
+      const expectedBody = {
+        fid: FID,
+        authVersion: INTERNAL_AUTH_VERSION,
+        appId: appConfig.appId,
+        sdkVersion: PACKAGE_VERSION
+      };
+      const expectedRequest: RequestInit = {
+        method: 'POST',
+        headers: expectedHeaders,
+        body: JSON.stringify(expectedBody)
+      };
+      const expectedEndpoint = `${INSTALLATIONS_API_URL}/projects/projectId/installations`;
+
+      await createInstallation(appConfig, inProgressInstallationEntry);
+      expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
+      const actualHeaders = fetchSpy.lastCall.lastArg.headers;
+      compareHeaders(expectedHeaders, actualHeaders);
+    });
+  });
+
+  describe('failed request', () => {
+    beforeEach(() => {
+      const response = {
+        error: {
+          code: 409,
+          message: 'Requested entity already exists',
+          status: 'ALREADY_EXISTS'
+        }
+      };
+
+      fetchSpy = stub(self, 'fetch').resolves(
+        new Response(JSON.stringify(response), { status: 409 })
+      );
+    });
+
+    it('throws a FirebaseError with the error information from the server', async () => {
+      await expect(
+        createInstallation(appConfig, inProgressInstallationEntry)
+      ).to.be.rejectedWith(FirebaseError);
+    });
   });
 });

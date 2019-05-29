@@ -417,6 +417,8 @@ export class FirestoreClient {
             this.localStore
           );
         }
+
+        const connectivityMonitor = this.platform.newConnectivityMonitor();
         const serializer = this.platform.newSerializer(
           this.databaseInfo.databaseId
         );
@@ -442,7 +444,8 @@ export class FirestoreClient {
           this.localStore,
           datastore,
           this.asyncQueue,
-          remoteStoreOnlineStateChangedHandler
+          remoteStoreOnlineStateChangedHandler,
+          connectivityMonitor
         );
 
         this.syncEngine = new SyncEngine(

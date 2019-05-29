@@ -453,11 +453,13 @@ abstract class TestRunner {
         OnlineStateSource.SharedClientState
       );
     };
+    const connectivityMonitor = this.platform.newConnectivityMonitor();
     this.remoteStore = new RemoteStore(
       this.localStore,
       this.datastore,
       this.queue,
-      remoteStoreOnlineStateChangedHandler
+      remoteStoreOnlineStateChangedHandler,
+      connectivityMonitor
     );
     this.syncEngine = new SyncEngine(
       this.localStore,

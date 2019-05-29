@@ -19,7 +19,10 @@ import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
+import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 
+import { NoopConnectivityMonitor } from '../remote/connectivity_monitor_noop';
+import { BrowserConnectivityMonitor } from './browser_connectivity_monitor';
 import { WebChannelConnection } from './webchannel_connection';
 
 export class BrowserPlatform implements Platform {
@@ -41,6 +44,14 @@ export class BrowserPlatform implements Platform {
 
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
     return Promise.resolve(new WebChannelConnection(databaseInfo));
+  }
+
+  newConnectivityMonitor(): ConnectivityMonitor {
+    if (this.window) {
+      return new BrowserConnectivityMonitor();
+    } else {
+      return new NoopConnectivityMonitor();
+    }
   }
 
   newSerializer(databaseId: DatabaseId): JsonProtoSerializer {

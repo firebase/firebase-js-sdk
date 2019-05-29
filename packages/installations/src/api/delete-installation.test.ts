@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { FirebaseError } from '@firebase/util';
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import { AppConfig } from '../interfaces/app-config';
@@ -49,27 +50,53 @@ describe('deleteInstallation', () => {
         requestStatus: RequestStatus.NOT_STARTED
       }
     };
-
-    fetchSpy = stub(self, 'fetch').resolves(new Response());
   });
 
-  it('calls the deleteInstallation server API with correct parameters', async () => {
-    const expectedHeaders = new Headers({
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      Authorization: `${INTERNAL_AUTH_VERSION} refreshToken`,
-      'x-goog-api-key': 'apiKey'
+  describe('successful request', () => {
+    beforeEach(() => {
+      fetchSpy = stub(self, 'fetch').resolves(new Response());
     });
-    const expectedRequest: RequestInit = {
-      method: 'DELETE',
-      headers: expectedHeaders
-    };
-    const expectedEndpoint = `${INSTALLATIONS_API_URL}/projects/projectId/installations/${FID}`;
 
-    await deleteInstallation(appConfig, registeredInstallationEntry);
+    it('calls the deleteInstallation server API with correct parameters', async () => {
+      const expectedHeaders = new Headers({
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+        Authorization: `${INTERNAL_AUTH_VERSION} refreshToken`,
+        'x-goog-api-key': 'apiKey'
+      });
+      const expectedRequest: RequestInit = {
+        method: 'DELETE',
+        headers: expectedHeaders
+      };
+      const expectedEndpoint = `${INSTALLATIONS_API_URL}/projects/projectId/installations/${FID}`;
 
-    expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
-    const actualHeaders = fetchSpy.lastCall.lastArg.headers;
-    compareHeaders(expectedHeaders, actualHeaders);
+      await deleteInstallation(appConfig, registeredInstallationEntry);
+
+      expect(fetchSpy).to.be.calledOnceWith(expectedEndpoint, expectedRequest);
+      const actualHeaders = fetchSpy.lastCall.lastArg.headers;
+      compareHeaders(expectedHeaders, actualHeaders);
+    });
+  });
+
+  describe('failed request', () => {
+    beforeEach(() => {
+      const response = {
+        error: {
+          code: 409,
+          message: 'Requested entity already exists',
+          status: 'ALREADY_EXISTS'
+        }
+      };
+
+      fetchSpy = stub(self, 'fetch').resolves(
+        new Response(JSON.stringify(response), { status: 409 })
+      );
+    });
+
+    it('throws a FirebaseError with the error information from the server', async () => {
+      await expect(
+        deleteInstallation(appConfig, registeredInstallationEntry)
+      ).to.be.rejectedWith(FirebaseError);
+    });
   });
 });
