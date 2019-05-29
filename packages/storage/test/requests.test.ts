@@ -31,7 +31,8 @@ import { Metadata } from '../src/metadata';
 import { Reference } from '../src/reference';
 import { Service } from '../src/service';
 import { assertObjectIncludes, fakeXhrIo } from './testshared';
-import { DEFAULT_HOST } from '../src/implementation/constants';
+import { DEFAULT_HOST, CONFIG_STORAGE_BUCKET_KEY } from '../src/implementation/constants';
+import { FirebaseApp } from '@firebase/app-types';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
@@ -48,8 +49,17 @@ describe('Firebase Storage > Requests', () => {
 
   const mappings = MetadataUtils.getMappings();
 
+  const mockApp: FirebaseApp = {
+    name: 'mock-app',
+    options: {
+      [CONFIG_STORAGE_BUCKET_KEY]: 'fredzqm-staging'
+    },
+    automaticDataCollectionEnabled: false,
+    delete: () => Promise.resolve()
+  };
+
   const authWrapper = new AuthWrapper(
-    null,
+    mockApp,
     function(authWrapper, loc) {
       return new Reference(authWrapper, loc);
     },
