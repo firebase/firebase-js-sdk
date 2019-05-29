@@ -160,8 +160,8 @@ export function list(
   authWrapper: AuthWrapper,
   location: Location,
   delimiter?: string,
-  pageToken?: string,
-  maxResults?: number
+  pageToken?: string | null,
+  maxResults?: number | null
 ): RequestInfo<ListResult> {
   let urlParams = {};
   if (location.isRoot) {
