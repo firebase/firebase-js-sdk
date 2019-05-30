@@ -35,7 +35,7 @@ export interface User extends UserInfo {
   linkWithPopup(provider: AuthProvider): Promise<UserCredential>;
   linkWithRedirect(provider: AuthProvider): Promise<void>;
   metadata: UserMetadata;
-  multiFactor: User.MultiFactor;
+  multiFactor: MultiFactor;
   phoneNumber: string | null;
   providerData: (UserInfo | null)[];
   reauthenticateAndRetrieveDataWithCredential(
@@ -79,16 +79,14 @@ export interface UserInfo {
   uid: string;
 }
 
-declare namespace User {
-  export interface MultiFactor {
-    enrolledFactors: Array<MultiFactorInfo>;
-    enroll(
-      assertion: MultiFactorAssertion,
-      displayName?: string | null
-    ): Promise<void>;
-    getSession(): Promise<MultiFactorSession>;
-    unenroll(option: MultiFactorInfo | string): Promise<void>;
-  }
+export interface MultiFactor {
+  enrolledFactors: MultiFactorInfo[];
+  enroll(
+    assertion: MultiFactorAssertion,
+    displayName?: string | null
+  ): Promise<void>;
+  getSession(): Promise<MultiFactorSession>;
+  unenroll(option: MultiFactorInfo | string): Promise<void>;
 }
 
 export interface ActionCodeInfo {
@@ -155,15 +153,11 @@ export interface Error {
   message: string;
 }
 
-export class AuthError implements Error {
-  private constructor();
-  code: string;
-  message: string;
+export interface AuthError extends Error {
   credential?: AuthCredential;
 }
 
-export class MultiFactorError extends AuthError {
-  private constructor();
+export interface MultiFactorError extends AuthError {
   resolver: MultiFactorResolver;
 }
 
@@ -319,8 +313,7 @@ export class MultiFactorSession {
   private constructor();
 }
 
-export class MultiFactorAssertion {
-  private constructor();
+export abstract class MultiFactorAssertion {
   factorId: string;
 }
 
@@ -328,7 +321,7 @@ export class MultiFactorResolver {
   private constructor();
   auth: FirebaseAuth;
   session: MultiFactorSession;
-  hints: Array<MultiFactorInfo>;
+  hints: MultiFactorInfo[];
   resolveSignIn(assertion: MultiFactorAssertion): Promise<UserCredential>;
 }
 
