@@ -93,7 +93,7 @@ export async function retryIfServerError(
 ): Promise<Response> {
   const result = await fn();
 
-  if (String(result.status)[0] === '5') {
+  if (result.status >= 500 && result.status < 600) {
     // Internal Server Error. Retry request.
     return fn();
   }
