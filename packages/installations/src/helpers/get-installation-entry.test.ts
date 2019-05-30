@@ -21,7 +21,6 @@ import * as createInstallationModule from '../api/create-installation';
 import { AppConfig } from '../interfaces/app-config';
 import {
   InProgressInstallationEntry,
-  InstallationEntry,
   RegisteredInstallationEntry,
   RequestStatus,
   UnregisteredInstallationEntry
@@ -70,24 +69,24 @@ describe('getInstallationEntry', () => {
   });
 
   it('saves the InstallationEntry in the database before returning it', async () => {
-    const oldDbEntry = await get<InstallationEntry>(appConfig);
+    const oldDbEntry = await get(appConfig);
     expect(oldDbEntry).to.be.undefined;
 
     const { installationEntry } = await getInstallationEntry(appConfig);
 
-    const newDbEntry = await get<InstallationEntry>(appConfig);
+    const newDbEntry = await get(appConfig);
     expect(newDbEntry).to.deep.equal(installationEntry);
   });
 
   it('saves the InstallationEntry in the database if app is offline', async () => {
     stub(navigator, 'onLine').value(false);
 
-    const oldDbEntry = await get<InstallationEntry>(appConfig);
+    const oldDbEntry = await get(appConfig);
     expect(oldDbEntry).to.be.undefined;
 
     const { installationEntry } = await getInstallationEntry(appConfig);
 
-    const newDbEntry = await get<InstallationEntry>(appConfig);
+    const newDbEntry = await get(appConfig);
     expect(newDbEntry).to.deep.equal(installationEntry);
   });
 
@@ -101,16 +100,14 @@ describe('getInstallationEntry', () => {
     );
     expect(registrationPromise).to.be.an.instanceOf(Promise);
 
-    const oldDbEntry = await get<InstallationEntry>(appConfig);
+    const oldDbEntry = await get(appConfig);
     expect(oldDbEntry).to.deep.equal(installationEntry);
 
     clock.next(); // Finish registration request.
     await expect(registrationPromise).to.be.fulfilled;
 
-    const newDbEntry = await get<InstallationEntry>(appConfig);
-    expect(newDbEntry!.registrationStatus).to.deep.equal(
-      RequestStatus.COMPLETED
-    );
+    const newDbEntry = (await get(appConfig)) as RegisteredInstallationEntry;
+    expect(newDbEntry.registrationStatus).to.equal(RequestStatus.COMPLETED);
   });
 
   it('saves the InstallationEntry in the database when registration fails', async () => {
@@ -133,16 +130,14 @@ describe('getInstallationEntry', () => {
     );
     expect(registrationPromise).to.be.an.instanceOf(Promise);
 
-    const oldDbEntry = await get<InstallationEntry>(appConfig);
+    const oldDbEntry = await get(appConfig);
     expect(oldDbEntry).to.deep.equal(installationEntry);
 
     clock.next(); // Finish registration request.
     await expect(registrationPromise).to.be.rejected;
 
-    const newDbEntry = await get<InstallationEntry>(appConfig);
-    expect(newDbEntry!.registrationStatus).to.deep.equal(
-      RequestStatus.NOT_STARTED
-    );
+    const newDbEntry = (await get(appConfig)) as UnregisteredInstallationEntry;
+    expect(newDbEntry.registrationStatus).to.equal(RequestStatus.NOT_STARTED);
   });
 
   it('removes the InstallationEntry from the database when registration fails with 409', async () => {
@@ -164,13 +159,13 @@ describe('getInstallationEntry', () => {
       RequestStatus.IN_PROGRESS
     );
 
-    const oldDbEntry = await get<InstallationEntry>(appConfig);
+    const oldDbEntry = await get(appConfig);
     expect(oldDbEntry).to.deep.equal(installationEntry);
 
     clock.next(); // Finish registration request.
     await expect(registrationPromise).to.be.rejected;
 
-    const newDbEntry = await get<InstallationEntry>(appConfig);
+    const newDbEntry = await get(appConfig);
     expect(newDbEntry).to.be.undefined;
   });
 

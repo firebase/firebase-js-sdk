@@ -38,9 +38,7 @@ const dbPromise: Promise<DB> = openDb(
 );
 
 /** Gets record(s) from the objectStore that match the given key. */
-export async function get<ReturnType>(
-  appConfig: AppConfig
-): Promise<ReturnType | undefined> {
+export async function get(appConfig: AppConfig): Promise<unknown> {
   const key = getKey(appConfig);
   const db = await dbPromise;
   return db
