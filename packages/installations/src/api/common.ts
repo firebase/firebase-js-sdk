@@ -48,7 +48,7 @@ export async function getErrorFromResponse(
   requestName: string,
   response: Response
 ): Promise<FirebaseError> {
-  const responseJson = await response.json();
+  const responseJson: ErrorResponse = await response.json();
   const errorData = responseJson.error;
   return ERROR_FACTORY.create(ErrorCode.REQUEST_FAILED, {
     requestName,
@@ -75,10 +75,30 @@ export function getHeadersWithAuth(
   return headers;
 }
 
-export interface ErrorData {
-  code: number;
-  message: string;
-  status: string;
+export interface ErrorResponse {
+  error: {
+    code: number;
+    message: string;
+    status: string;
+  };
+}
+
+/**
+ * Calls the passed in fetch wrapper and returns the response.
+ * If the returned response has a status of 5xx, re-runs the function once and
+ * returns the response.
+ */
+export async function retryIfServerError(
+  fn: () => Promise<Response>
+): Promise<Response> {
+  const result = await fn();
+
+  if (result.status >= 500 && result.status < 600) {
+    // Internal Server Error. Retry request.
+    return fn();
+  }
+
+  return result;
 }
 
 function getExpiresInFromResponseExpiresIn(responseExpiresIn: string): number {

@@ -33,26 +33,26 @@ describe('idb manager', () => {
   describe('get / set', () => {
     it('sets a value and then gets the same value back', async () => {
       await set(appConfig1, 'value');
-      const value = await get<string>(appConfig1);
+      const value = await get(appConfig1);
       expect(value).to.equal('value');
     });
 
     it('gets undefined for a key that does not exist', async () => {
-      const value = await get<string>(appConfig1);
+      const value = await get(appConfig1);
       expect(value).to.be.undefined;
     });
 
     it('sets and gets multiple values with different keys', async () => {
       await set(appConfig1, 'value');
       await set(appConfig2, 'value2');
-      expect(await get<string>(appConfig1)).to.equal('value');
-      expect(await get<string>(appConfig2)).to.equal('value2');
+      expect(await get(appConfig1)).to.equal('value');
+      expect(await get(appConfig2)).to.equal('value2');
     });
 
     it('overwrites a value', async () => {
       await set(appConfig1, 'value');
       await set(appConfig1, 'newValue');
-      expect(await get<string>(appConfig1)).to.equal('newValue');
+      expect(await get(appConfig1)).to.equal('newValue');
     });
   });
 
@@ -60,12 +60,12 @@ describe('idb manager', () => {
     it('deletes a key', async () => {
       await set(appConfig1, 'value');
       await remove(appConfig1);
-      expect(await get<string>(appConfig1)).to.be.undefined;
+      expect(await get(appConfig1)).to.be.undefined;
     });
 
     it('does not throw if key does not exist', async () => {
       await remove(appConfig1);
-      expect(await get<string>(appConfig1)).to.be.undefined;
+      expect(await get(appConfig1)).to.be.undefined;
     });
   });
 
@@ -96,7 +96,7 @@ describe('idb manager', () => {
       });
 
       // Called immediately after update, but before update completed.
-      const getPromise = get<string>(appConfig1);
+      const getPromise = get(appConfig1);
       isGetCalled = true;
 
       // Update returns the new value
@@ -122,7 +122,7 @@ describe('idb manager', () => {
       });
 
       // Called immediately after update, but before update completed.
-      const getPromise = get<number>(appConfig1);
+      const getPromise = get(appConfig1);
       isGetCalled = true;
 
       // Update returns the new value

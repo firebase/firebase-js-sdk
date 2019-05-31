@@ -30,6 +30,7 @@ import {
   INSTALLATIONS_API_URL,
   INTERNAL_AUTH_VERSION
 } from '../util/constants';
+import { ErrorResponse } from './common';
 import { deleteInstallation } from './delete-installation';
 
 const FID = 'defenders-of-the-faith';
@@ -50,11 +51,13 @@ describe('deleteInstallation', () => {
         requestStatus: RequestStatus.NOT_STARTED
       }
     };
+
+    fetchSpy = stub(self, 'fetch');
   });
 
   describe('successful request', () => {
     beforeEach(() => {
-      fetchSpy = stub(self, 'fetch').resolves(new Response());
+      fetchSpy.resolves(new Response());
     });
 
     it('calls the deleteInstallation server API with correct parameters', async () => {
@@ -79,8 +82,8 @@ describe('deleteInstallation', () => {
   });
 
   describe('failed request', () => {
-    beforeEach(() => {
-      const response = {
+    it('throws a FirebaseError with the error information from the server', async () => {
+      const errorResponse: ErrorResponse = {
         error: {
           code: 409,
           message: 'Requested entity already exists',
@@ -88,15 +91,32 @@ describe('deleteInstallation', () => {
         }
       };
 
-      fetchSpy = stub(self, 'fetch').resolves(
-        new Response(JSON.stringify(response), { status: 409 })
+      fetchSpy.resolves(
+        new Response(JSON.stringify(errorResponse), { status: 409 })
       );
-    });
 
-    it('throws a FirebaseError with the error information from the server', async () => {
       await expect(
         deleteInstallation(appConfig, registeredInstallationEntry)
       ).to.be.rejectedWith(FirebaseError);
+    });
+
+    it('retries once if the server returns a 5xx error', async () => {
+      const errorResponse: ErrorResponse = {
+        error: {
+          code: 500,
+          message: 'Internal server error',
+          status: 'SERVER_ERROR'
+        }
+      };
+
+      fetchSpy
+        .onCall(0)
+        .resolves(new Response(JSON.stringify(errorResponse), { status: 500 }));
+      fetchSpy.onCall(1).resolves(new Response());
+
+      await expect(deleteInstallation(appConfig, registeredInstallationEntry))
+        .to.be.fulfilled;
+      expect(fetchSpy).to.be.calledTwice;
     });
   });
 });
