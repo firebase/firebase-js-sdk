@@ -65,7 +65,8 @@ async function doLicenseCommit() {
       let newLines = [];
       for (const line of lines) {
         if (line.match(/Copyright \d{4} Google Inc\./)) {
-          newLines.push('* @license');
+          const indent = line.split('*')[0]; // Get whitespace to match
+          newLines.push(indent + '* @license');
         }
         newLines.push(line);
       }
