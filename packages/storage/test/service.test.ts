@@ -112,7 +112,7 @@ describe('Firebase Storage > Service', () => {
       const error = testShared.assertThrows(() => {
         new Service(testShared.fakeApp, xhrIoPool, 'gs://bucket/object/');
       }, 'storage/invalid-default-bucket');
-      error && assert.match(error.message, /Invalid default bucket/);
+      assert.match(error.message, /Invalid default bucket/);
     });
   });
   describe('default bucket config', () => {
@@ -136,7 +136,7 @@ describe('Firebase Storage > Service', () => {
       const error = testShared.assertThrows(() => {
         service.refFromURL('path/to/child');
       }, 'storage/invalid-argument');
-      error && assert.match(error.message, /invalid/i);
+      assert.match(error.message, /invalid/i);
     });
     it('Works with gs:// URLs', () => {
       const ref = service.refFromURL('gs://mybucket/child/path/image.png');

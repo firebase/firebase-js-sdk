@@ -147,7 +147,7 @@ describe('RxFire Database', () => {
           count = count + 1;
           const { event, snapshot } = change;
           expect(event).to.equal(ListenEvent.added);
-          expect(snapshot.val()).to.eql(data[snapshot.key || '']);
+          expect(snapshot.val()).to.eql(data[snapshot.key!]);
           if (count === items.length) {
             done();
             sub.unsubscribe();

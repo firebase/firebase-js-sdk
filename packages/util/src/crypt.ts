@@ -49,8 +49,8 @@ const stringToByteArray = function(str) {
 /**
  * Turns an array of numbers into the string given by the concatenation of the
  * characters to which the numbers correspond.
- * @param {number[]} bytes Array of numbers representing characters.
- * @return {string} Stringification of the array.
+ * @param bytes Array of numbers representing characters.
+ * @return Stringification of the array.
  */
 const byteArrayToString = function(bytes) {
   // TODO(user): Use native implementations if/when available
@@ -152,13 +152,13 @@ export const base64 = {
   /**
    * Base64-encode an array of bytes.
    *
-   * @param {number[]|Uint8Array} input An array of bytes (numbers with
+   * @param input An array of bytes (numbers with
    *     value in [0, 255]) to encode.
-   * @param {boolean=} opt_webSafe Boolean indicating we should use the
+   * @param opt_webSafe Boolean indicating we should use the
    *     alternative alphabet.
-   * @return {string} The base64 encoded string.
+   * @return The base64 encoded string.
    */
-  encodeByteArray(input, opt_webSafe?) {
+  encodeByteArray(input: number[] | Uint8Array, opt_webSafe?: boolean): string {
     if (!Array.isArray(input)) {
       throw Error('encodeByteArray takes an array as a parameter');
     }
@@ -205,12 +205,12 @@ export const base64 = {
   /**
    * Base64-encode a string.
    *
-   * @param {string} input A string to encode.
-   * @param {boolean=} opt_webSafe If true, we should use the
+   * @param input A string to encode.
+   * @param opt_webSafe If true, we should use the
    *     alternative alphabet.
-   * @return {string} The base64 encoded string.
+   * @return The base64 encoded string.
    */
-  encodeString(input, opt_webSafe) {
+  encodeString(input: string, opt_webSafe?: boolean): string {
     // Shortcut for Mozilla browsers that implement
     // a native base64 encoder in the form of "btoa/atob"
     if (this.HAS_NATIVE_SUPPORT && !opt_webSafe) {
@@ -222,12 +222,12 @@ export const base64 = {
   /**
    * Base64-decode a string.
    *
-   * @param {string} input to decode.
-   * @param {boolean=} opt_webSafe True if we should use the
+   * @param input to decode.
+   * @param opt_webSafe True if we should use the
    *     alternative alphabet.
-   * @return {string} string representing the decoded value.
+   * @return string representing the decoded value.
    */
-  decodeString(input, opt_webSafe) {
+  decodeString(input: string, opt_webSafe: boolean): string {
     // Shortcut for Mozilla browsers that implement
     // a native base64 encoder in the form of "btoa/atob"
     if (this.HAS_NATIVE_SUPPORT && !opt_webSafe) {
@@ -247,11 +247,11 @@ export const base64 = {
    * padding will be inferred.  If the group has one or two characters, it decodes
    * to one byte.  If the group has three characters, it decodes to two bytes.
    *
-   * @param {string} input Input to decode.
-   * @param {boolean=} opt_webSafe True if we should use the web-safe alphabet.
-   * @return {!number[]} bytes representing the decoded value.
+   * @param input Input to decode.
+   * @param opt_webSafe True if we should use the web-safe alphabet.
+   * @return bytes representing the decoded value.
    */
-  decodeStringToByteArray(input, opt_webSafe) {
+  decodeStringToByteArray(input: string, opt_webSafe: boolean): number[] {
     this.init_();
 
     var charToByteMap = opt_webSafe
@@ -327,8 +327,6 @@ export const base64 = {
 
 /**
  * URL-safe base64 encoding
- * @param {!string} str
- * @return {!string}
  */
 export const base64Encode = function(str: string): string {
   const utf8Bytes = stringToByteArray(str);
@@ -341,8 +339,8 @@ export const base64Encode = function(str: string): string {
  * NOTE: DO NOT use the global atob() function - it does NOT support the
  * base64Url variant encoding.
  *
- * @param {string} str To be decoded
- * @return {?string} Decoded result, if possible
+ * @param str To be decoded
+ * @return Decoded result, if possible
  */
 export const base64Decode = function(str: string): string | null {
   try {

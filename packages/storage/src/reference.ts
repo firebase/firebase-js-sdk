@@ -226,7 +226,7 @@ export class Reference {
       prefixes: [],
       items: []
     };
-    return this.listAllHelper(accumulator, undefined).then(() => accumulator);
+    return this.listAllHelper(accumulator).then(() => accumulator);
   }
 
   private async listAllHelper(
