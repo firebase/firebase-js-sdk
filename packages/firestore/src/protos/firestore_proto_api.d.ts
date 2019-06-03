@@ -36,7 +36,8 @@ export declare type FieldFilterOp =
   | 'GREATER_THAN_OR_EQUAL'
   | 'EQUAL'
   | 'ARRAY_CONTAINS'
-  | 'IN';
+  | 'IN'
+  | 'ARRAY_CONTAINS_ANY';
 export interface IFieldFilterOpEnum {
   OPERATOR_UNSPECIFIED: FieldFilterOp;
   LESS_THAN: FieldFilterOp;
@@ -46,6 +47,7 @@ export interface IFieldFilterOpEnum {
   EQUAL: FieldFilterOp;
   ARRAY_CONTAINS: FieldFilterOp;
   IN: FieldFilterOp;
+  ARRAY_CONTAINS_ANY: FieldFilterOp;
   values(): Array<FieldFilterOp>;
 }
 export declare const FieldFilterOpEnum: IFieldFilterOpEnum;
