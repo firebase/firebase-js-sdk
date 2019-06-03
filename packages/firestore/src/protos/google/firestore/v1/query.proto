@@ -1,4 +1,4 @@
-// Copyright 2018 Google LLC.
+// Copyright 2019 Google LLC.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -103,6 +103,14 @@ message StructuredQuery {
 
       // Contains. Requires that the field is an array.
       ARRAY_CONTAINS = 7;
+
+      // In. Requires that `value` is a non-empty ArrayValue with at most 10
+      // values.
+      IN = 8;
+
+      // Contains any. Requires that the field is an array and
+      // `value` is a non-empty ArrayValue with at most 10 values.
+      ARRAY_CONTAINS_ANY = 9;
     }
 
     // The field to filter by.

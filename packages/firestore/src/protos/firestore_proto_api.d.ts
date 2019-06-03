@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,9 @@ export declare type FieldFilterOp =
   | 'GREATER_THAN'
   | 'GREATER_THAN_OR_EQUAL'
   | 'EQUAL'
-  | 'ARRAY_CONTAINS';
+  | 'ARRAY_CONTAINS'
+  | 'IN'
+  | 'ARRAY_CONTAINS_ANY';
 export interface IFieldFilterOpEnum {
   OPERATOR_UNSPECIFIED: FieldFilterOp;
   LESS_THAN: FieldFilterOp;
@@ -44,6 +46,8 @@ export interface IFieldFilterOpEnum {
   GREATER_THAN_OR_EQUAL: FieldFilterOp;
   EQUAL: FieldFilterOp;
   ARRAY_CONTAINS: FieldFilterOp;
+  IN: FieldFilterOp;
+  ARRAY_CONTAINS_ANY: FieldFilterOp;
   values(): Array<FieldFilterOp>;
 }
 export declare const FieldFilterOpEnum: IFieldFilterOpEnum;
