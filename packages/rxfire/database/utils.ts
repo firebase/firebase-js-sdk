@@ -17,17 +17,13 @@
 
 import { ListenEvent } from './interfaces';
 
-export function isNil(obj: any): boolean {
-  return obj === undefined || obj === null;
-}
-
 /**
  * Check the length of the provided array. If it is empty return an array
  * that is populated with all the Realtime Database child events.
  * @param events
  */
-export function validateEventsArray(events?: ListenEvent[]) {
-  if (isNil(events) || events!.length === 0) {
+export function validateEventsArray(events?: ListenEvent[]): ListenEvent[] {
+  if (events == null || events.length === 0) {
     events = [
       ListenEvent.added,
       ListenEvent.removed,

@@ -31,7 +31,11 @@ import { Metadata } from '../src/metadata';
 import { Reference } from '../src/reference';
 import { Service } from '../src/service';
 import { assertObjectIncludes, fakeXhrIo } from './testshared';
-import { DEFAULT_HOST } from '../src/implementation/constants';
+import {
+  DEFAULT_HOST,
+  CONFIG_STORAGE_BUCKET_KEY
+} from '../src/implementation/constants';
+import { FirebaseApp } from '@firebase/app-types';
 
 describe('Firebase Storage > Requests', () => {
   const normalBucket = 'b';
@@ -48,8 +52,17 @@ describe('Firebase Storage > Requests', () => {
 
   const mappings = MetadataUtils.getMappings();
 
+  const mockApp: FirebaseApp = {
+    name: 'mock-app',
+    options: {
+      [CONFIG_STORAGE_BUCKET_KEY]: 'fredzqm-staging'
+    },
+    automaticDataCollectionEnabled: false,
+    delete: () => Promise.resolve()
+  };
+
   const authWrapper = new AuthWrapper(
-    null,
+    mockApp,
     function(authWrapper, loc) {
       return new Reference(authWrapper, loc);
     },
@@ -370,7 +383,7 @@ describe('Firebase Storage > Requests', () => {
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
     ];
-    const promises = [];
+    const promises: Array<Promise<void>> = [];
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
@@ -406,8 +419,8 @@ describe('Firebase Storage > Requests', () => {
         multipartHeaderRegex
       );
       assert.isNotNull(matches);
-      assert.equal(matches.length, 2);
-      const boundary = matches[1];
+      assert.equal(matches!.length, 2);
+      const boundary = matches![1];
       promises.push(
         assertBodyEquals(requestInfo.body, makeMultipartBodyString(boundary))
       );
@@ -446,7 +459,7 @@ describe('Firebase Storage > Requests', () => {
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
     ];
-    const promises = [];
+    const promises: Promise<void>[] = [];
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
@@ -636,7 +649,7 @@ describe('Firebase Storage > Requests', () => {
       mappings
     );
     const error = errors.unknown();
-    const resultError = requestInfo.errorHandler(fakeXhrIo({}, 509), error);
+    const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 509), error);
     assert.equal(resultError, error);
   });
   it('error handler converts 404 to not found', () => {
@@ -646,7 +659,7 @@ describe('Firebase Storage > Requests', () => {
       mappings
     );
     const error = errors.unknown();
-    const resultError = requestInfo.errorHandler(fakeXhrIo({}, 404), error);
+    const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 404), error);
     assert.isTrue(resultError.codeEquals(errors.Code.OBJECT_NOT_FOUND));
   });
   it('error handler converts 402 to quota exceeded', () => {
@@ -656,7 +669,7 @@ describe('Firebase Storage > Requests', () => {
       mappings
     );
     const error = errors.unknown();
-    const resultError = requestInfo.errorHandler(fakeXhrIo({}, 402), error);
+    const resultError = requestInfo.errorHandler!(fakeXhrIo({}, 402), error);
     assert.isTrue(resultError.codeEquals(errors.Code.QUOTA_EXCEEDED));
   });
 });

@@ -36,7 +36,7 @@ export function docData<T>(
 }
 
 export function snapToData(
-  snapshot: firestore.QueryDocumentSnapshot,
+  snapshot: firestore.DocumentSnapshot,
   idField?: string
 ) {
   return {
