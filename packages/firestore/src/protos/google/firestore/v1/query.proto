@@ -104,7 +104,8 @@ message StructuredQuery {
       // Contains. Requires that the field is an array.
       ARRAY_CONTAINS = 7;
 
-      // In. Requires that the field is an array.
+      // In. Requires that `value` is a non-empty ArrayValue with at most 10
+      // values.
       IN = 8;
     }
 
