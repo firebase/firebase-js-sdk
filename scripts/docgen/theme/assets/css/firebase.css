@@ -51,3 +51,13 @@
 .firebase-docs li.tsd-description:not(:last-child) {
     margin-bottom: 20px;
 }
+
+.firebase-docs .deprecated-tag-section {
+    border-bottom: 1px solid #eee;
+}
+
+.firebase-docs dt.tag-deprecated {
+    background-color: #dd2c00;
+    border-color: transparent;
+    color: white;
+}
