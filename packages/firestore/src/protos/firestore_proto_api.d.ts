@@ -44,7 +44,7 @@ export interface IFieldFilterOpEnum {
   GREATER_THAN: FieldFilterOp;
   GREATER_THAN_OR_EQUAL: FieldFilterOp;
   EQUAL: FieldFilterOp;
-  ARRAY_CONTAINS: FieldFilterOp,
+  ARRAY_CONTAINS: FieldFilterOp;
   IN: FieldFilterOp;
   values(): Array<FieldFilterOp>;
 }
