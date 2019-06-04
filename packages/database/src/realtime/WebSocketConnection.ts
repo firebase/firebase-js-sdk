@@ -156,7 +156,7 @@ export class WebSocketConnection implements Transport {
           }
         };
 
-        // Plumb appropriate http_proxy environment variable into faye-websocket if it exists.
+        // Plumb in appropriate http_proxy environment variable, if it exists.
         const env = process['env'];
         const proxy =
           this.connURL.indexOf('wss://') == 0
