@@ -525,15 +525,15 @@ export class RelationFilter extends Filter {
   constructor(
     public field: FieldPath,
     public op: RelationOp,
-    public rhs: FieldValue
+    public value: FieldValue
   ) {
     super();
   }
 
-  matches(doc: Document): boolean {
+  matches(docValue: Document): boolean {
     if (this.field.isKeyField()) {
       assert(
-        this.rhs instanceof RefValue,
+        this.value instanceof RefValue,
         'Comparing on key, but filter value not a RefValue'
       );
       assert(
@@ -542,11 +542,11 @@ export class RelationFilter extends Filter {
           this.op !== RelationOp.IN,
         `'${this.op.toString()}' queries don't make sense on document keys.`
       );
-      const refValue = this.rhs as RefValue;
-      const comparison = DocumentKey.comparator(doc.key, refValue.key);
+      const refValue = this.value as RefValue;
+      const comparison = DocumentKey.comparator(docValue.key, refValue.key);
       return this.matchesComparison(comparison);
     } else {
-      const val = doc.field(this.field);
+      const val = docValue.field(this.field);
       return val !== undefined && this.matchesValue(val);
     }
   }
@@ -555,13 +555,13 @@ export class RelationFilter extends Filter {
     if (this.op === RelationOp.ARRAY_CONTAINS) {
       return (
         lhs instanceof ArrayValue &&
-        lhs.internalValue.find(element => element.isEqual(this.rhs)) !==
+        lhs.internalValue.find(element => element.isEqual(this.value)) !==
           undefined
       );
     } else if (this.op === RelationOp.IN) {
       return (
-        this.rhs instanceof ArrayValue &&
-        this.rhs.internalValue.find(element => element.isEqual(lhs)) !==
+        this.value instanceof ArrayValue &&
+        this.value.internalValue.find(element => element.isEqual(lhs)) !==
           undefined
       );
     } else if (this.op === RelationOp.ARRAY_CONTAINS_ANY) {
@@ -569,8 +569,8 @@ export class RelationFilter extends Filter {
         lhs instanceof ArrayValue &&
         lhs.internalValue.some(lhsElem => {
           return (
-            this.rhs instanceof ArrayValue &&
-            this.rhs.internalValue.find(rhsElem => rhsElem.isEqual(lhsElem)) !==
+            this.value instanceof ArrayValue &&
+            this.value.internalValue.find(rhsElem => rhsElem.isEqual(lhsElem)) !==
               undefined
           );
         })
@@ -578,8 +578,8 @@ export class RelationFilter extends Filter {
     } else {
       // Only compare types with matching backend order (such as double and int).
       return (
-        this.rhs.typeOrder === lhs.typeOrder &&
-        this.matchesComparison(lhs.compareTo(this.rhs))
+        this.value.typeOrder === lhs.typeOrder &&
+        this.matchesComparison(lhs.compareTo(this.value))
       );
     }
   }
@@ -615,7 +615,7 @@ export class RelationFilter extends Filter {
     // the same description, such as the int 3 and the string "3". So we should
     // add the types in here somehow, too.
     return (
-      this.field.canonicalString() + this.op.toString() + this.rhs.toString()
+      this.field.canonicalString() + this.op.toString() + this.value.toString()
     );
   }
 
@@ -624,7 +624,7 @@ export class RelationFilter extends Filter {
       return (
         this.op.isEqual(other.op) &&
         this.field.isEqual(other.field) &&
-        this.rhs.isEqual(other.rhs)
+        this.value.isEqual(other.value)
       );
     } else {
       return false;
@@ -632,7 +632,7 @@ export class RelationFilter extends Filter {
   }
 
   toString(): string {
-    return `${this.field.canonicalString()} ${this.op} ${this.rhs.value()}`;
+    return `${this.field.canonicalString()} ${this.op} ${this.value.value()}`;
   }
 }
 
