@@ -10,19 +10,8 @@
         "@typescript-eslint/tslint"
     ],
     "parserOptions": {
-<<<<<<< HEAD
-<<<<<<< HEAD
         "ecmaVersion": 2015,
         "sourceType": "module"
-=======
-        "ecmaVersion": 2018,
-        "sourceType": "module",
-        "project": "packages/firestore/tsconfig.json"
->>>>>>> 561d3fe7... add eslint rules
-=======
-        "ecmaVersion": 2015,
-        "sourceType": "module"
->>>>>>> 0c4ff200... ignore unused params with a leading _
     },
     "overrides": [
         {
@@ -31,34 +20,14 @@
                 "**/test/**/*.ts"
             ],
             "rules": {
-                "no-unused-expressions": "off",
-                "@typescript-eslint/no-explicit-any": "off"
+                "no-unused-expressions": "off"
             }
         }
     ],
     "rules": {
-<<<<<<< HEAD
-<<<<<<< HEAD
         "curly": [
             "error",
             "all"
-=======
-        "arrow-body-style": [
-            "error",
-            "as-needed",
-            {
-                "requireReturnForObjectLiteral": true
-            }
-        ],
-        "curly": [
-            "error",
-            "multi-line"
->>>>>>> 561d3fe7... add eslint rules
-=======
-        "curly": [
-            "error",
-            "all"
->>>>>>> 44256be8... update curly and arrow-body-style rules
         ],
         "guard-for-in": "error",
         "no-extra-label": "error",
@@ -161,17 +130,8 @@
         "@typescript-eslint/no-unused-vars": [
             "error",
             {
-<<<<<<< HEAD
-<<<<<<< HEAD
                 "varsIgnorePattern": "^_",
                 "argsIgnorePattern": "^_"
-=======
-                "varsIgnorePattern": "^_*$"
->>>>>>> 561d3fe7... add eslint rules
-=======
-                "varsIgnorePattern": "^_",
-                "argsIgnorePattern": "^_"
->>>>>>> 0c4ff200... ignore unused params with a leading _
             }
         ],
         "@typescript-eslint/tslint/config": [
@@ -190,17 +150,8 @@
                         {"name": "Array", "message": "tsstyle#array-constructor"}
                     ],
                     "jsdoc-format": true,
-<<<<<<< HEAD
-<<<<<<< HEAD
                     "no-floating-promises": true,
                     "arrow-return-shorthand": true
-=======
-                    "no-floating-promises": true
->>>>>>> 561d3fe7... add eslint rules
-=======
-                    "no-floating-promises": true,
-                    "arrow-return-shorthand": true
->>>>>>> 44256be8... update curly and arrow-body-style rules
                 }
             }
         ]
