@@ -10,9 +10,8 @@
         "@typescript-eslint/tslint"
     ],
     "parserOptions": {
-        "ecmaVersion": 2018,
-        "sourceType": "module",
-        "project": "packages/firestore/tsconfig.json"
+        "ecmaVersion": 2015,
+        "sourceType": "module"
     },
     "overrides": [
         {
@@ -138,7 +137,8 @@
         "@typescript-eslint/no-unused-vars": [
             "error",
             {
-                "varsIgnorePattern": "^_*$"
+                "varsIgnorePattern": "^_",
+                "argsIgnorePattern": "^_"
             }
         ],
         "@typescript-eslint/tslint/config": [
