@@ -3435,7 +3435,7 @@ declare namespace firebase.auth {
 
   /**
    * The subclass of the MultiFactorInfo interface for phone number second factors.
-   * The factorId of this second factor is 
+   * The factorId of this second factor is
    * {@link firebase.auth.PhoneMultiFactorGenerator.FACTOR_ID}.
    */
   interface PhoneMultiFactorInfo extends firebase.auth.MultiFactorInfo {
@@ -3967,7 +3967,7 @@ declare namespace firebase.User {
     getSession(): Promise<firebase.auth.MultiFactorSession>;
     /**
      * Unenrolls the specified second factor. To specify the factor to remove, pass
-     * a {@link firebase.auth.MultiFactorInfo} object 
+     * a {@link firebase.auth.MultiFactorInfo} object
      * (retrieved from <code>enrolledFactors()</code>)
      * or the factor's UID string.
      * Sessions are not revoked when the account is downgraded. An email
