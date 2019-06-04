@@ -3363,8 +3363,8 @@ declare namespace firebase.auth {
      */
     signInProvider: string | null;
     /**
-     * The factor ID of the second factor challenge being passed through to obtained 
-     * the ID token (phone, etc).  
+     * The factor ID of the second factor challenge being passed through to obtained
+     * the ID token (phone, etc).
      */
     signInSecondFactor: string | null;
     /**
@@ -3454,9 +3454,9 @@ declare namespace firebase.auth {
    * sign-in.
    */
   type PhoneInfoOptions =
-    firebase.auth.PhoneSingleFactorInfoOptions | 
-    firebase.auth.PhoneMultiFactorEnrollInfoOptions |
-    firebase.auth.PhoneMultiFactorSignInInfoOptions;
+    | firebase.auth.PhoneSingleFactorInfoOptions
+    | firebase.auth.PhoneMultiFactorEnrollInfoOptions
+    | firebase.auth.PhoneMultiFactorSignInInfoOptions;
   /**
    * The phone info options for single-factor sign-in. Only phone number is
    * required.
