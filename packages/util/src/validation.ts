@@ -24,7 +24,12 @@
  * @param {!number} maxCount The maximum number of argument to allow for the function call
  * @param {!number} argCount The actual number of arguments provided.
  */
-export const validateArgCount = function(fnName, minCount, maxCount, argCount): void {
+export const validateArgCount = function(
+  fnName,
+  minCount,
+  maxCount,
+  argCount
+): void {
   let argError;
   if (argCount < minCount) {
     argError = 'at least ' + minCount;
@@ -85,8 +90,15 @@ export function errorPrefix(fnName, argumentNumber, optional): string {
  * @param {!string} namespace
  * @param {boolean} optional
  */
-export function validateNamespace(fnName, argumentNumber, namespace, optional): void {
-  if (optional && !namespace) {return;}
+export function validateNamespace(
+  fnName,
+  argumentNumber,
+  namespace,
+  optional
+): void {
+  if (optional && !namespace) {
+    return;
+  }
   if (typeof namespace !== 'string') {
     //TODO: I should do more validation here. We only allow certain chars in namespaces.
     throw new Error(
@@ -96,13 +108,21 @@ export function validateNamespace(fnName, argumentNumber, namespace, optional): 
   }
 }
 
-export function validateCallback(fnName, argumentNumber, callback, optional): void {
-  if (optional && !callback) {return;}
-  if (typeof callback !== 'function')
-    {throw new Error(
+export function validateCallback(
+  fnName,
+  argumentNumber,
+  callback,
+  optional
+): void {
+  if (optional && !callback) {
+    return;
+  }
+  if (typeof callback !== 'function') {
+    throw new Error(
       errorPrefix(fnName, argumentNumber, optional) +
         'must be a valid function.'
-    );}
+    );
+  }
 }
 
 export function validateContextObject(
@@ -111,10 +131,13 @@ export function validateContextObject(
   context,
   optional
 ): void {
-  if (optional && !context) {return;}
-  if (typeof context !== 'object' || context === null)
-    {throw new Error(
+  if (optional && !context) {
+    return;
+  }
+  if (typeof context !== 'object' || context === null) {
+    throw new Error(
       errorPrefix(fnName, argumentNumber, optional) +
         'must be a valid context object.'
-    );}
+    );
+  }
 }

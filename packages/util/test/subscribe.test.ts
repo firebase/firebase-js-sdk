@@ -17,12 +17,7 @@
 
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import {
-  async,
-  createSubscribe,
-  Observer,
-  Subscribe
-} from '../src/subscribe';
+import { async, createSubscribe, Observer, Subscribe } from '../src/subscribe';
 
 describe('createSubscribe', () => {
   let spy: any;

@@ -28,7 +28,7 @@ import { jsonEval } from './json';
  * @param {?string} token
  * @return {{header: *, claims: *, data: *, signature: string}}
  */
-export const decode = function (token): DecodedToken {
+export const decode = function(token): DecodedToken {
   let header = {},
     claims = {},
     data = {},
@@ -41,7 +41,7 @@ export const decode = function (token): DecodedToken {
     signature = parts[2];
     data = claims['d'] || {};
     delete claims['d'];
-  } catch (e) { }
+  } catch (e) {}
 
   return {
     header,
@@ -69,11 +69,10 @@ interface DecodedToken {
  * @param {?string} token
  * @return {boolean}
  */
-export const isValidTimestamp = function (token): boolean {
+export const isValidTimestamp = function(token): boolean {
   const claims = decode(token).claims,
-        now = Math.floor(new Date().getTime() / 1000);
-  let validSince,
-      validUntil;
+    now = Math.floor(new Date().getTime() / 1000);
+  let validSince, validUntil;
 
   if (typeof claims === 'object') {
     if (claims.hasOwnProperty('nbf')) {
@@ -105,7 +104,7 @@ export const isValidTimestamp = function (token): boolean {
  * @param {?string} token
  * @return {?number}
  */
-export const issuedAtTime = function (token): number | null {
+export const issuedAtTime = function(token): number | null {
   const claims = decode(token).claims;
   if (typeof claims === 'object' && claims.hasOwnProperty('iat')) {
     return claims['iat'];
@@ -123,7 +122,7 @@ export const issuedAtTime = function (token): number | null {
  * @param {?string} token
  * @return {boolean}
  */
-export const isValidFormat = function (token): boolean {
+export const isValidFormat = function(token): boolean {
   const decoded = decode(token),
     claims = decoded.claims;
 
@@ -140,7 +139,7 @@ export const isValidFormat = function (token): boolean {
  * @param {?string} token
  * @return {boolean}
  */
-export const isAdmin = function (token): boolean {
+export const isAdmin = function(token): boolean {
   const claims = decode(token).claims;
   return typeof claims === 'object' && claims['admin'] === true;
 };

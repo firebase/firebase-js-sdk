@@ -56,7 +56,7 @@ const byteArrayToString = function(bytes): string {
   // TODO(user): Use native implementations if/when available
   const out: string[] = [];
   let pos = 0,
-      c = 0;
+    c = 0;
   while (pos < bytes.length) {
     const c1 = bytes[pos++];
     if (c1 < 128) {

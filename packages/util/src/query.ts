@@ -29,7 +29,7 @@ export const querystring = function(querystringParams): string {
   const params: string[] = [];
   forEach(querystringParams, (key, value) => {
     if (Array.isArray(value)) {
-      value.forEach((arrayVal) => {
+      value.forEach(arrayVal => {
         params.push(
           encodeURIComponent(key) + '=' + encodeURIComponent(arrayVal)
         );
@@ -51,7 +51,7 @@ export const querystringDecode = function(querystring): object {
   const obj = {};
   const tokens = querystring.replace(/^\?/, '').split('&');
 
-  tokens.forEach((token) => {
+  tokens.forEach(token => {
     if (token) {
       const key = token.split('=');
       obj[key[0]] = key[1];

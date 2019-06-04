@@ -117,7 +117,10 @@ export function createFirebaseNamespaceCore(
     config?: FirebaseAppConfig
   ): FirebaseApp;
   function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
-  function initializeApp(options: FirebaseOptions, rawConfig = {}): FirebaseApp {
+  function initializeApp(
+    options: FirebaseOptions,
+    rawConfig = {}
+  ): FirebaseApp {
     if (typeof rawConfig !== 'object' || rawConfig === null) {
       const name = rawConfig;
       rawConfig = { name };
@@ -214,7 +217,7 @@ export function createFirebaseNamespaceCore(
     namespace[name] = serviceNamespace;
 
     // Patch the FirebaseAppImpl prototype
-    firebaseAppImpl.prototype[name] = function (...args) {
+    firebaseAppImpl.prototype[name] = function(...args) {
       const serviceFxn = this._getService.bind(this, name);
       return serviceFxn.apply(this, allowMultipleInstances ? args : []);
     };

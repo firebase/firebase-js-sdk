@@ -62,7 +62,9 @@ export type LogHandler = (
  * is supported by the current log level)
  */
 const defaultLogHandler: LogHandler = (instance, logType, ...args): void => {
-  if (logType < instance.logLevel) {return;}
+  if (logType < instance.logLevel) {
+    return;
+  }
   const now = new Date().toISOString();
   switch (logType) {
     /**

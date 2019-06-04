@@ -167,7 +167,7 @@ class ObserverProxy<T> implements Observer<T> {
     // just respond to the Observer with the final error or complete
     // event.
     if (this.finalized) {
-      // tslint:disable-next-line:no-floating-promises 
+      // tslint:disable-next-line:no-floating-promises
       this.task.then(() => {
         try {
           if (this.finalError) {
@@ -220,7 +220,7 @@ class ObserverProxy<T> implements Observer<T> {
   // function had been queued.
   private sendOne(i: number, fn: (observer: Observer<T>) => void): void {
     // Execute the callback asynchronously
-    // tslint:disable-next-line:no-floating-promises 
+    // tslint:disable-next-line:no-floating-promises
     this.task.then(() => {
       if (this.observers !== undefined && this.observers[i] !== undefined) {
         try {
@@ -246,7 +246,7 @@ class ObserverProxy<T> implements Observer<T> {
       this.finalError = err;
     }
     // Proxy is no longer needed - garbage collect references
-    // tslint:disable-next-line:no-floating-promises 
+    // tslint:disable-next-line:no-floating-promises
     this.task.then(() => {
       this.observers = undefined;
       this.onNoObservers = undefined;
