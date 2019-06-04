@@ -178,7 +178,7 @@ describe('Query', () => {
       filter('zip', 'array-contains-any', [12345])
     );
 
-    let document = doc('collection/1', 0, { zip: [12345]});
+    let document = doc('collection/1', 0, { zip: [12345] });
     expect(query.matches(document)).to.be.true;
 
     // Value matches in non-array
@@ -191,7 +191,7 @@ describe('Query', () => {
 
     // Nested match.
     document = doc('collection/1', 0, {
-      zip: [123, '12345', { zip: [12345], b: [42]}]
+      zip: [123, '12345', { zip: [12345], b: [42] }]
     });
     expect(query.matches(document)).to.be.false;
   });
