@@ -839,11 +839,11 @@ declare namespace firebase {
       photoURL?: string | null;
     }): Promise<void>;
     /**
-     * Sends a verification email to an new email address. The user's email will be
+     * Sends a verification email to a new email address. The user's email will be
      * updated to the new one after being verified.
      *
-     * The verification process is completed by calling
-     * {@link firebase.auth.Auth.applyActionCode}
+     * If you have a custom email action handler, you can complete the verification
+     * process by calling {@link firebase.auth.Auth.applyActionCode}.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -2916,14 +2916,11 @@ declare namespace firebase.auth {
   }
 
   /**
-   * The error thrown when a user that previously enrolled a second factor
-   * tries to sign in and passes the first factor successfully.
-   * The error code for this error is
-   * <code>auth/multi-factor-auth-required</code>. This error will provide a
-   * {@link firebase.auth.MultiFactorResolver} object to help the developer
-   * resolve the sign-in by providing information to the user on the second
-   * factor challenge required to complete the sign-in operation and
-   * abstracting many of the underlying details involved.
+   * The error thrown when the user needs to provide a second factor to sign in
+   * successfully.
+   * The error code for this error is <code>auth/multi-factor-auth-required</code>.
+   * This error provides a {@link firebase.auth.MultiFactorResolver} object,
+   * which you can use to get the second sign-in factor from the user.
    *
    * @example
    * ```javascript
@@ -3437,8 +3434,8 @@ declare namespace firebase.auth {
   }
 
   /**
-   * The subclass of MultiFactorInfo interface for phone number second factors.
-   * The factorId of this second factor is “phone”. This matches the identifier
+   * The subclass of the MultiFactorInfo interface for phone number second factors.
+   * The factorId of this second factor is 
    * {@link firebase.auth.PhoneMultiFactorGenerator.FACTOR_ID}.
    */
   interface PhoneMultiFactorInfo extends firebase.auth.MultiFactorInfo {
@@ -3449,9 +3446,9 @@ declare namespace firebase.auth {
   }
 
   /**
-   * The options for verifying the ownership of the phone number. It could be
-   * used for single-factor sign-in, multi-factor enrollment or multi-factor
-   * sign-in.
+   * The information required to verify the ownership of a phone number. The
+   * information that's required depends on whether you are doing single-factor
+   * sign-in, multi-factor enrollment or multi-factor sign-in.
    */
   type PhoneInfoOptions =
     | firebase.auth.PhoneSingleFactorInfoOptions
@@ -3486,8 +3483,8 @@ declare namespace firebase.auth {
 
   /**
    * The class used to facilitate recovery from
-   * {@link firebase.auth.MultiFactorError} when a multi-factor user tries to
-   * sign-in with a first factor.
+   * {@link firebase.auth.MultiFactorError} when a user needs to provide a second
+   * factor to sign in.
    *
    * @example
    * ```javascript
@@ -3883,7 +3880,7 @@ declare namespace firebase.User {
    */
   interface MultiFactor {
     /**
-     * Returns a list of the inforamtion of all the enrolled second factors.
+     * Returns a list of the user's enrolled second factors.
      */
     enrolledFactors: firebase.auth.MultiFactorInfo[];
     /**
@@ -3969,8 +3966,10 @@ declare namespace firebase.User {
      */
     getSession(): Promise<firebase.auth.MultiFactorSession>;
     /**
-     * Takes in an {@link firebase.auth.MultiFactorInfo}
-     * (retrieved from enrolledFactors()) or the factor UID string and un-enrolls it.
+     * Unenrolls the specified second factor. To specify the factor to remove, pass
+     * a {@link firebase.auth.MultiFactorInfo} object 
+     * (retrieved from <code>enrolledFactors()</code>)
+     * or the factor's UID string.
      * Sessions are not revoked when the account is downgraded. An email
      * notification is likely to be sent to the user notifying them of the change.
      * Recent re-authentication is required for this operation to succeed.
