@@ -3453,7 +3453,10 @@ declare namespace firebase.auth {
    * used for single-factor sign-in, multi-factor enrollment or multi-factor
    * sign-in.
    */
-  type PhoneInfoOptions = firebase.auth.PhoneSingleFactorInfoOptions | firebase.auth.PhoneMultiFactorEnrollInfoOptions | firebase.auth.PhoneMultiFactorSignInInfoOptions;
+  type PhoneInfoOptions =
+    | firebase.auth.PhoneSingleFactorInfoOptions
+    | firebase.auth.PhoneMultiFactorEnrollInfoOptions
+    | firebase.auth.PhoneMultiFactorSignInInfoOptions;
   /**
    * The phone info options for single-factor sign-in. Only phone number is
    * required.
