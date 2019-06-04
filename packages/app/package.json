@@ -14,7 +14,15 @@
     "dist"
   ],
   "scripts": {
+<<<<<<< HEAD
+<<<<<<< HEAD
     "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+=======
+    "lint": "eslint -c .eslintrc.json '**/*.ts'",
+>>>>>>> 561d3fe7... add eslint rules
+=======
+    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+>>>>>>> 0c4ff200... ignore unused params with a leading _
     "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
