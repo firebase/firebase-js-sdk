@@ -558,25 +558,23 @@ apiDescribe('Queries', persistence => {
   it('can use IN filters', async () => {
     const testDocs = {
       a: { zip: 98101 },
-      b: { zip: 91102},
+      b: { zip: 91102 },
       c: { zip: 98103 },
-      d: { zip: [98101]},
-      e: { zip: ['98101', {zip: 98101}]},
-      f: { zip: {code: 500}}
+      d: { zip: [98101] },
+      e: { zip: ['98101', { zip: 98101 }] },
+      f: { zip: { code: 500 } }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await coll.where('zip', 'in', [98101, 98103]).get();
       expect(toDataArray(snapshot)).to.deep.equal([
         { zip: 98101 },
-        { zip: 98103 },
+        { zip: 98103 }
       ]);
 
       // IN with objects.
-      const snapshot2 = await coll.where('zip', 'in', [{code: 500}]).get();
-      expect(toDataArray(snapshot2)).to.deep.equal([
-        { zip: {code: 500}},
-      ]);
+      const snapshot2 = await coll.where('zip', 'in', [{ code: 500 }]).get();
+      expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
     });
   });
 
@@ -590,7 +588,9 @@ apiDescribe('Queries', persistence => {
 
     await withTestCollection(persistence, testDocs, async coll => {
       // Search for 42
-      const snapshot = await coll.where('array', 'array-contains-any', [42]).get();
+      const snapshot = await coll
+        .where('array', 'array-contains-any', [42])
+        .get();
       expect(toDataArray(snapshot)).to.deep.equal([
         { array: [42] },
         { array: ['a', 42, 'c'] },

@@ -939,7 +939,7 @@ export type OrderByDirection = 'desc' | 'asc';
 
 /**
  * Filter conditions in a `Query.where()` clause are specified using the
- * strings '<', '<=', '==', '>=', '>', 'array-contains', 'in', and 
+ * strings '<', '<=', '==', '>=', '>', 'array-contains', 'in', and
  * 'array-contains-any'.
  */
 export type WhereFilterOp =

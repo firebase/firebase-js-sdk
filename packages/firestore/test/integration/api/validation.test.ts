@@ -834,7 +834,9 @@ apiDescribe('Validation:', persistence => {
         expect(() => collection.where('a', 'in', Number.NaN)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' queries."
         );
-        expect(() => collection.where('a', 'array-contains-any', Number.NaN)).to.throw(
+        expect(() =>
+          collection.where('a', 'array-contains-any', Number.NaN)
+        ).to.throw(
           "Invalid Query. A non-empty array is required for 'array-contains-any' queries."
         );
       }
