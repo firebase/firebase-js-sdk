@@ -33,7 +33,7 @@ export class Deferred<R> {
    * @param {((?function(?(Error)): (?|undefined))| (?function(?(Error),?=): (?|undefined)))=} callback
    * @return {!function(?(Error), ?=)}
    */
-  wrapCallback(callback?) {
+  wrapCallback(callback?): (error: unknown, value?: unknown) => void {
     return (error, value?) => {
       if (error) {
         this.reject(error);

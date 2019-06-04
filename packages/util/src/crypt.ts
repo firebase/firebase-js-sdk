@@ -15,21 +15,21 @@
  * limitations under the License.
  */
 
-const stringToByteArray = function(str) {
+const stringToByteArray = function(str): number[] {
   // TODO(user): Use native implementations if/when available
-  var out: number[] = [],
-    p = 0;
-  for (var i = 0; i < str.length; i++) {
-    var c = str.charCodeAt(i);
+  const out: number[] = [];
+  let p = 0;
+  for (let i = 0; i < str.length; i++) {
+    let c = str.charCodeAt(i);
     if (c < 128) {
       out[p++] = c;
     } else if (c < 2048) {
       out[p++] = (c >> 6) | 192;
       out[p++] = (c & 63) | 128;
     } else if (
-      (c & 0xfc00) == 0xd800 &&
+      (c & 0xfc00) === 0xd800 &&
       i + 1 < str.length &&
-      (str.charCodeAt(i + 1) & 0xfc00) == 0xdc00
+      (str.charCodeAt(i + 1) & 0xfc00) === 0xdc00
     ) {
       // Surrogate Pair
       c = 0x10000 + ((c & 0x03ff) << 10) + (str.charCodeAt(++i) & 0x03ff);
@@ -52,31 +52,31 @@ const stringToByteArray = function(str) {
  * @param bytes Array of numbers representing characters.
  * @return Stringification of the array.
  */
-const byteArrayToString = function(bytes) {
+const byteArrayToString = function(bytes): string {
   // TODO(user): Use native implementations if/when available
-  var out: string[] = [],
-    pos = 0,
-    c = 0;
+  const out: string[] = [];
+  let pos = 0,
+      c = 0;
   while (pos < bytes.length) {
-    var c1 = bytes[pos++];
+    const c1 = bytes[pos++];
     if (c1 < 128) {
       out[c++] = String.fromCharCode(c1);
     } else if (c1 > 191 && c1 < 224) {
-      var c2 = bytes[pos++];
+      const c2 = bytes[pos++];
       out[c++] = String.fromCharCode(((c1 & 31) << 6) | (c2 & 63));
     } else if (c1 > 239 && c1 < 365) {
       // Surrogate Pair
-      var c2 = bytes[pos++];
-      var c3 = bytes[pos++];
-      var c4 = bytes[pos++];
-      var u =
+      const c2 = bytes[pos++];
+      const c3 = bytes[pos++];
+      const c4 = bytes[pos++];
+      const u =
         (((c1 & 7) << 18) | ((c2 & 63) << 12) | ((c3 & 63) << 6) | (c4 & 63)) -
         0x10000;
       out[c++] = String.fromCharCode(0xd800 + (u >> 10));
       out[c++] = String.fromCharCode(0xdc00 + (u & 1023));
     } else {
-      var c2 = bytes[pos++];
-      var c3 = bytes[pos++];
+      const c2 = bytes[pos++];
+      const c3 = bytes[pos++];
       out[c++] = String.fromCharCode(
         ((c1 & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63)
       );
@@ -154,34 +154,34 @@ export const base64 = {
    *
    * @param input An array of bytes (numbers with
    *     value in [0, 255]) to encode.
-   * @param opt_webSafe Boolean indicating we should use the
+   * @param optwebSafe Boolean indicating we should use the
    *     alternative alphabet.
    * @return The base64 encoded string.
    */
-  encodeByteArray(input: number[] | Uint8Array, opt_webSafe?: boolean): string {
+  encodeByteArray(input: number[] | Uint8Array, optwebSafe?: boolean): string {
     if (!Array.isArray(input)) {
       throw Error('encodeByteArray takes an array as a parameter');
     }
 
     this.init_();
 
-    var byteToCharMap: number[] = opt_webSafe
+    const byteToCharMap: number[] = optwebSafe
       ? this.byteToCharMapWebSafe_
       : this.byteToCharMap_;
 
-    var output: number[] = [];
+    const output: number[] = [];
 
-    for (var i = 0; i < input.length; i += 3) {
-      var byte1 = input[i];
-      var haveByte2 = i + 1 < input.length;
-      var byte2 = haveByte2 ? input[i + 1] : 0;
-      var haveByte3 = i + 2 < input.length;
-      var byte3 = haveByte3 ? input[i + 2] : 0;
+    for (let i = 0; i < input.length; i += 3) {
+      const byte1 = input[i];
+      const haveByte2 = i + 1 < input.length;
+      const byte2 = haveByte2 ? input[i + 1] : 0;
+      const haveByte3 = i + 2 < input.length;
+      const byte3 = haveByte3 ? input[i + 2] : 0;
 
-      var outByte1 = byte1 >> 2;
-      var outByte2 = ((byte1 & 0x03) << 4) | (byte2 >> 4);
-      var outByte3 = ((byte2 & 0x0f) << 2) | (byte3 >> 6);
-      var outByte4 = byte3 & 0x3f;
+      const outByte1 = byte1 >> 2;
+      const outByte2 = ((byte1 & 0x03) << 4) | (byte2 >> 4);
+      let outByte3 = ((byte2 & 0x0f) << 2) | (byte3 >> 6);
+      let outByte4 = byte3 & 0x3f;
 
       if (!haveByte3) {
         outByte4 = 64;
@@ -206,34 +206,34 @@ export const base64 = {
    * Base64-encode a string.
    *
    * @param input A string to encode.
-   * @param opt_webSafe If true, we should use the
+   * @param optWebSafe If true, we should use the
    *     alternative alphabet.
    * @return The base64 encoded string.
    */
-  encodeString(input: string, opt_webSafe?: boolean): string {
+  encodeString(input: string, optWebSafe?: boolean): string {
     // Shortcut for Mozilla browsers that implement
     // a native base64 encoder in the form of "btoa/atob"
-    if (this.HAS_NATIVE_SUPPORT && !opt_webSafe) {
+    if (this.HAS_NATIVE_SUPPORT && !optWebSafe) {
       return btoa(input);
     }
-    return this.encodeByteArray(stringToByteArray(input), opt_webSafe);
+    return this.encodeByteArray(stringToByteArray(input), optWebSafe);
   },
 
   /**
    * Base64-decode a string.
    *
    * @param input to decode.
-   * @param opt_webSafe True if we should use the
+   * @param optWebSafe True if we should use the
    *     alternative alphabet.
    * @return string representing the decoded value.
    */
-  decodeString(input: string, opt_webSafe: boolean): string {
+  decodeString(input: string, optWebSafe: boolean): string {
     // Shortcut for Mozilla browsers that implement
     // a native base64 encoder in the form of "btoa/atob"
-    if (this.HAS_NATIVE_SUPPORT && !opt_webSafe) {
+    if (this.HAS_NATIVE_SUPPORT && !optWebSafe) {
       return atob(input);
     }
-    return byteArrayToString(this.decodeStringToByteArray(input, opt_webSafe));
+    return byteArrayToString(this.decodeStringToByteArray(input, optWebSafe));
   },
 
   /**
@@ -248,46 +248,46 @@ export const base64 = {
    * to one byte.  If the group has three characters, it decodes to two bytes.
    *
    * @param input Input to decode.
-   * @param opt_webSafe True if we should use the web-safe alphabet.
+   * @param optWebSafe True if we should use the web-safe alphabet.
    * @return bytes representing the decoded value.
    */
-  decodeStringToByteArray(input: string, opt_webSafe: boolean): number[] {
+  decodeStringToByteArray(input: string, optWebSafe: boolean): number[] {
     this.init_();
 
-    var charToByteMap = opt_webSafe
+    const charToByteMap = optWebSafe
       ? this.charToByteMapWebSafe_
       : this.charToByteMap_;
 
-    var output: number[] = [];
+    const output: number[] = [];
 
-    for (var i = 0; i < input.length; ) {
-      var byte1 = charToByteMap[input.charAt(i++)];
+    for (let i = 0; i < input.length; ) {
+      const byte1 = charToByteMap[input.charAt(i++)];
 
-      var haveByte2 = i < input.length;
-      var byte2 = haveByte2 ? charToByteMap[input.charAt(i)] : 0;
+      const haveByte2 = i < input.length;
+      const byte2 = haveByte2 ? charToByteMap[input.charAt(i)] : 0;
       ++i;
 
-      var haveByte3 = i < input.length;
-      var byte3 = haveByte3 ? charToByteMap[input.charAt(i)] : 64;
+      const haveByte3 = i < input.length;
+      const byte3 = haveByte3 ? charToByteMap[input.charAt(i)] : 64;
       ++i;
 
-      var haveByte4 = i < input.length;
-      var byte4 = haveByte4 ? charToByteMap[input.charAt(i)] : 64;
+      const haveByte4 = i < input.length;
+      const byte4 = haveByte4 ? charToByteMap[input.charAt(i)] : 64;
       ++i;
 
       if (byte1 == null || byte2 == null || byte3 == null || byte4 == null) {
         throw Error();
       }
 
-      var outByte1 = (byte1 << 2) | (byte2 >> 4);
+      const outByte1 = (byte1 << 2) | (byte2 >> 4);
       output.push(outByte1);
 
-      if (byte3 != 64) {
-        var outByte2 = ((byte2 << 4) & 0xf0) | (byte3 >> 2);
+      if (byte3 !== 64) {
+        const outByte2 = ((byte2 << 4) & 0xf0) | (byte3 >> 2);
         output.push(outByte2);
 
-        if (byte4 != 64) {
-          var outByte3 = ((byte3 << 6) & 0xc0) | byte4;
+        if (byte4 !== 64) {
+          const outByte3 = ((byte3 << 6) & 0xc0) | byte4;
           output.push(outByte3);
         }
       }
@@ -309,7 +309,7 @@ export const base64 = {
       this.charToByteMapWebSafe_ = {};
 
       // We want quick mappings back and forth, so we precompute two maps.
-      for (var i = 0; i < this.ENCODED_VALS.length; i++) {
+      for (let i = 0; i < this.ENCODED_VALS.length; i++) {
         this.byteToCharMap_[i] = this.ENCODED_VALS.charAt(i);
         this.charToByteMap_[this.byteToCharMap_[i]] = i;
         this.byteToCharMapWebSafe_[i] = this.ENCODED_VALS_WEBSAFE.charAt(i);

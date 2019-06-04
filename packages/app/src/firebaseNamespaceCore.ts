@@ -29,16 +29,12 @@ import {
   FirebaseServiceNamespace,
   AppHook
 } from '@firebase/app-types/private';
-import { deepExtend, patchProperty } from '@firebase/util';
+import { deepExtend, contains } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { version } from '../../firebase/package.json';
-
-function contains(obj: object, key: string): boolean {
-  return Object.prototype.hasOwnProperty.call(obj, key);
-}
 
 /**
  * Because auth can't share code with other components, we attach the utility functions
@@ -84,7 +80,7 @@ export function createFirebaseNamespaceCore(
   //
   //   import * as firebase from 'firebase';
   //   which becomes: var firebase = require('firebase');
-  patchProperty(namespace, 'default', namespace);
+  namespace['default'] = namespace;
 
   // firebase.apps is a read-only getter.
   Object.defineProperty(namespace, 'apps', {
@@ -112,7 +108,7 @@ export function createFirebaseNamespaceCore(
     return apps[name];
   }
 
-  patchProperty(app, 'App', firebaseAppImpl);
+  app['App'] = firebaseAppImpl;
   /**
    * Create a new App instance (name must be unique).
    */

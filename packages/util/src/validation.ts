@@ -24,15 +24,15 @@
  * @param {!number} maxCount The maximum number of argument to allow for the function call
  * @param {!number} argCount The actual number of arguments provided.
  */
-export const validateArgCount = function(fnName, minCount, maxCount, argCount) {
-  var argError;
+export const validateArgCount = function(fnName, minCount, maxCount, argCount): void {
+  let argError;
   if (argCount < minCount) {
     argError = 'at least ' + minCount;
   } else if (argCount > maxCount) {
     argError = maxCount === 0 ? 'none' : 'no more than ' + maxCount;
   }
   if (argError) {
-    var error =
+    const error =
       fnName +
       ' failed: Was called with ' +
       argCount +
@@ -52,8 +52,8 @@ export const validateArgCount = function(fnName, minCount, maxCount, argCount) {
  * @param {boolean} optional Whether or not the argument is optional
  * @return {!string} The prefix to add to the error thrown for validation.
  */
-export function errorPrefix(fnName, argumentNumber, optional) {
-  var argName = '';
+export function errorPrefix(fnName, argumentNumber, optional): string {
+  let argName = '';
   switch (argumentNumber) {
     case 1:
       argName = optional ? 'first' : 'First';
@@ -73,7 +73,7 @@ export function errorPrefix(fnName, argumentNumber, optional) {
       );
   }
 
-  var error = fnName + ' failed: ';
+  let error = fnName + ' failed: ';
 
   error += argName + ' argument ';
   return error;
@@ -85,8 +85,8 @@ export function errorPrefix(fnName, argumentNumber, optional) {
  * @param {!string} namespace
  * @param {boolean} optional
  */
-export function validateNamespace(fnName, argumentNumber, namespace, optional) {
-  if (optional && !namespace) return;
+export function validateNamespace(fnName, argumentNumber, namespace, optional): void {
+  if (optional && !namespace) {return;}
   if (typeof namespace !== 'string') {
     //TODO: I should do more validation here. We only allow certain chars in namespaces.
     throw new Error(
@@ -96,13 +96,13 @@ export function validateNamespace(fnName, argumentNumber, namespace, optional) {
   }
 }
 
-export function validateCallback(fnName, argumentNumber, callback, optional) {
-  if (optional && !callback) return;
+export function validateCallback(fnName, argumentNumber, callback, optional): void {
+  if (optional && !callback) {return;}
   if (typeof callback !== 'function')
-    throw new Error(
+    {throw new Error(
       errorPrefix(fnName, argumentNumber, optional) +
         'must be a valid function.'
-    );
+    );}
 }
 
 export function validateContextObject(
@@ -110,11 +110,11 @@ export function validateContextObject(
   argumentNumber,
   context,
   optional
-) {
-  if (optional && !context) return;
+): void {
+  if (optional && !context) {return;}
   if (typeof context !== 'object' || context === null)
-    throw new Error(
+    {throw new Error(
       errorPrefix(fnName, argumentNumber, optional) +
         'must be a valid context object.'
-    );
+    );}
 }

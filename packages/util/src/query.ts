@@ -25,11 +25,11 @@ import { forEach } from './obj';
  * @param {!Object} querystringParams
  * @return {string}
  */
-export const querystring = function(querystringParams) {
-  var params: string[] = [];
-  forEach(querystringParams, function(key, value) {
+export const querystring = function(querystringParams): string {
+  const params: string[] = [];
+  forEach(querystringParams, (key, value) => {
     if (Array.isArray(value)) {
-      value.forEach(function(arrayVal) {
+      value.forEach((arrayVal) => {
         params.push(
           encodeURIComponent(key) + '=' + encodeURIComponent(arrayVal)
         );
@@ -47,13 +47,13 @@ export const querystring = function(querystringParams) {
  * @param {string} querystring
  * @return {!Object}
  */
-export const querystringDecode = function(querystring) {
-  var obj = {};
-  var tokens = querystring.replace(/^\?/, '').split('&');
+export const querystringDecode = function(querystring): object {
+  const obj = {};
+  const tokens = querystring.replace(/^\?/, '').split('&');
 
-  tokens.forEach(function(token) {
+  tokens.forEach((token) => {
     if (token) {
-      var key = token.split('=');
+      const key = token.split('=');
       obj[key[0]] = key[1];
     }
   });

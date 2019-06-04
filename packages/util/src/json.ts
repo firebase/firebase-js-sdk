@@ -21,7 +21,7 @@
  * @param {string} str A string containing JSON.
  * @return {*} The javascript object representing the specified JSON.
  */
-export function jsonEval(str) {
+export function jsonEval(str: string): unknown {
   return JSON.parse(str);
 }
 
@@ -30,6 +30,6 @@ export function jsonEval(str) {
  * @param {*} data Javascript object to be stringified.
  * @return {string} The JSON contents of the object.
  */
-export function stringify(data) {
+export function stringify(data: unknown): string {
   return JSON.stringify(data);
 }
