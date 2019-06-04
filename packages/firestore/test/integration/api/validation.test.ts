@@ -814,6 +814,14 @@ apiDescribe('Validation:', persistence => {
         expect(() => collection.where('a', 'array-contains', null)).to.throw(
           'Invalid query. You can only perform equals comparisons on null.'
         );
+        expect(() => collection.where('a', 'in', null)).to.throw(
+          "Invalid Query. A non-empty array is required for 'in' queries."
+        );
+        expect(() =>
+          collection.where('a', 'array-contains-any', null)
+        ).to.throw(
+          "Invalid Query. A non-empty array is required for 'array-contains-any' queries."
+        );
 
         expect(() => collection.where('a', '>', Number.NaN)).to.throw(
           'Invalid query. You can only perform equals comparisons on NaN.'
@@ -822,6 +830,12 @@ apiDescribe('Validation:', persistence => {
           collection.where('a', 'array-contains', Number.NaN)
         ).to.throw(
           'Invalid query. You can only perform equals comparisons on NaN.'
+        );
+        expect(() => collection.where('a', 'in', Number.NaN)).to.throw(
+          "Invalid Query. A non-empty array is required for 'in' queries."
+        );
+        expect(() => collection.where('a', 'array-contains-any', Number.NaN)).to.throw(
+          "Invalid Query. A non-empty array is required for 'array-contains-any' queries."
         );
       }
     );
@@ -997,7 +1011,61 @@ apiDescribe('Validation:', persistence => {
             .where('foo', 'array-contains', 1)
             .where('foo', 'array-contains', 2)
         ).to.throw(
-          'Invalid query. Queries only support a single array-contains filter.'
+          "Invalid query. Queries only support a single 'array-contains' filter."
+        );
+      }
+    );
+
+    validationIt(
+      persistence,
+      'with multiple IN or array-contains-any filters fail.',
+      db => {
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', 'in', [1, 2])
+            .where('foo', 'in', [2, 3])
+        ).to.throw("Invalid query. Queries only support a single 'in' filter.");
+
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', 'array-contains-any', [1, 2])
+            .where('foo', 'array-contains-any', [2, 3])
+        ).to.throw(
+          "Invalid query. Queries only support a single 'array-contains-any'" +
+            ' filter.'
+        );
+      }
+    );
+
+    validationIt(
+      persistence,
+      'with non-array values fail for IN queries.',
+      db => {
+        expect(() => db.collection('test').where('foo', 'in', 2)).to.throw(
+          "Invalid Query. A non-empty array is required for 'in' queries."
+        );
+      }
+    );
+
+    validationIt(persistence, 'with empty arrays fail for IN queries.', db => {
+      expect(() => db.collection('test').where('foo', 'in', [])).to.throw(
+        "Invalid Query. A non-empty array is required for 'in' queries."
+      );
+    });
+
+    validationIt(
+      persistence,
+      'with more than 10 elements including duplicates fail for IN queries.',
+      db => {
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', 'in', [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
+        ).to.throw(
+          "Invalid Query. 'in' queries support a maximum of 10 elements in " +
+            'the value array.'
         );
       }
     );
@@ -1059,8 +1127,22 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           collection.where(FieldPath.documentId(), 'array-contains', 1)
         ).to.throw(
-          "Invalid Query. You can't perform array-contains queries on " +
-            'FieldPath.documentId() since document IDs are not arrays.'
+          "Invalid Query. You can't perform 'array-contains' queries on " +
+            'FieldPath.documentId().'
+        );
+
+        expect(() =>
+          collection.where(FieldPath.documentId(), 'array-contains-any', 1)
+        ).to.throw(
+          "Invalid Query. You can't perform 'array-contains-any' queries on " +
+            'FieldPath.documentId().'
+        );
+
+        expect(() =>
+          collection.where(FieldPath.documentId(), 'in', [1, 2])
+        ).to.throw(
+          "Invalid Query. You can't perform 'in' queries on " +
+            'FieldPath.documentId().'
         );
       }
     );

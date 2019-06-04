@@ -757,6 +757,27 @@ describe('Serializer', () => {
       });
       expect(s.fromRelationFilter(actual)).to.deep.equal(input);
     });
+
+    it('converts IN', () => {
+      const input = filter('field', 'in', [42]);
+      const actual = s.toRelationFilter(input);
+      expect(actual).to.deep.equal({
+        fieldFilter: {
+          field: { fieldPath: 'field' },
+          op: 'IN',
+          value: {
+            arrayValue: {
+              values: [
+                {
+                  integerValue: '42'
+                }
+              ]
+            }
+          }
+        }
+      });
+      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+    });
   });
 
   describe('to/from UnaryFilter', () => {

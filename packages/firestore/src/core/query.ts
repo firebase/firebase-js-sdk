@@ -349,16 +349,6 @@ export class Query {
     return null;
   }
 
-  hasArrayContainsFilter(): boolean {
-    return (
-      this.filters.find(
-        filter =>
-          filter instanceof RelationFilter &&
-          filter.op === RelationOp.ARRAY_CONTAINS
-      ) !== undefined
-    );
-  }
-
   isDocumentQuery(): boolean {
     return (
       DocumentKey.isDocumentKey(this.path) &&
@@ -474,6 +464,8 @@ export class RelationOp {
   static GREATER_THAN = new RelationOp('>');
   static GREATER_THAN_OR_EQUAL = new RelationOp('>=');
   static ARRAY_CONTAINS = new RelationOp('array-contains');
+  static IN = new RelationOp('in');
+  static ARRAY_CONTAINS_ANY = new RelationOp('array-contains-any');
 
   static fromString(op: string): RelationOp {
     switch (op) {
@@ -489,6 +481,10 @@ export class RelationOp {
         return RelationOp.GREATER_THAN;
       case 'array-contains':
         return RelationOp.ARRAY_CONTAINS;
+      case 'in':
+        return RelationOp.IN;
+      case 'array-contains-any':
+        return RelationOp.ARRAY_CONTAINS_ANY;
       default:
         return fail('Unknown relation: ' + op);
     }
@@ -524,6 +520,10 @@ export class RelationFilter extends Filter {
         this.op !== RelationOp.ARRAY_CONTAINS,
         "array-contains queries don't make sense on document keys."
       );
+      assert(
+        this.op !== RelationOp.IN,
+        "IN queries don't make sense on document keys."
+      );
       const refValue = this.value as RefValue;
       const comparison = DocumentKey.comparator(doc.key, refValue.key);
       return this.matchesComparison(comparison);
@@ -538,6 +538,12 @@ export class RelationFilter extends Filter {
       return (
         value instanceof ArrayValue &&
         value.internalValue.find(element => element.isEqual(this.value)) !==
+          undefined
+      );
+    } else if (this.op === RelationOp.IN) {
+      return (
+        this.value instanceof ArrayValue &&
+        this.value.internalValue.find(element => element.isEqual(value)) !==
           undefined
       );
     } else {
@@ -568,7 +574,10 @@ export class RelationFilter extends Filter {
 
   isInequality(): boolean {
     return (
-      this.op !== RelationOp.EQUAL && this.op !== RelationOp.ARRAY_CONTAINS
+      this.op !== RelationOp.EQUAL &&
+      this.op !== RelationOp.ARRAY_CONTAINS &&
+      this.op !== RelationOp.IN &&
+      this.op !== RelationOp.ARRAY_CONTAINS_ANY
     );
   }
 

@@ -132,6 +132,47 @@ describe('Query', () => {
     expect(query.matches(document)).to.be.true;
   });
 
+  it('matches IN filters', () => {
+    const query = Query.atPath(path('collection')).addFilter(
+      filter('zip', 'in', [12345])
+    );
+
+    let document = doc('collection/1', 0, { zip: 12345 });
+    expect(query.matches(document)).to.be.true;
+
+    // Value matches in array.
+    document = doc('collection/1', 0, { zip: [12345] });
+    expect(query.matches(document)).to.be.false;
+
+    // Non-type match.
+    document = doc('collection/1', 0, { zip: '123435' });
+    expect(query.matches(document)).to.be.false;
+
+    // Nested match.
+    document = doc('collection/1', 0, {
+      zip: [123, '12345', { zip: 12345, b: [42] }]
+    });
+    expect(query.matches(document)).to.be.false;
+  });
+
+  it('matches IN filters with object values', () => {
+    const query = Query.atPath(path('collection')).addFilter(
+      filter('zip', 'in', [{ a: [42] }])
+    );
+
+    // Containing object in array.
+    let document = doc('collection/1', 0, {
+      zip: [{a: 42}]
+    });
+    expect(query.matches(document)).to.be.false;
+
+    // Containing object.
+    document = doc('collection/1', 0, {
+      zip: { a: [42] }
+    });
+    expect(query.matches(document)).to.be.true;
+  });
+
   it('matches NaN for filters', () => {
     const query = Query.atPath(path('collection')).addFilter(
       filter('sort', '==', NaN)

@@ -555,6 +555,53 @@ apiDescribe('Queries', persistence => {
     });
   });
 
+  it('can use IN filters', async () => {
+    const testDocs = {
+      a: { zip: 98101 },
+      b: { zip: 91102},
+      c: { zip: 98103 },
+      d: { zip: [98101]},
+      e: { zip: ['98101', {zip: 98101}]},
+      f: { zip: {code: 500}}
+    };
+
+    await withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await coll.where('zip', 'in', [98101, 98103]).get();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { zip: 98101 },
+        { zip: 98103 },
+      ]);
+
+      // IN with objects.
+      const snapshot2 = await coll.where('zip', 'in', [{code: 500}]).get();
+      expect(toDataArray(snapshot2)).to.deep.equal([
+        { zip: {code: 500}},
+      ]);
+    });
+  });
+
+  it('can use array-contains-any filters', async () => {
+    const testDocs = {
+      a: { array: [42] },
+      b: { array: ['a', 42, 'c'] },
+      c: { array: [41.999, '42', { a: [42] }] },
+      d: { array: [42], array2: ['bingo'] }
+    };
+
+    await withTestCollection(persistence, testDocs, async coll => {
+      // Search for 42
+      const snapshot = await coll.where('array', 'array-contains-any', [42]).get();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { array: [42] },
+        { array: ['a', 42, 'c'] },
+        { array: [42], array2: ['bingo'] }
+      ]);
+
+      // NOTE: The backend doesn't currently support null, NaN, objects, or
+      // arrays, so there isn't much of anything else interesting to test.
+    });
+  });
+
   it('throws custom error when using docChanges as property', () => {
     const querySnap = querySnapshot('foo/bar', {}, {}, keys(), false, false);
 

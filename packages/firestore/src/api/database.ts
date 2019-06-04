@@ -1418,19 +1418,22 @@ export class Query implements firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateDefined('Query.where', 3, value);
     // Enumerated from the WhereFilterOp type in index.d.ts.
-    const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];
+    const whereFilterOpEnums = [
+      '<',
+      '<=',
+      '==',
+      '>=',
+      '>',
+      'array-contains',
+      'in',
+      'array-contains-any'
+    ];
     validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
+    this.validateElementFilters(fieldPath, relationOp, value);
     if (fieldPath.isKeyField()) {
-      if (relationOp === RelationOp.ARRAY_CONTAINS) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          "Invalid Query. You can't perform array-contains queries on " +
-            'FieldPath.documentId() since document IDs are not arrays.'
-        );
-      }
       if (typeof value === 'string') {
         if (value === '') {
           throw new FirestoreError(
@@ -1936,14 +1939,16 @@ export class Query implements firestore.Query {
             firstOrderByField
           );
         }
-      } else if (filter.op === RelationOp.ARRAY_CONTAINS) {
-        if (this._query.hasArrayContainsFilter()) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Invalid query. Queries only support a single array-contains ' +
-              'filter.'
-          );
-        }
+      } else if (
+        filter.op === RelationOp.ARRAY_CONTAINS ||
+        filter.op === RelationOp.IN ||
+        filter.op === RelationOp.ARRAY_CONTAINS_ANY
+      ) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Invalid query. Queries only support a single ' +
+            `'${filter.op.toString()}' filter.`
+        );
       }
     }
   }
@@ -1971,6 +1976,49 @@ export class Query implements firestore.Query {
           `as your first Query.orderBy(), but your first Query.orderBy() ` +
           `is on field '${orderBy.toString()}' instead.`
       );
+    }
+  }
+
+  /**
+   * Validates the RelationOps: ARRAY_CONTAINS, ARRAY_CONTAINS_ANY, and IN.
+   */
+  private validateElementFilters(
+    fieldPath: FieldPath,
+    relationOp: RelationOp,
+    value: unknown
+  ): void {
+    if (fieldPath.isKeyField()) {
+      if (
+        relationOp === RelationOp.ARRAY_CONTAINS ||
+        relationOp === RelationOp.ARRAY_CONTAINS_ANY ||
+        relationOp === RelationOp.IN
+      ) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Invalid Query. You can't perform '${relationOp.toString()}' ` +
+            'queries on FieldPath.documentId().'
+        );
+      }
+    } else {
+      if (
+        relationOp === RelationOp.IN ||
+        relationOp === RelationOp.ARRAY_CONTAINS_ANY
+      ) {
+        if (!Array.isArray(value) || value.length === 0) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            'Invalid Query. A non-empty array is required for ' +
+              `'${relationOp.toString()}' queries.`
+          );
+        }
+        if (value.length > 10) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid Query. '${relationOp.toString()}' queries support a ` +
+              'maximum of 10 elements in the value array.'
+          );
+        }
+      }
     }
   }
 }

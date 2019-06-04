@@ -562,6 +562,14 @@ apiDescribe('Database', persistence => {
       });
     });
 
+    it('inequality and IN on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', '>=', 32).where('y', 'in', [1,2])
+        ).not.to.throw();
+      });
+    });
+
     it('inequality same as orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() => coll.where('x', '>', 32).orderBy('x')).not.to.throw();
@@ -596,6 +604,14 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           coll.orderBy('x').where('y', 'array-contains', 'cat')
+        ).not.to.throw();
+      });
+    });
+
+    it('IN different than orderBy works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.orderBy('x').where('y', 'in', [1,2])
         ).not.to.throw();
       });
     });
