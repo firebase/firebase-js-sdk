@@ -238,10 +238,7 @@ export class PhoneAuthProvider_Instance implements AuthProvider {
   ): Promise<string>;
 }
 
-export type PhoneInfoOptions =
-  | PhoneSingleFactorInfoOptions
-  | PhoneMultiFactorEnrollInfoOptions
-  | PhoneMultiFactorSignInInfoOptions;
+export type PhoneInfoOptions = PhoneSingleFactorInfoOptions | PhoneMultiFactorEnrollInfoOptions | PhoneMultiFactorSignInInfoOptions;
 
 export interface PhoneSingleFactorInfoOptions {
   phoneNumber: string;
