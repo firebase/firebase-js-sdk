@@ -19,7 +19,6 @@ import { expect } from 'chai';
 import { spy as Spy, SinonSpy } from 'sinon';
 import { Logger, LogLevel } from '../src/logger';
 import { setLogLevel } from '../index';
-import { debug } from 'util';
 
 describe('@firebase/logger', () => {
   const message = 'Hello there!';
@@ -47,7 +46,7 @@ describe('@firebase/logger', () => {
     spies.errorSpy.restore();
   });
 
-  function testLog(message, channel, shouldLog) {
+  function testLog(message, channel, shouldLog): void {
     /**
      * Ensure that `debug` logs assert against the `console.log` function. The
      * rationale here is explained in `logger.ts`.

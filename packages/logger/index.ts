@@ -17,7 +17,7 @@
 
 import { instances, LogLevel } from './src/logger';
 
-export function setLogLevel(level: LogLevel) {
+export function setLogLevel(level: LogLevel): void {
   instances.forEach(inst => {
     inst.logLevel = level;
   });
