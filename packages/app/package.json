@@ -14,6 +14,8 @@
     "dist"
   ],
   "scripts": {
+    "lint": "eslint -c .eslintrc.json '**/*.ts'",
+    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "run-p test:browser test:node",
@@ -58,7 +60,11 @@
     "ts-loader": "5.4.5",
     "ts-node": "8.1.0",
     "typescript": "3.4.5",
-    "webpack": "4.30.0"
+    "webpack": "4.30.0",
+    "eslint": "5.16.0",
+    "@typescript-eslint/parser": "1.9.0",
+    "@typescript-eslint/eslint-plugin": "1.9.0",
+    "@typescript-eslint/eslint-plugin-tslint": "1.9.0"
   },
   "repository": {
     "directory": "packages/app",
