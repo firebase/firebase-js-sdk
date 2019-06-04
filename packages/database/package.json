@@ -29,8 +29,9 @@
     "@firebase/database-types": "0.4.0",
     "@firebase/logger": "0.1.14",
     "@firebase/util": "0.2.17",
-    "faye-websocket": "0.11.1",
-    "tslib": "1.9.3"
+    "@types/ws": "6.0.1",
+    "tslib": "1.9.3",
+    "ws": "7.0.0"
   },
   "devDependencies": {
     "@types/chai": "4.1.7",

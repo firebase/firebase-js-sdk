@@ -21,7 +21,7 @@ import {
   FIREBASE_LONGPOLL_COMMAND_CB_NAME,
   FIREBASE_LONGPOLL_DATA_CB_NAME
 } from './realtime/BrowserPollConnection';
-import { Client } from 'faye-websocket';
+import * as Client from 'ws';
 
 setWebSocketImpl(Client);
 
