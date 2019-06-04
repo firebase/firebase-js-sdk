@@ -533,18 +533,18 @@ export class RelationFilter extends Filter {
     }
   }
 
-  private matchesValue(docValue: FieldValue): boolean {
+  private matchesValue(other: FieldValue): boolean {
     if (this.op === RelationOp.ARRAY_CONTAINS) {
       return (
-        docValue instanceof ArrayValue &&
-        docValue.internalValue.find(element => element.isEqual(this.value)) !==
+        other instanceof ArrayValue &&
+        other.internalValue.find(element => element.isEqual(this.value)) !==
           undefined
       );
     } else {
       // Only compare types with matching backend order (such as double and int).
       return (
-        this.value.typeOrder === docValue.typeOrder &&
-        this.matchesComparison(docValue.compareTo(this.value))
+        this.value.typeOrder === other.typeOrder &&
+        this.matchesComparison(other.compareTo(this.value))
       );
     }
   }
