@@ -203,6 +203,7 @@ export interface IdTokenResult {
   authTime: string;
   issuedAtTime: string;
   signInProvider: string | null;
+  signInSecondFactor: string | null;
   claims: {
     [key: string]: any;
   };
@@ -237,10 +238,10 @@ export class PhoneAuthProvider_Instance implements AuthProvider {
   ): Promise<string>;
 }
 
-export type PhoneInfoOptions =
-  | PhoneSingleFactorInfoOptions
-  | PhoneMultiFactorEnrollInfoOptions
-  | PhoneMultiFactorSignInInfoOptions;
+export type PhoneInfoOptions = 
+  PhoneSingleFactorInfoOptions |
+  PhoneMultiFactorEnrollInfoOptions |
+  PhoneMultiFactorSignInInfoOptions;
 
 export interface PhoneSingleFactorInfoOptions {
   phoneNumber: string;
@@ -338,7 +339,6 @@ export interface PhoneMultiFactorInfo extends MultiFactorInfo {
 
 export class PhoneMultiFactorAssertion extends MultiFactorAssertion {
   private constructor();
-  phoneNumber: string;
 }
 
 export class PhoneMultiFactorGenerator {
