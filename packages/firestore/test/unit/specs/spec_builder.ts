@@ -850,7 +850,7 @@ export class SpecBuilder {
           return [
             filter.field.canonicalString(),
             filter.op.name,
-            filter.value.value()
+            filter.rhs.value()
           ] as SpecQueryFilter;
         } else {
           return fail('Unknown filter: ' + filter);
