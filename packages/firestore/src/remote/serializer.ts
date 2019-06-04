@@ -1288,7 +1288,7 @@ export class JsonProtoSerializer {
         fieldFilter: {
           field: this.toFieldPathReference(filter.field),
           op: this.toOperatorName(filter.op),
-          value: this.toValue(filter.value)
+          value: this.toValue(filter.rhs)
         }
       };
     } else {

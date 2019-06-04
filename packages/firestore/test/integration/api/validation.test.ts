@@ -1043,23 +1043,42 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'with non-array values fail for IN queries.',
+      'with non-array values fail for IN and array-contains-any queries.',
       db => {
         expect(() => db.collection('test').where('foo', 'in', 2)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' queries."
         );
+
+        expect(() =>
+          db.collection('test').where('foo', 'array-contains-any', 2)
+        ).to.throw(
+          'Invalid Query. A non-empty array is required for ' +
+            "'array-contains-any' queries."
+        );
       }
     );
 
-    validationIt(persistence, 'with empty arrays fail for IN queries.', db => {
-      expect(() => db.collection('test').where('foo', 'in', [])).to.throw(
-        "Invalid Query. A non-empty array is required for 'in' queries."
-      );
-    });
+    validationIt(
+      persistence,
+      'with empty arrays fail for IN and array-contains-any queries.',
+      db => {
+        expect(() => db.collection('test').where('foo', 'in', [])).to.throw(
+          "Invalid Query. A non-empty array is required for 'in' queries."
+        );
+
+        expect(() =>
+          db.collection('test').where('foo', 'array-contains-any', [])
+        ).to.throw(
+          'Invalid Query. A non-empty array is required for ' +
+            "'array-contains-any' queries."
+        );
+      }
+    );
 
     validationIt(
       persistence,
-      'with more than 10 elements including duplicates fail for IN queries.',
+      'with more than 10 elements including duplicates fail for IN and ' +
+        'array-contains-any queries.',
       db => {
         expect(() =>
           db
@@ -1068,6 +1087,27 @@ apiDescribe('Validation:', persistence => {
         ).to.throw(
           "Invalid Query. 'in' queries support a maximum of 10 elements in " +
             'the value array.'
+        );
+
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', 'array-contains-any', [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              9,
+              9,
+              9
+            ])
+        ).to.throw(
+          "Invalid Query. 'array-contains-any' queries support a maximum of " +
+            '10 elements in the value array.'
         );
       }
     );

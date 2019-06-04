@@ -1432,7 +1432,7 @@ export class Query implements firestore.Query {
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
-    this.validateElementFilters(fieldPath, relationOp, value);
+    this.validateNonInequalityFilters(fieldPath, relationOp, value);
     if (fieldPath.isKeyField()) {
       if (typeof value === 'string') {
         if (value === '') {
@@ -1939,11 +1939,7 @@ export class Query implements firestore.Query {
             firstOrderByField
           );
         }
-      } else if (
-        filter.op === RelationOp.ARRAY_CONTAINS ||
-        filter.op === RelationOp.IN ||
-        filter.op === RelationOp.ARRAY_CONTAINS_ANY
-      ) {
+      } else if (this._query.hasUniqueRelationOp()) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. Queries only support a single ' +
@@ -1982,42 +1978,39 @@ export class Query implements firestore.Query {
   /**
    * Validates the RelationOps: ARRAY_CONTAINS, ARRAY_CONTAINS_ANY, and IN.
    */
-  private validateElementFilters(
+  private validateNonInequalityFilters(
     fieldPath: FieldPath,
     relationOp: RelationOp,
     value: unknown
   ): void {
-    if (fieldPath.isKeyField()) {
-      if (
-        relationOp === RelationOp.ARRAY_CONTAINS ||
+    if (
+      fieldPath.isKeyField() &&
+      (relationOp === RelationOp.ARRAY_CONTAINS ||
         relationOp === RelationOp.ARRAY_CONTAINS_ANY ||
-        relationOp === RelationOp.IN
-      ) {
+        relationOp === RelationOp.IN)
+    ) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. You can't perform '${relationOp.toString()}' ` +
+          'queries on FieldPath.documentId().'
+      );
+    } else if (
+      relationOp === RelationOp.IN ||
+      relationOp === RelationOp.ARRAY_CONTAINS_ANY
+    ) {
+      if (!Array.isArray(value) || value.length === 0) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `Invalid Query. You can't perform '${relationOp.toString()}' ` +
-            'queries on FieldPath.documentId().'
+          'Invalid Query. A non-empty array is required for ' +
+            `'${relationOp.toString()}' queries.`
         );
       }
-    } else {
-      if (
-        relationOp === RelationOp.IN ||
-        relationOp === RelationOp.ARRAY_CONTAINS_ANY
-      ) {
-        if (!Array.isArray(value) || value.length === 0) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Invalid Query. A non-empty array is required for ' +
-              `'${relationOp.toString()}' queries.`
-          );
-        }
-        if (value.length > 10) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid Query. '${relationOp.toString()}' queries support a ` +
-              'maximum of 10 elements in the value array.'
-          );
-        }
+      if (value.length > 10) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Invalid Query. '${relationOp.toString()}' queries support a ` +
+            'maximum of 10 elements in the value array.'
+        );
       }
     }
   }

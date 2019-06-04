@@ -570,6 +570,14 @@ apiDescribe('Database', persistence => {
       });
     });
 
+    it('inequality and array-contains-any on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', '>=', 32).where('y', 'array-contains-any', [1, 2])
+        ).not.to.throw();
+      });
+    });
+
     it('inequality same as orderBy works.', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() => coll.where('x', '>', 32).orderBy('x')).not.to.throw();
@@ -611,6 +619,14 @@ apiDescribe('Database', persistence => {
     it('IN different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() => coll.orderBy('x').where('y', 'in', [1, 2])).not.to.throw();
+      });
+    });
+
+    it('array-contains-any different than orderBy works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.orderBy('x').where('y', 'array-contains-any', [1, 2])
+        ).not.to.throw();
       });
     });
   });

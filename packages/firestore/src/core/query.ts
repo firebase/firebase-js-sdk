@@ -349,6 +349,26 @@ export class Query {
     return null;
   }
 
+  /**
+   * Checks if the filter operation contains a RelationOp that cannot be
+   * used more than once in a filter.
+   */
+  hasUniqueRelationOp(): boolean {
+    const singleUseRelationOps = [
+      RelationOp.ARRAY_CONTAINS,
+      RelationOp.IN,
+      RelationOp.ARRAY_CONTAINS_ANY
+    ];
+    return (
+      this.filters.find(
+        filter =>
+          filter instanceof RelationFilter &&
+          singleUseRelationOps.find(relationOp => relationOp === filter.op) !==
+            undefined
+      ) !== undefined
+    );
+  }
+
   isDocumentQuery(): boolean {
     return (
       DocumentKey.isDocumentKey(this.path) &&
@@ -505,7 +525,7 @@ export class RelationFilter extends Filter {
   constructor(
     public field: FieldPath,
     public op: RelationOp,
-    public value: FieldValue
+    public rhs: FieldValue
   ) {
     super();
   }
@@ -513,18 +533,16 @@ export class RelationFilter extends Filter {
   matches(doc: Document): boolean {
     if (this.field.isKeyField()) {
       assert(
-        this.value instanceof RefValue,
+        this.rhs instanceof RefValue,
         'Comparing on key, but filter value not a RefValue'
       );
       assert(
-        this.op !== RelationOp.ARRAY_CONTAINS,
-        "array-contains queries don't make sense on document keys."
+        this.op !== RelationOp.ARRAY_CONTAINS &&
+          this.op !== RelationOp.ARRAY_CONTAINS_ANY &&
+          this.op !== RelationOp.IN,
+        `'${this.op.toString()}' queries don't make sense on document keys.`
       );
-      assert(
-        this.op !== RelationOp.IN,
-        "IN queries don't make sense on document keys."
-      );
-      const refValue = this.value as RefValue;
+      const refValue = this.rhs as RefValue;
       const comparison = DocumentKey.comparator(doc.key, refValue.key);
       return this.matchesComparison(comparison);
     } else {
@@ -533,24 +551,35 @@ export class RelationFilter extends Filter {
     }
   }
 
-  private matchesValue(value: FieldValue): boolean {
+  private matchesValue(lhs: FieldValue): boolean {
     if (this.op === RelationOp.ARRAY_CONTAINS) {
       return (
-        value instanceof ArrayValue &&
-        value.internalValue.find(element => element.isEqual(this.value)) !==
+        lhs instanceof ArrayValue &&
+        lhs.internalValue.find(element => element.isEqual(this.rhs)) !==
           undefined
       );
     } else if (this.op === RelationOp.IN) {
       return (
-        this.value instanceof ArrayValue &&
-        this.value.internalValue.find(element => element.isEqual(value)) !==
+        this.rhs instanceof ArrayValue &&
+        this.rhs.internalValue.find(element => element.isEqual(lhs)) !==
           undefined
+      );
+    } else if (this.op === RelationOp.ARRAY_CONTAINS_ANY) {
+      return (
+        lhs instanceof ArrayValue &&
+        lhs.internalValue.some(lhsElem => {
+          return (
+            this.rhs instanceof ArrayValue &&
+            this.rhs.internalValue.find(rhsElem => rhsElem.isEqual(lhsElem)) !==
+              undefined
+          );
+        })
       );
     } else {
       // Only compare types with matching backend order (such as double and int).
       return (
-        this.value.typeOrder === value.typeOrder &&
-        this.matchesComparison(value.compareTo(this.value))
+        this.rhs.typeOrder === lhs.typeOrder &&
+        this.matchesComparison(lhs.compareTo(this.rhs))
       );
     }
   }
@@ -586,7 +615,7 @@ export class RelationFilter extends Filter {
     // the same description, such as the int 3 and the string "3". So we should
     // add the types in here somehow, too.
     return (
-      this.field.canonicalString() + this.op.toString() + this.value.toString()
+      this.field.canonicalString() + this.op.toString() + this.rhs.toString()
     );
   }
 
@@ -595,7 +624,7 @@ export class RelationFilter extends Filter {
       return (
         this.op.isEqual(other.op) &&
         this.field.isEqual(other.field) &&
-        this.value.isEqual(other.value)
+        this.rhs.isEqual(other.rhs)
       );
     } else {
       return false;
@@ -603,7 +632,7 @@ export class RelationFilter extends Filter {
   }
 
   toString(): string {
-    return `${this.field.canonicalString()} ${this.op} ${this.value.value()}`;
+    return `${this.field.canonicalString()} ${this.op} ${this.rhs.value()}`;
   }
 }
 

@@ -583,22 +583,21 @@ apiDescribe('Queries', persistence => {
       a: { array: [42] },
       b: { array: ['a', 42, 'c'] },
       c: { array: [41.999, '42', { a: [42] }] },
-      d: { array: [42], array2: ['bingo'] }
+      d: { array: [42], array2: ['bingo'] },
+      e: { array: [43] }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
       // Search for 42
       const snapshot = await coll
-        .where('array', 'array-contains-any', [42])
+        .where('array', 'array-contains-any', [42, 43])
         .get();
       expect(toDataArray(snapshot)).to.deep.equal([
         { array: [42] },
         { array: ['a', 42, 'c'] },
-        { array: [42], array2: ['bingo'] }
+        { array: [42], array2: ['bingo'] },
+        { array: [43] }
       ]);
-
-      // NOTE: The backend doesn't currently support null, NaN, objects, or
-      // arrays, so there isn't much of anything else interesting to test.
     });
   });
 
