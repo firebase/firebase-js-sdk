@@ -25,16 +25,9 @@
         }
     ],
     "rules": {
-        "arrow-body-style": [
-            "error",
-            "as-needed",
-            {
-                "requireReturnForObjectLiteral": true
-            }
-        ],
         "curly": [
             "error",
-            "multi-line"
+            "all"
         ],
         "guard-for-in": "error",
         "no-extra-label": "error",
@@ -157,7 +150,8 @@
                         {"name": "Array", "message": "tsstyle#array-constructor"}
                     ],
                     "jsdoc-format": true,
-                    "no-floating-promises": true
+                    "no-floating-promises": true,
+                    "arrow-return-shorthand": true
                 }
             }
         ]
