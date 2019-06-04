@@ -570,8 +570,9 @@ export class RelationFilter extends Filter {
         lhs.internalValue.some(lhsElem => {
           return (
             this.value instanceof ArrayValue &&
-            this.value.internalValue.find(rhsElem => rhsElem.isEqual(lhsElem)) !==
-              undefined
+            this.value.internalValue.find(rhsElem =>
+              rhsElem.isEqual(lhsElem)
+            ) !== undefined
           );
         })
       );
