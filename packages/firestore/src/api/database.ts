@@ -424,7 +424,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
   }
 
-  _clearPersistence(): Promise<void> {
+  clearPersistence(): Promise<void> {
     const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       this.makeDatabaseInfo()
     );
@@ -437,7 +437,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         ) {
           throw new FirestoreError(
             Code.FAILED_PRECONDITION,
-            'Persistence cannot be cleared while this firestore instance is running.'
+            'Persistence cannot be cleared after this Firestore instance is initialized.'
           );
         }
         await IndexedDbPersistence.clearPersistence(persistenceKey);

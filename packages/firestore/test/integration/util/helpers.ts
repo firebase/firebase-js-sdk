@@ -106,14 +106,6 @@ function apiDescribeInternal(
   }
 }
 
-// TODO(b/131094514): Remove after clearPersistence() is updated in index.d.ts.
-export async function clearPersistence(
-  firestore: firestore.FirebaseFirestore
-): Promise<void> {
-  // tslint:disable-next-line:no-any
-  await (firestore as any)._clearPersistence();
-}
-
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(
   docSet: firestore.QuerySnapshot
