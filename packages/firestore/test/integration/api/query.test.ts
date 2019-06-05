@@ -585,7 +585,7 @@ apiDescribe('Queries', persistence => {
       c: { array: [41.999, '42', { a: [42] }] },
       d: { array: [42], array2: ['bingo'] },
       e: { array: [43] },
-      f: { array: [{a: 42}]}
+      f: { array: [{ a: 42 }] }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
@@ -601,11 +601,9 @@ apiDescribe('Queries', persistence => {
 
       // With objects.
       const snapshot2 = await coll
-        .where('array', 'array-contains-any', [{a: 42}])
+        .where('array', 'array-contains-any', [{ a: 42 }])
         .get();
-      expect(toDataArray(snapshot2)).to.deep.equal([
-        {array: [{a: 42}]}
-      ]);
+      expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
     });
   });
 

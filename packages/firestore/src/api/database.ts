@@ -2003,7 +2003,7 @@ export class Query implements firestore.Query {
           `is on field '${orderBy.toString()}' instead.`
       );
     }
-  }  
+  }
 }
 
 export class QuerySnapshot implements firestore.QuerySnapshot {
