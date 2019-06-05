@@ -36,10 +36,10 @@ export class RequestMap {
    * @param r The request to register.
    */
   addRequest(r: Request<any>) {
-    let id = this.id_;
+    const id = this.id_;
     this.id_++;
     this.map_[id] = r;
-    let self = this;
+    const self = this;
 
     function unmap() {
       delete self.map_[id];

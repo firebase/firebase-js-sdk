@@ -10,9 +10,11 @@
     "dist"
   ],
   "scripts": {
+    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "run-p test:browser",
+    "test": "run-p lint test:browser",
     "test:browser": "karma start --single-run",
     "prepare": "yarn build"
   },

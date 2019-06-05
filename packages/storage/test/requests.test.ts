@@ -63,9 +63,9 @@ describe('Firebase Storage > Requests', () => {
 
   const authWrapper = new AuthWrapper(
     mockApp,
-    function(authWrapper, loc) {
+    ((authWrapper, loc) => {
       return new Reference(authWrapper, loc);
-    },
+    }),
     makeRequest,
     {} as Service,
     new XhrIoPool()
@@ -123,7 +123,7 @@ describe('Firebase Storage > Requests', () => {
 
   function uploadMetadataString(name: string): string {
     return JSON.stringify({
-      name: name,
+      name,
       contentType: contentTypeInMetadata,
       metadata: { foo: 'bar' }
     });
@@ -153,11 +153,11 @@ describe('Firebase Storage > Requests', () => {
     }
 
     if (body instanceof Blob) {
-      return readBlob(body).then(function(str) {
+      return readBlob(body).then((str) => {
         assert.equal(str, expectedStr);
       });
     } else if (body instanceof Uint8Array) {
-      return readBlob(new Blob([body])).then(function(str) {
+      return readBlob(new Blob([body])).then((str) => {
         assert.equal(str, expectedStr);
       });
     } else {
@@ -180,7 +180,7 @@ describe('Firebase Storage > Requests', () => {
   }
 
   it('getMetadata request info', () => {
-    const maps: [Location, string][] = [
+    const maps: Array<[Location, string]> = [
       [locationNormal, locationNormalUrl],
       [locationEscapes, locationEscapesUrl]
     ];
@@ -226,7 +226,7 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('list request info', () => {
-    const maps: [Location, string][] = [
+    const maps: Array<[Location, string]> = [
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
     ];
@@ -249,8 +249,8 @@ describe('Firebase Storage > Requests', () => {
           urlParams: {
             prefix: location.path + '/',
             delimiter: '/',
-            pageToken: pageToken,
-            maxResults: maxResults
+            pageToken,
+            maxResults
           }
         },
         requestInfo
@@ -284,7 +284,7 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('getDownloadUrl request info', () => {
-    const maps: [Location, string][] = [
+    const maps: Array<[Location, string]> = [
       [locationNormal, locationNormalUrl],
       [locationEscapes, locationEscapesUrl]
     ];
@@ -459,7 +459,7 @@ describe('Firebase Storage > Requests', () => {
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
     ];
-    const promises: Promise<void>[] = [];
+    const promises: Array<Promise<void>> = [];
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
@@ -523,7 +523,7 @@ describe('Firebase Storage > Requests', () => {
     );
     assertObjectIncludes(
       {
-        url: url,
+        url,
         method: 'POST',
         urlParams: {},
         headers: { 'X-Goog-Upload-Command': 'query' }
@@ -582,7 +582,7 @@ describe('Firebase Storage > Requests', () => {
     );
     assertObjectIncludes(
       {
-        url: url,
+        url,
         method: 'POST',
         urlParams: {},
         headers: {

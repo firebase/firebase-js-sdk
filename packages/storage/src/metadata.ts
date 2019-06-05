@@ -19,7 +19,7 @@ import { Reference } from './reference';
 /**
  * @fileoverview Documentation for the metadata format.
  */
-type Metadata = {
+interface Metadata {
   bucket: string | undefined;
   generation: string | undefined;
   metageneration: string | undefined;
@@ -40,6 +40,6 @@ type Metadata = {
   ref: Reference | undefined;
 
   [prop: string]: any;
-};
+}
 
 export { Metadata };

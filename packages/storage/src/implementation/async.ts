@@ -27,7 +27,7 @@ import * as promiseimpl from './promise_external';
  */
 export function async(f: Function): Function {
   return function(...argsToForward: any[]) {
-    promiseimpl.resolve(true).then(function() {
+    promiseimpl.resolve(true).then(() => {
       f.apply(null, argsToForward);
     });
   };

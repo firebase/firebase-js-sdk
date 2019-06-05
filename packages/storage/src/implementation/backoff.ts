@@ -58,7 +58,7 @@ export function start(
   }
 
   function callWithDelay(millis: number): void {
-    timeoutId = setTimeout(function() {
+    timeoutId = setTimeout(() => {
       timeoutId = null;
       f(handler, canceled());
     }, millis);
@@ -72,7 +72,7 @@ export function start(
       triggerCallback.apply(null, arguments);
       return;
     }
-    let mustStop = canceled() || hitTimeout;
+    const mustStop = canceled() || hitTimeout;
     if (mustStop) {
       triggerCallback.apply(null, arguments);
       return;
@@ -113,7 +113,7 @@ export function start(
     }
   }
   callWithDelay(0);
-  setTimeout(function() {
+  setTimeout(() => {
     hitTimeout = true;
     stop(true);
   }, timeout);

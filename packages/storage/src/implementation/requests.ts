@@ -50,7 +50,7 @@ export function metadataHandler(
   mappings: MetadataUtils.Mappings
 ): (p1: XhrIo, p2: string) => Metadata {
   function handler(xhr: XhrIo, text: string): Metadata {
-    let metadata = MetadataUtils.fromResourceString(
+    const metadata = MetadataUtils.fromResourceString(
       authWrapper,
       text,
       mappings
@@ -77,7 +77,7 @@ export function downloadUrlHandler(
   mappings: MetadataUtils.Mappings
 ): (p1: XhrIo, p2: string) => string | null {
   function handler(xhr: XhrIo, text: string): string | null {
-    let metadata = MetadataUtils.fromResourceString(
+    const metadata = MetadataUtils.fromResourceString(
       authWrapper,
       text,
       mappings
@@ -121,7 +121,7 @@ export function sharedErrorHandler(
 export function objectErrorHandler(
   location: Location
 ): (p1: XhrIo, p2: FirebaseStorageError) => FirebaseStorageError {
-  let shared = sharedErrorHandler(location);
+  const shared = sharedErrorHandler(location);
 
   function errorHandler(
     xhr: XhrIo,
@@ -142,11 +142,11 @@ export function getMetadata(
   location: Location,
   mappings: MetadataUtils.Mappings
 ): RequestInfo<Metadata> {
-  let urlPart = location.fullServerUrl();
-  let url = UrlUtils.makeUrl(urlPart);
-  let method = 'GET';
-  let timeout = authWrapper.maxOperationRetryTime();
-  let requestInfo = new RequestInfo(
+  const urlPart = location.fullServerUrl();
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'GET';
+  const timeout = authWrapper.maxOperationRetryTime();
+  const requestInfo = new RequestInfo(
     url,
     method,
     metadataHandler(authWrapper, mappings),
@@ -198,11 +198,11 @@ export function getDownloadUrl(
   location: Location,
   mappings: MetadataUtils.Mappings
 ): RequestInfo<string | null> {
-  let urlPart = location.fullServerUrl();
-  let url = UrlUtils.makeUrl(urlPart);
-  let method = 'GET';
-  let timeout = authWrapper.maxOperationRetryTime();
-  let requestInfo = new RequestInfo(
+  const urlPart = location.fullServerUrl();
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'GET';
+  const timeout = authWrapper.maxOperationRetryTime();
+  const requestInfo = new RequestInfo(
     url,
     method,
     downloadUrlHandler(authWrapper, mappings),
@@ -218,13 +218,13 @@ export function updateMetadata(
   metadata: Metadata,
   mappings: MetadataUtils.Mappings
 ): RequestInfo<Metadata> {
-  let urlPart = location.fullServerUrl();
-  let url = UrlUtils.makeUrl(urlPart);
-  let method = 'PATCH';
-  let body = MetadataUtils.toResourceString(metadata, mappings);
-  let headers = { 'Content-Type': 'application/json; charset=utf-8' };
-  let timeout = authWrapper.maxOperationRetryTime();
-  let requestInfo = new RequestInfo(
+  const urlPart = location.fullServerUrl();
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'PATCH';
+  const body = MetadataUtils.toResourceString(metadata, mappings);
+  const headers = { 'Content-Type': 'application/json; charset=utf-8' };
+  const timeout = authWrapper.maxOperationRetryTime();
+  const requestInfo = new RequestInfo(
     url,
     method,
     metadataHandler(authWrapper, mappings),
@@ -240,13 +240,13 @@ export function deleteObject(
   authWrapper: AuthWrapper,
   location: Location
 ): RequestInfo<void> {
-  let urlPart = location.fullServerUrl();
-  let url = UrlUtils.makeUrl(urlPart);
-  let method = 'DELETE';
-  let timeout = authWrapper.maxOperationRetryTime();
+  const urlPart = location.fullServerUrl();
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'DELETE';
+  const timeout = authWrapper.maxOperationRetryTime();
 
   function handler(xhr: XhrIo, text: string) {}
-  let requestInfo = new RequestInfo(url, method, handler, timeout);
+  const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.successCodes = [200, 204];
   requestInfo.errorHandler = objectErrorHandler(location);
   return requestInfo;
@@ -268,7 +268,7 @@ export function metadataForUpload_(
   blob: FbsBlob,
   opt_metadata?: Metadata | null
 ): Metadata {
-  let metadata = object.clone<Metadata>(opt_metadata);
+  const metadata = object.clone<Metadata>(opt_metadata);
   metadata['fullPath'] = location.path;
   metadata['size'] = blob.size();
   if (!metadata['contentType']) {
@@ -284,8 +284,8 @@ export function multipartUpload(
   blob: FbsBlob,
   opt_metadata?: Metadata | null
 ): RequestInfo<Metadata> {
-  let urlPart = location.bucketOnlyServerUrl();
-  let headers: { [prop: string]: string } = {
+  const urlPart = location.bucketOnlyServerUrl();
+  const headers: { [prop: string]: string } = {
     'X-Goog-Upload-Protocol': 'multipart'
   };
 
@@ -300,11 +300,11 @@ export function multipartUpload(
     }
     return str;
   }
-  let boundary = genBoundary();
+  const boundary = genBoundary();
   headers['Content-Type'] = 'multipart/related; boundary=' + boundary;
-  let metadata = metadataForUpload_(location, blob, opt_metadata);
-  let metadataString = MetadataUtils.toResourceString(metadata, mappings);
-  let preBlobPart =
+  const metadata = metadataForUpload_(location, blob, opt_metadata);
+  const metadataString = MetadataUtils.toResourceString(metadata, mappings);
+  const preBlobPart =
     '--' +
     boundary +
     '\r\n' +
@@ -316,16 +316,16 @@ export function multipartUpload(
     'Content-Type: ' +
     metadata['contentType'] +
     '\r\n\r\n';
-  let postBlobPart = '\r\n--' + boundary + '--';
-  let body = FbsBlob.getBlob(preBlobPart, blob, postBlobPart);
+  const postBlobPart = '\r\n--' + boundary + '--';
+  const body = FbsBlob.getBlob(preBlobPart, blob, postBlobPart);
   if (body === null) {
     throw errorsExports.cannotSliceBlob();
   }
-  let urlParams: UrlParams = { name: metadata['fullPath']! };
-  let url = UrlUtils.makeUrl(urlPart);
-  let method = 'POST';
-  let timeout = authWrapper.maxUploadRetryTime();
-  let requestInfo = new RequestInfo(
+  const urlParams: UrlParams = { name: metadata['fullPath']! };
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'POST';
+  const timeout = authWrapper.maxUploadRetryTime();
+  const requestInfo = new RequestInfo(
     url,
     method,
     metadataHandler(authWrapper, mappings),
@@ -368,7 +368,7 @@ export function checkResumeHeader_(xhr: XhrIo, opt_allowed?: string[]): string {
   } catch (e) {
     handlerCheck(false);
   }
-  let allowed = opt_allowed || ['active'];
+  const allowed = opt_allowed || ['active'];
   handlerCheck(array.contains(allowed, status));
   return status as string;
 }
@@ -380,20 +380,20 @@ export function createResumableUpload(
   blob: FbsBlob,
   opt_metadata?: Metadata | null
 ): RequestInfo<string> {
-  let urlPart = location.bucketOnlyServerUrl();
-  let metadata = metadataForUpload_(location, blob, opt_metadata);
-  let urlParams: UrlParams = { name: metadata['fullPath']! };
-  let url = UrlUtils.makeUrl(urlPart);
-  let method = 'POST';
-  let headers = {
+  const urlPart = location.bucketOnlyServerUrl();
+  const metadata = metadataForUpload_(location, blob, opt_metadata);
+  const urlParams: UrlParams = { name: metadata['fullPath']! };
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'POST';
+  const headers = {
     'X-Goog-Upload-Protocol': 'resumable',
     'X-Goog-Upload-Command': 'start',
     'X-Goog-Upload-Header-Content-Length': blob.size(),
     'X-Goog-Upload-Header-Content-Type': metadata['contentType']!,
     'Content-Type': 'application/json; charset=utf-8'
   };
-  let body = MetadataUtils.toResourceString(metadata, mappings);
-  let timeout = authWrapper.maxUploadRetryTime();
+  const body = MetadataUtils.toResourceString(metadata, mappings);
+  const timeout = authWrapper.maxUploadRetryTime();
 
   function handler(xhr: XhrIo, text: string): string {
     checkResumeHeader_(xhr);
@@ -406,7 +406,7 @@ export function createResumableUpload(
     handlerCheck(type.isString(url));
     return url as string;
   }
-  let requestInfo = new RequestInfo(url, method, handler, timeout);
+  const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.urlParams = urlParams;
   requestInfo.headers = headers;
   requestInfo.body = body;
@@ -423,10 +423,10 @@ export function getResumableUploadStatus(
   url: string,
   blob: FbsBlob
 ): RequestInfo<ResumableUploadStatus> {
-  let headers = { 'X-Goog-Upload-Command': 'query' };
+  const headers = { 'X-Goog-Upload-Command': 'query' };
 
   function handler(xhr: XhrIo, text: string): ResumableUploadStatus {
-    let status = checkResumeHeader_(xhr, ['active', 'final']);
+    const status = checkResumeHeader_(xhr, ['active', 'final']);
     let sizeString: string | null = null;
     try {
       sizeString = xhr.getResponseHeader('X-Goog-Upload-Size-Received');
@@ -437,9 +437,9 @@ export function getResumableUploadStatus(
     handlerCheck(!isNaN(size));
     return new ResumableUploadStatus(size, blob.size(), status === 'final');
   }
-  let method = 'POST';
-  let timeout = authWrapper.maxUploadRetryTime();
-  let requestInfo = new RequestInfo(url, method, handler, timeout);
+  const method = 'POST';
+  const timeout = authWrapper.maxUploadRetryTime();
+  const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.headers = headers;
   requestInfo.errorHandler = sharedErrorHandler(location);
   return requestInfo;
@@ -472,7 +472,7 @@ export function continueResumableUpload(
 ): RequestInfo<ResumableUploadStatus> {
   // TODO(andysoto): standardize on internal asserts
   // assert(!(opt_status && opt_status.finalized));
-  let status = new ResumableUploadStatus(0, 0);
+  const status = new ResumableUploadStatus(0, 0);
   if (opt_status) {
     status.current = opt_status.current;
     status.total = opt_status.total;
@@ -483,20 +483,20 @@ export function continueResumableUpload(
   if (blob.size() !== status.total) {
     throw errorsExports.serverFileWrongSize();
   }
-  let bytesLeft = status.total - status.current;
+  const bytesLeft = status.total - status.current;
   let bytesToUpload = bytesLeft;
   if (chunkSize > 0) {
     bytesToUpload = Math.min(bytesToUpload, chunkSize);
   }
-  let startByte = status.current;
-  let endByte = startByte + bytesToUpload;
-  let uploadCommand =
+  const startByte = status.current;
+  const endByte = startByte + bytesToUpload;
+  const uploadCommand =
     bytesToUpload === bytesLeft ? 'upload, finalize' : 'upload';
-  let headers = {
+  const headers = {
     'X-Goog-Upload-Command': uploadCommand,
     'X-Goog-Upload-Offset': status.current
   };
-  let body = blob.slice(startByte, endByte);
+  const body = blob.slice(startByte, endByte);
   if (body === null) {
     throw errorsExports.cannotSliceBlob();
   }
@@ -506,9 +506,9 @@ export function continueResumableUpload(
     // the 'x-range-md5' header comes back with status code 308 responses.
     // We'll only be able to bail out though, because you can't re-upload a
     // range that you previously uploaded.
-    let uploadStatus = checkResumeHeader_(xhr, ['active', 'final']);
-    let newCurrent = status.current + bytesToUpload;
-    let size = blob.size();
+    const uploadStatus = checkResumeHeader_(xhr, ['active', 'final']);
+    const newCurrent = status.current + bytesToUpload;
+    const size = blob.size();
     let metadata;
     if (uploadStatus === 'final') {
       metadata = metadataHandler(authWrapper, mappings)(xhr, text);
@@ -522,9 +522,9 @@ export function continueResumableUpload(
       metadata
     );
   }
-  let method = 'POST';
-  let timeout = authWrapper.maxUploadRetryTime();
-  let requestInfo = new RequestInfo(url, method, handler, timeout);
+  const method = 'POST';
+  const timeout = authWrapper.maxUploadRetryTime();
+  const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.headers = headers;
   requestInfo.body = body.uploadData();
   requestInfo.progressCallback = opt_progressCallback || null;
