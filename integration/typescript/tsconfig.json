@@ -9,7 +9,8 @@
     "noImplicitAny": true,
     "outDir": "dist",
     "target": "ES5",
-    "sourceMap": true
+    "sourceMap": true,
+    "esModuleInterop": true
   },
   "exclude": [
     "node_modules",

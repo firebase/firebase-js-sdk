@@ -126,12 +126,8 @@ declare namespace firebase {
     getIdToken(forceRefresh?: boolean): Promise<string>;
     isAnonymous: boolean;
     /**
-     * @deprecated
      * Links the user account with the given credentials and returns any available
      * additional user information, such as user name.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.User.linkWithCredential} instead.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -187,6 +183,9 @@ declare namespace firebase {
      *     {@link firebase.auth.PhoneAuthProvider.credential}  and the verification
      *     ID of the credential is not valid.</dd>
      * </dl>
+     *
+     * @deprecated  This method is deprecated. Use
+     * {@link firebase.User.linkWithCredential} instead.
      *
      * @param credential The auth credential.
      */
@@ -429,14 +428,10 @@ declare namespace firebase {
     phoneNumber: string | null;
     providerData: (firebase.UserInfo | null)[];
     /**
-     * @deprecated
      * Re-authenticates a user using a fresh credential, and returns any available
      * additional user information, such as user name. Use before operations
      * such as {@link firebase.User.updatePassword} that require tokens from recent
      * sign-in attempts.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.User.reauthenticateWithCredential} instead.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -466,6 +461,10 @@ declare namespace firebase {
      *     {@link firebase.auth.PhoneAuthProvider.credential}  and the verification
      *     ID of the credential is not valid.</dd>
      * </dl>
+     *
+     * @deprecated
+     * This method is deprecated. Use
+     * {@link firebase.User.reauthenticateWithCredential} instead.
      *
      * @param credential
      */
@@ -2158,12 +2157,8 @@ declare namespace firebase.auth {
     setPersistence(persistence: firebase.auth.Auth.Persistence): Promise<void>;
 
     /**
-     * @deprecated
      * Asynchronously signs in with the given credentials, and returns any available
      * additional user information, such as user name.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.auth.Auth.signInWithCredential} instead.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -2201,6 +2196,10 @@ declare namespace firebase.auth {
      *     {@link firebase.auth.PhoneAuthProvider.credential}  and the verification
      *     ID of the credential is not valid.</dd>
      * </dl>
+     *
+     * @deprecated
+     * This method is deprecated. Use
+     * {@link firebase.auth.Auth.signInWithCredential} instead.
      *
      * @example
      * ```javascript

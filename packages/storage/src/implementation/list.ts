@@ -23,6 +23,7 @@ import { Location } from './location';
 import * as json from './json';
 import * as type from './type';
 import { ListResult } from '../list';
+import * as errors from './error';
 
 /**
  * Represents the simplified object metadata returned by List API.
@@ -58,11 +59,15 @@ function fromBackendResponse(
     items: [],
     nextPageToken: resource['nextPageToken']
   };
+  const bucket = authWrapper.bucket();
+  if (bucket === null) {
+    throw errors.noDefaultBucket();
+  }
   if (resource[PREFIXES_KEY]) {
     for (const path of resource[PREFIXES_KEY]) {
       const pathWithoutTrailingSlash = path.replace(/\/$/, '');
       const reference = authWrapper.makeStorageReference(
-        new Location(authWrapper.bucket(), pathWithoutTrailingSlash)
+        new Location(bucket, pathWithoutTrailingSlash)
       );
       listResult.prefixes.push(reference);
     }
@@ -71,7 +76,7 @@ function fromBackendResponse(
   if (resource[ITEMS_KEY]) {
     for (const item of resource[ITEMS_KEY]) {
       const reference = authWrapper.makeStorageReference(
-        new Location(authWrapper.bucket(), item['name'])
+        new Location(bucket, item['name'])
       );
       listResult.items.push(reference);
     }

@@ -39,7 +39,6 @@ describe('Firebase Functions > Service', () => {
         service._url('foo'),
         'http://localhost:5005/my-project/us-central1/foo'
       );
-      service.useFunctionsEmulator(null);
     });
   });
 

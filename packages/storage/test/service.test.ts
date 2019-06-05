@@ -20,6 +20,7 @@ import { XhrIoPool } from '../src/implementation/xhriopool';
 import { Service } from '../src/service';
 import * as testShared from './testshared';
 import { DEFAULT_HOST } from '../src/implementation/constants';
+import { FirebaseStorageError } from '../src/implementation/error';
 
 const fakeAppGs = testShared.makeFakeApp(null, 'gs://mybucket');
 const fakeAppGsEndingSlash = testShared.makeFakeApp(null, 'gs://mybucket/');
@@ -304,7 +305,7 @@ describe('Firebase Storage > Service', () => {
         ref.put(new Blob(['a'])).on(
           TaskEvent.STATE_CHANGED,
           null,
-          err => {
+          (err: FirebaseStorageError) => {
             assert.equal(err.code, 'storage/app-deleted');
             resolve();
           },

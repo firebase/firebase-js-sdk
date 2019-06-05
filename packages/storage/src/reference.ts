@@ -177,7 +177,7 @@ export class Reference {
     let data = fbsString.dataFromString(format, string);
     let metadata = object.clone<Metadata>(opt_metadata);
     if (!type.isDef(metadata['contentType']) && type.isDef(data.contentType)) {
-      metadata['contentType'] = data.contentType;
+      metadata['contentType'] = data.contentType!;
     }
     return new UploadTask(
       this,
@@ -226,7 +226,7 @@ export class Reference {
       prefixes: [],
       items: []
     };
-    return this.listAllHelper(accumulator, null).then(() => accumulator);
+    return this.listAllHelper(accumulator).then(() => accumulator);
   }
 
   private async listAllHelper(
@@ -240,7 +240,7 @@ export class Reference {
     const nextPage = await this.list(opt);
     accumulator.prefixes.push(...nextPage.prefixes);
     accumulator.items.push(...nextPage.items);
-    if (nextPage.nextPageToken !== undefined) {
+    if (nextPage.nextPageToken != null) {
       await this.listAllHelper(accumulator, nextPage.nextPageToken);
     }
   }

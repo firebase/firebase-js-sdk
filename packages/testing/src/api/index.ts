@@ -95,7 +95,7 @@ export type AppOptions = {
 /** Construct an App authenticated with options.auth. */
 export function initializeTestApp(options: AppOptions): firebase.app.App {
   return initializeApp(
-    options.auth ? createUnsecuredJwt(options.auth) : null,
+    options.auth ? createUnsecuredJwt(options.auth) : undefined,
     options.databaseName,
     options.projectId
   );
