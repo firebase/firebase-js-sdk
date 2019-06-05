@@ -355,9 +355,7 @@ export class Query {
   hasRelationOpFilter(relationOp: RelationOp): boolean {
     return (
       this.filters.find(
-        filter =>
-          filter instanceof RelationFilter &&
-          filter.op === relationOp
+        filter => filter instanceof RelationFilter && filter.op === relationOp
       ) !== undefined
     );
   }
