@@ -1919,28 +1919,27 @@ export class Query implements firestore.Query {
   /**
    * Given an unknown value, finds the field value.
    */
-  private findFieldValue( fieldPath: FieldPath,
-    value: unknown): FieldValue {
-      let fieldValue;
-      if (fieldPath.isKeyField()) {
-        if (typeof value === 'string') {
-          const path = this._query.path.child(ResourcePath.fromString(value));
-          fieldValue = new RefValue(
-            this.firestore._databaseId,
-            new DocumentKey(path)
-          );
-        } else if (value instanceof DocumentReference) {
-          const ref = value as DocumentReference;
-          fieldValue = new RefValue(this.firestore._databaseId, ref._key);
-        }
-      } else {
-        fieldValue = this.firestore._dataConverter.parseQueryValue(
-          'Query.where',
-          value
+  private findFieldValue(fieldPath: FieldPath, value: unknown): FieldValue {
+    let fieldValue;
+    if (fieldPath.isKeyField()) {
+      if (typeof value === 'string') {
+        const path = this._query.path.child(ResourcePath.fromString(value));
+        fieldValue = new RefValue(
+          this.firestore._databaseId,
+          new DocumentKey(path)
         );
+      } else if (value instanceof DocumentReference) {
+        const ref = value as DocumentReference;
+        fieldValue = new RefValue(this.firestore._databaseId, ref._key);
       }
-      return fieldValue;
+    } else {
+      fieldValue = this.firestore._dataConverter.parseQueryValue(
+        'Query.where',
+        value
+      );
     }
+    return fieldValue;
+  }
 
   /**
    * Verifies that a filter is valid when combined with existing filters on the query.
