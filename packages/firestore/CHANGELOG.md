@@ -1,12 +1,12 @@
 
 # Unreleased
+- [feature] Added `clearPersistence()`, which clears the persistent storage
+  including pending writes and cached documents. This is intended to help
+  write reliable tests (#449). 
+
+# 1.3.3
 - [changed] Firestore now recovers more quickly after network connectivity
   changes (airplane mode, Wi-Fi availability, etc.).
-- [feature] Added `clearPersistence()`, clears the persistent storage
-  including pending writes and cached tests. This is intended to help
-  write reliable tests. For applications sensitive to disclosure of cache data
-  in between user sessions, we strongly recommend not to enable persistence
-  in the first place.
 
 # 1.3.0
 - [changed] Deprecated the `experimentalTabSynchronization` setting in favor of 
