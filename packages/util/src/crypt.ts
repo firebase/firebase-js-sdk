@@ -154,18 +154,18 @@ export const base64 = {
    *
    * @param input An array of bytes (numbers with
    *     value in [0, 255]) to encode.
-   * @param optwebSafe Boolean indicating we should use the
+   * @param webSafe Boolean indicating we should use the
    *     alternative alphabet.
    * @return The base64 encoded string.
    */
-  encodeByteArray(input: number[] | Uint8Array, optwebSafe?: boolean): string {
+  encodeByteArray(input: number[] | Uint8Array, webSafe?: boolean): string {
     if (!Array.isArray(input)) {
       throw Error('encodeByteArray takes an array as a parameter');
     }
 
     this.init_();
 
-    const byteToCharMap: number[] = optwebSafe
+    const byteToCharMap: number[] = webSafe
       ? this.byteToCharMapWebSafe_
       : this.byteToCharMap_;
 
@@ -206,34 +206,34 @@ export const base64 = {
    * Base64-encode a string.
    *
    * @param input A string to encode.
-   * @param optWebSafe If true, we should use the
+   * @param webSafe If true, we should use the
    *     alternative alphabet.
    * @return The base64 encoded string.
    */
-  encodeString(input: string, optWebSafe?: boolean): string {
+  encodeString(input: string, webSafe?: boolean): string {
     // Shortcut for Mozilla browsers that implement
     // a native base64 encoder in the form of "btoa/atob"
-    if (this.HAS_NATIVE_SUPPORT && !optWebSafe) {
+    if (this.HAS_NATIVE_SUPPORT && !webSafe) {
       return btoa(input);
     }
-    return this.encodeByteArray(stringToByteArray(input), optWebSafe);
+    return this.encodeByteArray(stringToByteArray(input), webSafe);
   },
 
   /**
    * Base64-decode a string.
    *
    * @param input to decode.
-   * @param optWebSafe True if we should use the
+   * @param webSafe True if we should use the
    *     alternative alphabet.
    * @return string representing the decoded value.
    */
-  decodeString(input: string, optWebSafe: boolean): string {
+  decodeString(input: string, webSafe: boolean): string {
     // Shortcut for Mozilla browsers that implement
     // a native base64 encoder in the form of "btoa/atob"
-    if (this.HAS_NATIVE_SUPPORT && !optWebSafe) {
+    if (this.HAS_NATIVE_SUPPORT && !webSafe) {
       return atob(input);
     }
-    return byteArrayToString(this.decodeStringToByteArray(input, optWebSafe));
+    return byteArrayToString(this.decodeStringToByteArray(input, webSafe));
   },
 
   /**
@@ -248,13 +248,13 @@ export const base64 = {
    * to one byte.  If the group has three characters, it decodes to two bytes.
    *
    * @param input Input to decode.
-   * @param optWebSafe True if we should use the web-safe alphabet.
+   * @param webSafe True if we should use the web-safe alphabet.
    * @return bytes representing the decoded value.
    */
-  decodeStringToByteArray(input: string, optWebSafe: boolean): number[] {
+  decodeStringToByteArray(input: string, webSafe: boolean): number[] {
     this.init_();
 
-    const charToByteMap = optWebSafe
+    const charToByteMap = webSafe
       ? this.charToByteMapWebSafe_
       : this.charToByteMap_;
 
