@@ -43,7 +43,7 @@ export class Observer<T> {
     opt_error?: ErrorFn | null,
     opt_complete?: CompleteFn | null
   ) {
-    let asFunctions =
+    const asFunctions =
       type.isFunction(nextOrObserver) ||
       type.isDef(opt_error) ||
       type.isDef(opt_complete);

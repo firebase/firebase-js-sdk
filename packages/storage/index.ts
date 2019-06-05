@@ -40,13 +40,13 @@ function factory(
 }
 
 export function registerStorage(instance) {
-  let namespaceExports = {
+  const namespaceExports = {
     // no-inline
-    TaskState: TaskState,
-    TaskEvent: TaskEvent,
-    StringFormat: StringFormat,
+    TaskState,
+    TaskEvent,
+    StringFormat,
     Storage: Service,
-    Reference: Reference
+    Reference
   };
   instance.INTERNAL.registerService(
     STORAGE_TYPE,

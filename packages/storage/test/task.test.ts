@@ -39,11 +39,11 @@ const mappings = getMappings();
 
 const fakeMetadata = '{ "downloadTokens": "a,b" }';
 
-type Response = {
+interface Response {
   status: number;
   body: string;
   headers: StringHeaders;
-};
+}
 type RequestHandler = (
   url: string,
   method: string,
@@ -305,7 +305,7 @@ describe('Firebase Storage > Upload Task', () => {
         error => {
           assert.fail('Upload failed');
         },
-        function() {
+        () => {
           assert.isFalse(badComplete);
           assert.equal(resumed, 1);
           resolve();
@@ -345,7 +345,7 @@ describe('Firebase Storage > Upload Task', () => {
     );
 
     let resolve, reject;
-    const promise = fbsPromise.make<void>(function(innerResolve, innerReject) {
+    const promise = fbsPromise.make<void>((innerResolve, innerReject) => {
       resolve = innerResolve;
       reject = innerReject;
     });
@@ -410,11 +410,11 @@ describe('Firebase Storage > Upload Task', () => {
 
     (function() {
       let lastState;
-      task.on(TaskEvent.STATE_CHANGED, function(snapshot) {
+      task.on(TaskEvent.STATE_CHANGED, (snapshot) => {
         const state = snapshot.state;
         if (lastState !== TaskState.PAUSED && state === TaskState.PAUSED) {
           events.push('timeout');
-          setTimeout(function() {
+          setTimeout(() => {
             task.resume();
           }, 200);
         }

@@ -73,14 +73,14 @@ export class FbsBlob {
 
   slice(startByte: number, endByte: number): FbsBlob | null {
     if (type.isNativeBlob(this.data_)) {
-      let realBlob = this.data_ as Blob;
-      let sliced = fs.sliceBlob(realBlob, startByte, endByte);
+      const realBlob = this.data_ as Blob;
+      const sliced = fs.sliceBlob(realBlob, startByte, endByte);
       if (sliced === null) {
         return null;
       }
       return new FbsBlob(sliced);
     } else {
-      let slice = new Uint8Array(
+      const slice = new Uint8Array(
         (this.data_ as Uint8Array).buffer,
         startByte,
         endByte - startByte
@@ -89,11 +89,11 @@ export class FbsBlob {
     }
   }
 
-  static getBlob(...var_args: (string | FbsBlob)[]): FbsBlob | null {
+  static getBlob(...var_args: Array<string | FbsBlob>): FbsBlob | null {
     if (type.isNativeBlobDefined()) {
-      var blobby: (Blob | Uint8Array | string)[] = var_args.map(function(
+      const blobby: Array<Blob | Uint8Array | string> = var_args.map((
         val: string | FbsBlob
-      ): Blob | Uint8Array | string {
+      ): Blob | Uint8Array | string => {
         if (val instanceof FbsBlob) {
           return val.data_;
         } else {
@@ -102,9 +102,9 @@ export class FbsBlob {
       });
       return new FbsBlob(fs.getBlob.apply(null, blobby));
     } else {
-      let uint8Arrays: Uint8Array[] = var_args.map(function(
+      const uint8Arrays: Uint8Array[] = var_args.map((
         val: string | FbsBlob
-      ): Uint8Array {
+      ): Uint8Array => {
         if (type.isString(val)) {
           return string.dataFromString(StringFormat.RAW, val as string).data;
         } else {
@@ -113,12 +113,12 @@ export class FbsBlob {
         }
       });
       let finalLength = 0;
-      uint8Arrays.forEach(function(array: Uint8Array): void {
+      uint8Arrays.forEach((array: Uint8Array): void => {
         finalLength += array.byteLength;
       });
-      let merged = new Uint8Array(finalLength);
+      const merged = new Uint8Array(finalLength);
       let index = 0;
-      uint8Arrays.forEach(function(array: Uint8Array) {
+      uint8Arrays.forEach((array: Uint8Array) => {
         for (let i = 0; i < array.length; i++) {
           merged[index++] = array[i];
         }

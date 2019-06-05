@@ -57,7 +57,7 @@ export { Mappings };
 let mappings_: Mappings | null = null;
 
 export function xformPath(fullPath: any): string {
-  let valid = type.isString(fullPath);
+  const valid = type.isString(fullPath);
   if (!valid || fullPath.length < 2) {
     return fullPath;
   } else {
@@ -79,7 +79,7 @@ export function getMappings(): Mappings {
   function mappingsXformPath(metadata: Metadata, fullPath: any): string {
     return xformPath(fullPath);
   }
-  let nameMapping = new Mapping('name');
+  const nameMapping = new Mapping('name');
   nameMapping.xform = mappingsXformPath;
   mappings.push(nameMapping);
 
@@ -93,7 +93,7 @@ export function getMappings(): Mappings {
       return size;
     }
   }
-  let sizeMapping = new Mapping('size');
+  const sizeMapping = new Mapping('size');
   sizeMapping.xform = xformSize;
   mappings.push(sizeMapping);
   mappings.push(new Mapping('timeCreated'));
@@ -111,9 +111,9 @@ export function getMappings(): Mappings {
 
 export function addRef(metadata: Metadata, authWrapper: AuthWrapper) {
   function generateRef() {
-    let bucket: string = metadata['bucket'] as string;
-    let path: string = metadata['fullPath'] as string;
-    let loc = new Location(bucket, path);
+    const bucket: string = metadata['bucket'] as string;
+    const path: string = metadata['fullPath'] as string;
+    const loc = new Location(bucket, path);
     return authWrapper.makeStorageReference(loc);
   }
   Object.defineProperty(metadata, 'ref', { get: generateRef });
@@ -124,11 +124,11 @@ export function fromResource(
   resource: { [name: string]: any },
   mappings: Mappings
 ): Metadata {
-  let metadata: Metadata = {} as Metadata;
+  const metadata: Metadata = {} as Metadata;
   metadata['type'] = 'file';
-  let len = mappings.length;
+  const len = mappings.length;
   for (let i = 0; i < len; i++) {
-    let mapping = mappings[i];
+    const mapping = mappings[i];
     metadata[mapping.local] = mapping.xform(metadata, resource[mapping.server]);
   }
   addRef(metadata, authWrapper);
@@ -140,11 +140,11 @@ export function fromResourceString(
   resourceString: string,
   mappings: Mappings
 ): Metadata | null {
-  let obj = json.jsonObjectOrNull(resourceString);
+  const obj = json.jsonObjectOrNull(resourceString);
   if (obj === null) {
     return null;
   }
-  let resource = obj as Metadata;
+  const resource = obj as Metadata;
   return fromResource(authWrapper, resource, mappings);
 }
 
@@ -152,7 +152,7 @@ export function downloadUrlFromResourceString(
   metadata: Metadata,
   resourceString: string
 ): string | null {
-  let obj = json.jsonObjectOrNull(resourceString);
+  const obj = json.jsonObjectOrNull(resourceString);
   if (obj === null) {
     return null;
   }
@@ -161,20 +161,20 @@ export function downloadUrlFromResourceString(
     // through list, so we don't want to throw an Error.
     return null;
   }
-  let tokens: string = obj['downloadTokens'] as string;
+  const tokens: string = obj['downloadTokens'] as string;
   if (tokens.length === 0) {
     return null;
   }
-  let encode = encodeURIComponent;
-  let tokensList = tokens.split(',');
-  let urls = tokensList.map(function(token: string): string {
-    let bucket: string = metadata['bucket'] as string;
-    let path: string = metadata['fullPath'] as string;
-    let urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
-    let base = UrlUtils.makeUrl(urlPart);
-    let queryString = UrlUtils.makeQueryString({
+  const encode = encodeURIComponent;
+  const tokensList = tokens.split(',');
+  const urls = tokensList.map((token: string): string => {
+    const bucket: string = metadata['bucket'] as string;
+    const path: string = metadata['fullPath'] as string;
+    const urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
+    const base = UrlUtils.makeUrl(urlPart);
+    const queryString = UrlUtils.makeQueryString({
       alt: 'media',
-      token: token
+      token
     });
     return base + queryString;
   });
@@ -185,12 +185,12 @@ export function toResourceString(
   metadata: Metadata,
   mappings: Mappings
 ): string {
-  let resource: {
+  const resource: {
     [prop: string]: any;
   } = {};
-  let len = mappings.length;
+  const len = mappings.length;
   for (let i = 0; i < len; i++) {
-    let mapping = mappings[i];
+    const mapping = mappings[i];
     if (mapping.writable) {
       resource[mapping.server] = metadata[mapping.local];
     }
@@ -199,12 +199,12 @@ export function toResourceString(
 }
 
 export function metadataValidator(p: any) {
-  let validType = p && type.isObject(p);
+  const validType = p && type.isObject(p);
   if (!validType) {
     throw 'Expected Metadata object.';
   }
-  for (let key in p) {
-    let val = p[key];
+  for (const key in p) {
+    const val = p[key];
     if (key === 'customMetadata') {
       if (!type.isObject(val)) {
         throw 'Expected object for \'customMetadata\' mapping.';

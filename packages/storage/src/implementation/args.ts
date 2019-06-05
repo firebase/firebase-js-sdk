@@ -27,14 +27,14 @@ import * as type from './type';
  */
 export function validate(name: string, specs: ArgSpec[], passed: IArguments) {
   let minArgs = specs.length;
-  let maxArgs = specs.length;
+  const maxArgs = specs.length;
   for (let i = 0; i < specs.length; i++) {
     if (specs[i].optional) {
       minArgs = i;
       break;
     }
   }
-  let validLength = minArgs <= passed.length && passed.length <= maxArgs;
+  const validLength = minArgs <= passed.length && passed.length <= maxArgs;
   if (!validLength) {
     throw errorsExports.invalidArgumentCount(
       minArgs,
@@ -64,7 +64,7 @@ export class ArgSpec {
   optional: boolean;
 
   constructor(validator: (p1: any) => void, opt_optional?: boolean) {
-    let self = this;
+    const self = this;
     this.validator = function(p: any) {
       if (self.optional && !type.isJustDef(p)) {
         return;
@@ -102,7 +102,7 @@ export function stringSpec(
 
 export function uploadDataSpec(): ArgSpec {
   function validator(p: any) {
-    let valid =
+    const valid =
       p instanceof Uint8Array ||
       p instanceof ArrayBuffer ||
       (type.isNativeBlobDefined() && p instanceof Blob);
@@ -123,7 +123,7 @@ export function listOptionSpec(opt_optional?: boolean): ArgSpec {
 
 export function nonNegativeNumberSpec(): ArgSpec {
   function validator(p: any) {
-    let valid = type.isNumber(p) && p >= 0;
+    const valid = type.isNumber(p) && p >= 0;
     if (!valid) {
       throw 'Expected a number 0 or greater.';
     }
@@ -136,7 +136,7 @@ export function looseObjectSpec(
   opt_optional?: boolean
 ): ArgSpec {
   function validator(p: any) {
-    let isLooseObject = p === null || (type.isDef(p) && p instanceof Object);
+    const isLooseObject = p === null || (type.isDef(p) && p instanceof Object);
     if (!isLooseObject) {
       throw 'Expected an Object.';
     }
@@ -149,7 +149,7 @@ export function looseObjectSpec(
 
 export function nullFunctionSpec(opt_optional?: boolean): ArgSpec {
   function validator(p: any) {
-    let valid = p === null || type.isFunction(p);
+    const valid = p === null || type.isFunction(p);
     if (!valid) {
       throw 'Expected a Function.';
     }

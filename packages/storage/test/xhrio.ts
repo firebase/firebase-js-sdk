@@ -33,7 +33,7 @@ export enum State {
   DONE = 2
 }
 
-export type StringHeaders = { [name: string]: string };
+export interface StringHeaders { [name: string]: string }
 
 export class TestingXhrIo implements XhrIo {
   private state: State;
@@ -48,7 +48,7 @@ export class TestingXhrIo implements XhrIo {
   constructor(sendHook: SendHook | null) {
     this.state = State.START;
     this.sendPromise = this.sendPromise = promiseimpl.make<XhrIo>(
-      (resolve, reject) => {
+      (resolve, _reject) => {
         this.resolve = resolve;
       }
     );
@@ -77,7 +77,7 @@ export class TestingXhrIo implements XhrIo {
     return this.sendPromise;
   }
 
-  simulateResponse(status: number, body: string, headers: Headers) {
+  simulateResponse(status: number, body: string, headers: Headers): void {
     if (this.state !== State.SENT) {
       throw new Error("Can't simulate response before send/more than once");
     }
@@ -112,7 +112,7 @@ export class TestingXhrIo implements XhrIo {
     this.resolve(this);
   }
 
-  getResponseHeader(header: string) {
+  getResponseHeader(header: string): string | null {
     const headerValue = this.headers[header.toLowerCase()];
     if (type.isDef(headerValue)) {
       return headerValue;
@@ -120,11 +120,11 @@ export class TestingXhrIo implements XhrIo {
       return null;
     }
   }
-
+  // eslint-disable-next-line
   addUploadProgressListener(listener): void {
     // TODO(andysoto): impl
   }
-
+  // eslint-disable-next-line
   removeUploadProgressListener(listener): void {
     // TODO(andysoto): impl
   }

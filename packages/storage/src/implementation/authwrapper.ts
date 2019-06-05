@@ -64,7 +64,7 @@ export class AuthWrapper {
   ) {
     this.app_ = app;
     if (this.app_ !== null) {
-      let options = this.app_.options;
+      const options = this.app_.options;
       if (type.isDef(options)) {
         this.bucket_ = AuthWrapper.extractBucket_(options);
       }
@@ -81,11 +81,11 @@ export class AuthWrapper {
   private static extractBucket_(config: {
     [prop: string]: any;
   }): string | null {
-    let bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] || null;
+    const bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] || null;
     if (bucketString == null) {
       return null;
     }
-    let loc: Location = Location.makeFromBucketSpec(bucketString);
+    const loc: Location = Location.makeFromBucketSpec(bucketString);
     return loc.bucket;
   }
 
@@ -98,14 +98,14 @@ export class AuthWrapper {
       type.isDef((this.app_ as _FirebaseApp).INTERNAL.getToken)
     ) {
       return (this.app_ as _FirebaseApp).INTERNAL.getToken().then(
-        function(response: FirebaseAuthTokenData | null): string | null {
+        (response: FirebaseAuthTokenData | null): string | null => {
           if (response !== null) {
             return response.accessToken;
           } else {
             return null;
           }
         },
-        function(_error) {
+        (_error) => {
           return null;
         }
       );
@@ -146,7 +146,7 @@ export class AuthWrapper {
     authToken: string | null
   ): Request<T> {
     if (!this.deleted_) {
-      let request = this.requestMaker_(requestInfo, authToken, this.pool_);
+      const request = this.requestMaker_(requestInfo, authToken, this.pool_);
       this.requestMap_.addRequest(request);
       return request;
     } else {

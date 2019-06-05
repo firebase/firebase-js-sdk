@@ -21,9 +21,9 @@
  */
 import * as type from './type';
 
-declare var IBlobBuilder;
-declare var BlobBuilder;
-declare var WebKitBlobBuilder;
+let var IBlobBuilder;
+let var BlobBuilder;
+let var WebKitBlobBuilder;
 
 function getBlobBuilder(): (typeof IBlobBuilder) | undefined {
   if (typeof BlobBuilder !== 'undefined') {
@@ -41,10 +41,10 @@ function getBlobBuilder(): (typeof IBlobBuilder) | undefined {
  * @param var_args The values that will make up the resulting blob.
  * @return The blob.
  */
-export function getBlob(...var_args: (string | Blob | ArrayBuffer)[]): Blob {
-  let BlobBuilder = getBlobBuilder();
+export function getBlob(...var_args: Array<string | Blob | ArrayBuffer>): Blob {
+  const BlobBuilder = getBlobBuilder();
   if (BlobBuilder !== undefined) {
-    let bb = new BlobBuilder();
+    const bb = new BlobBuilder();
     for (let i = 0; i < var_args.length; i++) {
       bb.append(var_args[i]);
     }

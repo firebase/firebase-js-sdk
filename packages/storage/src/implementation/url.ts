@@ -26,10 +26,10 @@ export function makeUrl(urlPart: string): string {
 }
 
 export function makeQueryString(params: { [key: string]: string }): string {
-  let encode = encodeURIComponent;
+  const encode = encodeURIComponent;
   let queryPart = '?';
-  object.forEach(params, function(key, val) {
-    let nextPart = encode(key) + '=' + encode(val);
+  object.forEach(params, (key, val) => {
+    const nextPart = encode(key) + '=' + encode(val);
     queryPart = queryPart + nextPart + '&';
   });
 

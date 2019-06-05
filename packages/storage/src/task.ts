@@ -64,7 +64,7 @@ export class UploadTask {
   private transferred_: number = 0;
   private needToFetchStatus_: boolean = false;
   private needToFetchMetadata_: boolean = false;
-  private observers_: Observer<UploadTaskSnapshot>[] = [];
+  private observers_: Array<Observer<UploadTaskSnapshot>> = [];
   private resumable_: boolean;
   private state_: InternalTaskState;
   private error_: Error | null = null;

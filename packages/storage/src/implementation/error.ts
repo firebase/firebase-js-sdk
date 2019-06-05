@@ -101,7 +101,7 @@ export function prependCode(code: Code): string {
 }
 
 export function unknown(): FirebaseStorageError {
-  let message =
+  const message =
     'An unknown error occurred, please check the error payload for ' +
     'server response.';
   return new FirebaseStorageError(Code.UNKNOWN, message);
@@ -139,7 +139,7 @@ export function quotaExceeded(bucket: string): FirebaseStorageError {
 }
 
 export function unauthenticated(): FirebaseStorageError {
-  let message =
+  const message =
     'User is not authenticated, please authenticate using Firebase ' +
     'Authentication and try again.';
   return new FirebaseStorageError(Code.UNAUTHENTICATED, message);

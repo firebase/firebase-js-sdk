@@ -31,8 +31,8 @@ export const fakeApp = makeFakeApp({ accessToken: authToken });
 export const fakeAppNoAuth = makeFakeApp(null);
 
 export function makeFakeApp(
-  token: Object | null,
-  bucket_arg?: string
+  token: {} | null,
+  bucketArg?: string
 ): FirebaseApp {
   const app: any = {};
   app.INTERNAL = {};
@@ -40,8 +40,8 @@ export function makeFakeApp(
     return promiseimpl.resolve(token);
   };
   app.options = {};
-  if (type.isDef(bucket_arg)) {
-    app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucket_arg;
+  if (type.isDef(bucketArg)) {
+    app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucketArg;
   } else {
     app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucket;
   }
@@ -50,7 +50,7 @@ export function makeFakeApp(
 
 export function makePool(sendHook: SendHook | null): XhrIoPool {
   const pool: any = {
-    createXhrIo: function() {
+    createXhrIo() {
       return new TestingXhrIo(sendHook);
     }
   };
@@ -63,12 +63,12 @@ export function makePool(sendHook: SendHook | null): XhrIoPool {
  */
 export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
   const lower: StringHeaders = {};
-  objectUtils.forEach(headers, function(key: string, val: string | number) {
+  objectUtils.forEach(headers, (key: string, val: string | number) => {
     lower[key.toLowerCase()] = val.toString();
   });
 
   const fakeXhrIo: any = {
-    getResponseHeader: function(name: string): string {
+    getResponseHeader(name: string): string {
       const lowerName = name.toLowerCase();
       if (objectUtils.contains(lower, lowerName)) {
         return lower[lowerName];
@@ -76,7 +76,7 @@ export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
         throw new Error('No such header ' + name);
       }
     },
-    getStatus: function(): number {
+    getStatus(): number {
       return status;
     }
   };
@@ -125,7 +125,7 @@ export function assertObjectIncludes(
   included: { [name: string]: any },
   obj: { [name: string]: any }
 ): void {
-  objectUtils.forEach(included, function(key, val) {
+  objectUtils.forEach(included, (key, val) => {
     expect(val).to.deep.equal(obj[key]);
   });
 }

@@ -74,7 +74,7 @@ export class Service {
       throw new Error('No Storage Bucket defined in Firebase Options.');
     }
 
-    let ref = new Reference(this.authWrapper_, this.bucket_);
+    const ref = new Reference(this.authWrapper_, this.bucket_);
     if (path != null) {
       return ref.child(path);
     } else {

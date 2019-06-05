@@ -83,8 +83,8 @@ export class Reference {
    */
   child(childPath: string): Reference {
     args.validate('child', [args.stringSpec()], arguments);
-    let newPath = path.child(this.location.path, childPath);
-    let location = new Location(this.location.bucket, newPath);
+    const newPath = path.child(this.location.path, childPath);
+    const location = new Location(this.location.bucket, newPath);
     return this.newRef(this.authWrapper, location);
   }
 
@@ -93,11 +93,11 @@ export class Reference {
    *     current object, or null if the current object is the root.
    */
   get parent(): Reference | null {
-    let newPath = path.parent(this.location.path);
+    const newPath = path.parent(this.location.path);
     if (newPath === null) {
       return null;
     }
-    let location = new Location(this.location.bucket, newPath);
+    const location = new Location(this.location.bucket, newPath);
     return this.newRef(this.authWrapper, location);
   }
 
@@ -106,7 +106,7 @@ export class Reference {
    *     object's bucket.
    */
   get root(): Reference {
-    let location = new Location(this.location.bucket, '');
+    const location = new Location(this.location.bucket, '');
     return this.newRef(this.authWrapper, location);
   }
 
@@ -174,8 +174,8 @@ export class Reference {
       arguments
     );
     this.throwIfRoot_('putString');
-    let data = fbsString.dataFromString(format, string);
-    let metadata = object.clone<Metadata>(opt_metadata);
+    const data = fbsString.dataFromString(format, string);
+    const metadata = object.clone<Metadata>(opt_metadata);
     if (!type.isDef(metadata['contentType']) && type.isDef(data.contentType)) {
       metadata['contentType'] = data.contentType!;
     }
@@ -196,9 +196,9 @@ export class Reference {
   delete(): Promise<void> {
     args.validate('delete', [], arguments);
     this.throwIfRoot_('delete');
-    let self = this;
-    return this.authWrapper.getAuthToken().then(function(authToken) {
-      let requestInfo = requests.deleteObject(self.authWrapper, self.location);
+    const self = this;
+    return this.authWrapper.getAuthToken().then((authToken) => {
+      const requestInfo = requests.deleteObject(self.authWrapper, self.location);
       return self.authWrapper.makeRequest(requestInfo, authToken).getPromise();
     });
   }
@@ -233,7 +233,7 @@ export class Reference {
     accumulator: ListResult,
     pageToken?: string
   ): Promise<void> {
-    let opt: ListOptions = {
+    const opt: ListOptions = {
       // maxResults is 1000 by default.
       pageToken
     };
@@ -268,9 +268,9 @@ export class Reference {
   list(options?: ListOptions | null): Promise<ListResult> {
     args.validate('list', [listOptionSpec(true)], arguments);
     const self = this;
-    return this.authWrapper.getAuthToken().then(function(authToken) {
+    return this.authWrapper.getAuthToken().then((authToken) => {
       const op = options || {};
-      let requestInfo = requests.list(
+      const requestInfo = requests.list(
         self.authWrapper,
         self.location,
         /*delimiter= */ '/',
@@ -289,9 +289,9 @@ export class Reference {
   getMetadata(): Promise<Metadata> {
     args.validate('getMetadata', [], arguments);
     this.throwIfRoot_('getMetadata');
-    let self = this;
-    return this.authWrapper.getAuthToken().then(function(authToken) {
-      let requestInfo = requests.getMetadata(
+    const self = this;
+    return this.authWrapper.getAuthToken().then((authToken) => {
+      const requestInfo = requests.getMetadata(
         self.authWrapper,
         self.location,
         self.mappings()
@@ -312,9 +312,9 @@ export class Reference {
   updateMetadata(metadata: Metadata): Promise<Metadata> {
     args.validate('updateMetadata', [args.metadataSpec()], arguments);
     this.throwIfRoot_('updateMetadata');
-    let self = this;
-    return this.authWrapper.getAuthToken().then(function(authToken) {
-      let requestInfo = requests.updateMetadata(
+    const self = this;
+    return this.authWrapper.getAuthToken().then((authToken) => {
+      const requestInfo = requests.updateMetadata(
         self.authWrapper,
         self.location,
         metadata,
@@ -331,9 +331,9 @@ export class Reference {
   getDownloadURL(): Promise<string> {
     args.validate('getDownloadURL', [], arguments);
     this.throwIfRoot_('getDownloadURL');
-    let self = this;
-    return this.authWrapper.getAuthToken().then(function(authToken) {
-      let requestInfo = requests.getDownloadUrl(
+    const self = this;
+    return this.authWrapper.getAuthToken().then((authToken) => {
+      const requestInfo = requests.getDownloadUrl(
         self.authWrapper,
         self.location,
         self.mappings()
@@ -341,7 +341,7 @@ export class Reference {
       return self.authWrapper
         .makeRequest(requestInfo, authToken)
         .getPromise()
-        .then(function(url) {
+        .then((url) => {
           if (url === null) {
             throw errorsExports.noDownloadURL();
           }

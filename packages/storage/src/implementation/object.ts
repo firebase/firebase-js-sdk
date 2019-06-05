@@ -26,7 +26,7 @@ export function forEach<T>(
   obj: { [key: string]: T },
   f: (p1: string, p2: T) => void
 ) {
-  for (let key in obj) {
+  for (const key in obj) {
     if (contains(obj, key)) {
       f(key, obj[key]);
     }
@@ -38,8 +38,8 @@ export function clone<T>(obj?: { [key: string]: any } | null): T {
     return {} as T;
   }
 
-  let c: { [name: string]: any } = {};
-  forEach(obj, function(key, val) {
+  const c: { [name: string]: any } = {};
+  forEach(obj, (key, val) => {
     c[key] = val;
   });
   return c as T;
