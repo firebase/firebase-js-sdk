@@ -3,6 +3,8 @@
 - [feature] Added `clearPersistence()`, which clears the persistent storage
   including pending writes and cached documents. This is intended to help
   write reliable tests (#449). 
+- [changed] Added logging / custom error message for iOS safari bug described
+  in #1670.
 
 # 1.3.3
 - [changed] Firestore now recovers more quickly after network connectivity
