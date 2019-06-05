@@ -145,7 +145,8 @@ export class FirebaseFirestore {
   /**
    * Attempts to enable persistent storage, if possible.
    *
-   * Must be called before any other methods (other than settings()).
+   * Must be called before any other methods (other than settings() and
+   * clearPersistence()).
    *
    * If this fails, enablePersistence() will reject the promise it returns.
    * Note that even after this failure, the firestore instance will remain
@@ -234,6 +235,28 @@ export class FirebaseFirestore {
    * The `FirebaseApp` associated with this `Firestore` instance.
    */
   app: any;
+
+  /**
+   * Clears the persistent storage. This includes pending writes and cached
+   * documents.
+   *
+   * Must be called while the firestore instance is not started (after the app is
+   * shutdown or when the app is first initialized). On startup, this method
+   * must be called before other methods (other than settings()). If the
+   * firestore instance is still running, the promise will be rejected with
+   * the error code of `failed-precondition`.
+   *
+   * Note: clearPersistence() is primarily intended to help write reliable
+   * tests that use Firestore. It uses the most efficient mechanism possible
+   * for dropping existing data but does not attempt to securely overwrite or
+   * otherwise make cached data unrecoverable. For applications that are
+   * sensitive to the disclosure of cache data in between user sessions we
+   * strongly recommend not to enable persistence in the first place.
+   *
+   * @return A promise that is resolved once the persistent storage has been
+   * cleared. Otherwise, the promise is rejected with an error.
+   */
+  clearPersistence(): Promise<void>;
 
   /**
    * Re-enables use of the network for this Firestore instance after a prior
