@@ -1424,7 +1424,7 @@ export class Query implements firestore.Query {
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
     this.validateFilter(fieldPath, relationOp, value);
-    
+
     const fieldValue = this.findFieldValue(fieldPath, value);
     const filter = Filter.create(fieldPath, relationOp, fieldValue);
     this.validateQueryWithFilter(filter);
@@ -1916,6 +1916,9 @@ export class Query implements firestore.Query {
     }
   }
 
+  /**
+   * Given an unknown value, finds the field value.
+   */
   private findFieldValue( fieldPath: FieldPath,
     value: unknown): FieldValue {
       let fieldValue;
