@@ -1420,72 +1420,14 @@ export class Query implements firestore.Query {
     // Enumerated from the WhereFilterOp type in index.d.ts.
     const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];
     validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
-    let fieldValue;
+
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
-    if (fieldPath.isKeyField()) {
-      if (relationOp === RelationOp.ARRAY_CONTAINS) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          "Invalid Query. You can't perform array-contains queries on " +
-            'FieldPath.documentId() since document IDs are not arrays.'
-        );
-      }
-      if (typeof value === 'string') {
-        if (value === '') {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Function Query.where() requires its third parameter to be a ' +
-              'valid document ID if the first parameter is ' +
-              'FieldPath.documentId(), but it was an empty string.'
-          );
-        }
-        if (
-          !this._query.isCollectionGroupQuery() &&
-          value.indexOf('/') !== -1
-        ) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid third parameter to Query.where(). When querying a collection by ` +
-              `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
-              `'${value}' contains a slash.`
-          );
-        }
-        const path = this._query.path.child(ResourcePath.fromString(value));
-        if (!DocumentKey.isDocumentKey(path)) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid third parameter to Query.where(). When querying a collection group by ` +
-              `FieldPath.documentId(), the value provided must result in a valid document path, ` +
-              `but '${path}' is not because it has an odd number of segments (${
-                path.length
-              }).`
-          );
-        }
-        fieldValue = new RefValue(
-          this.firestore._databaseId,
-          new DocumentKey(path)
-        );
-      } else if (value instanceof DocumentReference) {
-        const ref = value as DocumentReference;
-        fieldValue = new RefValue(this.firestore._databaseId, ref._key);
-      } else {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Function Query.where() requires its third parameter to be a ` +
-            `string or a DocumentReference if the first parameter is ` +
-            `FieldPath.documentId(), but it was: ` +
-            `${valueDescription(value)}.`
-        );
-      }
-    } else {
-      fieldValue = this.firestore._dataConverter.parseQueryValue(
-        'Query.where',
-        value
-      );
-    }
+    this.validateFilter(fieldPath, relationOp, value);
+    
+    const fieldValue = this.findFieldValue(fieldPath, value);
     const filter = Filter.create(fieldPath, relationOp, fieldValue);
-    this.validateNewFilter(filter);
+    this.validateQueryWithFilter(filter);
     return new Query(this._query.addFilter(filter), this.firestore);
   }
 
@@ -1915,7 +1857,92 @@ export class Query implements firestore.Query {
     );
   }
 
-  private validateNewFilter(filter: Filter): void {
+  /**
+   * Verifies that the arguments passed in can create a valid filter.
+   */
+  private validateFilter(
+    fieldPath: FieldPath,
+    relationOp: RelationOp,
+    value: unknown
+  ): void {
+    if (fieldPath.isKeyField()) {
+      if (relationOp === RelationOp.ARRAY_CONTAINS) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          "Invalid Query. You can't perform array-contains queries on " +
+            'FieldPath.documentId() since document IDs are not arrays.'
+        );
+      }
+      if (typeof value === 'string') {
+        if (value === '') {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            'Function Query.where() requires its third parameter to be a ' +
+              'valid document ID if the first parameter is ' +
+              'FieldPath.documentId(), but it was an empty string.'
+          );
+        }
+        if (
+          !this._query.isCollectionGroupQuery() &&
+          value.indexOf('/') !== -1
+        ) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid third parameter to Query.where(). When querying a collection by ` +
+              `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
+              `'${value}' contains a slash.`
+          );
+        }
+        const path = this._query.path.child(ResourcePath.fromString(value));
+        if (!DocumentKey.isDocumentKey(path)) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid third parameter to Query.where(). When querying a collection group by ` +
+              `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+              `but '${path}' is not because it has an odd number of segments (${
+                path.length
+              }).`
+          );
+        }
+      } else if (!(value instanceof DocumentReference)) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Function Query.where() requires its third parameter to be a ` +
+            `string or a DocumentReference if the first parameter is ` +
+            `FieldPath.documentId(), but it was: ` +
+            `${valueDescription(value)}.`
+        );
+      }
+    }
+  }
+
+  private findFieldValue( fieldPath: FieldPath,
+    value: unknown): FieldValue {
+      let fieldValue;
+      if (fieldPath.isKeyField()) {
+        if (typeof value === 'string') {
+          const path = this._query.path.child(ResourcePath.fromString(value));
+          fieldValue = new RefValue(
+            this.firestore._databaseId,
+            new DocumentKey(path)
+          );
+        } else if (value instanceof DocumentReference) {
+          const ref = value as DocumentReference;
+          fieldValue = new RefValue(this.firestore._databaseId, ref._key);
+        }
+      } else {
+        fieldValue = this.firestore._dataConverter.parseQueryValue(
+          'Query.where',
+          value
+        );
+      }
+      return fieldValue;
+    }
+
+  /**
+   * Verifies that a filter is valid when combined with existing filters on the query.
+   */
+  private validateQueryWithFilter(filter: Filter): void {
     if (filter instanceof RelationFilter) {
       if (filter.isInequality()) {
         const existingField = this._query.getInequalityFilterField();
