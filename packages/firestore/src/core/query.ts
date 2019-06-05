@@ -530,7 +530,7 @@ export class RelationFilter extends Filter {
     super();
   }
 
-  matches(docValue: Document): boolean {
+  matches(doc: Document): boolean {
     if (this.field.isKeyField()) {
       assert(
         this.value instanceof RefValue,
@@ -543,31 +543,31 @@ export class RelationFilter extends Filter {
         `'${this.op.toString()}' queries don't make sense on document keys.`
       );
       const refValue = this.value as RefValue;
-      const comparison = DocumentKey.comparator(docValue.key, refValue.key);
+      const comparison = DocumentKey.comparator(doc.key, refValue.key);
       return this.matchesComparison(comparison);
     } else {
-      const val = docValue.field(this.field);
+      const val = doc.field(this.field);
       return val !== undefined && this.matchesValue(val);
     }
   }
 
-  private matchesValue(lhs: FieldValue): boolean {
+  private matchesValue(other: FieldValue): boolean {
     if (this.op === RelationOp.ARRAY_CONTAINS) {
       return (
-        lhs instanceof ArrayValue &&
-        lhs.internalValue.find(element => element.isEqual(this.value)) !==
+        other instanceof ArrayValue &&
+        other.internalValue.find(element => element.isEqual(this.value)) !==
           undefined
       );
     } else if (this.op === RelationOp.IN) {
       return (
         this.value instanceof ArrayValue &&
-        this.value.internalValue.find(element => element.isEqual(lhs)) !==
+        this.value.internalValue.find(element => element.isEqual(other)) !==
           undefined
       );
     } else if (this.op === RelationOp.ARRAY_CONTAINS_ANY) {
       return (
-        lhs instanceof ArrayValue &&
-        lhs.internalValue.some(lhsElem => {
+        other instanceof ArrayValue &&
+        other.internalValue.some(lhsElem => {
           return (
             this.value instanceof ArrayValue &&
             this.value.internalValue.find(rhsElem =>
@@ -579,8 +579,8 @@ export class RelationFilter extends Filter {
     } else {
       // Only compare types with matching backend order (such as double and int).
       return (
-        this.value.typeOrder === lhs.typeOrder &&
-        this.matchesComparison(lhs.compareTo(this.value))
+        this.value.typeOrder === other.typeOrder &&
+        this.matchesComparison(other.compareTo(this.value))
       );
     }
   }
