@@ -1432,8 +1432,19 @@ export class Query implements firestore.Query {
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
-    this.validateNonInequalityFilters(fieldPath, relationOp, value);
     if (fieldPath.isKeyField()) {
+      if (
+        fieldPath.isKeyField() &&
+        (relationOp === RelationOp.ARRAY_CONTAINS ||
+          relationOp === RelationOp.ARRAY_CONTAINS_ANY ||
+          relationOp === RelationOp.IN)
+      ) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Invalid Query. You can't perform '${relationOp.toString()}' ` +
+            'queries on FieldPath.documentId().'
+        );
+      }
       if (typeof value === 'string') {
         if (value === '') {
           throw new FirestoreError(
@@ -1482,6 +1493,25 @@ export class Query implements firestore.Query {
         );
       }
     } else {
+      if (
+        relationOp === RelationOp.IN ||
+        relationOp === RelationOp.ARRAY_CONTAINS_ANY
+      ) {
+        if (!Array.isArray(value) || value.length === 0) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            'Invalid Query. A non-empty array is required for ' +
+              `'${relationOp.toString()}' queries.`
+          );
+        }
+        if (value.length > 10) {
+          throw new FirestoreError(
+            Code.INVALID_ARGUMENT,
+            `Invalid Query. '${relationOp.toString()}' queries support a ` +
+              'maximum of 10 elements in the value array.'
+          );
+        }
+      }
       fieldValue = this.firestore._dataConverter.parseQueryValue(
         'Query.where',
         value
@@ -1973,47 +2003,7 @@ export class Query implements firestore.Query {
           `is on field '${orderBy.toString()}' instead.`
       );
     }
-  }
-
-  /**
-   * Validates the RelationOps: ARRAY_CONTAINS, ARRAY_CONTAINS_ANY, and IN.
-   */
-  private validateNonInequalityFilters(
-    fieldPath: FieldPath,
-    relationOp: RelationOp,
-    value: unknown
-  ): void {
-    if (
-      fieldPath.isKeyField() &&
-      (relationOp === RelationOp.ARRAY_CONTAINS ||
-        relationOp === RelationOp.ARRAY_CONTAINS_ANY ||
-        relationOp === RelationOp.IN)
-    ) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid Query. You can't perform '${relationOp.toString()}' ` +
-          'queries on FieldPath.documentId().'
-      );
-    } else if (
-      relationOp === RelationOp.IN ||
-      relationOp === RelationOp.ARRAY_CONTAINS_ANY
-    ) {
-      if (!Array.isArray(value) || value.length === 0) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid Query. A non-empty array is required for ' +
-            `'${relationOp.toString()}' queries.`
-        );
-      }
-      if (value.length > 10) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Invalid Query. '${relationOp.toString()}' queries support a ` +
-            'maximum of 10 elements in the value array.'
-        );
-      }
-    }
-  }
+  }  
 }
 
 export class QuerySnapshot implements firestore.QuerySnapshot {

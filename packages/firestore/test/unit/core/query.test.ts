@@ -196,7 +196,7 @@ describe('Query', () => {
     expect(query.matches(document)).to.be.false;
   });
 
-  it('matches IN filters with object values', () => {
+  it('matches array-contains-any filters with object values', () => {
     const query = Query.atPath(path('collection')).addFilter(
       filter('zip', 'array-contains-any', [{ a: [42] }])
     );

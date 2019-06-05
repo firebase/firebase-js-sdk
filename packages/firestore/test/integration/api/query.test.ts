@@ -572,7 +572,7 @@ apiDescribe('Queries', persistence => {
         { zip: 98103 }
       ]);
 
-      // IN with objects.
+      // With objects.
       const snapshot2 = await coll.where('zip', 'in', [{ code: 500 }]).get();
       expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
     });
@@ -584,11 +584,11 @@ apiDescribe('Queries', persistence => {
       b: { array: ['a', 42, 'c'] },
       c: { array: [41.999, '42', { a: [42] }] },
       d: { array: [42], array2: ['bingo'] },
-      e: { array: [43] }
+      e: { array: [43] },
+      f: { array: [{a: 42}]}
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
-      // Search for 42
       const snapshot = await coll
         .where('array', 'array-contains-any', [42, 43])
         .get();
@@ -597,6 +597,14 @@ apiDescribe('Queries', persistence => {
         { array: ['a', 42, 'c'] },
         { array: [42], array2: ['bingo'] },
         { array: [43] }
+      ]);
+
+      // With objects.
+      const snapshot2 = await coll
+        .where('array', 'array-contains-any', [{a: 42}])
+        .get();
+      expect(toDataArray(snapshot2)).to.deep.equal([
+        {array: [{a: 42}]}
       ]);
     });
   });
