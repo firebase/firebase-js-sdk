@@ -19,7 +19,6 @@ import { AuthWrapper } from '../src/implementation/authwrapper';
 import { FbsBlob } from '../src/implementation/blob';
 import { Location } from '../src/implementation/location';
 import * as MetadataUtils from '../src/implementation/metadata';
-import * as ListResultUtils from '../src/implementation/list';
 import { makeRequest } from '../src/implementation/request';
 import * as requests from '../src/implementation/requests';
 import { makeUrl } from '../src/implementation/url';
@@ -492,7 +491,7 @@ describe('Firebase Storage > Requests', () => {
     return Promise.all(promises);
   });
 
-  function testCreateResumableUploadHandler() {
+  function _testCreateResumableUploadHandler(): void {
     const requestInfo = requests.createResumableUpload(
       authWrapper,
       locationNormal,
