@@ -139,19 +139,19 @@ export class Logger {
    * The functions below are all based on the `console` interface
    */
 
-  debug(...args) {
+  debug(...args: any[]) {
     this._logHandler(this, LogLevel.DEBUG, ...args);
   }
-  log(...args) {
+  log(...args: any[]) {
     this._logHandler(this, LogLevel.VERBOSE, ...args);
   }
-  info(...args) {
+  info(...args: any[]) {
     this._logHandler(this, LogLevel.INFO, ...args);
   }
-  warn(...args) {
+  warn(...args: any[]) {
     this._logHandler(this, LogLevel.WARN, ...args);
   }
-  error(...args) {
+  error(...args: any[]) {
     this._logHandler(this, LogLevel.ERROR, ...args);
   }
 }

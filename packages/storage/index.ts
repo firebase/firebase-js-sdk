@@ -17,7 +17,7 @@
 
 import firebase from '@firebase/app';
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseServiceFactory } from '@firebase/app-types/private';
+import { FirebaseServiceFactory, _FirebaseNamespace } from '@firebase/app-types/private';
 import { StringFormat } from './src/implementation/string';
 import { TaskEvent } from './src/implementation/taskenums';
 import { TaskState } from './src/implementation/taskenums';
@@ -39,7 +39,7 @@ function factory(
   return new Service(app, new XhrIoPool(), opt_url) as any;
 }
 
-export function registerStorage(instance) {
+export function registerStorage(instance: _FirebaseNamespace) {
   let namespaceExports = {
     // no-inline
     TaskState: TaskState,
@@ -58,7 +58,7 @@ export function registerStorage(instance) {
   );
 }
 
-registerStorage(firebase);
+registerStorage(firebase as _FirebaseNamespace);
 
 /**
  * Define extension behavior for `registerStorage`

@@ -28,7 +28,7 @@ import { jsonEval } from './json';
  * @param {?string} token
  * @return {{header: *, claims: *, data: *, signature: string}}
  */
-export const decode = function(token) {
+export const decode = function(token: string): {} {
   var header = {},
     claims = {},
     data = {},

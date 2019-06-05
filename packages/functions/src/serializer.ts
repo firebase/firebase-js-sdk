@@ -18,8 +18,8 @@
 const LONG_TYPE = 'type.googleapis.com/google.protobuf.Int64Value';
 const UNSIGNED_LONG_TYPE = 'type.googleapis.com/google.protobuf.UInt64Value';
 
-function mapValues(o: object, f: (any) => any): object {
-  let result = {};
+function mapValues(o: { [key: string]: any }, f: (arg0: any) => any): object {
+  let result: { [key: string]: any } = {};
   for (var key in o) {
     if (o.hasOwnProperty(key)) {
       result[key] = f(o[key]);

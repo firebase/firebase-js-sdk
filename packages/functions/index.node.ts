@@ -16,7 +16,7 @@
  */
 import firebase from '@firebase/app';
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseServiceFactory } from '@firebase/app-types/private';
+import { FirebaseServiceFactory, _FirebaseNamespace } from '@firebase/app-types/private';
 import { Service } from './src/api/service';
 import 'isomorphic-fetch';
 
@@ -29,7 +29,7 @@ function factory(app: FirebaseApp, unused: any, region?: string): Service {
   return new Service(app, region);
 }
 
-export function registerFunctions(instance) {
+export function registerFunctions(instance: _FirebaseNamespace) {
   let namespaceExports = {
     // no-inline
     Functions: Service
@@ -45,4 +45,4 @@ export function registerFunctions(instance) {
   );
 }
 
-registerFunctions(firebase);
+registerFunctions(firebase as _FirebaseNamespace);

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-const stringToByteArray = function(str) {
+const stringToByteArray = function(str: string) {
   // TODO(user): Use native implementations if/when available
   var out: number[] = [],
     p = 0;
@@ -52,7 +52,7 @@ const stringToByteArray = function(str) {
  * @param bytes Array of numbers representing characters.
  * @return Stringification of the array.
  */
-const byteArrayToString = function(bytes) {
+const byteArrayToString = function(bytes: number[]) {
   // TODO(user): Use native implementations if/when available
   var out: string[] = [],
     pos = 0,
