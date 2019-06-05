@@ -25,7 +25,7 @@ describe('deepCopy()', () => {
   });
 
   it('Date', () => {
-    let d = new Date();
+    const d = new Date();
     assert.deepEqual(deepCopy(d), d);
   });
 
@@ -50,7 +50,7 @@ describe('deepExtend', () => {
   });
 
   it('Date', () => {
-    let d = new Date();
+    const d = new Date();
     assert.deepEqual(deepExtend(new Date(), d), d);
   });
 
@@ -73,8 +73,8 @@ describe('deepExtend', () => {
   });
 
   it('Array is copied - not referenced', () => {
-    let o1 = { a: [1] };
-    let o2 = { a: [2] };
+    const o1 = { a: [1] };
+    const o2 = { a: [2] };
 
     assert.deepEqual(deepExtend(o1, o2), { a: [2] });
     o2.a.push(3);
@@ -82,17 +82,17 @@ describe('deepExtend', () => {
   });
 
   it('Array with undefined elements', () => {
-    let a: any = [];
+    const a: any = [];
     a[3] = '3';
-    let b = deepExtend(undefined, a);
+    const b = deepExtend(undefined, a);
     assert.deepEqual(b, [, , , '3']);
   });
 
   it('Function', () => {
-    let source: any = () => {
+    const source: any = (): void => {
       /*_*/
     };
-    let target: any = deepExtend(
+    const target: any = deepExtend(
       {
         a: () => {
           /*_*/

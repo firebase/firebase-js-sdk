@@ -29,16 +29,12 @@ import {
   FirebaseServiceNamespace,
   AppHook
 } from '@firebase/app-types/private';
-import { deepExtend, patchProperty } from '@firebase/util';
+import { deepExtend, contains } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { version } from '../../firebase/package.json';
-
-function contains(obj: object, key: string) {
-  return Object.prototype.hasOwnProperty.call(obj, key);
-}
 
 /**
  * Because auth can't share code with other components, we attach the utility functions
@@ -60,9 +56,11 @@ export function createFirebaseNamespaceCore(
     // as the firebase namespace.
     // @ts-ignore
     __esModule: true,
-    initializeApp: initializeApp,
-    app: app as any,
-    apps: null as any,
+    initializeApp,
+    // @ts-ignore
+    app,
+    // @ts-ignore
+    apps: null,
     SDK_VERSION: version,
     INTERNAL: {
       registerService,
@@ -82,7 +80,7 @@ export function createFirebaseNamespaceCore(
   //
   //   import * as firebase from 'firebase';
   //   which becomes: var firebase = require('firebase');
-  patchProperty(namespace, 'default', namespace);
+  namespace['default'] = namespace;
 
   // firebase.apps is a read-only getter.
   Object.defineProperty(namespace, 'apps', {
@@ -105,12 +103,12 @@ export function createFirebaseNamespaceCore(
   function app(name?: string): FirebaseApp {
     name = name || DEFAULT_ENTRY_NAME;
     if (!contains(apps, name)) {
-      throw ERROR_FACTORY.create(AppError.NO_APP, { name: name });
+      throw ERROR_FACTORY.create(AppError.NO_APP, { name });
     }
     return apps[name];
   }
 
-  patchProperty(app, 'App', firebaseAppImpl);
+  app['App'] = firebaseAppImpl;
   /**
    * Create a new App instance (name must be unique).
    */
@@ -119,7 +117,10 @@ export function createFirebaseNamespaceCore(
     config?: FirebaseAppConfig
   ): FirebaseApp;
   function initializeApp(options: FirebaseOptions, name?: string): FirebaseApp;
-  function initializeApp(options: FirebaseOptions, rawConfig = {}) {
+  function initializeApp(
+    options: FirebaseOptions,
+    rawConfig = {}
+  ): FirebaseApp {
     if (typeof rawConfig !== 'object' || rawConfig === null) {
       const name = rawConfig;
       rawConfig = { name };
@@ -138,7 +139,7 @@ export function createFirebaseNamespaceCore(
     }
 
     if (contains(apps, name)) {
-      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { name: name });
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { name });
     }
 
     const app = new firebaseAppImpl(
@@ -177,7 +178,7 @@ export function createFirebaseNamespaceCore(
   ): FirebaseServiceNamespace<FirebaseService> {
     // Cannot re-register a service that already exists
     if (factories[name]) {
-      throw ERROR_FACTORY.create(AppError.DUPLICATE_SERVICE, { name: name });
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_SERVICE, { name });
     }
 
     // Capture the service factory for later service instantiation
@@ -194,12 +195,12 @@ export function createFirebaseNamespaceCore(
     }
 
     // The Service namespace is an accessor function ...
-    function serviceNamespace(appArg: FirebaseApp = app()) {
+    function serviceNamespace(appArg: FirebaseApp = app()): FirebaseService {
       if (typeof appArg[name] !== 'function') {
         // Invalid argument.
         // This happens in the following case: firebase.storage('gs:/')
         throw ERROR_FACTORY.create(AppError.INVALID_APP_ARGUMENT, {
-          name: name
+          name
         });
       }
 
@@ -224,7 +225,7 @@ export function createFirebaseNamespaceCore(
     return serviceNamespace;
   }
 
-  function callAppHooks(app: FirebaseApp, eventName: string) {
+  function callAppHooks(app: FirebaseApp, eventName: string): void {
     for (const serviceName of Object.keys(factories)) {
       // Ignore virtual services
       const factoryName = useAsService(app, serviceName);

@@ -28,28 +28,35 @@ import { jsonEval } from './json';
  * @param {?string} token
  * @return {{header: *, claims: *, data: *, signature: string}}
  */
-export const decode = function(token) {
-  var header = {},
+export const decode = function(token): DecodedToken {
+  let header = {},
     claims = {},
     data = {},
     signature = '';
 
   try {
-    var parts = token.split('.');
-    header = jsonEval(base64Decode(parts[0]) || '');
-    claims = jsonEval(base64Decode(parts[1]) || '');
+    const parts = token.split('.');
+    header = jsonEval(base64Decode(parts[0]) || '') as object;
+    claims = jsonEval(base64Decode(parts[1]) || '') as object;
     signature = parts[2];
     data = claims['d'] || {};
     delete claims['d'];
   } catch (e) {}
 
   return {
-    header: header,
-    claims: claims,
-    data: data,
-    signature: signature
+    header,
+    claims,
+    data,
+    signature
   };
 };
+
+interface DecodedToken {
+  header: object;
+  claims: object;
+  data: object;
+  signature: string;
+}
 
 /**
  * Decodes a Firebase auth. token and checks the validity of its time-based claims. Will return true if the
@@ -62,11 +69,10 @@ export const decode = function(token) {
  * @param {?string} token
  * @return {boolean}
  */
-export const isValidTimestamp = function(token) {
-  var claims = decode(token).claims,
-    now = Math.floor(new Date().getTime() / 1000),
-    validSince,
-    validUntil;
+export const isValidTimestamp = function(token): boolean {
+  const claims = decode(token).claims,
+    now = Math.floor(new Date().getTime() / 1000);
+  let validSince, validUntil;
 
   if (typeof claims === 'object') {
     if (claims.hasOwnProperty('nbf')) {
@@ -98,8 +104,8 @@ export const isValidTimestamp = function(token) {
  * @param {?string} token
  * @return {?number}
  */
-export const issuedAtTime = function(token) {
-  var claims = decode(token).claims;
+export const issuedAtTime = function(token): number | null {
+  const claims = decode(token).claims;
   if (typeof claims === 'object' && claims.hasOwnProperty('iat')) {
     return claims['iat'];
   }
@@ -116,8 +122,8 @@ export const issuedAtTime = function(token) {
  * @param {?string} token
  * @return {boolean}
  */
-export const isValidFormat = function(token) {
-  var decoded = decode(token),
+export const isValidFormat = function(token): boolean {
+  const decoded = decode(token),
     claims = decoded.claims;
 
   return !!claims && typeof claims === 'object' && claims.hasOwnProperty('iat');
@@ -133,7 +139,7 @@ export const isValidFormat = function(token) {
  * @param {?string} token
  * @return {boolean}
  */
-export const isAdmin = function(token) {
-  var claims = decode(token).claims;
+export const isAdmin = function(token): boolean {
+  const claims = decode(token).claims;
   return typeof claims === 'object' && claims['admin'] === true;
 };

@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
-// See http://www.devthought.com/2012/01/18/an-object-is-not-a-hash/
+/* eslint-disable */
+// will enable after https://github.com/firebase/firebase-js-sdk/pull/1811 is merged
 
+// See http://www.devthought.com/2012/01/18/an-object-is-not-a-hash/
 export const contains = function(obj, key) {
   return Object.prototype.hasOwnProperty.call(obj, key);
 };

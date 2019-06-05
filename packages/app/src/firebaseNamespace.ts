@@ -32,11 +32,11 @@ export function createFirebaseNamespace(): FirebaseNamespace {
   const namespace = createFirebaseNamespaceCore(FirebaseAppImpl);
   (namespace as _FirebaseNamespace).INTERNAL = {
     ...(namespace as _FirebaseNamespace).INTERNAL,
-    createFirebaseNamespace: createFirebaseNamespace,
-    extendNamespace: extendNamespace,
-    createSubscribe: createSubscribe,
-    ErrorFactory: ErrorFactory,
-    deepExtend: deepExtend
+    createFirebaseNamespace,
+    extendNamespace,
+    createSubscribe,
+    ErrorFactory,
+    deepExtend
   };
 
   /**

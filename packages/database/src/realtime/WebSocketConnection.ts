@@ -270,7 +270,7 @@ export class WebSocketConnection implements Transport {
     if (this.frames.length == this.totalFrames) {
       const fullMess = this.frames.join('');
       this.frames = null;
-      const jsonMess = jsonEval(fullMess);
+      const jsonMess = jsonEval(fullMess) as object;
 
       //handle the message
       this.onMessage(jsonMess);
