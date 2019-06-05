@@ -26,6 +26,8 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  arrayContainsAnyOp,
+  inOp,
   toChangesArray,
   toDataArray,
   withTestCollection,
@@ -566,14 +568,14 @@ apiDescribe('Queries', persistence => {
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
-      const snapshot = await coll.where('zip', 'in', [98101, 98103]).get();
+      const snapshot = await coll.where('zip', inOp, [98101, 98103]).get();
       expect(toDataArray(snapshot)).to.deep.equal([
         { zip: 98101 },
         { zip: 98103 }
       ]);
 
       // With objects.
-      const snapshot2 = await coll.where('zip', 'in', [{ code: 500 }]).get();
+      const snapshot2 = await coll.where('zip', inOp, [{ code: 500 }]).get();
       expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
     });
   });
@@ -590,7 +592,7 @@ apiDescribe('Queries', persistence => {
 
     await withTestCollection(persistence, testDocs, async coll => {
       const snapshot = await coll
-        .where('array', 'array-contains-any', [42, 43])
+        .where('array', arrayContainsAnyOp, [42, 43])
         .get();
       expect(toDataArray(snapshot)).to.deep.equal([
         { array: [42] },
@@ -601,7 +603,7 @@ apiDescribe('Queries', persistence => {
 
       // With objects.
       const snapshot2 = await coll
-        .where('array', 'array-contains-any', [{ a: 42 }])
+        .where('array', arrayContainsAnyOp, [{ a: 42 }])
         .get();
       expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
     });

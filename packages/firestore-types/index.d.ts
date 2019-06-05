@@ -937,20 +937,19 @@ export class QueryDocumentSnapshot extends DocumentSnapshot {
  */
 export type OrderByDirection = 'desc' | 'asc';
 
-/**
- * Filter conditions in a `Query.where()` clause are specified using the
- * strings '<', '<=', '==', '>=', '>', 'array-contains', 'in', and
- * 'array-contains-any'.
- */
-export type WhereFilterOp =
-  | '<'
-  | '<='
-  | '=='
-  | '>='
-  | '>'
-  | 'array-contains'
-  | 'in'
-  | 'array-contains-any';
+  /**
+   * Filter conditions in a `Query.where()` clause are specified using the
+   * strings '<', '<=', '==', '>=', '>', and 'array-contains'.
+   */
+  // TODO(in-queries): Add 'array-contains-any' and 'in' once backend support 
+  // lands.
+  export type WhereFilterOp =
+    | '<'
+    | '<='
+    | '=='
+    | '>='
+    | '>'
+    | 'array-contains';
 
 /**
  * A `Query` refers to a Query which you can read or listen to. You can also

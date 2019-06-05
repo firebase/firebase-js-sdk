@@ -79,6 +79,7 @@ import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
+import { arrayContainsAnyOp, inOp } from './../../test/integration/util/helpers';
 import { Deferred } from './../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
@@ -1425,8 +1426,8 @@ export class Query implements firestore.Query {
       '>=',
       '>',
       'array-contains',
-      'in',
-      'array-contains-any'
+      inOp,
+      arrayContainsAnyOp,
     ];
     validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
     let fieldValue;
@@ -1969,7 +1970,11 @@ export class Query implements firestore.Query {
             firstOrderByField
           );
         }
-      } else if (this._query.hasUniqueRelationOp()) {
+      } else if (
+        this._query.hasRelationOpFilter(RelationOp.ARRAY_CONTAINS) ||
+        this._query.hasRelationOpFilter(RelationOp.ARRAY_CONTAINS_ANY) ||
+        this._query.hasRelationOpFilter(RelationOp.IN)
+      ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. Queries only support a single ' +

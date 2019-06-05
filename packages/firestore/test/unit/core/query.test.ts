@@ -203,7 +203,7 @@ describe('Query', () => {
 
     // Containing object in array.
     let document = doc('collection/1', 0, {
-      zip: [{ a: 42 }]
+      zip: [{ a: [42] }]
     });
     expect(query.matches(document)).to.be.true;
 

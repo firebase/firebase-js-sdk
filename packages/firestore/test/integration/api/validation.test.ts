@@ -24,7 +24,9 @@ import firebase from '../util/firebase_export';
 import {
   ALT_PROJECT_ID,
   apiDescribe,
+  arrayContainsAnyOp,
   DEFAULT_PROJECT_ID,
+  inOp,
   withAlternateTestDb,
   withTestCollection,
   withTestDb
@@ -814,12 +816,10 @@ apiDescribe('Validation:', persistence => {
         expect(() => collection.where('a', 'array-contains', null)).to.throw(
           'Invalid query. You can only perform equals comparisons on null.'
         );
-        expect(() => collection.where('a', 'in', null)).to.throw(
+        expect(() => collection.where('a', inOp, null)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' queries."
         );
-        expect(() =>
-          collection.where('a', 'array-contains-any', null)
-        ).to.throw(
+        expect(() => collection.where('a', arrayContainsAnyOp, null)).to.throw(
           "Invalid Query. A non-empty array is required for 'array-contains-any' queries."
         );
 
@@ -831,11 +831,11 @@ apiDescribe('Validation:', persistence => {
         ).to.throw(
           'Invalid query. You can only perform equals comparisons on NaN.'
         );
-        expect(() => collection.where('a', 'in', Number.NaN)).to.throw(
+        expect(() => collection.where('a', inOp, Number.NaN)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' queries."
         );
         expect(() =>
-          collection.where('a', 'array-contains-any', Number.NaN)
+          collection.where('a', arrayContainsAnyOp, Number.NaN)
         ).to.throw(
           "Invalid Query. A non-empty array is required for 'array-contains-any' queries."
         );
@@ -1025,15 +1025,15 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           db
             .collection('test')
-            .where('foo', 'in', [1, 2])
-            .where('foo', 'in', [2, 3])
+            .where('foo', inOp, [1, 2])
+            .where('foo', inOp, [2, 3])
         ).to.throw("Invalid query. Queries only support a single 'in' filter.");
 
         expect(() =>
           db
             .collection('test')
-            .where('foo', 'array-contains-any', [1, 2])
-            .where('foo', 'array-contains-any', [2, 3])
+            .where('foo', arrayContainsAnyOp, [1, 2])
+            .where('foo', arrayContainsAnyOp, [2, 3])
         ).to.throw(
           "Invalid query. Queries only support a single 'array-contains-any'" +
             ' filter.'
@@ -1045,12 +1045,12 @@ apiDescribe('Validation:', persistence => {
       persistence,
       'with non-array values fail for IN and array-contains-any queries.',
       db => {
-        expect(() => db.collection('test').where('foo', 'in', 2)).to.throw(
+        expect(() => db.collection('test').where('foo', inOp, 2)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' queries."
         );
 
         expect(() =>
-          db.collection('test').where('foo', 'array-contains-any', 2)
+          db.collection('test').where('foo', arrayContainsAnyOp, 2)
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' queries."
@@ -1062,12 +1062,12 @@ apiDescribe('Validation:', persistence => {
       persistence,
       'with empty arrays fail for IN and array-contains-any queries.',
       db => {
-        expect(() => db.collection('test').where('foo', 'in', [])).to.throw(
+        expect(() => db.collection('test').where('foo', inOp, [])).to.throw(
           "Invalid Query. A non-empty array is required for 'in' queries."
         );
 
         expect(() =>
-          db.collection('test').where('foo', 'array-contains-any', [])
+          db.collection('test').where('foo', arrayContainsAnyOp, [])
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' queries."
@@ -1083,7 +1083,7 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           db
             .collection('test')
-            .where('foo', 'in', [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
+            .where('foo', inOp, [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
         ).to.throw(
           "Invalid Query. 'in' queries support a maximum of 10 elements in " +
             'the value array.'
@@ -1092,19 +1092,7 @@ apiDescribe('Validation:', persistence => {
         expect(() =>
           db
             .collection('test')
-            .where('foo', 'array-contains-any', [
-              1,
-              2,
-              3,
-              4,
-              5,
-              6,
-              7,
-              8,
-              9,
-              9,
-              9
-            ])
+            .where('foo', arrayContainsAnyOp, [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
         ).to.throw(
           "Invalid Query. 'array-contains-any' queries support a maximum of " +
             '10 elements in the value array.'
@@ -1174,14 +1162,14 @@ apiDescribe('Validation:', persistence => {
         );
 
         expect(() =>
-          collection.where(FieldPath.documentId(), 'array-contains-any', 1)
+          collection.where(FieldPath.documentId(), arrayContainsAnyOp, 1)
         ).to.throw(
           "Invalid Query. You can't perform 'array-contains-any' queries on " +
             'FieldPath.documentId().'
         );
 
         expect(() =>
-          collection.where(FieldPath.documentId(), 'in', [1, 2])
+          collection.where(FieldPath.documentId(), inOp, [1, 2])
         ).to.throw(
           "Invalid Query. You can't perform 'in' queries on " +
             'FieldPath.documentId().'

@@ -2,9 +2,6 @@
 # Unreleased
 - [changed] Firestore now recovers more quickly after network connectivity
   changes (airplane mode, Wi-Fi availability, etc.).
-- [feature] Added `'in'` and `'array-contains-any` query operators for use
-  with `.where()` to find documents where a single field is IN an array of 
-  specified values.
 
 # 1.3.0
 - [changed] Deprecated the `experimentalTabSynchronization` setting in favor of 

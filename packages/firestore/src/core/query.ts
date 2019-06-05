@@ -350,21 +350,14 @@ export class Query {
   }
 
   /**
-   * Checks if the filter operation contains a RelationOp that cannot be
-   * used more than once in a filter.
+   * Checks if the provided RelationOp exists in a filter on the query.
    */
-  hasUniqueRelationOp(): boolean {
-    const singleUseRelationOps = [
-      RelationOp.ARRAY_CONTAINS,
-      RelationOp.IN,
-      RelationOp.ARRAY_CONTAINS_ANY
-    ];
+  hasRelationOpFilter(relationOp: RelationOp): boolean {
     return (
       this.filters.find(
         filter =>
           filter instanceof RelationFilter &&
-          singleUseRelationOps.find(relationOp => relationOp === filter.op) !==
-            undefined
+          filter.op === relationOp
       ) !== undefined
     );
   }
