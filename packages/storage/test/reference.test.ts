@@ -26,7 +26,7 @@ import { Service } from '../src/service';
 import * as testShared from './testshared';
 import { SendHook, TestingXhrIo } from './xhrio';
 import { DEFAULT_HOST } from '../src/implementation/constants';
-
+// tslint:disable:no-floating-promises
 function makeFakeService(app: FirebaseApp, sendHook: SendHook): Service {
   return new Service(app, testShared.makePool(sendHook));
 }
@@ -64,7 +64,7 @@ describe('Firebase Storage > Reference', () => {
     it('ignores URL params and fragments on an http URL', () => {
       const s = makeStorage(
         `http://${DEFAULT_HOST}/v0/b/test-bucket/o/my/object.txt` +
-          '?ignoreme#please'
+        '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
     });
@@ -78,7 +78,7 @@ describe('Firebase Storage > Reference', () => {
     it('ignores URL params and fragments on an https URL', () => {
       const s = makeStorage(
         `https://${DEFAULT_HOST}/v0/b/test-bucket/o/my/object.txt` +
-          '?ignoreme#please'
+        '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
     });
@@ -179,12 +179,12 @@ describe('Firebase Storage > Reference', () => {
 
   it("Doesn't send Authorization on null auth token", done => {
     function newSend(
-      xhrio: TestingXhrIo,
-      url: string,
-      method: string,
-      body?: ArrayBufferView | Blob | string | null,
+      _xhrio: TestingXhrIo,
+      _url: string,
+      _method: string,
+      _body?: ArrayBufferView | Blob | string | null,
       headers?: Headers
-    ) {
+    ): void {
       assert.isDefined(headers);
       assert.isUndefined(headers!['Authorization']);
       done();
@@ -198,12 +198,12 @@ describe('Firebase Storage > Reference', () => {
   it('Works if the user logs in before creating the storage reference', done => {
     // Regression test for b/27227221
     function newSend(
-      xhrio: TestingXhrIo,
-      url: string,
-      method: string,
-      body?: ArrayBufferView | Blob | string | null,
+      _xhrio: TestingXhrIo,
+      _url: string,
+      _method: string,
+      _body?: ArrayBufferView | Blob | string | null,
       headers?: Headers
-    ) {
+    ): void {
       assert.isDefined(headers);
       assert.equal(
         headers!['Authorization'],

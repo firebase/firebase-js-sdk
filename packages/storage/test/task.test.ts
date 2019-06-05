@@ -86,11 +86,11 @@ function fakeServerHandler(): RequestHandler {
 
   function statusHeaders(
     status: string,
-    opt_existing?: StringHeaders
+    existing?: StringHeaders
   ): StringHeaders {
-    if (opt_existing) {
-      opt_existing['X-Goog-Upload-Status'] = status;
-      return opt_existing;
+    if (existing) {
+      existing['X-Goog-Upload-Status'] = status;
+      return existing;
     } else {
       return { 'X-Goog-Upload-Status': status };
     }
@@ -209,11 +209,11 @@ describe('Firebase Storage > Upload Task', () => {
       mappings,
       smallBlob
     );
-    return fbsPromise.make<void>((resolve, reject) => {
+    return fbsPromise.make<void>((resolve, _reject) => {
       task.on(
         TaskEvent.STATE_CHANGED,
         null,
-        error => {
+        _error => {
           assert.fail('Unexpected upload failure');
         },
         () => {
@@ -245,11 +245,11 @@ describe('Firebase Storage > Upload Task', () => {
       smallBlob
     );
     const promise: Promise<string | null> = task.then<string | null>(
-      snapshot => {
+      _snapshot => {
         assert.fail('task completed, but should have failed');
         return null;
       },
-      err => {
+      _err => {
         return 'Task failed as expected';
       }
     );
@@ -298,11 +298,11 @@ describe('Firebase Storage > Upload Task', () => {
     h1();
     h2();
 
-    return fbsPromise.make<void>((resolve, reject) => {
+    return fbsPromise.make<void>((resolve, _reject) => {
       task.on(
         TaskEvent.STATE_CHANGED,
         null,
-        error => {
+        _error => {
           assert.fail('Upload failed');
         },
         () => {
@@ -322,7 +322,7 @@ describe('Firebase Storage > Upload Task', () => {
       mappings,
       smallBlob
     );
-    return fbsPromise.make<void>((resolve, reject) => {
+    return fbsPromise.make<void>((resolve, _reject) => {
       task.on(TaskEvent.STATE_CHANGED, {
         error: (err: Error) => {
           assert.fail('Unexpected upload failure');
@@ -355,7 +355,7 @@ describe('Firebase Storage > Upload Task', () => {
     // assert functions, returning a new function that calls reject with any
     // caught errors. This should make sure errors are reported properly.
     function promiseAssertWrapper<T>(func: T): T {
-      function wrapped(...args: any[]): void {
+      function wrapped(..._args: any[]): void {
         try {
           ((func as any) as (...args: any[]) => void).apply(null, arguments);
         } catch (e) {
@@ -375,7 +375,7 @@ describe('Firebase Storage > Upload Task', () => {
     const events: string[] = [];
     const progress: number[][] = [];
     let complete = 0;
-    function addCallbacks(task: UploadTask) {
+    function addCallbacks(task: UploadTask): void {
       let lastState: string;
       task.on(
         TaskEvent.STATE_CHANGED,
@@ -397,7 +397,7 @@ describe('Firebase Storage > Upload Task', () => {
 
           lastState = state;
         },
-        error => {
+        _error => {
           fixedAssertFail('upload failed');
         },
         () => {
@@ -485,7 +485,7 @@ describe('Firebase Storage > Upload Task', () => {
             }
             lastState = state;
           },
-          error => {
+          _error => {
             events2.push('failure');
             fixedAssertEquals(events2.length, 2);
             fixedAssertEquals(events2[0], 'resume');

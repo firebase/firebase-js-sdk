@@ -113,7 +113,7 @@ export function assertThrows(f: () => void, code: Code): FirebaseStorageError {
   return captured as FirebaseStorageError;
 }
 
-export function assertUint8ArrayEquals(arr1: Uint8Array, arr2: Uint8Array) {
+export function assertUint8ArrayEquals(arr1: Uint8Array, arr2: Uint8Array): void {
   expect(arr1.length).to.equal(arr2.length);
 
   for (let i = 0; i < arr1.length; i++) {
