@@ -48,7 +48,7 @@ export function makeFakeApp(
   return app as FirebaseApp;
 }
 
-export function makePool(sendHook: SendHook): XhrIoPool {
+export function makePool(sendHook: SendHook | null): XhrIoPool {
   const pool: any = {
     createXhrIo: function() {
       return new TestingXhrIo(sendHook);
@@ -103,8 +103,13 @@ export function assertThrows(f: () => void, code: Code): FirebaseStorageError {
       throw e;
     }
   }).to.throw();
+  // @ts-ignore Compiler does not know callback is invoked immediately and
+  // thinks catch block is unreachable. This is an open TS issue:
+  // https://github.com/microsoft/TypeScript/issues/11498
   expect(captured).to.be.an.instanceof(FirebaseStorageError);
+  // @ts-ignore See above.
   expect(captured.code).to.equal(code);
+  // @ts-ignore See above.
   return captured as FirebaseStorageError;
 }
 

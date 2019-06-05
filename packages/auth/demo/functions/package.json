@@ -4,13 +4,13 @@
   "scripts": {
     "serve": "firebase serve --only functions",
     "shell": "firebase experimental:functions:shell",
-    "start": "npm run shell",
+    "start": "yarn shell",
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log"
   },
   "dependencies": {
-    "firebase-admin": "7.2.0",
-    "firebase-functions": "2.2.1"
+    "firebase-admin": "7.3.0",
+    "firebase-functions": "2.3.0"
   },
   "private": true
 }

@@ -26,6 +26,7 @@ For the CDN builds, these are available in the following manner
 https://www.gstatic.com/firebasejs/5.0.0/firebase-<PACKAGE>.js
 `);
 
+import '@firebase/polyfill';
 import firebase from '../app';
 
 import '../auth';
@@ -34,5 +35,6 @@ import '../firestore';
 import '../functions';
 import '../messaging';
 import '../storage';
+import '../performance';
 
 export default firebase;

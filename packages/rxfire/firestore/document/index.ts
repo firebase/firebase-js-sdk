@@ -25,7 +25,7 @@ export function doc(ref: firestore.DocumentReference) {
 }
 
 /**
- * Returns a stream of a document, mapped to its data payload and optionally the docuument ID
+ * Returns a stream of a document, mapped to its data payload and optionally the document ID
  * @param query
  */
 export function docData<T>(
@@ -36,7 +36,7 @@ export function docData<T>(
 }
 
 export function snapToData(
-  snapshot: firestore.QueryDocumentSnapshot,
+  snapshot: firestore.DocumentSnapshot,
   idField?: string
 ) {
   return {

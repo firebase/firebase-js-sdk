@@ -66,7 +66,7 @@ describeSpec(
               fromCache: true,
               hasPendingWrites: true
             })
-            .writeAcks(`collection/${i}`, ++currentVersion)
+            .writeAcks(`collection/${i}`, docRemote.version.toMicroseconds())
             .watchAcksFull(query, ++currentVersion, docRemote)
             .expectEvents(query, { metadata: [docRemote] })
             .userUnlistens(query)
@@ -143,7 +143,7 @@ describeSpec(
             fromCache: true,
             hasPendingWrites: true
           })
-          .writeAcks(`collection/doc`, ++currentVersion)
+          .writeAcks(`collection/doc`, docRemote.version.toMicroseconds())
           .watchAcksFull(query, ++currentVersion, docRemote)
           .expectEvents(query, { metadata: [docRemote] });
 
@@ -163,7 +163,7 @@ describeSpec(
               modified: [docLocal],
               hasPendingWrites: true
             })
-            .writeAcks(`collection/doc`, ++currentVersion)
+            .writeAcks(`collection/doc`, docRemote.version.toMicroseconds())
             .watchSends({ affects: [query] }, docRemote)
             .watchSnapshots(++currentVersion)
             .expectEvents(query, { metadata: [docRemote] });
@@ -292,5 +292,56 @@ describeSpec(
 
       return steps;
     });
+
+    specTest(
+      'Add 500 documents, issue 10 queries that return 10 documents each, unlisten',
+      [],
+      () => {
+        const documentCount = 500;
+        const matchingCount = 10;
+        const queryCount = 10;
+
+        const steps = spec().withGCEnabled(false);
+
+        const collPath = `collection`;
+        const query = Query.atPath(path(collPath)).addOrderBy(orderBy('val'));
+        steps.userListens(query).watchAcks(query);
+
+        const allDocs: Document[] = [];
+
+        let currentVersion = 1;
+        // Create `documentCount` documents.
+        for (let j = 0; j < documentCount; ++j) {
+          const document = doc(`${collPath}/doc${j}`, ++currentVersion, {
+            val: j
+          });
+          allDocs.push(document);
+          steps.watchSends({ affects: [query] }, document);
+        }
+
+        steps.watchCurrents(query, `current-version-${++currentVersion}`);
+        steps.watchSnapshots(currentVersion);
+        steps.expectEvents(query, { added: allDocs });
+        steps.userUnlistens(query).watchRemoves(query);
+
+        for (let i = 1; i <= STEP_COUNT; ++i) {
+          // Create `queryCount` listens, each against collPath but with a
+          // unique query constraint.
+          for (let j = 0; j < queryCount; ++j) {
+            const partialQuery = Query.atPath(path(collPath))
+              .addFilter(filter('val', '>=', j * matchingCount))
+              .addFilter(filter('val', '<', (j + 1) * matchingCount));
+            steps.userListens(partialQuery);
+            steps.expectEvents(partialQuery, {
+              added: allDocs.slice(j * matchingCount, (j + 1) * matchingCount),
+              fromCache: true
+            });
+            steps.userUnlistens(partialQuery);
+          }
+        }
+
+        return steps;
+      }
+    );
   }
 );

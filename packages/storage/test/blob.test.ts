@@ -22,7 +22,7 @@ import * as type from '../src/implementation/type';
 import * as testShared from './testshared';
 
 describe('Firebase Storage > Blob', () => {
-  let stubs = [];
+  let stubs: Array<sinon.SinonStub> = [];
   before(() => {
     const definedStub = sinon.stub(type, 'isNativeBlobDefined');
     definedStub.returns(false);
@@ -41,7 +41,7 @@ describe('Firebase Storage > Blob', () => {
 
   it('Slicing works', () => {
     const blob = new FbsBlob(new Uint8Array([1, 2, 3, 4, 5, 6, 7]));
-    const sliced = blob.slice(1, 5);
+    const sliced = blob.slice(1, 5)!;
     testShared.assertUint8ArrayEquals(
       sliced.uploadData() as Uint8Array,
       new Uint8Array([2, 3, 4, 5])
@@ -49,7 +49,7 @@ describe('Firebase Storage > Blob', () => {
   });
   it('Blobs are merged with strings correctly', () => {
     const blob = new FbsBlob(new Uint8Array([1, 2, 3, 4]));
-    const merged = FbsBlob.getBlob('what', blob, '\ud83d\ude0a ');
+    const merged = FbsBlob.getBlob('what', blob, '\ud83d\ude0a ')!;
     testShared.assertUint8ArrayEquals(
       merged.uploadData() as Uint8Array,
       new Uint8Array([
@@ -78,8 +78,8 @@ describe('Firebase Storage > Blob', () => {
     const blob1 = new FbsBlob(arr1, true);
     const blob2 = new FbsBlob(arr2, true);
 
-    const concatenated = FbsBlob.getBlob(blob1, blob2);
+    const concatenated = FbsBlob.getBlob(blob1, blob2)!;
 
-    assert.equal(20, concatenated.size());
+    assert.equal(20, concatenated!.size());
   });
 });

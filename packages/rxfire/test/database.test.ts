@@ -41,11 +41,11 @@ let batch = (items: any[]) => {
 };
 
 describe('RxFire Database', () => {
-  let app: app.App = null;
-  let database: database.Database = null;
+  let app: app.App;
+  let database: database.Database;
   let ref = (path: string) => {
-    app.database().goOffline();
-    return app.database().ref(path);
+    app!.database().goOffline();
+    return app!.database().ref(path);
   };
 
   function prepareList(
@@ -147,7 +147,7 @@ describe('RxFire Database', () => {
           count = count + 1;
           const { event, snapshot } = change;
           expect(event).to.equal(ListenEvent.added);
-          expect(snapshot.val()).to.eql(data[snapshot.key]);
+          expect(snapshot.val()).to.eql(data[snapshot.key!]);
           if (count === items.length) {
             done();
             sub.unsubscribe();

@@ -15,102 +15,116 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { ErrorFactory, ErrorList, patchCapture } from '../src/errors';
+import { stub } from 'sinon';
+import { ErrorFactory, ErrorMap, FirebaseError } from '../src/errors';
 
-type Err = 'generic-error' | 'file-not-found' | 'anon-replace';
+type ErrorCode =
+  | 'generic-error'
+  | 'file-not-found'
+  | 'anon-replace'
+  | 'overwrite-field';
 
-let errors = {
+const ERROR_MAP: ErrorMap<ErrorCode> = {
   'generic-error': 'Unknown error',
   'file-not-found': "Could not find file: '{$file}'",
-  'anon-replace': 'Hello, {$repl_}!'
-} as ErrorList<Err>;
+  'anon-replace': 'Hello, {$repl_}!',
+  'overwrite-field':
+    'I decided to use {$code} to represent the error code from my server.'
+};
 
-let error = new ErrorFactory<Err>('fake', 'Fake', errors);
+interface ErrorParams {
+  'file-not-found': { file: string };
+  'anon-replace': { repl_: string };
+  'overwrite-field': { code: string };
+}
+
+const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(
+  'fake',
+  'Fake',
+  ERROR_MAP
+);
 
 describe('FirebaseError', () => {
-  it('create', () => {
-    let e = error.create('generic-error');
+  it('creates an Error', () => {
+    const e = ERROR_FACTORY.create('generic-error');
+    assert.instanceOf(e, Error);
+    assert.instanceOf(e, FirebaseError);
     assert.equal(e.code, 'fake/generic-error');
     assert.equal(e.message, 'Fake: Unknown error (fake/generic-error).');
   });
 
-  it('String replacement', () => {
-    let e = error.create('file-not-found', { file: 'foo.txt' });
+  it('replaces template values with data', () => {
+    const e = ERROR_FACTORY.create('file-not-found', { file: 'foo.txt' });
     assert.equal(e.code, 'fake/file-not-found');
     assert.equal(
       e.message,
       "Fake: Could not find file: 'foo.txt' (fake/file-not-found)."
     );
-    assert.equal((e as any).file, 'foo.txt');
+    assert.equal(e.file, 'foo.txt');
   });
 
-  it('Anonymous String replacement', () => {
-    let e = error.create('anon-replace', { repl_: 'world' });
+  it('anonymously replaces template values with data', () => {
+    const e = ERROR_FACTORY.create('anon-replace', { repl_: 'world' });
     assert.equal(e.code, 'fake/anon-replace');
     assert.equal(e.message, 'Fake: Hello, world! (fake/anon-replace).');
-    assert.isUndefined((e as any).repl_);
+    assert.isUndefined(e.repl_);
   });
 
-  it('Missing template', () => {
+  it('uses "Error" as template when template is missing', () => {
     // Cast to avoid compile-time error.
-    let e = error.create(('no-such-code' as any) as Err);
+    const e = ERROR_FACTORY.create(('no-such-code' as any) as ErrorCode);
     assert.equal(e.code, 'fake/no-such-code');
     assert.equal(e.message, 'Fake: Error (fake/no-such-code).');
   });
 
-  it('Missing replacement', () => {
-    let e = error.create('file-not-found', { fileX: 'foo.txt' });
+  it('uses the key in the template if the replacement is missing', () => {
+    const e = ERROR_FACTORY.create('file-not-found', {
+      fileX: 'foo.txt'
+    } as any);
     assert.equal(e.code, 'fake/file-not-found');
     assert.equal(
       e.message,
       "Fake: Could not find file: '<file?>' (fake/file-not-found)."
     );
   });
-});
 
-// Run the stack trace tests with, and without, Error.captureStackTrace
-let realCapture = patchCapture();
-stackTests(realCapture);
-stackTests(undefined);
+  it('warns if overwriting a base error field with custom data', () => {
+    const warnStub = stub(console, 'warn');
+    const e = ERROR_FACTORY.create('overwrite-field', {
+      code: 'overwritten code'
+    });
+    assert.equal(e.code, 'overwritten code');
+    // TODO: use sinon-chai for this.
+    assert.ok(
+      warnStub.calledOnceWith(
+        'Overwriting FirebaseError base field "code" can cause unexpected behavior.'
+      )
+    );
+    warnStub.restore();
+  });
 
-function stackTests(fakeCapture: any) {
-  let saveCapture: any;
+  it('has stack', () => {
+    const e = ERROR_FACTORY.create('generic-error');
+    assert.isDefined(e.stack);
+    // Multi-line match trick - .* does not match \n
+    assert.match(e.stack!, /FirebaseError[\s\S]/);
+  });
 
-  describe(
-    'Error#stack tests - Error.captureStackTrace is ' +
-      (fakeCapture ? 'defined' : 'NOT defined'),
-    () => {
-      before(() => {
-        saveCapture = patchCapture(fakeCapture);
-      });
-
-      after(() => {
-        patchCapture(saveCapture);
-      });
-
-      it('has stack', () => {
-        let e = error.create('generic-error');
-        // Multi-line match trick - .* does not match \n
-        assert.match(e.stack, /FirebaseError[\s\S]/);
-      });
-
-      it('stack frames', () => {
-        try {
-          dummy1();
-          assert.ok(false);
-        } catch (e) {
-          assert.match(e.stack, /dummy2[\s\S]*?dummy1/);
-        }
-      });
+  it('has function names in stack trace in correct order', () => {
+    try {
+      dummy1();
+      assert.ok(false);
+    } catch (e) {
+      assert.instanceOf(e, FirebaseError);
+      assert.match(e.stack, /dummy2[\s\S]*?dummy1/);
     }
-  );
-}
+  });
+});
 
 function dummy1() {
   dummy2();
 }
 
 function dummy2() {
-  let error = new ErrorFactory<Err>('dummy', 'Dummy', errors);
-  throw error.create('generic-error');
+  throw ERROR_FACTORY.create('generic-error');
 }

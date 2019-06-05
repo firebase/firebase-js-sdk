@@ -33,7 +33,7 @@ import { assert } from './assert';
  * @return {Array}
  */
 export const stringToByteArray = function(str) {
-  var out = [],
+  var out: number[] = [],
     p = 0;
   for (var i = 0; i < str.length; i++) {
     var c = str.charCodeAt(i);

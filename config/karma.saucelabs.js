@@ -16,10 +16,73 @@
  */
 
 const argv = require('yargs').argv;
-const glob = require('glob');
-const karma = require('karma');
 const path = require('path');
 const karmaBase = require('./karma.base');
+
+// karma.conf.js test configuration file to run.
+const testConfigFile = argv['testConfigFile'];
+if (!testConfigFile) {
+  console.error('No test file path provided.');
+  process.exit(1);
+}
+
+/**
+ * Custom SauceLabs Launchers
+ */
+const browserMap = {
+  // Desktop
+  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
+  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
+  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
+  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest'),
+  IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest')
+
+  // Mobile
+  // Safari_iOS: appiumLauncher('Safari', 'iPhone Simulator', 'iOS', '11.2'),
+  // Chrome_Android: appiumLauncher('Chrome', 'Android Emulator', 'Android', '6.0')
+};
+
+/**
+ * Any special options per package.
+ */
+const packageConfigs = {
+  messaging: {
+    // Messaging currently only supports these browsers.
+    browsers: ['Chrome_Windows', 'Firefox_Windows', 'Edge_Windows']
+  }
+};
+
+/**
+ * Gets the browser/launcher map for this package.
+ *
+ * @param {string} packageName Name of package being tested (e.g., "firestore")
+ */
+function getSauceLabsBrowsers(packageName) {
+  if (packageConfigs[packageName]) {
+    const filteredBrowserMap = {};
+    for (const browserKey in browserMap) {
+      if (packageConfigs[packageName].browsers.includes(browserKey)) {
+        filteredBrowserMap[browserKey] = browserMap[browserKey];
+      }
+    }
+    return filteredBrowserMap;
+  } else {
+    return browserMap;
+  }
+}
+
+/**
+ * Get package name from package path command line arg.
+ */
+function getPackageLabels() {
+  const match = testConfigFile.match(
+    /([a-zA-Z]+)\/([a-zA-Z]+)\/karma\.conf\.js/
+  );
+  return {
+    type: match[1],
+    name: match[2]
+  };
+}
 
 /**
  * Gets a list of file patterns for test, defined individually
@@ -28,30 +91,23 @@ const karmaBase = require('./karma.base');
  */
 function getTestFiles() {
   let root = path.resolve(__dirname, '..');
-  configs = argv['database-firestore-only']
-    ? glob.sync('packages/{database,firestore}/karma.conf.js')
-    : glob.sync('{packages,integration}/*/karma.conf.js', {
-        // Excluded due to flakiness or long run time.
-        ignore: [
-          'packages/database/*',
-          'packages/firestore/*',
-          'integration/firestore/*',
-          'integration/messaging/*'
-        ]
-      });
-  files = configs.map(x => {
-    let patterns = require(path.join(root, x)).files;
-    let dirname = path.dirname(x);
-    return patterns.map(p => path.join(dirname, p));
-  });
-  return [].concat(...files);
+  const { name: packageName } = getPackageLabels();
+  let patterns = require(path.join(root, testConfigFile)).files;
+  let dirname = path.dirname(testConfigFile);
+  return { packageName, files: patterns.map(p => path.join(dirname, p)) };
 }
 
 function seleniumLauncher(browserName, platform, version) {
+  const { name, type } = getPackageLabels();
+  const testName =
+    type === 'integration'
+      ? `${type}-${name}-${browserName}`
+      : `${name}-${browserName}`;
   return {
     base: 'SauceLabs',
     browserName: browserName,
     extendedDebugging: 'true',
+    name: testName,
     recordLogs: 'true',
     recordVideo: 'true',
     recordScreenshots: 'true',
@@ -81,27 +137,32 @@ function appiumLauncher(
   };
 }
 
-/**
- * Custom SauceLabs Launchers
- */
-const sauceLabsBrowsers = {
-  // Desktop
-  Chrome_Windows: seleniumLauncher('chrome', 'Windows 10', 'latest'),
-  Firefox_Windows: seleniumLauncher('firefox', 'Windows 10', 'latest'),
-  Safari_macOS: seleniumLauncher('safari', 'macOS 10.13', 'latest'),
-  Edge_Windows: seleniumLauncher('MicrosoftEdge', 'Windows 10', 'latest'),
-  IE_Windows: seleniumLauncher('internet explorer', 'Windows 10', 'latest')
-
-  // Mobile
-  // Safari_iOS: appiumLauncher('Safari', 'iPhone Simulator', 'iOS', '11.2'),
-  // Chrome_Android: appiumLauncher('Chrome', 'Android Emulator', 'Android', '6.0')
-};
-
 module.exports = function(config) {
+  const { packageName, files: testFiles } = getTestFiles();
+  const sauceLabsBrowsers = getSauceLabsBrowsers(packageName);
+
+  const sauceLabsConfig = {
+    tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER + '-' + packageName,
+    build: process.env.TRAVIS_BUILD_NUMBER || argv['buildNumber'],
+    username: process.env.SAUCE_USERNAME,
+    accessKey: process.env.SAUCE_ACCESS_KEY,
+    startConnect: true,
+    connectOptions: {
+      // Realtime Database uses WebSockets to connect to firebaseio.com
+      // so we have to set noSslBumpDomains. Theoretically SSL Bumping
+      // only needs to be disabled for 'firebaseio.com'. However, we are
+      // seeing much longer test time with that configuration, so leave
+      // it as 'all' for now.
+      // See https://wiki.saucelabs.com/display/DOCS/Troubleshooting+Sauce+Connect
+      // for more details.
+      noSslBumpDomains: 'all'
+    }
+  };
+
   const karmaConfig = Object.assign({}, karmaBase, {
     basePath: '../',
 
-    files: ['packages/polyfill/index.ts', ...getTestFiles()],
+    files: ['packages/polyfill/index.ts', ...testFiles],
 
     logLevel: config.LOG_INFO,
 
@@ -151,22 +212,7 @@ module.exports = function(config) {
       overviewColumn: false
     },
 
-    sauceLabs: {
-      tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
-      username: process.env.SAUCE_USERNAME,
-      accessKey: process.env.SAUCE_ACCESS_KEY,
-      startConnect: true,
-      connectOptions: {
-        // Realtime Database uses WebSockets to connect to firebaseio.com
-        // so we have to set noSslBumpDomains. Theoretically SSL Bumping
-        // only needs to be disabled for 'firebaseio.com'. However, we are
-        // seeing much longer test time with that configuration, so leave
-        // it as 'all' for now.
-        // See https://wiki.saucelabs.com/display/DOCS/Troubleshooting+Sauce+Connect
-        // for more details.
-        noSslBumpDomains: 'all'
-      }
-    }
+    sauceLabs: sauceLabsConfig
   });
 
   config.set(karmaConfig);

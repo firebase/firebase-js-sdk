@@ -214,6 +214,14 @@ export class SimpleDb {
 
   constructor(private db: IDBDatabase) {}
 
+  setVersionChangeListener(
+    versionChangeListener: (event: IDBVersionChangeEvent) => void
+  ): void {
+    this.db.onversionchange = (event: IDBVersionChangeEvent) => {
+      return versionChangeListener(event);
+    };
+  }
+
   runTransaction<T>(
     mode: 'readonly' | 'readwrite',
     objectStores: string[],

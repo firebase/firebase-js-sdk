@@ -21,6 +21,7 @@ import * as chaiAsPromised from 'chai-as-promised';
 import * as firestore from '@firebase/firestore-types';
 import { expect } from 'chai';
 
+import { SimpleDb } from '../../../src/local/simple_db';
 import { fail } from '../../../src/util/assert';
 import { Code } from '../../../src/util/error';
 import { query } from '../../util/api_helpers';
@@ -971,11 +972,32 @@ apiDescribe('Database', persistence => {
     }
   );
 
+  (persistence ? it : it.skip)(
+    'will reject the promise if clear persistence fails',
+    async () => {
+      await withTestDoc(persistence, async docRef => {
+        const oldDelete = SimpleDb.delete;
+        try {
+          SimpleDb.delete = (name: string): Promise<void> => {
+            return Promise.reject('Failed to delete the database.');
+          };
+          const firestore = docRef.firestore;
+          await firestore.app.delete();
+          await expect(
+            firestore.clearPersistence()
+          ).to.eventually.be.rejectedWith('Failed to delete the database.');
+        } finally {
+          SimpleDb.delete = oldDelete;
+        }
+      });
+    }
+  );
+
   it('can not clear persistence if the client has been initialized', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await expect(() => firestore.clearPersistence()).to.throw(
-        'Persistence cannot be cleared while the client is running'
+      await expect(firestore.clearPersistence()).to.eventually.be.rejectedWith(
+        'Persistence cannot be cleared after this Firestore instance is initialized.'
       );
     });
   });

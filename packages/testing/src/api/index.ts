@@ -20,19 +20,21 @@ import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import * as grpc from 'grpc';
+import * as protoLoader from '@grpc/proto-loader';
 import { resolve } from 'path';
-import * as fs from 'fs';
 
 export { database, firestore } from 'firebase';
 
-const PROTO_ROOT = {
-  root: resolve(
-    __dirname,
-    process.env.FIRESTORE_EMULATOR_PROTO_ROOT || '../protos'
-  ),
-  file: 'google/firestore/emulator/v1/firestore_emulator.proto'
-};
-const PROTOS = grpc.load(PROTO_ROOT, /* format = */ 'proto');
+const PROTO_ROOT = resolve(
+  __dirname,
+  process.env.FIRESTORE_EMULATOR_PROTO_ROOT || '../protos'
+);
+const PROTO_FILE = resolve(
+  PROTO_ROOT,
+  'google/firestore/emulator/v1/firestore_emulator.proto'
+);
+const PKG_DEF = protoLoader.loadSync(PROTO_FILE, { includeDirs: [PROTO_ROOT] });
+const PROTOS = grpc.loadPackageDefinition(PKG_DEF);
 const EMULATOR = PROTOS['google']['firestore']['emulator']['v1'];
 
 /** If this environment variable is set, use it for the database emulator's address. */
@@ -43,13 +45,18 @@ const DATABASE_ADDRESS_DEFAULT: string = 'localhost:9000';
 const DATABASE_ADDRESS: string =
   process.env[DATABASE_ADDRESS_ENV] || DATABASE_ADDRESS_DEFAULT;
 
-/** If this environment variable is set, use it for the Firestore emulator. */
-const FIRESTORE_ADDRESS_ENV: string = 'FIREBASE_FIRESTORE_EMULATOR_ADDRESS';
+/** If any of environment variable is set, use it for the Firestore emulator. */
+const FIRESTORE_ADDRESS_ENVS: string[] = [
+  'FIRESTORE_EMULATOR_HOST',
+  'FIREBASE_FIRESTORE_EMULATOR_ADDRESS'
+];
 /** The default address for the local Firestore emulator. */
 const FIRESTORE_ADDRESS_DEFAULT: string = 'localhost:8080';
 /** The actual address for the Firestore emulator */
-const FIRESTORE_ADDRESS: string =
-  process.env[FIRESTORE_ADDRESS_ENV] || FIRESTORE_ADDRESS_DEFAULT;
+const FIRESTORE_ADDRESS: string = FIRESTORE_ADDRESS_ENVS.reduce(
+  (addr, name) => process.env[name] || addr,
+  FIRESTORE_ADDRESS_DEFAULT
+);
 
 /** Passing this in tells the emulator to treat you as an admin. */
 const ADMIN_TOKEN = 'owner';
@@ -88,7 +95,7 @@ export type AppOptions = {
 /** Construct an App authenticated with options.auth. */
 export function initializeTestApp(options: AppOptions): firebase.app.App {
   return initializeApp(
-    options.auth ? createUnsecuredJwt(options.auth) : null,
+    options.auth ? createUnsecuredJwt(options.auth) : undefined,
     options.databaseName,
     options.projectId
   );
@@ -197,13 +204,7 @@ export function loadFirestoreRules(
 
   let client = new EMULATOR.FirestoreEmulator(
     FIRESTORE_ADDRESS,
-    grpc.credentials.createInsecure(),
-    {
-      // Cap how much backoff gRPC will perform. This is testing code, so
-      // efficiency is less important than responsiveness.
-      'grpc.initial_reconnect_backoff_ms': 100,
-      'grpc.max_reconnect_backoff_ms': 100
-    }
+    grpc.credentials.createInsecure()
   );
   return new Promise((resolve, reject) => {
     client.setSecurityRules(

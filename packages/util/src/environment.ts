@@ -19,9 +19,9 @@ import { CONSTANTS } from './constants';
 
 /**
  * Returns navigator.userAgent string or '' if it's not defined.
- * @return {string} user agent string
+ * @return user agent string
  */
-export const getUA = function() {
+export function getUA(): string {
   if (
     typeof navigator !== 'undefined' &&
     typeof navigator['userAgent'] === 'string'
@@ -30,40 +30,62 @@ export const getUA = function() {
   } else {
     return '';
   }
-};
+}
 
 /**
  * Detect Cordova / PhoneGap / Ionic frameworks on a mobile device.
  *
- * Deliberately does not rely on checking `file://` URLs (as this fails PhoneGap in the Ripple emulator) nor
- * Cordova `onDeviceReady`, which would normally wait for a callback.
- *
- * @return {boolean} isMobileCordova
+ * Deliberately does not rely on checking `file://` URLs (as this fails PhoneGap
+ * in the Ripple emulator) nor Cordova `onDeviceReady`, which would normally
+ * wait for a callback.
  */
-export const isMobileCordova = function() {
+export function isMobileCordova(): boolean {
   return (
     typeof window !== 'undefined' &&
     !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
     /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA())
   );
-};
-
-/**
- * Detect React Native.
- *
- * @return {boolean} True if ReactNative environment is detected.
- */
-export const isReactNative = function() {
-  return (
-    typeof navigator === 'object' && navigator['product'] === 'ReactNative'
-  );
-};
+}
 
 /**
  * Detect Node.js.
  *
- * @return {boolean} True if Node.js environment is detected.
+ * @return true if Node.js environment is detected.
  */
-export const isNodeSdk = function() {
+// Node detection logic from: https://github.com/iliakan/detect-node/
+export function isNode(): boolean {
+  try {
+    return (
+      Object.prototype.toString.call(global.process) === '[object process]'
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Detect Browser Environment
+ */
+export function isBrowser(): boolean {
+  return typeof self === 'object' && self.self === self;
+}
+
+/**
+ * Detect React Native.
+ *
+ * @return true if ReactNative environment is detected.
+ */
+export function isReactNative(): boolean {
+  return (
+    typeof navigator === 'object' && navigator['product'] === 'ReactNative'
+  );
+}
+
+/**
+ * Detect whether the current SDK build is the Node version.
+ *
+ * @return true if it's the Node SDK build.
+ */
+export function isNodeSdk(): boolean {
   return CONSTANTS.NODE_CLIENT === true || CONSTANTS.NODE_ADMIN === true;
-};
+}

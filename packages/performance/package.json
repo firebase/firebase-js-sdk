@@ -1,0 +1,63 @@
+{
+  "name": "@firebase/performance",
+  "version": "0.2.5",
+  "description": "Firebase performance for web",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "run-p test:browser",
+    "test:browser": "karma start --single-run",
+    "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "prepare": "yarn build",
+    "prettier": "prettier --write '{src,test}/**/*.{js,ts}'"
+  },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
+  },
+  "dependencies": {
+    "@firebase/logger": "0.1.14",
+    "@firebase/installations": "0.1.4",
+    "@firebase/util": "0.2.17",
+    "@firebase/performance-types": "0.0.1",
+    "tslib": "1.9.3"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/chai": "4.1.7",
+    "@types/chai-as-promised": "7.1.0",
+    "@types/mocha": "5.2.6",
+    "@types/sinon": "7.0.11",
+    "@types/sinon-chai": "3.2.2",
+    "chai": "4.2.0",
+    "mocha": "6.1.4",
+    "rollup": "1.11.0",
+    "rollup-plugin-json": "4.0.0",
+    "rollup-plugin-typescript2": "0.21.0",
+    "sinon": "7.3.2",
+    "sinon-chai": "3.3.0",
+    "typescript": "3.4.5"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk/tree/master/packages/performance"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/index.d.ts",
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}

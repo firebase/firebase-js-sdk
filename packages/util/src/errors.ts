@@ -54,115 +54,103 @@
  *     }
  *   }
  */
-export type ErrorList<T> = { [code: string]: string };
+import { isEmpty } from './obj';
+
+export type ErrorMap<ErrorCode extends string> = {
+  readonly [K in ErrorCode]: string
+};
 
 const ERROR_NAME = 'FirebaseError';
 
 export interface StringLike {
-  toString: () => string;
+  toString(): string;
 }
 
-let captureStackTrace: (obj: Object, fn?: Function) => void = (Error as any)
-  .captureStackTrace;
-
-// Export for faking in tests
-export function patchCapture(captureFake?: any): any {
-  let result: any = captureStackTrace;
-  captureStackTrace = captureFake;
-  return result;
+export interface ErrorData {
+  [key: string]: StringLike | undefined;
 }
 
-export interface FirebaseError {
-  // Unique code for error - format is service/error-code-string
-  code: string;
+export interface FirebaseError extends Error, ErrorData {
+  // Unique code for error - format is service/error-code-string.
+  readonly code: string;
 
   // Developer-friendly error message.
-  message: string;
+  readonly message: string;
 
-  // Always 'FirebaseError'
-  name: string;
+  // Always 'FirebaseError'.
+  readonly name: typeof ERROR_NAME;
 
-  // Where available - stack backtrace in a string
-  stack: string;
+  // Where available - stack backtrace in a string.
+  readonly stack?: string;
 }
 
-export class FirebaseError implements FirebaseError {
-  public stack: string;
-  public name: string;
+// Based on code from:
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#Custom_Error_Types
+export class FirebaseError extends Error {
+  readonly name = ERROR_NAME;
 
-  constructor(public code: string, public message: string) {
-    let stack: string;
-    // We want the stack value, if implemented by Error
-    if (captureStackTrace) {
-      // Patches this.stack, omitted calls above ErrorFactory#create
-      captureStackTrace(this, ErrorFactory.prototype.create);
-    } else {
-      try {
-        // In case of IE11, stack will be set only after error is raised.
-        // https://docs.microsoft.com/en-us/scripting/javascript/reference/stack-property-error-javascript
-        throw Error.apply(this, arguments);
-      } catch (err) {
-        this.name = ERROR_NAME;
-        // Make non-enumerable getter for the property.
-        Object.defineProperty(this, 'stack', {
-          get: function() {
-            return err.stack;
-          }
-        });
-      }
+  constructor(readonly code: string, message: string) {
+    super(message);
+
+    // Fix For ES5
+    // https://github.com/Microsoft/TypeScript-wiki/blob/master/Breaking-Changes.md#extending-built-ins-like-error-array-and-map-may-no-longer-work
+    Object.setPrototypeOf(this, FirebaseError.prototype);
+
+    // Maintains proper stack trace for where our error was thrown.
+    // Only available on V8.
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, ErrorFactory.prototype.create);
     }
   }
 }
 
-// Back-door inheritance
-FirebaseError.prototype = Object.create(Error.prototype) as FirebaseError;
-FirebaseError.prototype.constructor = FirebaseError;
-(FirebaseError.prototype as any).name = ERROR_NAME;
-
-export class ErrorFactory<T extends string> {
-  // Matches {$name}, by default.
-  public pattern = /\{\$([^}]+)}/g;
-
+export class ErrorFactory<
+  ErrorCode extends string,
+  ErrorParams extends { readonly [K in ErrorCode]?: ErrorData } = {}
+> {
   constructor(
-    private service: string,
-    private serviceName: string,
-    private errors: ErrorList<T>
-  ) {
-    // empty
-  }
+    private readonly service: string,
+    private readonly serviceName: string,
+    private readonly errors: ErrorMap<ErrorCode>
+  ) {}
 
-  create(code: T, data?: { [prop: string]: StringLike }): FirebaseError {
-    if (data === undefined) {
-      data = {};
-    }
+  create<K extends ErrorCode>(
+    code: K,
+    ...data: K extends keyof ErrorParams ? [ErrorParams[K]] : []
+  ): FirebaseError {
+    const customData = (data[0] as ErrorData) || {};
+    const fullCode = `${this.service}/${code}`;
+    const template = this.errors[code];
 
-    let template = this.errors[code as string];
+    const message = template ? replaceTemplate(template, customData) : 'Error';
+    // Service Name: Error message (service/code).
+    const fullMessage = `${this.serviceName}: ${message} (${fullCode}).`;
 
-    let fullCode = this.service + '/' + code;
-    let message: string;
+    const error = new FirebaseError(fullCode, fullMessage);
 
-    if (template === undefined) {
-      message = 'Error';
-    } else {
-      message = template.replace(this.pattern, (match, key) => {
-        let value = data![key];
-        return value !== undefined ? value.toString() : '<' + key + '?>';
-      });
-    }
-
-    // Service: Error message (service/code).
-    message = this.serviceName + ': ' + message + ' (' + fullCode + ').';
-    let err = new FirebaseError(fullCode, message);
-
-    // Populate the Error object with message parts for programmatic
-    // accesses (e.g., e.file).
-    for (let prop in data) {
-      if (!data.hasOwnProperty(prop) || prop.slice(-1) === '_') {
-        continue;
+    // Keys with an underscore at the end of their name are not included in
+    // error.data for some reason.
+    // TODO: Replace with Object.entries when lib is updated to es2017.
+    for (const key of Object.keys(customData)) {
+      if (key.slice(-1) !== '_') {
+        if (key in error) {
+          console.warn(
+            `Overwriting FirebaseError base field "${key}" can cause unexpected behavior.`
+          );
+        }
+        error[key] = customData[key];
       }
-      (err as any)[prop] = data[prop];
     }
 
-    return err;
+    return error;
   }
 }
+
+function replaceTemplate(template: string, data: ErrorData): string {
+  return template.replace(PATTERN, (_, key) => {
+    const value = data[key];
+    return value != null ? value.toString() : `<${key}?>`;
+  });
+}
+
+const PATTERN = /\{\$([^}]+)}/g;

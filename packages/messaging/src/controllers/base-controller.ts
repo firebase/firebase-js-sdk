@@ -281,6 +281,10 @@ export abstract class BaseController implements FirebaseMessaging {
   // The following methods should only be available in the window.
   //
 
+  /**
+   * @deprecated Use Notification.requestPermission() instead.
+   * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
+   */
   requestPermission(): Promise<void> {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
@@ -337,10 +341,7 @@ export abstract class BaseController implements FirebaseMessaging {
    * Returns the current Notification Permission state.
    */
   getNotificationPermission_(): NotificationPermission {
-    // TODO: Remove the cast when this issue is fixed:
-    // https://github.com/Microsoft/TypeScript/issues/14701
-    // tslint:disable-next-line no-any
-    return (Notification as any).permission;
+    return Notification.permission;
   }
 
   getTokenDetailsModel(): TokenDetailsModel {

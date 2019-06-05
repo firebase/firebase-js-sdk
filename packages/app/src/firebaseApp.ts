@@ -18,18 +18,23 @@
 import {
   FirebaseApp,
   FirebaseOptions,
-  FirebaseNamespace,
   FirebaseAppConfig
 } from '@firebase/app-types';
 import {
   _FirebaseApp,
   _FirebaseNamespace,
-  FirebaseService
+  FirebaseService,
+  FirebaseAppInternals
 } from '@firebase/app-types/private';
 import { deepCopy, deepExtend } from '@firebase/util';
-import { error, AppError } from './errors';
+import { AppError, ERROR_FACTORY } from './errors';
+import { DEFAULT_ENTRY_NAME } from './constants';
 
-export const DEFAULT_ENTRY_NAME = '[DEFAULT]';
+interface ServicesCache {
+  [name: string]: {
+    [serviceName: string]: FirebaseService;
+  };
+}
 
 // An array to capture listeners before the true auth functions
 // exist
@@ -40,25 +45,21 @@ let tokenListeners: any[] = [];
  * a shared authentication state.
  */
 export class FirebaseAppImpl implements FirebaseApp {
-  private options_: FirebaseOptions;
-  private name_: string;
+  private readonly options_: FirebaseOptions;
+  private readonly name_: string;
   private isDeleted_ = false;
-  private services_: {
-    [name: string]: {
-      [serviceName: string]: FirebaseService;
-    };
-  } = {};
-  private _automaticDataCollectionEnabled: boolean;
+  private services_: ServicesCache = {};
+  private automaticDataCollectionEnabled_: boolean;
 
-  public INTERNAL;
+  INTERNAL: FirebaseAppInternals;
 
   constructor(
     options: FirebaseOptions,
     config: FirebaseAppConfig,
-    private firebase_: FirebaseNamespace
+    private readonly firebase_: _FirebaseNamespace
   ) {
     this.name_ = config.name!;
-    this._automaticDataCollectionEnabled =
+    this.automaticDataCollectionEnabled_ =
       config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);
     this.INTERNAL = {
@@ -79,12 +80,12 @@ export class FirebaseAppImpl implements FirebaseApp {
 
   get automaticDataCollectionEnabled(): boolean {
     this.checkDestroyed_();
-    return this._automaticDataCollectionEnabled;
+    return this.automaticDataCollectionEnabled_;
   }
 
   set automaticDataCollectionEnabled(val) {
     this.checkDestroyed_();
-    this._automaticDataCollectionEnabled = val;
+    this.automaticDataCollectionEnabled_ = val;
   }
 
   get name(): string {
@@ -103,17 +104,19 @@ export class FirebaseAppImpl implements FirebaseApp {
       resolve();
     })
       .then(() => {
-        (this.firebase_ as _FirebaseNamespace).INTERNAL.removeApp(this.name_);
-        let services: FirebaseService[] = [];
-        Object.keys(this.services_).forEach(serviceKey => {
-          Object.keys(this.services_[serviceKey]).forEach(instanceKey => {
+        this.firebase_.INTERNAL.removeApp(this.name_);
+        const services: FirebaseService[] = [];
+
+        for (const serviceKey of Object.keys(this.services_)) {
+          for (const instanceKey of Object.keys(this.services_[serviceKey])) {
             services.push(this.services_[serviceKey][instanceKey]);
-          });
-        });
+          }
+        }
+
         return Promise.all(
-          services.map(service => {
-            return service.INTERNAL!.delete();
-          })
+          services
+            .filter(service => 'INTERNAL' in service)
+            .map(service => service.INTERNAL!.delete())
         );
       })
       .then(
@@ -157,9 +160,11 @@ export class FirebaseAppImpl implements FirebaseApp {
         instanceIdentifier !== DEFAULT_ENTRY_NAME
           ? instanceIdentifier
           : undefined;
-      const service = (this.firebase_ as _FirebaseNamespace).INTERNAL.factories[
-        name
-      ](this, this.extendApp.bind(this), instanceSpecifier);
+      const service = this.firebase_.INTERNAL.factories[name](
+        this,
+        this.extendApp.bind(this),
+        instanceSpecifier
+      );
       this.services_[name][instanceIdentifier] = service;
     }
 
@@ -197,7 +202,7 @@ export class FirebaseAppImpl implements FirebaseApp {
    */
   private checkDestroyed_(): void {
     if (this.isDeleted_) {
-      error(AppError.APP_DELETED, { name: this.name_ });
+      throw ERROR_FACTORY.create(AppError.APP_DELETED, { name: this.name_ });
     }
   }
 }

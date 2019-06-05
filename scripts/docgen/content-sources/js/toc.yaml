@@ -140,11 +140,25 @@ toc:
   - title: "HttpsError"
     path: /docs/reference/js/firebase.functions.HttpsError
 
+- title: "firebase.installations"
+  path: /docs/reference/js/firebase.installations
+  section:
+  - title: "Installations"
+    path: /docs/reference/js/firebase.installations.Installations
+
 - title: "firebase.messaging"
   path: /docs/reference/js/firebase.messaging
   section:
   - title: "Messaging"
     path: /docs/reference/js/firebase.messaging.Messaging
+
+- title: "firebase.performance"
+  path: /docs/reference/js/firebase.performance
+  section:
+  - title: "Performance"
+    path: /docs/reference/js/firebase.performance.Performance
+  - title: "Trace"
+    path: /docs/reference/js/firebase.performance.Trace
 
 - title: "firebase.storage"
   path: /docs/reference/js/firebase.storage
@@ -163,3 +177,7 @@ toc:
     path: /docs/reference/js/firebase.storage.UploadTask
   - title: "UploadTaskSnapshot"
     path: /docs/reference/js/firebase.storage.UploadTaskSnapshot
+  - title: "ListOptions"
+    path: /docs/reference/js/firebase.storage.ListOptions
+  - title: "ListResult"
+    path: /docs/reference/js/firebase.storage.ListResult

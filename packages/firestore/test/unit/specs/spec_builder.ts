@@ -347,6 +347,14 @@ export class SpecBuilder {
     return this;
   }
 
+  clearPersistence(): this {
+    this.nextStep();
+    this.currentStep = {
+      clearPersistence: true
+    };
+    return this;
+  }
+
   restart(): this {
     this.nextStep();
     this.currentStep = {
@@ -374,6 +382,14 @@ export class SpecBuilder {
     // Reset our mappings / target ids since all existing listens will be
     // forgotten.
     this.clientState.reset();
+    return this;
+  }
+
+  expectIsShutdown(): this {
+    this.nextStep();
+    this.currentStep = {
+      expectIsShutdown: true
+    };
     return this;
   }
 

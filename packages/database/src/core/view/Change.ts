@@ -32,7 +32,7 @@ export class Change {
     public snapshotNode: Node,
     public childName?: string,
     public oldSnap?: Node,
-    public prevName?: string
+    public prevName?: string | null
   ) {}
 
   /**

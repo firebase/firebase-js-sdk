@@ -1305,12 +1305,12 @@ fireauth.Auth.prototype.onIdTokenChanged = function(
   // promise as required by specs.
   if (this.isStateResolved_) {
     // The observer cannot be called synchronously. We're using the
-    // firebase.Promise implementation as otherwise it creates weird behavior
+    // native Promise implementation as otherwise it creates weird behavior
     // where the order of promises resolution would not be as expected.
     // It is due to the fact fireauth and firebase.app use their own
     // and different promises library and this leads to calls resolutions order
     // being different from the promises registration order.
-    firebase.Promise.resolve().then(function() {
+    Promise.resolve().then(function() {
       if (goog.isFunction(nextOrObserver)) {
         nextOrObserver(self.currentUser_());
       } else if (goog.isFunction(nextOrObserver['next'])) {
@@ -1347,12 +1347,12 @@ fireauth.Auth.prototype.onAuthStateChanged = function(
   // promise as required by specs.
   if (this.isStateResolved_) {
     // The observer cannot be called synchronously. We're using the
-    // firebase.Promise implementation as otherwise it creates weird behavior
+    // native Promise implementation as otherwise it creates weird behavior
     // where the order of promises resolution would not be as expected.
     // It is due to the fact fireauth and firebase.app use their own
     // and different promises library and this leads to calls resolutions order
     // being different from the promises registration order.
-    firebase.Promise.resolve().then(function() {
+    Promise.resolve().then(function() {
       // This ensures that the first time notifyAuthListeners_ is triggered,
       // it has the correct UID before triggering the user state change
       // listeners.
@@ -1433,36 +1433,6 @@ fireauth.Auth.prototype.signInWithCustomToken = function(token) {
 
 
 /**
- * Signs in a user asynchronously using a custom token and returns any
- * additional user info data or credentials returned form the backend. It has
- * been deprecated in favor of signInWithCustomToken.
- * @param {string} token The custom token to sign in with.
- * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
- */
-fireauth.Auth.prototype.signInAndRetrieveDataWithCustomToken = function(token) {
-  fireauth.deprecation.log(
-      fireauth.deprecation.Deprecations.SIGN_IN_WITH_CUSTOM_TOKEN);
-  return this.signInWithCustomToken(token);
-};
-
-
-/**
- * Sign in using an email and password and returns any additional user info
- * data or credentials returned form the backend. It has been deprecated in
- * favor of signInWithEmailAndPassword.
- * @param {string} email The email to sign in with.
- * @param {string} password The password to sign in with.
- * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
- */
-fireauth.Auth.prototype.signInAndRetrieveDataWithEmailAndPassword =
-    function(email, password) {
-  fireauth.deprecation.log(
-      fireauth.deprecation.Deprecations.SIGN_IN_WITH_EMAIL_AND_PASSWORD);
-  return this.signInWithEmailAndPassword(email, password);
-};
-
-
-/**
  * Sign in using an email and password and returns any additional user info
  * data or credentials returned form the backend.
  * @param {string} email The email to sign in with.
@@ -1503,46 +1473,12 @@ fireauth.Auth.prototype.createUserWithEmailAndPassword =
 
 
 /**
- * Creates a new email and password account and returns any additional user
- * info data or credentials returned form the backend. It has been deprecated
- * in favor of createUserWithEmailAndPassword.
- * @param {string} email The email to sign up with.
- * @param {string} password The password to sign up with.
- * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
- */
-fireauth.Auth.prototype.createUserAndRetrieveDataWithEmailAndPassword =
-    function(email, password) {
-  fireauth.deprecation.log(
-      fireauth.deprecation.Deprecations.CREATE_USER_WITH_EMAIL_AND_PASSWORD);
-  return this.createUserWithEmailAndPassword(email, password);
-};
-
-
-/**
- * Logs into Firebase with the given 3rd party credentials. It has been
- * deprecated in favor of signInAndRetrieveDataWithCredential.
- * @param {!fireauth.AuthCredential} credential The auth credential.
- * @return {!goog.Promise<!fireauth.AuthUser>}
- */
-fireauth.Auth.prototype.signInWithCredential = function(credential) {
-  fireauth.deprecation.log(
-      fireauth.deprecation.Deprecations.SIGN_IN_WITH_CREDENTIAL);
-  // Get signInAndRetrieveDataWithCredential result and return the user only.
-  return this.signInAndRetrieveDataWithCredential(credential)
-      .then(function(result) {
-        return result['user'];
-      });
-};
-
-
-/**
  * Logs into Firebase with the given 3rd party credentials and returns any
  * additional user info data or credentials returned form the backend.
  * @param {!fireauth.AuthCredential} credential The Auth credential.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
-fireauth.Auth.prototype.signInAndRetrieveDataWithCredential =
-    function(credential) {
+fireauth.Auth.prototype.signInWithCredential = function(credential) {
   // Credential could be extended in the future, so leave it to credential to
   // decide how to retrieve ID token.
   var self = this;
@@ -1554,6 +1490,21 @@ fireauth.Auth.prototype.signInAndRetrieveDataWithCredential =
     return self.signInWithIdTokenProvider_(
         credential.getIdTokenProvider(self.getRpcHandler()));
   });
+};
+
+
+/**
+ * Logs into Firebase with the given 3rd party credentials and returns any
+ * additional user info data or credentials returned form the backend. It has
+ * been deprecated in favor of signInWithCredential.
+ * @param {!fireauth.AuthCredential} credential The Auth credential.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.signInAndRetrieveDataWithCredential =
+    function(credential) {
+  fireauth.deprecation.log(
+      fireauth.deprecation.Deprecations.SIGN_IN_WITH_CREDENTIAL);
+  return this.signInWithCredential(credential);
 };
 
 
@@ -1604,19 +1555,6 @@ fireauth.Auth.prototype.signInAnonymously = function() {
           });
     }
   });
-};
-
-
-/**
- * Signs in a user anonymously and returns any additional user info data or
- * credentials returned form the backend. It has been deprecated in favor of
- * signInWithAnonymously.
- * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
- */
-fireauth.Auth.prototype.signInAnonymouslyAndRetrieveData = function() {
-  fireauth.deprecation.log(
-      fireauth.deprecation.Deprecations.SIGN_IN_ANONYMOUSLY);
-  return this.signInAnonymously();
 };
 
 
@@ -1814,7 +1752,7 @@ fireauth.Auth.prototype.addUserChangeListener_ = function(listener) {
 /**
  * Deletes the Auth instance, handling cancellation of all pending async Auth
  * operations.
- * @return {!firebase.Promise<void>}
+ * @return {!Promise<void>}
  */
 fireauth.Auth.prototype.delete = function() {
   this.deleted_ = true;
@@ -1835,7 +1773,7 @@ fireauth.Auth.prototype.delete = function() {
     this.authEventManager_.unsubscribe(this);
     this.authEventManager_.clearRedirectResult();
   }
-  return firebase.Promise.resolve();
+  return Promise.resolve();
 };
 
 
@@ -1863,22 +1801,6 @@ fireauth.Auth.prototype.registerPendingPromise_ = function(p) {
   });
   // Return the promise.
   return p;
-};
-
-
-/**
- * Gets the list of IDPs that can be used to log in for the given email address.
- * It has been deprecated in favor of fetchSignInMethodsForEmail.
- * @param {string} email The email address.
- * @return {!goog.Promise<!Array<!fireauth.idp.ProviderId>>}
- */
-fireauth.Auth.prototype.fetchProvidersForEmail = function(email) {
-  fireauth.deprecation.log(
-      fireauth.deprecation.Deprecations.FETCH_PROVIDERS_FOR_EMAIL);
-  return /** @type {!goog.Promise<!Array<!fireauth.idp.ProviderId>>} */ (
-      this.registerPendingPromise_(
-      this.getRpcHandler().fetchProvidersForIdentifier(email)
-      ));
 };
 
 

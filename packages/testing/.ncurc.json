@@ -1,5 +1,6 @@
 {
     "upgrade": true,
     "reject": [
+        "rollup-plugin-copy-assets"
     ]
 }

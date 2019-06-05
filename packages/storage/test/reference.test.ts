@@ -31,10 +31,11 @@ function makeFakeService(app: FirebaseApp, sendHook: SendHook): Service {
   return new Service(app, testShared.makePool(sendHook));
 }
 
-function makeStorage(url: string) {
+function makeStorage(url: string): Reference {
   function maker(wrapper, loc) {
     return ({} as any) as Reference;
   }
+
   const authWrapper = new AuthWrapper(
     null,
     maker,
@@ -106,11 +107,11 @@ describe('Firebase Storage > Reference', () => {
       assert.isNull(root.parent);
     });
     it('Returns root one level down', () => {
-      assert.equal(child.parent.toString(), 'gs://test-bucket/');
+      assert.equal(child.parent!.toString(), 'gs://test-bucket/');
     });
     it('Works correctly with empty levels', () => {
       const s = makeStorage('gs://test-bucket/a///');
-      assert.equal(s.parent.toString(), 'gs://test-bucket/a/');
+      assert.equal(s.parent!.toString(), 'gs://test-bucket/a/');
     });
   });
 
@@ -185,7 +186,7 @@ describe('Firebase Storage > Reference', () => {
       headers?: Headers
     ) {
       assert.isDefined(headers);
-      assert.isUndefined(headers['Authorization']);
+      assert.isUndefined(headers!['Authorization']);
       done();
     }
 
@@ -205,7 +206,7 @@ describe('Firebase Storage > Reference', () => {
     ) {
       assert.isDefined(headers);
       assert.equal(
-        headers['Authorization'],
+        headers!['Authorization'],
         'Firebase ' + testShared.authToken
       );
       done();
@@ -222,7 +223,7 @@ describe('Firebase Storage > Reference', () => {
       const task = child.putString('hello', StringFormat.RAW, {
         contentType: 'lol/wut'
       } as Metadata);
-      assert.equal(task.snapshot.metadata.contentType, 'lol/wut');
+      assert.equal(task.snapshot.metadata!.contentType, 'lol/wut');
       task.cancel();
     });
     it('Uses embedded content type in DATA_URL format', () => {
@@ -230,7 +231,7 @@ describe('Firebase Storage > Reference', () => {
         'data:lol/wat;base64,aaaa',
         StringFormat.DATA_URL
       );
-      assert.equal(task.snapshot.metadata.contentType, 'lol/wat');
+      assert.equal(task.snapshot.metadata!.contentType, 'lol/wat');
       task.cancel();
     });
     it('Lets metadata.contentType override embedded content type in DATA_URL format', () => {
@@ -239,7 +240,7 @@ describe('Firebase Storage > Reference', () => {
         StringFormat.DATA_URL,
         { contentType: 'tomato/soup' } as Metadata
       );
-      assert.equal(task.snapshot.metadata.contentType, 'tomato/soup');
+      assert.equal(task.snapshot.metadata!.contentType, 'tomato/soup');
       task.cancel();
     });
   });
@@ -396,6 +397,66 @@ describe('Firebase Storage > Reference', () => {
       });
     });
 
+    describe('listAll', () => {
+      it('throws on number arg', () => {
+        testShared.assertThrows(
+          testShared.bind(child.listAll, child, 1),
+          'storage/invalid-argument-count'
+        );
+      });
+    });
+
+    describe('list', () => {
+      it('throws on invalid option', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, 'invalid-option'),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on number arg', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, 1, 2),
+          'storage/invalid-argument-count'
+        );
+      });
+      it('throws on non-string pageToken', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { pageToken: { x: 1 } }),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on non-int maxResults', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: '4' }),
+          'storage/invalid-argument'
+        );
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: 1.2 }),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on invalid maxResults', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: 0 }),
+          'storage/invalid-argument'
+        );
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: -4 }),
+          'storage/invalid-argument'
+        );
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { maxResults: 1001 }),
+          'storage/invalid-argument'
+        );
+      });
+      it('throws on unkonw option', () => {
+        testShared.assertThrows(
+          testShared.bind(child.list, child, { unknown: 'ok' }),
+          'storage/invalid-argument'
+        );
+      });
+    });
+
     describe('updateMetadata', () => {
       it('throws on no args', () => {
         testShared.assertThrows(
@@ -456,6 +517,28 @@ describe('Firebase Storage > Reference', () => {
         child.getMetadata();
       });
     });
+    it("listAll doesn't throw", () => {
+      assert.doesNotThrow(() => {
+        child.listAll();
+      });
+    });
+    it("list doesn't throw", () => {
+      assert.doesNotThrow(() => {
+        child.list();
+      });
+      assert.doesNotThrow(() => {
+        child.list({ pageToken: 'xxx', maxResults: 4 });
+      });
+      assert.doesNotThrow(() => {
+        child.list({ pageToken: 'xxx' });
+      });
+      assert.doesNotThrow(() => {
+        child.list({ maxResults: 4 });
+      });
+      assert.doesNotThrow(() => {
+        child.list({ maxResults: 4, pageToken: null });
+      });
+    });
     it("updateMetadata doesn't throw", () => {
       assert.doesNotThrow(() => {
         child.updateMetadata({} as Metadata);
@@ -492,6 +575,19 @@ describe('Firebase Storage > Reference', () => {
         root.getMetadata.bind(root),
         'storage/invalid-root-operation'
       );
+    });
+    it("listAll doesn't throw", () => {
+      assert.doesNotThrow(() => {
+        root.listAll();
+      });
+    });
+    it("list doesn't throw", () => {
+      assert.doesNotThrow(() => {
+        root.list();
+      });
+      assert.doesNotThrow(() => {
+        root.list({ pageToken: 'xxx', maxResults: 4 });
+      });
     });
     it('updateMetadata throws', () => {
       testShared.assertThrows(

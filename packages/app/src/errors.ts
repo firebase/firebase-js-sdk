@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { ErrorFactory } from '@firebase/util';
+import { ErrorFactory, ErrorMap } from '@firebase/util';
 
 export const enum AppError {
   NO_APP = 'no-app',
@@ -26,7 +26,7 @@ export const enum AppError {
   INVALID_APP_ARGUMENT = 'invalid-app-argument'
 }
 
-const errors: { readonly [code in AppError]: string } = {
+const ERRORS: ErrorMap<AppError> = {
   [AppError.NO_APP]:
     "No Firebase App '{$name}' has been created - " +
     'call Firebase App.initializeApp()',
@@ -40,8 +40,10 @@ const errors: { readonly [code in AppError]: string } = {
     'Firebase App instance.'
 };
 
-let appErrors = new ErrorFactory<AppError>('app', 'Firebase', errors);
+type ErrorParams = { [key in AppError]: { name: string } };
 
-export function error(code: AppError, args?: { [name: string]: any }) {
-  throw appErrors.create(code, args);
-}
+export const ERROR_FACTORY = new ErrorFactory<AppError, ErrorParams>(
+  'app',
+  'Firebase',
+  ERRORS
+);

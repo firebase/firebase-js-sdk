@@ -36,6 +36,10 @@ export class Location {
     return this.path_;
   }
 
+  get isRoot(): boolean {
+    return this.path.length === 0;
+  }
+
   fullServerUrl(): string {
     let encode = encodeURIComponent;
     return '/b/' + encode(this.bucket) + '/o/' + encode(this.path);
@@ -63,7 +67,7 @@ export class Location {
   }
 
   static makeFromUrl(url: string): Location {
-    let location = null;
+    let location: Location | null = null;
     let bucketDomain = '([A-Za-z0-9.\\-_]+)';
 
     function gsModify(loc: Location) {
