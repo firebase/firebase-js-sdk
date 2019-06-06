@@ -145,7 +145,7 @@ apiDescribe('Database', persistence => {
 
   it('can merge data with an existing document using set', () => {
     if (isRunningAgainstEmulator()) {
-      return;
+      return; // b/112104025
     }
     return withTestDoc(persistence, doc => {
       const initialData = {
