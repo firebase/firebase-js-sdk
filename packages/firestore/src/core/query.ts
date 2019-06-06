@@ -58,7 +58,7 @@ export class Query {
     }
   }
 
-  get filters(): Filter[]{
+  get filters(): Filter[] {
     return this._filters;
   }
 
@@ -354,7 +354,7 @@ export class Query {
   }
 
   /**
-   * Returns the 
+   * Returns the
    */
   getRelationOpFilter(relationOp: RelationOp): RelationOp | null {
     if (

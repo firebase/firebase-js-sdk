@@ -80,7 +80,7 @@ const validationIt: ValidationIt = Object.assign(
       _: (db: firestore.FirebaseFirestore) => void | Promise<any>
     ): void {
       // tslint:disable-next-line:ban
-      it.skip(message, () => { });
+      it.skip(message, () => {});
     },
     only(
       persistence: boolean,
@@ -102,7 +102,7 @@ const validationIt: ValidationIt = Object.assign(
 
 /** Class used to verify custom classes can't be used in writes. */
 class TestClass {
-  constructor(readonly property: string) { }
+  constructor(readonly property: string) {}
 }
 
 // NOTE: The JS SDK does extensive validation of argument counts, types, etc.
@@ -123,7 +123,7 @@ apiDescribe('Validation:', persistence => {
       // hiding it.
       expect(() => db.settings({ invalid: true } as any)).to.throw(
         "Unknown option 'invalid' passed to function settings(). " +
-        'Available options: host, ssl, credentials'
+          'Available options: host, ssl, credentials'
       );
 
       expect(() =>
@@ -134,7 +134,7 @@ apiDescribe('Validation:', persistence => {
 
       expect(() => db.settings({ host: null as any })).to.throw(
         'Function settings() requires its host option to be of type ' +
-        'non-empty string, but it was: null'
+          'non-empty string, but it was: null'
       );
     });
 
@@ -144,8 +144,8 @@ apiDescribe('Validation:', persistence => {
         db.settings({ host: 'something-else.example.com' })
       ).to.throw(
         'Firestore has already been started and its settings can no ' +
-        'longer be changed. You can only call settings() before ' +
-        'calling any other methods on a Firestore object.'
+          'longer be changed. You can only call settings() before ' +
+          'calling any other methods on a Firestore object.'
       );
     });
 
@@ -173,8 +173,8 @@ apiDescribe('Validation:', persistence => {
         }
         expect(() => db.enablePersistence()).to.throw(
           'Firestore has already been started and persistence can no ' +
-          'longer be enabled. You can only call enablePersistence() ' +
-          'before calling any other methods on a Firestore object.'
+            'longer be enabled. You can only call enablePersistence() ' +
+            'before calling any other methods on a Firestore object.'
         );
       }
     );
@@ -185,7 +185,7 @@ apiDescribe('Validation:', persistence => {
       db => {
         expect(() => db.runTransaction(null as any)).to.throw(
           'Function Firestore.runTransaction() requires its first ' +
-          'argument to be of type function, but it was: null'
+            'argument to be of type function, but it was: null'
         );
       }
     );
@@ -211,23 +211,23 @@ apiDescribe('Validation:', persistence => {
       const baseDocRef = db.doc('foo/bar');
       expect(() => db.collection(null as any)).to.throw(
         'Function Firestore.collection() requires its first argument ' +
-        'to be of type non-empty string, but it was: null'
+          'to be of type non-empty string, but it was: null'
       );
       expect(() => db.collection('')).to.throw(
         'Function Firestore.collection() requires its first argument ' +
-        'to be of type non-empty string, but it was: ""'
+          'to be of type non-empty string, but it was: ""'
       );
       expect(() => baseDocRef.collection(null as any)).to.throw(
         'Function DocumentReference.collection() requires its first ' +
-        'argument to be of type non-empty string, but it was: null'
+          'argument to be of type non-empty string, but it was: null'
       );
       expect(() => baseDocRef.collection('')).to.throw(
         'Function DocumentReference.collection() requires its first ' +
-        'argument to be of type non-empty string, but it was: ""'
+          'argument to be of type non-empty string, but it was: ""'
       );
       expect(() => (baseDocRef.collection as any)('foo', 'bar')).to.throw(
         'Function DocumentReference.collection() requires 1 argument, ' +
-        'but was called with 2 arguments.'
+          'but was called with 2 arguments.'
       );
     });
 
@@ -273,27 +273,27 @@ apiDescribe('Validation:', persistence => {
       const baseCollectionRef = db.collection('foo');
       expect(() => db.doc(null as any)).to.throw(
         'Function Firestore.doc() requires its first argument to be ' +
-        'of type non-empty string, but it was: null'
+          'of type non-empty string, but it was: null'
       );
       expect(() => db.doc('')).to.throw(
         'Function Firestore.doc() requires its first argument to be ' +
-        'of type non-empty string, but it was: ""'
+          'of type non-empty string, but it was: ""'
       );
       expect(() => baseCollectionRef.doc(null as any)).to.throw(
         'Function CollectionReference.doc() requires its first ' +
-        'argument to be of type non-empty string, but it was: null'
+          'argument to be of type non-empty string, but it was: null'
       );
       expect(() => baseCollectionRef.doc('')).to.throw(
         'Function CollectionReference.doc() requires its first ' +
-        'argument to be of type non-empty string, but it was: ""'
+          'argument to be of type non-empty string, but it was: ""'
       );
       expect(() => baseCollectionRef.doc(undefined as any)).to.throw(
         'Function CollectionReference.doc() requires its first ' +
-        'argument to be of type non-empty string, but it was: undefined'
+          'argument to be of type non-empty string, but it was: undefined'
       );
       expect(() => (baseCollectionRef.doc as any)('foo', 'bar')).to.throw(
         'Function CollectionReference.doc() requires between 0 and ' +
-        '1 arguments, but was called with 2 arguments.'
+          '1 arguments, but was called with 2 arguments.'
       );
     });
 
@@ -318,29 +318,29 @@ apiDescribe('Validation:', persistence => {
 
   validationIt(persistence, 'Listen options are validated', db => {
     const collection = db.collection('test');
-    const fn = () => { };
+    const fn = () => {};
 
     const doc = collection.doc();
     expect(() => doc.onSnapshot({ bad: true } as any, fn)).to.throw(
       `Unknown option 'bad' passed to function ` +
-      `DocumentReference.onSnapshot(). Available options: ` +
-      `includeMetadataChanges`
+        `DocumentReference.onSnapshot(). Available options: ` +
+        `includeMetadataChanges`
     );
 
     expect(() => collection.onSnapshot({ bad: true } as any, fn)).to.throw(
       `Unknown option 'bad' passed to function ` +
-      `Query.onSnapshot(). Available options: includeMetadataChanges`
+        `Query.onSnapshot(). Available options: includeMetadataChanges`
     );
   });
 
   validationIt(persistence, 'get options are validated', db => {
     const collection = db.collection('test');
     const doc = collection.doc();
-    const fn = () => { };
+    const fn = () => {};
 
     expect(() => doc.get(fn as any)).to.throw(
       'Function DocumentReference.get() requires its first argument to be of type object, ' +
-      'but it was: a function'
+        'but it was: a function'
     );
     expect(() => doc.get({ abc: 'cache' } as any)).to.throw(
       `Unknown option 'abc' passed to function DocumentReference.get(). Available options: source`
@@ -348,7 +348,7 @@ apiDescribe('Validation:', persistence => {
 
     expect(() => collection.get(fn as any)).to.throw(
       'Function Query.get() requires its first argument to be of type object, but it was: ' +
-      'a function'
+        'a function'
     );
     expect(() => collection.get({ abc: 'cache' } as any)).to.throw(
       `Unknown option 'abc' passed to function Query.get(). Available options: source`
@@ -366,14 +366,14 @@ apiDescribe('Validation:', persistence => {
       .then(snapshot => {
         expect(() => snapshot.get('test', { bad: true } as any)).to.throw(
           `Unknown option 'bad' passed to function ` +
-          `DocumentSnapshot.get(). Available options: ` +
-          `serverTimestamps`
+            `DocumentSnapshot.get(). Available options: ` +
+            `serverTimestamps`
         );
         expect(() =>
           snapshot.data({ serverTimestamps: 'foo' } as any)
         ).to.throw(
           `Invalid value "foo" provided to function DocumentSnapshot.data() for option ` +
-          `"serverTimestamps". Acceptable values: "estimate", "previous", "none"`
+            `"serverTimestamps". Acceptable values: "estimate", "previous", "none"`
         );
       });
   });
@@ -383,25 +383,25 @@ apiDescribe('Validation:', persistence => {
 
     expect(() => docRef.set({}, { merge: true, mergeFields: [] })).to.throw(
       'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
-      '"merge" and "mergeFields".'
+        '"merge" and "mergeFields".'
     );
     expect(() => docRef.set({}, { merge: false, mergeFields: [] })).to.throw(
       'Invalid options passed to function DocumentReference.set(): You cannot specify both ' +
-      '"merge" and "mergeFields".'
+        '"merge" and "mergeFields".'
     );
     expect(() => docRef.set({}, { merge: 'foo' as any })).to.throw(
       'Function DocumentReference.set() requires its merge option to be of type boolean, but it ' +
-      'was: "foo"'
+        'was: "foo"'
     );
     expect(() => docRef.set({}, { mergeFields: 'foo' as any })).to.throw(
       'Function DocumentReference.set() requires its mergeFields option to be an array, but it ' +
-      'was: "foo"'
+        'was: "foo"'
     );
     expect(() =>
       docRef.set({}, { mergeFields: ['foo', false as any] })
     ).to.throw(
       'Function DocumentReference.set() requires all mergeFields elements to be a string or a ' +
-      'FieldPath, but the value at index 1 was: false'
+        'FieldPath, but the value at index 1 was: false'
     );
   });
 
@@ -414,7 +414,7 @@ apiDescribe('Validation:', persistence => {
         [1],
         new Date(),
         null,
-        () => { },
+        () => {},
         new TestClass('foo')
       ];
       const errorDescriptions = [
@@ -442,9 +442,9 @@ apiDescribe('Validation:', persistence => {
           { foo: new TestClass('foo') },
           { foo: [new TestClass('foo')] },
           { foo: { bar: new TestClass('foo') } },
-          { foo: () => { } },
-          { foo: [() => { }] },
-          { foo: { bar: () => { } } }
+          { foo: () => {} },
+          { foo: [() => {}] },
+          { foo: { bar: () => {} } }
         ];
         const errorDescriptions = [
           'Unsupported field value: a custom TestClass object (found in field foo)',
@@ -527,9 +527,9 @@ apiDescribe('Validation:', persistence => {
             db,
             data,
             `Document reference is for database ` +
-            `${ALT_PROJECT_ID}/(default) but should be for database ` +
-            `${DEFAULT_PROJECT_ID}/(default) (found in field ` +
-            `foo)`
+              `${ALT_PROJECT_ID}/(default) but should be for database ` +
+              `${DEFAULT_PROJECT_ID}/(default) (found in field ` +
+              `foo)`
           );
         });
       }
@@ -541,32 +541,32 @@ apiDescribe('Validation:', persistence => {
           db,
           { __baz__: 1 },
           'Document fields cannot begin and end with __ (found in field ' +
-          '__baz__)'
+            '__baz__)'
         ),
         expectWriteToFail(
           db,
           { foo: { __baz__: 1 } },
           'Document fields cannot begin and end with __ (found in field ' +
-          'foo.__baz__)'
+            'foo.__baz__)'
         ),
         expectWriteToFail(
           db,
           { __baz__: { foo: 1 } },
           'Document fields cannot begin and end with __ (found in field ' +
-          '__baz__)'
+            '__baz__)'
         ),
 
         expectUpdateToFail(
           db,
           { 'foo.__baz__': 1 },
           'Document fields cannot begin and end with __ (found in field ' +
-          'foo.__baz__)'
+            'foo.__baz__)'
         ),
         expectUpdateToFail(
           db,
           { '__baz__.foo': 1 },
           'Document fields cannot begin and end with __ (found in field ' +
-          '__baz__.foo)'
+            '__baz__.foo)'
         )
       ]);
     });
@@ -579,7 +579,7 @@ apiDescribe('Validation:', persistence => {
           db,
           { foo: FieldValue.delete() },
           'FieldValue.delete() cannot be used with set() unless you pass ' +
-          '{merge:true} (found in field foo)'
+            '{merge:true} (found in field foo)'
         );
       }
     );
@@ -592,7 +592,7 @@ apiDescribe('Validation:', persistence => {
           db,
           { foo: { bar: FieldValue.delete() } },
           'FieldValue.delete() can only appear at the top level of your ' +
-          'update data (found in field foo.bar)'
+            'update data (found in field foo.bar)'
         );
       }
     );
@@ -692,16 +692,16 @@ apiDescribe('Validation:', persistence => {
         collection.where('test', '==', { test: FieldValue.arrayUnion(1) })
       ).to.throw(
         'Function Query.where() called with invalid data. ' +
-        'FieldValue.arrayUnion() can only be used with update() and set() ' +
-        '(found in field test)'
+          'FieldValue.arrayUnion() can only be used with update() and set() ' +
+          '(found in field test)'
       );
 
       expect(() =>
         collection.where('test', '==', { test: FieldValue.arrayRemove(1) })
       ).to.throw(
         'Function Query.where() called with invalid data. ' +
-        'FieldValue.arrayRemove() can only be used with update() and set() ' +
-        '(found in field test)'
+          'FieldValue.arrayRemove() can only be used with update() and set() ' +
+          '(found in field test)'
       );
     });
 
@@ -711,14 +711,14 @@ apiDescribe('Validation:', persistence => {
         doc.set({ x: FieldValue.arrayUnion(1, new TestClass('foo')) })
       ).to.throw(
         'Function FieldValue.arrayUnion() called with invalid data. ' +
-        'Unsupported field value: a custom TestClass object'
+          'Unsupported field value: a custom TestClass object'
       );
 
       expect(() =>
         doc.set({ x: FieldValue.arrayRemove(1, new TestClass('foo')) })
       ).to.throw(
         'Function FieldValue.arrayRemove() called with invalid data. ' +
-        'Unsupported field value: a custom TestClass object'
+          'Unsupported field value: a custom TestClass object'
       );
     });
 
@@ -729,14 +729,14 @@ apiDescribe('Validation:', persistence => {
         doc.set({ x: FieldValue.arrayUnion(1, ['nested']) })
       ).to.throw(
         'Function FieldValue.arrayUnion() called with invalid data. ' +
-        'Nested arrays are not supported'
+          'Nested arrays are not supported'
       );
 
       expect(() =>
         doc.set({ x: FieldValue.arrayRemove(1, ['nested']) })
       ).to.throw(
         'Function FieldValue.arrayRemove() called with invalid data. ' +
-        'Nested arrays are not supported'
+          'Nested arrays are not supported'
       );
     });
   });
@@ -748,7 +748,7 @@ apiDescribe('Validation:', persistence => {
         doc.set({ x: (FieldValue as any).serverTimestamp('foo') })
       ).to.throw(
         'Function FieldValue.serverTimestamp() does not support ' +
-        'arguments, but was called with 1 argument.'
+          'arguments, but was called with 1 argument.'
       );
     });
   });
@@ -760,8 +760,8 @@ apiDescribe('Validation:', persistence => {
         collection.where('test', '==', { test: FieldValue.increment(1) })
       ).to.throw(
         'Function Query.where() called with invalid data. ' +
-        'FieldValue.increment() can only be used with update() and set() ' +
-        '(found in field test)'
+          'FieldValue.increment() can only be used with update() and set() ' +
+          '(found in field test)'
       );
     });
 
@@ -769,7 +769,7 @@ apiDescribe('Validation:', persistence => {
       const doc = db.collection('test').doc();
       expect(() => doc.set({ x: FieldValue.increment('foo' as any) })).to.throw(
         'Function FieldValue.increment() requires its first argument to ' +
-        'be of type number, but it was: "foo"'
+          'be of type number, but it was: "foo"'
       );
     });
 
@@ -779,7 +779,7 @@ apiDescribe('Validation:', persistence => {
         doc.set({ x: (FieldValue as any).increment(1337, 'leet') })
       ).to.throw(
         'Function FieldValue.increment() requires 1 argument, but was ' +
-        'called with 2 arguments.'
+          'called with 2 arguments.'
       );
     });
   });
@@ -789,11 +789,11 @@ apiDescribe('Validation:', persistence => {
       const collection = db.collection('test');
       expect(() => collection.limit(0)).to.throw(
         'Invalid Query. Query limit (0) is invalid. Limit must be ' +
-        'positive.'
+          'positive.'
       );
       expect(() => collection.limit(-1)).to.throw(
         'Invalid Query. Query limit (-1) is invalid. Limit must be ' +
-        'positive.'
+          'positive.'
       );
     });
 
@@ -801,7 +801,7 @@ apiDescribe('Validation:', persistence => {
       const collection = db.collection('test') as any;
       expect(() => collection.where('a', 'foo' as any, 'b')).to.throw(
         'Invalid value "foo" provided to function Query.where() for its second argument. ' +
-        'Acceptable values: <, <=, ==, >=, >, array-contains'
+          'Acceptable values: <, <=, ==, >=, >, array-contains'
       );
     });
 
@@ -892,7 +892,7 @@ apiDescribe('Validation:', persistence => {
                   collection
                     .orderBy('timestamp')
                     .endAt(docSnap)
-                    .onSnapshot(() => { })
+                    .onSnapshot(() => {})
                 ).to.throw('uncommitted server timestamp');
                 offlineDeferred.resolve();
               } else {
@@ -901,7 +901,7 @@ apiDescribe('Validation:', persistence => {
                 collection
                   .orderBy('timestamp')
                   .endAt(docSnap)
-                  .onSnapshot(() => { });
+                  .onSnapshot(() => {});
                 onlineDeferred.resolve();
               }
             });
@@ -946,17 +946,17 @@ apiDescribe('Validation:', persistence => {
           .orderBy(firebase.firestore!.FieldPath.documentId());
         expect(() => query.startAt(1)).to.throw(
           'Invalid query. Expected a string for document ID in ' +
-          'Query.startAt(), but got a number'
+            'Query.startAt(), but got a number'
         );
         expect(() => query.startAt('foo/bar')).to.throw(
           `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
-          `the value passed to Query.startAt() must be a plain document ID, but 'foo/bar' ` +
-          `contains a slash.`
+            `the value passed to Query.startAt() must be a plain document ID, but 'foo/bar' ` +
+            `contains a slash.`
         );
         expect(() => cgQuery.startAt('foo')).to.throw(
           `Invalid query. When querying a collection group and ordering by ` +
-          `FieldPath.documentId(), the value passed to Query.startAt() must result in a valid ` +
-          `document path, but 'foo' is not because it contains an odd number of segments.`
+            `FieldPath.documentId(), the value passed to Query.startAt() must result in a valid ` +
+            `document path, but 'foo' is not because it contains an odd number of segments.`
         );
       }
     );
@@ -967,8 +967,8 @@ apiDescribe('Validation:', persistence => {
         collection.where('x', '>=', 32).where('y', '<', 'cat')
       ).to.throw(
         'Invalid query. All where filters with an ' +
-        'inequality (<, <=, >, or >=) must be on the same field.' +
-        ` But you have inequality filters on 'x' and 'y'`
+          'inequality (<, <=, >, or >=) must be on the same field.' +
+          ` But you have inequality filters on 'x' and 'y'`
       );
     });
 
@@ -1036,27 +1036,27 @@ apiDescribe('Validation:', persistence => {
             .where('foo', arrayContainsAnyOp, [2, 3])
         ).to.throw(
           "Invalid query. Queries only support a single 'array-contains-any'" +
-          ' filter.'
+            ' filter.'
         );
 
         expect(() =>
           db
             .collection('test')
-            .where('foo', inOp, [1,2])
+            .where('foo', inOp, [1, 2])
             .where('foo', arrayContainsAnyOp, [2, 3])
         ).to.throw(
-          "Invalid query. You cannot use 'array-contains-any' " + 
-          "filters with 'in' filters."
+          "Invalid query. You cannot use 'array-contains-any' " +
+            "filters with 'in' filters."
         );
 
         expect(() =>
           db
             .collection('test')
             .where('foo', arrayContainsAnyOp, [2, 3])
-            .where('foo', inOp, [1,2])
+            .where('foo', inOp, [1, 2])
         ).to.throw(
           "Invalid query. You cannot use 'in' filters with " +
-          "'array-contains-any' filters."
+            "'array-contains-any' filters."
         );
       }
     );
@@ -1072,7 +1072,7 @@ apiDescribe('Validation:', persistence => {
             .where('foo', arrayContainsAnyOp, [2, 3])
         ).to.throw(
           "Invalid query. You cannot use 'array-contains' filters with " +
-          "'array-contains-any' filters."
+            "'array-contains-any' filters."
         );
       }
     );
@@ -1109,7 +1109,7 @@ apiDescribe('Validation:', persistence => {
           db.collection('test').where('foo', arrayContainsAnyOp, 2)
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
-          "'array-contains-any' queries."
+            "'array-contains-any' queries."
         );
       }
     );
@@ -1126,7 +1126,7 @@ apiDescribe('Validation:', persistence => {
           db.collection('test').where('foo', arrayContainsAnyOp, [])
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
-          "'array-contains-any' queries."
+            "'array-contains-any' queries."
         );
       }
     );
@@ -1134,7 +1134,7 @@ apiDescribe('Validation:', persistence => {
     validationIt(
       persistence,
       'cannot have an IN or array-contains-any filter with more than 10 ' +
-      'elements.',
+        'elements.',
       db => {
         expect(() =>
           db
@@ -1143,7 +1143,7 @@ apiDescribe('Validation:', persistence => {
             .where('foo', inOp, [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
         ).to.throw(
           "Invalid Query. 'in' queries support a maximum of 10 elements in " +
-          'the value array.'
+            'the value array.'
         );
 
         expect(() =>
@@ -1152,7 +1152,7 @@ apiDescribe('Validation:', persistence => {
             .where('foo', arrayContainsAnyOp, [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
         ).to.throw(
           "Invalid Query. 'array-contains-any' queries support a maximum of " +
-          '10 elements in the value array.'
+            '10 elements in the value array.'
         );
       }
     );
@@ -1186,50 +1186,50 @@ apiDescribe('Validation:', persistence => {
           collection.where(FieldPath.documentId(), '>=', '')
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
-          'a valid document ID if the first parameter is ' +
-          'FieldPath.documentId(), but it was an empty string.'
+            'a valid document ID if the first parameter is ' +
+            'FieldPath.documentId(), but it was an empty string.'
         );
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 'foo/bar/baz')
         ).to.throw(
           `Invalid third parameter to Query.where(). When querying a collection by ` +
-          `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
-          `'foo/bar/baz' contains a slash.`
+            `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
+            `'foo/bar/baz' contains a slash.`
         );
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 1)
         ).to.throw(
           'Function Query.where() requires its third parameter to be ' +
-          'a string or a DocumentReference if the first parameter is ' +
-          'FieldPath.documentId(), but it was: 1.'
+            'a string or a DocumentReference if the first parameter is ' +
+            'FieldPath.documentId(), but it was: 1.'
         );
         expect(() =>
           db.collectionGroup('foo').where(FieldPath.documentId(), '>=', 'foo')
         ).to.throw(
           `Invalid third parameter to Query.where(). When querying a collection group by ` +
-          `FieldPath.documentId(), the value provided must result in a valid document path, ` +
-          `but 'foo' is not because it has an odd number of segments (1).`
+            `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+            `but 'foo' is not because it has an odd number of segments (1).`
         );
 
         expect(() =>
           collection.where(FieldPath.documentId(), 'array-contains', 1)
         ).to.throw(
           "Invalid Query. You can't perform 'array-contains' queries on " +
-          'FieldPath.documentId().'
+            'FieldPath.documentId().'
         );
 
         expect(() =>
           collection.where(FieldPath.documentId(), arrayContainsAnyOp, 1)
         ).to.throw(
           "Invalid Query. You can't perform 'array-contains-any' queries on " +
-          'FieldPath.documentId().'
+            'FieldPath.documentId().'
         );
 
         expect(() =>
           collection.where(FieldPath.documentId(), inOp, [1, 2])
         ).to.throw(
           "Invalid Query. You can't perform 'in' queries on " +
-          'FieldPath.documentId().'
+            'FieldPath.documentId().'
         );
       }
     );
