@@ -43,7 +43,7 @@ const SECONDARY_CONFIGS: SecondaryConfig = {
 };
 
 /* eslint-disable camelcase */
-interface RemoteConfigTemplate { 
+interface RemoteConfigTemplate {
   fpr_enabled?: string;
   fpr_log_source?: string;
   fpr_log_endpoint_url?: string;
@@ -78,10 +78,14 @@ export function getConfig(iid: string): Promise<void> {
 function getStoredConfig(): RemoteConfigResponse | undefined {
   const localStorage = Api.getInstance().localStorage;
   const expiryString = localStorage.getItem(CONFIG_EXPIRY_LOCAL_STORAGE_KEY);
-  if (!expiryString || !configValid(expiryString)) {return;}
+  if (!expiryString || !configValid(expiryString)) {
+    return;
+  }
 
   const configStringified = localStorage.getItem(CONFIG_LOCAL_STORAGE_KEY);
-  if (!configStringified) {return;}
+  if (!configStringified) {
+    return;
+  }
   try {
     const configResponse: RemoteConfigResponse = JSON.parse(configStringified);
     return configResponse;
@@ -91,7 +95,9 @@ function getStoredConfig(): RemoteConfigResponse | undefined {
 }
 
 function storeConfig(config: RemoteConfigResponse | undefined): void {
-  if (!config) {return;}
+  if (!config) {
+    return;
+  }
   const localStorage = Api.getInstance().localStorage;
   localStorage.setItem(CONFIG_LOCAL_STORAGE_KEY, JSON.stringify(config));
   localStorage.setItem(
@@ -151,7 +157,9 @@ function getRemoteConfig(
 function processConfig(
   config: RemoteConfigResponse | undefined
 ): RemoteConfigResponse | undefined {
-  if (!config) {return config;}
+  if (!config) {
+    return config;
+  }
   const settingsServiceInstance = SettingsService.getInstance();
   const entries = config.entries || {};
   if (entries.fpr_enabled !== undefined) {

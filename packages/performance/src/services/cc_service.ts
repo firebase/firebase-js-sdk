@@ -68,7 +68,7 @@ function processQueue(timeOffset: number): void {
     // Capture a snapshot of the queue and empty the "official queue".
     const staged = [...queue];
     queue = [];
-    
+
     /* eslint-disable camelcase */
     // We will pass the JSON serialized event to the backend.
     const log_event = staged.map(evt => ({
@@ -103,10 +103,7 @@ function processQueue(timeOffset: number): void {
         // Find the next call wait time from the response.
         const requestOffset = isNaN(wait)
           ? DEFAULT_SEND_INTERVAL_MS
-          : Math.max(
-            DEFAULT_SEND_INTERVAL_MS,
-            wait
-          );
+          : Math.max(DEFAULT_SEND_INTERVAL_MS, wait);
         remainingTries = DEFAULT_REMAINING_TRIES;
         // Schedule the next process.
         processQueue(requestOffset);

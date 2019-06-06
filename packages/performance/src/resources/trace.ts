@@ -192,7 +192,9 @@ export class Trace implements PerformanceTrace {
   }
 
   removeAttribute(attr: string): void {
-    if (this.customAttributes[attr] === undefined) {return;}
+    if (this.customAttributes[attr] === undefined) {
+      return;
+    }
     delete this.customAttributes[attr];
   }
 
@@ -235,7 +237,9 @@ export class Trace implements PerformanceTrace {
     firstInputDelay?: number
   ): void {
     const route = Api.getInstance().getUrl();
-    if (!route) {return;}
+    if (!route) {
+      return;
+    }
     const trace = new Trace(OOB_TRACE_PAGE_LOAD_PREFIX + route, true);
     const timeOriginUs = Math.floor(Api.getInstance().getTimeOrigin() * 1000);
     trace.setStartTime(timeOriginUs);

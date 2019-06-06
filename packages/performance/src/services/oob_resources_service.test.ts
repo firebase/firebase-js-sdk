@@ -98,7 +98,9 @@ describe('Firebase Performance > oob_resources_service', () => {
     clock = useFakeTimers();
     getEntriesByTypeStub = stub(Api.prototype, 'getEntriesByType').callsFake(
       entry => {
-        if (entry === 'navigation') {return [NAVIGATION_PERFORMANCE_ENTRY];}
+        if (entry === 'navigation') {
+          return [NAVIGATION_PERFORMANCE_ENTRY];
+        }
         return [PAINT_PERFORMANCE_ENTRY];
       }
     );

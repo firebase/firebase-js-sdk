@@ -41,7 +41,7 @@ export function getAuthTokenPromise(): Promise<string> {
   const authTokenPromise = SettingsService.getInstance()
     .firebaseAppInstance.installations()
     .getToken();
-  // tslint:disable-next-line:no-floating-promises  
+  // tslint:disable-next-line:no-floating-promises
   authTokenPromise.then((authTokenVal: string) => {
     authToken = authTokenVal;
   });
