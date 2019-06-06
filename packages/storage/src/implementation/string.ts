@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import * as errorsExports from './error';
-import { errors } from './error';
 
 /**
  * @enum {string}
@@ -28,7 +27,7 @@ export const StringFormat = {
   DATA_URL: 'data_url'
 };
 
-export function formatValidator(stringFormat: string) {
+export function formatValidator(stringFormat: string): void {
   switch (stringFormat) {
     case StringFormat.RAW:
     case StringFormat.BASE64:
@@ -54,50 +53,52 @@ export function formatValidator(stringFormat: string) {
 export class StringData {
   contentType: string | null;
 
-  constructor(public data: Uint8Array, opt_contentType?: string | null) {
-    this.contentType = opt_contentType || null;
+  constructor(public data: Uint8Array, contentType?: string | null) {
+    this.contentType = contentType || null;
   }
 }
 
 export function dataFromString(
   format: StringFormat,
-  string: string
+  stringData: string
 ): StringData {
   switch (format) {
     case StringFormat.RAW:
-      return new StringData(utf8Bytes_(string));
+      return new StringData(utf8Bytes_(stringData));
     case StringFormat.BASE64:
     case StringFormat.BASE64URL:
-      return new StringData(base64Bytes_(format, string));
+      return new StringData(base64Bytes_(format, stringData));
     case StringFormat.DATA_URL:
-      return new StringData(dataURLBytes_(string), dataURLContentType_(string));
+      return new StringData(dataURLBytes_(stringData), dataURLContentType_(stringData));
+    default:
+      // do nothing
   }
 
   // assert(false);
   throw errorsExports.unknown();
 }
 
-export function utf8Bytes_(string: string): Uint8Array {
+export function utf8Bytes_(value: string): Uint8Array {
   const b: number[] = [];
-  for (let i = 0; i < string.length; i++) {
-    let c = string.charCodeAt(i);
+  for (let i = 0; i < value.length; i++) {
+    let c = value.charCodeAt(i);
     if (c <= 127) {
       b.push(c);
     } else {
       if (c <= 2047) {
         b.push(192 | (c >> 6), 128 | (c & 63));
       } else {
-        if ((c & 64512) == 55296) {
+        if ((c & 64512) === 55296) {
           // The start of a surrogate pair.
           const valid =
-            i < string.length - 1 &&
-            (string.charCodeAt(i + 1) & 64512) == 56320;
+            i < value.length - 1 &&
+            (value.charCodeAt(i + 1) & 64512) === 56320;
           if (!valid) {
             // The second surrogate wasn't there.
             b.push(239, 191, 189);
           } else {
             const hi = c;
-            const lo = string.charCodeAt(++i);
+            const lo = value.charCodeAt(++i);
             c = 65536 | ((hi & 1023) << 10) | (lo & 1023);
             b.push(
               240 | (c >> 18),
@@ -107,7 +108,7 @@ export function utf8Bytes_(string: string): Uint8Array {
             );
           }
         } else {
-          if ((c & 64512) == 56320) {
+          if ((c & 64512) === 56320) {
             // Invalid low surrogate.
             b.push(239, 191, 189);
           } else {
@@ -120,10 +121,10 @@ export function utf8Bytes_(string: string): Uint8Array {
   return new Uint8Array(b);
 }
 
-export function percentEncodedBytes_(string: string): Uint8Array {
+export function percentEncodedBytes_(value: string): Uint8Array {
   let decoded;
   try {
-    decoded = decodeURIComponent(string);
+    decoded = decodeURIComponent(value);
   } catch (e) {
     throw errorsExports.invalidFormat(
       StringFormat.DATA_URL,
@@ -133,11 +134,11 @@ export function percentEncodedBytes_(string: string): Uint8Array {
   return utf8Bytes_(decoded);
 }
 
-export function base64Bytes_(format: StringFormat, string: string): Uint8Array {
+export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
   switch (format) {
     case StringFormat.BASE64: {
-      const hasMinus = string.indexOf('-') !== -1;
-      const hasUnder = string.indexOf('_') !== -1;
+      const hasMinus = value.indexOf('-') !== -1;
+      const hasUnder = value.indexOf('_') !== -1;
       if (hasMinus || hasUnder) {
         const invalidChar = hasMinus ? '-' : '_';
         throw errorsExports.invalidFormat(
@@ -150,8 +151,8 @@ export function base64Bytes_(format: StringFormat, string: string): Uint8Array {
       break;
     }
     case StringFormat.BASE64URL: {
-      const hasPlus = string.indexOf('+') !== -1;
-      const hasSlash = string.indexOf('/') !== -1;
+      const hasPlus = value.indexOf('+') !== -1;
+      const hasSlash = value.indexOf('/') !== -1;
       if (hasPlus || hasSlash) {
         const invalidChar = hasPlus ? '+' : '/';
         throw errorsExports.invalidFormat(
@@ -159,13 +160,15 @@ export function base64Bytes_(format: StringFormat, string: string): Uint8Array {
           "Invalid character '" + invalidChar + "' found: is it base64 encoded?"
         );
       }
-      string = string.replace(/-/g, '+').replace(/_/g, '/');
+      value = value.replace(/-/g, '+').replace(/_/g, '/');
       break;
     }
+    default:
+      // do nothing
   }
   let bytes;
   try {
-    bytes = atob(string);
+    bytes = atob(value);
   } catch (e) {
     throw errorsExports.invalidFormat(format, 'Invalid character found');
   }
@@ -203,8 +206,8 @@ class DataURLParts {
   }
 }
 
-export function dataURLBytes_(string: string): Uint8Array {
-  const parts = new DataURLParts(string);
+export function dataURLBytes_(dataUrl: string): Uint8Array {
+  const parts = new DataURLParts(dataUrl);
   if (parts.base64) {
     return base64Bytes_(StringFormat.BASE64, parts.rest);
   } else {
@@ -212,8 +215,8 @@ export function dataURLBytes_(string: string): Uint8Array {
   }
 }
 
-export function dataURLContentType_(string: string): string | null {
-  const parts = new DataURLParts(string);
+export function dataURLContentType_(dataUrl: string): string | null {
+  const parts = new DataURLParts(dataUrl);
   return parts.contentType;
 }
 

@@ -26,8 +26,10 @@ import { Location } from './location';
 import * as path from './path';
 import * as type from './type';
 import * as UrlUtils from './url';
+import { Reference } from '../reference';
+import { contains } from './object';
 
-export function noXform_(metadata: Metadata, value: any): any {
+export function noXform_(_metadata: Metadata, value: any): any {
   return value;
 }
 
@@ -41,13 +43,13 @@ export class Mapping {
 
   constructor(
     public server: string,
-    opt_local?: string | null,
-    opt_writable?: boolean,
-    opt_xform?: (p1: Metadata, p2: any) => any | null
+    local?: string | null,
+    writable?: boolean,
+    xform?: ((p1: Metadata, p2: any) => any) | null
   ) {
-    this.local = opt_local || server;
-    this.writable = !!opt_writable;
-    this.xform = opt_xform || noXform_;
+    this.local = local || server;
+    this.writable = !!writable;
+    this.xform = xform || noXform_;
   }
 }
 type Mappings = Mapping[];
@@ -86,7 +88,7 @@ export function getMappings(): Mappings {
   /**
    * Coerces the second param to a number, if it is defined.
    */
-  function xformSize(metadata: Metadata, size: any): number | null | undefined {
+  function xformSize(_metadata: Metadata, size: any): number | null | undefined {
     if (type.isDef(size)) {
       return +(size as number);
     } else {
@@ -109,8 +111,8 @@ export function getMappings(): Mappings {
   return mappings_;
 }
 
-export function addRef(metadata: Metadata, authWrapper: AuthWrapper) {
-  function generateRef() {
+export function addRef(metadata: Metadata, authWrapper: AuthWrapper): void {
+  function generateRef(): Reference {
     const bucket: string = metadata['bucket'] as string;
     const path: string = metadata['fullPath'] as string;
     const loc = new Location(bucket, path);
@@ -198,20 +200,22 @@ export function toResourceString(
   return JSON.stringify(resource);
 }
 
-export function metadataValidator(p: any) {
+export function metadataValidator(p: any): void {
   const validType = p && type.isObject(p);
   if (!validType) {
     throw 'Expected Metadata object.';
   }
   for (const key in p) {
-    const val = p[key];
-    if (key === 'customMetadata') {
-      if (!type.isObject(val)) {
-        throw 'Expected object for \'customMetadata\' mapping.';
-      }
-    } else {
-      if (type.isNonNullObject(val)) {
-        throw "Mapping for '" + key + "' cannot be an object.";
+    if (contains(p, key)) {
+      const val = p[key];
+      if (key === 'customMetadata') {
+        if (!type.isObject(val)) {
+          throw 'Expected object for \'customMetadata\' mapping.';
+        }
+      } else {
+        if (type.isNonNullObject(val)) {
+          throw "Mapping for '" + key + "' cannot be an object.";
+        }
       }
     }
   }

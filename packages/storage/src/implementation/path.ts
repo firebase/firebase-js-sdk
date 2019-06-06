@@ -23,7 +23,7 @@
  * @return Null if the path is already at the root.
  */
 export function parent(path: string): string | null {
-  if (path.length == 0) {
+  if (path.length === 0) {
     return null;
   }
   const index = path.lastIndexOf('/');

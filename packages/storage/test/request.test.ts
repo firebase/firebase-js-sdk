@@ -146,12 +146,12 @@ describe('Firebase Storage > Request', () => {
       _method: string,
       _body?: ArrayBufferView | Blob | string | null,
       _headers?: Headers
-    ) {
+    ): void {
       xhrio.simulateResponse(200, '', {});
     }
 
     const errorMessage = 'Catch me if you can';
-    function handler(xhr: XhrIo, text: string): string {
+    function handler(_xhr: XhrIo, _text: string): string {
       throw new Error(errorMessage);
     }
     const requestInfo = new RequestInfo(
@@ -203,7 +203,7 @@ describe('Firebase Storage > Request', () => {
       _method: string,
       _body?: ArrayBufferView | Blob | string | null,
       _headers?: Headers
-    ) {
+    ): void {
       xhrio.simulateResponse(200, '', {});
     }
     const spiedSend = sinon.spy(newSend);

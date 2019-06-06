@@ -2,5 +2,18 @@
     "extends": "../../config/.eslintrc.json",
     "parserOptions": {
         "project": "tsconfig.json"
-    }
+    },
+    "rules": {
+        "no-throw-literal": "off"
+    },
+    "overrides": [
+        {
+            "files": [
+                "src/implementation/metadata.ts"
+            ],
+            "rules": {
+                "@typescript-eslint/no-explicit-any": "off"
+            }
+        }
+    ]
 }
