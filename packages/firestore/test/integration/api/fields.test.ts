@@ -282,7 +282,7 @@ apiDescribe('Fields with special characters', persistence => {
 
   it('can be updated with update()', () => {
     if (isRunningAgainstEmulator()) {
-      return;
+      return; // b/112104025
     }
     return withTestDoc(persistence, doc => {
       return doc
@@ -308,7 +308,7 @@ apiDescribe('Fields with special characters', persistence => {
 
   it('can be used in query filters.', () => {
     if (isRunningAgainstEmulator()) {
-      return;
+      return; // b/112104025
     }
     const testDocs = {
       '1': testData(300),
@@ -333,7 +333,7 @@ apiDescribe('Fields with special characters', persistence => {
 
   it('can be used in a query orderBy.', () => {
     if (isRunningAgainstEmulator()) {
-      return;
+      return; // b/112104025
     }
     const testDocs = {
       '1': testData(300),

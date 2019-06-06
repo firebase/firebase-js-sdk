@@ -341,7 +341,7 @@ apiDescribe('Database transactions', persistence => {
 
   it('can update nested fields transactionally', () => {
     if (integrationHelpers.isRunningAgainstEmulator()) {
-      return;
+      return; // b/112104025
     }
     const initialData = {
       desc: 'Description',

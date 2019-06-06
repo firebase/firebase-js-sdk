@@ -488,7 +488,7 @@ apiDescribe('Database', persistence => {
 
   it('can update nested fields', () => {
     if (isRunningAgainstEmulator()) {
-      return;
+      return; // b/112104025
     }
     const FieldPath = firebase.firestore!.FieldPath;
 

@@ -477,7 +477,7 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(persistence, 'may contain indirectly nested arrays.', db => {
       if (isRunningAgainstEmulator()) {
-        return;
+        return; // b/112104025
       }
       const data = { 'nested-array': [1, { foo: [2] }] };
 
