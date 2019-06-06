@@ -91,7 +91,7 @@ apiDescribe('Database batch writes', persistence => {
 
   it('can update nested fields', () => {
     if (integrationHelpers.isRunningAgainstEmulator()) {
-      return;  // b/112104025
+      return; // b/112104025
     }
     const initialData = {
       desc: 'Description',
