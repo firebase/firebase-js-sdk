@@ -23,23 +23,29 @@ type CompleteFn = () => void;
 type Unsubscribe = () => void;
 
 type Subscribe<T> = (
-  next?: NextFn<T> | { [name: string]: string | null } | null,
+  next?: NextFn<T> | StorageObserver<T> | null,
   error?: ErrorFn | null,
   complete?: CompleteFn | null
 ) => Unsubscribe;
 
-export { NextFn, ErrorFn, CompleteFn, Unsubscribe, Subscribe };
+interface StorageObserver<T> {
+  next?: NextFn<T> | null;
+  error?: ErrorFn | null;
+  complete?: CompleteFn | null;
+}
+
+export { NextFn, ErrorFn, CompleteFn, Unsubscribe, Subscribe, StorageObserver };
 
 /**
  * @struct
  */
-export class Observer<T> {
+export class Observer<T> implements StorageObserver<T> {
   next?: NextFn<T> | null;
   error?: ErrorFn | null;
   complete?: CompleteFn | null;
 
   constructor(
-    nextOrObserver?: NextFn<T> | { [name: string]: string | null } | null,
+    nextOrObserver?: NextFn<T> | StorageObserver<T> | null,
     error?: ErrorFn | null,
     complete?: CompleteFn | null
   ) {

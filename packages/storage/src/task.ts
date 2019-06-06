@@ -33,9 +33,10 @@ import {
   CompleteFn,
   ErrorFn,
   NextFn,
-  Observer,
   Subscribe,
-  Unsubscribe
+  Unsubscribe,
+  StorageObserver,
+  Observer
 } from './implementation/observer';
 import { Request } from './implementation/request';
 import { UploadTaskSnapshot } from './tasksnapshot';
@@ -64,7 +65,7 @@ export class UploadTask {
   private transferred_: number = 0;
   private needToFetchStatus_: boolean = false;
   private needToFetchMetadata_: boolean = false;
-  private observers_: Array<Observer<UploadTaskSnapshot>> = [];
+  private observers_: Array<StorageObserver<UploadTaskSnapshot>> = [];
   private resumable_: boolean;
   private state_: InternalTaskState;
   private error_: Error | null = null;
@@ -459,7 +460,7 @@ export class UploadTask {
     type: TaskEvent,
     nextOrObserver?:
       | NextFn<UploadTaskSnapshot>
-      | { [name: string]: string | null }
+      | StorageObserver<UploadTaskSnapshot>
       | null,
     error?: ErrorFn | null,
     completed?: CompleteFn | null
@@ -509,7 +510,7 @@ export class UploadTask {
       function binder(
         nextOrObserver:
           | NextFn<UploadTaskSnapshot>
-          | { [name: string]: string | null }
+          | StorageObserver<UploadTaskSnapshot>
           | null,
         error?: ErrorFn | null,
         _complete?: CompleteFn | null
@@ -577,7 +578,7 @@ export class UploadTask {
   /**
    * Adds the given observer.
    */
-  private addObserver_(observer: Observer<UploadTaskSnapshot>): void {
+  private addObserver_(observer: StorageObserver<UploadTaskSnapshot>): void {
     this.observers_.push(observer);
     this.notifyObserver_(observer);
   }
@@ -585,7 +586,7 @@ export class UploadTask {
   /**
    * Removes the given observer.
    */
-  private removeObserver_(observer: Observer<UploadTaskSnapshot>): void {
+  private removeObserver_(observer: StorageObserver<UploadTaskSnapshot>): void {
     fbsArray.remove(this.observers_, observer);
   }
 
@@ -620,7 +621,7 @@ export class UploadTask {
     }
   }
 
-  private notifyObserver_(observer: Observer<UploadTaskSnapshot>): void {
+  private notifyObserver_(observer: StorageObserver<UploadTaskSnapshot>): void {
     const externalState = fbsTaskEnums.taskStateFromInternalTaskState(
       this.state_
     );
