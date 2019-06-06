@@ -65,7 +65,7 @@ export class UploadTask {
   private transferred_: number = 0;
   private needToFetchStatus_: boolean = false;
   private needToFetchMetadata_: boolean = false;
-  private observers_: Array<StorageObserver<UploadTaskSnapshot>> = [];
+  private observers_: Array<Observer<UploadTaskSnapshot>> = [];
   private resumable_: boolean;
   private state_: InternalTaskState;
   private error_: Error | null = null;
@@ -578,7 +578,7 @@ export class UploadTask {
   /**
    * Adds the given observer.
    */
-  private addObserver_(observer: StorageObserver<UploadTaskSnapshot>): void {
+  private addObserver_(observer: Observer<UploadTaskSnapshot>): void {
     this.observers_.push(observer);
     this.notifyObserver_(observer);
   }
@@ -586,7 +586,7 @@ export class UploadTask {
   /**
    * Removes the given observer.
    */
-  private removeObserver_(observer: StorageObserver<UploadTaskSnapshot>): void {
+  private removeObserver_(observer: Observer<UploadTaskSnapshot>): void {
     fbsArray.remove(this.observers_, observer);
   }
 
@@ -621,7 +621,7 @@ export class UploadTask {
     }
   }
 
-  private notifyObserver_(observer: StorageObserver<UploadTaskSnapshot>): void {
+  private notifyObserver_(observer: Observer<UploadTaskSnapshot>): void {
     const externalState = fbsTaskEnums.taskStateFromInternalTaskState(
       this.state_
     );
