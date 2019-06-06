@@ -24,7 +24,7 @@ const FID_WAIT_TIME_MS = 5000;
 
 export function setupOobResources(): void {
   // Do not initialize unless iid is available.
-  if (!getIid()) return;
+  if (!getIid()) {return;}
   // The load event might not have fired yet, and that means performance navigation timing
   // object has a duration of 0. The setup should run after all current tasks in js queue.
   setTimeout(() => setupOobTraces(), 0);
@@ -51,6 +51,7 @@ function setupOobTraces(): void {
   // https://github.com/GoogleChromeLabs/first-input-delay
   if (api.onFirstInputDelay) {
     // If the fid call back is not called for certain time, continue without it.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let timeoutId: any = setTimeout(() => {
       Trace.createOobTrace(navigationTimings, paintTimings);
       timeoutId = undefined;
@@ -84,6 +85,6 @@ function createUserTimingTrace(measure: PerformanceEntry): void {
     measureName.substring(0, TRACE_MEASURE_PREFIX.length) ===
     TRACE_MEASURE_PREFIX
   )
-    return;
+    {return;}
   Trace.createUserTimingTrace(measureName);
 }

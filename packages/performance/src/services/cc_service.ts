@@ -31,6 +31,7 @@ interface BatchEvent {
   eventTime: number;
 }
 
+/* eslint-disable camelcase */
 // CC accepted log format.
 interface CcBatchLogFormat {
   request_time_ms: string;
@@ -48,6 +49,7 @@ interface Log {
   source_extension_json: string;
   event_time_ms: string;
 }
+/* eslint-enable camelcase */
 
 let queue: BatchEvent[] = [];
 
@@ -66,7 +68,8 @@ function processQueue(timeOffset: number): void {
     // Capture a snapshot of the queue and empty the "official queue".
     const staged = [...queue];
     queue = [];
-
+    
+    /* eslint-disable camelcase */
     // We will pass the JSON serialized event to the backend.
     const log_event = staged.map(evt => ({
       source_extension_json: evt.message,
@@ -82,6 +85,7 @@ function processQueue(timeOffset: number): void {
       log_source: SettingsService.getInstance().logSource,
       log_event
     };
+    /* eslint-enable camelcase */
 
     fetch(SettingsService.getInstance().logEndPointUrl, {
       method: 'POST',
@@ -94,11 +98,15 @@ function processQueue(timeOffset: number): void {
         return res.json();
       })
       .then(res => {
+        const wait = Number(res.next_request_wait_millis);
+
         // Find the next call wait time from the response.
-        const requestOffset = Math.max(
-          DEFAULT_SEND_INTERVAL_MS,
-          parseInt(res.next_request_wait_millis, 10)
-        );
+        const requestOffset = isNaN(wait)
+          ? DEFAULT_SEND_INTERVAL_MS
+          : Math.max(
+            DEFAULT_SEND_INTERVAL_MS,
+            wait
+          );
         remainingTries = DEFAULT_REMAINING_TRIES;
         // Schedule the next process.
         processQueue(requestOffset);
@@ -127,6 +135,7 @@ function addToQueue(evt: BatchEvent): void {
 }
 
 /** Log handler for cc service to send the performance logs to the server. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function ccHandler(serializer: (...args: any[]) => string): LogHandler {
   // The underscores for loggerInstance and level parameters are added to avoid the
   // noUnusedParameters related error.

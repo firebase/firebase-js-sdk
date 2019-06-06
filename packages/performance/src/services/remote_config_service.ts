@@ -42,7 +42,8 @@ const SECONDARY_CONFIGS: SecondaryConfig = {
   loggingEnabled: true
 };
 
-interface RemoteConfigTemplate {
+/* eslint-disable camelcase */
+interface RemoteConfigTemplate { 
   fpr_enabled?: string;
   fpr_log_source?: string;
   fpr_log_endpoint_url?: string;
@@ -50,6 +51,7 @@ interface RemoteConfigTemplate {
   fpr_vc_trace_sampling_rate?: string;
   fpr_vc_session_sampling_rate?: string;
 }
+/* eslint-enable camelcase */
 
 interface RemoteConfigResponse {
   entries?: RemoteConfigTemplate;
@@ -76,10 +78,10 @@ export function getConfig(iid: string): Promise<void> {
 function getStoredConfig(): RemoteConfigResponse | undefined {
   const localStorage = Api.getInstance().localStorage;
   const expiryString = localStorage.getItem(CONFIG_EXPIRY_LOCAL_STORAGE_KEY);
-  if (!expiryString || !configValid(expiryString)) return;
+  if (!expiryString || !configValid(expiryString)) {return;}
 
   const configStringified = localStorage.getItem(CONFIG_LOCAL_STORAGE_KEY);
-  if (!configStringified) return;
+  if (!configStringified) {return;}
   try {
     const configResponse: RemoteConfigResponse = JSON.parse(configStringified);
     return configResponse;
@@ -89,7 +91,7 @@ function getStoredConfig(): RemoteConfigResponse | undefined {
 }
 
 function storeConfig(config: RemoteConfigResponse | undefined): void {
-  if (!config) return;
+  if (!config) {return;}
   const localStorage = Api.getInstance().localStorage;
   localStorage.setItem(CONFIG_LOCAL_STORAGE_KEY, JSON.stringify(config));
   localStorage.setItem(
@@ -117,6 +119,7 @@ function getRemoteConfig(
         headers: {
           Authorization: `${FIS_AUTH_PREFIX} ${authToken}`
         },
+        /* eslint-disable camelcase */
         body: JSON.stringify({
           app_instance_id: iid,
           app_instance_id_token: authToken,
@@ -124,6 +127,7 @@ function getRemoteConfig(
           app_version: SDK_VERSION,
           sdk_version: REMOTE_CONFIG_SDK_VERSION
         })
+        /* eslint-enable camelcase */
       });
       return fetch(request).then(response => {
         if (response.ok) {
@@ -147,7 +151,7 @@ function getRemoteConfig(
 function processConfig(
   config: RemoteConfigResponse | undefined
 ): RemoteConfigResponse | undefined {
-  if (!config) return config;
+  if (!config) {return config;}
   const settingsServiceInstance = SettingsService.getInstance();
   const entries = config.entries || {};
   if (entries.fpr_enabled !== undefined) {
