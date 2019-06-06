@@ -22,11 +22,11 @@ import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   DEFAULT_SETTINGS,
+  isRunningAgainstEmulator,
   toDataArray,
   withTestCollection,
   withTestCollectionSettings,
-  withTestDoc,
-  isRunningAgainstEmulator
+  withTestDoc
 } from '../util/helpers';
 
 const FieldPath = firebase.firestore!.FieldPath;

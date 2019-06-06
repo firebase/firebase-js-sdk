@@ -25,10 +25,10 @@ import {
   ALT_PROJECT_ID,
   apiDescribe,
   DEFAULT_PROJECT_ID,
+  isRunningAgainstEmulator,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb,
-  isRunningAgainstEmulator
+  withTestDb
 } from '../util/helpers';
 
 const FieldPath = firebase.firestore!.FieldPath;
