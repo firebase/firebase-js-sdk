@@ -5,15 +5,5 @@
     },
     "rules": {
         "no-throw-literal": "off"
-    },
-    "overrides": [
-        {
-            "files": [
-                "src/implementation/metadata.ts"
-            ],
-            "rules": {
-                "@typescript-eslint/no-explicit-any": "off"
-            }
-        }
-    ]
+    }
 }
