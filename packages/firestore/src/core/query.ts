@@ -349,9 +349,6 @@ export class Query {
     return null;
   }
 
-  /**
-   * Returns the
-   */
   getRelationOpFilter(relationOp: RelationOp): RelationOp | null {
     if (
       this.filters.find(
