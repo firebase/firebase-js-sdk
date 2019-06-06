@@ -21,8 +21,7 @@
  * making uploads possible in environments without the native Blob type.
  */
 import * as fs from './fs';
-import * as string from './string';
-import { StringFormat } from './string';
+import { StringFormat, dataFromString } from './string';
 import * as type from './type';
 
 /**
@@ -35,7 +34,7 @@ export class FbsBlob {
   private size_: number;
   private type_: string;
 
-  constructor(data: Blob | Uint8Array | ArrayBuffer, opt_elideCopy?: boolean) {
+  constructor(data: Blob | Uint8Array | ArrayBuffer, elideCopy?: boolean) {
     let size: number = 0;
     let blobType: string = '';
     if (type.isNativeBlob(data)) {
@@ -43,7 +42,7 @@ export class FbsBlob {
       size = (data as Blob).size;
       blobType = (data as Blob).type;
     } else if (data instanceof ArrayBuffer) {
-      if (opt_elideCopy) {
+      if (elideCopy) {
         this.data_ = new Uint8Array(data);
       } else {
         this.data_ = new Uint8Array(data.byteLength);
@@ -51,7 +50,7 @@ export class FbsBlob {
       }
       size = this.data_.length;
     } else if (data instanceof Uint8Array) {
-      if (opt_elideCopy) {
+      if (elideCopy) {
         this.data_ = data as Uint8Array;
       } else {
         this.data_ = new Uint8Array(data.length);
@@ -89,9 +88,9 @@ export class FbsBlob {
     }
   }
 
-  static getBlob(...var_args: Array<string | FbsBlob>): FbsBlob | null {
+  static getBlob(...args: Array<string | FbsBlob>): FbsBlob | null {
     if (type.isNativeBlobDefined()) {
-      const blobby: Array<Blob | Uint8Array | string> = var_args.map((
+      const blobby: Array<Blob | Uint8Array | string> = args.map((
         val: string | FbsBlob
       ): Blob | Uint8Array | string => {
         if (val instanceof FbsBlob) {
@@ -102,11 +101,11 @@ export class FbsBlob {
       });
       return new FbsBlob(fs.getBlob.apply(null, blobby));
     } else {
-      const uint8Arrays: Uint8Array[] = var_args.map((
+      const uint8Arrays: Uint8Array[] = args.map((
         val: string | FbsBlob
       ): Uint8Array => {
         if (type.isString(val)) {
-          return string.dataFromString(StringFormat.RAW, val as string).data;
+          return dataFromString(StringFormat.RAW, val as string).data;
         } else {
           // Blobs don't exist, so this has to be a Uint8Array.
           return (val as FbsBlob).data_ as Uint8Array;

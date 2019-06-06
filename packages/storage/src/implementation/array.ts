@@ -36,7 +36,7 @@ export function clone<T>(arraylike: T[]): T[] {
  * Directly modifies the passed-in array.
  * @template T
  */
-export function remove<T>(array: T[], elem: T) {
+export function remove<T>(array: T[], elem: T): void {
   const i = array.indexOf(elem);
   if (i !== -1) {
     array.splice(i, 1);

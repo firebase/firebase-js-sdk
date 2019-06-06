@@ -36,14 +36,14 @@ const STORAGE_TYPE = 'storage';
 
 function factory(
   app: FirebaseApp,
-  unused: any,
-  opt_url?: string
+  _unused: unknown,
+  url?: string
 ): types.FirebaseStorage {
-  return new Service(app, new XhrIoPool(), opt_url) as any;
+  return new Service(app, new XhrIoPool(), url) as unknown as types.FirebaseStorage;
 }
 
 export function registerStorage(instance: _FirebaseNamespace) {
-  let namespaceExports = {
+  const namespaceExports = {
     // no-inline
     TaskState,
     TaskEvent,

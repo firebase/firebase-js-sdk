@@ -70,7 +70,7 @@ export class Location {
     let location: Location | null = null;
     const bucketDomain = '([A-Za-z0-9.\\-_]+)';
 
-    function gsModify(loc: Location) {
+    function gsModify(loc: Location): void {
       if (loc.path.charAt(loc.path.length - 1) === '/') {
         loc.path_ = loc.path_.slice(0, -1);
       }
@@ -80,7 +80,7 @@ export class Location {
     const gsRegex = new RegExp('^gs://' + bucketDomain + gsPath, 'i');
     const gsIndices = { bucket: 1, path: 3 };
 
-    function httpModify(loc: Location) {
+    function httpModify(loc: Location): void {
       loc.path_ = decodeURIComponent(loc.path);
     }
     const version = 'v[A-Za-z0-9_]+';

@@ -41,7 +41,7 @@ export class FirebaseStorageError implements Error {
     return this.serverResponse_;
   }
 
-  setServerResponseProp(serverResponse: string | null) {
+  setServerResponseProp(serverResponse: string | null): void {
     this.serverResponse_ = serverResponse;
   }
 
