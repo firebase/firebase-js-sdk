@@ -64,7 +64,7 @@ describe('Firebase Storage > Reference', () => {
     it('ignores URL params and fragments on an http URL', () => {
       const s = makeStorage(
         `http://${DEFAULT_HOST}/v0/b/test-bucket/o/my/object.txt` +
-        '?ignoreme#please'
+          '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
     });
@@ -78,7 +78,7 @@ describe('Firebase Storage > Reference', () => {
     it('ignores URL params and fragments on an https URL', () => {
       const s = makeStorage(
         `https://${DEFAULT_HOST}/v0/b/test-bucket/o/my/object.txt` +
-        '?ignoreme#please'
+          '?ignoreme#please'
       );
       assert.equal(s.toString(), 'gs://test-bucket/my/object.txt');
     });

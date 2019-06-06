@@ -88,7 +88,10 @@ export function getMappings(): Mappings {
   /**
    * Coerces the second param to a number, if it is defined.
    */
-  function xformSize(_metadata: Metadata, size: {} | null | undefined): number | null | undefined {
+  function xformSize(
+    _metadata: Metadata,
+    size: {} | null | undefined
+  ): number | null | undefined {
     if (type.isDef(size)) {
       // TODO: rewrite using Number()
       return +(size as number);
@@ -170,17 +173,19 @@ export function downloadUrlFromResourceString(
   }
   const encode = encodeURIComponent;
   const tokensList = tokens.split(',');
-  const urls = tokensList.map((token: string): string => {
-    const bucket: string = metadata['bucket'] as string;
-    const path: string = metadata['fullPath'] as string;
-    const urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
-    const base = UrlUtils.makeUrl(urlPart);
-    const queryString = UrlUtils.makeQueryString({
-      alt: 'media',
-      token
-    });
-    return base + queryString;
-  });
+  const urls = tokensList.map(
+    (token: string): string => {
+      const bucket: string = metadata['bucket'] as string;
+      const path: string = metadata['fullPath'] as string;
+      const urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
+      const base = UrlUtils.makeUrl(urlPart);
+      const queryString = UrlUtils.makeQueryString({
+        alt: 'media',
+        token
+      });
+      return base + queryString;
+    }
+  );
   return urls[0];
 }
 

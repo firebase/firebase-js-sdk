@@ -30,10 +30,7 @@ export const bucket = 'mybucket';
 export const fakeApp = makeFakeApp({ accessToken: authToken });
 export const fakeAppNoAuth = makeFakeApp(null);
 
-export function makeFakeApp(
-  token: {} | null,
-  bucketArg?: string
-): FirebaseApp {
+export function makeFakeApp(token: {} | null, bucketArg?: string): FirebaseApp {
   const app: any = {};
   app.INTERNAL = {};
   app.INTERNAL.getToken = function() {
@@ -113,7 +110,10 @@ export function assertThrows(f: () => void, code: Code): FirebaseStorageError {
   return captured as FirebaseStorageError;
 }
 
-export function assertUint8ArrayEquals(arr1: Uint8Array, arr2: Uint8Array): void {
+export function assertUint8ArrayEquals(
+  arr1: Uint8Array,
+  arr2: Uint8Array
+): void {
   expect(arr1.length).to.equal(arr2.length);
 
   for (let i = 0; i < arr1.length; i++) {

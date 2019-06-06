@@ -303,7 +303,7 @@ describe('Firebase Storage > Service', () => {
     });
     it('Running uploads fail when the service is deleted', () => {
       const ref = service.refFromURL('gs://mybucket/image.jpg');
-      const toReturn = new Promise(((resolve, _reject) => {
+      const toReturn = new Promise((resolve, _reject) => {
         ref.put(new Blob(['a'])).on(
           TaskEvent.STATE_CHANGED,
           null,
@@ -317,7 +317,7 @@ describe('Firebase Storage > Service', () => {
         );
         // tslint:disable-next-line:no-floating-promises
         service.INTERNAL.delete();
-      }));
+      });
       return toReturn;
     });
   });

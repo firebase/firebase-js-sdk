@@ -92,7 +92,7 @@ export function fromResponseString(
   if (obj === null) {
     return null;
   }
-  const resource = obj as unknown as ListResultResponse;
+  const resource = (obj as unknown) as ListResultResponse;
   return fromBackendResponse(authWrapper, resource);
 }
 
