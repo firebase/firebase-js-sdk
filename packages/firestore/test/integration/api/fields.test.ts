@@ -280,80 +280,83 @@ apiDescribe('Fields with special characters', persistence => {
     });
   });
 
-  it('can be updated with update()', () => {
-    if (isRunningAgainstEmulator()) {
-      return; // b/112104025
-    }
-    return withTestDoc(persistence, doc => {
-      return doc
-        .set(testData())
-        .then(() => {
-          return doc.update(
-            new FieldPath('field.dot'),
-            100,
-            'field\\slash',
-            200
-          );
-        })
-        .then(() => doc.get())
-        .then(docSnap => {
-          expect(docSnap.data()).to.deep.equal({
-            field: 'field 1',
-            'field.dot': 100,
-            'field\\slash': 200
+  // Failing due to b/112104025.
+  (isRunningAgainstEmulator() ? it.skip : it)(
+    'can be updated with update()',
+    () => {
+      return withTestDoc(persistence, doc => {
+        return doc
+          .set(testData())
+          .then(() => {
+            return doc.update(
+              new FieldPath('field.dot'),
+              100,
+              'field\\slash',
+              200
+            );
+          })
+          .then(() => doc.get())
+          .then(docSnap => {
+            expect(docSnap.data()).to.deep.equal({
+              field: 'field 1',
+              'field.dot': 100,
+              'field\\slash': 200
+            });
           });
-        });
-    });
-  });
-
-  it('can be used in query filters.', () => {
-    if (isRunningAgainstEmulator()) {
-      return; // b/112104025
+      });
     }
-    const testDocs = {
-      '1': testData(300),
-      '2': testData(100),
-      '3': testData(200)
-    };
-    return withTestCollection(persistence, testDocs, coll => {
-      // inequality adds implicit sort on field
-      const expected = [testData(200), testData(300)];
-      return coll
-        .where(new FieldPath('field.dot'), '>=', 200)
-        .get()
-        .then(results => {
-          expect(toDataArray(results)).to.deep.equal(expected);
-        })
-        .then(() => coll.where('field\\slash', '>=', 200).get())
-        .then(results => {
-          expect(toDataArray(results)).to.deep.equal(expected);
-        });
-    });
-  });
+  );
 
-  it('can be used in a query orderBy.', () => {
-    if (isRunningAgainstEmulator()) {
-      return; // b/112104025
+  // Failing due to b/112104025.
+  (isRunningAgainstEmulator() ? it.skip : it)(
+    'can be used in query filters.',
+    () => {
+      const testDocs = {
+        '1': testData(300),
+        '2': testData(100),
+        '3': testData(200)
+      };
+      return withTestCollection(persistence, testDocs, coll => {
+        // inequality adds implicit sort on field
+        const expected = [testData(200), testData(300)];
+        return coll
+          .where(new FieldPath('field.dot'), '>=', 200)
+          .get()
+          .then(results => {
+            expect(toDataArray(results)).to.deep.equal(expected);
+          })
+          .then(() => coll.where('field\\slash', '>=', 200).get())
+          .then(results => {
+            expect(toDataArray(results)).to.deep.equal(expected);
+          });
+      });
     }
-    const testDocs = {
-      '1': testData(300),
-      '2': testData(100),
-      '3': testData(200)
-    };
-    return withTestCollection(persistence, testDocs, coll => {
-      const expected = [testData(100), testData(200), testData(300)];
-      return coll
-        .orderBy(new FieldPath('field.dot'))
-        .get()
-        .then(results => {
-          expect(toDataArray(results)).to.deep.equal(expected);
-        })
-        .then(() => coll.orderBy('field\\slash').get())
-        .then(results => {
-          expect(toDataArray(results)).to.deep.equal(expected);
-        });
-    });
-  });
+  );
+
+  // Failing due to b/112104025.
+  (isRunningAgainstEmulator() ? it.skip : it)(
+    'can be used in a query orderBy.',
+    () => {
+      const testDocs = {
+        '1': testData(300),
+        '2': testData(100),
+        '3': testData(200)
+      };
+      return withTestCollection(persistence, testDocs, coll => {
+        const expected = [testData(100), testData(200), testData(300)];
+        return coll
+          .orderBy(new FieldPath('field.dot'))
+          .get()
+          .then(results => {
+            expect(toDataArray(results)).to.deep.equal(expected);
+          })
+          .then(() => coll.orderBy('field\\slash').get())
+          .then(results => {
+            expect(toDataArray(results)).to.deep.equal(expected);
+          });
+      });
+    }
+  );
 });
 
 apiDescribe('Timestamp Fields in snapshots', persistence => {

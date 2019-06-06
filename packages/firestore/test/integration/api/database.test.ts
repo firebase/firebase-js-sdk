@@ -143,34 +143,35 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('can merge data with an existing document using set', () => {
-    if (isRunningAgainstEmulator()) {
-      return; // b/112104025
+  // Failing due to b/112104025.
+  (isRunningAgainstEmulator() ? it.skip : it)(
+    'can merge data with an existing document using set',
+    () => {
+      return withTestDoc(persistence, doc => {
+        const initialData = {
+          desc: 'description',
+          'owner.data': { name: 'Jonny', email: 'abc@xyz.com' }
+        };
+        const mergeData = {
+          updated: true,
+          'owner.data': { name: 'Sebastian' }
+        };
+        const finalData = {
+          updated: true,
+          desc: 'description',
+          'owner.data': { name: 'Sebastian', email: 'abc@xyz.com' }
+        };
+        return doc
+          .set(initialData)
+          .then(() => doc.set(mergeData, { merge: true }))
+          .then(() => doc.get())
+          .then(docSnapshot => {
+            expect(docSnapshot.exists).to.be.ok;
+            expect(docSnapshot.data()).to.deep.equal(finalData);
+          });
+      });
     }
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        desc: 'description',
-        'owner.data': { name: 'Jonny', email: 'abc@xyz.com' }
-      };
-      const mergeData = {
-        updated: true,
-        'owner.data': { name: 'Sebastian' }
-      };
-      const finalData = {
-        updated: true,
-        desc: 'description',
-        'owner.data': { name: 'Sebastian', email: 'abc@xyz.com' }
-      };
-      return doc
-        .set(initialData)
-        .then(() => doc.set(mergeData, { merge: true }))
-        .then(() => doc.get())
-        .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
-        });
-    });
-  });
+  );
 
   it('can merge server timestamps', () => {
     return withTestDoc(persistence, doc => {
@@ -486,35 +487,41 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  it('can update nested fields', () => {
-    if (isRunningAgainstEmulator()) {
-      return; // b/112104025
-    }
-    const FieldPath = firebase.firestore!.FieldPath;
+  // Failing due to b/112104025.
+  (isRunningAgainstEmulator() ? it.skip : it)(
+    'can update nested fields',
+    () => {
+      const FieldPath = firebase.firestore!.FieldPath;
 
-    return withTestDoc(persistence, doc => {
-      const initialData = {
-        desc: 'Description',
-        owner: { name: 'Jonny' },
-        'is.admin': false
-      };
-      const finalData = {
-        desc: 'Description',
-        owner: { name: 'Sebastian' },
-        'is.admin': true
-      };
-      return doc
-        .set(initialData)
-        .then(() =>
-          doc.update('owner.name', 'Sebastian', new FieldPath('is.admin'), true)
-        )
-        .then(() => doc.get())
-        .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
-        });
-    });
-  });
+      return withTestDoc(persistence, doc => {
+        const initialData = {
+          desc: 'Description',
+          owner: { name: 'Jonny' },
+          'is.admin': false
+        };
+        const finalData = {
+          desc: 'Description',
+          owner: { name: 'Sebastian' },
+          'is.admin': true
+        };
+        return doc
+          .set(initialData)
+          .then(() =>
+            doc.update(
+              'owner.name',
+              'Sebastian',
+              new FieldPath('is.admin'),
+              true
+            )
+          )
+          .then(() => doc.get())
+          .then(docSnapshot => {
+            expect(docSnapshot.exists).to.be.ok;
+            expect(docSnapshot.data()).to.deep.equal(finalData);
+          });
+      });
+    }
+  );
 
   describe('documents: ', () => {
     const invalidDocValues = [undefined, null, 0, 'foo', ['a'], new Date()];

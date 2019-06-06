@@ -88,42 +88,42 @@ apiDescribe('Database batch writes', persistence => {
         });
     });
   });
+  // Failing due to b/112104025.
+  (integrationHelpers.isRunningAgainstEmulator() ? it.skip : it)(
+    'can update nested fields',
+    () => {
+      const initialData = {
+        desc: 'Description',
+        owner: { name: 'Jonny' },
+        'is.admin': false
+      };
+      const finalData = {
+        desc: 'Description',
+        owner: { name: 'Sebastian' },
+        'is.admin': true
+      };
 
-  it('can update nested fields', () => {
-    if (integrationHelpers.isRunningAgainstEmulator()) {
-      return; // b/112104025
+      return integrationHelpers.withTestDb(persistence, db => {
+        const doc = db.collection('counters').doc();
+        return doc.firestore
+          .batch()
+          .set(doc, initialData)
+          .update(
+            doc,
+            'owner.name',
+            'Sebastian',
+            new firebase.firestore!.FieldPath('is.admin'),
+            true
+          )
+          .commit()
+          .then(() => doc.get())
+          .then(docSnapshot => {
+            expect(docSnapshot.exists).to.be.ok;
+            expect(docSnapshot.data()).to.deep.equal(finalData);
+          });
+      });
     }
-    const initialData = {
-      desc: 'Description',
-      owner: { name: 'Jonny' },
-      'is.admin': false
-    };
-    const finalData = {
-      desc: 'Description',
-      owner: { name: 'Sebastian' },
-      'is.admin': true
-    };
-
-    return integrationHelpers.withTestDb(persistence, db => {
-      const doc = db.collection('counters').doc();
-      return doc.firestore
-        .batch()
-        .set(doc, initialData)
-        .update(
-          doc,
-          'owner.name',
-          'Sebastian',
-          new firebase.firestore!.FieldPath('is.admin'),
-          true
-        )
-        .commit()
-        .then(() => doc.get())
-        .then(docSnapshot => {
-          expect(docSnapshot.exists).to.be.ok;
-          expect(docSnapshot.data()).to.deep.equal(finalData);
-        });
-    });
-  });
+  );
 
   it('can delete documents', () => {
     return integrationHelpers.withTestDoc(persistence, doc => {

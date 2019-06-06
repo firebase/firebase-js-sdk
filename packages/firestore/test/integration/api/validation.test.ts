@@ -475,40 +475,42 @@ apiDescribe('Validation:', persistence => {
       }
     );
 
-    validationIt(persistence, 'may contain indirectly nested arrays.', db => {
-      if (isRunningAgainstEmulator()) {
-        return; // b/112104025
-      }
-      const data = { 'nested-array': [1, { foo: [2] }] };
+    // Failing due to b/112104025.
+    (isRunningAgainstEmulator() ? validationIt.skip : validationIt)(
+      persistence,
+      'may contain indirectly nested arrays.',
+      db => {
+        const data = { 'nested-array': [1, { foo: [2] }] };
 
-      const ref = db.collection('foo').doc();
-      const ref2 = db.collection('foo').doc();
+        const ref = db.collection('foo').doc();
+        const ref2 = db.collection('foo').doc();
 
-      return ref
-        .set(data)
-        .then(() => {
-          return ref.firestore
-            .batch()
-            .set(ref, data)
-            .commit();
-        })
-        .then(() => {
-          return ref.update(data);
-        })
-        .then(() => {
-          return ref.firestore
-            .batch()
-            .update(ref, data)
-            .commit();
-        })
-        .then(() => {
-          return ref.firestore.runTransaction(async txn => {
-            // Note ref2 does not exist at this point so set that and update ref.
-            txn.update(ref, data);
-            txn.set(ref2, data);
+        return ref
+          .set(data)
+          .then(() => {
+            return ref.firestore
+              .batch()
+              .set(ref, data)
+              .commit();
+          })
+          .then(() => {
+            return ref.update(data);
+          })
+          .then(() => {
+            return ref.firestore
+              .batch()
+              .update(ref, data)
+              .commit();
+          })
+          .then(() => {
+            return ref.firestore.runTransaction(async txn => {
+              // Note ref2 does not exist at this point so set that and update ref.
+              txn.update(ref, data);
+              txn.set(ref2, data);
+            });
           });
-        });
-    });
+      }
+    );
 
     validationIt(persistence, 'must not contain undefined.', db => {
       return expectWriteToFail(
