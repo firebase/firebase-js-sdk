@@ -154,15 +154,15 @@ export class Reference {
 
   /**
    * Uploads a string to this object's location.
-   * @param string The string to upload.
-   * @param opt_format The format of the string to upload.
+   * @param value The string to upload.
+   * @param format The format of the string to upload.
    * @return An UploadTask that lets you control and
    *     observe the upload.
    */
   putString(
-    string: string,
+    value: string,
     format: StringFormat = StringFormat.RAW,
-    opt_metadata?: Metadata
+    metadata?: Metadata
   ): UploadTask {
     args.validate(
       'putString',
@@ -174,10 +174,10 @@ export class Reference {
       arguments
     );
     this.throwIfRoot_('putString');
-    const data = fbsString.dataFromString(format, string);
-    const metadata = object.clone<Metadata>(opt_metadata);
-    if (!type.isDef(metadata['contentType']) && type.isDef(data.contentType)) {
-      metadata['contentType'] = data.contentType!;
+    const data = fbsString.dataFromString(format, value);
+    const metadataClone = object.clone<Metadata>(metadata);
+    if (!type.isDef(metadataClone['contentType']) && type.isDef(data.contentType)) {
+      metadataClone['contentType'] = data.contentType!;
     }
     return new UploadTask(
       this,
@@ -185,7 +185,7 @@ export class Reference {
       this.location,
       this.mappings(),
       new FbsBlob(data.data, true),
-      metadata
+      metadataClone
     );
   }
 
@@ -350,7 +350,7 @@ export class Reference {
     });
   }
 
-  private throwIfRoot_(name: string) {
+  private throwIfRoot_(name: string): void {
     if (this.location.path === '') {
       throw errorsExports.invalidRootOperation(name);
     }

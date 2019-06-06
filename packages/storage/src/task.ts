@@ -69,7 +69,7 @@ export class UploadTask {
   private state_: InternalTaskState;
   private error_: Error | null = null;
   private uploadUrl_: string | null = null;
-  private request_: Request<any> | null = null;
+  private request_: Request<unknown> | null = null;
   private chunkMultiplier_: number = 1;
   private errorHandler_: (p1: FirebaseStorageError) => void;
   private metadataErrorHandler_: (p1: FirebaseStorageError) => void;
@@ -131,7 +131,7 @@ export class UploadTask {
 
   private makeProgressCallback_(): (p1: number, p2: number) => void {
     const sizeBefore = this.transferred_;
-    return (loaded, total) => {
+    return (loaded, _total) => {
       this.updateProgress_(sizeBefore + loaded);
     };
   }
@@ -140,7 +140,7 @@ export class UploadTask {
     return blob.size() > 256 * 1024;
   }
 
-  private start_() {
+  private start_(): void {
     if (this.state_ !== InternalTaskState.RUNNING) {
       // This can happen if someone pauses us in a resume callback, for example.
       return;
@@ -168,7 +168,8 @@ export class UploadTask {
     }
   }
 
-  private resolveToken_(callback: (p1: string | null) => void) {
+  private resolveToken_(callback: (p1: string | null) => void): void {
+    // tslint:disable-next-line:no-floating-promises
     this.authWrapper_.getAuthToken().then(authToken => {
       switch (this.state_) {
         case InternalTaskState.RUNNING:
@@ -187,7 +188,7 @@ export class UploadTask {
 
   // TODO(andysoto): assert false
 
-  private createResumable_() {
+  private createResumable_(): void {
     this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.createResumableUpload(
         this.authWrapper_,
@@ -210,7 +211,7 @@ export class UploadTask {
     });
   }
 
-  private fetchStatus_() {
+  private fetchStatus_(): void {
     // TODO(andysoto): assert(this.uploadUrl_ !== null);
     const url = this.uploadUrl_ as string;
     this.resolveToken_(authToken => {
@@ -238,7 +239,7 @@ export class UploadTask {
     });
   }
 
-  private continueUpload_() {
+  private continueUpload_(): void {
     const chunkSize =
       fbsRequests.resumableUploadChunkSize * this.chunkMultiplier_;
     const status = new fbsRequests.ResumableUploadStatus(
@@ -287,7 +288,7 @@ export class UploadTask {
     });
   }
 
-  private increaseMultiplier_() {
+  private increaseMultiplier_(): void {
     const currentSize =
       fbsRequests.resumableUploadChunkSize * this.chunkMultiplier_;
 
@@ -297,7 +298,7 @@ export class UploadTask {
     }
   }
 
-  private fetchMetadata_() {
+  private fetchMetadata_(): void {
     this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.getMetadata(
         this.authWrapper_,
@@ -317,7 +318,7 @@ export class UploadTask {
     });
   }
 
-  private oneShotUpload_() {
+  private oneShotUpload_(): void {
     this.resolveToken_(authToken => {
       const requestInfo = fbsRequests.multipartUpload(
         this.authWrapper_,
@@ -340,7 +341,7 @@ export class UploadTask {
     });
   }
 
-  private updateProgress_(transferred: number) {
+  private updateProgress_(transferred: number): void {
     const old = this.transferred_;
     this.transferred_ = transferred;
 
@@ -352,7 +353,7 @@ export class UploadTask {
     }
   }
 
-  private transition_(state: InternalTaskState) {
+  private transition_(state: InternalTaskState): void {
     if (this.state_ === state) {
       return;
     }
@@ -415,10 +416,11 @@ export class UploadTask {
         this.state_ = state;
         this.notifyObservers_();
         break;
+      default:
     }
   }
 
-  private completeTransitions_() {
+  private completeTransitions_(): void {
     switch (this.state_) {
       case InternalTaskState.PAUSING:
         this.transition_(InternalTaskState.PAUSED);
@@ -457,12 +459,12 @@ export class UploadTask {
     type: TaskEvent,
     nextOrObserver?:
       | NextFn<UploadTaskSnapshot>
-      | { [name: string]: any }
+      | { [name: string]: string | null }
       | null,
     error?: ErrorFn | null,
     completed?: CompleteFn | null
   ): Unsubscribe | Subscribe<UploadTaskSnapshot> {
-    function typeValidator(_p: any) {
+    function typeValidator(): void {
       if (type !== TaskEvent.STATE_CHANGED) {
         throw `Expected one of the event types: [${TaskEvent.STATE_CHANGED}].`;
       }
@@ -473,7 +475,7 @@ export class UploadTask {
     const nextValidator = fbsArgs.nullFunctionSpec(true).validator;
     const observerValidator = fbsArgs.looseObjectSpec(null, true).validator;
 
-    function nextOrObserverValidator(p: any) {
+    function nextOrObserverValidator(p: {}): void {
       try {
         nextValidator(p);
         return;
@@ -510,8 +512,8 @@ export class UploadTask {
           | { [name: string]: string | null }
           | null,
         error?: ErrorFn | null,
-        opt_complete?: CompleteFn | null
-      ) {
+        _complete?: CompleteFn | null
+      ): () => void {
         if (specs !== null) {
           fbsArgs.validate('on', specs, arguments);
         }
@@ -524,7 +526,7 @@ export class UploadTask {
       return binder;
     }
 
-    function binderNextOrObserverValidator(p: any) {
+    function binderNextOrObserverValidator(p: {}): void {
       if (p === null) {
         throw nextOrObserverMessage;
       }
@@ -555,13 +557,13 @@ export class UploadTask {
    */
   then<U>(
     onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null,
-    onRejected?: ((error: any) => U | Promise<U>) | null
+    onRejected?: ((error: unknown) => U | Promise<U>) | null
   ): Promise<U> {
     // These casts are needed so that TypeScript can infer the types of the
     // resulting Promise.
     return this.promise_.then<U>(
       onFulfilled as (value: UploadTaskSnapshot) => U | Promise<U>,
-      onRejected as ((error: any) => Promise<never>) | null
+      onRejected as ((error: unknown) => Promise<never>) | null
     );
   }
 
@@ -575,7 +577,7 @@ export class UploadTask {
   /**
    * Adds the given observer.
    */
-  private addObserver_(observer: Observer<UploadTaskSnapshot>) {
+  private addObserver_(observer: Observer<UploadTaskSnapshot>): void {
     this.observers_.push(observer);
     this.notifyObserver_(observer);
   }
@@ -583,11 +585,11 @@ export class UploadTask {
   /**
    * Removes the given observer.
    */
-  private removeObserver_(observer: Observer<UploadTaskSnapshot>) {
+  private removeObserver_(observer: Observer<UploadTaskSnapshot>): void {
     fbsArray.remove(this.observers_, observer);
   }
 
-  private notifyObservers_() {
+  private notifyObservers_(): void {
     this.finishPromise_();
     const observers = fbsArray.clone(this.observers_);
     observers.forEach(observer => {
@@ -595,7 +597,7 @@ export class UploadTask {
     });
   }
 
-  private finishPromise_() {
+  private finishPromise_(): void {
     if (this.resolve_ !== null) {
       let triggered = true;
       switch (fbsTaskEnums.taskStateFromInternalTaskState(this.state_)) {
@@ -618,7 +620,7 @@ export class UploadTask {
     }
   }
 
-  private notifyObserver_(observer: Observer<UploadTaskSnapshot>) {
+  private notifyObserver_(observer: Observer<UploadTaskSnapshot>): void {
     const externalState = fbsTaskEnums.taskStateFromInternalTaskState(
       this.state_
     );

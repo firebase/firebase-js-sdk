@@ -113,13 +113,13 @@ class NetworkRequest<T> implements Request<T> {
   /**
    * Actually starts the retry loop.
    */
-  private start_() {
+  private start_(): void {
     const self = this;
 
     function doTheRequest(
-      backoffCallback: (p1: boolean, ...p2: any[]) => void,
+      backoffCallback: (p1: boolean, ...p2: unknown[]) => void,
       canceled: boolean
-    ) {
+    ): void {
       if (canceled) {
         backoffCallback(false, new RequestEndStatus(false, null, true));
         return;
@@ -127,7 +127,7 @@ class NetworkRequest<T> implements Request<T> {
       const xhr = self.pool_.createXhrIo();
       self.pendingXhr_ = xhr;
 
-      function progressListener(progressEvent: ProgressEvent) {
+      function progressListener(progressEvent: ProgressEvent): void {
         const loaded = progressEvent.loaded;
         const total = progressEvent.lengthComputable ? progressEvent.total : -1;
         if (self.progressCallback_ !== null) {
@@ -137,6 +137,8 @@ class NetworkRequest<T> implements Request<T> {
       if (self.progressCallback_ !== null) {
         xhr.addUploadProgressListener(progressListener);
       }
+
+      // tslint:disable-next-line:no-floating-promises
       xhr
         .send(self.url_, self.method_, self.body_, self.headers_)
         .then((xhr: XhrIo) => {
@@ -167,9 +169,9 @@ class NetworkRequest<T> implements Request<T> {
      *     through, false if it hit the retry limit or was canceled.
      */
     function backoffDone(
-      requestWentThrough: boolean,
+      _requestWentThrough: boolean,
       status: RequestEndStatus
-    ) {
+    ): void {
       const resolve = self.resolve_ as Function;
       const reject = self.reject_ as Function;
       const xhr = status.xhr as XhrIo;
@@ -214,12 +216,12 @@ class NetworkRequest<T> implements Request<T> {
   }
 
   /** @inheritDoc */
-  getPromise() {
+  getPromise(): Promise<T> {
     return this.promise_;
   }
 
   /** @inheritDoc */
-  cancel(appDelete?: boolean) {
+  cancel(appDelete?: boolean): void {
     this.canceled_ = true;
     this.appDelete_ = appDelete || false;
     if (this.backoffId_ !== null) {
@@ -263,22 +265,22 @@ export class RequestEndStatus {
   constructor(
     public wasSuccessCode: boolean,
     public xhr: XhrIo | null,
-    opt_canceled?: boolean
+    canceled?: boolean
   ) {
-    this.canceled = !!opt_canceled;
+    this.canceled = !!canceled;
   }
 }
 
-export function addAuthHeader_(headers: Headers, authToken: string | null) {
+export function addAuthHeader_(headers: Headers, authToken: string | null): void {
   if (authToken !== null && authToken.length > 0) {
     headers['Authorization'] = 'Firebase ' + authToken;
   }
 }
 
-export function addVersionHeader_(headers: Headers) {
-  const number =
+export function addVersionHeader_(headers: Headers): void {
+  const version =
     typeof firebase !== 'undefined' ? firebase.SDK_VERSION : 'AppManager';
-  headers['X-Firebase-Storage-Version'] = 'webjs/' + number;
+  headers['X-Firebase-Storage-Version'] = 'webjs/' + version;
 }
 
 /**

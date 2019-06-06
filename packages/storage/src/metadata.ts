@@ -39,7 +39,7 @@ interface Metadata {
   customMetadata: { [key: string]: string } | undefined;
   ref: Reference | undefined;
 
-  [prop: string]: any;
+  [prop: string]: unknown;
 }
 
 export { Metadata };

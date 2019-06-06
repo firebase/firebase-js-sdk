@@ -39,7 +39,7 @@ import { XhrIo } from './xhrio';
 /**
  * Throws the UNKNOWN FirebaseStorageError if cndn is false.
  */
-export function handlerCheck(cndn: boolean) {
+export function handlerCheck(cndn: boolean): void {
   if (!cndn) {
     throw errorsExports.unknown();
   }
@@ -245,7 +245,7 @@ export function deleteObject(
   const method = 'DELETE';
   const timeout = authWrapper.maxOperationRetryTime();
 
-  function handler(xhr: XhrIo, text: string) {}
+  function handler(_xhr: XhrIo, _text: string): void {}
   const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.successCodes = [200, 204];
   requestInfo.errorHandler = objectErrorHandler(location);
@@ -266,15 +266,15 @@ export function determineContentType_(
 export function metadataForUpload_(
   location: Location,
   blob: FbsBlob,
-  opt_metadata?: Metadata | null
+  metadata?: Metadata | null
 ): Metadata {
-  const metadata = object.clone<Metadata>(opt_metadata);
-  metadata['fullPath'] = location.path;
-  metadata['size'] = blob.size();
-  if (!metadata['contentType']) {
-    metadata['contentType'] = determineContentType_(null, blob);
+  const metadataClone = object.clone<Metadata>(metadata);
+  metadataClone['fullPath'] = location.path;
+  metadataClone['size'] = blob.size();
+  if (!metadataClone['contentType']) {
+    metadataClone['contentType'] = determineContentType_(null, blob);
   }
-  return metadata;
+  return metadataClone;
 }
 
 export function multipartUpload(
@@ -282,14 +282,14 @@ export function multipartUpload(
   location: Location,
   mappings: MetadataUtils.Mappings,
   blob: FbsBlob,
-  opt_metadata?: Metadata | null
+  metadata?: Metadata | null
 ): RequestInfo<Metadata> {
   const urlPart = location.bucketOnlyServerUrl();
   const headers: { [prop: string]: string } = {
     'X-Goog-Upload-Protocol': 'multipart'
   };
 
-  function genBoundary() {
+  function genBoundary(): string {
     let str = '';
     for (let i = 0; i < 2; i++) {
       str =
@@ -302,8 +302,8 @@ export function multipartUpload(
   }
   const boundary = genBoundary();
   headers['Content-Type'] = 'multipart/related; boundary=' + boundary;
-  const metadata = metadataForUpload_(location, blob, opt_metadata);
-  const metadataString = MetadataUtils.toResourceString(metadata, mappings);
+  const metadata_ = metadataForUpload_(location, blob, metadata);
+  const metadataString = MetadataUtils.toResourceString(metadata_, mappings);
   const preBlobPart =
     '--' +
     boundary +
@@ -314,14 +314,14 @@ export function multipartUpload(
     boundary +
     '\r\n' +
     'Content-Type: ' +
-    metadata['contentType'] +
+    metadata_['contentType'] +
     '\r\n\r\n';
   const postBlobPart = '\r\n--' + boundary + '--';
   const body = FbsBlob.getBlob(preBlobPart, blob, postBlobPart);
   if (body === null) {
     throw errorsExports.cannotSliceBlob();
   }
-  const urlParams: UrlParams = { name: metadata['fullPath']! };
+  const urlParams: UrlParams = { name: metadata_['fullPath']! };
   const url = UrlUtils.makeUrl(urlPart);
   const method = 'POST';
   const timeout = authWrapper.maxUploadRetryTime();
@@ -361,15 +361,15 @@ export class ResumableUploadStatus {
   }
 }
 
-export function checkResumeHeader_(xhr: XhrIo, opt_allowed?: string[]): string {
+export function checkResumeHeader_(xhr: XhrIo, allowed?: string[]): string {
   let status;
   try {
     status = xhr.getResponseHeader('X-Goog-Upload-Status');
   } catch (e) {
     handlerCheck(false);
   }
-  const allowed = opt_allowed || ['active'];
-  handlerCheck(array.contains(allowed, status));
+  const allowedStatus = allowed || ['active'];
+  handlerCheck(array.contains(allowedStatus, status));
   return status as string;
 }
 
@@ -378,24 +378,24 @@ export function createResumableUpload(
   location: Location,
   mappings: MetadataUtils.Mappings,
   blob: FbsBlob,
-  opt_metadata?: Metadata | null
+  metadata?: Metadata | null
 ): RequestInfo<string> {
   const urlPart = location.bucketOnlyServerUrl();
-  const metadata = metadataForUpload_(location, blob, opt_metadata);
-  const urlParams: UrlParams = { name: metadata['fullPath']! };
+  const metadataForUpload = metadataForUpload_(location, blob, metadata);
+  const urlParams: UrlParams = { name: metadataForUpload['fullPath']! };
   const url = UrlUtils.makeUrl(urlPart);
   const method = 'POST';
   const headers = {
     'X-Goog-Upload-Protocol': 'resumable',
     'X-Goog-Upload-Command': 'start',
     'X-Goog-Upload-Header-Content-Length': blob.size(),
-    'X-Goog-Upload-Header-Content-Type': metadata['contentType']!,
+    'X-Goog-Upload-Header-Content-Type': metadataForUpload['contentType']!,
     'Content-Type': 'application/json; charset=utf-8'
   };
-  const body = MetadataUtils.toResourceString(metadata, mappings);
+  const body = MetadataUtils.toResourceString(metadataForUpload, mappings);
   const timeout = authWrapper.maxUploadRetryTime();
 
-  function handler(xhr: XhrIo, text: string): string {
+  function handler(xhr: XhrIo, _text: string): string {
     checkResumeHeader_(xhr);
     let url;
     try {
@@ -425,15 +425,21 @@ export function getResumableUploadStatus(
 ): RequestInfo<ResumableUploadStatus> {
   const headers = { 'X-Goog-Upload-Command': 'query' };
 
-  function handler(xhr: XhrIo, text: string): ResumableUploadStatus {
+  function handler(xhr: XhrIo, _text: string): ResumableUploadStatus {
     const status = checkResumeHeader_(xhr, ['active', 'final']);
-    let sizeString;
+    let sizeString: string | null = null;
     try {
       sizeString = xhr.getResponseHeader('X-Goog-Upload-Size-Received');
     } catch (e) {
       handlerCheck(false);
     }
-    const size = parseInt(sizeString, 10);
+
+    // empty string
+    if (!sizeString) {
+      handlerCheck(false);
+    }
+
+    const size = Number(sizeString);
     handlerCheck(!isNaN(size));
     return new ResumableUploadStatus(size, blob.size(), status === 'final');
   }
@@ -454,7 +460,7 @@ export const resumableUploadChunkSize: number = 256 * 1024;
 /**
  * @param url From a call to fbs.requests.createResumableUpload.
  * @param chunkSize Number of bytes to upload.
- * @param opt_status The previous status.
+ * @param status The previous status.
  *     If not passed or null, we start from the beginning.
  * @throws fbs.Error If the upload is already complete, the passed in status
  *     has a final size inconsistent with the blob, or the blob cannot be sliced
@@ -467,34 +473,34 @@ export function continueResumableUpload(
   blob: FbsBlob,
   chunkSize: number,
   mappings: MetadataUtils.Mappings,
-  opt_status?: ResumableUploadStatus | null,
-  opt_progressCallback?: ((p1: number, p2: number) => void) | null
+  status?: ResumableUploadStatus | null,
+  progressCallback?: ((p1: number, p2: number) => void) | null
 ): RequestInfo<ResumableUploadStatus> {
   // TODO(andysoto): standardize on internal asserts
   // assert(!(opt_status && opt_status.finalized));
-  const status = new ResumableUploadStatus(0, 0);
-  if (opt_status) {
-    status.current = opt_status.current;
-    status.total = opt_status.total;
+  const status_ = new ResumableUploadStatus(0, 0);
+  if (status) {
+    status_.current = status.current;
+    status_.total = status.total;
   } else {
-    status.current = 0;
-    status.total = blob.size();
+    status_.current = 0;
+    status_.total = blob.size();
   }
-  if (blob.size() !== status.total) {
+  if (blob.size() !== status_.total) {
     throw errorsExports.serverFileWrongSize();
   }
-  const bytesLeft = status.total - status.current;
+  const bytesLeft = status_.total - status_.current;
   let bytesToUpload = bytesLeft;
   if (chunkSize > 0) {
     bytesToUpload = Math.min(bytesToUpload, chunkSize);
   }
-  const startByte = status.current;
+  const startByte = status_.current;
   const endByte = startByte + bytesToUpload;
   const uploadCommand =
     bytesToUpload === bytesLeft ? 'upload, finalize' : 'upload';
   const headers = {
     'X-Goog-Upload-Command': uploadCommand,
-    'X-Goog-Upload-Offset': status.current
+    'X-Goog-Upload-Offset': status_.current
   };
   const body = blob.slice(startByte, endByte);
   if (body === null) {
@@ -507,7 +513,7 @@ export function continueResumableUpload(
     // We'll only be able to bail out though, because you can't re-upload a
     // range that you previously uploaded.
     const uploadStatus = checkResumeHeader_(xhr, ['active', 'final']);
-    const newCurrent = status.current + bytesToUpload;
+    const newCurrent = status_.current + bytesToUpload;
     const size = blob.size();
     let metadata;
     if (uploadStatus === 'final') {
@@ -527,7 +533,7 @@ export function continueResumableUpload(
   const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.headers = headers;
   requestInfo.body = body.uploadData();
-  requestInfo.progressCallback = opt_progressCallback || null;
+  requestInfo.progressCallback = progressCallback || null;
   requestInfo.errorHandler = sharedErrorHandler(location);
   return requestInfo;
 }

@@ -26,8 +26,8 @@ export interface XhrIo {
   send(
     url: string,
     method: string,
-    opt_body?: ArrayBufferView | Blob | string | null,
-    opt_headers?: Headers
+    body?: ArrayBufferView | Blob | string | null,
+    headers?: Headers
   ): Promise<XhrIo>;
 
   getErrorCode(): ErrorCode;

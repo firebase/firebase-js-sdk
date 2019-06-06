@@ -40,17 +40,17 @@ export class Observer<T> {
 
   constructor(
     nextOrObserver?: NextFn<T> | { [name: string]: string | null } | null,
-    opt_error?: ErrorFn | null,
-    opt_complete?: CompleteFn | null
+    error?: ErrorFn | null,
+    complete?: CompleteFn | null
   ) {
     const asFunctions =
       type.isFunction(nextOrObserver) ||
-      type.isDef(opt_error) ||
-      type.isDef(opt_complete);
+      type.isDef(error) ||
+      type.isDef(complete);
     if (asFunctions) {
       this.next = nextOrObserver as NextFn<T> | null;
-      this.error = opt_error || null;
-      this.complete = opt_complete || null;
+      this.error = error || null;
+      this.complete = complete || null;
     } else {
       const observer = nextOrObserver as {
         next?: NextFn<T> | null;

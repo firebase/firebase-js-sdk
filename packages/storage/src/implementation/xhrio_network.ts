@@ -34,16 +34,16 @@ export class NetworkXhrIo implements XhrIo {
   constructor() {
     this.xhr_ = new XMLHttpRequest();
     this.errorCode_ = XhrIoExports.ErrorCode.NO_ERROR;
-    this.sendPromise_ = promiseimpl.make((resolve, reject) => {
-      this.xhr_.addEventListener('abort', event => {
+    this.sendPromise_ = promiseimpl.make((resolve, _reject) => {
+      this.xhr_.addEventListener('abort', _event => {
         this.errorCode_ = XhrIoExports.ErrorCode.ABORT;
         resolve(this);
       });
-      this.xhr_.addEventListener('error', event => {
+      this.xhr_.addEventListener('error', _event => {
         this.errorCode_ = XhrIoExports.ErrorCode.NETWORK_ERROR;
         resolve(this);
       });
-      this.xhr_.addEventListener('load', event => {
+      this.xhr_.addEventListener('load', _event => {
         resolve(this);
       });
     });
@@ -55,22 +55,21 @@ export class NetworkXhrIo implements XhrIo {
   send(
     url: string,
     method: string,
-    opt_body?: ArrayBufferView | Blob | string | null,
-    opt_headers?: Headers
+    body?: ArrayBufferView | Blob | string | null,
+    headers?: Headers
   ): Promise<XhrIo> {
     if (this.sent_) {
       throw errorsExports.internalError('cannot .send() more than once');
     }
     this.sent_ = true;
     this.xhr_.open(method, url, true);
-    if (type.isDef(opt_headers)) {
-      const headers = opt_headers as Headers;
-      object.forEach(headers, (key, val) => {
+    if (type.isDef(headers)) {
+      object.forEach(headers!, (key, val) => {
         this.xhr_.setRequestHeader(key, val.toString());
       });
     }
-    if (type.isDef(opt_body)) {
-      this.xhr_.send(opt_body);
+    if (type.isDef(body)) {
+      this.xhr_.send(body);
     } else {
       this.xhr_.send();
     }
@@ -119,7 +118,7 @@ export class NetworkXhrIo implements XhrIo {
    * Aborts the request.
    * @override
    */
-  abort() {
+  abort(): void {
     this.xhr_.abort();
   }
 
@@ -133,7 +132,7 @@ export class NetworkXhrIo implements XhrIo {
   /**
    * @override
    */
-  addUploadProgressListener(listener: (p1: Event) => void) {
+  addUploadProgressListener(listener: (p1: Event) => void): void {
     if (type.isDef(this.xhr_.upload)) {
       this.xhr_.upload.addEventListener('progress', listener);
     }
@@ -142,7 +141,7 @@ export class NetworkXhrIo implements XhrIo {
   /**
    * @override
    */
-  removeUploadProgressListener(listener: (p1: Event) => void) {
+  removeUploadProgressListener(listener: (p1: Event) => void): void {
     if (type.isDef(this.xhr_.upload)) {
       this.xhr_.upload.removeEventListener('progress', listener);
     }
