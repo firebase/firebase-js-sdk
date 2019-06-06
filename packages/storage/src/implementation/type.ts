@@ -18,11 +18,11 @@
 /**
  * @return False if the object is undefined or null, true otherwise.
  */
-export function isDef(p: unknown): boolean {
+export function isDef(p: unknown): p is {} {
   return p != null;
 }
 
-export function isJustDef(p: unknown): boolean {
+export function isJustDef(p: unknown): p is {} | null {
   return p !== void 0;
 }
 
@@ -30,11 +30,11 @@ export function isFunction(p: unknown): p is Function {
   return typeof p === 'function';
 }
 
-export function isObject(p: unknown): p is object {
+export function isObject(p: unknown): p is object | null {
   return typeof p === 'object';
 }
 
-export function isNonNullObject(p: unknown): boolean {
+export function isNonNullObject(p: unknown): p is object {
   return isObject(p) && p !== null;
 }
 

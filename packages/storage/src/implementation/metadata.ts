@@ -29,7 +29,7 @@ import * as UrlUtils from './url';
 import { Reference } from '../reference';
 import { contains } from './object';
 
-export function noXform_(_metadata: Metadata, value: any): any {
+export function noXform_<T>(_metadata: Metadata, value: T): T {
   return value;
 }
 
@@ -39,13 +39,13 @@ export function noXform_(_metadata: Metadata, value: any): any {
 export class Mapping {
   local: string;
   writable: boolean;
-  xform: (p1: Metadata, p2: any) => any;
+  xform: (p1: Metadata, p2: unknown) => unknown;
 
   constructor(
     public server: string,
     local?: string | null,
     writable?: boolean,
-    xform?: ((p1: Metadata, p2: any) => any) | null
+    xform?: ((p1: Metadata, p2: unknown) => unknown) | null
   ) {
     this.local = local || server;
     this.writable = !!writable;
@@ -57,7 +57,7 @@ type Mappings = Mapping[];
 export { Mappings };
 
 let mappings_: Mappings | null = null;
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function xformPath(fullPath: any): string {
   const valid = type.isString(fullPath);
   if (!valid || fullPath.length < 2) {
@@ -78,7 +78,7 @@ export function getMappings(): Mappings {
   mappings.push(new Mapping('metageneration'));
   mappings.push(new Mapping('name', 'fullPath', true));
 
-  function mappingsXformPath(metadata: Metadata, fullPath: any): string {
+  function mappingsXformPath(_metadata: Metadata, fullPath: unknown): string {
     return xformPath(fullPath);
   }
   const nameMapping = new Mapping('name');
@@ -88,8 +88,9 @@ export function getMappings(): Mappings {
   /**
    * Coerces the second param to a number, if it is defined.
    */
-  function xformSize(_metadata: Metadata, size: any): number | null | undefined {
+  function xformSize(_metadata: Metadata, size: {} | null | undefined): number | null | undefined {
     if (type.isDef(size)) {
+      // TODO: rewrite using Number()
       return +(size as number);
     } else {
       return size;
@@ -123,7 +124,7 @@ export function addRef(metadata: Metadata, authWrapper: AuthWrapper): void {
 
 export function fromResource(
   authWrapper: AuthWrapper,
-  resource: { [name: string]: any },
+  resource: { [name: string]: unknown },
   mappings: Mappings
 ): Metadata {
   const metadata: Metadata = {} as Metadata;
@@ -188,7 +189,7 @@ export function toResourceString(
   mappings: Mappings
 ): string {
   const resource: {
-    [prop: string]: any;
+    [prop: string]: unknown;
   } = {};
   const len = mappings.length;
   for (let i = 0; i < len; i++) {
@@ -200,9 +201,8 @@ export function toResourceString(
   return JSON.stringify(resource);
 }
 
-export function metadataValidator(p: any): void {
-  const validType = p && type.isObject(p);
-  if (!validType) {
+export function metadataValidator(p: unknown): void {
+  if (!(p && type.isObject(p))) {
     throw 'Expected Metadata object.';
   }
   for (const key in p) {
