@@ -20,7 +20,9 @@
  * goog.net.XhrIo-like interface.
  */
 
-export interface Headers { [name: string]: string | number }
+export interface Headers {
+  [name: string]: string | number;
+}
 
 export interface XhrIo {
   send(

@@ -33,7 +33,9 @@ export enum State {
   DONE = 2
 }
 
-export interface StringHeaders { [name: string]: string }
+export interface StringHeaders {
+  [name: string]: string;
+}
 
 export class TestingXhrIo implements XhrIo {
   private state: State;

@@ -36,7 +36,11 @@ function factory(
   _unused: unknown,
   url?: string
 ): types.FirebaseStorage {
-  return new Service(app, new XhrIoPool(), url) as unknown as types.FirebaseStorage;
+  return (new Service(
+    app,
+    new XhrIoPool(),
+    url
+  ) as unknown) as types.FirebaseStorage;
 }
 
 export function registerStorage(instance): void {

@@ -62,9 +62,9 @@ describe('Firebase Storage > Requests', () => {
 
   const authWrapper = new AuthWrapper(
     mockApp,
-    ((authWrapper, loc) => {
+    (authWrapper, loc) => {
       return new Reference(authWrapper, loc);
-    }),
+    },
     makeRequest,
     {} as Service,
     new XhrIoPool()
@@ -152,11 +152,11 @@ describe('Firebase Storage > Requests', () => {
     }
 
     if (body instanceof Blob) {
-      return readBlob(body).then((str) => {
+      return readBlob(body).then(str => {
         assert.equal(str, expectedStr);
       });
     } else if (body instanceof Uint8Array) {
-      return readBlob(new Blob([body])).then((str) => {
+      return readBlob(new Blob([body])).then(str => {
         assert.equal(str, expectedStr);
       });
     } else {

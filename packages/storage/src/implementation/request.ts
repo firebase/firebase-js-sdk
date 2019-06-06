@@ -271,7 +271,10 @@ export class RequestEndStatus {
   }
 }
 
-export function addAuthHeader_(headers: Headers, authToken: string | null): void {
+export function addAuthHeader_(
+  headers: Headers,
+  authToken: string | null
+): void {
   if (authToken !== null && authToken.length > 0) {
     headers['Authorization'] = 'Firebase ' + authToken;
   }

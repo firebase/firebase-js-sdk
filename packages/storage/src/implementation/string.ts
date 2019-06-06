@@ -69,9 +69,12 @@ export function dataFromString(
     case StringFormat.BASE64URL:
       return new StringData(base64Bytes_(format, stringData));
     case StringFormat.DATA_URL:
-      return new StringData(dataURLBytes_(stringData), dataURLContentType_(stringData));
+      return new StringData(
+        dataURLBytes_(stringData),
+        dataURLContentType_(stringData)
+      );
     default:
-      // do nothing
+    // do nothing
   }
 
   // assert(false);
@@ -91,8 +94,7 @@ export function utf8Bytes_(value: string): Uint8Array {
         if ((c & 64512) === 55296) {
           // The start of a surrogate pair.
           const valid =
-            i < value.length - 1 &&
-            (value.charCodeAt(i + 1) & 64512) === 56320;
+            i < value.length - 1 && (value.charCodeAt(i + 1) & 64512) === 56320;
           if (!valid) {
             // The second surrogate wasn't there.
             b.push(239, 191, 189);
@@ -164,7 +166,7 @@ export function base64Bytes_(format: StringFormat, value: string): Uint8Array {
       break;
     }
     default:
-      // do nothing
+    // do nothing
   }
   let bytes;
   try {

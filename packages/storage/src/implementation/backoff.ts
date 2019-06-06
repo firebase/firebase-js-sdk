@@ -30,10 +30,7 @@ export { id };
  *     passed to f, including the initial boolean.
  */
 export function start(
-  f: (
-    p1: (success: boolean) => void,
-    canceled: boolean
-  ) => void,
+  f: (p1: (success: boolean) => void, canceled: boolean) => void,
   callback: Function,
   timeout: number
 ): id {

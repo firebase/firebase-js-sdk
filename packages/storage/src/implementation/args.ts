@@ -25,7 +25,11 @@ import * as type from './type';
  * @param passed The actual arguments passed to the function.
  * @throws {fbs.Error} If the arguments are invalid.
  */
-export function validate(name: string, specs: ArgSpec[], passed: IArguments): void {
+export function validate(
+  name: string,
+  specs: ArgSpec[],
+  passed: IArguments
+): void {
   let minArgs = specs.length;
   const maxArgs = specs.length;
   for (let i = 0; i < specs.length; i++) {
@@ -75,7 +79,10 @@ export class ArgSpec {
   }
 }
 
-export function and_(v1: (p1: unknown) => void, v2: (p1: unknown) => void): (p1: unknown) => void {
+export function and_(
+  v1: (p1: unknown) => void,
+  v2: (p1: unknown) => void
+): (p1: unknown) => void {
   return function(p) {
     v1(p);
     v2(p);

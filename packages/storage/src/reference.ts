@@ -176,7 +176,10 @@ export class Reference {
     this.throwIfRoot_('putString');
     const data = fbsString.dataFromString(format, value);
     const metadataClone = object.clone<Metadata>(metadata);
-    if (!type.isDef(metadataClone['contentType']) && type.isDef(data.contentType)) {
+    if (
+      !type.isDef(metadataClone['contentType']) &&
+      type.isDef(data.contentType)
+    ) {
       metadataClone['contentType'] = data.contentType!;
     }
     return new UploadTask(
@@ -197,8 +200,11 @@ export class Reference {
     args.validate('delete', [], arguments);
     this.throwIfRoot_('delete');
     const self = this;
-    return this.authWrapper.getAuthToken().then((authToken) => {
-      const requestInfo = requests.deleteObject(self.authWrapper, self.location);
+    return this.authWrapper.getAuthToken().then(authToken => {
+      const requestInfo = requests.deleteObject(
+        self.authWrapper,
+        self.location
+      );
       return self.authWrapper.makeRequest(requestInfo, authToken).getPromise();
     });
   }
@@ -268,7 +274,7 @@ export class Reference {
   list(options?: ListOptions | null): Promise<ListResult> {
     args.validate('list', [listOptionSpec(true)], arguments);
     const self = this;
-    return this.authWrapper.getAuthToken().then((authToken) => {
+    return this.authWrapper.getAuthToken().then(authToken => {
       const op = options || {};
       const requestInfo = requests.list(
         self.authWrapper,
@@ -290,7 +296,7 @@ export class Reference {
     args.validate('getMetadata', [], arguments);
     this.throwIfRoot_('getMetadata');
     const self = this;
-    return this.authWrapper.getAuthToken().then((authToken) => {
+    return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.getMetadata(
         self.authWrapper,
         self.location,
@@ -313,7 +319,7 @@ export class Reference {
     args.validate('updateMetadata', [args.metadataSpec()], arguments);
     this.throwIfRoot_('updateMetadata');
     const self = this;
-    return this.authWrapper.getAuthToken().then((authToken) => {
+    return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.updateMetadata(
         self.authWrapper,
         self.location,
@@ -332,7 +338,7 @@ export class Reference {
     args.validate('getDownloadURL', [], arguments);
     this.throwIfRoot_('getDownloadURL');
     const self = this;
-    return this.authWrapper.getAuthToken().then((authToken) => {
+    return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.getDownloadUrl(
         self.authWrapper,
         self.location,
@@ -341,7 +347,7 @@ export class Reference {
       return self.authWrapper
         .makeRequest(requestInfo, authToken)
         .getPromise()
-        .then((url) => {
+        .then(url => {
           if (url === null) {
             throw errorsExports.noDownloadURL();
           }

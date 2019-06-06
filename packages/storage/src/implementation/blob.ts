@@ -90,31 +90,33 @@ export class FbsBlob {
 
   static getBlob(...args: Array<string | FbsBlob>): FbsBlob | null {
     if (type.isNativeBlobDefined()) {
-      const blobby: Array<Blob | Uint8Array | string> = args.map((
-        val: string | FbsBlob
-      ): Blob | Uint8Array | string => {
-        if (val instanceof FbsBlob) {
-          return val.data_;
-        } else {
-          return val;
+      const blobby: Array<Blob | Uint8Array | string> = args.map(
+        (val: string | FbsBlob): Blob | Uint8Array | string => {
+          if (val instanceof FbsBlob) {
+            return val.data_;
+          } else {
+            return val;
+          }
         }
-      });
+      );
       return new FbsBlob(fs.getBlob.apply(null, blobby));
     } else {
-      const uint8Arrays: Uint8Array[] = args.map((
-        val: string | FbsBlob
-      ): Uint8Array => {
-        if (type.isString(val)) {
-          return dataFromString(StringFormat.RAW, val as string).data;
-        } else {
-          // Blobs don't exist, so this has to be a Uint8Array.
-          return (val as FbsBlob).data_ as Uint8Array;
+      const uint8Arrays: Uint8Array[] = args.map(
+        (val: string | FbsBlob): Uint8Array => {
+          if (type.isString(val)) {
+            return dataFromString(StringFormat.RAW, val as string).data;
+          } else {
+            // Blobs don't exist, so this has to be a Uint8Array.
+            return (val as FbsBlob).data_ as Uint8Array;
+          }
         }
-      });
+      );
       let finalLength = 0;
-      uint8Arrays.forEach((array: Uint8Array): void => {
-        finalLength += array.byteLength;
-      });
+      uint8Arrays.forEach(
+        (array: Uint8Array): void => {
+          finalLength += array.byteLength;
+        }
+      );
       const merged = new Uint8Array(finalLength);
       let index = 0;
       uint8Arrays.forEach((array: Uint8Array) => {

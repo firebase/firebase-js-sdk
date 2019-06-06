@@ -410,7 +410,7 @@ describe('Firebase Storage > Upload Task', () => {
 
     (function() {
       let lastState;
-      task.on(TaskEvent.STATE_CHANGED, (snapshot) => {
+      task.on(TaskEvent.STATE_CHANGED, snapshot => {
         const state = snapshot.state;
         if (lastState !== TaskState.PAUSED && state === TaskState.PAUSED) {
           events.push('timeout');
