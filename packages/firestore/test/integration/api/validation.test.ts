@@ -1090,7 +1090,7 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'cannot have an IN or array-contains-any filter with more than 10 ' + 
+      'cannot have an IN or array-contains-any filter with more than 10 ' +
         'elements.',
       db => {
         expect(() =>

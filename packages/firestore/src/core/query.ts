@@ -553,7 +553,7 @@ export class RelationFilter extends Filter {
       if (this.value instanceof ArrayValue) {
         return (
           this.value.internalValue.find(element => element.isEqual(other)) !==
-            undefined
+          undefined
         );
       } else {
         fail('IN filter has invalid value: ' + this.value.toString());
@@ -600,10 +600,10 @@ export class RelationFilter extends Filter {
   isInequality(): boolean {
     return (
       [
-        RelationOp.LESS_THAN, 
-        RelationOp.LESS_THAN_OR_EQUAL, 
-        RelationOp.GREATER_THAN, 
-         RelationOp.GREATER_THAN_OR_EQUAL
+        RelationOp.LESS_THAN,
+        RelationOp.LESS_THAN_OR_EQUAL,
+        RelationOp.GREATER_THAN,
+        RelationOp.GREATER_THAN_OR_EQUAL
       ].indexOf(this.op) >= 0
     );
   }
