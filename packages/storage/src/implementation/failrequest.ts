@@ -31,10 +31,10 @@ export class FailRequest<T> implements Request<T> {
   }
 
   /** @inheritDoc */
-  getPromise() {
+  getPromise(): Promise<T> {
     return this.promise_;
   }
 
   /** @inheritDoc */
-  cancel(appDelete = false) {}
+  cancel(_appDelete = false): void {}
 }

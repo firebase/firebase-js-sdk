@@ -92,11 +92,11 @@ export function fromResponseString(
   if (obj === null) {
     return null;
   }
-  const resource = obj as ListResultResponse;
+  const resource = obj as unknown as ListResultResponse;
   return fromBackendResponse(authWrapper, resource);
 }
 
-export function listOptionsValidator(p: any) {
+export function listOptionsValidator(p: {}): void {
   const validType = p && type.isObject(p);
   if (!validType) {
     throw 'Expected ListOptions object.';

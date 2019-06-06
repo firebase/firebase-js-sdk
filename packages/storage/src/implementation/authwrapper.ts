@@ -44,8 +44,8 @@ export class AuthWrapper {
   private bucket_: string | null = null;
 
   /**
-  maker
-     */
+   * maker
+   */
   private storageRefMaker_: (p1: AuthWrapper, p2: Location) => Reference;
   private requestMaker_: requestMaker;
   private pool_: XhrIoPool;
@@ -79,9 +79,9 @@ export class AuthWrapper {
   }
 
   private static extractBucket_(config: {
-    [prop: string]: any;
+    [prop: string]: unknown;
   }): string | null {
-    const bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] || null;
+    const bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] as string || null;
     if (bucketString == null) {
       return null;
     }
@@ -157,7 +157,7 @@ export class AuthWrapper {
   /**
    * Stop running requests and prevent more from being created.
    */
-  deleteApp() {
+  deleteApp(): void {
     this.deleted_ = true;
     this.app_ = null;
     this.requestMap_.clear();
@@ -167,7 +167,7 @@ export class AuthWrapper {
     return this.maxUploadRetryTime_;
   }
 
-  setMaxUploadRetryTime(time: number) {
+  setMaxUploadRetryTime(time: number): void {
     this.maxUploadRetryTime_ = time;
   }
 
@@ -175,7 +175,7 @@ export class AuthWrapper {
     return this.maxOperationRetryTime_;
   }
 
-  setMaxOperationRetryTime(time: number) {
+  setMaxOperationRetryTime(time: number): void {
     this.maxOperationRetryTime_ = time;
   }
 }
