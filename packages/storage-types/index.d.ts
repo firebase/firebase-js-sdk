@@ -51,6 +51,7 @@ export interface Reference {
   storage: Storage;
   toString(): string;
   updateMetadata(metadata: SettableMetadata): Promise<FullMetadata>;
+  listAll(): Promise<ListResult>;
   list(options?: ListOptions): Promise<ListResult>;
 }
 
