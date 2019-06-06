@@ -1005,7 +1005,7 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'with multiple array-contains filters fail.',
+      'cannot have multiple array-contains filters.',
       db => {
         expect(() =>
           db
@@ -1020,7 +1020,7 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'with multiple IN or array-contains-any filters fail.',
+      'cannot have multiple IN or array-contains-any filters.',
       db => {
         expect(() =>
           db
@@ -1043,7 +1043,20 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'with non-array values fail for IN and array-contains-any queries.',
+      'can have an IN filter with an array-contains filter.',
+      db => {
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', 'array-contains', 1)
+            .where('foo', inOp, [2, 3])
+        ).not.to.throw();
+      }
+    );
+
+    validationIt(
+      persistence,
+      'cannot have an IN or array-contains-any filter with on-array values.',
       db => {
         expect(() => db.collection('test').where('foo', inOp, 2)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' queries."
@@ -1060,7 +1073,7 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'with empty arrays fail for IN and array-contains-any queries.',
+      'cannot have an IN or array-contains-any filter with empty arrays.',
       db => {
         expect(() => db.collection('test').where('foo', inOp, [])).to.throw(
           "Invalid Query. A non-empty array is required for 'in' queries."
@@ -1077,12 +1090,13 @@ apiDescribe('Validation:', persistence => {
 
     validationIt(
       persistence,
-      'with more than 10 elements including duplicates fail for IN and ' +
-        'array-contains-any queries.',
+      'cannot have an IN or array-contains-any filter with more than 10 ' + 
+        'elements.',
       db => {
         expect(() =>
           db
             .collection('test')
+            // The 10 element max includes duplicates.
             .where('foo', inOp, [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
         ).to.throw(
           "Invalid Query. 'in' queries support a maximum of 10 elements in " +

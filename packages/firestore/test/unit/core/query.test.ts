@@ -181,7 +181,7 @@ describe('Query', () => {
     let document = doc('collection/1', 0, { zip: [12345] });
     expect(query.matches(document)).to.be.true;
 
-    // Value matches in non-array
+    // Value matches in non-array.
     document = doc('collection/1', 0, { zip: 12345 });
     expect(query.matches(document)).to.be.false;
 

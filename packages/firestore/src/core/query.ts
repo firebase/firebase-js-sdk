@@ -550,11 +550,15 @@ export class RelationFilter extends Filter {
           undefined
       );
     } else if (this.op === RelationOp.IN) {
-      return (
-        this.value instanceof ArrayValue &&
-        this.value.internalValue.find(element => element.isEqual(other)) !==
-          undefined
-      );
+      if (this.value instanceof ArrayValue) {
+        return (
+          this.value.internalValue.find(element => element.isEqual(other)) !==
+            undefined
+        );
+      } else {
+        fail('IN filter has invalid value: ' + this.value.toString());
+        return false;
+      }
     } else if (this.op === RelationOp.ARRAY_CONTAINS_ANY) {
       return (
         other instanceof ArrayValue &&
@@ -595,10 +599,12 @@ export class RelationFilter extends Filter {
 
   isInequality(): boolean {
     return (
-      this.op !== RelationOp.EQUAL &&
-      this.op !== RelationOp.ARRAY_CONTAINS &&
-      this.op !== RelationOp.IN &&
-      this.op !== RelationOp.ARRAY_CONTAINS_ANY
+      [
+        RelationOp.LESS_THAN, 
+        RelationOp.LESS_THAN_OR_EQUAL, 
+        RelationOp.GREATER_THAN, 
+         RelationOp.GREATER_THAN_OR_EQUAL
+      ].indexOf(this.op) >= 0
     );
   }
 

@@ -79,10 +79,6 @@ import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
-import {
-  arrayContainsAnyOp,
-  inOp
-} from './../../test/integration/util/helpers';
 import { Deferred } from './../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
@@ -1421,18 +1417,14 @@ export class Query implements firestore.Query {
   ): firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateDefined('Query.where', 3, value);
-    // Enumerated from the WhereFilterOp type in index.d.ts.
-    const whereFilterOpEnums = [
-      '<',
-      '<=',
-      '==',
-      '>=',
-      '>',
-      'array-contains',
-      inOp,
-      arrayContainsAnyOp
-    ];
-    validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
+
+    // TODO(in-queries): Add 'in' and 'array-contains-any' to validation.
+    if (opStr.toString() !== 'in' && opStr.toString() !== 'array-contains-any') {
+      // Enumerated from the WhereFilterOp type in index.d.ts.
+      const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];	
+      validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);	
+    }
+
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);

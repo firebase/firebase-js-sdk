@@ -587,7 +587,8 @@ apiDescribe('Queries', persistence => {
       c: { array: [41.999, '42', { a: [42] }] },
       d: { array: [42], array2: ['bingo'] },
       e: { array: [43] },
-      f: { array: [{ a: 42 }] }
+      f: { array: [{ a: 42 }] },
+      g: {array: 42}
     };
 
     await withTestCollection(persistence, testDocs, async coll => {

@@ -31,7 +31,6 @@ import firebase from '../util/firebase_export';
 import {
   apiDescribe,
   arrayContainsAnyOp,
-  clearPersistence,
   inOp,
   withTestCollection,
   withTestDb,
