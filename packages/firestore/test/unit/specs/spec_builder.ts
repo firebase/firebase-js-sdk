@@ -843,8 +843,8 @@ export class SpecBuilder {
     if (query.hasLimit()) {
       spec.limit = query.limit!;
     }
-    if (query.filters) {
-      spec.filters = query.filters.map((filter: Filter) => {
+    if (query._filters) {
+      spec.filters = query._filters.map((filter: Filter) => {
         if (filter instanceof RelationFilter) {
           // TODO(dimond): Support non-JSON primitive values?
           return [

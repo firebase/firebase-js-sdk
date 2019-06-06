@@ -1033,7 +1033,7 @@ export class JsonProtoSerializer {
       result.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
     }
 
-    const where = this.toFilter(query.filters);
+    const where = this.toFilter(query._filters);
     if (where) {
       result.structuredQuery!.where = where;
     }
