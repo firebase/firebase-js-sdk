@@ -27,7 +27,8 @@ import {
   DEFAULT_PROJECT_ID,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  isRunningAgainstEmulator
 } from '../util/helpers';
 
 const FieldPath = firebase.firestore!.FieldPath;
@@ -475,6 +476,9 @@ apiDescribe('Validation:', persistence => {
     );
 
     validationIt(persistence, 'may contain indirectly nested arrays.', db => {
+      if (isRunningAgainstEmulator()) {
+        return;
+      }
       const data = { 'nested-array': [1, { foo: [2] }] };
 
       const ref = db.collection('foo').doc();

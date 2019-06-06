@@ -30,6 +30,7 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  isRunningAgainstEmulator,
   withTestCollection,
   withTestDb,
   withTestDbs,
@@ -143,6 +144,9 @@ apiDescribe('Database', persistence => {
   });
 
   it('can merge data with an existing document using set', () => {
+    if (isRunningAgainstEmulator()) {
+      return;
+    }
     return withTestDoc(persistence, doc => {
       const initialData = {
         desc: 'description',
@@ -483,6 +487,9 @@ apiDescribe('Database', persistence => {
   });
 
   it('can update nested fields', () => {
+    if (isRunningAgainstEmulator()) {
+      return;
+    }
     const FieldPath = firebase.firestore!.FieldPath;
 
     return withTestDoc(persistence, doc => {

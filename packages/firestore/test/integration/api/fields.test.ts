@@ -25,7 +25,8 @@ import {
   toDataArray,
   withTestCollection,
   withTestCollectionSettings,
-  withTestDoc
+  withTestDoc,
+  isRunningAgainstEmulator
 } from '../util/helpers';
 
 const FieldPath = firebase.firestore!.FieldPath;
@@ -280,6 +281,9 @@ apiDescribe('Fields with special characters', persistence => {
   });
 
   it('can be updated with update()', () => {
+    if (isRunningAgainstEmulator()) {
+      return;
+    }
     return withTestDoc(persistence, doc => {
       return doc
         .set(testData())
@@ -303,6 +307,9 @@ apiDescribe('Fields with special characters', persistence => {
   });
 
   it('can be used in query filters.', () => {
+    if (isRunningAgainstEmulator()) {
+      return;
+    }
     const testDocs = {
       '1': testData(300),
       '2': testData(100),
@@ -325,6 +332,9 @@ apiDescribe('Fields with special characters', persistence => {
   });
 
   it('can be used in a query orderBy.', () => {
+    if (isRunningAgainstEmulator()) {
+      return;
+    }
     const testDocs = {
       '1': testData(300),
       '2': testData(100),

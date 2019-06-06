@@ -90,6 +90,9 @@ apiDescribe('Database batch writes', persistence => {
   });
 
   it('can update nested fields', () => {
+    if (integrationHelpers.isRunningAgainstEmulator()) {
+      return;
+    }
     const initialData = {
       desc: 'Description',
       owner: { name: 'Jonny' },

@@ -340,6 +340,9 @@ apiDescribe('Database transactions', persistence => {
   });
 
   it('can update nested fields transactionally', () => {
+    if (integrationHelpers.isRunningAgainstEmulator()) {
+      return;
+    }
     const initialData = {
       desc: 'Description',
       owner: { name: 'Jonny' },
