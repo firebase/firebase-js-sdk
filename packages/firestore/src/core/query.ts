@@ -45,7 +45,7 @@ export class Query {
     readonly path: ResourcePath,
     readonly collectionGroup: string | null = null,
     readonly explicitOrderBy: OrderBy[] = [],
-    readonly _filters: Filter[] = [],
+    readonly filters: Filter[] = [],
     readonly limit: number | null = null,
     readonly startAt: Bound | null = null,
     readonly endAt: Bound | null = null
@@ -56,10 +56,6 @@ export class Query {
     if (this.endAt) {
       this.assertValidBound(this.endAt);
     }
-  }
-
-  get filters(): Filter[] {
-    return this._filters;
   }
 
   get orderBy(): OrderBy[] {
@@ -122,7 +118,7 @@ export class Query {
 
     assert(!this.isDocumentQuery(), 'No filtering allowed for document query');
 
-    const newFilters = this._filters.concat([filter]);
+    const newFilters = this.filters.concat([filter]);
     return new Query(
       this.path,
       this.collectionGroup,
@@ -142,7 +138,7 @@ export class Query {
       this.path,
       this.collectionGroup,
       newOrderBy,
-      this._filters.slice(),
+      this.filters.slice(),
       this.limit,
       this.startAt,
       this.endAt
@@ -154,7 +150,7 @@ export class Query {
       this.path,
       this.collectionGroup,
       this.explicitOrderBy.slice(),
-      this._filters.slice(),
+      this.filters.slice(),
       limit,
       this.startAt,
       this.endAt
@@ -166,7 +162,7 @@ export class Query {
       this.path,
       this.collectionGroup,
       this.explicitOrderBy.slice(),
-      this._filters.slice(),
+      this.filters.slice(),
       this.limit,
       bound,
       this.endAt
@@ -178,7 +174,7 @@ export class Query {
       this.path,
       this.collectionGroup,
       this.explicitOrderBy.slice(),
-      this._filters.slice(),
+      this.filters.slice(),
       this.limit,
       this.startAt,
       bound
@@ -196,7 +192,7 @@ export class Query {
       path,
       /*collectionGroup=*/ null,
       this.explicitOrderBy.slice(),
-      this._filters.slice(),
+      this.filters.slice(),
       this.limit,
       this.startAt,
       this.endAt
@@ -213,7 +209,7 @@ export class Query {
         canonicalId += '|cg:' + this.collectionGroup;
       }
       canonicalId += '|f:';
-      for (const filter of this._filters) {
+      for (const filter of this.filters) {
         canonicalId += filter.canonicalId();
         canonicalId += ',';
       }
@@ -245,8 +241,8 @@ export class Query {
     if (this.isCollectionGroupQuery()) {
       str += ' collectionGroup=' + this.collectionGroup;
     }
-    if (this._filters.length > 0) {
-      str += `, filters: [${this._filters.join(', ')}]`;
+    if (this.filters.length > 0) {
+      str += `, filters: [${this.filters.join(', ')}]`;
     }
     if (!isNullOrUndefined(this.limit)) {
       str += ', limit: ' + this.limit;
@@ -279,12 +275,12 @@ export class Query {
       }
     }
 
-    if (this._filters.length !== other._filters.length) {
+    if (this.filters.length !== other.filters.length) {
       return false;
     }
 
-    for (let i = 0; i < this._filters.length; i++) {
-      if (!this._filters[i].isEqual(other._filters[i])) {
+    for (let i = 0; i < this.filters.length; i++) {
+      if (!this.filters[i].isEqual(other.filters[i])) {
         return false;
       }
     }
@@ -345,7 +341,7 @@ export class Query {
   }
 
   getInequalityFilterField(): FieldPath | null {
-    for (const filter of this._filters) {
+    for (const filter of this.filters) {
       if (filter instanceof RelationFilter && filter.isInequality()) {
         return filter.field;
       }
@@ -358,7 +354,7 @@ export class Query {
    */
   getRelationOpFilter(relationOp: RelationOp): RelationOp | null {
     if (
-      this._filters.find(
+      this.filters.find(
         filter => filter instanceof RelationFilter && filter.op === relationOp
       ) !== undefined
     ) {
@@ -372,7 +368,7 @@ export class Query {
     return (
       DocumentKey.isDocumentKey(this.path) &&
       this.collectionGroup === null &&
-      this._filters.length === 0
+      this.filters.length === 0
     );
   }
 
@@ -416,7 +412,7 @@ export class Query {
   }
 
   private matchesFilters(doc: Document): boolean {
-    for (const filter of this._filters) {
+    for (const filter of this.filters) {
       if (!filter.matches(doc)) {
         return false;
       }
