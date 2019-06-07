@@ -339,42 +339,38 @@ apiDescribe('Database transactions', persistence => {
     });
   });
 
-  // Failing due to b/112104025.
-  (integrationHelpers.isRunningAgainstEmulator() ? it.skip : it)(
-    'can update nested fields transactionally',
-    () => {
-      const initialData = {
-        desc: 'Description',
-        owner: { name: 'Jonny' },
-        'is.admin': false
-      };
-      const finalData = {
-        desc: 'Description',
-        owner: { name: 'Sebastian' },
-        'is.admin': true
-      };
+  it('can update nested fields transactionally', () => {
+    const initialData = {
+      desc: 'Description',
+      owner: { name: 'Jonny' },
+      'is.admin': false
+    };
+    const finalData = {
+      desc: 'Description',
+      owner: { name: 'Sebastian' },
+      'is.admin': true
+    };
 
-      return integrationHelpers.withTestDb(persistence, db => {
-        const doc = db.collection('counters').doc();
-        return db
-          .runTransaction(async transaction => {
-            transaction.set(doc, initialData);
-            transaction.update(
-              doc,
-              'owner.name',
-              'Sebastian',
-              new firebase.firestore!.FieldPath('is.admin'),
-              true
-            );
-          })
-          .then(() => doc.get())
-          .then(docSnapshot => {
-            expect(docSnapshot.exists).to.be.ok;
-            expect(docSnapshot.data()).to.deep.equal(finalData);
-          });
-      });
-    }
-  );
+    return integrationHelpers.withTestDb(persistence, db => {
+      const doc = db.collection('counters').doc();
+      return db
+        .runTransaction(async transaction => {
+          transaction.set(doc, initialData);
+          transaction.update(
+            doc,
+            'owner.name',
+            'Sebastian',
+            new firebase.firestore!.FieldPath('is.admin'),
+            true
+          );
+        })
+        .then(() => doc.get())
+        .then(docSnapshot => {
+          expect(docSnapshot.exists).to.be.ok;
+          expect(docSnapshot.data()).to.deep.equal(finalData);
+        });
+    });
+  });
 
   it('handle reading one doc and writing another', () => {
     return integrationHelpers.withTestDb(persistence, db => {
