@@ -133,7 +133,8 @@ function addToQueue(evt: BatchEvent): void {
 
 /** Log handler for cc service to send the performance logs to the server. */
 export function ccHandler(
-  serializer: (...args: unknown[]) => string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  serializer: (...args: any[]) => string
 ): LogHandler {
   // The underscores for loggerInstance and level parameters are added to avoid the
   // noUnusedParameters related error.
