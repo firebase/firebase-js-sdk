@@ -1038,26 +1038,6 @@ apiDescribe('Validation:', persistence => {
           "Invalid query. Queries only support a single 'array-contains-any'" +
             ' filter.'
         );
-
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', inOp, [1, 2])
-            .where('foo', arrayContainsAnyOp, [2, 3])
-        ).to.throw(
-          "Invalid query. You cannot use 'array-contains-any' " +
-            "filters with 'in' filters."
-        );
-
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', arrayContainsAnyOp, [2, 3])
-            .where('foo', inOp, [1, 2])
-        ).to.throw(
-          "Invalid query. You cannot use 'in' filters with " +
-            "'array-contains-any' filters."
-        );
       }
     );
 
@@ -1071,10 +1051,54 @@ apiDescribe('Validation:', persistence => {
             .where('foo', 'array-contains', 1)
             .where('foo', arrayContainsAnyOp, [2, 3])
         ).to.throw(
+          "Invalid query. You cannot use 'array-contains-any' filters with " +
+            "'array-contains' filters."
+        );
+
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', arrayContainsAnyOp, [2, 3])
+            .where('foo', 'array-contains', 1)
+        ).to.throw(
           "Invalid query. You cannot use 'array-contains' filters with " +
             "'array-contains-any' filters."
         );
+      }
+    );
 
+    validationIt(
+      persistence,
+      'cannot have array-contains-any filter with in filter.',
+      db => {
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', arrayContainsAnyOp, [2, 3])
+            .where('foo', inOp, [2, 3])
+        ).to.throw(
+          "Invalid query. You cannot use 'in' filters with " +
+            "'array-contains-any' filters."
+        );
+
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', inOp, [2, 3])
+            .where('foo', arrayContainsAnyOp, [2, 3])
+        ).to.throw(
+          "Invalid query. You cannot use 'array-contains-any' filters with " +
+            "'in' filters."
+        );
+      }
+    );
+
+    // This is redundant with the above tests, but makes sure our validation
+    // doesn't get confused.
+    validationIt(
+      persistence,
+      'cannot have array-contains, array-contains-any, and in filter.',
+      db => {
         expect(() =>
           db
             .collection('test')
