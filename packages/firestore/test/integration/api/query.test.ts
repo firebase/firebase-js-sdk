@@ -29,7 +29,8 @@ import {
   toChangesArray,
   toDataArray,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  isRunningAgainstEmulator
 } from '../util/helpers';
 
 const Blob = firebase.firestore!.Blob;
@@ -570,7 +571,7 @@ apiDescribe('Queries', persistence => {
     }).to.throw(expectedError);
   });
 
-  it('can query collection groups', async () => {
+  (isRunningAgainstEmulator() ? it.skip : it)('can query collection groups', async () => {
     await withTestDb(persistence, async db => {
       // Use .doc() to get a random collection group name to use but ensure it starts with 'b' for
       // predictable ordering.
@@ -606,7 +607,8 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it('can query collection groups with startAt / endAt by arbitrary documentId', async () => {
+  (isRunningAgainstEmulator() ? it.skip : it)
+  ('can query collection groups with startAt / endAt by arbitrary documentId', async () => {
     await withTestDb(persistence, async db => {
       // Use .doc() to get a random collection group name to use but ensure it starts with 'b' for
       // predictable ordering.
@@ -649,7 +651,8 @@ apiDescribe('Queries', persistence => {
     });
   });
 
-  it('can query collection groups with where filters on arbitrary documentId', async () => {
+  (isRunningAgainstEmulator() ? it.skip : it)
+  ('can query collection groups with where filters on arbitrary documentId', async () => {
     await withTestDb(persistence, async db => {
       // Use .doc() to get a random collection group name to use but ensure it starts with 'b' for
       // predictable ordering.
