@@ -1949,6 +1949,14 @@ export class Query implements firestore.Query {
 
   private validateNewFilter(filter: Filter): void {
     if (filter instanceof RelationFilter) {
+      const arrayOps = [
+        RelationOp.ARRAY_CONTAINS,
+        RelationOp.ARRAY_CONTAINS_ANY
+      ];
+      const disjunctiveOps = [RelationOp.IN, RelationOp.ARRAY_CONTAINS_ANY];
+      const isArrayOp = arrayOps.indexOf(filter.op) >= 0;
+      const isDisjunctiveOp = disjunctiveOps.indexOf(filter.op) >= 0;
+
       if (filter.isInequality()) {
         const existingField = this._query.getInequalityFilterField();
         if (existingField !== null && !existingField.isEqual(filter.field)) {
@@ -1968,35 +1976,19 @@ export class Query implements firestore.Query {
             firstOrderByField
           );
         }
-      } else if (
-        [
-          RelationOp.ARRAY_CONTAINS,
-          RelationOp.ARRAY_CONTAINS_ANY,
-          RelationOp.IN
-        ].indexOf(filter.op) >= 0
-      ) {
-        // Check if any of the above 3 filters are already present in the query.
-        const existingFilters: RelationOp[] = [];
-        if (this._query.hasRelationOpFilter(RelationOp.ARRAY_CONTAINS)) {
-          existingFilters.push(RelationOp.ARRAY_CONTAINS);
+      } else if (isDisjunctiveOp || isArrayOp) {
+        // You can have at most 1 disjunctive filter and 1 array filter. Check if
+        // the new filter conflicts with an existing one.
+        let conflictingOp: RelationOp | null = null;
+        if (isDisjunctiveOp) {
+          conflictingOp = this._query.findRelationOpFilter(disjunctiveOps);
         }
-        if (this._query.hasRelationOpFilter(RelationOp.ARRAY_CONTAINS_ANY)) {
-          existingFilters.push(RelationOp.ARRAY_CONTAINS_ANY);
+        if (conflictingOp === null && isArrayOp) {
+          conflictingOp = this._query.findRelationOpFilter(arrayOps);
         }
-        if (this._query.hasRelationOpFilter(RelationOp.IN)) {
-          existingFilters.push(RelationOp.IN);
-        }
-        // The only permitted combination of these 3 filters is IN with ARRAY_CONTAINS.
-        const hasOnlyInAndArrayContains =
-          existingFilters.length === 1 &&
-          ((existingFilters[0] === RelationOp.ARRAY_CONTAINS &&
-            filter.op === RelationOp.IN) ||
-            (existingFilters[0] === RelationOp.IN &&
-              filter.op === RelationOp.ARRAY_CONTAINS));
-        if (hasOnlyInAndArrayContains) {
-          // Valid filter.
-        } else if (existingFilters.length > 0) {
-          if (existingFilters.indexOf(filter.op) >= 0) {
+        if (conflictingOp != null) {
+          // We special case when it's a duplicate op to give a slightly clearer error message.
+          if (conflictingOp === filter.op) {
             throw new FirestoreError(
               Code.INVALID_ARGUMENT,
               'Invalid query. Queries only support a single ' +
@@ -2006,7 +1998,7 @@ export class Query implements firestore.Query {
             throw new FirestoreError(
               Code.INVALID_ARGUMENT,
               `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
-                `with '${existingFilters[0].toString()}' filters.`
+                `with '${conflictingOp.toString()}' filters.`
             );
           }
         }

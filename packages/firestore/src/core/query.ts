@@ -349,12 +349,17 @@ export class Query {
     return null;
   }
 
-  hasRelationOpFilter(relationOp: RelationOp): boolean {
-    return (
-      this.filters.find(
-        filter => filter instanceof RelationFilter && filter.op === relationOp
-      ) !== undefined
-    );
+  // Checks if any of the provided RelationOps are included in the query and
+  // returns the first one that is, or null if none are.
+  findRelationOpFilter(relationOps: RelationOp[]): RelationOp | null {
+    for (const filter of this.filters) {
+      if (filter instanceof RelationFilter) {
+        if (relationOps.indexOf(filter.op) >= 0) {
+          return filter.op;
+        }
+      }
+    }
+    return null;
   }
 
   isDocumentQuery(): boolean {
