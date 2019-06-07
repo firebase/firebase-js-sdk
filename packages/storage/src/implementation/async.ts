@@ -26,8 +26,7 @@ import * as promiseimpl from './promise_external';
  * into browser code.
  */
 export function async(f: Function): Function {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return function(...argsToForward: any[]) {
+  return function(...argsToForward: unknown[]) {
     // tslint:disable-next-line:no-floating-promises
     promiseimpl.resolve(true).then(() => {
       f.apply(null, argsToForward);
