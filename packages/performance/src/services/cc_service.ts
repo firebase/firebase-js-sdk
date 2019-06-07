@@ -132,7 +132,9 @@ function addToQueue(evt: BatchEvent): void {
 }
 
 /** Log handler for cc service to send the performance logs to the server. */
-export function ccHandler(serializer: (...args: unknown[]) => string): LogHandler {
+export function ccHandler(
+  serializer: (...args: unknown[]) => string
+): LogHandler {
   // The underscores for loggerInstance and level parameters are added to avoid the
   // noUnusedParameters related error.
   return (_loggerInstance: Logger, _level: LogLevel, ...args) => {
