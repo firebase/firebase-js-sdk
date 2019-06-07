@@ -280,7 +280,7 @@ apiDescribe('Database transactions', persistence => {
         });
     });
   });
-  
+
   it('update transactionally', () => {
     // A set of concurrent transactions.
     const transactionPromises: Array<Promise<void>> = [];
