@@ -20,7 +20,7 @@ import { Emulator } from './emulator';
 export class FirestoreEmulator extends Emulator {
   projectId: string;
 
-  constructor(port = 8087, projectId = 'test-emulator') {
+  constructor(port = 8091, projectId = 'test-emulator') {
     super(port);
     this.projectId = projectId;
     this.binaryName = 'firestore-emulator.jar';
