@@ -225,10 +225,10 @@ export class SimpleDb {
     // log on 12.2.
     if (iOSVersion === 12.2) {
       error(
-        'Firestore persistence on iOS 12.2 suffers from a bug in iOS 12.2 ' +
+        'Firestore persistence suffers from a bug in iOS 12.2 ' +
           'Safari that may cause your app to stop working. See ' +
           'https://stackoverflow.com/q/56496296/110915 for details ' +
-          'and potential workaround.'
+          'and a potential workaround.'
       );
     }
   }
@@ -741,7 +741,7 @@ function checkForAndReportiOSError(error: DOMException): void {
           'internal',
           `IOS_INDEXEDDB_BUG1: IndexedDb has thrown '${IOS_ERROR}'. This is likely ` +
             `due to an unavoidable bug in iOS. See https://stackoverflow.com/q/56496296/110915 ` +
-            `for details and potential workaround.`
+            `for details and a potential workaround.`
         );
       }, 0);
     }
