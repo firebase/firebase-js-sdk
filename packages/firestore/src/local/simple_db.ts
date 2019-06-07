@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
+import { getUA } from '@firebase/util';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { debug, error } from '../util/log';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
-import { getUA } from '@firebase/util';
 
 const LOG_TAG = 'SimpleDb';
 
