@@ -1420,8 +1420,8 @@ export class Query implements firestore.Query {
 
     // TODO(in-queries): Add 'in' and 'array-contains-any' to validation.
     if (
-      opStr.toString() !== 'in' &&
-      opStr.toString() !== 'array-contains-any'
+      (opStr as unknown) !== 'in' &&
+      (opStr as unknown) !== 'array-contains-any'
     ) {
       // Enumerated from the WhereFilterOp type in index.d.ts.
       const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];
@@ -1976,30 +1976,37 @@ export class Query implements firestore.Query {
         ].indexOf(filter.op) >= 0
       ) {
         // Check if any of the above 3 filters are already present in the query.
-        const existingFilter =
-          this._query.getRelationOpFilter(RelationOp.ARRAY_CONTAINS) ||
-          this._query.getRelationOpFilter(RelationOp.ARRAY_CONTAINS_ANY) ||
-          this._query.getRelationOpFilter(RelationOp.IN);
-        const hasInAndArrayContains =
-          (existingFilter === RelationOp.ARRAY_CONTAINS &&
-            filter.op === RelationOp.IN) ||
-          (existingFilter === RelationOp.IN &&
-            filter.op === RelationOp.ARRAY_CONTAINS);
+        const existingFilters: RelationOp[] = [];
+        if (this._query.hasRelationOpFilter(RelationOp.ARRAY_CONTAINS)) {
+          existingFilters.push(RelationOp.ARRAY_CONTAINS);
+        }
+        if (this._query.hasRelationOpFilter(RelationOp.ARRAY_CONTAINS_ANY)) {
+          existingFilters.push(RelationOp.ARRAY_CONTAINS_ANY);
+        }
+        if (this._query.hasRelationOpFilter(RelationOp.IN)) {
+          existingFilters.push(RelationOp.IN);
+        }
         // The only permitted combination of these 3 filters is IN with ARRAY_CONTAINS.
-        if (hasInAndArrayContains) {
-          return;
-        } else if (existingFilter !== null) {
-          if (!existingFilter.isEqual(filter.op)) {
-            throw new FirestoreError(
-              Code.INVALID_ARGUMENT,
-              `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
-                `with '${existingFilter.toString()}' filters.`
-            );
-          } else {
+        const hasOnlyInAndArrayContains =
+          existingFilters.length === 1 &&
+          ((existingFilters[0] === RelationOp.ARRAY_CONTAINS &&
+            filter.op === RelationOp.IN) ||
+            (existingFilters[0] === RelationOp.IN &&
+              filter.op === RelationOp.ARRAY_CONTAINS));
+        if (hasOnlyInAndArrayContains) {
+          // Valid filter.
+        } else if (existingFilters.length > 0) {
+          if (existingFilters.indexOf(filter.op) >= 0) {
             throw new FirestoreError(
               Code.INVALID_ARGUMENT,
               'Invalid query. Queries only support a single ' +
                 `'${filter.op.toString()}' filter.`
+            );
+          } else {
+            throw new FirestoreError(
+              Code.INVALID_ARGUMENT,
+              `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
+                `with '${existingFilters[0].toString()}' filters.`
             );
           }
         }

@@ -349,16 +349,12 @@ export class Query {
     return null;
   }
 
-  getRelationOpFilter(relationOp: RelationOp): RelationOp | null {
-    if (
+  hasRelationOpFilter(relationOp: RelationOp): boolean {
+    return (
       this.filters.find(
         filter => filter instanceof RelationFilter && filter.op === relationOp
       ) !== undefined
-    ) {
-      return relationOp;
-    } else {
-      return null;
-    }
+    );
   }
 
   isDocumentQuery(): boolean {
@@ -557,8 +553,7 @@ export class RelationFilter extends Filter {
           undefined
         );
       } else {
-        fail('IN filter has invalid value: ' + this.value.toString());
-        return false;
+        return fail('IN filter has invalid value: ' + this.value.toString());
       }
     } else if (this.op === RelationOp.ARRAY_CONTAINS_ANY) {
       return (

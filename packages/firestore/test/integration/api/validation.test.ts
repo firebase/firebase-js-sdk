@@ -1074,6 +1074,28 @@ apiDescribe('Validation:', persistence => {
           "Invalid query. You cannot use 'array-contains' filters with " +
             "'array-contains-any' filters."
         );
+
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', inOp, [2, 3])
+            .where('foo', 'array-contains', 1)
+            .where('foo', arrayContainsAnyOp, [2])
+        ).to.throw(
+          "Invalid query. You cannot use 'array-contains-any' filters with " +
+            "'array-contains' filters."
+        );
+
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', 'array-contains', 1)
+            .where('foo', inOp, [2, 3])
+            .where('foo', arrayContainsAnyOp, [2])
+        ).to.throw(
+          "Invalid query. You cannot use 'array-contains-any' filters with " +
+            "'array-contains' filters."
+        );
       }
     );
 
@@ -1094,12 +1116,30 @@ apiDescribe('Validation:', persistence => {
             .where('foo', inOp, [2, 3])
             .where('foo', 'array-contains', 1)
         ).not.to.throw();
+
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', inOp, [2, 3])
+            .where('foo', 'array-contains', 1)
+            .where('foo', 'array-contains', 2)
+        ).to.throw(
+          "Invalid query. Queries only support a single 'array-contains' filter."
+        );
+
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', 'array-contains', 1)
+            .where('foo', inOp, [2, 3])
+            .where('foo', inOp, [2, 3])
+        ).to.throw("Invalid query. Queries only support a single 'in' filter.");
       }
     );
 
     validationIt(
       persistence,
-      'cannot have an IN or array-contains-any filter with on-array values.',
+      'cannot have an IN or array-contains-any filter with non-array values.',
       db => {
         expect(() => db.collection('test').where('foo', inOp, 2)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' queries."
