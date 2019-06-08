@@ -50,7 +50,8 @@ if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
   // We need to define the `Event` type as it is used in Node to send events to
   // WebStorage when using both the IndexedDB mock and the WebStorage mock.
   class Event {
-    constructor(typeArg: string, eventInitDict?: EventInit) {}
+    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
+    constructor(_typeArg: string, _eventInitDict?: EventInit) {}
   }
 
   globalAny.Event = Event;

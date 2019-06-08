@@ -64,9 +64,9 @@ function isIndexedDbMock(): boolean {
 class TestSchemaConverter implements SimpleDbSchemaConverter {
   createOrUpgrade(
     db: IDBDatabase,
-    txn: SimpleDbTransaction,
-    fromVersion: number,
-    toVersion: number
+    _txn: SimpleDbTransaction,
+    _fromVersion: number,
+    _toVersion: number
   ): PersistencePromise<void> {
     const objectStore = db.createObjectStore('users', { keyPath: 'id' });
     objectStore.createIndex('age-name', ['age', 'name'], {
@@ -436,7 +436,7 @@ describe('SimpleDb', () => {
       return store
         .iterate(
           { index: 'age-name', keysOnly: true },
-          (key, value, control) => {
+          (key, value, _control) => {
             expect(value).to.equal(undefined);
             iterated.push(key);
           }

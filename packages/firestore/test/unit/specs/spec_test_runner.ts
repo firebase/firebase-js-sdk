@@ -149,11 +149,11 @@ class MockConnection implements Connection {
   /** A Deferred that is resolved once watch opens. */
   watchOpen = new Deferred<void>();
 
-  invokeRPC<Req>(rpcName: string, request: Req): never {
+  invokeRPC<Req>(_rpcName: string, _request: Req): never {
     throw new Error('Not implemented!');
   }
 
-  invokeStreamingRPC<Req>(rpcName: string, request: Req): never {
+  invokeStreamingRPC<Req>(_rpcName: string, _request: Req): never {
     throw new Error('Not implemented!');
   }
 
@@ -204,7 +204,7 @@ class MockConnection implements Connection {
 
   openStream<Req, Resp>(
     rpcName: string,
-    token: Token | null
+    _token: Token | null
   ): Stream<Req, Resp> {
     if (rpcName === 'Write') {
       if (this.writeStream !== null) {
@@ -439,7 +439,7 @@ abstract class TestRunner {
       new EmptyCredentialsProvider(),
       this.serializer
     );
-    const remoteStoreOnlineStateChangedHandler = (onlineState: OnlineState) => {
+    const remoteStoreOnlineStateChangedHandler = (onlineState: OnlineState): void => {
       this.syncEngine.applyOnlineStateChange(
         onlineState,
         OnlineStateSource.RemoteStore
@@ -447,7 +447,7 @@ abstract class TestRunner {
     };
     const sharedClientStateOnlineStateChangedHandler = (
       onlineState: OnlineState
-    ) => {
+    ): void => {
       this.syncEngine.applyOnlineStateChange(
         onlineState,
         OnlineStateSource.SharedClientState
@@ -1208,7 +1208,7 @@ class IndexedDbTestRunner extends TestRunner {
 
   protected initPersistence(
     serializer: JsonProtoSerializer,
-    gcEnabled: boolean
+    _gcEnabled: boolean
   ): Promise<Persistence> {
     // TODO(gsoltis): can we or should we disable this test if gc is enabled?
     return IndexedDbPersistence.createMultiClientIndexedDbPersistence(
@@ -1247,7 +1247,7 @@ export async function runSpec(
   const runners: TestRunner[] = [];
   const outstandingMutations = new SharedWriteTracker();
 
-  const ensureRunner = async (clientIndex: number) => {
+  const ensureRunner = async (clientIndex: number): Promise<TestRunner> => {
     if (!runners[clientIndex]) {
       const platform = new TestPlatform(
         PlatformSupport.getPlatform(),
@@ -1419,28 +1419,28 @@ export type SpecWatchCurrent = [TargetId[], string];
 /** [<target-id>, ...] */
 export type SpecWatchReset = TargetId[];
 
-export type SpecError = {
+export interface SpecError {
   code: number;
   message: string;
-};
+}
 
-export type SpecWatchRemove = {
+export interface SpecWatchRemove {
   targetIds: TargetId[];
   cause?: SpecError;
-};
+}
 
-export type SpecWatchSnapshot = {
+export interface SpecWatchSnapshot {
   version: TestSnapshotVersion;
   targetIds: TargetId[];
   resumeToken?: string;
-};
+}
 
-export type SpecWatchStreamClose = {
+export interface SpecWatchStreamClose {
   error: SpecError;
   runBackoffTimer: boolean;
-};
+}
 
-export type SpecWriteAck = {
+export interface SpecWriteAck {
   /** The version the backend uses to ack the write. */
   version: TestSnapshotVersion;
   /**
@@ -1452,9 +1452,9 @@ export type SpecWriteAck = {
    */
   // PORTING NOTE: Multi-Tab only.
   keepInQueue?: boolean;
-};
+}
 
-export type SpecWriteFailure = {
+export interface SpecWriteFailure {
   /** The error the backend uses to fail the write. */
   error: SpecError;
   /**
@@ -1465,7 +1465,7 @@ export type SpecWriteFailure = {
    * Defaults to false.
    */
   keepInQueue?: boolean;
-};
+}
 
 export interface SpecWatchEntity {
   // exactly one of key, doc or docs is set
@@ -1481,12 +1481,12 @@ export interface SpecWatchEntity {
 }
 
 // PORTING NOTE: Only used by web multi-tab tests.
-export type SpecClientState = {
+export interface SpecClientState {
   /** The visibility state of the browser tab running the client. */
   visibility?: VisibilityState;
   /** Whether this tab should try to forcefully become primary. */
   primary?: true;
-};
+}
 
 /**
  * [[<target-id>, ...], <key>, ...]

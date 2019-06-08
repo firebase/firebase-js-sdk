@@ -25,13 +25,13 @@ chai.use(chaiAsPromised);
 
 describe('PersistencePromise', () => {
   function async<R>(value: R): PersistencePromise<R> {
-    return new PersistencePromise<R>((resolve, reject) => {
+    return new PersistencePromise<R>((resolve, _reject) => {
       setTimeout(() => resolve(value), 0);
     });
   }
 
   function sync<R>(value: R): PersistencePromise<R> {
-    return new PersistencePromise<R>((resolve, reject) => {
+    return new PersistencePromise<R>((resolve, _reject) => {
       resolve(value);
     });
   }
@@ -119,10 +119,10 @@ describe('PersistencePromise', () => {
       .next(() => {
         throw new Error('one');
       })
-      .catch(x => {
+      .catch(_x => {
         throw new Error('two');
       })
-      .catch(x => {
+      .catch(_x => {
         return 1;
       })
       .next(x => {
@@ -136,10 +136,10 @@ describe('PersistencePromise', () => {
       .next(() => {
         throw new Error('one');
       })
-      .catch(x => {
+      .catch(_x => {
         throw new Error('two');
       })
-      .catch(x => {
+      .catch(_x => {
         return 1;
       })
       .next(x => {
@@ -204,7 +204,7 @@ describe('PersistencePromise', () => {
       })
     );
     updates.push(
-      async(1).next<void>(x => {
+      async(1).next<void>(_x => {
         throw error;
       })
     );

@@ -42,10 +42,10 @@ export type Rejector = (error: Error) => void;
 export class PersistencePromise<T> {
   // NOTE: next/catchCallback will always point to our own wrapper functions,
   // not the user's raw next() or catch() callbacks.
-  // tslint:disable-next-line:no-any Accept any result type for the next call in the Promise chain.
-  private nextCallback: FulfilledHandler<T, any> = null;
-  // tslint:disable-next-line:no-any Accept any result type for the error handler.
-  private catchCallback: RejectedHandler<any> = null;
+  // Accept any result type for the next call in the Promise chain.
+  private nextCallback: FulfilledHandler<T, unknown> = null;
+  // Accept any result type for the error handler.
+  private catchCallback: RejectedHandler<unknown> = null;
 
   // When the operation resolves, we'll set result or error and mark isDone.
   private result: T | undefined = undefined;
@@ -137,10 +137,8 @@ export class PersistencePromise<T> {
     if (nextFn) {
       return this.wrapUserFunction(() => nextFn(value));
     } else {
-      // If there's no nextFn, then R must be the same as T but we
-      // can't express that in the type system.
-      // tslint:disable-next-line:no-any
-      return PersistencePromise.resolve<R>(value as any);
+      // If there's no nextFn, then R must be the same as T
+      return PersistencePromise.resolve<R>(value as unknown as R);
     }
   }
 
@@ -158,19 +156,20 @@ export class PersistencePromise<T> {
   static resolve(): PersistencePromise<void>;
   static resolve<R>(result: R): PersistencePromise<R>;
   static resolve<R>(result?: R): PersistencePromise<R | void> {
-    return new PersistencePromise<R | void>((resolve, reject) => {
+    return new PersistencePromise<R | void>((resolve, _reject) => {
       resolve(result);
     });
   }
 
   static reject<R>(error: Error): PersistencePromise<R> {
-    return new PersistencePromise<R>((resolve, reject) => {
+    return new PersistencePromise<R>((_resolve, reject) => {
       reject(error);
     });
   }
 
   static waitFor(
-    // tslint:disable-next-line:no-any Accept all Promise types in waitFor().
+    // Accept all Promise types in waitFor().
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     all: { forEach: (cb: (el: PersistencePromise<any>) => void) => void }
   ): PersistencePromise<void> {
     return new PersistencePromise<void>((resolve, reject) => {

@@ -60,7 +60,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       docRef.onSnapshot(() => {});
       return docRef
         .get()
-        .then(ignored => docRef.firestore.disableNetwork())
+        .then(_ignored => docRef.firestore.disableNetwork())
         .then(() => docRef.get())
         .then(doc => {
           expect(doc.exists).to.be.true;
@@ -83,7 +83,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       colRef.onSnapshot(() => {});
       return colRef
         .get()
-        .then(ignored => colRef.firestore.disableNetwork())
+        .then(_ignored => colRef.firestore.disableNetwork())
         .then(() => {
           // NB: since we're offline, the returned promises won't complete
           colRef.doc('doc2').set({ key2b: 'value2b' }, { merge: true });
@@ -114,7 +114,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       docRef.onSnapshot(() => {});
       return docRef
         .get()
-        .then(ignored => docRef.get({ source: 'cache' }))
+        .then(_ignored => docRef.get({ source: 'cache' }))
         .then(doc => {
           expect(doc.exists).to.be.true;
           expect(doc.metadata.fromCache).to.be.true;
@@ -136,7 +136,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       colRef.onSnapshot(() => {});
       return colRef
         .get()
-        .then(ignored => colRef.get({ source: 'cache' }))
+        .then(_ignored => colRef.get({ source: 'cache' }))
         .then(qrySnap => {
           expect(qrySnap.metadata.fromCache).to.be.true;
           expect(qrySnap.metadata.hasPendingWrites).to.be.false;
@@ -155,7 +155,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       docRef.onSnapshot(() => {});
       return docRef
         .get()
-        .then(ignored => docRef.firestore.disableNetwork())
+        .then(_ignored => docRef.firestore.disableNetwork())
         .then(() => docRef.get({ source: 'cache' }))
         .then(doc => {
           expect(doc.exists).to.be.true;
@@ -178,7 +178,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       colRef.onSnapshot(() => {});
       return colRef
         .get()
-        .then(ignored => colRef.firestore.disableNetwork())
+        .then(_ignored => colRef.firestore.disableNetwork())
         .then(() => {
           // NB: since we're offline, the returned promises won't complete
           colRef.doc('doc2').set({ key2b: 'value2b' }, { merge: true });
@@ -234,14 +234,14 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     return withTestDocAndInitialData(persistence, initialData, docRef => {
       return docRef
         .get({ source: 'server' })
-        .then(ignored => {})
+        .then(_ignored => {})
         .then(() => docRef.firestore.disableNetwork())
         .then(() => docRef.get({ source: 'server' }))
         .then(
-          doc => {
+          _doc => {
             expect.fail();
           },
-          expected => {}
+          _expected => {}
         );
     });
   });
@@ -259,13 +259,13 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           .get()
           // now go offine. Note that if persistence is disabled, this will cause
           // the initialDocs to be garbage collected.
-          .then(ignored => colRef.firestore.disableNetwork())
+          .then(_ignored => colRef.firestore.disableNetwork())
           .then(() => colRef.get({ source: 'server' }))
           .then(
-            qrySnap => {
+            _qrySnap => {
               expect.fail();
             },
-            expected => {}
+            _expected => {}
           )
       );
     });
@@ -280,17 +280,17 @@ apiDescribe('GetOptions', (persistence: boolean) => {
       docRef.onSnapshot(() => {});
       return docRef
         .get()
-        .then(ignored => docRef.firestore.disableNetwork())
+        .then(_ignored => docRef.firestore.disableNetwork())
         .then(() => {
           // Create an initial listener for this query (to attempt to disrupt the
           // gets below) and wait for the listener to deliver its initial
           // snapshot before continuing.
           return new Promise((resolve, reject) => {
             docRef.onSnapshot(
-              docSnap => {
+              _docSnap => {
                 resolve();
               },
-              error => {
+              _error => {
                 reject();
               }
             );
@@ -314,10 +314,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         })
         .then(() => docRef.get({ source: 'server' }))
         .then(
-          doc => {
+          _doc => {
             expect.fail();
           },
-          expected => {}
+          _expected => {}
         );
     });
   });
@@ -337,7 +337,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           .get()
           // now go offine. Note that if persistence is disabled, this will cause
           // the initialDocs to be garbage collected.
-          .then(ignored => colRef.firestore.disableNetwork())
+          .then(_ignored => colRef.firestore.disableNetwork())
           .then(() => {
             // NB: since we're offline, the returned promises won't complete
             colRef.doc('doc2').set({ key2b: 'value2b' }, { merge: true });
@@ -349,10 +349,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
             // snapshot before continuing.
             return new Promise((resolve, reject) => {
               colRef.onSnapshot(
-                qrySnap => {
+                _qrySnap => {
                   resolve();
                 },
-                error => {
+                _error => {
                   reject();
                 }
               );
@@ -386,10 +386,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           })
           .then(() => colRef.get({ source: 'server' }))
           .then(
-            qrySnap => {
+            _qrySnap => {
               expect.fail();
             },
-            expected => {}
+            _expected => {}
           )
       );
     });
@@ -425,10 +425,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           // Attempt to get doc. This will fail since there's nothing in cache.
           .then(() => docRef.get())
           .then(
-            doc => {
+            _doc => {
               expect.fail();
             },
-            expected => {}
+            _expected => {}
           )
       );
     });
@@ -471,10 +471,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       // Attempt to get doc.  This will fail since there's nothing in cache.
       return docRef.get({ source: 'cache' }).then(
-        doc => {
+        _doc => {
           expect.fail();
         },
-        expected => {}
+        _expected => {}
       );
     });
   });
@@ -498,10 +498,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           // Attempt to get doc.  This will fail since there's nothing in cache.
           .then(() => docRef.get({ source: 'cache' }))
           .then(
-            doc => {
+            _doc => {
               expect.fail();
             },
-            expected => {}
+            _expected => {}
           )
       );
     });
@@ -573,10 +573,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           // Attempt to get doc.  This will fail since there's nothing in cache.
           .then(() => docRef.get({ source: 'server' }))
           .then(
-            doc => {
+            _doc => {
               expect.fail();
             },
-            expected => {}
+            _expected => {}
           )
       );
     });
@@ -588,10 +588,10 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .disableNetwork()
         .then(() => colRef.get({ source: 'server' }))
         .then(
-          qrySnap => {
+          _qrySnap => {
             expect.fail();
           },
-          expected => {}
+          _expected => {}
         );
     });
   });

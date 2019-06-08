@@ -195,7 +195,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   getNewDocumentChanges(
-    transaction: PersistenceTransaction
+    _transaction: PersistenceTransaction
   ): PersistencePromise<MaybeDocumentMap> {
     let changedDocs = maybeDocumentMap();
 
@@ -216,7 +216,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     return new MemoryRemoteDocumentChangeBuffer(this.sizer, this);
   }
 
-  getSize(txn: PersistenceTransaction): PersistencePromise<number> {
+  getSize(_txn: PersistenceTransaction): PersistencePromise<number> {
     return PersistencePromise.resolve(this.size);
   }
 }

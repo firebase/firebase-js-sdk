@@ -36,8 +36,8 @@ export class AutoId {
 }
 
 export function primitiveComparator<T>(left: T, right: T): number {
-  if (left < right) return -1;
-  if (left > right) return 1;
+  if (left < right) {return -1;}
+  if (left > right) {return 1;}
   return 0;
 }
 

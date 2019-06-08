@@ -388,7 +388,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   ): Promise<T> {
     assert(retries >= 0, 'Got negative number of retries for transaction.');
     const transaction = this.remoteStore.createTransaction();
-    const wrappedUpdateFunction = () => {
+    const wrappedUpdateFunction = (): Promise<T> => {
       try {
         const userPromise = updateFunction(transaction);
         if (

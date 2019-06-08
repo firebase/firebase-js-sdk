@@ -89,18 +89,18 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
   }
 
   onMutationResult(
-    commitVersion: SnapshotVersion,
-    results: MutationResult[]
+    _commitVersion: SnapshotVersion,
+    _results: MutationResult[]
   ): Promise<void> {
     return this.resolvePending('mutationResult');
   }
 
   onWatchChange(
-    watchChange:
+    _watchChange:
       | DocumentWatchChange
       | WatchTargetChange
       | ExistenceFilterChange,
-    snapshot: SnapshotVersion
+    _snapshot: SnapshotVersion
   ): Promise<void> {
     return this.resolvePending('watchChange');
   }
@@ -109,7 +109,7 @@ class StreamStatusListener implements WatchStreamListener, WriteStreamListener {
     return this.resolvePending('open');
   }
 
-  onClose(err?: FirestoreError): Promise<void> {
+  onClose(_err?: FirestoreError): Promise<void> {
     return this.resolvePending('close');
   }
 

@@ -32,7 +32,6 @@ import {
 } from '../../util/helpers';
 
 import {
-  IndexedDbRemoteDocumentCache,
   isDocumentChangeMissingError
 } from '../../../src/local/indexeddb_remote_document_cache';
 import {

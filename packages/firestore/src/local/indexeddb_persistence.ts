@@ -168,9 +168,9 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * TODO(b/114226234): Remove `synchronizeTabs` section when multi-tab is no
  * longer optional.
  */
-export type MultiClientParams = {
+export interface MultiClientParams {
   sequenceNumberSyncer: SequenceNumberSyncer;
-};
+}
 export class IndexedDbPersistence implements Persistence {
   static getStore<Key extends IDBValidKey, Value>(
     txn: PersistenceTransaction,
@@ -1315,7 +1315,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
         {
           index: DbTargetDocument.documentTargetsIndex
         },
-        ([targetId, docKey], { path, sequenceNumber }) => {
+        ([targetId, _docKey], { path, sequenceNumber }) => {
           if (targetId === 0) {
             // if nextToReport is valid, report it, this is a new key so the
             // last one must not be a member of any targets.

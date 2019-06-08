@@ -171,7 +171,8 @@ export class JsonProtoSerializer {
    */
   private toInt32Value(val: number | null): number | undefined {
     if (!typeUtils.isNullOrUndefined(val)) {
-      // tslint:disable-next-line:no-any We need to match generated Proto types.
+      // We need to match generated Proto types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return { value: val } as any;
     } else {
       return undefined;
@@ -188,7 +189,8 @@ export class JsonProtoSerializer {
   private fromInt32Value(val: number | undefined): number | null {
     let result;
     if (typeof val === 'object') {
-      // tslint:disable-next-line:no-any We need to match generated Proto types.
+      // We need to match generated Proto types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       result = (val as any).value;
     } else {
       // We accept raw numbers (without the {value: ... } wrapper) for
@@ -209,7 +211,7 @@ export class JsonProtoSerializer {
     return {
       seconds: '' + timestamp.seconds,
       nanos: timestamp.nanoseconds
-      // tslint:disable-next-line:no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
   }
 
@@ -1190,7 +1192,7 @@ export class JsonProtoSerializer {
   }
 
   private toOrder(orderBys: OrderBy[]): api.Order[] | undefined {
-    if (orderBys.length === 0) return;
+    if (orderBys.length === 0) {return;}
     return orderBys.map(order => this.toPropertyOrder(order));
   }
 

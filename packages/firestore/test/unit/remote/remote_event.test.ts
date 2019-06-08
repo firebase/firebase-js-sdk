@@ -44,12 +44,14 @@ import {
   version
 } from '../../util/helpers';
 
+/* eslint-disable  @typescript-eslint/prefer-interface */
 type TargetMap = {
   [targetId: number]: QueryData;
 };
 type PendingTargetResponses = {
   [targetId: number]: number;
 };
+/* eslint-enable  @typescript-eslint/prefer-interface */
 
 function listens(...targetIds: TargetId[]): TargetMap {
   const targets: TargetMap = {};

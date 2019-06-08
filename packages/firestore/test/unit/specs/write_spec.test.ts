@@ -598,7 +598,7 @@ describeSpec('Writes:', [], () => {
     'Writes are released when there are no queries left',
     ['eager-gc'],
     'This test verifies that committed mutations are eligible for ' +
-      'garbage collection on target removal',
+    'garbage collection on target removal',
     () => {
       const query = Query.atPath(path('collection'));
       const docALocal = doc(
@@ -739,7 +739,7 @@ describeSpec('Writes:', [], () => {
 
   specTest(
     'Ensure correct events after patching a doc (including a delete) and' +
-      ' getting watcher events.',
+    ' getting watcher events.',
     [],
     () => {
       const query = Query.atPath(path('collection/doc'));
@@ -772,7 +772,7 @@ describeSpec('Writes:', [], () => {
   );
 
   specTest('Writes are resent after network disconnect', [], () => {
-    const expectRequestCount = (requestCounts: { [type: string]: number }) =>
+    const expectRequestCount = (requestCounts: { [type: string]: number }): number =>
       requestCounts.handshakes + requestCounts.writes + requestCounts.closes;
 
     return spec()

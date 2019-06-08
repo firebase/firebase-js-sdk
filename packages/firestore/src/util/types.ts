@@ -16,24 +16,24 @@
  */
 
 // Untyped Number alias we can use to check for ES6 methods / properties.
-// tslint:disable-next-line:no-any variable-name
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const NumberAsAny = Number as any;
 
 // An Object whose keys and values are strings.
-export type StringMap = { [key: string]: string };
+export interface StringMap { [key: string]: string }
 
 /**
  * Minimum safe integer in Javascript because of floating point precision.
  * Added to not rely on ES6 features.
  */
-export let MIN_SAFE_INTEGER: number =
+export const MIN_SAFE_INTEGER: number =
   NumberAsAny.MIN_SAFE_INTEGER || -(Math.pow(2, 53) - 1);
 
 /**
  * Maximum safe integer in Javascript because of floating point precision.
  * Added to not rely on ES6 features.
  */
-export let MAX_SAFE_INTEGER: number =
+export const MAX_SAFE_INTEGER: number =
   NumberAsAny.MAX_SAFE_INTEGER || Math.pow(2, 53) - 1;
 
 /**
@@ -42,7 +42,7 @@ export let MAX_SAFE_INTEGER: number =
  * Added to not rely on ES6 features.
  * @param value The value to test for being an integer
  */
-export let isInteger: (value: unknown) => boolean =
+export const isInteger: (value: unknown) => boolean =
   NumberAsAny.isInteger ||
   (value =>
     typeof value === 'number' &&

@@ -105,7 +105,7 @@ export class MemoryPersistence implements Persistence {
     this._started = true;
     this.referenceDelegate = referenceDelegateFactory(this);
     this.queryCache = new MemoryQueryCache(this);
-    const sizer = (doc: MaybeDocument) =>
+    const sizer = (doc: MaybeDocument): number =>
       this.referenceDelegate.documentSize(doc);
     this.indexManager = new MemoryIndexManager();
     this.remoteDocumentCache = new MemoryRemoteDocumentCache(
@@ -139,7 +139,7 @@ export class MemoryPersistence implements Persistence {
     // No op.
   }
 
-  setNetworkEnabled(networkEnabled: boolean): void {
+  setNetworkEnabled(_networkEnabled: boolean): void {
     // No op.
   }
 
@@ -290,7 +290,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     });
   }
 
-  documentSize(doc: MaybeDocument): number {
+  documentSize(_doc: MaybeDocument): number {
     // For eager GC, we don't care about the document size, there are no size thresholds.
     return 0;
   }
@@ -329,7 +329,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   onTransactionStarted(): void {}
 
   onTransactionCommitted(
-    txn: PersistenceTransaction
+    _txn: PersistenceTransaction
   ): PersistencePromise<void> {
     return PersistencePromise.resolve();
   }

@@ -54,8 +54,11 @@ import {
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.
-export type QueryMap = { [query: string]: TargetId };
-export type LimboMap = { [key: string]: TargetId };
+export interface QueryMap { [query: string]: TargetId }
+export interface LimboMap { [key: string]: TargetId }
+
+// number index signature doesn't work well with interface, so we use type instead
+// eslint-disable-next-line  @typescript-eslint/prefer-interface
 export type ActiveTargetMap = {
   [targetId: number]: { query: SpecQuery; resumeToken: string };
 };

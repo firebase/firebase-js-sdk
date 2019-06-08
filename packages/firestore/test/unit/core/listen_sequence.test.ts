@@ -41,7 +41,7 @@ describe('ListenSequence', () => {
       sequenceNumberHandler: null as
         | ((sequenceNumber: ListenSequenceNumber) => void)
         | null,
-      writeSequenceNumber: (sequenceNumber: ListenSequenceNumber): void => {}
+      writeSequenceNumber: (_sequenceNumber: ListenSequenceNumber): void => {}
     };
     const listenSequence = new ListenSequence(0, syncParams);
     syncParams.sequenceNumberHandler!(5);

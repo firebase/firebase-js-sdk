@@ -197,7 +197,7 @@ export class SortedMapIterator<K, V> {
     while (!node.isEmpty()) {
       cmp = startKey ? comparator(node.key, startKey) : 1;
       // flip the comparison if we're going in reverse
-      if (isReverse) cmp *= -1;
+      if (isReverse) {cmp *= -1;}
 
       if (cmp < 0) {
         // This node is less than our start key. ignore it
@@ -255,7 +255,7 @@ export class SortedMapIterator<K, V> {
   }
 
   peek(): Entry<K, V> | null {
-    if (this.nodeStack.length === 0) return null;
+    if (this.nodeStack.length === 0) {return null;}
 
     const node = this.nodeStack[this.nodeStack.length - 1];
     return { key: node.key, value: node.value };
@@ -268,8 +268,9 @@ export class LLRBNode<K, V> {
   readonly left: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
   readonly right: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
   readonly size: number;
-
-  // tslint:disable-next-line:no-any Empty node is shared between all LLRB trees.
+  
+  //Empty node is shared between all LLRB trees.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static EMPTY: LLRBEmptyNode<any, any> = null as any;
 
   static RED = true;
@@ -381,7 +382,7 @@ export class LLRBNode<K, V> {
       return LLRBNode.EMPTY;
     }
     let n: LLRBNode<K, V> = this;
-    if (!n.left.isRed() && !n.left.left.isRed()) n = n.moveRedLeft();
+    if (!n.left.isRed() && !n.left.left.isRed()) {n = n.moveRedLeft();}
     n = n.copy(null, null, null, (n.left as LLRBNode<K, V>).removeMin(), null);
     return n.fixUp();
   }
@@ -399,7 +400,7 @@ export class LLRBNode<K, V> {
       }
       n = n.copy(null, null, null, n.left.remove(key, comparator), null);
     } else {
-      if (n.left.isRed()) n = n.rotateRight();
+      if (n.left.isRed()) {n = n.rotateRight();}
       if (!n.right.isEmpty() && !n.right.isRed() && !n.right.left.isRed()) {
         n = n.moveRedRight();
       }
@@ -429,9 +430,9 @@ export class LLRBNode<K, V> {
   // Returns new tree after performing any needed rotations.
   private fixUp(): LLRBNode<K, V> {
     let n: LLRBNode<K, V> = this;
-    if (n.right.isRed() && !n.left.isRed()) n = n.rotateLeft();
-    if (n.left.isRed() && n.left.left.isRed()) n = n.rotateRight();
-    if (n.left.isRed() && n.right.isRed()) n = n.colorFlip();
+    if (n.right.isRed() && !n.left.isRed()) {n = n.rotateLeft();}
+    if (n.left.isRed() && n.left.left.isRed()) {n = n.rotateRight();}
+    if (n.left.isRed() && n.right.isRed()) {n = n.colorFlip();}
     return n;
   }
 
@@ -519,26 +520,24 @@ export class LLRBEmptyNode<K, V> {
   right: LLRBNode<K, V>;
   size = 0;
 
-  constructor() {}
-
   // Returns a copy of the current node.
   copy(
-    key: K | null,
-    value: V | null,
-    color: boolean | null,
-    left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
-    right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
+    _key: K | null,
+    _value: V | null,
+    _color: boolean | null,
+    _left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
+    _right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
   ): LLRBEmptyNode<K, V> {
     return this;
   }
 
   // Returns a copy of the tree, with the specified key/value added.
-  insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
+  insert(key: K, value: V, _comparator: Comparator<K>): LLRBNode<K, V> {
     return new LLRBNode<K, V>(key, value);
   }
 
   // Returns a copy of the tree, with the specified key removed.
-  remove(key: K, comparator: Comparator<K>): LLRBEmptyNode<K, V> {
+  remove(_key: K, _comparator: Comparator<K>): LLRBEmptyNode<K, V> {
     return this;
   }
 
@@ -546,11 +545,11 @@ export class LLRBEmptyNode<K, V> {
     return true;
   }
 
-  inorderTraversal(action: (k: K, v: V) => boolean): boolean {
+  inorderTraversal(_action: (k: K, v: V) => boolean): boolean {
     return false;
   }
 
-  reverseTraversal(action: (k: K, v: V) => boolean): boolean {
+  reverseTraversal(_action: (k: K, v: V) => boolean): boolean {
     return false;
   }
 

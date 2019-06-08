@@ -58,7 +58,7 @@ export class MemoryMutationQueue implements MutationQueue {
     private readonly referenceDelegate: ReferenceDelegate
   ) {}
 
-  checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
+  checkEmpty(_transaction: PersistenceTransaction): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
   }
 
@@ -89,13 +89,13 @@ export class MemoryMutationQueue implements MutationQueue {
   }
 
   getLastStreamToken(
-    transaction: PersistenceTransaction
+    _transaction: PersistenceTransaction
   ): PersistencePromise<ProtoByteString> {
     return PersistencePromise.resolve(this.lastStreamToken);
   }
 
   setLastStreamToken(
-    transaction: PersistenceTransaction,
+    _transaction: PersistenceTransaction,
     streamToken: ProtoByteString
   ): PersistencePromise<void> {
     this.lastStreamToken = streamToken;
@@ -178,13 +178,13 @@ export class MemoryMutationQueue implements MutationQueue {
   }
 
   getAllMutationBatches(
-    transaction: PersistenceTransaction
+    _transaction: PersistenceTransaction
   ): PersistencePromise<MutationBatch[]> {
     return PersistencePromise.resolve(this.mutationQueue.slice());
   }
 
   getAllMutationBatchesAffectingDocumentKey(
-    transaction: PersistenceTransaction,
+    _transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MutationBatch[]> {
     const start = new DocReference(documentKey, 0);
@@ -207,7 +207,7 @@ export class MemoryMutationQueue implements MutationQueue {
   }
 
   getAllMutationBatchesAffectingDocumentKeys(
-    transaction: PersistenceTransaction,
+    _transaction: PersistenceTransaction,
     documentKeys: SortedMap<DocumentKey, unknown>
   ): PersistencePromise<MutationBatch[]> {
     let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);
@@ -229,7 +229,7 @@ export class MemoryMutationQueue implements MutationQueue {
   }
 
   getAllMutationBatchesAffectingQuery(
-    transaction: PersistenceTransaction,
+    _transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<MutationBatch[]> {
     assert(
@@ -315,12 +315,12 @@ export class MemoryMutationQueue implements MutationQueue {
     });
   }
 
-  removeCachedMutationKeys(batchId: BatchId): void {
+  removeCachedMutationKeys(_batchId: BatchId): void {
     // No-op since the memory mutation queue does not maintain a separate cache.
   }
 
   containsKey(
-    txn: PersistenceTransaction,
+    _txn: PersistenceTransaction,
     key: DocumentKey
   ): PersistencePromise<boolean> {
     const ref = new DocReference(key, 0);
@@ -329,7 +329,7 @@ export class MemoryMutationQueue implements MutationQueue {
   }
 
   performConsistencyCheck(
-    txn: PersistenceTransaction
+    _txn: PersistenceTransaction
   ): PersistencePromise<void> {
     if (this.mutationQueue.length === 0) {
       assert(

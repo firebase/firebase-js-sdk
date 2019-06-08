@@ -1118,14 +1118,14 @@ export class MemorySharedClientState implements SharedClientState {
     | ((sequenceNumber: ListenSequenceNumber) => void)
     | null = null;
 
-  addPendingMutation(batchId: BatchId): void {
+  addPendingMutation(_batchId: BatchId): void {
     // No op.
   }
 
   updateMutationState(
-    batchId: BatchId,
-    state: 'acknowledged' | 'rejected',
-    error?: FirestoreError
+    _batchId: BatchId,
+    _state: 'acknowledged' | 'rejected',
+    _error?: FirestoreError
   ): void {
     // No op.
   }
@@ -1138,7 +1138,7 @@ export class MemorySharedClientState implements SharedClientState {
   updateQueryState(
     targetId: TargetId,
     state: QueryTargetState,
-    error?: FirestoreError
+    _error?: FirestoreError
   ): void {
     this.queryState[targetId] = state;
   }
@@ -1169,18 +1169,18 @@ export class MemorySharedClientState implements SharedClientState {
   }
 
   handleUserChange(
-    user: User,
-    removedBatchIds: BatchId[],
-    addedBatchIds: BatchId[]
+    _user: User,
+    _removedBatchIds: BatchId[],
+    _addedBatchIds: BatchId[]
   ): void {
     // No op.
   }
 
-  setOnlineState(onlineState: OnlineState): void {
+  setOnlineState(_onlineState: OnlineState): void {
     // No op.
   }
 
   shutdown(): void {}
 
-  writeSequenceNumber(sequenceNumber: ListenSequenceNumber): void {}
+  writeSequenceNumber(_sequenceNumber: ListenSequenceNumber): void {}
 }

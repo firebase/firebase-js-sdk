@@ -207,7 +207,7 @@ class LocalStoreTester {
           doc,
           returned,
           `Expected '${
-            returned ? returned.toString() : null
+          returned ? returned.toString() : null
           }' to equal '${doc.toString()}'.`
         );
       }
@@ -345,7 +345,7 @@ function genericLocalStoreTests(
 
   it(
     'handles SetMutation -> Ack (Held) -> SetMutation -> Reject -> ' +
-      'RemoteEvent (Release Ack)',
+    'RemoteEvent (Release Ack)',
     () => {
       return (
         expectLocalStore()
@@ -1126,6 +1126,7 @@ function genericLocalStoreTests(
     );
   });
 
+  /* eslint-disable camelcase */
   it('holds back only non-idempotent transforms', () => {
     const query = Query.atPath(path('foo'));
     return (
@@ -1190,6 +1191,7 @@ function genericLocalStoreTests(
         .finish()
     );
   });
+  /* eslint-enable camelcase */
 
   it('handles MergeMutation with Transform -> RemoteEvent', () => {
     const query = Query.atPath(path('foo'));

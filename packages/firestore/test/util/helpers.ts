@@ -95,7 +95,7 @@ export type TestSnapshotVersion = number;
  */
 export const DELETE_SENTINEL = '<DELETE>';
 
-const preConverter = (input: unknown) => {
+const preConverter = (input: unknown): unknown => {
   return input === DELETE_SENTINEL ? FieldValueImpl.delete() : input;
 };
 
@@ -411,8 +411,8 @@ export function localViewChanges(
   targetId: TargetId,
   changes: { added?: string[]; removed?: string[] }
 ): LocalViewChanges {
-  if (!changes.added) changes.added = [];
-  if (!changes.removed) changes.removed = [];
+  if (!changes.added) {changes.added = [];}
+  if (!changes.removed) {changes.removed = [];}
 
   let addedKeys = documentKeySet();
   let removedKeys = documentKeySet();

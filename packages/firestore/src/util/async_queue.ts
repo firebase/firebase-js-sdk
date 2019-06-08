@@ -20,7 +20,8 @@ import { Code, FirestoreError } from './error';
 import * as log from './log';
 import { CancelablePromise, Deferred } from './promise';
 
-// tslint:disable-next-line:no-any Accept any return type from setTimeout().
+// Accept any return type from setTimeout().
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type TimerHandle = any;
 
 /**
@@ -86,7 +87,7 @@ class DelayedOperation<T extends unknown> implements CancelablePromise<T> {
     // It's normal for the deferred promise to be canceled (due to cancellation)
     // and so we attach a dummy catch callback to avoid
     // 'UnhandledPromiseRejectionWarning' log spam.
-    this.deferred.promise.catch(err => {});
+    this.deferred.promise.catch(_err => {});
   }
 
   /**

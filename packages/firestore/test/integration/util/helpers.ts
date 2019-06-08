@@ -27,6 +27,7 @@ import firebase from './firebase_export';
 // tslint:disable-next-line:no-any __karma__ is an untyped global
 declare const __karma__: any;
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const PROJECT_CONFIG = require('../../../../../config/project.json');
 
 const EMULATOR_PORT = process.env.FIRESTORE_EMULATOR_PORT;
@@ -296,7 +297,7 @@ export function withTestCollectionSettings(
   );
 }
 
-function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
+function wipeDb(_db: firestore.FirebaseFirestore): Promise<void> {
   // TODO(dimond): actually wipe DB and assert or listenables have been turned
   // off. We probably need deep queries for this.
   return Promise.resolve(undefined);

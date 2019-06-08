@@ -65,7 +65,7 @@ export class SortedSet<T> {
 
   /** Iterates elements in order defined by "comparator" */
   forEach(cb: (elem: T) => void): void {
-    this.data.inorderTraversal((k: T, v: boolean) => {
+    this.data.inorderTraversal((k: T, _v: boolean) => {
       cb(k);
       return false;
     });
@@ -76,7 +76,7 @@ export class SortedSet<T> {
     const iter = this.data.getIteratorFrom(range[0]);
     while (iter.hasNext()) {
       const elem = iter.getNext();
-      if (this.comparator(elem.key, range[1]) >= 0) return;
+      if (this.comparator(elem.key, range[1]) >= 0) {return;}
       cb(elem.key);
     }
   }
@@ -94,7 +94,7 @@ export class SortedSet<T> {
     while (iter.hasNext()) {
       const elem = iter.getNext();
       const result = cb(elem.key);
-      if (!result) return;
+      if (!result) {return;}
     }
   }
 
@@ -119,7 +119,7 @@ export class SortedSet<T> {
 
   /** Deletes an element */
   delete(elem: T): SortedSet<T> {
-    if (!this.has(elem)) return this;
+    if (!this.has(elem)) {return this;}
     return this.copy(this.data.remove(elem));
   }
 
@@ -136,15 +136,15 @@ export class SortedSet<T> {
   }
 
   isEqual(other: SortedSet<T>): boolean {
-    if (!(other instanceof SortedSet)) return false;
-    if (this.size !== other.size) return false;
+    if (!(other instanceof SortedSet)) {return false;}
+    if (this.size !== other.size) {return false;}
 
     const thisIt = this.data.getIterator();
     const otherIt = other.data.getIterator();
     while (thisIt.hasNext()) {
       const thisElem = thisIt.getNext().key;
       const otherElem = otherIt.getNext().key;
-      if (this.comparator(thisElem, otherElem) !== 0) return false;
+      if (this.comparator(thisElem, otherElem) !== 0) {return false;}
     }
     return true;
   }

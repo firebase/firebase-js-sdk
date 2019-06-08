@@ -25,10 +25,10 @@ import { Document, MaybeDocument } from './document';
 import { DocumentKey } from './document_key';
 
 /** Miscellaneous collection types / constants. */
-export type DocumentSizeEntry = {
+export interface DocumentSizeEntry {
   maybeDocument: MaybeDocument;
   size: number;
-};
+}
 
 export type MaybeDocumentMap = SortedMap<DocumentKey, MaybeDocument>;
 const EMPTY_MAYBE_DOCUMENT_MAP = new SortedMap<DocumentKey, MaybeDocument>(
@@ -47,10 +47,10 @@ export function nullableMaybeDocumentMap(): NullableMaybeDocumentMap {
   return maybeDocumentMap();
 }
 
-export type DocumentSizeEntries = {
+export interface DocumentSizeEntries {
   maybeDocuments: NullableMaybeDocumentMap;
   sizeMap: SortedMap<DocumentKey, number>;
-};
+}
 
 export type DocumentMap = SortedMap<DocumentKey, Document>;
 const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(

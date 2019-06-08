@@ -151,7 +151,7 @@ export class NullValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): null {
+  value(_options?: FieldValueOptions): null {
     return null;
   }
 
@@ -176,7 +176,7 @@ export class BooleanValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): boolean {
+  value(_options?: FieldValueOptions): boolean {
     return this.internalValue;
   }
 
@@ -210,7 +210,7 @@ export abstract class NumberValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): number {
+  value(_options?: FieldValueOptions): number {
     return this.internalValue;
   }
 
@@ -257,9 +257,6 @@ function numericEquals(left: number, right: number): boolean {
 }
 
 export class IntegerValue extends NumberValue {
-  constructor(internalValue: number) {
-    super(internalValue);
-  }
 
   isEqual(other: FieldValue): boolean {
     // NOTE: DoubleValue and IntegerValue instances may compareTo() the same,
@@ -275,9 +272,6 @@ export class IntegerValue extends NumberValue {
 }
 
 export class DoubleValue extends NumberValue {
-  constructor(readonly internalValue: number) {
-    super(internalValue);
-  }
 
   static NAN = new DoubleValue(NaN);
   static POSITIVE_INFINITY = new DoubleValue(Infinity);
@@ -304,7 +298,7 @@ export class StringValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): string {
+  value(_options?: FieldValueOptions): string {
     return this.internalValue;
   }
 
@@ -426,7 +420,7 @@ export class BlobValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): Blob {
+  value(_options?: FieldValueOptions): Blob {
     return this.internalValue;
   }
 
@@ -452,7 +446,7 @@ export class RefValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): DocumentKey {
+  value(_options?: FieldValueOptions): DocumentKey {
     return this.key;
   }
 
@@ -482,7 +476,7 @@ export class GeoPointValue extends FieldValue {
     super();
   }
 
-  value(options?: FieldValueOptions): GeoPoint {
+  value(_options?: FieldValueOptions): GeoPoint {
     return this.internalValue;
   }
 

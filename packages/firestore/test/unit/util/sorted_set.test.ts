@@ -85,9 +85,9 @@ describe('SortedSet', () => {
     expect(arr).to.deep.equal([2, 5]);
 
     // Few cases that iterate over nothing.
-    set.forEachInRange([2, 0], elem => expect.fail());
-    set.forEachInRange([-10, -5], elem => expect.fail());
-    set.forEachInRange([15, 18], elem => expect.fail());
+    set.forEachInRange([2, 0], _elem => expect.fail());
+    set.forEachInRange([-10, -5], _elem => expect.fail());
+    set.forEachInRange([15, 18], _elem => expect.fail());
   });
 
   it('can iterate over all elements while condition', () => {
@@ -121,7 +121,7 @@ describe('SortedSet', () => {
     });
     expect(arr).to.deep.equal([0, 2, 5]);
 
-    set.forEachWhile(elem => {
+    set.forEachWhile(_elem => {
       expect.fail();
       return true;
     }, 15);

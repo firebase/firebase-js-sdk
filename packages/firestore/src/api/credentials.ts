@@ -104,8 +104,6 @@ export class EmptyCredentialsProvider implements CredentialsProvider {
    */
   private changeListener: CredentialChangeListener | null = null;
 
-  constructor() {}
-
   getToken(): Promise<Token | null> {
     return Promise.resolve<Token | null>(null);
   }

@@ -72,7 +72,7 @@ export class EventManager implements SyncEngineListener {
 
     listener.applyOnlineStateChange(this.onlineState);
 
-    if (queryInfo.viewSnap) listener.onViewSnapshot(queryInfo.viewSnap);
+    if (queryInfo.viewSnap) {listener.onViewSnapshot(queryInfo.viewSnap);}
 
     if (firstListen) {
       return this.syncEngine.listen(query).then(targetId => {

@@ -18,7 +18,7 @@
 import { ConnectivityMonitor, NetworkStatus } from './connectivity_monitor';
 
 export class NoopConnectivityMonitor implements ConnectivityMonitor {
-  addCallback(callback: (status: NetworkStatus) => void): void {
+  addCallback(_callback: (status: NetworkStatus) => void): void {
     // No-op.
   }
 
