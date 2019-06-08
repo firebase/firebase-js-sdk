@@ -180,11 +180,19 @@ abstract class Path {
     for (let i = 0; i < len; i++) {
       const left = p1.get(i);
       const right = p2.get(i);
-      if (left < right) {return -1;}
-      if (left > right) {return 1;}
+      if (left < right) {
+        return -1;
+      }
+      if (left > right) {
+        return 1;
+      }
     }
-    if (p1.length < p2.length) {return -1;}
-    if (p1.length > p2.length) {return 1;}
+    if (p1.length < p2.length) {
+      return -1;
+    }
+    if (p1.length > p2.length) {
+      return 1;
+    }
     return 0;
   }
 }

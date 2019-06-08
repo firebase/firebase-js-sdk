@@ -207,7 +207,7 @@ class LocalStoreTester {
           doc,
           returned,
           `Expected '${
-          returned ? returned.toString() : null
+            returned ? returned.toString() : null
           }' to equal '${doc.toString()}'.`
         );
       }
@@ -345,7 +345,7 @@ function genericLocalStoreTests(
 
   it(
     'handles SetMutation -> Ack (Held) -> SetMutation -> Reject -> ' +
-    'RemoteEvent (Release Ack)',
+      'RemoteEvent (Release Ack)',
     () => {
       return (
         expectLocalStore()

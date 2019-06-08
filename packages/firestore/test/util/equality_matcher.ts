@@ -38,7 +38,9 @@ function customDeepEqual(left: unknown, right: unknown): boolean {
   /**
    * END: Custom compare logic
    */
-  if (left === right) {return true;}
+  if (left === right) {
+    return true;
+  }
   if (
     typeof left === 'number' &&
     typeof right === 'number' &&

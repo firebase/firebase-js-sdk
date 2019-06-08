@@ -20,7 +20,9 @@
 const NumberAsAny = Number as any;
 
 // An Object whose keys and values are strings.
-export interface StringMap { [key: string]: string }
+export interface StringMap {
+  [key: string]: string;
+}
 
 /**
  * Minimum safe integer in Javascript because of floating point precision.

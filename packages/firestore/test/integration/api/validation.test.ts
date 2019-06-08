@@ -115,7 +115,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
     // that it will be impossible to verify that a set of settings don't throw,
     // and additionally that some exceptions happen for specific reasons, rather
     // than persistence having already been enabled.
-    if (persistence) {return;}
+    if (persistence) {
+      return;
+    }
 
     validationIt(persistence, 'validates options', db => {
       // NOTE: 'credentials' is an undocumented API so ideally we wouldn't
@@ -318,7 +320,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
   validationIt(persistence, 'Listen options are validated', db => {
     const collection = db.collection('test');
-    const fn = ():void => {};
+    const fn = (): void => {};
 
     const doc = collection.doc();
     expect(() => doc.onSnapshot({ bad: true } as any, fn)).to.throw(
@@ -880,7 +882,9 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
             const unsubscribe = collection.onSnapshot(snapshot => {
               // Skip the initial empty snapshot.
-              if (snapshot.empty) {return;}
+              if (snapshot.empty) {
+                return;
+              }
 
               expect(snapshot.docs).to.have.lengthOf(1);
               const docSnap: firestore.DocumentSnapshot = snapshot.docs[0];

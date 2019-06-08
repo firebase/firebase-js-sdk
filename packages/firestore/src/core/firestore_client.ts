@@ -438,7 +438,7 @@ export class FirestoreClient {
           );
         const sharedClientStateOnlineStateChangedHandler = (
           onlineState: OnlineState
-        ) =>
+        ): void =>
           this.syncEngine.applyOnlineStateChange(
             onlineState,
             OnlineStateSource.SharedClientState

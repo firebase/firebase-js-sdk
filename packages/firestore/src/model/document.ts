@@ -162,7 +162,6 @@ export class NoDocument extends MaybeDocument {
  * document that was updated without a known base document).
  */
 export class UnknownDocument extends MaybeDocument {
-
   toString(): string {
     return `UnknownDocument(${this.key}, ${this.version})`;
   }

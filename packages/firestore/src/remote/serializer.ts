@@ -1192,7 +1192,9 @@ export class JsonProtoSerializer {
   }
 
   private toOrder(orderBys: OrderBy[]): api.Order[] | undefined {
-    if (orderBys.length === 0) {return;}
+    if (orderBys.length === 0) {
+      return;
+    }
     return orderBys.map(order => this.toPropertyOrder(order));
   }
 

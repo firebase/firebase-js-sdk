@@ -310,7 +310,9 @@ export class Query {
     let comparedOnKeyField = false;
     for (const orderBy of this.orderBy) {
       const comp = orderBy.compare(d1, d2);
-      if (comp !== 0) {return comp;}
+      if (comp !== 0) {
+        return comp;
+      }
       comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
     }
     // Assert that we actually compared by key

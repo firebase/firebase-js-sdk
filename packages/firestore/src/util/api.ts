@@ -31,7 +31,10 @@ import { Code, FirestoreError } from './error';
  * To also make all the static methods available, all properties of the
  * original constructor are copied to the new constructor.
  */
-export function makeConstructorPrivate<T extends Function>(cls: T, optionalMessage?: string): T {
+export function makeConstructorPrivate<T extends Function>(
+  cls: T,
+  optionalMessage?: string
+): T {
   function PublicConstructor(): never {
     let error = 'This constructor is private.';
     if (optionalMessage) {

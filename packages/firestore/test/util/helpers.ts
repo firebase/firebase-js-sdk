@@ -411,8 +411,12 @@ export function localViewChanges(
   targetId: TargetId,
   changes: { added?: string[]; removed?: string[] }
 ): LocalViewChanges {
-  if (!changes.added) {changes.added = [];}
-  if (!changes.removed) {changes.removed = [];}
+  if (!changes.added) {
+    changes.added = [];
+  }
+  if (!changes.removed) {
+    changes.removed = [];
+  }
 
   let addedKeys = documentKeySet();
   let removedKeys = documentKeySet();

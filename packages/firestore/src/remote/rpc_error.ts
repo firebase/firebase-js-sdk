@@ -287,9 +287,15 @@ export function mapCodeFromHttpStatus(status: number): Code {
       return Code.DEADLINE_EXCEEDED;
 
     default:
-      if (status >= 200 && status < 300) {return Code.OK;}
-      if (status >= 400 && status < 500) {return Code.FAILED_PRECONDITION;}
-      if (status >= 500 && status < 600) {return Code.INTERNAL;}
+      if (status >= 200 && status < 300) {
+        return Code.OK;
+      }
+      if (status >= 400 && status < 500) {
+        return Code.FAILED_PRECONDITION;
+      }
+      if (status >= 500 && status < 600) {
+        return Code.INTERNAL;
+      }
       return Code.UNKNOWN;
   }
 }

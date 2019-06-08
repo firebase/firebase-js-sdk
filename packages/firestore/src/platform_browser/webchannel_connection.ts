@@ -333,7 +333,9 @@ export class WebChannelConnection implements Connection {
     // WebChannel delivers message events as array. If batching is not enabled
     // (it's off by default) each message will be delivered alone, resulting in
     // a single element array.
-    interface WebChannelResponse { data: Resp[] }
+    interface WebChannelResponse {
+      data: Resp[];
+    }
 
     unguardedEventListen<WebChannelResponse>(
       WebChannel.EventType.MESSAGE,

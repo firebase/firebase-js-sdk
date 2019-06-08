@@ -458,7 +458,9 @@ export class LocalStore {
           (targetId: TargetId, change: TargetChange) => {
             // Do not ref/unref unassigned targetIds - it may lead to leaks.
             let queryData = this.queryDataByTarget[targetId];
-            if (!queryData) {return;}
+            if (!queryData) {
+              return;
+            }
 
             // When a global snapshot contains updates (either add or modify) we
             // can completely trust these updates as authoritative and blindly
@@ -616,10 +618,14 @@ export class LocalStore {
     change: TargetChange
   ): boolean {
     // Avoid clearing any existing value
-    if (newQueryData.resumeToken.length === 0) {return false;}
+    if (newQueryData.resumeToken.length === 0) {
+      return false;
+    }
 
     // Any resume token is interesting if there isn't one already.
-    if (oldQueryData.resumeToken.length === 0) {return true;}
+    if (oldQueryData.resumeToken.length === 0) {
+      return true;
+    }
 
     // Don't allow resume token changes to be buffered indefinitely. This
     // allows us to be reasonably up-to-date after a crash and avoids needing
@@ -629,7 +635,9 @@ export class LocalStore {
     const timeDelta =
       newQueryData.snapshotVersion.toMicroseconds() -
       oldQueryData.snapshotVersion.toMicroseconds();
-    if (timeDelta >= this.RESUME_TOKEN_MAX_AGE_MICROS) {return true;}
+    if (timeDelta >= this.RESUME_TOKEN_MAX_AGE_MICROS) {
+      return true;
+    }
 
     // Otherwise if the only thing that has changed about a target is its resume
     // token it's not worth persisting. Note that the RemoteStore keeps an

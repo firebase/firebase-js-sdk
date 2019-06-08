@@ -439,7 +439,9 @@ abstract class TestRunner {
       new EmptyCredentialsProvider(),
       this.serializer
     );
-    const remoteStoreOnlineStateChangedHandler = (onlineState: OnlineState): void => {
+    const remoteStoreOnlineStateChangedHandler = (
+      onlineState: OnlineState
+    ): void => {
       this.syncEngine.applyOnlineStateChange(
         onlineState,
         OnlineStateSource.RemoteStore

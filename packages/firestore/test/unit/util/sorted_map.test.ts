@@ -308,7 +308,10 @@ describe('SortedMap Tests', () => {
 
   // tslint:disable-next-line:ban A little perf test for convenient benchmarking
   it.skip('Perf: Insertion and removal with various # of items.', () => {
-    const verifyTraversal = (map: SortedMap<number, number>, max: number): void => {
+    const verifyTraversal = (
+      map: SortedMap<number, number>,
+      max: number
+    ): void => {
       let next = 0;
       map.inorderTraversal((key: number, value: number) => {
         expect(key).to.equal(next);
@@ -352,13 +355,18 @@ describe('SortedMap Tests', () => {
 
   // tslint:disable-next-line:ban A little perf test for convenient benchmarking
   it.skip('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
-    const verifyTraversal = (tree: { [key: number]: number }, max: number): void => {
+    const verifyTraversal = (
+      tree: { [key: number]: number },
+      max: number
+    ): void => {
       const keys: number[] = [];
       obj.forEach(tree, k => keys.push(Number(k)));
 
       keys.sort();
       expect(keys.length).to.equal(max);
-      for (let i = 0; i < max; i++) {expect(tree[i]).to.equal(i);}
+      for (let i = 0; i < max; i++) {
+        expect(tree[i]).to.equal(i);
+      }
     };
 
     for (let N = 10; N <= 100000; N *= 10) {
@@ -401,11 +409,15 @@ describe('SortedMap Tests', () => {
 
   it('SortedMapIterator test with 10 items.', () => {
     const items: number[] = [];
-    for (let i = 0; i < 10; i++) {items.push(i);}
+    for (let i = 0; i < 10; i++) {
+      items.push(i);
+    }
     shuffle(items);
 
     let map = new SortedMap(primitiveComparator);
-    for (let i = 0; i < 10; i++) {map = map.insert(items[i], items[i]);}
+    for (let i = 0; i < 10; i++) {
+      map = map.insert(items[i], items[i]);
+    }
 
     const iterator = map.getIterator();
     let expected = 0;

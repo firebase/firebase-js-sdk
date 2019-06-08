@@ -138,7 +138,7 @@ export class PersistencePromise<T> {
       return this.wrapUserFunction(() => nextFn(value));
     } else {
       // If there's no nextFn, then R must be the same as T
-      return PersistencePromise.resolve<R>(value as unknown as R);
+      return PersistencePromise.resolve<R>((value as unknown) as R);
     }
   }
 

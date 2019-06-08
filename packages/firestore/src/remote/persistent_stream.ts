@@ -770,7 +770,7 @@ export class PersistentWriteStream extends PersistentStream<
 
     const request: WriteRequest = {
       // Protos are typed with string, but we support UInt8Array on Node
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any      
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       streamToken: this.lastStreamToken as any,
       writes: mutations.map(mutation => this.serializer.toMutation(mutation))
     };

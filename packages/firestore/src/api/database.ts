@@ -1387,7 +1387,6 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
 
 export class QueryDocumentSnapshot extends DocumentSnapshot
   implements firestore.QueryDocumentSnapshot {
-
   data(options?: SnapshotOptions): firestore.DocumentData {
     const data = super.data(options);
     assert(
