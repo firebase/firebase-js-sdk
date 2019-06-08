@@ -11,7 +11,7 @@
     "lint:fix": "tslint --fix -p tsconfig.json -c tslint.json 'src/**/*.ts' 'test/**/*.ts'",
     "lint:eslint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",    
     "prettier": "prettier --write 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
-    "test": "yarn test:emulator",
+    "test": "run-s lint test:all",
     "test:all": "run-p test:browser test:emulator",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
