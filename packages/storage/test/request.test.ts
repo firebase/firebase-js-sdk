@@ -19,7 +19,7 @@ import * as sinon from 'sinon';
 import firebase from '@firebase/app';
 import { makeRequest } from '../src/implementation/request';
 import { RequestInfo } from '../src/implementation/requestinfo';
-import { Headers, XhrIo } from '../src/implementation/xhrio';
+import { XhrIo } from '../src/implementation/xhrio';
 import { makePool } from './testshared';
 import { TestingXhrIo } from './xhrio';
 
@@ -37,13 +37,7 @@ describe('Firebase Storage > Request', () => {
     const responseValue = 'ResponseValue1';
     const response = 'I am the server response!!!!';
 
-    function newSend(
-      xhrio: TestingXhrIo,
-      _url: string,
-      _method: string,
-      _body?: ArrayBufferView | Blob | string | null,
-      _headers?: Headers
-    ): void {
+    function newSend(xhrio: TestingXhrIo): void {
       const responseHeaders = {};
       responseHeaders[responseHeader] = responseValue;
       xhrio.simulateResponse(status, response, responseHeaders);
@@ -71,7 +65,7 @@ describe('Firebase Storage > Request', () => {
           assert.equal(result, response);
           assert.isTrue(spiedSend.calledOnce);
 
-          const args = spiedSend.getCall(0).args;
+          const args: unknown[] = spiedSend.getCall(0).args;
           assert.equal(args[1], url);
           assert.equal(args[2], method);
           const expectedHeaders = {};
@@ -79,20 +73,14 @@ describe('Firebase Storage > Request', () => {
           expectedHeaders[versionHeaderName] = versionHeaderValue;
           assert.deepEqual(args[4], expectedHeaders);
         },
-        _error => {
+        () => {
           assert.fail('Errored in successful call...');
         }
       );
   });
 
   it('URL parameters get encoded correctly', () => {
-    function newSend(
-      xhrio: TestingXhrIo,
-      _url: string,
-      _method: string,
-      _body?: ArrayBufferView | Blob | string | null,
-      _headers?: Headers
-    ): void {
+    function newSend(xhrio: TestingXhrIo): void {
       xhrio.simulateResponse(200, '', {});
     }
     const spiedSend = sinon.spy(newSend);
@@ -115,7 +103,7 @@ describe('Firebase Storage > Request', () => {
     return makeRequest(requestInfo, null, makePool(spiedSend))
       .getPromise()
       .then(
-        _result => {
+        () => {
           assert.isTrue(spiedSend.calledOnce);
 
           const fullUrl =
@@ -128,30 +116,24 @@ describe('Firebase Storage > Request', () => {
             encodeURIComponent(p2) +
             '=' +
             encodeURIComponent(v2);
-          const args = spiedSend.getCall(0).args;
+          const args: unknown[] = spiedSend.getCall(0).args;
           assert.equal(args[1], fullUrl);
           assert.equal(args[2], method);
           assert.equal(args[3], requestInfo.body);
         },
-        _error => {
+        () => {
           assert.fail('Request failed unexpectedly');
         }
       );
   });
 
   it('Propagates errors acceptably', () => {
-    function newSend(
-      xhrio: TestingXhrIo,
-      _url: string,
-      _method: string,
-      _body?: ArrayBufferView | Blob | string | null,
-      _headers?: Headers
-    ): void {
+    function newSend(xhrio: TestingXhrIo): void {
       xhrio.simulateResponse(200, '', {});
     }
 
     const errorMessage = 'Catch me if you can';
-    function handler(_xhr: XhrIo, _text: string): string {
+    function handler(): string {
       throw new Error(errorMessage);
     }
     const requestInfo = new RequestInfo(
@@ -164,7 +146,7 @@ describe('Firebase Storage > Request', () => {
     return makeRequest(requestInfo, null, makePool(newSend))
       .getPromise()
       .then(
-        _result => {
+        () => {
           assert.fail('Succeeded when handler gave error');
         },
         error => {
@@ -174,7 +156,7 @@ describe('Firebase Storage > Request', () => {
   });
 
   it('Cancels properly', () => {
-    function handler(_xhr: XhrIo, _text: string): boolean {
+    function handler(): boolean {
       return true;
     }
     const requestInfo = new RequestInfo(
@@ -185,31 +167,23 @@ describe('Firebase Storage > Request', () => {
     );
     const request = makeRequest(requestInfo, null, makePool(null));
     const promise = request.getPromise().then(
-      _result => {
+      () => {
         assert.fail('Succeeded when handler gave error');
       },
-      _error => {
-        return true;
-      }
+      () => true
     );
     request.cancel();
     return promise;
   });
 
   it('Sends auth tokens along properly', () => {
-    function newSend(
-      xhrio: TestingXhrIo,
-      _url: string,
-      _method: string,
-      _body?: ArrayBufferView | Blob | string | null,
-      _headers?: Headers
-    ): void {
+    function newSend(xhrio: TestingXhrIo): void {
       xhrio.simulateResponse(200, '', {});
     }
     const spiedSend = sinon.spy(newSend);
 
     const authToken = 'totallyLegitAuthToken';
-    function handler(_xhr: XhrIo, _text: string): boolean {
+    function handler(): boolean {
       return true;
     }
     const requestInfo = new RequestInfo(
@@ -220,14 +194,14 @@ describe('Firebase Storage > Request', () => {
     );
     const request = makeRequest(requestInfo, authToken, makePool(spiedSend));
     return request.getPromise().then(
-      _result => {
+      () => {
         assert.isTrue(spiedSend.calledOnce);
-        const args = spiedSend.getCall(0).args;
+        const args: unknown[] = spiedSend.getCall(0).args;
         const expectedHeaders = { Authorization: 'Firebase ' + authToken };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
         assert.deepEqual(args[4], expectedHeaders);
       },
-      _error => {
+      () => {
         assert.fail('Request failed unexpectedly');
       }
     );

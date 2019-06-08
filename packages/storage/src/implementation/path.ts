@@ -37,9 +37,7 @@ export function parent(path: string): string | null {
 export function child(path: string, childPath: string): string {
   const canonicalChildPath = childPath
     .split('/')
-    .filter(component => {
-      return component.length > 0;
-    })
+    .filter(component => component.length > 0)
     .join('/');
   if (path.length === 0) {
     return canonicalChildPath;

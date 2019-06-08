@@ -18,7 +18,6 @@
 /**
  * @fileoverview Functions to create and manipulate URLs for the server API.
  */
-import * as object from './object';
 import { DEFAULT_HOST } from './constants';
 
 export function makeUrl(urlPart: string): string {
@@ -28,10 +27,12 @@ export function makeUrl(urlPart: string): string {
 export function makeQueryString(params: { [key: string]: string }): string {
   const encode = encodeURIComponent;
   let queryPart = '?';
-  object.forEach(params, (key, val) => {
-    const nextPart = encode(key) + '=' + encode(val);
-    queryPart = queryPart + nextPart + '&';
-  });
+  for (const key in params) {
+    if (params.hasOwnProperty(key)) {
+      const nextPart = encode(key) + '=' + encode(params[key]);
+      queryPart = queryPart + nextPart + '&';
+    }
+  }
 
   // Chop off the extra '&' or '?' on the end
   queryPart = queryPart.slice(0, -1);

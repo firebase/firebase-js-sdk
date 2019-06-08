@@ -22,7 +22,6 @@ import * as MetadataUtils from '../src/implementation/metadata';
 import { makeRequest } from '../src/implementation/request';
 import * as requests from '../src/implementation/requests';
 import { makeUrl } from '../src/implementation/url';
-import * as fbsPromise from '../src/implementation/promise_external';
 import * as errors from '../src/implementation/error';
 import { RequestInfo } from '../src/implementation/requestinfo';
 import { XhrIoPool } from '../src/implementation/xhriopool';
@@ -133,7 +132,7 @@ describe('Firebase Storage > Requests', () => {
   function readBlob(blob: Blob): Promise<string> {
     const reader = new FileReader();
     reader.readAsText(blob);
-    return fbsPromise.make((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       reader.onload = () => {
         resolve(reader.result as string);
       };
@@ -161,7 +160,7 @@ describe('Firebase Storage > Requests', () => {
       });
     } else {
       assert.equal(body as string, expectedStr);
-      return fbsPromise.resolve(undefined);
+      return Promise.resolve(undefined);
     }
   }
 

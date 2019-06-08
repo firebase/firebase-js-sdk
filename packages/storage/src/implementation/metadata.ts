@@ -27,7 +27,6 @@ import * as path from './path';
 import * as type from './type';
 import * as UrlUtils from './url';
 import { Reference } from '../reference';
-import { contains } from './object';
 
 export function noXform_<T>(_metadata: Metadata, value: T): T {
   return value;
@@ -36,34 +35,32 @@ export function noXform_<T>(_metadata: Metadata, value: T): T {
 /**
  * @struct
  */
-export class Mapping {
+class Mapping<T> {
   local: string;
   writable: boolean;
-  xform: (p1: Metadata, p2: unknown) => unknown;
+  xform: (p1: Metadata, p2: T | undefined) => T | undefined;
 
   constructor(
     public server: string,
     local?: string | null,
     writable?: boolean,
-    xform?: ((p1: Metadata, p2: unknown) => unknown) | null
+    xform?: ((p1: Metadata, p2: T | undefined) => T | undefined) | null
   ) {
     this.local = local || server;
     this.writable = !!writable;
     this.xform = xform || noXform_;
   }
 }
-type Mappings = Mapping[];
+type Mappings = Array<Mapping<unknown>>;
 
 export { Mappings };
 
 let mappings_: Mappings | null = null;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function xformPath(fullPath: any): string {
-  const valid = type.isString(fullPath);
-  if (!valid || fullPath.length < 2) {
+
+export function xformPath(fullPath: string | undefined): string | undefined {
+  if (!type.isString(fullPath) || fullPath.length < 2) {
     return fullPath;
   } else {
-    fullPath = fullPath as string;
     return path.lastComponent(fullPath);
   }
 }
@@ -72,16 +69,19 @@ export function getMappings(): Mappings {
   if (mappings_) {
     return mappings_;
   }
-  const mappings: Mapping[] = [];
+  const mappings: Array<Mapping<unknown>> = [];
   mappings.push(new Mapping('bucket'));
   mappings.push(new Mapping('generation'));
   mappings.push(new Mapping('metageneration'));
   mappings.push(new Mapping('name', 'fullPath', true));
 
-  function mappingsXformPath(_metadata: Metadata, fullPath: unknown): string {
+  function mappingsXformPath(
+    _metadata: Metadata,
+    fullPath: string
+  ): string | undefined {
     return xformPath(fullPath);
   }
-  const nameMapping = new Mapping('name');
+  const nameMapping = new Mapping<string>('name');
   nameMapping.xform = mappingsXformPath;
   mappings.push(nameMapping);
 
@@ -90,11 +90,10 @@ export function getMappings(): Mappings {
    */
   function xformSize(
     _metadata: Metadata,
-    size: {} | null | undefined
-  ): number | null | undefined {
+    size: number | string | undefined
+  ): number | undefined {
     if (type.isDef(size)) {
-      // TODO: rewrite using Number()
-      return +(size as number);
+      return Number(size);
     } else {
       return size;
     }
@@ -207,11 +206,11 @@ export function toResourceString(
 }
 
 export function metadataValidator(p: unknown): void {
-  if (!(p && type.isObject(p))) {
+  if (!p || !type.isObject(p)) {
     throw 'Expected Metadata object.';
   }
   for (const key in p) {
-    if (contains(p, key)) {
+    if (p.hasOwnProperty(key)) {
       const val = p[key];
       if (key === 'customMetadata') {
         if (!type.isObject(val)) {

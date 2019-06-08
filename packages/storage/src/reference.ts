@@ -24,7 +24,6 @@ import { FbsBlob } from './implementation/blob';
 import * as errorsExports from './implementation/error';
 import { Location } from './implementation/location';
 import * as metadata from './implementation/metadata';
-import * as object from './implementation/object';
 import * as path from './implementation/path';
 import * as requests from './implementation/requests';
 import * as fbsString from './implementation/string';
@@ -175,7 +174,7 @@ export class Reference {
     );
     this.throwIfRoot_('putString');
     const data = fbsString.dataFromString(format, value);
-    const metadataClone = object.clone<Metadata>(metadata);
+    const metadataClone = Object.assign({}, metadata);
     if (
       !type.isDef(metadataClone['contentType']) &&
       type.isDef(data.contentType)
@@ -199,13 +198,12 @@ export class Reference {
   delete(): Promise<void> {
     args.validate('delete', [], arguments);
     this.throwIfRoot_('delete');
-    const self = this;
     return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.deleteObject(
-        self.authWrapper,
-        self.location
+        this.authWrapper,
+        this.location
       );
-      return self.authWrapper.makeRequest(requestInfo, authToken).getPromise();
+      return this.authWrapper.makeRequest(requestInfo, authToken).getPromise();
     });
   }
 
@@ -295,14 +293,13 @@ export class Reference {
   getMetadata(): Promise<Metadata> {
     args.validate('getMetadata', [], arguments);
     this.throwIfRoot_('getMetadata');
-    const self = this;
     return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.getMetadata(
-        self.authWrapper,
-        self.location,
-        self.mappings()
+        this.authWrapper,
+        this.location,
+        this.mappings()
       );
-      return self.authWrapper.makeRequest(requestInfo, authToken).getPromise();
+      return this.authWrapper.makeRequest(requestInfo, authToken).getPromise();
     });
   }
 
@@ -318,15 +315,14 @@ export class Reference {
   updateMetadata(metadata: Metadata): Promise<Metadata> {
     args.validate('updateMetadata', [args.metadataSpec()], arguments);
     this.throwIfRoot_('updateMetadata');
-    const self = this;
     return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.updateMetadata(
-        self.authWrapper,
-        self.location,
+        this.authWrapper,
+        this.location,
         metadata,
-        self.mappings()
+        this.mappings()
       );
-      return self.authWrapper.makeRequest(requestInfo, authToken).getPromise();
+      return this.authWrapper.makeRequest(requestInfo, authToken).getPromise();
     });
   }
 
@@ -337,14 +333,13 @@ export class Reference {
   getDownloadURL(): Promise<string> {
     args.validate('getDownloadURL', [], arguments);
     this.throwIfRoot_('getDownloadURL');
-    const self = this;
     return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.getDownloadUrl(
-        self.authWrapper,
-        self.location,
-        self.mappings()
+        this.authWrapper,
+        this.location,
+        this.mappings()
       );
-      return self.authWrapper
+      return this.authWrapper
         .makeRequest(requestInfo, authToken)
         .getPromise()
         .then(url => {

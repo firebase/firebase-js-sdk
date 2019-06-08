@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 import * as errorsExports from './error';
-import * as object from './object';
-import * as promiseimpl from './promise_external';
 import * as type from './type';
 import * as XhrIoExports from './xhrio';
 import { Headers, XhrIo } from './xhrio';
@@ -34,16 +32,16 @@ export class NetworkXhrIo implements XhrIo {
   constructor() {
     this.xhr_ = new XMLHttpRequest();
     this.errorCode_ = XhrIoExports.ErrorCode.NO_ERROR;
-    this.sendPromise_ = promiseimpl.make((resolve, _reject) => {
-      this.xhr_.addEventListener('abort', _event => {
+    this.sendPromise_ = new Promise(resolve => {
+      this.xhr_.addEventListener('abort', () => {
         this.errorCode_ = XhrIoExports.ErrorCode.ABORT;
         resolve(this);
       });
-      this.xhr_.addEventListener('error', _event => {
+      this.xhr_.addEventListener('error', () => {
         this.errorCode_ = XhrIoExports.ErrorCode.NETWORK_ERROR;
         resolve(this);
       });
-      this.xhr_.addEventListener('load', _event => {
+      this.xhr_.addEventListener('load', () => {
         resolve(this);
       });
     });
@@ -64,9 +62,11 @@ export class NetworkXhrIo implements XhrIo {
     this.sent_ = true;
     this.xhr_.open(method, url, true);
     if (type.isDef(headers)) {
-      object.forEach(headers!, (key, val) => {
-        this.xhr_.setRequestHeader(key, val.toString());
-      });
+      for (const key in headers) {
+        if (headers.hasOwnProperty(key)) {
+          this.xhr_.setRequestHeader(key, headers[key].toString());
+        }
+      }
     }
     if (type.isDef(body)) {
       this.xhr_.send(body);

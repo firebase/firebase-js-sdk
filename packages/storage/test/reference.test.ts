@@ -32,8 +32,8 @@ function makeFakeService(app: FirebaseApp, sendHook: SendHook): Service {
 }
 
 function makeStorage(url: string): Reference {
-  function maker(_wrapper, _loc): Reference {
-    return ({} as any) as Reference;
+  function maker(): Reference {
+    return ({} as unknown) as Reference;
   }
 
   const authWrapper = new AuthWrapper(

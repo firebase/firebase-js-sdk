@@ -33,20 +33,18 @@ import {
   CompleteFn,
   ErrorFn,
   NextFn,
-  Subscribe,
-  Unsubscribe,
+  Observer,
   StorageObserver,
-  Observer
+  Subscribe,
+  Unsubscribe
 } from './implementation/observer';
 import { Request } from './implementation/request';
 import { UploadTaskSnapshot } from './tasksnapshot';
 import * as fbsArgs from './implementation/args';
 import { ArgSpec } from './implementation/args';
-import * as fbsArray from './implementation/array';
 import { async as fbsAsync } from './implementation/async';
 import { Location } from './implementation/location';
 import * as fbsMetadata from './implementation/metadata';
-import * as fbsPromiseimpl from './implementation/promise_external';
 import * as fbsRequests from './implementation/requests';
 import * as typeUtils from './implementation/type';
 import { Reference } from './reference';
@@ -119,7 +117,7 @@ export class UploadTask {
         this.transition_(InternalTaskState.ERROR);
       }
     };
-    this.promise_ = fbsPromiseimpl.make((resolve, reject) => {
+    this.promise_ = new Promise((resolve, reject) => {
       this.resolve_ = resolve;
       this.reject_ = reject;
       this.start_();
@@ -132,9 +130,7 @@ export class UploadTask {
 
   private makeProgressCallback_(): (p1: number, p2: number) => void {
     const sizeBefore = this.transferred_;
-    return (loaded, _total) => {
-      this.updateProgress_(sizeBefore + loaded);
-    };
+    return loaded => this.updateProgress_(sizeBefore + loaded);
   }
 
   private shouldDoResumable_(blob: FbsBlob): boolean {
@@ -417,7 +413,7 @@ export class UploadTask {
         this.state_ = state;
         this.notifyObservers_();
         break;
-      default:
+      default: // Ignore
     }
   }
 
@@ -587,12 +583,15 @@ export class UploadTask {
    * Removes the given observer.
    */
   private removeObserver_(observer: Observer<UploadTaskSnapshot>): void {
-    fbsArray.remove(this.observers_, observer);
+    const i = this.observers_.indexOf(observer);
+    if (i !== -1) {
+      this.observers_.splice(i, 1);
+    }
   }
 
   private notifyObservers_(): void {
     this.finishPromise_();
-    const observers = fbsArray.clone(this.observers_);
+    const observers = this.observers_.slice();
     observers.forEach(observer => {
       this.notifyObserver_(observer);
     });

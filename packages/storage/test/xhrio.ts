@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { forEach } from '../src/implementation/object';
-import * as promiseimpl from '../src/implementation/promise_external';
 import * as type from '../src/implementation/type';
 import { ErrorCode, Headers, XhrIo } from '../src/implementation/xhrio';
 
@@ -49,11 +47,9 @@ export class TestingXhrIo implements XhrIo {
 
   constructor(sendHook: SendHook | null) {
     this.state = State.START;
-    this.sendPromise = this.sendPromise = promiseimpl.make<XhrIo>(
-      (resolve, _reject) => {
-        this.resolve = resolve;
-      }
-    );
+    this.sendPromise = new Promise(resolve => {
+      this.resolve = resolve;
+    });
     this.sendHook = sendHook;
     this.status = -1;
     this.responseText = '';
@@ -87,8 +83,8 @@ export class TestingXhrIo implements XhrIo {
     this.status = status;
     this.responseText = body;
     this.headers = {};
-    forEach(headers, (key: string, val: string | number) => {
-      this.headers[key.toLowerCase()] = val.toString();
+    Object.keys(headers).forEach(key => {
+      this.headers[key.toLowerCase()] = headers[key].toString();
     });
     this.errorCode = ErrorCode.NO_ERROR;
 
@@ -123,11 +119,11 @@ export class TestingXhrIo implements XhrIo {
     }
   }
   // eslint-disable-next-line
-  addUploadProgressListener(listener): void {
+  addUploadProgressListener(): void {
     // TODO(andysoto): impl
   }
   // eslint-disable-next-line
-  removeUploadProgressListener(listener): void {
+  removeUploadProgressListener(): void {
     // TODO(andysoto): impl
   }
 }

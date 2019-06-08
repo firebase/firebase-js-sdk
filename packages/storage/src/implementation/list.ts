@@ -96,7 +96,7 @@ export function fromResponseString(
   return fromBackendResponse(authWrapper, resource);
 }
 
-export function listOptionsValidator(p: {}): void {
+export function listOptionsValidator(p: object): void {
   const validType = p && type.isObject(p);
   if (!validType) {
     throw 'Expected ListOptions object.';

@@ -17,24 +17,22 @@
 import * as type from './type';
 import { FirebaseStorageError } from './error';
 
-type NextFn<T> = (value: T) => void;
-type ErrorFn = (error: Error | FirebaseStorageError) => void;
-type CompleteFn = () => void;
-type Unsubscribe = () => void;
+export type NextFn<T> = (value: T) => void;
+export type ErrorFn = (error: Error | FirebaseStorageError) => void;
+export type CompleteFn = () => void;
+export type Unsubscribe = () => void;
 
-type Subscribe<T> = (
-  next?: NextFn<T> | StorageObserver<T> | null,
-  error?: ErrorFn | null,
-  complete?: CompleteFn | null
-) => Unsubscribe;
-
-interface StorageObserver<T> {
+export interface StorageObserver<T> {
   next?: NextFn<T> | null;
   error?: ErrorFn | null;
   complete?: CompleteFn | null;
 }
 
-export { NextFn, ErrorFn, CompleteFn, Unsubscribe, Subscribe, StorageObserver };
+export type Subscribe<T> = (
+  next?: NextFn<T> | StorageObserver<T> | null,
+  error?: ErrorFn | null,
+  complete?: CompleteFn | null
+) => Unsubscribe;
 
 /**
  * @struct
