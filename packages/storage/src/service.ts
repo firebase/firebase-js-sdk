@@ -19,7 +19,6 @@ import { FirebaseApp } from '@firebase/app-types';
 import * as args from './implementation/args';
 import { AuthWrapper } from './implementation/authwrapper';
 import { Location } from './implementation/location';
-import * as fbsPromiseImpl from './implementation/promise_external';
 import * as RequestExports from './implementation/request';
 import { XhrIoPool } from './implementation/xhriopool';
 import { Reference } from './reference';
@@ -148,6 +147,6 @@ export class ServiceInternals {
    */
   delete(): Promise<void> {
     this.service_.authWrapper_.deleteApp();
-    return fbsPromiseImpl.resolve<void>(undefined);
+    return Promise.resolve();
   }
 }

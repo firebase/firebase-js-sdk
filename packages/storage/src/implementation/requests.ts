@@ -21,8 +21,6 @@
 
 import { Metadata } from '../metadata';
 import { ListResult } from '../list';
-
-import * as array from './array';
 import { AuthWrapper } from './authwrapper';
 import { FbsBlob } from './blob';
 import * as errorsExports from './error';
@@ -30,7 +28,6 @@ import { FirebaseStorageError } from './error';
 import { Location } from './location';
 import * as MetadataUtils from './metadata';
 import * as ListResultUtils from './list';
-import * as object from './object';
 import { RequestInfo, UrlParams } from './requestinfo';
 import * as type from './type';
 import * as UrlUtils from './url';
@@ -268,7 +265,7 @@ export function metadataForUpload_(
   blob: FbsBlob,
   metadata?: Metadata | null
 ): Metadata {
-  const metadataClone = object.clone<Metadata>(metadata);
+  const metadataClone = Object.assign({}, metadata);
   metadataClone['fullPath'] = location.path;
   metadataClone['size'] = blob.size();
   if (!metadataClone['contentType']) {
@@ -369,7 +366,7 @@ export function checkResumeHeader_(xhr: XhrIo, allowed?: string[]): string {
     handlerCheck(false);
   }
   const allowedStatus = allowed || ['active'];
-  handlerCheck(array.contains(allowedStatus, status));
+  handlerCheck(allowedStatus.indexOf(status) !== -1);
   return status as string;
 }
 
@@ -395,7 +392,7 @@ export function createResumableUpload(
   const body = MetadataUtils.toResourceString(metadataForUpload, mappings);
   const timeout = authWrapper.maxUploadRetryTime();
 
-  function handler(xhr: XhrIo, _text: string): string {
+  function handler(xhr: XhrIo): string {
     checkResumeHeader_(xhr);
     let url;
     try {
@@ -425,7 +422,7 @@ export function getResumableUploadStatus(
 ): RequestInfo<ResumableUploadStatus> {
   const headers = { 'X-Goog-Upload-Command': 'query' };
 
-  function handler(xhr: XhrIo, _text: string): ResumableUploadStatus {
+  function handler(xhr: XhrIo): ResumableUploadStatus {
     const status = checkResumeHeader_(xhr, ['active', 'final']);
     let sizeString: string | null = null;
     try {
@@ -434,8 +431,8 @@ export function getResumableUploadStatus(
       handlerCheck(false);
     }
 
-    // empty string
     if (!sizeString) {
+      // null or empty string
       handlerCheck(false);
     }
 

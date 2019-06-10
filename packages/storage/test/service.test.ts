@@ -125,7 +125,7 @@ describe('Firebase Storage > Service', () => {
       assert.equal(service.ref().toString(), 'gs://mybucket/');
     });
     it('Throws when config bucket is gs:// with an object path', () => {
-      const _error = testShared.assertThrows(() => {
+      testShared.assertThrows(() => {
         new Service(fakeAppInvalidGs, xhrIoPool);
       }, 'storage/invalid-default-bucket');
     });
@@ -276,7 +276,7 @@ describe('Firebase Storage > Service', () => {
     it('In-flight requests are canceled when the service is deleted', () => {
       const ref = service.refFromURL('gs://mybucket/image.jpg');
       const toReturn = ref.getMetadata().then(
-        _met => {
+        () => {
           assert.fail('Promise succeeded, should have been canceled');
         },
         err => {
@@ -292,7 +292,7 @@ describe('Firebase Storage > Service', () => {
       // tslint:disable-next-line:no-floating-promises
       service.INTERNAL.delete();
       const toReturn = ref.getMetadata().then(
-        _met => {
+        () => {
           assert.fail('Promise succeeded, should have been canceled');
         },
         err => {

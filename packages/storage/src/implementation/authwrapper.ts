@@ -20,7 +20,6 @@ import * as constants from './constants';
 import * as errorsExports from './error';
 import { FailRequest } from './failrequest';
 import { Location } from './location';
-import * as promiseimpl from './promise_external';
 import { Request } from './request';
 import { RequestInfo } from './requestinfo';
 import { requestMaker } from './requestmaker';
@@ -43,9 +42,6 @@ export class AuthWrapper {
   private app_: FirebaseApp | null;
   private bucket_: string | null = null;
 
-  /**
-   * maker
-   */
   private storageRefMaker_: (p1: AuthWrapper, p2: Location) => Reference;
   private requestMaker_: requestMaker;
   private pool_: XhrIoPool;
@@ -79,10 +75,9 @@ export class AuthWrapper {
   }
 
   private static extractBucket_(config: {
-    [prop: string]: unknown;
+    [prop: string]: string;
   }): string | null {
-    const bucketString =
-      (config[constants.CONFIG_STORAGE_BUCKET_KEY] as string) || null;
+    const bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] || null;
     if (bucketString == null) {
       return null;
     }
@@ -106,12 +101,10 @@ export class AuthWrapper {
             return null;
           }
         },
-        _error => {
-          return null;
-        }
+        () => null
       );
     } else {
-      return promiseimpl.resolve(null) as Promise<string | null>;
+      return Promise.resolve(null);
     }
   }
 

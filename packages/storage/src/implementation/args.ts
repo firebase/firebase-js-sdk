@@ -98,13 +98,13 @@ export function stringSpec(
       throw 'Expected string.';
     }
   }
-  let validator_;
+  let chainedValidator;
   if (validator) {
-    validator_ = and_(stringValidator, validator);
+    chainedValidator = and_(stringValidator, validator);
   } else {
-    validator_ = stringValidator;
+    chainedValidator = stringValidator;
   }
-  return new ArgSpec(validator_, optional);
+  return new ArgSpec(chainedValidator, optional);
 }
 
 export function uploadDataSpec(): ArgSpec {
@@ -142,7 +142,7 @@ export function looseObjectSpec(
   validator?: ((p1: unknown) => void) | null,
   optional?: boolean
 ): ArgSpec {
-  function validator_(p: unknown): void {
+  function isLooseObjectValidator(p: unknown): void {
     const isLooseObject = p === null || (type.isDef(p) && p instanceof Object);
     if (!isLooseObject) {
       throw 'Expected an Object.';
@@ -151,7 +151,7 @@ export function looseObjectSpec(
       validator(p);
     }
   }
-  return new ArgSpec(validator_, optional);
+  return new ArgSpec(isLooseObjectValidator, optional);
 }
 
 export function nullFunctionSpec(optional?: boolean): ArgSpec {

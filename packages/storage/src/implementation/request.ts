@@ -21,12 +21,9 @@
  */
 
 import firebase from '@firebase/app';
-import * as array from './array';
 import * as backoff from './backoff';
 import * as errorsExports from './error';
 import { FirebaseStorageError } from './error';
-import * as object from './object';
-import * as promiseimpl from './promise_external';
 import { RequestInfo } from './requestinfo';
 import * as type from './type';
 import * as UrlUtils from './url';
@@ -102,11 +99,10 @@ class NetworkRequest<T> implements Request<T> {
     this.progressCallback_ = progressCallback;
     this.timeout_ = timeout;
     this.pool_ = pool;
-    const self = this;
-    this.promise_ = promiseimpl.make((resolve, reject) => {
-      self.resolve_ = resolve;
-      self.reject_ = reject;
-      self.start_();
+    this.promise_ = new Promise((resolve, reject) => {
+      this.resolve_ = resolve;
+      this.reject_ = reject;
+      this.start_();
     });
   }
 
@@ -159,7 +155,7 @@ class NetworkRequest<T> implements Request<T> {
             );
             return;
           }
-          const successCode = array.contains(self.successCodes_, status);
+          const successCode = self.successCodes_.indexOf(status) !== -1;
           backoffCallback(true, new RequestEndStatus(successCode, xhr));
         });
     }
@@ -242,11 +238,9 @@ class NetworkRequest<T> implements Request<T> {
       // Too Many Requests: you're getting rate-limited, basically.
       429
     ];
-    const isExtraRetryCode = array.contains(extraRetryCodes, status);
-    const isRequestSpecificRetryCode = array.contains(
-      this.additionalRetryCodes_,
-      status
-    );
+    const isExtraRetryCode = extraRetryCodes.indexOf(status) !== -1;
+    const isRequestSpecificRetryCode =
+      this.additionalRetryCodes_.indexOf(status) !== -1;
     return isFiveHundredCode || isExtraRetryCode || isRequestSpecificRetryCode;
   }
 }
@@ -296,7 +290,7 @@ export function makeRequest<T>(
 ): Request<T> {
   const queryPart = UrlUtils.makeQueryString(requestInfo.urlParams);
   const url = requestInfo.url + queryPart;
-  const headers = object.clone<Headers>(requestInfo.headers);
+  const headers = Object.assign({}, requestInfo.headers);
   addAuthHeader_(headers, authToken);
   addVersionHeader_(headers);
   return new NetworkRequest<T>(

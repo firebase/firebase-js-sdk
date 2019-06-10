@@ -16,20 +16,13 @@
  */
 
 /**
- * @fileoverview Method for invoking a callback asynchronously.
- */
-import * as promiseimpl from './promise_external';
-
-/**
  * Returns a function that invokes f with its arguments asynchronously as a
  * microtask, i.e. as soon as possible after the current script returns back
  * into browser code.
  */
 export function async(f: Function): Function {
-  return function(...argsToForward: unknown[]) {
+  return (...argsToForward: unknown[]) => {
     // tslint:disable-next-line:no-floating-promises
-    promiseimpl.resolve(true).then(() => {
-      f.apply(null, argsToForward);
-    });
+    Promise.resolve().then(() => f(...argsToForward));
   };
 }

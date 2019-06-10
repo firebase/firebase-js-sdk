@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as object from './object';
 import { Request } from './request';
 import * as constants from './constants';
 
@@ -22,7 +21,10 @@ import * as constants from './constants';
  * @struct
  */
 export class RequestMap {
-  private map_: { [key: number]: Request<unknown> } = {};
+  private map_: Map<number, Request<unknown>> = new Map<
+    number,
+    Request<unknown>
+  >();
   private id_: number;
 
   constructor() {
@@ -37,24 +39,19 @@ export class RequestMap {
   addRequest(r: Request<unknown>): void {
     const id = this.id_;
     this.id_++;
-    this.map_[id] = r;
-    const self = this;
-
-    function unmap(): void {
-      delete self.map_[id];
-    }
-    r.getPromise().then(unmap, unmap);
+    this.map_.set(id, r);
+    r.getPromise().then(() => this.map_.delete(id), () => this.map_.delete(id));
   }
 
   /**
    * Cancels all registered requests.
    */
   clear(): void {
-    object.forEach(this.map_, (_key: string, val: Request<unknown>) => {
+    this.map_.forEach(val => {
       if (val) {
         val.cancel(true);
       }
     });
-    this.map_ = {};
+    this.map_.clear();
   }
 }
