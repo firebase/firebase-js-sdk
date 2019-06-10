@@ -50,7 +50,7 @@ async function run(): Promise<void> {
 
 function findFreePort() {
   return new Promise((resolve, reject) => {
-    freePortFinder(8000, 8001, (err, port) => {
+    freePortFinder(10000, (err, port) => {
       return err ? reject(err) : resolve(port);
     });
   });
