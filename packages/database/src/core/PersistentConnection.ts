@@ -948,7 +948,7 @@ export class PersistentConnection extends ServerActions {
 
     // Puts depend on having received the corresponding data update from the server before they complete, so we must
     // make sure to send listens before puts.
-    forEach(this.listens_, (pathString: string, queries: Object) => {
+    forEach(this.listens_, (pathString: string, queries: { [key: string]: ListenSpec }) => {
       forEach(queries, (key: string, listenSpec: ListenSpec) => {
         this.sendListen_(listenSpec);
       });

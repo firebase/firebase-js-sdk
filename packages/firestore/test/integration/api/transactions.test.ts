@@ -23,7 +23,7 @@ import * as integrationHelpers from '../util/helpers';
 
 const apiDescribe = integrationHelpers.apiDescribe;
 
-apiDescribe('Database transactions', persistence => {
+apiDescribe('Database transactions', (persistence: boolean) => {
   // TODO(klimt): Test that transactions don't see latency compensation
   // changes, using the other kind of integration test.
   // We currently require every document read to also be written.

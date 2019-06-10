@@ -21,6 +21,7 @@ import {
   EventType,
   WebChannel,
   XhrIo
+  // @ts-ignore
 } from '@firebase/webchannel-wrapper';
 
 import { isReactNative } from '@firebase/util';
@@ -46,7 +47,7 @@ const RPC_STREAM_SERVICE = 'google.firestore.v1.Firestore';
 const RPC_URL_VERSION = 'v1';
 
 /** Maps RPC names to the corresponding REST endpoint name. */
-const RPC_NAME_REST_MAPPING = {
+const RPC_NAME_REST_MAPPING: { [key: string]: string } = {
   BatchGetDocuments: 'batchGet',
   Commit: 'commit'
 };
@@ -243,6 +244,7 @@ export class WebChannelConnection implements Connection {
     // ReactNative and so we exclude it, which just means ReactNative may be
     // subject to the extra network roundtrip for CORS preflight.
     if (!isReactNative()) {
+      // @ts-ignore
       request['httpHeadersOverwriteParam'] = '$httpHeaders';
     }
 
@@ -345,7 +347,9 @@ export class WebChannelConnection implements Connection {
           // can be removed once the fix has been rolled out.
           const error =
             // tslint:disable-next-line:no-any msgData.error is not typed.
-            (msgData as any).error || (msgData[0] && msgData[0].error);
+            (msgData as any).error ||
+            // @ts-ignore
+            (msgData[0] && msgData[0].error);
           if (error) {
             log.debug(LOG_TAG, 'WebChannel received error:', error);
             // error.status will be a string like 'OK' or 'NOT_FOUND'.

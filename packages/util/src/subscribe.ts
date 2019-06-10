@@ -62,7 +62,7 @@ export function createSubscribe<T>(
   executor: Executor<T>,
   onNoObservers?: Executor<T>
 ): Subscribe<T> {
-  let proxy = new ObserverProxy<T>(executor, onNoObservers);
+  const proxy = new ObserverProxy<T>(executor, onNoObservers);
   return proxy.subscribe.bind(proxy);
 }
 
@@ -99,20 +99,20 @@ class ObserverProxy<T> implements Observer<T> {
       });
   }
 
-  next(value: T) {
+  next(value: T): void {
     this.forEachObserver((observer: Observer<T>) => {
       observer.next(value);
     });
   }
 
-  error(error: Error) {
+  error(error: Error): void {
     this.forEachObserver((observer: Observer<T>) => {
       observer.error(error);
     });
     this.close(error);
   }
 
-  complete() {
+  complete(): void {
     this.forEachObserver((observer: Observer<T>) => {
       observer.complete();
     });
@@ -145,9 +145,9 @@ class ObserverProxy<T> implements Observer<T> {
       observer = nextOrObserver as Observer<T>;
     } else {
       observer = {
-        next: (nextOrObserver as any) as NextFn<T>,
-        error: error,
-        complete: complete
+        next: nextOrObserver as NextFn<T>,
+        error,
+        complete
       } as Observer<T>;
     }
 
@@ -161,12 +161,13 @@ class ObserverProxy<T> implements Observer<T> {
       observer.complete = noop as CompleteFn;
     }
 
-    let unsub = this.unsubscribeOne.bind(this, this.observers!.length);
+    const unsub = this.unsubscribeOne.bind(this, this.observers!.length);
 
     // Attempt to subscribe to a terminated Observable - we
     // just respond to the Observer with the final error or complete
     // event.
     if (this.finalized) {
+      // tslint:disable-next-line:no-floating-promises
       this.task.then(() => {
         try {
           if (this.finalError) {
@@ -188,7 +189,7 @@ class ObserverProxy<T> implements Observer<T> {
 
   // Unsubscribe is synchronous - we guarantee that no events are sent to
   // any unsubscribed Observer.
-  private unsubscribeOne(i: number) {
+  private unsubscribeOne(i: number): void {
     if (this.observers === undefined || this.observers[i] === undefined) {
       return;
     }
@@ -219,6 +220,7 @@ class ObserverProxy<T> implements Observer<T> {
   // function had been queued.
   private sendOne(i: number, fn: (observer: Observer<T>) => void): void {
     // Execute the callback asynchronously
+    // tslint:disable-next-line:no-floating-promises
     this.task.then(() => {
       if (this.observers !== undefined && this.observers[i] !== undefined) {
         try {
@@ -244,6 +246,7 @@ class ObserverProxy<T> implements Observer<T> {
       this.finalError = err;
     }
     // Proxy is no longer needed - garbage collect references
+    // tslint:disable-next-line:no-floating-promises
     this.task.then(() => {
       this.observers = undefined;
       this.onNoObservers = undefined;
@@ -253,7 +256,7 @@ class ObserverProxy<T> implements Observer<T> {
 
 /** Turn synchronous function into one called asynchronously. */
 export function async(fn: Function, onError?: ErrorFn): Function {
-  return (...args: any[]) => {
+  return (...args: unknown[]) => {
     Promise.resolve(true)
       .then(() => {
         fn(...args);
@@ -269,12 +272,12 @@ export function async(fn: Function, onError?: ErrorFn): Function {
 /**
  * Return true if the object passed in implements any of the named methods.
  */
-function implementsAnyMethods(obj: any, methods: string[]): boolean {
+function implementsAnyMethods(obj: { [key: string]: unknown }, methods: string[]): boolean {
   if (typeof obj !== 'object' || obj === null) {
     return false;
   }
 
-  for (let method of methods) {
+  for (const method of methods) {
     if (method in obj && typeof obj[method] === 'function') {
       return true;
     }

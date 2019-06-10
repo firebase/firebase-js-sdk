@@ -86,6 +86,7 @@ export class GrpcConnection implements Connection {
   private cachedStub: GeneratedGrpcStub | null = null;
 
   constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
+    // @ts-ignore
     this.firestore = protos['google']['firestore']['v1'];
   }
 

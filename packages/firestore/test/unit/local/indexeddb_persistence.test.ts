@@ -54,6 +54,7 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
 import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PlatformSupport } from '../../../src/platform/platform';
+import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { FirestoreError } from '../../../src/util/error';
@@ -68,7 +69,7 @@ import {
 } from './persistence_test_helpers';
 
 function withDb(
-  schemaVersion,
+  schemaVersion: number,
   fn: (db: IDBDatabase) => Promise<void>
 ): Promise<void> {
   const schemaConverter = new SchemaConverter(TEST_SERIALIZER);
@@ -310,7 +311,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       const sdb = new SimpleDb(db);
       return sdb.runTransaction('readwrite', [DbMutationBatch.store], txn => {
         const store = txn.store(DbMutationBatch.store);
-        return PersistencePromise.forEach(testMutations, testMutation =>
+        return PersistencePromise.forEach(testMutations, (testMutation: DbMutationBatch) =>
           store.put(testMutation)
         );
       });
@@ -324,7 +325,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
             DbMutationBatch.store
           );
-          let p = PersistencePromise.forEach(testMutations, testMutation =>
+          let p = PersistencePromise.forEach(testMutations, (testMutation: DbMutationBatch) =>
             store.get(testMutation.batchId).next(mutationBatch => {
               expect(mutationBatch).to.deep.equal(testMutation);
             })
@@ -424,9 +425,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           DbMutationQueue
         >(DbMutationQueue.store);
         // Manually populate the mutation queue and create all indicies.
-        return PersistencePromise.forEach(testMutations, testMutation => {
+        return PersistencePromise.forEach(testMutations, (testMutation: DbMutationBatch) => {
           return mutationBatchStore.put(testMutation).next(() => {
-            return PersistencePromise.forEach(testMutation.mutations, write => {
+            return PersistencePromise.forEach(testMutation.mutations,
+              (write: firestoreV1ApiClientInterfaces.Write) => {
               const indexKey = DbDocumentMutation.key(
                 testMutation.userId,
                 path(write.update!.name!, 5),
@@ -509,7 +511,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         const store = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
           DbRemoteDocument.store
         );
-        return PersistencePromise.forEach(dbRemoteDocs, ({ dbKey, dbDoc }) =>
+        return PersistencePromise.forEach(dbRemoteDocs,
+          ({ dbKey, dbDoc }: { dbKey: string[], dbDoc: DbRemoteDocument}) =>
           store.put(dbKey, dbDoc)
         );
       });
@@ -652,7 +655,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         >(DbDocumentMutation.store);
         // We "cheat" and only write the DbDocumentMutation index entries, since that's
         // all the migration uses.
-        return PersistencePromise.forEach(writePaths, writePath => {
+        return PersistencePromise.forEach(writePaths, (writePath: string) => {
           const indexKey = DbDocumentMutation.key(
             'dummy-uid',
             path(writePath),
@@ -664,7 +667,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           );
         }).next(() => {
           // Write the remote document entries.
-          return PersistencePromise.forEach(remoteDocPaths, path => {
+          return PersistencePromise.forEach(remoteDocPaths, (path: string) => {
             const remoteDoc = doc(path, /*version=*/ 1, { data: 1 });
             return remoteDocumentStore.put(
               remoteDoc.key.path.toArray(),
@@ -684,7 +687,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           DbCollectionParent
         >(DbCollectionParent.store);
         return collectionParentsStore.loadAll().next(indexEntries => {
-          const actualParents = {};
+          const actualParents: { [key: string]: string[] } = {};
           for (const { collectionId, parent } of indexEntries) {
             let parents = actualParents[collectionId];
             if (!parents) {

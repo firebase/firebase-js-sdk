@@ -17,18 +17,9 @@
 
 import { assert } from 'chai';
 import * as sinon from 'sinon';
-import {
-  async,
-  CompleteFn,
-  createSubscribe,
-  ErrorFn,
-  NextFn,
-  Observer,
-  Subscribe,
-  Unsubscribe
-} from '../src/subscribe';
+import { async, createSubscribe, Observer, Subscribe } from '../src/subscribe';
 
-describe('createSubscribe', function() {
+describe('createSubscribe', () => {
   let spy: any;
   beforeEach(() => {
     // Listen to console.error calls.
@@ -40,11 +31,11 @@ describe('createSubscribe', function() {
   });
 
   it('Creation', done => {
-    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+    const subscribe = createSubscribe<number>((observer: Observer<number>) => {
       observer.next(123);
     });
 
-    let unsub = subscribe((value: number) => {
+    const unsub = subscribe((value: number) => {
       unsub();
       assert.equal(value, 123);
       done();
@@ -52,8 +43,8 @@ describe('createSubscribe', function() {
   });
 
   it('Logging observer error to console', done => {
-    let uncatchableError = new Error('uncatchable');
-    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+    const uncatchableError = new Error('uncatchable');
+    const subscribe = createSubscribe<number>((observer: Observer<number>) => {
       observer.next(123);
       observer.complete();
     });
@@ -74,18 +65,18 @@ describe('createSubscribe', function() {
   });
 
   it('Well-defined subscription order', done => {
-    let subscribe = createSubscribe<number>(observer => {
+    const subscribe = createSubscribe<number>(observer => {
       observer.next(123);
       // Subscription after value emitted should NOT be received.
       subscribe({
-        next(value) {
+        next(_value) {
           assert.ok(false);
         }
       });
     });
     // Subscription before value emitted should be recieved.
     subscribe({
-      next(value) {
+      next(_value) {
         done();
       }
     });
@@ -93,7 +84,7 @@ describe('createSubscribe', function() {
 
   it('Subscribing to already complete Subscribe', done => {
     let seq = 0;
-    let subscribe = createSubscribe<number>(observer => {
+    const subscribe = createSubscribe<number>(observer => {
       observer.next(456);
       observer.complete();
     });
@@ -115,7 +106,7 @@ describe('createSubscribe', function() {
 
   it('Subscribing to errored Subscribe', done => {
     let seq = 0;
-    let subscribe = createSubscribe<number>(observer => {
+    const subscribe = createSubscribe<number>(observer => {
       observer.next(246);
       observer.error(new Error('failure'));
     });
@@ -127,7 +118,7 @@ describe('createSubscribe', function() {
       error(e) {
         assert.equal(seq++, 1);
         subscribe({
-          error(e2) {
+          error(_e2) {
             assert.equal(seq++, 2);
             assert.equal(e.message, 'failure');
             done();
@@ -141,7 +132,7 @@ describe('createSubscribe', function() {
   });
 
   it('Delayed value', done => {
-    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+    const subscribe = createSubscribe<number>((observer: Observer<number>) => {
       setTimeout(() => observer.next(123), 10);
     });
 
@@ -155,7 +146,7 @@ describe('createSubscribe', function() {
     // It's an application error to throw an exception in the executor -
     // but since it is called asynchronously, our only option is
     // to emit that Error and terminate the Subscribe.
-    let subscribe = createSubscribe<number>((observer: Observer<number>) => {
+    const subscribe = createSubscribe<number>((_observer: Observer<number>) => {
       throw new Error('Executor throws');
     });
     subscribe({
@@ -166,7 +157,7 @@ describe('createSubscribe', function() {
   });
 
   it('Sequence', done => {
-    let subscribe = makeCounter(10);
+    const subscribe = makeCounter(10);
 
     let j = 1;
     subscribe({
@@ -181,7 +172,7 @@ describe('createSubscribe', function() {
   });
 
   it('unlisten', done => {
-    let subscribe = makeCounter(10);
+    const subscribe = makeCounter(10);
 
     subscribe({
       complete: () => {
@@ -190,7 +181,7 @@ describe('createSubscribe', function() {
     });
 
     let j = 1;
-    let unsub = subscribe({
+    const unsub = subscribe({
       next: (value: number) => {
         assert.ok(value <= 5);
         assert.equal(value, j++);
@@ -205,10 +196,10 @@ describe('createSubscribe', function() {
   });
 
   it('onNoObservers', done => {
-    let subscribe = makeCounter(10);
+    const subscribe = makeCounter(10);
 
     let j = 1;
-    let unsub = subscribe({
+    const unsub = subscribe({
       next: (value: number) => {
         assert.ok(value <= 5);
         assert.equal(value, j++);
@@ -225,9 +216,9 @@ describe('createSubscribe', function() {
 
   // TODO(koss): Add test for partial Observer (missing methods).
   it('Partial Observer', done => {
-    let subscribe = makeCounter(10);
+    const subscribe = makeCounter(10);
 
-    let unsub = subscribe({
+    const _unsub = subscribe({
       complete: () => {
         done();
       }
@@ -252,7 +243,7 @@ function makeCounter(maxCount: number, ms = 10): Subscribe<number> {
         }
       }, ms);
     },
-    (observer: Observer<number>) => {
+    (_observer: Observer<number>) => {
       clearInterval(id);
       id = undefined;
     }

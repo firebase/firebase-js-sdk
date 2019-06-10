@@ -201,7 +201,7 @@ export class ChildrenNode implements Node {
   val(exportFormat?: boolean): object {
     if (this.isEmpty()) return null;
 
-    const obj: { [k: string]: Object } = {};
+    const obj: { [k: string]: unknown } = {};
     let numKeys = 0,
       maxKey = 0,
       allIntegerKeys = true;
@@ -218,7 +218,7 @@ export class ChildrenNode implements Node {
 
     if (!exportFormat && allIntegerKeys && maxKey < 2 * numKeys) {
       // convert to array.
-      const array: Object[] = [];
+      const array: unknown[] = [];
       for (let key in obj) array[(key as any) as number] = obj[key];
 
       return array;

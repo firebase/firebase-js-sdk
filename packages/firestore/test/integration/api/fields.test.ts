@@ -35,7 +35,7 @@ const Timestamp = firebase.firestore!.Timestamp;
 // tslint:disable-next-line:no-any Allow custom types for testing.
 type AnyTestData = any;
 
-apiDescribe('Nested Fields', persistence => {
+apiDescribe('Nested Fields', (persistence: boolean) => {
   const testData = (n?: number): AnyTestData => {
     n = n || 1;
     return {
@@ -240,7 +240,7 @@ apiDescribe('Nested Fields', persistence => {
 // NOTE(mikelehen): I originally combined these tests with the above ones, but
 // Datastore currently prohibits having nested fields and fields with dots in
 // the same entity, so I'm separating them.
-apiDescribe('Fields with special characters', persistence => {
+apiDescribe('Fields with special characters', (persistence: boolean) => {
   const testData = (n?: number): AnyTestData => {
     n = n || 1;
     return {
@@ -346,7 +346,7 @@ apiDescribe('Fields with special characters', persistence => {
   });
 });
 
-apiDescribe('Timestamp Fields in snapshots', persistence => {
+apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
   // tslint:disable-next-line:no-any Figure out how to pass in the Timestamp type
   const testDataWithTimestamps = (ts: any): AnyTestData => {
     return { timestamp: ts, nested: { timestamp2: ts } };

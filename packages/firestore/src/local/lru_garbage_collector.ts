@@ -371,7 +371,7 @@ export class LruGarbageCollector {
     activeTargetIds: ActiveTargets
   ): PersistencePromise<LruResults> {
     let upperBoundSequenceNumber: number;
-    let sequenceNumbersToCollect, targetsRemoved: number;
+    let sequenceNumbersToCollect: number, targetsRemoved: number;
     // Timestamps for various pieces of the process
     let startTs: number,
       countedTargetsTs: number,

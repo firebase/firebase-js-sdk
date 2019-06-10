@@ -40,7 +40,7 @@ import * as types from '@firebase/database-types';
 
 const ServerValue = Database.ServerValue;
 
-export function initStandalone(app, url, version?: string) {
+export function initStandalone(app: FirebaseApp, url: string, version?: string) {
   /**
    * This should allow the firebase-admin package to provide a custom version
    * to the backend

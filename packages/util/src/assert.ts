@@ -20,7 +20,7 @@ import { CONSTANTS } from './constants';
 /**
  * Throws an error if the provided assertion is falsy
  */
-export const assert = function(assertion: any, message: string) {
+export const assert = function(assertion: unknown, message: string): void {
   if (!assertion) {
     throw assertionError(message);
   }

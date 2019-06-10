@@ -27,7 +27,7 @@ const FieldValue = firebase.firestore!.FieldValue;
 
 const DOUBLE_EPSILON = 0.000001;
 
-apiDescribe('Numeric Transforms:', persistence => {
+apiDescribe('Numeric Transforms:', (persistence: boolean) => {
   // A document reference to read and write to.
   let docRef: firestore.DocumentReference;
 

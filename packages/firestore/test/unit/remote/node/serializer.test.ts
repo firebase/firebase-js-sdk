@@ -156,6 +156,7 @@ describe('Serializer', () => {
         const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
           actualJsonProto
         );
+        // @ts-ignore
         expect(actualProtobufjsProto[valueType]).to.deep.equal(protobufJsValue);
 
         // Convert protobufjs back to JSON.

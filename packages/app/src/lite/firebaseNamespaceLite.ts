@@ -20,7 +20,9 @@ import {
   _FirebaseApp,
   _FirebaseNamespace,
   FirebaseServiceFactory,
-  AppHook
+  AppHook,
+  FirebaseServiceNamespace,
+  FirebaseService
 } from '@firebase/app-types/private';
 import { FirebaseAppLiteImpl } from './firebaseAppLite';
 import { createFirebaseNamespaceCore } from '../firebaseNamespaceCore';
@@ -41,10 +43,10 @@ export function createFirebaseNamespaceLite(): FirebaseNamespace {
   function registerServiceForLite(
     name: string,
     createService: FirebaseServiceFactory,
-    serviceProperties?: { [prop: string]: any },
+    serviceProperties?: { [prop: string]: unknown },
     appHook?: AppHook,
     allowMultipleInstances?: boolean
-  ) {
+  ): FirebaseServiceNamespace<FirebaseService> {
     // only allow performance to register with firebase lite
     if (name !== 'performance' && name !== 'installations') {
       throw Error(`${name} cannot register with the standalone perf instance`);

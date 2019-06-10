@@ -30,7 +30,7 @@ import {
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldPath = firebase.firestore!.FieldPath;
 
-apiDescribe('Cursors', persistence => {
+apiDescribe('Cursors', (persistence: boolean) => {
   it('can page through items', () => {
     const testDocs = {
       a: { v: 'a' },
@@ -242,7 +242,7 @@ apiDescribe('Cursors', persistence => {
 
   // Currently, timestamps are truncated to microseconds on the backend, so
   // don't create timestamps with more precision than that.
-  const makeTimestamp = (seconds, micros) =>
+  const makeTimestamp = (seconds: number, micros: number) =>
     new Timestamp(seconds, micros * 1000);
 
   it('can accept Timestamps as bounds', () => {

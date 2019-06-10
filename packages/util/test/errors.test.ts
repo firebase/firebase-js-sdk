@@ -121,10 +121,10 @@ describe('FirebaseError', () => {
   });
 });
 
-function dummy1() {
+function dummy1(): void {
   dummy2();
 }
 
-function dummy2() {
+function dummy2(): void {
   throw ERROR_FACTORY.create('generic-error');
 }

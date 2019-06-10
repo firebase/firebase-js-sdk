@@ -29,6 +29,7 @@ if (isBrowser() && 'firebase' in self) {
     Firebase library is only loaded once.
   `);
 
+  // eslint-disable-next-line
   const sdkVersion = ((self as any).firebase as FirebaseNamespace).SDK_VERSION;
   if (sdkVersion && sdkVersion.indexOf('LITE') >= 0) {
     logger.warn(`

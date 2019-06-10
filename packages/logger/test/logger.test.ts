@@ -19,7 +19,6 @@ import { expect } from 'chai';
 import { spy as Spy, SinonSpy } from 'sinon';
 import { Logger, LogLevel } from '../src/logger';
 import { setLogLevel } from '../index';
-import { debug } from 'util';
 
 describe('@firebase/logger', () => {
   const message = 'Hello there!';
@@ -47,7 +46,7 @@ describe('@firebase/logger', () => {
     spies.errorSpy.restore();
   });
 
-  function testLog(message, channel, shouldLog) {
+  function testLog(message: string, channel: string, shouldLog: boolean): void {
     /**
      * Ensure that `debug` logs assert against the `console.log` function. The
      * rationale here is explained in `logger.ts`.
@@ -57,6 +56,7 @@ describe('@firebase/logger', () => {
     it(`Should ${
       shouldLog ? '' : 'not'
     } call \`console.${channel}\` if \`.${channel}\` is called`, () => {
+      // @ts-ignore It's not worth making a dedicated enum for a test.
       client[channel](message);
       expect(
         spies[`${channel}Spy`]!.called,

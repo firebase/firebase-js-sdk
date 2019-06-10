@@ -18,8 +18,11 @@
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { createFirebaseNamespace } from './src/firebaseNamespace';
-import Storage from 'dom-storage';
-import { XMLHttpRequest } from 'xmlhttprequest';
+// Node specific packages.
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const Storage = require('dom-storage');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const XMLHttpRequest = require('xmlhttprequest');
 
 const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
 

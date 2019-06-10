@@ -191,7 +191,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     f: (key: DocumentKey) => PersistencePromise<void>
   ): PersistencePromise<void> {
-    return PersistencePromise.forEach(this.docs, key => f(key));
+    return PersistencePromise.forEach(this.docs, (key: DocumentKey) => f(key));
   }
 
   getNewDocumentChanges(

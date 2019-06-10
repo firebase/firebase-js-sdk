@@ -60,7 +60,7 @@ import { AutoId } from '../util/misc';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Query } from './query';
 import { Transaction } from './transaction';
-import { OnlineStateSource } from './types';
+import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
 
 const LOG_TAG = 'FirestoreClient';
@@ -429,12 +429,12 @@ export class FirestoreClient {
           serializer
         );
 
-        const remoteStoreOnlineStateChangedHandler = onlineState =>
+        const remoteStoreOnlineStateChangedHandler = (onlineState: OnlineState) =>
           this.syncEngine.applyOnlineStateChange(
             onlineState,
             OnlineStateSource.RemoteStore
           );
-        const sharedClientStateOnlineStateChangedHandler = onlineState =>
+        const sharedClientStateOnlineStateChangedHandler = (onlineState: OnlineState) =>
           this.syncEngine.applyOnlineStateChange(
             onlineState,
             OnlineStateSource.SharedClientState

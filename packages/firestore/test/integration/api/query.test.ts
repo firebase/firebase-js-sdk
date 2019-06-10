@@ -37,7 +37,7 @@ const FieldPath = firebase.firestore!.FieldPath;
 const GeoPoint = firebase.firestore!.GeoPoint;
 const Timestamp = firebase.firestore!.Timestamp;
 
-apiDescribe('Queries', persistence => {
+apiDescribe('Queries', (persistence: boolean) => {
   addEqualityMatcher();
 
   it('can issue limit queries', () => {

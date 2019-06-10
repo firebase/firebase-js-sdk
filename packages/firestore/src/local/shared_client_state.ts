@@ -462,13 +462,15 @@ export class SharedOnlineState {
 
     const validData =
       typeof onlineState === 'object' &&
+      // @ts-ignore Should allow arbitrary string index when checking to see
+      // if that string is a valid enum value.
       OnlineState[onlineState.onlineState] !== undefined &&
       typeof onlineState.clientId === 'string';
 
     if (validData) {
       return new SharedOnlineState(
         onlineState.clientId,
-        OnlineState[onlineState.onlineState]
+        OnlineState[onlineState.onlineState as keyof typeof OnlineState]
       );
     } else {
       error(LOG_TAG, `Failed to parse online state: ${value}`);

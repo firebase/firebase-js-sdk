@@ -107,7 +107,7 @@ class TestClass {
 // since it is an untyped language. These tests are not exhaustive as that would
 // be extremely tedious, but we do try to hit every error template at least
 // once.
-apiDescribe('Validation:', persistence => {
+apiDescribe('Validation:', (persistence: boolean) => {
   describe('FirestoreSettings', () => {
     // Enabling persistence counts as a use of the firestore instance, meaning
     // that it will be impossible to verify that a set of settings don't throw,

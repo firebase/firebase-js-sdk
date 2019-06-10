@@ -76,7 +76,7 @@ class LocalStoreTester {
   private lastChanges: MaybeDocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
-  constructor(public localStore: LocalStore, readonly gcIsEager) {}
+  constructor(public localStore: LocalStore, readonly gcIsEager: boolean) {}
 
   after(
     op: Mutation | Mutation[] | RemoteEvent | LocalViewChanges
