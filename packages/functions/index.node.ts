@@ -16,7 +16,10 @@
  */
 import firebase from '@firebase/app';
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseServiceFactory, _FirebaseNamespace } from '@firebase/app-types/private';
+import {
+  FirebaseServiceFactory,
+  _FirebaseNamespace
+} from '@firebase/app-types/private';
 import { Service } from './src/api/service';
 import 'isomorphic-fetch';
 

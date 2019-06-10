@@ -18,7 +18,9 @@
 import { base64Decode } from './crypt';
 import { jsonEval } from './json';
 
-interface Claims { [key: string]: object | number | string | boolean };
+interface Claims {
+  [key: string]: object | number | string | boolean;
+}
 
 interface DecodedToken {
   header: object;
@@ -68,7 +70,8 @@ export const decode = function(token: string): DecodedToken {
 export const isValidTimestamp = function(token: string): boolean {
   const claims: Claims = decode(token).claims;
   const now: number = Math.floor(new Date().getTime() / 1000);
-  let validSince: number = 0, validUntil: number = 0;
+  let validSince: number = 0,
+    validUntil: number = 0;
 
   if (typeof claims === 'object') {
     if (claims.hasOwnProperty('nbf')) {
@@ -86,7 +89,11 @@ export const isValidTimestamp = function(token: string): boolean {
   }
 
   return (
-    !!now && !!validSince && !!validUntil && now >= validSince && now <= validUntil
+    !!now &&
+    !!validSince &&
+    !!validUntil &&
+    now >= validSince &&
+    now <= validUntil
   );
 };
 

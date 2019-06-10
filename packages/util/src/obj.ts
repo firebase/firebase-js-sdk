@@ -28,7 +28,10 @@ export const contains = function<V>(obj: UtilObject<V>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
-export const safeGet = function<V>(obj: UtilObject<V>, key: string) : V | undefined {
+export const safeGet = function<V>(
+  obj: UtilObject<V>,
+  key: string
+): V | undefined {
   if (Object.prototype.hasOwnProperty.call(obj, key)) return obj[key];
   // else return undefined.
 };
@@ -40,7 +43,10 @@ export const safeGet = function<V>(obj: UtilObject<V>, key: string) : V | undefi
  * @param {!function(K, V)} fn Function to call for each key and value.
  * @template K,V
  */
-export const forEach = function<V>(obj: UtilObject<V>, fn: (key: string, value: V) => void): void {
+export const forEach = function<V>(
+  obj: UtilObject<V>,
+  fn: (key: string, value: V) => void
+): void {
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       fn(key, obj[key]);
@@ -54,7 +60,10 @@ export const forEach = function<V>(obj: UtilObject<V>, fn: (key: string, value: 
  * @param {!Object} objFrom
  * @return {!Object} objTo
  */
-export const extend = function<V>(objTo: UtilObject<V>, objFrom: UtilObject<V>): UtilObject<V> {
+export const extend = function<V>(
+  objTo: UtilObject<V>,
+  objFrom: UtilObject<V>
+): UtilObject<V> {
   forEach(objFrom, function(key, value) {
     objTo[key] = value;
   });
@@ -93,7 +102,11 @@ export const getCount = function<V>(obj: UtilObject<V>): number {
   return rv;
 };
 
-export const map = function<V>(obj: UtilObject<V>, fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown, context?: unknown) {
+export const map = function<V>(
+  obj: UtilObject<V>,
+  fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown,
+  context?: unknown
+) {
   var res: UtilObject<V> = {};
   for (var key in obj) {
     res[key] = fn.call(context, obj[key], key, obj);
@@ -101,7 +114,11 @@ export const map = function<V>(obj: UtilObject<V>, fn: (value: V, key: string | 
   return res;
 };
 
-export const findKey = function<V>(obj: UtilObject<V>, fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown, context?: unknown) {
+export const findKey = function<V>(
+  obj: UtilObject<V>,
+  fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown,
+  context?: unknown
+) {
   for (var key in obj) {
     if (fn.call(context, obj[key], key, obj)) {
       return key;
@@ -110,7 +127,11 @@ export const findKey = function<V>(obj: UtilObject<V>, fn: (value: V, key: strin
   return undefined;
 };
 
-export const findValue = function<V>(obj: UtilObject<V>, fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown, context?: unknown) {
+export const findValue = function<V>(
+  obj: UtilObject<V>,
+  fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown,
+  context?: unknown
+) {
   var key = findKey(obj, fn, context);
   return key && obj[key];
 };

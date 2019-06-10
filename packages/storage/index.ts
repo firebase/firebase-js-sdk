@@ -17,7 +17,10 @@
 
 import firebase from '@firebase/app';
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseServiceFactory, _FirebaseNamespace } from '@firebase/app-types/private';
+import {
+  FirebaseServiceFactory,
+  _FirebaseNamespace
+} from '@firebase/app-types/private';
 import { StringFormat } from './src/implementation/string';
 import { TaskEvent } from './src/implementation/taskenums';
 import { TaskState } from './src/implementation/taskenums';

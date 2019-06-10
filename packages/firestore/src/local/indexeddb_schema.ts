@@ -171,17 +171,20 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         return mutationsStore
           .loadAll(DbMutationBatch.userMutationsIndex, range)
           .next(dbBatches => {
-            return PersistencePromise.forEach(dbBatches, (dbBatch: DbMutationBatch) => {
-              assert(
-                dbBatch.userId === queue.userId,
-                `Cannot process batch ${dbBatch.batchId} from unexpected user`
-              );
-              const batch = this.serializer.fromDbMutationBatch(dbBatch);
+            return PersistencePromise.forEach(
+              dbBatches,
+              (dbBatch: DbMutationBatch) => {
+                assert(
+                  dbBatch.userId === queue.userId,
+                  `Cannot process batch ${dbBatch.batchId} from unexpected user`
+                );
+                const batch = this.serializer.fromDbMutationBatch(dbBatch);
 
-              return removeMutationBatch(txn, queue.userId, batch).next(
-                () => {}
-              );
-            });
+                return removeMutationBatch(txn, queue.userId, batch).next(
+                  () => {}
+                );
+              }
+            );
           });
       });
     });

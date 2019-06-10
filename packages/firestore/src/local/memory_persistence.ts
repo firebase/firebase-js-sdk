@@ -261,17 +261,20 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const cache = this.persistence.getRemoteDocumentCache();
-    return PersistencePromise.forEach(this.orphanedDocuments, (key: DocumentKey) => {
-      return this.isReferenced(txn, key).next(isReferenced => {
-        if (!isReferenced) {
-          // Since this is the eager delegate and memory persistence,
-          // we don't care about the size of documents. We don't track
-          // the size of the cache for eager GC.
-          return cache.removeEntry(txn, key).next(() => {});
-        }
-        return PersistencePromise.resolve();
-      });
-    });
+    return PersistencePromise.forEach(
+      this.orphanedDocuments,
+      (key: DocumentKey) => {
+        return this.isReferenced(txn, key).next(isReferenced => {
+          if (!isReferenced) {
+            // Since this is the eager delegate and memory persistence,
+            // we don't care about the size of documents. We don't track
+            // the size of the cache for eager GC.
+            return cache.removeEntry(txn, key).next(() => {});
+          }
+          return PersistencePromise.resolve();
+        });
+      }
+    );
   }
 
   updateLimboDocument(

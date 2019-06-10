@@ -57,7 +57,11 @@ export const validateArgCount = function(
  * @param optional Whether or not the argument is optional
  * @return The prefix to add to the error thrown for validation.
  */
-export function errorPrefix(fnName: string, argumentNumber: number, optional: boolean): string {
+export function errorPrefix(
+  fnName: string,
+  argumentNumber: number,
+  optional: boolean
+): string {
   let argName = '';
   switch (argumentNumber) {
     case 1:

@@ -16,7 +16,10 @@
  */
 import firebase from '@firebase/app';
 import * as app_types from '@firebase/app-types';
-import { FirebaseServiceFactory, _FirebaseNamespace } from '@firebase/app-types/private';
+import {
+  FirebaseServiceFactory,
+  _FirebaseNamespace
+} from '@firebase/app-types/private';
 import * as types from '@firebase/functions-types';
 import { Service } from './src/api/service';
 

@@ -22,7 +22,9 @@ import { forEach } from './obj';
  * object (e.g. {arg: 'val', arg2: 'val2'})
  * Note: You must prepend it with ? when adding it to a URL.
  */
-export const querystring = function<V>(querystringParams: { [key: string]: string }): string {
+export const querystring = function<V>(querystringParams: {
+  [key: string]: string;
+}): string {
   const params: string[] = [];
   forEach(querystringParams, (key: string, value) => {
     if (Array.isArray(value)) {

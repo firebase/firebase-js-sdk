@@ -178,7 +178,10 @@ describe('WebStorageSharedClientState', () => {
     newValue: string | null;
   }
 
-  type WebStorageCallback = (this: unknown, event: WebStorageOptions) => unknown;
+  type WebStorageCallback = (
+    this: unknown,
+    event: WebStorageOptions
+  ) => unknown;
 
   let webStorageCallbacks: WebStorageCallback[] = [];
 

@@ -311,8 +311,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       const sdb = new SimpleDb(db);
       return sdb.runTransaction('readwrite', [DbMutationBatch.store], txn => {
         const store = txn.store(DbMutationBatch.store);
-        return PersistencePromise.forEach(testMutations, (testMutation: DbMutationBatch) =>
-          store.put(testMutation)
+        return PersistencePromise.forEach(
+          testMutations,
+          (testMutation: DbMutationBatch) => store.put(testMutation)
         );
       });
     }).then(() =>
@@ -325,10 +326,12 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
             DbMutationBatch.store
           );
-          let p = PersistencePromise.forEach(testMutations, (testMutation: DbMutationBatch) =>
-            store.get(testMutation.batchId).next(mutationBatch => {
-              expect(mutationBatch).to.deep.equal(testMutation);
-            })
+          let p = PersistencePromise.forEach(
+            testMutations,
+            (testMutation: DbMutationBatch) =>
+              store.get(testMutation.batchId).next(mutationBatch => {
+                expect(mutationBatch).to.deep.equal(testMutation);
+              })
           );
           p = p.next(() => {
             store
@@ -425,22 +428,27 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           DbMutationQueue
         >(DbMutationQueue.store);
         // Manually populate the mutation queue and create all indicies.
-        return PersistencePromise.forEach(testMutations, (testMutation: DbMutationBatch) => {
-          return mutationBatchStore.put(testMutation).next(() => {
-            return PersistencePromise.forEach(testMutation.mutations,
-              (write: firestoreV1ApiClientInterfaces.Write) => {
-              const indexKey = DbDocumentMutation.key(
-                testMutation.userId,
-                path(write.update!.name!, 5),
-                testMutation.batchId
-              );
-              return documentMutationStore.put(
-                indexKey,
-                DbDocumentMutation.PLACEHOLDER
+        return PersistencePromise.forEach(
+          testMutations,
+          (testMutation: DbMutationBatch) => {
+            return mutationBatchStore.put(testMutation).next(() => {
+              return PersistencePromise.forEach(
+                testMutation.mutations,
+                (write: firestoreV1ApiClientInterfaces.Write) => {
+                  const indexKey = DbDocumentMutation.key(
+                    testMutation.userId,
+                    path(write.update!.name!, 5),
+                    testMutation.batchId
+                  );
+                  return documentMutationStore.put(
+                    indexKey,
+                    DbDocumentMutation.PLACEHOLDER
+                  );
+                }
               );
             });
-          });
-        }).next(() =>
+          }
+        ).next(() =>
           // Populate the mutation queues' metadata
           PersistencePromise.waitFor([
             mutationQueuesStore.put(new DbMutationQueue('foo', 2, '')),
@@ -511,9 +519,10 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         const store = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
           DbRemoteDocument.store
         );
-        return PersistencePromise.forEach(dbRemoteDocs,
-          ({ dbKey, dbDoc }: { dbKey: string[], dbDoc: DbRemoteDocument}) =>
-          store.put(dbKey, dbDoc)
+        return PersistencePromise.forEach(
+          dbRemoteDocs,
+          ({ dbKey, dbDoc }: { dbKey: string[]; dbDoc: DbRemoteDocument }) =>
+            store.put(dbKey, dbDoc)
         );
       });
     });

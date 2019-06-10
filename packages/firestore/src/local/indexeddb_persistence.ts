@@ -515,8 +515,10 @@ export class IndexedDbPersistence implements Persistence {
             })
             .next(() =>
               // Delete metadata for clients that are no longer considered active.
-              PersistencePromise.forEach(inactiveClients, (inactiveClient: DbClientMetadata) =>
-                metadataStore.delete(inactiveClient.clientId)
+              PersistencePromise.forEach(
+                inactiveClients,
+                (inactiveClient: DbClientMetadata) =>
+                  metadataStore.delete(inactiveClient.clientId)
               )
             )
             .next(() => {
@@ -882,7 +884,9 @@ export class IndexedDbPersistence implements Persistence {
    * Obtains or extends the new primary lease for the local client. This
    * method does not verify that the client is eligible for this lease.
    */
-  private acquireOrExtendPrimaryLease(txn: SimpleDbTransaction): PersistencePromise<void> {
+  private acquireOrExtendPrimaryLease(
+    txn: SimpleDbTransaction
+  ): PersistencePromise<void> {
     const newPrimary = new DbPrimaryClient(
       this.clientId,
       this.allowTabSynchronization,
