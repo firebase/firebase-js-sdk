@@ -248,7 +248,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         .then(remoteKeys => {
           const view = new View(query, remoteKeys);
           const viewDocChanges = view.computeDocChanges(docs);
-          // tslint:disable-next-line:max-line-length Prettier formats this exceed 100 characters.
+          // Prettier formats this exceed 100 characters.
           const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
             queryData.targetId,
             current && this.onlineState !== OnlineState.Offline
@@ -977,7 +977,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           return this.localStore.getNewDocumentChanges().then(
             async changes => {
               // tslint and prettier disagree about their preferred line length.
-              // tslint:disable-next-line:max-line-length
               const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
                 targetId,
                 state === 'current'

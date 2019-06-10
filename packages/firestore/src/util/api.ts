@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-// We are doing some heavy reflective stuff, lots of any casting necessary
-/* tslint:disable:no-any */
-
 import { Code, FirestoreError } from './error';
 
 /**

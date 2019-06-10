@@ -24,7 +24,7 @@ import firebase from './firebase_export';
  * dependencies on src/ files.
  */
 
-// tslint:disable-next-line:no-any __karma__ is an untyped global
+// __karma__ is an untyped global
 declare const __karma__: any;
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -46,7 +46,6 @@ const PROD_FIRESTORE_SETTING = {
 
 export const DEFAULT_SETTINGS = getDefaultSettings();
 
-// tslint:disable-next-line:no-console
 console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 
 function getDefaultSettings(): firestore.Settings {

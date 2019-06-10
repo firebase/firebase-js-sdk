@@ -2,5 +2,21 @@
     "extends": "../../config/.eslintrc.json",
     "parserOptions": {
         "project": "tsconfig.json"
+    },
+    "plugins": [
+        "import"
+    ],
+    "rules": {
+        "no-console":[ "error", { "allow": ["warn", "error"] }],
+        "import/no-default-export": "error"
+    },
+    "overrides": {
+        "files": [
+            "*test.ts",
+            "**/test/**/*.ts"
+        ],
+        "rules": {
+            "no-console": "off"
+        }
     }
 }

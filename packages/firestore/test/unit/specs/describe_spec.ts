@@ -176,7 +176,6 @@ export function specTest(
         await spec.runAsTest(fullName, usePersistence);
         const end = Date.now();
         if (tags.indexOf(BENCHMARK_TAG) >= 0) {
-          // tslint:disable-next-line:no-console
           console.log(`Runtime: ${end - start} ms.`);
         }
       });

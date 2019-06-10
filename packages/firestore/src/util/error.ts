@@ -24,7 +24,7 @@ import * as firestore from '@firebase/firestore-types';
 export type Code = firestore.FirestoreErrorCode;
 
 // TODO(mcg): Change to a string enum once we've upgraded to typescript 2.4.
-//  tslint:disable-next-line:variable-name Intended to look like a TS 2.4 enum
+// Intended to look like a TS 2.4 enum
 export const Code = {
   // Causes are copied from:
   // https://github.com/grpc/grpc/blob/bceec94ea4fc5f0085d81235d8e1c06798dc341a/include/grpc%2B%2B/impl/codegen/status_code_enum.h

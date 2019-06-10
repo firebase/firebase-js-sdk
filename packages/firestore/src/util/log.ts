@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 
-/* tslint:disable:no-console */
-
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
 import { SDK_VERSION } from '../core/version';
 import { PlatformSupport } from '../platform/platform';

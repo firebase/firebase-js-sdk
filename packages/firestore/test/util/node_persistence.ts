@@ -29,7 +29,7 @@ import { FakeWindow, SharedFakeWebStorage } from './test_platform';
 // To use this code to run persistence-based tests in Node, include this module
 // and set the environment variable `USE_MOCK_PERSISTENCE` to `YES`.
 
-const globalAny = global as any; // tslint:disable-line:no-any
+const globalAny = global as any;
 
 const dbDir = fs.mkdtempSync(os.tmpdir() + '/firestore_tests');
 

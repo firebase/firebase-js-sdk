@@ -787,7 +787,6 @@ export class DbTargetDocument {
   ) {
     assert(
       (targetId === 0) === (sequenceNumber !== undefined),
-      // tslint:disable-next-line:max-line-length
       'A target-document row must either have targetId == 0 and a defined sequence number, or a non-zero targetId and no sequence number'
     );
   }

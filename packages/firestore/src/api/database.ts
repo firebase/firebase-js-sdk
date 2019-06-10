@@ -106,7 +106,6 @@ import {
 // The objects that are a part of this API are exposed to third-parties as
 // compiled javascript so we want to flag our private members with a leading
 // underscore to discourage their use.
-// tslint:disable:strip-private-property-underscore
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -2407,7 +2406,6 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
 
 // We're treating the variables as class names, so disable checking for lower
 // case variable names.
-// tslint:disable:variable-name
 export const PublicFirestore = makeConstructorPrivate(
   Firestore,
   'Use firebase.firestore() instead.'
@@ -2434,4 +2432,3 @@ export const PublicCollectionReference = makeConstructorPrivate(
   CollectionReference,
   'Use firebase.firestore().collection() instead.'
 );
-// tslint:enable:variable-name

@@ -258,7 +258,7 @@ class MockConnection implements Connection {
         }
       });
       this.writeStream = writeStream;
-      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      // Replace 'any' with conditional types.
       return writeStream as any;
     } else {
       assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
@@ -292,7 +292,7 @@ class MockConnection implements Connection {
         }
       });
       this.watchStream = watchStream;
-      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      // Replace 'any' with conditional types.
       return this.watchStream as any;
     }
   }
@@ -1240,7 +1240,6 @@ export async function runSpec(
   config: SpecConfig,
   steps: SpecStep[]
 ): Promise<void> {
-  // tslint:disable-next-line:no-console
   console.log('Running spec: ' + name);
 
   const sharedMockStorage = new SharedFakeWebStorage();

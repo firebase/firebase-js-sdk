@@ -252,7 +252,6 @@ export class FirestoreClient {
           if (!this.canFallback(error)) {
             throw error;
           }
-
           console.warn(
             'Error enabling offline persistence. Falling back to' +
               ' persistence disabled: ' +
