@@ -24,7 +24,7 @@ import { FirebaseApp } from '@firebase/app-types';
 describe('Firebase Performance Test', () => {
   setupApi(window);
 
-  let fakeFirebaseConfig = {
+  const fakeFirebaseConfig = {
     apiKey: 'api-key',
     authDomain: 'project-id.firebaseapp.com',
     databaseURL: 'https://project-id.firebaseio.com',
@@ -34,7 +34,7 @@ describe('Firebase Performance Test', () => {
     appId: '1:111:web:a1234'
   };
 
-  let fakeFirebaseApp = ({
+  const fakeFirebaseApp = ({
     options: fakeFirebaseConfig
   } as unknown) as FirebaseApp;
 

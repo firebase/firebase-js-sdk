@@ -69,22 +69,30 @@ export class Api {
   }
 
   mark(name: string): void {
-    if (!this.performance || !this.performance.mark) return;
+    if (!this.performance || !this.performance.mark) {
+      return;
+    }
     this.performance.mark(name);
   }
 
   measure(measureName: string, mark1: string, mark2: string): void {
-    if (!this.performance || !this.performance.measure) return;
+    if (!this.performance || !this.performance.measure) {
+      return;
+    }
     this.performance.measure(measureName, mark1, mark2);
   }
 
   getEntriesByType(type: EntryType): PerformanceEntry[] {
-    if (!this.performance || !this.performance.getEntriesByType) return [];
+    if (!this.performance || !this.performance.getEntriesByType) {
+      return [];
+    }
     return this.performance.getEntriesByType(type);
   }
 
   getEntriesByName(name: string): PerformanceEntry[] {
-    if (!this.performance || !this.performance.getEntriesByName) return [];
+    if (!this.performance || !this.performance.getEntriesByName) {
+      return [];
+    }
     return this.performance.getEntriesByName(name);
   }
 
@@ -100,7 +108,9 @@ export class Api {
     entryType: EntryType,
     callback: (entry: PerformanceEntry) => void
   ): void {
-    if (!this.PerformanceObserver) return;
+    if (!this.PerformanceObserver) {
+      return;
+    }
     const observer = new this.PerformanceObserver(list => {
       for (const entry of list.getEntries()) {
         // `entry` is a PerformanceEntry instance.

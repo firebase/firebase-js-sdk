@@ -33,14 +33,14 @@ export class PerformanceController implements FirebasePerformance {
   set instrumentationEnabled(val: boolean) {
     SettingsService.getInstance().instrumentationEnabled = val;
   }
-  get instrumentationEnabled() {
+  get instrumentationEnabled(): boolean {
     return SettingsService.getInstance().instrumentationEnabled;
   }
 
   set dataCollectionEnabled(val: boolean) {
     SettingsService.getInstance().dataCollectionEnabled = val;
   }
-  get dataCollectionEnabled() {
+  get dataCollectionEnabled(): boolean {
     return SettingsService.getInstance().dataCollectionEnabled;
   }
 }

@@ -59,7 +59,7 @@ function getDocumentReadyComplete(): Promise<void> {
   const document = Api.getInstance().document;
   return new Promise(resolve => {
     if (document && document.readyState !== 'complete') {
-      const handler = () => {
+      const handler = (): void => {
         if (document.readyState === 'complete') {
           document.removeEventListener('readystatechange', handler);
           resolve();
