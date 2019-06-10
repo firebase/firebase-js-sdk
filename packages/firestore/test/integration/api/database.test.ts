@@ -30,7 +30,6 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  clearPersistence,
   withTestCollection,
   withTestDb,
   withTestDbs,
@@ -954,13 +953,14 @@ apiDescribe('Database', (persistence: boolean) => {
     'can clear persistence if the client has not been initialized',
     async () => {
       await withTestDoc(persistence, async docRef => {
+        const firestore = docRef.firestore;
         await docRef.set({ foo: 'bar' });
         const app = docRef.firestore.app;
         const name = app.name;
         const options = app.options;
 
         await app.delete();
-        await clearPersistence(docRef.firestore);
+        await firestore.clearPersistence();
         const app2 = firebase.initializeApp(options, name);
         const firestore2 = firebase.firestore!(app2);
         await firestore2.enablePersistence();
@@ -984,7 +984,7 @@ apiDescribe('Database', (persistence: boolean) => {
           const firestore = docRef.firestore;
           await firestore.app.delete();
           await expect(
-            clearPersistence(firestore)
+            firestore.clearPersistence()
           ).to.eventually.be.rejectedWith('Failed to delete the database.');
         } finally {
           SimpleDb.delete = oldDelete;
@@ -996,8 +996,8 @@ apiDescribe('Database', (persistence: boolean) => {
   it('can not clear persistence if the client has been initialized', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await expect(clearPersistence(firestore)).to.eventually.be.rejectedWith(
-        'Persistence cannot be cleared while this firestore instance is running.'
+      await expect(firestore.clearPersistence()).to.eventually.be.rejectedWith(
+        'Persistence cannot be cleared after this Firestore instance is initialized.'
       );
     });
   });

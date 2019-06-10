@@ -102,8 +102,8 @@ export class Sha1 {
 
   /**
    * Internal compress helper function.
-   * @param {!number[]|!Uint8Array|string} buf Block to compress.
-   * @param {number=} offset Offset of the block in the buffer.
+   * @param buf Block to compress.
+   * @param offset Offset of the block in the buffer.
    * @private
    */
   compress_(buf: number[] | Uint8Array | string, offset?: number): void {

@@ -32,7 +32,11 @@ import { assert } from './assert';
  * @param {string} str
  * @return {Array}
  */
+<<<<<<< HEAD
 export const stringToByteArray = function(str: string): number[] {
+=======
+export const stringToByteArray = function(str): number[] {
+>>>>>>> 76539be9b3ab19f5be70275f2334bee9b022e3c4
   const out: number[] = [];
   let p = 0;
   for (let i = 0; i < str.length; i++) {
@@ -71,7 +75,11 @@ export const stringToByteArray = function(str: string): number[] {
  * @param {string} str
  * @return {number}
  */
+<<<<<<< HEAD
 export const stringLength = function(str: string): number {
+=======
+export const stringLength = function(str): number {
+>>>>>>> 76539be9b3ab19f5be70275f2334bee9b022e3c4
   let p = 0;
   for (let i = 0; i < str.length; i++) {
     const c = str.charCodeAt(i);

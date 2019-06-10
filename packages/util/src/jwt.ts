@@ -59,6 +59,13 @@ export const decode = function(token: string): DecodedToken {
   };
 };
 
+interface DecodedToken {
+  header: object;
+  claims: Claims;
+  data: object;
+  signature: string;
+}
+
 /**
  * Decodes a Firebase auth. token and checks the validity of its time-based claims. Will return true if the
  * token is within the time window authorized by the 'nbf' (not-before) and 'iat' (issued-at) claims.

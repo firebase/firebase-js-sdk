@@ -71,6 +71,7 @@ export function getVisibilityState(): VisibilityState {
 
 export function getEffectiveConnectionType(): EffectiveConnectionType {
   const navigator = Api.getInstance().navigator;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const navigatorConnection = (navigator as any).connection;
   const effectiveType =
     navigatorConnection && navigatorConnection.effectiveType;

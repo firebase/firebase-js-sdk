@@ -31,9 +31,13 @@ export class Deferred<R> {
    * invoking promises inline, which Promises are forbidden to do. This method accepts an optional node-style callback
    * and returns a node-style callback which will resolve or reject the Deferred's promise.
    */
+<<<<<<< HEAD
   wrapCallback(
     callback?: (error?: unknown, value?: unknown) => void
   ): (error: unknown, value?: unknown) => void {
+=======
+  wrapCallback(callback?): (error: unknown, value?: unknown) => void {
+>>>>>>> 76539be9b3ab19f5be70275f2334bee9b022e3c4
     return (error, value?) => {
       if (error) {
         this.reject(error);

@@ -66,9 +66,15 @@ export function deepExtend(target: unknown, source: unknown): unknown {
     if (!source.hasOwnProperty(prop)) {
       continue;
     }
+<<<<<<< HEAD
     (target as { [key: string]: unknown })[prop] = deepExtend(
       (target as { [key: string]: unknown })[prop],
       (source as { [key: string]: unknown })[prop]
+=======
+    (target as object)[prop] = deepExtend(
+      (target as object)[prop],
+      source[prop]
+>>>>>>> 76539be9b3ab19f5be70275f2334bee9b022e3c4
     );
   }
 
