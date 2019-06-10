@@ -69,7 +69,6 @@ export abstract class Emulator {
 
   setUp(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      console.log('[chenbrian] spawning new emulator on: ', this.port);
       const promise: ChildProcessPromise = spawn(
         'java',
         ['-jar', path.basename(this.binaryPath), '--port', this.port],

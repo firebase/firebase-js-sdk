@@ -17,6 +17,7 @@
 
 import { spawn } from 'child-process-promise';
 import * as path from 'path';
+import * as freePortFinder from 'find-free-port';
 
 import { ChildProcessPromise } from './emulators/emulator';
 import { FirestoreEmulator } from './emulators/firestore-emulator';
@@ -36,7 +37,8 @@ function runTest(port: number, projectId: string): ChildProcessPromise {
 }
 
 async function run(): Promise<void> {
-  const emulator = new FirestoreEmulator();
+  const port = await findFreePort();
+  const emulator = new FirestoreEmulator(port);
   try {
     await emulator.download();
     await emulator.setUp();
@@ -44,6 +46,14 @@ async function run(): Promise<void> {
   } finally {
     await emulator.tearDown();
   }
+}
+
+function findFreePort() {
+  return new Promise((resolve, reject) => {
+    freePortFinder(8000, 8001, (err, port) => {
+      return err ? reject(err) : resolve(port);
+    });
+  });
 }
 
 run().catch(err => {
