@@ -198,10 +198,7 @@ export function createFirebaseNamespaceCore(
 
     // The Service namespace is an accessor function ...
     function serviceNamespace(appArg: FirebaseApp = app()): FirebaseService {
-<<<<<<< HEAD
       // @ts-ignore
-=======
->>>>>>> 76539be9b3ab19f5be70275f2334bee9b022e3c4
       if (typeof appArg[name] !== 'function') {
         // Invalid argument.
         // This happens in the following case: firebase.storage('gs:/')

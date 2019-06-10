@@ -22,17 +22,11 @@ import { forEach } from './obj';
  * object (e.g. {arg: 'val', arg2: 'val2'})
  * Note: You must prepend it with ? when adding it to a URL.
  */
-<<<<<<< HEAD
 export const querystring = function<V>(querystringParams: {
   [key: string]: string;
 }): string {
   const params: string[] = [];
   forEach(querystringParams, (key: string, value) => {
-=======
-export const querystring = function(querystringParams): string {
-  const params: string[] = [];
-  forEach(querystringParams, (key, value) => {
->>>>>>> 76539be9b3ab19f5be70275f2334bee9b022e3c4
     if (Array.isArray(value)) {
       value.forEach(arrayVal => {
         params.push(
@@ -52,13 +46,8 @@ export const querystring = function(querystringParams): string {
  * @param {string} querystring
  * @return {!Object}
  */
-<<<<<<< HEAD
 export const querystringDecode = function(querystring: string): object {
   const obj: { [key: string]: unknown } = {};
-=======
-export const querystringDecode = function(querystring): object {
-  const obj = {};
->>>>>>> 76539be9b3ab19f5be70275f2334bee9b022e3c4
   const tokens = querystring.replace(/^\?/, '').split('&');
 
   tokens.forEach(token => {

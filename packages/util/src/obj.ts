@@ -17,7 +17,6 @@
 
 /* eslint-disable */
 // will enable after https://github.com/firebase/firebase-js-sdk/pull/1811 is merged
-<<<<<<< HEAD
 
 interface UtilObject<V> {
   [key: string]: V;
@@ -26,11 +25,6 @@ interface UtilObject<V> {
 
 // See http://www.devthought.com/2012/01/18/an-object-is-not-a-hash/
 export const contains = function<V>(obj: UtilObject<V>, key: string): boolean {
-=======
-
-// See http://www.devthought.com/2012/01/18/an-object-is-not-a-hash/
-export const contains = function(obj, key) {
->>>>>>> 76539be9b3ab19f5be70275f2334bee9b022e3c4
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
