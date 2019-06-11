@@ -65,11 +65,14 @@ export class BrowserConnectivityMonitor implements ConnectivityMonitor {
     }
   }
 
-  // TODO(chenbrian): Consider passing in window either into this component or 
+  // TODO(chenbrian): Consider passing in window either into this component or
   // here for possible tests.
   /** Checks that all used attributes of window are available. */
   static isAvailable(): boolean {
-    return window !== undefined && window.addEventListener !== undefined && 
-    window.removeEventListener !== undefined;
+    return (
+      window !== undefined &&
+      window.addEventListener !== undefined &&
+      window.removeEventListener !== undefined
+    );
   }
 }
