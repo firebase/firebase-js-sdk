@@ -163,7 +163,7 @@ export function list(
   pageToken?: string | null,
   maxResults?: number | null
 ): RequestInfo<ListResult> {
-  let urlParams: { [key: string]: any } = {};
+  let urlParams: UrlParams = {};
   if (location.isRoot) {
     urlParams['prefix'] = '';
   } else {
@@ -176,7 +176,7 @@ export function list(
     urlParams['pageToken'] = pageToken;
   }
   if (maxResults) {
-    urlParams['maxResults'] = maxResults;
+    urlParams['maxResults'] = maxResults.toString();
   }
   const urlPart = location.bucketOnlyServerUrl();
   const url = UrlUtils.makeUrl(urlPart);
