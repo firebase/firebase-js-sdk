@@ -427,7 +427,7 @@ declare namespace firebase {
      * current user.
      */
 
-    multiFactor: firebase.User.MultiFactor;
+    multiFactor: firebase.User.MultiFactorUser;
     /**
      * The phone number normalized based on the E.164 standard (e.g. +16505550101)
      * for the current user. This is null if the user has no phone credential linked
@@ -885,6 +885,7 @@ declare namespace firebase {
      *   });
      * ```
      *
+     * @param newEmail The email address to be verified and updated to.
      * @param actionCodeSettings The action
      *     code settings. If specified, the state/continue URL will be set as the
      *     "continueUrl" parameter in the email verification link. The default email
@@ -2929,7 +2930,7 @@ declare namespace firebase.auth {
    *       // User signed in. No 2nd factor challenge is needed.
    *     })
    *     .catch(function(error) {
-   *       if (error.code == ‘auth/multi-factor-auth-required’) {
+   *       if (error.code == 'auth/multi-factor-auth-required') {
    *         var resolver = error.resolver;
    *         var multiFactorHints = resolver.hints;
    *       } else {
@@ -3360,8 +3361,8 @@ declare namespace firebase.auth {
      */
     signInProvider: string | null;
     /**
-     * The factor ID of the second factor challenge being passed through to obtained
-     * the ID token (phone, etc).
+     * The second factor associated with the account was used for the sign-in
+     * that generated this ID Token (phone, etc).
      */
     signInSecondFactor: string | null;
     /**
@@ -3493,7 +3494,7 @@ declare namespace firebase.auth {
    *       // User signed in. No 2nd factor challenge is needed.
    *     })
    *     .catch(function(error) {
-   *       if (error.code == ‘auth/multi-factor-auth-required’) {
+   *       if (error.code == 'auth/multi-factor-auth-required') {
    *         var resolver = error.resolver;
    *         // Show UI to let user select second factor.
    *         var multiFactorHints = resolver.hints;
@@ -3501,6 +3502,12 @@ declare namespace firebase.auth {
    *         // Handle other errors.
    *       }
    *     });
+   *
+   * // The enrolled second factors that can be used to finish
+   * // sign-in are returned in the `MultiFactorResolver.hints`,
+   * // You need to displayed an UI to let the users to select from
+   * // one of them and then pass the second factor challenge.
+   *
    * var selectedHint = // ; selected from multiFactorHints
    * var phoneAuthProvider = new firebase.auth.PhoneAuthProvider();
    * var phoneInfoOptions = {
@@ -3878,7 +3885,7 @@ declare namespace firebase.User {
    * This is the interface that defines the multi-factor related properties and
    * operations pertaining to a {@link firebase.User}.
    */
-  interface MultiFactor {
+  interface MultiFactorUser {
     /**
      * Returns a list of the user's enrolled second factors.
      */
@@ -3890,6 +3897,7 @@ declare namespace firebase.User {
      * JWT payload.
      * Accepts an additional display name parameter used to identify the second
      * factor to the end user.
+     * Recent re-authentication is required for this operation to succeed.
      * On successful enrollment, existing Firebase sessions (refresh tokens) are
      * revoked. When a new factor is enrolled, an email notification is sent
      * to the user’s email.
@@ -3917,6 +3925,10 @@ declare namespace firebase.User {
      * <dd>Thrown if the first factor being used to sign in is not supported.</dd>
      * <dt>auth/unverified-email</dt>
      * <dd>Thrown if the email of the account is not verified.</dd>
+     * <dt>auth/requires-recent-login</dt>
+     * <dd>Thrown if the user's last sign-in time does not meet the security
+     *     threshold. Use {@link firebase.User.reauthenticateWithCredential} to
+     *     resolve.</dd>
      * </dl>
      *
      * @example
@@ -3981,6 +3993,10 @@ declare namespace firebase.User {
      * <dt>auth/multi-factor-info-not-found</dt>
      * <dd>Thrown if the user does not have a second factor matching the
      *     identifier provided.</dd>
+     * <dt>auth/requires-recent-login</dt>
+     * <dd>Thrown if the user's last sign-in time does not meet the security
+     *     threshold. Use {@link firebase.User.reauthenticateWithCredential} to
+     *     resolve.</dd>
      * </dl>
      *
      * @example

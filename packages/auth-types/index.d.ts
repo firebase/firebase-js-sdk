@@ -35,7 +35,7 @@ export interface User extends UserInfo {
   linkWithPopup(provider: AuthProvider): Promise<UserCredential>;
   linkWithRedirect(provider: AuthProvider): Promise<void>;
   metadata: UserMetadata;
-  multiFactor: MultiFactor;
+  multiFactor: MultiFactorUser;
   phoneNumber: string | null;
   providerData: (UserInfo | null)[];
   reauthenticateAndRetrieveDataWithCredential(
@@ -79,7 +79,7 @@ export interface UserInfo {
   uid: string;
 }
 
-export interface MultiFactor {
+export interface MultiFactorUser {
   enrolledFactors: MultiFactorInfo[];
   enroll(
     assertion: MultiFactorAssertion,
