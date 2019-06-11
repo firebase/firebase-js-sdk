@@ -378,8 +378,8 @@ export class SetMutation extends Mutation {
 
   applyToLocalView(
     maybeDoc: MaybeDocument | null,
-    _baseDoc: MaybeDocument | null,
-    _localWriteTime: Timestamp
+    baseDoc: MaybeDocument | null,
+    localWriteTime: Timestamp
   ): MaybeDocument | null {
     this.verifyKeyMatches(maybeDoc);
 
@@ -463,8 +463,8 @@ export class PatchMutation extends Mutation {
 
   applyToLocalView(
     maybeDoc: MaybeDocument | null,
-    _baseDoc: MaybeDocument | null,
-    _localWriteTime: Timestamp
+    baseDoc: MaybeDocument | null,
+    localWriteTime: Timestamp
   ): MaybeDocument | null {
     this.verifyKeyMatches(maybeDoc);
 
@@ -761,8 +761,8 @@ export class DeleteMutation extends Mutation {
 
   applyToLocalView(
     maybeDoc: MaybeDocument | null,
-    _baseDoc: MaybeDocument | null,
-    _localWriteTime: Timestamp
+    baseDoc: MaybeDocument | null,
+    localWriteTime: Timestamp
   ): MaybeDocument | null {
     this.verifyKeyMatches(maybeDoc);
 

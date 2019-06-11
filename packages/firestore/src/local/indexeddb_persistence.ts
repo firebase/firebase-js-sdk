@@ -1315,7 +1315,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
         {
           index: DbTargetDocument.documentTargetsIndex
         },
-        ([targetId, _docKey], { path, sequenceNumber }) => {
+        ([targetId, docKey], { path, sequenceNumber }) => {
           if (targetId === 0) {
             // if nextToReport is valid, report it, this is a new key so the
             // last one must not be a member of any targets.

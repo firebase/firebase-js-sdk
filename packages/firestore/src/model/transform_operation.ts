@@ -87,14 +87,14 @@ export class ArrayUnionTransformOperation implements TransformOperation {
 
   applyToLocalView(
     previousValue: FieldValue | null,
-    _localWriteTime: Timestamp
+    localWriteTime: Timestamp
   ): FieldValue {
     return this.apply(previousValue);
   }
 
   applyToRemoteDocument(
     previousValue: FieldValue | null,
-    _transformResult: FieldValue | null
+    transformResult: FieldValue | null
   ): FieldValue {
     // The server just sends null as the transform result for array operations,
     // so we have to calculate a result the same as we do for local
@@ -128,14 +128,14 @@ export class ArrayRemoveTransformOperation implements TransformOperation {
 
   applyToLocalView(
     previousValue: FieldValue | null,
-    _localWriteTime: Timestamp
+    localWriteTime: Timestamp
   ): FieldValue {
     return this.apply(previousValue);
   }
 
   applyToRemoteDocument(
     previousValue: FieldValue | null,
-    _transformResult: FieldValue | null
+    transformResult: FieldValue | null
   ): FieldValue {
     // The server just sends null as the transform result for array operations,
     // so we have to calculate a result the same as we do for local
@@ -172,7 +172,7 @@ export class NumericIncrementTransformOperation implements TransformOperation {
 
   applyToLocalView(
     previousValue: FieldValue | null,
-    _localWriteTime: Timestamp
+    localWriteTime: Timestamp
   ): FieldValue {
     // PORTING NOTE: Since JavaScript's integer arithmetic is limited to 53 bit
     // precision and resolves overflows by reducing precision, we do not

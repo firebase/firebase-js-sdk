@@ -218,7 +218,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
             // Node logs warnings if you don't attach an error handler to a
             // Promise before it fails, so attach a dummy one here (we handle
             // the rejection for real below).
-            batchCommitPromise.catch(_err => {});
+            batchCommitPromise.catch(err => {});
 
             return accumulator.awaitEvent();
           })

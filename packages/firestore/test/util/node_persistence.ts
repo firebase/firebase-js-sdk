@@ -51,7 +51,7 @@ if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
   // WebStorage when using both the IndexedDB mock and the WebStorage mock.
   class Event {
     // eslint-disable-next-line @typescript-eslint/no-useless-constructor
-    constructor(_typeArg: string, _eventInitDict?: EventInit) {}
+    constructor(typeArg: string, eventInitDict?: EventInit) {}
   }
 
   globalAny.Event = Event;

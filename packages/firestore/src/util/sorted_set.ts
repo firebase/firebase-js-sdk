@@ -65,7 +65,7 @@ export class SortedSet<T> {
 
   /** Iterates elements in order defined by "comparator" */
   forEach(cb: (elem: T) => void): void {
-    this.data.inorderTraversal((k: T, _v: boolean) => {
+    this.data.inorderTraversal((k: T, v: boolean) => {
       cb(k);
       return false;
     });

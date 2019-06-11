@@ -56,12 +56,12 @@ export class MemoryQueryCache implements QueryCache {
 
   constructor(private readonly persistence: MemoryPersistence) {}
 
-  getTargetCount(_txn: PersistenceTransaction): PersistencePromise<number> {
+  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
     return PersistencePromise.resolve(this.targetCount);
   }
 
   forEachTarget(
-    _txn: PersistenceTransaction,
+    txn: PersistenceTransaction,
     f: (q: QueryData) => void
   ): PersistencePromise<void> {
     this.queries.forEach((_, queryData) => f(queryData));
@@ -69,19 +69,19 @@ export class MemoryQueryCache implements QueryCache {
   }
 
   getLastRemoteSnapshotVersion(
-    _transaction: PersistenceTransaction
+    transaction: PersistenceTransaction
   ): PersistencePromise<SnapshotVersion> {
     return PersistencePromise.resolve(this.lastRemoteSnapshotVersion);
   }
 
   getHighestSequenceNumber(
-    _transaction: PersistenceTransaction
+    transaction: PersistenceTransaction
   ): PersistencePromise<ListenSequenceNumber> {
     return PersistencePromise.resolve(this.highestSequenceNumber);
   }
 
   allocateTargetId(
-    _transaction: PersistenceTransaction
+    transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
     const nextTargetId = this.targetIdGenerator.after(this.highestTargetId);
     this.highestTargetId = nextTargetId;
@@ -173,13 +173,13 @@ export class MemoryQueryCache implements QueryCache {
   }
 
   getQueryCount(
-    _transaction: PersistenceTransaction
+    transaction: PersistenceTransaction
   ): PersistencePromise<number> {
     return PersistencePromise.resolve(this.targetCount);
   }
 
   getQueryData(
-    _transaction: PersistenceTransaction,
+    transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<QueryData | null> {
     const queryData = this.queries.get(query) || null;
@@ -187,8 +187,8 @@ export class MemoryQueryCache implements QueryCache {
   }
 
   getQueryDataForTarget(
-    _transaction: PersistenceTransaction,
-    _targetId: TargetId
+    transaction: PersistenceTransaction,
+    targetId: TargetId
   ): never {
     // This method is only needed for multi-tab and we can't implement it
     // efficiently without additional data structures.

@@ -136,7 +136,7 @@ export class RemoteStore implements TargetMetadataProvider {
     connectivityMonitor: ConnectivityMonitor
   ) {
     this.connectivityMonitor = connectivityMonitor;
-    this.connectivityMonitor.addCallback((_status: NetworkStatus) => {
+    this.connectivityMonitor.addCallback((status: NetworkStatus) => {
       asyncQueue.enqueueAndForget(async () => {
         if (this.canUseNetwork()) {
           log.debug(

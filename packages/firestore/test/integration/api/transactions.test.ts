@@ -488,7 +488,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     for (const badReturn of badReturns) {
       it(badReturn + ' is rejected', () => {
         // tslint:disable-next-line:no-any Intentionally returning bad type.
-        const fn = ((_txn: firestore.Transaction) => badReturn) as any;
+        const fn = ((txn: firestore.Transaction) => badReturn) as any;
         return integrationHelpers.withTestDb(persistence, db => {
           return db
             .runTransaction(fn)
@@ -534,7 +534,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
 
   it('are successful with no transaction operations', () => {
     return integrationHelpers.withTestDb(persistence, db => {
-      return db.runTransaction(async _txn => {});
+      return db.runTransaction(async txn => {});
     });
   });
 

@@ -516,7 +516,7 @@ export class LocalStore {
 
         let changedDocs = maybeDocumentMap();
         let updatedKeys = documentKeySet();
-        remoteEvent.documentUpdates.forEach((key, _doc) => {
+        remoteEvent.documentUpdates.forEach((key, doc) => {
           updatedKeys = updatedKeys.add(key);
         });
 

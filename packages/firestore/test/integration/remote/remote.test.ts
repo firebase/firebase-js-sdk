@@ -50,7 +50,7 @@ describe('Remote Storage', () => {
 
       return ds
         .commit([mutation])
-        .then((_result: MutationResult[]) => {
+        .then((result: MutationResult[]) => {
           return ds.lookup([k]);
         })
         .then((docs: MaybeDocument[]) => {

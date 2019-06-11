@@ -87,7 +87,7 @@ class DelayedOperation<T extends unknown> implements CancelablePromise<T> {
     // It's normal for the deferred promise to be canceled (due to cancellation)
     // and so we attach a dummy catch callback to avoid
     // 'UnhandledPromiseRejectionWarning' log spam.
-    this.deferred.promise.catch(_err => {});
+    this.deferred.promise.catch(err => {});
   }
 
   /**

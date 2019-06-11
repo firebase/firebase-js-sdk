@@ -197,7 +197,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
         return db
           .runTransaction(() => 5 as any)
           .then(
-            _x => expect.fail('Transaction should fail'),
+            x => expect.fail('Transaction should fail'),
             err => {
               expect(err.message).to.equal(
                 'Transaction callback must return a Promise'

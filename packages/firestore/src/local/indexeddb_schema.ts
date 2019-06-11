@@ -216,7 +216,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
       const promises: Array<PersistencePromise<void>> = [];
       return documentsStore
-        .iterate((key, _doc) => {
+        .iterate((key, doc) => {
           const path = new ResourcePath(key);
           const docSentinelKey = sentinelKey(path);
           promises.push(
@@ -275,7 +275,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
           )
           .iterate(
             { keysOnly: true },
-            ([_userID, encodedPath, _batchId], _) => {
+            ([userID, encodedPath, batchId], _) => {
               const path = decode(encodedPath);
               return addEntry(path.popLast());
             }

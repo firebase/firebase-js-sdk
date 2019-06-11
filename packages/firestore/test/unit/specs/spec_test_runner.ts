@@ -149,11 +149,11 @@ class MockConnection implements Connection {
   /** A Deferred that is resolved once watch opens. */
   watchOpen = new Deferred<void>();
 
-  invokeRPC<Req>(_rpcName: string, _request: Req): never {
+  invokeRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
 
-  invokeStreamingRPC<Req>(_rpcName: string, _request: Req): never {
+  invokeStreamingRPC<Req>(rpcName: string, request: Req): never {
     throw new Error('Not implemented!');
   }
 
@@ -204,7 +204,7 @@ class MockConnection implements Connection {
 
   openStream<Req, Resp>(
     rpcName: string,
-    _token: Token | null
+    token: Token | null
   ): Stream<Req, Resp> {
     if (rpcName === 'Write') {
       if (this.writeStream !== null) {
@@ -1210,7 +1210,7 @@ class IndexedDbTestRunner extends TestRunner {
 
   protected initPersistence(
     serializer: JsonProtoSerializer,
-    _gcEnabled: boolean
+    gcEnabled: boolean
   ): Promise<Persistence> {
     // TODO(gsoltis): can we or should we disable this test if gc is enabled?
     return IndexedDbPersistence.createMultiClientIndexedDbPersistence(

@@ -536,22 +536,22 @@ export class LLRBEmptyNode<K, V> {
 
   // Returns a copy of the current node.
   copy(
-    _key: K | null,
-    _value: V | null,
-    _color: boolean | null,
-    _left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
-    _right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
+    key: K | null,
+    value: V | null,
+    color: boolean | null,
+    left: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null,
+    right: LLRBNode<K, V> | LLRBEmptyNode<K, V> | null
   ): LLRBEmptyNode<K, V> {
     return this;
   }
 
   // Returns a copy of the tree, with the specified key/value added.
-  insert(key: K, value: V, _comparator: Comparator<K>): LLRBNode<K, V> {
+  insert(key: K, value: V, comparator: Comparator<K>): LLRBNode<K, V> {
     return new LLRBNode<K, V>(key, value);
   }
 
   // Returns a copy of the tree, with the specified key removed.
-  remove(_key: K, _comparator: Comparator<K>): LLRBEmptyNode<K, V> {
+  remove(key: K, comparator: Comparator<K>): LLRBEmptyNode<K, V> {
     return this;
   }
 
@@ -559,11 +559,11 @@ export class LLRBEmptyNode<K, V> {
     return true;
   }
 
-  inorderTraversal(_action: (k: K, v: V) => boolean): boolean {
+  inorderTraversal(action: (k: K, v: V) => boolean): boolean {
     return false;
   }
 
-  reverseTraversal(_action: (k: K, v: V) => boolean): boolean {
+  reverseTraversal(action: (k: K, v: V) => boolean): boolean {
     return false;
   }
 

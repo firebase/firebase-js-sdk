@@ -151,7 +151,7 @@ export class NullValue extends FieldValue {
     super();
   }
 
-  value(_options?: FieldValueOptions): null {
+  value(options?: FieldValueOptions): null {
     return null;
   }
 
@@ -176,7 +176,7 @@ export class BooleanValue extends FieldValue {
     super();
   }
 
-  value(_options?: FieldValueOptions): boolean {
+  value(options?: FieldValueOptions): boolean {
     return this.internalValue;
   }
 
@@ -210,7 +210,7 @@ export abstract class NumberValue extends FieldValue {
     super();
   }
 
-  value(_options?: FieldValueOptions): number {
+  value(options?: FieldValueOptions): number {
     return this.internalValue;
   }
 
@@ -296,7 +296,7 @@ export class StringValue extends FieldValue {
     super();
   }
 
-  value(_options?: FieldValueOptions): string {
+  value(options?: FieldValueOptions): string {
     return this.internalValue;
   }
 
@@ -418,7 +418,7 @@ export class BlobValue extends FieldValue {
     super();
   }
 
-  value(_options?: FieldValueOptions): Blob {
+  value(options?: FieldValueOptions): Blob {
     return this.internalValue;
   }
 
@@ -444,7 +444,7 @@ export class RefValue extends FieldValue {
     super();
   }
 
-  value(_options?: FieldValueOptions): DocumentKey {
+  value(options?: FieldValueOptions): DocumentKey {
     return this.key;
   }
 
@@ -474,7 +474,7 @@ export class GeoPointValue extends FieldValue {
     super();
   }
 
-  value(_options?: FieldValueOptions): GeoPoint {
+  value(options?: FieldValueOptions): GeoPoint {
     return this.internalValue;
   }
 

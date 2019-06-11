@@ -93,7 +93,7 @@ export class DocumentSet {
 
   /** Iterates documents in order defined by "comparator" */
   forEach(cb: (doc: Document) => void): void {
-    this.sortedSet.inorderTraversal((k, _v) => {
+    this.sortedSet.inorderTraversal((k, v) => {
       cb(k);
       return false;
     });

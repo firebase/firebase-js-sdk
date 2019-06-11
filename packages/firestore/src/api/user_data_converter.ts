@@ -220,7 +220,7 @@ class ParseContext {
     return context;
   }
 
-  childContextForArray(_index: number): ParseContext {
+  childContextForArray(index: number): ParseContext {
     // TODO(b/34871131): We don't support array paths right now; so make path
     // null.
     return new ParseContext(

@@ -330,7 +330,7 @@ export class IndexedDbQueryCache implements QueryCache {
     let result = documentKeySet();
 
     return store
-      .iterate({ range, keysOnly: true }, (key, _, _control) => {
+      .iterate({ range, keysOnly: true }, (key, _, control) => {
         const path = EncodedResourcePath.decode(key[1]);
         const docKey = new DocumentKey(path);
         result = result.add(docKey);
@@ -357,7 +357,7 @@ export class IndexedDbQueryCache implements QueryCache {
           keysOnly: true,
           range
         },
-        ([targetId, _path], _, control) => {
+        ([targetId, path], _, control) => {
           // Having a sentinel row for a document does not count as containing that document;
           // For the query cache, containing the document means the document is part of some
           // target.

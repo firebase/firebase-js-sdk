@@ -49,7 +49,7 @@ const LOCAL_STORAGE_PREFIX = 'firestore_';
 
 export const MOCK_SEQUENCE_NUMBER_SYNCER: SequenceNumberSyncer = {
   sequenceNumberHandler: null,
-  writeSequenceNumber: (_sequenceNumber: ListenSequenceNumber) => void {}
+  writeSequenceNumber: (sequenceNumber: ListenSequenceNumber) => void {}
 };
 
 /** The Database ID used by most tests that use a serializer. */
@@ -150,28 +150,28 @@ export async function clearTestPersistence(): Promise<void> {
 class NoOpSharedClientStateSyncer implements SharedClientStateSyncer {
   constructor(private readonly activeClients: ClientId[]) {}
   async applyBatchState(
-    _batchId: BatchId,
-    _state: MutationBatchState,
-    _error?: FirestoreError
+    batchId: BatchId,
+    state: MutationBatchState,
+    error?: FirestoreError
   ): Promise<void> {}
-  async applySuccessfulWrite(_batchId: BatchId): Promise<void> {}
+  async applySuccessfulWrite(batchId: BatchId): Promise<void> {}
   async rejectFailedWrite(
-    _batchId: BatchId,
-    _err: FirestoreError
+    batchId: BatchId,
+    err: FirestoreError
   ): Promise<void> {}
   async getActiveClients(): Promise<ClientId[]> {
     return this.activeClients;
   }
   async applyTargetState(
-    _targetId: TargetId,
-    _state: QueryTargetState,
-    _error?: FirestoreError
+    targetId: TargetId,
+    state: QueryTargetState,
+    error?: FirestoreError
   ): Promise<void> {}
   async applyActiveTargetsChange(
-    _added: TargetId[],
-    _removed: TargetId[]
+    added: TargetId[],
+    removed: TargetId[]
   ): Promise<void> {}
-  applyOnlineStateChange(_onlineState: OnlineState): void {}
+  applyOnlineStateChange(onlineState: OnlineState): void {}
 }
 /**
  * Populates Web Storage with instance data from a pre-existing client.

@@ -296,7 +296,7 @@ export function withTestCollectionSettings(
   );
 }
 
-function wipeDb(_db: firestore.FirebaseFirestore): Promise<void> {
+function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
   // TODO(dimond): actually wipe DB and assert or listenables have been turned
   // off. We probably need deep queries for this.
   return Promise.resolve(undefined);

@@ -139,7 +139,7 @@ export class MemoryPersistence implements Persistence {
     // No op.
   }
 
-  setNetworkEnabled(_networkEnabled: boolean): void {
+  setNetworkEnabled(networkEnabled: boolean): void {
     // No op.
   }
 
@@ -290,7 +290,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     });
   }
 
-  documentSize(_doc: MaybeDocument): number {
+  documentSize(doc: MaybeDocument): number {
     // For eager GC, we don't care about the document size, there are no size thresholds.
     return 0;
   }
@@ -329,7 +329,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   onTransactionStarted(): void {}
 
   onTransactionCommitted(
-    _txn: PersistenceTransaction
+    txn: PersistenceTransaction
   ): PersistencePromise<void> {
     return PersistencePromise.resolve();
   }
