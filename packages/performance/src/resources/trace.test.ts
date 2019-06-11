@@ -26,7 +26,7 @@ import '../../test/setup';
 describe('Firebase Performance > trace', () => {
   setupApi(window);
   let trace: Trace;
-  const createTrace = () => {
+  const createTrace = (): Trace => {
     return new Trace('test');
   };
 

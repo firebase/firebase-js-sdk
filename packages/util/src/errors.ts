@@ -54,7 +54,6 @@
  *     }
  *   }
  */
-import { isEmpty } from './obj';
 
 export type ErrorMap<ErrorCode extends string> = {
   readonly [K in ErrorCode]: string

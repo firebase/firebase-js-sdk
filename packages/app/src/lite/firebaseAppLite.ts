@@ -157,7 +157,7 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
    * Callback function used to extend an App instance at the time
    * of service instance creation.
    */
-  private extendApp(props: { [name: string]: any }): void {
+  private extendApp(props: { [name: string]: unknown }): void {
     // Copy the object onto the FirebaseAppImpl prototype
     deepExtend(this, props);
   }

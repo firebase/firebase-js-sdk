@@ -38,7 +38,7 @@ interface ServicesCache {
 
 // An array to capture listeners before the true auth functions
 // exist
-let tokenListeners: any[] = [];
+let tokenListeners: Array<(token: string | null) => void> = [];
 
 /**
  * Global context object for a collection of services using
@@ -175,6 +175,7 @@ export class FirebaseAppImpl implements FirebaseApp {
    * Callback function used to extend an App instance at the time
    * of service instance creation.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private extendApp(props: { [name: string]: any }): void {
     // Copy the object onto the FirebaseAppImpl prototype
     deepExtend(this, props);

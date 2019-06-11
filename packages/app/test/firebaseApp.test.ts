@@ -28,7 +28,7 @@ import { assert } from 'chai';
 executeFirebaseTests();
 executeFirebaseLiteTests();
 
-function executeFirebaseTests() {
+function executeFirebaseTests(): void {
   firebaseAppTests('Firebase App Tests', createFirebaseNamespace);
 
   describe('Firebase Service Registration', () => {
@@ -40,14 +40,13 @@ function executeFirebaseTests() {
     it('Register App Hook', done => {
       const events = ['create', 'delete'];
       let hookEvents = 0;
-      let app: FirebaseApp;
       (firebase as _FirebaseNamespace).INTERNAL.registerService(
         'test',
         (app: FirebaseApp) => {
           return new TestService(app);
         },
         undefined,
-        (event: string, app: FirebaseApp) => {
+        (event: string, _app: FirebaseApp) => {
           assert.equal(event, events[hookEvents]);
           hookEvents += 1;
           if (hookEvents === events.length) {
@@ -55,9 +54,10 @@ function executeFirebaseTests() {
           }
         }
       );
-      app = firebase.initializeApp({});
+      const app = firebase.initializeApp({});
       // Ensure the hook is called synchronously
       assert.equal(hookEvents, 1);
+      // tslint:disable-next-line:no-floating-promises
       app.delete();
     });
 
@@ -140,7 +140,7 @@ function executeFirebaseTests() {
           return new TestService(app);
         },
         undefined,
-        (event: string, app: FirebaseApp) => {
+        (event: string, _app: FirebaseApp) => {
           assert.equal(event, events[hookEvents]);
           hookEvents += 1;
           if (hookEvents === events.length) {
@@ -150,6 +150,7 @@ function executeFirebaseTests() {
       );
       // Ensure the hook is called synchronously
       assert.equal(hookEvents, 1);
+      // tslint:disable-next-line:no-floating-promises
       app.delete();
     });
 
@@ -221,6 +222,7 @@ function executeFirebaseTests() {
       );
       assert.strictEqual(service, service2);
     });
+
     it(`Should pass null to the factory method if using default instance`, () => {
       // Register Multi Instance Service
       (firebase as _FirebaseNamespace).INTERNAL.registerService(
@@ -235,11 +237,8 @@ function executeFirebaseTests() {
         }
       );
       firebase.initializeApp({});
-
-      // Capture a given service ref
-      const serviceIdentifier = 'custom instance identifier';
-      const service = (firebase.app() as any).testService();
     });
+
     it(`Should extend INTERNAL per app instance`, () => {
       let counter: number = 0;
       (firebase as _FirebaseNamespace).INTERNAL.registerService(
@@ -280,7 +279,7 @@ function executeFirebaseTests() {
   });
 }
 
-function executeFirebaseLiteTests() {
+function executeFirebaseLiteTests(): void {
   firebaseAppTests('Firebase App Lite Tests', createFirebaseNamespaceLite);
 
   describe('Firebase Lite Service Registration', () => {
@@ -291,14 +290,13 @@ function executeFirebaseLiteTests() {
     });
 
     it('should allow Performance service to register', () => {
-      let app: FirebaseApp;
       (firebase as _FirebaseNamespace).INTERNAL.registerService(
         'performance',
         (app: FirebaseApp) => {
           return new TestService(app);
         }
       );
-      app = firebase.initializeApp({});
+      const app = firebase.initializeApp({});
       const perf = (app as any).performance();
       assert.isTrue(perf instanceof TestService);
     });
@@ -316,7 +314,7 @@ function executeFirebaseLiteTests() {
   });
 }
 
-function firebaseAppTests(testName, firebaseNamespaceFactory) {
+function firebaseAppTests(testName, firebaseNamespaceFactory): void {
   describe(testName, () => {
     let firebase: FirebaseNamespace;
 

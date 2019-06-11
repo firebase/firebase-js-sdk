@@ -19,7 +19,7 @@ import { base64Encode, base64Decode } from '../src/crypt';
 
 describe('base64', () => {
   it('bijective', () => {
-    let cases = ['$', '¢', '€', '𐍈']; // 1, 2, 3, and 4 byte characters
+    const cases = ['$', '¢', '€', '𐍈']; // 1, 2, 3, and 4 byte characters
     cases.forEach(str => {
       assert.strictEqual(base64Decode(base64Encode(str)), str);
     });

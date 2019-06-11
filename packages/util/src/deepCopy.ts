@@ -19,7 +19,7 @@
  * Do a deep-copy of basic JavaScript Objects or Arrays.
  */
 export function deepCopy<T>(value: T): T {
-  return deepExtend(undefined, value);
+  return deepExtend(undefined, value) as T;
 }
 
 /**
@@ -34,7 +34,7 @@ export function deepCopy<T>(value: T): T {
  * Note that the target can be a function, in which case the properties in
  * the source Object are copied onto it as static properties of the Function.
  */
-export function deepExtend(target: any, source: any): any {
+export function deepExtend(target: unknown, source: unknown): unknown {
   if (!(source instanceof Object)) {
     return source;
   }
@@ -43,7 +43,7 @@ export function deepExtend(target: any, source: any): any {
     case Date:
       // Treat Dates like scalars; if the target date object had any child
       // properties - they will be lost!
-      let dateValue = (source as any) as Date;
+      const dateValue = source as Date;
       return new Date(dateValue.getTime());
 
     case Object:
@@ -62,17 +62,15 @@ export function deepExtend(target: any, source: any): any {
       return source;
   }
 
-  for (let prop in source) {
+  for (const prop in source) {
     if (!source.hasOwnProperty(prop)) {
       continue;
     }
-    target[prop] = deepExtend(target[prop], source[prop]);
+    (target as object)[prop] = deepExtend(
+      (target as object)[prop],
+      source[prop]
+    );
   }
 
   return target;
-}
-
-// TODO: Really needed (for JSCompiler type checking)?
-export function patchProperty(obj: any, prop: string, value: any) {
-  obj[prop] = value;
 }

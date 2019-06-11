@@ -47,7 +47,10 @@ describe('Performance Monitoring > remote_config_service', () => {
 
   setupApi(self);
 
-  function storageGetItemFakeFactory(expiry: string, config: string) {
+  function storageGetItemFakeFactory(
+    expiry: string,
+    config: string
+  ): (key: string) => string {
     return (key: string) => {
       if (key === CONFIG_EXPIRY_LOCAL_STORAGE_KEY) {
         return expiry;
@@ -56,7 +59,7 @@ describe('Performance Monitoring > remote_config_service', () => {
     };
   }
 
-  function resetSettingsService() {
+  function resetSettingsService(): void {
     const settingsService = SettingsService.getInstance();
     settingsService.logSource = 462;
     settingsService.loggingEnabled = false;
