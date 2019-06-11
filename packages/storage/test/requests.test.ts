@@ -231,7 +231,7 @@ describe('Firebase Storage > Requests', () => {
       [locationEscapes, locationEscapesNoObjUrl]
     ];
     const pageToken = 'pageToken-afeafeagef';
-    const maxResults = '13';
+    const maxResults = 13;
     for (const [location, locationNoObjectUrl] of maps) {
       const requestInfo = requests.list(
         authWrapper,
