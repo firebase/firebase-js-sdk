@@ -33,7 +33,9 @@ const app = makeFakeApp({
 describe('Firebase Messaging > *Controller.getSWReg_()', () => {
   const sandbox = sinon.sandbox.create();
 
-  const mockWindowRegistration = (registration: ServiceWorkerRegistration): void => {
+  const mockWindowRegistration = (
+    registration: ServiceWorkerRegistration
+  ): void => {
     sandbox
       .stub(navigator.serviceWorker, 'register')
       .callsFake(async () => registration);

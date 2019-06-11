@@ -34,7 +34,9 @@ import { IidModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
 
-export type BgMessageHandler = (payload: MessagePayload) => Promise<unknown> | void;
+export type BgMessageHandler = (
+  payload: MessagePayload
+) => Promise<unknown> | void;
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
