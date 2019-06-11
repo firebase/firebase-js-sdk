@@ -18,35 +18,13 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
-import { HttpsError, FunctionsErrorCode } from '@firebase/functions-types';
 import firebase from '@firebase/app';
 import '@firebase/messaging';
 import { Service } from '../../src/api/service';
 import { isSupported } from '@firebase/messaging';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');
-
-// Chai doesn't handle Error comparisons in a useful way.
-// https://github.com/chaijs/chai/issues/608
-async function expectError(
-  promise: Promise<any>,
-  code: FunctionsErrorCode,
-  message: string,
-  details?: any
-) {
-  let failed = false;
-  try {
-    await promise;
-  } catch (e) {
-    failed = true;
-    expect(e.code).to.equal(code);
-    expect(e.message).to.equal(message);
-    expect(e.details).to.deep.equal(details);
-  }
-  if (!failed) {
-    expect(false, 'Promise should have failed.');
-  }
-}
 
 describe('Firebase Functions > Call', () => {
   let app: FirebaseApp;

@@ -25,12 +25,12 @@ import 'isomorphic-fetch';
  */
 const FUNCTIONS_TYPE = 'functions';
 
-function factory(app: FirebaseApp, unused: any, region?: string): Service {
+function factory(app: FirebaseApp, _unused: unknown, region?: string): Service {
   return new Service(app, region);
 }
 
-export function registerFunctions(instance) {
-  let namespaceExports = {
+export function registerFunctions(instance): void {
+  const namespaceExports = {
     // no-inline
     Functions: Service
   };

@@ -17,10 +17,8 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
-import firebase from '@firebase/app';
 import {
   FirebaseFunctions,
-  FunctionsErrorCode,
   HttpsCallable,
   HttpsCallableResult,
   HttpsCallableOptions
@@ -34,7 +32,17 @@ import { Serializer } from '../serializer';
  */
 interface HttpResponse {
   status: number;
-  json: any;
+  json: HttpResponseJson | null;
+}
+
+export interface HttpResponseJson {
+  data?: unknown,
+  result?: unknown,
+  error?: {
+    message?: unknown;
+    status?: unknown;
+    details?: unknown;
+  }
 }
 
 /**
@@ -110,7 +118,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
    * @param origin The origin of the local emulator, such as
    * "http://localhost:5005".
    */
-  useFunctionsEmulator(origin: string) {
+  useFunctionsEmulator(origin: string): void {
     this.emulatorOrigin = origin;
   }
 
@@ -119,7 +127,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
    * @param name The name of the trigger.
    */
   httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
-    let callable = <HttpsCallable>(data?: any) => {
+    const callable = (data?: {}): Promise<HttpsCallableResult> => {
       return this.call(name, data, options || {});
     };
     return callable;
@@ -156,7 +164,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
         json: null
       };
     }
-    let json: any = null;
+    let json: {} | null = null;
     try {
       json = await response.json();
     } catch (e) {
@@ -164,7 +172,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
     }
     return {
       status: response.status,
-      json: json
+      json
     };
   }
 
@@ -175,7 +183,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
    */
   private async call(
     name: string,
-    data: any,
+    data: unknown,
     options: HttpsCallableOptions
   ): Promise<HttpsCallableResult> {
     const url = this._url(name);

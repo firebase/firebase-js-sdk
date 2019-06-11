@@ -35,7 +35,7 @@ exports.dataTest = functions.https.onRequest((request, response) => {
           value: '3',
           '@type': 'type.googleapis.com/google.protobuf.Int64Value',
         },*/
-        string: 'four',
+        str: 'four',
         array: [5, 6],
         null: null
       }

@@ -11,9 +11,11 @@
     "dist"
   ],
   "scripts": {
+    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "run-p test:browser test:node",
+    "test": "run-p lint test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.node.ts --opts ../../config/mocha.node.opts",
@@ -52,7 +54,11 @@
     "tslint": "5.16.0",
     "typescript": "3.4.5",
     "webpack": "4.30.0",
-    "yargs": "13.2.2"
+    "yargs": "13.2.2",
+    "eslint": "5.16.0",
+    "@typescript-eslint/parser": "1.9.0",
+    "@typescript-eslint/eslint-plugin": "1.9.0",
+    "@typescript-eslint/eslint-plugin-tslint": "1.9.0"
   },
   "repository": {
     "directory": "packages/functions",

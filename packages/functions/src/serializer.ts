@@ -18,9 +18,9 @@
 const LONG_TYPE = 'type.googleapis.com/google.protobuf.Int64Value';
 const UNSIGNED_LONG_TYPE = 'type.googleapis.com/google.protobuf.UInt64Value';
 
-function mapValues(o: object, f: (any) => any): object {
-  let result = {};
-  for (var key in o) {
+function mapValues(o: object, f: (val: unknown) => unknown): object {
+  const result = {};
+  for (const key in o) {
     if (o.hasOwnProperty(key)) {
       result[key] = f(o[key]);
     }
@@ -31,8 +31,8 @@ function mapValues(o: object, f: (any) => any): object {
 export class Serializer {
   // Takes data and encodes it in a JSON-friendly way, such that types such as
   // Date are preserved.
-  encode(data: any): any {
-    if (data === null || data === undefined) {
+  encode(data: unknown): unknown {
+    if (data == null) {
       return null;
     }
     if (data instanceof Number) {
@@ -53,7 +53,7 @@ export class Serializer {
       return data.map(x => this.encode(x));
     }
     if (typeof data === 'function' || typeof data === 'object') {
-      return mapValues(data, x => this.encode(x));
+      return mapValues(data as object, x => this.encode(x));
     }
     // If we got this far, the data is not encodable.
     throw new Error('Data cannot be encoded in JSON: ' + data);
@@ -61,19 +61,19 @@ export class Serializer {
 
   // Takes data that's been encoded in a JSON-friendly form and returns a form
   // with richer datatypes, such as Dates, etc.
-  decode(json: any): any {
-    if (json === null) {
+  decode(json: unknown): unknown {
+    if (json == null) {
       return json;
     }
-    if (json['@type']) {
-      switch (json['@type']) {
+    if ((json as {})['@type']) {
+      switch ((json as {})['@type']) {
         case LONG_TYPE:
         // Fall through and handle this the same as unsigned.
         case UNSIGNED_LONG_TYPE: {
           // Technically, this could work return a valid number for malformed
           // data if there was a number followed by garbage. But it's just not
           // worth all the extra code to detect that case.
-          const value = parseFloat(json.value);
+          const value = Number((json as {})["value"]);
           if (isNaN(value)) {
             throw new Error('Data cannot be decoded from JSON: ' + json);
           }
@@ -88,7 +88,7 @@ export class Serializer {
       return json.map(x => this.decode(x));
     }
     if (typeof json === 'function' || typeof json === 'object') {
-      return mapValues(json, x => this.decode(x));
+      return mapValues(json as object, x => this.decode(x));
     }
     // Anything else is safe to return.
     return json;

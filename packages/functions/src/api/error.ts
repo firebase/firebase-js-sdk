@@ -17,6 +17,7 @@
 
 import { HttpsError, FunctionsErrorCode } from '@firebase/functions-types';
 import { Serializer } from '../serializer';
+import { HttpResponseJson } from './service';
 
 /**
  * Standard error codes for different ways a request can fail, as defined by:
@@ -59,9 +60,9 @@ export class HttpsErrorImpl extends Error implements HttpsError {
   /**
    * Extra data to be converted to JSON and included in the error response.
    */
-  readonly details?: any;
+  readonly details?: unknown;
 
-  constructor(code: FunctionsErrorCode, message?: string, details?: any) {
+  constructor(code: FunctionsErrorCode, message?: string, details?: unknown) {
     super(message);
 
     // This is a workaround for a bug in TypeScript when extending Error:
@@ -113,6 +114,7 @@ function codeForHTTPStatus(status: number): FunctionsErrorCode {
       return 'unavailable';
     case 504:
       return 'deadline-exceeded';
+    default: // ignore
   }
   return 'unknown';
 }
@@ -122,7 +124,7 @@ function codeForHTTPStatus(status: number): FunctionsErrorCode {
  */
 export function _errorForResponse(
   status: number,
-  bodyJSON: any,
+  bodyJSON: HttpResponseJson | null,
   serializer: Serializer
 ): Error | null {
   let code = codeForHTTPStatus(status);
@@ -130,11 +132,11 @@ export function _errorForResponse(
   // Start with reasonable defaults from the status code.
   let description: string = code;
 
-  let details: any = undefined;
+  let details: unknown = undefined;
 
   // Then look through the body for explicit details.
   try {
-    const errorJSON = bodyJSON.error;
+    const errorJSON = bodyJSON && bodyJSON.error;
     if (errorJSON) {
       const status = errorJSON.status;
       if (typeof status === 'string') {
@@ -146,7 +148,7 @@ export function _errorForResponse(
       }
       // TODO(klimt): Add better default descriptions for error enums.
       // The default description needs to be updated for the new code.
-      description = status;
+      description = status as string;
 
       const message = errorJSON.message;
       if (typeof message === 'string') {
@@ -155,7 +157,7 @@ export function _errorForResponse(
 
       details = errorJSON.details;
       if (details !== undefined) {
-        details = serializer.decode(details);
+        details = serializer.decode(details as {} | null);
       }
     }
   } catch (e) {
