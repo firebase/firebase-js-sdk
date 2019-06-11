@@ -224,7 +224,9 @@ describe('Firebase Storage > Request', () => {
       result => {
         assert.isTrue(spiedSend.calledOnce);
         const args = spiedSend.getCall(0).args;
-        const expectedHeaders: Headers = { Authorization: 'Firebase ' + authToken };
+        const expectedHeaders: Headers = {
+          Authorization: 'Firebase ' + authToken
+        };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
         assert.deepEqual(args[4], expectedHeaders);
       },
