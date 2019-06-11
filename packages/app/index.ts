@@ -23,7 +23,12 @@ import { Logger } from '@firebase/logger';
 const logger = new Logger('@firebase/app');
 
 // Firebase Lite detection
-if (isBrowser() && 'firebase' in self) {
+if (
+  isBrowser() &&
+  'firebase' in self &&
+  // Check that firebase is not undefined
+  ((self as any).firebase as FirebaseNamespace) !== undefined
+) {
   logger.warn(`
     Warning: Firebase is already defined in the global scope. Please make sure
     Firebase library is only loaded once.
