@@ -67,7 +67,7 @@ function waitForLoaded(
     // We can use both datasets to form an array of the latest values.
     map(([loaded, changes]) => {
       // Store the last key in the data set
-      let lastKeyToLoad = loaded.lastKeyToLoad;
+      const lastKeyToLoad = loaded.lastKeyToLoad;
       // Store all child keys loaded at this point
       const loadedKeys = changes.map(change => change.snapshot.key);
       return { changes, lastKeyToLoad, loadedKeys };
