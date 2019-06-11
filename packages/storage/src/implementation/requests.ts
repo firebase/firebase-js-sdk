@@ -176,7 +176,7 @@ export function list(
     urlParams['pageToken'] = pageToken;
   }
   if (maxResults) {
-    urlParams['maxResults'] = maxResults.toString();
+    urlParams['maxResults'] = maxResults;
   }
   const urlPart = location.bucketOnlyServerUrl();
   const url = UrlUtils.makeUrl(urlPart);
