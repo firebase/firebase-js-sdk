@@ -81,7 +81,10 @@
             "string", 
             "boolean"
         ],
+        "constructor-super": "error",
+        "no-invalid-this": "error",
         "import/no-default-export": "error",
+        "import/no-duplicate-imports": "error",
         "@typescript-eslint/array-type": [
             "error",
             "array-simple"
