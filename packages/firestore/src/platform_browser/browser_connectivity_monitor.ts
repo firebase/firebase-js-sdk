@@ -64,4 +64,15 @@ export class BrowserConnectivityMonitor implements ConnectivityMonitor {
       callback(NetworkStatus.UNAVAILABLE);
     }
   }
+
+  // TODO(chenbrian): Consider passing in window either into this component or
+  // here for testing via FakeWindow.
+  /** Checks that all used attributes of window are available. */
+  static isAvailable(): boolean {
+    return (
+      typeof window !== 'undefined' &&
+      window.addEventListener !== undefined &&
+      window.removeEventListener !== undefined
+    );
+  }
 }
