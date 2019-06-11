@@ -10,15 +10,15 @@
     "dist"
   ],
   "scripts": {
+    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "run-p test:karma type-check lint",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "prepare": "yarn build",
-    "type-check": "tsc --noEmit",
-    "lint": "tslint -p .",
-    "lint:fix": "yarn lint --fix"
+    "type-check": "tsc --noEmit"
   },
   "license": "Apache-2.0",
   "peerDependencies": {
@@ -50,7 +50,12 @@
     "rollup-plugin-typescript2": "0.21.0",
     "sinon": "7.3.2",
     "tslint": "5.16.0",
-    "typescript": "3.4.5"
+    "typescript": "3.4.5",
+    "eslint": "5.16.0",
+    "@typescript-eslint/parser": "1.9.0",
+    "@typescript-eslint/eslint-plugin": "1.9.0",
+    "@typescript-eslint/eslint-plugin-tslint": "1.9.0",
+    "eslint-plugin-import": "2.17.3"
   },
   "repository": {
     "directory": "packages/messaging",
