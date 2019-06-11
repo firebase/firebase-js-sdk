@@ -1432,11 +1432,9 @@ export class Query implements firestore.Query {
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
     if (fieldPath.isKeyField()) {
-      if (
-        fieldPath.isKeyField() &&
-        (relationOp === RelationOp.ARRAY_CONTAINS ||
+      if (relationOp === RelationOp.ARRAY_CONTAINS ||
           relationOp === RelationOp.ARRAY_CONTAINS_ANY ||
-          relationOp === RelationOp.IN)
+          relationOp === RelationOp.IN
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
@@ -1500,13 +1498,13 @@ export class Query implements firestore.Query {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             'Invalid Query. A non-empty array is required for ' +
-              `'${relationOp.toString()}' queries.`
+              `'${relationOp.toString()}' filters.`
           );
         }
         if (value.length > 10) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
-            `Invalid Query. '${relationOp.toString()}' queries support a ` +
+            `Invalid Query. '${relationOp.toString()}' filters support a ` +
               'maximum of 10 elements in the value array.'
           );
         }
