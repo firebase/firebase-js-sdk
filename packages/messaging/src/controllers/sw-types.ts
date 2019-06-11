@@ -23,7 +23,7 @@
  * project, we have to manually declare the web worker types we need.
  */
 
-// tslint:disable no-any These types are from TS.
+ /* eslint-disable @typescript-eslint/no-explicit-any, These types are from TS */
 
 // Not the whole interface, just the parts we're currently using.
 // If TS claims that something does not exist on this, feel free to add it.
@@ -63,7 +63,7 @@ interface ClientQueryOptions {
 }
 
 interface WindowClient extends Client {
-  readonly ancestorOrigins: ReadonlyArray<string>;
+  readonly ancestorOrigins: readonly string[];
   readonly focused: boolean;
   readonly visibilityState: VisibilityState;
   focus(): Promise<WindowClient>;

@@ -87,6 +87,8 @@ export class TokenDetailsModel extends DbInterface {
           }
         };
       }
+
+      default: // ignore
     }
   }
 

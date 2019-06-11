@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+/* eslint-disable camelcase */
+
 export interface NotificationDetails extends NotificationOptions {
   title: string;
   click_action?: string;

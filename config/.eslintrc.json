@@ -82,9 +82,8 @@
             "boolean"
         ],
         "constructor-super": "error",
-        "no-invalid-this": "error",
         "import/no-default-export": "error",
-        "import/no-duplicate-imports": "error",
+        "import/no-duplicates": "error",
         "@typescript-eslint/array-type": [
             "error",
             "array-simple"
@@ -130,7 +129,9 @@
         "@typescript-eslint/explicit-function-return-type": [
             "error",
             {
-                "allowExpressions": true
+                "allowExpressions": true,
+                "allowTypedFunctionExpressions": true,
+                "allowHigherOrderFunctions": true
             }
         ],
         "@typescript-eslint/no-unused-vars": [

@@ -689,6 +689,7 @@ describe('Firebase Messaging > *SwController', () => {
               : // Legacy API
                 {
                   notification: {
+                    // eslint-disable-next-line camelcase
                     click_action: link
                   }
                 };
