@@ -58,9 +58,7 @@ export class MemoryMutationQueue implements MutationQueue {
     private readonly referenceDelegate: ReferenceDelegate
   ) {}
 
-  checkEmpty(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<boolean> {
+  checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
     return PersistencePromise.resolve(this.mutationQueue.length === 0);
   }
 

@@ -273,13 +273,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
           .store<DbDocumentMutationKey, DbDocumentMutation>(
             DbDocumentMutation.store
           )
-          .iterate(
-            { keysOnly: true },
-            ([userID, encodedPath, batchId], _) => {
-              const path = decode(encodedPath);
-              return addEntry(path.popLast());
-            }
-          );
+          .iterate({ keysOnly: true }, ([userID, encodedPath, batchId], _) => {
+            const path = decode(encodedPath);
+            return addEntry(path.popLast());
+          });
       });
   }
 }
