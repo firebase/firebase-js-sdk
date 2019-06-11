@@ -1013,7 +1013,7 @@ apiDescribe('Validation:', persistence => {
             .where('foo', 'array-contains', 1)
             .where('foo', 'array-contains', 2)
         ).to.throw(
-          "Invalid query. Queries only support a single 'array-contains' filter."
+          "Invalid query. You cannot use more than one 'array-contains' filter."
         );
       }
     );
@@ -1027,7 +1027,7 @@ apiDescribe('Validation:', persistence => {
             .collection('test')
             .where('foo', inOp, [1, 2])
             .where('foo', inOp, [2, 3])
-        ).to.throw("Invalid query. Queries only support a single 'in' filter.");
+        ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
 
         expect(() =>
           db
@@ -1035,7 +1035,7 @@ apiDescribe('Validation:', persistence => {
             .where('foo', arrayContainsAnyOp, [1, 2])
             .where('foo', arrayContainsAnyOp, [2, 3])
         ).to.throw(
-          "Invalid query. Queries only support a single 'array-contains-any'" +
+          "Invalid query. You cannot use more than one 'array-contains-any'" +
             ' filter.'
         );
       }
@@ -1107,7 +1107,7 @@ apiDescribe('Validation:', persistence => {
             .where('foo', arrayContainsAnyOp, [2])
         ).to.throw(
           "Invalid query. You cannot use 'array-contains-any' filters with " +
-            "'array-contains' filters."
+            "'in' filters."
         );
 
         expect(() =>
@@ -1118,7 +1118,7 @@ apiDescribe('Validation:', persistence => {
             .where('foo', arrayContainsAnyOp, [2])
         ).to.throw(
           "Invalid query. You cannot use 'array-contains-any' filters with " +
-            "'array-contains' filters."
+            "'in' filters."
         );
       }
     );
@@ -1148,7 +1148,7 @@ apiDescribe('Validation:', persistence => {
             .where('foo', 'array-contains', 1)
             .where('foo', 'array-contains', 2)
         ).to.throw(
-          "Invalid query. Queries only support a single 'array-contains' filter."
+          "Invalid query. You cannot use more than one 'array-contains' filter."
         );
 
         expect(() =>
@@ -1157,7 +1157,7 @@ apiDescribe('Validation:', persistence => {
             .where('foo', 'array-contains', 1)
             .where('foo', inOp, [2, 3])
             .where('foo', inOp, [2, 3])
-        ).to.throw("Invalid query. Queries only support a single 'in' filter.");
+        ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
       }
     );
 

@@ -1991,7 +1991,7 @@ export class Query implements firestore.Query {
           if (conflictingOp === filter.op) {
             throw new FirestoreError(
               Code.INVALID_ARGUMENT,
-              'Invalid query. Queries only support a single ' +
+              'Invalid query. You cannot use more than one ' +
                 `'${filter.op.toString()}' filter.`
             );
           } else {
