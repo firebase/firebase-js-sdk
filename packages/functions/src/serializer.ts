@@ -73,7 +73,7 @@ export class Serializer {
           // Technically, this could work return a valid number for malformed
           // data if there was a number followed by garbage. But it's just not
           // worth all the extra code to detect that case.
-          const value = Number((json as {})["value"]);
+          const value = Number((json as {})['value']);
           if (isNaN(value)) {
             throw new Error('Data cannot be decoded from JSON: ' + json);
           }

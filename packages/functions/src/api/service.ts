@@ -36,13 +36,13 @@ interface HttpResponse {
 }
 
 export interface HttpResponseJson {
-  data?: unknown,
-  result?: unknown,
+  data?: unknown;
+  result?: unknown;
   error?: {
     message?: unknown;
     status?: unknown;
     details?: unknown;
-  }
+  };
 }
 
 /**
