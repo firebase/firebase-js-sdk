@@ -1432,9 +1432,10 @@ export class Query implements firestore.Query {
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const relationOp = RelationOp.fromString(opStr);
     if (fieldPath.isKeyField()) {
-      if (relationOp === RelationOp.ARRAY_CONTAINS ||
-          relationOp === RelationOp.ARRAY_CONTAINS_ANY ||
-          relationOp === RelationOp.IN
+      if (
+        relationOp === RelationOp.ARRAY_CONTAINS ||
+        relationOp === RelationOp.ARRAY_CONTAINS_ANY ||
+        relationOp === RelationOp.IN
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
