@@ -21,8 +21,8 @@
     "url": "https://github.com/firebase/firebase-js-sdk.git"
   },
   "scripts": {
-    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore' '.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore' '.gitignore'",
+    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "prepare": "yarn build",

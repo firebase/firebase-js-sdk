@@ -24,7 +24,7 @@ import { stateChanges } from './index';
 
 interface LoadedMetadata {
   data: QueryChange;
-  lastKeyToLoad: any;
+  lastKeyToLoad: unknown;
 }
 
 export function auditTrail(
@@ -59,7 +59,7 @@ function loadedData(query: database.Query): Observable<LoadedMetadata> {
 function waitForLoaded(
   query: database.Query,
   snap$: Observable<QueryChange[]>
-) {
+): Observable<QueryChange[]> {
   const loaded$ = loadedData(query);
   return loaded$.pipe(
     withLatestFrom(snap$),
@@ -75,7 +75,7 @@ function waitForLoaded(
     // This is the magical part, only emit when the last load key
     // in the dataset has been loaded by a child event. At this point
     // we can assume the dataset is "whole".
-    skipWhile(meta => meta.loadedKeys.indexOf(meta.lastKeyToLoad) === -1),
+    skipWhile(meta => meta.loadedKeys.indexOf(meta.lastKeyToLoad as string | null) === -1),
     // Pluck off the meta data because the user only cares
     // to iterate through the snapshots
     map(meta => meta.changes)
