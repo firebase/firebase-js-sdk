@@ -83,6 +83,10 @@ export function isPersistenceAvailable(): boolean {
   );
 }
 
+export function isRunningAgainstEmulator(): boolean {
+  return USE_EMULATOR;
+}
+
 /**
  * A wrapper around Jasmine's describe method that allows for it to be run with
  * persistence both disabled and enabled (if the browser is supported).
