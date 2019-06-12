@@ -35,7 +35,7 @@ interface HttpResponse {
   json: HttpResponseBody | null;
 }
 /**
- * Describe the shape of the HttpResponse body.
+ * Describes the shape of the HttpResponse body.
  * It makes functions that would otherwise take {} able to access the
  * possible elements in the body more easily
  */
@@ -131,10 +131,9 @@ export class Service implements FirebaseFunctions, FirebaseService {
    * @param name The name of the trigger.
    */
   httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
-    const callable = (data?: {} | null): Promise<HttpsCallableResult> => {
+    return data => {
       return this.call(name, data, options || {});
     };
-    return callable;
   }
 
   /**

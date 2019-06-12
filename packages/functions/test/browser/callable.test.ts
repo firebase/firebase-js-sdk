@@ -19,8 +19,10 @@ import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import firebase from '@firebase/app';
-import '@firebase/messaging';
 import { Service } from '../../src/api/service';
+
+/* eslint-disable import/no-duplicates */
+import '@firebase/messaging';
 import { isSupported } from '@firebase/messaging';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
