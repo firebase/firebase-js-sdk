@@ -32,10 +32,14 @@ import { Serializer } from '../serializer';
  */
 interface HttpResponse {
   status: number;
-  json: HttpResponseJson | null;
+  json: HttpResponseBody | null;
 }
-
-export interface HttpResponseJson {
+/**
+ * Describe the shape of the HttpResponse body.
+ * It makes functions that would otherwise take {} able to access the
+ * possible elements in the body more easily
+ */
+export interface HttpResponseBody {
   data?: unknown;
   result?: unknown;
   error?: {
@@ -51,7 +55,7 @@ export interface HttpResponseJson {
  *
  * @param millis Number of milliseconds to wait before rejecting.
  */
-function failAfter(millis: number): Promise<HttpResponse> {
+function failAfter(millis: number): Promise<never> {
   return new Promise((_, reject) => {
     setTimeout(() => {
       reject(new HttpsErrorImpl('deadline-exceeded', 'deadline-exceeded'));
@@ -248,7 +252,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
     }
 
     // Decode any special types, such as dates, in the returned data.
-    const decodedData = this.serializer.decode(responseData);
+    const decodedData = this.serializer.decode(responseData as {} | null);
 
     return { data: decodedData };
   }

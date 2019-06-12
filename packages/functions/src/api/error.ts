@@ -17,7 +17,7 @@
 
 import { HttpsError, FunctionsErrorCode } from '@firebase/functions-types';
 import { Serializer } from '../serializer';
-import { HttpResponseJson } from './service';
+import { HttpResponseBody } from './service';
 
 /**
  * Standard error codes for different ways a request can fail, as defined by:
@@ -124,7 +124,7 @@ function codeForHTTPStatus(status: number): FunctionsErrorCode {
  */
 export function _errorForResponse(
   status: number,
-  bodyJSON: HttpResponseJson | null,
+  bodyJSON: HttpResponseBody | null,
   serializer: Serializer
 ): Error | null {
   let code = codeForHTTPStatus(status);
@@ -145,10 +145,11 @@ export function _errorForResponse(
           return new HttpsErrorImpl('internal', 'internal');
         }
         code = errorCodeMap[status];
+
+        // TODO(klimt): Add better default descriptions for error enums.
+        // The default description needs to be updated for the new code.
+        description = status;
       }
-      // TODO(klimt): Add better default descriptions for error enums.
-      // The default description needs to be updated for the new code.
-      description = status as string;
 
       const message = errorJSON.message;
       if (typeof message === 'string') {

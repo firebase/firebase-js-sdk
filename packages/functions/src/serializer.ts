@@ -61,19 +61,19 @@ export class Serializer {
 
   // Takes data that's been encoded in a JSON-friendly form and returns a form
   // with richer datatypes, such as Dates, etc.
-  decode(json: unknown): unknown {
+  decode(json: {} | null): {} | null {
     if (json == null) {
       return json;
     }
-    if ((json as {})['@type']) {
-      switch ((json as {})['@type']) {
+    if (json['@type']) {
+      switch (json['@type']) {
         case LONG_TYPE:
         // Fall through and handle this the same as unsigned.
         case UNSIGNED_LONG_TYPE: {
           // Technically, this could work return a valid number for malformed
           // data if there was a number followed by garbage. But it's just not
           // worth all the extra code to detect that case.
-          const value = Number((json as {})['value']);
+          const value = Number(json['value']);
           if (isNaN(value)) {
             throw new Error('Data cannot be decoded from JSON: ' + json);
           }
@@ -88,7 +88,7 @@ export class Serializer {
       return json.map(x => this.decode(x));
     }
     if (typeof json === 'function' || typeof json === 'object') {
-      return mapValues(json as object, x => this.decode(x));
+      return mapValues(json, x => this.decode(x as {} | null));
     }
     // Anything else is safe to return.
     return json;
