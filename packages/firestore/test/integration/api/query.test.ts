@@ -26,6 +26,9 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
+  arrayContainsAnyOp,
+  inOp,
+  isRunningAgainstEmulator,
   toChangesArray,
   toDataArray,
   withTestCollection,
@@ -554,6 +557,67 @@ apiDescribe('Queries', persistence => {
       // arrays, so there isn't much of anything else interesting to test.
     });
   });
+
+  // TODO(in-queries): Enable browser tests once backend support is ready.
+  (isRunningAgainstEmulator() ? it : it.skip)(
+    'can use IN filters',
+    async () => {
+      const testDocs = {
+        a: { zip: 98101 },
+        b: { zip: 91102 },
+        c: { zip: 98103 },
+        d: { zip: [98101] },
+        e: { zip: ['98101', { zip: 98101 }] },
+        f: { zip: { code: 500 } }
+      };
+
+      await withTestCollection(persistence, testDocs, async coll => {
+        const snapshot = await coll.where('zip', inOp, [98101, 98103]).get();
+        expect(toDataArray(snapshot)).to.deep.equal([
+          { zip: 98101 },
+          { zip: 98103 }
+        ]);
+
+        // With objects.
+        const snapshot2 = await coll.where('zip', inOp, [{ code: 500 }]).get();
+        expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
+      });
+    }
+  );
+
+  // TODO(in-queries): Enable browser tests once backend support is ready.
+  (isRunningAgainstEmulator() ? it : it.skip)(
+    'can use array-contains-any filters',
+    async () => {
+      const testDocs = {
+        a: { array: [42] },
+        b: { array: ['a', 42, 'c'] },
+        c: { array: [41.999, '42', { a: [42] }] },
+        d: { array: [42], array2: ['bingo'] },
+        e: { array: [43] },
+        f: { array: [{ a: 42 }] },
+        g: { array: 42 }
+      };
+
+      await withTestCollection(persistence, testDocs, async coll => {
+        const snapshot = await coll
+          .where('array', arrayContainsAnyOp, [42, 43])
+          .get();
+        expect(toDataArray(snapshot)).to.deep.equal([
+          { array: [42] },
+          { array: ['a', 42, 'c'] },
+          { array: [42], array2: ['bingo'] },
+          { array: [43] }
+        ]);
+
+        // With objects.
+        const snapshot2 = await coll
+          .where('array', arrayContainsAnyOp, [{ a: 42 }])
+          .get();
+        expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
+      });
+    }
+  );
 
   it('throws custom error when using docChanges as property', () => {
     const querySnap = querySnapshot('foo/bar', {}, {}, keys(), false, false);
