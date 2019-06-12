@@ -18,7 +18,7 @@
 import { spy, stub, restore } from 'sinon';
 import { Trace } from '../resources/trace';
 import { expect } from 'chai';
-import { Api , setupApi } from '../services/api_service';
+import { Api, setupApi } from '../services/api_service';
 import * as perfLogger from '../services/perf_logger';
 
 import '../../test/setup';

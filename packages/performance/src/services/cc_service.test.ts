@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { stub, useFakeTimers , SinonStub } from 'sinon';
+import { stub, useFakeTimers, SinonStub } from 'sinon';
 import { use, expect } from 'chai';
 import { Logger, LogLevel } from '@firebase/logger';
 import * as sinonChai from 'sinon-chai';

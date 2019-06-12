@@ -18,7 +18,7 @@
 import { stub, restore } from 'sinon';
 import { createNetworkRequestEntry } from '../../src/resources/network_request';
 import { expect } from 'chai';
-import { Api , setupApi } from '../services/api_service';
+import { Api, setupApi } from '../services/api_service';
 import * as perfLogger from '../services/perf_logger';
 
 import '../../test/setup';
