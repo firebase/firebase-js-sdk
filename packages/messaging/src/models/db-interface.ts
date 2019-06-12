@@ -48,8 +48,8 @@ export abstract class DbInterface {
   }
 
   /** Assigns or overwrites the record for the given value. */
-  // tslint:disable-next-line:no-any IndexedDB values are of type "any"
-  put(value: any): Promise<void> {
+  // IndexedDB values are of type "any"
+  put(value: unknown): Promise<void> {
     return this.createTransaction(
       objectStore => objectStore.put(value),
       'readwrite'

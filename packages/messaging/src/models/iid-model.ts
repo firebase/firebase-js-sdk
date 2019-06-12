@@ -59,7 +59,7 @@ export class IidModel {
 
     const subscribeOptions = {
       method: 'POST',
-      headers: headers,
+      headers,
       body: fcmSubscribeBody
     };
 
@@ -134,7 +134,7 @@ export class IidModel {
 
     const updateOptions = {
       method: 'POST',
-      headers: headers,
+      headers,
       body: fcmUpdateBody
     };
 
@@ -183,7 +183,7 @@ export class IidModel {
 
     const unsubscribeOptions = {
       method: 'POST',
-      headers: headers,
+      headers,
       body: fcmUnsubscribeBody
     };
 

@@ -57,6 +57,7 @@ function handleDb(db: IDBDatabase): void {
       // this is where you'd do something with the result
       const tokenDetails = cursor.value;
 
+      // tslint:disable-next-line:no-floating-promises
       iidModel.deleteToken(
         tokenDetails.fcmSenderId,
         tokenDetails.fcmToken,
@@ -73,10 +74,10 @@ function handleDb(db: IDBDatabase): void {
 
 export function cleanV1(): void {
   const request: IDBOpenDBRequest = indexedDB.open(OLD_DB_NAME);
-  request.onerror = event => {
+  request.onerror = _event => {
     // NOOP - Nothing we can do.
   };
-  request.onsuccess = event => {
+  request.onsuccess = _event => {
     const db = request.result;
     handleDb(db);
   };

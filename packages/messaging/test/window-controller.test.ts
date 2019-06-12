@@ -36,7 +36,7 @@ describe('Firebase Messaging > *WindowController', () => {
     messagingSenderId: '12345'
   });
 
-  const cleanup = () => {
+  const cleanup = (): void => {
     sandbox.restore();
   };
 
@@ -95,6 +95,7 @@ describe('Firebase Messaging > *WindowController', () => {
           Promise.resolve({
             json: () => {
               return {
+                // eslint-disable-next-line camelcase
                 gcm_sender_id: '103953800507'
               };
             }
@@ -119,6 +120,7 @@ describe('Firebase Messaging > *WindowController', () => {
           Promise.resolve({
             json: () => {
               return {
+                // eslint-disable-next-line camelcase
                 gcm_sender_id: 'incorrect-sender-id'
               };
             }
@@ -237,9 +239,9 @@ describe('Firebase Messaging > *WindowController', () => {
 
   describe('onMessage()', () => {
     it(`should call through to private function`, () => {
-      const nextFunc = () => {};
-      const errFunc = () => {};
-      const compFunc = () => {};
+      const nextFunc = (): void => {};
+      const errFunc = (): void => {};
+      const compFunc = (): void => {};
 
       const controller = new WindowController(app);
       const onMessageStub = sandbox.stub(controller as any, 'onMessage');
@@ -254,9 +256,9 @@ describe('Firebase Messaging > *WindowController', () => {
 
   describe('onTokenRefresh()', () => {
     it(`should call through to private function`, () => {
-      const nextFunc = () => {};
-      const errFunc = () => {};
-      const compFunc = () => {};
+      const nextFunc = (): void => {};
+      const errFunc = (): void => {};
+      const compFunc = (): void => {};
 
       const controller = new WindowController(app);
       const onTokenRefreshStub = sandbox.stub(
@@ -440,7 +442,7 @@ describe('Firebase Messaging > *WindowController', () => {
 
   describe('waitForRegistrationToActivate_', () => {
     it('should handle service worker lifecycle', () => {
-      let changeListener = () => {};
+      let changeListener = (): void => {};
       const swValue = {
         state: 'installing',
         addEventListener: (eventName: string, cb: () => void) => {

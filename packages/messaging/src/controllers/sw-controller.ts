@@ -126,7 +126,7 @@ export class SwController extends BaseController {
   }
 
   private async onSubChange_(
-    event: PushSubscriptionChangeEvent
+    _event: PushSubscriptionChangeEvent
   ): Promise<void> {
     let registration: ServiceWorkerRegistration;
     try {

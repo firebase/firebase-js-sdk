@@ -39,7 +39,7 @@ class MockDbInterface extends DbInterface {
 
   protected onDbUpgrade(
     request: IDBOpenDBRequest,
-    event: IDBVersionChangeEvent
+    _event: IDBVersionChangeEvent
   ): void {
     const db: IDBDatabase = request.result;
 
@@ -59,6 +59,7 @@ describe('DbInterface', () => {
   });
 
   afterEach(async () => {
+    // tslint:disable-next-line:no-floating-promises
     dbInterface.closeDatabase();
     await deleteDatabase(dbInterface.dbName);
   });

@@ -65,6 +65,7 @@ describe('Firebase Messaging > *BaseController', () => {
     it('should call delete()', () => {
       const controller = new MockBaseController(app);
       const spy = sandbox.spy(controller, 'delete');
+      // tslint:disable-next-line:no-floating-promises
       controller.INTERNAL.delete();
       expect(spy.callCount).to.equal(1);
     });
@@ -75,6 +76,7 @@ describe('Firebase Messaging > *BaseController', () => {
       const controller = new MockBaseController(app);
       let thrownError;
       try {
+        // tslint:disable-next-line:no-floating-promises
         controller.requestPermission();
       } catch (err) {
         thrownError = err;
