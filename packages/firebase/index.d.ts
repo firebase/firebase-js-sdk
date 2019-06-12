@@ -5440,7 +5440,7 @@ declare namespace firebase.storage {
      *     and manage the upload.
      */
     put(
-      data: any | any | any,
+      data: Blob | Uint8Array | ArrayBuffer,
       metadata?: firebase.storage.UploadMetadata
     ): firebase.storage.UploadTask;
     /**
