@@ -20,7 +20,9 @@ import { fromDocRef } from '../fromRef';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-export function doc(ref: firestore.DocumentReference): Observable<firestore.DocumentSnapshot> {
+export function doc(
+  ref: firestore.DocumentReference
+): Observable<firestore.DocumentSnapshot> {
   return fromDocRef(ref);
 }
 

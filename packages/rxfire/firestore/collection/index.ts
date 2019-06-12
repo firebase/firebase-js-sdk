@@ -146,7 +146,9 @@ export function collectionChanges(
  * Return a stream of document snapshots on a query. These results are in sort order.
  * @param query
  */
-export function collection(query: firestore.Query): Observable<firestore.QueryDocumentSnapshot[]> {
+export function collection(
+  query: firestore.Query
+): Observable<firestore.QueryDocumentSnapshot[]> {
   return fromCollectionRef(query).pipe(map(changes => changes.docs));
 }
 

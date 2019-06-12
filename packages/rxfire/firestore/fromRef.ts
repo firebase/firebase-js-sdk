@@ -26,7 +26,9 @@ function _fromRef(ref: any): Observable<any> {
   });
 }
 
-export function fromRef(ref: firestore.DocumentReference | firestore.Query): Observable<{}> {
+export function fromRef(
+  ref: firestore.DocumentReference | firestore.Query
+): Observable<{}> {
   return _fromRef(ref);
 }
 

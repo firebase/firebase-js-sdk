@@ -22,7 +22,13 @@ import { expect } from 'chai';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { initializeApp, database, app } from 'firebase';
 import { fromRef } from '../database/fromRef';
-import { list, ListenEvent, objectVal, listVal, QueryChange } from '../database';
+import {
+  list,
+  ListenEvent,
+  objectVal,
+  listVal,
+  QueryChange
+} from '../database';
 import { take, skip, switchMap } from 'rxjs/operators';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { auditTrail } from '../database/list/audit-trail';
@@ -223,7 +229,7 @@ describe('RxFire Database', () => {
           sub.unsubscribe();
           done();
         });
-        itemRef.child(key).setPriority(-100, () => { });
+        itemRef.child(key).setPriority(-100, () => {});
       });
 
       /**
@@ -453,7 +459,7 @@ describe('RxFire Database', () => {
           .add(done);
         app.database().goOnline();
         aref.set(itemsObj).then(() => {
-          aref.child(items[0].key).setPriority('a', () => { });
+          aref.child(items[0].key).setPriority('a', () => {});
         });
       });
 
@@ -480,7 +486,7 @@ describe('RxFire Database', () => {
        */
       it('should handle multiple subscriptions (hot)', done => {
         const { snapChanges, ref } = prepareList();
-        const sub = snapChanges.subscribe(() => { }).add(done);
+        const sub = snapChanges.subscribe(() => {}).add(done);
         snapChanges
           .pipe(take(1))
           .subscribe(actions => {
@@ -498,7 +504,7 @@ describe('RxFire Database', () => {
         const { snapChanges, ref } = prepareList();
         snapChanges
           .pipe(take(1))
-          .subscribe(() => { })
+          .subscribe(() => {})
           .add(() => {
             snapChanges
               .pipe(take(1))

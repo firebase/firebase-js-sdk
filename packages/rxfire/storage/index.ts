@@ -19,7 +19,9 @@ import { storage } from 'firebase/app';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-export function fromTask(task: storage.UploadTask): Observable<storage.UploadTaskSnapshot> {
+export function fromTask(
+  task: storage.UploadTask
+): Observable<storage.UploadTaskSnapshot> {
   return new Observable<storage.UploadTaskSnapshot>(subscriber => {
     const progress = (snap: storage.UploadTaskSnapshot): void =>
       subscriber.next(snap);

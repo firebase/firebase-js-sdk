@@ -44,8 +44,9 @@ const createId = (): string =>
  * Create a collection with a random name. This helps sandbox offline tests and
  * makes sure tests don't interfere with each other as they run.
  */
-const createRandomCol = (firestore: firestore.Firestore): firestore.CollectionReference =>
-  firestore.collection(createId());
+const createRandomCol = (
+  firestore: firestore.Firestore
+): firestore.CollectionReference => firestore.collection(createId());
 
 /**
  * Unwrap a snapshot but add the type property to the data object.

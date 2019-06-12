@@ -23,7 +23,10 @@ import { fromRef } from '../fromRef';
 import { switchMap, scan, distinctUntilChanged, map } from 'rxjs/operators';
 import { changeToData } from '../object';
 
-export function stateChanges(query: database.Query, events?: ListenEvent[]): Observable<QueryChange> {
+export function stateChanges(
+  query: database.Query,
+  events?: ListenEvent[]
+): Observable<QueryChange> {
   events = validateEventsArray(events);
   const childEvent$ = events.map(event => fromRef(query, event));
   return merge(...childEvent$);
