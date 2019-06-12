@@ -67,4 +67,5 @@ firebaseNamespace.initializeApp = function() {
 
 export const firebase = firebaseNamespace;
 
+// eslint-disable-next-line import/no-default-export
 export default firebase;
