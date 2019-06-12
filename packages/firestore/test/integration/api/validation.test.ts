@@ -817,10 +817,10 @@ apiDescribe('Validation:', persistence => {
           'Invalid query. You can only perform equals comparisons on null.'
         );
         expect(() => collection.where('a', inOp, null)).to.throw(
-          "Invalid Query. A non-empty array is required for 'in' queries."
+          "Invalid Query. A non-empty array is required for 'in' filters."
         );
         expect(() => collection.where('a', arrayContainsAnyOp, null)).to.throw(
-          "Invalid Query. A non-empty array is required for 'array-contains-any' queries."
+          "Invalid Query. A non-empty array is required for 'array-contains-any' filters."
         );
 
         expect(() => collection.where('a', '>', Number.NaN)).to.throw(
@@ -832,12 +832,12 @@ apiDescribe('Validation:', persistence => {
           'Invalid query. You can only perform equals comparisons on NaN.'
         );
         expect(() => collection.where('a', inOp, Number.NaN)).to.throw(
-          "Invalid Query. A non-empty array is required for 'in' queries."
+          "Invalid Query. A non-empty array is required for 'in' filters."
         );
         expect(() =>
           collection.where('a', arrayContainsAnyOp, Number.NaN)
         ).to.throw(
-          "Invalid Query. A non-empty array is required for 'array-contains-any' queries."
+          "Invalid Query. A non-empty array is required for 'array-contains-any' filters."
         );
       }
     );
@@ -1166,14 +1166,14 @@ apiDescribe('Validation:', persistence => {
       'cannot have an IN or array-contains-any filter with non-array values.',
       db => {
         expect(() => db.collection('test').where('foo', inOp, 2)).to.throw(
-          "Invalid Query. A non-empty array is required for 'in' queries."
+          "Invalid Query. A non-empty array is required for 'in' filters."
         );
 
         expect(() =>
           db.collection('test').where('foo', arrayContainsAnyOp, 2)
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
-            "'array-contains-any' queries."
+            "'array-contains-any' filters."
         );
       }
     );
@@ -1183,14 +1183,14 @@ apiDescribe('Validation:', persistence => {
       'cannot have an IN or array-contains-any filter with empty arrays.',
       db => {
         expect(() => db.collection('test').where('foo', inOp, [])).to.throw(
-          "Invalid Query. A non-empty array is required for 'in' queries."
+          "Invalid Query. A non-empty array is required for 'in' filters."
         );
 
         expect(() =>
           db.collection('test').where('foo', arrayContainsAnyOp, [])
         ).to.throw(
           'Invalid Query. A non-empty array is required for ' +
-            "'array-contains-any' queries."
+            "'array-contains-any' filters."
         );
       }
     );
@@ -1206,7 +1206,7 @@ apiDescribe('Validation:', persistence => {
             // The 10 element max includes duplicates.
             .where('foo', inOp, [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
         ).to.throw(
-          "Invalid Query. 'in' queries support a maximum of 10 elements in " +
+          "Invalid Query. 'in' filters support a maximum of 10 elements in " +
             'the value array.'
         );
 
@@ -1215,7 +1215,7 @@ apiDescribe('Validation:', persistence => {
             .collection('test')
             .where('foo', arrayContainsAnyOp, [1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9])
         ).to.throw(
-          "Invalid Query. 'array-contains-any' queries support a maximum of " +
+          "Invalid Query. 'array-contains-any' filters support a maximum of " +
             '10 elements in the value array.'
         );
       }
