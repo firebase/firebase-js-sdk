@@ -131,7 +131,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
    * @param name The name of the trigger.
    */
   httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
-    const callable = (data?: {}): Promise<HttpsCallableResult> => {
+    const callable = (data?: {} | null): Promise<HttpsCallableResult> => {
       return this.call(name, data, options || {});
     };
     return callable;
