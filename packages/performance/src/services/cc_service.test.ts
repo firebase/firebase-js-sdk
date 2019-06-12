@@ -15,11 +15,11 @@
  * limitations under the License.
  */
 
-import { stub, useFakeTimers } from 'sinon';
+import { stub, useFakeTimers , SinonStub } from 'sinon';
 import { use, expect } from 'chai';
 import { Logger, LogLevel } from '@firebase/logger';
 import * as sinonChai from 'sinon-chai';
-import { SinonStub } from 'sinon';
+
 use(sinonChai);
 
 // We have to stub the clock before importing cc_service, otherwise we cannot deterministically
