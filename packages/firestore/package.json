@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore",
-  "version": "1.3.5",
+  "version": "1.4.0",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "scripts": {
@@ -9,7 +9,7 @@
     "dev": "rollup -c -w",
     "lint": "tslint -p tsconfig.json -c tslint.json 'src/**/*.ts' 'test/**/*.ts'",
     "lint:fix": "tslint --fix -p tsconfig.json -c tslint.json 'src/**/*.ts' 'test/**/*.ts'",
-    "lint:eslint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",    
+    "lint:eslint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
     "prettier": "prettier --write 'src/**/*.js' 'test/**/*.js' 'src/**/*.ts' 'test/**/*.ts'",
     "test": "run-s lint test:all",
     "test:all": "run-p test:browser test:node",
@@ -29,8 +29,8 @@
     "dist"
   ],
   "dependencies": {
-    "@firebase/firestore-types": "1.3.0",
-    "@firebase/logger": "0.1.15",
+    "@firebase/firestore-types": "1.4.0",
+    "@firebase/logger": "0.1.16",
     "@firebase/webchannel-wrapper": "0.2.20",
     "@grpc/proto-loader": "^0.5.0",
     "grpc": "1.20.3",
