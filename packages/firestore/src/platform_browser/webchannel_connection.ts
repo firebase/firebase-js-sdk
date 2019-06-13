@@ -21,7 +21,6 @@ import {
   EventType,
   WebChannel,
   XhrIo
-  // @ts-ignore
 } from '@firebase/webchannel-wrapper';
 
 import { isReactNative } from '@firebase/util';
@@ -38,6 +37,7 @@ import { StreamBridge } from '../remote/stream_bridge';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
+import { Indexable } from '../util/misc';
 import { Rejecter, Resolver } from '../util/promise';
 import { StringMap } from '../util/types';
 
@@ -244,8 +244,7 @@ export class WebChannelConnection implements Connection {
     // ReactNative and so we exclude it, which just means ReactNative may be
     // subject to the extra network roundtrip for CORS preflight.
     if (!isReactNative()) {
-      // @ts-ignore
-      request['httpHeadersOverwriteParam'] = '$httpHeaders';
+      (request as Indexable)['httpHeadersOverwriteParam'] = '$httpHeaders';
     }
 
     const url = urlParts.join('');
@@ -345,11 +344,10 @@ export class WebChannelConnection implements Connection {
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter
           // can be removed once the fix has been rolled out.
+          // tslint:disable-next-line:no-any msgData.error is not typed.
+          const msgDataAsAny: any = msgData;
           const error =
-            // tslint:disable-next-line:no-any msgData.error is not typed.
-            (msgData as any).error ||
-            // @ts-ignore
-            (msgData[0] && msgData[0].error);
+            msgDataAsAny.error || (msgDataAsAny[0] && msgDataAsAny[0].error);
           if (error) {
             log.debug(LOG_TAG, 'WebChannel received error:', error);
             // error.status will be a string like 'OK' or 'NOT_FOUND'.

@@ -309,21 +309,19 @@ export function makeCredentialsProvider(
 
   switch (credentials.type) {
     case 'gapi':
-      const client = credentials.client;
-      // Make sure this is a Gapi client.
+      const client = credentials.client as Gapi;
+      // Make sure this really is a Gapi client.
       assert(
         !!(
           typeof client === 'object' &&
           client !== null &&
-          // @ts-ignore
           client['auth'] &&
-          // @ts-ignore
           client['auth']['getAuthHeaderValueForFirstParty']
         ),
         'unexpected gapi interface'
       );
       return new FirstPartyCredentialsProvider(
-        client as Gapi,
+        client,
         credentials.sessionIndex || '0'
       );
 
