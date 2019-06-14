@@ -18,8 +18,7 @@
         {
             "files": [
                 "**/*.test.ts",
-                "**/test/**/*.ts",
-                "**/testing/**/*.ts"
+                "**/test/**/*.ts"
             ],
             "rules": {
                 "no-unused-expressions": "off",

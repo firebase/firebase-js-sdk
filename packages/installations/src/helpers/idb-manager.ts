@@ -30,11 +30,10 @@ const dbPromise: Promise<DB> = openDb(
     // behavior is what we want, because if there are multiple versions between
     // the old version and the current version, we want ALL the migrations
     // that correspond to those versions to run, not only the last one.
+    // eslint-disable-next-line default-case
     switch (upgradeDB.oldVersion) {
       case 0:
         upgradeDB.createObjectStore(OBJECT_STORE_NAME);
-        break;
-      default: // ignore
     }
   }
 );
