@@ -46,6 +46,7 @@
     "rollup-plugin-typescript2": "0.21.0",
     "sinon": "7.3.2",
     "sinon-chai": "3.3.0",
+    "chai-as-promised": "7.1.1",
     "typescript": "3.4.5",
     "eslint": "5.16.0",
     "@typescript-eslint/parser": "1.10.2",

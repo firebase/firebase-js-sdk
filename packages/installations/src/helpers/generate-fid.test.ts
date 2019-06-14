@@ -35,7 +35,7 @@ const MOCK_RANDOM_VALUES = [
   [156, 129, 30, 101, 58, 137, 217, 249, 12, 227, 235, 80, 248, 81, 191, 2, 5],
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255],
-]
+];
 
 /** The FIDs that should be generated based on MOCK_RANDOM_VALUES. */
 const EXPECTED_FIDS = [

@@ -37,6 +37,8 @@ import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
 import { getToken } from './get-token';
 
+// tslint:disable:no-floating-promises
+
 const FID = 'dont-talk-to-strangers';
 const AUTH_TOKEN = 'authTokenFromServer';
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
