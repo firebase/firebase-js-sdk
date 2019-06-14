@@ -58,7 +58,8 @@
     "eslint": "5.16.0",
     "@typescript-eslint/parser": "1.10.2",
     "@typescript-eslint/eslint-plugin": "1.10.2",
-    "@typescript-eslint/eslint-plugin-tslint": "1.10.2"
+    "@typescript-eslint/eslint-plugin-tslint": "1.10.2",
+    "@firebase/messaging": "0.4.2"
   },
   "repository": {
     "directory": "packages/functions",
