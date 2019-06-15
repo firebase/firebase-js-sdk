@@ -33,7 +33,7 @@ import {
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData, QueryPurpose } from '../local/query_data';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { Document, DocumentType } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import * as fieldValue from '../model/field_value';
 import {
@@ -521,6 +521,9 @@ export class JsonProtoSerializer {
       !document.hasLocalMutations,
       "Can't serialize documents with mutations."
     );
+    if (document.proto) {
+      return document.proto;
+    }
     return {
       name: this.toName(document.key),
       fields: this.toFields(document.data),
@@ -532,7 +535,7 @@ export class JsonProtoSerializer {
     document: api.Document,
     hasCommittedMutations?: boolean
   ): Document {
-    return new Document(
+    return Document.existing(
       this.fromName(document.name!),
       this.fromVersion(document.updateTime!),
       this.fromFields(document.fields || {}),
@@ -582,10 +585,12 @@ export class JsonProtoSerializer {
     const key = this.fromName(doc.found!.name!);
     const version = this.fromVersion(doc.found!.updateTime!);
     const fields = this.fromFields(doc.found!.fields || {});
-    return new Document(key, version, fields, {}, doc.found!);
+    return Document.existing(key, version, fields, {
+      memoizedProto: doc.found!
+    });
   }
 
-  private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
+  private fromMissing(result: api.BatchGetDocumentsResponse): Document {
     assert(
       !!result.missing,
       'Tried to deserialize a missing document from a found document.'
@@ -596,10 +601,10 @@ export class JsonProtoSerializer {
     );
     const key = this.fromName(result.missing!);
     const version = this.fromVersion(result.readTime!);
-    return new NoDocument(key, version);
+    return Document.missing(key, version);
   }
 
-  fromMaybeDocument(result: api.BatchGetDocumentsResponse): MaybeDocument {
+  fromMaybeDocument(result: api.BatchGetDocumentsResponse): Document {
     if ('found' in result) {
       return this.fromFound(result);
     } else if ('missing' in result) {
@@ -637,35 +642,40 @@ export class JsonProtoSerializer {
       };
     }
     if (watchChange instanceof DocumentWatchChange) {
-      if (watchChange.newDoc instanceof Document) {
-        const doc = watchChange.newDoc;
-        return {
-          documentChange: {
-            document: {
-              name: this.toName(doc.key),
-              fields: this.toFields(doc.data),
-              updateTime: this.toVersion(doc.version)
-            },
-            targetIds: watchChange.updatedTargetIds,
-            removedTargetIds: watchChange.removedTargetIds
-          }
-        };
-      } else if (watchChange.newDoc instanceof NoDocument) {
-        const doc = watchChange.newDoc;
-        return {
-          documentDelete: {
-            document: this.toName(doc.key),
-            readTime: this.toVersion(doc.version),
-            removedTargetIds: watchChange.removedTargetIds
-          }
-        };
-      } else if (watchChange.newDoc === null) {
-        return {
-          documentRemove: {
-            document: this.toName(watchChange.key),
-            removedTargetIds: watchChange.removedTargetIds
-          }
-        };
+      const doc = watchChange.newDoc;
+      switch (doc.type) {
+        case DocumentType.EXISTS:
+          return {
+            documentChange: {
+              document: {
+                name: this.toName(doc.key),
+                fields: this.toFields(doc.data),
+                updateTime: this.toVersion(doc.version)
+              },
+              targetIds: watchChange.updatedTargetIds,
+              removedTargetIds: watchChange.removedTargetIds
+            }
+          };
+
+        case DocumentType.MISSING:
+          return {
+            documentDelete: {
+              document: this.toName(doc.key),
+              readTime: this.toVersion(doc.version),
+              removedTargetIds: watchChange.removedTargetIds
+            }
+          };
+
+        case DocumentType.UNKNOWN:
+          return {
+            documentRemove: {
+              document: this.toName(watchChange.key),
+              removedTargetIds: watchChange.removedTargetIds
+            }
+          };
+
+        default:
+          return fail('Unhandled document type ' + doc.toString());
       }
     }
     if (watchChange instanceof WatchTargetChange) {
@@ -725,19 +735,14 @@ export class JsonProtoSerializer {
       const fields = this.fromFields(entityChange.document!.fields || {});
       // The document may soon be re-serialized back to protos in order to store it in local
       // persistence. Memoize the encoded form to avoid encoding it again.
-      const doc = new Document(
-        key,
-        version,
-        fields,
-        {},
-        entityChange.document!
-      );
+      const doc = Document.existing(key, version, fields, {
+        memoizedProto: entityChange.document!
+      });
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];
       watchChange = new DocumentWatchChange(
         updatedTargetIds,
         removedTargetIds,
-        doc.key,
         doc
       );
     } else if ('documentDelete' in change) {
@@ -747,17 +752,18 @@ export class JsonProtoSerializer {
       const key = this.fromName(docDelete.document!);
       const version = docDelete.readTime
         ? this.fromVersion(docDelete.readTime)
-        : SnapshotVersion.forDeletedDoc();
-      const doc = new NoDocument(key, version);
+        : SnapshotVersion.forMissingDoc();
+      const doc = Document.missing(key, version);
       const removedTargetIds = docDelete.removedTargetIds || [];
-      watchChange = new DocumentWatchChange([], removedTargetIds, doc.key, doc);
+      watchChange = new DocumentWatchChange([], removedTargetIds, doc);
     } else if ('documentRemove' in change) {
       assertPresent(change.documentRemove, 'documentRemove');
       assertPresent(change.documentRemove!.document, 'documentRemove');
       const docRemove = change.documentRemove!;
       const key = this.fromName(docRemove.document!);
+      const doc = Document.unknown(key);
       const removedTargetIds = docRemove.removedTargetIds || [];
-      watchChange = new DocumentWatchChange([], removedTargetIds, key, null);
+      watchChange = new DocumentWatchChange([], removedTargetIds, doc);
     } else if ('filter' in change) {
       // TODO(dimond): implement existence filter parsing with strategy.
       assertPresent(change.filter, 'filter');

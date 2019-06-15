@@ -27,13 +27,8 @@ import {
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
-import {
-  DocumentKeySet,
-  DocumentMap,
-  MaybeDocumentMap,
-  NullableMaybeDocumentMap
-} from '../../../src/model/collections';
-import { MaybeDocument } from '../../../src/model/document';
+import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
+import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 
 /**
@@ -50,7 +45,7 @@ export abstract class TestRemoteDocumentCache {
    * Reads all of the documents first so we can safely add them and keep the size calculation in
    * sync.
    */
-  addEntries(maybeDocuments: MaybeDocument[]): Promise<void> {
+  addEntries(maybeDocuments: Document[]): Promise<void> {
     return this.persistence.runTransaction(
       'addEntry',
       'readwrite-primary',
@@ -83,13 +78,13 @@ export abstract class TestRemoteDocumentCache {
     documentKey: DocumentKey
   ): PersistencePromise<number>;
 
-  getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
+  getEntry(documentKey: DocumentKey): Promise<Document> {
     return this.persistence.runTransaction('getEntry', 'readonly', txn => {
       return this.cache.getEntry(txn, documentKey);
     });
   }
 
-  getEntries(documentKeys: DocumentKeySet): Promise<NullableMaybeDocumentMap> {
+  getEntries(documentKeys: DocumentKeySet): Promise<DocumentMap> {
     return this.persistence.runTransaction('getEntries', 'readonly', txn => {
       return this.cache.getEntries(txn, documentKeys);
     });
@@ -105,7 +100,7 @@ export abstract class TestRemoteDocumentCache {
     );
   }
 
-  getNewDocumentChanges(): Promise<MaybeDocumentMap> {
+  getNewDocumentChanges(): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'getNewDocumentChanges',
       'readonly',

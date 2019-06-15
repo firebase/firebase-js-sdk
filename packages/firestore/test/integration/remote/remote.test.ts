@@ -17,11 +17,7 @@
 
 import { expect } from 'chai';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import {
-  Document,
-  MaybeDocument,
-  NoDocument
-} from '../../../src/model/document';
+import { Document } from '../../../src/model/document';
 import { MutationResult } from '../../../src/model/mutation';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import { key, setMutation } from '../../util/helpers';
@@ -53,12 +49,12 @@ describe('Remote Storage', () => {
         .then((result: MutationResult[]) => {
           return ds.lookup([k]);
         })
-        .then((docs: MaybeDocument[]) => {
+        .then((docs: Document[]) => {
           expect(docs.length).to.equal(1);
 
           const doc = docs[0];
           expect(doc).to.be.an.instanceof(Document);
-          if (doc instanceof Document) {
+          if (doc.exists) {
             expect(doc.data).to.deep.equal(mutation.value);
             expect(doc.key).to.deep.equal(k);
             expect(SnapshotVersion.MIN.compareTo(doc.version)).to.be.lessThan(
@@ -72,11 +68,11 @@ describe('Remote Storage', () => {
   it('can read deleted documents', () => {
     return withTestDatastore(ds => {
       const k = key('docs/2');
-      return ds.lookup([k]).then((docs: MaybeDocument[]) => {
+      return ds.lookup([k]).then((docs: Document[]) => {
         expect(docs.length).to.equal(1);
         const doc = docs[0];
-        expect(doc).to.be.an.instanceof(NoDocument);
-        if (doc instanceof NoDocument) {
+        expect(doc.missing).to.be.true;
+        if (doc.missing) {
           expect(doc.key).to.deep.equal(k);
           expect(SnapshotVersion.MIN.compareTo(doc.version)).to.be.lessThan(0);
         }

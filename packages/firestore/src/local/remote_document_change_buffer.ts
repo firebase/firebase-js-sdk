@@ -17,13 +17,12 @@
 
 import {
   DocumentKeySet,
+  DocumentMap,
+  documentMap,
   DocumentSizeEntries,
-  DocumentSizeEntry,
-  maybeDocumentMap,
-  MaybeDocumentMap,
-  NullableMaybeDocumentMap
+  DocumentSizeEntry
 } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
@@ -46,7 +45,7 @@ import { PersistencePromise } from './persistence_promise';
  * porting this class as part of that implementation work.
  */
 export abstract class RemoteDocumentChangeBuffer {
-  private changes: MaybeDocumentMap | null = maybeDocumentMap();
+  private changes: DocumentMap | null = documentMap();
   protected documentSizes: ObjectMap<DocumentKey, number> = new ObjectMap(key =>
     key.toString()
   );
@@ -66,7 +65,7 @@ export abstract class RemoteDocumentChangeBuffer {
   ): PersistencePromise<void>;
 
   /** Buffers a `RemoteDocumentCache.addEntry()` call. */
-  addEntry(maybeDocument: MaybeDocument): void {
+  addEntry(maybeDocument: Document): void {
     const changes = this.assertChanges();
     this.changes = changes.insert(maybeDocument.key, maybeDocument);
   }
@@ -81,27 +80,27 @@ export abstract class RemoteDocumentChangeBuffer {
    *
    * @param transaction The transaction in which to perform any persistence
    *     operations.
-   * @param documentKey The key of the entry to look up.
-   * @return The cached Document or NoDocument entry, or null if we have nothing
-   * cached.
+   * @param key The key of the entry to look up.
+   * @return The cached Document entry, or an unknown Document if we have
+   *     nothing cached.
    */
   getEntry(
     transaction: PersistenceTransaction,
-    documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null> {
+    key: DocumentKey
+  ): PersistencePromise<Document> {
     const changes = this.assertChanges();
 
-    const bufferedEntry = changes.get(documentKey);
+    const bufferedEntry = changes.get(key);
     if (bufferedEntry) {
-      return PersistencePromise.resolve<MaybeDocument | null>(bufferedEntry);
+      return PersistencePromise.resolve<Document>(bufferedEntry);
     } else {
       // Record the size of everything we load from the cache so we can compute a delta later.
-      return this.getFromCache(transaction, documentKey).next(getResult => {
+      return this.getFromCache(transaction, key).next(getResult => {
         if (getResult === null) {
-          this.documentSizes.set(documentKey, 0);
-          return null;
+          this.documentSizes.set(key, 0);
+          return Document.unknown(key);
         } else {
-          this.documentSizes.set(documentKey, getResult.size);
+          this.documentSizes.set(key, getResult.size);
           return getResult.maybeDocument;
         }
       });
@@ -115,21 +114,20 @@ export abstract class RemoteDocumentChangeBuffer {
    * @param transaction The transaction in which to perform any persistence
    *     operations.
    * @param documentKeys The keys of the entries to look up.
-   * @return A map of cached `Document`s or `NoDocument`s, indexed by key. If an
-   *     entry cannot be found, the corresponding key will be mapped to a null
-   *     value.
+   * @return A map of cached Documents, indexed by key. If an entry cannot be
+   *     found, the corresponding key will be mapped to an unknown Document.
    */
   getEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap> {
+  ): PersistencePromise<DocumentMap> {
     // Record the size of everything we load from the cache so we can compute
     // a delta later.
     return this.getAllFromCache(transaction, documentKeys).next(
       ({ maybeDocuments, sizeMap }) => {
         // Note: `getAllFromCache` returns two maps instead of a single map from
         // keys to `DocumentSizeEntry`s. This is to allow returning the
-        // `NullableMaybeDocumentMap` directly, without a conversion.
+        // `DocumentMap` directly, without a conversion.
         sizeMap.forEach((documentKey, size) => {
           this.documentSizes.set(documentKey, size);
         });
@@ -150,7 +148,7 @@ export abstract class RemoteDocumentChangeBuffer {
   }
 
   /** Helper to assert this.changes is not null and return it. */
-  protected assertChanges(): MaybeDocumentMap {
+  protected assertChanges(): DocumentMap {
     assert(this.changes !== null, 'Changes have already been applied.');
     return this.changes!;
   }

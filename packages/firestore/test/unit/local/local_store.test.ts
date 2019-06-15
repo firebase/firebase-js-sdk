@@ -25,12 +25,8 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore, LocalWriteResult } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
-import {
-  documentKeySet,
-  DocumentMap,
-  MaybeDocumentMap
-} from '../../../src/model/collections';
-import { MaybeDocument, NoDocument } from '../../../src/model/document';
+import { documentKeySet, DocumentMap } from '../../../src/model/collections';
+import { Document } from '../../../src/model/document';
 import {
   Mutation,
   MutationResult,
@@ -50,6 +46,7 @@ import {
 import { assert } from '../../../src/util/assert';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
+  contentsUnknownDoc,
   deletedDoc,
   deleteMutation,
   doc,
@@ -64,7 +61,6 @@ import {
   setMutation,
   TestSnapshotVersion,
   transformMutation,
-  unknownDoc,
   version
 } from '../../util/helpers';
 
@@ -73,7 +69,7 @@ import * as persistenceHelpers from './persistence_test_helpers';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
-  private lastChanges: MaybeDocumentMap | null = null;
+  private lastChanges: DocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
   constructor(public localStore: LocalStore, readonly gcIsEager) {}
@@ -111,7 +107,7 @@ class LocalStoreTester {
       .then(() => {
         return this.localStore.applyRemoteEvent(remoteEvent);
       })
-      .then((result: MaybeDocumentMap) => {
+      .then((result: DocumentMap) => {
         this.lastChanges = result;
       });
     return this;
@@ -151,7 +147,7 @@ class LocalStoreTester {
 
         return this.localStore.acknowledgeBatch(write);
       })
-      .then((changes: MaybeDocumentMap) => {
+      .then((changes: DocumentMap) => {
         this.lastChanges = changes;
       });
     return this;
@@ -162,7 +158,7 @@ class LocalStoreTester {
       .then(() => {
         return this.localStore.rejectBatch(this.batches.shift()!.batchId);
       })
-      .then((changes: MaybeDocumentMap) => {
+      .then((changes: DocumentMap) => {
         this.lastChanges = changes;
       });
     return this;
@@ -194,7 +190,7 @@ class LocalStoreTester {
     return this;
   }
 
-  toReturnChanged(...docs: MaybeDocument[]): LocalStoreTester {
+  toReturnChanged(...docs: Document[]): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       assert(
         this.lastChanges !== null,
@@ -228,14 +224,15 @@ class LocalStoreTester {
       );
       for (const keyString of keyStrings) {
         const returned = this.lastChanges!.get(key(keyString));
-        expect(returned).to.be.an.instanceof(NoDocument);
+        expect(returned).to.be.instanceOf(Document);
+        expect(returned!.exists).to.be.false;
       }
       this.lastChanges = null;
     });
     return this;
   }
 
-  toContain(doc: MaybeDocument): LocalStoreTester {
+  toContain(doc: Document): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       return this.localStore.readDocument(doc.key).then(result => {
         expectEqual(result, doc);
@@ -247,13 +244,13 @@ class LocalStoreTester {
   toNotContain(keyStr: string): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       return this.localStore.readDocument(key(keyStr)).then(result => {
-        expect(result).to.be.null;
+        expect(result.unknown).to.be.true;
       });
     });
     return this;
   }
 
-  toNotContainIfEager(doc: MaybeDocument): LocalStoreTester {
+  toNotContainIfEager(doc: Document): LocalStoreTester {
     if (this.gcIsEager) {
       return this.toNotContain(doc.key.toString());
     } else {
@@ -388,7 +385,7 @@ function genericLocalStoreTests(
     }
   );
 
-  it('handles NoDocument -> SetMutation -> Ack', () => {
+  it('handles Document(MISSING) -> SetMutation -> Ack', () => {
     const query = Query.atPath(path('foo'));
     return expectLocalStore()
       .afterAllocatingQuery(query)
@@ -412,7 +409,7 @@ function genericLocalStoreTests(
       .finish();
   });
 
-  it('handles SetMutation -> NoDocument', () => {
+  it('handles SetMutation -> Document(MISSING)', () => {
     return expectLocalStore()
       .afterAllocatingQuery(Query.atPath(path('foo')))
       .toReturnTargetId(2)
@@ -464,8 +461,8 @@ function genericLocalStoreTests(
       .toReturnRemoved('foo/bar')
       .toNotContain('foo/bar')
       .afterAcknowledgingMutation({ documentVersion: 1 })
-      .toReturnChanged(unknownDoc('foo/bar', 1))
-      .toNotContainIfEager(unknownDoc('foo/bar', 1))
+      .toReturnChanged(contentsUnknownDoc('foo/bar', 1))
+      .toNotContainIfEager(contentsUnknownDoc('foo/bar', 1))
       .finish();
   });
 
@@ -523,8 +520,8 @@ function genericLocalStoreTests(
       .toReturnRemoved('foo/bar')
       .toNotContain('foo/bar')
       .afterAcknowledgingMutation({ documentVersion: 1 })
-      .toReturnChanged(unknownDoc('foo/bar', 1))
-      .toNotContainIfEager(unknownDoc('foo/bar', 1))
+      .toReturnChanged(contentsUnknownDoc('foo/bar', 1))
+      .toNotContainIfEager(contentsUnknownDoc('foo/bar', 1))
       .afterAllocatingQuery(Query.atPath(path('foo')))
       .toReturnTargetId(2)
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { it: 'base' }), [2]))
@@ -592,7 +589,7 @@ function genericLocalStoreTests(
     );
   });
 
-  it('handles Document -> NoDocument -> Document', () => {
+  it('handles Document -> Document(MISSING) -> Document', () => {
     return expectLocalStore()
       .afterAllocatingQuery(Query.atPath(path('foo')))
       .toReturnTargetId(2)
@@ -705,8 +702,8 @@ function genericLocalStoreTests(
       .toReturnRemoved('foo/bar')
       .toContain(deletedDoc('foo/bar', 2, { hasCommittedMutations: true }))
       .afterAcknowledgingMutation({ documentVersion: 3 }) // patch mutation
-      .toReturnChanged(unknownDoc('foo/bar', 3))
-      .toNotContainIfEager(unknownDoc('foo/bar', 3))
+      .toReturnChanged(contentsUnknownDoc('foo/bar', 3))
+      .toNotContainIfEager(contentsUnknownDoc('foo/bar', 3))
       .finish();
   });
 

@@ -579,8 +579,8 @@ export class DbUnknownDocument {
  * - An "unknown document" representing a document that is known to exist (at
  * some version) but whose contents are unknown.
  *
- * Note: This is the persisted equivalent of a MaybeDocument and could perhaps
- * be made more general if necessary.
+ * Note: This is the persisted equivalent of a Document and could perhaps be
+ * made more general if necessary.
  */
 export class DbRemoteDocument {
   static store = 'remoteDocuments';

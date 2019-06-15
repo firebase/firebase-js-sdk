@@ -47,16 +47,10 @@ import { QueryData, QueryPurpose } from '../../src/local/query_data';
 import {
   DocumentKeySet,
   documentKeySet,
-  MaybeDocumentMap,
-  maybeDocumentMap
+  DocumentMap,
+  documentMap
 } from '../../src/model/collections';
-import {
-  Document,
-  DocumentOptions,
-  MaybeDocument,
-  NoDocument,
-  UnknownDocument
-} from '../../src/model/document';
+import { Document, DocumentOptions } from '../../src/model/document';
 import { DocumentComparator } from '../../src/model/document_comparator';
 import { DocumentKey } from '../../src/model/document_key';
 import { DocumentSet } from '../../src/model/document_set';
@@ -121,26 +115,35 @@ export function doc(
   json: JsonObject<unknown>,
   options: DocumentOptions = {}
 ): Document {
-  return new Document(key(keyStr), version(ver), wrapObject(json), options);
+  return Document.existing(
+    key(keyStr),
+    version(ver),
+    wrapObject(json),
+    options
+  );
 }
 
 export function deletedDoc(
   keyStr: string,
   ver: TestSnapshotVersion,
   options: DocumentOptions = {}
-): NoDocument {
-  return new NoDocument(key(keyStr), version(ver), options);
+): Document {
+  return Document.missing(key(keyStr), version(ver), options);
 }
 
-export function unknownDoc(
+export function unknownDoc(keyStr: string): Document {
+  return Document.unknown(key(keyStr));
+}
+
+export function contentsUnknownDoc(
   keyStr: string,
   ver: TestSnapshotVersion
-): UnknownDocument {
-  return new UnknownDocument(key(keyStr), version(ver));
+): Document {
+  return Document.contentsUnknown(key(keyStr), version(ver));
 }
 
-export function removedDoc(keyStr: string): NoDocument {
-  return new NoDocument(key(keyStr), SnapshotVersion.forDeletedDoc());
+export function removedDoc(keyStr: string): Document {
+  return Document.missing(key(keyStr), SnapshotVersion.forMissingDoc());
 }
 
 export function wrap(value: unknown): FieldValue {
@@ -159,16 +162,18 @@ export function dbId(project: string, database?: string): DatabaseId {
   return new DatabaseId(project, database);
 }
 
-export function key(path: string): DocumentKey {
-  return new DocumentKey(new ResourcePath(splitPath(path, '/')));
+export function key(pathOrDoc: string | Document): DocumentKey {
+  if (typeof pathOrDoc === 'string') {
+    return new DocumentKey(new ResourcePath(splitPath(pathOrDoc, '/')));
+  } else {
+    return pathOrDoc.key;
+  }
 }
 
-export function keys(
-  ...documents: Array<MaybeDocument | string>
-): DocumentKeySet {
+export function keys(...documents: Array<Document | string>): DocumentKeySet {
   let keys = documentKeySet();
   for (const doc of documents) {
-    keys = keys.add(typeof doc === 'string' ? key(doc) : doc.key);
+    keys = keys.add(key(doc));
   }
   return keys;
 }
@@ -269,19 +274,18 @@ export function queryData(
 }
 
 export function docAddedRemoteEvent(
-  doc: MaybeDocument,
+  doc: Document,
   updatedInTargets?: TargetId[],
   removedFromTargets?: TargetId[],
   limboTargets?: TargetId[]
 ): RemoteEvent {
   assert(
-    !(doc instanceof Document) || !doc.hasLocalMutations,
+    !doc.exists || !doc.hasLocalMutations,
     "Docs from remote updates shouldn't have local changes."
   );
   const docChange = new DocumentWatchChange(
     updatedInTargets || [],
     removedFromTargets || [],
-    doc.key,
     doc
   );
   const aggregator = new WatchChangeAggregator({
@@ -299,19 +303,18 @@ export function docAddedRemoteEvent(
 }
 
 export function docUpdateRemoteEvent(
-  doc: MaybeDocument,
+  doc: Document,
   updatedInTargets?: TargetId[],
   removedFromTargets?: TargetId[],
   limboTargets?: TargetId[]
 ): RemoteEvent {
   assert(
-    !(doc instanceof Document) || !doc.hasLocalMutations,
+    !doc.exists || !doc.hasLocalMutations,
     "Docs from remote updates shouldn't have local changes."
   );
   const docChange = new DocumentWatchChange(
     updatedInTargets || [],
     removedFromTargets || [],
-    doc.key,
     doc
   );
   const aggregator = new WatchChangeAggregator({
@@ -332,7 +335,7 @@ export function updateMapping(
   snapshotVersion: SnapshotVersion,
   added: Array<Document | string>,
   modified: Array<Document | string>,
-  removed: Array<MaybeDocument | string>,
+  removed: Array<Document | string>,
   current?: boolean
 ): TargetChange {
   let addedDocuments = documentKeySet();
@@ -340,16 +343,13 @@ export function updateMapping(
   let removedDocuments = documentKeySet();
 
   added.forEach(docOrKey => {
-    const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
-    addedDocuments = addedDocuments.add(k);
+    addedDocuments = addedDocuments.add(key(docOrKey));
   });
   modified.forEach(docOrKey => {
-    const k = docOrKey instanceof Document ? docOrKey.key : key(docOrKey);
-    modifiedDocuments = modifiedDocuments.add(k);
+    modifiedDocuments = modifiedDocuments.add(key(docOrKey));
   });
   removed.forEach(docOrKey => {
-    const k = docOrKey instanceof MaybeDocument ? docOrKey.key : key(docOrKey);
-    removedDocuments = removedDocuments.add(k);
+    removedDocuments = removedDocuments.add(key(docOrKey));
   });
 
   return new TargetChange(
@@ -466,15 +466,15 @@ export function mapAsArray<K, V>(
  */
 export function documentUpdates(
   ...docsOrKeys: Array<Document | DocumentKey>
-): MaybeDocumentMap {
-  let changes = maybeDocumentMap();
+): DocumentMap {
+  let changes = documentMap();
   for (const docOrKey of docsOrKeys) {
     if (docOrKey instanceof Document) {
       changes = changes.insert(docOrKey.key, docOrKey);
     } else if (docOrKey instanceof DocumentKey) {
       changes = changes.insert(
         docOrKey,
-        new NoDocument(docOrKey, SnapshotVersion.forDeletedDoc())
+        Document.missing(docOrKey, SnapshotVersion.forMissingDoc())
       );
     }
   }

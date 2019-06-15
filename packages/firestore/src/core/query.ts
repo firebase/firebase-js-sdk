@@ -323,6 +323,7 @@ export class Query {
 
   matches(doc: Document): boolean {
     return (
+      doc.exists &&
       this.matchesPathAndCollectionGroup(doc) &&
       this.matchesOrderBy(doc) &&
       this.matchesFilters(doc) &&

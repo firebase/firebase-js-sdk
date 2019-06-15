@@ -21,44 +21,42 @@ import { SortedSet } from '../util/sorted_set';
 
 import { TargetId } from '../core/types';
 import { primitiveComparator } from '../util/misc';
-import { Document, MaybeDocument } from './document';
+import { Document } from './document';
 import { DocumentKey } from './document_key';
 
 /** Miscellaneous collection types / constants. */
-export type DocumentSizeEntry = {
-  maybeDocument: MaybeDocument;
-  size: number;
-};
-
-export type MaybeDocumentMap = SortedMap<DocumentKey, MaybeDocument>;
-const EMPTY_MAYBE_DOCUMENT_MAP = new SortedMap<DocumentKey, MaybeDocument>(
-  DocumentKey.comparator
-);
-export function maybeDocumentMap(): MaybeDocumentMap {
-  return EMPTY_MAYBE_DOCUMENT_MAP;
-}
-
-export type NullableMaybeDocumentMap = SortedMap<
-  DocumentKey,
-  MaybeDocument | null
->;
-
-export function nullableMaybeDocumentMap(): NullableMaybeDocumentMap {
-  return maybeDocumentMap();
-}
-
-export type DocumentSizeEntries = {
-  maybeDocuments: NullableMaybeDocumentMap;
-  sizeMap: SortedMap<DocumentKey, number>;
-};
 
 export type DocumentMap = SortedMap<DocumentKey, Document>;
+
 const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(
   DocumentKey.comparator
 );
 export function documentMap(): DocumentMap {
   return EMPTY_DOCUMENT_MAP;
 }
+
+/**
+ * Any structure that can look up documents by key, where entries that are
+ * missing are returned as null.
+ */
+interface DocumentLookup {
+  get(key: DocumentKey): Document | null;
+}
+
+export function getDocument(key: DocumentKey, map: DocumentLookup): Document {
+  const doc = map.get(key);
+  return doc ? doc : Document.unknown(key);
+}
+
+export type DocumentSizeEntry = {
+  maybeDocument: Document;
+  size: number;
+};
+
+export type DocumentSizeEntries = {
+  maybeDocuments: DocumentMap;
+  sizeMap: SortedMap<DocumentKey, number>;
+};
 
 export type DocumentVersionMap = SortedMap<DocumentKey, SnapshotVersion>;
 const EMPTY_DOCUMENT_VERSION_MAP = new SortedMap<DocumentKey, SnapshotVersion>(

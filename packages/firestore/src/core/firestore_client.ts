@@ -26,7 +26,7 @@ import {
   documentKeySet,
   DocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { Platform } from '../platform/platform';
@@ -228,6 +228,7 @@ export class FirestoreClient {
    *     result of enabling offline persistence. This method will reject this if
    *     IndexedDB fails to start for any reason. If usePersistence is false
    *     this is unconditionally resolved.
+   * @param user The identity of the user that's currently active.
    * @returns a Promise indicating whether or not initialization should
    *     continue, i.e. that one of the persistence implementations actually
    *     succeeded.
@@ -480,7 +481,7 @@ export class FirestoreClient {
           }
         });
 
-        // When a user calls clearPersistence() in one client, all other clientfs
+        // When a user calls clearPersistence() in one client, all other clients
         // need to shut down to allow the delete to succeed.
         await this.persistence.setDatabaseDeletedListener(async () => {
           await this.shutdown();
@@ -543,17 +544,15 @@ export class FirestoreClient {
     });
   }
 
-  getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document | null> {
+  getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document> {
     this.verifyNotShutdown();
     return this.asyncQueue
       .enqueue(() => {
         return this.localStore.readDocument(docKey);
       })
-      .then((maybeDoc: MaybeDocument | null) => {
-        if (maybeDoc instanceof Document) {
+      .then((maybeDoc: Document) => {
+        if (maybeDoc.definite) {
           return maybeDoc;
-        } else if (maybeDoc instanceof NoDocument) {
-          return null;
         } else {
           throw new FirestoreError(
             Code.UNAVAILABLE,

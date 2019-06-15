@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { PublicFieldValue as FieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
-import { Document, MaybeDocument } from '../../../src/model/document';
+import { Document } from '../../../src/model/document';
 import {
   IntegerValue,
   ServerTimestampValue,
@@ -36,6 +36,7 @@ import {
 import { Dict } from '../../../src/util/obj';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
+  contentsUnknownDoc,
   DELETE_SENTINEL,
   deletedDoc,
   deleteMutation,
@@ -116,7 +117,7 @@ describe('Mutation', () => {
   it('can apply patches with merges to null documents', () => {
     const timestamp = Timestamp.now();
 
-    const baseDoc = null;
+    const baseDoc = unknownDoc('collection/key');
     const patch = patchMutation(
       'collection/key',
       { 'foo.bar': 'new-bar-value' },
@@ -173,7 +174,7 @@ describe('Mutation', () => {
     );
   });
 
-  it('patching a NoDocument yields a NoDocument', () => {
+  it('patching a missing Document yields a missing Document', () => {
     const baseDoc = deletedDoc('collection/key', 0);
     const patch = patchMutation('collection/key', { foo: 'bar' });
     const patchedDoc = patch.applyToLocalView(baseDoc, baseDoc, timestamp);
@@ -199,9 +200,14 @@ describe('Mutation', () => {
       foo: { bar: '<server-timestamp>' },
       baz: 'baz-value'
     }).set(field('foo.bar'), new ServerTimestampValue(timestamp, null));
-    const expectedDoc = new Document(key('collection/key'), version(0), data, {
-      hasLocalMutations: true
-    });
+    const expectedDoc = Document.existing(
+      key('collection/key'),
+      version(0),
+      data,
+      {
+        hasLocalMutations: true
+      }
+    );
 
     expect(transformedDoc).to.deep.equal(expectedDoc);
   });
@@ -352,7 +358,7 @@ describe('Mutation', () => {
     expectedData: Dict<unknown>
   ): void {
     const baseDoc = doc('collection/key', 0, baseData);
-    let transformedDoc: MaybeDocument | null = baseDoc;
+    let transformedDoc: Document = baseDoc;
 
     const transforms = Array.isArray(transformData)
       ? transformData
@@ -549,9 +555,9 @@ describe('Mutation', () => {
 
   function assertVersionTransitions(
     mutation: Mutation,
-    base: MaybeDocument | null,
+    base: Document,
     mutationResult: MutationResult,
-    expected: MaybeDocument | null
+    expected: Document
   ): void {
     const actual = mutation.applyToRemoteDocument(base, mutationResult);
     expect(actual).to.deep.equal(expected);
@@ -560,6 +566,7 @@ describe('Mutation', () => {
   it('transitions versions correctly', () => {
     const docV3 = doc('collection/key', 3, {});
     const deletedV3 = deletedDoc('collection/key', 3);
+    const unknown = unknownDoc('collection/key');
 
     const set = setMutation('collection/key', {});
     const patch = patchMutation('collection/key', {});
@@ -571,7 +578,7 @@ describe('Mutation', () => {
       /*transformResults=*/ null
     );
     const transformResult = new MutationResult(version(7), []);
-    const docV7Unknown = unknownDoc('collection/key', 7);
+    const docV7ContentsUnknown = contentsUnknownDoc('collection/key', 7);
     const docV7Deleted = deletedDoc('collection/key', 7, {
       hasCommittedMutations: true
     });
@@ -584,23 +591,38 @@ describe('Mutation', () => {
 
     assertVersionTransitions(set, docV3, mutationResult, docV7Committed);
     assertVersionTransitions(set, deletedV3, mutationResult, docV7Committed);
-    assertVersionTransitions(set, null, mutationResult, docV7Committed);
+    assertVersionTransitions(set, unknown, mutationResult, docV7Committed);
 
     assertVersionTransitions(patch, docV3, mutationResult, docV7Committed);
-    assertVersionTransitions(patch, deletedV3, mutationResult, docV7Unknown);
-    assertVersionTransitions(patch, null, mutationResult, docV7Unknown);
+    assertVersionTransitions(
+      patch,
+      deletedV3,
+      mutationResult,
+      docV7ContentsUnknown
+    );
+    assertVersionTransitions(
+      patch,
+      unknown,
+      mutationResult,
+      docV7ContentsUnknown
+    );
 
     assertVersionTransitions(transform, docV3, transformResult, docV7Committed);
     assertVersionTransitions(
       transform,
       deletedV3,
       transformResult,
-      docV7Unknown
+      docV7ContentsUnknown
     );
-    assertVersionTransitions(transform, null, transformResult, docV7Unknown);
+    assertVersionTransitions(
+      transform,
+      unknown,
+      transformResult,
+      docV7ContentsUnknown
+    );
 
     assertVersionTransitions(deleter, docV3, mutationResult, docV7Deleted);
     assertVersionTransitions(deleter, deletedV3, mutationResult, docV7Deleted);
-    assertVersionTransitions(deleter, null, mutationResult, docV7Deleted);
+    assertVersionTransitions(deleter, unknown, mutationResult, docV7Deleted);
   });
 });

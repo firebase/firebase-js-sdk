@@ -17,8 +17,7 @@
 
 import { ParsedSetData, ParsedUpdateData } from '../api/user_data_converter';
 import { documentVersionMap } from '../model/collections';
-import { Document, NoDocument } from '../model/document';
-import { MaybeDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { Datastore } from '../remote/datastore';
@@ -38,16 +37,14 @@ export class Transaction {
 
   constructor(private datastore: Datastore) {}
 
-  private recordVersion(doc: MaybeDocument): void {
+  private recordVersion(doc: Document): void {
     let docVersion: SnapshotVersion;
 
-    if (doc instanceof Document) {
+    if (doc.exists) {
       docVersion = doc.version;
-    } else if (doc instanceof NoDocument) {
-      // For deleted docs, we must use baseVersion 0 when we overwrite them.
-      docVersion = SnapshotVersion.forDeletedDoc();
     } else {
-      throw fail('Document in a transaction was a ' + doc.constructor.name);
+      // For deleted docs, we must use baseVersion 0 when we overwrite them.
+      docVersion = SnapshotVersion.forMissingDoc();
     }
 
     const existingVersion = this.readVersions.get(doc.key);
@@ -64,23 +61,21 @@ export class Transaction {
     }
   }
 
-  lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
+  lookup(keys: DocumentKey[]): Promise<Document[]> {
     if (this.committed) {
-      return Promise.reject<MaybeDocument[]>(
-        'Transaction has already completed.'
-      );
+      return Promise.reject<Document[]>('Transaction has already completed.');
     }
     if (this.mutations.length > 0) {
-      return Promise.reject<MaybeDocument[]>(
+      return Promise.reject<Document[]>(
         'Transactions lookups are invalid after writes.'
       );
     }
     return this.datastore.lookup(keys).then(docs => {
       docs.forEach(doc => {
-        if (doc instanceof NoDocument || doc instanceof Document) {
+        if (doc.definite) {
           this.recordVersion(doc);
         } else {
-          fail('Document in a transaction was a ' + doc.constructor.name);
+          fail('Document in a transaction was a ' + doc.toString());
         }
       });
       return docs;
@@ -115,7 +110,7 @@ export class Transaction {
    */
   private preconditionForUpdate(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key);
-    if (version && version.isEqual(SnapshotVersion.forDeletedDoc())) {
+    if (version && version.isEqual(SnapshotVersion.forMissingDoc())) {
       // The document doesn't exist, so fail the transaction.
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
@@ -145,7 +140,7 @@ export class Transaction {
     // ensure that the precondition for the next write will be exists: false.
     this.readVersions = this.readVersions.insert(
       key,
-      SnapshotVersion.forDeletedDoc()
+      SnapshotVersion.forMissingDoc()
     );
   }
 

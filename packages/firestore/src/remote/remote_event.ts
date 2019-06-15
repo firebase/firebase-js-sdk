@@ -20,8 +20,8 @@ import { ProtoByteString, TargetId } from '../core/types';
 import {
   documentKeySet,
   DocumentKeySet,
-  maybeDocumentMap,
-  MaybeDocumentMap,
+  documentMap,
+  DocumentMap,
   targetIdSet
 } from '../model/collections';
 import { emptyByteString } from '../platform/platform';
@@ -51,7 +51,7 @@ export class RemoteEvent {
      * A set of which documents have changed or been deleted, along with the
      * doc's new values (if not deleted).
      */
-    readonly documentUpdates: MaybeDocumentMap,
+    readonly documentUpdates: DocumentMap,
     /**
      * A set of which document updates are due only to limbo resolution targets.
      */
@@ -79,7 +79,7 @@ export class RemoteEvent {
       SnapshotVersion.MIN,
       targetChanges,
       targetIdSet(),
-      maybeDocumentMap(),
+      documentMap(),
       documentKeySet()
     );
   }

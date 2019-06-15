@@ -22,9 +22,9 @@ import { QueryData, QueryPurpose } from '../local/query_data';
 import {
   documentKeySet,
   DocumentKeySet,
-  maybeDocumentMap
+  documentMap
 } from '../model/collections';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { emptyByteString } from '../platform/platform';
 import { assert, fail } from '../util/assert';
@@ -48,7 +48,7 @@ export type WatchChange =
  * Represents a changed document and a list of target ids to which this change
  * applies.
  *
- * If document has been deleted NoDocument will be provided.
+ * If document has been deleted a missing Document will be provided.
  */
 export class DocumentWatchChange {
   constructor(
@@ -56,14 +56,21 @@ export class DocumentWatchChange {
     public updatedTargetIds: TargetId[],
     /** The new document is removed from all of these targets. */
     public removedTargetIds: TargetId[],
-    /** The key of the document for this change. */
-    public key: DocumentKey,
     /**
-     * The new document or NoDocument if it was deleted. Is null if the
-     * document went out of view without the server sending a new document.
+     * The new document may be of the following DocumentTypes:
+     *
+     *   * EXISTS if the server gave us a concrete document
+     *   * MISSING if the server said it was deleted
+     *   * UNKNOWN if the server removed it from the view without sending a new
+     *     document.
      */
-    public newDoc: MaybeDocument | null
+    public newDoc: Document
   ) {}
+
+  /** The key of the document for this change. */
+  get key(): DocumentKey {
+    return this.newDoc.key;
+  }
 }
 
 export class ExistenceFilterChange {
@@ -263,7 +270,7 @@ export class WatchChangeAggregator {
   private targetStates: { [targetId: number]: TargetState } = {};
 
   /** Keeps track of the documents to update since the last raised snapshot. */
-  private pendingDocumentUpdates = maybeDocumentMap();
+  private pendingDocumentUpdates = documentMap();
 
   /** A mapping of document keys to their set of target IDs. */
   private pendingDocumentTargetMapping = documentTargetMap();
@@ -280,9 +287,9 @@ export class WatchChangeAggregator {
    */
   handleDocumentChange(docChange: DocumentWatchChange): void {
     for (const targetId of docChange.updatedTargetIds) {
-      if (docChange.newDoc instanceof Document) {
+      if (docChange.newDoc.exists) {
         this.addDocumentToTarget(targetId, docChange.newDoc);
-      } else if (docChange.newDoc instanceof NoDocument) {
+      } else if (docChange.newDoc.missing) {
         this.removeDocumentFromTarget(
           targetId,
           docChange.key,
@@ -393,7 +400,7 @@ export class WatchChangeAggregator {
           this.removeDocumentFromTarget(
             targetId,
             key,
-            new NoDocument(key, SnapshotVersion.forDeletedDoc())
+            Document.missing(key, SnapshotVersion.forMissingDoc())
           );
         } else {
           assert(
@@ -441,7 +448,7 @@ export class WatchChangeAggregator {
             this.removeDocumentFromTarget(
               targetId,
               key,
-              new NoDocument(key, snapshotVersion)
+              Document.missing(key, snapshotVersion)
             );
           }
         }
@@ -486,7 +493,7 @@ export class WatchChangeAggregator {
       resolvedLimboDocuments
     );
 
-    this.pendingDocumentUpdates = maybeDocumentMap();
+    this.pendingDocumentUpdates = documentMap();
     this.pendingDocumentTargetMapping = documentTargetMap();
     this.pendingTargetResets = new SortedSet<TargetId>(primitiveComparator);
 
@@ -498,7 +505,7 @@ export class WatchChangeAggregator {
    * its document key to the given target's mapping.
    */
   // Visible for testing.
-  addDocumentToTarget(targetId: TargetId, document: MaybeDocument): void {
+  addDocumentToTarget(targetId: TargetId, document: Document): void {
     if (!this.isActiveTarget(targetId)) {
       return;
     }
@@ -532,7 +539,7 @@ export class WatchChangeAggregator {
   removeDocumentFromTarget(
     targetId: TargetId,
     key: DocumentKey,
-    updatedDocument: MaybeDocument | null
+    updatedDocument: Document
   ): void {
     if (!this.isActiveTarget(targetId)) {
       return;
@@ -552,7 +559,7 @@ export class WatchChangeAggregator {
       this.ensureDocumentTargetMapping(key).delete(targetId)
     );
 
-    if (updatedDocument) {
+    if (updatedDocument.definite) {
       this.pendingDocumentUpdates = this.pendingDocumentUpdates.insert(
         key,
         updatedDocument
@@ -648,7 +655,8 @@ export class WatchChangeAggregator {
     // resend these documents.
     const existingKeys = this.metadataProvider.getRemoteKeysForTarget(targetId);
     existingKeys.forEach(key => {
-      this.removeDocumentFromTarget(targetId, key, /*updatedDocument=*/ null);
+      const updatedDocument = Document.unknown(key);
+      this.removeDocumentFromTarget(targetId, key, updatedDocument);
     });
   }
   /**

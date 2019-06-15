@@ -163,13 +163,8 @@ describe('RemoteEvent', () => {
     const existingDoc = doc('docs/1', 1, { value: 1 });
     const newDoc = doc('docs/2', 2, { value: 2 });
 
-    const change1 = new DocumentWatchChange(
-      [1, 2, 3],
-      [4, 5, 6],
-      existingDoc.key,
-      existingDoc
-    );
-    const change2 = new DocumentWatchChange([1, 4], [2, 6], newDoc.key, newDoc);
+    const change1 = new DocumentWatchChange([1, 2, 3], [4, 5, 6], existingDoc);
+    const change2 = new DocumentWatchChange([1, 4], [2, 6], newDoc);
     const existingKeys = keys(existingDoc);
 
     const event = createRemoteEvent({
@@ -214,10 +209,10 @@ describe('RemoteEvent', () => {
     // We're waiting for the unlisten and listen ack.
     const outstandingResponses = { 1: 2 };
 
-    const change1 = new DocumentWatchChange([1], [], doc1.key, doc1);
+    const change1 = new DocumentWatchChange([1], [], doc1);
     const change2 = new WatchTargetChange(WatchTargetChangeState.Removed, [1]);
     const change3 = new WatchTargetChange(WatchTargetChangeState.Added, [1]);
-    const change4 = new DocumentWatchChange([1], [], doc2.key, doc2);
+    const change4 = new DocumentWatchChange([1], [], doc2);
 
     const event = createRemoteEvent({
       snapshotVersion: 3,
@@ -241,7 +236,7 @@ describe('RemoteEvent', () => {
     // We're waiting for the removal ack.
     const outstandingResponses = { 1: 1 };
 
-    const change1 = new DocumentWatchChange([1], [], doc1.key, doc1);
+    const change1 = new DocumentWatchChange([1], [], doc1);
     const change2 = new WatchTargetChange(WatchTargetChangeState.Removed, [1]);
 
     const event = createRemoteEvent({
@@ -265,16 +260,16 @@ describe('RemoteEvent', () => {
     // Need to listen at target 1 for this to work.
     const targets = listens(1);
 
-    const change1 = new DocumentWatchChange([1], [], doc1.key, doc1);
+    const change1 = new DocumentWatchChange([1], [], doc1);
     // Reset stream, ignoring doc1
     const change2 = new WatchTargetChange(WatchTargetChangeState.Reset, [1]);
 
     // Add doc2, doc3
-    const change3 = new DocumentWatchChange([1], [], doc2.key, doc2);
-    const change4 = new DocumentWatchChange([1], [], doc3.key, doc3);
+    const change3 = new DocumentWatchChange([1], [], doc2);
+    const change4 = new DocumentWatchChange([1], [], doc3);
 
     // Remove doc2 again, should not show up in reset mapping.
-    const change5 = new DocumentWatchChange([], [1], doc2.key, doc2);
+    const change5 = new DocumentWatchChange([], [1], doc2);
 
     const event = createRemoteEvent({
       snapshotVersion: 3,
@@ -325,8 +320,8 @@ describe('RemoteEvent', () => {
     const doc1a = doc('docs/1', 1, { value: 1 });
     const doc1b = doc('docs/1', 1, { value: 2 });
 
-    const change1 = new DocumentWatchChange([1], [2], doc1a.key, doc1a);
-    const change2 = new DocumentWatchChange([2], [1], doc1b.key, doc1b);
+    const change1 = new DocumentWatchChange([1], [2], doc1a);
+    const change2 = new DocumentWatchChange([2], [1], doc1b);
 
     const event = createRemoteEvent({
       snapshotVersion: 3,
@@ -375,7 +370,7 @@ describe('RemoteEvent', () => {
     const doc1 = doc('docs/1', 1, { value: 1 });
     const doc2 = doc('docs/2', 2, { value: 2 });
 
-    const change1 = new DocumentWatchChange([1, 3], [2], doc1.key, doc1);
+    const change1 = new DocumentWatchChange([1, 3], [2], doc1);
     const change2 = new WatchTargetChange(WatchTargetChangeState.Current, [
       1,
       2,
@@ -384,7 +379,7 @@ describe('RemoteEvent', () => {
     const change3 = new WatchTargetChange(WatchTargetChangeState.Removed, [1]);
     const change4 = new WatchTargetChange(WatchTargetChangeState.Removed, [2]);
     const change5 = new WatchTargetChange(WatchTargetChangeState.Added, [1]);
-    const change6 = new DocumentWatchChange([1], [3], doc2.key, doc2);
+    const change6 = new DocumentWatchChange([1], [3], doc2);
 
     const event = createRemoteEvent({
       snapshotVersion: 3,
@@ -437,8 +432,8 @@ describe('RemoteEvent', () => {
 
     const doc1 = doc('docs/1', 1, { value: 1 });
     const doc2 = doc('docs/2', 1, { value: 1 });
-    const change1 = new DocumentWatchChange([1, 2], [], doc1.key, doc1);
-    const change2 = new DocumentWatchChange([2], [], doc2.key, doc2);
+    const change1 = new DocumentWatchChange([1, 2], [], doc1);
+    const change2 = new DocumentWatchChange([2], [], doc2);
 
     const aggregator = createAggregator({
       snapshotVersion: 3,
@@ -470,7 +465,7 @@ describe('RemoteEvent', () => {
     const targets = listens(1);
 
     const doc1 = doc('docs/1', 1, { value: 1 });
-    const addDoc = new DocumentWatchChange([1], [], doc1.key, doc1);
+    const addDoc = new DocumentWatchChange([1], [], doc1);
     const markCurrent = new WatchTargetChange(
       WatchTargetChangeState.Current,
       [1],
@@ -506,8 +501,8 @@ describe('RemoteEvent', () => {
     const updatedDoc2 = doc('docs/2', 3, { value: 2 });
     const doc3 = doc('docs/3', 3, { value: 3 });
 
-    const change1 = new DocumentWatchChange([1], [], doc1.key, doc1);
-    const change2 = new DocumentWatchChange([1], [], doc2.key, doc2);
+    const change1 = new DocumentWatchChange([1], [], doc1);
+    const change2 = new DocumentWatchChange([1], [], doc2);
 
     const aggregator = createAggregator({
       snapshotVersion: 3,
@@ -555,8 +550,8 @@ describe('RemoteEvent', () => {
     const doc2 = doc('docs/2', 2, { value: 2 });
     const updatedDoc2 = doc('docs/2', 3, { value: 2 });
 
-    const change1 = new DocumentWatchChange([1], [], doc1.key, doc1);
-    const change2 = new DocumentWatchChange([2], [], doc2.key, doc2);
+    const change1 = new DocumentWatchChange([1], [], doc1);
+    const change2 = new DocumentWatchChange([2], [], doc2);
 
     const aggregator = createAggregator({
       snapshotVersion: 3,
@@ -622,17 +617,11 @@ describe('RemoteEvent', () => {
     const updateTargetId = 1;
     const newDoc = doc('docs/new', 1, { key: 'value' });
     const existingDoc = doc('docs/existing', 1, { some: 'data' });
-    const newDocChange = new DocumentWatchChange(
-      [updateTargetId],
-      [],
-      newDoc.key,
-      newDoc
-    );
+    const newDocChange = new DocumentWatchChange([updateTargetId], [], newDoc);
 
     const existingDocChange = new DocumentWatchChange(
       [updateTargetId],
       [],
-      existingDoc.key,
       existingDoc
     );
 
@@ -660,9 +649,9 @@ describe('RemoteEvent', () => {
 
     // Target 2 is a limbo target
 
-    const docChange1 = new DocumentWatchChange([1, 2], [], doc1.key, doc1);
-    const docChange2 = new DocumentWatchChange([2], [], doc2.key, doc2);
-    const docChange3 = new DocumentWatchChange([1], [], doc3.key, doc3);
+    const docChange1 = new DocumentWatchChange([1, 2], [], doc1);
+    const docChange2 = new DocumentWatchChange([2], [], doc2);
+    const docChange3 = new DocumentWatchChange([1], [], doc3);
 
     const targetsChange = new WatchTargetChange(
       WatchTargetChangeState.Current,

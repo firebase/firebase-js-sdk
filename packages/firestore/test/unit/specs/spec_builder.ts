@@ -18,11 +18,7 @@
 import { Filter, Query, RelationFilter } from '../../../src/core/query';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
-import {
-  Document,
-  MaybeDocument,
-  NoDocument
-} from '../../../src/model/document';
+import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import {
@@ -449,16 +445,15 @@ export class SpecBuilder {
   }
 
   /**
-   * Special helper for limbo documents that acks with either a document or
-   * with no document for NoDocument. This is translated into normal watch
-   * messages.
+   * Special helper for limbo documents that acks with either an existing or
+   * missing document. This is translated into normal watch messages.
    */
-  ackLimbo(version: TestSnapshotVersion, doc: Document | NoDocument): this {
+  ackLimbo(version: TestSnapshotVersion, doc: Document): this {
     const query = Query.atPath(doc.key.path);
     this.watchAcks(query);
-    if (doc instanceof Document) {
+    if (doc.exists) {
       this.watchSends({ affects: [query] }, doc);
-    } else if (doc instanceof NoDocument) {
+    } else if (doc.missing) {
       // Don't send any updates
     } else {
       fail('Unknown parameter: ' + doc);
@@ -470,10 +465,11 @@ export class SpecBuilder {
 
   /**
    * Special helper for limbo documents that acks an unlisten for a limbo doc
-   * with either a document or with no document for NoDocument. This is
-   * translated into normal watch messages.
+   * with either an existing or missing document. This is translated into normal
+   * watch messages.
    */
-  watchRemovesLimboTarget(doc: Document | NoDocument): this {
+  watchRemovesLimboTarget(doc: Document): this {
+    assert(doc.definite, 'Document must be definite.');
     const query = Query.atPath(doc.key.path);
     this.watchRemoves(query);
     return this;
@@ -577,7 +573,7 @@ export class SpecBuilder {
 
   watchSends(
     targets: { affects?: Query[]; removed?: Query[] },
-    ...docs: MaybeDocument[]
+    ...docs: Document[]
   ): this {
     this.nextStep();
     const affects =
@@ -868,8 +864,8 @@ export class SpecBuilder {
     return spec;
   }
 
-  private static docToSpec(doc: MaybeDocument): SpecDocument {
-    if (doc instanceof Document) {
+  private static docToSpec(doc: Document): SpecDocument {
+    if (doc.exists) {
       return {
         key: SpecBuilder.keyToSpec(doc.key),
         version: doc.version.toMicroseconds(),

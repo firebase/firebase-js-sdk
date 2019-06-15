@@ -18,12 +18,7 @@
 import { Timestamp } from '../api/timestamp';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import {
-  Document,
-  MaybeDocument,
-  NoDocument,
-  UnknownDocument
-} from '../model/document';
+import { Document, DocumentType } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import * as api from '../protos/firestore_proto_api';
@@ -48,7 +43,7 @@ export class LocalSerializer {
   constructor(private remoteSerializer: JsonProtoSerializer) {}
 
   /** Decodes a remote document from storage locally to a Document. */
-  fromDbRemoteDocument(remoteDoc: DbRemoteDocument): MaybeDocument {
+  fromDbRemoteDocument(remoteDoc: DbRemoteDocument): Document {
     if (remoteDoc.document) {
       return this.remoteSerializer.fromDocument(
         remoteDoc.document,
@@ -57,52 +52,53 @@ export class LocalSerializer {
     } else if (remoteDoc.noDocument) {
       const key = DocumentKey.fromSegments(remoteDoc.noDocument.path);
       const version = this.fromDbTimestamp(remoteDoc.noDocument.readTime);
-      return new NoDocument(key, version, {
+      return Document.missing(key, version, {
         hasCommittedMutations: !!remoteDoc.hasCommittedMutations
       });
     } else if (remoteDoc.unknownDocument) {
       const key = DocumentKey.fromSegments(remoteDoc.unknownDocument.path);
       const version = this.fromDbTimestamp(remoteDoc.unknownDocument.version);
-      return new UnknownDocument(key, version);
+      return Document.contentsUnknown(key, version);
     } else {
       return fail('Unexpected DbRemoteDocument');
     }
   }
 
   /** Encodes a document for storage locally. */
-  toDbRemoteDocument(maybeDoc: MaybeDocument): DbRemoteDocument {
-    if (maybeDoc instanceof Document) {
-      const doc = maybeDoc.proto
-        ? maybeDoc.proto
-        : this.remoteSerializer.toDocument(maybeDoc);
-      const hasCommittedMutations = maybeDoc.hasCommittedMutations;
-      return new DbRemoteDocument(
-        /* unknownDocument= */ null,
-        /* noDocument= */ null,
-        doc,
-        hasCommittedMutations
-      );
-    } else if (maybeDoc instanceof NoDocument) {
-      const path = maybeDoc.key.path.toArray();
-      const readTime = this.toDbTimestamp(maybeDoc.version);
-      const hasCommittedMutations = maybeDoc.hasCommittedMutations;
-      return new DbRemoteDocument(
-        /* unknownDocument= */ null,
-        new DbNoDocument(path, readTime),
-        /* document= */ null,
-        hasCommittedMutations
-      );
-    } else if (maybeDoc instanceof UnknownDocument) {
-      const path = maybeDoc.key.path.toArray();
-      const readTime = this.toDbTimestamp(maybeDoc.version);
-      return new DbRemoteDocument(
-        new DbUnknownDocument(path, readTime),
-        /* noDocument= */ null,
-        /* document= */ null,
-        /* hasCommittedMutations= */ true
-      );
-    } else {
-      return fail('Unexpected MaybeDocumment');
+  toDbRemoteDocument(maybeDoc: Document): DbRemoteDocument {
+    switch (maybeDoc.type) {
+      case DocumentType.EXISTS: {
+        const doc = this.remoteSerializer.toDocument(maybeDoc);
+        return new DbRemoteDocument(
+          /* unknownDocument= */ null,
+          /* noDocument= */ null,
+          doc,
+          maybeDoc.hasCommittedMutations
+        );
+      }
+      case DocumentType.MISSING: {
+        const path = maybeDoc.key.path.toArray();
+        const readTime = this.toDbTimestamp(maybeDoc.version);
+        return new DbRemoteDocument(
+          /* unknownDocument= */ null,
+          new DbNoDocument(path, readTime),
+          /* document= */ null,
+          maybeDoc.hasCommittedMutations
+        );
+      }
+      case DocumentType.CONTENTS_UNKNOWN: {
+        const path = maybeDoc.key.path.toArray();
+        const readTime = this.toDbTimestamp(maybeDoc.version);
+        return new DbRemoteDocument(
+          new DbUnknownDocument(path, readTime),
+          /* noDocument= */ null,
+          /* document= */ null,
+          maybeDoc.hasCommittedMutations
+        );
+      }
+
+      default:
+        return fail('Unexpected Document: ' + maybeDoc.toString);
     }
   }
 

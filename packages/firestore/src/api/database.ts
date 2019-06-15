@@ -40,7 +40,8 @@ import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
 import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LruParams } from '../local/lru_garbage_collector';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { getDocument } from '../model/collections';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import {
   ArrayValue,
@@ -79,7 +80,7 @@ import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
-import { Deferred } from './../util/promise';
+import { Deferred } from '../util/promise';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
@@ -661,37 +662,18 @@ export class Transaction implements firestore.Transaction {
       documentRef,
       this._firestore
     );
-    return this._transaction
-      .lookup([ref._key])
-      .then((docs: MaybeDocument[]) => {
-        if (!docs || docs.length !== 1) {
-          return fail('Mismatch in docs returned from document lookup.');
-        }
-        const doc = docs[0];
-        if (doc instanceof NoDocument) {
-          return new DocumentSnapshot(
-            this._firestore,
-            ref._key,
-            null,
-            /* fromCache= */ false,
-            /* hasPendingWrites= */ false
-          );
-        } else if (doc instanceof Document) {
-          return new DocumentSnapshot(
-            this._firestore,
-            ref._key,
-            doc,
-            /* fromCache= */ false,
-            /* hasPendingWrites= */ false
-          );
-        } else {
-          throw fail(
-            `BatchGetDocumentsRequest returned unexpected document type: ${
-              doc.constructor.name
-            }`
-          );
-        }
-      });
+    return this._transaction.lookup([ref._key]).then((docs: Document[]) => {
+      if (!docs || docs.length !== 1) {
+        return fail('Mismatch in docs returned from document lookup.');
+      }
+      const doc = docs[0];
+      return new DocumentSnapshot(
+        this._firestore,
+        doc,
+        /* fromCache= */ false,
+        /* hasPendingWrites= */ false
+      );
+    });
   }
 
   set(
@@ -1130,12 +1112,11 @@ export class DocumentReference implements firestore.DocumentReference {
             snapshot.docs.size <= 1,
             'Too many documents returned on a document query'
           );
-          const doc = snapshot.docs.get(this._key);
+          const doc = getDocument(this._key, snapshot.docs);
 
           observer.next(
             new DocumentSnapshot(
               this.firestore,
-              this._key,
               doc,
               snapshot.fromCache,
               snapshot.hasPendingWrites
@@ -1170,10 +1151,9 @@ export class DocumentReference implements firestore.DocumentReference {
               resolve(
                 new DocumentSnapshot(
                   this.firestore,
-                  this._key,
                   doc,
                   /*fromCache=*/ true,
-                  doc instanceof Document ? doc.hasLocalMutations : false
+                  doc.hasLocalMutations
                 )
               );
             }, reject);
@@ -1262,8 +1242,7 @@ export interface SnapshotOptions extends firestore.SnapshotOptions {}
 export class DocumentSnapshot implements firestore.DocumentSnapshot {
   constructor(
     private _firestore: Firestore,
-    private _key: DocumentKey,
-    public _document: Document | null,
+    public _document: Document,
     private _fromCache: boolean,
     private _hasPendingWrites: boolean
   ) {}
@@ -1273,7 +1252,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
   ): firestore.DocumentData | undefined {
     validateBetweenNumberOfArgs('DocumentSnapshot.data', arguments, 0, 1);
     options = validateSnapshotOptions('DocumentSnapshot.data', options);
-    return !this._document
+    return !this._document.exists
       ? undefined
       : this.convertObject(
           this._document.data,
@@ -1290,33 +1269,31 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
   ): unknown {
     validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
     options = validateSnapshotOptions('DocumentSnapshot.get', options);
-    if (this._document) {
-      const value = this._document.data.field(
-        fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
+    const value = this._document.data.field(
+      fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
+    );
+    if (value !== undefined) {
+      return this.convertValue(
+        value,
+        FieldValueOptions.fromSnapshotOptions(
+          options,
+          this._firestore._areTimestampsInSnapshotsEnabled()
+        )
       );
-      if (value !== undefined) {
-        return this.convertValue(
-          value,
-          FieldValueOptions.fromSnapshotOptions(
-            options,
-            this._firestore._areTimestampsInSnapshotsEnabled()
-          )
-        );
-      }
     }
     return undefined;
   }
 
   get id(): string {
-    return this._key.path.lastSegment();
+    return this._document.key.path.lastSegment();
   }
 
   get ref(): firestore.DocumentReference {
-    return new DocumentReference(this._key, this._firestore);
+    return new DocumentReference(this._document.key, this._firestore);
   }
 
   get exists(): boolean {
-    return this._document !== null;
+    return this._document.exists;
   }
 
   get metadata(): firestore.SnapshotMetadata {
@@ -1330,10 +1307,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     return (
       this._firestore === other._firestore &&
       this._fromCache === other._fromCache &&
-      this._key.isEqual(other._key) &&
-      (this._document === null
-        ? other._document === null
-        : this._document.isEqual(other._document))
+      this._document.isEqual(other._document)
     );
   }
 
@@ -1359,7 +1333,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
       if (!value.databaseId.isEqual(database)) {
         // TODO(b/64130202): Somehow support foreign references.
         log.error(
-          `Document ${this._key.path} contains a document ` +
+          `Document ${this._document.key.path} contains a document ` +
             `reference within a different database (` +
             `${value.databaseId.projectId}/${
               value.databaseId.database
@@ -1389,12 +1363,11 @@ export class QueryDocumentSnapshot extends DocumentSnapshot
   implements firestore.QueryDocumentSnapshot {
   constructor(
     firestore: Firestore,
-    key: DocumentKey,
     document: Document,
     fromCache: boolean,
     hasPendingWrites: boolean
   ) {
-    super(firestore, key, document, fromCache, hasPendingWrites);
+    super(firestore, document, fromCache, hasPendingWrites);
   }
 
   data(options?: SnapshotOptions): firestore.DocumentData {
@@ -2136,7 +2109,6 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
   private convertToDocumentImpl(doc: Document): QueryDocumentSnapshot {
     return new QueryDocumentSnapshot(
       this._firestore,
-      doc.key,
       doc,
       this.metadata.fromCache,
       this._snapshot.mutatedKeys.has(doc.key)
@@ -2348,7 +2320,6 @@ export function changesFromSnapshot(
     return snapshot.docChanges.map(change => {
       const doc = new QueryDocumentSnapshot(
         firestore,
-        change.doc.key,
         change.doc,
         snapshot.fromCache,
         snapshot.mutatedKeys.has(change.doc.key)
@@ -2380,7 +2351,6 @@ export function changesFromSnapshot(
       .map(change => {
         const doc = new QueryDocumentSnapshot(
           firestore,
-          change.doc.key,
           change.doc,
           snapshot.fromCache,
           snapshot.mutatedKeys.has(change.doc.key)

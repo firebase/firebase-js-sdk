@@ -16,8 +16,8 @@
  */
 
 import { CredentialsProvider } from '../api/credentials';
-import { maybeDocumentMap } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { documentMap } from '../model/collections';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
@@ -95,7 +95,7 @@ export class Datastore {
     });
   }
 
-  lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
+  lookup(keys: DocumentKey[]): Promise<Document[]> {
     const params: BatchGetDocumentsRequest = {
       database: this.serializer.encodedDatabaseId,
       documents: keys.map(k => this.serializer.toName(k))
@@ -104,12 +104,12 @@ export class Datastore {
       BatchGetDocumentsRequest,
       api.BatchGetDocumentsResponse
     >('BatchGetDocuments', params).then(response => {
-      let docs = maybeDocumentMap();
+      let docs = documentMap();
       response.forEach(proto => {
         const doc = this.serializer.fromMaybeDocument(proto);
         docs = docs.insert(doc.key, doc);
       });
-      const result: MaybeDocument[] = [];
+      const result: Document[] = [];
       keys.forEach(key => {
         const doc = docs.get(key);
         assert(!!doc, 'Missing entity in write response for ' + key);

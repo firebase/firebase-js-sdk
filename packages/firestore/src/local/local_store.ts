@@ -24,10 +24,10 @@ import {
   DocumentKeySet,
   documentKeySet,
   DocumentMap,
-  maybeDocumentMap,
-  MaybeDocumentMap
+  documentMap,
+  getDocument
 } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, PatchMutation, Precondition } from '../model/mutation';
 import {
@@ -40,7 +40,6 @@ import { assert } from '../util/assert';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
-import { ObjectValue } from '../model/field_value';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
@@ -59,12 +58,12 @@ const LOG_TAG = 'LocalStore';
 /** The result of a write to the local store. */
 export interface LocalWriteResult {
   batchId: BatchId;
-  changes: MaybeDocumentMap;
+  changes: DocumentMap;
 }
 
 /** The result of a user-change operation in the local store. */
 export interface UserChangeResult {
-  readonly affectedDocuments: MaybeDocumentMap;
+  readonly affectedDocuments: DocumentMap;
   readonly removedBatchIds: BatchId[];
   readonly addedBatchIds: BatchId[];
 }
@@ -272,7 +271,7 @@ export class LocalStore {
             const baseMutations: Mutation[] = [];
 
             for (const mutation of mutations) {
-              const maybeDoc = existingDocs.get(mutation.key);
+              const maybeDoc = getDocument(mutation.key, existingDocs);
               if (!mutation.isIdempotent) {
                 // Theoretically, we should only include non-idempotent fields
                 // in this field mask as this mask is used to populate the base
@@ -282,10 +281,7 @@ export class LocalStore {
                 // are present.
                 const fieldMask = mutation.fieldMask;
                 if (fieldMask) {
-                  const baseValues =
-                    maybeDoc instanceof Document
-                      ? fieldMask.applyTo(maybeDoc.data)
-                      : ObjectValue.EMPTY;
+                  const baseValues = fieldMask.applyTo(maybeDoc.data);
                   // NOTE: The base state should only be applied if there's some
                   // existing document to override, so use a Precondition of
                   // exists=true
@@ -314,7 +310,7 @@ export class LocalStore {
 
   /** Returns the local view of the documents affected by a mutation batch. */
   // PORTING NOTE: Multi-tab only.
-  lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null> {
+  lookupMutationDocuments(batchId: BatchId): Promise<DocumentMap | null> {
     return this.persistence.runTransaction(
       'Lookup mutation documents',
       'readonly',
@@ -326,9 +322,9 @@ export class LocalStore {
               return this.localDocuments.getDocuments(
                 txn,
                 keys
-              ) as PersistencePromise<MaybeDocumentMap | null>;
+              ) as PersistencePromise<DocumentMap | null>;
             } else {
-              return PersistencePromise.resolve<MaybeDocumentMap | null>(null);
+              return PersistencePromise.resolve<DocumentMap | null>(null);
             }
           });
       }
@@ -349,9 +345,7 @@ export class LocalStore {
    *
    * @returns The resulting (modified) documents.
    */
-  acknowledgeBatch(
-    batchResult: MutationBatchResult
-  ): Promise<MaybeDocumentMap> {
+  acknowledgeBatch(batchResult: MutationBatchResult): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'Acknowledge batch',
       'readwrite-primary',
@@ -376,7 +370,7 @@ export class LocalStore {
    *
    * @returns The resulting modified documents.
    */
-  rejectBatch(batchId: BatchId): Promise<MaybeDocumentMap> {
+  rejectBatch(batchId: BatchId): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'Reject batch',
       'readwrite-primary',
@@ -445,7 +439,7 @@ export class LocalStore {
    * LocalDocuments are re-calculated if there are remaining mutations in the
    * queue.
    */
-  applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
+  applyRemoteEvent(remoteEvent: RemoteEvent): Promise<DocumentMap> {
     const documentBuffer = this.remoteDocuments.newChangeBuffer();
     return this.persistence.runTransaction(
       'Apply remote event',
@@ -512,7 +506,7 @@ export class LocalStore {
           }
         );
 
-        let changedDocs = maybeDocumentMap();
+        let changedDocs = documentMap();
         let updatedKeys = documentKeySet();
         remoteEvent.documentUpdates.forEach((key, doc) => {
           updatedKeys = updatedKeys.add(key);
@@ -694,7 +688,7 @@ export class LocalStore {
    * Read the current value of a Document with a given key or null if not
    * found - used for testing.
    */
-  readDocument(key: DocumentKey): Promise<MaybeDocument | null> {
+  readDocument(key: DocumentKey): Promise<Document> {
     return this.persistence.runTransaction('read document', 'readonly', txn => {
       return this.localDocuments.getDocument(txn, key);
     });
@@ -839,23 +833,23 @@ export class LocalStore {
         .next(() => {
           return documentBuffer.getEntry(txn, docKey);
         })
-        .next((remoteDoc: MaybeDocument | null) => {
+        .next((remoteDoc: Document) => {
           let doc = remoteDoc;
           const ackVersion = batchResult.docVersions.get(docKey);
           assert(
             ackVersion !== null,
             'ackVersions should contain every doc in the write.'
           );
-          if (!doc || doc.version.compareTo(ackVersion!) < 0) {
+          if (doc.version.compareTo(ackVersion!) < 0) {
             doc = batch.applyToRemoteDocument(docKey, doc, batchResult);
-            if (!doc) {
+            if (doc.unknown) {
               assert(
                 !remoteDoc,
                 'Mutation batch ' +
                   batch +
                   ' applied to document ' +
                   remoteDoc +
-                  ' resulted in null'
+                  ' resulted in an unknown document'
               );
             } else {
               documentBuffer.addEntry(doc);
@@ -894,7 +888,7 @@ export class LocalStore {
   }
 
   // PORTING NOTE: Multi-tab only.
-  getNewDocumentChanges(): Promise<MaybeDocumentMap> {
+  getNewDocumentChanges(): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'Get new document changes',
       'readonly',

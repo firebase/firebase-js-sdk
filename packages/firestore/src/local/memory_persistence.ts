@@ -16,7 +16,7 @@
  */
 
 import { User } from '../auth/user';
-import { MaybeDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
@@ -105,8 +105,7 @@ export class MemoryPersistence implements Persistence {
     this._started = true;
     this.referenceDelegate = referenceDelegateFactory(this);
     this.queryCache = new MemoryQueryCache(this);
-    const sizer = (doc: MaybeDocument) =>
-      this.referenceDelegate.documentSize(doc);
+    const sizer = (doc: Document) => this.referenceDelegate.documentSize(doc);
     this.indexManager = new MemoryIndexManager();
     this.remoteDocumentCache = new MemoryRemoteDocumentCache(
       this.indexManager,
@@ -287,7 +286,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     });
   }
 
-  documentSize(doc: MaybeDocument): number {
+  documentSize(doc: Document): number {
     // For eager GC, we don't care about the document size, there are no size thresholds.
     return 0;
   }
@@ -457,7 +456,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     return PersistencePromise.resolve();
   }
 
-  documentSize(maybeDoc: MaybeDocument): number {
+  documentSize(maybeDoc: Document): number {
     const remoteDocument = this.serializer.toDbRemoteDocument(maybeDoc);
     let value: unknown;
     if (remoteDocument.document) {

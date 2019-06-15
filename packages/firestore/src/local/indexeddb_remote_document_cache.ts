@@ -22,13 +22,9 @@ import {
   DocumentMap,
   documentMap,
   DocumentSizeEntries,
-  DocumentSizeEntry,
-  MaybeDocumentMap,
-  maybeDocumentMap,
-  nullableMaybeDocumentMap,
-  NullableMaybeDocumentMap
+  DocumentSizeEntry
 } from '../model/collections';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { SortedMap } from '../util/sorted_map';
 
@@ -138,7 +134,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    * size accounting. It is the responsibility of the caller to count the bytes removed
    * and issue a final updateSize() call after removing documents.
    *
-   * @param documentKey The key of the document to remove
+   * @param transaction The current transaction.
+   * @param documentKey The key of the document to remove.
    * @return The size of the document that was removed.
    */
   removeEntry(
@@ -160,22 +157,23 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   getEntry(
     transaction: PersistenceTransaction,
-    documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null> {
+    key: DocumentKey
+  ): PersistencePromise<Document> {
     return remoteDocumentsStore(transaction)
-      .get(dbKey(documentKey))
+      .get(dbKey(key))
       .next(dbRemoteDoc => {
         return dbRemoteDoc
           ? this.serializer.fromDbRemoteDocument(dbRemoteDoc)
-          : null;
+          : Document.unknown(key);
       });
   }
 
   /**
    * Looks up an entry in the cache.
    *
+   * @param transaction The current transaction.
    * @param documentKey The key of the entry to look up.
-   * @return The cached MaybeDocument entry and its size, or null if we have nothing cached.
+   * @return The cached Document entry and its size, or null if we have nothing cached.
    */
   getSizedEntry(
     transaction: PersistenceTransaction,
@@ -196,20 +194,16 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   getEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap> {
-    let results = nullableMaybeDocumentMap();
+  ): PersistencePromise<DocumentMap> {
+    let results = documentMap();
     return this.forEachDbEntry(
       transaction,
       documentKeys,
       (key, dbRemoteDoc) => {
-        if (dbRemoteDoc) {
-          results = results.insert(
-            key,
-            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
-          );
-        } else {
-          results = results.insert(key, null);
-        }
+        const doc = dbRemoteDoc
+          ? this.serializer.fromDbRemoteDocument(dbRemoteDoc)
+          : Document.unknown(key);
+        results = results.insert(key, doc);
       }
     ).next(() => results);
   }
@@ -217,16 +211,17 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /**
    * Looks up several entries in the cache.
    *
+   * @param transaction The current transaction.
    * @param documentKeys The set of keys entries to look up.
-   * @return A map of MaybeDocuments indexed by key (if a document cannot be
-   *     found, the key will be mapped to null) and a map of sizes indexed by
-   *     key (zero if the key cannot be found).
+   * @return A map of Documents indexed by key (if a document cannot be found,
+   *     the key will be mapped to an unknown Document) and a map of sizes
+   *     indexed by key (zero if the key cannot be found).
    */
   getSizedEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<DocumentSizeEntries> {
-    let results = nullableMaybeDocumentMap();
+    let results = documentMap();
     let sizeMap = new SortedMap<DocumentKey, number>(DocumentKey.comparator);
     return this.forEachDbEntry(
       transaction,
@@ -239,7 +234,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           );
           sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc));
         } else {
-          results = results.insert(key, null);
+          results = results.insert(key, Document.unknown(key));
           sizeMap = sizeMap.insert(key, 0);
         }
       }
@@ -327,7 +322,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         const maybeDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
         if (!query.path.isPrefixOf(maybeDoc.key.path)) {
           control.done();
-        } else if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
+        } else if (query.matches(maybeDoc)) {
           results = results.insert(maybeDoc.key, maybeDoc);
         }
       })
@@ -336,13 +331,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   getNewDocumentChanges(
     transaction: PersistenceTransaction
-  ): PersistencePromise<MaybeDocumentMap> {
+  ): PersistencePromise<DocumentMap> {
     assert(
       this.keepDocumentChangeLog,
       'Can only call getNewDocumentChanges() when document change log is enabled'
     );
     let changedKeys = documentKeySet();
-    let changedDocs = maybeDocumentMap();
+    let changedDocs = documentMap();
 
     const range = IDBKeyRange.lowerBound(
       this._lastProcessedDocumentChangeId + 1
@@ -384,7 +379,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             this.getEntry(transaction, key).next(maybeDocument => {
               const doc =
                 maybeDocument ||
-                new NoDocument(key, SnapshotVersion.forDeletedDoc());
+                Document.missing(key, SnapshotVersion.forMissingDoc());
               changedDocs = changedDocs.insert(key, doc);
             })
           );
@@ -453,8 +448,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /**
    * Adds the given delta to the cached current size. Callers to removeEntry *must* call this
    * afterwards to update the size of the cache.
-   *
-   * @param sizeDelta
    */
   updateSize(
     txn: PersistenceTransaction,
@@ -561,7 +554,7 @@ function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {
 }
 
 /**
- * Retrusn an approximate size for the given document.
+ * Returns an approximate size for the given document.
  */
 export function dbDocumentSize(doc: DbRemoteDocument): number {
   let value: unknown;

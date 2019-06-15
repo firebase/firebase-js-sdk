@@ -36,7 +36,7 @@ import { DocumentKeySet } from '../../src/model/collections';
 import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/field_value';
-import { doc, key, path as pathFrom } from './helpers';
+import { doc, key, path as pathFrom, unknownDoc } from './helpers';
 
 /**
  * A mock Firestore. Will not work for integration test.
@@ -63,23 +63,13 @@ export function documentSnapshot(
   data: JsonObject<unknown> | null,
   fromCache: boolean
 ): DocumentSnapshot {
-  if (data) {
-    return new DocumentSnapshot(
-      firestore(),
-      key(path),
-      doc(path, 1, data),
-      fromCache,
-      /* hasPendingWrites= */ false
-    );
-  } else {
-    return new DocumentSnapshot(
-      firestore(),
-      key(path),
-      null,
-      fromCache,
-      /* hasPendingWrites= */ false
-    );
-  }
+  const doc1 = data ? doc(path, 1, data) : unknownDoc(path);
+  return new DocumentSnapshot(
+    firestore(),
+    doc1,
+    fromCache,
+    /* hasPendingWrites= */ false
+  );
 }
 
 export function query(path: string): Query {

@@ -19,10 +19,10 @@ import { Query } from '../core/query';
 import {
   DocumentKeySet,
   DocumentMap,
-  MaybeDocumentMap,
-  NullableMaybeDocumentMap
+  DocumentMap,
+  DocumentMap
 } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { PersistenceTransaction } from './persistence';
@@ -32,35 +32,33 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 /**
  * Represents cached documents received from the remote backend.
  *
- * The cache is keyed by DocumentKey and entries in the cache are MaybeDocument
- * instances, meaning we can cache both Document instances (an actual document
- * with data) as well as NoDocument instances (indicating that the document is
- * known to not exist).
+ * The cache is keyed by DocumentKey and entries are Documents that may be
+ * existing or missing.
  */
 export interface RemoteDocumentCache {
   /**
    * Looks up an entry in the cache.
    *
    * @param documentKey The key of the entry to look up.
-   * @return The cached Document or NoDocument entry, or null if we have nothing
-   * cached.
+   * @return The cached Document (existing or missing), or unknown if we have
+   *     nothing cached.
    */
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<MaybeDocument | null>;
+  ): PersistencePromise<Document>;
 
   /**
    * Looks up a set of entries in the cache.
    *
    * @param documentKeys The keys of the entries to look up.
-   * @return The cached Document or NoDocument entries indexed by key. If an entry is not cached,
-   *     the corresponding key will be mapped to a null value.
+   * @return The cached Document entries indexed by key. If an entry is not
+   *     cached, the corresponding key will be mapped to an unknown document.
    */
   getEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<NullableMaybeDocumentMap>;
+  ): PersistencePromise<DocumentMap>;
 
   /**
    * Executes a query against the cached Document entries.
@@ -68,7 +66,7 @@ export interface RemoteDocumentCache {
    * Implementations may return extra documents if convenient. The results
    * should be re-filtered by the consumer before presenting them to the user.
    *
-   * Cached NoDocument entries have no bearing on query results.
+   * Cached missing Document entries have no bearing on query results.
    *
    * @param query The query to match documents against.
    * @return The set of matching documents.
@@ -90,7 +88,7 @@ export interface RemoteDocumentCache {
   // PORTING NOTE: This is only used for multi-tab synchronization.
   getNewDocumentChanges(
     transaction: PersistenceTransaction
-  ): PersistencePromise<MaybeDocumentMap>;
+  ): PersistencePromise<DocumentMap>;
 
   /**
    * Provides access to add or update the contents of the cache. The buffer

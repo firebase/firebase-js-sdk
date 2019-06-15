@@ -438,7 +438,7 @@ describeSpec('Listens:', [], () => {
         .userUnlistens(setupQuery)
         .watchRemoves(setupQuery)
 
-        // Now when the client listens expect the cached NoDocument to be
+        // Now when the client listens expect the cached missing Document to be
         // discarded because the global snapshot version exceeds what came
         // before.
         .userListens(allQuery)

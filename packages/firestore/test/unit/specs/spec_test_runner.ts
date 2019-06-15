@@ -57,7 +57,7 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
-import { DocumentOptions } from '../../../src/model/document';
+import { Document, DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
 import { Mutation } from '../../../src/model/mutation';
@@ -732,7 +732,6 @@ abstract class TestRunner {
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
-        document.key,
         document
       );
       return this.doWatchEvent(change);
@@ -741,8 +740,7 @@ abstract class TestRunner {
       const change = new DocumentWatchChange(
         watchEntity.targets || [],
         watchEntity.removedTargets || [],
-        documentKey,
-        null
+        Document.unknown(documentKey)
       );
       return this.doWatchEvent(change);
     } else {

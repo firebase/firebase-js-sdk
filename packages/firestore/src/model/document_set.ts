@@ -28,7 +28,6 @@ import { DocumentKey } from './document_key';
  * comparator on top of what is provided to guarantee document equality based on
  * the key.
  */
-
 export class DocumentSet {
   /**
    * Returns an empty copy of the existing DocumentSet, using the same

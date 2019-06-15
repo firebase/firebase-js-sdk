@@ -23,9 +23,9 @@ import { ReferenceSet } from '../local/reference_set';
 import {
   documentKeySet,
   DocumentKeySet,
-  MaybeDocumentMap
+  DocumentMap
 } from '../model/collections';
-import { MaybeDocument, NoDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
 import { MutationBatchResult } from '../model/mutation_batch';
@@ -526,12 +526,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       // This is kind of a hack. Ideally, we would have a method in the local
       // store to purge a document. However, it would be tricky to keep all of
       // the local store's invariants with another method.
-      let documentUpdates = new SortedMap<DocumentKey, MaybeDocument>(
+      let documentUpdates = new SortedMap<DocumentKey, Document>(
         DocumentKey.comparator
       );
       documentUpdates = documentUpdates.insert(
         limboKey,
-        new NoDocument(limboKey, SnapshotVersion.forDeletedDoc())
+        Document.missing(limboKey, SnapshotVersion.forMissingDoc())
       );
       const resolvedLimboDocuments = documentKeySet().add(limboKey);
       const event = new RemoteEvent(
@@ -758,7 +758,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   private async emitNewSnapsAndNotifyLocalStore(
-    changes: MaybeDocumentMap,
+    changes: DocumentMap,
     remoteEvent?: RemoteEvent
   ): Promise<void> {
     const newSnaps: ViewSnapshot[] = [];

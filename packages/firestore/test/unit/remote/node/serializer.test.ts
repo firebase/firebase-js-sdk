@@ -72,6 +72,7 @@ import {
   ref,
   setMutation,
   transformMutation,
+  unknownDoc,
   version,
   wrap,
   wrapObject
@@ -1310,7 +1311,6 @@ describe('Serializer', () => {
       const expected = new DocumentWatchChange(
         [1, 2],
         [],
-        key('coll/1'),
         doc('coll/1', 5, { foo: 'bar' })
       );
       const actual = s.fromWatchChange({
@@ -1330,7 +1330,6 @@ describe('Serializer', () => {
       const expected = new DocumentWatchChange(
         [2],
         [1],
-        key('coll/1'),
         doc('coll/1', 5, { foo: 'bar' })
       );
       const actual = s.fromWatchChange({
@@ -1351,7 +1350,6 @@ describe('Serializer', () => {
       const expected = new DocumentWatchChange(
         [],
         [1, 2],
-        key('coll/1'),
         deletedDoc('coll/1', 5)
       );
       const actual = s.fromWatchChange({
@@ -1365,7 +1363,8 @@ describe('Serializer', () => {
     });
 
     it('converts document removes', () => {
-      const expected = new DocumentWatchChange([], [1, 2], key('coll/1'), null);
+      const doc = unknownDoc('coll/1');
+      const expected = new DocumentWatchChange([], [1, 2], doc);
       const actual = s.fromWatchChange({
         documentRemove: {
           document: s.toName(key('coll/1')),

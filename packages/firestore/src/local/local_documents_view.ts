@@ -16,17 +16,13 @@
  */
 
 import { Query } from '../core/query';
-import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
   DocumentMap,
   documentMap,
-  MaybeDocumentMap,
-  maybeDocumentMap,
-  NullableMaybeDocumentMap,
-  nullableMaybeDocumentMap
+  getDocument
 } from '../model/collections';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { MutationBatch } from '../model/mutation_batch';
 import { ResourcePath } from '../model/path';
@@ -60,7 +56,7 @@ export class LocalDocumentsView {
   getDocument(
     transaction: PersistenceTransaction,
     key: DocumentKey
-  ): PersistencePromise<MaybeDocument | null> {
+  ): PersistencePromise<Document> {
     return this.mutationQueue
       .getAllMutationBatchesAffectingDocumentKey(transaction, key)
       .next(batches => this.getDocumentInternal(transaction, key, batches));
@@ -71,7 +67,7 @@ export class LocalDocumentsView {
     transaction: PersistenceTransaction,
     key: DocumentKey,
     inBatches: MutationBatch[]
-  ): PersistencePromise<MaybeDocument | null> {
+  ): PersistencePromise<Document> {
     return this.remoteDocumentCache.getEntry(transaction, key).next(doc => {
       for (const batch of inBatches) {
         doc = batch.applyToLocalView(key, doc);
@@ -84,10 +80,10 @@ export class LocalDocumentsView {
   // all mutations in the given `batches`.
   private applyLocalMutationsToDocuments(
     transaction: PersistenceTransaction,
-    docs: NullableMaybeDocumentMap,
+    docs: DocumentMap,
     batches: MutationBatch[]
-  ): NullableMaybeDocumentMap {
-    let results = nullableMaybeDocumentMap();
+  ): DocumentMap {
+    let results = documentMap();
     docs.forEach((key, localView) => {
       for (const batch of batches) {
         localView = batch.applyToLocalView(key, localView);
@@ -100,13 +96,13 @@ export class LocalDocumentsView {
   /**
    * Gets the local view of the documents identified by `keys`.
    *
-   * If we don't have cached state for a document in `keys`, a NoDocument will
-   * be stored for that key in the resulting set.
+   * If we don't have cached state for a document in `keys`, a missing Document
+   * will be stored for that key in the resulting set.
    */
   getDocuments(
     transaction: PersistenceTransaction,
     keys: DocumentKeySet
-  ): PersistencePromise<MaybeDocumentMap> {
+  ): PersistencePromise<DocumentMap> {
     return this.remoteDocumentCache
       .getEntries(transaction, keys)
       .next(docs => this.getLocalViewOfDocuments(transaction, docs));
@@ -118,8 +114,8 @@ export class LocalDocumentsView {
    */
   getLocalViewOfDocuments(
     transaction: PersistenceTransaction,
-    baseDocs: NullableMaybeDocumentMap
-  ): PersistencePromise<MaybeDocumentMap> {
+    baseDocs: DocumentMap
+  ): PersistencePromise<DocumentMap> {
     return this.mutationQueue
       .getAllMutationBatchesAffectingDocumentKeys(transaction, baseDocs)
       .next(batches => {
@@ -128,12 +124,8 @@ export class LocalDocumentsView {
           baseDocs,
           batches
         );
-        let results = maybeDocumentMap();
+        let results = documentMap();
         docs.forEach((key, maybeDoc) => {
-          // TODO(http://b/32275378): Don't conflate missing / deleted.
-          if (!maybeDoc) {
-            maybeDoc = new NoDocument(key, SnapshotVersion.forDeletedDoc());
-          }
           results = results.insert(key, maybeDoc);
         });
 
@@ -163,7 +155,7 @@ export class LocalDocumentsView {
     return this.getDocument(transaction, new DocumentKey(docPath)).next(
       maybeDoc => {
         let result = documentMap();
-        if (maybeDoc instanceof Document) {
+        if (maybeDoc.exists) {
           result = result.insert(maybeDoc.key, maybeDoc);
         }
         return result;
@@ -226,13 +218,13 @@ export class LocalDocumentsView {
               continue;
             }
 
-            const baseDoc = results.get(key);
+            const baseDoc = getDocument(key, results);
             const mutatedDoc = mutation.applyToLocalView(
               baseDoc,
               baseDoc,
               batch.localWriteTime
             );
-            if (mutatedDoc instanceof Document) {
+            if (mutatedDoc.exists) {
               results = results.insert(key, mutatedDoc);
             } else {
               results = results.remove(key);

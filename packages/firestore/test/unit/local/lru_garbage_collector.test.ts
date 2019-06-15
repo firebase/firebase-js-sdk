@@ -41,7 +41,7 @@ import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { ReferenceSet } from '../../../src/local/reference_set';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { documentKeySet } from '../../../src/model/collections';
-import { Document, MaybeDocument } from '../../../src/model/document';
+import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
   Mutation,
@@ -240,7 +240,7 @@ function genericLruGarbageCollectorTests(
 
   function nextTestDocument(): Document {
     const key = nextTestDocumentKey();
-    return new Document(
+    return Document.existing(
       key,
       SnapshotVersion.fromMicroseconds(1000),
       wrapObject({ foo: 3, bar: false }),
@@ -250,7 +250,7 @@ function genericLruGarbageCollectorTests(
 
   function saveDocument(
     txn: PersistenceTransaction,
-    doc: MaybeDocument
+    doc: Document
   ): PersistencePromise<void> {
     const changeBuffer = documentCache.newChangeBuffer();
     return changeBuffer.getEntry(txn, doc.key).next(() => {
@@ -521,14 +521,14 @@ function genericLruGarbageCollectorTests(
       toBeRemoved.forEach(docKey => {
         p = p.next(() => {
           return documentCache.getEntry(txn, docKey).next(maybeDoc => {
-            expect(maybeDoc).to.be.null;
+            expect(maybeDoc.exists).to.be.false;
           });
         });
       });
       expectedRetained.forEach(docKey => {
         p = p.next(() => {
           return documentCache.getEntry(txn, docKey).next(maybeDoc => {
-            expect(maybeDoc).to.not.be.null;
+            expect(maybeDoc.exists).to.be.true;
           });
         });
       });
@@ -771,7 +771,7 @@ function genericLruGarbageCollectorTests(
       'Update a doc in the middle target',
       'readwrite',
       txn => {
-        const doc = new Document(
+        const doc = Document.existing(
           middleDocToUpdate,
           SnapshotVersion.fromMicroseconds(2000),
           wrapObject({ foo: 4, bar: true }),
@@ -828,14 +828,14 @@ function genericLruGarbageCollectorTests(
         p = p
           .next(() => documentCache.getEntry(txn, key))
           .next(maybeDoc => {
-            expect(maybeDoc).to.be.null;
+            expect(maybeDoc.exists).to.be.false;
           });
       });
       expectedRetained.forEach(key => {
         p = p
           .next(() => documentCache.getEntry(txn, key))
           .next(maybeDoc => {
-            expect(maybeDoc).to.not.be.null;
+            expect(maybeDoc.exists).to.be.true;
           });
       });
       return p;

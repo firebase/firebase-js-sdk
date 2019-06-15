@@ -18,9 +18,9 @@
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ProtoByteString } from '../core/types';
 import { Connection } from '../remote/connection';
+import { ConnectivityMonitor } from '../remote/connectivity_monitor';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { fail } from '../util/assert';
-import { ConnectivityMonitor } from './../remote/connectivity_monitor';
 
 /**
  * Provides a common interface to load anything platform dependent, e.g.

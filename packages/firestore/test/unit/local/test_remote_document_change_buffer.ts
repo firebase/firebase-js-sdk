@@ -17,7 +17,7 @@
 
 import { Persistence } from '../../../src/local/persistence';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
-import { MaybeDocument } from '../../../src/model/document';
+import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 
 /**
@@ -30,11 +30,11 @@ export class TestRemoteDocumentChangeBuffer {
     public buffer: RemoteDocumentChangeBuffer
   ) {}
 
-  addEntry(maybeDocument: MaybeDocument): void {
+  addEntry(maybeDocument: Document): void {
     this.buffer.addEntry(maybeDocument);
   }
 
-  getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
+  getEntry(documentKey: DocumentKey): Promise<Document> {
     return this.persistence.runTransaction('getEntry', 'readonly', txn => {
       return this.buffer.getEntry(txn, documentKey);
     });

@@ -36,7 +36,7 @@ export class SnapshotVersion {
     return new SnapshotVersion(value);
   }
 
-  static forDeletedDoc(): SnapshotVersion {
+  static forMissingDoc(): SnapshotVersion {
     return SnapshotVersion.MIN;
   }
 

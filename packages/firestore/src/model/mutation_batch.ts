@@ -23,11 +23,12 @@ import * as misc from '../util/misc';
 import {
   documentKeySet,
   DocumentKeySet,
-  DocumentVersionMap,
+  DocumentMap,
   documentVersionMap,
-  MaybeDocumentMap
+  DocumentVersionMap,
+  getDocument
 } from './collections';
-import { MaybeDocument } from './document';
+import { Document } from './document';
 import { DocumentKey } from './document_key';
 import { Mutation, MutationResult } from './mutation';
 
@@ -68,16 +69,14 @@ export class MutationBatch {
    */
   applyToRemoteDocument(
     docKey: DocumentKey,
-    maybeDoc: MaybeDocument | null,
+    maybeDoc: Document,
     batchResult: MutationBatchResult
-  ): MaybeDocument | null {
-    if (maybeDoc) {
-      assert(
-        maybeDoc.key.isEqual(docKey),
-        `applyToRemoteDocument: key ${docKey} should match maybeDoc key
-        ${maybeDoc.key}`
-      );
-    }
+  ): Document {
+    assert(
+      maybeDoc.key.isEqual(docKey),
+      `applyToRemoteDocument: key ${docKey} should match maybeDoc key
+      ${maybeDoc.key}`
+    );
 
     const mutationResults = batchResult.mutationResults;
     assert(
@@ -104,17 +103,12 @@ export class MutationBatch {
    * @param docKey The key of the document to apply mutations to.
    * @param maybeDoc The document to apply mutations to.
    */
-  applyToLocalView(
-    docKey: DocumentKey,
-    maybeDoc: MaybeDocument | null
-  ): MaybeDocument | null {
-    if (maybeDoc) {
-      assert(
-        maybeDoc.key.isEqual(docKey),
-        `applyToLocalDocument: key ${docKey} should match maybeDoc key
-        ${maybeDoc.key}`
-      );
-    }
+  applyToLocalView(docKey: DocumentKey, maybeDoc: Document): Document {
+    assert(
+      maybeDoc.key.isEqual(docKey),
+      `applyToLocalDocument: key ${docKey} should match maybeDoc key
+      ${maybeDoc.key}`
+    );
 
     // First, apply the base state. This allows us to apply non-idempotent
     // transform against a consistent set of values.
@@ -147,17 +141,15 @@ export class MutationBatch {
    * Computes the local view for all provided documents given the mutations in
    * this batch.
    */
-  applyToLocalDocumentSet(maybeDocs: MaybeDocumentMap): MaybeDocumentMap {
+  applyToLocalDocumentSet(maybeDocs: DocumentMap): DocumentMap {
     // TODO(mrschmidt): This implementation is O(n^2). If we apply the mutations
     // directly (as done in `applyToLocalView()`), we can reduce the complexity
     // to O(n).
     let mutatedDocuments = maybeDocs;
     this.mutations.forEach(m => {
-      const mutatedDocument = this.applyToLocalView(
-        m.key,
-        maybeDocs.get(m.key)
-      );
-      if (mutatedDocument) {
+      const baseDocument = getDocument(m.key, maybeDocs);
+      const mutatedDocument = this.applyToLocalView(m.key, baseDocument);
+      if (!mutatedDocument.unknown) {
         mutatedDocuments = mutatedDocuments.insert(m.key, mutatedDocument);
       }
     });

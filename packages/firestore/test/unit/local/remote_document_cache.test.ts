@@ -21,7 +21,7 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { PersistenceTransaction } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { MaybeDocument } from '../../../src/model/document';
+import { Document } from '../../../src/model/document';
 import {
   deletedDoc,
   doc,
@@ -39,10 +39,7 @@ import {
   DbRemoteDocumentChanges,
   DbRemoteDocumentChangesKey
 } from '../../../src/local/indexeddb_schema';
-import {
-  documentKeySet,
-  MaybeDocumentMap
-} from '../../../src/model/collections';
+import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { fail } from '../../../src/util/assert';
 import * as persistenceHelpers from './persistence_test_helpers';
 import {
@@ -108,7 +105,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
   function addEntries(
     txn: PersistenceTransaction,
     cache: RemoteDocumentCache,
-    docs: MaybeDocument[]
+    docs: Document[]
   ): PersistencePromise<void> {
     const changeBuffer = cache.newChangeBuffer();
     return PersistencePromise.forEach(docs, doc =>
@@ -294,7 +291,7 @@ function genericRemoteDocumentCacheTests(
 ): void {
   let cache: TestRemoteDocumentCache;
 
-  function setAndReadDocument(doc: MaybeDocument): Promise<void> {
+  function setAndReadDocument(doc: Document): Promise<void> {
     return cache
       .addEntries([doc])
       .then(() => {
@@ -309,9 +306,9 @@ function genericRemoteDocumentCacheTests(
     cache = await cachePromise();
   });
 
-  it('returns null for document not in cache', () => {
+  it('returns unknown for document not in cache', () => {
     return cache.getEntry(key(DOC_PATH)).then(doc => {
-      expect(doc).to.equal(null);
+      expect(doc.unknown).to.be.true;
     });
   });
 
@@ -323,7 +320,7 @@ function genericRemoteDocumentCacheTests(
     return setAndReadDocument(doc(LONG_DOC_PATH, VERSION, DOC_DATA));
   });
 
-  it('can set and read a NoDocument', () => {
+  it('can set and read a missing Document', () => {
     return setAndReadDocument(deletedDoc(DOC_PATH, VERSION));
   });
 
@@ -355,7 +352,7 @@ function genericRemoteDocumentCacheTests(
       });
   });
 
-  it('can set and read several documents including missing document', () => {
+  it('can set and read several documents including missing document', async () => {
     const docs = [
       doc(DOC_PATH, VERSION, DOC_DATA),
       doc(LONG_DOC_PATH, VERSION, DOC_DATA)
@@ -363,35 +360,24 @@ function genericRemoteDocumentCacheTests(
     const key1 = key(DOC_PATH);
     const key2 = key(LONG_DOC_PATH);
     const missingKey = key('foo/nonexistent');
-    return cache
-      .addEntries(docs)
-      .then(() => {
-        return cache.getEntries(
-          documentKeySet()
-            .add(key1)
-            .add(key2)
-            .add(missingKey)
-        );
-      })
-      .then(read => {
-        expectEqual(read.get(key1), docs[0]);
-        expectEqual(read.get(key2), docs[1]);
-        expect(read.get(missingKey)).to.be.null;
-      });
+    await cache.addEntries(docs);
+    const read = await cache.getEntries(
+      documentKeySet()
+        .add(key1)
+        .add(key2)
+        .add(missingKey)
+    );
+
+    expectEqual(read.get(key1), docs[0]);
+    expectEqual(read.get(key2), docs[1]);
+    expectEqual(read.get(missingKey), Document.unknown(missingKey));
   });
 
-  it('can remove document', () => {
-    return cache
-      .addEntries([doc(DOC_PATH, VERSION, DOC_DATA)])
-      .then(() => {
-        return cache.removeEntry(key(DOC_PATH));
-      })
-      .then(() => {
-        return cache.getEntry(key(DOC_PATH));
-      })
-      .then(read => {
-        expect(read).to.equal(null);
-      });
+  it('can remove document', async () => {
+    await cache.addEntries([doc(DOC_PATH, VERSION, DOC_DATA)]);
+    await cache.removeEntry(key(DOC_PATH));
+    const read = await cache.getEntry(key(DOC_PATH));
+    expect(read.unknown).to.be.true;
   });
 
   it('can remove nonexistent document', () => {
@@ -463,10 +449,7 @@ function genericRemoteDocumentCacheTests(
   });
 }
 
-function assertMatches(
-  expected: MaybeDocument[],
-  actual: MaybeDocumentMap
-): void {
+function assertMatches(expected: Document[], actual: DocumentMap): void {
   expect(actual.size).to.equal(expected.length);
   actual.forEach((actualKey, actualDoc) => {
     const found = expected.find(expectedDoc => {

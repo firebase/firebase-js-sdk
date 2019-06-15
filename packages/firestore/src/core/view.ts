@@ -18,9 +18,10 @@
 import {
   documentKeySet,
   DocumentKeySet,
-  MaybeDocumentMap
+  DocumentMap,
+  getDocument
 } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
+import { Document } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DocumentSet } from '../model/document_set';
 import { TargetChange } from '../remote/remote_event';
@@ -111,7 +112,7 @@ export class View {
    * @return a new set of docs, changes, and refill flag.
    */
   computeDocChanges(
-    docChanges: MaybeDocumentMap,
+    docChanges: DocumentMap,
     previousChanges?: ViewDocumentChanges
   ): ViewDocumentChanges {
     const changeSet = previousChanges
@@ -140,88 +141,87 @@ export class View {
         ? oldDocumentSet.last()
         : null;
 
-    docChanges.inorderTraversal(
-      (key: DocumentKey, newMaybeDoc: MaybeDocument) => {
-        const oldDoc = oldDocumentSet.get(key);
-        let newDoc = newMaybeDoc instanceof Document ? newMaybeDoc : null;
-        if (newDoc) {
-          assert(
-            key.isEqual(newDoc.key),
-            'Mismatching keys found in document changes: ' +
-              key +
-              ' != ' +
-              newDoc.key
-          );
-          newDoc = this.query.matches(newDoc) ? newDoc : null;
-        }
+    docChanges.inorderTraversal((key: DocumentKey, newDoc: Document) => {
+      const oldDoc = getDocument(key, oldDocumentSet);
+      if (newDoc.exists) {
+        assert(
+          key.isEqual(newDoc.key),
+          'Mismatching keys found in document changes: ' +
+            key +
+            ' != ' +
+            newDoc.key
+        );
+        newDoc = this.query.matches(newDoc)
+          ? newDoc
+          : Document.unknown(newDoc.key);
+      }
 
-        const oldDocHadPendingMutations = oldDoc
-          ? this.mutatedKeys.has(oldDoc.key)
-          : false;
-        const newDocHasPendingMutations = newDoc
-          ? newDoc.hasLocalMutations ||
-            // We only consider committed mutations for documents that were
-            // mutated during the lifetime of the view.
-            (this.mutatedKeys.has(newDoc.key) && newDoc.hasCommittedMutations)
-          : false;
+      const oldDocHadPendingMutations = oldDoc.exists
+        ? this.mutatedKeys.has(oldDoc.key)
+        : false;
+      const newDocHasPendingMutations = newDoc.exists
+        ? newDoc.hasLocalMutations ||
+          // We only consider committed mutations for documents that were
+          // mutated during the lifetime of the view.
+          (this.mutatedKeys.has(newDoc.key) && newDoc.hasCommittedMutations)
+        : false;
 
-        let changeApplied = false;
+      let changeApplied = false;
 
-        // Calculate change
-        if (oldDoc && newDoc) {
-          const docsEqual = oldDoc.data.isEqual(newDoc.data);
-          if (!docsEqual) {
-            if (!this.shouldWaitForSyncedDocument(oldDoc, newDoc)) {
-              changeSet.track({
-                type: ChangeType.Modified,
-                doc: newDoc
-              });
-              changeApplied = true;
-
-              if (
-                lastDocInLimit &&
-                this.query.docComparator(newDoc, lastDocInLimit) > 0
-              ) {
-                // This doc moved from inside the limit to after the limit.
-                // That means there may be some doc in the local cache that's
-                // actually less than this one.
-                needsRefill = true;
-              }
-            }
-          } else if (oldDocHadPendingMutations !== newDocHasPendingMutations) {
-            changeSet.track({ type: ChangeType.Metadata, doc: newDoc });
+      // Calculate change
+      if (oldDoc.exists && newDoc.exists) {
+        const docsEqual = oldDoc.data.isEqual(newDoc.data);
+        if (!docsEqual) {
+          if (!this.shouldWaitForSyncedDocument(oldDoc, newDoc)) {
+            changeSet.track({
+              type: ChangeType.Modified,
+              doc: newDoc
+            });
             changeApplied = true;
-          }
-        } else if (!oldDoc && newDoc) {
-          changeSet.track({ type: ChangeType.Added, doc: newDoc });
-          changeApplied = true;
-        } else if (oldDoc && !newDoc) {
-          changeSet.track({ type: ChangeType.Removed, doc: oldDoc });
-          changeApplied = true;
 
-          if (lastDocInLimit) {
-            // A doc was removed from a full limit query. We'll need to
-            // requery from the local cache to see if we know about some other
-            // doc that should be in the results.
-            needsRefill = true;
-          }
-        }
-
-        if (changeApplied) {
-          if (newDoc) {
-            newDocumentSet = newDocumentSet.add(newDoc);
-            if (newDocHasPendingMutations) {
-              newMutatedKeys = newMutatedKeys.add(key);
-            } else {
-              newMutatedKeys = newMutatedKeys.delete(key);
+            if (
+              lastDocInLimit &&
+              this.query.docComparator(newDoc, lastDocInLimit) > 0
+            ) {
+              // This doc moved from inside the limit to after the limit.
+              // That means there may be some doc in the local cache that's
+              // actually less than this one.
+              needsRefill = true;
             }
-          } else {
-            newDocumentSet = newDocumentSet.delete(key);
-            newMutatedKeys = newMutatedKeys.delete(key);
           }
+        } else if (oldDocHadPendingMutations !== newDocHasPendingMutations) {
+          changeSet.track({ type: ChangeType.Metadata, doc: newDoc });
+          changeApplied = true;
+        }
+      } else if (!oldDoc.exists && newDoc.exists) {
+        changeSet.track({ type: ChangeType.Added, doc: newDoc });
+        changeApplied = true;
+      } else if (oldDoc.exists && !newDoc.exists) {
+        changeSet.track({ type: ChangeType.Removed, doc: oldDoc });
+        changeApplied = true;
+
+        if (lastDocInLimit) {
+          // A doc was removed from a full limit query. We'll need to
+          // requery from the local cache to see if we know about some other
+          // doc that should be in the results.
+          needsRefill = true;
         }
       }
-    );
+
+      if (changeApplied) {
+        if (newDoc.exists) {
+          newDocumentSet = newDocumentSet.add(newDoc);
+          if (newDocHasPendingMutations) {
+            newMutatedKeys = newMutatedKeys.add(key);
+          } else {
+            newMutatedKeys = newMutatedKeys.delete(key);
+          }
+        } else {
+          newDocumentSet = newDocumentSet.delete(key);
+          newMutatedKeys = newMutatedKeys.delete(key);
+        }
+      }
+    });
     if (this.query.hasLimit()) {
       while (newDocumentSet.size > this.query.limit!) {
         const oldDoc = newDocumentSet.last();
@@ -354,14 +354,15 @@ export class View {
       return false;
     }
     // The local store doesn't think it's a result, so it shouldn't be in limbo.
-    if (!this.documentSet.has(key)) {
+    const doc = this.documentSet.get(key);
+    if (doc === null) {
       return false;
     }
     // If there are local changes to the doc, they might explain why the server
     // doesn't know that it's part of the query. So don't put it in limbo.
     // TODO(klimt): Ideally, we would only consider changes that might actually
     // affect this specific query.
-    if (this.documentSet.get(key)!.hasLocalMutations) {
+    if (doc.hasLocalMutations) {
       return false;
     }
     // Everything else is in limbo.
@@ -442,7 +443,7 @@ export class View {
    */
   // PORTING NOTE: Multi-tab only.
   synchronizeWithPersistedState(
-    localDocs: MaybeDocumentMap,
+    localDocs: DocumentMap,
     remoteKeys: DocumentKeySet
   ): ViewChange {
     this._syncedDocuments = remoteKeys;
