@@ -17,7 +17,6 @@
 
 // TODO(mikelehen): Flesh out proper types (or figure out how to generate via
 // clutz or something).
-export function createWebChannelTransport(): any;
 export class XhrIo {}
 export const ErrorCode: any;
 export const EventType: any;
@@ -25,3 +24,33 @@ export namespace WebChannel {
   export type EventType = any;
   export const EventType: any;
 }
+
+type StringMap = { [key: string]: string };
+
+export interface WebChannelOptions {
+  messageHeaders?: StringMap;
+  initMessageHeaders?: StringMap;
+  messageContentType?: string;
+  messageUrlParams?: StringMap;
+  clientProtocolHeaderRequired?: boolean;
+  concurrentRequestLimit?: number;
+  supportsCrossDomainXhr?: boolean;
+  testUrl?: string;
+  sendRawJson?: boolean;
+  httpSessionIdParam?: string;
+  httpHeadersOverwriteParam?: string;
+  backgroundChannelTest?: boolean;
+  forceLongPolling?: boolean;
+  fastHandshake?: boolean;
+  disableRedac?: boolean;
+  clientProfile?: string;
+  internalChannelParams?: { [key: string]: boolean | number };
+  xmlHttpFactory?: unknown;
+  requestRefreshThresholds?: { [key: string]: number };
+}
+
+export interface WebChannelTransport {
+  createWebChannel(url: string, options: WebChannelOptions): any;
+}
+
+export function createWebChannelTransport(): WebChannelTransport;

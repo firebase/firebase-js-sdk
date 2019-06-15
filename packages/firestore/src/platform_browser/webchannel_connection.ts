@@ -20,6 +20,7 @@ import {
   ErrorCode,
   EventType,
   WebChannel,
+  WebChannelOptions,
   XhrIo
 } from '@firebase/webchannel-wrapper';
 
@@ -37,7 +38,6 @@ import { StreamBridge } from '../remote/stream_bridge';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
-import { Indexable } from '../util/misc';
 import { Rejecter, Resolver } from '../util/promise';
 import { StringMap } from '../util/types';
 
@@ -193,7 +193,7 @@ export class WebChannelConnection implements Connection {
       '/channel'
     ];
     const webchannelTransport = createWebChannelTransport();
-    const request = {
+    const request: WebChannelOptions = {
       // Background channel test avoids the initial two test calls and decreases
       // initial cold start time.
       // TODO(dimond): wenboz@ mentioned this might affect use with proxies and
@@ -224,7 +224,7 @@ export class WebChannelConnection implements Connection {
       forceLongPolling: this.forceLongPolling
     };
 
-    this.modifyHeadersForRequest(request.initMessageHeaders, token);
+    this.modifyHeadersForRequest(request.initMessageHeaders!, token);
 
     // Sending the custom headers we just added to request.initMessageHeaders
     // (Authorization, etc.) will trigger the browser to make a CORS preflight
@@ -244,7 +244,7 @@ export class WebChannelConnection implements Connection {
     // ReactNative and so we exclude it, which just means ReactNative may be
     // subject to the extra network roundtrip for CORS preflight.
     if (!isReactNative()) {
-      (request as Indexable)['httpHeadersOverwriteParam'] = '$httpHeaders';
+      request.httpHeadersOverwriteParam = '$httpHeaders';
     }
 
     const url = urlParts.join('');
