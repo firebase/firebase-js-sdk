@@ -163,6 +163,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         }
       )
       .then(() => {
+        // tslint:disable-next-line:no-floating-promises
         messagingService.delete();
       });
   });

@@ -34,6 +34,7 @@ describe('Serializer', () => {
     // Number isn't allowed in our own codebase, but we need to test it, in case
     // a user passes one in. There's no reason not to support it, and we don't
     // want to unintentionally encode them as {}.
+    // eslint-disable-next-line no-new-wrappers
     expect(serializer.encode(new Number(1))).to.equal(1);
   });
 

@@ -19,4 +19,5 @@ import { createFirebaseNamespaceLite } from './src/lite/firebaseNamespaceLite';
 
 export const firebase = createFirebaseNamespaceLite();
 
+// eslint-disable-next-line import/no-default-export
 export default firebase;

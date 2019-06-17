@@ -349,14 +349,17 @@ export class Query {
     return null;
   }
 
-  hasArrayContainsFilter(): boolean {
-    return (
-      this.filters.find(
-        filter =>
-          filter instanceof RelationFilter &&
-          filter.op === RelationOp.ARRAY_CONTAINS
-      ) !== undefined
-    );
+  // Checks if any of the provided RelationOps are included in the query and
+  // returns the first one that is, or null if none are.
+  findRelationOpFilter(relationOps: RelationOp[]): RelationOp | null {
+    for (const filter of this.filters) {
+      if (filter instanceof RelationFilter) {
+        if (relationOps.indexOf(filter.op) >= 0) {
+          return filter.op;
+        }
+      }
+    }
+    return null;
   }
 
   isDocumentQuery(): boolean {
@@ -474,6 +477,8 @@ export class RelationOp {
   static GREATER_THAN = new RelationOp('>');
   static GREATER_THAN_OR_EQUAL = new RelationOp('>=');
   static ARRAY_CONTAINS = new RelationOp('array-contains');
+  static IN = new RelationOp('in');
+  static ARRAY_CONTAINS_ANY = new RelationOp('array-contains-any');
 
   static fromString(op: string): RelationOp {
     switch (op) {
@@ -489,6 +494,10 @@ export class RelationOp {
         return RelationOp.GREATER_THAN;
       case 'array-contains':
         return RelationOp.ARRAY_CONTAINS;
+      case 'in':
+        return RelationOp.IN;
+      case 'array-contains-any':
+        return RelationOp.ARRAY_CONTAINS_ANY;
       default:
         return fail('Unknown relation: ' + op);
     }
@@ -521,8 +530,10 @@ export class RelationFilter extends Filter {
         'Comparing on key, but filter value not a RefValue'
       );
       assert(
-        this.op !== RelationOp.ARRAY_CONTAINS,
-        "array-contains queries don't make sense on document keys."
+        this.op !== RelationOp.ARRAY_CONTAINS &&
+          this.op !== RelationOp.ARRAY_CONTAINS_ANY &&
+          this.op !== RelationOp.IN,
+        `'${this.op.toString()}' queries don't make sense on document keys.`
       );
       const refValue = this.value as RefValue;
       const comparison = DocumentKey.comparator(doc.key, refValue.key);
@@ -539,6 +550,27 @@ export class RelationFilter extends Filter {
         other instanceof ArrayValue &&
         other.internalValue.find(element => element.isEqual(this.value)) !==
           undefined
+      );
+    } else if (this.op === RelationOp.IN) {
+      if (this.value instanceof ArrayValue) {
+        return (
+          this.value.internalValue.find(element => element.isEqual(other)) !==
+          undefined
+        );
+      } else {
+        return fail('IN filter has invalid value: ' + this.value.toString());
+      }
+    } else if (this.op === RelationOp.ARRAY_CONTAINS_ANY) {
+      return (
+        other instanceof ArrayValue &&
+        other.internalValue.some(lhsElem => {
+          return (
+            this.value instanceof ArrayValue &&
+            this.value.internalValue.find(rhsElem =>
+              rhsElem.isEqual(lhsElem)
+            ) !== undefined
+          );
+        })
       );
     } else {
       // Only compare types with matching backend order (such as double and int).
@@ -568,7 +600,12 @@ export class RelationFilter extends Filter {
 
   isInequality(): boolean {
     return (
-      this.op !== RelationOp.EQUAL && this.op !== RelationOp.ARRAY_CONTAINS
+      [
+        RelationOp.LESS_THAN,
+        RelationOp.LESS_THAN_OR_EQUAL,
+        RelationOp.GREATER_THAN,
+        RelationOp.GREATER_THAN_OR_EQUAL
+      ].indexOf(this.op) >= 0
     );
   }
 

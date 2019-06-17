@@ -7,7 +7,8 @@
     "parser": "@typescript-eslint/parser",
     "plugins": [
         "@typescript-eslint",
-        "@typescript-eslint/tslint"
+        "@typescript-eslint/tslint",
+        "import"
     ],
     "parserOptions": {
         "ecmaVersion": 2015,
@@ -16,7 +17,7 @@
     "overrides": [
         {
             "files": [
-                "*test.ts",
+                "**/*.test.ts",
                 "**/test/**/*.ts"
             ],
             "rules": {
@@ -80,6 +81,20 @@
             "string", 
             "boolean"
         ],
+        "constructor-super": "error",
+        "import/no-default-export": "error",
+        "import/no-duplicates": "error",
+        "import/no-extraneous-dependencies": [
+            "error",
+            {
+                "devDependencies": [
+                    "**/*.test.ts",
+                    "**/test/**/*.ts",
+                    "**/testing/**/*.ts"
+                ],
+                "peerDependencies": true
+            }
+        ],
         "@typescript-eslint/array-type": [
             "error",
             "array-simple"
@@ -125,7 +140,9 @@
         "@typescript-eslint/explicit-function-return-type": [
             "error",
             {
-                "allowExpressions": true
+                "allowExpressions": true,
+                "allowTypedFunctionExpressions": true,
+                "allowHigherOrderFunctions": true
             }
         ],
         "@typescript-eslint/no-unused-vars": [

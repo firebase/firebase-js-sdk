@@ -34,8 +34,9 @@ import { IidModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
 
-// tslint:disable-next-line no-any User can return any type of promise.
-export type BgMessageHandler = (payload: MessagePayload) => Promise<any> | void;
+export type BgMessageHandler = (
+  payload: MessagePayload
+) => Promise<unknown> | void;
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
@@ -289,26 +290,26 @@ export abstract class BaseController implements FirebaseMessaging {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
-  useServiceWorker(registration: ServiceWorkerRegistration): void {
+  useServiceWorker(_registration: ServiceWorkerRegistration): void {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
-  usePublicVapidKey(b64PublicKey: string): void {
+  usePublicVapidKey(_b64PublicKey: string): void {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   onMessage(
-    nextOrObserver: NextFn<object> | Observer<object>,
-    error?: ErrorFn,
-    completed?: CompleteFn
+    _nextOrObserver: NextFn<object> | Observer<object>,
+    _error?: ErrorFn,
+    _completed?: CompleteFn
   ): Unsubscribe {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   onTokenRefresh(
-    nextOrObserver: NextFn<object> | Observer<object>,
-    error?: ErrorFn,
-    completed?: CompleteFn
+    _nextOrObserver: NextFn<object> | Observer<object>,
+    _error?: ErrorFn,
+    _completed?: CompleteFn
   ): Unsubscribe {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
@@ -317,7 +318,7 @@ export abstract class BaseController implements FirebaseMessaging {
   // The following methods are used by the service worker only.
   //
 
-  setBackgroundMessageHandler(callback: BgMessageHandler): void {
+  setBackgroundMessageHandler(_callback: BgMessageHandler): void {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_SW);
   }
 

@@ -38,4 +38,5 @@ _firebase.INTERNAL.extendNamespace({
 
 export const firebase = _firebase as FirebaseNamespace;
 
+// eslint-disable-next-line import/no-default-export
 export default firebase;

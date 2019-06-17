@@ -30,14 +30,14 @@ const FUNCTIONS_TYPE = 'functions';
 
 function factory(
   app: app_types.FirebaseApp,
-  unused: any,
+  _unused: unknown,
   region?: string
 ): Service {
   return new Service(app, region);
 }
 
-export function registerFunctions(instance: _FirebaseNamespace) {
-  let namespaceExports = {
+export function registerFunctions(instance: _FirebaseNamespace): void {
+  const namespaceExports = {
     // no-inline
     Functions: Service
   };

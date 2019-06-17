@@ -21,10 +21,10 @@ export function deleteDatabase(dbName: string): Promise<void> {
     request.onerror = event => {
       reject((event.target as any).error);
     };
-    request.onsuccess = event => {
+    request.onsuccess = _event => {
       resolve();
     };
-    request.onblocked = event => {
+    request.onblocked = _event => {
       console.warn('deleteDb blocked.');
     };
   });
