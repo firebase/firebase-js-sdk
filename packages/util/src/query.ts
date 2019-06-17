@@ -21,13 +21,12 @@ import { forEach } from './obj';
  * Returns a querystring-formatted string (e.g. &arg=val&arg2=val2) from a params
  * object (e.g. {arg: 'val', arg2: 'val2'})
  * Note: You must prepend it with ? when adding it to a URL.
- *
- * @param {!Object} querystringParams
- * @return {string}
  */
-export const querystring = function(querystringParams): string {
+export const querystring = function<V>(querystringParams: {
+  [key: string]: string;
+}): string {
   const params: string[] = [];
-  forEach(querystringParams, (key, value) => {
+  forEach(querystringParams, (key: string, value) => {
     if (Array.isArray(value)) {
       value.forEach(arrayVal => {
         params.push(
@@ -47,8 +46,8 @@ export const querystring = function(querystringParams): string {
  * @param {string} querystring
  * @return {!Object}
  */
-export const querystringDecode = function(querystring): object {
-  const obj = {};
+export const querystringDecode = function(querystring: string): object {
+  const obj: { [key: string]: unknown } = {};
   const tokens = querystring.replace(/^\?/, '').split('&');
 
   tokens.forEach(token => {

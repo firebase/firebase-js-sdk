@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 import firebase from '@firebase/app';
-import * as app_types from '@firebase/app-types';
-import { FirebaseServiceFactory } from '@firebase/app-types/private';
+import * as appTypes from '@firebase/app-types';
+import {
+  FirebaseServiceFactory,
+  _FirebaseNamespace
+} from '@firebase/app-types/private';
 import * as types from '@firebase/functions-types';
 import { Service } from './src/api/service';
 
@@ -26,15 +29,15 @@ import { Service } from './src/api/service';
 const FUNCTIONS_TYPE = 'functions';
 
 function factory(
-  app: app_types.FirebaseApp,
-  unused: any,
+  app: appTypes.FirebaseApp,
+  _unused: unknown,
   region?: string
 ): Service {
   return new Service(app, region);
 }
 
-export function registerFunctions(instance) {
-  let namespaceExports = {
+export function registerFunctions(instance: _FirebaseNamespace): void {
+  const namespaceExports = {
     // no-inline
     Functions: Service
   };
@@ -49,7 +52,7 @@ export function registerFunctions(instance) {
   );
 }
 
-registerFunctions(firebase);
+registerFunctions(firebase as _FirebaseNamespace);
 
 declare module '@firebase/app-types' {
   interface FirebaseNamespace {

@@ -278,7 +278,7 @@ describe('Firebase Storage > Upload Task', () => {
 
     // This one will get executed immediately
     const h3: Unsubscribe = (() => {
-      let lastState;
+      let lastState: string;
       return task.on(
         TaskEvent.STATE_CHANGED,
         snapshot => {
@@ -324,7 +324,7 @@ describe('Firebase Storage > Upload Task', () => {
     );
     return fbsPromise.make<void>((resolve, reject) => {
       task.on(TaskEvent.STATE_CHANGED, {
-        error: err => {
+        error: (err: Error) => {
           assert.fail('Unexpected upload failure');
         },
         complete: () => {
@@ -344,7 +344,7 @@ describe('Firebase Storage > Upload Task', () => {
       blob
     );
 
-    let resolve, reject;
+    let resolve: Function, reject: Function;
     const promise = fbsPromise.make<void>(function(innerResolve, innerReject) {
       resolve = innerResolve;
       reject = innerReject;
@@ -375,8 +375,8 @@ describe('Firebase Storage > Upload Task', () => {
     const events: string[] = [];
     const progress: number[][] = [];
     let complete = 0;
-    function addCallbacks(task) {
-      let lastState;
+    function addCallbacks(task: UploadTask) {
+      let lastState: string;
       task.on(
         TaskEvent.STATE_CHANGED,
         snapshot => {
@@ -409,7 +409,7 @@ describe('Firebase Storage > Upload Task', () => {
     addCallbacks(task);
 
     (function() {
-      let lastState;
+      let lastState: string;
       task.on(TaskEvent.STATE_CHANGED, function(snapshot) {
         const state = snapshot.state;
         if (lastState !== TaskState.PAUSED && state === TaskState.PAUSED) {
@@ -467,7 +467,7 @@ describe('Firebase Storage > Upload Task', () => {
       const events2: string[] = [];
 
       (function() {
-        let lastState;
+        let lastState: string;
         task2.on(
           TaskEvent.STATE_CHANGED,
           snapshot => {

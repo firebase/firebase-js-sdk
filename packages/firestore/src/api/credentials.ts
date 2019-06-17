@@ -263,7 +263,7 @@ export class FirstPartyToken implements Token {
   constructor(private gapi: Gapi, private sessionIndex: string) {}
 
   get authHeaders(): { [header: string]: string } {
-    const headers = {
+    const headers: { [header: string]: string } = {
       'X-Goog-AuthUser': this.sessionIndex
     };
     const authHeader = this.gapi.auth.getAuthHeaderValueForFirstParty([]);
@@ -309,8 +309,8 @@ export function makeCredentialsProvider(
 
   switch (credentials.type) {
     case 'gapi':
-      const client = credentials.client;
-      // Make sure this is a Gapi client.
+      const client = credentials.client as Gapi;
+      // Make sure this really is a Gapi client.
       assert(
         !!(
           typeof client === 'object' &&
@@ -321,7 +321,7 @@ export function makeCredentialsProvider(
         'unexpected gapi interface'
       );
       return new FirstPartyCredentialsProvider(
-        client as Gapi,
+        client,
         credentials.sessionIndex || '0'
       );
 

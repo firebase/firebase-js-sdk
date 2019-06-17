@@ -186,7 +186,7 @@ export class LocalDocumentsView {
       .next(parents => {
         // Perform a collection query against each parent that contains the
         // collectionId and aggregate the results.
-        return PersistencePromise.forEach(parents, parent => {
+        return PersistencePromise.forEach(parents, (parent: ResourcePath) => {
           const collectionQuery = query.asCollectionQueryAtPath(
             parent.child(collectionId)
           );

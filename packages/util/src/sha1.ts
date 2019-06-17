@@ -102,13 +102,13 @@ export class Sha1 {
 
   /**
    * Internal compress helper function.
-   * @param {!number[]|!Uint8Array|string} buf Block to compress.
-   * @param {number=} optOffset Offset of the block in the buffer.
+   * @param buf Block to compress.
+   * @param offset Offset of the block in the buffer.
    * @private
    */
-  compress_(buf, optOffset?): void {
-    if (!optOffset) {
-      optOffset = 0;
+  compress_(buf: number[] | Uint8Array | string, offset?: number): void {
+    if (!offset) {
+      offset = 0;
     }
 
     const W = this.W_;
@@ -125,20 +125,20 @@ export class Sha1 {
         // (https://bugs.webkit.org/show_bug.cgi?id=109036) has been fixed and
         // most clients have been updated.
         W[i] =
-          (buf.charCodeAt(optOffset) << 24) |
-          (buf.charCodeAt(optOffset + 1) << 16) |
-          (buf.charCodeAt(optOffset + 2) << 8) |
-          buf.charCodeAt(optOffset + 3);
-        optOffset += 4;
+          (buf.charCodeAt(offset) << 24) |
+          (buf.charCodeAt(offset + 1) << 16) |
+          (buf.charCodeAt(offset + 2) << 8) |
+          buf.charCodeAt(offset + 3);
+        offset += 4;
       }
     } else {
       for (let i = 0; i < 16; i++) {
         W[i] =
-          (buf[optOffset] << 24) |
-          (buf[optOffset + 1] << 16) |
-          (buf[optOffset + 2] << 8) |
-          buf[optOffset + 3];
-        optOffset += 4;
+          (buf[offset] << 24) |
+          (buf[offset + 1] << 16) |
+          (buf[offset + 2] << 8) |
+          buf[offset + 3];
+        offset += 4;
       }
     }
 
@@ -190,24 +190,24 @@ export class Sha1 {
     this.chain_[4] = (this.chain_[4] + e) & 0xffffffff;
   }
 
-  update(bytes, optLength?): void {
+  update(bytes?: number[] | Uint8Array | string, length?: number): void {
     // TODO(johnlenz): tighten the function signature and remove this check
     if (bytes == null) {
       return;
     }
 
-    if (optLength === undefined) {
-      optLength = bytes.length;
+    if (length === undefined) {
+      length = bytes.length;
     }
 
-    const lengthMinusBlock = optLength - this.blockSize;
+    const lengthMinusBlock = length - this.blockSize;
     let n = 0;
     // Using local instead of member variables gives ~5% speedup on Firefox 16.
     const buf = this.buf_;
     let inbuf = this.inbuf_;
 
     // The outer while loop should execute at most twice.
-    while (n < optLength) {
+    while (n < length) {
       // When we have no data in the block to top up, we can directly process the
       // input buffer (assuming it contains sufficient data). This gives ~25%
       // speedup on Chrome 23 and ~15% speedup on Firefox 16, but requires that
@@ -220,7 +220,7 @@ export class Sha1 {
       }
 
       if (typeof bytes === 'string') {
-        while (n < optLength) {
+        while (n < length) {
           buf[inbuf] = bytes.charCodeAt(n);
           ++inbuf;
           ++n;
@@ -232,7 +232,7 @@ export class Sha1 {
           }
         }
       } else {
-        while (n < optLength) {
+        while (n < length) {
           buf[inbuf] = bytes[n];
           ++inbuf;
           ++n;
@@ -247,7 +247,7 @@ export class Sha1 {
     }
 
     this.inbuf_ = inbuf;
-    this.total_ += optLength;
+    this.total_ += length;
   }
 
   /** @override */

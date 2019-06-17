@@ -28,7 +28,7 @@ type AnyTestData = any;
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldValue = firebase.firestore!.FieldValue;
 
-apiDescribe('Server Timestamps', persistence => {
+apiDescribe('Server Timestamps', (persistence: boolean) => {
   // Data written in tests via set().
   const setData = {
     a: 42,

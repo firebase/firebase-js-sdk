@@ -30,6 +30,7 @@ const dbPromise: Promise<DB> = openDb(
     // behavior is what we want, because if there are multiple versions between
     // the old version and the current version, we want ALL the migrations
     // that correspond to those versions to run, not only the last one.
+    // eslint-disable-next-line default-case
     switch (upgradeDB.oldVersion) {
       case 0:
         upgradeDB.createObjectStore(OBJECT_STORE_NAME);
@@ -55,6 +56,7 @@ export async function set<ValueType>(
   const key = getKey(appConfig);
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
+  // tslint:disable-next-line:no-floating-promises
   tx.objectStore(OBJECT_STORE_NAME).put(value, key);
   await tx.complete;
   return value;
@@ -65,6 +67,7 @@ export async function remove(appConfig: AppConfig): Promise<void> {
   const key = getKey(appConfig);
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
+  // tslint:disable-next-line:no-floating-promises
   tx.objectStore(OBJECT_STORE_NAME).delete(key);
   return tx.complete;
 }
@@ -91,8 +94,10 @@ export async function update<OldType, NewType>(
   }
 
   if (newValue === undefined) {
+    // tslint:disable-next-line:no-floating-promises
     store.delete(key);
   } else {
+    // tslint:disable-next-line:no-floating-promises
     store.put(newValue, key);
   }
 
@@ -103,6 +108,7 @@ export async function update<OldType, NewType>(
 export async function clear(): Promise<void> {
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
+  // tslint:disable-next-line:no-floating-promises
   tx.objectStore(OBJECT_STORE_NAME).clear();
   return tx.complete;
 }

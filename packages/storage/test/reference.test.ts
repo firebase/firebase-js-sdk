@@ -32,7 +32,7 @@ function makeFakeService(app: FirebaseApp, sendHook: SendHook): Service {
 }
 
 function makeStorage(url: string): Reference {
-  function maker(wrapper, loc) {
+  function maker(wrapper: unknown, loc: unknown) {
     return ({} as any) as Reference;
   }
 
