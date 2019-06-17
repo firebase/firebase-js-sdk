@@ -16,7 +16,6 @@
  */
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
-import { firebase } from '@firebase/app';
 import { FirebaseMessaging } from '@firebase/messaging-types';
 
 /**
@@ -50,9 +49,11 @@ export class ContextProvider {
     try {
       // HACK: Until we have a separate instanceId package, this is a quick way
       // to load in the messaging instance for this app.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (!(this.app as any).messaging) {
         return undefined;
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const messaging = (this.app as any).messaging() as FirebaseMessaging;
       const token = await messaging.getToken();
       if (!token) {
@@ -68,7 +69,7 @@ export class ContextProvider {
     }
   }
 
-  public async getContext(): Promise<Context> {
+  async getContext(): Promise<Context> {
     const authToken = await this.getAuthToken();
     const instanceIdToken = await this.getInstanceIdToken();
     return { authToken, instanceIdToken };

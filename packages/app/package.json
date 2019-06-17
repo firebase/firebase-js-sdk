@@ -1,6 +1,6 @@
 {
   "name": "@firebase/app",
-  "version": "0.4.4",
+  "version": "0.4.5",
   "description": "The primary entrypoint to the Firebase JS SDK",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -15,7 +15,7 @@
   ],
   "scripts": {
     "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts'",
+    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts'  --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
     "test": "run-p lint test:browser test:node",
@@ -27,8 +27,8 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@firebase/app-types": "0.4.0",
-    "@firebase/util": "0.2.18",
-    "@firebase/logger": "0.1.15",
+    "@firebase/util": "0.2.19",
+    "@firebase/logger": "0.1.16",
     "tslib": "1.9.3",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"
@@ -62,9 +62,10 @@
     "typescript": "3.4.5",
     "webpack": "4.30.0",
     "eslint": "5.16.0",
-    "@typescript-eslint/parser": "1.9.0",
-    "@typescript-eslint/eslint-plugin": "1.9.0",
-    "@typescript-eslint/eslint-plugin-tslint": "1.9.0"
+    "@typescript-eslint/parser": "1.10.2",
+    "@typescript-eslint/eslint-plugin": "1.10.2",
+    "@typescript-eslint/eslint-plugin-tslint": "1.10.2",
+    "eslint-plugin-import": "2.17.3"
   },
   "repository": {
     "directory": "packages/app",

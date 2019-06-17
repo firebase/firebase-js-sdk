@@ -430,9 +430,6 @@ export function getResumableUploadStatus(
     let sizeString: string | null = null;
     try {
       sizeString = xhr.getResponseHeader('X-Goog-Upload-Size-Received');
-      if (sizeString === null) {
-        handlerCheck(false);
-      }
     } catch (e) {
       handlerCheck(false);
     }

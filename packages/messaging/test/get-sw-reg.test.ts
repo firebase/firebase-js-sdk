@@ -33,13 +33,15 @@ const app = makeFakeApp({
 describe('Firebase Messaging > *Controller.getSWReg_()', () => {
   const sandbox = sinon.sandbox.create();
 
-  const mockWindowRegistration = (registration: ServiceWorkerRegistration) => {
+  const mockWindowRegistration = (
+    registration: ServiceWorkerRegistration
+  ): void => {
     sandbox
       .stub(navigator.serviceWorker, 'register')
       .callsFake(async () => registration);
   };
 
-  const cleanUp = () => {
+  const cleanUp = (): void => {
     sandbox.restore();
   };
 
@@ -157,11 +159,11 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
   it('should handle installed to redundant edge case', () => {
     const swValue = {
       state: 'installing',
-      addEventListener: (eventName: string, cb: () => void) => {
+      addEventListener: (_eventName: string, cb: () => void) => {
         swValue.state = 'redundant';
         cb();
       },
-      removeEventListener: (eventName: string, cb: () => void) => {
+      removeEventListener: (_eventName: string, _cb: () => void) => {
         // NOOP
       }
     };
@@ -183,11 +185,11 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
   it('should handle waiting to redundant edge case', () => {
     const swValue = {
       state: 'waiting',
-      addEventListener: (eventName: string, cb: () => void) => {
+      addEventListener: (_eventName: string, cb: () => void) => {
         swValue.state = 'redundant';
         cb();
       },
-      removeEventListener: (eventName: string, cb: () => void) => {
+      removeEventListener: (_eventName: string, _cb: () => void) => {
         // NOOP
       }
     };

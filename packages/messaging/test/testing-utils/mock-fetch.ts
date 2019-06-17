@@ -30,7 +30,7 @@ export const fetchMock = {
     const mockResponse = new (window as any).Response(
       JSON.stringify(errorMsg),
       {
-        status: status,
+        status,
         headers: {
           'Content-type': 'application/json'
         }
@@ -40,7 +40,7 @@ export const fetchMock = {
   },
   async htmlError(status: number, msg: string): Promise<Response> {
     const mockResponse = new (window as any).Response(msg, {
-      status: status,
+      status,
       headers: {
         'Content-type': 'text/html'
       }

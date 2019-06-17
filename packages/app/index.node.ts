@@ -19,10 +19,10 @@ import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { createFirebaseNamespace } from './src/firebaseNamespace';
 // Node specific packages.
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const Storage = require('dom-storage');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const XMLHttpRequest = require('xmlhttprequest');
+// @ts-ignore
+import Storage from 'dom-storage';
+// @ts-ignore
+import XMLHttpRequest from 'xmlhttprequest';
 
 const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
 
@@ -38,4 +38,5 @@ _firebase.INTERNAL.extendNamespace({
 
 export const firebase = _firebase as FirebaseNamespace;
 
+// eslint-disable-next-line import/no-default-export
 export default firebase;

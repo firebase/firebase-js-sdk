@@ -17,10 +17,8 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseService } from '@firebase/app-types/private';
-import firebase from '@firebase/app';
 import {
   FirebaseFunctions,
-  FunctionsErrorCode,
   HttpsCallable,
   HttpsCallableResult,
   HttpsCallableOptions
@@ -34,7 +32,21 @@ import { Serializer } from '../serializer';
  */
 interface HttpResponse {
   status: number;
-  json: any;
+  json: HttpResponseBody | null;
+}
+/**
+ * Describes the shape of the HttpResponse body.
+ * It makes functions that would otherwise take {} able to access the
+ * possible elements in the body more easily
+ */
+export interface HttpResponseBody {
+  data?: unknown;
+  result?: unknown;
+  error?: {
+    message?: unknown;
+    status?: unknown;
+    details?: unknown;
+  };
 }
 
 /**
@@ -43,7 +55,7 @@ interface HttpResponse {
  *
  * @param millis Number of milliseconds to wait before rejecting.
  */
-function failAfter(millis: number): Promise<HttpResponse> {
+function failAfter(millis: number): Promise<never> {
   return new Promise((_, reject) => {
     setTimeout(() => {
       reject(new HttpsErrorImpl('deadline-exceeded', 'deadline-exceeded'));
@@ -110,7 +122,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
    * @param origin The origin of the local emulator, such as
    * "http://localhost:5005".
    */
-  useFunctionsEmulator(origin: string) {
+  useFunctionsEmulator(origin: string): void {
     this.emulatorOrigin = origin;
   }
 
@@ -119,10 +131,9 @@ export class Service implements FirebaseFunctions, FirebaseService {
    * @param name The name of the trigger.
    */
   httpsCallable(name: string, options?: HttpsCallableOptions): HttpsCallable {
-    let callable = <HttpsCallable>(data?: any) => {
+    return data => {
       return this.call(name, data, options || {});
     };
-    return callable;
   }
 
   /**
@@ -156,7 +167,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
         json: null
       };
     }
-    let json: any = null;
+    let json: {} | null = null;
     try {
       json = await response.json();
     } catch (e) {
@@ -164,7 +175,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
     }
     return {
       status: response.status,
-      json: json
+      json
     };
   }
 
@@ -175,7 +186,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
    */
   private async call(
     name: string,
-    data: any,
+    data: unknown,
     options: HttpsCallableOptions
   ): Promise<HttpsCallableResult> {
     const url = this._url(name);
@@ -240,7 +251,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
     }
 
     // Decode any special types, such as dates, in the returned data.
-    const decodedData = this.serializer.decode(responseData);
+    const decodedData = this.serializer.decode(responseData as {} | null);
 
     return { data: decodedData };
   }

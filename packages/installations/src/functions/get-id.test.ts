@@ -18,6 +18,7 @@
 import { expect } from 'chai';
 import { SinonStub, stub } from 'sinon';
 import * as getInstallationEntryModule from '../helpers/get-installation-entry';
+import * as refreshAuthTokenModule from '../helpers/refresh-auth-token';
 import { AppConfig } from '../interfaces/app-config';
 import { RequestStatus } from '../interfaces/installation-entry';
 import { getFakeApp } from '../testing/get-fake-app';
@@ -36,18 +37,42 @@ describe('getId', () => {
     getInstallationEntrySpy = stub(
       getInstallationEntryModule,
       'getInstallationEntry'
-    ).resolves({
+    );
+  });
+
+  it('returns the FID in InstallationEntry returned by getInstallationEntry', async () => {
+    getInstallationEntrySpy.resolves({
       installationEntry: {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
       }
     });
-  });
 
-  it('returns the FID in InstallationEntry returned by getInstallationEntry', async () => {
     const firebaseApp = getFakeApp();
     const fid = await getId(firebaseApp);
     expect(fid).to.equal(FID);
     expect(getInstallationEntrySpy).to.be.calledOnce;
+  });
+
+  it('calls refreshAuthToken if the installation is registered', async () => {
+    getInstallationEntrySpy.resolves({
+      installationEntry: {
+        fid: FID,
+        registrationStatus: RequestStatus.COMPLETED,
+        refreshToken: 'refreshToken',
+        authToken: {
+          requestStatus: RequestStatus.NOT_STARTED
+        }
+      }
+    });
+
+    const refreshAuthTokenSpy = stub(
+      refreshAuthTokenModule,
+      'refreshAuthToken'
+    ).resolves('authToken');
+
+    const firebaseApp = getFakeApp();
+    await getId(firebaseApp);
+    expect(refreshAuthTokenSpy).to.be.calledOnce;
   });
 });
