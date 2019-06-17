@@ -16,8 +16,7 @@
  */
 import * as errorsExports from './error';
 import * as type from './type';
-import * as XhrIoExports from './xhrio';
-import { Headers, XhrIo } from './xhrio';
+import { Headers, XhrIo, ErrorCode } from './xhrio';
 
 /**
  * We use this instead of goog.net.XhrIo because goog.net.XhrIo is hyuuuuge and
@@ -25,20 +24,20 @@ import { Headers, XhrIo } from './xhrio';
  */
 export class NetworkXhrIo implements XhrIo {
   private xhr_: XMLHttpRequest;
-  private errorCode_: XhrIoExports.ErrorCode;
+  private errorCode_: ErrorCode;
   private sendPromise_: Promise<XhrIo>;
   private sent_: boolean = false;
 
   constructor() {
     this.xhr_ = new XMLHttpRequest();
-    this.errorCode_ = XhrIoExports.ErrorCode.NO_ERROR;
+    this.errorCode_ = ErrorCode.NO_ERROR;
     this.sendPromise_ = new Promise(resolve => {
       this.xhr_.addEventListener('abort', () => {
-        this.errorCode_ = XhrIoExports.ErrorCode.ABORT;
+        this.errorCode_ = ErrorCode.ABORT;
         resolve(this);
       });
       this.xhr_.addEventListener('error', () => {
-        this.errorCode_ = XhrIoExports.ErrorCode.NETWORK_ERROR;
+        this.errorCode_ = ErrorCode.NETWORK_ERROR;
         resolve(this);
       });
       this.xhr_.addEventListener('load', () => {
@@ -79,7 +78,7 @@ export class NetworkXhrIo implements XhrIo {
   /**
    * @override
    */
-  getErrorCode(): XhrIoExports.ErrorCode {
+  getErrorCode(): ErrorCode {
     if (!this.sent_) {
       throw errorsExports.internalError(
         'cannot .getErrorCode() before sending'

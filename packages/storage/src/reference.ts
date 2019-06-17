@@ -18,7 +18,6 @@
 /**
  * @fileoverview Defines the Firebase Storage Reference class.
  */
-import * as args from './implementation/args';
 import { AuthWrapper } from './implementation/authwrapper';
 import { FbsBlob } from './implementation/blob';
 import * as errorsExports from './implementation/error';
@@ -26,14 +25,23 @@ import { Location } from './implementation/location';
 import * as metadata from './implementation/metadata';
 import * as path from './implementation/path';
 import * as requests from './implementation/requests';
-import * as fbsString from './implementation/string';
-import { StringFormat } from './implementation/string';
+import {
+  StringFormat,
+  formatValidator,
+  dataFromString
+} from './implementation/string';
 import * as type from './implementation/type';
 import { Metadata } from './metadata';
 import { Service } from './service';
 import { UploadTask } from './task';
 import { ListOptions, ListResult } from './list';
-import { listOptionSpec } from './implementation/args';
+import {
+  listOptionSpec,
+  stringSpec,
+  validate,
+  metadataSpec,
+  uploadDataSpec
+} from './implementation/args';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -63,7 +71,7 @@ export class Reference {
    * @override
    */
   toString(): string {
-    args.validate('toString', [], arguments);
+    validate('toString', [], arguments);
     return 'gs://' + this.location.bucket + '/' + this.location.path;
   }
 
@@ -81,7 +89,7 @@ export class Reference {
    *     slashes.
    */
   child(childPath: string): Reference {
-    args.validate('child', [args.stringSpec()], arguments);
+    validate('child', [stringSpec()], arguments);
     const newPath = path.child(this.location.path, childPath);
     const location = new Location(this.location.bucket, newPath);
     return this.newRef(this.authWrapper, location);
@@ -135,9 +143,9 @@ export class Reference {
     data: Blob | Uint8Array | ArrayBuffer,
     metadata: Metadata | null = null
   ): UploadTask {
-    args.validate(
+    validate(
       'put',
-      [args.uploadDataSpec(), args.metadataSpec(true)],
+      [uploadDataSpec(), metadataSpec(true)],
       arguments
     );
     this.throwIfRoot_('put');
@@ -163,17 +171,17 @@ export class Reference {
     format: StringFormat = StringFormat.RAW,
     metadata?: Metadata
   ): UploadTask {
-    args.validate(
+    validate(
       'putString',
       [
-        args.stringSpec(),
-        args.stringSpec(fbsString.formatValidator, true),
-        args.metadataSpec(true)
+        stringSpec(),
+        stringSpec(formatValidator, true),
+        metadataSpec(true)
       ],
       arguments
     );
     this.throwIfRoot_('putString');
-    const data = fbsString.dataFromString(format, value);
+    const data = dataFromString(format, value);
     const metadataClone = Object.assign({}, metadata);
     if (
       !type.isDef(metadataClone['contentType']) &&
@@ -196,7 +204,7 @@ export class Reference {
    * @return A promise that resolves if the deletion succeeds.
    */
   delete(): Promise<void> {
-    args.validate('delete', [], arguments);
+    validate('delete', [], arguments);
     this.throwIfRoot_('delete');
     return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.deleteObject(
@@ -225,7 +233,7 @@ export class Reference {
    *      folder. `nextPageToken` is never returned.
    */
   listAll(): Promise<ListResult> {
-    args.validate('listAll', [], arguments);
+    validate('listAll', [], arguments);
     const accumulator = {
       prefixes: [],
       items: []
@@ -270,7 +278,7 @@ export class Reference {
    *      can be used to get the rest of the results.
    */
   list(options?: ListOptions | null): Promise<ListResult> {
-    args.validate('list', [listOptionSpec(true)], arguments);
+    validate('list', [listOptionSpec(true)], arguments);
     const self = this;
     return this.authWrapper.getAuthToken().then(authToken => {
       const op = options || {};
@@ -291,7 +299,7 @@ export class Reference {
    *     rejected.
    */
   getMetadata(): Promise<Metadata> {
-    args.validate('getMetadata', [], arguments);
+    validate('getMetadata', [], arguments);
     this.throwIfRoot_('getMetadata');
     return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.getMetadata(
@@ -313,7 +321,7 @@ export class Reference {
    *     @see firebaseStorage.Reference.prototype.getMetadata
    */
   updateMetadata(metadata: Metadata): Promise<Metadata> {
-    args.validate('updateMetadata', [args.metadataSpec()], arguments);
+    validate('updateMetadata', [metadataSpec()], arguments);
     this.throwIfRoot_('updateMetadata');
     return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.updateMetadata(
@@ -331,7 +339,7 @@ export class Reference {
    *     URL for this object.
    */
   getDownloadURL(): Promise<string> {
-    args.validate('getDownloadURL', [], arguments);
+    validate('getDownloadURL', [], arguments);
     this.throwIfRoot_('getDownloadURL');
     return this.authWrapper.getAuthToken().then(authToken => {
       const requestInfo = requests.getDownloadUrl(

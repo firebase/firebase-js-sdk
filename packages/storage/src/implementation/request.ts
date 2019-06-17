@@ -22,13 +22,17 @@
 
 import firebase from '@firebase/app';
 import * as backoff from './backoff';
-import * as errorsExports from './error';
-import { FirebaseStorageError } from './error';
+import {
+  FirebaseStorageError,
+  unknown,
+  appDeleted,
+  canceled,
+  retryLimitExceeded
+} from './error';
 import { RequestInfo } from './requestinfo';
 import * as type from './type';
 import * as UrlUtils from './url';
-import * as XhrIoExports from './xhrio';
-import { Headers, XhrIo } from './xhrio';
+import { Headers, XhrIo, ErrorCode } from './xhrio';
 import { XhrIoPool } from './xhriopool';
 
 /**
@@ -144,11 +148,11 @@ class NetworkRequest<T> implements Request<T> {
           self.pendingXhr_ = null;
           xhr = xhr as XhrIo;
           const hitServer =
-            xhr.getErrorCode() === XhrIoExports.ErrorCode.NO_ERROR;
+            xhr.getErrorCode() === ErrorCode.NO_ERROR;
           const status = xhr.getStatus();
           if (!hitServer || self.isRetryStatusCode_(status)) {
             const wasCanceled =
-              xhr.getErrorCode() === XhrIoExports.ErrorCode.ABORT;
+              xhr.getErrorCode() === ErrorCode.ABORT;
             backoffCallback(
               false,
               new RequestEndStatus(false, null, wasCanceled)
@@ -184,7 +188,7 @@ class NetworkRequest<T> implements Request<T> {
         }
       } else {
         if (xhr !== null) {
-          const err = errorsExports.unknown();
+          const err = unknown();
           err.setServerResponseProp(xhr.getResponseText());
           if (self.errorCallback_) {
             reject(self.errorCallback_(xhr, err));
@@ -194,11 +198,11 @@ class NetworkRequest<T> implements Request<T> {
         } else {
           if (status.canceled) {
             const err = self.appDelete_
-              ? errorsExports.appDeleted()
-              : errorsExports.canceled();
+              ? appDeleted()
+              : canceled();
             reject(err);
           } else {
-            const err = errorsExports.retryLimitExceeded();
+            const err = retryLimitExceeded();
             reject(err);
           }
         }

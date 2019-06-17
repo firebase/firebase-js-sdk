@@ -22,8 +22,8 @@ import {
   _FirebaseNamespace
 } from '@firebase/app-types/private';
 import { StringFormat } from './src/implementation/string';
-import { TaskEvent } from './src/implementation/taskenums';
-import { TaskState } from './src/implementation/taskenums';
+import { TaskEvent , TaskState } from './src/implementation/taskenums';
+
 import { XhrIoPool } from './src/implementation/xhriopool';
 import { Reference } from './src/reference';
 import { Service } from './src/service';

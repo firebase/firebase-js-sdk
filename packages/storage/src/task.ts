@@ -20,13 +20,12 @@
 
 import { AuthWrapper } from './implementation/authwrapper';
 import { FbsBlob } from './implementation/blob';
-import * as errors from './implementation/error';
-import { FirebaseStorageError } from './implementation/error';
-import * as fbsTaskEnums from './implementation/taskenums';
+import { FirebaseStorageError, Code, canceled } from './implementation/error';
 import {
   InternalTaskState,
   TaskEvent,
-  TaskState
+  TaskState,
+  taskStateFromInternalTaskState
 } from './implementation/taskenums';
 import { Metadata } from './metadata';
 import {
@@ -40,8 +39,13 @@ import {
 } from './implementation/observer';
 import { Request } from './implementation/request';
 import { UploadTaskSnapshot } from './tasksnapshot';
-import * as fbsArgs from './implementation/args';
-import { ArgSpec } from './implementation/args';
+import {
+  ArgSpec,
+  nullFunctionSpec,
+  looseObjectSpec,
+  stringSpec,
+  validate
+} from './implementation/args';
 import { async as fbsAsync } from './implementation/async';
 import { Location } from './implementation/location';
 import * as fbsMetadata from './implementation/metadata';
@@ -100,7 +104,7 @@ export class UploadTask {
     this.errorHandler_ = error => {
       this.request_ = null;
       this.chunkMultiplier_ = 1;
-      if (error.codeEquals(errors.Code.CANCELED)) {
+      if (error.codeEquals(Code.CANCELED)) {
         this.needToFetchStatus_ = true;
         this.completeTransitions_();
       } else {
@@ -110,7 +114,7 @@ export class UploadTask {
     };
     this.metadataErrorHandler_ = error => {
       this.request_ = null;
-      if (error.codeEquals(errors.Code.CANCELED)) {
+      if (error.codeEquals(Code.CANCELED)) {
         this.completeTransitions_();
       } else {
         this.error_ = error;
@@ -125,7 +129,7 @@ export class UploadTask {
 
     // Prevent uncaught rejections on the internal promise from bubbling out
     // to the top level with a dummy handler.
-    this.promise_.then(null, () => {});
+    this.promise_.then(null, () => { });
   }
 
   private makeProgressCallback_(): (p1: number, p2: number) => void {
@@ -393,7 +397,7 @@ export class UploadTask {
         // TODO(andysoto):
         // assert(this.state_ === InternalTaskState.PAUSED ||
         //        this.state_ === InternalTaskState.CANCELING);
-        this.error_ = errors.canceled();
+        this.error_ = canceled();
         this.state_ = state;
         this.notifyObservers_();
         break;
@@ -435,7 +439,7 @@ export class UploadTask {
   }
 
   get snapshot(): UploadTaskSnapshot {
-    const externalState = fbsTaskEnums.taskStateFromInternalTaskState(
+    const externalState = taskStateFromInternalTaskState(
       this.state_
     );
     return new UploadTaskSnapshot(
@@ -469,14 +473,14 @@ export class UploadTask {
     const nextOrObserverMessage =
       'Expected a function or an Object with one of ' +
       '`next`, `error`, `complete` properties.';
-    const nextValidator = fbsArgs.nullFunctionSpec(true).validator;
-    const observerValidator = fbsArgs.looseObjectSpec(null, true).validator;
+    const nextValidator = nullFunctionSpec(true).validator;
+    const observerValidator = looseObjectSpec(null, true).validator;
 
     function nextOrObserverValidator(p: {}): void {
       try {
         nextValidator(p);
         return;
-      } catch (e) {}
+      } catch (e) { }
       try {
         observerValidator(p);
         const anyDefined =
@@ -492,12 +496,12 @@ export class UploadTask {
       }
     }
     const specs = [
-      fbsArgs.stringSpec(typeValidator),
-      fbsArgs.looseObjectSpec(nextOrObserverValidator, true),
-      fbsArgs.nullFunctionSpec(true),
-      fbsArgs.nullFunctionSpec(true)
+      stringSpec(typeValidator),
+      looseObjectSpec(nextOrObserverValidator, true),
+      nullFunctionSpec(true),
+      nullFunctionSpec(true)
     ];
-    fbsArgs.validate('on', specs, arguments);
+    validate('on', specs, arguments);
     const self = this;
 
     function makeBinder(
@@ -512,7 +516,7 @@ export class UploadTask {
         complete?: CompleteFn | null
       ): () => void {
         if (specs !== null) {
-          fbsArgs.validate('on', specs, arguments);
+          validate('on', specs, arguments);
         }
         const observer = new Observer(nextOrObserver, error, completed);
         self.addObserver_(observer);
@@ -530,9 +534,9 @@ export class UploadTask {
       nextOrObserverValidator(p);
     }
     const binderSpecs = [
-      fbsArgs.looseObjectSpec(binderNextOrObserverValidator),
-      fbsArgs.nullFunctionSpec(true),
-      fbsArgs.nullFunctionSpec(true)
+      looseObjectSpec(binderNextOrObserverValidator),
+      nullFunctionSpec(true),
+      nullFunctionSpec(true)
     ];
     const typeOnly = !(
       typeUtils.isJustDef(nextOrObserver) ||
@@ -600,7 +604,7 @@ export class UploadTask {
   private finishPromise_(): void {
     if (this.resolve_ !== null) {
       let triggered = true;
-      switch (fbsTaskEnums.taskStateFromInternalTaskState(this.state_)) {
+      switch (taskStateFromInternalTaskState(this.state_)) {
         case TaskState.SUCCESS:
           fbsAsync(this.resolve_.bind(null, this.snapshot))();
           break;
@@ -621,7 +625,7 @@ export class UploadTask {
   }
 
   private notifyObserver_(observer: Observer<UploadTaskSnapshot>): void {
-    const externalState = fbsTaskEnums.taskStateFromInternalTaskState(
+    const externalState = taskStateFromInternalTaskState(
       this.state_
     );
     switch (externalState) {
@@ -655,7 +659,7 @@ export class UploadTask {
    * @return True if the operation took effect, false if ignored.
    */
   resume(): boolean {
-    fbsArgs.validate('resume', [], arguments);
+    validate('resume', [], arguments);
     const valid =
       this.state_ === InternalTaskState.PAUSED ||
       this.state_ === InternalTaskState.PAUSING;
@@ -670,7 +674,7 @@ export class UploadTask {
    * @return True if the operation took effect, false if ignored.
    */
   pause(): boolean {
-    fbsArgs.validate('pause', [], arguments);
+    validate('pause', [], arguments);
     const valid = this.state_ === InternalTaskState.RUNNING;
     if (valid) {
       this.transition_(InternalTaskState.PAUSING);
@@ -684,7 +688,7 @@ export class UploadTask {
    * @return True if the operation took effect, false if ignored.
    */
   cancel(): boolean {
-    fbsArgs.validate('cancel', [], arguments);
+    validate('cancel', [], arguments);
     const valid =
       this.state_ === InternalTaskState.RUNNING ||
       this.state_ === InternalTaskState.PAUSING;

@@ -23,8 +23,16 @@ import { Metadata } from '../metadata';
 import { ListResult } from '../list';
 import { AuthWrapper } from './authwrapper';
 import { FbsBlob } from './blob';
-import * as errorsExports from './error';
-import { FirebaseStorageError } from './error';
+import {
+  FirebaseStorageError,
+  cannotSliceBlob,
+  unauthenticated,
+  quotaExceeded,
+  unauthorized,
+  objectNotFound,
+  serverFileWrongSize,
+  unknown
+} from './error';
 import { Location } from './location';
 import * as MetadataUtils from './metadata';
 import * as ListResultUtils from './list';
@@ -38,7 +46,7 @@ import { XhrIo } from './xhrio';
  */
 export function handlerCheck(cndn: boolean): void {
   if (!cndn) {
-    throw errorsExports.unknown();
+    throw unknown();
   }
 }
 
@@ -97,13 +105,13 @@ export function sharedErrorHandler(
   ): FirebaseStorageError {
     let newErr;
     if (xhr.getStatus() === 401) {
-      newErr = errorsExports.unauthenticated();
+      newErr = unauthenticated();
     } else {
       if (xhr.getStatus() === 402) {
-        newErr = errorsExports.quotaExceeded(location.bucket);
+        newErr = quotaExceeded(location.bucket);
       } else {
         if (xhr.getStatus() === 403) {
-          newErr = errorsExports.unauthorized(location.path);
+          newErr = unauthorized(location.path);
         } else {
           newErr = err;
         }
@@ -126,7 +134,7 @@ export function objectErrorHandler(
   ): FirebaseStorageError {
     let newErr = shared(xhr, err);
     if (xhr.getStatus() === 404) {
-      newErr = errorsExports.objectNotFound(location.path);
+      newErr = objectNotFound(location.path);
     }
     newErr.setServerResponseProp(err.serverResponseProp());
     return newErr;
@@ -242,7 +250,7 @@ export function deleteObject(
   const method = 'DELETE';
   const timeout = authWrapper.maxOperationRetryTime();
 
-  function handler(_xhr: XhrIo, _text: string): void {}
+  function handler(_xhr: XhrIo, _text: string): void { }
   const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.successCodes = [200, 204];
   requestInfo.errorHandler = objectErrorHandler(location);
@@ -316,7 +324,7 @@ export function multipartUpload(
   const postBlobPart = '\r\n--' + boundary + '--';
   const body = FbsBlob.getBlob(preBlobPart, blob, postBlobPart);
   if (body === null) {
-    throw errorsExports.cannotSliceBlob();
+    throw cannotSliceBlob();
   }
   const urlParams: UrlParams = { name: metadata_['fullPath']! };
   const url = UrlUtils.makeUrl(urlPart);
@@ -484,7 +492,7 @@ export function continueResumableUpload(
     status_.total = blob.size();
   }
   if (blob.size() !== status_.total) {
-    throw errorsExports.serverFileWrongSize();
+    throw serverFileWrongSize();
   }
   const bytesLeft = status_.total - status_.current;
   let bytesToUpload = bytesLeft;
@@ -501,7 +509,7 @@ export function continueResumableUpload(
   };
   const body = blob.slice(startByte, endByte);
   if (body === null) {
-    throw errorsExports.cannotSliceBlob();
+    throw cannotSliceBlob();
   }
 
   function handler(xhr: XhrIo, text: string): ResumableUploadStatus {
