@@ -16,6 +16,7 @@
  */
 
 import { use } from 'chai';
+import { Equatable } from '../../src/util/misc';
 
 /**
  * @file This file provides a helper function to add a matcher that matches
@@ -28,10 +29,12 @@ function customDeepEqual(left: unknown, right: unknown): boolean {
   /**
    * START: Custom compare logic
    */
-  // @ts-ignore
-  if (left && typeof left.isEqual === 'function') return left.isEqual(right);
-  // @ts-ignore
-  if (right && typeof right.isEqual === 'function') return right.isEqual(left);
+  if (typeof left === 'object' && left && 'isEqual' in left) {
+    return (left as Equatable<unknown>).isEqual(right);
+  }
+  if (typeof right === 'object' && right && 'isEqual' in right) {
+    return (right as Equatable<unknown>).isEqual(left);
+  }
   /**
    * END: Custom compare logic
    */

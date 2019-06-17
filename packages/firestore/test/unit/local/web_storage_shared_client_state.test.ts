@@ -205,10 +205,9 @@ describe('WebStorageSharedClientState', () => {
     // We capture the listener here so that we can invoke it from the local
     // client. If we directly relied on WebStorage listeners, we would not
     // receive events for local writes.
-    // @ts-ignore
-    window.addEventListener = (type: string, callback: WebStorageCallback) => {
+    window.addEventListener = (type: string, callback: unknown) => {
       if (type === 'storage') {
-        webStorageCallbacks.push(callback);
+        webStorageCallbacks.push(callback as WebStorageCallback);
       }
     };
     window.removeEventListener = () => {};

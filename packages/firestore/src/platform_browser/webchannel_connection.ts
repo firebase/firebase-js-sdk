@@ -20,8 +20,8 @@ import {
   ErrorCode,
   EventType,
   WebChannel,
+  WebChannelOptions,
   XhrIo
-  // @ts-ignore
 } from '@firebase/webchannel-wrapper';
 
 import { isReactNative } from '@firebase/util';
@@ -193,7 +193,7 @@ export class WebChannelConnection implements Connection {
       '/channel'
     ];
     const webchannelTransport = createWebChannelTransport();
-    const request = {
+    const request: WebChannelOptions = {
       // Background channel test avoids the initial two test calls and decreases
       // initial cold start time.
       // TODO(dimond): wenboz@ mentioned this might affect use with proxies and
@@ -224,7 +224,7 @@ export class WebChannelConnection implements Connection {
       forceLongPolling: this.forceLongPolling
     };
 
-    this.modifyHeadersForRequest(request.initMessageHeaders, token);
+    this.modifyHeadersForRequest(request.initMessageHeaders!, token);
 
     // Sending the custom headers we just added to request.initMessageHeaders
     // (Authorization, etc.) will trigger the browser to make a CORS preflight
@@ -244,8 +244,7 @@ export class WebChannelConnection implements Connection {
     // ReactNative and so we exclude it, which just means ReactNative may be
     // subject to the extra network roundtrip for CORS preflight.
     if (!isReactNative()) {
-      // @ts-ignore
-      request['httpHeadersOverwriteParam'] = '$httpHeaders';
+      request.httpHeadersOverwriteParam = '$httpHeaders';
     }
 
     const url = urlParts.join('');
@@ -345,11 +344,10 @@ export class WebChannelConnection implements Connection {
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter
           // can be removed once the fix has been rolled out.
+          // tslint:disable-next-line:no-any msgData.error is not typed.
+          const msgDataAsAny: any = msgData;
           const error =
-            // tslint:disable-next-line:no-any msgData.error is not typed.
-            (msgData as any).error ||
-            // @ts-ignore
-            (msgData[0] && msgData[0].error);
+            msgDataAsAny.error || (msgDataAsAny[0] && msgDataAsAny[0].error);
           if (error) {
             log.debug(LOG_TAG, 'WebChannel received error:', error);
             // error.status will be a string like 'OK' or 'NOT_FOUND'.

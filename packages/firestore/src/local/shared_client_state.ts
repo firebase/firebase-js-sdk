@@ -462,9 +462,7 @@ export class SharedOnlineState {
 
     const validData =
       typeof onlineState === 'object' &&
-      // @ts-ignore Should allow arbitrary string index when checking to see
-      // if that string is a valid enum value.
-      OnlineState[onlineState.onlineState] !== undefined &&
+      onlineState.onlineState in OnlineState &&
       typeof onlineState.clientId === 'string';
 
     if (validData) {
