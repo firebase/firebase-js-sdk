@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
- // @ts-ignore
+// @ts-ignore
 import { spawn } from 'child-process-promise';
 import { ChildProcess } from 'child_process';
 import * as fs from 'fs';

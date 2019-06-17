@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
- // @ts-ignore
+// @ts-ignore
 import { spawn } from 'child-process-promise';
 import * as path from 'path';
 // @ts-ignore

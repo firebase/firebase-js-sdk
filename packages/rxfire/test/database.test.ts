@@ -30,7 +30,7 @@ const rando = () =>
     .toString(36)
     .substring(5);
 
-let batch = (items: { name: string, key: string }[]) => {
+let batch = (items: { name: string; key: string }[]) => {
   let batch: { [key: string]: unknown } = {};
   items.forEach(item => {
     batch[item.key] = item;
