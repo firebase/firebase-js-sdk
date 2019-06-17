@@ -36,7 +36,7 @@ const STORAGE_TYPE = 'storage';
 
 function factory(
   app: FirebaseApp,
-  _unused: unknown,
+  unused: unknown,
   url?: string
 ): types.FirebaseStorage {
   return (new Service(

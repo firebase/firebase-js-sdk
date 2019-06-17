@@ -165,7 +165,7 @@ class NetworkRequest<T> implements Request<T> {
      *     through, false if it hit the retry limit or was canceled.
      */
     function backoffDone(
-      _requestWentThrough: boolean,
+      requestWentThrough: boolean,
       status: RequestEndStatus
     ): void {
       const resolve = self.resolve_ as Function;

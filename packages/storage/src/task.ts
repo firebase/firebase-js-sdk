@@ -509,7 +509,7 @@ export class UploadTask {
           | StorageObserver<UploadTaskSnapshot>
           | null,
         error?: ErrorFn | null,
-        _complete?: CompleteFn | null
+        complete?: CompleteFn | null
       ): () => void {
         if (specs !== null) {
           fbsArgs.validate('on', specs, arguments);

@@ -179,10 +179,10 @@ describe('Firebase Storage > Reference', () => {
 
   it("Doesn't send Authorization on null auth token", done => {
     function newSend(
-      _xhrio: TestingXhrIo,
-      _url: string,
-      _method: string,
-      _body?: ArrayBufferView | Blob | string | null,
+      xhrio: TestingXhrIo,
+      url: string,
+      method: string,
+      body?: ArrayBufferView | Blob | string | null,
       headers?: Headers
     ): void {
       assert.isDefined(headers);
@@ -198,10 +198,10 @@ describe('Firebase Storage > Reference', () => {
   it('Works if the user logs in before creating the storage reference', done => {
     // Regression test for b/27227221
     function newSend(
-      _xhrio: TestingXhrIo,
-      _url: string,
-      _method: string,
-      _body?: ArrayBufferView | Blob | string | null,
+      xhrio: TestingXhrIo,
+      url: string,
+      method: string,
+      body?: ArrayBufferView | Blob | string | null,
       headers?: Headers
     ): void {
       assert.isDefined(headers);

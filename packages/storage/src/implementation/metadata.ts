@@ -28,7 +28,7 @@ import * as type from './type';
 import * as UrlUtils from './url';
 import { Reference } from '../reference';
 
-export function noXform_<T>(_metadata: Metadata, value: T): T {
+export function noXform_<T>(metadata: Metadata, value: T): T {
   return value;
 }
 
