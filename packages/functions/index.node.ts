@@ -33,7 +33,7 @@ function factory(app: FirebaseApp, _unused: unknown, region?: string): Service {
 }
 
 export function registerFunctions(instance: _FirebaseNamespace): void {
-  let namespaceExports = {
+  const namespaceExports = {
     // no-inline
     Functions: Service
   };
