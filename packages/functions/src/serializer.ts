@@ -18,7 +18,10 @@
 const LONG_TYPE = 'type.googleapis.com/google.protobuf.Int64Value';
 const UNSIGNED_LONG_TYPE = 'type.googleapis.com/google.protobuf.UInt64Value';
 
-function mapValues(o: { [key: string]: unknown }, f: (arg0: unknown) => unknown): object {
+function mapValues(
+  o: { [key: string]: unknown },
+  f: (arg0: unknown) => unknown
+): object {
   const result: { [key: string]: unknown } = {};
   for (const key in o) {
     if (o.hasOwnProperty(key)) {
@@ -65,15 +68,15 @@ export class Serializer {
     if (json == null) {
       return json;
     }
-    if ((json as {[key: string]: unknown})['@type']) {
-      switch ((json as {[key: string]: unknown})['@type']) {
+    if ((json as { [key: string]: unknown })['@type']) {
+      switch ((json as { [key: string]: unknown })['@type']) {
         case LONG_TYPE:
         // Fall through and handle this the same as unsigned.
         case UNSIGNED_LONG_TYPE: {
           // Technically, this could work return a valid number for malformed
           // data if there was a number followed by garbage. But it's just not
           // worth all the extra code to detect that case.
-          const value = Number((json as {[key: string]: unknown})['value']);
+          const value = Number((json as { [key: string]: unknown })['value']);
           if (isNaN(value)) {
             throw new Error('Data cannot be decoded from JSON: ' + json);
           }
@@ -88,7 +91,9 @@ export class Serializer {
       return json.map(x => this.decode(x));
     }
     if (typeof json === 'function' || typeof json === 'object') {
-      return mapValues((json as Function | object), x => this.decode(x as {} | null));
+      return mapValues(json as Function | object, x =>
+        this.decode(x as {} | null)
+      );
     }
     // Anything else is safe to return.
     return json;
