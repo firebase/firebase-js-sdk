@@ -80,8 +80,8 @@ export function createFirebaseNamespaceCore(
   //
   //   import * as firebase from 'firebase';
   //   which becomes: var firebase = require('firebase');
-  // @ts-ignore
-  namespace['default'] = namespace;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (namespace as any)['default'] = namespace;
 
   // firebase.apps is a read-only getter.
   Object.defineProperty(namespace, 'apps', {
