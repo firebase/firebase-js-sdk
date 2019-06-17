@@ -129,7 +129,7 @@ export class UploadTask {
 
     // Prevent uncaught rejections on the internal promise from bubbling out
     // to the top level with a dummy handler.
-    this.promise_.then(null, () => { });
+    this.promise_.then(null, () => {});
   }
 
   private makeProgressCallback_(): (p1: number, p2: number) => void {
@@ -439,9 +439,7 @@ export class UploadTask {
   }
 
   get snapshot(): UploadTaskSnapshot {
-    const externalState = taskStateFromInternalTaskState(
-      this.state_
-    );
+    const externalState = taskStateFromInternalTaskState(this.state_);
     return new UploadTaskSnapshot(
       this.transferred_,
       this.blob_.size(),
@@ -480,7 +478,7 @@ export class UploadTask {
       try {
         nextValidator(p);
         return;
-      } catch (e) { }
+      } catch (e) {}
       try {
         observerValidator(p);
         const anyDefined =
@@ -625,9 +623,7 @@ export class UploadTask {
   }
 
   private notifyObserver_(observer: Observer<UploadTaskSnapshot>): void {
-    const externalState = taskStateFromInternalTaskState(
-      this.state_
-    );
+    const externalState = taskStateFromInternalTaskState(this.state_);
     switch (externalState) {
       case TaskState.RUNNING:
       case TaskState.PAUSED:

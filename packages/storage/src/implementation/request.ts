@@ -147,12 +147,10 @@ class NetworkRequest<T> implements Request<T> {
           }
           self.pendingXhr_ = null;
           xhr = xhr as XhrIo;
-          const hitServer =
-            xhr.getErrorCode() === ErrorCode.NO_ERROR;
+          const hitServer = xhr.getErrorCode() === ErrorCode.NO_ERROR;
           const status = xhr.getStatus();
           if (!hitServer || self.isRetryStatusCode_(status)) {
-            const wasCanceled =
-              xhr.getErrorCode() === ErrorCode.ABORT;
+            const wasCanceled = xhr.getErrorCode() === ErrorCode.ABORT;
             backoffCallback(
               false,
               new RequestEndStatus(false, null, wasCanceled)
@@ -197,9 +195,7 @@ class NetworkRequest<T> implements Request<T> {
           }
         } else {
           if (status.canceled) {
-            const err = self.appDelete_
-              ? appDeleted()
-              : canceled();
+            const err = self.appDelete_ ? appDeleted() : canceled();
             reject(err);
           } else {
             const err = retryLimitExceeded();

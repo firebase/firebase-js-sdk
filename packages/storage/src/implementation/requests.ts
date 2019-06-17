@@ -250,7 +250,7 @@ export function deleteObject(
   const method = 'DELETE';
   const timeout = authWrapper.maxOperationRetryTime();
 
-  function handler(_xhr: XhrIo, _text: string): void { }
+  function handler(_xhr: XhrIo, _text: string): void {}
   const requestInfo = new RequestInfo(url, method, handler, timeout);
   requestInfo.successCodes = [200, 204];
   requestInfo.errorHandler = objectErrorHandler(location);

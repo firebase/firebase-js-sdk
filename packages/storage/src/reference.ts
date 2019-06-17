@@ -143,11 +143,7 @@ export class Reference {
     data: Blob | Uint8Array | ArrayBuffer,
     metadata: Metadata | null = null
   ): UploadTask {
-    validate(
-      'put',
-      [uploadDataSpec(), metadataSpec(true)],
-      arguments
-    );
+    validate('put', [uploadDataSpec(), metadataSpec(true)], arguments);
     this.throwIfRoot_('put');
     return new UploadTask(
       this,
@@ -173,11 +169,7 @@ export class Reference {
   ): UploadTask {
     validate(
       'putString',
-      [
-        stringSpec(),
-        stringSpec(formatValidator, true),
-        metadataSpec(true)
-      ],
+      [stringSpec(), stringSpec(formatValidator, true), metadataSpec(true)],
       arguments
     );
     this.throwIfRoot_('putString');
