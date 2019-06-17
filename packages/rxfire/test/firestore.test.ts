@@ -52,7 +52,7 @@ const unwrapChange = map((changes: firestore.DocumentChange[]) => {
  * Create an environment for the tests to run in. The information is returned
  * from the function for use within the test.
  */
-const seedTest = firestore => {
+const seedTest = (firestore: firestore.Firestore) => {
   const colRef = createRandomCol(firestore);
   const davidDoc = colRef.doc('david');
   davidDoc.set({ name: 'David' });

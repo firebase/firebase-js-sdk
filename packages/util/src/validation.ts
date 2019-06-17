@@ -19,16 +19,16 @@
  * Check to make sure the appropriate number of arguments are provided for a public function.
  * Throws an error if it fails.
  *
- * @param {!string} fnName The function name
- * @param {!number} minCount The minimum number of arguments to allow for the function call
- * @param {!number} maxCount The maximum number of argument to allow for the function call
- * @param {!number} argCount The actual number of arguments provided.
+ * @param fnName The function name
+ * @param minCount The minimum number of arguments to allow for the function call
+ * @param maxCount The maximum number of argument to allow for the function call
+ * @param argCount The actual number of arguments provided.
  */
 export const validateArgCount = function(
-  fnName,
-  minCount,
-  maxCount,
-  argCount
+  fnName: string,
+  minCount: number,
+  maxCount: number,
+  argCount: number
 ): void {
   let argError;
   if (argCount < minCount) {
@@ -52,12 +52,16 @@ export const validateArgCount = function(
 /**
  * Generates a string to prefix an error message about failed argument validation
  *
- * @param {!string} fnName The function name
- * @param {!number} argumentNumber The index of the argument
- * @param {boolean} optional Whether or not the argument is optional
- * @return {!string} The prefix to add to the error thrown for validation.
+ * @param fnName The function name
+ * @param argumentNumber The index of the argument
+ * @param optional Whether or not the argument is optional
+ * @return The prefix to add to the error thrown for validation.
  */
-export function errorPrefix(fnName, argumentNumber, optional): string {
+export function errorPrefix(
+  fnName: string,
+  argumentNumber: number,
+  optional: boolean
+): string {
   let argName = '';
   switch (argumentNumber) {
     case 1:
@@ -85,16 +89,16 @@ export function errorPrefix(fnName, argumentNumber, optional): string {
 }
 
 /**
- * @param {!string} fnName
- * @param {!number} argumentNumber
- * @param {!string} namespace
- * @param {boolean} optional
+ * @param fnName
+ * @param argumentNumber
+ * @param namespace
+ * @param optional
  */
 export function validateNamespace(
-  fnName,
-  argumentNumber,
-  namespace,
-  optional
+  fnName: string,
+  argumentNumber: number,
+  namespace: string,
+  optional: boolean
 ): void {
   if (optional && !namespace) {
     return;
@@ -109,10 +113,10 @@ export function validateNamespace(
 }
 
 export function validateCallback(
-  fnName,
-  argumentNumber,
-  callback,
-  optional
+  fnName: string,
+  argumentNumber: number,
+  callback: Function,
+  optional: boolean
 ): void {
   if (optional && !callback) {
     return;
@@ -126,10 +130,10 @@ export function validateCallback(
 }
 
 export function validateContextObject(
-  fnName,
-  argumentNumber,
-  context,
-  optional
+  fnName: string,
+  argumentNumber: number,
+  context: unknown,
+  optional: boolean
 ): void {
   if (optional && !context) {
     return;

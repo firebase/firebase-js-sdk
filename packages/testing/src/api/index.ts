@@ -115,7 +115,7 @@ function initializeApp(
   databaseName?: string,
   projectId?: string
 ): firebase.app.App {
-  let appOptions = {};
+  let appOptions: { [key: string]: string } = {};
   if (databaseName) {
     appOptions['databaseURL'] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
   }
@@ -212,7 +212,8 @@ export function loadFirestoreRules(
         project: `projects/${options.projectId}`,
         rules: { files: [{ content: options.rules }] }
       },
-      (err, resp) => {
+      // @ts-ignore Defined in protobuf.
+      (err: Error, resp) => {
         if (err) {
           reject(err);
         } else {
@@ -247,7 +248,8 @@ export function clearFirestoreData(
       {
         database: `projects/${options.projectId}/databases/(default)`
       },
-      (err, resp) => {
+      // @ts-ignore Defined in protobuf.
+      (err: Error, resp) => {
         if (err) {
           reject(err);
         } else {

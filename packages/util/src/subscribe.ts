@@ -272,7 +272,10 @@ export function async(fn: Function, onError?: ErrorFn): Function {
 /**
  * Return true if the object passed in implements any of the named methods.
  */
-function implementsAnyMethods(obj: unknown, methods: string[]): boolean {
+function implementsAnyMethods(
+  obj: { [key: string]: unknown },
+  methods: string[]
+): boolean {
   if (typeof obj !== 'object' || obj === null) {
     return false;
   }

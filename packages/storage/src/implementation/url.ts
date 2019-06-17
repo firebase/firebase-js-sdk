@@ -20,16 +20,17 @@
  */
 import * as object from './object';
 import { DEFAULT_HOST } from './constants';
+import { UrlParams } from './requestinfo';
 
 export function makeUrl(urlPart: string): string {
   return `https://${DEFAULT_HOST}/v0${urlPart}`;
 }
 
-export function makeQueryString(params: { [key: string]: string }): string {
+export function makeQueryString(params: UrlParams): string {
   let encode = encodeURIComponent;
   let queryPart = '?';
   object.forEach(params, function(key, val) {
-    let nextPart = encode(key) + '=' + encode(val);
+    let nextPart = encode(key) + '=' + encode(val.toString());
     queryPart = queryPart + nextPart + '&';
   });
 

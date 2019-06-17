@@ -314,7 +314,10 @@ function executeFirebaseLiteTests(): void {
   });
 }
 
-function firebaseAppTests(testName, firebaseNamespaceFactory): void {
+function firebaseAppTests(
+  testName: string,
+  firebaseNamespaceFactory: () => FirebaseNamespace
+): void {
   describe(testName, () => {
     let firebase: FirebaseNamespace;
 

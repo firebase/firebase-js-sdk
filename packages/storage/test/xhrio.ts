@@ -38,7 +38,7 @@ export type StringHeaders = { [name: string]: string };
 export class TestingXhrIo implements XhrIo {
   private state: State;
   private sendPromise: Promise<XhrIo>;
-  private resolve: (XhrIo) => void;
+  private resolve: (xhrIo: XhrIo) => void;
   private sendHook: SendHook | null;
   private status: number;
   private responseText: string;
@@ -121,10 +121,12 @@ export class TestingXhrIo implements XhrIo {
     }
   }
 
+  // @ts-ignore Remove when implemented.
   addUploadProgressListener(listener): void {
     // TODO(andysoto): impl
   }
 
+  // @ts-ignore Remove when implemented.
   removeUploadProgressListener(listener): void {
     // TODO(andysoto): impl
   }

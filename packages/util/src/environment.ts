@@ -42,6 +42,8 @@ export function getUA(): string {
 export function isMobileCordova(): boolean {
   return (
     typeof window !== 'undefined' &&
+    // @ts-ignore Setting up an broadly applicable index signature for Window
+    // just to deal with this case would probably be a bad idea.
     !!(window['cordova'] || window['phonegap'] || window['PhoneGap']) &&
     /ios|iphone|ipod|ipad|android|blackberry|iemobile/i.test(getUA())
   );

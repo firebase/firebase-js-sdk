@@ -54,6 +54,7 @@ import {
   WatchTargetChangeState
 } from '../../../../src/remote/watch_change';
 import { Code, FirestoreError } from '../../../../src/util/error';
+import { Indexable } from '../../../../src/util/misc';
 import * as obj from '../../../../src/util/obj';
 import * as types from '../../../../src/util/types';
 import { addEqualityMatcher } from '../../../util/equality_matcher';
@@ -156,7 +157,9 @@ describe('Serializer', () => {
         const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
           actualJsonProto
         );
-        expect(actualProtobufjsProto[valueType]).to.deep.equal(protobufJsValue);
+        expect((actualProtobufjsProto as Indexable)[valueType]).to.deep.equal(
+          protobufJsValue
+        );
 
         // Convert protobufjs back to JSON.
         const returnJsonProto = ValueMessage.toObject(

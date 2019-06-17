@@ -163,7 +163,7 @@ export function list(
   pageToken?: string | null,
   maxResults?: number | null
 ): RequestInfo<ListResult> {
-  let urlParams = {};
+  let urlParams: UrlParams = {};
   if (location.isRoot) {
     urlParams['prefix'] = '';
   } else {
@@ -427,13 +427,13 @@ export function getResumableUploadStatus(
 
   function handler(xhr: XhrIo, text: string): ResumableUploadStatus {
     let status = checkResumeHeader_(xhr, ['active', 'final']);
-    let sizeString;
+    let sizeString: string | null = null;
     try {
       sizeString = xhr.getResponseHeader('X-Goog-Upload-Size-Received');
     } catch (e) {
       handlerCheck(false);
     }
-    let size = parseInt(sizeString, 10);
+    let size = parseInt(sizeString as string, 10);
     handlerCheck(!isNaN(size));
     return new ResumableUploadStatus(size, blob.size(), status === 'final');
   }

@@ -128,7 +128,7 @@ export function toChangesArray(
 export function toDataMap(
   docSet: firestore.QuerySnapshot
 ): { [field: string]: firestore.DocumentData } {
-  const docsData = {};
+  const docsData: { [field: string]: firestore.DocumentData } = {};
   docSet.forEach(doc => {
     docsData[doc.id] = doc.data();
   });

@@ -141,19 +141,19 @@ export class Logger {
    * The functions below are all based on the `console` interface
    */
 
-  debug(...args): void {
+  debug(...args: unknown[]): void {
     this._logHandler(this, LogLevel.DEBUG, ...args);
   }
-  log(...args): void {
+  log(...args: unknown[]): void {
     this._logHandler(this, LogLevel.VERBOSE, ...args);
   }
-  info(...args): void {
+  info(...args: unknown[]): void {
     this._logHandler(this, LogLevel.INFO, ...args);
   }
-  warn(...args): void {
+  warn(...args: unknown[]): void {
     this._logHandler(this, LogLevel.WARN, ...args);
   }
-  error(...args): void {
+  error(...args: unknown[]): void {
     this._logHandler(this, LogLevel.ERROR, ...args);
   }
 }

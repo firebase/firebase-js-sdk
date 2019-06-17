@@ -579,7 +579,7 @@ export class SimpleDbStore<
       options = {};
       callback = optionsOrCallback as IterateCallback<KeyType, ValueType>;
     } else {
-      options = optionsOrCallback;
+      options = optionsOrCallback as IterateOptions;
     }
     const cursor = this.cursor(options);
     return this.iterateCursor(cursor, callback);

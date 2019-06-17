@@ -69,7 +69,7 @@ export function listVal<T>(
   );
 }
 
-function positionFor(changes: QueryChange[], key) {
+function positionFor(changes: QueryChange[], key: string | null) {
   const len = changes.length;
   for (let i = 0; i < len; i++) {
     if (changes[i].snapshot.key === key) {
