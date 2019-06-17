@@ -19,7 +19,7 @@ import { base64Decode } from './crypt';
 import { jsonEval } from './json';
 
 interface Claims {
-  [key: string]: object | number | string | boolean;
+  [key: string]: {};
 }
 
 interface DecodedToken {
@@ -114,7 +114,7 @@ export const isValidTimestamp = function(token: string): boolean {
 export const issuedAtTime = function(token: string): number | null {
   const claims: Claims = decode(token).claims;
   if (typeof claims === 'object' && claims.hasOwnProperty('iat')) {
-    return claims['iat'] as number | null;
+    return claims['iat'] as number;
   }
   return null;
 };

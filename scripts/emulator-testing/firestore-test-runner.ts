@@ -15,8 +15,10 @@
  * limitations under the License.
  */
 
+// @ts-ignore
 import { spawn } from 'child-process-promise';
 import * as path from 'path';
+// @ts-ignore
 import * as freePortFinder from 'find-free-port';
 
 import { ChildProcessPromise } from './emulators/emulator';
@@ -48,9 +50,9 @@ async function run(): Promise<void> {
   }
 }
 
-function findFreePort() {
+function findFreePort(): Promise<number> {
   return new Promise((resolve, reject) => {
-    freePortFinder(10000, (err, port) => {
+    freePortFinder(10000, (err: Error, port: number) => {
       return err ? reject(err) : resolve(port);
     });
   });

@@ -30,11 +30,10 @@ const rando = () =>
     .toString(36)
     .substring(5);
 
-let batch = (items: any[]) => {
-  let batch = {};
-  Object.keys(items).forEach(function(key) {
-    const itemValue = items[key];
-    batch[itemValue.key] = itemValue;
+let batch = (items: { name: string; key: string }[]) => {
+  let batch: { [key: string]: unknown } = {};
+  items.forEach(item => {
+    batch[item.key] = item;
   });
   // make batch immutable to preserve integrity
   return Object.freeze(batch);
