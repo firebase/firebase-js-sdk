@@ -20,7 +20,6 @@
 
 interface UtilObject<V> {
   [key: string]: V;
-  [index: number]: V;
 }
 
 // See http://www.devthought.com/2012/01/18/an-object-is-not-a-hash/
