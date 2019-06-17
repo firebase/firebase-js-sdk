@@ -14,7 +14,7 @@
     "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "run-p lint test:browser",
+    "test": "run-p test:browser lint",
     "test:browser": "karma start --single-run",
     "prepare": "yarn build"
   },
