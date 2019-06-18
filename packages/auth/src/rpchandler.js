@@ -2206,7 +2206,9 @@ fireauth.RpcHandler.validateCheckActionCodeResponse_ = function(response) {
   // In this case, something unexpected happened.
   // Email could be empty only if the request type is EMAIL_SIGNIN.
   var operation = response['requestType'];
-  if (!operation || (!response['email'] && operation != 'EMAIL_SIGNIN')) {
+  if (!operation ||
+      (!response['email'] && operation != 'EMAIL_SIGNIN' &&
+       operation != 'VERIFY_AND_CHANGE_EMAIL')) {
     throw new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
   }
 };

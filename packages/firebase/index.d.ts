@@ -1534,25 +1534,48 @@ declare namespace firebase.auth {
      * contains an `email` field with the address the email was sent to.
      *
      * For the RECOVER_EMAIL action, which allows a user to undo an email address
-     * change, this object also contains a `fromEmail` field with the user account's
-     * new email address. After the action completes, the user's email address will
-     * revert to the value in the `email` field from the value in `fromEmail` field.
+     * change, this object also contains a `previousEmail` field with the user account's
+     * current email address. After the action completes, the user's email address will
+     * revert to the value in the `email` field from the value in `previousEmail` field.
+     *
+     * For the VERIFY_AND_CHANGE_EMAIL action, which allows a user to verify the email
+     * before updating it, this object contains a `previousEmail` field with the user
+     * account's email address before updating. After the action completes, the user's
+     * email address will be upadted to the value in the `email` field from the value
+     * in `previousEmail` field.
+     *
+     * For the REVERT_SECOND_FACTOR_ADDITION action, which allows a user to unenroll
+     * a newly added second factor, this object contains a `multiFactorInfo` field with
+     * the information about the second factor. For phone second factor, the
+     * `multiFactorInfo` is a {@link firebase.auth.Auth.PhoneMultiFactorInfo} object,
+     * which contains the phone number.
      */
     data: {
       email?: string | null;
+      /**
+       * @deprecated
+       * This field is deprecated in favor of previousEmail.
+       */
       fromEmail?: string | null;
+      multiFactorInfo?: MultiFactorInfo | null;
+      previousEmail?: string | null;
     };
     /**
      * The type of operation that generated the action code. This could be:
      * <ul>
+      * <li>`EMAIL_SIGNIN`: email sign in code generated via
+     *     {@link firebase.auth.Auth.sendSignInLinkToEmail}.</li>
      * <li>`PASSWORD_RESET`: password reset code generated via
      *     {@link firebase.auth.Auth.sendPasswordResetEmail}.</li>
-     * <li>`VERIFY_EMAIL`: email verification code generated via
-     *     {@link firebase.User.sendEmailVerification}.</li>
      * <li>`RECOVER_EMAIL`: email change revocation code generated via
      *     {@link firebase.User.updateEmail}.</li>
-     * <li>`EMAIL_SIGNIN`: email sign in code generated via
-     *     {@link firebase.auth.Auth.sendSignInLinkToEmail}.</li>
+     * <li>`REVERT_SECOND_FACTOR_ADDITION`: revert second factor addition
+     *     code generated via
+     *     {@link ffirebase.User.MultiFactorUser.enroll}.</li>
+     * <li>`VERIFY_AND_CHANGE_EMAIL`: verify and change email code generated
+     *     via {@link firebase.User.verifyBeforeUpdateEmail}.</li>
+     * <li>`VERIFY_EMAIL`: email verification code generated via
+     *     {@link firebase.User.sendEmailVerification}.</li>
      * </ul>
      */
     operation: string;
@@ -4015,6 +4038,39 @@ declare namespace firebase.User {
      */
     unenroll(option: firebase.auth.MultiFactorInfo | string): Promise<void>;
   }
+}
+
+declare namespace firebase.auth.ActionCodeInfo {
+  type Operation = string;
+  /**
+   * An enumeration of the possible email action types.
+   */
+  var Operation: {
+    /**
+     * The email link sign in email action.
+     */
+    EMAIL_SIGNIN: Operation;
+    /**
+     * The reset password email action.
+     */
+    PASSWORD_RESET: Operation;
+    /**
+     * The email revocation action.
+     */
+    RECOVER_EMAIL: Operation;
+    /**
+     * The revert second factor addition email action.
+     */
+    REVERT_SECOND_FACTOR_ADDITION: Operation;
+    /**
+     * The verify and update email action.
+     */
+    VERIFY_AND_CHANGE_EMAIL: Operation;
+    /**
+     * The email verification action.
+     */
+    VERIFY_EMAIL: Operation;
+  };
 }
 
 declare namespace firebase.database {

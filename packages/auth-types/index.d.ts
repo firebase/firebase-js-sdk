@@ -93,6 +93,8 @@ export interface ActionCodeInfo {
   data: {
     email?: string | null;
     fromEmail?: string | null;
+    multiFactorInfo?: MultiFactorInfo | null;
+    previousEmail?: string | null;
   };
   operation: string;
 }

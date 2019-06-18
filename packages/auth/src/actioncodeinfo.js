@@ -23,6 +23,7 @@
 
 goog.provide('fireauth.ActionCodeInfo');
 
+goog.require('fireauth.MultiFactorInfo');
 goog.require('fireauth.object');
 
 
@@ -42,15 +43,38 @@ fireauth.ActionCodeInfo = function(response) {
   var newEmail = response[fireauth.ActionCodeInfo.ServerFieldName.NEW_EMAIL];
   var operation =
       response[fireauth.ActionCodeInfo.ServerFieldName.REQUEST_TYPE];
-  // Email could be empty only if the request type is EMAIL_SIGNIN.
+  // The multi-factor info for revert second factor addition.
+  var mfaInfo =
+      fireauth.MultiFactorInfo.fromServerResponse(
+          response[fireauth.ActionCodeInfo.ServerFieldName.MFA_INFO]);
+  // Email could be empty only if the request type is EMAIL_SIGNIN or
+  // VERIFY_AND_CHANGE_EMAIL.
+  // New email should not be empty if the request type is
+  // VERIFY_AND_CHANGE_EMAIL.
+  // Multi-factor info could not be empty if the request type is
+  // REVERT_SECOND_FACTOR_ADDITION.
   if (!operation ||
-      (operation != fireauth.ActionCodeInfo.RequestType.EMAIL_SIGNIN &&
-      !email)) {
+      (operation != fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN &&
+       operation != fireauth.ActionCodeInfo.Operation.VERIFY_AND_CHANGE_EMAIL &&
+       !email) ||
+      (operation == fireauth.ActionCodeInfo.Operation.VERIFY_AND_CHANGE_EMAIL &&
+       !newEmail) ||
+      (operation ==
+       fireauth.ActionCodeInfo.Operation.REVERT_SECOND_FACTOR_ADDITION &&
+       !mfaInfo)) {
     // This is internal only.
-    throw new Error('Invalid provider user info!');
+    throw new Error('Invalid checkActionCode response!');
   }
-  data[fireauth.ActionCodeInfo.DataField.FROM_EMAIL] = newEmail || null;
-  data[fireauth.ActionCodeInfo.DataField.EMAIL] = email || null;
+  if (operation == fireauth.ActionCodeInfo.Operation.VERIFY_AND_CHANGE_EMAIL) {
+    data[fireauth.ActionCodeInfo.DataField.FROM_EMAIL] = email || null;
+    data[fireauth.ActionCodeInfo.DataField.PREVIOUS_EMAIL] = email || null;
+    data[fireauth.ActionCodeInfo.DataField.EMAIL] = newEmail;
+  } else {
+    data[fireauth.ActionCodeInfo.DataField.FROM_EMAIL] = newEmail || null;
+    data[fireauth.ActionCodeInfo.DataField.PREVIOUS_EMAIL] = newEmail || null;
+    data[fireauth.ActionCodeInfo.DataField.EMAIL] = email || null;
+  }
+  data[fireauth.ActionCodeInfo.DataField.MULTI_FACTOR_INFO] = mfaInfo || null;
   fireauth.object.setReadonlyProperty(
       this,
       fireauth.ActionCodeInfo.PropertyName.OPERATION,
@@ -63,13 +87,15 @@ fireauth.ActionCodeInfo = function(response) {
 
 
 /**
- * Firebase Auth Action Code Info requestType possible values.
+ * Firebase Auth Action Code Info operation possible values.
  * @enum {string}
  */
-fireauth.ActionCodeInfo.RequestType = {
+fireauth.ActionCodeInfo.Operation = {
   PASSWORD_RESET: 'PASSWORD_RESET',
   RECOVER_EMAIL: 'RECOVER_EMAIL',
+  REVERT_SECOND_FACTOR_ADDITION: 'REVERT_SECOND_FACTOR_ADDITION',
   EMAIL_SIGNIN: 'EMAIL_SIGNIN',
+  VERIFY_AND_CHANGE_EMAIL: 'VERIFY_AND_CHANGE_EMAIL',
   VERIFY_EMAIL: 'VERIFY_EMAIL'
 };
 
@@ -82,6 +108,8 @@ fireauth.ActionCodeInfo.ServerFieldName = {
   // This is the current email of the account and in email recovery, the email
   // to revert to.
   EMAIL: 'email',
+  // The multi-factor info to unenroll for revert second factor addition action.
+  MFA_INFO: 'mfaInfo',
   // For email recovery, this is the new email.
   NEW_EMAIL: 'newEmail',
   // The action code request type.
@@ -95,7 +123,10 @@ fireauth.ActionCodeInfo.ServerFieldName = {
  */
 fireauth.ActionCodeInfo.DataField = {
   EMAIL: 'email',
-  FROM_EMAIL: 'fromEmail'
+  // This field will be deprecated in favor of PREVIOUS_EMAIL.
+  FROM_EMAIL: 'fromEmail',
+  MULTI_FACTOR_INFO: 'multiFactorInfo',
+  PREVIOUS_EMAIL: 'previousEmail'
 };
 
 

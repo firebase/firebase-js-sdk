@@ -1483,9 +1483,10 @@ function testFetchSignInMethodsForEmail_error() {
 
 
 function testIsSignInWithEmailLink() {
-  var emailLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode';
+  var emailLink1 = 'https://www.example.com/action?mode=signIn&' +
+      'oobCode=oobCode&apiKey=API_KEY';
   var emailLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
-      'oobCode=oobCode';
+      'oobCode=oobCode&apiKey=API_KEY';
   var emailLink3 = 'https://www.example.com/action?mode=signIn';
   app1 = firebase.initializeApp(config1, appId1);
   auth1 = app1.auth();
@@ -1499,9 +1500,10 @@ function testIsSignInWithEmailLink() {
 
 
 function testIsSignInWithEmailLink_deepLink() {
-  var deepLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode';
+  var deepLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode' +
+      '&apiKey=API_KEY';
   var deepLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
-      'oobCode=oobCode';
+      'oobCode=oobCode&apiKey=API_KEY';
   var deepLink3 = 'https://www.example.com/action?mode=signIn';
 
   var emailLink1 = 'https://example.app.goo.gl/?link=' +
@@ -4232,7 +4234,8 @@ function testAuth_signInWithEmailLink_success() {
   fireauth.AuthEventManager.ENABLED = true;
   // Expected email and link.
   var expectedEmail = 'user@example.com';
-  var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code';
+  var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code' +
+      '&apiKey=API_KEY' ;
   var expectedOobCode = 'code';
   var expectedIdToken = 'HEAD.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ2' +
       '9vZ2xlLmNvbS8xMjM0NTY3OCIsDQogICJwaWN0dXJlIjogImh0dHBzOi8vcGx1cy5nb29' +
@@ -4299,7 +4302,8 @@ function testAuth_signInWithEmailLink_deepLink_success() {
   fireauth.AuthEventManager.ENABLED = true;
   // Expected email and link.
   var expectedEmail = 'user@example.com';
-  var deepLink = 'https://www.example.com?mode=signIn&oobCode=code';
+   var deepLink = 'https://www.example.com?mode=signIn&oobCode=code' +
+      '&apiKey=API_KEY';
   var expectedLink = 'https://example.app.goo.gl/?link=' +
       encodeURIComponent(deepLink);
   var expectedOobCode = 'code';
@@ -4361,7 +4365,8 @@ function testAuth_signInWithEmailLink_error() {
   fireauth.AuthEventManager.ENABLED = true;
   // Expected email and link.
   var expectedEmail = 'user@example.com';
-  var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code';
+  var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code' +
+      '&apiKey=API_KEY';
   var expectedOobCode = 'code';
   // Expected RPC error.
   var expectedError =

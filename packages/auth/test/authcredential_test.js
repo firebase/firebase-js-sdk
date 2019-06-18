@@ -1936,7 +1936,8 @@ function testEmailAuthCredential_linkToIdToken() {
 
 function testEmailAuthCredentialWithEmailLink_linkToIdToken() {
   var authCredential = fireauth.EmailAuthProvider.credentialWithLink(
-      'user@example.com', 'https://www.example.com?mode=signIn&oobCode=code');
+      'user@example.com',
+      'https://www.example.com?mode=signIn&oobCode=code&apiKey=API_KEY');
   authCredential.linkToIdToken(rpcHandler, 'myIdToken');
   assertRpcHandlerEmailLinkSignInForLinking(
       'myIdToken', 'user@example.com', 'code');
@@ -1958,7 +1959,8 @@ function testEmailAuthCredentialWithEmailLink_matchIdTokenWithUid() {
   // Mock idToken parsing.
   initializeIdTokenMocks('ID_TOKEN', '1234');
   var authCredential = fireauth.EmailAuthProvider.credentialWithLink(
-      'user@example.com', 'https://www.example.com?mode=signIn&oobCode=code');
+      'user@example.com',
+      'https://www.example.com?mode=signIn&oobCode=code&apiKey=API_KEY');
   var p = authCredential.matchIdTokenWithUid(rpcHandler, '1234');
   assertRpcHandlerEmailLinkSignIn('user@example.com', 'code');
   return p;
@@ -2023,7 +2025,8 @@ function testEmailAuthCredentialWithLink_deepLink() {
   assertEquals(
       fireauth.idp.SignInMethod.EMAIL_LINK,
       fireauth.EmailAuthProvider['EMAIL_LINK_SIGN_IN_METHOD']);
-  var deepLink = 'https://www.example.com?mode=signIn&oobCode=code';
+  var deepLink = 'https://www.example.com?mode=signIn&oobCode=code' +
+      '&apiKey=API_KEY';
   var emailLink = 'https://example.app.goo.gl/?link=' +
       encodeURIComponent(deepLink);
   var authCredential = fireauth.EmailAuthProvider.credentialWithLink(
@@ -2074,9 +2077,10 @@ function testEmailAuthCredentialWithLink_invalidLink_error() {
 
 
 function testEmailAuthProvider_getActionCodeFromSignInEmailLink() {
-  var emailLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode';
+  var emailLink1 = 'https://www.example.com/action?mode=signIn&' +
+      'oobCode=oobCode&apiKey=API_KEY';
   var emailLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
-                   'oobCode=oobCode';
+      'oobCode=oobCode&apiKey=API_KEY';
   var emailLink3 = 'https://www.example.com/action?mode=signIn';
   var oobCode1 = fireauth.EmailAuthProvider
       .getActionCodeFromSignInEmailLink(emailLink1);
@@ -2091,9 +2095,10 @@ function testEmailAuthProvider_getActionCodeFromSignInEmailLink() {
 
 
 function testEmailAuthProvider_getActionCodeFromSignInEmailLink_deepLink() {
-  var deepLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode';
+  var deepLink1 = 'https://www.example.com/action?mode=signIn&' +
+      'oobCode=oobCode&apiKey=API_KEY';
   var deepLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
-                   'oobCode=oobCode';
+      'oobCode=oobCode&apiKey=API_KEY';
   var deepLink3 = 'https://www.example.com/action?mode=signIn';
 
   var emailLink1 = 'https://example.app.goo.gl/?link=' +

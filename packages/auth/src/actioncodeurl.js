@@ -20,8 +20,12 @@
  * to parse action code URLs.
  */
 
-goog.provide('fireauth.ActionCodeUrl');
+goog.provide('fireauth.ActionCodeURL');
 
+goog.require('fireauth.ActionCodeInfo');
+goog.require('fireauth.AuthError');
+goog.require('fireauth.authenum.Error');
+goog.require('fireauth.object');
 goog.require('goog.Uri');
 
 
@@ -31,63 +35,87 @@ goog.require('goog.Uri');
  * @param {string} actionCodeUrl The action code URL.
  * @constructor
  */
-fireauth.ActionCodeUrl = function(actionCodeUrl) {
-   /** @private {!goog.Uri} The action code URL components.*/
-  this.uri_ = goog.Uri.parse(actionCodeUrl);
+fireauth.ActionCodeURL = function(actionLink) {
+  var uri = goog.Uri.parse(actionLink);
+  var apiKey = uri.getParameterValue(
+      fireauth.ActionCodeURL.QueryField.API_KEY) || null;
+  var code = uri.getParameterValue(
+      fireauth.ActionCodeURL.QueryField.CODE) || null;
+  var mode = uri.getParameterValue(
+      fireauth.ActionCodeURL.QueryField.MODE) || null;
+  var operation = fireauth.ActionCodeURL.getOperation(mode);
+  // Validate API key, code and mode.
+  if (!apiKey || !code || !operation) {
+    throw new fireauth.AuthError(
+        fireauth.authenum.Error.ARGUMENT_ERROR,
+        fireauth.ActionCodeURL.QueryField.API_KEY + ', ' +
+        fireauth.ActionCodeURL.QueryField.CODE + 'and ' +
+        fireauth.ActionCodeURL.QueryField.MODE +
+        ' are required in a valid action code URL.');
+  }
+  fireauth.object.setReadonlyProperties(this, {
+    'apiKey': apiKey,
+    'operation': operation,
+    'code': code,
+    'continueUrl': uri.getParameterValue(
+        fireauth.ActionCodeURL.QueryField.CONTINUE_URL) || null,
+    'languageCode': uri.getParameterValue(
+        fireauth.ActionCodeURL.QueryField.LANGUAGE_CODE) || null
+  });
 };
-
 
 /**
  * Enums for fields in URL query string.
  * @enum {string}
  */
-fireauth.ActionCodeUrl.QueryField = {
+fireauth.ActionCodeURL.QueryField = {
   API_KEY: 'apiKey',
   CODE: 'oobCode',
+  CONTINUE_URL: 'continueUrl',
+  LANGUAGE_CODE: 'languageCode',
   MODE: 'mode'
 };
 
 
 /**
- * Enums for action code modes.
- * @enum {string}
+ * Map of mode string to Action Code Info operation.
+ * @const @private {!Object<string, !fireauth.ActionCodeInfo.Operation>}
  */
-fireauth.ActionCodeUrl.Mode = {
-  RESET_PASSWORD: 'resetPassword',
-  REVOKE_EMAIL: 'recoverEmail',
-  SIGN_IN: 'signIn',
-  VERIFY_EMAIL: 'verifyEmail'
+fireauth.ActionCodeURL.ModeToOperationMap_ = {
+  'recoverEmail': fireauth.ActionCodeInfo.Operation.RECOVER_EMAIL,
+  'resetPassword': fireauth.ActionCodeInfo.Operation.PASSWORD_RESET,
+  'revertSecondFactorAddition':
+      fireauth.ActionCodeInfo.Operation.REVERT_SECOND_FACTOR_ADDITION,
+  'signIn': fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN,
+  'verifyAndChangeEmail':
+      fireauth.ActionCodeInfo.Operation.VERIFY_AND_CHANGE_EMAIL,
+  'verifyEmail': fireauth.ActionCodeInfo.Operation.VERIFY_EMAIL
 };
 
 
 /**
- * Returns the API key parameter of action code URL.
- * @return {?string} The first API key value in action code URL or
- *     undefined if apiKey does not appear in the URL.
+ * Maps the mode string in action code URL to Action Code Info operation.
+ * @param {?string} mode The mode string in the URL.
+ * @return {?fireauth.ActionCodeInfo.Operation}
  */
-fireauth.ActionCodeUrl.prototype.getApiKey = function() {
-  return this.uri_.getParameterValue(
-      fireauth.ActionCodeUrl.QueryField.API_KEY) || null;
+fireauth.ActionCodeURL.getOperation = function(mode) {
+  if (!mode) {
+    return null;
+  }
+  return fireauth.ActionCodeURL.ModeToOperationMap_[mode] || null;
+
 };
 
 
 /**
- * Returns the action code parameter of action code URL.
- * @return {?string} The first oobCode value in action code URL or
- *     undefined if oobCode does not appear in the URL.
+ * Returns an ActionCodeURL instance if the link is valid, otherwise null.
+ * @param {string} actionLink The action code link string.
+ * @return {?fireauth.ActionCodeURL}
  */
-fireauth.ActionCodeUrl.prototype.getCode = function() {
-  return this.uri_.getParameterValue(
-      fireauth.ActionCodeUrl.QueryField.CODE) || null;
-};
-
-
-/**
- * Returns the mode parameter of action code URL.
- * @return {?string} The first mode value in action code URL or
- *     undefined if mode does not appear in the URL.
- */
-fireauth.ActionCodeUrl.prototype.getMode = function() {
-  return this.uri_.getParameterValue(
-      fireauth.ActionCodeUrl.QueryField.MODE) || null;
+fireauth.ActionCodeURL.parseLink = function(actionLink) {
+  try {
+    return new fireauth.ActionCodeURL(actionLink);
+  } catch(e) {
+    return null;
+  }
 };

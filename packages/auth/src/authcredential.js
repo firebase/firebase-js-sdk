@@ -37,7 +37,7 @@ goog.provide('fireauth.SAMLAuthProvider');
 goog.provide('fireauth.TwitterAuthProvider');
 
 goog.forwardDeclare('fireauth.RpcHandler');
-goog.require('fireauth.ActionCodeUrl');
+goog.require('fireauth.ActionCodeURL');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.DynamicLink');
 goog.require('fireauth.IdToken');
@@ -1005,10 +1005,10 @@ fireauth.EmailAuthProvider.credentialWithLink = function(email, emailLink) {
 fireauth.EmailAuthProvider.getActionCodeFromSignInEmailLink =
     function(emailLink) {
   emailLink = fireauth.DynamicLink.parseDeepLink(emailLink);
-  var actionCodeUrl = new fireauth.ActionCodeUrl(emailLink);
-  var code = actionCodeUrl.getCode();
-  if (actionCodeUrl.getMode() === fireauth.ActionCodeUrl.Mode.SIGN_IN && code) {
-    return code;
+  var actionCodeUrl = fireauth.ActionCodeURL.parseLink(emailLink);
+  if (actionCodeUrl && actionCodeUrl['operation'] ===
+      fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN) {
+    return actionCodeUrl['code'];
   }
   return null;
 };

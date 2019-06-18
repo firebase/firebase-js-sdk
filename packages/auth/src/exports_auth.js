@@ -17,6 +17,7 @@
 
 goog.provide('fireauth.exports');
 
+goog.require('fireauth.ActionCodeInfo');
 goog.require('fireauth.Auth');
 goog.require('fireauth.AuthCredential');
 goog.require('fireauth.AuthError');
@@ -690,6 +691,19 @@ fireauth.exportlib.exportFunction(
     };
 
     var namespace = {
+      // Exports firebase.auth.ActionCodeInfo.Operation.
+      'ActionCodeInfo': {
+        'Operation': {
+          'EMAIL_SIGNIN': fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN,
+          'PASSWORD_RESET': fireauth.ActionCodeInfo.Operation.PASSWORD_RESET,
+          'RECOVER_EMAIL': fireauth.ActionCodeInfo.Operation.RECOVER_EMAIL,
+          'REVERT_SECOND_FACTOR_ADDITION':
+              fireauth.ActionCodeInfo.Operation.REVERT_SECOND_FACTOR_ADDITION,
+          'VERIFY_AND_CHANGE_EMAIL':
+              fireauth.ActionCodeInfo.Operation.VERIFY_AND_CHANGE_EMAIL,
+          'VERIFY_EMAIL': fireauth.ActionCodeInfo.Operation.VERIFY_EMAIL
+        }
+      },
       'Auth': fireauth.Auth,
       'AuthCredential': fireauth.AuthCredential,
       'Error': fireauth.AuthError
