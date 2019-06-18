@@ -139,7 +139,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
     sandbox.restore();
   });
 
-  it('should handle a failure to get registration', () => {
+  it('should handle a failure to get registration', async () => {
     sandbox
       .stub(BaseController.prototype, 'getNotificationPermission_')
       .callsFake(() => 'granted');
@@ -149,23 +149,16 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       .callsFake(() => Promise.reject('No Service Worker'));
 
     const messagingService = new WindowController(app);
-    return messagingService
-      .getToken()
-      .then(
-        () => {
-          throw new Error('Expected getToken to throw ');
-        },
-        err => {
-          assert.equal(
-            'messaging/' + ErrorCode.FAILED_DEFAULT_REGISTRATION,
-            err.code
-          );
-        }
-      )
-      .then(() => {
-        // tslint:disable-next-line:no-floating-promises
-        messagingService.delete();
-      });
+    try {
+      await messagingService.getToken();
+      throw new Error('Expected getToken to throw ');
+    } catch (err) {
+      assert.equal(
+        'messaging/' + ErrorCode.FAILED_DEFAULT_REGISTRATION,
+        err.code
+      );
+    }
+    await messagingService.delete();
   });
 
   it('should handle the notification permission', () => {
@@ -178,32 +171,20 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
     notificationStub.onCall(2).returns('denied');
     notificationStub.onCall(3).returns('default');
 
-    return servicesToTest.reduce((chain, serviceClass) => {
+    return servicesToTest.reduce(async (chain, serviceClass) => {
       const serviceInstance = new serviceClass(app);
       sandbox
         .stub(serviceClass.prototype, 'getPublicVapidKey_')
         .callsFake(() => Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY));
-      return chain
-        .then(() => {
-          return serviceInstance.getToken();
-        })
-        .then(
-          () => {
-            throw new Error('Expected getToken to throw ');
-          },
-          err => {
-            assert.equal(
-              'messaging/' + ErrorCode.NOTIFICATIONS_BLOCKED,
-              err.code
-            );
-          }
-        )
-        .then(() => {
-          return serviceInstance.getToken();
-        })
-        .then(token => {
-          assert.equal(null, token);
-        });
+      try {
+        await chain;
+        await serviceInstance.getToken();
+        throw new Error('Expected getToken to throw ');
+      } catch (err) {
+        assert.equal('messaging/' + ErrorCode.NOTIFICATIONS_BLOCKED, err.code);
+      }
+      const token = await serviceInstance.getToken();
+      assert.equal(null, token);
     }, Promise.resolve());
   });
 
@@ -211,7 +192,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
     vapidSetupToTest.forEach(vapidSetup => {
       it(`should get saved token in ${
         serviceClass.name
-      } for ${vapidSetup} VAPID setup`, () => {
+      } for ${vapidSetup} VAPID setup`, async () => {
         const regPromise = generateFakeReg();
         const subscription = makeFakeSubscription();
         mockGetReg(regPromise);
@@ -240,15 +221,14 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           .callsFake(() => Promise.resolve(details));
 
         const serviceInstance = new serviceClass(app);
-        return serviceInstance.getToken().then(token => {
-          assert.equal(details.fcmToken, token);
-        });
+        const token = await serviceInstance.getToken();
+        assert.equal(details.fcmToken, token);
       });
     });
 
     it(`should get saved token with custom VAPID in ${
       serviceClass.name
-    }`, () => {
+    }`, async () => {
       const registration = generateFakeReg();
       const subscription = makeFakeSubscription();
       mockGetReg(Promise.resolve(registration));
@@ -269,14 +249,13 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         .callsFake(() => Promise.resolve(EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID));
 
       const serviceInstance = new serviceClass(app);
-      return serviceInstance.getToken().then(token => {
-        assert.equal(EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID.fcmToken, token);
-      });
+      const token = await serviceInstance.getToken();
+      assert.equal(EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID.fcmToken, token);
     });
   });
 
   servicesToTest.forEach(serviceClass => {
-    it(`should update token in ${serviceClass.name} every 7 days`, () => {
+    it(`should update token in ${serviceClass.name} every 7 days`, async () => {
       const registration = generateFakeReg();
       const subscription = makeFakeSubscription();
       mockGetReg(Promise.resolve(registration));
@@ -310,9 +289,8 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         .callsFake(async () => {});
 
       const serviceInstance = new serviceClass(app);
-      return serviceInstance.getToken().then(token => {
-        assert.equal(EXAMPLE_FCM_TOKEN, token);
-      });
+      const token = await serviceInstance.getToken();
+      assert.equal(EXAMPLE_FCM_TOKEN, token);
     });
   });
 
@@ -396,7 +374,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
       it(`should get a new token in ${
         serviceClass.name
-      } if PushSubscription details have changed`, () => {
+      } if PushSubscription details have changed`, async () => {
         // Stubs
         const deleteTokenStub = sandbox.stub(
           TokenDetailsModel.prototype,
@@ -461,15 +439,14 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           .callsFake(() => Promise.resolve(details));
 
         const serviceInstance = new serviceClass(app);
-        return serviceInstance.getToken().then(token => {
-          // make sure we call getToken and retrieve the new token.
-          assert.equal('new-token', token);
-          // make sure the existing token is deleted.
-          assert.equal(deleteTokenStub.callCount, 1);
-          // make sure the new details are saved.
-          assert.equal(saveTokenDetailsStub.callCount, 1);
-          assert.equal(saveVapidDetailsSandbox.callCount, 1);
-        });
+        const token = await serviceInstance.getToken();
+        // make sure we call getToken and retrieve the new token.
+        assert.equal('new-token', token);
+        // make sure the existing token is deleted.
+        assert.equal(deleteTokenStub.callCount, 1);
+        // make sure the new details are saved.
+        assert.equal(saveTokenDetailsStub.callCount, 1);
+        assert.equal(saveVapidDetailsSandbox.callCount, 1);
       });
     });
   });
