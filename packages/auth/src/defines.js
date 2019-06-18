@@ -89,7 +89,7 @@ fireauth.constants.Endpoint = {
     secureTokenEndpoint: 'https://staging-securetoken.sandbox.googleapis.com' +
         '/v1/token',
     identityPlatformEndpoint:
-        'https://staging-identitytoolkit.sandbox.googleapis.com/v2alpha1/',
+        'https://staging-identitytoolkit.sandbox.googleapis.com/v2/',
     id: 'b'
   },
   PRODUCTION: {
@@ -97,7 +97,7 @@ fireauth.constants.Endpoint = {
         'relyingparty/',
     secureTokenEndpoint: 'https://securetoken.googleapis.com/v1/token',
     identityPlatformEndpoint:
-        'https://identitytoolkit.googleapis.com/v2alpha1/',
+        'https://identitytoolkit.googleapis.com/v2/',
     id: 'p'
   },
   STAGING: {
@@ -106,7 +106,7 @@ fireauth.constants.Endpoint = {
     secureTokenEndpoint: 'https://staging-securetoken.sandbox.googleapis.com' +
         '/v1/token',
     identityPlatformEndpoint:
-        'https://staging-identitytoolkit.sandbox.googleapis.com/v2alpha1/',
+        'https://staging-identitytoolkit.sandbox.googleapis.com/v2/',
     id: 's'
   },
   TEST: {
@@ -115,7 +115,7 @@ fireauth.constants.Endpoint = {
     secureTokenEndpoint: 'https://test-securetoken.sandbox.googleapis.com/v1' +
         '/token',
     identityPlatformEndpoint:
-        'https://test-identitytoolkit.sandbox.googleapis.com/v2alpha1/',
+        'https://test-identitytoolkit.sandbox.googleapis.com/v2/',
     id: 't'
   }
 };

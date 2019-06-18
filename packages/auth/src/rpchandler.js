@@ -398,7 +398,7 @@ fireauth.RpcHandler.FIREBASE_ENDPOINT_ =
  * @private
  */
 fireauth.RpcHandler.IDENTITY_PLATFORM_ENDPOINT_ =
-    'https://identitytoolkit.googleapis.com/v2alpha1/';
+    'https://identitytoolkit.googleapis.com/v2/';
 
 
 /**
