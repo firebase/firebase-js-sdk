@@ -1571,7 +1571,7 @@ declare namespace firebase.auth {
      *     {@link firebase.User.updateEmail}.</li>
      * <li>`REVERT_SECOND_FACTOR_ADDITION`: revert second factor addition
      *     code generated via
-     *     {@link ffirebase.User.MultiFactorUser.enroll}.</li>
+     *     {@link firebase.User.MultiFactorUser.enroll}.</li>
      * <li>`VERIFY_AND_CHANGE_EMAIL`: verify and change email code generated
      *     via {@link firebase.User.verifyBeforeUpdateEmail}.</li>
      * <li>`VERIFY_EMAIL`: email verification code generated via
