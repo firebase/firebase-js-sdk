@@ -56,8 +56,7 @@ export async function set<ValueType>(
   const key = getKey(appConfig);
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  // tslint:disable-next-line:no-floating-promises
-  tx.objectStore(OBJECT_STORE_NAME).put(value, key);
+  await tx.objectStore(OBJECT_STORE_NAME).put(value, key);
   await tx.complete;
   return value;
 }
@@ -67,9 +66,8 @@ export async function remove(appConfig: AppConfig): Promise<void> {
   const key = getKey(appConfig);
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  // tslint:disable-next-line:no-floating-promises
-  tx.objectStore(OBJECT_STORE_NAME).delete(key);
-  return tx.complete;
+  await tx.objectStore(OBJECT_STORE_NAME).delete(key);
+  await tx.complete;
 }
 
 /**
@@ -94,11 +92,9 @@ export async function update<OldType, NewType>(
   }
 
   if (newValue === undefined) {
-    // tslint:disable-next-line:no-floating-promises
-    store.delete(key);
+    await store.delete(key);
   } else {
-    // tslint:disable-next-line:no-floating-promises
-    store.put(newValue, key);
+    await store.put(newValue, key);
   }
 
   await tx.complete;
@@ -108,9 +104,8 @@ export async function update<OldType, NewType>(
 export async function clear(): Promise<void> {
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  // tslint:disable-next-line:no-floating-promises
-  tx.objectStore(OBJECT_STORE_NAME).clear();
-  return tx.complete;
+  await tx.objectStore(OBJECT_STORE_NAME).clear();
+  await tx.complete;
 }
 
 function getKey(appConfig: AppConfig): string {

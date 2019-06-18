@@ -59,8 +59,7 @@ describe('DbInterface', () => {
   });
 
   afterEach(async () => {
-    // tslint:disable-next-line:no-floating-promises
-    dbInterface.closeDatabase();
+    await dbInterface.closeDatabase();
     await deleteDatabase(dbInterface.dbName);
   });
 

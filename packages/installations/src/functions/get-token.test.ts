@@ -37,8 +37,6 @@ import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
 import { getToken } from './get-token';
 
-// tslint:disable:no-floating-promises
-
 const FID = 'dont-talk-to-strangers';
 const AUTH_TOKEN = 'authTokenFromServer';
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -101,6 +99,7 @@ const setupInstallationEntryMap: Map<
       await set(appConfig, entry);
 
       // Finish pending request after 500 ms
+      // tslint:disable-next-line:no-floating-promises
       sleep(500).then(async () => {
         const updatedEntry: RegisteredInstallationEntry = {
           ...entry,
@@ -111,7 +110,7 @@ const setupInstallationEntryMap: Map<
             creationTime: Date.now()
           }
         };
-        set(appConfig, updatedEntry);
+        await set(appConfig, updatedEntry);
       });
     }
   ],
@@ -141,6 +140,7 @@ const setupInstallationEntryMap: Map<
       await set(appConfig, entry);
 
       // Finish pending request after 500 ms
+      // tslint:disable-next-line:no-floating-promises
       sleep(500).then(async () => {
         const updatedEntry: RegisteredInstallationEntry = {
           fid: FID,
@@ -153,7 +153,7 @@ const setupInstallationEntryMap: Map<
             creationTime: Date.now()
           }
         };
-        set(appConfig, updatedEntry);
+        await set(appConfig, updatedEntry);
       });
     }
   ],

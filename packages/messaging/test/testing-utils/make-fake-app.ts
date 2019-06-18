@@ -33,8 +33,6 @@ export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
     options,
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    // This won't be used in tests.
-    // tslint:disable-next-line:no-any
     messaging: null as any
   };
 }
