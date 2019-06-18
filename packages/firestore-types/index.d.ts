@@ -128,6 +128,13 @@ export type LogLevel = 'debug' | 'error' | 'silent';
 
 export function setLogLevel(logLevel: LogLevel): void;
 
+export interface FirestoreConverter<T> {
+  // Converts a model object of type T into plain Firestore DocumentData.
+  toFirestore(modelObject: T): DocumentData;
+  // Converts firestore data into a model object of type T.
+  fromFirestore(data: DocumentData): T;
+}
+
 /**
  * `Firestore` represents a Firestore Database and is the entry point for all
  * Firestore operations.
@@ -172,7 +179,11 @@ export class FirebaseFirestore {
    * @param collectionPath A slash-separated path to a collection.
    * @return The `CollectionReference` instance.
    */
-  collection(collectionPath: string): CollectionReference;
+  collection(collectionPath: string): CollectionReference<DocumentData>;
+  collection<T>(
+    collectionPath: string,
+    converter: FirestoreConverter<T>
+  ): CollectionReference<T>;
 
   /**
    * Gets a `DocumentReference` instance that refers to the document at the
@@ -181,7 +192,11 @@ export class FirebaseFirestore {
    * @param documentPath A slash-separated path to a document.
    * @return The `DocumentReference` instance.
    */
-  doc(documentPath: string): DocumentReference;
+  doc(documentPath: string): DocumentReference<DocumentData>;
+  doc<T>(
+    documentPath: string,
+    converter: FirestoreConverter<T>
+  ): DocumentReference<T>;
 
   /**
    * Creates and returns a new Query that includes all documents in the
@@ -193,7 +208,11 @@ export class FirebaseFirestore {
    * will be included. Cannot contain a slash.
    * @return The created Query.
    */
-  collectionGroup(collectionId: string): Query;
+  collectionGroup(collectionId: string): Query<DocumentData>;
+  collectionGroup<T>(
+    collectionId: string,
+    converter: FirestoreConverter<T>
+  ): Query<T>;
 
   /**
    * Executes the given updateFunction and then attempts to commit the
@@ -438,7 +457,7 @@ export class Transaction {
    * @param documentRef A reference to the document to be read.
    * @return A DocumentSnapshot for the read data.
    */
-  get(documentRef: DocumentReference): Promise<DocumentSnapshot>;
+  get<T>(documentRef: DocumentReference<T>): Promise<DocumentSnapshot<T>>;
 
   /**
    * Writes to the document referred to by the provided `DocumentReference`.
@@ -450,9 +469,9 @@ export class Transaction {
    * @param options An object to configure the set behavior.
    * @return This `Transaction` instance. Used for chaining method calls.
    */
-  set(
-    documentRef: DocumentReference,
-    data: DocumentData,
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: T,
     options?: SetOptions
   ): Transaction;
 
@@ -467,7 +486,7 @@ export class Transaction {
    * within the document.
    * @return This `Transaction` instance. Used for chaining method calls.
    */
-  update(documentRef: DocumentReference, data: UpdateData): Transaction;
+  update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
 
   /**
    * Updates fields in the document referred to by the provided
@@ -485,7 +504,7 @@ export class Transaction {
    * to the backend (Note that it won't resolve while you're offline).
    */
   update(
-    documentRef: DocumentReference,
+    documentRef: DocumentReference<any>,
     field: string | FieldPath,
     value: any,
     ...moreFieldsAndValues: any[]
@@ -497,7 +516,7 @@ export class Transaction {
    * @param documentRef A reference to the document to be deleted.
    * @return This `Transaction` instance. Used for chaining method calls.
    */
-  delete(documentRef: DocumentReference): Transaction;
+  delete(documentRef: DocumentReference<any>): Transaction;
 }
 
 /**
@@ -524,9 +543,9 @@ export class WriteBatch {
    * @param options An object to configure the set behavior.
    * @return This `WriteBatch` instance. Used for chaining method calls.
    */
-  set(
-    documentRef: DocumentReference,
-    data: DocumentData,
+  set<T>(
+    documentRef: DocumentReference<T>,
+    data: T,
     options?: SetOptions
   ): WriteBatch;
 
@@ -541,7 +560,7 @@ export class WriteBatch {
    * within the document.
    * @return This `WriteBatch` instance. Used for chaining method calls.
    */
-  update(documentRef: DocumentReference, data: UpdateData): WriteBatch;
+  update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
 
   /**
    * Updates fields in the document referred to by this `DocumentReference`.
@@ -558,7 +577,7 @@ export class WriteBatch {
    * to the backend (Note that it won't resolve while you're offline).
    */
   update(
-    documentRef: DocumentReference,
+    documentRef: DocumentReference<any>,
     field: string | FieldPath,
     value: any,
     ...moreFieldsAndValues: any[]
@@ -570,7 +589,7 @@ export class WriteBatch {
    * @param documentRef A reference to the document to be deleted.
    * @return This `WriteBatch` instance. Used for chaining method calls.
    */
-  delete(documentRef: DocumentReference): WriteBatch;
+  delete(documentRef: DocumentReference<any>): WriteBatch;
 
   /**
    * Commits all of the writes in this write batch as a single atomic unit.
@@ -654,7 +673,7 @@ export interface GetOptions {
  * the referenced location may or may not exist. A `DocumentReference` can
  * also be used to create a `CollectionReference` to a subcollection.
  */
-export class DocumentReference {
+export class DocumentReference<T> {
   private constructor();
 
   /** The identifier of the document within its collection. */
@@ -669,7 +688,7 @@ export class DocumentReference {
   /**
    * A reference to the Collection to which this DocumentReference belongs.
    */
-  readonly parent: CollectionReference;
+  readonly parent: CollectionReference<T>;
 
   /**
    * A string representing the path of the referenced document (relative
@@ -684,7 +703,11 @@ export class DocumentReference {
    * @param collectionPath A slash-separated path to a collection.
    * @return The `CollectionReference` instance.
    */
-  collection(collectionPath: string): CollectionReference;
+  collection(collectionPath: string): CollectionReference<DocumentData>;
+  collection<C>(
+    collectionPath: string,
+    converter: FirestoreConverter<C>
+  ): CollectionReference<C>;
 
   /**
    * Returns true if this `DocumentReference` is equal to the provided one.
@@ -692,7 +715,7 @@ export class DocumentReference {
    * @param other The `DocumentReference` to compare against.
    * @return true if this `DocumentReference` is equal to the provided one.
    */
-  isEqual(other: DocumentReference): boolean;
+  isEqual(other: DocumentReference<T>): boolean;
 
   /**
    * Writes to the document referred to by this `DocumentReference`. If the
@@ -704,7 +727,7 @@ export class DocumentReference {
    * @return A Promise resolved once the data has been successfully written
    * to the backend (Note that it won't resolve while you're offline).
    */
-  set(data: DocumentData, options?: SetOptions): Promise<void>;
+  set(data: T, options?: SetOptions): Promise<void>;
 
   /**
    * Updates fields in the document referred to by this `DocumentReference`.
@@ -758,7 +781,7 @@ export class DocumentReference {
    * @return A Promise resolved with a DocumentSnapshot containing the
    * current document contents.
    */
-  get(options?: GetOptions): Promise<DocumentSnapshot>;
+  get(options?: GetOptions): Promise<DocumentSnapshot<T>>;
 
   /**
    * Attaches a listener for DocumentSnapshot events. You may either pass
@@ -778,26 +801,26 @@ export class DocumentReference {
    * the snapshot listener.
    */
   onSnapshot(observer: {
-    next?: (snapshot: DocumentSnapshot) => void;
+    next?: (snapshot: DocumentSnapshot<T>) => void;
     error?: (error: FirestoreError) => void;
     complete?: () => void;
   }): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
     observer: {
-      next?: (snapshot: DocumentSnapshot) => void;
+      next?: (snapshot: DocumentSnapshot<T>) => void;
       error?: (error: Error) => void;
       complete?: () => void;
     }
   ): () => void;
   onSnapshot(
-    onNext: (snapshot: DocumentSnapshot) => void,
+    onNext: (snapshot: DocumentSnapshot<T>) => void,
     onError?: (error: Error) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
-    onNext: (snapshot: DocumentSnapshot) => void,
+    onNext: (snapshot: DocumentSnapshot<T>) => void,
     onError?: (error: Error) => void,
     onCompletion?: () => void
   ): () => void;
@@ -865,13 +888,13 @@ export interface SnapshotMetadata {
  * access will return 'undefined'. You can use the `exists` property to
  * explicitly verify a document's existence.
  */
-export class DocumentSnapshot {
+export class DocumentSnapshot<T> {
   protected constructor();
 
   /** True if the document exists. */
   readonly exists: boolean;
   /** A `DocumentReference` to the document location. */
-  readonly ref: DocumentReference;
+  readonly ref: DocumentReference<T>;
   /**
    * The ID of the document for which this `DocumentSnapshot` contains data.
    */
@@ -896,7 +919,7 @@ export class DocumentSnapshot {
    * @return An Object containing all fields in the document or 'undefined' if
    * the document doesn't exist.
    */
-  data(options?: SnapshotOptions): DocumentData | undefined;
+  data(options?: SnapshotOptions): T | undefined;
 
   /**
    * Retrieves the field specified by `fieldPath`. Returns 'undefined' if the
@@ -921,7 +944,7 @@ export class DocumentSnapshot {
    * @param other The `DocumentSnapshot` to compare against.
    * @return true if this `DocumentSnapshot` is equal to the provided one.
    */
-  isEqual(other: DocumentSnapshot): boolean;
+  isEqual(other: DocumentSnapshot<T>): boolean;
 }
 
 /**
@@ -935,7 +958,7 @@ export class DocumentSnapshot {
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot extends DocumentSnapshot {
+export class QueryDocumentSnapshot<T> extends DocumentSnapshot<T> {
   private constructor();
 
   /**
@@ -951,7 +974,7 @@ export class QueryDocumentSnapshot extends DocumentSnapshot {
    * not yet been set to their final value).
    * @return An Object containing all fields in the document.
    */
-  data(options?: SnapshotOptions): DocumentData;
+  data(options?: SnapshotOptions): T;
 }
 
 /**
@@ -972,7 +995,7 @@ export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>' | 'array-contains';
  * A `Query` refers to a Query which you can read or listen to. You can also
  * construct refined `Query` objects by adding filters and ordering.
  */
-export class Query {
+export class Query<T> {
   protected constructor();
 
   /**
@@ -991,7 +1014,11 @@ export class Query {
    * @param value The value for comparison
    * @return The created Query.
    */
-  where(fieldPath: string | FieldPath, opStr: WhereFilterOp, value: any): Query;
+  where(
+    fieldPath: string | FieldPath,
+    opStr: WhereFilterOp,
+    value: any
+  ): Query<T>;
 
   /**
    * Creates and returns a new Query that's additionally sorted by the
@@ -1005,7 +1032,7 @@ export class Query {
   orderBy(
     fieldPath: string | FieldPath,
     directionStr?: OrderByDirection
-  ): Query;
+  ): Query<T>;
 
   /**
    * Creates and returns a new Query that's additionally limited to only
@@ -1014,7 +1041,7 @@ export class Query {
    * @param limit The maximum number of items to return.
    * @return The created Query.
    */
-  limit(limit: number): Query;
+  limit(limit: number): Query<T>;
 
   /**
    * Creates and returns a new Query that starts at the provided document
@@ -1025,7 +1052,7 @@ export class Query {
    * @param snapshot The snapshot of the document to start at.
    * @return The created Query.
    */
-  startAt(snapshot: DocumentSnapshot): Query;
+  startAt(snapshot: DocumentSnapshot<T>): Query<T>;
 
   /**
    * Creates and returns a new Query that starts at the provided fields
@@ -1036,7 +1063,7 @@ export class Query {
    * of the query's order by.
    * @return The created Query.
    */
-  startAt(...fieldValues: any[]): Query;
+  startAt(...fieldValues: any[]): Query<T>;
 
   /**
    * Creates and returns a new Query that starts after the provided document
@@ -1047,7 +1074,7 @@ export class Query {
    * @param snapshot The snapshot of the document to start after.
    * @return The created Query.
    */
-  startAfter(snapshot: DocumentSnapshot): Query;
+  startAfter(snapshot: DocumentSnapshot<T>): Query<T>;
 
   /**
    * Creates and returns a new Query that starts after the provided fields
@@ -1058,7 +1085,7 @@ export class Query {
    * of the query's order by.
    * @return The created Query.
    */
-  startAfter(...fieldValues: any[]): Query;
+  startAfter(...fieldValues: any[]): Query<T>;
 
   /**
    * Creates and returns a new Query that ends before the provided document
@@ -1069,7 +1096,7 @@ export class Query {
    * @param snapshot The snapshot of the document to end before.
    * @return The created Query.
    */
-  endBefore(snapshot: DocumentSnapshot): Query;
+  endBefore(snapshot: DocumentSnapshot<T>): Query<T>;
 
   /**
    * Creates and returns a new Query that ends before the provided fields
@@ -1080,7 +1107,7 @@ export class Query {
    * of the query's order by.
    * @return The created Query.
    */
-  endBefore(...fieldValues: any[]): Query;
+  endBefore(...fieldValues: any[]): Query<T>;
 
   /**
    * Creates and returns a new Query that ends at the provided document
@@ -1091,7 +1118,7 @@ export class Query {
    * @param snapshot The snapshot of the document to end at.
    * @return The created Query.
    */
-  endAt(snapshot: DocumentSnapshot): Query;
+  endAt(snapshot: DocumentSnapshot<T>): Query<T>;
 
   /**
    * Creates and returns a new Query that ends at the provided fields
@@ -1102,7 +1129,7 @@ export class Query {
    * of the query's order by.
    * @return The created Query.
    */
-  endAt(...fieldValues: any[]): Query;
+  endAt(...fieldValues: any[]): Query<T>;
 
   /**
    * Returns true if this `Query` is equal to the provided one.
@@ -1110,7 +1137,7 @@ export class Query {
    * @param other The `Query` to compare against.
    * @return true if this `Query` is equal to the provided one.
    */
-  isEqual(other: Query): boolean;
+  isEqual(other: Query<T>): boolean;
 
   /**
    * Executes the query and returns the results as a QuerySnapshot.
@@ -1123,7 +1150,7 @@ export class Query {
    * @param options An object to configure the get behavior.
    * @return A Promise that will be resolved with the results of the Query.
    */
-  get(options?: GetOptions): Promise<QuerySnapshot>;
+  get(options?: GetOptions): Promise<QuerySnapshot<T>>;
 
   /**
    * Attaches a listener for QuerySnapshot events. You may either pass
@@ -1143,26 +1170,26 @@ export class Query {
    * the snapshot listener.
    */
   onSnapshot(observer: {
-    next?: (snapshot: QuerySnapshot) => void;
+    next?: (snapshot: QuerySnapshot<T>) => void;
     error?: (error: Error) => void;
     complete?: () => void;
   }): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
     observer: {
-      next?: (snapshot: QuerySnapshot) => void;
+      next?: (snapshot: QuerySnapshot<T>) => void;
       error?: (error: Error) => void;
       complete?: () => void;
     }
   ): () => void;
   onSnapshot(
-    onNext: (snapshot: QuerySnapshot) => void,
+    onNext: (snapshot: QuerySnapshot<T>) => void,
     onError?: (error: Error) => void,
     onCompletion?: () => void
   ): () => void;
   onSnapshot(
     options: SnapshotListenOptions,
-    onNext: (snapshot: QuerySnapshot) => void,
+    onNext: (snapshot: QuerySnapshot<T>) => void,
     onError?: (error: Error) => void,
     onCompletion?: () => void
   ): () => void;
@@ -1175,14 +1202,14 @@ export class Query {
  * number of documents can be determined via the `empty` and `size`
  * properties.
  */
-export class QuerySnapshot {
+export class QuerySnapshot<T> {
   private constructor();
 
   /**
    * The query on which you called `get` or `onSnapshot` in order to get this
    * `QuerySnapshot`.
    */
-  readonly query: Query;
+  readonly query: Query<T>;
   /**
    * Metadata about this snapshot, concerning its source and if it has local
    * modifications.
@@ -1190,7 +1217,7 @@ export class QuerySnapshot {
   readonly metadata: SnapshotMetadata;
 
   /** An array of all the documents in the QuerySnapshot. */
-  readonly docs: QueryDocumentSnapshot[];
+  readonly docs: QueryDocumentSnapshot<T>[];
 
   /** The number of documents in the QuerySnapshot. */
   readonly size: number;
@@ -1206,7 +1233,7 @@ export class QuerySnapshot {
    * changes (i.e. only `DocumentSnapshot.metadata` changed) should trigger
    * snapshot events.
    */
-  docChanges(options?: SnapshotListenOptions): DocumentChange[];
+  docChanges(options?: SnapshotListenOptions): DocumentChange<T>[];
 
   /**
    * Enumerates all of the documents in the QuerySnapshot.
@@ -1216,7 +1243,7 @@ export class QuerySnapshot {
    * @param thisArg The `this` binding for the callback.
    */
   forEach(
-    callback: (result: QueryDocumentSnapshot) => void,
+    callback: (result: QueryDocumentSnapshot<T>) => void,
     thisArg?: any
   ): void;
 
@@ -1226,7 +1253,7 @@ export class QuerySnapshot {
    * @param other The `QuerySnapshot` to compare against.
    * @return true if this `QuerySnapshot` is equal to the provided one.
    */
-  isEqual(other: QuerySnapshot): boolean;
+  isEqual(other: QuerySnapshot<T>): boolean;
 }
 
 /**
@@ -1238,12 +1265,12 @@ export type DocumentChangeType = 'added' | 'removed' | 'modified';
  * A `DocumentChange` represents a change to the documents matching a query.
  * It contains the document affected and the type of change that occurred.
  */
-export interface DocumentChange {
+export interface DocumentChange<T> {
   /** The type of change ('added', 'modified', or 'removed'). */
   readonly type: DocumentChangeType;
 
   /** The document affected by this change. */
-  readonly doc: QueryDocumentSnapshot;
+  readonly doc: QueryDocumentSnapshot<T>;
 
   /**
    * The index of the changed document in the result set immediately prior to
@@ -1266,7 +1293,7 @@ export interface DocumentChange {
  * document references, and querying for documents (using the methods
  * inherited from `Query`).
  */
-export class CollectionReference extends Query {
+export class CollectionReference<T> extends Query<T> {
   private constructor();
 
   /** The identifier of the collection. */
@@ -1276,7 +1303,8 @@ export class CollectionReference extends Query {
    * A reference to the containing Document if this is a subcollection, else
    * null.
    */
-  readonly parent: DocumentReference | null;
+  // TODO(mikelehen): Need to provide a generic version that takes a FirestoreConverter?
+  readonly parent: DocumentReference<DocumentData> | null;
 
   /**
    * A string representing the path of the referenced collection (relative
@@ -1292,7 +1320,7 @@ export class CollectionReference extends Query {
    * @param documentPath A slash-separated path to a document.
    * @return The `DocumentReference` instance.
    */
-  doc(documentPath?: string): DocumentReference;
+  doc(documentPath?: string): DocumentReference<T>;
 
   /**
    * Add a new document to this collection with the specified data, assigning
@@ -1302,7 +1330,7 @@ export class CollectionReference extends Query {
    * @return A Promise resolved with a `DocumentReference` pointing to the
    * newly created document after it has been written to the backend.
    */
-  add(data: DocumentData): Promise<DocumentReference>;
+  add(data: T): Promise<DocumentReference<T>>;
 
   /**
    * Returns true if this `CollectionReference` is equal to the provided one.
@@ -1310,7 +1338,7 @@ export class CollectionReference extends Query {
    * @param other The `CollectionReference` to compare against.
    * @return true if this `CollectionReference` is equal to the provided one.
    */
-  isEqual(other: CollectionReference): boolean;
+  isEqual(other: CollectionReference<T>): boolean;
 }
 
 /**
