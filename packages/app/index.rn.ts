@@ -25,7 +25,7 @@ import { createFirebaseNamespace } from './src/firebaseNamespace';
  * here
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-let AsyncStorage: any; 
+let AsyncStorage: any;
 
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
