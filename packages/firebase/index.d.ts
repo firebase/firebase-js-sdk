@@ -1563,7 +1563,7 @@ declare namespace firebase.auth {
     /**
      * The type of operation that generated the action code. This could be:
      * <ul>
-      * <li>`EMAIL_SIGNIN`: email sign in code generated via
+     * <li>`EMAIL_SIGNIN`: email sign in code generated via
      *     {@link firebase.auth.Auth.sendSignInLinkToEmail}.</li>
      * <li>`PASSWORD_RESET`: password reset code generated via
      *     {@link firebase.auth.Auth.sendPasswordResetEmail}.</li>
