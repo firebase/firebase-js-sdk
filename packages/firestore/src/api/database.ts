@@ -32,9 +32,9 @@ import {
   Direction,
   FieldFilter,
   Filter,
+  Operator,
   OrderBy,
-  Query as InternalQuery,
-  Operator
+  Query as InternalQuery
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';

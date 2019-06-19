@@ -30,8 +30,8 @@ import {
   Bound,
   Direction,
   Filter,
-  OrderBy,
-  Operator
+  Operator,
+  OrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
 import { ProtoByteString, TargetId } from '../../src/core/types';

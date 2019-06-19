@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Filter, Query, FieldFilter } from '../../../src/core/query';
+import { FieldFilter, Filter, Query } from '../../../src/core/query';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
