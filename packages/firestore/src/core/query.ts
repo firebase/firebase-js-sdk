@@ -484,6 +484,8 @@ export abstract class Filter {
         'IN filter has invalid value: ' + value.toString()
       );
       return new InFilter(field, value as ArrayValue);
+    } else if (op === Operator.ARRAY_CONTAINS_ANY) {
+      return new ArrayContainsAnyFilter(field, value as ArrayValue);
     } else {
       return new FieldFilter(field, op, value);
     }
@@ -544,30 +546,14 @@ export class FieldFilter extends Filter {
   }
 
   matches(doc: Document): boolean {
-    const val = doc.field(this.field);
-    return val !== undefined && this.matchesValue(val);
-  }
+    const other = doc.field(this.field);
 
-  private matchesValue(other: FieldValue): boolean {
-    if (this.op === Operator.ARRAY_CONTAINS_ANY) {
-      return (
-        other instanceof ArrayValue &&
-        other.internalValue.some(lhsElem => {
-          return (
-            this.value instanceof ArrayValue &&
-            this.value.internalValue.find(rhsElem =>
-              rhsElem.isEqual(lhsElem)
-            ) !== undefined
-          );
-        })
-      );
-    } else {
-      // Only compare types with matching backend order (such as double and int).
-      return (
-        this.value.typeOrder === other.typeOrder &&
-        this.matchesComparison(other.compareTo(this.value))
-      );
-    }
+    // Only compare types with matching backend order (such as double and int).
+    return (
+      other !== undefined &&
+      this.value.typeOrder === other.typeOrder &&
+      this.matchesComparison(other.compareTo(this.value))
+    );
   }
 
   protected matchesComparison(comparison: number): boolean {
@@ -719,6 +705,35 @@ export class InFilter extends FieldFilter {
       other !== undefined &&
       arrayValue.internalValue.find(element => element.isEqual(other)) !==
         undefined
+    );
+  }
+}
+
+/**
+ * A Filter that implements the array-contains-any operator. When a user
+ * specifies query.where('some.field', 'array-contains-any', [13, 42]), this
+ * filter will match documents that:
+ *
+ *   * contain a field at some.field;
+ *   * that field is an array; and
+ *   * that array contains one of 13 or 42.
+ */
+export class ArrayContainsAnyFilter extends FieldFilter {
+  constructor(field: FieldPath, value: ArrayValue) {
+    super(field, Operator.ARRAY_CONTAINS_ANY, value);
+  }
+
+  matches(doc: Document): boolean {
+    const arrayValue = this.value as ArrayValue;
+    const other = doc.field(this.field);
+    return (
+      other instanceof ArrayValue &&
+      other.internalValue.some(lhsElem => {
+        return (
+          arrayValue.internalValue.find(rhsElem => rhsElem.isEqual(lhsElem)) !==
+          undefined
+        );
+      })
     );
   }
 }
