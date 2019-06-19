@@ -474,7 +474,8 @@ export class UploadTask {
     const nextValidator = nullFunctionSpec(true).validator;
     const observerValidator = looseObjectSpec(null, true).validator;
 
-    function nextOrObserverValidator(p: {}): void {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    function nextOrObserverValidator(p: any): void {
       try {
         nextValidator(p);
         return;

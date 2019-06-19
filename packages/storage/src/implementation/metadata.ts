@@ -206,11 +206,12 @@ export function toResourceString(
 }
 
 export function metadataValidator(p: unknown): void {
-  if (!p || !type.isObject(p)) {
+  if (!type.isObject(p) || !p ) {
     throw 'Expected Metadata object.';
   }
   for (const key in p) {
     if (p.hasOwnProperty(key)) {
+      // @ts-ignore suppress noimplicitany error
       const val = p[key];
       if (key === 'customMetadata') {
         if (!type.isObject(val)) {

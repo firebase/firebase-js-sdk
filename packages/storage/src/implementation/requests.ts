@@ -367,14 +367,14 @@ export class ResumableUploadStatus {
 }
 
 export function checkResumeHeader_(xhr: XhrIo, allowed?: string[]): string {
-  let status;
+  let status: string | null = null;
   try {
     status = xhr.getResponseHeader('X-Goog-Upload-Status');
   } catch (e) {
     handlerCheck(false);
   }
   const allowedStatus = allowed || ['active'];
-  handlerCheck(allowedStatus.indexOf(status) !== -1);
+  handlerCheck(!!status && allowedStatus.indexOf(status) !== -1);
   return status as string;
 }
 
