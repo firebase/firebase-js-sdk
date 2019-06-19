@@ -677,11 +677,7 @@ export class ArrayContainsFilter extends FieldFilter {
 
   matches(doc: Document): boolean {
     const other = doc.field(this.field);
-    return (
-      other instanceof ArrayValue &&
-      other.internalValue.find(element => element.isEqual(this.value)) !==
-        undefined
-    );
+    return other instanceof ArrayValue && other.contains(this.value);
   }
 }
 
@@ -701,11 +697,7 @@ export class InFilter extends FieldFilter {
   matches(doc: Document): boolean {
     const arrayValue = this.value as ArrayValue;
     const other = doc.field(this.field);
-    return (
-      other !== undefined &&
-      arrayValue.internalValue.find(element => element.isEqual(other)) !==
-        undefined
-    );
+    return other !== undefined && arrayValue.contains(other);
   }
 }
 
@@ -729,10 +721,7 @@ export class ArrayContainsAnyFilter extends FieldFilter {
     return (
       other instanceof ArrayValue &&
       other.internalValue.some(lhsElem => {
-        return (
-          arrayValue.internalValue.find(rhsElem => rhsElem.isEqual(lhsElem)) !==
-          undefined
-        );
+        return arrayValue.contains(lhsElem);
       })
     );
   }
