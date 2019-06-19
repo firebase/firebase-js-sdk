@@ -448,7 +448,19 @@ export abstract class Filter {
    * Creates a filter based on the provided arguments.
    */
   static create(field: FieldPath, op: Operator, value: FieldValue): Filter {
-    if (value.isEqual(NullValue.INSTANCE)) {
+    if (field.isKeyField()) {
+      assert(
+        value instanceof RefValue,
+        'Comparing on key, but filter value not a RefValue'
+      );
+      assert(
+        op !== Operator.ARRAY_CONTAINS &&
+          op !== Operator.ARRAY_CONTAINS_ANY &&
+          op !== Operator.IN,
+        `'${op.toString()}' queries don't make sense on document keys.`
+      );
+      return new KeyFieldFilter(field, op, value as RefValue);
+    } else if (value.isEqual(NullValue.INSTANCE)) {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
@@ -524,24 +536,8 @@ export class FieldFilter extends Filter {
   }
 
   matches(doc: Document): boolean {
-    if (this.field.isKeyField()) {
-      assert(
-        this.value instanceof RefValue,
-        'Comparing on key, but filter value not a RefValue'
-      );
-      assert(
-        this.op !== Operator.ARRAY_CONTAINS &&
-          this.op !== Operator.ARRAY_CONTAINS_ANY &&
-          this.op !== Operator.IN,
-        `'${this.op.toString()}' queries don't make sense on document keys.`
-      );
-      const refValue = this.value as RefValue;
-      const comparison = DocumentKey.comparator(doc.key, refValue.key);
-      return this.matchesComparison(comparison);
-    } else {
-      const val = doc.field(this.field);
-      return val !== undefined && this.matchesValue(val);
-    }
+    const val = doc.field(this.field);
+    return val !== undefined && this.matchesValue(val);
   }
 
   private matchesValue(other: FieldValue): boolean {
@@ -581,7 +577,7 @@ export class FieldFilter extends Filter {
     }
   }
 
-  private matchesComparison(comparison: number): boolean {
+  protected matchesComparison(comparison: number): boolean {
     switch (this.op) {
       case Operator.LESS_THAN:
         return comparison < 0;
@@ -668,6 +664,21 @@ export class NanFilter extends UnaryFilter {
 
   toString(): string {
     return `${this.field.canonicalString()} IS NaN`;
+  }
+}
+
+/**
+ * Filter that matches on key fields (i.e. '__name__').
+ */
+export class KeyFieldFilter extends FieldFilter {
+  constructor(field: FieldPath, op: Operator, value: RefValue) {
+    super(field, op, value);
+  }
+
+  matches(doc: Document): boolean {
+    const refValue = this.value as RefValue;
+    const comparison = DocumentKey.comparator(doc.key, refValue.key);
+    return this.matchesComparison(comparison);
   }
 }
 
