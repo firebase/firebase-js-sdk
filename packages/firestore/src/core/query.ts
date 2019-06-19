@@ -478,6 +478,12 @@ export abstract class Filter {
       return new NanFilter(field);
     } else if (op === Operator.ARRAY_CONTAINS) {
       return new ArrayContainsFilter(field, value);
+    } else if (op === Operator.IN) {
+      assert(
+        value instanceof ArrayValue,
+        'IN filter has invalid value: ' + value.toString()
+      );
+      return new InFilter(field, value as ArrayValue);
     } else {
       return new FieldFilter(field, op, value);
     }
@@ -543,16 +549,7 @@ export class FieldFilter extends Filter {
   }
 
   private matchesValue(other: FieldValue): boolean {
-    if (this.op === Operator.IN) {
-      if (this.value instanceof ArrayValue) {
-        return (
-          this.value.internalValue.find(element => element.isEqual(other)) !==
-          undefined
-        );
-      } else {
-        return fail('IN filter has invalid value: ' + this.value.toString());
-      }
-    } else if (this.op === Operator.ARRAY_CONTAINS_ANY) {
+    if (this.op === Operator.ARRAY_CONTAINS_ANY) {
       return (
         other instanceof ArrayValue &&
         other.internalValue.some(lhsElem => {
@@ -697,6 +694,30 @@ export class ArrayContainsFilter extends FieldFilter {
     return (
       other instanceof ArrayValue &&
       other.internalValue.find(element => element.isEqual(this.value)) !==
+        undefined
+    );
+  }
+}
+
+/**
+ * A Filter that implements the in operator. When a user specifies
+ * query.where('some.field', 'in', [13, 42]), this filter will match documents
+ * that:
+ *
+ *   * contain a field at some.field and
+ *   * the value in that field is one of 13 or 42.
+ */
+export class InFilter extends FieldFilter {
+  constructor(field: FieldPath, value: ArrayValue) {
+    super(field, Operator.IN, value);
+  }
+
+  matches(doc: Document): boolean {
+    const arrayValue = this.value as ArrayValue;
+    const other = doc.field(this.field);
+    return (
+      other !== undefined &&
+      arrayValue.internalValue.find(element => element.isEqual(other)) !==
         undefined
     );
   }
