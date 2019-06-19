@@ -27,6 +27,8 @@ import { DatabaseId } from '../../../../src/core/database_info';
 import {
   Direction,
   FieldFilter,
+  NanFilter,
+  NullFilter,
   OrderBy,
   Query,
   RelationOp
@@ -809,7 +811,8 @@ describe('Serializer', () => {
 
     it('converts null', () => {
       const input = filter('field', '==', null);
-      const actual = s.toUnaryFilter(input);
+      expect(input).to.be.instanceof(NullFilter);
+      const actual = s.toUnaryFilter(input as NullFilter);
       expect(actual).to.deep.equal({
         unaryFilter: {
           field: { fieldPath: 'field' },
@@ -821,7 +824,8 @@ describe('Serializer', () => {
 
     it('converts Nan', () => {
       const input = filter('field', '==', NaN);
-      const actual = s.toUnaryFilter(input);
+      expect(input).to.be.instanceof(NanFilter);
+      const actual = s.toUnaryFilter(input as NanFilter);
       expect(actual).to.deep.equal({
         unaryFilter: {
           field: { fieldPath: 'field' },

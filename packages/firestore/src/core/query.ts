@@ -635,17 +635,14 @@ export class FieldFilter extends Filter {
   }
 }
 
+export class UnaryFilter extends FieldFilter {}
+
 /**
  * Filter that matches 'null' values.
  */
-export class NullFilter extends Filter {
-  constructor(public field: FieldPath) {
-    super();
-  }
-
-  matches(doc: Document): boolean {
-    const val = doc.field(this.field);
-    return val !== undefined && val.value() === null;
+export class NullFilter extends UnaryFilter {
+  constructor(field: FieldPath) {
+    super(field, Operator.EQUAL, NullValue.INSTANCE);
   }
 
   canonicalId(): string {
@@ -655,28 +652,14 @@ export class NullFilter extends Filter {
   toString(): string {
     return `${this.field.canonicalString()} IS null`;
   }
-
-  isEqual(other: Filter): boolean {
-    if (other instanceof NullFilter) {
-      return this.field.isEqual(other.field);
-    } else {
-      return false;
-    }
-  }
 }
 
 /**
  * Filter that matches 'NaN' values.
  */
-export class NanFilter extends Filter {
-  constructor(public field: FieldPath) {
-    super();
-  }
-
-  matches(doc: Document): boolean {
-    const field = doc.field(this.field);
-    const val = field && field.value();
-    return typeof val === 'number' && isNaN(val);
+export class NanFilter extends UnaryFilter {
+  constructor(field: FieldPath) {
+    super(field, Operator.EQUAL, DoubleValue.NAN);
   }
 
   canonicalId(): string {
@@ -685,14 +668,6 @@ export class NanFilter extends Filter {
 
   toString(): string {
     return `${this.field.canonicalString()} IS NaN`;
-  }
-
-  isEqual(other: Filter): boolean {
-    if (other instanceof NanFilter) {
-      return this.field.isEqual(other.field);
-    } else {
-      return false;
-    }
   }
 }
 

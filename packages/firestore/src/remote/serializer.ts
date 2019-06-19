@@ -28,7 +28,8 @@ import {
   NullFilter,
   OrderBy,
   Query,
-  RelationOp
+  RelationOp,
+  UnaryFilter
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
@@ -1163,9 +1164,9 @@ export class JsonProtoSerializer {
   private toFilter(filters: Filter[]): api.Filter | undefined {
     if (filters.length === 0) return;
     const protos = filters.map(filter =>
-      filter instanceof FieldFilter
-        ? this.toRelationFilter(filter)
-        : this.toUnaryFilter(filter)
+      filter instanceof UnaryFilter
+        ? this.toUnaryFilter(filter)
+        : this.toRelationFilter(filter)
     );
     if (protos.length === 1) {
       return protos[0];
@@ -1305,7 +1306,7 @@ export class JsonProtoSerializer {
   }
 
   // visible for testing
-  toUnaryFilter(filter: Filter): api.Filter {
+  toUnaryFilter(filter: UnaryFilter): api.Filter {
     if (filter instanceof NanFilter) {
       return {
         unaryFilter: {
@@ -1313,15 +1314,14 @@ export class JsonProtoSerializer {
           op: 'IS_NAN'
         }
       };
-    } else if (filter instanceof NullFilter) {
+    } else {
+      assert(filter instanceof NullFilter, 'Unknown filter');
       return {
         unaryFilter: {
           field: this.toFieldPathReference(filter.field),
           op: 'IS_NULL'
         }
       };
-    } else {
-      return fail('Unrecognized filter: ' + JSON.stringify(filter));
     }
   }
 
