@@ -110,7 +110,7 @@ export class Query {
   addFilter(filter: Filter): Query {
     assert(
       this.getInequalityFilterField() == null ||
-        !(filter instanceof RelationFilter) ||
+        !(filter instanceof FieldFilter) ||
         !filter.isInequality() ||
         filter.field.isEqual(this.getInequalityFilterField()!),
       'Query must only have one inequality field.'
@@ -342,7 +342,7 @@ export class Query {
 
   getInequalityFilterField(): FieldPath | null {
     for (const filter of this.filters) {
-      if (filter instanceof RelationFilter && filter.isInequality()) {
+      if (filter instanceof FieldFilter && filter.isInequality()) {
         return filter.field;
       }
     }
@@ -353,7 +353,7 @@ export class Query {
   // returns the first one that is, or null if none are.
   findRelationOpFilter(relationOps: RelationOp[]): RelationOp | null {
     for (const filter of this.filters) {
-      if (filter instanceof RelationFilter) {
+      if (filter instanceof FieldFilter) {
         if (relationOps.indexOf(filter.op) >= 0) {
           return filter.op;
         }
@@ -465,7 +465,7 @@ export abstract class Filter {
       }
       return new NanFilter(field);
     } else {
-      return new RelationFilter(field, op, value);
+      return new FieldFilter(field, op, value);
     }
   }
 }
@@ -514,7 +514,7 @@ export class RelationOp {
   }
 }
 
-export class RelationFilter extends Filter {
+export class FieldFilter extends Filter {
   constructor(
     public field: FieldPath,
     public op: RelationOp,
@@ -619,7 +619,7 @@ export class RelationFilter extends Filter {
   }
 
   isEqual(other: Filter): boolean {
-    if (other instanceof RelationFilter) {
+    if (other instanceof FieldFilter) {
       return (
         this.op.isEqual(other.op) &&
         this.field.isEqual(other.field) &&

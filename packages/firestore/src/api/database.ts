@@ -30,10 +30,10 @@ import {
 import {
   Bound,
   Direction,
+  FieldFilter,
   Filter,
   OrderBy,
   Query as InternalQuery,
-  RelationFilter,
   RelationOp
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
@@ -1947,7 +1947,7 @@ export class Query implements firestore.Query {
   }
 
   private validateNewFilter(filter: Filter): void {
-    if (filter instanceof RelationFilter) {
+    if (filter instanceof FieldFilter) {
       const arrayOps = [
         RelationOp.ARRAY_CONTAINS,
         RelationOp.ARRAY_CONTAINS_ANY

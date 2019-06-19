@@ -26,9 +26,9 @@ import { Timestamp } from '../../../../src/api/timestamp';
 import { DatabaseId } from '../../../../src/core/database_info';
 import {
   Direction,
+  FieldFilter,
   OrderBy,
   Query,
-  RelationFilter,
   RelationOp
 } from '../../../../src/core/query';
 import { SnapshotVersion } from '../../../../src/core/snapshot_version';
@@ -679,12 +679,12 @@ describe('Serializer', () => {
     expect(s.fromDocument(serialized).isEqual(d)).to.equal(true);
   });
 
-  describe('to/from RelationFilter', () => {
+  describe('to/from FieldFilter', () => {
     addEqualityMatcher();
 
     it('makes dotted-property names', () => {
       const path = new FieldPath(['item', 'part', 'top']);
-      const input = new RelationFilter(path, RelationOp.EQUAL, wrap('food'));
+      const input = new FieldFilter(path, RelationOp.EQUAL, wrap('food'));
       const actual = s.toRelationFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
@@ -693,7 +693,7 @@ describe('Serializer', () => {
           value: { stringValue: 'food' }
         }
       });
-      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
     });
 
     it('converts LessThan', () => {
@@ -706,7 +706,7 @@ describe('Serializer', () => {
           value: { integerValue: '42' }
         }
       });
-      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
     });
 
     it('converts LessThanOrEqual', () => {
@@ -719,7 +719,7 @@ describe('Serializer', () => {
           value: { stringValue: 'food' }
         }
       });
-      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
     });
 
     it('converts GreaterThan', () => {
@@ -732,7 +732,7 @@ describe('Serializer', () => {
           value: { booleanValue: false }
         }
       });
-      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
     });
 
     it('converts GreaterThanOrEqual', () => {
@@ -745,7 +745,7 @@ describe('Serializer', () => {
           value: { doubleValue: 1e100 }
         }
       });
-      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
     });
 
     it('converts array-contains', () => {
@@ -758,7 +758,7 @@ describe('Serializer', () => {
           value: { integerValue: '42' }
         }
       });
-      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
     });
 
     it('converts IN', () => {
@@ -779,7 +779,7 @@ describe('Serializer', () => {
           }
         }
       });
-      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
     });
 
     it('converts array-contains-any', () => {
@@ -800,7 +800,7 @@ describe('Serializer', () => {
           }
         }
       });
-      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
     });
   });
 

@@ -22,12 +22,12 @@ import { DatabaseId } from '../core/database_info';
 import {
   Bound,
   Direction,
+  FieldFilter,
   Filter,
   NanFilter,
   NullFilter,
   OrderBy,
   Query,
-  RelationFilter,
   RelationOp
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -1163,7 +1163,7 @@ export class JsonProtoSerializer {
   private toFilter(filters: Filter[]): api.Filter | undefined {
     if (filters.length === 0) return;
     const protos = filters.map(filter =>
-      filter instanceof RelationFilter
+      filter instanceof FieldFilter
         ? this.toRelationFilter(filter)
         : this.toUnaryFilter(filter)
     );
@@ -1179,7 +1179,7 @@ export class JsonProtoSerializer {
     } else if (filter.unaryFilter !== undefined) {
       return [this.fromUnaryFilter(filter)];
     } else if (filter.fieldFilter !== undefined) {
-      return [this.fromRelationFilter(filter)];
+      return [this.fromFieldFilter(filter)];
     } else if (filter.compositeFilter !== undefined) {
       return filter.compositeFilter
         .filters!.map(f => this.fromFilter(f))
@@ -1283,7 +1283,7 @@ export class JsonProtoSerializer {
 
   // visible for testing
   toRelationFilter(filter: Filter): api.Filter {
-    if (filter instanceof RelationFilter) {
+    if (filter instanceof FieldFilter) {
       return {
         fieldFilter: {
           field: this.toFieldPathReference(filter.field),
@@ -1296,8 +1296,8 @@ export class JsonProtoSerializer {
     }
   }
 
-  fromRelationFilter(filter: api.Filter): Filter {
-    return new RelationFilter(
+  fromFieldFilter(filter: api.Filter): Filter {
+    return new FieldFilter(
       this.fromFieldPathReference(filter.fieldFilter!.field!),
       this.fromOperatorName(filter.fieldFilter!.op!),
       this.fromValue(filter.fieldFilter!.value!)
