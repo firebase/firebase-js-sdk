@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../src/core/query';
+import { Bound, Query } from '../../../src/core/query';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -27,8 +27,36 @@ import {
   filter,
   orderBy,
   path,
-  ref
+  ref,
+  wrap
 } from '../../util/helpers';
+
+describe('Bound', () => {
+  function makeBound(values: unknown[], before: boolean): Bound {
+    return new Bound(values.map(el => wrap(el)), before);
+  }
+
+  it('implements isEqual', () => {
+    let bound = makeBound([1, 2], true);
+    expect(bound.isEqual(makeBound([1, 2], true))).to.be.true;
+
+    // Mismatch values
+    expect(bound.isEqual(makeBound([2, 2], true))).to.be.false;
+    expect(bound.isEqual(makeBound([1, 3], true))).to.be.false;
+
+    // Mismatch before
+    expect(bound.isEqual(makeBound([1, 2], false))).to.be.false;
+
+    // Unequal lengths
+    expect(bound.isEqual(makeBound([], true))).to.be.false;
+    expect(bound.isEqual(makeBound([1], true))).to.be.false;
+    expect(bound.isEqual(makeBound([1, 2, 3], true))).to.be.false;
+
+    // Zero length
+    bound = makeBound([], false);
+    expect(bound.isEqual(makeBound([], false))).to.be.true;
+  });
+});
 
 describe('Query', () => {
   addEqualityMatcher();

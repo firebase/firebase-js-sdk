@@ -789,7 +789,9 @@ export class Bound {
     for (let i = 0; i < this.position.length; i++) {
       const thisPosition = this.position[i];
       const otherPosition = other.position[i];
-      return thisPosition.isEqual(otherPosition);
+      if (!thisPosition.isEqual(otherPosition)) {
+        return false;
+      }
     }
     return true;
   }
