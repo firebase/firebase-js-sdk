@@ -1541,7 +1541,7 @@ declare namespace firebase.auth {
      * For the VERIFY_AND_CHANGE_EMAIL action, which allows a user to verify the email
      * before updating it, this object contains a `previousEmail` field with the user
      * account's email address before updating. After the action completes, the user's
-     * email address will be upadted to the value in the `email` field from the value
+     * email address will be updated to the value in the `email` field from the value
      * in `previousEmail` field.
      *
      * For the REVERT_SECOND_FACTOR_ADDITION action, which allows a user to unenroll
@@ -3384,8 +3384,8 @@ declare namespace firebase.auth {
      */
     signInProvider: string | null;
     /**
-     * The second factor associated with the account was used for the sign-in
-     * that generated this ID Token (phone, etc).
+     * The type of second factor associated with this session, provided the user
+     * was multi-factor authenticated (eg. phone, etc).
      */
     signInSecondFactor: string | null;
     /**
@@ -3526,10 +3526,10 @@ declare namespace firebase.auth {
    *       }
    *     });
    *
-   * // The enrolled second factors that can be used to finish
-   * // sign-in are returned in the `MultiFactorResolver.hints`,
-   * // You need to displayed an UI to let the users to select from
-   * // one of them and then pass the second factor challenge.
+   * // The enrolled second factors that can be used to complete
+   * // sign-in are returned in the `MultiFactorResolver.hints` list.
+   * // UI needs to be presented to allow the user to select a second factor
+   * // from that list.
    *
    * var selectedHint = // ; selected from multiFactorHints
    * var phoneAuthProvider = new firebase.auth.PhoneAuthProvider();
