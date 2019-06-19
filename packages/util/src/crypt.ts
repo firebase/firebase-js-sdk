@@ -86,68 +86,55 @@ const byteArrayToString = function(bytes: number[]): string {
 };
 
 // Static lookup maps, lazily populated by init_()
-export const base64 = {
+class Base64 {
   /**
    * Maps bytes to characters.
-   * @type {Object}
-   * @private
    */
-  byteToCharMap_: null,
+  byteToCharMap_: { [key: number]: string } | null = null;
 
   /**
    * Maps characters to bytes.
-   * @type {Object}
-   * @private
    */
-  charToByteMap_: null,
+  charToByteMap_: { [key: string]: number } | null = null;
 
   /**
    * Maps bytes to websafe characters.
-   * @type {Object}
-   * @private
    */
-  byteToCharMapWebSafe_: null,
+  byteToCharMapWebSafe_: { [key: number]: string } | null = null;
 
   /**
    * Maps websafe characters to bytes.
-   * @type {Object}
-   * @private
    */
-  charToByteMapWebSafe_: null,
+  charToByteMapWebSafe_: { [key: string]: number } | null = null;
 
   /**
-   * Our default alphabet, shared between
+   * Our default alphabet shared between
    * ENCODED_VALS and ENCODED_VALS_WEBSAFE
-   * @type {string}
    */
-  ENCODED_VALS_BASE:
-    'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz' + '0123456789',
+  ENCODED_VALS_BASE: string =
+    'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz' + '0123456789';
 
   /**
    * Our default alphabet. Value 64 (=) is special; it means "nothing."
-   * @type {string}
    */
-  get ENCODED_VALS() {
+  get ENCODED_VALS(): string {
     return this.ENCODED_VALS_BASE + '+/=';
-  },
+  }
 
   /**
    * Our websafe alphabet.
-   * @type {string}
    */
-  get ENCODED_VALS_WEBSAFE() {
+  get ENCODED_VALS_WEBSAFE(): string {
     return this.ENCODED_VALS_BASE + '-_.';
-  },
+  }
 
   /**
    * Whether this browser supports the atob and btoa functions. This extension
    * started at Mozilla but is now implemented by many browsers. We use the
    * ASSUME_* variables to avoid pulling in the full useragent detection library
    * but still allowing the standard per-browser compilations.
-   *
-   * @type {boolean}
    */
-  HAS_NATIVE_SUPPORT: typeof atob === 'function',
+  HAS_NATIVE_SUPPORT: boolean = typeof atob === 'function';
 
   /**
    * Base64-encode an array of bytes.
@@ -165,11 +152,11 @@ export const base64 = {
 
     this.init_();
 
-    const byteToCharMap: number[] = webSafe
-      ? this.byteToCharMapWebSafe_
-      : this.byteToCharMap_;
+    const byteToCharMap = webSafe
+      ? this.byteToCharMapWebSafe_!
+      : this.byteToCharMap_!;
 
-    const output: number[] = [];
+    const output = [];
 
     for (let i = 0; i < input.length; i += 3) {
       const byte1 = input[i];
@@ -200,7 +187,7 @@ export const base64 = {
     }
 
     return output.join('');
-  },
+  }
 
   /**
    * Base64-encode a string.
@@ -217,7 +204,7 @@ export const base64 = {
       return btoa(input);
     }
     return this.encodeByteArray(stringToByteArray(input), webSafe);
-  },
+  }
 
   /**
    * Base64-decode a string.
@@ -234,7 +221,7 @@ export const base64 = {
       return atob(input);
     }
     return byteArrayToString(this.decodeStringToByteArray(input, webSafe));
-  },
+  }
 
   /**
    * Base64-decode a string.
@@ -255,8 +242,8 @@ export const base64 = {
     this.init_();
 
     const charToByteMap = webSafe
-      ? this.charToByteMapWebSafe_
-      : this.charToByteMap_;
+      ? this.charToByteMapWebSafe_!
+      : this.charToByteMap_!;
 
     const output: number[] = [];
 
@@ -294,14 +281,14 @@ export const base64 = {
     }
 
     return output;
-  },
+  }
 
   /**
    * Lazy static initialization function. Called before
    * accessing any of the static map variables.
    * @private
    */
-  init_() {
+  init_(): void {
     if (!this.byteToCharMap_) {
       this.byteToCharMap_ = {};
       this.charToByteMap_ = {};
@@ -350,3 +337,5 @@ export const base64Decode = function(str: string): string | null {
   }
   return null;
 };
+
+export const base64 = new Base64();

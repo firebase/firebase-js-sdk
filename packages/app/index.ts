@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace } from '@firebase/app-types';
+import {
+  FirebaseNamespace,
+  FirebaseOptions,
+  FirebaseAppConfig
+} from '@firebase/app-types';
 import { createFirebaseNamespace } from './src/firebaseNamespace';
 import { isNode, isBrowser } from '@firebase/util';
 import { Logger } from '@firebase/logger';
@@ -43,7 +47,10 @@ if (isBrowser() && (self as any).firebase !== undefined) {
 const firebaseNamespace = createFirebaseNamespace();
 const initializeApp = firebaseNamespace.initializeApp;
 
-firebaseNamespace.initializeApp = function() {
+firebaseNamespace.initializeApp = function(
+  ...args: [FirebaseOptions, FirebaseAppConfig | undefined] &
+    [FirebaseOptions, string | undefined]
+) {
   // Environment check before initializing app
   // Do the check in initializeApp, so people have a chance to disable it by setting logLevel
   // in @firebase/logger
@@ -62,8 +69,7 @@ firebaseNamespace.initializeApp = function() {
       https://github.com/rollup/rollup-plugin-node-resolve
       `);
   }
-
-  return initializeApp.apply(undefined, arguments);
+  return initializeApp.apply(undefined, args);
 };
 
 export const firebase = firebaseNamespace;

@@ -108,7 +108,7 @@ export const map = function<V>(
 ) {
   var res: UtilObject<V> = {};
   for (var key in obj) {
-    res[key] = fn.call(context, obj[key], key, obj);
+    res[key] = fn.call(context, obj[key], key, obj) as V;
   }
   return res;
 };
