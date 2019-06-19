@@ -1603,7 +1603,7 @@ declare namespace firebase.auth {
        * This field is deprecated in favor of previousEmail.
        */
       fromEmail?: string | null;
-      multiFactorInfo?: MultiFactorInfo | null;
+      multiFactorInfo?: firebase.auth.MultiFactorInfo | null;
       previousEmail?: string | null;
     };
     /**
