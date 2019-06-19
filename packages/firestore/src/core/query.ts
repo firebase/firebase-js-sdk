@@ -349,9 +349,9 @@ export class Query {
     return null;
   }
 
-  // Checks if any of the provided RelationOps are included in the query and
+  // Checks if any of the provided Operators are included in the query and
   // returns the first one that is, or null if none are.
-  findRelationOpFilter(relationOps: RelationOp[]): RelationOp | null {
+  findFieldFilterOperator(relationOps: Operator[]): Operator | null {
     for (const filter of this.filters) {
       if (filter instanceof FieldFilter) {
         if (relationOps.indexOf(filter.op) >= 0) {
@@ -447,9 +447,9 @@ export abstract class Filter {
   /**
    * Creates a filter based on the provided arguments.
    */
-  static create(field: FieldPath, op: RelationOp, value: FieldValue): Filter {
+  static create(field: FieldPath, op: Operator, value: FieldValue): Filter {
     if (value.isEqual(NullValue.INSTANCE)) {
-      if (op !== RelationOp.EQUAL) {
+      if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. You can only perform equals comparisons on null.'
@@ -457,7 +457,7 @@ export abstract class Filter {
       }
       return new NullFilter(field);
     } else if (value.isEqual(DoubleValue.NAN)) {
-      if (op !== RelationOp.EQUAL) {
+      if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. You can only perform equals comparisons on NaN.'
@@ -470,34 +470,34 @@ export abstract class Filter {
   }
 }
 
-export class RelationOp {
-  static LESS_THAN = new RelationOp('<');
-  static LESS_THAN_OR_EQUAL = new RelationOp('<=');
-  static EQUAL = new RelationOp('==');
-  static GREATER_THAN = new RelationOp('>');
-  static GREATER_THAN_OR_EQUAL = new RelationOp('>=');
-  static ARRAY_CONTAINS = new RelationOp('array-contains');
-  static IN = new RelationOp('in');
-  static ARRAY_CONTAINS_ANY = new RelationOp('array-contains-any');
+export class Operator {
+  static LESS_THAN = new Operator('<');
+  static LESS_THAN_OR_EQUAL = new Operator('<=');
+  static EQUAL = new Operator('==');
+  static GREATER_THAN = new Operator('>');
+  static GREATER_THAN_OR_EQUAL = new Operator('>=');
+  static ARRAY_CONTAINS = new Operator('array-contains');
+  static IN = new Operator('in');
+  static ARRAY_CONTAINS_ANY = new Operator('array-contains-any');
 
-  static fromString(op: string): RelationOp {
+  static fromString(op: string): Operator {
     switch (op) {
       case '<':
-        return RelationOp.LESS_THAN;
+        return Operator.LESS_THAN;
       case '<=':
-        return RelationOp.LESS_THAN_OR_EQUAL;
+        return Operator.LESS_THAN_OR_EQUAL;
       case '==':
-        return RelationOp.EQUAL;
+        return Operator.EQUAL;
       case '>=':
-        return RelationOp.GREATER_THAN_OR_EQUAL;
+        return Operator.GREATER_THAN_OR_EQUAL;
       case '>':
-        return RelationOp.GREATER_THAN;
+        return Operator.GREATER_THAN;
       case 'array-contains':
-        return RelationOp.ARRAY_CONTAINS;
+        return Operator.ARRAY_CONTAINS;
       case 'in':
-        return RelationOp.IN;
+        return Operator.IN;
       case 'array-contains-any':
-        return RelationOp.ARRAY_CONTAINS_ANY;
+        return Operator.ARRAY_CONTAINS_ANY;
       default:
         return fail('Unknown relation: ' + op);
     }
@@ -509,7 +509,7 @@ export class RelationOp {
     return this.name;
   }
 
-  isEqual(other: RelationOp): boolean {
+  isEqual(other: Operator): boolean {
     return this.name === other.name;
   }
 }
@@ -517,7 +517,7 @@ export class RelationOp {
 export class FieldFilter extends Filter {
   constructor(
     public field: FieldPath,
-    public op: RelationOp,
+    public op: Operator,
     public value: FieldValue
   ) {
     super();
@@ -530,9 +530,9 @@ export class FieldFilter extends Filter {
         'Comparing on key, but filter value not a RefValue'
       );
       assert(
-        this.op !== RelationOp.ARRAY_CONTAINS &&
-          this.op !== RelationOp.ARRAY_CONTAINS_ANY &&
-          this.op !== RelationOp.IN,
+        this.op !== Operator.ARRAY_CONTAINS &&
+          this.op !== Operator.ARRAY_CONTAINS_ANY &&
+          this.op !== Operator.IN,
         `'${this.op.toString()}' queries don't make sense on document keys.`
       );
       const refValue = this.value as RefValue;
@@ -545,13 +545,13 @@ export class FieldFilter extends Filter {
   }
 
   private matchesValue(other: FieldValue): boolean {
-    if (this.op === RelationOp.ARRAY_CONTAINS) {
+    if (this.op === Operator.ARRAY_CONTAINS) {
       return (
         other instanceof ArrayValue &&
         other.internalValue.find(element => element.isEqual(this.value)) !==
           undefined
       );
-    } else if (this.op === RelationOp.IN) {
+    } else if (this.op === Operator.IN) {
       if (this.value instanceof ArrayValue) {
         return (
           this.value.internalValue.find(element => element.isEqual(other)) !==
@@ -560,7 +560,7 @@ export class FieldFilter extends Filter {
       } else {
         return fail('IN filter has invalid value: ' + this.value.toString());
       }
-    } else if (this.op === RelationOp.ARRAY_CONTAINS_ANY) {
+    } else if (this.op === Operator.ARRAY_CONTAINS_ANY) {
       return (
         other instanceof ArrayValue &&
         other.internalValue.some(lhsElem => {
@@ -583,15 +583,15 @@ export class FieldFilter extends Filter {
 
   private matchesComparison(comparison: number): boolean {
     switch (this.op) {
-      case RelationOp.LESS_THAN:
+      case Operator.LESS_THAN:
         return comparison < 0;
-      case RelationOp.LESS_THAN_OR_EQUAL:
+      case Operator.LESS_THAN_OR_EQUAL:
         return comparison <= 0;
-      case RelationOp.EQUAL:
+      case Operator.EQUAL:
         return comparison === 0;
-      case RelationOp.GREATER_THAN:
+      case Operator.GREATER_THAN:
         return comparison > 0;
-      case RelationOp.GREATER_THAN_OR_EQUAL:
+      case Operator.GREATER_THAN_OR_EQUAL:
         return comparison >= 0;
       default:
         return fail('Unknown relation op' + this.op);
@@ -601,10 +601,10 @@ export class FieldFilter extends Filter {
   isInequality(): boolean {
     return (
       [
-        RelationOp.LESS_THAN,
-        RelationOp.LESS_THAN_OR_EQUAL,
-        RelationOp.GREATER_THAN,
-        RelationOp.GREATER_THAN_OR_EQUAL
+        Operator.LESS_THAN,
+        Operator.LESS_THAN_OR_EQUAL,
+        Operator.GREATER_THAN,
+        Operator.GREATER_THAN_OR_EQUAL
       ].indexOf(this.op) >= 0
     );
   }

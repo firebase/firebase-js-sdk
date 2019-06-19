@@ -29,9 +29,9 @@ import {
   FieldFilter,
   NanFilter,
   NullFilter,
+  Operator,
   OrderBy,
-  Query,
-  RelationOp
+  Query
 } from '../../../../src/core/query';
 import { SnapshotVersion } from '../../../../src/core/snapshot_version';
 import { QueryData, QueryPurpose } from '../../../../src/local/query_data';
@@ -686,7 +686,7 @@ describe('Serializer', () => {
 
     it('makes dotted-property names', () => {
       const path = new FieldPath(['item', 'part', 'top']);
-      const input = new FieldFilter(path, RelationOp.EQUAL, wrap('food'));
+      const input = new FieldFilter(path, Operator.EQUAL, wrap('food'));
       const actual = s.toRelationFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
@@ -1184,10 +1184,10 @@ describe('Serializer', () => {
   describe('to/from OperatorName', () => {
     addEqualityMatcher();
 
-    it('contains all RelationOps', () => {
+    it('contains all Operators', () => {
       // tslint:disable-next-line:no-any giant hack
-      obj.forEach(RelationOp as any, (name, op) => {
-        if (op instanceof RelationOp) {
+      obj.forEach(Operator as any, (name, op) => {
+        if (op instanceof Operator) {
           expect(s.toOperatorName(op), 'for name').to.exist;
           expect(s.fromOperatorName(s.toOperatorName(op))).to.deep.equal(op);
         }

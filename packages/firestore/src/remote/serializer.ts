@@ -26,9 +26,9 @@ import {
   Filter,
   NanFilter,
   NullFilter,
+  Operator,
   OrderBy,
   Query,
-  RelationOp,
   UnaryFilter
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -83,14 +83,14 @@ const DIRECTIONS = (() => {
 
 const OPERATORS = (() => {
   const ops: { [op: string]: api.FieldFilterOp } = {};
-  ops[RelationOp.LESS_THAN.name] = 'LESS_THAN';
-  ops[RelationOp.LESS_THAN_OR_EQUAL.name] = 'LESS_THAN_OR_EQUAL';
-  ops[RelationOp.GREATER_THAN.name] = 'GREATER_THAN';
-  ops[RelationOp.GREATER_THAN_OR_EQUAL.name] = 'GREATER_THAN_OR_EQUAL';
-  ops[RelationOp.EQUAL.name] = 'EQUAL';
-  ops[RelationOp.ARRAY_CONTAINS.name] = 'ARRAY_CONTAINS';
-  ops[RelationOp.IN.name] = 'IN';
-  ops[RelationOp.ARRAY_CONTAINS_ANY.name] = 'ARRAY_CONTAINS_ANY';
+  ops[Operator.LESS_THAN.name] = 'LESS_THAN';
+  ops[Operator.LESS_THAN_OR_EQUAL.name] = 'LESS_THAN_OR_EQUAL';
+  ops[Operator.GREATER_THAN.name] = 'GREATER_THAN';
+  ops[Operator.GREATER_THAN_OR_EQUAL.name] = 'GREATER_THAN_OR_EQUAL';
+  ops[Operator.EQUAL.name] = 'EQUAL';
+  ops[Operator.ARRAY_CONTAINS.name] = 'ARRAY_CONTAINS';
+  ops[Operator.IN.name] = 'IN';
+  ops[Operator.ARRAY_CONTAINS_ANY.name] = 'ARRAY_CONTAINS_ANY';
   return ops;
 })();
 
@@ -1230,28 +1230,28 @@ export class JsonProtoSerializer {
   }
 
   // visible for testing
-  toOperatorName(op: RelationOp): api.FieldFilterOp {
+  toOperatorName(op: Operator): api.FieldFilterOp {
     return OPERATORS[op.name];
   }
 
-  fromOperatorName(op: api.FieldFilterOp): RelationOp {
+  fromOperatorName(op: api.FieldFilterOp): Operator {
     switch (op) {
       case 'EQUAL':
-        return RelationOp.EQUAL;
+        return Operator.EQUAL;
       case 'GREATER_THAN':
-        return RelationOp.GREATER_THAN;
+        return Operator.GREATER_THAN;
       case 'GREATER_THAN_OR_EQUAL':
-        return RelationOp.GREATER_THAN_OR_EQUAL;
+        return Operator.GREATER_THAN_OR_EQUAL;
       case 'LESS_THAN':
-        return RelationOp.LESS_THAN;
+        return Operator.LESS_THAN;
       case 'LESS_THAN_OR_EQUAL':
-        return RelationOp.LESS_THAN_OR_EQUAL;
+        return Operator.LESS_THAN_OR_EQUAL;
       case 'ARRAY_CONTAINS':
-        return RelationOp.ARRAY_CONTAINS;
+        return Operator.ARRAY_CONTAINS;
       case 'IN':
-        return RelationOp.IN;
+        return Operator.IN;
       case 'ARRAY_CONTAINS_ANY':
-        return RelationOp.ARRAY_CONTAINS_ANY;
+        return Operator.ARRAY_CONTAINS_ANY;
       case 'OPERATOR_UNSPECIFIED':
         return fail('Unspecified relation');
       default:

@@ -31,7 +31,7 @@ import {
   Direction,
   Filter,
   OrderBy,
-  RelationOp
+  Operator
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
 import { ProtoByteString, TargetId } from '../../src/core/types';
@@ -188,7 +188,7 @@ export function blob(...bytes: number[]): Blob {
 
 export function filter(path: string, op: string, value: unknown): Filter {
   const dataValue = wrap(value);
-  const operator = RelationOp.fromString(op);
+  const operator = Operator.fromString(op);
   return Filter.create(field(path), operator, dataValue);
 }
 

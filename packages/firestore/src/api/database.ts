@@ -34,7 +34,7 @@ import {
   Filter,
   OrderBy,
   Query as InternalQuery,
-  RelationOp
+  Operator
 } from '../core/query';
 import { Transaction as InternalTransaction } from '../core/transaction';
 import { ChangeType, ViewSnapshot } from '../core/view_snapshot';
@@ -1430,12 +1430,12 @@ export class Query implements firestore.Query {
 
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
-    const relationOp = RelationOp.fromString(opStr);
+    const relationOp = Operator.fromString(opStr);
     if (fieldPath.isKeyField()) {
       if (
-        relationOp === RelationOp.ARRAY_CONTAINS ||
-        relationOp === RelationOp.ARRAY_CONTAINS_ANY ||
-        relationOp === RelationOp.IN
+        relationOp === Operator.ARRAY_CONTAINS ||
+        relationOp === Operator.ARRAY_CONTAINS_ANY ||
+        relationOp === Operator.IN
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
@@ -1492,8 +1492,8 @@ export class Query implements firestore.Query {
       }
     } else {
       if (
-        relationOp === RelationOp.IN ||
-        relationOp === RelationOp.ARRAY_CONTAINS_ANY
+        relationOp === Operator.IN ||
+        relationOp === Operator.ARRAY_CONTAINS_ANY
       ) {
         if (!Array.isArray(value) || value.length === 0) {
           throw new FirestoreError(
@@ -1948,11 +1948,8 @@ export class Query implements firestore.Query {
 
   private validateNewFilter(filter: Filter): void {
     if (filter instanceof FieldFilter) {
-      const arrayOps = [
-        RelationOp.ARRAY_CONTAINS,
-        RelationOp.ARRAY_CONTAINS_ANY
-      ];
-      const disjunctiveOps = [RelationOp.IN, RelationOp.ARRAY_CONTAINS_ANY];
+      const arrayOps = [Operator.ARRAY_CONTAINS, Operator.ARRAY_CONTAINS_ANY];
+      const disjunctiveOps = [Operator.IN, Operator.ARRAY_CONTAINS_ANY];
       const isArrayOp = arrayOps.indexOf(filter.op) >= 0;
       const isDisjunctiveOp = disjunctiveOps.indexOf(filter.op) >= 0;
 
@@ -1978,12 +1975,12 @@ export class Query implements firestore.Query {
       } else if (isDisjunctiveOp || isArrayOp) {
         // You can have at most 1 disjunctive filter and 1 array filter. Check if
         // the new filter conflicts with an existing one.
-        let conflictingOp: RelationOp | null = null;
+        let conflictingOp: Operator | null = null;
         if (isDisjunctiveOp) {
-          conflictingOp = this._query.findRelationOpFilter(disjunctiveOps);
+          conflictingOp = this._query.findFieldFilterOperator(disjunctiveOps);
         }
         if (conflictingOp === null && isArrayOp) {
-          conflictingOp = this._query.findRelationOpFilter(arrayOps);
+          conflictingOp = this._query.findFieldFilterOperator(arrayOps);
         }
         if (conflictingOp != null) {
           // We special case when it's a duplicate op to give a slightly clearer error message.
