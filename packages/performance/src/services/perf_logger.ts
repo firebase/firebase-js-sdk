@@ -171,7 +171,7 @@ function serializer(resource: {}, resourceType: ResourceType): string {
 function serializeNetworkRequest(networkRequest: NetworkRequest): string {
   const networkRequestMetric: NetworkRequestMetric = {
     url: networkRequest.url,
-    http_method: 1,
+    http_method: networkRequest.httpMethod || 0,
     http_response_code: 200,
     response_payload_bytes: networkRequest.responsePayloadBytes,
     client_start_time_us: networkRequest.startTimeUs,
