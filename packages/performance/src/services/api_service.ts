@@ -44,7 +44,7 @@ export class Api {
   private PerformanceObserver: typeof PerformanceObserver;
   private windowLocation: Location;
   onFirstInputDelay?: Function;
-  localStorage: Storage;
+  localStorage!: Storage;
   document: Document;
   navigator: Navigator;
 
@@ -57,7 +57,10 @@ export class Api {
     this.windowLocation = window.location;
     this.navigator = window.navigator;
     this.document = window.document;
-    this.localStorage = window.localStorage;
+    if (this.navigator && this.navigator.cookieEnabled) {
+      // If user blocks cookies on the browser, accessing localStorage will throw an exception.
+      this.localStorage = window.localStorage;
+    }
     if (window.perfMetrics && window.perfMetrics.onFirstInputDelay) {
       this.onFirstInputDelay = window.perfMetrics.onFirstInputDelay;
     }
@@ -102,6 +105,13 @@ export class Api {
       this.performance &&
       (this.performance.timeOrigin || this.performance.timing.navigationStart)
     );
+  }
+
+  requiredApisAvailable(): boolean {
+    if (fetch && Promise && this.navigator && this.navigator.cookieEnabled) {
+      return true;
+    }
+    return false;
   }
 
   setupObserver(
