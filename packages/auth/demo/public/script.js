@@ -26,6 +26,8 @@ var tempAuth = null;
 var currentTab = null;
 var lastUser = null;
 var applicationVerifier = null;
+var multiFactorErrorResolver = null;
+var selectedMultiFactorHint = null;
 var recaptchaSize = 'normal';
 
 // Fix for IE8 when developer's console is not opened.
@@ -42,7 +44,9 @@ var providersIcons = {
   'google.com': 'fa-google',
   'facebook.com': 'fa-facebook-official',
   'twitter.com': 'fa-twitter-square',
-  'github.com': 'fa-github'
+  'github.com': 'fa-github',
+  'yahoo.com': 'fa-yahoo',
+  'phone': 'fa-phone'
 };
 
 
@@ -96,11 +100,28 @@ function alertMessage_(message, cssClass) {
       .addClass(cssClass)
       .css('display', 'none')
       .text(message);
-  $('#alert-messages').prepend(alertBox);
+  // When modals are visible, display the alert in the modal layer above the
+  // grey background.
+  var visibleModal = $('.modal.in');
+  if (visibleModal.size() > 0) {
+    // Check first if the model has an overlaying-alert. If not, append the
+    // overlaying-alert container.
+    if (visibleModal.find('.overlaying-alert').size() == 0) {
+      var $overlayingAlert =
+          $('<div class="container-fluid overlaying-alert"></div>');
+      visibleModal.append($overlayingAlert);
+    }
+    visibleModal.find('.overlaying-alert').prepend(alertBox);
+  } else {
+    $('#alert-messages').prepend(alertBox);
+  }
   alertBox.fadeIn({
     complete: function() {
       setTimeout(function() {
-        alertBox.slideUp();
+        alertBox.slideUp(400, function() {
+          // On completion, remove the alert element from the DOM.
+          alertBox.remove();
+        });
       }, 3000);
     }
   });
@@ -179,6 +200,8 @@ function refreshUserData() {
         addProviderIcon(user['providerData'][i]['providerId']);
       }
     }
+    // Show enrolled second factors if available for the active user.
+    showMultiFactorStatus(user);
     // Change color.
     if (user == auth.currentUser) {
       $('#user-info').removeClass('last-user');
@@ -229,6 +252,53 @@ function addProviderIcon(providerId) {
 
 
 /**
+ * Updates the active user's multi-factor enrollment status.
+ * @param {!firebase.User} activeUser The corresponding user.
+ */
+function showMultiFactorStatus(activeUser) {
+  var enrolledFactors =
+      (activeUser.multiFactor && activeUser.multiFactor.enrolledFactors) || [];
+  var $listGroup = $('#user-info .dropdown-menu.enrolled-second-factors');
+  // Hide the drop down menu initially.
+  $listGroup.empty().parent().hide();
+  if (enrolledFactors.length) {
+    // If enrolled factors are available, show the drop down menu.
+    $listGroup.parent().show();
+    // Populate the enrolled factors.
+    showMultiFactors(
+        $listGroup,
+        enrolledFactors,
+        // On row click, do nothing. This is needed to prevent the drop down
+        // menu from closing.
+        function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        },
+        // On delete click unenroll the selected factor.
+        function(e) {
+          e.preventDefault();
+          // Get the corresponding second factor index.
+          var index = parseInt($(this).attr('data-index'), 10);
+          // Get the second factor info.
+          var info = enrolledFactors[index];
+          // Get the display name. If not available, use uid.
+          var label = info && (info.displayName || info.uid);
+          if (label) {
+            $('#enrolled-factors-drop-down').removeClass('open');
+            activeUser.multiFactor
+                .unenroll(info)
+                .then(function() {
+                  refreshUserData();
+                  alertSuccess('Multi-factor successfully unenrolled.');
+                },
+                onAuthError);
+          }
+        });
+  }
+}
+
+
+/**
  * Updates the UI when the user is successfully authenticated.
  * @param {!firebase.User} user User authenticated.
  */
@@ -245,7 +315,12 @@ function onAuthSuccess(user) {
  */
 function onAuthError(error) {
   logAtLevel_(error, 'error');
-  alertError('Error: ' + error.code);
+  if (error.code == 'auth/multi-factor-auth-required') {
+    // Handle second factor sign-in.
+    handleMultiFactorSignIn(error.resolver);
+  } else {
+    alertError('Error: ' + error.code);
+  }
 }
 
 
@@ -530,6 +605,62 @@ function onReauthConfirmPhoneVerification() {
         logAdditionalUserInfo(result);
         refreshUserData();
         alertSuccess('User reauthenticated!');
+      }, onAuthError);
+}
+
+
+/**
+ * Sends a phone number verification code for enrolling second factor.
+ */
+function onStartEnrollWithPhoneMultiFactor() {
+  var phoneNumber = $('#enroll-mfa-phone-number').val();
+  if (!phoneNumber || !activeUser()) {
+    return;
+  }
+  var provider = new firebase.auth.PhoneAuthProvider(auth);
+  // Clear existing reCAPTCHA as an existing reCAPTCHA could be targeted for a
+  // sign-in operation.
+  clearApplicationVerifier();
+  // Initialize a reCAPTCHA application verifier.
+  makeApplicationVerifier('enroll-mfa-verify-phone-number');
+  activeUser().multiFactor.getSession()
+      .then(function(multiFactorSession) {
+        var phoneInfoOptions = {
+          'phoneNumber': phoneNumber,
+          'session': multiFactorSession
+        };
+        return provider.verifyPhoneNumber(
+            phoneInfoOptions, applicationVerifier);
+      }).then(function(verificationId) {
+        clearApplicationVerifier();
+        $('#enroll-mfa-phone-verification-id').val(verificationId);
+        alertSuccess('Phone verification sent!');
+      }, function(error) {
+        clearApplicationVerifier();
+        onAuthError(error);
+      });
+}
+
+
+/**
+ * Confirms a phone number verification for MFA enrollment.
+ */
+function onFinalizeEnrollWithPhoneMultiFactor() {
+  var verificationId = $('#enroll-mfa-phone-verification-id').val();
+  var verificationCode = $('#enroll-mfa-phone-verification-code').val();
+  if (!verificationId || !verificationCode || !activeUser()) {
+    return;
+  }
+  var credential = firebase.auth.PhoneAuthProvider.credential(
+      verificationId, verificationCode);
+  var multiFactorAssertion =
+      firebase.auth.PhoneMultiFactorGenerator.assertion(credential);
+  var displayName = $('#enroll-mfa-phone-display-name').val() || undefined;
+
+  activeUser().multiFactor.enroll(multiFactorAssertion, displayName)
+      .then(function() {
+        refreshUserData();
+        alertSuccess('Phone number enrolled!');
       }, onAuthError);
 }
 
@@ -878,6 +1009,172 @@ function onRefreshToken() {
 function onSignOut() {
   setLastUser(auth.currentUser);
   auth.signOut().then(signOut, onAuthError);
+}
+
+
+/**
+ * Handles multi-factor sign-in completion.
+ * @param {!firebase.auth.MultiFactorResolver} resolver The multi-factor error
+ *     resolver.
+ */
+function handleMultiFactorSignIn(resolver) {
+  // Save multi-factor error resolver.
+  multiFactorErrorResolver = resolver;
+  // Populate 2nd factor options from resolver.
+  var $listGroup = $('#multiFactorModal div.enrolled-second-factors');
+  // Populate the list of 2nd factors in the list group specified.
+  showMultiFactors(
+      $listGroup,
+      multiFactorErrorResolver.hints,
+      // On row click, select the corresponding second factor to complete
+      // sign-in with.
+      function(e) {
+        e.preventDefault();
+        // Remove all other active entries.
+        $listGroup.find('a').removeClass('active');
+        // Mark current entry as active.
+        $(this).addClass('active');
+        // Select current factor.
+        onSelectMultiFactorHint(parseInt($(this).attr('data-index'), 10));
+      },
+      // Do not show delete option
+      null);
+  // Hide phone form (other second factor types could be supported).
+  $('#multi-factor-phone').addClass('hidden');
+  // Show second factor recovery dialog.
+  $('#multiFactorModal').modal();
+}
+
+
+/**
+ * Displays the list of multi-factors in the provided list group.
+ * @param {!jQuery<!HTMLElement>} $listGroup The list group where the enrolled
+ *     factors will be displayed.
+ * @param {!Array<!firebase.auth.MultiFactorInfo>} multiFactorInfo The list of
+ *     multi-factors to display.
+ * @param {?function(!jQuery.Event)} onClick The click handler when a second
+ *     factor is clicked.
+ * @param {?function(!jQuery.Event)} onDelete The click handler when a second
+ *     factor is delete. If not provided, no delete button is shown.
+ */
+function showMultiFactors($listGroup, multiFactorInfo, onClick, onDelete) {
+  // Append entry to list.
+  $listGroup.empty();
+  $.each(multiFactorInfo, function(i) {
+    // Append entry to list.
+    var info = multiFactorInfo[i];
+    var displayName = info.displayName || 'N/A';
+    var $a = $('<a href="#" />')
+        .addClass('list-group-item')
+        .addClass('list-group-item-action')
+        // Set index on entry.
+        .attr('data-index', i)
+        .appendTo($listGroup);
+    $a.append($('<h4 class="list-group-item-heading" />').text(info.uid));
+    $a.append($('<span class="badge" />').text(info.factorId));
+    $a.append($('<p class="list-group-item-text" />').text(displayName));
+    if (info.phoneNumber) {
+      $a.append($('<small />').text(info.phoneNumber));
+    }
+    // Check if a delete button is to be displayed.
+    if (onDelete) {
+      var $deleteBtn = $('<span class="pull-right button-group">' +
+          '<button type="button" class="btn btn-danger btn-xs delete-factor" ' +
+          'data-index="' + i.toString() + '">' +
+          '<i class="fa fa-trash" data-title="Remove" />' +
+          '</button>' +
+          '</span>');
+      // Append delete button to row.
+      $a.append($deleteBtn);
+      // Add delete button click handler.
+      $a.find('button.delete-factor').click(onDelete);
+    }
+    // On entry click.
+    if (onClick) {
+      $a.click(onClick);
+    }
+  });
+}
+
+
+/**
+ * Handles the user selection of second factor to complete sign-in with.
+ * @param {number} index The selected multi-factor hint index.
+ */
+function onSelectMultiFactorHint(index) {
+  // Hide all forms for handling each type of second factors.
+  // Currently only phone is supported.
+  $('#multi-factor-phone').addClass('hidden');
+  if (!multiFactorErrorResolver ||
+      typeof multiFactorErrorResolver.hints[index] === 'undefined') {
+    return;
+  }
+
+  if (multiFactorErrorResolver.hints[index].factorId == 'phone') {
+    // Save selected second factor.
+    selectedMultiFactorHint = multiFactorErrorResolver.hints[index];
+    // Show options for phone 2nd factor.
+    // Get reCAPTCHA ready.
+    clearApplicationVerifier();
+    makeApplicationVerifier('send-2fa-phone-code');
+    // Show sign-in with phone second factor menu.
+    $('#multi-factor-phone').removeClass('hidden');
+    // Clear all input.
+    $('#multi-factor-sign-in-verification-id').val('');
+    $('#multi-factor-sign-in-verification-code').val('');
+  } else {
+    // 2nd factor not found or not supported by app.
+    alertError('Selected 2nd factor is not supported!');
+  }
+}
+
+
+/**
+ * Start sign-in with the 2nd factor phone number.
+ * @param {!jQuery.Event} event The jQuery event object.
+ */
+function onStartSignInWithPhoneMultiFactor(event) {
+  event.preventDefault();
+  // Make sure a second factor is selected.
+  if (!selectedMultiFactorHint || !multiFactorErrorResolver) {
+    return;
+  }
+  // Initialize a reCAPTCHA application verifier.
+  var provider = new firebase.auth.PhoneAuthProvider(auth);
+  var signInRequest = {
+    multiFactorHint: selectedMultiFactorHint,
+    session: multiFactorErrorResolver.session
+  };
+  provider.verifyPhoneNumber(signInRequest, applicationVerifier)
+    .then(function(verificationId) {
+      clearApplicationVerifier();
+      $('#multi-factor-sign-in-verification-id').val(verificationId);
+      alertSuccess('Phone verification sent!');
+    }, function(error) {
+      clearApplicationVerifier();
+      onAuthError(error);
+    });
+}
+
+
+/**
+ * Completes sign-in with the 2nd factor phone assertion.
+ * @param {!jQuery.Event} event The jQuery event object.
+ */
+function onFinalizeSignInWithPhoneMultiFactor(event) {
+  event.preventDefault();
+  var verificationId = $('#multi-factor-sign-in-verification-id').val();
+  var code = $('#multi-factor-sign-in-verification-code').val();
+  if (!code || !verificationId || !multiFactorErrorResolver) {
+    return;
+  }
+  var cred = firebase.auth.PhoneAuthProvider.credential(verificationId, code);
+  var assertion = firebase.auth.PhoneMultiFactorGenerator.assertion(cred);
+  multiFactorErrorResolver.resolveSignIn(assertion)
+      .then(function(userCredential) {
+        onAuthUserCredentialSuccess(userCredential);
+        $('#multiFactorModal').modal('hide');
+      }, onAuthError);
 }
 
 
@@ -1491,6 +1788,18 @@ function initApp(){
   $('#copy-last-user').click(onCopyLastUser);
 
   $('#apply-auth-settings-change').click(onApplyAuthSettingsChange);
+
+  // Multi-factor operations.
+  // Starts multi-factor sign-in with selected phone number.
+  $('#send-2fa-phone-code').click(onStartSignInWithPhoneMultiFactor);
+  // Completes multi-factor sign-in with supplied SMS code.
+  $('#sign-in-with-phone-multi-factor').click(
+      onFinalizeSignInWithPhoneMultiFactor);
+  // Starts multi-factor enrollment with phone number.
+  $('#enroll-mfa-verify-phone-number').click(onStartEnrollWithPhoneMultiFactor);
+  // Completes multi-factor enrollment with supplied SMS code.
+  $('#enroll-mfa-confirm-phone-verification')
+      .click(onFinalizeEnrollWithPhoneMultiFactor);
 }
 
 $(initApp);
