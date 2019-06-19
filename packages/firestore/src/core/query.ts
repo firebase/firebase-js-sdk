@@ -476,6 +476,8 @@ export abstract class Filter {
         );
       }
       return new NanFilter(field);
+    } else if (op === Operator.ARRAY_CONTAINS) {
+      return new ArrayContainsFilter(field, value);
     } else {
       return new FieldFilter(field, op, value);
     }
@@ -541,13 +543,7 @@ export class FieldFilter extends Filter {
   }
 
   private matchesValue(other: FieldValue): boolean {
-    if (this.op === Operator.ARRAY_CONTAINS) {
-      return (
-        other instanceof ArrayValue &&
-        other.internalValue.find(element => element.isEqual(this.value)) !==
-          undefined
-      );
-    } else if (this.op === Operator.IN) {
+    if (this.op === Operator.IN) {
       if (this.value instanceof ArrayValue) {
         return (
           this.value.internalValue.find(element => element.isEqual(other)) !==
@@ -679,6 +675,30 @@ export class KeyFieldFilter extends FieldFilter {
     const refValue = this.value as RefValue;
     const comparison = DocumentKey.comparator(doc.key, refValue.key);
     return this.matchesComparison(comparison);
+  }
+}
+
+/**
+ * A Filter that implements the array-contains operator. When a user specifies
+ * query.where('some.field', 'array-contains', 42), this filter will match
+ * documents that:
+ *
+ *   * contain a field at some.field;
+ *   * that field is an array; and
+ *   * that array contains the value 42.
+ */
+export class ArrayContainsFilter extends FieldFilter {
+  constructor(field: FieldPath, value: FieldValue) {
+    super(field, Operator.ARRAY_CONTAINS, value);
+  }
+
+  matches(doc: Document): boolean {
+    const other = doc.field(this.field);
+    return (
+      other instanceof ArrayValue &&
+      other.internalValue.find(element => element.isEqual(this.value)) !==
+        undefined
+    );
   }
 }
 
