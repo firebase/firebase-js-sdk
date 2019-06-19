@@ -75,7 +75,7 @@ export class IndexMap {
       // regular child map
       return null;
     } else {
-      return sortedMap;
+      return sortedMap as SortedMap<NamedNode, Node>;
     }
   }
 

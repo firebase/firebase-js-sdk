@@ -30,6 +30,7 @@ const dbPromise: Promise<DB> = openDb(
     // behavior is what we want, because if there are multiple versions between
     // the old version and the current version, we want ALL the migrations
     // that correspond to those versions to run, not only the last one.
+    // eslint-disable-next-line default-case
     switch (upgradeDB.oldVersion) {
       case 0:
         upgradeDB.createObjectStore(OBJECT_STORE_NAME);
@@ -38,9 +39,7 @@ const dbPromise: Promise<DB> = openDb(
 );
 
 /** Gets record(s) from the objectStore that match the given key. */
-export async function get<ReturnType>(
-  appConfig: AppConfig
-): Promise<ReturnType | undefined> {
+export async function get(appConfig: AppConfig): Promise<unknown> {
   const key = getKey(appConfig);
   const db = await dbPromise;
   return db
@@ -57,7 +56,7 @@ export async function set<ValueType>(
   const key = getKey(appConfig);
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  tx.objectStore(OBJECT_STORE_NAME).put(value, key);
+  await tx.objectStore(OBJECT_STORE_NAME).put(value, key);
   await tx.complete;
   return value;
 }
@@ -67,8 +66,8 @@ export async function remove(appConfig: AppConfig): Promise<void> {
   const key = getKey(appConfig);
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  tx.objectStore(OBJECT_STORE_NAME).delete(key);
-  return tx.complete;
+  await tx.objectStore(OBJECT_STORE_NAME).delete(key);
+  await tx.complete;
 }
 
 /**
@@ -93,9 +92,9 @@ export async function update<OldType, NewType>(
   }
 
   if (newValue === undefined) {
-    store.delete(key);
+    await store.delete(key);
   } else {
-    store.put(newValue, key);
+    await store.put(newValue, key);
   }
 
   await tx.complete;
@@ -105,8 +104,8 @@ export async function update<OldType, NewType>(
 export async function clear(): Promise<void> {
   const db = await dbPromise;
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-  tx.objectStore(OBJECT_STORE_NAME).clear();
-  return tx.complete;
+  await tx.objectStore(OBJECT_STORE_NAME).clear();
+  await tx.complete;
 }
 
 function getKey(appConfig: AppConfig): string {

@@ -18,7 +18,7 @@
 import { database } from 'firebase';
 import { QueryChange, ListenEvent } from '../interfaces';
 import { Observable, of, merge, from } from 'rxjs';
-import { validateEventsArray, isNil } from '../utils';
+import { validateEventsArray } from '../utils';
 import { fromRef } from '../fromRef';
 import { switchMap, scan, distinctUntilChanged, map } from 'rxjs/operators';
 import { changeToData } from '../object';
@@ -42,11 +42,13 @@ export function list(
   query: database.Query,
   events?: ListenEvent[]
 ): Observable<QueryChange[]> {
-  events = validateEventsArray(events);
+  const eventsList = validateEventsArray(events);
   return fromOnce(query).pipe(
     switchMap(change => {
       const childEvent$ = [of(change)];
-      events.forEach(event => childEvent$.push(fromRef(query, event)));
+      for (const event of eventsList) {
+        childEvent$.push(fromRef(query, event));
+      }
       return merge(...childEvent$).pipe(scan(buildView, []));
     }),
     distinctUntilChanged()
@@ -67,7 +69,7 @@ export function listVal<T>(
   );
 }
 
-function positionFor(changes: QueryChange[], key) {
+function positionFor(changes: QueryChange[], key: string | null) {
   const len = changes.length;
   for (let i = 0; i < len; i++) {
     if (changes[i].snapshot.key === key) {
@@ -78,7 +80,7 @@ function positionFor(changes: QueryChange[], key) {
 }
 
 function positionAfter(changes: QueryChange[], prevKey?: string) {
-  if (isNil(prevKey)) {
+  if (prevKey == null) {
     return 0;
   } else {
     const i = positionFor(changes, prevKey);
@@ -94,11 +96,11 @@ function buildView(current: QueryChange[], change: QueryChange) {
   const { snapshot, prevKey, event } = change;
   const { key } = snapshot;
   const currentKeyPosition = positionFor(current, key);
-  const afterPreviousKeyPosition = positionAfter(current, prevKey);
+  const afterPreviousKeyPosition = positionAfter(current, prevKey || undefined);
   switch (event) {
     case ListenEvent.value:
       if (change.snapshot && change.snapshot.exists()) {
-        let prevKey = null;
+        let prevKey: string | null = null;
         change.snapshot.forEach(snapshot => {
           const action: QueryChange = {
             snapshot,

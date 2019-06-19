@@ -98,7 +98,9 @@ describe('Firebase Performance > oob_resources_service', () => {
     clock = useFakeTimers();
     getEntriesByTypeStub = stub(Api.prototype, 'getEntriesByType').callsFake(
       entry => {
-        if (entry === 'navigation') return [NAVIGATION_PERFORMANCE_ENTRY];
+        if (entry === 'navigation') {
+          return [NAVIGATION_PERFORMANCE_ENTRY];
+        }
         return [PAINT_PERFORMANCE_ENTRY];
       }
     );
@@ -167,7 +169,7 @@ describe('Firebase Performance > oob_resources_service', () => {
       const FIRST_INPUT_DELAY = 123;
       // Underscore is to avoid compiler comlaining about variable being declared but not used.
       type FirstInputDelayCallback = (firstInputDelay: number) => void;
-      let firstInputDelayCallback: FirstInputDelayCallback = () => {};
+      let firstInputDelayCallback: FirstInputDelayCallback = (): void => {};
       api.onFirstInputDelay = (cb: FirstInputDelayCallback) => {
         firstInputDelayCallback = cb;
       };

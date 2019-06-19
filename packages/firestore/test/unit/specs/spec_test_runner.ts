@@ -453,11 +453,13 @@ abstract class TestRunner {
         OnlineStateSource.SharedClientState
       );
     };
+    const connectivityMonitor = this.platform.newConnectivityMonitor();
     this.remoteStore = new RemoteStore(
       this.localStore,
       this.datastore,
       this.queue,
-      remoteStoreOnlineStateChangedHandler
+      remoteStoreOnlineStateChangedHandler,
+      connectivityMonitor
     );
     this.syncEngine = new SyncEngine(
       this.localStore,
@@ -1245,7 +1247,7 @@ export async function runSpec(
   const runners: TestRunner[] = [];
   const outstandingMutations = new SharedWriteTracker();
 
-  const ensureRunner = async clientIndex => {
+  const ensureRunner = async (clientIndex: number) => {
     if (!runners[clientIndex]) {
       const platform = new TestPlatform(
         PlatformSupport.getPlatform(),

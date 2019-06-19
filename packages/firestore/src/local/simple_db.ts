@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 
+import { getUA } from '@firebase/util';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { debug } from '../util/log';
+import { debug, error } from '../util/log';
 import { Deferred } from '../util/promise';
 import { SCHEMA_VERSION } from './indexeddb_schema';
 import { PersistencePromise } from './persistence_promise';
@@ -149,8 +150,7 @@ export class SimpleDb {
     }
 
     // Check the UA string to find out the browser.
-    // TODO(mikelehen): Move this logic into packages/util/environment.ts
-    const ua = window.navigator.userAgent;
+    const ua = getUA();
 
     // IE 10
     // ua = 'Mozilla/5.0 (compatible; MSIE 10.0; Windows NT 6.2; Trident/6.0)';
@@ -195,7 +195,12 @@ export class SimpleDb {
   /** Parse User Agent to determine iOS version. Returns -1 if not found. */
   static getIOSVersion(ua: string): number {
     const iOSVersionRegex = ua.match(/i(?:phone|pad|pod) os ([\d_]+)/i);
-    const version = iOSVersionRegex ? iOSVersionRegex[1].split('_')[0] : '-1';
+    const version = iOSVersionRegex
+      ? iOSVersionRegex[1]
+          .split('_')
+          .slice(0, 2)
+          .join('.')
+      : '-1';
     return Number(version);
   }
 
@@ -212,7 +217,21 @@ export class SimpleDb {
     return Number(version);
   }
 
-  constructor(private db: IDBDatabase) {}
+  constructor(private db: IDBDatabase) {
+    const iOSVersion = SimpleDb.getIOSVersion(getUA());
+    // NOTE: According to https://bugs.webkit.org/show_bug.cgi?id=197050, the
+    // bug we're checking for should exist in iOS >= 12.2 and < 13, but for
+    // whatever reason it's much harder to hit after 12.2 so we only proactively
+    // log on 12.2.
+    if (iOSVersion === 12.2) {
+      error(
+        'Firestore persistence suffers from a bug in iOS 12.2 ' +
+          'Safari that may cause your app to stop working. See ' +
+          'https://stackoverflow.com/q/56496296/110915 for details ' +
+          'and a potential workaround.'
+      );
+    }
+  }
 
   setVersionChangeListener(
     versionChangeListener: (event: IDBVersionChangeEvent) => void
@@ -359,7 +378,9 @@ export class SimpleDbTransaction {
       }
     };
     this.transaction.onerror = (event: Event) => {
-      this.completionDeferred.reject((event.target as IDBRequest).error!);
+      const error = (event.target as IDBRequest).error!;
+      checkForAndReportiOSError(error);
+      this.completionDeferred.reject(error);
     };
   }
 
@@ -558,7 +579,7 @@ export class SimpleDbStore<
       options = {};
       callback = optionsOrCallback as IterateCallback<KeyType, ValueType>;
     } else {
-      options = optionsOrCallback;
+      options = optionsOrCallback as IterateOptions;
     }
     const cursor = this.cursor(options);
     return this.iterateCursor(cursor, callback);
@@ -578,7 +599,9 @@ export class SimpleDbStore<
     const cursorRequest = this.cursor({});
     return new PersistencePromise((resolve, reject) => {
       cursorRequest.onerror = (event: Event) => {
-        reject((event.target as IDBRequest).error!);
+        const error = (event.target as IDBRequest).error!;
+        checkForAndReportiOSError(error);
+        reject(error);
       };
       cursorRequest.onsuccess = (event: Event) => {
         const cursor: IDBCursorWithValue = (event.target as IDBRequest).result;
@@ -692,7 +715,35 @@ function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
     };
 
     request.onerror = (event: Event) => {
-      reject((event.target as IDBRequest).error!);
+      const error = (event.target as IDBRequest).error!;
+      checkForAndReportiOSError(error);
+      reject(error);
     };
   });
+}
+
+// Guard so we only report the error once.
+let reportedIOSError = false;
+function checkForAndReportiOSError(error: DOMException): void {
+  if (reportedIOSError) {
+    return;
+  }
+  const iOSVersion = SimpleDb.getIOSVersion(getUA());
+  if (iOSVersion >= 12.2 && iOSVersion < 13) {
+    const IOS_ERROR =
+      'An internal error was encountered in the Indexed Database server';
+    if (error.message.indexOf(IOS_ERROR) >= 0) {
+      reportedIOSError = true;
+      // Throw a global exception outside of this promise chain, for the user to
+      // potentially catch.
+      setTimeout(() => {
+        throw new FirestoreError(
+          'internal',
+          `IOS_INDEXEDDB_BUG1: IndexedDb has thrown '${IOS_ERROR}'. This is likely ` +
+            `due to an unavoidable bug in iOS. See https://stackoverflow.com/q/56496296/110915 ` +
+            `for details and a potential workaround.`
+        );
+      }, 0);
+    }
+  }
 }

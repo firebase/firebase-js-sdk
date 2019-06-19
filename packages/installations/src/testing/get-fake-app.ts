@@ -34,7 +34,7 @@ export function getFakeApp(): FirebaseApp {
     automaticDataCollectionEnabled: true,
     delete: async () => {},
     // This won't be used in tests.
-    // tslint:disable-next-line:no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     installations: null as any
   };
 }

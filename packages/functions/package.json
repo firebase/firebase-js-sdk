@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.4.7",
+  "version": "0.4.9",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -11,9 +11,11 @@
     "dist"
   ],
   "scripts": {
+    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "test": "run-p test:browser test:node",
+    "test": "run-p lint test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers=Chrome --auto-watch",
     "test:node": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha 'test/{,!(browser)/**/}*.test.ts' --file index.node.ts --opts ../../config/mocha.node.opts",
@@ -52,7 +54,12 @@
     "tslint": "5.16.0",
     "typescript": "3.4.5",
     "webpack": "4.30.0",
-    "yargs": "13.2.2"
+    "yargs": "13.2.2",
+    "eslint": "5.16.0",
+    "@typescript-eslint/parser": "1.10.2",
+    "@typescript-eslint/eslint-plugin": "1.10.2",
+    "@typescript-eslint/eslint-plugin-tslint": "1.10.2",
+    "@firebase/messaging": "0.4.2"
   },
   "repository": {
     "directory": "packages/functions",
@@ -65,7 +72,7 @@
   "typings": "dist/index.d.ts",
   "dependencies": {
     "@firebase/functions-types": "0.3.5",
-    "@firebase/messaging-types": "0.2.11",
+    "@firebase/messaging-types": "0.3.0",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.9.3"
   },

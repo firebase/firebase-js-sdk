@@ -20,6 +20,7 @@
  */
 
 import { Metadata } from '../metadata';
+import { ListResult } from '../list';
 
 import * as array from './array';
 import { AuthWrapper } from './authwrapper';
@@ -28,8 +29,9 @@ import * as errorsExports from './error';
 import { FirebaseStorageError } from './error';
 import { Location } from './location';
 import * as MetadataUtils from './metadata';
+import * as ListResultUtils from './list';
 import * as object from './object';
-import { RequestInfo } from './requestinfo';
+import { RequestInfo, UrlParams } from './requestinfo';
 import * as type from './type';
 import * as UrlUtils from './url';
 import { XhrIo } from './xhrio';
@@ -59,10 +61,21 @@ export function metadataHandler(
   return handler;
 }
 
+export function listHandler(
+  authWrapper: AuthWrapper
+): (p1: XhrIo, p2: string) => ListResult {
+  function handler(xhr: XhrIo, text: string): ListResult {
+    const listResult = ListResultUtils.fromResponseString(authWrapper, text);
+    handlerCheck(listResult !== null);
+    return listResult as ListResult;
+  }
+  return handler;
+}
+
 export function downloadUrlHandler(
   authWrapper: AuthWrapper,
   mappings: MetadataUtils.Mappings
-): (p1: XhrIo, p2: string) => string {
+): (p1: XhrIo, p2: string) => string | null {
   function handler(xhr: XhrIo, text: string): string | null {
     let metadata = MetadataUtils.fromResourceString(
       authWrapper,
@@ -140,6 +153,43 @@ export function getMetadata(
     timeout
   );
   requestInfo.errorHandler = objectErrorHandler(location);
+  return requestInfo;
+}
+
+export function list(
+  authWrapper: AuthWrapper,
+  location: Location,
+  delimiter?: string,
+  pageToken?: string | null,
+  maxResults?: number | null
+): RequestInfo<ListResult> {
+  let urlParams: UrlParams = {};
+  if (location.isRoot) {
+    urlParams['prefix'] = '';
+  } else {
+    urlParams['prefix'] = location.path + '/';
+  }
+  if (delimiter && delimiter.length > 0) {
+    urlParams['delimiter'] = delimiter;
+  }
+  if (pageToken) {
+    urlParams['pageToken'] = pageToken;
+  }
+  if (maxResults) {
+    urlParams['maxResults'] = maxResults;
+  }
+  const urlPart = location.bucketOnlyServerUrl();
+  const url = UrlUtils.makeUrl(urlPart);
+  const method = 'GET';
+  const timeout = authWrapper.maxOperationRetryTime();
+  const requestInfo = new RequestInfo(
+    url,
+    method,
+    listHandler(authWrapper),
+    timeout
+  );
+  requestInfo.urlParams = urlParams;
+  requestInfo.errorHandler = sharedErrorHandler(location);
   return requestInfo;
 }
 
@@ -271,7 +321,7 @@ export function multipartUpload(
   if (body === null) {
     throw errorsExports.cannotSliceBlob();
   }
-  let urlParams = { name: metadata['fullPath'] };
+  let urlParams: UrlParams = { name: metadata['fullPath']! };
   let url = UrlUtils.makeUrl(urlPart);
   let method = 'POST';
   let timeout = authWrapper.maxUploadRetryTime();
@@ -332,14 +382,14 @@ export function createResumableUpload(
 ): RequestInfo<string> {
   let urlPart = location.bucketOnlyServerUrl();
   let metadata = metadataForUpload_(location, blob, opt_metadata);
-  let urlParams = { name: metadata['fullPath'] };
+  let urlParams: UrlParams = { name: metadata['fullPath']! };
   let url = UrlUtils.makeUrl(urlPart);
   let method = 'POST';
   let headers = {
     'X-Goog-Upload-Protocol': 'resumable',
     'X-Goog-Upload-Command': 'start',
     'X-Goog-Upload-Header-Content-Length': blob.size(),
-    'X-Goog-Upload-Header-Content-Type': metadata['contentType'],
+    'X-Goog-Upload-Header-Content-Type': metadata['contentType']!,
     'Content-Type': 'application/json; charset=utf-8'
   };
   let body = MetadataUtils.toResourceString(metadata, mappings);
@@ -377,13 +427,13 @@ export function getResumableUploadStatus(
 
   function handler(xhr: XhrIo, text: string): ResumableUploadStatus {
     let status = checkResumeHeader_(xhr, ['active', 'final']);
-    let sizeString;
+    let sizeString: string | null = null;
     try {
       sizeString = xhr.getResponseHeader('X-Goog-Upload-Size-Received');
     } catch (e) {
       handlerCheck(false);
     }
-    let size = parseInt(sizeString, 10);
+    let size = parseInt(sizeString as string, 10);
     handlerCheck(!isNaN(size));
     return new ResumableUploadStatus(size, blob.size(), status === 'final');
   }

@@ -27,7 +27,7 @@ import {
   FirebaseAppInternals
 } from '@firebase/app-types/private';
 import { deepCopy, deepExtend } from '@firebase/util';
-import { error, AppError } from './errors';
+import { AppError, ERROR_FACTORY } from './errors';
 import { DEFAULT_ENTRY_NAME } from './constants';
 
 interface ServicesCache {
@@ -38,7 +38,7 @@ interface ServicesCache {
 
 // An array to capture listeners before the true auth functions
 // exist
-let tokenListeners: any[] = [];
+let tokenListeners: Array<(token: string | null) => void> = [];
 
 /**
  * Global context object for a collection of services using
@@ -114,9 +114,9 @@ export class FirebaseAppImpl implements FirebaseApp {
         }
 
         return Promise.all(
-          services.map(service => {
-            return service.INTERNAL.delete();
-          })
+          services
+            .filter(service => 'INTERNAL' in service)
+            .map(service => service.INTERNAL!.delete())
         );
       })
       .then(
@@ -175,6 +175,7 @@ export class FirebaseAppImpl implements FirebaseApp {
    * Callback function used to extend an App instance at the time
    * of service instance creation.
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private extendApp(props: { [name: string]: any }): void {
     // Copy the object onto the FirebaseAppImpl prototype
     deepExtend(this, props);
@@ -202,7 +203,7 @@ export class FirebaseAppImpl implements FirebaseApp {
    */
   private checkDestroyed_(): void {
     if (this.isDeleted_) {
-      error(AppError.APP_DELETED, { name: this.name_ });
+      throw ERROR_FACTORY.create(AppError.APP_DELETED, { name: this.name_ });
     }
   }
 }

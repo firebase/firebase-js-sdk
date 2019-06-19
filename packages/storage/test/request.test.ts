@@ -45,7 +45,7 @@ describe('Firebase Storage > Request', () => {
       body?: ArrayBufferView | Blob | string | null,
       headers?: Headers
     ) {
-      const responseHeaders = {};
+      const responseHeaders: Headers = {};
       responseHeaders[responseHeader] = responseValue;
       xhrio.simulateResponse(status, response, responseHeaders);
     }
@@ -75,7 +75,7 @@ describe('Firebase Storage > Request', () => {
           const args = spiedSend.getCall(0).args;
           assert.equal(args[1], url);
           assert.equal(args[2], method);
-          const expectedHeaders = {};
+          const expectedHeaders: Headers = {};
           expectedHeaders[requestHeader] = requestValue;
           expectedHeaders[versionHeaderName] = versionHeaderValue;
           assert.deepEqual(args[4], expectedHeaders);
@@ -224,7 +224,9 @@ describe('Firebase Storage > Request', () => {
       result => {
         assert.isTrue(spiedSend.calledOnce);
         const args = spiedSend.getCall(0).args;
-        const expectedHeaders = { Authorization: 'Firebase ' + authToken };
+        const expectedHeaders: Headers = {
+          Authorization: 'Firebase ' + authToken
+        };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
         assert.deepEqual(args[4], expectedHeaders);
       },

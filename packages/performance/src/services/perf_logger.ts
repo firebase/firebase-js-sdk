@@ -39,6 +39,7 @@ const enum ResourceType {
   Trace
 }
 
+/* eslint-disable camelcase */
 interface ApplicationInfo {
   google_app_id: string;
   app_instance_id?: string;
@@ -82,11 +83,14 @@ interface TraceMetric {
   counters?: Array<{ key: string; value: number }>;
   custom_attributes?: Array<{ key: string; value: string }>;
 }
+/* eslint-enble camelcase */
 
 let logger: Logger | undefined;
 // This method is not called before initialization.
 function getLogger(): Logger {
-  if (logger) return logger;
+  if (logger) {
+    return logger;
+  }
   const ccLogger = ccHandler(serializer);
   logger = new Logger('@firebase/performance/cc');
   logger.logHandler = ccLogger;
@@ -96,14 +100,24 @@ function getLogger(): Logger {
 export function logTrace(trace: Trace): void {
   const settingsService = SettingsService.getInstance();
   // Do not log if trace is auto generated and instrumentation is disabled.
-  if (!settingsService.instrumentationEnabled && trace.isAuto) return;
-  // Do not log if trace is custom and data collection is disabled.
-  if (!settingsService.dataCollectionEnabled && !trace.isAuto) return;
-  // Only log the page load auto traces if page is visible.
-  if (trace.isAuto && getVisibilityState() !== VisibilityState.VISIBLE) return;
-
-  if (!settingsService.loggingEnabled || !settingsService.logTraceAfterSampling)
+  if (!settingsService.instrumentationEnabled && trace.isAuto) {
     return;
+  }
+  // Do not log if trace is custom and data collection is disabled.
+  if (!settingsService.dataCollectionEnabled && !trace.isAuto) {
+    return;
+  }
+  // Only log the page load auto traces if page is visible.
+  if (trace.isAuto && getVisibilityState() !== VisibilityState.VISIBLE) {
+    return;
+  }
+
+  if (
+    !settingsService.loggingEnabled ||
+    !settingsService.logTraceAfterSampling
+  ) {
+    return;
+  }
 
   if (isPerfInitialized()) {
     sendTraceLog(trace);
@@ -126,16 +140,20 @@ function sendTraceLog(trace: Trace): void {
 export function logNetworkRequest(networkRequest: NetworkRequest): void {
   const settingsService = SettingsService.getInstance();
   // Do not log network requests if instrumentation is disabled.
-  if (!settingsService.instrumentationEnabled) return;
-  // Do not log the js sdk's call to cc service to avoid unnecessary cycle.
-  if (networkRequest.url === settingsService.logEndPointUrl.split('?')[0])
+  if (!settingsService.instrumentationEnabled) {
     return;
+  }
+  // Do not log the js sdk's call to cc service to avoid unnecessary cycle.
+  if (networkRequest.url === settingsService.logEndPointUrl.split('?')[0]) {
+    return;
+  }
 
   if (
     !settingsService.loggingEnabled ||
     !settingsService.logNetworkAfterSampling
-  )
+  ) {
     return;
+  }
 
   setTimeout(
     () => getLogger().log(networkRequest, ResourceType.NetworkRequest),
@@ -153,7 +171,7 @@ function serializer(resource: {}, resourceType: ResourceType): string {
 function serializeNetworkRequest(networkRequest: NetworkRequest): string {
   const networkRequestMetric: NetworkRequestMetric = {
     url: networkRequest.url,
-    http_method: 1,
+    http_method: networkRequest.httpMethod || 0,
     http_response_code: 200,
     response_payload_bytes: networkRequest.responsePayloadBytes,
     client_start_time_us: networkRequest.startTimeUs,

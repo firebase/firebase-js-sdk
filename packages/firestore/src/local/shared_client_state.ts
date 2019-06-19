@@ -462,13 +462,13 @@ export class SharedOnlineState {
 
     const validData =
       typeof onlineState === 'object' &&
-      OnlineState[onlineState.onlineState] !== undefined &&
+      onlineState.onlineState in OnlineState &&
       typeof onlineState.clientId === 'string';
 
     if (validData) {
       return new SharedOnlineState(
         onlineState.clientId,
-        OnlineState[onlineState.onlineState]
+        OnlineState[onlineState.onlineState as keyof typeof OnlineState]
       );
     } else {
       error(LOG_TAG, `Failed to parse online state: ${value}`);

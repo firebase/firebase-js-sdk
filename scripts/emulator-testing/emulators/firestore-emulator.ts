@@ -20,7 +20,7 @@ import { Emulator } from './emulator';
 export class FirestoreEmulator extends Emulator {
   projectId: string;
 
-  constructor(port = 8087, projectId = 'test-emulator') {
+  constructor(port: number, projectId = 'test-emulator') {
     super(port);
     this.projectId = projectId;
     this.binaryName = 'firestore-emulator.jar';
@@ -28,6 +28,6 @@ export class FirestoreEmulator extends Emulator {
     // The latest version can be found from firestore emulator doc:
     // https://firebase.google.com/docs/firestore/security/test-rules-emulator
     this.binaryUrl =
-      'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.2.3.jar';
+      'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.5.0.jar';
   }
 }

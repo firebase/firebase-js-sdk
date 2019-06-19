@@ -20,7 +20,6 @@ import { expect } from 'chai';
 import { DbInterface } from '../src/models/db-interface';
 
 import { deleteDatabase } from './testing-utils/db-helper';
-import { describe } from './testing-utils/messaging-test-runner';
 
 const VALUE = {
   key: 'key-value',
@@ -40,7 +39,7 @@ class MockDbInterface extends DbInterface {
 
   protected onDbUpgrade(
     request: IDBOpenDBRequest,
-    event: IDBVersionChangeEvent
+    _event: IDBVersionChangeEvent
   ): void {
     const db: IDBDatabase = request.result;
 
@@ -60,7 +59,7 @@ describe('DbInterface', () => {
   });
 
   afterEach(async () => {
-    dbInterface.closeDatabase();
+    await dbInterface.closeDatabase();
     await deleteDatabase(dbInterface.dbName);
   });
 

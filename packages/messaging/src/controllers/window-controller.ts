@@ -38,6 +38,7 @@ import {
 import { BaseController } from './base-controller';
 
 interface ManifestContent {
+  // eslint-disable-next-line camelcase
   gcm_sender_id: string;
 }
 
@@ -92,6 +93,9 @@ export class WindowController extends BaseController {
    * Request permission if it is not currently granted
    *
    * @return Resolves if the permission was granted, otherwise rejects
+   *
+   * @deprecated Use Notification.requestPermission() instead.
+   * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
    */
   async requestPermission(): Promise<void> {
     if (this.getNotificationPermission_() === 'granted') {
@@ -222,7 +226,7 @@ export class WindowController extends BaseController {
         return;
       }
 
-      const stateChangeListener = () => {
+      const stateChangeListener = (): void => {
         if (serviceWorker.state === 'activated') {
           resolve(registration);
         } else if (serviceWorker.state === 'redundant') {
@@ -264,8 +268,9 @@ export class WindowController extends BaseController {
           this.registrationToUse = registration;
 
           // We update after activation due to an issue with Firefox v49 where
-          // a race condition occassionally causes the service work to not
+          // a race condition occassionally causes the service worker to not
           // install
+          // tslint:disable-next-line:no-floating-promises
           registration.update();
 
           return registration;

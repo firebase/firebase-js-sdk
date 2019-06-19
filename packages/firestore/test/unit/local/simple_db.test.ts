@@ -132,8 +132,8 @@ describe('SimpleDb', () => {
     const androidAgent =
       'Mozilla/5.0 (Linux; U; Android 2.2.1; fr-fr; Desire HD Build/FRG83D)' +
       ' AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1';
-    expect(SimpleDb.getIOSVersion(iPhoneSafariAgent)).to.equal(10);
-    expect(SimpleDb.getIOSVersion(iPadSafariAgent)).to.equal(9);
+    expect(SimpleDb.getIOSVersion(iPhoneSafariAgent)).to.equal(10.14);
+    expect(SimpleDb.getIOSVersion(iPadSafariAgent)).to.equal(9.0);
     expect(SimpleDb.getAndroidVersion(androidAgent)).to.equal(2.2);
   });
 

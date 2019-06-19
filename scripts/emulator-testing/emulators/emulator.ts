@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 
+// @ts-ignore
 import { spawn } from 'child-process-promise';
 import { ChildProcess } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as request from 'request';
+// @ts-ignore
 import * as tmp from 'tmp';
 
 export interface ChildProcessPromise extends Promise<void> {
@@ -40,7 +42,7 @@ export abstract class Emulator {
 
   download(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      tmp.dir((err, dir) => {
+      tmp.dir((err: Error, dir: string) => {
         if (err) reject(err);
 
         console.log(`Created temporary directory at [${dir}].`);
@@ -89,7 +91,7 @@ export abstract class Emulator {
       const timeout = process.env.TRAVIS ? 100 : 30; // seconds
       const start: number = Date.now();
 
-      const wait = (resolve, reject) => {
+      const wait = (resolve: () => void, reject: (arg0: unknown) => void) => {
         const elapsed = (Date.now() - start) / 1000;
         if (elapsed > timeout) {
           reject(`Emulator not ready after ${timeout}s. Exiting ...`);

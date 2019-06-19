@@ -108,11 +108,8 @@ export class SwController extends BaseController {
       const notificationTitle = notificationDetails.title || '';
       const reg = await this.getSWRegistration_();
 
-      // TODO: Remove casts to any and redundant type declarations when this
-      // PR lands: https://github.com/Microsoft/TSJS-lib-generator/pull/438
-      // tslint:disable no-any
-      const actions: object[] = (notificationDetails as any).actions;
-      const maxActions: number | undefined = (Notification as any).maxActions;
+      const { actions } = notificationDetails;
+      const { maxActions } = Notification;
       // tslint:enable no-any
       if (actions && maxActions && actions.length > maxActions) {
         console.warn(
@@ -129,7 +126,7 @@ export class SwController extends BaseController {
   }
 
   private async onSubChange_(
-    event: PushSubscriptionChangeEvent
+    _event: PushSubscriptionChangeEvent
   ): Promise<void> {
     let registration: ServiceWorkerRegistration;
     try {

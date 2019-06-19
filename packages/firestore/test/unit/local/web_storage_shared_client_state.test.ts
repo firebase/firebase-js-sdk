@@ -165,15 +165,25 @@ describe('WebStorageSharedClientState', () => {
   const webStorage = window.localStorage;
 
   let queue: AsyncQueue;
-  let primaryClientId;
+  let primaryClientId: string;
   let sharedClientState: SharedClientState;
   let clientSyncer: TestSharedClientSyncer;
 
-  let previousAddEventListener;
-  let previousRemoveEventListener;
+  let previousAddEventListener: typeof window.addEventListener;
+  let previousRemoveEventListener: typeof window.removeEventListener;
 
-  // tslint:disable-next-line:no-any
-  let webStorageCallbacks: Array<(this, event) => any> = [];
+  interface WebStorageOptions {
+    key: string;
+    storageArea: Storage;
+    newValue: string | null;
+  }
+
+  type WebStorageCallback = (
+    this: unknown,
+    event: WebStorageOptions
+  ) => unknown;
+
+  let webStorageCallbacks: WebStorageCallback[] = [];
 
   function writeToWebStorage(key: string, value: string | null): void {
     for (const callback of webStorageCallbacks) {
@@ -195,9 +205,9 @@ describe('WebStorageSharedClientState', () => {
     // We capture the listener here so that we can invoke it from the local
     // client. If we directly relied on WebStorage listeners, we would not
     // receive events for local writes.
-    window.addEventListener = (type, callback) => {
+    window.addEventListener = (type: string, callback: unknown) => {
       if (type === 'storage') {
-        webStorageCallbacks.push(callback);
+        webStorageCallbacks.push(callback as WebStorageCallback);
       }
     };
     window.removeEventListener = () => {};

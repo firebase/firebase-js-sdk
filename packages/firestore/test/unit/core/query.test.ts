@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../src/core/query';
+import { Bound, Query } from '../../../src/core/query';
 import { DOCUMENT_KEY_NAME, ResourcePath } from '../../../src/model/path';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -27,8 +27,36 @@ import {
   filter,
   orderBy,
   path,
-  ref
+  ref,
+  wrap
 } from '../../util/helpers';
+
+describe('Bound', () => {
+  function makeBound(values: unknown[], before: boolean): Bound {
+    return new Bound(values.map(el => wrap(el)), before);
+  }
+
+  it('implements isEqual', () => {
+    let bound = makeBound([1, 2], true);
+    expect(bound.isEqual(makeBound([1, 2], true))).to.be.true;
+
+    // Mismatch values
+    expect(bound.isEqual(makeBound([2, 2], true))).to.be.false;
+    expect(bound.isEqual(makeBound([1, 3], true))).to.be.false;
+
+    // Mismatch before
+    expect(bound.isEqual(makeBound([1, 2], false))).to.be.false;
+
+    // Unequal lengths
+    expect(bound.isEqual(makeBound([], true))).to.be.false;
+    expect(bound.isEqual(makeBound([1], true))).to.be.false;
+    expect(bound.isEqual(makeBound([1, 2, 3], true))).to.be.false;
+
+    // Zero length
+    bound = makeBound([], false);
+    expect(bound.isEqual(makeBound([], false))).to.be.true;
+  });
+});
 
 describe('Query', () => {
   addEqualityMatcher();
@@ -130,6 +158,88 @@ describe('Query', () => {
       array: [1, '2', 42, { a: [42] }]
     });
     expect(query.matches(document)).to.be.true;
+  });
+
+  it('matches IN filters', () => {
+    const query = Query.atPath(path('collection')).addFilter(
+      filter('zip', 'in', [12345])
+    );
+
+    let document = doc('collection/1', 0, { zip: 12345 });
+    expect(query.matches(document)).to.be.true;
+
+    // Value matches in array.
+    document = doc('collection/1', 0, { zip: [12345] });
+    expect(query.matches(document)).to.be.false;
+
+    // Non-type match.
+    document = doc('collection/1', 0, { zip: '123435' });
+    expect(query.matches(document)).to.be.false;
+
+    // Nested match.
+    document = doc('collection/1', 0, {
+      zip: [123, '12345', { zip: 12345, b: [42] }]
+    });
+    expect(query.matches(document)).to.be.false;
+  });
+
+  it('matches IN filters with object values', () => {
+    const query = Query.atPath(path('collection')).addFilter(
+      filter('zip', 'in', [{ a: [42] }])
+    );
+
+    // Containing object in array.
+    let document = doc('collection/1', 0, {
+      zip: [{ a: 42 }]
+    });
+    expect(query.matches(document)).to.be.false;
+
+    // Containing object.
+    document = doc('collection/1', 0, {
+      zip: { a: [42] }
+    });
+    expect(query.matches(document)).to.be.true;
+  });
+
+  it('matches array-contains-any filters', () => {
+    const query = Query.atPath(path('collection')).addFilter(
+      filter('zip', 'array-contains-any', [12345])
+    );
+
+    let document = doc('collection/1', 0, { zip: [12345] });
+    expect(query.matches(document)).to.be.true;
+
+    // Value matches in non-array.
+    document = doc('collection/1', 0, { zip: 12345 });
+    expect(query.matches(document)).to.be.false;
+
+    // Non-type match.
+    document = doc('collection/1', 0, { zip: ['12345'] });
+    expect(query.matches(document)).to.be.false;
+
+    // Nested match.
+    document = doc('collection/1', 0, {
+      zip: [123, '12345', { zip: [12345], b: [42] }]
+    });
+    expect(query.matches(document)).to.be.false;
+  });
+
+  it('matches array-contains-any filters with object values', () => {
+    const query = Query.atPath(path('collection')).addFilter(
+      filter('zip', 'array-contains-any', [{ a: [42] }])
+    );
+
+    // Containing object in array.
+    let document = doc('collection/1', 0, {
+      zip: [{ a: [42] }]
+    });
+    expect(query.matches(document)).to.be.true;
+
+    // Containing object.
+    document = doc('collection/1', 0, {
+      zip: { a: [42] }
+    });
+    expect(query.matches(document)).to.be.false;
   });
 
   it('matches NaN for filters', () => {

@@ -244,27 +244,25 @@ export class IndexedDbMutationQueue implements MutationQueue {
     transaction: PersistenceTransaction,
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null> {
-    return this.getMutationQueueMetadata(transaction).next(metadata => {
-      const nextBatchId = batchId + 1;
+    const nextBatchId = batchId + 1;
 
-      const range = IDBKeyRange.lowerBound([this.userId, nextBatchId]);
-      let foundBatch: MutationBatch | null = null;
-      return mutationsStore(transaction)
-        .iterate(
-          { index: DbMutationBatch.userMutationsIndex, range },
-          (key, dbBatch, control) => {
-            if (dbBatch.userId === this.userId) {
-              assert(
-                dbBatch.batchId >= nextBatchId,
-                'Should have found mutation after ' + nextBatchId
-              );
-              foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
-            }
-            control.done();
+    const range = IDBKeyRange.lowerBound([this.userId, nextBatchId]);
+    let foundBatch: MutationBatch | null = null;
+    return mutationsStore(transaction)
+      .iterate(
+        { index: DbMutationBatch.userMutationsIndex, range },
+        (key, dbBatch, control) => {
+          if (dbBatch.userId === this.userId) {
+            assert(
+              dbBatch.batchId >= nextBatchId,
+              'Should have found mutation after ' + nextBatchId
+            );
+            foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
           }
-        )
-        .next(() => foundBatch);
-    });
+          control.done();
+        }
+      )
+      .next(() => foundBatch);
   }
 
   getAllMutationBatches(
@@ -478,9 +476,15 @@ export class IndexedDbMutationQueue implements MutationQueue {
       batch
     ).next(removedDocuments => {
       this.removeCachedMutationKeys(batch.batchId);
-      return PersistencePromise.forEach(removedDocuments, key => {
-        return this.referenceDelegate.removeMutationReference(transaction, key);
-      });
+      return PersistencePromise.forEach(
+        removedDocuments,
+        (key: DocumentKey) => {
+          return this.referenceDelegate.removeMutationReference(
+            transaction,
+            key
+          );
+        }
+      );
     });
   }
 

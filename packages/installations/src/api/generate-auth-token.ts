@@ -26,7 +26,8 @@ import {
   extractAuthTokenInfoFromResponse,
   getErrorFromResponse,
   getHeadersWithAuth,
-  getInstallationsEndpoint
+  getInstallationsEndpoint,
+  retryIfServerError
 } from './common';
 
 export async function generateAuthToken(
@@ -48,7 +49,7 @@ export async function generateAuthToken(
     body: JSON.stringify(body)
   };
 
-  const response = await fetch(endpoint, request);
+  const response = await retryIfServerError(() => fetch(endpoint, request));
   if (response.ok) {
     const responseValue: GenerateAuthTokenResponse = await response.json();
     const completedAuthToken: CompletedAuthToken = extractAuthTokenInfoFromResponse(
@@ -56,7 +57,7 @@ export async function generateAuthToken(
     );
     return completedAuthToken;
   } else {
-    throw getErrorFromResponse('Generate Auth Token', response);
+    throw await getErrorFromResponse('Generate Auth Token', response);
   }
 }
 

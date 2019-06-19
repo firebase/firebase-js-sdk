@@ -15,17 +15,17 @@
  * limitations under the License.
  */
 
-import { stub, useFakeTimers } from 'sinon';
+import { stub, useFakeTimers, SinonStub } from 'sinon';
 import { use, expect } from 'chai';
 import { Logger, LogLevel } from '@firebase/logger';
 import * as sinonChai from 'sinon-chai';
-import { SinonStub } from 'sinon';
+
 use(sinonChai);
 
 // We have to stub the clock before importing cc_service, otherwise we cannot deterministically
 // trigger fetches.
 // Starts date at timestamp 1 instead of 0, otherwise it causes validation errors.
-let clock = useFakeTimers(1);
+const clock = useFakeTimers(1);
 import { ccHandler } from './cc_service';
 
 describe('Firebase Performance > cc_service', () => {
@@ -37,7 +37,7 @@ describe('Firebase Performance > cc_service', () => {
     let fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
     const INITIAL_SEND_TIME_DELAY_MS = 5.5 * 1000;
     const DEFAULT_SEND_INTERVAL_MS = 10 * 1000;
-    let testCCHandler = ccHandler((...args) => {
+    const testCCHandler = ccHandler((...args) => {
       return args[0];
     });
 
@@ -50,7 +50,7 @@ describe('Firebase Performance > cc_service', () => {
     });
 
     it('throws an error when logging an empty message', () => {
-      let logger = new Logger('@firebase/performance/cc');
+      const logger = new Logger('@firebase/performance/cc');
       expect(() => {
         testCCHandler(logger, LogLevel.SILENT, '');
       }).to.throw;
@@ -69,7 +69,7 @@ describe('Firebase Performance > cc_service', () => {
     });
 
     it('attempts to log an event to clearcut after DEFAULT_SEND_INTERVAL_MS if queue not empty', () => {
-      let logger = new Logger('@firebase/performance/cc');
+      const logger = new Logger('@firebase/performance/cc');
 
       fetchStub.resolves(
         new Response('', {

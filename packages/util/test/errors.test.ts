@@ -32,7 +32,17 @@ const ERROR_MAP: ErrorMap<ErrorCode> = {
     'I decided to use {$code} to represent the error code from my server.'
 };
 
-const ERROR_FACTORY = new ErrorFactory<ErrorCode>('fake', 'Fake', ERROR_MAP);
+interface ErrorParams {
+  'file-not-found': { file: string };
+  'anon-replace': { repl_: string };
+  'overwrite-field': { code: string };
+}
+
+const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(
+  'fake',
+  'Fake',
+  ERROR_MAP
+);
 
 describe('FirebaseError', () => {
   it('creates an Error', () => {
@@ -68,7 +78,9 @@ describe('FirebaseError', () => {
   });
 
   it('uses the key in the template if the replacement is missing', () => {
-    const e = ERROR_FACTORY.create('file-not-found', { fileX: 'foo.txt' });
+    const e = ERROR_FACTORY.create('file-not-found', {
+      fileX: 'foo.txt'
+    } as any);
     assert.equal(e.code, 'fake/file-not-found');
     assert.equal(
       e.message,
@@ -93,8 +105,9 @@ describe('FirebaseError', () => {
 
   it('has stack', () => {
     const e = ERROR_FACTORY.create('generic-error');
+    assert.isDefined(e.stack);
     // Multi-line match trick - .* does not match \n
-    assert.match(e.stack, /FirebaseError[\s\S]/);
+    assert.match(e.stack!, /FirebaseError[\s\S]/);
   });
 
   it('has function names in stack trace in correct order', () => {
@@ -108,10 +121,10 @@ describe('FirebaseError', () => {
   });
 });
 
-function dummy1() {
+function dummy1(): void {
   dummy2();
 }
 
-function dummy2() {
+function dummy2(): void {
   throw ERROR_FACTORY.create('generic-error');
 }

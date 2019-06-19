@@ -21,10 +21,6 @@
  */
 import * as type from './type';
 
-declare var IBlobBuilder;
-declare var BlobBuilder;
-declare var WebKitBlobBuilder;
-
 function getBlobBuilder(): (typeof IBlobBuilder) | undefined {
   if (typeof BlobBuilder !== 'undefined') {
     return BlobBuilder;

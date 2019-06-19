@@ -22,6 +22,8 @@ import { Platform } from '../platform/platform';
 import { Connection } from '../remote/connection';
 import { JsonProtoSerializer } from '../remote/serializer';
 import { Code, FirestoreError } from '../util/error';
+import { ConnectivityMonitor } from './../remote/connectivity_monitor';
+import { NoopConnectivityMonitor } from './../remote/connectivity_monitor_noop';
 
 import { GrpcConnection } from './grpc_connection';
 import { loadProtos } from './load_protos';
@@ -44,6 +46,10 @@ export class NodePlatform implements Platform {
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
     const protos = loadProtos();
     return Promise.resolve(new GrpcConnection(protos, databaseInfo));
+  }
+
+  newConnectivityMonitor(): ConnectivityMonitor {
+    return new NoopConnectivityMonitor();
   }
 
   newSerializer(partitionId: DatabaseId): JsonProtoSerializer {

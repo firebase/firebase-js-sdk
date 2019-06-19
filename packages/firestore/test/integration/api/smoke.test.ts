@@ -22,7 +22,7 @@ import * as integrationHelpers from '../util/helpers';
 
 const apiDescribe = integrationHelpers.apiDescribe;
 
-apiDescribe('Smoke Test', persistence => {
+apiDescribe('Smoke Test', (persistence: boolean) => {
   it('can write a single document', () => {
     return integrationHelpers.withTestDoc(persistence, ref => {
       return ref.set({

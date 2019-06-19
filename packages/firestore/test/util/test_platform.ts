@@ -21,6 +21,8 @@ import { Platform } from '../../src/platform/platform';
 import { Connection } from '../../src/remote/connection';
 import { JsonProtoSerializer } from '../../src/remote/serializer';
 import { assert, fail } from '../../src/util/assert';
+import { ConnectivityMonitor } from './../../src/remote/connectivity_monitor';
+import { NoopConnectivityMonitor } from './../../src/remote/connectivity_monitor_noop';
 
 /**
  * `Window` fake that implements the event and storage API that is used by
@@ -243,6 +245,10 @@ export class TestPlatform implements Platform {
 
   loadConnection(databaseInfo: DatabaseInfo): Promise<Connection> {
     return this.basePlatform.loadConnection(databaseInfo);
+  }
+
+  newConnectivityMonitor(): ConnectivityMonitor {
+    return new NoopConnectivityMonitor();
   }
 
   newSerializer(databaseId: DatabaseId): JsonProtoSerializer {

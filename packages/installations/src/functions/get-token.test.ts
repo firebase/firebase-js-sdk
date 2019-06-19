@@ -99,6 +99,7 @@ const setupInstallationEntryMap: Map<
       await set(appConfig, entry);
 
       // Finish pending request after 500 ms
+      // tslint:disable-next-line:no-floating-promises
       sleep(500).then(async () => {
         const updatedEntry: RegisteredInstallationEntry = {
           ...entry,
@@ -109,7 +110,7 @@ const setupInstallationEntryMap: Map<
             creationTime: Date.now()
           }
         };
-        set(appConfig, updatedEntry);
+        await set(appConfig, updatedEntry);
       });
     }
   ],
@@ -139,6 +140,7 @@ const setupInstallationEntryMap: Map<
       await set(appConfig, entry);
 
       // Finish pending request after 500 ms
+      // tslint:disable-next-line:no-floating-promises
       sleep(500).then(async () => {
         const updatedEntry: RegisteredInstallationEntry = {
           fid: FID,
@@ -151,7 +153,7 @@ const setupInstallationEntryMap: Map<
             creationTime: Date.now()
           }
         };
-        set(appConfig, updatedEntry);
+        await set(appConfig, updatedEntry);
       });
     }
   ],
@@ -229,18 +231,18 @@ describe('getToken', () => {
 
         it('saves the token in the DB', async () => {
           const token = await getToken(app);
-          const installationEntry = await get<RegisteredInstallationEntry>(
+          const installationEntry = (await get(
             appConfig
-          );
+          )) as RegisteredInstallationEntry;
           expect(installationEntry).not.to.be.undefined;
-          expect(installationEntry!.registrationStatus).to.equal(
+          expect(installationEntry.registrationStatus).to.equal(
             RequestStatus.COMPLETED
           );
-          expect(installationEntry!.authToken.requestStatus).to.equal(
+          expect(installationEntry.authToken.requestStatus).to.equal(
             RequestStatus.COMPLETED
           );
           expect(
-            (installationEntry!.authToken as CompletedAuthToken).token
+            (installationEntry.authToken as CompletedAuthToken).token
           ).to.equal(token);
         });
 
@@ -294,9 +296,14 @@ describe('getToken', () => {
       expect(createInstallationSpy).not.to.be.called;
     });
 
-    it('does not call generateAuthToken on subsequent calls', async () => {
+    it('does not call generateAuthToken twice on subsequent calls', async () => {
       await getToken(app);
       await getToken(app);
+      expect(generateAuthTokenSpy).to.be.calledOnce;
+    });
+
+    it('does not call generateAuthToken twice on simultaneous calls', async () => {
+      await Promise.all([getToken(app), getToken(app)]);
       expect(generateAuthTokenSpy).to.be.calledOnce;
     });
 

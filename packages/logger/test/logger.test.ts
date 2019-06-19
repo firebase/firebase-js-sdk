@@ -16,20 +16,14 @@
  */
 
 import { expect } from 'chai';
-import { spy as Spy } from 'sinon';
+import { spy as Spy, SinonSpy } from 'sinon';
 import { Logger, LogLevel } from '../src/logger';
 import { setLogLevel } from '../index';
-import { debug } from 'util';
 
 describe('@firebase/logger', () => {
   const message = 'Hello there!';
   let client: Logger;
-  const spies = {
-    logSpy: null,
-    infoSpy: null,
-    warnSpy: null,
-    errorSpy: null
-  };
+  let spies: { [key: string]: SinonSpy };
   /**
    * Before each test, instantiate a new instance of Logger and establish spies
    * on all of the console methods so we can assert against them as needed
@@ -37,10 +31,12 @@ describe('@firebase/logger', () => {
   beforeEach(() => {
     client = new Logger('@firebase/test-logger');
 
-    spies.logSpy = Spy(console, 'log');
-    spies.infoSpy = Spy(console, 'info');
-    spies.warnSpy = Spy(console, 'warn');
-    spies.errorSpy = Spy(console, 'error');
+    spies = {
+      logSpy: Spy(console, 'log'),
+      infoSpy: Spy(console, 'info'),
+      warnSpy: Spy(console, 'warn'),
+      errorSpy: Spy(console, 'error')
+    };
   });
 
   afterEach(() => {
@@ -50,7 +46,7 @@ describe('@firebase/logger', () => {
     spies.errorSpy.restore();
   });
 
-  function testLog(message, channel, shouldLog) {
+  function testLog(message: string, channel: string, shouldLog: boolean): void {
     /**
      * Ensure that `debug` logs assert against the `console.log` function. The
      * rationale here is explained in `logger.ts`.
@@ -60,9 +56,10 @@ describe('@firebase/logger', () => {
     it(`Should ${
       shouldLog ? '' : 'not'
     } call \`console.${channel}\` if \`.${channel}\` is called`, () => {
+      // @ts-ignore It's not worth making a dedicated enum for a test.
       client[channel](message);
       expect(
-        spies[`${channel}Spy`] && spies[`${channel}Spy`].called,
+        spies[`${channel}Spy`]!.called,
         `Expected ${channel} to ${shouldLog ? '' : 'not'} log`
       ).to.be[shouldLog ? 'true' : 'false'];
     });

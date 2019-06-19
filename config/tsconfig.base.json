@@ -3,6 +3,8 @@
   "compilerOptions": {
     "declaration": true,
     "importHelpers": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
     "lib": [
       "es2015",
       "dom"

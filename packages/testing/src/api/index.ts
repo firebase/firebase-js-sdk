@@ -20,19 +20,21 @@ import * as request from 'request';
 import { base64 } from '@firebase/util';
 import { setLogLevel, LogLevel } from '@firebase/logger';
 import * as grpc from 'grpc';
+import * as protoLoader from '@grpc/proto-loader';
 import { resolve } from 'path';
-import * as fs from 'fs';
 
 export { database, firestore } from 'firebase';
 
-const PROTO_ROOT = {
-  root: resolve(
-    __dirname,
-    process.env.FIRESTORE_EMULATOR_PROTO_ROOT || '../protos'
-  ),
-  file: 'google/firestore/emulator/v1/firestore_emulator.proto'
-};
-const PROTOS = grpc.load(PROTO_ROOT, /* format = */ 'proto');
+const PROTO_ROOT = resolve(
+  __dirname,
+  process.env.FIRESTORE_EMULATOR_PROTO_ROOT || '../protos'
+);
+const PROTO_FILE = resolve(
+  PROTO_ROOT,
+  'google/firestore/emulator/v1/firestore_emulator.proto'
+);
+const PKG_DEF = protoLoader.loadSync(PROTO_FILE, { includeDirs: [PROTO_ROOT] });
+const PROTOS = grpc.loadPackageDefinition(PKG_DEF);
 const EMULATOR = PROTOS['google']['firestore']['emulator']['v1'];
 
 /** If this environment variable is set, use it for the database emulator's address. */
@@ -93,7 +95,7 @@ export type AppOptions = {
 /** Construct an App authenticated with options.auth. */
 export function initializeTestApp(options: AppOptions): firebase.app.App {
   return initializeApp(
-    options.auth ? createUnsecuredJwt(options.auth) : null,
+    options.auth ? createUnsecuredJwt(options.auth) : undefined,
     options.databaseName,
     options.projectId
   );
@@ -113,7 +115,7 @@ function initializeApp(
   databaseName?: string,
   projectId?: string
 ): firebase.app.App {
-  let appOptions = {};
+  let appOptions: { [key: string]: string } = {};
   if (databaseName) {
     appOptions['databaseURL'] = `http://${DATABASE_ADDRESS}?ns=${databaseName}`;
   }
@@ -202,13 +204,7 @@ export function loadFirestoreRules(
 
   let client = new EMULATOR.FirestoreEmulator(
     FIRESTORE_ADDRESS,
-    grpc.credentials.createInsecure(),
-    {
-      // Cap how much backoff gRPC will perform. This is testing code, so
-      // efficiency is less important than responsiveness.
-      'grpc.initial_reconnect_backoff_ms': 100,
-      'grpc.max_reconnect_backoff_ms': 100
-    }
+    grpc.credentials.createInsecure()
   );
   return new Promise((resolve, reject) => {
     client.setSecurityRules(
@@ -216,7 +212,8 @@ export function loadFirestoreRules(
         project: `projects/${options.projectId}`,
         rules: { files: [{ content: options.rules }] }
       },
-      (err, resp) => {
+      // @ts-ignore Defined in protobuf.
+      (err: Error, resp) => {
         if (err) {
           reject(err);
         } else {
@@ -251,7 +248,8 @@ export function clearFirestoreData(
       {
         database: `projects/${options.projectId}/databases/(default)`
       },
-      (err, resp) => {
+      // @ts-ignore Defined in protobuf.
+      (err: Error, resp) => {
         if (err) {
           reject(err);
         } else {

@@ -58,7 +58,7 @@ describe('Testing Module Tests', function() {
   it('initializeTestApp() with auth=null does not set access token', async function() {
     const app = firebase.initializeTestApp({
       projectId: 'foo',
-      auth: null
+      auth: undefined
     });
     const token = await (app as any).INTERNAL.getToken();
     expect(token).to.be.null;
@@ -125,9 +125,9 @@ describe('Testing Module Tests', function() {
 
   it('apps() returns apps created with initializeTestApp', async function() {
     const numApps = firebase.apps().length;
-    await firebase.initializeTestApp({ databaseName: 'foo', auth: null });
+    await firebase.initializeTestApp({ databaseName: 'foo', auth: undefined });
     expect(firebase.apps().length).to.equal(numApps + 1);
-    await firebase.initializeTestApp({ databaseName: 'bar', auth: null });
+    await firebase.initializeTestApp({ databaseName: 'bar', auth: undefined });
     expect(firebase.apps().length).to.equal(numApps + 2);
   });
 

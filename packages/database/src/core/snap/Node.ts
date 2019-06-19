@@ -119,7 +119,7 @@ export interface Node {
    * @param {boolean=} exportFormat True for export format (also wire protocol format).
    * @return {*} Value of this node as JSON.
    */
-  val(exportFormat?: boolean): Object;
+  val(exportFormat?: boolean): unknown;
 
   /**
    * @return {string} hash representing the node contents.

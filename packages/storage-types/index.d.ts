@@ -51,6 +51,19 @@ export interface Reference {
   storage: Storage;
   toString(): string;
   updateMetadata(metadata: SettableMetadata): Promise<FullMetadata>;
+  listAll(): Promise<ListResult>;
+  list(options?: ListOptions): Promise<ListResult>;
+}
+
+export interface ListResult {
+  prefixes: Reference[];
+  items: Reference[];
+  nextPageToken: string | null;
+}
+
+export interface ListOptions {
+  maxResults?: number | null;
+  pageToken?: string | null;
 }
 
 export interface SettableMetadata {

@@ -54,6 +54,7 @@ import {
   WatchTargetChangeState
 } from '../../../../src/remote/watch_change';
 import { Code, FirestoreError } from '../../../../src/util/error';
+import { Indexable } from '../../../../src/util/misc';
 import * as obj from '../../../../src/util/obj';
 import * as types from '../../../../src/util/types';
 import { addEqualityMatcher } from '../../../util/equality_matcher';
@@ -156,7 +157,9 @@ describe('Serializer', () => {
         const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
           actualJsonProto
         );
-        expect(actualProtobufjsProto[valueType]).to.deep.equal(protobufJsValue);
+        expect((actualProtobufjsProto as Indexable)[valueType]).to.deep.equal(
+          protobufJsValue
+        );
 
         // Convert protobufjs back to JSON.
         const returnJsonProto = ValueMessage.toObject(
@@ -753,6 +756,48 @@ describe('Serializer', () => {
           field: { fieldPath: 'field' },
           op: 'ARRAY_CONTAINS',
           value: { integerValue: '42' }
+        }
+      });
+      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+    });
+
+    it('converts IN', () => {
+      const input = filter('field', 'in', [42]);
+      const actual = s.toRelationFilter(input);
+      expect(actual).to.deep.equal({
+        fieldFilter: {
+          field: { fieldPath: 'field' },
+          op: 'IN',
+          value: {
+            arrayValue: {
+              values: [
+                {
+                  integerValue: '42'
+                }
+              ]
+            }
+          }
+        }
+      });
+      expect(s.fromRelationFilter(actual)).to.deep.equal(input);
+    });
+
+    it('converts array-contains-any', () => {
+      const input = filter('field', 'array-contains-any', [42]);
+      const actual = s.toRelationFilter(input);
+      expect(actual).to.deep.equal({
+        fieldFilter: {
+          field: { fieldPath: 'field' },
+          op: 'ARRAY_CONTAINS_ANY',
+          value: {
+            arrayValue: {
+              values: [
+                {
+                  integerValue: '42'
+                }
+              ]
+            }
+          }
         }
       });
       expect(s.fromRelationFilter(actual)).to.deep.equal(input);

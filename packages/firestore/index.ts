@@ -16,13 +16,14 @@
  */
 
 import firebase from '@firebase/app';
-import './src/platform_browser/browser_init';
+import { FirebaseNamespace } from '@firebase/app-types';
 import { Firestore } from './src/api/database';
 import { configureForFirebase } from './src/platform/config';
+import './src/platform_browser/browser_init';
 
 import * as types from '@firebase/firestore-types';
 
-export function registerFirestore(instance) {
+export function registerFirestore(instance: FirebaseNamespace): void {
   configureForFirebase(instance);
 }
 

@@ -53,7 +53,7 @@ const defaultLogLevel: LogLevel = LogLevel.INFO;
 export type LogHandler = (
   loggerInstance: Logger,
   logType: LogLevel,
-  ...args: any[]
+  ...args: unknown[]
 ) => void;
 
 /**
@@ -61,8 +61,10 @@ export type LogHandler = (
  * messages on to their corresponding console counterparts (if the log method
  * is supported by the current log level)
  */
-const defaultLogHandler: LogHandler = (instance, logType, ...args) => {
-  if (logType < instance.logLevel) return;
+const defaultLogHandler: LogHandler = (instance, logType, ...args): void => {
+  if (logType < instance.logLevel) {
+    return;
+  }
   const now = new Date().toISOString();
   switch (logType) {
     /**
@@ -139,19 +141,19 @@ export class Logger {
    * The functions below are all based on the `console` interface
    */
 
-  debug(...args) {
+  debug(...args: unknown[]): void {
     this._logHandler(this, LogLevel.DEBUG, ...args);
   }
-  log(...args) {
+  log(...args: unknown[]): void {
     this._logHandler(this, LogLevel.VERBOSE, ...args);
   }
-  info(...args) {
+  info(...args: unknown[]): void {
     this._logHandler(this, LogLevel.INFO, ...args);
   }
-  warn(...args) {
+  warn(...args: unknown[]): void {
     this._logHandler(this, LogLevel.WARN, ...args);
   }
-  error(...args) {
+  error(...args: unknown[]): void {
     this._logHandler(this, LogLevel.ERROR, ...args);
   }
 }

@@ -1,6 +1,20 @@
 
 # Unreleased
-- [changed] Deprecated the `experimentalTabSynchronization` setting in favor of 
+- [feature] Added `clearPersistence()`, which clears the persistent storage
+  including pending writes and cached documents. This is intended to help
+  write reliable tests (#449).
+- [changed] Added logging and a custom error message to help users hitting
+  https://bugs.webkit.org/show_bug.cgi?id=197050 (a bug in iOS 12.2 causing
+  the SDK to potentially crash when persistence is enabled).
+- [fixed] Fixed an issue for environments missing `window.addEventListener`, 
+  such as in React Native with Expo (#1824).
+
+# 1.3.3
+- [changed] Firestore now recovers more quickly after network connectivity
+  changes (airplane mode, Wi-Fi availability, etc.).
+
+# 1.3.0
+- [changed] Deprecated the `experimentalTabSynchronization` setting in favor of
   `synchronizeTabs`. If you use multi-tab synchronization, it is recommended
   that you update your call to `enablePersistence()`. Firestore logs an error
   if you continue to use `experimentalTabSynchronization`.

@@ -433,7 +433,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         objUtils.forEach(
           remoteEvent.targetChanges,
           (targetId, targetChange) => {
-            const limboResolution = this.limboResolutionsByTarget[targetId];
+            const limboResolution = this.limboResolutionsByTarget[
+              Number(targetId)
+            ];
             if (limboResolution) {
               // Since this is a limbo resolution lookup, it's for a single document
               // and it could be added, modified, or removed, but not a combination.

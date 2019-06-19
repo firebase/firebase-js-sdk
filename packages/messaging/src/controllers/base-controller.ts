@@ -34,8 +34,9 @@ import { IidModel } from '../models/iid-model';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
 
-// tslint:disable-next-line no-any User can return any type of promise.
-export type BgMessageHandler = (payload: MessagePayload) => Promise<any> | void;
+export type BgMessageHandler = (
+  payload: MessagePayload
+) => Promise<unknown> | void;
 
 const SENDER_ID_OPTION_NAME = 'messagingSenderId';
 // Database cache should be invalidated once a week.
@@ -281,30 +282,34 @@ export abstract class BaseController implements FirebaseMessaging {
   // The following methods should only be available in the window.
   //
 
+  /**
+   * @deprecated Use Notification.requestPermission() instead.
+   * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
+   */
   requestPermission(): Promise<void> {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
-  useServiceWorker(registration: ServiceWorkerRegistration): void {
+  useServiceWorker(_registration: ServiceWorkerRegistration): void {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
-  usePublicVapidKey(b64PublicKey: string): void {
+  usePublicVapidKey(_b64PublicKey: string): void {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   onMessage(
-    nextOrObserver: NextFn<object> | Observer<object>,
-    error?: ErrorFn,
-    completed?: CompleteFn
+    _nextOrObserver: NextFn<object> | Observer<object>,
+    _error?: ErrorFn,
+    _completed?: CompleteFn
   ): Unsubscribe {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
 
   onTokenRefresh(
-    nextOrObserver: NextFn<object> | Observer<object>,
-    error?: ErrorFn,
-    completed?: CompleteFn
+    _nextOrObserver: NextFn<object> | Observer<object>,
+    _error?: ErrorFn,
+    _completed?: CompleteFn
   ): Unsubscribe {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_WINDOW);
   }
@@ -313,7 +318,7 @@ export abstract class BaseController implements FirebaseMessaging {
   // The following methods are used by the service worker only.
   //
 
-  setBackgroundMessageHandler(callback: BgMessageHandler): void {
+  setBackgroundMessageHandler(_callback: BgMessageHandler): void {
     throw errorFactory.create(ErrorCode.AVAILABLE_IN_SW);
   }
 
@@ -337,10 +342,7 @@ export abstract class BaseController implements FirebaseMessaging {
    * Returns the current Notification Permission state.
    */
   getNotificationPermission_(): NotificationPermission {
-    // TODO: Remove the cast when this issue is fixed:
-    // https://github.com/Microsoft/TypeScript/issues/14701
-    // tslint:disable-next-line no-any
-    return (Notification as any).permission;
+    return Notification.permission;
   }
 
   getTokenDetailsModel(): TokenDetailsModel {

@@ -143,7 +143,7 @@ describe('Performance Monitoring > perf_logger', () => {
 "visibility_state":${VISIBILITY_STATE},"effective_connection_type":${EFFECTIVE_CONNECTION_TYPE}},\
 "application_process_state":0},\
 "network_request_metric":{"url":"${RESOURCE_PERFORMANCE_ENTRY.name}",\
-"http_method":1,"http_response_code":200,\
+"http_method":0,"http_response_code":200,\
 "response_payload_bytes":${RESOURCE_PERFORMANCE_ENTRY.transferSize},\
 "client_start_time_us":${START_TIME},\
 "time_to_response_completed_us":${TIME_TO_RESPONSE_COMPLETED}}}`;

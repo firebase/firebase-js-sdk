@@ -48,7 +48,9 @@ export interface NetworkRequest {
 
 export function createNetworkRequestEntry(entry: PerformanceEntry): void {
   const performanceEntry = entry as PerformanceResourceTiming;
-  if (!performanceEntry || performanceEntry.responseStart === undefined) return;
+  if (!performanceEntry || performanceEntry.responseStart === undefined) {
+    return;
+  }
   const timeOrigin = Api.getInstance().getTimeOrigin();
   const startTimeUs = Math.floor(
     (performanceEntry.startTime + timeOrigin) * 1000

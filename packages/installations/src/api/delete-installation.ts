@@ -20,7 +20,8 @@ import { RegisteredInstallationEntry } from '../interfaces/installation-entry';
 import {
   getErrorFromResponse,
   getHeadersWithAuth,
-  getInstallationsEndpoint
+  getInstallationsEndpoint,
+  retryIfServerError
 } from './common';
 
 export async function deleteInstallation(
@@ -35,9 +36,9 @@ export async function deleteInstallation(
     headers
   };
 
-  const response = await fetch(endpoint, request);
+  const response = await retryIfServerError(() => fetch(endpoint, request));
   if (!response.ok) {
-    throw getErrorFromResponse('Delete Installation', response);
+    throw await getErrorFromResponse('Delete Installation', response);
   }
 }
 

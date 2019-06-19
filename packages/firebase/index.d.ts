@@ -126,12 +126,8 @@ declare namespace firebase {
     getIdToken(forceRefresh?: boolean): Promise<string>;
     isAnonymous: boolean;
     /**
-     * @deprecated
      * Links the user account with the given credentials and returns any available
      * additional user information, such as user name.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.User.linkWithCredential} instead.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -187,6 +183,9 @@ declare namespace firebase {
      *     {@link firebase.auth.PhoneAuthProvider.credential}  and the verification
      *     ID of the credential is not valid.</dd>
      * </dl>
+     *
+     * @deprecated  This method is deprecated. Use
+     * {@link firebase.User.linkWithCredential} instead.
      *
      * @param credential The auth credential.
      */
@@ -436,14 +435,10 @@ declare namespace firebase {
     phoneNumber: string | null;
     providerData: (firebase.UserInfo | null)[];
     /**
-     * @deprecated
      * Re-authenticates a user using a fresh credential, and returns any available
      * additional user information, such as user name. Use before operations
      * such as {@link firebase.User.updatePassword} that require tokens from recent
      * sign-in attempts.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.User.reauthenticateWithCredential} instead.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -473,6 +468,10 @@ declare namespace firebase {
      *     {@link firebase.auth.PhoneAuthProvider.credential}  and the verification
      *     ID of the credential is not valid.</dd>
      * </dl>
+     *
+     * @deprecated
+     * This method is deprecated. Use
+     * {@link firebase.User.reauthenticateWithCredential} instead.
      *
      * @param credential
      */
@@ -1204,6 +1203,20 @@ declare namespace firebase.app {
      */
     delete(): Promise<any>;
     /**
+     * Gets the {@link firebase.installations.Installations `Installations`} service for the
+     * current app.
+     *
+     * @webonly
+     *
+     * @example
+     * ```javascript
+     * const installations = app.installations();
+     * // The above is shorthand for:
+     * // const installations = firebase.installations(app);
+     * ```
+     */
+    installations(): firebase.installations.Installations;
+    /**
      * Gets the {@link firebase.messaging.Messaging `Messaging`} service for the
      * current app.
      *
@@ -1290,6 +1303,39 @@ declare namespace firebase.app {
      * ```
      */
     performance(): firebase.performance.Performance;
+  }
+}
+
+/**
+ * @webonly
+ */
+declare namespace firebase.installations {
+  /**
+   * The Firebase Installations service interface.
+   *
+   * Do not call this constructor directly. Instead, use
+   * {@link firebase.installations `firebase.installations()`}.
+   */
+  export interface Installations {
+    /**
+     * Creates a Firebase Installation if there isn't one for the app and
+     * returns the Installation ID.
+     *
+     * @return Firebase Installation ID
+     */
+    getId(): Promise<string>;
+
+    /**
+     * Returns an Authentication Token for the current Firebase Installation.
+     *
+     * @return Firebase Installation Authentication Token
+     */
+    getToken(): Promise<string>;
+
+    /**
+     * Deletes the Firebase Installation and all associated data.
+     */
+    delete(): Promise<void>;
   }
 }
 
@@ -1530,7 +1576,7 @@ declare namespace firebase.auth {
     /**
      * The data associated with the action code.
      *
-     * For the PASSWORD_RESET, VERIFY_EMAIL, and RECOVER_EMAIL actions, this object
+     * For the `PASSWORD_RESET`, `VERIFY_EMAIL`, and `RECOVER_EMAIL` actions, this object
      * contains an `email` field with the address the email was sent to.
      *
      * For the RECOVER_EMAIL action, which allows a user to undo an email address
@@ -2207,12 +2253,8 @@ declare namespace firebase.auth {
     setPersistence(persistence: firebase.auth.Auth.Persistence): Promise<void>;
 
     /**
-     * @deprecated
      * Asynchronously signs in with the given credentials, and returns any available
      * additional user information, such as user name.
-     *
-     * This method is deprecated. Use
-     * {@link firebase.auth.Auth.signInWithCredential} instead.
      *
      * <h4>Error Codes</h4>
      * <dl>
@@ -2250,6 +2292,10 @@ declare namespace firebase.auth {
      *     {@link firebase.auth.PhoneAuthProvider.credential}  and the verification
      *     ID of the credential is not valid.</dd>
      * </dl>
+     *
+     * @deprecated
+     * This method is deprecated. Use
+     * {@link firebase.auth.Auth.signInWithCredential} instead.
      *
      * @example
      * ```javascript
@@ -5334,13 +5380,13 @@ declare namespace firebase.database {
      *
      * This is the most common pattern for adding data to a collection of items.
      *
-     * If you provide a value to `push()`, the value will be written to the
-     * generated location. If you don't pass a value, nothing will be written to the
-     * Database and the child will remain empty (but you can use the `Reference`
+     * If you provide a value to `push()`, the value is written to the
+     * generated location. If you don't pass a value, nothing is written to the
+     * database and the child remains empty (but you can use the `Reference`
      * elsewhere).
      *
-     * The unique key generated by `push()` are ordered by the current time, so the
-     * resulting list of items will be chronologically sorted. The keys are also
+     * The unique keys generated by `push()` are ordered by the current time, so the
+     * resulting list of items is chronologically sorted. The keys are also
      * designed to be unguessable (they contain 72 random bits of entropy).
      *
      *
@@ -5370,9 +5416,8 @@ declare namespace firebase.database {
      * @param value Optional value to be written at the generated location.
      * @param onComplete Callback called when write to server is
      *   complete.
-     * @return Combined `Promise` and
-     *   `Reference`; resolves when write is complete, but can be used immediately
-     *   as the `Reference` to the child location.
+     * @return Combined `Promise` and `Reference`; resolves when write is complete, but can be
+     *   used immediately as the `Reference` to the child location.
      */
     push(
       value?: any,
@@ -5795,6 +5840,9 @@ declare namespace firebase.messaging {
      *
      * @return The promise resolves if permission is
      *   granted. Otherwise, the promise is rejected with an error.
+     *
+     * @deprecated Use Notification.requestPermission() instead.
+     * https://developer.mozilla.org/en-US/docs/Web/API/Notification/requestPermission
      */
     requestPermission(): Promise<void>;
     /**
@@ -5934,7 +5982,7 @@ declare namespace firebase.storage {
      *     and manage the upload.
      */
     put(
-      data: any | any | any,
+      data: Blob | Uint8Array | ArrayBuffer,
       metadata?: firebase.storage.UploadMetadata
     ): firebase.storage.UploadTask;
     /**
@@ -5976,6 +6024,85 @@ declare namespace firebase.storage {
      *     including if the object did not exist.
      */
     updateMetadata(metadata: firebase.storage.SettableMetadata): Promise<any>;
+    /**
+     * List all items (files) and prefixes (folders) under this storage reference.
+     *
+     * This is a helper method for calling `list()` repeatedly until there are
+     * no more results. The default pagination size is 1000.
+     *
+     * Note: The results may not be consistent if objects are changed while this
+     * operation is running.
+     *
+     * Warning: `listAll` may potentially consume too many resources if there are
+     * too many results.
+     *
+     * @return A Promise that resolves with all the items and prefixes under
+     *      the current storage reference. `prefixes` contains references to
+     *      sub-directories and `items` contains references to objects in this
+     *      folder. `nextPageToken` is never returned.
+     */
+    listAll(): Promise<ListResult>;
+    /**
+     * List items (files) and prefixes (folders) under this storage reference.
+     *
+     * List API is only available for Firebase Rules Version 2.
+     *
+     * GCS is a key-blob store. Firebase Storage imposes the semantic of '/'
+     * delimited folder structure.
+     * Refer to GCS's List API if you want to learn more.
+     *
+     * To adhere to Firebase Rules's Semantics, Firebase Storage does not
+     * support objects whose paths end with "/" or contain two consecutive
+     * "/"s. Firebase Storage List API will filter these unsupported objects.
+     * `list()` may fail if there are too many unsupported objects in the bucket.
+     *
+     * @param options See `ListOptions` for details.
+     * @return A Promise that resolves with the items and prefixes.
+     *      `prefixes` contains references to sub-folders and `items`
+     *      contains references to objects in this folder. `nextPageToken`
+     *      can be used to get the rest of the results.
+     */
+    list(options?: ListOptions): Promise<ListResult>;
+  }
+
+  /**
+   * Result returned by list().
+   */
+  interface ListResult {
+    /**
+     * References to prefixes (sub-folders). You can call list() on them to
+     * get its contents.
+     *
+     * Folders are implicit based on '/' in the object paths.
+     * For example, if a bucket has two objects '/a/b/1' and '/a/b/2', list('/a')
+     * will return '/a/b' as a prefix.
+     */
+    prefixes: Reference[];
+    /**
+     * Objects in this directory.
+     * You can call getMetadate() and getDownloadUrl() on them.
+     */
+    items: Reference[];
+    /**
+     * If set, there might be more results for this list. Use this token to resume the list.
+     */
+    nextPageToken: string | null;
+  }
+
+  /**
+   * The options `list()` accepts.
+   */
+  interface ListOptions {
+    /**
+     * If set, limits the total number of `prefixes` and `items` to return.
+     * The default and maximum maxResults is 1000.
+     */
+    maxResults?: number | null;
+    /**
+     * The `nextPageToken` from a previous call to `list()`. If provided,
+     * listing is resumed from the previous position.
+     */
+    pageToken?: string | null;
   }
 
   /**
@@ -6500,7 +6627,8 @@ declare namespace firebase.firestore {
     /**
      * Attempts to enable persistent storage, if possible.
      *
-     * Must be called before any other methods (other than settings()).
+     * Must be called before any other methods (other than settings() and
+     * clearPersistence()).
      *
      * If this fails, enablePersistence() will reject the promise it returns.
      * Note that even after this failure, the firestore instance will remain
@@ -6591,6 +6719,28 @@ declare namespace firebase.firestore {
      * instance.
      */
     app: firebase.app.App;
+
+    /**
+     * Clears the persistent storage. This includes pending writes and cached
+     * documents.
+     *
+     * Must be called while the firestore instance is not started (after the app is
+     * shutdown or when the app is first initialized). On startup, this method
+     * must be called before other methods (other than settings()). If the
+     * firestore instance is still running, the promise will be rejected with
+     * the error code of `failed-precondition`.
+     *
+     * Note: clearPersistence() is primarily intended to help write reliable
+     * tests that use Firestore. It uses the most efficient mechanism possible
+     * for dropping existing data but does not attempt to securely overwrite or
+     * otherwise make cached data unrecoverable. For applications that are
+     * sensitive to the disclosure of cache data in between user sessions we
+     * strongly recommend not to enable persistence in the first place.
+     *
+     * @return A promise that is resolved once the persistent storage has been
+     * cleared. Otherwise, the promise is rejected with an error.
+     */
+    clearPersistence(): Promise<void>;
 
     /**
      * Re-enables use of the network for this Firestore instance after a prior
@@ -7377,6 +7527,8 @@ declare namespace firebase.firestore {
    * Filter conditions in a `Query.where()` clause are specified using the
    * strings '<', '<=', '==', '>=', '>', and 'array-contains'.
    */
+  // TODO(in-queries): Add 'array-contains-any' and 'in' once backend support
+  // lands.
   export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>' | 'array-contains';
 
   /**

@@ -83,6 +83,10 @@ export function isPersistenceAvailable(): boolean {
   );
 }
 
+export function isRunningAgainstEmulator(): boolean {
+  return USE_EMULATOR;
+}
+
 /**
  * A wrapper around Jasmine's describe method that allows for it to be run with
  * persistence both disabled and enabled (if the browser is supported).
@@ -106,14 +110,6 @@ function apiDescribeInternal(
   }
 }
 
-// TODO(b/131094514): Remove after clearPersistence() is updated in index.d.ts.
-export async function clearPersistence(
-  firestore: firestore.FirebaseFirestore
-): Promise<void> {
-  // tslint:disable-next-line:no-any
-  await (firestore as any)._clearPersistence();
-}
-
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(
   docSet: firestore.QuerySnapshot
@@ -132,7 +128,7 @@ export function toChangesArray(
 export function toDataMap(
   docSet: firestore.QuerySnapshot
 ): { [field: string]: firestore.DocumentData } {
-  const docsData = {};
+  const docsData: { [field: string]: firestore.DocumentData } = {};
   docSet.forEach(doc => {
     docsData[doc.id] = doc.data();
   });
@@ -305,3 +301,13 @@ function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
   // off. We probably need deep queries for this.
   return Promise.resolve(undefined);
 }
+
+// TODO(in-queries): This exists just so we don't have to do the cast
+// repeatedly. Once we expose 'array-contains-any' publicly we can remove it and
+// just use 'array-contains-any' in all the tests.
+export const arrayContainsAnyOp = 'array-contains-any' as firestore.WhereFilterOp;
+
+// TODO(in-queries): This exists just so we don't have to do the cast
+// repeatedly. Once we expose 'in' publicly we can remove it and just use 'in'
+// in all the tests.
+export const inOp = 'in' as firestore.WhereFilterOp;

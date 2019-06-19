@@ -21,15 +21,14 @@ import { forEach } from './obj';
  * Returns a querystring-formatted string (e.g. &arg=val&arg2=val2) from a params
  * object (e.g. {arg: 'val', arg2: 'val2'})
  * Note: You must prepend it with ? when adding it to a URL.
- *
- * @param {!Object} querystringParams
- * @return {string}
  */
-export const querystring = function(querystringParams) {
-  var params = [];
-  forEach(querystringParams, function(key, value) {
+export const querystring = function<V>(querystringParams: {
+  [key: string]: string;
+}): string {
+  const params: string[] = [];
+  forEach(querystringParams, (key: string, value) => {
     if (Array.isArray(value)) {
-      value.forEach(function(arrayVal) {
+      value.forEach(arrayVal => {
         params.push(
           encodeURIComponent(key) + '=' + encodeURIComponent(arrayVal)
         );
@@ -47,13 +46,13 @@ export const querystring = function(querystringParams) {
  * @param {string} querystring
  * @return {!Object}
  */
-export const querystringDecode = function(querystring) {
-  var obj = {};
-  var tokens = querystring.replace(/^\?/, '').split('&');
+export const querystringDecode = function(querystring: string): object {
+  const obj: { [key: string]: unknown } = {};
+  const tokens = querystring.replace(/^\?/, '').split('&');
 
-  tokens.forEach(function(token) {
+  tokens.forEach(token => {
     if (token) {
-      var key = token.split('=');
+      const key = token.split('=');
       obj[key[0]] = key[1];
     }
   });

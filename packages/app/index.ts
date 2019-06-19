@@ -23,12 +23,14 @@ import { Logger } from '@firebase/logger';
 const logger = new Logger('@firebase/app');
 
 // Firebase Lite detection
-if (isBrowser() && 'firebase' in self) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+if (isBrowser() && (self as any).firebase !== undefined) {
   logger.warn(`
     Warning: Firebase is already defined in the global scope. Please make sure
     Firebase library is only loaded once.
   `);
 
+  // eslint-disable-next-line
   const sdkVersion = ((self as any).firebase as FirebaseNamespace).SDK_VERSION;
   if (sdkVersion && sdkVersion.indexOf('LITE') >= 0) {
     logger.warn(`
@@ -66,4 +68,5 @@ firebaseNamespace.initializeApp = function() {
 
 export const firebase = firebaseNamespace;
 
+// eslint-disable-next-line import/no-default-export
 export default firebase;

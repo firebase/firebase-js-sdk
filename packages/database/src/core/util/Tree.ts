@@ -57,7 +57,7 @@ export class Tree<T> {
   subTree(pathObj: string | Path): Tree<T> {
     // TODO: Require pathObj to be Path?
     let path = pathObj instanceof Path ? pathObj : new Path(pathObj);
-    let child = this as any,
+    let child = this as Tree<T>,
       next;
     while ((next = path.getFront()) !== null) {
       const childNode = safeGet(child.node_.children, next) || new TreeNode();

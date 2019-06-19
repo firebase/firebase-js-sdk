@@ -30,7 +30,8 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  clearPersistence,
+  arrayContainsAnyOp,
+  inOp,
   withTestCollection,
   withTestDb,
   withTestDbs,
@@ -43,7 +44,7 @@ chai.use(chaiAsPromised);
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldValue = firebase.firestore!.FieldValue;
 
-apiDescribe('Database', persistence => {
+apiDescribe('Database', (persistence: boolean) => {
   it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
       return docRef.set({
@@ -535,7 +536,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  apiDescribe('Queries are validated client-side', persistence => {
+  apiDescribe('Queries are validated client-side', (persistence: boolean) => {
     // NOTE: Failure cases are validated in validation_test.ts
 
     it('same inequality fields works', () => {
@@ -558,6 +559,22 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           coll.where('x', '>=', 32).where('y', 'array-contains', 'cat')
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality and IN on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', '>=', 32).where('y', inOp, [1, 2])
+        ).not.to.throw();
+      });
+    });
+
+    it('inequality and array-contains-any on different fields works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.where('x', '>=', 32).where('y', arrayContainsAnyOp, [1, 2])
         ).not.to.throw();
       });
     });
@@ -596,6 +613,20 @@ apiDescribe('Database', persistence => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
           coll.orderBy('x').where('y', 'array-contains', 'cat')
+        ).not.to.throw();
+      });
+    });
+
+    it('IN different than orderBy works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() => coll.orderBy('x').where('y', inOp, [1, 2])).not.to.throw();
+      });
+    });
+
+    it('array-contains-any different than orderBy works', () => {
+      return withTestCollection(persistence, {}, async coll => {
+        expect(() =>
+          coll.orderBy('x').where('y', arrayContainsAnyOp, [1, 2])
         ).not.to.throw();
       });
     });
@@ -954,13 +985,14 @@ apiDescribe('Database', persistence => {
     'can clear persistence if the client has not been initialized',
     async () => {
       await withTestDoc(persistence, async docRef => {
+        const firestore = docRef.firestore;
         await docRef.set({ foo: 'bar' });
         const app = docRef.firestore.app;
         const name = app.name;
         const options = app.options;
 
         await app.delete();
-        await clearPersistence(docRef.firestore);
+        await firestore.clearPersistence();
         const app2 = firebase.initializeApp(options, name);
         const firestore2 = firebase.firestore!(app2);
         await firestore2.enablePersistence();
@@ -984,7 +1016,7 @@ apiDescribe('Database', persistence => {
           const firestore = docRef.firestore;
           await firestore.app.delete();
           await expect(
-            clearPersistence(firestore)
+            firestore.clearPersistence()
           ).to.eventually.be.rejectedWith('Failed to delete the database.');
         } finally {
           SimpleDb.delete = oldDelete;
@@ -996,8 +1028,8 @@ apiDescribe('Database', persistence => {
   it('can not clear persistence if the client has been initialized', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await expect(clearPersistence(firestore)).to.eventually.be.rejectedWith(
-        'Persistence cannot be cleared while the client is running'
+      await expect(firestore.clearPersistence()).to.eventually.be.rejectedWith(
+        'Persistence cannot be cleared after this Firestore instance is initialized.'
       );
     });
   });

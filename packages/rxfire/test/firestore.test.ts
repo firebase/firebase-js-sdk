@@ -52,7 +52,7 @@ const unwrapChange = map((changes: firestore.DocumentChange[]) => {
  * Create an environment for the tests to run in. The information is returned
  * from the function for use within the test.
  */
-const seedTest = firestore => {
+const seedTest = (firestore: firestore.Firestore) => {
   const colRef = createRandomCol(firestore);
   const davidDoc = colRef.doc('david');
   davidDoc.set({ name: 'David' });
@@ -67,8 +67,8 @@ const seedTest = firestore => {
 };
 
 describe('RxFire Firestore', () => {
-  let app: app.App = null;
-  let firestore: firestore.Firestore = null;
+  let app: app.App;
+  let firestore: firestore.Firestore;
 
   /**
    * Each test runs inside it's own app instance and the app

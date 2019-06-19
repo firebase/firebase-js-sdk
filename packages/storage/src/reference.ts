@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,8 @@ import * as type from './implementation/type';
 import { Metadata } from './metadata';
 import { Service } from './service';
 import { UploadTask } from './task';
+import { ListOptions, ListResult } from './list';
+import { listOptionSpec } from './implementation/args';
 
 /**
  * Provides methods to interact with a bucket in the Firebase Storage service.
@@ -175,7 +177,7 @@ export class Reference {
     let data = fbsString.dataFromString(format, string);
     let metadata = object.clone<Metadata>(opt_metadata);
     if (!type.isDef(metadata['contentType']) && type.isDef(data.contentType)) {
-      metadata['contentType'] = data.contentType;
+      metadata['contentType'] = data.contentType!;
     }
     return new UploadTask(
       this,
@@ -197,6 +199,84 @@ export class Reference {
     let self = this;
     return this.authWrapper.getAuthToken().then(function(authToken) {
       let requestInfo = requests.deleteObject(self.authWrapper, self.location);
+      return self.authWrapper.makeRequest(requestInfo, authToken).getPromise();
+    });
+  }
+
+  /**
+   * List all items (files) and prefixes (folders) under this storage reference.
+   *
+   * This is a helper method for calling list() repeatedly until there are
+   * no more results. The default pagination size is 1000.
+   *
+   * Note: The results may not be consistent if objects are changed while this
+   * operation is running.
+   *
+   * Warning: listAll may potentially consume too many resources if there are
+   * too many results.
+   *
+   * @return A Promise that resolves with all the items and prefixes under
+   *      the current storage reference. `prefixes` contains references to
+   *      sub-directories and `items` contains references to objects in this
+   *      folder. `nextPageToken` is never returned.
+   */
+  listAll(): Promise<ListResult> {
+    args.validate('listAll', [], arguments);
+    const accumulator = {
+      prefixes: [],
+      items: []
+    };
+    return this.listAllHelper(accumulator).then(() => accumulator);
+  }
+
+  private async listAllHelper(
+    accumulator: ListResult,
+    pageToken?: string
+  ): Promise<void> {
+    let opt: ListOptions = {
+      // maxResults is 1000 by default.
+      pageToken
+    };
+    const nextPage = await this.list(opt);
+    accumulator.prefixes.push(...nextPage.prefixes);
+    accumulator.items.push(...nextPage.items);
+    if (nextPage.nextPageToken != null) {
+      await this.listAllHelper(accumulator, nextPage.nextPageToken);
+    }
+  }
+
+  /**
+   * List items (files) and prefixes (folders) under this storage reference.
+   *
+   * List API is only available for Firebase Rules Version 2.
+   *
+   * GCS is a key-blob store. Firebase Storage imposes the semantic of '/'
+   * delimited folder structure.
+   * Refer to GCS's List API if you want to learn more.
+   *
+   * To adhere to Firebase Rules's Semantics, Firebase Storage does not
+   * support objects whose paths end with "/" or contain two consecutive
+   * "/"s. Firebase Storage List API will filter these unsupported objects.
+   * list() may fail if there are too many unsupported objects in the bucket.
+   *
+   * @param options See ListOptions for details.
+   * @return A Promise that resolves with the items and prefixes.
+   *      `prefixes` contains references to sub-folders and `items`
+   *      contains references to objects in this folder. `nextPageToken`
+   *      can be used to get the rest of the results.
+   */
+  list(options?: ListOptions | null): Promise<ListResult> {
+    args.validate('list', [listOptionSpec(true)], arguments);
+    const self = this;
+    return this.authWrapper.getAuthToken().then(function(authToken) {
+      const op = options || {};
+      let requestInfo = requests.list(
+        self.authWrapper,
+        self.location,
+        /*delimiter= */ '/',
+        op.pageToken,
+        op.maxResults
+      );
       return self.authWrapper.makeRequest(requestInfo, authToken).getPromise();
     });
   }

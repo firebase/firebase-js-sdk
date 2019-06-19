@@ -38,14 +38,14 @@ export type StringHeaders = { [name: string]: string };
 export class TestingXhrIo implements XhrIo {
   private state: State;
   private sendPromise: Promise<XhrIo>;
-  private resolve: (XhrIo) => void;
-  private sendHook: SendHook;
+  private resolve: (xhrIo: XhrIo) => void;
+  private sendHook: SendHook | null;
   private status: number;
   private responseText: string;
   private headers: StringHeaders;
   private errorCode: ErrorCode;
 
-  constructor(sendHook: SendHook) {
+  constructor(sendHook: SendHook | null) {
     this.state = State.START;
     this.sendPromise = this.sendPromise = promiseimpl.make<XhrIo>(
       (resolve, reject) => {
@@ -121,10 +121,12 @@ export class TestingXhrIo implements XhrIo {
     }
   }
 
+  // @ts-ignore Remove when implemented.
   addUploadProgressListener(listener): void {
     // TODO(andysoto): impl
   }
 
+  // @ts-ignore Remove when implemented.
   removeUploadProgressListener(listener): void {
     // TODO(andysoto): impl
   }

@@ -26,7 +26,7 @@ import {
   FirebaseService
 } from '@firebase/app-types/private';
 import { deepCopy, deepExtend } from '@firebase/util';
-import { error, AppError } from '../errors';
+import { ERROR_FACTORY, AppError } from '../errors';
 import { DEFAULT_ENTRY_NAME } from '../constants';
 
 interface ServicesCache {
@@ -96,9 +96,9 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
         }
 
         return Promise.all(
-          services.map(service => {
-            return service.INTERNAL.delete();
-          })
+          services
+            .filter(service => 'INTERNAL' in service)
+            .map(service => service.INTERNAL!.delete())
         );
       })
       .then(
@@ -157,7 +157,7 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
    * Callback function used to extend an App instance at the time
    * of service instance creation.
    */
-  private extendApp(props: { [name: string]: any }): void {
+  private extendApp(props: { [name: string]: unknown }): void {
     // Copy the object onto the FirebaseAppImpl prototype
     deepExtend(this, props);
   }
@@ -168,7 +168,7 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
    */
   private checkDestroyed_(): void {
     if (this.isDeleted_) {
-      error(AppError.APP_DELETED, { name: this.name_ });
+      throw ERROR_FACTORY.create(AppError.APP_DELETED, { name: this.name_ });
     }
   }
 }
