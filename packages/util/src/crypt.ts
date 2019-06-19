@@ -310,7 +310,7 @@ class Base64 {
       }
     }
   }
-};
+}
 
 /**
  * URL-safe base64 encoding

@@ -225,7 +225,10 @@ export function createFirebaseNamespaceCore(
     // @ts-ignore
     firebaseAppImpl.prototype[name] = function(...args) {
       const serviceFxn = this._getService.bind(this, name);
-      return serviceFxn.apply(this, allowMultipleInstances ? args as [(string|undefined)] : []);
+      return serviceFxn.apply(
+        this,
+        allowMultipleInstances ? (args as [(string | undefined)]) : []
+      );
     };
 
     return serviceNamespace;

@@ -141,7 +141,13 @@ class ObserverProxy<T> implements Observer<T> {
     }
 
     // Assemble an Observer object when passed as callback functions.
-    if (implementsAnyMethods(nextOrObserver as { [key: string]: unknown}, ['next', 'error', 'complete'])) {
+    if (
+      implementsAnyMethods(nextOrObserver as { [key: string]: unknown }, [
+        'next',
+        'error',
+        'complete'
+      ])
+    ) {
       observer = nextOrObserver as Observer<T>;
     } else {
       observer = {
