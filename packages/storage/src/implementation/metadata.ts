@@ -206,7 +206,7 @@ export function toResourceString(
 }
 
 export function metadataValidator(p: unknown): void {
-  if (!type.isObject(p) || !p ) {
+  if (!type.isObject(p) || !p) {
     throw 'Expected Metadata object.';
   }
   for (const key in p) {
