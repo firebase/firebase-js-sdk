@@ -24,12 +24,9 @@ import {
   Direction,
   FieldFilter,
   Filter,
-  NanFilter,
-  NullFilter,
   Operator,
   OrderBy,
-  Query,
-  UnaryFilter
+  Query
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
@@ -55,7 +52,7 @@ import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
-import { NumberValue } from '../model/field_value';
+import { DoubleValue, NullValue, NumberValue } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -1163,11 +1160,13 @@ export class JsonProtoSerializer {
 
   private toFilter(filters: Filter[]): api.Filter | undefined {
     if (filters.length === 0) return;
-    const protos = filters.map(filter =>
-      filter instanceof UnaryFilter
-        ? this.toUnaryFilter(filter)
-        : this.toRelationFilter(filter)
-    );
+    const protos = filters.map(filter => {
+      if (filter instanceof FieldFilter) {
+        return this.toUnaryOrFieldFilter(filter);
+      } else {
+        return fail('Unrecognized filter: ' + JSON.stringify(filter));
+      }
+    });
     if (protos.length === 1) {
       return protos[0];
     }
@@ -1253,9 +1252,9 @@ export class JsonProtoSerializer {
       case 'ARRAY_CONTAINS_ANY':
         return Operator.ARRAY_CONTAINS_ANY;
       case 'OPERATOR_UNSPECIFIED':
-        return fail('Unspecified relation');
+        return fail('Unspecified operator');
       default:
-        return fail('Unknown relation');
+        return fail('Unknown operator');
     }
   }
 
@@ -1282,21 +1281,6 @@ export class JsonProtoSerializer {
     );
   }
 
-  // visible for testing
-  toRelationFilter(filter: Filter): api.Filter {
-    if (filter instanceof FieldFilter) {
-      return {
-        fieldFilter: {
-          field: this.toFieldPathReference(filter.field),
-          op: this.toOperatorName(filter.op),
-          value: this.toValue(filter.value)
-        }
-      };
-    } else {
-      return fail('Unrecognized filter: ' + JSON.stringify(filter));
-    }
-  }
-
   fromFieldFilter(filter: api.Filter): Filter {
     return new FieldFilter(
       this.fromFieldPathReference(filter.fieldFilter!.field!),
@@ -1306,23 +1290,31 @@ export class JsonProtoSerializer {
   }
 
   // visible for testing
-  toUnaryFilter(filter: UnaryFilter): api.Filter {
-    if (filter instanceof NanFilter) {
-      return {
-        unaryFilter: {
-          field: this.toFieldPathReference(filter.field),
-          op: 'IS_NAN'
-        }
-      };
-    } else {
-      assert(filter instanceof NullFilter, 'Unknown filter');
-      return {
-        unaryFilter: {
-          field: this.toFieldPathReference(filter.field),
-          op: 'IS_NULL'
-        }
-      };
+  toUnaryOrFieldFilter(filter: FieldFilter): api.Filter {
+    if (filter.op === Operator.EQUAL) {
+      if (filter.value.isEqual(DoubleValue.NAN)) {
+        return {
+          unaryFilter: {
+            field: this.toFieldPathReference(filter.field),
+            op: 'IS_NAN'
+          }
+        };
+      } else if (filter.value.isEqual(NullValue.INSTANCE)) {
+        return {
+          unaryFilter: {
+            field: this.toFieldPathReference(filter.field),
+            op: 'IS_NULL'
+          }
+        };
+      }
     }
+    return {
+      fieldFilter: {
+        field: this.toFieldPathReference(filter.field),
+        op: this.toOperatorName(filter.op),
+        value: this.toValue(filter.value)
+      }
+    };
   }
 
   fromUnaryFilter(filter: api.Filter): Filter {
@@ -1331,12 +1323,12 @@ export class JsonProtoSerializer {
         const nanField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return new NanFilter(nanField);
+        return new FieldFilter(nanField, Operator.EQUAL, DoubleValue.NAN);
       case 'IS_NULL':
         const nullField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return new NullFilter(nullField);
+        return new FieldFilter(nullField, Operator.EQUAL, NullValue.INSTANCE);
       case 'OPERATOR_UNSPECIFIED':
         return fail('Unspecified filter');
       default:

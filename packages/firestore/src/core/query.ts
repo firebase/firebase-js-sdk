@@ -351,10 +351,10 @@ export class Query {
 
   // Checks if any of the provided Operators are included in the query and
   // returns the first one that is, or null if none are.
-  findFieldFilterOperator(relationOps: Operator[]): Operator | null {
+  findFilterOperator(operators: Operator[]): Operator | null {
     for (const filter of this.filters) {
       if (filter instanceof FieldFilter) {
-        if (relationOps.indexOf(filter.op) >= 0) {
+        if (operators.indexOf(filter.op) >= 0) {
           return filter.op;
         }
       }
@@ -467,7 +467,7 @@ export abstract class Filter {
           'Invalid query. You can only perform equals comparisons on null.'
         );
       }
-      return new NullFilter(field);
+      return new FieldFilter(field, op, value);
     } else if (value.isEqual(DoubleValue.NAN)) {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
@@ -475,7 +475,7 @@ export abstract class Filter {
           'Invalid query. You can only perform equals comparisons on NaN.'
         );
       }
-      return new NanFilter(field);
+      return new FieldFilter(field, op, value);
     } else if (op === Operator.ARRAY_CONTAINS) {
       return new ArrayContainsFilter(field, value);
     } else if (op === Operator.IN) {
@@ -485,6 +485,10 @@ export abstract class Filter {
       );
       return new InFilter(field, value as ArrayValue);
     } else if (op === Operator.ARRAY_CONTAINS_ANY) {
+      assert(
+        value instanceof ArrayValue,
+        'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
+      );
       return new ArrayContainsAnyFilter(field, value as ArrayValue);
     } else {
       return new FieldFilter(field, op, value);
@@ -521,7 +525,7 @@ export class Operator {
       case 'array-contains-any':
         return Operator.ARRAY_CONTAINS_ANY;
       default:
-        return fail('Unknown relation: ' + op);
+        return fail('Unknown FieldFilter operator: ' + op);
     }
   }
 
@@ -569,7 +573,7 @@ export class FieldFilter extends Filter {
       case Operator.GREATER_THAN_OR_EQUAL:
         return comparison >= 0;
       default:
-        return fail('Unknown relation op' + this.op);
+        return fail('Unknown FieldFilter operator: ' + this.op);
     }
   }
 
@@ -610,45 +614,7 @@ export class FieldFilter extends Filter {
   }
 }
 
-export class UnaryFilter extends FieldFilter {}
-
-/**
- * Filter that matches 'null' values.
- */
-export class NullFilter extends UnaryFilter {
-  constructor(field: FieldPath) {
-    super(field, Operator.EQUAL, NullValue.INSTANCE);
-  }
-
-  canonicalId(): string {
-    return this.field.canonicalString() + ' IS null';
-  }
-
-  toString(): string {
-    return `${this.field.canonicalString()} IS null`;
-  }
-}
-
-/**
- * Filter that matches 'NaN' values.
- */
-export class NanFilter extends UnaryFilter {
-  constructor(field: FieldPath) {
-    super(field, Operator.EQUAL, DoubleValue.NAN);
-  }
-
-  canonicalId(): string {
-    return this.field.canonicalString() + ' IS NaN';
-  }
-
-  toString(): string {
-    return `${this.field.canonicalString()} IS NaN`;
-  }
-}
-
-/**
- * Filter that matches on key fields (i.e. '__name__').
- */
+/** Filter that matches on key fields (i.e. '__name__'). */
 export class KeyFieldFilter extends FieldFilter {
   constructor(field: FieldPath, op: Operator, value: RefValue) {
     super(field, op, value);
@@ -661,15 +627,7 @@ export class KeyFieldFilter extends FieldFilter {
   }
 }
 
-/**
- * A Filter that implements the array-contains operator. When a user specifies
- * query.where('some.field', 'array-contains', 42), this filter will match
- * documents that:
- *
- *   * contain a field at some.field;
- *   * that field is an array; and
- *   * that array contains the value 42.
- */
+/** A Filter that implements the array-contains operator. */
 export class ArrayContainsFilter extends FieldFilter {
   constructor(field: FieldPath, value: FieldValue) {
     super(field, Operator.ARRAY_CONTAINS, value);
@@ -681,14 +639,7 @@ export class ArrayContainsFilter extends FieldFilter {
   }
 }
 
-/**
- * A Filter that implements the in operator. When a user specifies
- * query.where('some.field', 'in', [13, 42]), this filter will match documents
- * that:
- *
- *   * contain a field at some.field and
- *   * the value in that field is one of 13 or 42.
- */
+/** A Filter that implements the IN operator. */
 export class InFilter extends FieldFilter {
   constructor(field: FieldPath, value: ArrayValue) {
     super(field, Operator.IN, value);
@@ -701,15 +652,7 @@ export class InFilter extends FieldFilter {
   }
 }
 
-/**
- * A Filter that implements the array-contains-any operator. When a user
- * specifies query.where('some.field', 'array-contains-any', [13, 42]), this
- * filter will match documents that:
- *
- *   * contain a field at some.field;
- *   * that field is an array; and
- *   * that array contains one of 13 or 42.
- */
+/** A Filter that implements the array-contains-any operator. */
 export class ArrayContainsAnyFilter extends FieldFilter {
   constructor(field: FieldPath, value: ArrayValue) {
     super(field, Operator.ARRAY_CONTAINS_ANY, value);

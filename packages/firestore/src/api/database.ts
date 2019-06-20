@@ -1430,16 +1430,16 @@ export class Query implements firestore.Query {
 
     let fieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
-    const relationOp = Operator.fromString(opStr);
+    const operator = Operator.fromString(opStr);
     if (fieldPath.isKeyField()) {
       if (
-        relationOp === Operator.ARRAY_CONTAINS ||
-        relationOp === Operator.ARRAY_CONTAINS_ANY ||
-        relationOp === Operator.IN
+        operator === Operator.ARRAY_CONTAINS ||
+        operator === Operator.ARRAY_CONTAINS_ANY ||
+        operator === Operator.IN
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `Invalid Query. You can't perform '${relationOp.toString()}' ` +
+          `Invalid Query. You can't perform '${operator.toString()}' ` +
             'queries on FieldPath.documentId().'
         );
       }
@@ -1492,20 +1492,20 @@ export class Query implements firestore.Query {
       }
     } else {
       if (
-        relationOp === Operator.IN ||
-        relationOp === Operator.ARRAY_CONTAINS_ANY
+        operator === Operator.IN ||
+        operator === Operator.ARRAY_CONTAINS_ANY
       ) {
         if (!Array.isArray(value) || value.length === 0) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             'Invalid Query. A non-empty array is required for ' +
-              `'${relationOp.toString()}' filters.`
+              `'${operator.toString()}' filters.`
           );
         }
         if (value.length > 10) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
-            `Invalid Query. '${relationOp.toString()}' filters support a ` +
+            `Invalid Query. '${operator.toString()}' filters support a ` +
               'maximum of 10 elements in the value array.'
           );
         }
@@ -1515,7 +1515,7 @@ export class Query implements firestore.Query {
         value
       );
     }
-    const filter = Filter.create(fieldPath, relationOp, fieldValue);
+    const filter = Filter.create(fieldPath, operator, fieldValue);
     this.validateNewFilter(filter);
     return new Query(this._query.addFilter(filter), this.firestore);
   }
@@ -1977,10 +1977,10 @@ export class Query implements firestore.Query {
         // the new filter conflicts with an existing one.
         let conflictingOp: Operator | null = null;
         if (isDisjunctiveOp) {
-          conflictingOp = this._query.findFieldFilterOperator(disjunctiveOps);
+          conflictingOp = this._query.findFilterOperator(disjunctiveOps);
         }
         if (conflictingOp === null && isArrayOp) {
-          conflictingOp = this._query.findFieldFilterOperator(arrayOps);
+          conflictingOp = this._query.findFilterOperator(arrayOps);
         }
         if (conflictingOp != null) {
           // We special case when it's a duplicate op to give a slightly clearer error message.

@@ -27,8 +27,6 @@ import { DatabaseId } from '../../../../src/core/database_info';
 import {
   Direction,
   FieldFilter,
-  NanFilter,
-  NullFilter,
   Operator,
   OrderBy,
   Query
@@ -687,7 +685,7 @@ describe('Serializer', () => {
     it('makes dotted-property names', () => {
       const path = new FieldPath(['item', 'part', 'top']);
       const input = new FieldFilter(path, Operator.EQUAL, wrap('food'));
-      const actual = s.toRelationFilter(input);
+      const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
           field: { fieldPath: 'item.part.top' },
@@ -700,7 +698,7 @@ describe('Serializer', () => {
 
     it('converts LessThan', () => {
       const input = filter('field', '<', 42);
-      const actual = s.toRelationFilter(input);
+      const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
           field: { fieldPath: 'field' },
@@ -713,7 +711,7 @@ describe('Serializer', () => {
 
     it('converts LessThanOrEqual', () => {
       const input = filter('field', '<=', 'food');
-      const actual = s.toRelationFilter(input);
+      const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
           field: { fieldPath: 'field' },
@@ -726,7 +724,7 @@ describe('Serializer', () => {
 
     it('converts GreaterThan', () => {
       const input = filter('field', '>', false);
-      const actual = s.toRelationFilter(input);
+      const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
           field: { fieldPath: 'field' },
@@ -739,7 +737,7 @@ describe('Serializer', () => {
 
     it('converts GreaterThanOrEqual', () => {
       const input = filter('field', '>=', 1e100);
-      const actual = s.toRelationFilter(input);
+      const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
           field: { fieldPath: 'field' },
@@ -752,7 +750,7 @@ describe('Serializer', () => {
 
     it('converts array-contains', () => {
       const input = filter('field', 'array-contains', 42);
-      const actual = s.toRelationFilter(input);
+      const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
           field: { fieldPath: 'field' },
@@ -765,7 +763,7 @@ describe('Serializer', () => {
 
     it('converts IN', () => {
       const input = filter('field', 'in', [42]);
-      const actual = s.toRelationFilter(input);
+      const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
           field: { fieldPath: 'field' },
@@ -786,7 +784,7 @@ describe('Serializer', () => {
 
     it('converts array-contains-any', () => {
       const input = filter('field', 'array-contains-any', [42]);
-      const actual = s.toRelationFilter(input);
+      const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
           field: { fieldPath: 'field' },
@@ -811,8 +809,7 @@ describe('Serializer', () => {
 
     it('converts null', () => {
       const input = filter('field', '==', null);
-      expect(input).to.be.instanceof(NullFilter);
-      const actual = s.toUnaryFilter(input as NullFilter);
+      const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         unaryFilter: {
           field: { fieldPath: 'field' },
@@ -824,8 +821,7 @@ describe('Serializer', () => {
 
     it('converts Nan', () => {
       const input = filter('field', '==', NaN);
-      expect(input).to.be.instanceof(NanFilter);
-      const actual = s.toUnaryFilter(input as NanFilter);
+      const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         unaryFilter: {
           field: { fieldPath: 'field' },
