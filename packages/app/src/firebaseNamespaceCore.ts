@@ -223,11 +223,11 @@ export function createFirebaseNamespaceCore(
 
     // Patch the FirebaseAppImpl prototype
     // @ts-ignore
-    firebaseAppImpl.prototype[name] = function(...args) {
+    firebaseAppImpl.prototype[name] = function(...args: any) {
       const serviceFxn = this._getService.bind(this, name);
       return serviceFxn.apply(
         this,
-        allowMultipleInstances ? (args as [(string | undefined)]) : []
+        allowMultipleInstances ? args : []
       );
     };
 
