@@ -16,14 +16,5 @@
                 "args": "none"
             }
         ]
-    },
-    "overrides": {
-        "files": [
-            "*test.ts",
-            "**/test/**/*.ts"
-        ],
-        "rules": {
-            "no-console": "off"
-        }
     }
 }

@@ -1240,6 +1240,7 @@ export async function runSpec(
   config: SpecConfig,
   steps: SpecStep[]
 ): Promise<void> {
+  // eslint-disable-next-line no-console
   console.log('Running spec: ' + name);
 
   const sharedMockStorage = new SharedFakeWebStorage();

@@ -511,7 +511,7 @@ describe('SimpleDb', () => {
       }
       return PersistencePromise.waitFor(promises).next(() => {
         const end = new Date().getTime();
-        // tslint:disable-next-line:no-console
+        // eslint-disable-next-line no-console
         console.log(`Writing: ${end - start} ms`);
       });
     }).then(() => {
@@ -523,7 +523,7 @@ describe('SimpleDb', () => {
         }
         return PersistencePromise.waitFor(promises).next(() => {
           const end = new Date().getTime();
-          // tslint:disable-next-line:no-console
+          // eslint-disable-next-line no-console
           console.log(`Reading: ${end - start} ms`);
         });
       });

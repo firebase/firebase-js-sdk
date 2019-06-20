@@ -301,7 +301,7 @@ describe('SortedMap Tests', () => {
         map = map.remove(i);
       }
       const end = new Date().getTime();
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log(end - start);
     }
   });
@@ -348,7 +348,7 @@ describe('SortedMap Tests', () => {
       }
 
       const elapsed = new Date().getTime() - start.getTime();
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log(N + ': ' + elapsed);
     }
   });
@@ -395,7 +395,7 @@ describe('SortedMap Tests', () => {
       }
 
       const elapsed = new Date().getTime() - start.getTime();
-      // tslint:disable-next-line:no-console
+      // eslint-disable-next-line no-console
       console.log(N + ': ' + elapsed);
     }
   });

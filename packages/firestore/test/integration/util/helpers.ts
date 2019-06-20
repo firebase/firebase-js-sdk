@@ -46,6 +46,7 @@ const PROD_FIRESTORE_SETTING = {
 
 export const DEFAULT_SETTINGS = getDefaultSettings();
 
+// eslint-disable-next-line no-console
 console.log(`Default Settings: ${JSON.stringify(DEFAULT_SETTINGS)}`);
 
 function getDefaultSettings(): firestore.Settings {
