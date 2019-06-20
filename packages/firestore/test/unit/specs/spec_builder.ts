@@ -63,7 +63,7 @@ export interface LimboMap {
 
 export interface ActiveTargetMap {
   [targetId: string]: { query: SpecQuery; resumeToken: string };
-};
+}
 
 /**
  * Tracks the expected memory state of a client (e.g. the expected active watch
