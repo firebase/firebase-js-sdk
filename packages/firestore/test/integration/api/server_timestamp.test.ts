@@ -22,6 +22,8 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 
+// tslint:disable:no-floating-promises
+
 // tslint:disable-next-line:no-any Allow custom types for testing.
 type AnyTestData = any;
 

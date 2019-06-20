@@ -22,8 +22,7 @@
             ],
             "rules": {
                 "no-unused-expressions": "off",
-                "@typescript-eslint/no-explicit-any": "off",
-                "@typescript-eslint/tslint/config": "off"
+                "@typescript-eslint/no-explicit-any": "off"
             }
         }
     ],

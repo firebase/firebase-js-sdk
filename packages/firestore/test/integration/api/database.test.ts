@@ -39,6 +39,8 @@ import {
   withTestDocAndInitialData
 } from '../util/helpers';
 
+// tslint:disable:no-floating-promises
+
 chai.use(chaiAsPromised);
 
 const Timestamp = firebase.firestore!.Timestamp;

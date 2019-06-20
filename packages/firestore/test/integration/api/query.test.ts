@@ -35,6 +35,8 @@ import {
   withTestDb
 } from '../util/helpers';
 
+// tslint:disable:no-floating-promises
+
 const Blob = firebase.firestore!.Blob;
 const FieldPath = firebase.firestore!.FieldPath;
 const GeoPoint = firebase.firestore!.GeoPoint;

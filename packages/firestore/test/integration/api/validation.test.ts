@@ -32,6 +32,8 @@ import {
   withTestDb
 } from '../util/helpers';
 
+// tslint:disable:no-floating-promises
+
 const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
 
