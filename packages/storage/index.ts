@@ -46,7 +46,7 @@ function factory(
   ) as unknown) as types.FirebaseStorage;
 }
 
-export function registerStorage(instance: _FirebaseNamespace) {
+export function registerStorage(instance: _FirebaseNamespace): void {
   const namespaceExports = {
     // no-inline
     TaskState,

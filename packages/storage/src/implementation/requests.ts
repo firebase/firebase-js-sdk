@@ -168,7 +168,7 @@ export function list(
   pageToken?: string | null,
   maxResults?: number | null
 ): RequestInfo<ListResult> {
-  let urlParams: UrlParams = {};
+  const urlParams: UrlParams = {};
   if (location.isRoot) {
     urlParams['prefix'] = '';
   } else {
