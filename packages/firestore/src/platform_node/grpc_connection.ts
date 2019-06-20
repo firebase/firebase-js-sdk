@@ -87,7 +87,7 @@ export class GrpcConnection implements Connection {
   private cachedStub: GeneratedGrpcStub | null = null;
 
   constructor(protos: grpc.GrpcObject, private databaseInfo: DatabaseInfo) {
-    // tslint:disable-next-line:no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.firestore = (protos as any)['google']['firestore']['v1'];
   }
 

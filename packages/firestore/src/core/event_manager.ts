@@ -21,8 +21,8 @@ import { ObjectMap } from '../util/obj_map';
 import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState, TargetId } from './types';
-import { DocumentViewChange } from './view_snapshot';
-import { ChangeType, ViewSnapshot } from './view_snapshot';
+import { DocumentViewChange , ChangeType, ViewSnapshot } from './view_snapshot';
+
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being

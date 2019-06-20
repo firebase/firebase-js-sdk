@@ -347,7 +347,7 @@ export class WebChannelConnection implements Connection {
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter
           // can be removed once the fix has been rolled out.
-          // tslint:disable-next-line:no-any msgData.error is not typed.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, msgData.error is not typed.
           const msgDataAsAny: any = msgData;
           const error =
             msgDataAsAny.error || (msgDataAsAny[0] && msgDataAsAny[0].error);

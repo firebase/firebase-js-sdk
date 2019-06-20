@@ -60,7 +60,6 @@ import {
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
-import { ApiClientObjectMap } from '../protos/firestore_proto_api';
 import { ExistenceFilter } from './existence_filter';
 import { mapCodeFromRpcCode, mapRpcCodeFromCode } from './rpc_error';
 import {
@@ -981,11 +980,11 @@ export class JsonProtoSerializer {
     } else if ('increment' in proto) {
       const operand = this.fromValue(proto.increment!);
       assert(
-        operand instanceof NumberValue,
+        operand instanceof fieldValue.NumberValue,
         'NUMERIC_ADD transform requires a NumberValue'
       );
       transform = new NumericIncrementTransformOperation(
-        operand as NumberValue
+        operand as fieldValue.NumberValue
       );
     } else {
       fail('Unknown transform proto: ' + JSON.stringify(proto));
@@ -1115,7 +1114,7 @@ export class JsonProtoSerializer {
 
   toListenRequestLabels(
     queryData: QueryData
-  ): ApiClientObjectMap<string> | null {
+  ): api.ApiClientObjectMap<string> | null {
     const value = this.toLabel(queryData.purpose);
     if (value == null) {
       return null;

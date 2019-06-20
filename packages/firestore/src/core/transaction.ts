@@ -17,8 +17,8 @@
 
 import { ParsedSetData, ParsedUpdateData } from '../api/user_data_converter';
 import { documentVersionMap } from '../model/collections';
-import { Document, NoDocument } from '../model/document';
-import { MaybeDocument } from '../model/document';
+import { Document, NoDocument , MaybeDocument } from '../model/document';
+
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { Datastore } from '../remote/datastore';

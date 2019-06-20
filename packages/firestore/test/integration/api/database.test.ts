@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 
-import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
 import * as firestore from '@firebase/firestore-types';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
 
 import { SimpleDb } from '../../../src/local/simple_db';
 import { fail } from '../../../src/util/assert';
@@ -41,7 +40,7 @@ import {
 
 // tslint:disable:no-floating-promises
 
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldValue = firebase.firestore!.FieldValue;

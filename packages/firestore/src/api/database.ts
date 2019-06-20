@@ -74,7 +74,9 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
+// eslint-disable-next-line import/no-duplicates
 import * as log from '../util/log';
+// eslint-disable-next-line import/no-duplicates
 import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
