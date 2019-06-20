@@ -170,8 +170,7 @@ export class JsonProtoSerializer {
    */
   private toInt32Value(val: number | null): number | undefined {
     if (!typeUtils.isNullOrUndefined(val)) {
-      // We need to match generated Proto types.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, We need to match generated Proto types.
       return { value: val } as any;
     } else {
       return undefined;
@@ -188,8 +187,7 @@ export class JsonProtoSerializer {
   private fromInt32Value(val: number | undefined): number | null {
     let result;
     if (typeof val === 'object') {
-      // We need to match generated Proto types.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, We need to match generated Proto types.
       result = (val as any).value;
     } else {
       // We accept raw numbers (without the {value: ... } wrapper) for

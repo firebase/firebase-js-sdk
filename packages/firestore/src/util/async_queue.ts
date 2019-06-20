@@ -20,8 +20,7 @@ import { Code, FirestoreError } from './error';
 import * as log from './log';
 import { CancelablePromise, Deferred } from './promise';
 
-// Accept any return type from setTimeout().
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, Accept any return type from setTimeout(). Accept any return type from setTimeout(). Accept any return type from setTimeout(). 
 type TimerHandle = any;
 
 /**

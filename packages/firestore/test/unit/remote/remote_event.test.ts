@@ -44,9 +44,8 @@ import {
   version
 } from '../../util/helpers';
 
-/* eslint-disable  @typescript-eslint/prefer-interface */
 interface TargetMap {
-  [targetId: number]: QueryData;
+  [targetId: string]: QueryData;
 }
 interface PendingTargetResponses {
   [targetId: string]: number;

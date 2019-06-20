@@ -273,8 +273,7 @@ export class LLRBNode<K, V> {
   readonly right: LLRBNode<K, V> | LLRBEmptyNode<K, V>;
   readonly size: number;
 
-  //Empty node is shared between all LLRB trees.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, Empty node is shared between all LLRB trees.
   static EMPTY: LLRBEmptyNode<any, any> = null as any;
 
   static RED = true;

@@ -61,10 +61,8 @@ export interface LimboMap {
   [key: string]: TargetId;
 }
 
-// number index signature doesn't work well with interface, so we use type instead
-// eslint-disable-next-line  @typescript-eslint/prefer-interface
-export type ActiveTargetMap = {
-  [targetId: number]: { query: SpecQuery; resumeToken: string };
+export interface ActiveTargetMap {
+  [targetId: string]: { query: SpecQuery; resumeToken: string };
 };
 
 /**
