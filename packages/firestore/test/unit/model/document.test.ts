@@ -54,14 +54,8 @@ describe('Document', () => {
   it('equals to other same documents', () => {
     expect(doc('a/b', 0, {}).isEqual(null)).to.equal(false);
 
-    expectEqual(
-      doc('a/b', 3, { foo: 'bar' }),
-      doc('a/b', 3, { foo: 'bar' })
-    );
-    expectEqual(
-      doc('a/b', 1, { foo: NaN }),
-      doc('a/b', 1, { foo: NaN })
-    );
+    expectEqual(doc('a/b', 3, { foo: 'bar' }), doc('a/b', 3, { foo: 'bar' }));
+    expectEqual(doc('a/b', 1, { foo: NaN }), doc('a/b', 1, { foo: NaN }));
 
     expectNotEqual(
       doc('a/b', 1, { foo: 'bar' }),
@@ -71,10 +65,7 @@ describe('Document', () => {
       doc('a/b', 1, { foo: 'bar' }),
       doc('a/b', 2, { foo: 'bar' })
     );
-    expectNotEqual(
-      doc('a/b', 1, { foo: 'bar' }),
-      doc('a/b', 1, { foo: 100 })
-    );
+    expectNotEqual(doc('a/b', 1, { foo: 'bar' }), doc('a/b', 1, { foo: 100 }));
     expectNotEqual(
       doc('a/b', 1, { foo: 'bar' }, { hasLocalMutations: true }),
       doc('a/b', 1, { foo: 'bar' }, { hasLocalMutations: false })

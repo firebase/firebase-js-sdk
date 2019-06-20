@@ -47,10 +47,10 @@ import {
 /* eslint-disable  @typescript-eslint/prefer-interface */
 interface TargetMap {
   [targetId: number]: QueryData;
-};
+}
 interface PendingTargetResponses {
   [targetId: string]: number;
-};
+}
 /* eslint-enable  @typescript-eslint/prefer-interface */
 
 function listens(...targetIds: TargetId[]): TargetMap {

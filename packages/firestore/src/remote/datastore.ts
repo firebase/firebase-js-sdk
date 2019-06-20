@@ -25,7 +25,9 @@ import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
-import { WatchStreamListener, WriteStreamListener ,
+import {
+  WatchStreamListener,
+  WriteStreamListener,
   PersistentListenStream,
   PersistentWriteStream
 } from './persistent_stream';

@@ -49,17 +49,27 @@ function customDeepEqual(left: unknown, right: unknown): boolean {
   ) {
     return true;
   }
-  if (typeof left !== typeof right) {return false;} // needed for structurally different objects
-  if (Object(left) !== left) {return false;} // primitive values
+  if (typeof left !== typeof right) {
+    return false;
+  } // needed for structurally different objects
+  if (Object(left) !== left) {
+    return false;
+  } // primitive values
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const keys = Object.keys(left as any);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (keys.length !== Object.keys(right as any).length) {return false;}
+  if (keys.length !== Object.keys(right as any).length) {
+    return false;
+  }
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
-    if (!Object.prototype.hasOwnProperty.call(right, key)) {return false;}
+    if (!Object.prototype.hasOwnProperty.call(right, key)) {
+      return false;
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if (!customDeepEqual((left as any)[key], (right as any)[key])) {return false;}
+    if (!customDeepEqual((left as any)[key], (right as any)[key])) {
+      return false;
+    }
   }
   return true;
 }

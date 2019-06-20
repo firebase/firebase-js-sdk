@@ -30,7 +30,7 @@ import {
   mapCodeFromRpcCode,
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
-import { assert , fail } from '../../../src/util/assert';
+import { assert, fail } from '../../../src/util/assert';
 
 import { Code } from '../../../src/util/error';
 import * as objUtils from '../../../src/util/obj';

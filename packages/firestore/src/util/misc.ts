@@ -18,7 +18,9 @@
 import { assert } from './assert';
 
 export type EventHandler<E> = (value: E) => void;
-export interface Indexable { [k: string]: unknown }
+export interface Indexable {
+  [k: string]: unknown;
+}
 
 export class AutoId {
   static newId(): string {

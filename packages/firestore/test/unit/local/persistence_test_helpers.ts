@@ -22,8 +22,9 @@ import {
   BatchId,
   MutationBatchState,
   OnlineState,
-  TargetId
-, ListenSequenceNumber } from '../../../src/core/types';
+  TargetId,
+  ListenSequenceNumber
+} from '../../../src/core/types';
 
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalSerializer } from '../../../src/local/local_serializer';

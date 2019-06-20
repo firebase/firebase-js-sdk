@@ -20,7 +20,10 @@ import * as firestore from '@firebase/firestore-types';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
-import { FieldValue, NumberValue, ObjectValue ,
+import {
+  FieldValue,
+  NumberValue,
+  ObjectValue,
   ArrayValue,
   BlobValue,
   BooleanValue,

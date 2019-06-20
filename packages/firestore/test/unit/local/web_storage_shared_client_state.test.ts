@@ -55,20 +55,16 @@ const TEST_ERROR = new FirestoreError('internal', 'Test Error');
 
 function mutationKey(user: User, batchId: BatchId): string {
   if (user.isAuthenticated()) {
-    return `firestore_mutations_${
-      TEST_PERSISTENCE_PREFIX
-    }_${batchId}_${user.uid}`;
+    return `firestore_mutations_${TEST_PERSISTENCE_PREFIX}_${batchId}_${
+      user.uid
+    }`;
   } else {
-    return `firestore_mutations_${
-      TEST_PERSISTENCE_PREFIX
-    }_${batchId}`;
+    return `firestore_mutations_${TEST_PERSISTENCE_PREFIX}_${batchId}`;
   }
 }
 
 function targetKey(targetId: TargetId): string {
-  return `firestore_targets_${
-    TEST_PERSISTENCE_PREFIX
-  }_${targetId}`;
+  return `firestore_targets_${TEST_PERSISTENCE_PREFIX}_${targetId}`;
 }
 
 function onlineStateKey(): string {
@@ -237,9 +233,7 @@ describe('WebStorageSharedClientState', () => {
   function assertClientState(activeTargetIds: TargetId[]): void {
     const actual = JSON.parse(
       webStorage.getItem(
-        `firestore_clients_${
-          TEST_PERSISTENCE_PREFIX
-        }_${primaryClientId}`
+        `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${primaryClientId}`
       )!
     );
 
@@ -390,23 +384,20 @@ describe('WebStorageSharedClientState', () => {
 
   describe('combines client state', () => {
     const secondaryClientId = AutoId.newId();
-    const secondaryClientStateKey = `firestore_clients_${
-      TEST_PERSISTENCE_PREFIX
-    }_${secondaryClientId}`;
+    const secondaryClientStateKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${secondaryClientId}`;
 
     beforeEach(() => {
       const existingClientId = AutoId.newId();
 
       return populateWebStorage(
-          AUTHENTICATED_USER,
-          existingClientId,
-          [1, 2],
-          [3, 4]
-        )
-        .then(() => {
-          clientSyncer.activeClients = [primaryClientId, existingClientId];
-          return sharedClientState.start();
-        });
+        AUTHENTICATED_USER,
+        existingClientId,
+        [1, 2],
+        [3, 4]
+      ).then(() => {
+        clientSyncer.activeClients = [primaryClientId, existingClientId];
+        return sharedClientState.start();
+      });
     });
 
     async function verifyState(
@@ -526,9 +517,7 @@ describe('WebStorageSharedClientState', () => {
     });
 
     it('ignores invalid data', async () => {
-      const secondaryClientStateKey = `firestore_clients_${
-        TEST_PERSISTENCE_PREFIX
-      }_${AutoId.newId()}`;
+      const secondaryClientStateKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${AutoId.newId()}`;
 
       const invalidState = {
         activeTargetIds: [5, 'invalid']
@@ -669,12 +658,8 @@ describe('WebStorageSharedClientState', () => {
     const firstClientTargetId: TargetId = 1;
     const secondClientTargetId: TargetId = 2;
 
-    const firstClientStorageKey = `firestore_clients_${
-      TEST_PERSISTENCE_PREFIX
-    }_${AutoId.newId()}`;
-    const secondClientStorageKey = `firestore_clients_${
-      TEST_PERSISTENCE_PREFIX
-    }_${AutoId.newId()}`;
+    const firstClientStorageKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${AutoId.newId()}`;
+    const secondClientStorageKey = `firestore_clients_${TEST_PERSISTENCE_PREFIX}_${AutoId.newId()}`;
 
     let firstClient: LocalClientState;
     let secondClientState: LocalClientState;

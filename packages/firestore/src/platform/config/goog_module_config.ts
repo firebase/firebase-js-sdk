@@ -17,7 +17,6 @@
 
 import { configureForStandalone } from '../config';
 
-
 /**
  * Magic variable that is used to export the Firestore namespace.
  *

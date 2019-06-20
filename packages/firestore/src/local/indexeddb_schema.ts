@@ -249,7 +249,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     // Helper to add an index entry iff we haven't already written it.
     const cache = new MemoryCollectionParentIndex();
-    const addEntry = (collectionPath: ResourcePath): PersistencePromise<void> | undefined => {
+    const addEntry = (
+      collectionPath: ResourcePath
+    ): PersistencePromise<void> | undefined => {
       if (cache.add(collectionPath)) {
         const collectionId = collectionPath.lastSegment();
         const parentPath = collectionPath.popLast();
