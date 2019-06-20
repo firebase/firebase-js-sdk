@@ -96,17 +96,16 @@ export function fromResponseString(
   return fromBackendResponse(authWrapper, resource);
 }
 
-export function listOptionsValidator(p: object): void {
-  const validType = p && type.isObject(p);
-  if (!validType) {
+export function listOptionsValidator(p: unknown): void {
+  if (!type.isObject(p) || !p) {
     throw 'Expected ListOptions object.';
   }
   for (const key in p) {
     if (key === MAX_RESULTS_KEY) {
-      if (!type.isInteger(p[MAX_RESULTS_KEY]) || p[MAX_RESULTS_KEY] <= 0) {
+      if (!type.isInteger(p[MAX_RESULTS_KEY]) || p[MAX_RESULTS_KEY] as number <= 0) {
         throw 'Expected maxResults to be a positive number.';
       }
-      if (p[MAX_RESULTS_KEY] > 1000) {
+      if (p[MAX_RESULTS_KEY] as number > 1000) {
         throw `Expected maxResults to be less than or equal to ${MAX_MAX_RESULTS}.`;
       }
     } else if (key === PAGE_TOKEN_KEY) {

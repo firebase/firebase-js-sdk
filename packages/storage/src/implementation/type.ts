@@ -30,7 +30,7 @@ export function isFunction(p: unknown): p is Function {
   return typeof p === 'function';
 }
 
-export function isObject(p: unknown): p is object | null {
+export function isObject(p: unknown): p is { [key: string]: unknown } | null {
   return typeof p === 'object';
 }
 
@@ -46,7 +46,7 @@ export function isString(p: unknown): p is string {
   return typeof p === 'string' || p instanceof String;
 }
 
-export function isInteger(p: unknown): boolean {
+export function isInteger(p: unknown): p is number {
   return isNumber(p) && Number.isInteger(p);
 }
 

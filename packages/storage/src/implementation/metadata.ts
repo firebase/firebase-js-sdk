@@ -211,7 +211,6 @@ export function metadataValidator(p: unknown): void {
   }
   for (const key in p) {
     if (p.hasOwnProperty(key)) {
-      // @ts-ignore suppress noimplicitany error
       const val = p[key];
       if (key === 'customMetadata') {
         if (!type.isObject(val)) {
