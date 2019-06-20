@@ -17,7 +17,6 @@
 
 import { configureForStandalone } from '../config';
 
-/* eslint-disable camelcase */
 
 /**
  * Magic variable that is used to export the Firestore namespace.
@@ -30,8 +29,9 @@ import { configureForStandalone } from '../config';
  * Note that name was chosen arbitrarily but was intended to not conflict with
  * any other variable in scope.
  */
+// eslint-disable-next-line camelcase
 declare let __firestore_exports__: { [key: string]: {} };
-
+// eslint-disable-next-line camelcase
 if (typeof __firestore_exports__ !== 'undefined') {
   configureForStandalone(__firestore_exports__);
 } else {

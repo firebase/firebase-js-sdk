@@ -42,9 +42,7 @@ export type Rejector = (error: Error) => void;
 export class PersistencePromise<T> {
   // NOTE: next/catchCallback will always point to our own wrapper functions,
   // not the user's raw next() or catch() callbacks.
-  // Accept any result type for the next call in the Promise chain.
   private nextCallback: FulfilledHandler<T, unknown> = null;
-  // Accept any result type for the error handler.
   private catchCallback: RejectedHandler<unknown> = null;
 
   // When the operation resolves, we'll set result or error and mark isDone.
@@ -168,8 +166,7 @@ export class PersistencePromise<T> {
   }
 
   static waitFor(
-    // Accept all Promise types in waitFor().
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, Accept all Promise types in waitFor().
     all: { forEach: (cb: (el: PersistencePromise<any>) => void) => void }
   ): PersistencePromise<void> {
     return new PersistencePromise<void>((resolve, reject) => {

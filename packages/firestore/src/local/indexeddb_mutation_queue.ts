@@ -165,8 +165,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // mutation batch.
     // See: https://bugs.chromium.org/p/chromium/issues/detail?id=701972
 
-    // We write an empty object to obtain key
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, We write an empty object to obtain key
     return mutationStore.add({} as any).next(batchId => {
       assert(typeof batchId === 'number', 'Auto-generated key is not a number');
 

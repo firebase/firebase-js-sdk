@@ -45,11 +45,11 @@ import {
 } from '../../util/helpers';
 
 /* eslint-disable  @typescript-eslint/prefer-interface */
-type TargetMap = {
+interface TargetMap {
   [targetId: number]: QueryData;
 };
-type PendingTargetResponses = {
-  [targetId: number]: number;
+interface PendingTargetResponses {
+  [targetId: string]: number;
 };
 /* eslint-enable  @typescript-eslint/prefer-interface */
 
@@ -58,6 +58,7 @@ function listens(...targetIds: TargetId[]): TargetMap {
   for (const target of targetIds) {
     targets[target] = queryData(target, QueryPurpose.Listen, 'coll');
   }
+
   return targets;
 }
 

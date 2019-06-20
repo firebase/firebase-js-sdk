@@ -105,10 +105,6 @@ import {
   UserDataConverter
 } from './user_data_converter';
 
-// The objects that are a part of this API are exposed to third-parties as
-// compiled javascript so we want to flag our private members with a leading
-// underscore to discourage their use.
-
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
 const DEFAULT_SSL = true;
@@ -299,6 +295,9 @@ class FirestoreConfig {
  * The root reference to the database.
  */
 export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
+  // The objects that are a part of this API are exposed to third-parties as
+  // compiled javascript so we want to flag our private members with a leading
+  // underscore to discourage their use.
   private readonly _config: FirestoreConfig;
   readonly _databaseId: DatabaseId;
 

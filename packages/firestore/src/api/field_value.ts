@@ -29,7 +29,6 @@ import {
  * An opaque base class for FieldValue sentinel objects in our public API,
  * with public static methods for creating said sentinel objects.
  */
-// We use this as a base class.
 export abstract class FieldValueImpl implements firestore.FieldValue {
   protected constructor(readonly _methodName: string) {}
 

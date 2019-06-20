@@ -97,8 +97,7 @@ export class WebChannelConnection implements Connection {
     const url = this.makeUrl(rpcName);
 
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
-      // XhrIo doesn't have TS typings.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, XhrIo doesn't have TS typings.
       const xhr: any = new XhrIo();
       xhr.listenOnce(EventType.COMPLETE, () => {
         try {
