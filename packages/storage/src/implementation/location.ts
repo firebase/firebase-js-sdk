@@ -41,12 +41,12 @@ export class Location {
   }
 
   fullServerUrl(): string {
-    let encode = encodeURIComponent;
+    const encode = encodeURIComponent;
     return '/b/' + encode(this.bucket) + '/o/' + encode(this.path);
   }
 
   bucketOnlyServerUrl(): string {
-    let encode = encodeURIComponent;
+    const encode = encodeURIComponent;
     return '/b/' + encode(this.bucket) + '/o';
   }
 
@@ -68,37 +68,37 @@ export class Location {
 
   static makeFromUrl(url: string): Location {
     let location: Location | null = null;
-    let bucketDomain = '([A-Za-z0-9.\\-_]+)';
+    const bucketDomain = '([A-Za-z0-9.\\-_]+)';
 
-    function gsModify(loc: Location) {
+    function gsModify(loc: Location): void {
       if (loc.path.charAt(loc.path.length - 1) === '/') {
         loc.path_ = loc.path_.slice(0, -1);
       }
     }
-    let gsPath = '(/(.*))?$';
-    let path = '(/([^?#]*).*)?$';
-    let gsRegex = new RegExp('^gs://' + bucketDomain + gsPath, 'i');
-    let gsIndices = { bucket: 1, path: 3 };
+    const gsPath = '(/(.*))?$';
+    const path = '(/([^?#]*).*)?$';
+    const gsRegex = new RegExp('^gs://' + bucketDomain + gsPath, 'i');
+    const gsIndices = { bucket: 1, path: 3 };
 
-    function httpModify(loc: Location) {
+    function httpModify(loc: Location): void {
       loc.path_ = decodeURIComponent(loc.path);
     }
-    let version = 'v[A-Za-z0-9_]+';
-    let hostRegex = DEFAULT_HOST.replace(/[.]/g, '\\.');
-    let httpRegex = new RegExp(
+    const version = 'v[A-Za-z0-9_]+';
+    const hostRegex = DEFAULT_HOST.replace(/[.]/g, '\\.');
+    const httpRegex = new RegExp(
       `^https?://${hostRegex}/${version}/b/${bucketDomain}/o${path}`,
       'i'
     );
-    let httpIndices = { bucket: 1, path: 3 };
-    let groups = [
+    const httpIndices = { bucket: 1, path: 3 };
+    const groups = [
       { regex: gsRegex, indices: gsIndices, postModify: gsModify },
       { regex: httpRegex, indices: httpIndices, postModify: httpModify }
     ];
     for (let i = 0; i < groups.length; i++) {
-      let group = groups[i];
-      let captures = group.regex.exec(url);
+      const group = groups[i];
+      const captures = group.regex.exec(url);
       if (captures) {
-        let bucketValue = captures[group.indices.bucket];
+        const bucketValue = captures[group.indices.bucket];
         let pathValue = captures[group.indices.path];
         if (!pathValue) {
           pathValue = '';

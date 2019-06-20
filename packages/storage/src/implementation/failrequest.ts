@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { FirebaseStorageError } from './error';
-import * as promiseimpl from './promise_external';
 import { Request } from './request';
 
 /**
@@ -27,14 +26,14 @@ export class FailRequest<T> implements Request<T> {
   promise_: Promise<T>;
 
   constructor(error: FirebaseStorageError) {
-    this.promise_ = promiseimpl.reject<T>(error);
+    this.promise_ = Promise.reject<T>(error);
   }
 
   /** @inheritDoc */
-  getPromise() {
+  getPromise(): Promise<T> {
     return this.promise_;
   }
 
   /** @inheritDoc */
-  cancel(appDelete = false) {}
+  cancel(_appDelete = false): void {}
 }

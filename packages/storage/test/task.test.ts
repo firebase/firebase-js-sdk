@@ -15,13 +15,11 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import * as arrayUtils from '../src/implementation/array';
 import { AuthWrapper } from '../src/implementation/authwrapper';
 import { FbsBlob } from '../src/implementation/blob';
 import { Location } from '../src/implementation/location';
 import { getMappings } from '../src/implementation/metadata';
 import { Unsubscribe } from '../src/implementation/observer';
-import * as fbsPromise from '../src/implementation/promise_external';
 import { makeRequest } from '../src/implementation/request';
 import { TaskEvent, TaskState } from '../src/implementation/taskenums';
 import { Headers } from '../src/implementation/xhrio';
@@ -39,11 +37,11 @@ const mappings = getMappings();
 
 const fakeMetadata = '{ "downloadTokens": "a,b" }';
 
-type Response = {
+interface Response {
   status: number;
   body: string;
   headers: StringHeaders;
-};
+}
 type RequestHandler = (
   url: string,
   method: string,
@@ -65,7 +63,7 @@ function authWrapperWithHandler(handler: RequestHandler): AuthWrapper {
 
   return new AuthWrapper(
     null,
-    (_1, _2) => {
+    () => {
       return {} as Reference;
     },
     makeRequest,
@@ -86,11 +84,11 @@ function fakeServerHandler(): RequestHandler {
 
   function statusHeaders(
     status: string,
-    opt_existing?: StringHeaders
+    existing?: StringHeaders
   ): StringHeaders {
-    if (opt_existing) {
-      opt_existing['X-Goog-Upload-Status'] = status;
-      return opt_existing;
+    if (existing) {
+      existing['X-Goog-Upload-Status'] = status;
+      return existing;
     } else {
       return { 'X-Goog-Upload-Status': status };
     }
@@ -159,8 +157,8 @@ function fakeServerHandler(): RequestHandler {
       .map(str => {
         return str.trim();
       });
-    const isUpload = arrayUtils.contains(commands, 'upload');
-    const isFinalize = arrayUtils.contains(commands, 'finalize');
+    const isUpload = commands.indexOf('upload') !== -1;
+    const isFinalize = commands.indexOf('finalize') !== -1;
     const stat = stats[id];
 
     if (isUpload) {
@@ -200,7 +198,7 @@ function fakeServerHandler(): RequestHandler {
 }
 
 describe('Firebase Storage > Upload Task', () => {
-  it('Works for a small upload w/ an observer', () => {
+  it('Works for a small upload w/ an observer', done => {
     const authWrapper = authWrapperWithHandler(fakeServerHandler());
     const task = new UploadTask(
       {} as Reference,
@@ -209,18 +207,12 @@ describe('Firebase Storage > Upload Task', () => {
       mappings,
       smallBlob
     );
-    return fbsPromise.make<void>((resolve, reject) => {
-      task.on(
-        TaskEvent.STATE_CHANGED,
-        null,
-        error => {
-          assert.fail('Unexpected upload failure');
-        },
-        () => {
-          resolve();
-        }
-      );
-    });
+    task.on(
+      TaskEvent.STATE_CHANGED,
+      null,
+      () => assert.fail('Unexpected upload failure'),
+      () => done()
+    );
   });
   it('Works for a small upload w/ a promise', () => {
     const authWrapper = authWrapperWithHandler(fakeServerHandler());
@@ -245,13 +237,11 @@ describe('Firebase Storage > Upload Task', () => {
       smallBlob
     );
     const promise: Promise<string | null> = task.then<string | null>(
-      snapshot => {
+      () => {
         assert.fail('task completed, but should have failed');
         return null;
       },
-      err => {
-        return 'Task failed as expected';
-      }
+      () => 'Task failed as expected'
     );
     task.cancel();
     return promise;
@@ -276,9 +266,9 @@ describe('Firebase Storage > Upload Task', () => {
 
     let resumed = 0;
 
-    // This one will get executed immediately
-    const h3: Unsubscribe = (() => {
-      let lastState: string;
+    // h3: This one will get executed immediately
+    (() => {
+      let lastState;
       return task.on(
         TaskEvent.STATE_CHANGED,
         snapshot => {
@@ -293,19 +283,18 @@ describe('Firebase Storage > Upload Task', () => {
         null,
         null
       );
-    })() as Unsubscribe;
-
+    })();
     h1();
     h2();
 
-    return fbsPromise.make<void>((resolve, reject) => {
+    return new Promise(resolve => {
       task.on(
         TaskEvent.STATE_CHANGED,
         null,
-        error => {
+        () => {
           assert.fail('Upload failed');
         },
-        function() {
+        () => {
           assert.isFalse(badComplete);
           assert.equal(resumed, 1);
           resolve();
@@ -322,9 +311,9 @@ describe('Firebase Storage > Upload Task', () => {
       mappings,
       smallBlob
     );
-    return fbsPromise.make<void>((resolve, reject) => {
+    return new Promise(resolve => {
       task.on(TaskEvent.STATE_CHANGED, {
-        error: (err: Error) => {
+        error: () => {
           assert.fail('Unexpected upload failure');
         },
         complete: () => {
@@ -345,7 +334,7 @@ describe('Firebase Storage > Upload Task', () => {
     );
 
     let resolve: Function, reject: Function;
-    const promise = fbsPromise.make<void>(function(innerResolve, innerReject) {
+    const promise = new Promise<void>((innerResolve, innerReject) => {
       resolve = innerResolve;
       reject = innerReject;
     });
@@ -355,7 +344,7 @@ describe('Firebase Storage > Upload Task', () => {
     // assert functions, returning a new function that calls reject with any
     // caught errors. This should make sure errors are reported properly.
     function promiseAssertWrapper<T>(func: T): T {
-      function wrapped(...args: any[]): void {
+      function wrapped(..._args: any[]): void {
         try {
           ((func as any) as (...args: any[]) => void).apply(null, arguments);
         } catch (e) {
@@ -375,7 +364,7 @@ describe('Firebase Storage > Upload Task', () => {
     const events: string[] = [];
     const progress: number[][] = [];
     let complete = 0;
-    function addCallbacks(task: UploadTask) {
+    function addCallbacks(task: UploadTask): void {
       let lastState: string;
       task.on(
         TaskEvent.STATE_CHANGED,
@@ -397,7 +386,7 @@ describe('Firebase Storage > Upload Task', () => {
 
           lastState = state;
         },
-        error => {
+        () => {
           fixedAssertFail('upload failed');
         },
         () => {
@@ -410,11 +399,11 @@ describe('Firebase Storage > Upload Task', () => {
 
     (function() {
       let lastState: string;
-      task.on(TaskEvent.STATE_CHANGED, function(snapshot) {
+      task.on(TaskEvent.STATE_CHANGED, snapshot => {
         const state = snapshot.state;
         if (lastState !== TaskState.PAUSED && state === TaskState.PAUSED) {
           events.push('timeout');
-          setTimeout(function() {
+          setTimeout(() => {
             task.resume();
           }, 200);
         }
@@ -485,7 +474,7 @@ describe('Firebase Storage > Upload Task', () => {
             }
             lastState = state;
           },
-          error => {
+          () => {
             events2.push('failure');
             fixedAssertEquals(events2.length, 2);
             fixedAssertEquals(events2[0], 'resume');

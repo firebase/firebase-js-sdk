@@ -26,14 +26,14 @@ import { Service } from '../src/service';
 import * as testShared from './testshared';
 import { SendHook, TestingXhrIo } from './xhrio';
 import { DEFAULT_HOST } from '../src/implementation/constants';
-
+// tslint:disable:no-floating-promises
 function makeFakeService(app: FirebaseApp, sendHook: SendHook): Service {
   return new Service(app, testShared.makePool(sendHook));
 }
 
 function makeStorage(url: string): Reference {
-  function maker(wrapper: unknown, loc: unknown) {
-    return ({} as any) as Reference;
+  function maker(): Reference {
+    return ({} as unknown) as Reference;
   }
 
   const authWrapper = new AuthWrapper(
@@ -184,7 +184,7 @@ describe('Firebase Storage > Reference', () => {
       method: string,
       body?: ArrayBufferView | Blob | string | null,
       headers?: Headers
-    ) {
+    ): void {
       assert.isDefined(headers);
       assert.isUndefined(headers!['Authorization']);
       done();
@@ -203,7 +203,7 @@ describe('Firebase Storage > Reference', () => {
       method: string,
       body?: ArrayBufferView | Blob | string | null,
       headers?: Headers
-    ) {
+    ): void {
       assert.isDefined(headers);
       assert.equal(
         headers!['Authorization'],

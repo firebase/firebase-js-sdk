@@ -148,7 +148,7 @@ describe('Firebase Storage > String', () => {
   });
   it('Rejects invalid base64 strings', () => {
     const str = 'CpYlM1-XsGxTd1n6izHMU_yY3Bw=';
-    assertThrows(function() {
+    assertThrows(() => {
       dataFromString(StringFormat.BASE64, str);
     }, 'storage/invalid-format');
   });
@@ -212,7 +212,7 @@ describe('Firebase Storage > String', () => {
   });
   it('Rejects invalid base64url strings', () => {
     const str = 'CpYlM1+XsGxTd1n6izHMU/yY3Bw=';
-    assertThrows(function() {
+    assertThrows(() => {
       dataFromString(StringFormat.BASE64URL, str);
     }, 'storage/invalid-format');
   });
@@ -269,19 +269,19 @@ describe('Firebase Storage > String', () => {
   });
   it('Rejects data URLs with invalid URL encodings', () => {
     const str = 'data:,%%0';
-    assertThrows(function() {
+    assertThrows(() => {
       dataFromString(StringFormat.DATA_URL, str);
     }, 'storage/invalid-format');
   });
   it('Rejects data URLs with invalid URL-encoded byte sequences', () => {
     const str = 'data:,%80%80%80';
-    assertThrows(function() {
+    assertThrows(() => {
       dataFromString(StringFormat.DATA_URL, str);
     }, 'storage/invalid-format');
   });
   it('Rejects data URLs with an invalid format', () => {
     const str = 'dateeeep:,invalid';
-    assertThrows(function() {
+    assertThrows(() => {
       dataFromString(StringFormat.DATA_URL, str);
     }, 'storage/invalid-format');
   });

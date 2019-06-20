@@ -103,7 +103,7 @@
             "error",
             {
                 "types": {
-                    "Object": "Use object instead.",
+                    "Object": "Use {} or 'object' instead.",
                     "String": "Use 'string' instead.",
                     "Number": "Use 'number' instead.",
                     "Boolean": "Use 'boolean' instead."

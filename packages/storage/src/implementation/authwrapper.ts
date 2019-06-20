@@ -20,7 +20,6 @@ import * as constants from './constants';
 import * as errorsExports from './error';
 import { FailRequest } from './failrequest';
 import { Location } from './location';
-import * as promiseimpl from './promise_external';
 import { Request } from './request';
 import { RequestInfo } from './requestinfo';
 import { requestMaker } from './requestmaker';
@@ -43,9 +42,6 @@ export class AuthWrapper {
   private app_: FirebaseApp | null;
   private bucket_: string | null = null;
 
-  /**
-  maker
-     */
   private storageRefMaker_: (p1: AuthWrapper, p2: Location) => Reference;
   private requestMaker_: requestMaker;
   private pool_: XhrIoPool;
@@ -64,7 +60,7 @@ export class AuthWrapper {
   ) {
     this.app_ = app;
     if (this.app_ !== null) {
-      let options = this.app_.options;
+      const options = this.app_.options;
       if (type.isDef(options)) {
         this.bucket_ = AuthWrapper.extractBucket_(options);
       }
@@ -79,13 +75,13 @@ export class AuthWrapper {
   }
 
   private static extractBucket_(config: {
-    [prop: string]: any;
+    [prop: string]: string;
   }): string | null {
-    let bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] || null;
+    const bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] || null;
     if (bucketString == null) {
       return null;
     }
-    let loc: Location = Location.makeFromBucketSpec(bucketString);
+    const loc: Location = Location.makeFromBucketSpec(bucketString);
     return loc.bucket;
   }
 
@@ -98,19 +94,17 @@ export class AuthWrapper {
       type.isDef((this.app_ as _FirebaseApp).INTERNAL.getToken)
     ) {
       return (this.app_ as _FirebaseApp).INTERNAL.getToken().then(
-        function(response: FirebaseAuthTokenData | null): string | null {
+        (response: FirebaseAuthTokenData | null): string | null => {
           if (response !== null) {
             return response.accessToken;
           } else {
             return null;
           }
         },
-        function(_error) {
-          return null;
-        }
+        () => null
       );
     } else {
-      return promiseimpl.resolve(null) as Promise<string | null>;
+      return Promise.resolve(null);
     }
   }
 
@@ -146,7 +140,7 @@ export class AuthWrapper {
     authToken: string | null
   ): Request<T> {
     if (!this.deleted_) {
-      let request = this.requestMaker_(requestInfo, authToken, this.pool_);
+      const request = this.requestMaker_(requestInfo, authToken, this.pool_);
       this.requestMap_.addRequest(request);
       return request;
     } else {
@@ -157,7 +151,7 @@ export class AuthWrapper {
   /**
    * Stop running requests and prevent more from being created.
    */
-  deleteApp() {
+  deleteApp(): void {
     this.deleted_ = true;
     this.app_ = null;
     this.requestMap_.clear();
@@ -167,7 +161,7 @@ export class AuthWrapper {
     return this.maxUploadRetryTime_;
   }
 
-  setMaxUploadRetryTime(time: number) {
+  setMaxUploadRetryTime(time: number): void {
     this.maxUploadRetryTime_ = time;
   }
 
@@ -175,7 +169,7 @@ export class AuthWrapper {
     return this.maxOperationRetryTime_;
   }
 
-  setMaxOperationRetryTime(time: number) {
+  setMaxOperationRetryTime(time: number): void {
     this.maxOperationRetryTime_ = time;
   }
 }

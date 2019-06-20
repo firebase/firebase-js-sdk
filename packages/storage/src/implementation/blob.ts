@@ -21,8 +21,7 @@
  * making uploads possible in environments without the native Blob type.
  */
 import * as fs from './fs';
-import * as string from './string';
-import { StringFormat } from './string';
+import { StringFormat, dataFromString } from './string';
 import * as type from './type';
 
 /**
@@ -35,7 +34,7 @@ export class FbsBlob {
   private size_: number;
   private type_: string;
 
-  constructor(data: Blob | Uint8Array | ArrayBuffer, opt_elideCopy?: boolean) {
+  constructor(data: Blob | Uint8Array | ArrayBuffer, elideCopy?: boolean) {
     let size: number = 0;
     let blobType: string = '';
     if (type.isNativeBlob(data)) {
@@ -43,7 +42,7 @@ export class FbsBlob {
       size = (data as Blob).size;
       blobType = (data as Blob).type;
     } else if (data instanceof ArrayBuffer) {
-      if (opt_elideCopy) {
+      if (elideCopy) {
         this.data_ = new Uint8Array(data);
       } else {
         this.data_ = new Uint8Array(data.byteLength);
@@ -51,7 +50,7 @@ export class FbsBlob {
       }
       size = this.data_.length;
     } else if (data instanceof Uint8Array) {
-      if (opt_elideCopy) {
+      if (elideCopy) {
         this.data_ = data as Uint8Array;
       } else {
         this.data_ = new Uint8Array(data.length);
@@ -73,14 +72,14 @@ export class FbsBlob {
 
   slice(startByte: number, endByte: number): FbsBlob | null {
     if (type.isNativeBlob(this.data_)) {
-      let realBlob = this.data_ as Blob;
-      let sliced = fs.sliceBlob(realBlob, startByte, endByte);
+      const realBlob = this.data_ as Blob;
+      const sliced = fs.sliceBlob(realBlob, startByte, endByte);
       if (sliced === null) {
         return null;
       }
       return new FbsBlob(sliced);
     } else {
-      let slice = new Uint8Array(
+      const slice = new Uint8Array(
         (this.data_ as Uint8Array).buffer,
         startByte,
         endByte - startByte
@@ -89,36 +88,38 @@ export class FbsBlob {
     }
   }
 
-  static getBlob(...var_args: (string | FbsBlob)[]): FbsBlob | null {
+  static getBlob(...args: Array<string | FbsBlob>): FbsBlob | null {
     if (type.isNativeBlobDefined()) {
-      var blobby: (Blob | Uint8Array | string)[] = var_args.map(function(
-        val: string | FbsBlob
-      ): Blob | Uint8Array | string {
-        if (val instanceof FbsBlob) {
-          return val.data_;
-        } else {
-          return val;
+      const blobby: Array<Blob | Uint8Array | string> = args.map(
+        (val: string | FbsBlob): Blob | Uint8Array | string => {
+          if (val instanceof FbsBlob) {
+            return val.data_;
+          } else {
+            return val;
+          }
         }
-      });
+      );
       return new FbsBlob(fs.getBlob.apply(null, blobby));
     } else {
-      let uint8Arrays: Uint8Array[] = var_args.map(function(
-        val: string | FbsBlob
-      ): Uint8Array {
-        if (type.isString(val)) {
-          return string.dataFromString(StringFormat.RAW, val as string).data;
-        } else {
-          // Blobs don't exist, so this has to be a Uint8Array.
-          return (val as FbsBlob).data_ as Uint8Array;
+      const uint8Arrays: Uint8Array[] = args.map(
+        (val: string | FbsBlob): Uint8Array => {
+          if (type.isString(val)) {
+            return dataFromString(StringFormat.RAW, val as string).data;
+          } else {
+            // Blobs don't exist, so this has to be a Uint8Array.
+            return (val as FbsBlob).data_ as Uint8Array;
+          }
         }
-      });
+      );
       let finalLength = 0;
-      uint8Arrays.forEach(function(array: Uint8Array): void {
-        finalLength += array.byteLength;
-      });
-      let merged = new Uint8Array(finalLength);
+      uint8Arrays.forEach(
+        (array: Uint8Array): void => {
+          finalLength += array.byteLength;
+        }
+      );
+      const merged = new Uint8Array(finalLength);
       let index = 0;
-      uint8Arrays.forEach(function(array: Uint8Array) {
+      uint8Arrays.forEach((array: Uint8Array) => {
         for (let i = 0; i < array.length; i++) {
           merged[index++] = array[i];
         }

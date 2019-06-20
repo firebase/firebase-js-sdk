@@ -18,43 +18,43 @@
 /**
  * @return False if the object is undefined or null, true otherwise.
  */
-export function isDef(p: any): boolean {
+export function isDef(p: unknown): p is {} {
   return p != null;
 }
 
-export function isJustDef(p: any): boolean {
+export function isJustDef(p: unknown): p is {} | null {
   return p !== void 0;
 }
 
-export function isFunction(p: any): boolean {
+export function isFunction(p: unknown): p is Function {
   return typeof p === 'function';
 }
 
-export function isObject(p: any): boolean {
+export function isObject(p: unknown): p is { [key: string]: unknown } | null {
   return typeof p === 'object';
 }
 
-export function isNonNullObject(p: any): boolean {
+export function isNonNullObject(p: unknown): p is object {
   return isObject(p) && p !== null;
 }
 
-export function isNonArrayObject(p: any): boolean {
+export function isNonArrayObject(p: unknown): boolean {
   return isObject(p) && !Array.isArray(p);
 }
 
-export function isString(p: any): boolean {
+export function isString(p: unknown): p is string {
   return typeof p === 'string' || p instanceof String;
 }
 
-export function isInteger(p: any): boolean {
+export function isInteger(p: unknown): p is number {
   return isNumber(p) && Number.isInteger(p);
 }
 
-export function isNumber(p: any): boolean {
+export function isNumber(p: unknown): p is number {
   return typeof p === 'number' || p instanceof Number;
 }
 
-export function isNativeBlob(p: any): boolean {
+export function isNativeBlob(p: unknown): p is Blob {
   return isNativeBlobDefined() && p instanceof Blob;
 }
 

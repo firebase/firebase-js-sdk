@@ -30,10 +30,7 @@ export { id };
  *     passed to f, including the initial boolean.
  */
 export function start(
-  f: (
-    p1: (success: boolean, ...rest: any[]) => void,
-    canceled: boolean
-  ) => void,
+  f: (p1: (success: boolean) => void, canceled: boolean) => void,
   callback: Function,
   timeout: number
 ): id {
@@ -41,16 +38,18 @@ export function start(
   // type instead of a bunch of functions with state shared in the closure)
   let waitSeconds = 1;
   // Would type this as "number" but that doesn't work for Node so ¯\_(ツ)_/¯
+  // TODO: find a way to exclude Node type definition for storage because storage only works in browser
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let timeoutId: any = null;
   let hitTimeout = false;
   let cancelState = 0;
 
-  function canceled() {
+  function canceled(): boolean {
     return cancelState === 2;
   }
   let triggeredCallback = false;
 
-  function triggerCallback() {
+  function triggerCallback(): void {
     if (!triggeredCallback) {
       triggeredCallback = true;
       callback.apply(null, arguments);
@@ -58,13 +57,13 @@ export function start(
   }
 
   function callWithDelay(millis: number): void {
-    timeoutId = setTimeout(function() {
+    timeoutId = setTimeout(() => {
       timeoutId = null;
       f(handler, canceled());
     }, millis);
   }
 
-  function handler(success: boolean, ...var_args: any[]): void {
+  function handler(success: boolean): void {
     if (triggeredCallback) {
       return;
     }
@@ -72,7 +71,7 @@ export function start(
       triggerCallback.apply(null, arguments);
       return;
     }
-    let mustStop = canceled() || hitTimeout;
+    const mustStop = canceled() || hitTimeout;
     if (mustStop) {
       triggerCallback.apply(null, arguments);
       return;
@@ -113,7 +112,7 @@ export function start(
     }
   }
   callWithDelay(0);
-  setTimeout(function() {
+  setTimeout(() => {
     hitTimeout = true;
     stop(true);
   }, timeout);
@@ -127,6 +126,6 @@ export function start(
  * after the current invocation finishes iff the current invocation would have
  * triggered another retry.
  */
-export function stop(id: id) {
+export function stop(id: id): void {
   id(false);
 }

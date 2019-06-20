@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as object from './object';
-import * as RequestExports from './request';
 import { Request } from './request';
 import * as constants from './constants';
 
@@ -23,7 +21,10 @@ import * as constants from './constants';
  * @struct
  */
 export class RequestMap {
-  private map_: { [key: number]: Request<any> } = {};
+  private map_: Map<number, Request<unknown>> = new Map<
+    number,
+    Request<unknown>
+  >();
   private id_: number;
 
   constructor() {
@@ -35,27 +36,22 @@ export class RequestMap {
    * The request is unregistered when it completes.
    * @param r The request to register.
    */
-  addRequest(r: Request<any>) {
-    let id = this.id_;
+  addRequest(r: Request<unknown>): void {
+    const id = this.id_;
     this.id_++;
-    this.map_[id] = r;
-    let self = this;
-
-    function unmap() {
-      delete self.map_[id];
-    }
-    r.getPromise().then(unmap, unmap);
+    this.map_.set(id, r);
+    r.getPromise().then(() => this.map_.delete(id), () => this.map_.delete(id));
   }
 
   /**
    * Cancels all registered requests.
    */
-  clear() {
-    object.forEach(this.map_, (key: string, val: Request<any>) => {
+  clear(): void {
+    this.map_.forEach(val => {
       if (val) {
         val.cancel(true);
       }
     });
-    this.map_ = {};
+    this.map_.clear();
   }
 }
