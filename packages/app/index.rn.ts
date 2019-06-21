@@ -24,19 +24,8 @@ import { createFirebaseNamespace } from './src/firebaseNamespace';
  * some of our tests because of duplicate symbols, we are using require syntax
  * here
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let AsyncStorage: any;
-
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  AsyncStorage = require('@react-native-community/async-storage');
-} catch (e) {
-  if (e.code !== 'MODULE_NOT_FOUND') {
-    throw e;
-  }
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  AsyncStorage = require('react-native').AsyncStorage;
-}
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { AsyncStorage } = require('react-native');
 
 const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
 
