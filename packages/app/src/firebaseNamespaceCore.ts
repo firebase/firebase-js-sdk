@@ -222,10 +222,10 @@ export function createFirebaseNamespaceCore(
     namespace[name] = serviceNamespace;
 
     // Patch the FirebaseAppImpl prototype
-    // TODO: The eslint disable can be removed and the 'ignoreRestArgs' option added to
-    // the no-explicit-any rule when ESlint releases it.
     // @ts-ignore
     firebaseAppImpl.prototype[name] =
+      // TODO: The eslint disable can be removed and the 'ignoreRestArgs'
+      // option added to the no-explicit-any rule when ESlint releases it.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       function(...args: any) {
         const serviceFxn = this._getService.bind(this, name);

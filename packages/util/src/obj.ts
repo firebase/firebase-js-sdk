@@ -103,12 +103,12 @@ export const getCount = function<V>(obj: UtilObject<V>): number {
 
 export const map = function<V>(
   obj: UtilObject<V>,
-  fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown,
+  fn: (value: V, key: string | number, obj: UtilObject<V>) => V,
   context?: unknown
 ) {
   var res: UtilObject<V> = {};
   for (var key in obj) {
-    res[key] = fn.call(context, obj[key], key, obj) as V;
+    res[key] = fn.call(context, obj[key], key, obj);
   }
   return res;
 };
