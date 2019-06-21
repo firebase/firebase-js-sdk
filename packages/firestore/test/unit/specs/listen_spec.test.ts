@@ -102,7 +102,7 @@ describeSpec('Listens:', [], () => {
 
   specTest("Doesn't raise 'hasPendingWrites' for deletes", [], () => {
     const query1 = Query.atPath(path('collection'));
-    const docA = doc('collection/a', 0, { key: 'a' });
+    const docA = doc('collection/a', 1000, { key: 'a' });
 
     return spec()
       .userListens(query1)
