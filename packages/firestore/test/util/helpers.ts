@@ -29,9 +29,10 @@ import { DatabaseId } from '../../src/core/database_info';
 import {
   Bound,
   Direction,
+  FieldFilter,
   Filter,
-  OrderBy,
-  RelationOp
+  Operator,
+  OrderBy
 } from '../../src/core/query';
 import { SnapshotVersion } from '../../src/core/snapshot_version';
 import { ProtoByteString, TargetId } from '../../src/core/types';
@@ -186,10 +187,16 @@ export function blob(...bytes: number[]): Blob {
   return Blob.fromUint8Array(new Uint8Array(bytes || []));
 }
 
-export function filter(path: string, op: string, value: unknown): Filter {
+export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
-  const operator = RelationOp.fromString(op);
-  return Filter.create(field(path), operator, dataValue);
+  const operator = Operator.fromString(op);
+  const filter = Filter.create(field(path), operator, dataValue);
+
+  if (filter instanceof FieldFilter) {
+    return filter;
+  } else {
+    return fail('Unrecognized filter: ' + JSON.stringify(filter));
+  }
 }
 
 export function setMutation(
