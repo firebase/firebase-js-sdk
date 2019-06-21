@@ -37,12 +37,19 @@ export class Transaction {
 
   constructor(private datastore: Datastore) {}
 
+  // DC: Type too broad. This should only ever be called with DOCUMENT or
+  // MISSING entries, since UNKNOWN would indicate we don't know if the document
+  // exists, in which case we cannot record a valid precondition version here.
   private recordVersion(doc: Document): void {
     let docVersion: SnapshotVersion;
 
     if (doc.exists) {
       docVersion = doc.version;
     } else {
+      // DC: This is a bug waiting to happen. Doing this for UNKNOWN documents
+      // is wrong. If we want to handle UNKNOWN in this method, we should rename
+      // it to tryRecordVersion() and make UNKNOWN be a no-op.
+
       // For deleted docs, we must use baseVersion 0 when we overwrite them.
       docVersion = SnapshotVersion.forMissingDoc();
     }
@@ -61,6 +68,9 @@ export class Transaction {
     }
   }
 
+  // DC: Type may be too broad. This should (and does) only ever return EXISTS
+  // or MISSING documents, but you would need to read the code to verify that
+  // since the return type is too broad.
   lookup(keys: DocumentKey[]): Promise<Document[]> {
     if (this.committed) {
       return Promise.reject<Document[]>('Transaction has already completed.');

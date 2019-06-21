@@ -43,6 +43,7 @@ export interface RemoteDocumentCache {
    * @return The cached Document (existing or missing), or unknown if we have
    *     nothing cached.
    */
+  // DC: Simpler type!
   getEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
@@ -55,6 +56,7 @@ export interface RemoteDocumentCache {
    * @return The cached Document entries indexed by key. If an entry is not
    *     cached, the corresponding key will be mapped to an unknown document.
    */
+  // DC: Simpler type!
   getEntries(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
@@ -71,6 +73,9 @@ export interface RemoteDocumentCache {
    * @param query The query to match documents against.
    * @return The set of matching documents.
    */
+  // DC: Type too broad. This could now return MISSING and UNKNOWN documents
+  // which doesn't make sense and could be harmful (calling code has to filter
+  // them out).
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query
@@ -86,6 +91,8 @@ export interface RemoteDocumentCache {
    * invocations will return document changes since the point of rejection.
    */
   // PORTING NOTE: This is only used for multi-tab synchronization.
+  // DC: Type may be too broad. Can now return UNKNOWN documents where it didn't
+  // before. Not sure if it's harmful.
   getNewDocumentChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<DocumentMap>;

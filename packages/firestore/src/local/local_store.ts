@@ -310,6 +310,11 @@ export class LocalStore {
 
   /** Returns the local view of the documents affected by a mutation batch. */
   // PORTING NOTE: Multi-tab only.
+  // DC: Type may be too broad. Can now return UNKNOWN documents while it didn't
+  // before. It might make sense to return UNKNOWN documents for documents that
+  // aren't in cache and have a patch applied (presumably we just omitted them
+  // from the map before), but I don't know if we do or not. So this should be
+  // documented in the method doc comment at minimum.
   lookupMutationDocuments(batchId: BatchId): Promise<DocumentMap | null> {
     return this.persistence.runTransaction(
       'Lookup mutation documents',
@@ -345,6 +350,10 @@ export class LocalStore {
    *
    * @returns The resulting (modified) documents.
    */
+  // DC: Type may be too broad. This code can now return UNKNOWN documents where
+  // it didn't before. I don't know if it does, so it should be documented, but
+  // it's probably not too harmful as long as the calling code properly ignores
+  // them (doesn't send them to the View, etc.)
   acknowledgeBatch(batchResult: MutationBatchResult): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'Acknowledge batch',
@@ -370,6 +379,7 @@ export class LocalStore {
    *
    * @returns The resulting modified documents.
    */
+  // DC: Type may be too broad. Same feedback as above.
   rejectBatch(batchId: BatchId): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'Reject batch',
@@ -439,6 +449,9 @@ export class LocalStore {
    * LocalDocuments are re-calculated if there are remaining mutations in the
    * queue.
    */
+  // DC: Type may be too broad. This can now return UNKNOWN documents where it
+  // didn't before. I don't think this ever makes sense, but it probably isn't
+  // too harmful as long as they don't make it to the View, etc.
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<DocumentMap> {
     const documentBuffer = this.remoteDocuments.newChangeBuffer();
     return this.persistence.runTransaction(
@@ -688,6 +701,7 @@ export class LocalStore {
    * Read the current value of a Document with a given key or null if not
    * found - used for testing.
    */
+  // DC: Simpler type! (but comment needs to be updated)
   readDocument(key: DocumentKey): Promise<Document> {
     return this.persistence.runTransaction('read document', 'readonly', txn => {
       return this.localDocuments.getDocument(txn, key);
@@ -785,6 +799,10 @@ export class LocalStore {
    * Runs the specified query against all the documents in the local store and
    * returns the results.
    */
+  // DC: Type too broad. This should only ever return EXISTS document entries,
+  // since only existing documents can match a query. It could be harmful if
+  // this returned non-existing documents, since they could get sent to the View
+  // which isn't currently designed to deal with MISSING / UNKNOWN.
   executeQuery(query: Query): Promise<DocumentMap> {
     return this.persistence.runTransaction('Execute query', 'readonly', txn => {
       return this.localDocuments.getDocumentsMatchingQuery(txn, query);
@@ -888,6 +906,8 @@ export class LocalStore {
   }
 
   // PORTING NOTE: Multi-tab only.
+  // DC: Type may be too broad. Can now return UNKNOWN documents. Not sure what
+  // that would mean or if it's harmful.
   getNewDocumentChanges(): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'Get new document changes',

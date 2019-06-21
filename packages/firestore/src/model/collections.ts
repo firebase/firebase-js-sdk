@@ -26,6 +26,13 @@ import { DocumentKey } from './document_key';
 
 /** Miscellaneous collection types / constants. */
 
+// DC: NOTE: Prior to this refactor, the broadest type typically used was
+// MaybeDocumentMap which would contain EXISTS and MISSING documents (ignoring
+// the unfortunate UnknownDocument), and UNKNOWN documents would just be omitted
+// from the map. NOW DocumentMap is too broad for most usages and we have two
+// ways to represent an uncached document: UNKNOWN or missing from the map. We
+// end up compensating for this with the getDocument() helper below, which helps
+// to re-unifies the two cases.
 export type DocumentMap = SortedMap<DocumentKey, Document>;
 
 const EMPTY_DOCUMENT_MAP = new SortedMap<DocumentKey, Document>(

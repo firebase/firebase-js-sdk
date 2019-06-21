@@ -544,6 +544,12 @@ export class FirestoreClient {
     });
   }
 
+  // DC: Type may be too broad. This only returns EXISTS / MISSING at present
+  // which allows the return value to be passed directly to DocumentSnapshot,
+  // but you'd need to read the code to verify that UNKNOWN is never returned
+  // since the return value is now too broad.
+  // Sidenote: It might be cleaner to go ahead and return UNKNOWN and have the
+  // calling code generate the exception instead of throwing from this method.
   getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document> {
     this.verifyNotShutdown();
     return this.asyncQueue

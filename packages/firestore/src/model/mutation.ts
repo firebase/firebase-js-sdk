@@ -182,6 +182,7 @@ export class Precondition {
    * Returns true if the preconditions is valid for the given document
    * (or null if no document is available).
    */
+  // DC: Simpler type!
   isValidFor(maybeDoc: Document): boolean {
     if (this.updateTime !== undefined) {
       return maybeDoc.exists && maybeDoc.version.isEqual(this.updateTime);
@@ -268,6 +269,7 @@ export abstract class Mutation {
    *     UnknownDocument if the mutation could not be applied to the locally
    *     cached base document.
    */
+  // DC: Simpler type!
   abstract applyToRemoteDocument(
     maybeDoc: Document,
     mutationResult: MutationResult
@@ -289,6 +291,7 @@ export abstract class Mutation {
    * @return The mutated document. The returned document may be null, but only
    *     if maybeDoc was null and the mutation would not create a new document.
    */
+  // DC: Simpler type!
   abstract applyToLocalView(
     maybeDoc: Document,
     baseDoc: Document,
@@ -307,6 +310,7 @@ export abstract class Mutation {
   /** Returns whether all operations in the mutation are idempotent. */
   abstract get isIdempotent(): boolean;
 
+  // DC: Simpler type!
   protected verifyKeyMatches(maybeDoc: Document): void {
     assert(
       maybeDoc.key.isEqual(this.key),
@@ -320,6 +324,7 @@ export abstract class Mutation {
    * only if it is an existing document. All non-existing documents have a
    * post-mutation version of SnapshotVersion.MIN.
    */
+  // DC: Simpler type!
   protected static getPostMutationVersion(maybeDoc: Document): SnapshotVersion {
     if (maybeDoc.exists) {
       return maybeDoc.version;

@@ -306,6 +306,10 @@ export class Query {
       : other.endAt === null;
   }
 
+  // DC: Type benignly too broad. Only EXISTS entries can be in a query, so it
+  // is probably a bug to call this with anything else, but as written it'll
+  // silently sort UNKNOWN or MISSING documents first (I think?) which is
+  // probably not really harmful.
   docComparator(d1: Document, d2: Document): number {
     let comparedOnKeyField = false;
     for (const orderBy of this.orderBy) {
@@ -321,6 +325,9 @@ export class Query {
     return 0;
   }
 
+  // DC: Better type! This used to only allow EXISTS, but it's probably fine
+  // (more convenient even) to allow matches() to accept any type of Document
+  // entry.
   matches(doc: Document): boolean {
     return (
       doc.exists &&
@@ -741,6 +748,9 @@ export class Bound {
    * Returns true if a document sorts before a bound using the provided sort
    * order.
    */
+  // DC: Type benignly too broad. Only EXISTS document entries can be in a
+  // query, so it is probably a bug to call this on anything else, but we could
+  // allow it to "work" on MISSING / UNKNOWN entries with little harm.
   sortsBeforeDocument(orderBy: OrderBy[], doc: Document): boolean {
     assert(
       this.position.length <= orderBy.length,

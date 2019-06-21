@@ -1242,6 +1242,9 @@ export interface SnapshotOptions extends firestore.SnapshotOptions {}
 export class DocumentSnapshot implements firestore.DocumentSnapshot {
   constructor(
     private _firestore: Firestore,
+    // DC: Type too broad. This should only ever be EXISTS or MISSING. Passing
+    // UNKNOWN would be a bug (we should never raise snapshots if we don't
+    // definitively know the document exists or not).
     public _document: Document,
     private _fromCache: boolean,
     private _hasPendingWrites: boolean
@@ -1363,6 +1366,8 @@ export class QueryDocumentSnapshot extends DocumentSnapshot
   implements firestore.QueryDocumentSnapshot {
   constructor(
     firestore: Firestore,
+    // DC: Type too broad. Should only accept DOCUMENT. Passing MISSING or
+    // UNKNOWN would be a bug.
     document: Document,
     fromCache: boolean,
     hasPendingWrites: boolean

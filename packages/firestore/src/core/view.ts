@@ -47,6 +47,8 @@ export class RemovedLimboDocument {
 /** The result of applying a set of doc changes to a view. */
 export interface ViewDocumentChanges {
   /** The new set of docs that should be in the view. */
+  // DC: Type too broad. Views can only contain EXISTS documents, but this now
+  // accepts UNKNOWN and MISSING document entries which would be a bug.
   documentSet: DocumentSet;
   /** The diff of these docs with the previous set of docs. */
   changeSet: DocumentChangeSet;
@@ -112,6 +114,10 @@ export class View {
    * @return a new set of docs, changes, and refill flag.
    */
   computeDocChanges(
+    // DC: Type may be too broad. Per the old code, this will not contain
+    // UNKNOWN documents. I'm not sure what it would mean to pass UNKNOWN
+    // documents or whether this code would handle them in a sane way. It would
+    // be better if we didn't have to think about it.
     docChanges: DocumentMap,
     previousChanges?: ViewDocumentChanges
   ): ViewDocumentChanges {
@@ -443,6 +449,9 @@ export class View {
    */
   // PORTING NOTE: Multi-tab only.
   synchronizeWithPersistedState(
+    // DC: Type too broad. THis can now contain UNKNOWN documents which would be
+    // invalid. Though FWIW the old code was already broader than needed
+    // (accepting MaybeDocumentMap) I think. :-/
     localDocs: DocumentMap,
     remoteKeys: DocumentKeySet
   ): ViewChange {

@@ -43,6 +43,8 @@ export class LocalSerializer {
   constructor(private remoteSerializer: JsonProtoSerializer) {}
 
   /** Decodes a remote document from storage locally to a Document. */
+  // DC: Simpler type! Can return EXISTS, MISSING, or UNKNOWN (once we merge
+  // CONTENTS_UNKNOWN and UNKNOWN) so the return type is appropriate.
   fromDbRemoteDocument(remoteDoc: DbRemoteDocument): Document {
     if (remoteDoc.document) {
       return this.remoteSerializer.fromDocument(
@@ -65,6 +67,8 @@ export class LocalSerializer {
   }
 
   /** Encodes a document for storage locally. */
+  // DC: Simpler type! Can encode EXISTS, MISSING, or UNKNOWN (once we merge
+  // CONTENTS_UNKNOWN and UNKNOWN) so the parameter type is appropriate.
   toDbRemoteDocument(maybeDoc: Document): DbRemoteDocument {
     switch (maybeDoc.type) {
       case DocumentType.EXISTS: {

@@ -33,6 +33,13 @@ export enum ChangeType {
 
 export interface DocumentViewChange {
   type: ChangeType;
+  // DC: Type too broad. Due to the weak naming and lack of comments it's hard
+  // to figure out what DocumentViewChange represents and how "doc" is used.
+  // From the old code I can tell that doc is always an EXISTS document, but in
+  // the new code it could be UNKNOWN or MISSING as well, making the code even
+  // harder to reason about. And I think it's pretty likely that the code would
+  // not actually behave in a sane way if MISSING or UNKNOWN documents were
+  // provided. So this seems harmful.
   doc: Document;
 }
 
@@ -142,6 +149,14 @@ export class DocumentChangeSet {
 export class ViewSnapshot {
   constructor(
     readonly query: Query,
+    // DC: Type too broad. docs and oldDocs should only have EXISTS entries
+    // since only existing documents can match a query and therefore show up in
+    // a View. But now that DocumentSet can contain UNKNOWN and MISSING
+    // documents as well, it is possible that a ViewSnapshot could be
+    // constructed containing invalid document entries (which would be a bug)
+    // and I'm pretty sure code consuming ViewSnapshot would *not* handle it
+    // gracefully.
+    // This seems harmful.
     readonly docs: DocumentSet,
     readonly oldDocs: DocumentSet,
     readonly docChanges: DocumentViewChange[],
@@ -154,12 +169,16 @@ export class ViewSnapshot {
   /** Returns a view snapshot as if all documents in the snapshot were added. */
   static fromInitialDocuments(
     query: Query,
+    // DC: Type too broad. It would be a bug to pass MISSING or UNKNOWN
+    // documents here
     documents: DocumentSet,
     mutatedKeys: DocumentKeySet,
     fromCache: boolean
   ): ViewSnapshot {
     const changes: DocumentViewChange[] = [];
     documents.forEach(doc => {
+      // DC: This is a bug waiting to happen. If we were passed MISSING or
+      // UNKNOWN documents, we'd generate "added" events for them.
       changes.push({ type: ChangeType.Added, doc });
     });
 

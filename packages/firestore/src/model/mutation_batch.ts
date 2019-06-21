@@ -67,6 +67,7 @@ export class MutationBatch {
    * @param batchResult The result of applying the MutationBatch to the
    * backend.
    */
+  // DC: Simpler type! (both maybeDoc and the return value)
   applyToRemoteDocument(
     docKey: DocumentKey,
     maybeDoc: Document,
@@ -103,6 +104,7 @@ export class MutationBatch {
    * @param docKey The key of the document to apply mutations to.
    * @param maybeDoc The document to apply mutations to.
    */
+  // DC: Simpler type! (both maybeDoc and the return value)
   applyToLocalView(docKey: DocumentKey, maybeDoc: Document): Document {
     assert(
       maybeDoc.key.isEqual(docKey),
@@ -141,6 +143,8 @@ export class MutationBatch {
    * Computes the local view for all provided documents given the mutations in
    * this batch.
    */
+  // DC: Type may be too broad. The input and output can now contain UNKNOWN
+  // documents where they couldn't before. This may be harmless.
   applyToLocalDocumentSet(maybeDocs: DocumentMap): DocumentMap {
     // TODO(mrschmidt): This implementation is O(n^2). If we apply the mutations
     // directly (as done in `applyToLocalView()`), we can reduce the complexity

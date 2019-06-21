@@ -53,6 +53,11 @@ export class LocalDocumentsView {
    * @return Local view of the document or null if we don't have any cached
    * state for it.
    */
+  // DC: Simpler type! This return type is now simpler (Document instead of
+  // MaybeDocument|null). Nice. Though the fact that we use "Document" for
+  // everything now means I can't necessarily assume that we really do use the
+  // full breadth of the return type (e.g. does the method really return UNKNOWN
+  // for an uncached document or might it reject the promise?).
   getDocument(
     transaction: PersistenceTransaction,
     key: DocumentKey
@@ -99,6 +104,11 @@ export class LocalDocumentsView {
    * If we don't have cached state for a document in `keys`, a missing Document
    * will be stored for that key in the resulting set.
    */
+  // DC: Type too broad. This could now return UNKNOWN document entries whereas
+  // it didn't before. And (at least as documented), we return MISSING documents
+  // for uncached documents. Since getDocuments() and getDocument() share a
+  // similar return type but represent uncached documents differently, this
+  // seems actively confusing.
   getDocuments(
     transaction: PersistenceTransaction,
     keys: DocumentKeySet
@@ -112,6 +122,7 @@ export class LocalDocumentsView {
    * Similar to `getDocuments`, but creates the local view from the given
    * `baseDocs` without retrieving documents from the local store.
    */
+  // DC: Type too broad. Same feedback as above.
   getLocalViewOfDocuments(
     transaction: PersistenceTransaction,
     baseDocs: DocumentMap
@@ -134,6 +145,9 @@ export class LocalDocumentsView {
   }
 
   /** Performs a query against the local view of all documents. */
+  // DC: Type too broad. This will only return EXISTS documents since documents
+  // must exist to match the query, and the broader return type could cause
+  // confusion.
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query

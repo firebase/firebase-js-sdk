@@ -28,6 +28,8 @@ import { DocumentKey } from './document_key';
  * comparator on top of what is provided to guarantee document equality based on
  * the key.
  */
+// DC: NOTE: This is now a much broader type (contains UNKNOWN / MISSING
+// documents) which seems likely to be harmful in at least some uses.
 export class DocumentSet {
   /**
    * Returns an empty copy of the existing DocumentSet, using the same
