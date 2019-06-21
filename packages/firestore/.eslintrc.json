@@ -16,5 +16,16 @@
                 "args": "none"
             }
         ]
-    }
+    },
+    "overrides": [
+        {
+            "files": [
+                "**/*.test.ts",
+                "**/test/**/*.ts"
+            ],
+            "rules": {
+                "@typescript-eslint/no-explicit-any": "error"
+            }
+        }
+    ]
 }

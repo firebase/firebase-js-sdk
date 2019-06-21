@@ -24,7 +24,7 @@ import firebase from './firebase_export';
  * dependencies on src/ files.
  */
 
-// __karma__ is an untyped global
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, __karma__ is an untyped global
 declare const __karma__: any;
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports

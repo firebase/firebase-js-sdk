@@ -228,7 +228,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
           return (
             targets
-              // tslint:disable-next-line:no-any
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               .put({ targetId, canonicalId: 'foo' } as any)
               .next(() =>
                 targetGlobal.put(DbTargetGlobal.key, dummyTargetGlobal)
@@ -335,7 +335,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
           );
           p = p.next(() => {
             store
-              .add({} as any) // tslint:disable-line:no-any
+              .add({} as any) // eslint-disable-line @typescript-eslint/no-explicit-any
               .next(batchId => {
                 expect(batchId).to.equal(43);
               });

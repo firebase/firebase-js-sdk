@@ -517,9 +517,9 @@ apiDescribe('Database', (persistence: boolean) => {
     for (const val of invalidDocValues) {
       it('set/update should reject: ' + val, () => {
         return withTestDoc(persistence, async doc => {
-          // tslint:disable-next-line:no-any Intentionally passing bad types.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, Intentionally passing bad types.
           expect(() => doc.set(val as any)).to.throw();
-          // tslint:disable-next-line:no-any Intentionally passing bad types.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, Intentionally passing bad types.
           expect(() => doc.update(val as any)).to.throw();
         });
       });

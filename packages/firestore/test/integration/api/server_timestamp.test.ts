@@ -24,7 +24,7 @@ import { apiDescribe, withTestDoc } from '../util/helpers';
 
 // tslint:disable:no-floating-promises
 
-// tslint:disable-next-line:no-any Allow custom types for testing.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, Allow custom types for testing.
 type AnyTestData = any;
 
 const Timestamp = firebase.firestore!.Timestamp;

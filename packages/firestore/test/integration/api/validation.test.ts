@@ -38,7 +38,7 @@ const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
 
 // We're using 'as any' to pass invalid values to APIs for testing purposes.
-// tslint:disable:no-any
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface ValidationIt {
   (

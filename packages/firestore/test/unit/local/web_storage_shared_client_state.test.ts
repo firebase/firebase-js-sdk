@@ -645,7 +645,7 @@ describe('WebStorageSharedClientState', () => {
           new MutationMetadata(
             AUTHENTICATED_USER,
             1,
-            'invalid' as any // tslint:disable-line:no-any
+            'invalid' as any // eslint-disable-line @typescript-eslint/no-explicit-any
           ).toWebStorageJSON()
         );
       }).then(clientState => {
@@ -802,7 +802,7 @@ describe('WebStorageSharedClientState', () => {
           targetKey(firstClientTargetId),
           new QueryTargetMetadata(
             firstClientTargetId,
-            'invalid' as any // tslint:disable-line:no-any
+            'invalid' as any // eslint-disable-line @typescript-eslint/no-explicit-any
           ).toWebStorageJSON()
         );
       }).then(clientState => {

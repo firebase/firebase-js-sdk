@@ -258,7 +258,7 @@ class MockConnection implements Connection {
         }
       });
       this.writeStream = writeStream;
-      // Replace 'any' with conditional types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, Replace 'any' with conditional types.
       return writeStream as any;
     } else {
       assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
@@ -292,7 +292,7 @@ class MockConnection implements Connection {
         }
       });
       this.watchStream = watchStream;
-      // Replace 'any' with conditional types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, Replace 'any' with conditional types.
       return this.watchStream as any;
     }
   }
