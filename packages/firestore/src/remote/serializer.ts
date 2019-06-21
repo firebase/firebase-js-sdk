@@ -52,7 +52,6 @@ import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
-import { DoubleValue, NullValue, NumberValue } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -1158,7 +1157,7 @@ export class JsonProtoSerializer {
   }
 
   private toFilter(filters: Filter[]): api.Filter | undefined {
-    if (filters.length === 0) return;
+    if (filters.length === 0) {return;}
     const protos = filters.map(filter => {
       if (filter instanceof FieldFilter) {
         return this.toUnaryOrFieldFilter(filter);
@@ -1293,14 +1292,14 @@ export class JsonProtoSerializer {
   // visible for testing
   toUnaryOrFieldFilter(filter: FieldFilter): api.Filter {
     if (filter.op === Operator.EQUAL) {
-      if (filter.value.isEqual(DoubleValue.NAN)) {
+      if (filter.value.isEqual(fieldValue.DoubleValue.NAN)) {
         return {
           unaryFilter: {
             field: this.toFieldPathReference(filter.field),
             op: 'IS_NAN'
           }
         };
-      } else if (filter.value.isEqual(NullValue.INSTANCE)) {
+      } else if (filter.value.isEqual(fieldValue.NullValue.INSTANCE)) {
         return {
           unaryFilter: {
             field: this.toFieldPathReference(filter.field),
@@ -1324,7 +1323,7 @@ export class JsonProtoSerializer {
         const nanField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return FieldFilter.create(nanField, Operator.EQUAL, DoubleValue.NAN);
+        return FieldFilter.create(nanField, Operator.EQUAL, fieldValue.DoubleValue.NAN);
       case 'IS_NULL':
         const nullField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
@@ -1332,7 +1331,7 @@ export class JsonProtoSerializer {
         return FieldFilter.create(
           nullField,
           Operator.EQUAL,
-          NullValue.INSTANCE
+          fieldValue.NullValue.INSTANCE
         );
       case 'OPERATOR_UNSPECIFIED':
         return fail('Unspecified filter');
