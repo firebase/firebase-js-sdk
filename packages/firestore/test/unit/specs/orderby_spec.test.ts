@@ -68,13 +68,13 @@ describeSpec('OrderBy:', [], () => {
     return spec()
       .withGCEnabled(false)
       .userListens(query)
-      .watchAcksFull(query, 1000, docA, docB)
+      .watchAcksFull(query, 1002, docA, docB)
       .expectEvents(query, { added: [docB, docA] })
       .userUnlistens(query)
       .watchRemoves(query)
-      .userListens(query, 'resume-token-1000')
+      .userListens(query, 'resume-token-1002')
       .expectEvents(query, { added: [docB, docA], fromCache: true })
-      .watchAcksFull(query, 1000)
+      .watchAcksFull(query, 1002)
       .expectEvents(query, {});
   });
 });
