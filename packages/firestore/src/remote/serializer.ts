@@ -1157,7 +1157,9 @@ export class JsonProtoSerializer {
   }
 
   private toFilter(filters: Filter[]): api.Filter | undefined {
-    if (filters.length === 0) {return;}
+    if (filters.length === 0) {
+      return;
+    }
     const protos = filters.map(filter => {
       if (filter instanceof FieldFilter) {
         return this.toUnaryOrFieldFilter(filter);

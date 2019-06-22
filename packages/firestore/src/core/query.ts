@@ -622,7 +622,6 @@ export class FieldFilter extends Filter {
 
 /** Filter that matches on key fields (i.e. '__name__'). */
 export class KeyFieldFilter extends FieldFilter {
-
   matches(doc: Document): boolean {
     const refValue = this.value as RefValue;
     const comparison = DocumentKey.comparator(doc.key, refValue.key);
