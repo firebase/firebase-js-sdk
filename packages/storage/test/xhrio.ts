@@ -14,8 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { forEach } from '../src/implementation/object';
-import * as promiseimpl from '../src/implementation/promise_external';
 import * as type from '../src/implementation/type';
 import { ErrorCode, Headers, XhrIo } from '../src/implementation/xhrio';
 
@@ -33,7 +31,9 @@ export enum State {
   DONE = 2
 }
 
-export type StringHeaders = { [name: string]: string };
+export interface StringHeaders {
+  [name: string]: string;
+}
 
 export class TestingXhrIo implements XhrIo {
   private state: State;
@@ -47,11 +47,9 @@ export class TestingXhrIo implements XhrIo {
 
   constructor(sendHook: SendHook | null) {
     this.state = State.START;
-    this.sendPromise = this.sendPromise = promiseimpl.make<XhrIo>(
-      (resolve, reject) => {
-        this.resolve = resolve;
-      }
-    );
+    this.sendPromise = new Promise(resolve => {
+      this.resolve = resolve;
+    });
     this.sendHook = sendHook;
     this.status = -1;
     this.responseText = '';
@@ -77,7 +75,7 @@ export class TestingXhrIo implements XhrIo {
     return this.sendPromise;
   }
 
-  simulateResponse(status: number, body: string, headers: Headers) {
+  simulateResponse(status: number, body: string, headers: Headers): void {
     if (this.state !== State.SENT) {
       throw new Error("Can't simulate response before send/more than once");
     }
@@ -85,8 +83,8 @@ export class TestingXhrIo implements XhrIo {
     this.status = status;
     this.responseText = body;
     this.headers = {};
-    forEach(headers, (key: string, val: string | number) => {
-      this.headers[key.toLowerCase()] = val.toString();
+    Object.keys(headers).forEach(key => {
+      this.headers[key.toLowerCase()] = headers[key].toString();
     });
     this.errorCode = ErrorCode.NO_ERROR;
 
@@ -112,7 +110,7 @@ export class TestingXhrIo implements XhrIo {
     this.resolve(this);
   }
 
-  getResponseHeader(header: string) {
+  getResponseHeader(header: string): string | null {
     const headerValue = this.headers[header.toLowerCase()];
     if (type.isDef(headerValue)) {
       return headerValue;
@@ -120,14 +118,12 @@ export class TestingXhrIo implements XhrIo {
       return null;
     }
   }
-
-  // @ts-ignore Remove when implemented.
-  addUploadProgressListener(listener): void {
+  // eslint-disable-next-line
+  addUploadProgressListener(): void {
     // TODO(andysoto): impl
   }
-
-  // @ts-ignore Remove when implemented.
-  removeUploadProgressListener(listener): void {
+  // eslint-disable-next-line
+  removeUploadProgressListener(): void {
     // TODO(andysoto): impl
   }
 }

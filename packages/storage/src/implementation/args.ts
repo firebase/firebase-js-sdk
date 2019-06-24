@@ -25,16 +25,20 @@ import * as type from './type';
  * @param passed The actual arguments passed to the function.
  * @throws {fbs.Error} If the arguments are invalid.
  */
-export function validate(name: string, specs: ArgSpec[], passed: IArguments) {
+export function validate(
+  name: string,
+  specs: ArgSpec[],
+  passed: IArguments
+): void {
   let minArgs = specs.length;
-  let maxArgs = specs.length;
+  const maxArgs = specs.length;
   for (let i = 0; i < specs.length; i++) {
     if (specs[i].optional) {
       minArgs = i;
       break;
     }
   }
-  let validLength = minArgs <= passed.length && passed.length <= maxArgs;
+  const validLength = minArgs <= passed.length && passed.length <= maxArgs;
   if (!validLength) {
     throw errorsExports.invalidArgumentCount(
       minArgs,
@@ -60,22 +64,25 @@ export function validate(name: string, specs: ArgSpec[], passed: IArguments) {
  * @struct
  */
 export class ArgSpec {
-  validator: (p1: any) => void;
+  validator: (p1: unknown) => void;
   optional: boolean;
 
-  constructor(validator: (p1: any) => void, opt_optional?: boolean) {
-    let self = this;
-    this.validator = function(p: any) {
+  constructor(validator: (p1: unknown) => void, optional?: boolean) {
+    const self = this;
+    this.validator = function(p: unknown) {
       if (self.optional && !type.isJustDef(p)) {
         return;
       }
       validator(p);
     };
-    this.optional = !!opt_optional;
+    this.optional = !!optional;
   }
 }
 
-export function and_(v1: (p1: any) => void, v2: Function): (p1: any) => void {
+export function and_(
+  v1: (p1: unknown) => void,
+  v2: (p1: unknown) => void
+): (p1: unknown) => void {
   return function(p) {
     v1(p);
     v2(p);
@@ -83,26 +90,26 @@ export function and_(v1: (p1: any) => void, v2: Function): (p1: any) => void {
 }
 
 export function stringSpec(
-  opt_validator?: (p1: any) => void | null,
-  opt_optional?: boolean
+  validator?: (p1: unknown) => void | null,
+  optional?: boolean
 ): ArgSpec {
-  function stringValidator(p: any) {
+  function stringValidator(p: unknown): void {
     if (!type.isString(p)) {
       throw 'Expected string.';
     }
   }
-  let validator;
-  if (opt_validator) {
-    validator = and_(stringValidator, opt_validator);
+  let chainedValidator;
+  if (validator) {
+    chainedValidator = and_(stringValidator, validator);
   } else {
-    validator = stringValidator;
+    chainedValidator = stringValidator;
   }
-  return new ArgSpec(validator, opt_optional);
+  return new ArgSpec(chainedValidator, optional);
 }
 
 export function uploadDataSpec(): ArgSpec {
-  function validator(p: any) {
-    let valid =
+  function validator(p: unknown): void {
+    const valid =
       p instanceof Uint8Array ||
       p instanceof ArrayBuffer ||
       (type.isNativeBlobDefined() && p instanceof Blob);
@@ -113,17 +120,17 @@ export function uploadDataSpec(): ArgSpec {
   return new ArgSpec(validator);
 }
 
-export function metadataSpec(opt_optional?: boolean): ArgSpec {
-  return new ArgSpec(MetadataUtils.metadataValidator, opt_optional);
+export function metadataSpec(optional?: boolean): ArgSpec {
+  return new ArgSpec(MetadataUtils.metadataValidator, optional);
 }
 
-export function listOptionSpec(opt_optional?: boolean): ArgSpec {
-  return new ArgSpec(ListOptionsUtils.listOptionsValidator, opt_optional);
+export function listOptionSpec(optional?: boolean): ArgSpec {
+  return new ArgSpec(ListOptionsUtils.listOptionsValidator, optional);
 }
 
 export function nonNegativeNumberSpec(): ArgSpec {
-  function validator(p: any) {
-    let valid = type.isNumber(p) && p >= 0;
+  function validator(p: unknown): void {
+    const valid = type.isNumber(p) && p >= 0;
     if (!valid) {
       throw 'Expected a number 0 or greater.';
     }
@@ -132,27 +139,27 @@ export function nonNegativeNumberSpec(): ArgSpec {
 }
 
 export function looseObjectSpec(
-  opt_validator?: ((p1: any) => void) | null,
-  opt_optional?: boolean
+  validator?: ((p1: unknown) => void) | null,
+  optional?: boolean
 ): ArgSpec {
-  function validator(p: any) {
-    let isLooseObject = p === null || (type.isDef(p) && p instanceof Object);
+  function isLooseObjectValidator(p: unknown): void {
+    const isLooseObject = p === null || (type.isDef(p) && p instanceof Object);
     if (!isLooseObject) {
       throw 'Expected an Object.';
     }
-    if (opt_validator !== undefined && opt_validator !== null) {
-      opt_validator(p);
+    if (validator !== undefined && validator !== null) {
+      validator(p);
     }
   }
-  return new ArgSpec(validator, opt_optional);
+  return new ArgSpec(isLooseObjectValidator, optional);
 }
 
-export function nullFunctionSpec(opt_optional?: boolean): ArgSpec {
-  function validator(p: any) {
-    let valid = p === null || type.isFunction(p);
+export function nullFunctionSpec(optional?: boolean): ArgSpec {
+  function validator(p: unknown): void {
+    const valid = p === null || type.isFunction(p);
     if (!valid) {
       throw 'Expected a Function.';
     }
   }
-  return new ArgSpec(validator, opt_optional);
+  return new ArgSpec(validator, optional);
 }

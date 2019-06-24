@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Filter, Query, RelationFilter } from '../../../src/core/query';
+import { FieldFilter, Filter, Query } from '../../../src/core/query';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -845,7 +845,7 @@ export class SpecBuilder {
     }
     if (query.filters) {
       spec.filters = query.filters.map((filter: Filter) => {
-        if (filter instanceof RelationFilter) {
+        if (filter instanceof FieldFilter) {
           // TODO(dimond): Support non-JSON primitive values?
           return [
             filter.field.canonicalString(),

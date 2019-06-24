@@ -18,8 +18,6 @@ import { expect } from 'chai';
 import { FirebaseApp } from '@firebase/app-types';
 import * as constants from '../src/implementation/constants';
 import { Code, FirebaseStorageError } from '../src/implementation/error';
-import * as objectUtils from '../src/implementation/object';
-import * as promiseimpl from '../src/implementation/promise_external';
 import * as type from '../src/implementation/type';
 import { Headers, XhrIo } from '../src/implementation/xhrio';
 import { XhrIoPool } from '../src/implementation/xhriopool';
@@ -30,18 +28,15 @@ export const bucket = 'mybucket';
 export const fakeApp = makeFakeApp({ accessToken: authToken });
 export const fakeAppNoAuth = makeFakeApp(null);
 
-export function makeFakeApp(
-  token: Object | null,
-  bucket_arg?: string
-): FirebaseApp {
+export function makeFakeApp(token: {} | null, bucketArg?: string): FirebaseApp {
   const app: any = {};
   app.INTERNAL = {};
   app.INTERNAL.getToken = function() {
-    return promiseimpl.resolve(token);
+    return Promise.resolve(token);
   };
   app.options = {};
-  if (type.isDef(bucket_arg)) {
-    app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucket_arg;
+  if (type.isDef(bucketArg)) {
+    app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucketArg;
   } else {
     app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucket;
   }
@@ -50,7 +45,7 @@ export function makeFakeApp(
 
 export function makePool(sendHook: SendHook | null): XhrIoPool {
   const pool: any = {
-    createXhrIo: function() {
+    createXhrIo() {
       return new TestingXhrIo(sendHook);
     }
   };
@@ -63,20 +58,20 @@ export function makePool(sendHook: SendHook | null): XhrIoPool {
  */
 export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
   const lower: StringHeaders = {};
-  objectUtils.forEach(headers, function(key: string, val: string | number) {
-    lower[key.toLowerCase()] = val.toString();
+  Object.keys(headers).forEach(key => {
+    lower[key.toLowerCase()] = headers[key].toString();
   });
 
   const fakeXhrIo: any = {
-    getResponseHeader: function(name: string): string {
+    getResponseHeader(name: string): string {
       const lowerName = name.toLowerCase();
-      if (objectUtils.contains(lower, lowerName)) {
+      if (lower.hasOwnProperty(lowerName)) {
         return lower[lowerName];
       } else {
         throw new Error('No such header ' + name);
       }
     },
-    getStatus: function(): number {
+    getStatus(): number {
       return status;
     }
   };
@@ -113,7 +108,10 @@ export function assertThrows(f: () => void, code: Code): FirebaseStorageError {
   return captured as FirebaseStorageError;
 }
 
-export function assertUint8ArrayEquals(arr1: Uint8Array, arr2: Uint8Array) {
+export function assertUint8ArrayEquals(
+  arr1: Uint8Array,
+  arr2: Uint8Array
+): void {
   expect(arr1.length).to.equal(arr2.length);
 
   for (let i = 0; i < arr1.length; i++) {
@@ -125,7 +123,7 @@ export function assertObjectIncludes(
   included: { [name: string]: any },
   obj: { [name: string]: any }
 ): void {
-  objectUtils.forEach(included, function(key, val) {
-    expect(val).to.deep.equal(obj[key]);
+  Object.keys(included).forEach(key => {
+    expect(included[key]).to.deep.equal(obj[key]);
   });
 }

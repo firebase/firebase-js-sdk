@@ -1501,7 +1501,7 @@ export interface SpecWatchFilter
 
 /**
  * [field, op, value]
- * This currently only supports relation filters (<, <=, ==, >=, >)
+ * Op must be the `name` of an `Operator`.
  */
 export type SpecQueryFilter = [string, string, unknown];
 

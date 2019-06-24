@@ -62,19 +62,19 @@ describeSpec('OrderBy:', [], () => {
     const query = Query.atPath(path('collection')).addOrderBy(
       orderBy('sort', 'asc')
     );
-    const docA = doc('collection/a', 0, { key: 'a', sort: 2 });
+    const docA = doc('collection/a', 1000, { key: 'a', sort: 2 });
     const docB = doc('collection/b', 1001, { key: 'b', sort: 1 });
 
     return spec()
       .withGCEnabled(false)
       .userListens(query)
-      .watchAcksFull(query, 1000, docA, docB)
+      .watchAcksFull(query, 1002, docA, docB)
       .expectEvents(query, { added: [docB, docA] })
       .userUnlistens(query)
       .watchRemoves(query)
-      .userListens(query, 'resume-token-1000')
+      .userListens(query, 'resume-token-1002')
       .expectEvents(query, { added: [docB, docA], fromCache: true })
-      .watchAcksFull(query, 1000)
+      .watchAcksFull(query, 1002)
       .expectEvents(query, {});
   });
 });

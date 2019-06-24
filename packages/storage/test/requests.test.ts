@@ -19,11 +19,9 @@ import { AuthWrapper } from '../src/implementation/authwrapper';
 import { FbsBlob } from '../src/implementation/blob';
 import { Location } from '../src/implementation/location';
 import * as MetadataUtils from '../src/implementation/metadata';
-import * as ListResultUtils from '../src/implementation/list';
 import { makeRequest } from '../src/implementation/request';
 import * as requests from '../src/implementation/requests';
 import { makeUrl } from '../src/implementation/url';
-import * as fbsPromise from '../src/implementation/promise_external';
 import * as errors from '../src/implementation/error';
 import { RequestInfo } from '../src/implementation/requestinfo';
 import { XhrIoPool } from '../src/implementation/xhriopool';
@@ -63,7 +61,7 @@ describe('Firebase Storage > Requests', () => {
 
   const authWrapper = new AuthWrapper(
     mockApp,
-    function(authWrapper, loc) {
+    (authWrapper, loc) => {
       return new Reference(authWrapper, loc);
     },
     makeRequest,
@@ -123,7 +121,7 @@ describe('Firebase Storage > Requests', () => {
 
   function uploadMetadataString(name: string): string {
     return JSON.stringify({
-      name: name,
+      name,
       contentType: contentTypeInMetadata,
       metadata: { foo: 'bar' }
     });
@@ -134,7 +132,7 @@ describe('Firebase Storage > Requests', () => {
   function readBlob(blob: Blob): Promise<string> {
     const reader = new FileReader();
     reader.readAsText(blob);
-    return fbsPromise.make((resolve, reject) => {
+    return new Promise((resolve, reject) => {
       reader.onload = () => {
         resolve(reader.result as string);
       };
@@ -153,16 +151,16 @@ describe('Firebase Storage > Requests', () => {
     }
 
     if (body instanceof Blob) {
-      return readBlob(body).then(function(str) {
+      return readBlob(body).then(str => {
         assert.equal(str, expectedStr);
       });
     } else if (body instanceof Uint8Array) {
-      return readBlob(new Blob([body])).then(function(str) {
+      return readBlob(new Blob([body])).then(str => {
         assert.equal(str, expectedStr);
       });
     } else {
       assert.equal(body as string, expectedStr);
-      return fbsPromise.resolve(undefined);
+      return Promise.resolve(undefined);
     }
   }
 
@@ -180,7 +178,7 @@ describe('Firebase Storage > Requests', () => {
   }
 
   it('getMetadata request info', () => {
-    const maps: [Location, string][] = [
+    const maps: Array<[Location, string]> = [
       [locationNormal, locationNormalUrl],
       [locationEscapes, locationEscapesUrl]
     ];
@@ -226,7 +224,7 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('list request info', () => {
-    const maps: [Location, string][] = [
+    const maps: Array<[Location, string]> = [
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
     ];
@@ -249,8 +247,8 @@ describe('Firebase Storage > Requests', () => {
           urlParams: {
             prefix: location.path + '/',
             delimiter: '/',
-            pageToken: pageToken,
-            maxResults: maxResults
+            pageToken,
+            maxResults
           }
         },
         requestInfo
@@ -284,7 +282,7 @@ describe('Firebase Storage > Requests', () => {
   });
 
   it('getDownloadUrl request info', () => {
-    const maps: [Location, string][] = [
+    const maps: Array<[Location, string]> = [
       [locationNormal, locationNormalUrl],
       [locationEscapes, locationEscapesUrl]
     ];
@@ -459,7 +457,7 @@ describe('Firebase Storage > Requests', () => {
       [locationNormal, locationNormalNoObjUrl],
       [locationEscapes, locationEscapesNoObjUrl]
     ];
-    const promises: Promise<void>[] = [];
+    const promises: Array<Promise<void>> = [];
     for (let i = 0; i < maps.length; i++) {
       const location = maps[i][0] as Location;
       const url = maps[i][1] as string;
@@ -492,7 +490,7 @@ describe('Firebase Storage > Requests', () => {
     return Promise.all(promises);
   });
 
-  function testCreateResumableUploadHandler() {
+  function _testCreateResumableUploadHandler(): void {
     const requestInfo = requests.createResumableUpload(
       authWrapper,
       locationNormal,
@@ -523,7 +521,7 @@ describe('Firebase Storage > Requests', () => {
     );
     assertObjectIncludes(
       {
-        url: url,
+        url,
         method: 'POST',
         urlParams: {},
         headers: { 'X-Goog-Upload-Command': 'query' }
@@ -582,7 +580,7 @@ describe('Firebase Storage > Requests', () => {
     );
     assertObjectIncludes(
       {
-        url: url,
+        url,
         method: 'POST',
         urlParams: {},
         headers: {
