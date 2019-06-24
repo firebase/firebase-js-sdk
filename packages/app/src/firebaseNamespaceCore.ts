@@ -80,7 +80,8 @@ export function createFirebaseNamespaceCore(
   //
   //   import * as firebase from 'firebase';
   //   which becomes: var firebase = require('firebase');
-  namespace['default'] = namespace;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (namespace as any)['default'] = namespace;
 
   // firebase.apps is a read-only getter.
   Object.defineProperty(namespace, 'apps', {
@@ -108,6 +109,7 @@ export function createFirebaseNamespaceCore(
     return apps[name];
   }
 
+  // @ts-ignore
   app['App'] = firebaseAppImpl;
   /**
    * Create a new App instance (name must be unique).
@@ -196,6 +198,7 @@ export function createFirebaseNamespaceCore(
 
     // The Service namespace is an accessor function ...
     function serviceNamespace(appArg: FirebaseApp = app()): FirebaseService {
+      // @ts-ignore
       if (typeof appArg[name] !== 'function') {
         // Invalid argument.
         // This happens in the following case: firebase.storage('gs:/')
@@ -205,6 +208,7 @@ export function createFirebaseNamespaceCore(
       }
 
       // Forward service instance lookup to the FirebaseApp.
+      // @ts-ignore
       return appArg[name]();
     }
 
@@ -214,9 +218,11 @@ export function createFirebaseNamespaceCore(
     }
 
     // Monkey-patch the serviceNamespace onto the firebase namespace
+    // @ts-ignore
     namespace[name] = serviceNamespace;
 
     // Patch the FirebaseAppImpl prototype
+    // @ts-ignore
     firebaseAppImpl.prototype[name] = function(...args) {
       const serviceFxn = this._getService.bind(this, name);
       return serviceFxn.apply(this, allowMultipleInstances ? args : []);

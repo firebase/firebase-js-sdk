@@ -17,7 +17,7 @@
     "overrides": [
         {
             "files": [
-                "*test.ts",
+                "**/*.test.ts",
                 "**/test/**/*.ts"
             ],
             "rules": {
@@ -84,6 +84,17 @@
         "constructor-super": "error",
         "import/no-default-export": "error",
         "import/no-duplicates": "error",
+        "import/no-extraneous-dependencies": [
+            "error",
+            {
+                "devDependencies": [
+                    "**/*.test.ts",
+                    "**/test/**/*.ts",
+                    "**/testing/**/*.ts"
+                ],
+                "peerDependencies": true
+            }
+        ],
         "@typescript-eslint/array-type": [
             "error",
             "array-simple"
@@ -92,7 +103,7 @@
             "error",
             {
                 "types": {
-                    "Object": "Use object instead.",
+                    "Object": "Use {} or 'object' instead.",
                     "String": "Use 'string' instead.",
                     "Number": "Use 'number' instead.",
                     "Boolean": "Use 'boolean' instead."

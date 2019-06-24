@@ -22,7 +22,7 @@ import * as type from '../src/implementation/type';
 import * as testShared from './testshared';
 
 describe('Firebase Storage > Blob', () => {
-  let stubs: Array<sinon.SinonStub> = [];
+  let stubs: sinon.SinonStub[] = [];
   before(() => {
     const definedStub = sinon.stub(type, 'isNativeBlobDefined');
     definedStub.returns(false);

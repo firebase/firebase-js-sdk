@@ -19,13 +19,13 @@ import { Reference } from './reference';
 /**
  * @fileoverview Documentation for ListOptions and ListResult format.
  */
-export type ListOptions = {
+export interface ListOptions {
   maxResults?: number | null;
   pageToken?: string | null;
-};
+}
 
-export type ListResult = {
+export interface ListResult {
   prefixes: Reference[];
   items: Reference[];
   nextPageToken?: string | null;
-};
+}

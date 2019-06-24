@@ -21,10 +21,6 @@
  */
 import * as type from './type';
 
-declare var IBlobBuilder;
-declare var BlobBuilder;
-declare var WebKitBlobBuilder;
-
 function getBlobBuilder(): (typeof IBlobBuilder) | undefined {
   if (typeof BlobBuilder !== 'undefined') {
     return BlobBuilder;
@@ -38,20 +34,20 @@ function getBlobBuilder(): (typeof IBlobBuilder) | undefined {
 /**
  * Concatenates one or more values together and converts them to a Blob.
  *
- * @param var_args The values that will make up the resulting blob.
+ * @param args The values that will make up the resulting blob.
  * @return The blob.
  */
-export function getBlob(...var_args: (string | Blob | ArrayBuffer)[]): Blob {
-  let BlobBuilder = getBlobBuilder();
+export function getBlob(...args: Array<string | Blob | ArrayBuffer>): Blob {
+  const BlobBuilder = getBlobBuilder();
   if (BlobBuilder !== undefined) {
-    let bb = new BlobBuilder();
-    for (let i = 0; i < var_args.length; i++) {
-      bb.append(var_args[i]);
+    const bb = new BlobBuilder();
+    for (let i = 0; i < args.length; i++) {
+      bb.append(args[i]);
     }
     return bb.getBlob();
   } else {
     if (type.isNativeBlobDefined()) {
-      return new Blob(var_args);
+      return new Blob(args);
     } else {
       throw Error("This browser doesn't seem to support creating Blobs");
     }
@@ -68,10 +64,10 @@ export function getBlob(...var_args: (string | Blob | ArrayBuffer)[]): Blob {
  * @return The blob slice or null if not supported.
  */
 export function sliceBlob(blob: Blob, start: number, end: number): Blob | null {
-  if ((blob as any).webkitSlice) {
-    return (blob as any).webkitSlice(start, end);
-  } else if ((blob as any).mozSlice) {
-    return (blob as any).mozSlice(start, end);
+  if (blob.webkitSlice) {
+    return blob.webkitSlice(start, end);
+  } else if (blob.mozSlice) {
+    return blob.mozSlice(start, end);
   } else if (blob.slice) {
     return blob.slice(start, end);
   }

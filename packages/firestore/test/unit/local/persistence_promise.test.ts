@@ -232,7 +232,7 @@ describe('PersistencePromise', () => {
   });
 
   it('propagates error for forEach()', () => {
-    const p = PersistencePromise.forEach([true, false], success => {
+    const p = PersistencePromise.forEach([true, false], (success: boolean) => {
       if (success) {
         return PersistencePromise.resolve();
       } else {

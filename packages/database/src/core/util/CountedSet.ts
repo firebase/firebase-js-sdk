@@ -22,7 +22,7 @@ import { isEmpty, getCount, forEach, contains } from '@firebase/util';
  *
  * @template K, V
  */
-export class CountedSet<K, V> {
+export class CountedSet<K extends string | number, V> {
   set: { [k: string]: V } = {};
 
   /**
@@ -38,7 +38,7 @@ export class CountedSet<K, V> {
    * @return {boolean}
    */
   contains(key: K) {
-    return contains(this.set, key);
+    return contains(this.set, key as string);
   }
 
   /**
@@ -82,8 +82,8 @@ export class CountedSet<K, V> {
    * Run a function on each k,v pair in the set
    * @param {function(K, V)} fn
    */
-  each(fn: (k: K, v: V) => void) {
-    forEach(this.set, (k: K, v: V) => fn(k, v));
+  each(fn: (k: K | string, v: V) => void) {
+    forEach(this.set, (k: string, v: V) => fn(k, v));
   }
 
   /**
@@ -92,8 +92,8 @@ export class CountedSet<K, V> {
    */
   keys(): K[] {
     const keys: K[] = [];
-    forEach(this.set, (k: K) => {
-      keys.push(k);
+    forEach(this.set, (k: string) => {
+      keys.push(k as K);
     });
     return keys;
   }

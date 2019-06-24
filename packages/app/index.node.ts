@@ -18,8 +18,11 @@
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { createFirebaseNamespace } from './src/firebaseNamespace';
+// Node specific packages.
+// @ts-ignore
 import Storage from 'dom-storage';
-import { XMLHttpRequest } from 'xmlhttprequest';
+// @ts-ignore
+import XMLHttpRequest from 'xmlhttprequest';
 
 const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
 

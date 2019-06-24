@@ -113,7 +113,7 @@ export function nodeFromJSON(
     }
   } else {
     let node: Node = ChildrenNode.EMPTY_NODE;
-    const jsonObj = json as object;
+    const jsonObj = json as { [key: string]: unknown };
     forEach(jsonObj, (key: string, childData: any) => {
       if (contains(jsonObj, key)) {
         if (key.substring(0, 1) !== '.') {

@@ -18,26 +18,34 @@
 import { base64Decode } from './crypt';
 import { jsonEval } from './json';
 
+interface Claims {
+  [key: string]: {};
+}
+
+interface DecodedToken {
+  header: object;
+  claims: Claims;
+  data: object;
+  signature: string;
+}
+
 /**
  * Decodes a Firebase auth. token into constituent parts.
  *
  * Notes:
  * - May return with invalid / incomplete claims if there's no native base64 decoding support.
  * - Doesn't check if the token is actually valid.
- *
- * @param {?string} token
- * @return {{header: *, claims: *, data: *, signature: string}}
  */
-export const decode = function(token): DecodedToken {
+export const decode = function(token: string): DecodedToken {
   let header = {},
-    claims = {},
+    claims: Claims = {},
     data = {},
     signature = '';
 
   try {
     const parts = token.split('.');
     header = jsonEval(base64Decode(parts[0]) || '') as object;
-    claims = jsonEval(base64Decode(parts[1]) || '') as object;
+    claims = jsonEval(base64Decode(parts[1]) || '') as Claims;
     signature = parts[2];
     data = claims['d'] || {};
     delete claims['d'];
@@ -53,7 +61,7 @@ export const decode = function(token): DecodedToken {
 
 interface DecodedToken {
   header: object;
-  claims: object;
+  claims: Claims;
   data: object;
   signature: string;
 }
@@ -65,24 +73,22 @@ interface DecodedToken {
  * Notes:
  * - May return a false negative if there's no native base64 decoding support.
  * - Doesn't check if the token is actually valid.
- *
- * @param {?string} token
- * @return {boolean}
  */
-export const isValidTimestamp = function(token): boolean {
-  const claims = decode(token).claims,
-    now = Math.floor(new Date().getTime() / 1000);
-  let validSince, validUntil;
+export const isValidTimestamp = function(token: string): boolean {
+  const claims: Claims = decode(token).claims;
+  const now: number = Math.floor(new Date().getTime() / 1000);
+  let validSince: number = 0,
+    validUntil: number = 0;
 
   if (typeof claims === 'object') {
     if (claims.hasOwnProperty('nbf')) {
-      validSince = claims['nbf'];
+      validSince = claims['nbf'] as number;
     } else if (claims.hasOwnProperty('iat')) {
-      validSince = claims['iat'];
+      validSince = claims['iat'] as number;
     }
 
     if (claims.hasOwnProperty('exp')) {
-      validUntil = claims['exp'];
+      validUntil = claims['exp'] as number;
     } else {
       // token will expire after 24h by default
       validUntil = validSince + 86400;
@@ -90,7 +96,11 @@ export const isValidTimestamp = function(token): boolean {
   }
 
   return (
-    now && validSince && validUntil && now >= validSince && now <= validUntil
+    !!now &&
+    !!validSince &&
+    !!validUntil &&
+    now >= validSince &&
+    now <= validUntil
   );
 };
 
@@ -100,14 +110,11 @@ export const isValidTimestamp = function(token): boolean {
  * Notes:
  * - May return null if there's no native base64 decoding support.
  * - Doesn't check if the token is actually valid.
- *
- * @param {?string} token
- * @return {?number}
  */
-export const issuedAtTime = function(token): number | null {
-  const claims = decode(token).claims;
+export const issuedAtTime = function(token: string): number | null {
+  const claims: Claims = decode(token).claims;
   if (typeof claims === 'object' && claims.hasOwnProperty('iat')) {
-    return claims['iat'];
+    return claims['iat'] as number;
   }
   return null;
 };
@@ -118,11 +125,8 @@ export const issuedAtTime = function(token): number | null {
  * Notes:
  * - May return a false negative if there's no native base64 decoding support.
  * - Doesn't check if the token is actually valid.
- *
- * @param {?string} token
- * @return {boolean}
  */
-export const isValidFormat = function(token): boolean {
+export const isValidFormat = function(token: string): boolean {
   const decoded = decode(token),
     claims = decoded.claims;
 
@@ -135,11 +139,8 @@ export const isValidFormat = function(token): boolean {
  * Notes:
  * - May return a false negative if there's no native base64 decoding support.
  * - Doesn't check if the token is actually valid.
- *
- * @param {?string} token
- * @return {boolean}
  */
-export const isAdmin = function(token): boolean {
-  const claims = decode(token).claims;
+export const isAdmin = function(token: string): boolean {
+  const claims: Claims = decode(token).claims;
   return typeof claims === 'object' && claims['admin'] === true;
 };

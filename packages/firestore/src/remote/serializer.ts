@@ -22,13 +22,11 @@ import { DatabaseId } from '../core/database_info';
 import {
   Bound,
   Direction,
+  FieldFilter,
   Filter,
-  NanFilter,
-  NullFilter,
+  Operator,
   OrderBy,
-  Query,
-  RelationFilter,
-  RelationOp
+  Query
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
@@ -54,7 +52,7 @@ import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
-import { NumberValue } from '../model/field_value';
+import { DoubleValue, NullValue, NumberValue } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -82,14 +80,14 @@ const DIRECTIONS = (() => {
 
 const OPERATORS = (() => {
   const ops: { [op: string]: api.FieldFilterOp } = {};
-  ops[RelationOp.LESS_THAN.name] = 'LESS_THAN';
-  ops[RelationOp.LESS_THAN_OR_EQUAL.name] = 'LESS_THAN_OR_EQUAL';
-  ops[RelationOp.GREATER_THAN.name] = 'GREATER_THAN';
-  ops[RelationOp.GREATER_THAN_OR_EQUAL.name] = 'GREATER_THAN_OR_EQUAL';
-  ops[RelationOp.EQUAL.name] = 'EQUAL';
-  ops[RelationOp.ARRAY_CONTAINS.name] = 'ARRAY_CONTAINS';
-  ops[RelationOp.IN.name] = 'IN';
-  ops[RelationOp.ARRAY_CONTAINS_ANY.name] = 'ARRAY_CONTAINS_ANY';
+  ops[Operator.LESS_THAN.name] = 'LESS_THAN';
+  ops[Operator.LESS_THAN_OR_EQUAL.name] = 'LESS_THAN_OR_EQUAL';
+  ops[Operator.GREATER_THAN.name] = 'GREATER_THAN';
+  ops[Operator.GREATER_THAN_OR_EQUAL.name] = 'GREATER_THAN_OR_EQUAL';
+  ops[Operator.EQUAL.name] = 'EQUAL';
+  ops[Operator.ARRAY_CONTAINS.name] = 'ARRAY_CONTAINS';
+  ops[Operator.IN.name] = 'IN';
+  ops[Operator.ARRAY_CONTAINS_ANY.name] = 'ARRAY_CONTAINS_ANY';
   return ops;
 })();
 
@@ -1162,11 +1160,13 @@ export class JsonProtoSerializer {
 
   private toFilter(filters: Filter[]): api.Filter | undefined {
     if (filters.length === 0) return;
-    const protos = filters.map(filter =>
-      filter instanceof RelationFilter
-        ? this.toRelationFilter(filter)
-        : this.toUnaryFilter(filter)
-    );
+    const protos = filters.map(filter => {
+      if (filter instanceof FieldFilter) {
+        return this.toUnaryOrFieldFilter(filter);
+      } else {
+        return fail('Unrecognized filter: ' + JSON.stringify(filter));
+      }
+    });
     if (protos.length === 1) {
       return protos[0];
     }
@@ -1179,7 +1179,7 @@ export class JsonProtoSerializer {
     } else if (filter.unaryFilter !== undefined) {
       return [this.fromUnaryFilter(filter)];
     } else if (filter.fieldFilter !== undefined) {
-      return [this.fromRelationFilter(filter)];
+      return [this.fromFieldFilter(filter)];
     } else if (filter.compositeFilter !== undefined) {
       return filter.compositeFilter
         .filters!.map(f => this.fromFilter(f))
@@ -1229,32 +1229,32 @@ export class JsonProtoSerializer {
   }
 
   // visible for testing
-  toOperatorName(op: RelationOp): api.FieldFilterOp {
+  toOperatorName(op: Operator): api.FieldFilterOp {
     return OPERATORS[op.name];
   }
 
-  fromOperatorName(op: api.FieldFilterOp): RelationOp {
+  fromOperatorName(op: api.FieldFilterOp): Operator {
     switch (op) {
       case 'EQUAL':
-        return RelationOp.EQUAL;
+        return Operator.EQUAL;
       case 'GREATER_THAN':
-        return RelationOp.GREATER_THAN;
+        return Operator.GREATER_THAN;
       case 'GREATER_THAN_OR_EQUAL':
-        return RelationOp.GREATER_THAN_OR_EQUAL;
+        return Operator.GREATER_THAN_OR_EQUAL;
       case 'LESS_THAN':
-        return RelationOp.LESS_THAN;
+        return Operator.LESS_THAN;
       case 'LESS_THAN_OR_EQUAL':
-        return RelationOp.LESS_THAN_OR_EQUAL;
+        return Operator.LESS_THAN_OR_EQUAL;
       case 'ARRAY_CONTAINS':
-        return RelationOp.ARRAY_CONTAINS;
+        return Operator.ARRAY_CONTAINS;
       case 'IN':
-        return RelationOp.IN;
+        return Operator.IN;
       case 'ARRAY_CONTAINS_ANY':
-        return RelationOp.ARRAY_CONTAINS_ANY;
+        return Operator.ARRAY_CONTAINS_ANY;
       case 'OPERATOR_UNSPECIFIED':
-        return fail('Unspecified relation');
+        return fail('Unspecified operator');
       default:
-        return fail('Unknown relation');
+        return fail('Unknown operator');
     }
   }
 
@@ -1281,23 +1281,8 @@ export class JsonProtoSerializer {
     );
   }
 
-  // visible for testing
-  toRelationFilter(filter: Filter): api.Filter {
-    if (filter instanceof RelationFilter) {
-      return {
-        fieldFilter: {
-          field: this.toFieldPathReference(filter.field),
-          op: this.toOperatorName(filter.op),
-          value: this.toValue(filter.value)
-        }
-      };
-    } else {
-      return fail('Unrecognized filter: ' + JSON.stringify(filter));
-    }
-  }
-
-  fromRelationFilter(filter: api.Filter): Filter {
-    return new RelationFilter(
+  fromFieldFilter(filter: api.Filter): Filter {
+    return new FieldFilter(
       this.fromFieldPathReference(filter.fieldFilter!.field!),
       this.fromOperatorName(filter.fieldFilter!.op!),
       this.fromValue(filter.fieldFilter!.value!)
@@ -1305,24 +1290,31 @@ export class JsonProtoSerializer {
   }
 
   // visible for testing
-  toUnaryFilter(filter: Filter): api.Filter {
-    if (filter instanceof NanFilter) {
-      return {
-        unaryFilter: {
-          field: this.toFieldPathReference(filter.field),
-          op: 'IS_NAN'
-        }
-      };
-    } else if (filter instanceof NullFilter) {
-      return {
-        unaryFilter: {
-          field: this.toFieldPathReference(filter.field),
-          op: 'IS_NULL'
-        }
-      };
-    } else {
-      return fail('Unrecognized filter: ' + JSON.stringify(filter));
+  toUnaryOrFieldFilter(filter: FieldFilter): api.Filter {
+    if (filter.op === Operator.EQUAL) {
+      if (filter.value.isEqual(DoubleValue.NAN)) {
+        return {
+          unaryFilter: {
+            field: this.toFieldPathReference(filter.field),
+            op: 'IS_NAN'
+          }
+        };
+      } else if (filter.value.isEqual(NullValue.INSTANCE)) {
+        return {
+          unaryFilter: {
+            field: this.toFieldPathReference(filter.field),
+            op: 'IS_NULL'
+          }
+        };
+      }
     }
+    return {
+      fieldFilter: {
+        field: this.toFieldPathReference(filter.field),
+        op: this.toOperatorName(filter.op),
+        value: this.toValue(filter.value)
+      }
+    };
   }
 
   fromUnaryFilter(filter: api.Filter): Filter {
@@ -1331,12 +1323,12 @@ export class JsonProtoSerializer {
         const nanField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return new NanFilter(nanField);
+        return new FieldFilter(nanField, Operator.EQUAL, DoubleValue.NAN);
       case 'IS_NULL':
         const nullField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return new NullFilter(nullField);
+        return new FieldFilter(nullField, Operator.EQUAL, NullValue.INSTANCE);
       case 'OPERATOR_UNSPECIFIED':
         return fail('Unspecified filter');
       default:

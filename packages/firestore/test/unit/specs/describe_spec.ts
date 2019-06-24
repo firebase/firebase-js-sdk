@@ -83,8 +83,8 @@ export function setSpecJSONHandler(writer: (json: string) => void): void {
 
 /** Gets the test runner based on the specified tags. */
 function getTestRunner(
-  tags,
-  persistenceEnabled
+  tags: string[],
+  persistenceEnabled: boolean
 ): ExclusiveTestFunction | PendingTestFunction {
   if (tags.indexOf(NO_WEB_TAG) >= 0) {
     return it.skip;
@@ -109,7 +109,7 @@ function getTestRunner(
 }
 
 /** If required, returns a custom test timeout for long-running tests */
-function getTestTimeout(tags): number | undefined {
+function getTestTimeout(tags: string[]): number | undefined {
   if (tags.indexOf(BENCHMARK_TAG) >= 0) {
     return BENCHMARK_TEST_TIMEOUT_MS;
   } else {

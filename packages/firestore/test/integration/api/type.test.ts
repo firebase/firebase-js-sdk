@@ -21,7 +21,7 @@ import { addEqualityMatcher } from '../../util/equality_matcher';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDb, withTestDoc } from '../util/helpers';
 
-apiDescribe('Firestore', persistence => {
+apiDescribe('Firestore', (persistence: boolean) => {
   addEqualityMatcher();
 
   function expectRoundtrip(

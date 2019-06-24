@@ -35,7 +35,6 @@ describe('extractAppConfig', () => {
   });
 
   it('throws if a necessary value is missing', () => {
-    // tslint:disable-next-line:no-any
     expect(() => extractAppConfig(undefined as any)).to.throw(FirebaseError);
 
     let firebaseApp = getFakeApp();

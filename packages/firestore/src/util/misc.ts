@@ -18,6 +18,7 @@
 import { assert } from './assert';
 
 export type EventHandler<E> = (value: E) => void;
+export type Indexable = { [k: string]: unknown };
 
 // tslint:disable-next-line:class-as-namespace
 export class AutoId {

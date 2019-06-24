@@ -27,7 +27,7 @@ export interface HttpsCallableResult {
  * Google Cloud Functions.
  */
 export interface HttpsCallable {
-  (data?: any): Promise<HttpsCallableResult>;
+  (data?: {} | null): Promise<HttpsCallableResult>;
 }
 
 /**

@@ -21,17 +21,18 @@
  */
 
 import firebase from '@firebase/app';
-import * as array from './array';
 import * as backoff from './backoff';
-import * as errorsExports from './error';
-import { FirebaseStorageError } from './error';
-import * as object from './object';
-import * as promiseimpl from './promise_external';
+import {
+  FirebaseStorageError,
+  unknown,
+  appDeleted,
+  canceled,
+  retryLimitExceeded
+} from './error';
 import { RequestInfo } from './requestinfo';
 import * as type from './type';
 import * as UrlUtils from './url';
-import * as XhrIoExports from './xhrio';
-import { Headers, XhrIo } from './xhrio';
+import { Headers, XhrIo, ErrorCode } from './xhrio';
 import { XhrIoPool } from './xhriopool';
 
 /**
@@ -102,34 +103,33 @@ class NetworkRequest<T> implements Request<T> {
     this.progressCallback_ = progressCallback;
     this.timeout_ = timeout;
     this.pool_ = pool;
-    let self = this;
-    this.promise_ = promiseimpl.make(function(resolve, reject) {
-      self.resolve_ = resolve;
-      self.reject_ = reject;
-      self.start_();
+    this.promise_ = new Promise((resolve, reject) => {
+      this.resolve_ = resolve;
+      this.reject_ = reject;
+      this.start_();
     });
   }
 
   /**
    * Actually starts the retry loop.
    */
-  private start_() {
-    let self = this;
+  private start_(): void {
+    const self = this;
 
     function doTheRequest(
-      backoffCallback: (p1: boolean, ...p2: any[]) => void,
+      backoffCallback: (p1: boolean, ...p2: unknown[]) => void,
       canceled: boolean
-    ) {
+    ): void {
       if (canceled) {
         backoffCallback(false, new RequestEndStatus(false, null, true));
         return;
       }
-      let xhr = self.pool_.createXhrIo();
+      const xhr = self.pool_.createXhrIo();
       self.pendingXhr_ = xhr;
 
-      function progressListener(progressEvent: ProgressEvent) {
-        let loaded = progressEvent.loaded;
-        let total = progressEvent.lengthComputable ? progressEvent.total : -1;
+      function progressListener(progressEvent: ProgressEvent): void {
+        const loaded = progressEvent.loaded;
+        const total = progressEvent.lengthComputable ? progressEvent.total : -1;
         if (self.progressCallback_ !== null) {
           self.progressCallback_(loaded, total);
         }
@@ -137,27 +137,27 @@ class NetworkRequest<T> implements Request<T> {
       if (self.progressCallback_ !== null) {
         xhr.addUploadProgressListener(progressListener);
       }
+
+      // tslint:disable-next-line:no-floating-promises
       xhr
         .send(self.url_, self.method_, self.body_, self.headers_)
-        .then(function(xhr: XhrIo) {
+        .then((xhr: XhrIo) => {
           if (self.progressCallback_ !== null) {
             xhr.removeUploadProgressListener(progressListener);
           }
           self.pendingXhr_ = null;
           xhr = xhr as XhrIo;
-          let hitServer =
-            xhr.getErrorCode() === XhrIoExports.ErrorCode.NO_ERROR;
-          let status = xhr.getStatus();
+          const hitServer = xhr.getErrorCode() === ErrorCode.NO_ERROR;
+          const status = xhr.getStatus();
           if (!hitServer || self.isRetryStatusCode_(status)) {
-            let wasCanceled =
-              xhr.getErrorCode() === XhrIoExports.ErrorCode.ABORT;
+            const wasCanceled = xhr.getErrorCode() === ErrorCode.ABORT;
             backoffCallback(
               false,
               new RequestEndStatus(false, null, wasCanceled)
             );
             return;
           }
-          let successCode = array.contains(self.successCodes_, status);
+          const successCode = self.successCodes_.indexOf(status) !== -1;
           backoffCallback(true, new RequestEndStatus(successCode, xhr));
         });
     }
@@ -169,13 +169,13 @@ class NetworkRequest<T> implements Request<T> {
     function backoffDone(
       requestWentThrough: boolean,
       status: RequestEndStatus
-    ) {
-      let resolve = self.resolve_ as Function;
-      let reject = self.reject_ as Function;
-      let xhr = status.xhr as XhrIo;
+    ): void {
+      const resolve = self.resolve_ as Function;
+      const reject = self.reject_ as Function;
+      const xhr = status.xhr as XhrIo;
       if (status.wasSuccessCode) {
         try {
-          let result = self.callback_(xhr, xhr.getResponseText());
+          const result = self.callback_(xhr, xhr.getResponseText());
           if (type.isJustDef(result)) {
             resolve(result);
           } else {
@@ -186,7 +186,7 @@ class NetworkRequest<T> implements Request<T> {
         }
       } else {
         if (xhr !== null) {
-          let err = errorsExports.unknown();
+          const err = unknown();
           err.setServerResponseProp(xhr.getResponseText());
           if (self.errorCallback_) {
             reject(self.errorCallback_(xhr, err));
@@ -195,12 +195,10 @@ class NetworkRequest<T> implements Request<T> {
           }
         } else {
           if (status.canceled) {
-            let err = self.appDelete_
-              ? errorsExports.appDeleted()
-              : errorsExports.canceled();
+            const err = self.appDelete_ ? appDeleted() : canceled();
             reject(err);
           } else {
-            let err = errorsExports.retryLimitExceeded();
+            const err = retryLimitExceeded();
             reject(err);
           }
         }
@@ -214,12 +212,12 @@ class NetworkRequest<T> implements Request<T> {
   }
 
   /** @inheritDoc */
-  getPromise() {
+  getPromise(): Promise<T> {
     return this.promise_;
   }
 
   /** @inheritDoc */
-  cancel(appDelete?: boolean) {
+  cancel(appDelete?: boolean): void {
     this.canceled_ = true;
     this.appDelete_ = appDelete || false;
     if (this.backoffId_ !== null) {
@@ -233,18 +231,16 @@ class NetworkRequest<T> implements Request<T> {
   private isRetryStatusCode_(status: number): boolean {
     // The codes for which to retry came from this page:
     // https://cloud.google.com/storage/docs/exponential-backoff
-    let isFiveHundredCode = status >= 500 && status < 600;
-    let extraRetryCodes = [
+    const isFiveHundredCode = status >= 500 && status < 600;
+    const extraRetryCodes = [
       // Request Timeout: web server didn't receive full request in time.
       408,
       // Too Many Requests: you're getting rate-limited, basically.
       429
     ];
-    let isExtraRetryCode = array.contains(extraRetryCodes, status);
-    let isRequestSpecificRetryCode = array.contains(
-      this.additionalRetryCodes_,
-      status
-    );
+    const isExtraRetryCode = extraRetryCodes.indexOf(status) !== -1;
+    const isRequestSpecificRetryCode =
+      this.additionalRetryCodes_.indexOf(status) !== -1;
     return isFiveHundredCode || isExtraRetryCode || isRequestSpecificRetryCode;
   }
 }
@@ -263,22 +259,25 @@ export class RequestEndStatus {
   constructor(
     public wasSuccessCode: boolean,
     public xhr: XhrIo | null,
-    opt_canceled?: boolean
+    canceled?: boolean
   ) {
-    this.canceled = !!opt_canceled;
+    this.canceled = !!canceled;
   }
 }
 
-export function addAuthHeader_(headers: Headers, authToken: string | null) {
+export function addAuthHeader_(
+  headers: Headers,
+  authToken: string | null
+): void {
   if (authToken !== null && authToken.length > 0) {
     headers['Authorization'] = 'Firebase ' + authToken;
   }
 }
 
-export function addVersionHeader_(headers: Headers) {
-  let number =
+export function addVersionHeader_(headers: Headers): void {
+  const version =
     typeof firebase !== 'undefined' ? firebase.SDK_VERSION : 'AppManager';
-  headers['X-Firebase-Storage-Version'] = 'webjs/' + number;
+  headers['X-Firebase-Storage-Version'] = 'webjs/' + version;
 }
 
 /**
@@ -289,9 +288,9 @@ export function makeRequest<T>(
   authToken: string | null,
   pool: XhrIoPool
 ): Request<T> {
-  let queryPart = UrlUtils.makeQueryString(requestInfo.urlParams);
-  let url = requestInfo.url + queryPart;
-  let headers = object.clone<Headers>(requestInfo.headers);
+  const queryPart = UrlUtils.makeQueryString(requestInfo.urlParams);
+  const url = requestInfo.url + queryPart;
+  const headers = Object.assign({}, requestInfo.headers);
   addAuthHeader_(headers, authToken);
   addVersionHeader_(headers);
   return new NetworkRequest<T>(

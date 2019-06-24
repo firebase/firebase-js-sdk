@@ -18,11 +18,12 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
-import { HttpsError, FunctionsErrorCode } from '@firebase/functions-types';
+import { FunctionsErrorCode } from '@firebase/functions-types';
 import firebase from '@firebase/app';
 import '@firebase/messaging';
 import { Service } from '../src/api/service';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
 
 // Chai doesn't handle Error comparisons in a useful way.
@@ -32,7 +33,7 @@ async function expectError(
   code: FunctionsErrorCode,
   message: string,
   details?: any
-) {
+): Promise<void> {
   let failed = false;
   try {
     await promise;
@@ -79,14 +80,13 @@ describe('Firebase Functions > Call', () => {
     const data = {
       bool: true,
       int: 2,
-      string: 'four',
+      str: 'four',
       array: [5, 6],
       null: null
     };
 
     const func = functions.httpsCallable('dataTest');
     const result = await func(data);
-    const actual = result.data;
 
     expect(result.data).to.deep.equal({
       message: 'stub response',

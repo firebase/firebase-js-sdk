@@ -17,7 +17,9 @@
 import { FirebaseStorageError } from './error';
 import { Headers, XhrIo } from './xhrio';
 
-export type UrlParams = { [name: string]: string };
+export interface UrlParams {
+  [name: string]: string | number;
+}
 
 export class RequestInfo<T> {
   urlParams: UrlParams = {};

@@ -293,7 +293,7 @@ export class IndexedDbQueryCache implements QueryCache {
     // PORTING NOTE: The reverse index (documentsTargets) is maintained by
     // IndexedDb.
     const store = documentTargetStore(txn);
-    return PersistencePromise.forEach(keys, key => {
+    return PersistencePromise.forEach(keys, (key: DocumentKey) => {
       const path = EncodedResourcePath.encode(key.path);
       return PersistencePromise.waitFor([
         store.delete([targetId, path]),

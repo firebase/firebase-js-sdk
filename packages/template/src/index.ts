@@ -17,8 +17,8 @@
 
 import { TestType } from '@firebase/template-types';
 
-export function testFxn() {
-  const thing: TestType = {};
+export function testFxn(): number {
+  const _thing: TestType = {};
   console.log('hi');
   return 42;
 }

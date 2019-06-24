@@ -1247,7 +1247,7 @@ export async function runSpec(
   const runners: TestRunner[] = [];
   const outstandingMutations = new SharedWriteTracker();
 
-  const ensureRunner = async clientIndex => {
+  const ensureRunner = async (clientIndex: number) => {
     if (!runners[clientIndex]) {
       const platform = new TestPlatform(
         PlatformSupport.getPlatform(),
@@ -1501,7 +1501,7 @@ export interface SpecWatchFilter
 
 /**
  * [field, op, value]
- * This currently only supports relation filters (<, <=, ==, >=, >)
+ * Op must be the `name` of an `Operator`.
  */
 export type SpecQueryFilter = [string, string, unknown];
 

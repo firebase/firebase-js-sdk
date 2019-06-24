@@ -15,11 +15,8 @@
  * limitations under the License.
  */
 import * as errorsExports from './error';
-import * as object from './object';
-import * as promiseimpl from './promise_external';
 import * as type from './type';
-import * as XhrIoExports from './xhrio';
-import { Headers, XhrIo } from './xhrio';
+import { Headers, XhrIo, ErrorCode } from './xhrio';
 
 /**
  * We use this instead of goog.net.XhrIo because goog.net.XhrIo is hyuuuuge and
@@ -27,23 +24,23 @@ import { Headers, XhrIo } from './xhrio';
  */
 export class NetworkXhrIo implements XhrIo {
   private xhr_: XMLHttpRequest;
-  private errorCode_: XhrIoExports.ErrorCode;
+  private errorCode_: ErrorCode;
   private sendPromise_: Promise<XhrIo>;
   private sent_: boolean = false;
 
   constructor() {
     this.xhr_ = new XMLHttpRequest();
-    this.errorCode_ = XhrIoExports.ErrorCode.NO_ERROR;
-    this.sendPromise_ = promiseimpl.make((resolve, reject) => {
-      this.xhr_.addEventListener('abort', event => {
-        this.errorCode_ = XhrIoExports.ErrorCode.ABORT;
+    this.errorCode_ = ErrorCode.NO_ERROR;
+    this.sendPromise_ = new Promise(resolve => {
+      this.xhr_.addEventListener('abort', () => {
+        this.errorCode_ = ErrorCode.ABORT;
         resolve(this);
       });
-      this.xhr_.addEventListener('error', event => {
-        this.errorCode_ = XhrIoExports.ErrorCode.NETWORK_ERROR;
+      this.xhr_.addEventListener('error', () => {
+        this.errorCode_ = ErrorCode.NETWORK_ERROR;
         resolve(this);
       });
-      this.xhr_.addEventListener('load', event => {
+      this.xhr_.addEventListener('load', () => {
         resolve(this);
       });
     });
@@ -55,22 +52,23 @@ export class NetworkXhrIo implements XhrIo {
   send(
     url: string,
     method: string,
-    opt_body?: ArrayBufferView | Blob | string | null,
-    opt_headers?: Headers
+    body?: ArrayBufferView | Blob | string | null,
+    headers?: Headers
   ): Promise<XhrIo> {
     if (this.sent_) {
       throw errorsExports.internalError('cannot .send() more than once');
     }
     this.sent_ = true;
     this.xhr_.open(method, url, true);
-    if (type.isDef(opt_headers)) {
-      const headers = opt_headers as Headers;
-      object.forEach(headers, (key, val) => {
-        this.xhr_.setRequestHeader(key, val.toString());
-      });
+    if (type.isDef(headers)) {
+      for (const key in headers) {
+        if (headers.hasOwnProperty(key)) {
+          this.xhr_.setRequestHeader(key, headers[key].toString());
+        }
+      }
     }
-    if (type.isDef(opt_body)) {
-      this.xhr_.send(opt_body);
+    if (type.isDef(body)) {
+      this.xhr_.send(body);
     } else {
       this.xhr_.send();
     }
@@ -80,7 +78,7 @@ export class NetworkXhrIo implements XhrIo {
   /**
    * @override
    */
-  getErrorCode(): XhrIoExports.ErrorCode {
+  getErrorCode(): ErrorCode {
     if (!this.sent_) {
       throw errorsExports.internalError(
         'cannot .getErrorCode() before sending'
@@ -119,7 +117,7 @@ export class NetworkXhrIo implements XhrIo {
    * Aborts the request.
    * @override
    */
-  abort() {
+  abort(): void {
     this.xhr_.abort();
   }
 
@@ -133,7 +131,7 @@ export class NetworkXhrIo implements XhrIo {
   /**
    * @override
    */
-  addUploadProgressListener(listener: (p1: Event) => void) {
+  addUploadProgressListener(listener: (p1: Event) => void): void {
     if (type.isDef(this.xhr_.upload)) {
       this.xhr_.upload.addEventListener('progress', listener);
     }
@@ -142,7 +140,7 @@ export class NetworkXhrIo implements XhrIo {
   /**
    * @override
    */
-  removeUploadProgressListener(listener: (p1: Event) => void) {
+  removeUploadProgressListener(listener: (p1: Event) => void): void {
     if (type.isDef(this.xhr_.upload)) {
       this.xhr_.upload.removeEventListener('progress', listener);
     }

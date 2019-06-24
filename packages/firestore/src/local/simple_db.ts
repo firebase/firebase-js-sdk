@@ -378,8 +378,9 @@ export class SimpleDbTransaction {
       }
     };
     this.transaction.onerror = (event: Event) => {
-      const error = (event.target as IDBRequest).error!;
-      checkForAndReportiOSError(error);
+      const error = checkForAndReportiOSError(
+        (event.target as IDBRequest).error!
+      );
       this.completionDeferred.reject(error);
     };
   }
@@ -579,7 +580,7 @@ export class SimpleDbStore<
       options = {};
       callback = optionsOrCallback as IterateCallback<KeyType, ValueType>;
     } else {
-      options = optionsOrCallback;
+      options = optionsOrCallback as IterateOptions;
     }
     const cursor = this.cursor(options);
     return this.iterateCursor(cursor, callback);
@@ -599,8 +600,9 @@ export class SimpleDbStore<
     const cursorRequest = this.cursor({});
     return new PersistencePromise((resolve, reject) => {
       cursorRequest.onerror = (event: Event) => {
-        const error = (event.target as IDBRequest).error!;
-        checkForAndReportiOSError(error);
+        const error = checkForAndReportiOSError(
+          (event.target as IDBRequest).error!
+        );
         reject(error);
       };
       cursorRequest.onsuccess = (event: Event) => {
@@ -715,8 +717,9 @@ function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
     };
 
     request.onerror = (event: Event) => {
-      const error = (event.target as IDBRequest).error!;
-      checkForAndReportiOSError(error);
+      const error = checkForAndReportiOSError(
+        (event.target as IDBRequest).error!
+      );
       reject(error);
     };
   });
@@ -724,26 +727,29 @@ function wrapRequest<R>(request: IDBRequest): PersistencePromise<R> {
 
 // Guard so we only report the error once.
 let reportedIOSError = false;
-function checkForAndReportiOSError(error: DOMException): void {
-  if (reportedIOSError) {
-    return;
-  }
+function checkForAndReportiOSError(error: DOMException): Error {
   const iOSVersion = SimpleDb.getIOSVersion(getUA());
   if (iOSVersion >= 12.2 && iOSVersion < 13) {
     const IOS_ERROR =
       'An internal error was encountered in the Indexed Database server';
     if (error.message.indexOf(IOS_ERROR) >= 0) {
-      reportedIOSError = true;
-      // Throw a global exception outside of this promise chain, for the user to
-      // potentially catch.
-      setTimeout(() => {
-        throw new FirestoreError(
-          'internal',
-          `IOS_INDEXEDDB_BUG1: IndexedDb has thrown '${IOS_ERROR}'. This is likely ` +
-            `due to an unavoidable bug in iOS. See https://stackoverflow.com/q/56496296/110915 ` +
-            `for details and a potential workaround.`
-        );
-      }, 0);
+      // Wrap error in a more descriptive one.
+      const newError = new FirestoreError(
+        'internal',
+        `IOS_INDEXEDDB_BUG1: IndexedDb has thrown '${IOS_ERROR}'. This is likely ` +
+          `due to an unavoidable bug in iOS. See https://stackoverflow.com/q/56496296/110915 ` +
+          `for details and a potential workaround.`
+      );
+      if (!reportedIOSError) {
+        reportedIOSError = true;
+        // Throw a global exception outside of this promise chain, for the user to
+        // potentially catch.
+        setTimeout(() => {
+          throw newError;
+        }, 0);
+      }
+      return newError;
     }
   }
+  return error;
 }

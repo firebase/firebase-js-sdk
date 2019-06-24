@@ -31,7 +31,7 @@ const FieldValue = firebase.firestore!.FieldValue;
  * together, etc.) and so these tests mostly focus on the array transform
  * semantics.
  */
-apiDescribe('Array Transforms:', persistence => {
+apiDescribe('Array Transforms:', (persistence: boolean) => {
   // A document reference to read and write to.
   let docRef: firestore.DocumentReference;
 

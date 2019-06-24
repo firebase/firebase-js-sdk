@@ -641,6 +641,18 @@ export class ArrayValue extends FieldValue {
     return this.internalValue.map(v => v.value(options));
   }
 
+  /**
+   * Returns true if the given value is contained in this array.
+   */
+  contains(value: FieldValue): boolean {
+    for (const element of this.internalValue) {
+      if (element.isEqual(value)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   forEach(action: (value: FieldValue) => void): void {
     this.internalValue.forEach(action);
   }

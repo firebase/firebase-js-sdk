@@ -44,7 +44,7 @@ chai.use(chaiAsPromised);
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldValue = firebase.firestore!.FieldValue;
 
-apiDescribe('Database', persistence => {
+apiDescribe('Database', (persistence: boolean) => {
   it('can set a document', () => {
     return withTestDoc(persistence, docRef => {
       return docRef.set({
@@ -536,7 +536,7 @@ apiDescribe('Database', persistence => {
     });
   });
 
-  apiDescribe('Queries are validated client-side', persistence => {
+  apiDescribe('Queries are validated client-side', (persistence: boolean) => {
     // NOTE: Failure cases are validated in validation_test.ts
 
     it('same inequality fields works', () => {

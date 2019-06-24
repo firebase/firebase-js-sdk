@@ -18,20 +18,23 @@
 /**
  * @fileoverview Functions to create and manipulate URLs for the server API.
  */
-import * as object from './object';
 import { DEFAULT_HOST } from './constants';
+import { UrlParams } from './requestinfo';
 
 export function makeUrl(urlPart: string): string {
   return `https://${DEFAULT_HOST}/v0${urlPart}`;
 }
 
-export function makeQueryString(params: { [key: string]: string }): string {
-  let encode = encodeURIComponent;
+export function makeQueryString(params: UrlParams): string {
+  const encode = encodeURIComponent;
   let queryPart = '?';
-  object.forEach(params, function(key, val) {
-    let nextPart = encode(key) + '=' + encode(val);
-    queryPart = queryPart + nextPart + '&';
-  });
+  for (const key in params) {
+    if (params.hasOwnProperty(key)) {
+      // @ts-ignore TODO: remove once typescript is upgraded to 3.5.x
+      const nextPart = encode(key) + '=' + encode(params[key]);
+      queryPart = queryPart + nextPart + '&';
+    }
+  }
 
   // Chop off the extra '&' or '?' on the end
   queryPart = queryPart.slice(0, -1);

@@ -99,6 +99,7 @@ const setupInstallationEntryMap: Map<
       await set(appConfig, entry);
 
       // Finish pending request after 500 ms
+      // tslint:disable-next-line:no-floating-promises
       sleep(500).then(async () => {
         const updatedEntry: RegisteredInstallationEntry = {
           ...entry,
@@ -109,7 +110,7 @@ const setupInstallationEntryMap: Map<
             creationTime: Date.now()
           }
         };
-        set(appConfig, updatedEntry);
+        await set(appConfig, updatedEntry);
       });
     }
   ],
@@ -139,6 +140,7 @@ const setupInstallationEntryMap: Map<
       await set(appConfig, entry);
 
       // Finish pending request after 500 ms
+      // tslint:disable-next-line:no-floating-promises
       sleep(500).then(async () => {
         const updatedEntry: RegisteredInstallationEntry = {
           fid: FID,
@@ -151,7 +153,7 @@ const setupInstallationEntryMap: Map<
             creationTime: Date.now()
           }
         };
-        set(appConfig, updatedEntry);
+        await set(appConfig, updatedEntry);
       });
     }
   ],

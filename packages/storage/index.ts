@@ -17,10 +17,13 @@
 
 import firebase from '@firebase/app';
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseServiceFactory } from '@firebase/app-types/private';
+import {
+  FirebaseServiceFactory,
+  _FirebaseNamespace
+} from '@firebase/app-types/private';
 import { StringFormat } from './src/implementation/string';
-import { TaskEvent } from './src/implementation/taskenums';
-import { TaskState } from './src/implementation/taskenums';
+import { TaskEvent, TaskState } from './src/implementation/taskenums';
+
 import { XhrIoPool } from './src/implementation/xhriopool';
 import { Reference } from './src/reference';
 import { Service } from './src/service';
@@ -33,20 +36,24 @@ const STORAGE_TYPE = 'storage';
 
 function factory(
   app: FirebaseApp,
-  unused: any,
-  opt_url?: string
+  unused: unknown,
+  url?: string
 ): types.FirebaseStorage {
-  return new Service(app, new XhrIoPool(), opt_url) as any;
+  return (new Service(
+    app,
+    new XhrIoPool(),
+    url
+  ) as unknown) as types.FirebaseStorage;
 }
 
-export function registerStorage(instance) {
-  let namespaceExports = {
+export function registerStorage(instance: _FirebaseNamespace): void {
+  const namespaceExports = {
     // no-inline
-    TaskState: TaskState,
-    TaskEvent: TaskEvent,
-    StringFormat: StringFormat,
+    TaskState,
+    TaskEvent,
+    StringFormat,
     Storage: Service,
-    Reference: Reference
+    Reference
   };
   instance.INTERNAL.registerService(
     STORAGE_TYPE,
@@ -58,7 +65,7 @@ export function registerStorage(instance) {
   );
 }
 
-registerStorage(firebase);
+registerStorage(firebase as _FirebaseNamespace);
 
 /**
  * Define extension behavior for `registerStorage`

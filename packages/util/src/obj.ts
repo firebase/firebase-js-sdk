@@ -18,12 +18,19 @@
 /* eslint-disable */
 // will enable after https://github.com/firebase/firebase-js-sdk/pull/1811 is merged
 
+interface UtilObject<V> {
+  [key: string]: V;
+}
+
 // See http://www.devthought.com/2012/01/18/an-object-is-not-a-hash/
-export const contains = function(obj, key) {
+export const contains = function<V>(obj: UtilObject<V>, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(obj, key);
 };
 
-export const safeGet = function(obj, key) {
+export const safeGet = function<V>(
+  obj: UtilObject<V>,
+  key: string
+): V | undefined {
   if (Object.prototype.hasOwnProperty.call(obj, key)) return obj[key];
   // else return undefined.
 };
@@ -35,8 +42,11 @@ export const safeGet = function(obj, key) {
  * @param {!function(K, V)} fn Function to call for each key and value.
  * @template K,V
  */
-export const forEach = function(obj, fn) {
-  for (var key in obj) {
+export const forEach = function<V>(
+  obj: UtilObject<V>,
+  fn: (key: string, value: V) => void
+): void {
+  for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       fn(key, obj[key]);
     }
@@ -49,7 +59,10 @@ export const forEach = function(obj, fn) {
  * @param {!Object} objFrom
  * @return {!Object} objTo
  */
-export const extend = function(objTo, objFrom) {
+export const extend = function<V>(
+  objTo: UtilObject<V>,
+  objFrom: UtilObject<V>
+): UtilObject<V> {
   forEach(objFrom, function(key, value) {
     objTo[key] = value;
   });
@@ -61,29 +74,26 @@ export const extend = function(objTo, objFrom) {
  * @param {!Object} obj
  * @return {!Object} cloned obj.
  */
-export const clone = function(obj) {
+export const clone = function<V>(obj: UtilObject<V>) {
   return extend({}, obj);
 };
 
 /**
  * Returns true if obj has typeof "object" and is not null.  Unlike goog.isObject(), does not return true
  * for functions.
- *
- * @param obj {*} A potential object.
- * @returns {boolean} True if it's an object.
  */
-export const isNonNullObject = function(obj) {
+export const isNonNullObject = function<V>(obj: UtilObject<V>): boolean {
   return typeof obj === 'object' && obj !== null;
 };
 
-export const isEmpty = function(obj) {
+export const isEmpty = function<V>(obj: UtilObject<V>) {
   for (var key in obj) {
     return false;
   }
   return true;
 };
 
-export const getCount = function(obj) {
+export const getCount = function<V>(obj: UtilObject<V>): number {
   var rv = 0;
   for (var key in obj) {
     rv++;
@@ -91,36 +101,48 @@ export const getCount = function(obj) {
   return rv;
 };
 
-export const map = function(obj, f, opt_obj?) {
-  var res = {};
+export const map = function<V>(
+  obj: UtilObject<V>,
+  fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown,
+  context?: unknown
+) {
+  var res: UtilObject<V> = {};
   for (var key in obj) {
-    res[key] = f.call(opt_obj, obj[key], key, obj);
+    res[key] = fn.call(context, obj[key], key, obj);
   }
   return res;
 };
 
-export const findKey = function(obj, fn, opt_this?) {
+export const findKey = function<V>(
+  obj: UtilObject<V>,
+  fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown,
+  context?: unknown
+) {
   for (var key in obj) {
-    if (fn.call(opt_this, obj[key], key, obj)) {
+    if (fn.call(context, obj[key], key, obj)) {
       return key;
     }
   }
   return undefined;
 };
 
-export const findValue = function(obj, fn, opt_this?) {
-  var key = findKey(obj, fn, opt_this);
+export const findValue = function<V>(
+  obj: UtilObject<V>,
+  fn: (value: V, key: string | number, obj: UtilObject<V>) => unknown,
+  context?: unknown
+) {
+  var key = findKey(obj, fn, context);
   return key && obj[key];
 };
 
-export const getAnyKey = function(obj) {
+export const getAnyKey = function<V>(obj: UtilObject<V>) {
   for (var key in obj) {
     return key;
   }
 };
 
-export const getValues = function(obj) {
-  var res: any[] = [];
+export const getValues = function<V>(obj: UtilObject<V>) {
+  var res: V[] = [];
   var i = 0;
   for (var key in obj) {
     res[i++] = obj[key];
@@ -137,7 +159,7 @@ export const getValues = function(obj) {
  * @template K,V
  */
 export const every = function<V>(
-  obj: Object,
+  obj: UtilObject<V>,
   fn: (k: string, v?: V) => boolean
 ): boolean {
   for (let key in obj) {

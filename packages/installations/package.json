@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations",
-  "version": "0.1.5",
+  "version": "0.1.7",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
@@ -8,13 +8,13 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
+    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts'",
     "build": "rollup -c",
     "test": "yarn type-check && yarn test:karma && yarn lint",
     "test:karma": "karma start --single-run",
     "test:debug": "karma start --browsers=Chrome --auto-watch",
     "type-check": "tsc -p . --noEmit",
-    "lint": "tslint --project .",
-    "lint:fix": "yarn lint --fix && prettier --write 'src/**/*.ts'",
     "serve": "yarn serve:build && yarn serve:host",
     "serve:build": "rollup -c test-app/rollup.config.js",
     "serve:host": "http-server -c-1 test-app",
@@ -39,10 +39,12 @@
     "sinon": "7.3.2",
     "sinon-chai": "3.3.0",
     "tslint": "5.16.0",
-    "tslint-config-prettier": "1.18.0",
-    "tslint-no-unused-expression-chai": "0.1.4",
-    "tslint-plugin-prettier": "2.0.1",
-    "typescript": "3.4.5"
+    "typescript": "3.4.5",
+    "eslint": "5.16.0",
+    "@typescript-eslint/parser": "1.10.2",
+    "@typescript-eslint/eslint-plugin": "1.10.2",
+    "@typescript-eslint/eslint-plugin-tslint": "1.10.2",
+    "eslint-plugin-import": "2.17.3"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
@@ -50,7 +52,7 @@
   },
   "dependencies": {
     "@firebase/installations-types": "0.1.1",
-    "@firebase/util": "0.2.18",
+    "@firebase/util": "0.2.20",
     "idb": "3.0.2",
     "tslib": "1.9.3"
   }

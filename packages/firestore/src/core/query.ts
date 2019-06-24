@@ -110,7 +110,7 @@ export class Query {
   addFilter(filter: Filter): Query {
     assert(
       this.getInequalityFilterField() == null ||
-        !(filter instanceof RelationFilter) ||
+        !(filter instanceof FieldFilter) ||
         !filter.isInequality() ||
         filter.field.isEqual(this.getInequalityFilterField()!),
       'Query must only have one inequality field.'
@@ -342,19 +342,19 @@ export class Query {
 
   getInequalityFilterField(): FieldPath | null {
     for (const filter of this.filters) {
-      if (filter instanceof RelationFilter && filter.isInequality()) {
+      if (filter instanceof FieldFilter && filter.isInequality()) {
         return filter.field;
       }
     }
     return null;
   }
 
-  // Checks if any of the provided RelationOps are included in the query and
+  // Checks if any of the provided Operators are included in the query and
   // returns the first one that is, or null if none are.
-  findRelationOpFilter(relationOps: RelationOp[]): RelationOp | null {
+  findFilterOperator(operators: Operator[]): Operator | null {
     for (const filter of this.filters) {
-      if (filter instanceof RelationFilter) {
-        if (relationOps.indexOf(filter.op) >= 0) {
+      if (filter instanceof FieldFilter) {
+        if (operators.indexOf(filter.op) >= 0) {
           return filter.op;
         }
       }
@@ -447,59 +447,85 @@ export abstract class Filter {
   /**
    * Creates a filter based on the provided arguments.
    */
-  static create(field: FieldPath, op: RelationOp, value: FieldValue): Filter {
-    if (value.isEqual(NullValue.INSTANCE)) {
-      if (op !== RelationOp.EQUAL) {
+  static create(field: FieldPath, op: Operator, value: FieldValue): Filter {
+    if (field.isKeyField()) {
+      assert(
+        value instanceof RefValue,
+        'Comparing on key, but filter value not a RefValue'
+      );
+      assert(
+        op !== Operator.ARRAY_CONTAINS &&
+          op !== Operator.ARRAY_CONTAINS_ANY &&
+          op !== Operator.IN,
+        `'${op.toString()}' queries don't make sense on document keys.`
+      );
+      return new KeyFieldFilter(field, op, value as RefValue);
+    } else if (value.isEqual(NullValue.INSTANCE)) {
+      if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. You can only perform equals comparisons on null.'
         );
       }
-      return new NullFilter(field);
+      return new FieldFilter(field, op, value);
     } else if (value.isEqual(DoubleValue.NAN)) {
-      if (op !== RelationOp.EQUAL) {
+      if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. You can only perform equals comparisons on NaN.'
         );
       }
-      return new NanFilter(field);
+      return new FieldFilter(field, op, value);
+    } else if (op === Operator.ARRAY_CONTAINS) {
+      return new ArrayContainsFilter(field, value);
+    } else if (op === Operator.IN) {
+      assert(
+        value instanceof ArrayValue,
+        'IN filter has invalid value: ' + value.toString()
+      );
+      return new InFilter(field, value as ArrayValue);
+    } else if (op === Operator.ARRAY_CONTAINS_ANY) {
+      assert(
+        value instanceof ArrayValue,
+        'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
+      );
+      return new ArrayContainsAnyFilter(field, value as ArrayValue);
     } else {
-      return new RelationFilter(field, op, value);
+      return new FieldFilter(field, op, value);
     }
   }
 }
 
-export class RelationOp {
-  static LESS_THAN = new RelationOp('<');
-  static LESS_THAN_OR_EQUAL = new RelationOp('<=');
-  static EQUAL = new RelationOp('==');
-  static GREATER_THAN = new RelationOp('>');
-  static GREATER_THAN_OR_EQUAL = new RelationOp('>=');
-  static ARRAY_CONTAINS = new RelationOp('array-contains');
-  static IN = new RelationOp('in');
-  static ARRAY_CONTAINS_ANY = new RelationOp('array-contains-any');
+export class Operator {
+  static LESS_THAN = new Operator('<');
+  static LESS_THAN_OR_EQUAL = new Operator('<=');
+  static EQUAL = new Operator('==');
+  static GREATER_THAN = new Operator('>');
+  static GREATER_THAN_OR_EQUAL = new Operator('>=');
+  static ARRAY_CONTAINS = new Operator('array-contains');
+  static IN = new Operator('in');
+  static ARRAY_CONTAINS_ANY = new Operator('array-contains-any');
 
-  static fromString(op: string): RelationOp {
+  static fromString(op: string): Operator {
     switch (op) {
       case '<':
-        return RelationOp.LESS_THAN;
+        return Operator.LESS_THAN;
       case '<=':
-        return RelationOp.LESS_THAN_OR_EQUAL;
+        return Operator.LESS_THAN_OR_EQUAL;
       case '==':
-        return RelationOp.EQUAL;
+        return Operator.EQUAL;
       case '>=':
-        return RelationOp.GREATER_THAN_OR_EQUAL;
+        return Operator.GREATER_THAN_OR_EQUAL;
       case '>':
-        return RelationOp.GREATER_THAN;
+        return Operator.GREATER_THAN;
       case 'array-contains':
-        return RelationOp.ARRAY_CONTAINS;
+        return Operator.ARRAY_CONTAINS;
       case 'in':
-        return RelationOp.IN;
+        return Operator.IN;
       case 'array-contains-any':
-        return RelationOp.ARRAY_CONTAINS_ANY;
+        return Operator.ARRAY_CONTAINS_ANY;
       default:
-        return fail('Unknown relation: ' + op);
+        return fail('Unknown FieldFilter operator: ' + op);
     }
   }
 
@@ -509,102 +535,55 @@ export class RelationOp {
     return this.name;
   }
 
-  isEqual(other: RelationOp): boolean {
+  isEqual(other: Operator): boolean {
     return this.name === other.name;
   }
 }
 
-export class RelationFilter extends Filter {
+export class FieldFilter extends Filter {
   constructor(
     public field: FieldPath,
-    public op: RelationOp,
+    public op: Operator,
     public value: FieldValue
   ) {
     super();
   }
 
   matches(doc: Document): boolean {
-    if (this.field.isKeyField()) {
-      assert(
-        this.value instanceof RefValue,
-        'Comparing on key, but filter value not a RefValue'
-      );
-      assert(
-        this.op !== RelationOp.ARRAY_CONTAINS &&
-          this.op !== RelationOp.ARRAY_CONTAINS_ANY &&
-          this.op !== RelationOp.IN,
-        `'${this.op.toString()}' queries don't make sense on document keys.`
-      );
-      const refValue = this.value as RefValue;
-      const comparison = DocumentKey.comparator(doc.key, refValue.key);
-      return this.matchesComparison(comparison);
-    } else {
-      const val = doc.field(this.field);
-      return val !== undefined && this.matchesValue(val);
-    }
+    const other = doc.field(this.field);
+
+    // Only compare types with matching backend order (such as double and int).
+    return (
+      other !== undefined &&
+      this.value.typeOrder === other.typeOrder &&
+      this.matchesComparison(other.compareTo(this.value))
+    );
   }
 
-  private matchesValue(other: FieldValue): boolean {
-    if (this.op === RelationOp.ARRAY_CONTAINS) {
-      return (
-        other instanceof ArrayValue &&
-        other.internalValue.find(element => element.isEqual(this.value)) !==
-          undefined
-      );
-    } else if (this.op === RelationOp.IN) {
-      if (this.value instanceof ArrayValue) {
-        return (
-          this.value.internalValue.find(element => element.isEqual(other)) !==
-          undefined
-        );
-      } else {
-        return fail('IN filter has invalid value: ' + this.value.toString());
-      }
-    } else if (this.op === RelationOp.ARRAY_CONTAINS_ANY) {
-      return (
-        other instanceof ArrayValue &&
-        other.internalValue.some(lhsElem => {
-          return (
-            this.value instanceof ArrayValue &&
-            this.value.internalValue.find(rhsElem =>
-              rhsElem.isEqual(lhsElem)
-            ) !== undefined
-          );
-        })
-      );
-    } else {
-      // Only compare types with matching backend order (such as double and int).
-      return (
-        this.value.typeOrder === other.typeOrder &&
-        this.matchesComparison(other.compareTo(this.value))
-      );
-    }
-  }
-
-  private matchesComparison(comparison: number): boolean {
+  protected matchesComparison(comparison: number): boolean {
     switch (this.op) {
-      case RelationOp.LESS_THAN:
+      case Operator.LESS_THAN:
         return comparison < 0;
-      case RelationOp.LESS_THAN_OR_EQUAL:
+      case Operator.LESS_THAN_OR_EQUAL:
         return comparison <= 0;
-      case RelationOp.EQUAL:
+      case Operator.EQUAL:
         return comparison === 0;
-      case RelationOp.GREATER_THAN:
+      case Operator.GREATER_THAN:
         return comparison > 0;
-      case RelationOp.GREATER_THAN_OR_EQUAL:
+      case Operator.GREATER_THAN_OR_EQUAL:
         return comparison >= 0;
       default:
-        return fail('Unknown relation op' + this.op);
+        return fail('Unknown FieldFilter operator: ' + this.op);
     }
   }
 
   isInequality(): boolean {
     return (
       [
-        RelationOp.LESS_THAN,
-        RelationOp.LESS_THAN_OR_EQUAL,
-        RelationOp.GREATER_THAN,
-        RelationOp.GREATER_THAN_OR_EQUAL
+        Operator.LESS_THAN,
+        Operator.LESS_THAN_OR_EQUAL,
+        Operator.GREATER_THAN,
+        Operator.GREATER_THAN_OR_EQUAL
       ].indexOf(this.op) >= 0
     );
   }
@@ -619,7 +598,7 @@ export class RelationFilter extends Filter {
   }
 
   isEqual(other: Filter): boolean {
-    if (other instanceof RelationFilter) {
+    if (other instanceof FieldFilter) {
       return (
         this.op.isEqual(other.op) &&
         this.field.isEqual(other.field) &&
@@ -635,64 +614,59 @@ export class RelationFilter extends Filter {
   }
 }
 
-/**
- * Filter that matches 'null' values.
- */
-export class NullFilter extends Filter {
-  constructor(public field: FieldPath) {
-    super();
+/** Filter that matches on key fields (i.e. '__name__'). */
+export class KeyFieldFilter extends FieldFilter {
+  constructor(field: FieldPath, op: Operator, value: RefValue) {
+    super(field, op, value);
   }
 
   matches(doc: Document): boolean {
-    const val = doc.field(this.field);
-    return val !== undefined && val.value() === null;
-  }
-
-  canonicalId(): string {
-    return this.field.canonicalString() + ' IS null';
-  }
-
-  toString(): string {
-    return `${this.field.canonicalString()} IS null`;
-  }
-
-  isEqual(other: Filter): boolean {
-    if (other instanceof NullFilter) {
-      return this.field.isEqual(other.field);
-    } else {
-      return false;
-    }
+    const refValue = this.value as RefValue;
+    const comparison = DocumentKey.comparator(doc.key, refValue.key);
+    return this.matchesComparison(comparison);
   }
 }
 
-/**
- * Filter that matches 'NaN' values.
- */
-export class NanFilter extends Filter {
-  constructor(public field: FieldPath) {
-    super();
+/** A Filter that implements the array-contains operator. */
+export class ArrayContainsFilter extends FieldFilter {
+  constructor(field: FieldPath, value: FieldValue) {
+    super(field, Operator.ARRAY_CONTAINS, value);
   }
 
   matches(doc: Document): boolean {
-    const field = doc.field(this.field);
-    const val = field && field.value();
-    return typeof val === 'number' && isNaN(val);
+    const other = doc.field(this.field);
+    return other instanceof ArrayValue && other.contains(this.value);
+  }
+}
+
+/** A Filter that implements the IN operator. */
+export class InFilter extends FieldFilter {
+  constructor(field: FieldPath, value: ArrayValue) {
+    super(field, Operator.IN, value);
   }
 
-  canonicalId(): string {
-    return this.field.canonicalString() + ' IS NaN';
+  matches(doc: Document): boolean {
+    const arrayValue = this.value as ArrayValue;
+    const other = doc.field(this.field);
+    return other !== undefined && arrayValue.contains(other);
+  }
+}
+
+/** A Filter that implements the array-contains-any operator. */
+export class ArrayContainsAnyFilter extends FieldFilter {
+  constructor(field: FieldPath, value: ArrayValue) {
+    super(field, Operator.ARRAY_CONTAINS_ANY, value);
   }
 
-  toString(): string {
-    return `${this.field.canonicalString()} IS NaN`;
-  }
-
-  isEqual(other: Filter): boolean {
-    if (other instanceof NanFilter) {
-      return this.field.isEqual(other.field);
-    } else {
-      return false;
-    }
+  matches(doc: Document): boolean {
+    const arrayValue = this.value as ArrayValue;
+    const other = doc.field(this.field);
+    return (
+      other instanceof ArrayValue &&
+      other.internalValue.some(lhsElem => {
+        return arrayValue.contains(lhsElem);
+      })
+    );
   }
 }
 
@@ -789,7 +763,9 @@ export class Bound {
     for (let i = 0; i < this.position.length; i++) {
       const thisPosition = this.position[i];
       const otherPosition = other.position[i];
-      return thisPosition.isEqual(otherPosition);
+      if (!thisPosition.isEqual(otherPosition)) {
+        return false;
+      }
     }
     return true;
   }
