@@ -132,11 +132,6 @@ export class ErrorFactory<
     // TODO: Replace with Object.entries when lib is updated to es2017.
     for (const key of Object.keys(customData)) {
       if (key.slice(-1) !== '_') {
-        if (key in error) {
-          console.warn(
-            `Overwriting FirebaseError base field "${key}" can cause unexpected behavior.`
-          );
-        }
         error[key] = customData[key];
       }
     }
