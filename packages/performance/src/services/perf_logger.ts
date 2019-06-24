@@ -107,6 +107,10 @@ export function logTrace(trace: Trace): void {
   if (!settingsService.dataCollectionEnabled && !trace.isAuto) {
     return;
   }
+  // Do not log if required apis are not available.
+  if (!Api.getInstance().requiredApisAvailable()) {
+    return;
+  }
   // Only log the page load auto traces if page is visible.
   if (trace.isAuto && getVisibilityState() !== VisibilityState.VISIBLE) {
     return;
