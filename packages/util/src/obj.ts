@@ -45,12 +45,12 @@ export function isEmpty(obj: object): obj is {} {
 export function map<T extends object, V, U extends { [key in keyof T]: V }>(
   obj: T,
   fn: (value: Values<T>, key: Keys<T>, obj: T) => V,
-  opt_obj?: unknown
+  contextObj?: unknown
 ): U {
   const res: Partial<U> = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      res[key] = fn.call(opt_obj, obj[key], key, obj);
+      res[key] = fn.call(contextObj, obj[key], key, obj);
     }
   }
   return res as U;

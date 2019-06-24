@@ -84,14 +84,6 @@ export const queryIdentifier = function(query: Query) {
 };
 
 /**
- * @param {!Query} firebaseRef
- * @return {!Object}
- */
-export const listens = function(firebaseRef: Query) {
-  return (firebaseRef.repo.persistentConnection_ as any).listens_;
-};
-
-/**
  * Forces the RepoManager to create Repos that use ReadonlyRestClient instead of PersistentConnection.
  *
  * @param {boolean} forceRestClient
