@@ -22,7 +22,7 @@ import { createFirebaseNamespace } from './src/firebaseNamespace';
 // @ts-ignore
 import Storage from 'dom-storage';
 // @ts-ignore
-import XMLHttpRequest from 'xmlhttprequest';
+import { XMLHttpRequest } from 'xmlhttprequest';
 
 const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
 
