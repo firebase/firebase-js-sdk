@@ -406,8 +406,10 @@ export function each(obj: object | Array<any>, fn: (v: any, k: any) => void) {
      * a single impl that does a key, value callback. So we invert
      * to not have to touch the `each` code points
      */
-    for (const [key, value] of Object.entries(obj)) {
-      fn(value, key);
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        fn(obj[key], key);
+      }
     }
   }
 }
