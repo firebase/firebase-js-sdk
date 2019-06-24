@@ -824,8 +824,10 @@ firebase.User.prototype.updateProfile = function(profile) {};
  *     are configured in the same Firebase Auth project used.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.prototype.verifyBeforeUpdateEmail =
-    function(newEmail, actionCodeSettings) {};
+firebase.User.prototype.verifyBeforeUpdateEmail = function(
+  newEmail,
+  actionCodeSettings
+) {};
 
 /**
  * Deletes and signs out the user.
@@ -2088,7 +2090,6 @@ firebase.auth.Error.prototype.code;
  */
 firebase.auth.Error.prototype.message;
 
-
 /**
  * The error thrown when the user needs to provide a second factor to sign in
  * successfully.
@@ -2828,8 +2829,9 @@ firebase.auth.PhoneMultiFactorGenerator.FACTOR_ID;
  *     Auth credential.
  * @return {!firebase.auth.PhoneMultiFactorAssertion}
  */
-firebase.auth.PhoneMultiFactorGenerator.assertion =
-    function(phoneAuthCredential) {};
+firebase.auth.PhoneMultiFactorGenerator.assertion = function(
+  phoneAuthCredential
+) {};
 
 /**
  * A structure containing the information of a second factor entity.
@@ -3033,8 +3035,9 @@ firebase.auth.MultiFactorResolver.prototype.hints;
  * @return {!firebase.Promise<!firebase.auth.UserCredential>} The promise that
  *     resolves with the user credential object.
  */
-firebase.auth.MultiFactorResolver.prototype.resolveSignIn =
-    function(assertion) {};
+firebase.auth.MultiFactorResolver.prototype.resolveSignIn = function(
+  assertion
+) {};
 
 /**
  * The multi-factor session object used for enrolling a second factor on a
@@ -3132,8 +3135,10 @@ firebase.User.MultiFactorUser.prototype.enrolledFactors;
  * @param {?string=} displayName The display name of the second factor.
  * @return {!firebase.Promise<void>}
  */
-firebase.User.MultiFactorUser.prototype.enroll =
-    function(assertion, displayName) {};
+firebase.User.MultiFactorUser.prototype.enroll = function(
+  assertion,
+  displayName
+) {};
 
 /**
  * Returns the session identifier for a second factor enrollment operation.
