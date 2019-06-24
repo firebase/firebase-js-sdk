@@ -1282,7 +1282,7 @@ export class JsonProtoSerializer {
   }
 
   fromFieldFilter(filter: api.Filter): Filter {
-    return new FieldFilter(
+    return Filter.create(
       this.fromFieldPathReference(filter.fieldFilter!.field!),
       this.fromOperatorName(filter.fieldFilter!.op!),
       this.fromValue(filter.fieldFilter!.value!)

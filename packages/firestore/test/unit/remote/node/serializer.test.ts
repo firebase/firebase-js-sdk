@@ -25,6 +25,9 @@ import { GeoPoint } from '../../../../src/api/geo_point';
 import { Timestamp } from '../../../../src/api/timestamp';
 import { DatabaseId } from '../../../../src/core/database_info';
 import {
+  ArrayContainsAnyFilter,
+  ArrayContainsFilter,
+  InFilter,
   Direction,
   FieldFilter,
   Operator,
@@ -693,7 +696,9 @@ describe('Serializer', () => {
           value: { stringValue: 'food' }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(FieldFilter);
     });
 
     it('converts LessThan', () => {
@@ -706,7 +711,9 @@ describe('Serializer', () => {
           value: { integerValue: '42' }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(FieldFilter);
     });
 
     it('converts LessThanOrEqual', () => {
@@ -719,7 +726,9 @@ describe('Serializer', () => {
           value: { stringValue: 'food' }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(FieldFilter);
     });
 
     it('converts GreaterThan', () => {
@@ -732,7 +741,9 @@ describe('Serializer', () => {
           value: { booleanValue: false }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(FieldFilter);
     });
 
     it('converts GreaterThanOrEqual', () => {
@@ -745,7 +756,9 @@ describe('Serializer', () => {
           value: { doubleValue: 1e100 }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(FieldFilter);
     });
 
     it('converts array-contains', () => {
@@ -758,7 +771,9 @@ describe('Serializer', () => {
           value: { integerValue: '42' }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(ArrayContainsFilter);
     });
 
     it('converts IN', () => {
@@ -779,7 +794,9 @@ describe('Serializer', () => {
           }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(InFilter);
     });
 
     it('converts array-contains-any', () => {
@@ -800,7 +817,9 @@ describe('Serializer', () => {
           }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(ArrayContainsAnyFilter);
     });
   });
 
