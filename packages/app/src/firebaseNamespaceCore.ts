@@ -104,7 +104,7 @@ export function createFirebaseNamespaceCore(
   function app(name?: string): FirebaseApp {
     name = name || DEFAULT_ENTRY_NAME;
     if (!contains(apps, name)) {
-      throw ERROR_FACTORY.create(AppError.NO_APP, { name });
+      throw ERROR_FACTORY.create(AppError.NO_APP, { appName: name });
     }
     return apps[name];
   }
@@ -137,11 +137,11 @@ export function createFirebaseNamespaceCore(
     const { name } = config;
 
     if (typeof name !== 'string' || !name) {
-      throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, { name: String(name) });
+      throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, { appName: String(name) });
     }
 
     if (contains(apps, name)) {
-      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { name });
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_APP, { appName: name });
     }
 
     const app = new firebaseAppImpl(
@@ -180,7 +180,7 @@ export function createFirebaseNamespaceCore(
   ): FirebaseServiceNamespace<FirebaseService> {
     // Cannot re-register a service that already exists
     if (factories[name]) {
-      throw ERROR_FACTORY.create(AppError.DUPLICATE_SERVICE, { name });
+      throw ERROR_FACTORY.create(AppError.DUPLICATE_SERVICE, { appName: name });
     }
 
     // Capture the service factory for later service instantiation
@@ -203,7 +203,7 @@ export function createFirebaseNamespaceCore(
         // Invalid argument.
         // This happens in the following case: firebase.storage('gs:/')
         throw ERROR_FACTORY.create(AppError.INVALID_APP_ARGUMENT, {
-          name
+          appName: name
         });
       }
 

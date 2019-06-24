@@ -28,19 +28,19 @@ export const enum AppError {
 
 const ERRORS: ErrorMap<AppError> = {
   [AppError.NO_APP]:
-    "No Firebase App '{$name}' has been created - " +
+    "No Firebase App '{$appName}' has been created - " +
     'call Firebase App.initializeApp()',
-  [AppError.BAD_APP_NAME]: "Illegal App name: '{$name}",
-  [AppError.DUPLICATE_APP]: "Firebase App named '{$name}' already exists",
-  [AppError.APP_DELETED]: "Firebase App named '{$name}' already deleted",
+  [AppError.BAD_APP_NAME]: "Illegal App name: '{$appName}",
+  [AppError.DUPLICATE_APP]: "Firebase App named '{$appName}' already exists",
+  [AppError.APP_DELETED]: "Firebase App named '{$appName}' already deleted",
   [AppError.DUPLICATE_SERVICE]:
-    "Firebase service named '{$name}' already registered",
+    "Firebase service named '{$appName}' already registered",
   [AppError.INVALID_APP_ARGUMENT]:
-    'firebase.{$name}() takes either no argument or a ' +
+    'firebase.{$appName}() takes either no argument or a ' +
     'Firebase App instance.'
 };
 
-type ErrorParams = { [key in AppError]: { name: string } };
+type ErrorParams = { [key in AppError]: { appName: string } };
 
 export const ERROR_FACTORY = new ErrorFactory<AppError, ErrorParams>(
   'app',
