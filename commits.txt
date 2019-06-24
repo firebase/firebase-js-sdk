@@ -1,0 +1,26 @@
+a6b81804b00002e78cad267fbb8a215c2a06a9f9 Publish firebase@6.2.2
+cbdc78984495d4e07af94d675e6807edae44b467 Roll back import of newer AsyncStorage (#1902)
+74a397afa3ef6509fb8bc8850b3bbd6c1220ea18 Refactor Filters (#1894)
+3caea2bf50f570ea1b03a99e72cad00bf6cc49b2 Merge branch 'release' Release 6.2.1
+6ec76614a16a70c75a93cfb8494ee99234f7b849 enable eslint for Storage (#1850)
+32cb0e121254cce2d626f713b3875bf8f79c288b Make IOS_INDEXEDDB_BUG1 error more prominent when it happens (so it shows up in the error surfaced repeatedly by the AsyncQueue). (#1896)
+7a52f753c94d326e690ccafed48d82c8959dcf72 Fix the implementation of Bound.isEqual (#1893)
+ae2698f3e8f4e6ae3f464d6d071b2ef6c624da33 Update Fireperf HttpMethod from hardcoded value '1' to networkRequest object value. (#1887)
+
+6ae2cbfa9f7711d6643cfeac648408d772b5e211 Publish firebase@6.2.1
+5856b9d60ea6c98b5f534a1893572d8437c04a43 Update React Native AsyncStorage import (#1879)
+dce78ca0899e9fbbef208047622e0afb1045f267 Fix a few linter issues (#1892)
+7866e2235998de53458c11a063c0fc588d982ae1 Enable noImplicitAny Typescript compiler flag (#1862)
+9f109f85ad0d99f6c13e68dcb549a0b852e35a2a enable eslint for functions (#1864)
+1804b1d920a99170acce981098e5a4eedcedface enable eslint for installations (#1877)
+ba19625aa16f1ae21e6196b4e74ef753c5920073 Merge with firebase 6.2.0
+c55d1e9e269db59a74ea745e8744e8c33d57c007 Check that self.firebase is not undefined (#1868)
+fb45cd65e27ec858ca7170d5d8a9f47f49a70dcd Upgrade faye-websocket from 0.11.1 to 0.11.3 (#1880)
+5511cbd6c2659868bae524209a833b6894ddc8c9 add code fonts (#1871)
+b91f690d83aba450697e5c73ea5523fcf1d58b83 Fix storage Reference.put param type (#1876)
+9678bf9a5692b0a33822cfdef27ddb27834cebb2 Add IN and ARRAY_CONTAINS_ANY (not publicly exposed) (#1843)
+dd098c6a87f23ddf54a7f9b21b87f7bb3fd56bdd Migrate messaging to eslint (#1872)
+fd5a31a6bba01b79f9fd269c96926c8aa6248701 Generate a new token after getId calls if there is no valid token (#1869)
+99e6cc8267d4eea4b2893a45d097c6cb20eddd15 Add support for running Firestore integration tests against the emulator (#1851)
+3f2c7bf8a08978bea065ac1706af016e8646f234 Check that window is complete in BrowserConnectivityMonitor (#1870)
+73f10767a8473468aa6fb6300abe93f998b59ecf Minor style changes for a RTDB comment block (#1857)

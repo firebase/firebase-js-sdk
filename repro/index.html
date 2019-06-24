@@ -1,0 +1,32 @@
+<html>
+<script src="https://www.gstatic.com/firebasejs/6.2.2/firebase.js"></script>
+<script>
+  // Initialize Firebase
+  var config = {
+    apiKey: "AIzaSyAqgpq3E9oNo_FV9BP-P8prejI6LAx6FRs",
+    authDomain: "firestore-fun.firebaseapp.com",
+    databaseURL: "https://firestore-fun.firebaseio.com",
+    projectId: "firestore-fun",
+    storageBucket: "firestore-fun.appspot.com",
+    messagingSenderId: "843026259800"
+  };
+  firebase.initializeApp(config);
+  firebase.firestore.setLogLevel('debug');
+
+  let db = firebase.firestore();
+  db.enablePersistence().then(() => {
+    console.log('Persistence enabled');
+  });
+ 
+  let arrays = db.collection('arrays');
+ 
+  arrays.add({foo: Math.floor(Math.random() * 100), x: [1, 42, 'something', 3]}).then(() => {
+    console.log('Write succeeded.');
+    arrays.where('x', 'array-contains', 'something').get().then(snap => {
+      console.log('OBC Results: ' + snap.docs.length);
+      console.log('OBC ' + snap.docs.map(d => d.data()));
+    });
+  });
+ 
+</script>
+</html>

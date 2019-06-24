@@ -608,7 +608,9 @@ describeSpec('Listens:', [], () => {
   });
 
   specTest('Array-contains queries support resuming', [], () => {
-    const query = Query.atPath(path('collection')).addFilter(filter('array', 'array-contains', 42));
+    const query = Query.atPath(path('collection')).addFilter(
+      filter('array', 'array-contains', 42)
+    );
     const docA = doc('collection/a', 2000, { foo: 'bar', array: [1, 42, 3] });
     return spec()
       .withGCEnabled(false)
