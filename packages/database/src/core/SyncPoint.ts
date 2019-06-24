@@ -263,12 +263,16 @@ export class SyncPoint {
   }
 
   getCompleteView(): View | null {
-    const completeView = Array.from(this.views.values()).find((view: View) =>
-      view
-        .getQuery()
-        .getQueryParams()
-        .loadsAllData()
-    );
-    return completeView || null;
+    for (const view of this.views.values()) {
+      if (
+        view
+          .getQuery()
+          .getQueryParams()
+          .loadsAllData()
+      ) {
+        return view;
+      }
+    }
+    return null;
   }
 }

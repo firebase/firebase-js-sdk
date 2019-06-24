@@ -77,7 +77,7 @@ export class PersistentConnection extends ServerActions {
   private log_ = logWrapper('p:' + this.id + ':');
 
   private interruptReasons_: { [reason: string]: boolean } = {};
-  private listens_: { [path: string]: { [queryId: string]: ListenSpec } } = {};
+  private readonly listens: Map<string, Map<string, ListenSpec>> = new Map();
   private outstandingPuts_: OutstandingPut[] = [];
   private outstandingPutCount_ = 0;
   private onDisconnectRequestQueue_: OnDisconnectRequest[] = [];
@@ -180,14 +180,16 @@ export class PersistentConnection extends ServerActions {
     const queryId = query.queryIdentifier();
     const pathString = query.path.toString();
     this.log_('Listen called for ' + pathString + ' ' + queryId);
-    this.listens_[pathString] = this.listens_[pathString] || {};
+    if (!this.listens.has(pathString)) {
+      this.listens.set(pathString, new Map());
+    }
     assert(
       query.getQueryParams().isDefault() ||
         !query.getQueryParams().loadsAllData(),
       'listen() called for non-default but complete query'
     );
     assert(
-      !this.listens_[pathString][queryId],
+      !this.listens.get(pathString)!.has(queryId),
       'listen() called twice for same path/queryId.'
     );
     const listenSpec: ListenSpec = {
@@ -196,7 +198,7 @@ export class PersistentConnection extends ServerActions {
       query: query,
       tag: tag
     };
-    this.listens_[pathString][queryId] = listenSpec;
+    this.listens.get(pathString)!.set(queryId, listenSpec);
 
     if (this.connected_) {
       this.sendListen_(listenSpec);
@@ -228,7 +230,8 @@ export class PersistentConnection extends ServerActions {
       PersistentConnection.warnOnListenWarnings_(payload, query);
 
       const currentListenSpec =
-        this.listens_[pathString] && this.listens_[pathString][queryId];
+        this.listens.get(pathString) &&
+        this.listens.get(pathString)!.get(queryId);
       // only trigger actions if the listen hasn't been removed and readded
       if (currentListenSpec === listenSpec) {
         this.log_('listen response', message);
@@ -834,11 +837,12 @@ export class PersistentConnection extends ServerActions {
   private removeListen_(pathString: string, queryId: string): ListenSpec {
     const normalizedPathString = new Path(pathString).toString(); // normalize path.
     let listen;
-    if (this.listens_[normalizedPathString] !== undefined) {
-      listen = this.listens_[normalizedPathString][queryId];
-      delete this.listens_[normalizedPathString][queryId];
-      if (isEmpty(this.listens_[normalizedPathString])) {
-        delete this.listens_[normalizedPathString];
+    if (this.listens.has(normalizedPathString)) {
+      const map = this.listens.get(normalizedPathString)!;
+      listen = map.get(queryId);
+      map.delete(queryId);
+      if (map.size === 0) {
+        this.listens.delete(normalizedPathString);
       }
     } else {
       // all listens for this path has already been removed
@@ -884,8 +888,8 @@ export class PersistentConnection extends ServerActions {
 
     // Puts depend on having received the corresponding data update from the server before they complete, so we must
     // make sure to send listens before puts.
-    for (const queries of Object.values(this.listens_)) {
-      for (const listenSpec of Object.values(queries)) {
+    for (const queries of this.listens.values()) {
+      for (const listenSpec of queries.values()) {
         this.sendListen_(listenSpec);
       }
     }

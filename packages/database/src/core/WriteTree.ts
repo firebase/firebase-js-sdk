@@ -497,9 +497,15 @@ export class WriteTree {
     if (writeRecord.snap) {
       return writeRecord.path.contains(path);
     } else {
-      return Object.keys(writeRecord.children).some((childName: string) =>
-        writeRecord.path.child(childName).contains(path)
-      );
+      for (const childName in writeRecord.children) {
+        if (
+          writeRecord.children.hasOwnProperty(childName) &&
+          writeRecord.path.child(childName).contains(path)
+        ) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 

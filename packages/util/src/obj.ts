@@ -48,8 +48,10 @@ export function map<T extends object, V, U extends { [key in keyof T]: V }>(
   opt_obj?: unknown
 ): U {
   const res: Partial<U> = {};
-  for (const [key, value] of Object.entries(obj)) {
-    res[key as Keys<T>] = fn.call(opt_obj, value, key, obj);
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      res[key] = fn.call(opt_obj, obj[key], key, obj);
+    }
   }
   return res as U;
 }
