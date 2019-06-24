@@ -20,8 +20,10 @@
  * params object (e.g. {arg: 'val', arg2: 'val2'})
  * Note: You must prepend it with ? when adding it to a URL.
  */
-export function querystring(querystringParams: { [key: string]: string }) {
-  var params = [];
+export function querystring(querystringParams: {
+  [key: string]: string;
+}): string {
+  const params = [];
   for (const [key, value] of Object.entries(querystringParams)) {
     if (Array.isArray(value)) {
       value.forEach(arrayVal => {
