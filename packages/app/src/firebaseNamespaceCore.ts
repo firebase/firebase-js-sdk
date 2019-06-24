@@ -137,7 +137,9 @@ export function createFirebaseNamespaceCore(
     const { name } = config;
 
     if (typeof name !== 'string' || !name) {
-      throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, { appName: String(name) });
+      throw ERROR_FACTORY.create(AppError.BAD_APP_NAME, {
+        appName: String(name)
+      });
     }
 
     if (contains(apps, name)) {
