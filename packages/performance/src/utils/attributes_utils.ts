@@ -41,6 +41,11 @@ const enum EffectiveConnectionType {
   CONNECTION_4G = 4
 }
 
+const RESERVED_ATTRIBUTE_PREFIXES = ['firebase_', 'google_', 'ga_'];
+const ATTRIBUTE_FORMAT_REGEX = new RegExp('^[a-zA-Z]\\w*$');
+const MAX_ATTRIBUTE_NAME_LENGTH = 40;
+const MAX_ATTRIBUTE_VALUE_LENGTH = 100;
+
 export function getServiceWorkerStatus(): ServiceWorkerStatus {
   const navigator = Api.getInstance().navigator;
   if ('serviceWorker' in navigator) {
@@ -87,4 +92,16 @@ export function getEffectiveConnectionType(): EffectiveConnectionType {
     default:
       return EffectiveConnectionType.UNKNOWN;
   }
+}
+
+export function isValidCustomAttributeName(name: string): boolean {
+  if (name.length > MAX_ATTRIBUTE_NAME_LENGTH) {
+    return false;
+  }
+  const matchesReservedPrefix = RESERVED_ATTRIBUTE_PREFIXES.some(prefix => name.startsWith(prefix));
+  return !matchesReservedPrefix && !!name.match(ATTRIBUTE_FORMAT_REGEX);
+}
+
+export function isValidCustomAttributeValue(value: string): boolean {
+  return value.length <= MAX_ATTRIBUTE_VALUE_LENGTH;
 }
