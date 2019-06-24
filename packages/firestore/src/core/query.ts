@@ -449,17 +449,29 @@ export abstract class Filter {
    */
   static create(field: FieldPath, op: Operator, value: FieldValue): Filter {
     if (field.isKeyField()) {
-      assert(
-        value instanceof RefValue,
-        'Comparing on key, but filter value not a RefValue'
-      );
-      assert(
-        op !== Operator.ARRAY_CONTAINS &&
-          op !== Operator.ARRAY_CONTAINS_ANY &&
-          op !== Operator.IN,
-        `'${op.toString()}' queries don't make sense on document keys.`
-      );
-      return new KeyFieldFilter(field, op, value as RefValue);
+      if (op === Operator.IN) {
+        assert(
+          value instanceof ArrayValue,
+          'Comparing on key with IN, but filter value not an ArrayValue'
+        );
+        assert(
+          (value as ArrayValue).internalValue.every(elem => {
+            return elem instanceof RefValue;
+          }),
+          'Comparing on key with IN, but an array value was not a RefValue'
+        );
+        return new KeyFieldInFilter(field, op, value as ArrayValue);
+      } else {
+        assert(
+          value instanceof RefValue,
+          'Comparing on key, but filter value not a RefValue'
+        );
+        assert(
+          op !== Operator.ARRAY_CONTAINS && op !== Operator.ARRAY_CONTAINS_ANY,
+          `'${op.toString()}' queries don't make sense on document keys.`
+        );
+        return new KeyFieldFilter(field, op, value as RefValue);
+      }
     } else if (value.isEqual(NullValue.INSTANCE)) {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
@@ -624,6 +636,24 @@ export class KeyFieldFilter extends FieldFilter {
     const refValue = this.value as RefValue;
     const comparison = DocumentKey.comparator(doc.key, refValue.key);
     return this.matchesComparison(comparison);
+  }
+}
+
+/** Filter that matches on key fields within an array. */
+export class KeyFieldInFilter extends FieldFilter {
+  constructor(field: FieldPath, op: Operator, value: ArrayValue) {
+    super(field, op, value);
+  }
+
+  matches(doc: Document): boolean {
+    const arrayValue = this.value as ArrayValue;
+    return arrayValue.internalValue.some(refValue => {
+      const comparison = DocumentKey.comparator(
+        doc.key,
+        (refValue as RefValue).key
+      );
+      return this.matchesComparison(comparison);
+    });
   }
 }
 
