@@ -443,57 +443,6 @@ export abstract class Filter {
   abstract matches(doc: Document): boolean;
   abstract canonicalId(): string;
   abstract isEqual(filter: Filter): boolean;
-
-  /**
-   * Creates a filter based on the provided arguments.
-   */
-  static create(field: FieldPath, op: Operator, value: FieldValue): Filter {
-    if (field.isKeyField()) {
-      assert(
-        value instanceof RefValue,
-        'Comparing on key, but filter value not a RefValue'
-      );
-      assert(
-        op !== Operator.ARRAY_CONTAINS &&
-          op !== Operator.ARRAY_CONTAINS_ANY &&
-          op !== Operator.IN,
-        `'${op.toString()}' queries don't make sense on document keys.`
-      );
-      return new KeyFieldFilter(field, op, value as RefValue);
-    } else if (value.isEqual(NullValue.INSTANCE)) {
-      if (op !== Operator.EQUAL) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid query. You can only perform equals comparisons on null.'
-        );
-      }
-      return new FieldFilter(field, op, value);
-    } else if (value.isEqual(DoubleValue.NAN)) {
-      if (op !== Operator.EQUAL) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          'Invalid query. You can only perform equals comparisons on NaN.'
-        );
-      }
-      return new FieldFilter(field, op, value);
-    } else if (op === Operator.ARRAY_CONTAINS) {
-      return new ArrayContainsFilter(field, value);
-    } else if (op === Operator.IN) {
-      assert(
-        value instanceof ArrayValue,
-        'IN filter has invalid value: ' + value.toString()
-      );
-      return new InFilter(field, value as ArrayValue);
-    } else if (op === Operator.ARRAY_CONTAINS_ANY) {
-      assert(
-        value instanceof ArrayValue,
-        'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
-      );
-      return new ArrayContainsAnyFilter(field, value as ArrayValue);
-    } else {
-      return new FieldFilter(field, op, value);
-    }
-  }
 }
 
 export class Operator {
@@ -541,12 +490,67 @@ export class Operator {
 }
 
 export class FieldFilter extends Filter {
-  constructor(
+  protected constructor(
     public field: FieldPath,
     public op: Operator,
     public value: FieldValue
   ) {
     super();
+  }
+
+  /**
+   * Creates a filter based on the provided arguments.
+   */
+  static create(
+    field: FieldPath,
+    op: Operator,
+    value: FieldValue
+  ): FieldFilter {
+    if (field.isKeyField()) {
+      assert(
+        value instanceof RefValue,
+        'Comparing on key, but filter value not a RefValue'
+      );
+      assert(
+        op !== Operator.ARRAY_CONTAINS &&
+          op !== Operator.ARRAY_CONTAINS_ANY &&
+          op !== Operator.IN,
+        `'${op.toString()}' queries don't make sense on document keys.`
+      );
+      return new KeyFieldFilter(field, op, value as RefValue);
+    } else if (value.isEqual(NullValue.INSTANCE)) {
+      if (op !== Operator.EQUAL) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Invalid query. You can only perform equals comparisons on null.'
+        );
+      }
+      return new FieldFilter(field, op, value);
+    } else if (value.isEqual(DoubleValue.NAN)) {
+      if (op !== Operator.EQUAL) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Invalid query. You can only perform equals comparisons on NaN.'
+        );
+      }
+      return new FieldFilter(field, op, value);
+    } else if (op === Operator.ARRAY_CONTAINS) {
+      return new ArrayContainsFilter(field, value);
+    } else if (op === Operator.IN) {
+      assert(
+        value instanceof ArrayValue,
+        'IN filter has invalid value: ' + value.toString()
+      );
+      return new InFilter(field, value as ArrayValue);
+    } else if (op === Operator.ARRAY_CONTAINS_ANY) {
+      assert(
+        value instanceof ArrayValue,
+        'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
+      );
+      return new ArrayContainsAnyFilter(field, value as ArrayValue);
+    } else {
+      return new FieldFilter(field, op, value);
+    }
   }
 
   matches(doc: Document): boolean {
