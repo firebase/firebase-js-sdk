@@ -223,10 +223,14 @@ export function createFirebaseNamespaceCore(
 
     // Patch the FirebaseAppImpl prototype
     // @ts-ignore
-    firebaseAppImpl.prototype[name] = function(...args) {
-      const serviceFxn = this._getService.bind(this, name);
-      return serviceFxn.apply(this, allowMultipleInstances ? args : []);
-    };
+    firebaseAppImpl.prototype[name] =
+      // TODO: The eslint disable can be removed and the 'ignoreRestArgs'
+      // option added to the no-explicit-any rule when ESlint releases it.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      function(...args: any) {
+        const serviceFxn = this._getService.bind(this, name);
+        return serviceFxn.apply(this, allowMultipleInstances ? args : []);
+      };
 
     return serviceNamespace;
   }

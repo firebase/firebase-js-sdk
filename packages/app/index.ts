@@ -43,7 +43,10 @@ if (isBrowser() && (self as any).firebase !== undefined) {
 const firebaseNamespace = createFirebaseNamespace();
 const initializeApp = firebaseNamespace.initializeApp;
 
-firebaseNamespace.initializeApp = function() {
+// TODO: This disable can be removed and the 'ignoreRestArgs' option added to
+// the no-explicit-any rule when ESlint releases it.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+firebaseNamespace.initializeApp = function(...args: any) {
   // Environment check before initializing app
   // Do the check in initializeApp, so people have a chance to disable it by setting logLevel
   // in @firebase/logger
@@ -62,8 +65,7 @@ firebaseNamespace.initializeApp = function() {
       https://github.com/rollup/rollup-plugin-node-resolve
       `);
   }
-
-  return initializeApp.apply(undefined, arguments);
+  return initializeApp.apply(undefined, args);
 };
 
 export const firebase = firebaseNamespace;
