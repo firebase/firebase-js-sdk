@@ -30,7 +30,6 @@ import {
   Bound,
   Direction,
   FieldFilter,
-  Filter,
   Operator,
   OrderBy
 } from '../../src/core/query';

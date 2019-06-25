@@ -27,8 +27,8 @@ import { DatabaseId } from '../../../../src/core/database_info';
 import {
   ArrayContainsAnyFilter,
   ArrayContainsFilter,
-  InFilter,
   Direction,
+  InFilter,
   FieldFilter,
   KeyFieldFilter,
   Operator,
