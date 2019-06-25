@@ -203,6 +203,13 @@ fireauth.exportlib.exportPrototypeProperties(
             fireauth.args.string(),
             fireauth.args.null(),
             'languageCode')
+      },
+      'ti': {
+        name: 'tenantId',
+        arg: fireauth.args.or(
+            fireauth.args.string(),
+            fireauth.args.null(),
+            'tenantId')
       }
     });
 

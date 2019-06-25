@@ -95,6 +95,7 @@ fireauth.XmlHttpFactory.prototype.internalGetOptions = function() {
  * @constructor
  */
 fireauth.RpcHandler = function(apiKey, opt_config, opt_firebaseClientVersion) {
+  /** @private {string} The project API key. */
   this.apiKey_ = apiKey;
   var config = opt_config || {};
   this.secureTokenEndpoint_ = config['secureTokenEndpoint'] ||
@@ -151,6 +152,8 @@ fireauth.RpcHandler = function(apiKey, opt_config, opt_firebaseClientVersion) {
     // CORS Browser environment.
     this.rpcHandlerXhrFactory_ = new goog.net.CorsXmlHttpFactory();
   }
+  /** @private {?string} The tenant ID. */
+  this.tenantId_ = null;
 };
 
 
@@ -233,6 +236,7 @@ fireauth.RpcHandler.ServerError = {
   RESET_PASSWORD_EXCEED_LIMIT: 'RESET_PASSWORD_EXCEED_LIMIT',
   REJECTED_CREDENTIAL: 'REJECTED_CREDENTIAL',
   SESSION_EXPIRED: 'SESSION_EXPIRED',
+  TENANT_ID_MISMATCH: 'TENANT_ID_MISMATCH',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'TOO_MANY_ATTEMPTS_TRY_LATER',
   UNAUTHORIZED_DOMAIN: 'UNAUTHORIZED_DOMAIN',
@@ -417,6 +421,24 @@ fireauth.RpcHandler.prototype.updateClientVersion = function(clientVersion) {
     delete this.firebaseHeaders_['X-Client-Version'];
     delete this.secureTokenHeaders_['X-Client-Version'];
   }
+};
+
+
+/**
+ * Updates the tenant ID in the request.
+ * @param {?string} tenantId The new tenant ID.
+ */
+fireauth.RpcHandler.prototype.updateTenantId = function(tenantId) {
+  this.tenantId_ = tenantId;
+};
+
+
+/**
+ * Returns the tenant ID.
+ * @return {?string} The tenant ID.
+ */
+fireauth.RpcHandler.prototype.getTenantId = function() {
+  return this.tenantId_;
 };
 
 
@@ -1967,6 +1989,7 @@ fireauth.RpcHandler.prototype.applyActionCode = function(code) {
  *     will be returned.
  * <li>returnSecureToken: Set to true to explicitly request STS tokens instead
  *     of legacy Google Identity Toolkit tokens from the backend.
+ * <li>requireTenantId: Set to true to send tenant ID to backend in the request.
  * </ul>
  * @typedef {{
  *   cachebuster: (boolean|undefined),
@@ -1978,7 +2001,8 @@ fireauth.RpcHandler.prototype.applyActionCode = function(code) {
  *   responsePreprocessor: ((function(!Object, !Object):!Object)|undefined),
  *   responseValidator: (function(!Object):void|undefined),
  *   responseField: (string|undefined),
- *   returnSecureToken: (boolean|undefined)
+ *   returnSecureToken: (boolean|undefined),
+ *   requireTenantId: (boolean|undefined)
  * }}
  */
 fireauth.RpcHandler.ApiMethodHandler;
@@ -2003,7 +2027,8 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'signupNewUser',
     requestValidator: fireauth.RpcHandler.validateCreateAccountRequest_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    requireTenantId: true
   },
   CREATE_AUTH_URI: {
     endpoint: 'createAuthUri'
@@ -2108,7 +2133,8 @@ fireauth.RpcHandler.ApiMethod = {
   SIGN_IN_ANONYMOUSLY: {
     endpoint: 'signupNewUser',
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    requireTenantId: true
   },
   VERIFY_ASSERTION: {
     endpoint: 'verifyAssertion',
@@ -2173,6 +2199,14 @@ fireauth.RpcHandler.USE_STS_TOKEN_PARAM_ = 'returnSecureToken';
 
 
 /**
+ * @const {string} The parameter to send to the backend to specify the tenant
+ *     ID.
+ * @private
+ */
+fireauth.RpcHandler.TENANT_ID_PARAM_ = 'tenantId';
+
+
+/**
  * Invokes an RPC method according to the specification defined by
  * {@code fireauth.RpcHandler.ApiMethod}.
  * @param {!fireauth.RpcHandler.ApiMethod} method The method to invoke.
@@ -2199,6 +2233,9 @@ fireauth.RpcHandler.prototype.invokeRpc_ = function(method, request) {
           // Signal that the client accepts STS tokens, for the legacy Google
           // Identity Toolkit token to STS token migration.
           request[fireauth.RpcHandler.USE_STS_TOKEN_PARAM_] = true;
+        }
+        if (method.requireTenantId && self.tenantId_) {
+          request[fireauth.RpcHandler.TENANT_ID_PARAM_] = self.tenantId_;
         }
         return self.requestFirebaseEndpoint(method.endpoint, httpMethod,
             request, method.customErrorMap, method.cachebuster || false);

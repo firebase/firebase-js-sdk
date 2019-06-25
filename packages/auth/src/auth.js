@@ -308,6 +308,28 @@ fireauth.Auth.prototype.setUserFramework_ = function(user) {
 
 
 /**
+ * Sets the tenant ID.
+ * @param {?string} tenantId The tenant ID of the tenant project if available.
+ */
+fireauth.Auth.prototype.setTenantId = function(tenantId) {
+  // Don't do anything if no change detected.
+  if (this.tenantId_ !== tenantId && !this.deleted_) {
+    this.tenantId_ = tenantId;
+    this.rpcHandler_.updateTenantId(this.tenantId_);
+  }
+};
+
+
+/**
+ * Returns the current Auth instance's tenant ID.
+ * @return {?string}
+ */
+fireauth.Auth.prototype.getTenantId = function() {
+  return this.tenantId_;
+};
+
+
+/**
  * Initializes readable/writable properties on Auth.
  * @suppress {invalidCasts}
  * @private
@@ -333,6 +355,28 @@ fireauth.Auth.prototype.initializeReadableWritableProps_ = function() {
   // Initialize to null.
   /** @private {?string} The current Auth instance's language code. */
   this.languageCode_ = null;
+
+  // Initialize tenant ID.
+  Object.defineProperty(/** @type {!Object} */ (this), 'ti', {
+    /**
+     * @this {!Object}
+     * @return {?string} The current tenant ID.
+     */
+    get: function() {
+      return this.getTenantId();
+    },
+    /**
+     * @this {!Object}
+     * @param {?string} value The new tenant ID.
+     */
+    set: function(value) {
+      this.setTenantId(value);
+    },
+    enumerable: false
+  });
+  // Initialize to null.
+  /** @private {?string} The current Auth instance's tenant ID. */
+  this.tenantId_ = null;
 };
 
 
@@ -747,6 +791,10 @@ fireauth.Auth.prototype.updateCurrentUser = function(user) {
   if (!user) {
     return goog.Promise.reject(new fireauth.AuthError(
         fireauth.authenum.Error.NULL_USER));
+  }
+  if (this.tenantId_ != user['tenantId']) {
+    return goog.Promise.reject(new fireauth.AuthError(
+        fireauth.authenum.Error.TENANT_ID_MISMATCH));
   }
   var self = this;
   var options = {};

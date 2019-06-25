@@ -562,6 +562,7 @@ function testUser() {
   assertEquals('https://www.default.com/default/default.png', user['photoURL']);
   assertEquals('firebase', user['providerId']);
   assertEquals(false, user['isAnonymous']);
+  assertNull(user['tenantId']);
   assertArrayEquals(['providerId1', 'providerId2'], user.getProviderIds());
   assertObjectEquals(
       {
@@ -607,6 +608,8 @@ function testUser_copyUser() {
   config1['authDomain'] = 'subdomain.firebaseapp.com';
   config2['authDomain'] = 'subdomain.firebaseapp.com';
   asyncTestCase.waitForSignals(1);
+  // Sets the tenant ID on user to be copied.
+  accountInfo['tenantId'] = '123456789012';
   user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
   user.addProviderData(providerData1);
   user.addProviderData(providerData2);
@@ -614,6 +617,8 @@ function testUser_copyUser() {
       fireauth.RpcHandler.prototype,
       'getAccountInfoByIdToken',
       goog.testing.recordFunction(function(idToken) {
+        // Mocks that tenant ID is returned in getAccountInfo response.
+        getAccountInfoResponse['users'][0]['tenantId'] = '123456789012';
         return goog.Promise.resolve(getAccountInfoResponse);
       }));
   var expectedEventId = '1234';
@@ -663,6 +668,7 @@ function testUser_copyUser() {
   fireauth.common.testHelper.assertUserEqualsInWithDiffApikey(
       user, copiedUser, config1['apiKey'], config2['apiKey']);
   assertFalse(copiedUser['isAnonymous']);
+  assertEquals('123456789012', copiedUser['tenantId']);
   // Confirm frameworks set on created user.
   assertArrayEquals(frameworks, copiedUser.getFramework());
 
@@ -731,8 +737,37 @@ function testUser_rpcHandlerEndpoints() {
       fireauth, 'RpcHandler');
   rpcHandlerConstructor(config1['apiKey'], endpointConfig, ignoreArgument)
       .$returns(rpcHandler);
+  rpcHandler.updateTenantId(null);
   mockControl.$replayAll();
   user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+}
+
+
+function testUser_rpcHandlerEndpoints_tenantId() {
+  // Confirm expected endpoint config passed to underlying RPC handler.
+  var endpoint = fireauth.constants.Endpoint.STAGING;
+  var endpointConfig = {
+    'firebaseEndpoint': endpoint.firebaseAuthEndpoint,
+    'secureTokenEndpoint': endpoint.secureTokenEndpoint
+  };
+  stubs.replace(
+      fireauth.constants,
+      'getEndpointConfig',
+      function(opt_id) {
+        return endpointConfig;
+      });
+  var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+  var rpcHandlerConstructor = mockControl.createConstructorMock(
+      fireauth, 'RpcHandler');
+  rpcHandlerConstructor(config1['apiKey'], endpointConfig, ignoreArgument)
+      .$returns(rpcHandler);
+  // Tenant ID of RPC handler should be updated.
+  rpcHandler.updateTenantId('123456789012');
+  mockControl.$replayAll();
+  // Sets the tenant ID on user.
+  accountInfo['tenantId'] = '123456789012';
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
+  assertEquals('123456789012', user['tenantId']);
 }
 
 
@@ -1034,6 +1069,45 @@ function testSetUserAccountInfoFromToken_success_passwordNoEmail() {
 }
 
 
+function testSetUserAccountInfoFromToken_success_tenantId() {
+  var response = {
+    'users': [{
+      'localId': '14584746072031976743',
+      'email': 'uid123@fake.com',
+      'emailVerified': true,
+      'displayName': 'John Doe',
+      'passwordHash': 'PASSWORD_HASH',
+      'providerUserInfo': [],
+      'photoUrl': 'http://abs.twimg.com/sticky/default_profile_images/' +
+          'default_profile_3_normal.png',
+      'passwordUpdatedAt': 0.0,
+      'disabled': false,
+      'tenantId': '123456789012'
+    }]
+  };
+  var updateTenantId = mockControl.createMethodMock(
+      fireauth.RpcHandler.prototype, 'updateTenantId');
+  // Tenant ID of RPC handler should be initialized to null.
+  updateTenantId(null).$once();
+  // Tenant ID of RPC handler should be updated by setAccountInfo.
+  updateTenantId('123456789012').$once();
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      function(data) {
+        assertEquals('accessToken', data);
+        return goog.Promise.resolve(response);
+      });
+  mockControl.$replayAll();
+  user = new fireauth.AuthUser(config1, tokenResponse);
+  asyncTestCase.waitForSignals(1);
+  user.reload().then(function() {
+    assertEquals('123456789012', user['tenantId']);
+    asyncTestCase.signal();
+  });
+}
+
+
 function testUser_setUserAccountInfoFromToken_error() {
   var error = {
     'error': fireauth.authenum.Error.INTERNAL_ERROR
@@ -1244,6 +1318,57 @@ function testUser_reload_success_noCredentialUserLocallyAnonymous() {
   asyncTestCase.waitForSignals(3);
   user.reload().then(function() {
     assertObjectEquals(updatedUser.toPlainObject(), user.toPlainObject());
+    asyncTestCase.signal();
+  });
+}
+
+
+function testUser_reload_success_tenantId() {
+  accountInfo2['tenantId'] = '123456789012';
+  user = new fireauth.AuthUser(config1, tokenResponse, accountInfo2);
+  assertEquals('123456789012', user['tenantId']);
+  user.addStateChangeListener(function(user) {
+    asyncTestCase.signal();
+    return goog.Promise.resolve();
+  });
+  assertNoTokenEvents(user);
+  assertNoUserInvalidatedEvents(user);
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      function(idToken) {
+        assertEquals('accessToken', idToken);
+        user.copy(updatedUser);
+        asyncTestCase.signal();
+        return goog.Promise.resolve(myAccountInfo);
+      });
+  var myAccountInfo = {
+    'users': [{
+      'localId': '14584746072031976743',
+      'email': 'new_uid123@fake.com',
+      'emailVerified': true,
+      'displayName': 'Fabrice',
+      'providerUserInfo': [],
+      'photoUrl': 'http://abs.twimg.com/sticky/default_profile_images/defaul' +
+          't_profile_3_normal.png',
+      'passwordUpdatedAt': 0.0,
+      'disabled': false,
+      'tenantId': '123456789012'
+    }]
+  };
+  var updatedUser = new fireauth.AuthUser(config1, tokenResponse, {
+    'uid': '14584746072031976743',
+    'email': 'new_uid123@fake.com',
+    'displayName': 'Fabrice',
+    'photoURL': 'http://abs.twimg.com/sticky/default_profile_images/defaul' +
+        't_profile_3_normal.png',
+    'emailVerified': true,
+    'tenantId': '123456789012'
+  });
+  asyncTestCase.waitForSignals(3);
+  user.reload().then(function() {
+    assertObjectEquals(updatedUser.toPlainObject(), user.toPlainObject());
+    assertEquals('123456789012', user['tenantId']);
     asyncTestCase.signal();
   });
 }
@@ -3964,6 +4089,7 @@ function testUser_toPlainObject() {
       '+11234567890');
   config1['authDomain'] = 'www.example.com';
   config1['appName'] = 'appId1';
+  accountInfoWithPhone['tenantId'] = '123456789012';
   var user1 = new fireauth.AuthUser(config1, tokenResponse,
       accountInfoWithPhone);
   user1.addProviderData(providerData1);
@@ -3999,7 +4125,8 @@ function testUser_toPlainObject() {
         },
         'redirectEventId': '5678',
         'lastLoginAt': lastLoginAt,
-        'createdAt': createdAt
+        'createdAt': createdAt,
+        'tenantId': '123456789012'
       },
       user1.toPlainObject());
 }
@@ -4052,6 +4179,7 @@ function testUser_toPlainObject_noMetadata() {
           'expirationTime': now + 3600 * 1000
         },
         'redirectEventId': '5678',
+        'tenantId': null,
         // Metadata should be null.
         'lastLoginAt': null,
         'createdAt': null
@@ -4073,6 +4201,7 @@ function testToJson() {
 
 function testUser_fromPlainObject() {
   accountInfoWithPhone['isAnonymous'] = true;
+  accountInfoWithPhone['tenantId'] = '123456789012';
   providerData1 = new fireauth.AuthUserInfo(
       'providerUserId1',
       'providerId1',
@@ -4131,7 +4260,8 @@ function testUser_fromPlainObject() {
         },
         'redirectEventId': '5678',
         'lastLoginAt': lastLoginAt,
-        'createdAt': createdAt
+        'createdAt': createdAt,
+        'tenantId': '123456789012'
       }));
 }
 
@@ -4197,7 +4327,8 @@ function testUser_fromPlainObject_noMetadata() {
           'accessToken': 'accessToken',
           'expirationTime': now + 3600 * 1000
         },
-        'redirectEventId': '5678'
+        'redirectEventId': '5678',
+        'tenantId': null
       }));
 }
 
@@ -4367,6 +4498,89 @@ function testUser_initializeFromIdTokenResponse() {
             'refreshToken', createdUser.stsTokenManager_.refreshToken_);
         assertEquals(
             now + 3600 * 1000, createdUser.stsTokenManager_.expirationTime_);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testUser_initializeFromIdTokenResponse_tenantId() {
+  // GetAccountInfo response with tenant ID.
+  var response = {
+    'users': [{
+      'localId': '14584746072031976743',
+      'email': 'uid123@fake.com',
+      'emailVerified': true,
+      'displayName': 'John Doe',
+      'providerUserInfo': [
+        {
+          'email': 'user@gmail.com',
+          'providerId': 'google.com',
+          'displayName': 'John G. Doe',
+          'photoUrl': 'https://lh5.googleusercontent.com/123456789/photo.jpg',
+          'federatedId': 'https://accounts.google.com/123456789',
+          'rawId': '123456789'
+        },
+        {
+          'providerId': 'twitter.com',
+          'displayName': 'John Gammell Doe',
+          'photoUrl': 'http://abs.twimg.com/sticky/default_profile_images/def' +
+              'ault_profile_3_normal.png',
+          'federatedId': 'http://twitter.com/987654321',
+          'rawId': '987654321'
+        }
+      ],
+      'photoUrl': 'http://abs.twimg.com/sticky/default_profile_images/defaul' +
+          't_profile_3_normal.png',
+      'passwordUpdatedAt': 0.0,
+      'disabled': false,
+      'tenantId': '123456789012'
+    }]
+  };
+  var expectedUser = new fireauth.AuthUser(config1, tokenResponse, {
+    'uid': '14584746072031976743',
+    'email': 'uid123@fake.com',
+    'displayName': 'John Doe',
+    'photoURL': 'http://abs.twimg.com/sticky/default_profile_images/defaul' +
+        't_profile_3_normal.png',
+    'emailVerified': true,
+    // Tenant ID shoud be set.
+    'tenantId': '123456789012'
+  });
+  expectedUser.addProviderData(new fireauth.AuthUserInfo(
+      '123456789',
+      'google.com',
+      'user@gmail.com',
+      'John G. Doe',
+      'https://lh5.googleusercontent.com/123456789/photo.jpg'));
+  expectedUser.addProviderData(new fireauth.AuthUserInfo(
+      '987654321',
+      'twitter.com',
+      null,
+      'John Gammell Doe',
+      'http://abs.twimg.com/sticky/default_profile_images/default_profile_' +
+      '3_normal.png'));
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      function(data) {
+        assertEquals('accessToken', data);
+        return goog.Promise.resolve(response);
+      });
+  asyncTestCase.waitForSignals(1);
+  fireauth.AuthUser.initializeFromIdTokenResponse(config1, tokenResponse, null)
+      .then(function(createdUser) {
+        assertObjectEquals(
+            expectedUser.toPlainObject(), createdUser.toPlainObject());
+        assertEquals('refreshToken', createdUser['refreshToken']);
+        // Confirm STS token manager instance properly created.
+        assertTrue(
+            createdUser.stsTokenManager_ instanceof fireauth.StsTokenManager);
+        assertEquals('accessToken', createdUser.stsTokenManager_.accessToken_);
+        assertEquals(
+            'refreshToken', createdUser.stsTokenManager_.refreshToken_);
+        assertEquals(
+            now + 3600 * 1000, createdUser.stsTokenManager_.expirationTime_);
+        assertEquals('123456789012', createdUser['tenantId']);
         asyncTestCase.signal();
       });
 }

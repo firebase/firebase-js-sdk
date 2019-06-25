@@ -571,6 +571,34 @@ function testAuth_rpcHandlerEndpoints() {
 }
 
 
+function testAuth_rpcHandlerEndpoints_tenantId() {
+  // Confirm expected endpoint config passed to underlying RPC handler.
+  var endpoint = fireauth.constants.Endpoint.STAGING;
+  var endpointConfig = {
+    'firebaseEndpoint': endpoint.firebaseAuthEndpoint,
+    'secureTokenEndpoint': endpoint.secureTokenEndpoint
+  };
+  stubs.replace(
+      fireauth.constants,
+      'getEndpointConfig',
+      function(opt_id) {
+        return endpointConfig;
+      });
+  var rpcHandler = mockControl.createStrictMock(fireauth.RpcHandler);
+  var rpcHandlerConstructor = mockControl.createConstructorMock(
+      fireauth, 'RpcHandler');
+  rpcHandlerConstructor(config1['apiKey'], endpointConfig, ignoreArgument)
+      .$returns(rpcHandler);
+  // Tenant ID of RPC handler should be updated.
+  rpcHandler.updateTenantId('123456789012').$once();
+  mockControl.$replayAll();
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  // Sets the tenant ID on Auth instance.
+  auth1.tenantId = '123456789012';
+}
+
+
 function testCurrentUser() {
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
@@ -778,6 +806,31 @@ function testUseDeviceLanguage() {
   assertNull(
       fireauth.RpcHandler.prototype.updateCustomLocaleHeader.getLastCall()
           .getArgument(0));
+}
+
+
+function testGetSetTenantId() {
+  app1 = firebase.initializeApp(config1, appId1);
+  auth1 = app1.auth();
+  // Tenant ID should be initialized to null.
+  assertNull(auth1.tenantId);
+  assertNull(auth1.getRpcHandler().getTenantId());
+  // Updating tenant ID on Auth should also update the tenant ID of RPC handler.
+  auth1.tenantId = 'TENANT_ID1';
+  assertEquals('TENANT_ID1', auth1.tenantId);
+  assertEquals('TENANT_ID1', auth1.getRpcHandler().getTenantId());
+  // Reset tenant ID to null.
+  auth1.tenantId = null;
+  assertNull(auth1.tenantId);
+  assertNull(auth1.getRpcHandler().getTenantId());
+
+  // Test getter and setter.
+  auth1.setTenantId('TENANT_ID2');
+  assertEquals('TENANT_ID2', auth1.getTenantId());
+  assertEquals('TENANT_ID2', auth1.tenantId);
+  auth1.tenantId = null;
+  assertNull(auth1.getTenantId());
+  assertNull(auth1.tenantId);
 }
 
 
@@ -3566,6 +3619,89 @@ function testAuth_updateCurrentUser_nullUserError() {
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
   auth1.updateCurrentUser(null).thenCatch(function(err) {
+    fireauth.common.testHelper.assertErrorEquals(expectedError, err);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testAuth_updateCurrentUser_sameApiKeyAndTenantId() {
+  fireauth.AuthEventManager.ENABLED = true;
+  asyncTestCase.waitForSignals(5);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // Sets tenant ID on Auth instance.
+  auth1.tenantId = '123456789012';
+  // Sets the tenant ID on user.
+  accountInfo['tenantId'] = '123456789012';
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfo);
+  currentUserStorageManager = new fireauth.storage.UserManager(
+      auth1.getStorageKey());
+  var userChanges = 0;
+  var tokenChanges = 0;
+  // Token changed handler should be triggered twice. Once on initialization,
+  // the other one after updating current user.
+  auth1.onIdTokenChanged(function(user) {
+    if (user) {
+      assertEquals(1, tokenChanges);
+      // Verifies that tenant ID is set on current user.
+      assertEquals('123456789012', auth1['currentUser']['tenantId']);
+      assertUserEquals(user1, auth1['currentUser']);
+      var manager = fireauth.AuthEventManager.getManager(
+          config3['authDomain'], config3['apiKey'], app1.name);
+      // Auth and current user should be subscribed.
+      assertTrue(manager.isSubscribed(auth1));
+      assertTrue(manager.isSubscribed(auth1['currentUser']));
+      asyncTestCase.signal();
+      // Confirm new user saved in storage.
+      currentUserStorageManager.getCurrentUser().then(function(currentUser) {
+        assertUserEquals(user1, currentUser);
+        asyncTestCase.signal();
+      });
+    } else {
+      // Verifies listener is triggered initiallly.
+      assertEquals(0, tokenChanges);
+      asyncTestCase.signal();
+    }
+    tokenChanges++;
+  });
+  // Auth state changed handler should be triggered twice. Once on
+  // initialization, the other one after updating current user.
+  auth1.onAuthStateChanged(function(currentUser) {
+    if (currentUser) {
+      // Verifies that tenant ID is set on current user.
+      assertEquals('123456789012', currentUser['tenantId']);
+      assertEquals(1, userChanges);
+      assertUserEquals(user1, currentUser);
+      asyncTestCase.signal();
+    } else {
+      // Verifies listener is triggered initiallly.
+      assertEquals(0, userChanges);
+      // Calls updateCurrentUser after auth listener being triggered first time.
+      auth1.updateCurrentUser(user1).then(function() {
+        assertUserEquals(user1, auth1['currentUser']);
+        asyncTestCase.signal();
+      });
+    }
+    userChanges++;
+  });
+}
+
+
+function testAuth_updateCurrentUser_tenantIdMismatchError() {
+  var expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.TENANT_ID_MISMATCH);
+  asyncTestCase.waitForSignals(1);
+  // Sets the tenant ID on user.
+  accountInfo['tenantId'] = '123456789012';
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfo);
+  assertEquals('123456789012', user1['tenantId']);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  auth1.tenantId = '456789012312';
+  auth1.updateCurrentUser(user1).thenCatch(function(err) {
     fireauth.common.testHelper.assertErrorEquals(expectedError, err);
     asyncTestCase.signal();
   });

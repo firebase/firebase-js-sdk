@@ -184,6 +184,15 @@ function testGetApiKey() {
 }
 
 
+function testUpdateGetTenantId() {
+  assertNull(rpcHandler.getTenantId());
+  rpcHandler.updateTenantId('123456789012');
+  assertEquals('123456789012', rpcHandler.getTenantId());
+  rpcHandler.updateTenantId(null);
+  assertNull(rpcHandler.getTenantId());
+}
+
+
 function testRpcHandler_XMLHttpRequest_notSupported() {
   stubs.replace(
       fireauth.RpcHandler,
@@ -2781,6 +2790,33 @@ function testCreateAccount_success() {
 }
 
 
+function testCreateAccount_success_tenantId() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'signupNewUser?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'email': 'uid123@fake.com',
+        'password': 'mysupersecretpassword',
+        'returnSecureToken': true,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.createAccount('uid123@fake.com', 'mysupersecretpassword')
+      .then(function(response) {
+        assertEquals('ID_TOKEN', response['idToken']);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testCreateAccount_serverCaughtError() {
   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
       'relyingparty/signupNewUser?key=apiKey';
@@ -2932,6 +2968,31 @@ function testSignInAnonymously_success() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
+  rpcHandler.signInAnonymously()
+      .then(function(response) {
+        assertEquals('ID_TOKEN', response['idToken']);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testSignInAnonymously_success_tenandId() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'signupNewUser?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'returnSecureToken': true,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
   rpcHandler.signInAnonymously()
       .then(function(response) {
         assertEquals('ID_TOKEN', response['idToken']);
@@ -6070,6 +6131,50 @@ function testInvokeRpc() {
       'myEndpoint?key=apiKey',
       'POST',
       goog.json.serialize(request),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      response);
+  rpcHandler.invokeRpc_(rpcMethod, request).then(function(actualResponse) {
+    assertObjectEquals(response, actualResponse);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testInvokeRpc_requireTenantId() {
+  asyncTestCase.waitForSignals(3);
+  rpcHandler.updateTenantId('123456789012');
+  var request = {
+    'myRequestKey': 'myRequestValue',
+    'myOtherRequestKey': 'myOtherRequestValue'
+  };
+  var response = {
+    'myResponseKey': 'myResponseValue',
+    'myOtherResponseKey': 'myOtherResponseValue'
+  };
+
+  var rpcMethod = {
+    endpoint: 'myEndpoint',
+    requestRequiredFields: ['myRequestKey'],
+    requestValidator: function(actualRequest) {
+      assertObjectEquals(request, actualRequest);
+      asyncTestCase.signal();
+    },
+    responseValidator: function(actualResponse) {
+      assertObjectEquals(response, actualResponse);
+      asyncTestCase.signal();
+    },
+    requireTenantId: true
+  };
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'myEndpoint?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'myRequestKey': 'myRequestValue',
+        'myOtherRequestKey': 'myOtherRequestValue',
+        'tenantId': '123456789012'
+      }),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       response);

@@ -179,6 +179,7 @@ fireauth.authenum.Error = {
   REDIRECT_CANCELLED_BY_USER: 'redirect-cancelled-by-user',
   REDIRECT_OPERATION_PENDING: 'redirect-operation-pending',
   REJECTED_CREDENTIAL: 'rejected-credential',
+  TENANT_ID_MISMATCH: 'tenant-id-mismatch',
   TIMEOUT: 'timeout',
   TOKEN_EXPIRED: 'user-token-expired',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'too-many-requests',
@@ -383,6 +384,9 @@ fireauth.AuthError.MESSAGES_[
     'A redirect sign-in operation is already pending.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.REJECTED_CREDENTIAL] =
     'The request contains malformed or mismatching credentials.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TENANT_ID_MISMATCH] =
+    'The provided user tenant ID does not match the Auth instance\'s tenant ' +
+    'ID.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TIMEOUT] =
     'The operation has timed out.';
 fireauth.AuthError.MESSAGES_[

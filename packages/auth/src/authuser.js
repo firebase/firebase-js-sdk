@@ -641,6 +641,7 @@ fireauth.AuthUser.GetAccountInfoField = {
   CREATED_AT: 'createdAt',
   DISPLAY_NAME: 'displayName',
   EMAIL: 'email',
+  EMAIL_VERIFIED: 'emailVerified',
   LAST_LOGIN_AT: 'lastLoginAt',
   LOCAL_ID: 'localId',
   PASSWORD_HASH: 'passwordHash',
@@ -648,7 +649,7 @@ fireauth.AuthUser.GetAccountInfoField = {
   PHONE_NUMBER: 'phoneNumber',
   PHOTO_URL: 'photoUrl',
   PROVIDER_USER_INFO: 'providerUserInfo',
-  EMAIL_VERIFIED: 'emailVerified'
+  TENANT_ID: 'tenantId'
 };
 
 
@@ -709,10 +710,17 @@ fireauth.AuthUser.prototype.setAccountInfo = function(accountInfo) {
     'emailVerified': accountInfo['emailVerified'] || false,
     'phoneNumber': accountInfo['phoneNumber'] || null,
     'isAnonymous': accountInfo['isAnonymous'] || false,
+    'tenantId': accountInfo['tenantId'] || null,
     'metadata': new fireauth.UserMetadata(
         accountInfo['createdAt'], accountInfo['lastLoginAt']),
     'providerData': []
   });
+  // Sets the tenant ID on RPC handler. For requests with ID tokens, the source
+  // of truth is the tenant ID in the ID token. If the request body has a
+  // tenant ID (optional here), the backend will confirm it matches the
+  // tenant ID in the ID token, otherwise throw an error. If no tenant ID is
+  // passed in the request, it will be determined from the ID token.
+  this.rpcHandler_.updateTenantId(this['tenantId']);
 };
 
 
@@ -728,7 +736,8 @@ fireauth.AuthUser.prototype.setAccountInfo = function(accountInfo) {
  *   phoneNumber: (?string|undefined),
  *   isAnonymous: ?boolean,
  *   createdAt: (?string|undefined),
- *   lastLoginAt: (?string|undefined)
+ *   lastLoginAt: (?string|undefined),
+ *   tenantId: (?string|undefined)
  * }}
  */
 fireauth.AuthUser.AccountInfo;
@@ -851,6 +860,7 @@ fireauth.AuthUser.prototype.copy = function(userToCopy) {
     'emailVerified': userToCopy['emailVerified'],
     'phoneNumber': userToCopy['phoneNumber'],
     'isAnonymous': userToCopy['isAnonymous'],
+    'tenantId': userToCopy['tenantId'],
     'providerData': []
   });
   // This should always be available but just in case there is a conflict with
@@ -1078,7 +1088,9 @@ fireauth.AuthUser.prototype.parseAccountInfo_ = function(resp) {
     'lastLoginAt': /** @type {?string|undefined} */ (
         user[fireauth.AuthUser.GetAccountInfoField.LAST_LOGIN_AT]),
     'createdAt': /** @type {?string|undefined} */ (
-        user[fireauth.AuthUser.GetAccountInfoField.CREATED_AT])
+        user[fireauth.AuthUser.GetAccountInfoField.CREATED_AT]),
+    'tenantId': /** @type {?string|undefined} */ (
+        user[fireauth.AuthUser.GetAccountInfoField.TENANT_ID])
   });
   this.setAccountInfo(accountInfo);
   var linkedAccounts = this.extractLinkedAccounts_(user);
@@ -2218,6 +2230,7 @@ fireauth.AuthUser.prototype.toPlainObject = function() {
     'emailVerified': this['emailVerified'],
     'phoneNumber': this['phoneNumber'],
     'isAnonymous': this['isAnonymous'],
+    'tenantId': this['tenantId'],
     'providerData': [],
     'apiKey': this.apiKey_,
     'appName': this.appName_,
