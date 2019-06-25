@@ -15,7 +15,12 @@
  * limitations under the License.
  */
 
-import { contains, isEmpty, safeGet, CONSTANTS } from '@firebase/util';
+import {
+  contains,
+  isEmpty,
+  safeGet,
+  CONSTANTS
+} from '@firebase/util';
 import { stringify } from '@firebase/util';
 import { assert } from '@firebase/util';
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
@@ -925,9 +930,7 @@ export class PersistentConnection extends ServerActions {
       clientName = 'node';
     }
 
-    stats[
-      'sdk.' + clientName + '.' + SDK_VERSION.replace(/\./g, '-')
-    ] = 1;
+    stats['sdk.' + clientName + '.' + SDK_VERSION.replace(/\./g, '-')] = 1;
 
     if (isMobileCordova()) {
       stats['framework.cordova'] = 1;

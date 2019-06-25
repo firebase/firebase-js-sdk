@@ -30,7 +30,6 @@ import * as types from '@firebase/database-types';
 import { setSDKVersion } from './src/core/version';
 import { CONSTANTS } from '@firebase/util';
 
-
 const ServerValue = Database.ServerValue;
 
 /**
@@ -41,11 +40,7 @@ const ServerValue = Database.ServerValue;
  * @param url A valid Firebase databaseURL
  * @param version custom version e.g. firebase-admin version
  */
-export function initStandalone(
-  app: FirebaseApp,
-  url: string,
-  version: string
-) {
+export function initStandalone(app: FirebaseApp, url: string, version: string) {
   /**
    * This should allow the firebase-admin package to provide a custom version
    * to the backend
@@ -69,7 +64,6 @@ export function initStandalone(
 }
 
 export function registerDatabase(instance: FirebaseNamespace) {
-  
   // set SDK_VERSION
   setSDKVersion(instance.SDK_VERSION);
 
@@ -96,16 +90,15 @@ export function registerDatabase(instance: FirebaseNamespace) {
 try {
   // If @firebase/app is not present, skip registering database.
   // It could happen when this package is used in firebase-admin which doesn't depend on @firebase/app.
-  // Previously firebase-admin depends on @firebase/app, which causes version conflict on 
+  // Previously firebase-admin depends on @firebase/app, which causes version conflict on
   // @firebase/app when used together with the js sdk. More detail:
   // https://github.com/firebase/firebase-js-sdk/issues/1696#issuecomment-501546596
   const firebase = require('@firebase/app').default;
   registerDatabase(firebase);
-} catch(err) {
+} catch (err) {
   // catch 'MODULE_NOT_FOUND' error in firebase-admin
   // we can safely ignore this error because RTDB in firebase-admin works without @firebase/app
 }
-
 
 // Types to export for the admin SDK
 export { Database, Query, Reference, enableLogging, ServerValue };

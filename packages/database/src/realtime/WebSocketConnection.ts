@@ -149,9 +149,9 @@ export class WebSocketConnection implements Transport {
         // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
         const options: { [k: string]: object } = {
           headers: {
-            'User-Agent': `Firebase/${PROTOCOL_VERSION}/${
-              SDK_VERSION
-            }/${process.platform}/${device}`
+            'User-Agent': `Firebase/${PROTOCOL_VERSION}/${SDK_VERSION}/${
+              process.platform
+            }/${device}`
           }
         };
 

@@ -33,10 +33,9 @@ import { setSDKVersion } from './src/core/version';
 const ServerValue = Database.ServerValue;
 
 export function registerDatabase(instance: FirebaseNamespace) {
-  
   // set SDK_VERSION
   setSDKVersion(instance.SDK_VERSION);
-  
+
   // Register the Database Service with the 'firebase' namespace.
   const namespace = (instance as _FirebaseNamespace).INTERNAL.registerService(
     'database',
