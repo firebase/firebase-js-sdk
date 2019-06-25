@@ -99,10 +99,11 @@ try {
   // Previously firebase-admin depends on @firebase/app, which causes version conflict on 
   // @firebase/app when used together with the js sdk. More detail:
   // https://github.com/firebase/firebase-js-sdk/issues/1696#issuecomment-501546596
-  const firebase = require('@firebase/app');
+  const firebase = require('@firebase/app').default;
   registerDatabase(firebase);
 } catch(err) {
-
+  // catch 'MODULE_NOT_FOUND' error in firebase-admin
+  // we can safely ignore this error because RTDB in firebase-admin works without @firebase/app
 }
 
 
