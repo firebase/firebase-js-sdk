@@ -607,6 +607,28 @@ describeSpec('Listens:', [], () => {
       .expectEvents(query, {});
   });
 
+  specTest('Array-contains queries support resuming', [], () => {
+    const query = Query.atPath(path('collection')).addFilter(
+      filter('array', 'array-contains', 42)
+    );
+    const docA = doc('collection/a', 2000, { foo: 'bar', array: [1, 42, 3] });
+    return spec()
+      .withGCEnabled(false)
+      .userListens(query)
+      .watchAcksFull(query, 1000)
+      .expectEvents(query, {})
+      .watchSends({ affects: [query] }, docA)
+      .watchSnapshots(2000, [query], 'resume-token-2000')
+      .watchSnapshots(2000)
+      .expectEvents(query, { added: [docA] })
+      .userUnlistens(query)
+      .watchRemoves(query)
+      .userListens(query, 'resume-token-2000')
+      .expectEvents(query, { added: [docA], fromCache: true })
+      .watchAcksFull(query, 3000)
+      .expectEvents(query, {});
+  });
+
   specTest('Persists global resume tokens on unlisten', [], () => {
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });

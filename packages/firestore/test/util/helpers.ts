@@ -30,7 +30,6 @@ import {
   Bound,
   Direction,
   FieldFilter,
-  Filter,
   Operator,
   OrderBy
 } from '../../src/core/query';
@@ -190,7 +189,7 @@ export function blob(...bytes: number[]): Blob {
 export function filter(path: string, op: string, value: unknown): FieldFilter {
   const dataValue = wrap(value);
   const operator = Operator.fromString(op);
-  const filter = Filter.create(field(path), operator, dataValue);
+  const filter = FieldFilter.create(field(path), operator, dataValue);
 
   if (filter instanceof FieldFilter) {
     return filter;

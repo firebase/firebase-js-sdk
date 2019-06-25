@@ -443,11 +443,69 @@ export abstract class Filter {
   abstract matches(doc: Document): boolean;
   abstract canonicalId(): string;
   abstract isEqual(filter: Filter): boolean;
+}
+
+export class Operator {
+  static LESS_THAN = new Operator('<');
+  static LESS_THAN_OR_EQUAL = new Operator('<=');
+  static EQUAL = new Operator('==');
+  static GREATER_THAN = new Operator('>');
+  static GREATER_THAN_OR_EQUAL = new Operator('>=');
+  static ARRAY_CONTAINS = new Operator('array-contains');
+  static IN = new Operator('in');
+  static ARRAY_CONTAINS_ANY = new Operator('array-contains-any');
+
+  static fromString(op: string): Operator {
+    switch (op) {
+      case '<':
+        return Operator.LESS_THAN;
+      case '<=':
+        return Operator.LESS_THAN_OR_EQUAL;
+      case '==':
+        return Operator.EQUAL;
+      case '>=':
+        return Operator.GREATER_THAN_OR_EQUAL;
+      case '>':
+        return Operator.GREATER_THAN;
+      case 'array-contains':
+        return Operator.ARRAY_CONTAINS;
+      case 'in':
+        return Operator.IN;
+      case 'array-contains-any':
+        return Operator.ARRAY_CONTAINS_ANY;
+      default:
+        return fail('Unknown FieldFilter operator: ' + op);
+    }
+  }
+
+  constructor(public name: string) {}
+
+  toString(): string {
+    return this.name;
+  }
+
+  isEqual(other: Operator): boolean {
+    return this.name === other.name;
+  }
+}
+
+export class FieldFilter extends Filter {
+  protected constructor(
+    public field: FieldPath,
+    public op: Operator,
+    public value: FieldValue
+  ) {
+    super();
+  }
 
   /**
    * Creates a filter based on the provided arguments.
    */
-  static create(field: FieldPath, op: Operator, value: FieldValue): Filter {
+  static create(
+    field: FieldPath,
+    op: Operator,
+    value: FieldValue
+  ): FieldFilter {
     if (field.isKeyField()) {
       if (op === Operator.IN) {
         assert(
@@ -505,60 +563,6 @@ export abstract class Filter {
     } else {
       return new FieldFilter(field, op, value);
     }
-  }
-}
-
-export class Operator {
-  static LESS_THAN = new Operator('<');
-  static LESS_THAN_OR_EQUAL = new Operator('<=');
-  static EQUAL = new Operator('==');
-  static GREATER_THAN = new Operator('>');
-  static GREATER_THAN_OR_EQUAL = new Operator('>=');
-  static ARRAY_CONTAINS = new Operator('array-contains');
-  static IN = new Operator('in');
-  static ARRAY_CONTAINS_ANY = new Operator('array-contains-any');
-
-  static fromString(op: string): Operator {
-    switch (op) {
-      case '<':
-        return Operator.LESS_THAN;
-      case '<=':
-        return Operator.LESS_THAN_OR_EQUAL;
-      case '==':
-        return Operator.EQUAL;
-      case '>=':
-        return Operator.GREATER_THAN_OR_EQUAL;
-      case '>':
-        return Operator.GREATER_THAN;
-      case 'array-contains':
-        return Operator.ARRAY_CONTAINS;
-      case 'in':
-        return Operator.IN;
-      case 'array-contains-any':
-        return Operator.ARRAY_CONTAINS_ANY;
-      default:
-        return fail('Unknown FieldFilter operator: ' + op);
-    }
-  }
-
-  constructor(public name: string) {}
-
-  toString(): string {
-    return this.name;
-  }
-
-  isEqual(other: Operator): boolean {
-    return this.name === other.name;
-  }
-}
-
-export class FieldFilter extends Filter {
-  constructor(
-    public field: FieldPath,
-    public op: Operator,
-    public value: FieldValue
-  ) {
-    super();
   }
 
   matches(doc: Document): boolean {

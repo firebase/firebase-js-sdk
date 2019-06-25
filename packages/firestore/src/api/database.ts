@@ -1463,7 +1463,7 @@ export class Query implements firestore.Query {
         value
       );
     }
-    const filter = Filter.create(fieldPath, operator, fieldValue);
+    const filter = FieldFilter.create(fieldPath, operator, fieldValue);
     this.validateNewFilter(filter);
     return new Query(this._query.addFilter(filter), this.firestore);
   }
