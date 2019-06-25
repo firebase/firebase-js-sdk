@@ -70,8 +70,8 @@ export function nodeFromJSON(
     const children: NamedNode[] = [];
     let childrenHavePriority = false;
     const hinzeJsonObj: { [k: string]: any } = json;
-    each(hinzeJsonObj, (key: string, child: any) => {
-      if (typeof key !== 'string' || key.substring(0, 1) !== '.') {
+    each(hinzeJsonObj, (key, child) => {
+      if (key.substring(0, 1) !== '.') {
         // Ignore metadata nodes
         const childNode = nodeFromJSON(child);
         if (!childNode.isEmpty()) {
