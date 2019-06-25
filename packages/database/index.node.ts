@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import { FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Database } from './src/api/Database';
 import { DataSnapshot } from './src/api/DataSnapshot';
@@ -29,6 +28,10 @@ import * as TEST_ACCESS from './src/api/test_access';
 import './src/nodePatches';
 import * as types from '@firebase/database-types';
 import { setSDKVersion } from './src/core/version';
+import { CONSTANTS } from '@firebase/util';
+
+
+const ServerValue = Database.ServerValue;
 
 /**
  * A one off register function which returns a database based on the app and
@@ -36,14 +39,39 @@ import { setSDKVersion } from './src/core/version';
  *
  * @param app A valid FirebaseApp-like object
  * @param url A valid Firebase databaseURL
+ * @param version custom version e.g. firebase-admin version
  */
+export function initStandalone(
+  app: FirebaseApp,
+  url: string,
+  version: string
+) {
+  /**
+   * This should allow the firebase-admin package to provide a custom version
+   * to the backend
+   */
+  CONSTANTS.NODE_ADMIN = true;
+  setSDKVersion(version);
 
-const ServerValue = Database.ServerValue;
+  return {
+    instance: RepoManager.getInstance().databaseFromApp(app, url),
+    namespace: {
+      Reference,
+      Query,
+      Database,
+      DataSnapshot,
+      enableLogging,
+      INTERNAL,
+      ServerValue,
+      TEST_ACCESS
+    }
+  };
+}
 
 export function registerDatabase(instance: FirebaseNamespace) {
   
   // set SDK_VERSION
-  setSDKVersion(firebase.SDK_VERSION);
+  setSDKVersion(instance.SDK_VERSION);
 
   // Register the Database Service with the 'firebase' namespace.
   (instance as _FirebaseNamespace).INTERNAL.registerService(
@@ -65,7 +93,18 @@ export function registerDatabase(instance: FirebaseNamespace) {
   );
 }
 
-registerDatabase(firebase);
+try {
+  // If @firebase/app is not present, skip registering database.
+  // It could happen when this package is used in firebase-admin which doesn't depend on @firebase/app.
+  // Previously firebase-admin depends on @firebase/app, which causes version conflict on 
+  // @firebase/app when used together with the js sdk. More detail:
+  // https://github.com/firebase/firebase-js-sdk/issues/1696#issuecomment-501546596
+  const firebase = require('@firebase/app');
+  registerDatabase(firebase);
+} catch(err) {
+
+}
+
 
 // Types to export for the admin SDK
 export { Database, Query, Reference, enableLogging, ServerValue };
