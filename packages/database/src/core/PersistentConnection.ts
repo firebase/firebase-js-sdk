@@ -77,7 +77,11 @@ export class PersistentConnection extends ServerActions {
   private log_ = logWrapper('p:' + this.id + ':');
 
   private interruptReasons_: { [reason: string]: boolean } = {};
-  private readonly listens: Map<string, Map<string, ListenSpec>> = new Map();
+  /** Map<path, Map<queryId, ListenSpec>> */
+  private readonly listens: Map<
+    /* path */ string,
+    Map</* queryId */ string, ListenSpec>
+  > = new Map();
   private outstandingPuts_: OutstandingPut[] = [];
   private outstandingPutCount_ = 0;
   private onDisconnectRequestQueue_: OnDisconnectRequest[] = [];
