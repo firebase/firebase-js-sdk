@@ -267,11 +267,12 @@ fireauth.CordovaHandler.prototype.startPopupTimeout =
  * @param {?Window} popupWin The popup window reference.
  * @param {!fireauth.AuthEvent.Type} mode The Auth event type.
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
- * @param {!function()} onInitialize The function to call on initialization.
- * @param {!function(*)} onError The function to call on error.
+ * @param {function()} onInitialize The function to call on initialization.
+ * @param {function(*)} onError The function to call on error.
  * @param {string=} opt_eventId The optional event ID.
  * @param {boolean=} opt_alreadyRedirected Whether popup is already redirected
  *     to final destination.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @return {!goog.Promise} The popup window promise.
  * @override
  */
@@ -282,7 +283,8 @@ fireauth.CordovaHandler.prototype.processPopup = function(
     onInitialize,
     onError,
     opt_eventId,
-    opt_alreadyRedirected) {
+    opt_alreadyRedirected,
+    opt_tenantId) {
   // Popups not supported in Cordova as the activity could be destroyed in
   // some cases. Redirect works better as getRedirectResult can be used as a
   // fallback to get the result when the activity is detroyed.
@@ -331,13 +333,15 @@ fireauth.CordovaHandler.prototype.hasVolatileStorage = function() {
  * @param {!fireauth.AuthEvent.Type} mode The Auth event type.
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
  * @param {?string=} opt_eventId The optional event ID.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @return {!goog.Promise}
  * @override
  */
 fireauth.CordovaHandler.prototype.processRedirect = function(
     mode,
     provider,
-    opt_eventId) {
+    opt_eventId,
+    opt_tenantId) {
   // If there is already a pending redirect, throw an error.
   if (this.pendingRedirect_) {
     return goog.Promise.reject(new fireauth.AuthError(
@@ -383,7 +387,8 @@ fireauth.CordovaHandler.prototype.processRedirect = function(
     fireauth.AuthProvider.checkIfOAuthSupported(provider);
     return self.getInitialAuthEvent_();
   }).then(function() {
-    return self.processRedirectInternal_(mode, provider, opt_eventId);
+    return self.processRedirectInternal_(
+        mode, provider, opt_eventId, opt_tenantId);
   }).then(function() {
     // Wait for result (universal link) before resolving this operation.
     // This ensures that if the activity is not destroyed, we can still
@@ -461,13 +466,15 @@ fireauth.CordovaHandler.prototype.processRedirect = function(
  * @param {!fireauth.AuthEvent.Type} mode The Auth event type.
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
  * @param {?string=} opt_eventId The optional event ID.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @return {!goog.Promise}
  * @private
  */
 fireauth.CordovaHandler.prototype.processRedirectInternal_ = function(
     mode,
     provider,
-    opt_eventId) {
+    opt_eventId,
+    opt_tenantId) {
   var self = this;
   // https://github.com/google/cordova-plugin-browsertab
   // Opens chrome custom tab in Android if chrome is installed,
@@ -485,7 +492,9 @@ fireauth.CordovaHandler.prototype.processRedirectInternal_ = function(
       opt_eventId,
       null,
       sessionId,
-      new fireauth.AuthError(fireauth.authenum.Error.NO_AUTH_EVENT));
+      new fireauth.AuthError(fireauth.authenum.Error.NO_AUTH_EVENT),
+      null,
+      opt_tenantId);
   // Use buildinfo package to get app metadata.
   // https://www.npmjs.com/package/cordova-plugin-buildinfo
   // Get app identifier.
@@ -534,7 +543,8 @@ fireauth.CordovaHandler.prototype.processRedirectInternal_ = function(
           opt_eventId,
           this.clientVersion_,
           additionalParams,
-          this.endpointId_);
+          this.endpointId_,
+          opt_tenantId);
   // Make sure handler initialized and ready.
   // This should also ensure all plugins are installed.
   return this.initializeAndWait().then(function() {
@@ -705,14 +715,19 @@ fireauth.CordovaHandler.prototype.extractAuthEventFromUrl_ =
           partialEvent.getEventId(),
           null,
           null,
-          error);
+          error,
+          null,
+          partialEvent.getTenantId());
     } else {
       // Construct the full successful Auth event.
       authEvent = new fireauth.AuthEvent(
           partialEvent.getType(),
           partialEvent.getEventId(),
           callbackUrl,
-          partialEvent.getSessionId());
+          partialEvent.getSessionId(),
+          null,
+          null,
+          partialEvent.getTenantId());
     }
   }
   return authEvent;

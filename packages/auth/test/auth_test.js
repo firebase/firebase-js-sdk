@@ -6370,6 +6370,164 @@ function testAuth_signInWithPopup_success_cannotRunInBackground() {
 }
 
 
+function testAuth_signInWithPopup_success_cannotRunInBackground_tenantId() {
+  // Test successful sign-in with popup when tenant ID is passed and tab cannot
+  // run in background.
+  fireauth.AuthEventManager.ENABLED = true;
+  var expectedPopup = {
+    'close': function() {}
+  };
+  var recordedHandler = null;
+  var expectedEventId = '1234';
+  var expectedTenantId = '123456789012';
+  // Expected sign in via popup successful Auth event.
+  // TODO: Add the Tenant ID in the AuthEvent after implementing the logic of
+  // redirecting back from OAuth helper widget.
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP,
+      expectedEventId,
+      'http://www.example.com/#response',
+      'SESSION_ID');
+  var expectedProvider = new fireauth.GoogleAuthProvider();
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+      config3['authDomain'],
+      config3['apiKey'],
+      appId1,
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP,
+      expectedProvider,
+      null,
+      expectedEventId,
+      firebase.SDK_VERSION,
+      null,
+      null,
+      expectedTenantId);
+  // Simulate tab cannot run in background.
+  stubs.replace(
+      fireauth.util,
+      'runsInBackground',
+      function() {
+        return false;
+      });
+  // Replace random number generator.
+  stubs.replace(
+      fireauth.util,
+      'generateRandomString',
+      function() {
+        return '87654321';
+      });
+  // Simulate popup.
+  stubs.replace(
+      fireauth.util,
+      'popup',
+      function(url, name, width, height) {
+        // Destination URL popped directly without the second redirect.
+        assertEquals(expectedUrl, url);
+        assertEquals('87654321', name);
+        assertEquals(fireauth.idp.Settings.GOOGLE.popupWidth, width);
+        assertEquals(fireauth.idp.Settings.GOOGLE.popupHeight, height);
+        asyncTestCase.signal();
+        return expectedPopup;
+      });
+  // On success if popup is still opened, it will be closed.
+  stubs.replace(
+      fireauth.util,
+      'closeWindow',
+      function(win) {
+        assertEquals(expectedPopup, win);
+        asyncTestCase.signal();
+      });
+  // Generate expected event ID for popup.
+  stubs.replace(
+      fireauth.util,
+      'generateEventId',
+      function() {
+        return expectedEventId;
+      });
+  // Stub instantiateOAuthSignInHandler and save event dispatcher.
+  stubs.replace(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler',
+      function(authDomain, apiKey, appName) {
+        return {
+          'addAuthEventListener': function(handler) {
+            // auth1 should be subscribed.
+            var manager = fireauth.AuthEventManager.getManager(
+                config3['authDomain'], config3['apiKey'], app1.name);
+            assertTrue(manager.isSubscribed(auth1));
+            recordedHandler = handler;
+          },
+          'initializeAndWait': function() { return goog.Promise.resolve(); },
+          'shouldBeInitializedEarly': function() { return false; },
+          'hasVolatileStorage': function() { return false; },
+          'processPopup': function(
+              actualPopupWin,
+              actualMode,
+              actualProvider,
+              actualOnInit,
+              actualOnError,
+              actualEventId,
+              actualAlreadyRedirected) {
+            assertEquals(expectedPopup, actualPopupWin);
+            assertEquals(fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP, actualMode);
+            assertEquals(expectedProvider, actualProvider);
+            assertEquals(expectedEventId, actualEventId);
+            assertTrue(actualAlreadyRedirected);
+            actualOnInit();
+            return goog.Promise.resolve();
+          },
+          'startPopupTimeout': function(popupWin, onError, delay) {
+            recordedHandler(expectedAuthEvent);
+            return goog.Promise.resolve();
+          }
+        };
+      });
+  // Reset static getOAuthHelperWidgetUrl method on IfcHandler.
+  stubs.set(
+      fireauth.iframeclient.IfcHandler,
+      'getOAuthHelperWidgetUrl',
+      function(domain, apiKey, name, mode, provider, url, eventId,
+               clientVerison, additionalParams, endpointId, tenantId) {
+        assertEquals(config3['authDomain'], domain);
+        assertEquals(config3['apiKey'], apiKey);
+        assertEquals(appId1, name);
+        assertEquals(fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP, mode);
+        assertEquals(expectedProvider, provider);
+        assertNull(url);
+        assertEquals(expectedEventId, eventId);
+        assertEquals(expectedTenantId, tenantId);
+        return expectedUrl;
+      });
+  // simulate successful finishPopupAndRedirectSignIn.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'finishPopupAndRedirectSignIn',
+      function(requestUri, sessionId, postBody) {
+        assertEquals('http://www.example.com/#response', requestUri);
+        assertEquals('SESSION_ID', sessionId);
+        assertNull(postBody);
+        asyncTestCase.signal();
+        return goog.Promise.resolve(expectedPopupResult);
+      });
+  var user1 = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfo);
+  var expectedPopupResult = {
+    'user': user1,
+    'credential': expectedGoogleCredential,
+    'additionalUserInfo': expectedAdditionalUserInfo,
+    'operationType': fireauth.constants.OperationType.SIGN_IN
+  };
+  asyncTestCase.waitForSignals(4);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // Set tenant Id on Auth.
+  auth1.tenantId = expectedTenantId;
+  // Sign in with popup should resolve with expected result.
+  auth1.signInWithPopup(expectedProvider).then(function(popupResult) {
+    assertObjectEquals(expectedPopupResult, popupResult);
+    asyncTestCase.signal();
+  });
+}
+
+
 function testAuth_signInWithPopup_success_iframeCanRunInBackground() {
   // Test successful sign in with popup when tab can run in background but is an
   // iframe. This should behave the same as the

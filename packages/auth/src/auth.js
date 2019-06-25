@@ -665,7 +665,10 @@ fireauth.Auth.prototype.signInWithPopup = function(provider) {
             provider,
             null,
             eventId,
-            firebase.SDK_VERSION || null);
+            firebase.SDK_VERSION || null,
+            null,
+            null,
+            this.getTenantId());
   }
   // The popup must have a name, otherwise when successive popups are triggered
   // they will all render in the same instance and none will succeed since the

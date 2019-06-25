@@ -1054,6 +1054,71 @@ function testProcessPopup_success() {
 }
 
 
+function testProcessPopup_success_tenantId() {
+  // This is only relevant to OAuth handlers that support popups.
+  setOAuthSignInHandlerEnvironment(false);
+  var tenantId = '123456789012';
+  var provider = new fireauth.GoogleAuthProvider();
+  provider.addScope('scope1');
+  provider.addScope('scope2');
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+      authDomain1,
+      apiKey1,
+      appName1,
+      'linkViaPopup',
+      provider,
+      null,
+      '1234',
+      firebase.SDK_VERSION,
+      null,
+      null,
+      tenantId);
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      'unknown',
+      null,
+      null,
+      null,
+      new fireauth.AuthError(fireauth.authenum.Error.NO_AUTH_EVENT));
+  // Fake popup window.
+  var popupWin = {};
+  // Keep track of when the popup is redirected.
+  var popupRedirected = false;
+  // Catch popup window redirection.
+  stubs.replace(
+      fireauth.util,
+      'goTo',
+      function(url, win) {
+        popupRedirected = true;
+        assertEquals(expectedUrl, url);
+        assertEquals(popupWin, win);
+        asyncTestCase.signal();
+      });
+  stubs.replace(
+      OAuthSignInHandler.prototype,
+      'addAuthEventListener',
+      function(handler) {
+        // Trigger expected event.
+        handler(expectedAuthEvent);
+      });
+  asyncTestCase.waitForSignals(3);
+  var manager = fireauth.AuthEventManager.getManager(
+      authDomain1, apiKey1, appName1);
+  manager.processPopup(
+      popupWin, 'linkViaPopup', provider, '1234', false, tenantId)
+      .then(function() {
+        assertTrue(popupRedirected);
+        // This should resolve now as it is already initialized.
+        asyncTestCase.signal();
+      });
+  // Confirm OAuth handler initialized before redirect.
+  manager.initialize().then(function() {
+    // Should not be redirected yet.
+    assertFalse(popupRedirected);
+    asyncTestCase.signal();
+  });
+}
+
+
 function testProcessPopup_popupNotSupported() {
   // Test for environments where popup sign in is not supported.
   // Cordova environment.
@@ -1667,6 +1732,46 @@ function testProcessRedirect_success_ifchandler() {
 }
 
 
+function testProcessRedirect_success_ifchandler_tenantId() {
+  // Browser only environment.
+  setOAuthSignInHandlerEnvironment(false);
+  var tenantId = '123456789012';
+  var provider = new fireauth.GoogleAuthProvider();
+  provider.addScope('scope1');
+  provider.addScope('scope2');
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+      authDomain1,
+      apiKey1,
+      appName1,
+      'linkViaRedirect',
+      provider,
+      window.location.href,
+      '1234',
+      firebase.SDK_VERSION,
+      null,
+      null,
+      tenantId);
+  stubs.replace(
+      fireauth.util,
+      'goTo',
+      function(url) {
+        assertEquals(expectedUrl, url);
+        // Pending redirect should be saved.
+        pendingRedirectManager.getPendingStatus().then(function(status) {
+          assertTrue(status);
+          asyncTestCase.signal();
+        });
+      });
+  asyncTestCase.waitForSignals(1);
+  var manager = fireauth.AuthEventManager.getManager(
+      authDomain1, apiKey1, appName1);
+  var storageKey = apiKey1 + ':' + appName1;
+  var pendingRedirectManager =
+      new fireauth.storage.PendingRedirectManager(storageKey);
+  manager.processRedirect('linkViaRedirect', provider, '1234', tenantId);
+}
+
+
 function testAuthEventManager_nonCordovaIosOrAndroidFileEnvironment() {
   // Simulate Android file browser environment.
   setOAuthSignInHandlerEnvironment(false);
@@ -1801,6 +1906,98 @@ function testProcessRedirect_success_cordovahandler() {
           // Call processRedirect again. This should resolve as there is no
           // pending operation.
           return manager.processRedirect('linkViaRedirect', provider, '1234');
+        }).then(function() {
+          asyncTestCase.signal();
+        });
+      });
+  // This should fail as the above is still pending.
+  manager.processRedirect('linkViaRedirect', provider, '1234')
+      .thenCatch(function(error) {
+        assertErrorEquals(pendingRedirectError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testProcessRedirect_success_cordovahandler_tenantId() {
+  // Cordova environment.
+  setOAuthSignInHandlerEnvironment(true);
+  var tenantId = '123456789012';
+  var provider = new fireauth.GoogleAuthProvider();
+  provider.addScope('scope1');
+  provider.addScope('scope2');
+  var rawSessionId = '11111111111111111111';
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+      authDomain1,
+      apiKey1,
+      appName1,
+      'linkViaRedirect',
+      provider,
+      null,
+      '1234',
+      firebase.SDK_VERSION,
+      {
+        apn: 'com.example.app',
+        appDisplayName: 'Test App',
+        sessionId: sha256(rawSessionId)
+      },
+      null,
+      tenantId);
+  var pendingRedirectError = new fireauth.AuthError(
+      fireauth.authenum.Error.REDIRECT_OPERATION_PENDING);
+  var savedCb = null;
+  var incomingUrl =
+      'http://example.firebaseapp.com/__/auth/callback#oauthResponse';
+  cordova.plugins.browsertab.openUrl = function(url) {
+    assertEquals(expectedUrl, url);
+    savedCb({url: incomingUrl});
+  };
+  universalLinks.subscribe = function(eventName, cb) {
+    // Trigger initial no event.
+    cb({url: null});
+    savedCb = cb;
+  };
+  // Simulate handler can handle the event.
+  handler.canHandleAuthEvent = function(mode, opt_eventId) {
+    return true;
+  };
+  handler.getAuthEventHandlerFinisher = function(mode, opt_eventId) {
+    return function(requestUri, sessionId, postBody) {
+      assertEquals(incomingUrl, requestUri);
+      assertEquals(sessionId, rawSessionId);
+      // postBody not supported in Cordova flow.
+      assertNull(postBody);
+      return goog.Promise.resolve(expectedResult);
+    };
+  };
+  asyncTestCase.waitForSignals(3);
+  var manager = fireauth.AuthEventManager.getManager(
+      authDomain1, apiKey1, appName1);
+  var storageKey = apiKey1 + ':' + appName1;
+  var pendingRedirectManager =
+      new fireauth.storage.PendingRedirectManager(storageKey);
+  var expectedResult = {
+    'user': {},
+    'credential': {}
+  };
+  manager.subscribe(handler);
+  // Initial result is null.
+  manager.getRedirectResult().then(function(result) {
+    assertNull(result.user);
+    asyncTestCase.signal();
+  });
+  manager.processRedirect('linkViaRedirect', provider, '1234', tenantId)
+      .then(function() {
+        // Pending redirect should be cleared on redirect back to app.
+        return pendingRedirectManager.getPendingStatus();
+      }).then(function(status) {
+        assertFalse(status);
+        manager.getRedirectResult().then(function(result) {
+          assertEquals(expectedResult, result);
+          // Call processRedirect again. This should resolve as there is no
+          // pending operation.
+          return manager.processRedirect(
+              'linkViaRedirect', provider, '1234', tenantId);
         }).then(function() {
           asyncTestCase.signal();
         });

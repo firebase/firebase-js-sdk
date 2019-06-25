@@ -647,6 +647,7 @@ function testUser_copyUser() {
   oAuthSignInHandlerInstance.processRedirect(
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualMode,
           actualProvider,
@@ -1873,6 +1874,7 @@ function testUser_getIdToken_expiredToken_reauthWithPopupAfterInvalidation() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -2178,6 +2180,7 @@ function testUser_getIdToken_expiredToken_reauthWithPopupBeforeInvalidation() {
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
       ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -5069,6 +5072,7 @@ function testUser_linkWithRedirect_success_unloadsOnRedirect() {
   oAuthSignInHandlerInstance.processRedirect(
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualMode,
           actualProvider,
@@ -5156,6 +5160,7 @@ function testUser_reauthenticateWithRedirect_success_unloadsOnRedirect() {
   oAuthSignInHandlerInstance.processRedirect(
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualMode,
           actualProvider,
@@ -5232,6 +5237,7 @@ function testUser_linkWithRedirect_success_doesNotUnloadOnRedirect() {
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument).$does(function(
@@ -5317,6 +5323,7 @@ function testUser_reauthenticateWithRedirect_success_doesNotUnloadOnRedirect() {
   oAuthSignInHandlerInstance.processRedirect(
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualMode,
           actualProvider,
@@ -5388,6 +5395,7 @@ function testUser_linkWithRedirect_success_noStorageManager() {
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument).$does(function(
@@ -5469,6 +5477,7 @@ function testUser_reauthenticateWithRedirect_success_noStorageManager() {
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processRedirect(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument).$does(function(
@@ -5613,6 +5622,7 @@ function testUser_linkWithRedirect_invalidProvider() {
   oAuthSignInHandlerInstance.processRedirect(
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualMode,
           actualProvider,
@@ -5734,6 +5744,7 @@ function testUser_linkWithPopup_success_slowIframeEmbed() {
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -5886,6 +5897,7 @@ function testUser_reauthenticateWithPopup_success_slowIframeEmbed() {
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
       ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -6046,6 +6058,7 @@ function testUser_linkWithPopup_error_popupClosed() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -6176,6 +6189,7 @@ function testUser_reauthenticateWithPopup_error_popupClosed() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -6292,6 +6306,7 @@ function testUser_linkWithPopup_error_iframeWebStorageNotSupported() {
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -6421,6 +6436,7 @@ function testUser_reauthWithPopup_error_iframeWebStorageNotSupported() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -6535,6 +6551,7 @@ function testUser_linkWithPopup_success_withoutPostBody() {
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -6682,6 +6699,7 @@ function testUser_linkWithPopup_success_withPostBody() {
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -6836,6 +6854,7 @@ function testUser_reauthenticateWithPopup_success_withoutPostBody() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -6981,6 +7000,7 @@ function testUser_reauthenticateWithPopup_success_withPostBody() {
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
       ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -7143,6 +7163,7 @@ function testUser_linkWithPopup_emailCredentialError() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -7276,6 +7297,7 @@ function testUser_reauthenticateWithPopup_userMismatchError() {
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
       ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -7510,6 +7532,7 @@ function testUser_linkWithPopup_success_cannotRunInBackground() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -7667,6 +7690,196 @@ function testUser_linkWithPopup_success_cannotRunInBackground() {
 }
 
 
+function testUser_linkWithPopup_success_cannotRunInBackground_tenantId() {
+  asyncTestCase.waitForSignals(4);
+  var expectedTenantId = '123456789012';
+  var recordedHandler = null;
+  // Mock OAuth sign in handler.
+  var oAuthSignInHandlerInstance =
+      mockControl.createStrictMock(fireauth.OAuthSignInHandler);
+  mockControl.createConstructorMock(fireauth, 'OAuthSignInHandler');
+  var instantiateOAuthSignInHandler = mockControl.createMethodMock(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
+  instantiateOAuthSignInHandler(
+      ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
+      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+  oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
+  oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
+  oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument).$does(function(
+          actualPopupWin,
+          actualMode,
+          actualProvider,
+          actualOnInit,
+          actualOnError,
+          actualEventId,
+          actualAlreadyRedirected,
+          actualTenantId) {
+            assertEquals(expectedPopup, actualPopupWin);
+            assertEquals(fireauth.AuthEvent.Type.LINK_VIA_POPUP, actualMode);
+            assertEquals(expectedProvider, actualProvider);
+            assertEquals(expectedEventId, actualEventId);
+            assertTrue(actualAlreadyRedirected);
+            actualOnInit();
+            return goog.Promise.resolve();
+          });
+  oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
+      .$does(function(handler) {
+        recordedHandler = handler;
+      });
+  oAuthSignInHandlerInstance.startPopupTimeout(
+      ignoreArgument, ignoreArgument, ignoreArgument)
+      .$does(function(popupWin, onError, delay) {
+        recordedHandler(expectedAuthEvent);
+        return goog.Promise.resolve();
+      });
+  mockControl.$replayAll();
+  // Set the backend user info with no linked providers.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      function(idToken) {
+        return goog.Promise.resolve(getAccountInfoResponse);
+      });
+
+  // The expected popup window object.
+  var expectedPopup = {
+    'close': function() {}
+  };
+  // The expected popup event ID.
+  var expectedEventId = '1234';
+  // The expected successful link via popup Auth event.
+  // TODO: Add the Tenant ID in the AuthEvent after implementing the logic of
+  // redirecting back from OAuth helper widget.
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.LINK_VIA_POPUP,
+      expectedEventId,
+      'http://www.example.com/#response',
+      'SESSION_ID');
+  var config = {
+    'apiKey': 'apiKey1',
+    'authDomain': 'subdomain.firebaseapp.com',
+    'appName': 'appId1'
+  };
+  var expectedProvider = new fireauth.GoogleAuthProvider();
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+      config['authDomain'],
+      config['apiKey'],
+      config['appName'],
+      fireauth.AuthEvent.Type.LINK_VIA_POPUP,
+      expectedProvider,
+      null,
+      expectedEventId,
+      firebase.SDK_VERSION,
+      null,
+      null,
+      expectedTenantId);
+  // Simulate tab cannot run in background.
+  stubs.replace(
+      fireauth.util,
+      'runsInBackground',
+      function() {
+        return false;
+      });
+  fireauth.AuthEventManager.ENABLED = true;
+  // Replace random number generator.
+  stubs.replace(
+      fireauth.util,
+      'generateRandomString',
+      function() {
+        return '87654321';
+      });
+  // Simulate popup.
+  stubs.replace(
+      fireauth.util,
+      'popup',
+      function(url, name, width, height) {
+         // Destination URL popped directly without the second redirect.
+        assertEquals(expectedUrl, url);
+        assertEquals('87654321', name);
+        assertEquals(fireauth.idp.Settings.GOOGLE.popupWidth, width);
+        assertEquals(fireauth.idp.Settings.GOOGLE.popupHeight, height);
+        asyncTestCase.signal();
+        return expectedPopup;
+      });
+  // On success if popup is still opened, it will be closed.
+  stubs.replace(
+      fireauth.util,
+      'closeWindow',
+      function(win) {
+        assertEquals(expectedPopup, win);
+        asyncTestCase.signal();
+      });
+  stubs.replace(
+      fireauth.util,
+      'generateEventId',
+      function() {
+        // A popup event ID should be generated.
+        return expectedEventId;
+      });
+  // Reset static getOAuthHelperWidgetUrl method on IfcHandler.
+  stubs.set(
+      fireauth.iframeclient.IfcHandler,
+      'getOAuthHelperWidgetUrl',
+      function(domain, apiKey, name, mode, provider, url, eventId,
+               clientVerison, additionalParams, endpointId, tenantId) {
+        assertEquals(config['authDomain'], domain);
+        assertEquals(config['apiKey'], apiKey);
+        assertEquals(config['appName'], name);
+        assertEquals(fireauth.AuthEvent.Type.LINK_VIA_POPUP, mode);
+        assertEquals(expectedProvider, provider);
+        assertNull(url);
+        assertEquals(expectedEventId, eventId);
+        assertEquals(expectedTenantId, tenantId);
+        return expectedUrl;
+      });
+  // Finish popup and redirect link should be called.
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'finishPopupAndRedirectLink',
+      function(requestUri, sessionId, postBody) {
+        assertEquals('http://www.example.com/#response', requestUri);
+        assertEquals('SESSION_ID', sessionId);
+        assertNull(postBody);
+        // The expected popup result should be returned.
+        return goog.Promise.resolve(expectedPopupResult);
+      });
+  // Set tenant ID on user.
+  accountInfo['tenantId'] = expectedTenantId;
+  var user1 = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  // Set redirect storage manager.
+  storageManager = new fireauth.storage.RedirectUserManager(
+      fireauth.util.createStorageKey(config['apiKey'], config['appName']));
+  user1.setRedirectStorageManager(storageManager);
+  // Enable popup and redirect.
+  user1.enablePopupRedirect();
+  // The expected popup result.
+  var expectedPopupResult = {
+    'user': user1,
+    'credential': expectedGoogleCredential,
+    'additionalUserInfo': expectedAdditionalUserInfo,
+    'operationType': fireauth.constants.OperationType.LINK
+  };
+  // linkWithPopup should succeed with the expected popup result.
+  user1.linkWithPopup(expectedProvider).then(function(popupResult) {
+    assertObjectEquals(expectedPopupResult, popupResult);
+    // Popup user should never be saved in storage.
+    storageManager.getRedirectUser().then(function(user) {
+      assertNull(user);
+      asyncTestCase.signal();
+    });
+    asyncTestCase.signal();
+  });
+}
+
+
 function testUser_reauthenticateWithPopup_success_cannotRunInBackground() {
   asyncTestCase.waitForSignals(1);
   var recordedHandler = null;
@@ -7680,6 +7893,7 @@ function testUser_reauthenticateWithPopup_success_cannotRunInBackground() {
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
       ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -7835,6 +8049,184 @@ function testUser_reauthenticateWithPopup_success_cannotRunInBackground() {
 }
 
 
+function testUser_reauthenticateWithPopup_success_cannotRunInBkg_tenantId() {
+  asyncTestCase.waitForSignals(1);
+  var expectedTenantId = '123456789012';
+  var recordedHandler = null;
+  // Mock OAuth sign in handler.
+  var oAuthSignInHandlerInstance =
+      mockControl.createStrictMock(fireauth.OAuthSignInHandler);
+  mockControl.createConstructorMock(fireauth, 'OAuthSignInHandler');
+  var instantiateOAuthSignInHandler = mockControl.createMethodMock(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
+  instantiateOAuthSignInHandler(
+      ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
+      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+  oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument).$does(function(
+          actualPopupWin,
+          actualMode,
+          actualProvider,
+          actualOnInit,
+          actualOnError,
+          actualEventId,
+          actualAlreadyRedirected) {
+            assertEquals(expectedPopup, actualPopupWin);
+            assertEquals(fireauth.AuthEvent.Type.REAUTH_VIA_POPUP, actualMode);
+            assertEquals(expectedProvider, actualProvider);
+            assertEquals(expectedEventId, actualEventId);
+            assertTrue(actualAlreadyRedirected);
+            actualOnInit();
+            return goog.Promise.resolve();
+          });
+  oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
+      .$does(function(handler) {
+        recordedHandler = handler;
+      });
+  oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
+  oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
+  oAuthSignInHandlerInstance.startPopupTimeout(
+      ignoreArgument, ignoreArgument, ignoreArgument)
+      .$does(function(popupWin, onError, delay) {
+        recordedHandler(expectedAuthEvent);
+        return goog.Promise.resolve();
+      });
+  mockControl.$replayAll();
+  // The expected popup window object.
+  var expectedPopup = {
+    'close': function() {}
+  };
+  // The expected popup event ID.
+  var expectedEventId = '1234';
+  // The expected successful reauth via popup Auth event.
+  // TODO: Add the Tenant ID in the AuthEvent after implementing the logic of
+  // redirecting back from OAuth helper widget.
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.REAUTH_VIA_POPUP,
+      expectedEventId,
+      'http://www.example.com/#response',
+      'SESSION_ID');
+  var config = {
+    'apiKey': 'apiKey1',
+    'authDomain': 'subdomain.firebaseapp.com',
+    'appName': 'appId1'
+  };
+  var expectedProvider = new fireauth.GoogleAuthProvider();
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+      config['authDomain'],
+      config['apiKey'],
+      config['appName'],
+      fireauth.AuthEvent.Type.REAUTH_VIA_POPUP,
+      expectedProvider,
+      null,
+      expectedEventId,
+      firebase.SDK_VERSION,
+      null,
+      null,
+      expectedTenantId);
+  // Simulate tab cannot run in background.
+  stubs.replace(
+      fireauth.util,
+      'runsInBackground',
+      function() {
+        return false;
+      });
+  fireauth.AuthEventManager.ENABLED = true;
+  // Replace random number generator.
+  stubs.replace(
+      fireauth.util,
+      'generateRandomString',
+      function() {
+        return '87654321';
+      });
+  // Simulate popup.
+  stubs.replace(
+      fireauth.util,
+      'popup',
+      function(url, name, width, height) {
+         // Destination URL popped directly without the second redirect.
+        assertEquals(expectedUrl, url);
+        assertEquals('87654321', name);
+        assertEquals(fireauth.idp.Settings.GOOGLE.popupWidth, width);
+        assertEquals(fireauth.idp.Settings.GOOGLE.popupHeight, height);
+        return expectedPopup;
+      });
+  // On success if popup is still opened, it will be closed.
+  stubs.replace(
+      fireauth.util,
+      'closeWindow',
+      function(win) {
+        assertEquals(expectedPopup, win);
+      });
+  stubs.replace(
+      fireauth.util,
+      'generateEventId',
+      function() {
+        // A popup event ID should be generated.
+        return expectedEventId;
+      });
+  // Reset static getOAuthHelperWidgetUrl method on IfcHandler.
+  stubs.set(
+      fireauth.iframeclient.IfcHandler,
+      'getOAuthHelperWidgetUrl',
+      function(domain, apiKey, name, mode, provider, url, eventId,
+               clientVerison, additionalParams, endpointId, tenantId) {
+        assertEquals(config['authDomain'], domain);
+        assertEquals(config['apiKey'], apiKey);
+        assertEquals(config['appName'], name);
+        assertEquals(fireauth.AuthEvent.Type.REAUTH_VIA_POPUP, mode);
+        assertEquals(expectedProvider, provider);
+        assertNull(url);
+        assertEquals(expectedEventId, eventId);
+        assertEquals(expectedTenantId, tenantId);
+        return expectedUrl;
+      });
+  // Finish popup and redirect reauth should be called.
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'finishPopupAndRedirectReauth',
+      function(requestUri, sessionId, postBody) {
+        assertEquals('http://www.example.com/#response', requestUri);
+        assertEquals('SESSION_ID', sessionId);
+        assertNull(postBody);
+        // The expected popup result should be returned.
+        return goog.Promise.resolve(expectedPopupResult);
+      });
+  accountInfo['tenantId'] = expectedTenantId;
+  var user1 = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  // Set redirect storage manager.
+  storageManager = new fireauth.storage.RedirectUserManager(
+      fireauth.util.createStorageKey(config['apiKey'], config['appName']));
+  user1.setRedirectStorageManager(storageManager);
+  // Enable popup and redirect.
+  user1.enablePopupRedirect();
+  // The expected popup result.
+  var expectedPopupResult = {
+    'user': user1,
+    'credential': expectedGoogleCredential,
+    'additionalUserInfo': expectedAdditionalUserInfo,
+    'operationType': fireauth.constants.OperationType.REAUTHENTICATE
+  };
+  // reauthenticateWithPopup should succeed with the expected popup result.
+  user1.reauthenticateWithPopup(expectedProvider)
+      .then(function(popupResult) {
+    assertObjectEquals(expectedPopupResult, popupResult);
+    // Popup user should never be saved in storage.
+    storageManager.getRedirectUser().then(function(user) {
+      assertNull(user);
+      asyncTestCase.signal();
+    });
+  });
+}
+
+
 function testUser_linkWithPopup_success_iframeCanRunInBackground() {
   // Test successful link with popup when tab can run in background but is an
   // iframe. This should behave the same as the
@@ -7853,6 +8245,7 @@ function testUser_linkWithPopup_success_iframeCanRunInBackground() {
   oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
   oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -8048,6 +8441,7 @@ function testUser_reauthenticateWithPopup_success_iframeCanRunInBackground() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -8229,6 +8623,7 @@ function testUser_linkWithPopup_webStorageUnsupported_cannotRunInBackground() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -8377,6 +8772,7 @@ function testUser_reauthWithPopup_webStorageUnsupported_cantRunInBackground() {
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
       ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -8537,6 +8933,7 @@ function testUser_linkWithPopup_multipleUsers_success() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -8557,6 +8954,7 @@ function testUser_linkWithPopup_multipleUsers_success() {
         recordedHandler = handler;
       });
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -8748,6 +9146,7 @@ function testUser_reauthenticateWithPopup_multipleUsers_success() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -8768,6 +9167,7 @@ function testUser_reauthenticateWithPopup_multipleUsers_success() {
         recordedHandler = handler;
       });
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -8956,6 +9356,7 @@ function testUser_linkWithPopup_timeout() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -8976,6 +9377,7 @@ function testUser_linkWithPopup_timeout() {
         recordedHandler = handler;
       });
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -9138,6 +9540,7 @@ function testUser_reauthenticateWithPopup_timeout() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -9158,6 +9561,7 @@ function testUser_reauthenticateWithPopup_timeout() {
         recordedHandler = handler;
       });
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
@@ -9314,6 +9718,7 @@ function testUser_linkWithPopup_error() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -9438,6 +9843,7 @@ function testUser_reauthenticateWithPopup_error() {
       ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
       ignoreArgument).$returns(oAuthSignInHandlerInstance);
   oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
