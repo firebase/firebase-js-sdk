@@ -43,6 +43,15 @@ const es5Builds = [
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   },
   /**
+   * Node.js Build for firebase-admin (no dep on @firebase/app)
+   */
+  {
+    input: 'index.admin.ts',
+    output: [{ file: pkg['main-admin'], format: 'cjs', sourcemap: true }],
+    plugins: es5BuildPlugins,
+    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
+  },
+  /**
    * Browser Builds
    */
   {

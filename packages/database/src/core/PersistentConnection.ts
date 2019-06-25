@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import { contains, isEmpty, safeGet } from '@firebase/util';
+import { contains, isEmpty, safeGet, CONSTANTS } from '@firebase/util';
 import { stringify } from '@firebase/util';
 import { assert } from '@firebase/util';
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
@@ -25,12 +24,12 @@ import { VisibilityMonitor } from './util/VisibilityMonitor';
 import { OnlineMonitor } from './util/OnlineMonitor';
 import { isAdmin, isValidFormat } from '@firebase/util';
 import { Connection } from '../realtime/Connection';
-import { CONSTANTS } from '@firebase/util';
 import { isMobileCordova, isReactNative, isNodeSdk } from '@firebase/util';
 import { ServerActions } from './ServerActions';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
 import { Query } from '../api/Query';
+import { SDK_VERSION } from './version';
 
 const RECONNECT_MIN_DELAY = 1000;
 const RECONNECT_MAX_DELAY_DEFAULT = 60 * 5 * 1000; // 5 minutes in milliseconds (Case: 1858)
@@ -927,7 +926,7 @@ export class PersistentConnection extends ServerActions {
     }
 
     stats[
-      'sdk.' + clientName + '.' + firebase.SDK_VERSION.replace(/\./g, '-')
+      'sdk.' + clientName + '.' + SDK_VERSION.replace(/\./g, '-')
     ] = 1;
 
     if (isMobileCordova()) {

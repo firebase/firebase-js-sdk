@@ -29,7 +29,7 @@ import {
   FirebaseServiceNamespace,
   AppHook
 } from '@firebase/app-types/private';
-import { deepExtend, contains } from '@firebase/util';
+import { deepExtend, contains, CONSTANTS } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
@@ -69,6 +69,14 @@ export function createFirebaseNamespaceCore(
       useAsService
     }
   };
+
+  // setting version on CONSTANTS, so @firebase/database can get the version from 
+  // @firebase/util instead of @firebase/app. So we can provide a special build target
+  // for @firebase/database that has no dependency on @firebase/app. The special build target will
+  // be used by firebase-admin. It is to solve a version conflict (@firebase/app) that could happen 
+  // when firebase and firebase-admin are used in the same project.
+  // https://github.com/firebase/firebase-js-sdk/issues/1696#issuecomment-501546596
+  CONSTANTS.SDK_VERSION = version;
 
   // Inject a circular default export to allow Babel users who were previously
   // using:

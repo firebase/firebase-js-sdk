@@ -16,8 +16,7 @@
  */
 
 import firebase from '@firebase/app';
-import { CONSTANTS, isNodeSdk } from '@firebase/util';
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Database } from './src/api/Database';
 import { DataSnapshot } from './src/api/DataSnapshot';
@@ -29,6 +28,7 @@ import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import './src/nodePatches';
 import * as types from '@firebase/database-types';
+import { setSDKVersion } from './src/core/version';
 
 /**
  * A one off register function which returns a database based on the app and
@@ -40,38 +40,13 @@ import * as types from '@firebase/database-types';
 
 const ServerValue = Database.ServerValue;
 
-export function initStandalone(
-  app: FirebaseApp,
-  url: string,
-  version?: string
-) {
-  /**
-   * This should allow the firebase-admin package to provide a custom version
-   * to the backend
-   */
-  CONSTANTS.NODE_ADMIN = true;
-  if (version) {
-    firebase.SDK_VERSION = version;
-  }
-
-  return {
-    instance: RepoManager.getInstance().databaseFromApp(app, url),
-    namespace: {
-      Reference,
-      Query,
-      Database,
-      DataSnapshot,
-      enableLogging,
-      INTERNAL,
-      ServerValue,
-      TEST_ACCESS
-    }
-  };
-}
-
 export function registerDatabase(instance: FirebaseNamespace) {
+  
+  // set SDK_VERSION
+  setSDKVersion(firebase.SDK_VERSION);
+
   // Register the Database Service with the 'firebase' namespace.
-  const namespace = (instance as _FirebaseNamespace).INTERNAL.registerService(
+  (instance as _FirebaseNamespace).INTERNAL.registerService(
     'database',
     (app, unused, url) => RepoManager.getInstance().databaseFromApp(app, url),
     // firebase.database namespace properties
@@ -88,10 +63,6 @@ export function registerDatabase(instance: FirebaseNamespace) {
     null,
     true
   );
-
-  if (isNodeSdk()) {
-    module.exports = Object.assign({}, namespace, { initStandalone });
-  }
 }
 
 registerDatabase(firebase);
