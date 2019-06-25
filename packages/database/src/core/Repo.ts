@@ -403,14 +403,14 @@ export class Repo {
     let empty = true;
     const serverValues = this.generateServerValues();
     const changedChildren: { [k: string]: Node } = {};
-    for (const [changedKey, changedValue] of Object.entries(childrenToMerge)) {
+    each(childrenToMerge, (changedKey: string, changedValue: any) => {
       empty = false;
       const newNodeUnresolved = nodeFromJSON(changedValue);
       changedChildren[changedKey] = resolveDeferredValueSnapshot(
         newNodeUnresolved,
         serverValues
       );
-    }
+    });
 
     if (!empty) {
       const writeId = this.getNextWriteId_();
@@ -440,10 +440,10 @@ export class Repo {
         }
       );
 
-      for (const changedPath of Object.keys(childrenToMerge)) {
+      each(childrenToMerge, (changedPath: string) => {
         const affectedPath = this.abortTransactions_(path.child(changedPath));
         this.rerunTransactions_(affectedPath);
-      }
+      });
 
       // We queued the events above, so just flush the queue here
       this.eventQueue_.raiseEventsForChangedPath(path, []);
@@ -566,12 +566,10 @@ export class Repo {
       childrenToMerge,
       (status, errorReason) => {
         if (status === 'ok') {
-          for (const [childName, childNode] of Object.entries(
-            childrenToMerge
-          )) {
+          each(childrenToMerge, (childName: string, childNode: any) => {
             const newChildNode = nodeFromJSON(childNode);
             this.onDisconnect_.remember(path.child(childName), newChildNode);
-          }
+          });
         }
         this.callOnCompleteCallback(onComplete, status, errorReason);
       }
@@ -653,14 +651,14 @@ export class Repo {
       0
     );
 
-    for (const [stat, value] of Object.entries(stats)) {
+    each(stats, (stat: string, value: any) => {
       let paddedStat = stat;
       // pad stat names to be the same length (plus 2 extra spaces).
       for (let i = stat.length; i < longestName + 2; i++) {
         paddedStat += ' ';
       }
       console.log(paddedStat + value);
-    }
+    });
   }
 
   statsIncrementCounter(metric: string) {

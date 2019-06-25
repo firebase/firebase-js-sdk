@@ -18,6 +18,7 @@
 import { assert } from '@firebase/util';
 import { Path } from './Path';
 import { contains, safeGet } from '@firebase/util';
+import { each } from './util';
 
 /**
  * Node in a Tree.
@@ -118,9 +119,9 @@ export class Tree<T> {
    * @param {function(!Tree.<T>)} action Action to be called for each child.
    */
   forEachChild(action: (tree: Tree<T>) => void) {
-    for (const [child, childTree] of Object.entries(this.node_.children)) {
+    each(this.node_.children, (child: string, childTree: TreeNode<T>) => {
       action(new Tree<T>(child, this, childTree));
-    }
+    });
   }
 
   /**

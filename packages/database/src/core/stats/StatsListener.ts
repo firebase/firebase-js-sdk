@@ -16,6 +16,7 @@
  */
 
 import { StatsCollection } from './StatsCollection';
+import { each } from '../util/util';
 
 /**
  * Returns the delta from the previous call to get stats.
@@ -33,9 +34,9 @@ export class StatsListener {
 
     const delta = { ...newStats };
     if (this.last_) {
-      for (const [stat, value] of Object.entries(this.last_)) {
+      each(this.last_, (stat: string, value: number) => {
         delta[stat] = delta[stat] - value;
-      }
+      });
     }
     this.last_ = newStats;
 

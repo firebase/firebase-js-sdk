@@ -17,7 +17,7 @@
 
 import { Path, ValidationPath } from './Path';
 import { contains, safeGet } from '@firebase/util';
-import { isInvalidJSONNumber } from './util';
+import { isInvalidJSONNumber, each } from './util';
 import { errorPrefix as errorPrefixFxn } from '@firebase/util';
 import { stringLength } from '@firebase/util';
 import { RepoInfo } from '../RepoInfo';
@@ -171,9 +171,9 @@ export const validateFirebaseData = function(
   // TODO = Perf = Consider combining the recursive validation of keys into NodeFromJSON
   // to save extra walking of large objects.
   if (data && typeof data === 'object') {
-    let hasDotValue = false,
-      hasActualChild = false;
-    for (const [key, value] of Object.entries(data)) {
+    let hasDotValue = false;
+    let hasActualChild = false;
+    each(data, function(key: string, value: any) {
       if (key === '.value') {
         hasDotValue = true;
       } else if (key !== '.priority' && key !== '.sv') {
@@ -194,7 +194,7 @@ export const validateFirebaseData = function(
       path.push(key);
       validateFirebaseData(errorPrefix, value, path);
       path.pop();
-    }
+    });
 
     if (hasDotValue && hasActualChild) {
       throw new Error(
@@ -286,7 +286,7 @@ export const validateFirebaseMergeDataArg = function(
   }
 
   const mergePaths: Path[] = [];
-  for (const [key, value] of Object.entries(data)) {
+  each(data, function(key: string, value: any) {
     const curPath = new Path(key);
     validateFirebaseData(errorPrefix, value, path.child(curPath));
     if (curPath.getBack() === '.priority') {
@@ -301,7 +301,7 @@ export const validateFirebaseMergeDataArg = function(
       }
     }
     mergePaths.push(curPath);
-  }
+  });
   validateFirebaseMergePaths(errorPrefix, mergePaths);
 };
 

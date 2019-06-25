@@ -21,6 +21,7 @@ import { Node, NamedNode } from './snap/Node';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
 import { assert } from '@firebase/util';
 import { ChildrenNode } from './snap/ChildrenNode';
+import { each } from './util/util';
 
 /**
  * This class holds a collection of writes that can be applied to nodes in unison. It abstracts away the logic with
@@ -69,9 +70,9 @@ export class CompoundWrite {
    */
   addWrites(path: Path, updates: { [name: string]: Node }): CompoundWrite {
     let newWrite = this as CompoundWrite;
-    for (const [childKey, node] of Object.entries(updates)) {
+    each(updates, function(childKey: string, node: Node) {
       newWrite = newWrite.addWrite(path.child(childKey), node);
-    }
+    });
     return newWrite;
   }
 

@@ -17,7 +17,7 @@
 
 import { SortedMap } from './SortedMap';
 import { Path } from './Path';
-import { stringCompare } from './util';
+import { stringCompare, each } from './util';
 
 let emptyChildrenSingleton: SortedMap<string, ImmutableTree<null>>;
 
@@ -49,9 +49,9 @@ export class ImmutableTree<T> {
    */
   static fromObject<T>(obj: { [k: string]: T }): ImmutableTree<T> {
     let tree: ImmutableTree<T> = ImmutableTree.Empty;
-    for (const [childPath, childSnap] of Object.entries(obj)) {
+    each(obj, (childPath: string, childSnap: T) => {
       tree = tree.set(new Path(childPath), childSnap);
-    }
+    });
     return tree;
   }
 

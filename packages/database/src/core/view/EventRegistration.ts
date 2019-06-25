@@ -265,16 +265,18 @@ export class ChildEventRegistration implements EventRegistration {
       if (!this.callbacks_ || !other.callbacks_) {
         return true;
       } else if (this.context_ === other.context_) {
-        const otherCount = Object.keys(other.callbacks_).length;
-        const thisCount = Object.keys(this.callbacks_).length;
+        const otherKeys = Object.keys(other.callbacks_);
+        const thisKeys = Object.keys(this.callbacks_);
+        const otherCount = otherKeys.length;
+        const thisCount = thisKeys.length;
         if (otherCount === thisCount) {
           // If count is 1, do an exact match on eventType, if either is defined but null, it's a match.
           // If event types don't match, not a match
           // If count is not 1, exact match across all
 
           if (otherCount === 1) {
-            const otherKey = Object.keys(other.callbacks_)[0];
-            const thisKey = Object.keys(this.callbacks_)[0];
+            const otherKey = otherKeys[0];
+            const thisKey = thisKeys[0];
             return (
               thisKey === otherKey &&
               (!other.callbacks_[otherKey] ||
@@ -283,8 +285,9 @@ export class ChildEventRegistration implements EventRegistration {
             );
           } else {
             // Exact match on each key.
-            return Object.entries(this.callbacks_).every(
-              ([eventType, cb]) => other.callbacks_[eventType] === cb
+            return thisKeys.every(
+              eventType =>
+                other.callbacks_[eventType] === this.callbacks_[eventType]
             );
           }
         }

@@ -223,13 +223,18 @@ export class SyncPoint {
   }
 
   getQueryViews(): View[] {
-    return Array.from(this.views.values()).filter(
-      view =>
+    const result = [];
+    for (const view of this.views.values()) {
+      if (
         !view
           .getQuery()
           .getQueryParams()
           .loadsAllData()
-    );
+      ) {
+        result.push(view);
+      }
+    }
+    return result;
   }
 
   /**

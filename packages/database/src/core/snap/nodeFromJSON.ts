@@ -25,6 +25,7 @@ import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
 import { IndexMap } from './IndexMap';
 import { PRIORITY_INDEX, setNodeFromJSON } from './indexes/PriorityIndex';
 import { SortedMap } from '../util/SortedMap';
+import { each } from '../util/util';
 
 const USE_HINZE = true;
 
@@ -68,9 +69,9 @@ export function nodeFromJSON(
   if (!(json instanceof Array) && USE_HINZE) {
     const children: NamedNode[] = [];
     let childrenHavePriority = false;
-    const hinzeJsonObj: { [k: string]: any } = json as object;
-    for (const [key, child] of Object.entries(hinzeJsonObj)) {
-      if (key.substring(0, 1) !== '.') {
+    const hinzeJsonObj: { [k: string]: any } = json;
+    each(hinzeJsonObj, (key: string, child: any) => {
+      if (typeof key !== 'string' || key.substring(0, 1) !== '.') {
         // Ignore metadata nodes
         const childNode = nodeFromJSON(child);
         if (!childNode.isEmpty()) {
@@ -79,7 +80,7 @@ export function nodeFromJSON(
           children.push(new NamedNode(key, childNode));
         }
       }
-    }
+    });
 
     if (children.length == 0) {
       return ChildrenNode.EMPTY_NODE;
@@ -113,7 +114,7 @@ export function nodeFromJSON(
     }
   } else {
     let node: Node = ChildrenNode.EMPTY_NODE;
-    for (const [key, childData] of Object.entries(json)) {
+    each(json, (key: string, childData: any) => {
       if (contains(json, key)) {
         if (key.substring(0, 1) !== '.') {
           // ignore metadata nodes.
@@ -122,7 +123,7 @@ export function nodeFromJSON(
             node = node.updateImmediateChild(key, childNode);
         }
       }
-    }
+    });
 
     return node.updatePriority(nodeFromJSON(priority));
   }

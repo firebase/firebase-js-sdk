@@ -16,7 +16,7 @@
  */
 
 import { assert } from '@firebase/util';
-import { errorForServerCode } from './util/util';
+import { errorForServerCode, each } from './util/util';
 import { AckUserWrite } from './operation/AckUserWrite';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { ImmutableTree } from './util/ImmutableTree';
@@ -158,9 +158,9 @@ export class SyncTree {
         // overwrite
         affectedTree = affectedTree.set(Path.Empty, true);
       } else {
-        for (const [pathString, node] of Object.entries(write.children)) {
+        each(write.children, function(pathString: string, node: Node) {
           affectedTree = affectedTree.set(new Path(pathString), node);
-        }
+        });
       }
       return this.applyOperationToSyncPoints_(
         new AckUserWrite(write.path, affectedTree, revert)
@@ -524,9 +524,9 @@ export class SyncTree {
           if (maybeChildSyncPoint) {
             views = maybeChildSyncPoint.getQueryViews();
           }
-          for (const childViews of Object.values(childMap)) {
+          each(childMap, function(_key: string, childViews: View[]) {
             views = views.concat(childViews);
-          }
+          });
           return views;
         }
       }
@@ -611,9 +611,9 @@ export class SyncTree {
               maybeChildSyncPoint.getQueryViews().map(view => view.getQuery())
             );
           }
-          for (const childQueries of Object.values(childMap)) {
+          each(childMap, function(_key: string, childQueries: Query[]) {
             queries = queries.concat(childQueries);
-          }
+          });
           return queries;
         }
       });

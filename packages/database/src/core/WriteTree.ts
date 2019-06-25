@@ -24,6 +24,7 @@ import { ChildrenNode } from './snap/ChildrenNode';
 import { NamedNode, Node } from './snap/Node';
 import { CacheNode } from './view/CacheNode';
 import { Index } from './snap/indexes/Index';
+import { each } from './util/util';
 
 /**
  * Defines a single user-initiated write operation. May be the result of a set(), transaction(), or update() call. In
@@ -203,11 +204,11 @@ export class WriteTree {
         );
       } else {
         const children = writeToRemove.children;
-        for (const childName of Object.keys(children)) {
+        each(children, (childName: string) => {
           this.visibleWrites_ = this.visibleWrites_.removeWrite(
             writeToRemove.path.child(childName)
           );
-        }
+        });
       }
       return true;
     }
