@@ -586,24 +586,26 @@ apiDescribe('Queries', (persistence: boolean) => {
   );
 
   (isRunningAgainstEmulator() ? it : it.skip)(
-  'can use IN filters by document ID', async () => {
-    const testDocs = {
-      aa: { key: 'aa' },
-      ab: { key: 'ab' },
-      ba: { key: 'ba' },
-      bb: { key: 'bb' }
-    };
-    await withTestCollection(persistence, testDocs, async coll => {
-      const snapshot = await coll
-        .where(FieldPath.documentId(), inOp, ['aa', 'ab'])
-        .get();
+    'can use IN filters by document ID',
+    async () => {
+      const testDocs = {
+        aa: { key: 'aa' },
+        ab: { key: 'ab' },
+        ba: { key: 'ba' },
+        bb: { key: 'bb' }
+      };
+      await withTestCollection(persistence, testDocs, async coll => {
+        const snapshot = await coll
+          .where(FieldPath.documentId(), inOp, ['aa', 'ab'])
+          .get();
 
-      expect(toDataArray(snapshot)).to.deep.equal([
-        {key: 'aa'},
-        {key: 'ab'}
-      ]);
-    });
-  });
+        expect(toDataArray(snapshot)).to.deep.equal([
+          { key: 'aa' },
+          { key: 'ab' }
+        ]);
+      });
+    }
+  );
 
   // TODO(in-queries): Enable browser tests once backend support is ready.
   (isRunningAgainstEmulator() ? it : it.skip)(
