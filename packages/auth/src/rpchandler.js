@@ -239,6 +239,7 @@ fireauth.RpcHandler.ServerError = {
   TENANT_ID_MISMATCH: 'TENANT_ID_MISMATCH',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'TOO_MANY_ATTEMPTS_TRY_LATER',
+  UNSUPPORTED_TENANT_OPERATION: 'UNSUPPORTED_TENANT_OPERATION',
   UNAUTHORIZED_DOMAIN: 'UNAUTHORIZED_DOMAIN',
   USER_CANCELLED: 'USER_CANCELLED',
   USER_DISABLED: 'USER_DISABLED',
@@ -2016,12 +2017,14 @@ fireauth.RpcHandler.ApiMethod = {
   APPLY_OOB_CODE: {
     endpoint: 'setAccountInfo',
     requestValidator: fireauth.RpcHandler.validateApplyActionCodeRequest_,
-    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   CHECK_ACTION_CODE: {
     endpoint: 'resetPassword',
     requestValidator: fireauth.RpcHandler.validateApplyActionCodeRequest_,
-    responseValidator: fireauth.RpcHandler.validateCheckActionCodeResponse_
+    responseValidator: fireauth.RpcHandler.validateCheckActionCodeResponse_,
+    requireTenantId: true
   },
   CREATE_ACCOUNT: {
     endpoint: 'signupNewUser',
@@ -2031,7 +2034,8 @@ fireauth.RpcHandler.ApiMethod = {
     requireTenantId: true
   },
   CREATE_AUTH_URI: {
-    endpoint: 'createAuthUri'
+    endpoint: 'createAuthUri',
+    requireTenantId: true
   },
   DELETE_ACCOUNT: {
     endpoint: 'deleteAccount',
@@ -2074,13 +2078,15 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'getOobConfirmationCode',
     requestRequiredFields: ['idToken', 'requestType'],
     requestValidator: fireauth.RpcHandler.validateEmailVerificationCodeRequest_,
-    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   GET_OOB_CODE: {
     endpoint: 'getOobConfirmationCode',
     requestRequiredFields: ['requestType'],
     requestValidator: fireauth.RpcHandler.validateOobCodeRequest_,
-    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   GET_PROJECT_CONFIG: {
     // Microsoft edge caching bug. There are two getProjectConfig API calls,
@@ -2102,7 +2108,8 @@ fireauth.RpcHandler.ApiMethod = {
   RESET_PASSWORD: {
     endpoint: 'resetPassword',
     requestValidator: fireauth.RpcHandler.validateApplyActionCodeRequest_,
-    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   RETURN_DYNAMIC_LINK: {
     cachebuster: true,
@@ -2168,7 +2175,8 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'verifyPassword',
     requestValidator: fireauth.RpcHandler.validateVerifyPasswordRequest_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    requireTenantId: true
   },
   VERIFY_PHONE_NUMBER: {
     endpoint: 'verifyPhoneNumber',
@@ -2469,6 +2477,10 @@ fireauth.RpcHandler.getDeveloperError_ =
   // getProjectConfig errors when sha1Cert is passed.
   errorMap[fireauth.RpcHandler.ServerError.INVALID_CERT_HASH] =
       fireauth.authenum.Error.INVALID_CERT_HASH;
+
+  // Multi-tenant related errors.
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
 
   // User actions (sign-up or deletion) disabled errors.
   errorMap[fireauth.RpcHandler.ServerError.ADMIN_ONLY_OPERATION] =

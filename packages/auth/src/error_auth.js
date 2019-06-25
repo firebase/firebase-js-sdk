@@ -185,6 +185,7 @@ fireauth.authenum.Error = {
   TOO_MANY_ATTEMPTS_TRY_LATER: 'too-many-requests',
   UNAUTHORIZED_DOMAIN: 'unauthorized-continue-uri',
   UNSUPPORTED_PERSISTENCE: 'unsupported-persistence-type',
+  UNSUPPORTED_TENANT_OPERATION: 'unsupported-tenant-operation',
   USER_CANCELLED: 'user-cancelled',
   USER_DELETED: 'user-not-found',
   USER_DISABLED: 'user-disabled',
@@ -401,6 +402,9 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNAUTHORIZED_DOMAIN] =
     'the domain in the Firebase console.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNSUPPORTED_PERSISTENCE] =
     'The current environment does not support the specified persistence type.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION] =
+    'This operation is not supported in a multi-tenant context.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_CANCELLED] =
     'User did not grant your application the permissions it requested.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_DELETED] =
