@@ -501,7 +501,11 @@ export class FieldFilter extends Filter {
   /**
    * Creates a filter based on the provided arguments.
    */
-  static create(field: FieldPath, op: Operator, value: FieldValue): FieldFilter {
+  static create(
+    field: FieldPath,
+    op: Operator,
+    value: FieldValue
+  ): FieldFilter {
     if (field.isKeyField()) {
       assert(
         value instanceof RefValue,

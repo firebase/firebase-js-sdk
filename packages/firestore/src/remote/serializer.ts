@@ -1328,7 +1328,11 @@ export class JsonProtoSerializer {
         const nullField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return FieldFilter.create(nullField, Operator.EQUAL, NullValue.INSTANCE);
+        return FieldFilter.create(
+          nullField,
+          Operator.EQUAL,
+          NullValue.INSTANCE
+        );
       case 'OPERATOR_UNSPECIFIED':
         return fail('Unspecified filter');
       default:

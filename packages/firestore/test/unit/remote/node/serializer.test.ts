@@ -763,13 +763,20 @@ describe('Serializer', () => {
     });
 
     it('converts key field', () => {
-      const input = filter(DOCUMENT_KEY_NAME, '==', ref('project/database', 'coll/doc'));
+      const input = filter(
+        DOCUMENT_KEY_NAME,
+        '==',
+        ref('project/database', 'coll/doc')
+      );
       const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
           field: { fieldPath: '__name__' },
           op: 'EQUAL',
-          value: { referenceValue: 'projects/project/databases/database/documents/coll/doc' }
+          value: {
+            referenceValue:
+              'projects/project/databases/database/documents/coll/doc'
+          }
         }
       });
       const roundtripped = s.fromFieldFilter(actual);
