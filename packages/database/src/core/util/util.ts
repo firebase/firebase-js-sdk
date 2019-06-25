@@ -395,12 +395,6 @@ export const splitStringBySize = function(
  * @param fn The function to apply
  */
 export function each(obj: object, fn: (k: string, v: any) => void) {
-  /**
-   * in the conversion of code we removed the goog.object.forEach
-   * function which did a value,key callback. We standardized on
-   * a single impl that does a key, value callback. So we invert
-   * to not have to touch the `each` code points
-   */
   for (const key in obj) {
     if (obj.hasOwnProperty(key)) {
       fn(key, obj[key]);
