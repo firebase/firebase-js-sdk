@@ -689,12 +689,11 @@ export class ArrayContainsAnyFilter extends FieldFilter {
   }
 
   matches(doc: Document): boolean {
-    const arrayValue = this.value;
     const other = doc.field(this.field);
     return (
       other instanceof ArrayValue &&
       other.internalValue.some(lhsElem => {
-        return arrayValue.contains(lhsElem);
+        return this.value.contains(lhsElem);
       })
     );
   }
