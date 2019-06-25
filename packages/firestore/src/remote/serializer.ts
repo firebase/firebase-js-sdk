@@ -1282,7 +1282,7 @@ export class JsonProtoSerializer {
   }
 
   fromFieldFilter(filter: api.Filter): Filter {
-    return Filter.create(
+    return FieldFilter.create(
       this.fromFieldPathReference(filter.fieldFilter!.field!),
       this.fromOperatorName(filter.fieldFilter!.op!),
       this.fromValue(filter.fieldFilter!.value!)
@@ -1323,12 +1323,12 @@ export class JsonProtoSerializer {
         const nanField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return new FieldFilter(nanField, Operator.EQUAL, DoubleValue.NAN);
+        return FieldFilter.create(nanField, Operator.EQUAL, DoubleValue.NAN);
       case 'IS_NULL':
         const nullField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return new FieldFilter(nullField, Operator.EQUAL, NullValue.INSTANCE);
+        return FieldFilter.create(nullField, Operator.EQUAL, NullValue.INSTANCE);
       case 'OPERATOR_UNSPECIFIED':
         return fail('Unspecified filter');
       default:

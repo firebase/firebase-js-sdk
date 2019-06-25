@@ -30,6 +30,7 @@ import {
   InFilter,
   Direction,
   FieldFilter,
+  KeyFieldFilter,
   Operator,
   OrderBy,
   Query
@@ -687,7 +688,7 @@ describe('Serializer', () => {
 
     it('makes dotted-property names', () => {
       const path = new FieldPath(['item', 'part', 'top']);
-      const input = new FieldFilter(path, Operator.EQUAL, wrap('food'));
+      const input = FieldFilter.create(path, Operator.EQUAL, wrap('food'));
       const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
@@ -759,6 +760,21 @@ describe('Serializer', () => {
       const roundtripped = s.fromFieldFilter(actual);
       expect(roundtripped).to.deep.equal(input);
       expect(roundtripped).to.be.instanceof(FieldFilter);
+    });
+
+    it('converts key field', () => {
+      const input = filter(DOCUMENT_KEY_NAME, '==', ref('project/database', 'coll/doc'));
+      const actual = s.toUnaryOrFieldFilter(input);
+      expect(actual).to.deep.equal({
+        fieldFilter: {
+          field: { fieldPath: '__name__' },
+          op: 'EQUAL',
+          value: { referenceValue: 'projects/project/databases/database/documents/coll/doc' }
+        }
+      });
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(KeyFieldFilter);
     });
 
     it('converts array-contains', () => {
