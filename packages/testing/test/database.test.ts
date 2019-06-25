@@ -87,13 +87,16 @@ describe('Testing Module Tests', function() {
   });
 
   it('loadDatabaseRules() throws if no databaseName or rules', async function() {
+    //@ts-ignore This test is checking an invalid param.
     await expect(firebase.loadDatabaseRules.bind(null, {})).to.throw(
       /databaseName not specified/
     );
+    //@ts-ignore This test is checking an invalid param.
     await expect(firebase.loadDatabaseRules.bind(null, {
       databaseName: 'foo'
     }) as Promise<void>).to.throw(/must provide rules/);
     await expect(
+      //@ts-ignore This test is checking an invalid param.
       firebase.loadDatabaseRules.bind(null, { rules: '{}' })
     ).to.throw(/databaseName not specified/);
   });
