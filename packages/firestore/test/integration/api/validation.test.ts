@@ -1137,7 +1137,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(
       persistence,
-      'follow array requirements for disjunctive filters',
+      'enforce array requirements for disjunctive filters',
       db => {
         expect(() => db.collection('test').where('foo', inOp, 2)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
