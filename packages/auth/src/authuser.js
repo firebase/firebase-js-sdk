@@ -1649,8 +1649,8 @@ fireauth.AuthUser.prototype.resolvePendingPopupEvent =
  * @param {!fireauth.AuthEvent.Type} mode The Auth operation mode (popup,
  *     redirect).
  * @param {?string=} opt_eventId The optional event ID.
- * @return {?function(string,
- *     string, ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
+ * @return {?function(string, string, ?string,
+ *     ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
  * @override
  */
 fireauth.AuthUser.prototype.getAuthEventHandlerFinisher =
@@ -1980,11 +1980,12 @@ fireauth.AuthUser.prototype.getAuthEventManager = function() {
  * Finishes the popup and redirect account linking operations.
  * @param {string} requestUri The callback URL with the OAuth response.
  * @param {string} sessionId The session ID used to generate the authUri.
+ * @param {?string} tenantId The tenant ID.
  * @param {?string=} opt_postBody The optional POST body content.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.AuthUser.prototype.finishPopupAndRedirectLink =
-    function(requestUri, sessionId, opt_postBody) {
+    function(requestUri, sessionId, tenantId, opt_postBody) {
   var self = this;
   // Now that popup has responded, delete popup timeout promise.
   if (this.popupTimeoutPromise_) {
@@ -2000,6 +2001,8 @@ fireauth.AuthUser.prototype.finishPopupAndRedirectLink =
           'requestUri': requestUri,
           'postBody': opt_postBody,
           'sessionId': sessionId,
+          // To link a tenant user, the tenant ID will be passed to the
+          // backend as part of the ID token.
           'idToken': idToken
         };
         // This operation should fail if new ID token differs from old one.
@@ -2026,11 +2029,12 @@ fireauth.AuthUser.prototype.finishPopupAndRedirectLink =
  * Finishes the popup and redirect account reauthentication operations.
  * @param {string} requestUri The callback URL with the OAuth response.
  * @param {string} sessionId The session ID used to generate the authUri.
+ * @param {?string} tenantId The tenant ID.
  * @param {?string=} opt_postBody The optional POST body content.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.AuthUser.prototype.finishPopupAndRedirectReauth =
-    function(requestUri, sessionId, opt_postBody) {
+    function(requestUri, sessionId, tenantId, opt_postBody) {
   var self = this;
   // Now that popup has responded, delete popup timeout promise.
   if (this.popupTimeoutPromise_) {
@@ -2045,7 +2049,12 @@ fireauth.AuthUser.prototype.finishPopupAndRedirectReauth =
         var request = {
           'requestUri': requestUri,
           'sessionId': sessionId,
-          'postBody': opt_postBody
+          'postBody': opt_postBody,
+          // To reauthenticate a tenant user, the tenant ID will be passed to
+          // the backend explicitly.
+          // Even if tenant ID is null, still pass it to RPC handler explicitly
+          // so that it won't be overridden by RPC handler's tenant ID.
+          'tenantId': tenantId
         };
         // Finish sign in by calling verifyAssertionForExisting and then
         // matching the returned ID token's UID with the current user's.

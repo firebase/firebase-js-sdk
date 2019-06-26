@@ -3221,11 +3221,91 @@ function testVerifyAssertion_success() {
   rpcHandler.verifyAssertion({
     'sessionId': 'SESSION_ID',
     'requestUri': 'http://localhost/callback#oauthResponse'
-  }).then(
-      function(response) {
-        assertEquals(expectedResponse, response);
-        asyncTestCase.signal();
-      });
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertion RPC call with the tenant ID being passed in
+ * the request explicitly.
+ */
+function testVerifyAssertion_success_passTenantIdExplicitly() {
+  // Test that if the tenant ID is explicitly passed in the request, the tenant
+  // ID on the RPC handler will be ignored.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        // Tenant ID on RPC handler should be TENANT_ID2, which is overridden by
+        // TENANT_ID1 in the request.
+        'tenantId': 'TENANT_ID1',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('TENANT_ID2');
+  rpcHandler.verifyAssertion({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse',
+    'tenantId': 'TENANT_ID1'
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertion RPC call with no tenant ID passed in the
+ * request.
+ */
+function testVerifyAssertion_success_noTenantIdInRequest() {
+  // Test that if the tenant ID is not passed as part of verifyAssertionRequest
+  // explicitly, the tenant ID on RPC handler should be applied.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        'returnIdpCredential': true,
+        'returnSecureToken': true,
+        'tenantId': 'TENANT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('TENANT_ID');
+  rpcHandler.verifyAssertion({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse'
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
 }
 
 
@@ -4507,11 +4587,96 @@ function testVerifyAssertionForExisting_success() {
   rpcHandler.verifyAssertionForExisting({
     'sessionId': 'SESSION_ID',
     'requestUri': 'http://localhost/callback#oauthResponse'
-  }).then(
-      function(response) {
-        assertEquals(expectedResponse, response);
-        asyncTestCase.signal();
-      });
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertionForExisting RPC call with the tenant ID
+ * being passed in the request explicitly.
+ */
+function testVerifyAssertionForExisting_success_passTenantIdExplicitly() {
+  // Test that if the tenant ID is explicitly passed in the request, the tenant
+  // ID on the RPC handler will be ignored.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        // Tenant ID on RPC handler should be TENANT_ID2, which is overridden by
+        // TENANT_ID1 in the request.
+        'tenantId': 'TENANT_ID1',
+        'returnIdpCredential': true,
+        // autoCreate flag should be passed and set to false.
+        'autoCreate': false,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  // Update the tenant ID on the RPC handler.
+  rpcHandler.updateTenantId('TENANT_ID2');
+  rpcHandler.verifyAssertionForExisting({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse',
+    'tenantId': 'TENANT_ID1'
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertionForExisting RPC call with no tenant ID passed
+ * in the request.
+ */
+function testVerifyAssertionForExisting_success_noTenantIdInRequest() {
+  // Test that if the tenant ID is not passed as part of verifyAssertionRequest
+  // explicitly, the tenant ID on RPC handler should be applied.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        'returnIdpCredential': true,
+        // autoCreate flag should be passed and set to false.
+        'autoCreate': false,
+        'returnSecureToken': true,
+        'tenantId': 'TENANT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('TENANT_ID');
+  rpcHandler.verifyAssertionForExisting({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse'
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
 }
 
 
@@ -7739,6 +7904,58 @@ function testVerifyPhoneNumberForExisting_success_usingTemporaryProof() {
         assertEquals(expectedStsTokenResponse, response);
         asyncTestCase.signal();
       });
+}
+
+
+/**
+ * Tests successful verifyPhoneNumberForExisting RPC call with tenant ID.
+ */
+function testVerifyPhoneNumberForExisting_success_tenantId() {
+  var requestBody = {
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456',
+    'operation': 'REAUTH',
+    'tenantId': 'TENANT_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPhon' +
+      'eNumber?key=apiKey',
+      'POST',
+      goog.json.serialize(requestBody),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedStsTokenResponse);
+  rpcHandler.updateTenantId('TENANT_ID');
+  rpcHandler.verifyPhoneNumberForExisting({
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456'
+  }).then(function(response) {
+    assertEquals(expectedStsTokenResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testVerifyPhoneNumberForExisting_unsupportedTenantOperation() {
+   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/relyin' +
+      'gparty/verifyPhoneNumber?key=apiKey';
+  var requestBody = {
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456',
+    'operation': 'REAUTH',
+    'tenantId': 'TENANT_ID'
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  rpcHandler.updateTenantId('TENANT_ID');
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.verifyPhoneNumberForExisting({
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    });
+  }, errorMap, expectedUrl, requestBody);
 }
 
 

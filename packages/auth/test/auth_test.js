@@ -90,6 +90,15 @@ var accountInfo = {
       'default_profile_3_normal.png',
   'emailVerified': true
 };
+var accountInfoWithTenantId = {
+  'uid': '14584746072031976743',
+  'email': 'uid123@fake.com',
+  'displayName': 'John Doe',
+  'photoURL': 'http://abs.twimg.com/sticky/default_profile_images/' +
+      'default_profile_3_normal.png',
+  'emailVerified': true,
+  'tenantId': '123456789012'
+};
 // accountInfo in the format of a getAccountInfo response.
 var getAccountInfoResponse = {
   'users': [{
@@ -5285,7 +5294,8 @@ function testAuth_finishPopupAndRedirectSignIn_success_withoutPostBody() {
             {
               'requestUri': 'REQUEST_URI',
               'sessionId': 'SESSION_ID',
-              'postBody': null
+              'postBody': null,
+              'tenantId': null
             },
             data);
         asyncTestCase.signal();
@@ -5309,7 +5319,7 @@ function testAuth_finishPopupAndRedirectSignIn_success_withoutPostBody() {
       expectedTokenResponseWithIdPData,
       {'uid': 'USER_ID', 'email': 'user@example.com'});
   // This should resolve with expected cred and Auth user.
-  auth1.finishPopupAndRedirectSignIn('REQUEST_URI', 'SESSION_ID', null)
+  auth1.finishPopupAndRedirectSignIn('REQUEST_URI', 'SESSION_ID', null, null)
       .then(function(response) {
         // Expected result returned.
         fireauth.common.testHelper.assertUserCredentialResponse(
@@ -5343,7 +5353,8 @@ function testAuth_finishPopupAndRedirectSignIn_success_withPostBody() {
             {
               'requestUri': 'REQUEST_URI',
               'sessionId': 'SESSION_ID',
-              'postBody': 'POST_BODY'
+              'postBody': 'POST_BODY',
+              'tenantId': null
             },
             data);
         asyncTestCase.signal();
@@ -5368,7 +5379,8 @@ function testAuth_finishPopupAndRedirectSignIn_success_withPostBody() {
       expectedSamlTokenResponseWithIdPData,
       {'uid': 'USER_ID', 'email': 'user@example.com'});
   // This should resolve with expected cred and Auth user.
-  auth1.finishPopupAndRedirectSignIn('REQUEST_URI', 'SESSION_ID', 'POST_BODY')
+  auth1.finishPopupAndRedirectSignIn(
+      'REQUEST_URI', 'SESSION_ID', null, 'POST_BODY')
       .then(function(response) {
         // Expected result returned.
         fireauth.common.testHelper.assertUserCredentialResponse(
@@ -5378,6 +5390,72 @@ function testAuth_finishPopupAndRedirectSignIn_success_withPostBody() {
             null,
             // Expected additional user info.
             expectedSamlAdditionalUserInfo,
+            // operationType not implemented yet.
+            fireauth.constants.OperationType.SIGN_IN,
+            response);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_finishPopupAndRedirectSignIn_success_tenantId() {
+  // Test successful finishPopupAndRedirectSignIn with Auth credential and
+  // tenant ID.
+  // Verify that the tenant ID is passed to RPC handler and the user with tenant
+  // ID is returned.
+  fireauth.AuthEventManager.ENABLED = true;
+  asyncTestCase.waitForSignals(3);
+  // Stub OAuth sign in handler.
+  fakeOAuthSignInHandler();
+  // Simulate successful RpcHandler verifyAssertion.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'verifyAssertion',
+      function(data) {
+        assertObjectEquals(
+            {
+              'requestUri': 'REQUEST_URI',
+              'sessionId': 'SESSION_ID',
+              'postBody': null,
+              'tenantId': 'TENANT_ID'
+            },
+            data);
+        asyncTestCase.signal();
+        return goog.Promise.resolve(expectedTokenResponseWithIdPData);
+      });
+  // Simulate Auth user successfully initialized from
+  // finishPopupAndRedirectSignIn.
+  stubs.replace(
+      fireauth.AuthUser,
+      'initializeFromIdTokenResponse',
+      function(options, idTokenResponse) {
+        assertObjectEquals(config3, options);
+        assertObjectEquals(expectedTokenResponseWithIdPData, idTokenResponse);
+        asyncTestCase.signal();
+        return goog.Promise.resolve(expectedTenantUser);
+      });
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  var expectedTenantUser = new fireauth.AuthUser(
+      config3,
+      expectedTokenResponseWithIdPData,
+      {
+        'uid': 'USER_ID',
+        'email': 'user@example.com',
+        'tenantId': 'TENANT_ID'
+      });
+  // This should resolve with expected cred and Auth user.
+  auth1.finishPopupAndRedirectSignIn(
+      'REQUEST_URI', 'SESSION_ID', 'TENANT_ID', null)
+      .then(function(response) {
+        // Expected result returned.
+        fireauth.common.testHelper.assertUserCredentialResponse(
+            // Expected current user returned.
+            expectedTenantUser,
+            // Expected credential returned.
+            expectedGoogleCredential,
+            // Expected additional user info.
+            expectedAdditionalUserInfo,
             // operationType not implemented yet.
             fireauth.constants.OperationType.SIGN_IN,
             response);
@@ -5411,7 +5489,8 @@ function testAuth_finishPopupAndRedirectSignIn_noCredential() {
             {
               'requestUri': 'REQUEST_URI',
               'sessionId': 'SESSION_ID',
-              'postBody': null
+              'postBody': null,
+              'tenantId': null
             },
             data);
         asyncTestCase.signal();
@@ -5435,7 +5514,7 @@ function testAuth_finishPopupAndRedirectSignIn_noCredential() {
       expectedResponse,
       {'uid': 'USER_ID', 'email': 'user@example.com'});
   // This should resolve with expected user and credential.
-  auth1.finishPopupAndRedirectSignIn('REQUEST_URI', 'SESSION_ID', null)
+  auth1.finishPopupAndRedirectSignIn('REQUEST_URI', 'SESSION_ID', null, null)
       .then(function(response) {
         // Expected result returned.
         fireauth.common.testHelper.assertUserCredentialResponse(
@@ -5470,7 +5549,8 @@ function testAuth_finishPopupAndRedirectSignIn_error() {
             {
               'requestUri': 'REQUEST_URI',
               'sessionId': 'SESSION_ID',
-              'postBody': null
+              'postBody': null,
+              'tenantId': null
             },
             data);
         asyncTestCase.signal();
@@ -5480,7 +5560,7 @@ function testAuth_finishPopupAndRedirectSignIn_error() {
   auth1 = app1.auth();
   var unsubscribe = auth1.onIdTokenChanged(function(user) {
     // This should catch the expected error.
-    auth1.finishPopupAndRedirectSignIn('REQUEST_URI', 'SESSION_ID', null)
+    auth1.finishPopupAndRedirectSignIn('REQUEST_URI', 'SESSION_ID', null, null)
         .thenCatch(function(error) {
           fireauth.common.testHelper.assertErrorEquals(expectedError, error);
           asyncTestCase.signal();
@@ -5613,7 +5693,8 @@ function testAuth_signInWithPopup_emailCredentialError() {
             {
               'requestUri': 'http://www.example.com/#response',
               'sessionId': 'SESSION_ID',
-              'postBody': null
+              'postBody': null,
+              'tenantId': null
             },
             data);
         return goog.Promise.reject(expectedError);
@@ -5722,10 +5803,11 @@ function testAuth_signInWithPopup_success_withoutPostBody() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertNull(tenantId);
         asyncTestCase.signal();
         return goog.Promise.resolve(expectedPopupResult);
       });
@@ -5767,13 +5849,14 @@ function testAuth_signInWithPopup_success_tenantId() {
   var expectedTenantId = 'TENANT_ID';
   var expectedEventId = '1234';
   // Expected sign in via popup successful Auth event.
-  // TODO: Add the Tenant ID in the AuthEvent after implementing the logic of
-  // redirecting back from OAuth helper widget.
   var expectedAuthEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP,
       expectedEventId,
       'http://www.example.com/#response',
-      'SESSION_ID');
+      'SESSION_ID',
+      null,
+      null,
+      expectedTenantId);
   // Replace random number generator.
   stubs.replace(
       fireauth.util,
@@ -5851,18 +5934,18 @@ function testAuth_signInWithPopup_success_tenantId() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
-        // TODO: verify tenant ID is passed here.
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertEquals(expectedTenantId, tenantId);
         asyncTestCase.signal();
         return goog.Promise.resolve(expectedPopupResult);
       });
-  var user1 = new fireauth.AuthUser(
-      config3, expectedTokenResponse, accountInfo);
+  var tenantUser = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfoWithTenantId);
   var expectedPopupResult = {
-    'user': user1,
+    'user': tenantUser,
     'credential': expectedGoogleCredential,
     'additionalUserInfo': expectedAdditionalUserInfo,
     'operationType': fireauth.constants.OperationType.SIGN_IN
@@ -5977,9 +6060,10 @@ function testAuth_signInWithPopup_success_withPostBody() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/callback', requestUri);
         assertEquals('SESSION_ID', sessionId);
+        assertNull(tenantId);
         assertEquals('POST_BODY', postBody);
         asyncTestCase.signal();
         return goog.Promise.resolve(expectedPopupResult);
@@ -6475,10 +6559,11 @@ function testAuth_signInWithPopup_success_cannotRunInBackground() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertNull(tenantId);
         asyncTestCase.signal();
         return goog.Promise.resolve(expectedPopupResult);
       });
@@ -6512,13 +6597,14 @@ function testAuth_signInWithPopup_success_cannotRunInBackground_tenantId() {
   var expectedEventId = '1234';
   var expectedTenantId = 'TENANT_ID';
   // Expected sign in via popup successful Auth event.
-  // TODO: Add the Tenant ID in the AuthEvent after implementing the logic of
-  // redirecting back from OAuth helper widget.
   var expectedAuthEvent = new fireauth.AuthEvent(
       fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP,
       expectedEventId,
       'http://www.example.com/#response',
-      'SESSION_ID');
+      'SESSION_ID',
+      null,
+      null,
+      expectedTenantId);
   var expectedProvider = new fireauth.GoogleAuthProvider();
   var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
       config3['authDomain'],
@@ -6634,17 +6720,18 @@ function testAuth_signInWithPopup_success_cannotRunInBackground_tenantId() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertEquals(expectedTenantId, tenantId);
         asyncTestCase.signal();
         return goog.Promise.resolve(expectedPopupResult);
       });
-  var user1 = new fireauth.AuthUser(
-      config3, expectedTokenResponse, accountInfo);
+  var tenantUser = new fireauth.AuthUser(
+      config3, expectedTokenResponse, accountInfoWithTenantId);
   var expectedPopupResult = {
-    'user': user1,
+    'user': tenantUser,
     'credential': expectedGoogleCredential,
     'additionalUserInfo': expectedAdditionalUserInfo,
     'operationType': fireauth.constants.OperationType.SIGN_IN
@@ -6795,10 +6882,11 @@ function testAuth_signInWithPopup_success_iframeCanRunInBackground() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertNull(tenantId);
         asyncTestCase.signal();
         return goog.Promise.resolve(expectedPopupResult);
       });
@@ -7034,7 +7122,7 @@ function testAuth_signInWithPopup_invalidEventId() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         fail('finishPopupAndRedirectSignIn should not be called!');
       });
   asyncTestCase.waitForSignals(2);
@@ -7145,7 +7233,7 @@ function testAuth_signInWithPopup_error() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         fail('finishPopupAndRedirectSignIn should not be called due to error!');
       });
   asyncTestCase.waitForSignals(4);
@@ -7421,10 +7509,11 @@ function testAuth_returnFromSignInWithRedirect_success_withoutPostBody() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertNull(tenantId);
         user1 = new fireauth.AuthUser(
             config3, expectedTokenResponse, accountInfo);
         expectedPopupResult = {
@@ -7510,10 +7599,11 @@ function testAuth_returnFromSignInWithRedirect_success_withPostBody() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/callback', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertEquals('POST_BODY', postBody);
+        assertNull(tenantId);
         user1 = new fireauth.AuthUser(
             config3, expectedSamlTokenResponseWithIdPData, accountInfo);
         expectedPopupResult = {
@@ -7564,6 +7654,104 @@ function testAuth_returnFromSignInWithRedirect_success_withPostBody() {
 }
 
 
+function testAuth_returnFromSignInWithRedirect_success_tenantId() {
+  // Tests the return from a successful sign in with redirect where Auth event
+  // has tenant ID.
+  // Verify that if tenant ID is in the redirect Auth event, it will be passed
+  // to finishPopupAndRedirectSignIn handler and the redirect result with the
+  // tenant user will be returned.
+  fireauth.AuthEventManager.ENABLED = true;
+  var expectedTenantId = 'TENANT_ID';
+  var expectedCred = fireauth.GoogleAuthProvider.credential(
+      null, 'ACCESS_TOKEN');
+  // Expected sign in via redirect successful Auth event.
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
+      null,
+      'http://www.example.com/#response',
+      'SESSION_ID',
+      null,
+      null,
+      expectedTenantId);
+  // Stub instantiateOAuthSignInHandler.
+  stubs.replace(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler',
+      function(authDomain, apiKey, appName) {
+        return {
+          'addAuthEventListener': function(handler) {
+            // auth1 should be subscribed.
+            var manager = fireauth.AuthEventManager.getManager(
+                config3['authDomain'], config3['apiKey'], app1.name);
+            assertTrue(manager.isSubscribed(auth1));
+            // In this case run immediately with expected redirect event.
+            handler(expectedAuthEvent);
+            asyncTestCase.signal();
+          },
+          'initializeAndWait': function() { return goog.Promise.resolve(); },
+          'shouldBeInitializedEarly': function() { return false; },
+          'hasVolatileStorage': function() { return false; }
+        };
+      });
+  // Simulate successful finishPopupAndRedirectSignIn.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'finishPopupAndRedirectSignIn',
+      function(requestUri, sessionId, tenantId, postBody) {
+        assertEquals('http://www.example.com/#response', requestUri);
+        assertEquals('SESSION_ID', sessionId);
+        assertNull(postBody);
+        assertEquals(expectedTenantId, tenantId);
+        tenantUser = new fireauth.AuthUser(
+            config3, expectedTokenResponse, accountInfoWithTenantId);
+        expectedRedirectResult = {
+          'user': tenantUser,
+          'credential': expectedCred,
+          'additionalUserInfo': expectedAdditionalUserInfo,
+          'operationType': fireauth.constants.OperationType.SIGN_IN
+        };
+        // Tenant user should be set here and saved to storage.
+        auth1.setCurrentUser_(tenantUser);
+        asyncTestCase.signal();
+        return currentUserStorageManager.setCurrentUser(tenantUser)
+            .then(function() {
+              return expectedRedirectResult;
+            });
+      });
+  var tenantUser, expectedRedirectResult;
+  asyncTestCase.waitForSignals(5);
+  var pendingRedirectManager = new fireauth.storage.PendingRedirectManager(
+      config3['apiKey'] + ':' + appId1);
+  currentUserStorageManager = new fireauth.storage.UserManager(
+      config3['apiKey'] + ':' + appId1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  pendingRedirectManager.setPendingStatus().then(function() {
+    // Get redirect result should resolve with the expected user and credential.
+    auth1.getRedirectResult().then(function(result) {
+      // Expected result returned.
+      assertObjectEquals(expectedRedirectResult, result);
+      asyncTestCase.signal();
+    });
+  });
+  // State listener should fire once only with the final redirected user.
+  var idTokenChangeCounter = 0;
+  auth1.onIdTokenChanged(function(currentUser) {
+    idTokenChangeCounter++;
+    assertEquals(1, idTokenChangeCounter);
+    assertEquals(tenantUser, currentUser);
+    asyncTestCase.signal();
+  });
+  var userChanges = 0;
+  // Should be called with final redirected user.
+  auth1.onAuthStateChanged(function(currentUser) {
+    userChanges++;
+    assertEquals(1, userChanges);
+    assertEquals(tenantUser, currentUser);
+    asyncTestCase.signal();
+  });
+}
+
+
 function testAuth_returnFromSignInWithRedirect_withExistingUser() {
   // Tests the return from a successful sign in with redirect while having a
   // previously signed in user.
@@ -7609,10 +7797,11 @@ function testAuth_returnFromSignInWithRedirect_withExistingUser() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertNull(tenantId);
         accountInfo['uid'] = '5678';
         user1 = new fireauth.AuthUser(
             config3, expectedTokenResponse, accountInfo);
@@ -7712,7 +7901,7 @@ function testAuth_returnFromSignInWithRedirect_error() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         fail('finishPopupAndRedirectSignIn should not run on event error!');
       });
   asyncTestCase.waitForSignals(4);
@@ -7781,7 +7970,7 @@ function testAuth_returnFromSignInWithRedirect_error_webStorageNotSupported() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         fail('finishPopupAndRedirectSignIn should not run on event error!');
       });
   asyncTestCase.waitForSignals(3);
@@ -7849,7 +8038,7 @@ function testAuth_returnFromSignInWithRedirect_noEvent() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         fail('finishPopupAndRedirectSignIn should not run on unknown event!');
       });
   asyncTestCase.waitForSignals(4);
@@ -7940,15 +8129,16 @@ function testAuth_returnFromLinkWithRedirect_success_withoutPostBody() {
   stubs.replace(
       fireauth.AuthUser.prototype,
       'finishPopupAndRedirectLink',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertNull(tenantId);
         expectedPopupResult = {
           'user': this,
           'credential': expectedCred,
           'additionalUserInfo': expectedAdditionalUserInfo,
-          'operationType': fireauth.constants.OperationType.LINK
+          'operationType': fireauth.constants.OperationType.SIGN_IN
         };
         asyncTestCase.signal();
         return goog.Promise.resolve(expectedPopupResult);
@@ -8041,10 +8231,11 @@ function testAuth_returnFromLinkWithRedirect_success_withPostBody() {
   stubs.replace(
       fireauth.AuthUser.prototype,
       'finishPopupAndRedirectLink',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/callback', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertEquals('POST_BODY', postBody);
+        assertNull(tenantId);
         expectedPopupResult = {
           'user': this,
           'credential': null,
@@ -8080,6 +8271,115 @@ function testAuth_returnFromLinkWithRedirect_success_withPostBody() {
       userChanges++;
       assertEquals(1, userChanges);
       assertUserEquals(user1, currentUser);
+      asyncTestCase.signal();
+    });
+  });
+}
+
+
+function testAuth_returnFromLinkWithRedirect_success_tenantId() {
+  // Test link with redirect success with tenant ID.
+  // Verify that if tenant ID is in the redirect Auth event, it will be passed
+  // to finishPopupAndRedirectLink handler and the redirect result with the
+  // tenant user will be returned.
+  fireauth.AuthEventManager.ENABLED = true;
+  var expectedEventId = '1234';
+  var expectedTenantId = 'TENANT_ID';
+  var expectedCred = fireauth.GoogleAuthProvider.credential(null,
+      'ACCESS_TOKEN');
+  stubs.reset();
+  initializeMockStorage();
+  // Expected link via redirect successful Auth event.
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.LINK_VIA_REDIRECT,
+      expectedEventId,
+      'http://www.example.com/#response',
+      'SESSION_ID',
+      null,
+      null,
+      expectedTenantId);
+  // Simulate user loaded from storage.
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'reload',
+      function() {
+        return goog.Promise.resolve();
+      });
+  stubs.replace(
+      fireauth.storage.UserManager.prototype,
+      'getCurrentUser',
+      function() {
+        // When state is ready, currentUser if it exists should be resolved.
+        tenantUser = new fireauth.AuthUser(
+            config3, expectedTokenResponse, accountInfoWithTenantId);
+        // Assume user previously called link via redirect.
+        tenantUser.setRedirectEventId(expectedEventId);
+        return goog.Promise.resolve(tenantUser);
+      });
+  // Stub instantiateOAuthSignInHandler.
+  stubs.replace(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler',
+      function(authDomain, apiKey, appName) {
+        return {
+          'addAuthEventListener': function(handler) {
+            // auth1 and user1 should be subscribed.
+            var manager = fireauth.AuthEventManager.getManager(
+                config3['authDomain'], config3['apiKey'], app1.name);
+            assertTrue(manager.isSubscribed(auth1));
+            assertTrue(manager.isSubscribed(tenantUser));
+            // In this case run immediately with expected redirect event.
+            handler(expectedAuthEvent);
+            asyncTestCase.signal();
+          },
+          'initializeAndWait': function() { return goog.Promise.resolve(); },
+          'shouldBeInitializedEarly': function() { return false; },
+          'hasVolatileStorage': function() { return false; }
+        };
+      });
+  // Simulate successful finishPopupAndRedirectLink.
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'finishPopupAndRedirectLink',
+      function(requestUri, sessionId, tenantId, postBody) {
+        assertEquals('http://www.example.com/#response', requestUri);
+        assertEquals('SESSION_ID', sessionId);
+        assertNull(postBody);
+        assertEquals(expectedTenantId, tenantId);
+        expectedRedirectResult = {
+          'user': this,
+          'credential': expectedCred,
+          'additionalUserInfo': expectedAdditionalUserInfo,
+          'operationType': fireauth.constants.OperationType.LINK
+        };
+        asyncTestCase.signal();
+        return goog.Promise.resolve(expectedRedirectResult);
+      });
+  asyncTestCase.waitForSignals(5);
+  var tenantUser, expectedRedirectResult;
+  var pendingRedirectManager = new fireauth.storage.PendingRedirectManager(
+      config3['apiKey'] + ':' + appId1);
+  pendingRedirectManager.setPendingStatus().then(function() {
+    app1 = firebase.initializeApp(config3, appId1);
+    auth1 = app1.auth();
+    // Get redirect result should resolve with expected user and credential.
+    auth1.getRedirectResult().then(function(result) {
+      assertObjectEquals(expectedRedirectResult, result);
+      asyncTestCase.signal();
+    });
+    // Should fire once only with the final redirected user.
+    var idTokenChangeCounter = 0;
+    auth1.onIdTokenChanged(function(currentUser) {
+      idTokenChangeCounter++;
+      assertEquals(1, idTokenChangeCounter);
+      assertUserEquals(tenantUser, currentUser);
+      asyncTestCase.signal();
+    });
+    var userChanges = 0;
+    // Should be called with expected user.
+    auth1.onAuthStateChanged(function(currentUser) {
+      userChanges++;
+      assertEquals(1, userChanges);
+      assertUserEquals(tenantUser, currentUser);
       asyncTestCase.signal();
     });
   });
@@ -8153,12 +8453,13 @@ function testAuth_returnFromLinkWithRedirect_redirectedLoggedOutUser_success() {
   stubs.replace(
       fireauth.AuthUser.prototype,
       'finishPopupAndRedirectLink',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         // This should be called on redirect user only.
         assertEquals(user2, this);
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertNull(tenantId);
         expectedPopupResult = fireauth.object.makeReadonlyCopy({
           'user': this,
           'credential': expectedCred,
@@ -8270,7 +8571,7 @@ function testAuth_redirectedLoggedOutUser_differentAuthDomain() {
   stubs.replace(
       fireauth.AuthUser.prototype,
       'finishPopupAndRedirectLink',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         return goog.Promise.resolve({
           'user': this,
           'credential': expectedCred,
@@ -8390,12 +8691,13 @@ function testAuth_returnFromLinkWithRedirect_noCurrentUser_redirectUser() {
   stubs.replace(
       fireauth.AuthUser.prototype,
       'finishPopupAndRedirectLink',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         // This should be called on redirect user only.
         assertEquals(user2, this);
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertNull(tenantId);
         expectedPopupResult = fireauth.object.makeReadonlyCopy({
           'user': this,
           'credential': expectedCred,
@@ -8498,7 +8800,7 @@ function testAuth_returnFromLinkWithRedirect_noUsers() {
   stubs.replace(
       fireauth.AuthUser.prototype,
       'finishPopupAndRedirectLink',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         fail('finishPopupAndRedirectLink should not call!');
       });
   asyncTestCase.waitForSignals(4);
@@ -8607,7 +8909,7 @@ function testAuth_returnFromLinkWithRedirect_redirectedLoggedInUser_success() {
   stubs.replace(
       fireauth.AuthUser.prototype,
       'finishPopupAndRedirectLink',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         // This should be called on current user only as he is subscribed first.
         assertEquals(user1, this);
         assertEquals('http://www.example.com/#response', requestUri);
@@ -8724,7 +9026,7 @@ function testAuth_returnFromLinkWithRedirect_invalidUser() {
   stubs.replace(
       fireauth.AuthUser.prototype,
       'finishPopupAndRedirectLink',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         fail('finishPopupAndRedirectLink should not call due to UID mismatch!');
       });
   asyncTestCase.waitForSignals(4);
@@ -8817,7 +9119,7 @@ function testAuth_returnFromLinkWithRedirect_error() {
   stubs.replace(
       fireauth.AuthUser.prototype,
       'finishPopupAndRedirectLink',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         fail('finishPopupAndRedirectLink should not call due to event error!');
       });
   asyncTestCase.waitForSignals(4);
@@ -9164,7 +9466,7 @@ function testAuth_returnFromSignInWithRedirect_timeout() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         fail('finishPopupAndRedirectSignIn should not call due to timeout!');
       });
   asyncTestCase.waitForSignals(4);
@@ -9983,10 +10285,11 @@ function testAuth_storedPersistence_returnFromRedirect() {
   stubs.replace(
       fireauth.Auth.prototype,
       'finishPopupAndRedirectSignIn',
-      function(requestUri, sessionId, postBody) {
+      function(requestUri, sessionId, tenantId, postBody) {
         assertEquals('http://www.example.com/#response', requestUri);
         assertEquals('SESSION_ID', sessionId);
         assertNull(postBody);
+        assertNull(tenantId);
         user1 = new fireauth.AuthUser(
             config3, expectedTokenResponse, accountInfo);
         expectedPopupResult = {
@@ -10084,7 +10387,8 @@ function testAuth_changedPersistence_returnFromRedirect() {
             {
               'requestUri': 'http://www.example.com/#response',
               'sessionId': 'SESSION_ID',
-              'postBody': null
+              'postBody': null,
+              'tenantId': null
             },
             data);
         return goog.Promise.resolve(expectedTokenResponseWithIdPData);

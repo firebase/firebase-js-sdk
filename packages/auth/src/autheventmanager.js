@@ -883,10 +883,11 @@ fireauth.RedirectAuthEventProcessor.prototype.processSuccessEvent_ =
   var requestUri = /** @type {string} */ (authEvent.getUrlResponse());
   var sessionId = /** @type {string} */ (authEvent.getSessionId());
   var postBody = /** @type {?string} */ (authEvent.getPostBody());
+  var tenantId = /** @type {?string} */ (authEvent.getTenantId());
   var isRedirect = fireauth.AuthEvent.isRedirect(authEvent);
   // Complete sign in or link account operation and then pass result to
   // relevant pending popup promise.
-  return handler(requestUri, sessionId, postBody)
+  return handler(requestUri, sessionId, tenantId, postBody)
       .then(function(popupRedirectResponse) {
     // Flow completed.
     // For a redirect operation resolve with the popupRedirectResponse,
@@ -1123,9 +1124,10 @@ fireauth.PopupAuthEventProcessor.prototype.processSuccessEvent_ =
   var requestUri = /** @type {string} */ (authEvent.getUrlResponse());
   var sessionId = /** @type {string} */ (authEvent.getSessionId());
   var postBody = /** @type {?string} */ (authEvent.getPostBody());
+  var tenantId = /** @type {?string} */ (authEvent.getTenantId());
   // Complete sign in or link account operation and then pass result to
   // relevant pending popup promise.
-  return handler(requestUri, sessionId, postBody)
+  return handler(requestUri, sessionId, tenantId, postBody)
       .then(function(popupRedirectResponse) {
     // Flow completed.
     // Resolve pending popup promise if it exists.
@@ -1180,8 +1182,8 @@ fireauth.AuthEventHandler.prototype.resolvePendingPopupEvent =
  * finisher.
  * @param {!fireauth.AuthEvent.Type} mode The Auth type mode.
  * @param {?string=} opt_eventId The optional event ID.
- * @return {?function(string,
- *     string, ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
+ * @return {?function(string, string, ?string,
+ *     ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.AuthEventHandler.prototype.getAuthEventHandlerFinisher =
     function(mode, opt_eventId) {};

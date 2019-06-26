@@ -1827,7 +1827,8 @@ fireauth.RpcHandler.validateVerifyAssertionLinkRequest_ = function(request) {
  *   pendingIdToken: (?string|undefined),
  *   sessionId: (?string|undefined),
  *   idToken: (?string|undefined),
- *   returnIdpCredential: (boolean|undefined)
+ *   returnIdpCredential: (boolean|undefined),
+ *   tenantId: (?string|undefined)
  * }}
  */
 fireauth.RpcHandler.VerifyAssertionData;
@@ -2150,7 +2151,14 @@ fireauth.RpcHandler.ApiMethod = {
     requestValidator: fireauth.RpcHandler.validateVerifyAssertionRequest_,
     responsePreprocessor: fireauth.RpcHandler.processVerifyAssertionResponse_,
     responseValidator: fireauth.RpcHandler.validateVerifyAssertionResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    // Tenant ID is required for this endpoint. But for
+    // signInWithRedirect/Popup APIs, to make createAuthUri call and
+    // verifyAssertion call atomic, the tenant ID on RPC handler will be
+    // overridden by the tenant ID passed directly from the
+    // request, which is retrieved from Auth event. For signInWithCredential
+    // API, the tenant ID will still be retrieved from the RPC handler.
+    requireTenantId: true
   },
   VERIFY_ASSERTION_FOR_EXISTING: {
     endpoint: 'verifyAssertion',
@@ -2158,7 +2166,15 @@ fireauth.RpcHandler.ApiMethod = {
     responsePreprocessor: fireauth.RpcHandler.processVerifyAssertionResponse_,
     responseValidator:
         fireauth.RpcHandler.validateVerifyAssertionForExistingResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    // Tenant ID is required for this endpoint. But for
+    // reauthenticateWithRedirect/Popup APIs, to make createAuthUri call and
+    // verifyAssertion call atomic, the tenant ID on RPC handler will be
+    // overridden by the tenant ID passed directly from the
+    // request, which is retrieved from Auth event. For
+    // reauthenticateWithCredential API, the tenant ID will still be retrieved
+    // from the RPC handler.
+    requireTenantId: true
   },
   VERIFY_ASSERTION_FOR_LINKING: {
     endpoint: 'verifyAssertion',
@@ -2197,7 +2213,8 @@ fireauth.RpcHandler.ApiMethod = {
     customErrorMap: fireauth.RpcHandler.verifyPhoneNumberForExistingErrorMap_,
     endpoint: 'verifyPhoneNumber',
     requestValidator: fireauth.RpcHandler.validateVerifyPhoneNumberRequest_,
-    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_
+    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
+    requireTenantId: true
   }
 };
 
@@ -2246,7 +2263,11 @@ fireauth.RpcHandler.prototype.invokeRpc_ = function(method, request) {
           // Identity Toolkit token to STS token migration.
           request[fireauth.RpcHandler.USE_STS_TOKEN_PARAM_] = true;
         }
-        if (method.requireTenantId && self.tenantId_) {
+        // If tenant ID is explicitly passed in the request, it will override
+        // the tenant ID on RPC handler.
+        if (method.requireTenantId && self.tenantId_ &&
+            (typeof request[fireauth.RpcHandler.TENANT_ID_PARAM_] ===
+             'undefined')) {
           request[fireauth.RpcHandler.TENANT_ID_PARAM_] = self.tenantId_;
         }
         return self.requestFirebaseEndpoint(method.endpoint, httpMethod,

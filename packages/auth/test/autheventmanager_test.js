@@ -434,7 +434,7 @@ function testAuthEventManager_initialize_automatically_pendingRedirect() {
         mode, popupRedirectResult, error, opt_eventId) {
     },
     'getAuthEventHandlerFinisher': function(mode, opt_eventId) {
-      return function(requestUri, sessionId, postBody) {
+      return function(requestUri, sessionId, tenantId, postBody) {
         return goog.Promise.resolve(expectedResult);
       };
     }
@@ -499,7 +499,7 @@ function testAuthEventManager_initialize_automatically_volatileStorage() {
         mode, popupRedirectResult, error, opt_eventId) {
     },
     'getAuthEventHandlerFinisher': function(mode, opt_eventId) {
-      return function(requestUri, sessionId, postBody) {
+      return function(requestUri, sessionId, tenantId, postBody) {
         return goog.Promise.resolve(expectedResult);
       };
     }
@@ -1871,11 +1871,12 @@ function testProcessRedirect_success_cordovahandler() {
     return true;
   };
   handler.getAuthEventHandlerFinisher = function(mode, opt_eventId) {
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals(incomingUrl, requestUri);
       assertEquals(sessionId, rawSessionId);
       // postBody not supported in Cordova flow.
       assertNull(postBody);
+      assertNull(tenantId);
       return goog.Promise.resolve(expectedResult);
     };
   };
@@ -1922,7 +1923,7 @@ function testProcessRedirect_success_cordovahandler() {
 function testProcessRedirect_success_cordovahandler_tenantId() {
   // Cordova environment.
   setOAuthSignInHandlerEnvironment(true);
-  var tenantId = '123456789012';
+  var expectedTenantId = 'TENANT_ID';
   var provider = new fireauth.GoogleAuthProvider();
   provider.addScope('scope1');
   provider.addScope('scope2');
@@ -1942,7 +1943,7 @@ function testProcessRedirect_success_cordovahandler_tenantId() {
         sessionId: sha256(rawSessionId)
       },
       null,
-      tenantId);
+      expectedTenantId);
   var pendingRedirectError = new fireauth.AuthError(
       fireauth.authenum.Error.REDIRECT_OPERATION_PENDING);
   var savedCb = null;
@@ -1962,11 +1963,12 @@ function testProcessRedirect_success_cordovahandler_tenantId() {
     return true;
   };
   handler.getAuthEventHandlerFinisher = function(mode, opt_eventId) {
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals(incomingUrl, requestUri);
       assertEquals(sessionId, rawSessionId);
       // postBody not supported in Cordova flow.
       assertNull(postBody);
+      assertEquals(expectedTenantId, tenantId);
       return goog.Promise.resolve(expectedResult);
     };
   };
@@ -1986,7 +1988,7 @@ function testProcessRedirect_success_cordovahandler_tenantId() {
     assertNull(result.user);
     asyncTestCase.signal();
   });
-  manager.processRedirect('linkViaRedirect', provider, '1234', tenantId)
+  manager.processRedirect('linkViaRedirect', provider, '1234', expectedTenantId)
       .then(function() {
         // Pending redirect should be cleared on redirect back to app.
         return pendingRedirectManager.getPendingStatus();
@@ -1997,7 +1999,7 @@ function testProcessRedirect_success_cordovahandler_tenantId() {
           // Call processRedirect again. This should resolve as there is no
           // pending operation.
           return manager.processRedirect(
-              'linkViaRedirect', provider, '1234', tenantId);
+              'linkViaRedirect', provider, '1234', expectedTenantId);
         }).then(function() {
           asyncTestCase.signal();
         });
@@ -2177,11 +2179,12 @@ function testGetRedirectResult_success_cordovahandler() {
     return true;
   };
   handler.getAuthEventHandlerFinisher = function(mode, opt_eventId) {
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals(incomingUrl, requestUri);
       assertEquals(sessionId, rawSessionId);
       // postBody not supported in Cordova flow.
       assertNull(postBody);
+      assertNull(tenantId);
       return goog.Promise.resolve(expectedResult);
     };
   };
@@ -2649,10 +2652,11 @@ function testProcessAuthEvent_finisher_successfulPopupAuthEvent_noPostBody() {
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaPopup', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals('http://www.example.com/#response', requestUri);
       assertEquals('SESSION_ID', sessionId);
       assertNull(postBody);
+      assertNull(tenantId);
       return goog.Promise.resolve(expectedPopupResponse);
     };
   };
@@ -2693,10 +2697,11 @@ function testProcessAuthEvent_finisher_successfulPopupAuthEvent_withPostBody() {
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaPopup', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals('http://www.example.com/callback', requestUri);
       assertEquals('SESSION_ID', sessionId);
       assertEquals('POST_BODY', postBody);
+      assertNull(tenantId);
       return goog.Promise.resolve(expectedPopupResponse);
     };
   };
@@ -2730,6 +2735,56 @@ function testProcessAuthEvent_finisher_successfulPopupAuthEvent_withPostBody() {
 }
 
 
+function testProcessAuthEvent_finisher_successfulPopupAuthEvent_tenantId() {
+  // Verify that tenant ID in Auth event is correctly passed to the popup event
+  // handler.
+  // Browser only environment.
+  asyncTestCase.waitForSignals(1);
+  var expectedPopupResponse = {
+    'user': {},
+    'credential': {}
+  };
+  handler.getAuthEventHandlerFinisher = function(mode, eventId) {
+    assertEquals('linkViaPopup', mode);
+    assertEquals('1234', eventId);
+    return function(requestUri, sessionId, tenantId, postBody) {
+      assertEquals('http://www.example.com/#response', requestUri);
+      assertEquals('SESSION_ID', sessionId);
+      assertNull(postBody);
+      assertEquals('TENANT_ID', tenantId);
+      return goog.Promise.resolve(expectedPopupResponse);
+    };
+  };
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      'linkViaPopup',
+      '1234',
+      'http://www.example.com/#response',
+      'SESSION_ID',
+      null,
+      null,
+      'TENANT_ID');
+  var manager = fireauth.AuthEventManager.getManager(
+      authDomain1, apiKey1, appName1);
+  manager.getPopupAuthEventProcessor().processAuthEvent(
+      expectedAuthEvent, handler).then(function() {
+    // Resolve popup with success.
+    assertEquals(1, handler.resolvePendingPopupEvent.getCallCount());
+    assertEquals(
+        'linkViaPopup',
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(0));
+    assertObjectEquals(
+        expectedPopupResponse,
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(1));
+    assertNull(
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(2));
+    assertEquals(
+        '1234',
+        handler.resolvePendingPopupEvent.getLastCall().getArgument(3));
+    asyncTestCase.signal();
+  });
+}
+
+
 function testProcessAuthEvent_finisher_errorPopupAuthEvent_noPostBody() {
   // Browser only environment.
   asyncTestCase.waitForSignals(1);
@@ -2738,10 +2793,11 @@ function testProcessAuthEvent_finisher_errorPopupAuthEvent_noPostBody() {
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaPopup', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals('http://www.example.com/#response', requestUri);
       assertEquals('SESSION_ID', sessionId);
       assertNull(postBody);
+      assertNull(tenantId);
       return goog.Promise.reject(expectedError);
     };
   };
@@ -2781,10 +2837,11 @@ function testProcessAuthEvent_finisher_errorPopupAuthEvent_postBody() {
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaPopup', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals('http://www.example.com/callback', requestUri);
       assertEquals('SESSION_ID', sessionId);
       assertEquals('POST_BODY', postBody);
+      assertNull(tenantId);
       return goog.Promise.reject(expectedError);
     };
   };
@@ -2825,10 +2882,11 @@ function testProcessAuthEvent_finisher_successfulRedirect_noPostBody() {
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaRedirect', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals('http://www.example.com/#response', requestUri);
       assertEquals('SESSION_ID', sessionId);
       assertNull(postBody);
+      assertNull(tenantId);
       // Once the handler is called, the redirect event cannot timeout.
       clock.tick(timeoutDelay);
       return goog.Promise.resolve(expectedRedirectResult);
@@ -2864,10 +2922,11 @@ function testProcessAuthEvent_finisher_successfulRedirectAuthEvent_postBody() {
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaRedirect', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals('http://www.example.com/callback', requestUri);
       assertEquals('SESSION_ID', sessionId);
       assertEquals('POST_BODY', postBody);
+      assertNull(tenantId);
       // Once the handler is called, the redirect event cannot timeout.
       clock.tick(timeoutDelay);
       return goog.Promise.resolve(expectedRedirectResult);
@@ -2900,15 +2959,66 @@ function testProcessAuthEvent_finisher_successfulRedirectAuthEvent_postBody() {
 }
 
 
+function testProcessAuthEvent_finisher_successfulRedirect_tenantId() {
+  // Verify that tenant ID in Auth event is correctly passed to the redirect
+  // event handler.
+  clock = new goog.testing.MockClock(true);
+  asyncTestCase.waitForSignals(2);
+  handler.getAuthEventHandlerFinisher = function(mode, eventId) {
+    assertEquals('linkViaRedirect', mode);
+    assertEquals('1234', eventId);
+    return function(requestUri, sessionId, tenantId, postBody) {
+      assertEquals('http://www.example.com/#response', requestUri);
+      assertEquals('SESSION_ID', sessionId);
+      assertNull(postBody);
+      assertEquals('TENANT_ID', tenantId);
+      // Once the handler is called, the redirect event cannot timeout.
+      clock.tick(timeoutDelay);
+      return goog.Promise.resolve(expectedRedirectResult);
+    };
+  };
+  var expectedRedirectResult = {
+    'user': {},
+    'credential': {}
+  };
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      'linkViaRedirect',
+      '1234',
+      'http://www.example.com/#response',
+      'SESSION_ID',
+      null,
+      null,
+      'TENANT_ID');
+  var manager = fireauth.AuthEventManager.getManager(
+      authDomain1, apiKey1, appName1);
+  manager.getRedirectResult().then(function(result) {
+    assertObjectEquals(expectedRedirectResult, result);
+    // Successful redirect result should be cleared.
+    manager.clearRedirectResult();
+    manager.getRedirectResult().then(function(result) {
+      assertNull(result.user);
+      asyncTestCase.signal();
+    });
+  });
+  manager.getRedirectAuthEventProcessor().processAuthEvent(
+      expectedAuthEvent, handler).then(function() {
+    // Popup resolve should not be called as this is not a popup event.
+    assertEquals(0, handler.resolvePendingPopupEvent.getCallCount());
+    asyncTestCase.signal();
+  });
+}
+
+
 function testProcessAuthEvent_finisher_errorRedirectAuthEvent_noPostBody() {
   asyncTestCase.waitForSignals(2);
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaRedirect', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals('http://www.example.com/#response', requestUri);
       assertEquals('SESSION_ID', sessionId);
       assertNull(postBody);
+      assertNull(tenantId);
       return goog.Promise.reject(expectedError);
     };
   };
@@ -2939,10 +3049,11 @@ function testProcessAuthEvent_finisher_errorRedirectAuthEvent_postBody() {
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
     assertEquals('linkViaRedirect', mode);
     assertEquals('1234', eventId);
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       assertEquals('http://www.example.com/callback', requestUri);
       assertEquals('SESSION_ID', sessionId);
       assertEquals('POST_BODY', postBody);
+      assertNull(tenantId);
       return goog.Promise.reject(expectedError);
     };
   };
@@ -3066,7 +3177,7 @@ function testRedirectResult_overwritePreviousRedirectResult() {
   // the operation is not pending.
   asyncTestCase.waitForSignals(2);
   handler.getAuthEventHandlerFinisher = function(mode, eventId) {
-    return function(requestUri, sessionId, postBody) {
+    return function(requestUri, sessionId, tenantId, postBody) {
       // Iterate through results array each call.
       return goog.Promise.resolve(results[index++]);
     };
