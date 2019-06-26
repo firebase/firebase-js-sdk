@@ -27,7 +27,10 @@ import {
 import { Api } from '../services/api_service';
 import { logTrace } from '../services/perf_logger';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
-import { isValidCustomAttributeName, isValidCustomAttributeValue } from '../utils/attributes_utils';
+import {
+  isValidCustomAttributeName,
+  isValidCustomAttributeValue
+} from '../utils/attributes_utils';
 import { isValidCustomMetricName } from '../utils/metric_utils';
 import { PerformanceTrace } from '@firebase/performance-types';
 
@@ -191,12 +194,12 @@ export class Trace implements PerformanceTrace {
       return;
     }
     // Throw appropriate error when the attribute name or value is invalid.
-    if (!isValidName){
+    if (!isValidName) {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_ATTRIBUTE_NAME, {
         attributeName: attr
       });
     }
-    if (!isValidValue){
+    if (!isValidValue) {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_ATTRIBUTE_VALUE, {
         attributeValue: value
       });

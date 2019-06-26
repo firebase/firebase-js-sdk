@@ -25,7 +25,7 @@ import {
   getServiceWorkerStatus,
   getEffectiveConnectionType,
   isValidCustomAttributeName,
-  isValidCustomAttributeValue,
+  isValidCustomAttributeValue
 } from './attributes_utils';
 
 import '../../test/setup';
@@ -181,15 +181,19 @@ describe('Firebase Performance > attribute_utils', () => {
     });
 
     it('returns true when name is valid', () => {
-      expect(isValidCustomAttributeName('validCustom_Attribute_Name')).to.be.true;
+      expect(isValidCustomAttributeName('validCustom_Attribute_Name')).to.be
+        .true;
     });
 
     it('returns false when name is too long', () => {
-      expect(isValidCustomAttributeName('invalid_custom_name_over_forty_characters')).to.be.false;
+      expect(
+        isValidCustomAttributeName('invalid_custom_name_over_forty_characters')
+      ).to.be.false;
     });
 
     it('returns false when name starts with a reserved prefix', () => {
-      expect(isValidCustomAttributeName('firebase_invalidCustomName')).to.be.false;
+      expect(isValidCustomAttributeName('firebase_invalidCustomName')).to.be
+        .false;
     });
 
     it('returns false when name does not begin with a letter', () => {
@@ -211,7 +215,7 @@ describe('Firebase Performance > attribute_utils', () => {
     });
 
     it('returns false when value is too long', () => {
-      const longAttributeValue = 
+      const longAttributeValue =
         'too_long_attribute_value_over_one_hundred_characters_too_long_attribute_value_over_one_' +
         'hundred_charac';
       expect(isValidCustomAttributeValue(longAttributeValue)).to.be.false;

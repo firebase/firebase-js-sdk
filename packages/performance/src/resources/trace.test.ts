@@ -117,7 +117,7 @@ describe('Firebase Performance > trace', () => {
       expect(trace.getMetric('cacheHits')).to.eql(600);
     });
 
-    it('throws error if metric doesn\'t exist and has invalid name', () => {
+    it("throws error if metric doesn't exist and has invalid name", () => {
       expect(() => trace.incrementMetric('_invalidMetric', 1)).to.throw();
     });
   });
@@ -136,7 +136,7 @@ describe('Firebase Performance > trace', () => {
       expect(trace.getMetric('cacheHits')).to.eql(400);
     });
 
-    it('throws error if metric doesn\'t exist and has invalid name', () => {
+    it("throws error if metric doesn't exist and has invalid name", () => {
       expect(() => trace.putMetric('_invalidMetric', 1)).to.throw();
     });
   });
@@ -186,10 +186,12 @@ describe('Firebase Performance > trace', () => {
     });
 
     it('throws error if attribute value is invalid', () => {
-      const longAttributeValue = 
+      const longAttributeValue =
         'too-long-attribute-value-over-one-hundred-characters-too-long-attribute-value-over-one-' +
         'hundred-charac';
-      expect(() => trace.putAttribute('validName', longAttributeValue)).to.throw();
+      expect(() =>
+        trace.putAttribute('validName', longAttributeValue)
+      ).to.throw();
     });
   });
 

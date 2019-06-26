@@ -30,7 +30,7 @@ export const enum ErrorCode {
   RC_NOT_OK = 'RC response not ok',
   INVALID_ATTRIBUTE_NAME = 'invalid attribute name',
   INVALID_ATTRIBUTE_VALUE = 'invalid attribute value',
-  INVALID_CUSTOM_METRIC_NAME = 'invalide custom metric name',
+  INVALID_CUSTOM_METRIC_NAME = 'invalide custom metric name'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -44,9 +44,12 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.FB_NOT_DEFAULT]:
     'Performance can only start when Firebase app instance is the default one.',
   [ErrorCode.RC_NOT_OK]: 'RC response is not ok',
-  [ErrorCode.INVALID_ATTRIBUTE_NAME]: 'Attribute name {$attributeName} is invalid.',
-  [ErrorCode.INVALID_ATTRIBUTE_VALUE]: 'Attribute value {$attributeValue} is invalid.',
-  [ErrorCode.INVALID_CUSTOM_METRIC_NAME]: 'Custom metric name {$customMetricName} is invalid',
+  [ErrorCode.INVALID_ATTRIBUTE_NAME]:
+    'Attribute name {$attributeName} is invalid.',
+  [ErrorCode.INVALID_ATTRIBUTE_VALUE]:
+    'Attribute value {$attributeValue} is invalid.',
+  [ErrorCode.INVALID_CUSTOM_METRIC_NAME]:
+    'Custom metric name {$customMetricName} is invalid'
 };
 
 interface ErrorParams {

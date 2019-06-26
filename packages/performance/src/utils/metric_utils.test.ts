@@ -18,14 +18,11 @@
 import { restore } from 'sinon';
 import { expect } from 'chai';
 
-import {
-    isValidCustomMetricName,
-} from './metric_utils';
+import { isValidCustomMetricName } from './metric_utils';
 
 import '../../test/setup';
 
 describe('Firebase Performance > metric_utils', () => {
-
   describe('#isValidCustomMetricName', () => {
     afterEach(() => {
       restore();

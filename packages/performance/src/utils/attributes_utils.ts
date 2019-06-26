@@ -98,7 +98,9 @@ export function isValidCustomAttributeName(name: string): boolean {
   if (name.length > MAX_ATTRIBUTE_NAME_LENGTH) {
     return false;
   }
-  const matchesReservedPrefix = RESERVED_ATTRIBUTE_PREFIXES.some(prefix => name.startsWith(prefix));
+  const matchesReservedPrefix = RESERVED_ATTRIBUTE_PREFIXES.some(prefix =>
+    name.startsWith(prefix)
+  );
   return !matchesReservedPrefix && !!name.match(ATTRIBUTE_FORMAT_REGEX);
 }
 
