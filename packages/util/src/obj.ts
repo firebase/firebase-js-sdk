@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-type Keys<T> = Extract<keyof T, string>;
-type Values<T> = T[keyof T];
-
 export function contains<T extends object>(obj: T, key: keyof T): boolean {
   return Object.prototype.hasOwnProperty.call(obj, key);
 }
@@ -42,16 +39,16 @@ export function isEmpty(obj: object): obj is {} {
   return true;
 }
 
-export function map<T extends object, V, U extends { [key in keyof T]: V }>(
-  obj: T,
-  fn: (value: Values<T>, key: Keys<T>, obj: T) => V,
+export function map<K extends string, V, U>(
+  obj: { [key in K]: V },
+  fn: (value: V, key: K, obj: { [key in K]: V }) => U,
   contextObj?: unknown
-): U {
-  const res: Partial<U> = {};
+): { [key in K]: U } {
+  const res: Partial<{ [key in K]: U }> = {};
   for (const key in obj) {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
       res[key] = fn.call(contextObj, obj[key], key, obj);
     }
   }
-  return res as U;
+  return res as { [key in K]: U };
 }
