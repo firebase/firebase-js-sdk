@@ -2066,7 +2066,8 @@ fireauth.RpcHandler.ApiMethod = {
   GET_AUTH_URI: {
     endpoint: 'createAuthUri',
     requestValidator: fireauth.RpcHandler.validateGetAuthUriRequest_,
-    responseValidator: fireauth.RpcHandler.validateGetAuthResponse_
+    responseValidator: fireauth.RpcHandler.validateGetAuthResponse_,
+    requireTenantId: true
   },
   GET_EMAIL_SIGNIN_CODE: {
     endpoint: 'getOobConfirmationCode',

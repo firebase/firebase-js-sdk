@@ -683,7 +683,8 @@ fireauth.Auth.prototype.signInWithPopup = function(provider) {
   var p = this.getAuthEventManager_().then(function(manager) {
     // Process popup request tagging it with newly created event ID.
     return manager.processPopup(
-        popupWin, mode, provider, eventId, !!oauthHelperWidgetUrl);
+        popupWin, mode, provider, eventId, !!oauthHelperWidgetUrl,
+        self.getTenantId());
   }).then(function() {
     return new goog.Promise(function(resolve, reject) {
       // Expire other pending promises if still available..
@@ -748,7 +749,8 @@ fireauth.Auth.prototype.signInWithRedirect = function(provider) {
     return self.userStorageManager_.savePersistenceForRedirect();
   }).then(function() {
     // Process redirect operation.
-    return self.authEventManager_.processRedirect(mode, provider);
+    return self.authEventManager_.processRedirect(
+        mode, provider, undefined, self.getTenantId());
   });
   return /** @type {!goog.Promise<void>} */ (this.registerPendingPromise_(p));
 };

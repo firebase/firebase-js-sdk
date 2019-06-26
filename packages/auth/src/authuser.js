@@ -1799,7 +1799,8 @@ fireauth.AuthUser.prototype.runOperationWithPopup_ =
   }).then(function() {
     // Process popup request.
     return self.authEventManager_.processPopup(
-        popupWin, mode, provider, eventId, !!oauthHelperWidgetUrl);
+        popupWin, mode, provider, eventId, !!oauthHelperWidgetUrl,
+        self['tenantId']);
   }).then(function() {
     return new goog.Promise(function(resolve, reject) {
       // Expire other pending promises if still available.
@@ -1935,7 +1936,8 @@ fireauth.AuthUser.prototype.runOperationWithRedirect_ =
     return user;
   }).then(function(user) {
     // Complete the redirect operation.
-    return self.authEventManager_.processRedirect(mode, provider, eventId);
+    return self.authEventManager_.processRedirect(
+        mode, provider, eventId, self['tenantId']);
   }).thenCatch(function(error) {
     // Catch error if any is generated.
     errorThrown = error;

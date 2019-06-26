@@ -6691,6 +6691,52 @@ function testGetAuthUri_success() {
 
 
 /**
+ * Tests successful getAuthUri request with tenant ID.
+ */
+function testGetAuthUri_success_tenantId() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  var expectedResponse = {
+    'authUri': 'https://accounts.google.com',
+    'providerId': 'google.com',
+    'registered': true,
+    'forExistingProvider': true,
+    'sessionId': 'SESSION_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuth' +
+      'Uri?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'identifier': 'user@example.com',
+        'providerId': 'google.com',
+        'continueUri': 'http://localhost/widget',
+        'customParameter': expectedCustomParameters,
+        'oauthScope': goog.json.serialize({
+          'google.com': 'scope1,scope2,scope3'
+        }),
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.getAuthUri(
+      'google.com',
+      'http://localhost/widget',
+      expectedCustomParameters,
+      ['scope1', 'scope2', 'scope3'],
+      'user@example.com').then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
  * Tests successful getAuthUri request for a SAML Auth flow.
  */
 function testGetAuthUri_success_saml() {
@@ -6716,6 +6762,48 @@ function testGetAuthUri_success_saml() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
+  rpcHandler.getAuthUri(
+      'saml.provider',
+      'http://localhost/widget',
+      // Custom parameters should be ignored.
+      expectedCustomParameters,
+      // Scopes should be ignored.
+      ['scope1', 'scope2', 'scope3'],
+      null).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful getAuthUri request with tenant ID for a SAML Auth flow.
+ */
+function testGetAuthUri_success_saml_tenantId() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  var expectedResponse = {
+    'authUri': 'https://www.example.com/samlp/?SAMLRequest=1234567890',
+    'providerId': 'saml.provider',
+    'registered': false,
+    'sessionId': 'SESSION_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuth' +
+      'Uri?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'providerId': 'saml.provider',
+        'continueUri': 'http://localhost/widget',
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
   rpcHandler.getAuthUri(
       'saml.provider',
       'http://localhost/widget',

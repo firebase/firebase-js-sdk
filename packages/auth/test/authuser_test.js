@@ -609,7 +609,7 @@ function testUser_copyUser() {
   config2['authDomain'] = 'subdomain.firebaseapp.com';
   asyncTestCase.waitForSignals(1);
   // Sets the tenant ID on user to be copied.
-  accountInfo['tenantId'] = '123456789012';
+  accountInfo['tenantId'] = 'TENANT_ID';
   user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
   user.addProviderData(providerData1);
   user.addProviderData(providerData2);
@@ -618,7 +618,7 @@ function testUser_copyUser() {
       'getAccountInfoByIdToken',
       goog.testing.recordFunction(function(idToken) {
         // Mocks that tenant ID is returned in getAccountInfo response.
-        getAccountInfoResponse['users'][0]['tenantId'] = '123456789012';
+        getAccountInfoResponse['users'][0]['tenantId'] = 'TENANT_ID';
         return goog.Promise.resolve(getAccountInfoResponse);
       }));
   var expectedEventId = '1234';
@@ -669,7 +669,7 @@ function testUser_copyUser() {
   fireauth.common.testHelper.assertUserEqualsInWithDiffApikey(
       user, copiedUser, config1['apiKey'], config2['apiKey']);
   assertFalse(copiedUser['isAnonymous']);
-  assertEquals('123456789012', copiedUser['tenantId']);
+  assertEquals('TENANT_ID', copiedUser['tenantId']);
   // Confirm frameworks set on created user.
   assertArrayEquals(frameworks, copiedUser.getFramework());
 
@@ -763,12 +763,12 @@ function testUser_rpcHandlerEndpoints_tenantId() {
   rpcHandlerConstructor(config1['apiKey'], endpointConfig, ignoreArgument)
       .$returns(rpcHandler);
   // Tenant ID of RPC handler should be updated.
-  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.updateTenantId('TENANT_ID');
   mockControl.$replayAll();
   // Sets the tenant ID on user.
-  accountInfo['tenantId'] = '123456789012';
+  accountInfo['tenantId'] = 'TENANT_ID';
   user = new fireauth.AuthUser(config1, tokenResponse, accountInfo);
-  assertEquals('123456789012', user['tenantId']);
+  assertEquals('TENANT_ID', user['tenantId']);
 }
 
 
@@ -1083,7 +1083,7 @@ function testSetUserAccountInfoFromToken_success_tenantId() {
           'default_profile_3_normal.png',
       'passwordUpdatedAt': 0.0,
       'disabled': false,
-      'tenantId': '123456789012'
+      'tenantId': 'TENANT_ID'
     }]
   };
   var updateTenantId = mockControl.createMethodMock(
@@ -1091,7 +1091,7 @@ function testSetUserAccountInfoFromToken_success_tenantId() {
   // Tenant ID of RPC handler should be initialized to null.
   updateTenantId(null).$once();
   // Tenant ID of RPC handler should be updated by setAccountInfo.
-  updateTenantId('123456789012').$once();
+  updateTenantId('TENANT_ID').$once();
   stubs.replace(
       fireauth.RpcHandler.prototype,
       'getAccountInfoByIdToken',
@@ -1103,7 +1103,7 @@ function testSetUserAccountInfoFromToken_success_tenantId() {
   user = new fireauth.AuthUser(config1, tokenResponse);
   asyncTestCase.waitForSignals(1);
   user.reload().then(function() {
-    assertEquals('123456789012', user['tenantId']);
+    assertEquals('TENANT_ID', user['tenantId']);
     asyncTestCase.signal();
   });
 }
@@ -1325,9 +1325,9 @@ function testUser_reload_success_noCredentialUserLocallyAnonymous() {
 
 
 function testUser_reload_success_tenantId() {
-  accountInfo2['tenantId'] = '123456789012';
+  accountInfo2['tenantId'] = 'TENANT_ID';
   user = new fireauth.AuthUser(config1, tokenResponse, accountInfo2);
-  assertEquals('123456789012', user['tenantId']);
+  assertEquals('TENANT_ID', user['tenantId']);
   user.addStateChangeListener(function(user) {
     asyncTestCase.signal();
     return goog.Promise.resolve();
@@ -1354,7 +1354,7 @@ function testUser_reload_success_tenantId() {
           't_profile_3_normal.png',
       'passwordUpdatedAt': 0.0,
       'disabled': false,
-      'tenantId': '123456789012'
+      'tenantId': 'TENANT_ID'
     }]
   };
   var updatedUser = new fireauth.AuthUser(config1, tokenResponse, {
@@ -1364,12 +1364,12 @@ function testUser_reload_success_tenantId() {
     'photoURL': 'http://abs.twimg.com/sticky/default_profile_images/defaul' +
         't_profile_3_normal.png',
     'emailVerified': true,
-    'tenantId': '123456789012'
+    'tenantId': 'TENANT_ID'
   });
   asyncTestCase.waitForSignals(3);
   user.reload().then(function() {
     assertObjectEquals(updatedUser.toPlainObject(), user.toPlainObject());
-    assertEquals('123456789012', user['tenantId']);
+    assertEquals('TENANT_ID', user['tenantId']);
     asyncTestCase.signal();
   });
 }
@@ -4092,7 +4092,7 @@ function testUser_toPlainObject() {
       '+11234567890');
   config1['authDomain'] = 'www.example.com';
   config1['appName'] = 'appId1';
-  accountInfoWithPhone['tenantId'] = '123456789012';
+  accountInfoWithPhone['tenantId'] = 'TENANT_ID';
   var user1 = new fireauth.AuthUser(config1, tokenResponse,
       accountInfoWithPhone);
   user1.addProviderData(providerData1);
@@ -4129,7 +4129,7 @@ function testUser_toPlainObject() {
         'redirectEventId': '5678',
         'lastLoginAt': lastLoginAt,
         'createdAt': createdAt,
-        'tenantId': '123456789012'
+        'tenantId': 'TENANT_ID'
       },
       user1.toPlainObject());
 }
@@ -4204,7 +4204,7 @@ function testToJson() {
 
 function testUser_fromPlainObject() {
   accountInfoWithPhone['isAnonymous'] = true;
-  accountInfoWithPhone['tenantId'] = '123456789012';
+  accountInfoWithPhone['tenantId'] = 'TENANT_ID';
   providerData1 = new fireauth.AuthUserInfo(
       'providerUserId1',
       'providerId1',
@@ -4264,7 +4264,7 @@ function testUser_fromPlainObject() {
         'redirectEventId': '5678',
         'lastLoginAt': lastLoginAt,
         'createdAt': createdAt,
-        'tenantId': '123456789012'
+        'tenantId': 'TENANT_ID'
       }));
 }
 
@@ -4536,7 +4536,7 @@ function testUser_initializeFromIdTokenResponse_tenantId() {
           't_profile_3_normal.png',
       'passwordUpdatedAt': 0.0,
       'disabled': false,
-      'tenantId': '123456789012'
+      'tenantId': 'TENANT_ID'
     }]
   };
   var expectedUser = new fireauth.AuthUser(config1, tokenResponse, {
@@ -4547,7 +4547,7 @@ function testUser_initializeFromIdTokenResponse_tenantId() {
         't_profile_3_normal.png',
     'emailVerified': true,
     // Tenant ID shoud be set.
-    'tenantId': '123456789012'
+    'tenantId': 'TENANT_ID'
   });
   expectedUser.addProviderData(new fireauth.AuthUserInfo(
       '123456789',
@@ -4583,7 +4583,7 @@ function testUser_initializeFromIdTokenResponse_tenantId() {
             'refreshToken', createdUser.stsTokenManager_.refreshToken_);
         assertEquals(
             now + 3600 * 1000, createdUser.stsTokenManager_.expirationTime_);
-        assertEquals('123456789012', createdUser['tenantId']);
+        assertEquals('TENANT_ID', createdUser['tenantId']);
         asyncTestCase.signal();
       });
 }
@@ -5222,6 +5222,192 @@ function testUser_reauthenticateWithRedirect_success_unloadsOnRedirect() {
 }
 
 
+function testUser_linkWithRedirect_success_unloadsOnRedirect_tenantId() {
+  // Test successful request for link with redirect when page unloads on
+  // redirect and tenant ID is set on user.
+  // Verify that tenant ID is passed to OAuth sign in handler.
+  fireauth.AuthEventManager.ENABLED = true;
+  var expectedTenantId = 'TENANT_ID';
+  // Mock OAuth sign in handler.
+  var oAuthSignInHandlerInstance =
+      mockControl.createStrictMock(fireauth.OAuthSignInHandler);
+  mockControl.createConstructorMock(fireauth, 'OAuthSignInHandler');
+  var instantiateOAuthSignInHandler = mockControl.createMethodMock(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
+  instantiateOAuthSignInHandler(
+      ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
+      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+  oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
+  oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
+  oAuthSignInHandlerInstance.processRedirect(
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument).$does(function(
+          actualMode,
+          actualProvider,
+          actualEventId,
+          actualTenantId) {
+            assertEquals(
+                fireauth.AuthEvent.Type.LINK_VIA_REDIRECT, actualMode);
+            assertEquals(expectedProvider, actualProvider);
+            assertEquals(expectedEventId, actualEventId);
+            // Redirect event ID should be saved.
+            assertEquals(expectedEventId, tenantUser.getRedirectEventId());
+            // User's tenant ID should be passed to OAuth handler.
+            assertEquals(expectedTenantId, actualTenantId);
+            // Redirect user should be saved in storage with correct redirect
+            // event ID.
+            storageManager.getRedirectUser().then(function(user) {
+              assertEquals(expectedEventId, user.getRedirectEventId());
+              assertObjectEquals(
+                  tenantUser.toPlainObject(), user.toPlainObject());
+              asyncTestCase.signal();
+            });
+            return goog.Promise.resolve();
+          });
+  oAuthSignInHandlerInstance.unloadsOnRedirect().$returns(true);
+  mockControl.$replayAll();
+
+  // Set the backend user info with no linked providers.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      function(idToken) {
+        // Mock tenant ID is returned in getAccountInfo response.
+        getAccountInfoResponse['users'][0]['tenantId'] = expectedTenantId;
+        return goog.Promise.resolve(getAccountInfoResponse);
+      });
+
+  var expectedEventId = '1234';
+  asyncTestCase.waitForSignals(2);
+  stubs.replace(
+      fireauth.util,
+      'generateEventId',
+      function() {
+        // An event ID should be generated.
+        return expectedEventId;
+      });
+  var expectedProvider = new fireauth.GoogleAuthProvider();
+  expectedProvider.addScope('scope1');
+  expectedProvider.addScope('scope2');
+  var config = {
+    'apiKey': 'apiKey1',
+    'authDomain': 'subdomain.firebaseapp.com',
+    'appName': 'appId1'
+  };
+  // Create a user in tenant project scope.
+  accountInfo['tenantId'] = expectedTenantId;
+  var tenantUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  // Set redirect storage manager.
+  storageManager = new fireauth.storage.RedirectUserManager(
+      fireauth.util.createStorageKey(config['apiKey'], config['appName']));
+  tenantUser.setRedirectStorageManager(storageManager);
+  tenantUser.addStateChangeListener(function(user) {
+    // User state change should be triggered.
+    // Redirect event ID should be saved.
+    assertEquals(expectedEventId, user.getRedirectEventId());
+    asyncTestCase.signal();
+    return goog.Promise.resolve();
+  });
+  // Enable popup and redirect.
+  tenantUser.enablePopupRedirect();
+  // Link with redirect should succeed and remain pending.
+  tenantUser.linkWithRedirect(expectedProvider).then(function() {
+    fail('LinkWithRedirect should remain pending in environment where ' +
+        'OAuthSignInHandler unloads the page.');
+  });
+}
+
+
+function testUser_reauthWithRedirect_success_unloadsOnRedirect_tenantId() {
+  // Test successful request for reauth with redirect when page unloads on
+  // redirect and tenant ID is set on user.
+  // Verify that tenant ID is passed to OAuth sign in handler.
+  fireauth.AuthEventManager.ENABLED = true;
+  var expectedTenantId = 'TENANT_ID';
+  // Mock OAuth sign in handler.
+  var oAuthSignInHandlerInstance =
+      mockControl.createStrictMock(fireauth.OAuthSignInHandler);
+  mockControl.createConstructorMock(fireauth, 'OAuthSignInHandler');
+  var instantiateOAuthSignInHandler = mockControl.createMethodMock(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
+  instantiateOAuthSignInHandler(
+      ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
+      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+  oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
+  oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
+  oAuthSignInHandlerInstance.processRedirect(
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument).$does(function(
+          actualMode,
+          actualProvider,
+          actualEventId,
+          actualTenantId) {
+            assertEquals(
+                fireauth.AuthEvent.Type.REAUTH_VIA_REDIRECT, actualMode);
+            assertEquals(expectedProvider, actualProvider);
+            assertEquals(expectedEventId, actualEventId);
+            // Redirect event ID should be saved.
+            assertEquals(expectedEventId, tenantUser.getRedirectEventId());
+            // User's tenant ID should be passed to OAuth handler.
+            assertEquals(expectedTenantId, actualTenantId);
+            // Redirect user should be saved in storage with correct redirect
+            // event ID.
+            storageManager.getRedirectUser().then(function(user) {
+              assertEquals(expectedEventId, user.getRedirectEventId());
+              assertObjectEquals(
+                  tenantUser.toPlainObject(), user.toPlainObject());
+              asyncTestCase.signal();
+            });
+            return goog.Promise.resolve();
+          });
+  oAuthSignInHandlerInstance.unloadsOnRedirect().$returns(true);
+  mockControl.$replayAll();
+
+  var expectedEventId = '1234';
+  asyncTestCase.waitForSignals(2);
+  stubs.replace(
+      fireauth.util,
+      'generateEventId',
+      function() {
+        // An event ID should be generated.
+        return expectedEventId;
+      });
+  var expectedProvider = new fireauth.GoogleAuthProvider();
+  expectedProvider.addScope('scope1');
+  expectedProvider.addScope('scope2');
+  var config = {
+    'apiKey': 'apiKey1',
+    'authDomain': 'subdomain.firebaseapp.com',
+    'appName': 'appId1'
+  };
+  // Create a user in tenant project scope.
+  accountInfo['tenantId'] = expectedTenantId;
+  var tenantUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  // Set redirect storage manager.
+  storageManager = new fireauth.storage.RedirectUserManager(
+      fireauth.util.createStorageKey(config['apiKey'], config['appName']));
+  tenantUser.setRedirectStorageManager(storageManager);
+  tenantUser.addStateChangeListener(function(user) {
+    // User state change should be triggered.
+    // Redirect event ID should be saved.
+    assertEquals(expectedEventId, user.getRedirectEventId());
+    asyncTestCase.signal();
+    return goog.Promise.resolve();
+  });
+  // Enable popup and redirect.
+  tenantUser.enablePopupRedirect();
+  // Reauth with redirect should succeed and remain pending.
+  tenantUser.reauthenticateWithRedirect(expectedProvider).then(function() {
+    fail('ReauthenticateWithRedirect should remain pending in environment ' +
+        'where OAuthSignInHandler unloads the page.');
+  });
+}
+
+
 function testUser_linkWithRedirect_success_doesNotUnloadOnRedirect() {
   // Test successful request for link with redirect when page does not unload
   // on redirect.
@@ -5375,6 +5561,181 @@ function testUser_reauthenticateWithRedirect_success_doesNotUnloadOnRedirect() {
     storageManager.getRedirectUser().then(function(user) {
       assertEquals(expectedEventId, user.getRedirectEventId());
       assertObjectEquals(user1.toPlainObject(), user.toPlainObject());
+      asyncTestCase.signal();
+    });
+  });
+}
+
+
+function testUser_linkWithRedirect_success_doesNotUnloadOnRedirect_tenantId() {
+  // Test successful request for link with redirect when page does not unload
+  // on redirect and tenant ID is set on user.
+  // Verify that tenant ID is passed to OAuth sign in handler.
+  fireauth.AuthEventManager.ENABLED = true;
+  var expectedTenantId = 'TENANT_ID';
+  var oAuthSignInHandlerInstance =
+      mockControl.createStrictMock(fireauth.OAuthSignInHandler);
+  mockControl.createConstructorMock(fireauth, 'OAuthSignInHandler');
+  var instantiateOAuthSignInHandler = mockControl.createMethodMock(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
+  instantiateOAuthSignInHandler(
+      ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
+      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+  oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
+  oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
+  oAuthSignInHandlerInstance.processRedirect(
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument).$does(function(
+          actualMode,
+          actualProvider,
+          actualEventId,
+          actualTenantId) {
+            assertEquals(
+                fireauth.AuthEvent.Type.LINK_VIA_REDIRECT, actualMode);
+            assertEquals(expectedProvider, actualProvider);
+            assertEquals(expectedEventId, actualEventId);
+            // User's tenant ID should be passed to OAuth handler.
+            assertEquals(expectedTenantId, actualTenantId);
+            return goog.Promise.resolve();
+          });
+  oAuthSignInHandlerInstance.unloadsOnRedirect().$returns(false);
+  mockControl.$replayAll();
+
+  // Set the backend user info with no linked providers.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      function(idToken) {
+        // Mock tenant ID is returned in getAccountInfo response.
+        getAccountInfoResponse['users'][0]['tenantId'] = expectedTenantId;
+        return goog.Promise.resolve(getAccountInfoResponse);
+      });
+
+  var expectedEventId = '1234';
+  asyncTestCase.waitForSignals(2);
+  stubs.replace(
+      fireauth.util,
+      'generateEventId',
+      function() {
+        // An event ID should be generated.
+        return expectedEventId;
+      });
+  var expectedProvider = new fireauth.GoogleAuthProvider();
+  expectedProvider.addScope('scope1');
+  expectedProvider.addScope('scope2');
+  var config = {
+    'apiKey': 'apiKey1',
+    'authDomain': 'subdomain.firebaseapp.com',
+    'appName': 'appId1'
+  };
+  // Create a user in tenant project scope.
+  accountInfo['tenantId'] = expectedTenantId;
+  var tenantUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  // Set redirect storage manager.
+  storageManager = new fireauth.storage.RedirectUserManager(
+      fireauth.util.createStorageKey(config['apiKey'], config['appName']));
+  tenantUser.setRedirectStorageManager(storageManager);
+  tenantUser.addStateChangeListener(function(user) {
+    // User state change should be triggered.
+    // Redirect event ID should be saved.
+    assertEquals(expectedEventId, user.getRedirectEventId());
+    asyncTestCase.signal();
+    return goog.Promise.resolve();
+  });
+  // Enable popup and redirect.
+  tenantUser.enablePopupRedirect();
+  // Link with redirect should succeed and resolve in this case.
+  tenantUser.linkWithRedirect(expectedProvider).then(function() {
+    // Redirect event ID should be saved.
+    assertEquals(expectedEventId, tenantUser.getRedirectEventId());
+    // Redirect user should be saved in storage with correct redirect event ID.
+    storageManager.getRedirectUser().then(function(user) {
+      assertEquals(expectedEventId, user.getRedirectEventId());
+      assertObjectEquals(tenantUser.toPlainObject(), user.toPlainObject());
+      asyncTestCase.signal();
+    });
+  });
+}
+
+
+function testUser_reauthWithRedirect_success_doesNotUnload_tenantId() {
+  // Test successful request for reauth with redirect when page does not unload
+  // on redirect and tenant ID is set on user.
+  // Verify that tenant ID is passed to OAuth sign in handler.
+  var expectedTenantId = 'TENANT_ID';
+  fireauth.AuthEventManager.ENABLED = true;
+  var oAuthSignInHandlerInstance =
+      mockControl.createStrictMock(fireauth.OAuthSignInHandler);
+  mockControl.createConstructorMock(fireauth, 'OAuthSignInHandler');
+  var instantiateOAuthSignInHandler = mockControl.createMethodMock(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
+  instantiateOAuthSignInHandler(
+      ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
+      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+  oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
+  oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
+  oAuthSignInHandlerInstance.processRedirect(
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument).$does(function(
+          actualMode,
+          actualProvider,
+          actualEventId,
+          actualTenantId) {
+            assertEquals(
+                fireauth.AuthEvent.Type.REAUTH_VIA_REDIRECT, actualMode);
+            assertEquals(expectedProvider, actualProvider);
+            assertEquals(expectedEventId, actualEventId);
+            // User's tenant ID should be passed to OAuth handler.
+            assertEquals(expectedTenantId, actualTenantId);
+            return goog.Promise.resolve();
+          });
+  oAuthSignInHandlerInstance.unloadsOnRedirect().$returns(false);
+  mockControl.$replayAll();
+  var expectedEventId = '1234';
+  asyncTestCase.waitForSignals(2);
+  stubs.replace(
+      fireauth.util,
+      'generateEventId',
+      function() {
+        // An event ID should be generated.
+        return expectedEventId;
+      });
+  var expectedProvider = new fireauth.GoogleAuthProvider();
+  expectedProvider.addScope('scope1');
+  expectedProvider.addScope('scope2');
+  var config = {
+    'apiKey': 'apiKey1',
+    'authDomain': 'subdomain.firebaseapp.com',
+    'appName': 'appId1'
+  };
+  // Create a user in tenant project scope.
+  accountInfo['tenantId'] = expectedTenantId;
+  var tenantUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  // Set redirect storage manager.
+  storageManager = new fireauth.storage.RedirectUserManager(
+      fireauth.util.createStorageKey(config['apiKey'], config['appName']));
+  tenantUser.setRedirectStorageManager(storageManager);
+  tenantUser.addStateChangeListener(function(user) {
+    // User state change should be triggered.
+    // Redirect event ID should be saved.
+    assertEquals(expectedEventId, user.getRedirectEventId());
+    asyncTestCase.signal();
+    return goog.Promise.resolve();
+  });
+  // Enable popup and redirect.
+  tenantUser.enablePopupRedirect();
+  // Reauth with redirect should succeed and resolve in this case.
+  tenantUser.reauthenticateWithRedirect(expectedProvider).then(function() {
+    // Redirect event ID should be saved.
+    assertEquals(expectedEventId, tenantUser.getRedirectEventId());
+    // Redirect user should be saved in storage with correct redirect event ID.
+    storageManager.getRedirectUser().then(function(user) {
+      assertEquals(expectedEventId, user.getRedirectEventId());
+      assertObjectEquals(tenantUser.toPlainObject(), user.toPlainObject());
       asyncTestCase.signal();
     });
   });
@@ -6834,6 +7195,167 @@ function testUser_linkWithPopup_success_withPostBody() {
 }
 
 
+function testUser_linkWithPopup_success_tenantId() {
+  // Test successful request for link with pop when tenant ID is set on user.
+  // Verify that tenant ID is passed to OAuth sign in handler and
+  // finishPopupAndRedirectLink is called with expected tenantId.
+  asyncTestCase.waitForSignals(3);
+  var expectedTenantId = 'TENANT_ID';
+  var recordedHandler = null;
+  // Mock OAuth sign in handler.
+  var oAuthSignInHandlerInstance =
+      mockControl.createStrictMock(fireauth.OAuthSignInHandler);
+  mockControl.createConstructorMock(fireauth, 'OAuthSignInHandler');
+  var instantiateOAuthSignInHandler = mockControl.createMethodMock(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler');
+  instantiateOAuthSignInHandler(
+      ignoreArgument, ignoreArgument, ignoreArgument, ignoreArgument,
+      ignoreArgument).$returns(oAuthSignInHandlerInstance);
+  oAuthSignInHandlerInstance.shouldBeInitializedEarly().$returns(false);
+  oAuthSignInHandlerInstance.hasVolatileStorage().$returns(false);
+  oAuthSignInHandlerInstance.processPopup(
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument,
+      ignoreArgument).$does(function(
+          actualPopupWin,
+          actualMode,
+          actualProvider,
+          actualOnInit,
+          actualOnError,
+          actualEventId,
+          actualAlreadyRedirected,
+          actualTenantId) {
+            assertEquals(expectedPopup, actualPopupWin);
+            assertEquals(fireauth.AuthEvent.Type.LINK_VIA_POPUP, actualMode);
+            assertEquals(provider, actualProvider);
+            assertEquals(expectedEventId, actualEventId);
+            assertFalse(actualAlreadyRedirected);
+            assertEquals(expectedTenantId, actualTenantId);
+            actualOnInit();
+            return goog.Promise.resolve();
+          });
+  oAuthSignInHandlerInstance.addAuthEventListener(ignoreArgument)
+      .$does(function(handler) {
+        recordedHandler = handler;
+      });
+  oAuthSignInHandlerInstance.startPopupTimeout(
+      ignoreArgument, ignoreArgument, ignoreArgument)
+      .$does(function(popupWin, onError, delay) {
+        recordedHandler(expectedAuthEvent);
+        return goog.Promise.resolve();
+      });
+  mockControl.$replayAll();
+  // Set the backend user info with no linked providers.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAccountInfoByIdToken',
+      function(idToken) {
+        // Mock tenant ID is returned in getAccountInfo response.
+        getAccountInfoResponse['users'][0]['tenantId'] = expectedTenantId;
+        return goog.Promise.resolve(getAccountInfoResponse);
+      });
+
+  // The expected popup window object.
+  var expectedPopup = {
+    'close': function() {}
+  };
+  // The expected popup event ID.
+  var expectedEventId = '1234';
+  // The expected successful link via popup Auth event.
+  // TODO: Add the Tenant ID in the AuthEvent after implementing the logic of
+  // redirecting back from OAuth helper widget.
+  var expectedAuthEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.LINK_VIA_POPUP,
+      expectedEventId,
+      'http://www.example.com/#response',
+      'SESSION_ID');
+  var config = {
+    'apiKey': 'apiKey1',
+    'authDomain': 'subdomain.firebaseapp.com',
+    'appName': 'appId1'
+  };
+  fireauth.AuthEventManager.ENABLED = true;
+  // Replace random number generator.
+  stubs.replace(
+      fireauth.util,
+      'generateRandomString',
+      function() {
+        return '87654321';
+      });
+  // Simulate popup.
+  stubs.replace(
+      fireauth.util,
+      'popup',
+      function(url, name, width, height) {
+        assertNull(url);
+        assertEquals('87654321', name);
+        assertEquals(fireauth.idp.Settings.GOOGLE.popupWidth, width);
+        assertEquals(fireauth.idp.Settings.GOOGLE.popupHeight, height);
+        asyncTestCase.signal();
+        return expectedPopup;
+      });
+  // On success if popup is still opened, it will be closed.
+  stubs.replace(
+      fireauth.util,
+      'closeWindow',
+      function(win) {
+        assertEquals(expectedPopup, win);
+        asyncTestCase.signal();
+      });
+  stubs.replace(
+      fireauth.util,
+      'generateEventId',
+      function() {
+        // A popup event ID should be generated.
+        return expectedEventId;
+      });
+  // Finish popup and redirect link should be called.
+  stubs.replace(
+      fireauth.AuthUser.prototype,
+      'finishPopupAndRedirectLink',
+      function(requestUri, sessionId, postBody) {
+        // TODO: verify tenan ID is passed here.
+        assertEquals('http://www.example.com/#response', requestUri);
+        assertEquals('SESSION_ID', sessionId);
+        assertNull(postBody);
+        // The expected popup result should be returned.
+        return goog.Promise.resolve(expectedPopupResult);
+      });
+  // Create a user in tenant project scope.
+  accountInfo['tenantId'] = expectedTenantId;
+  var tenantUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  storageManager = new fireauth.storage.RedirectUserManager(
+      fireauth.util.createStorageKey(config['apiKey'], config['appName']));
+  // Set redirect storage manager.
+  tenantUser.setRedirectStorageManager(storageManager);
+  // Enable popup and redirect.
+  tenantUser.enablePopupRedirect();
+  // The expected popup result.
+  var expectedPopupResult = {
+    'user': tenantUser,
+    'credential': expectedGoogleCredential,
+    'additionalUserInfo': expectedAdditionalUserInfo,
+    'operationType': fireauth.constants.OperationType.LINK
+  };
+  var provider = new fireauth.GoogleAuthProvider();
+  // linkWithPopup should succeed with the expected popup result.
+  tenantUser.linkWithPopup(provider).then(function(popupResult) {
+    assertObjectEquals(expectedPopupResult, popupResult);
+    // Popup user should never be saved in storage.
+    storageManager.getRedirectUser().then(function(user) {
+      assertNull(user);
+      asyncTestCase.signal();
+    });
+    asyncTestCase.signal();
+  });
+}
+
+
 function testUser_reauthenticateWithPopup_success_withoutPostBody() {
   asyncTestCase.waitForSignals(1);
 
@@ -7692,7 +8214,7 @@ function testUser_linkWithPopup_success_cannotRunInBackground() {
 
 function testUser_linkWithPopup_success_cannotRunInBackground_tenantId() {
   asyncTestCase.waitForSignals(4);
-  var expectedTenantId = '123456789012';
+  var expectedTenantId = 'TENANT_ID';
   var recordedHandler = null;
   // Mock OAuth sign in handler.
   var oAuthSignInHandlerInstance =
@@ -7727,6 +8249,7 @@ function testUser_linkWithPopup_success_cannotRunInBackground_tenantId() {
             assertEquals(expectedProvider, actualProvider);
             assertEquals(expectedEventId, actualEventId);
             assertTrue(actualAlreadyRedirected);
+            assertEquals(expectedTenantId, actualTenantId);
             actualOnInit();
             return goog.Promise.resolve();
           });
@@ -7746,6 +8269,8 @@ function testUser_linkWithPopup_success_cannotRunInBackground_tenantId() {
       fireauth.RpcHandler.prototype,
       'getAccountInfoByIdToken',
       function(idToken) {
+        // Mock tenant ID is returned in getAccountInfo response.
+        getAccountInfoResponse['users'][0]['tenantId'] = expectedTenantId;
         return goog.Promise.resolve(getAccountInfoResponse);
       });
 
@@ -7853,22 +8378,22 @@ function testUser_linkWithPopup_success_cannotRunInBackground_tenantId() {
       });
   // Set tenant ID on user.
   accountInfo['tenantId'] = expectedTenantId;
-  var user1 = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  var tenantUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
   // Set redirect storage manager.
   storageManager = new fireauth.storage.RedirectUserManager(
       fireauth.util.createStorageKey(config['apiKey'], config['appName']));
-  user1.setRedirectStorageManager(storageManager);
+  tenantUser.setRedirectStorageManager(storageManager);
   // Enable popup and redirect.
-  user1.enablePopupRedirect();
+  tenantUser.enablePopupRedirect();
   // The expected popup result.
   var expectedPopupResult = {
-    'user': user1,
+    'user': tenantUser,
     'credential': expectedGoogleCredential,
     'additionalUserInfo': expectedAdditionalUserInfo,
     'operationType': fireauth.constants.OperationType.LINK
   };
   // linkWithPopup should succeed with the expected popup result.
-  user1.linkWithPopup(expectedProvider).then(function(popupResult) {
+  tenantUser.linkWithPopup(expectedProvider).then(function(popupResult) {
     assertObjectEquals(expectedPopupResult, popupResult);
     // Popup user should never be saved in storage.
     storageManager.getRedirectUser().then(function(user) {
@@ -8051,7 +8576,7 @@ function testUser_reauthenticateWithPopup_success_cannotRunInBackground() {
 
 function testUser_reauthenticateWithPopup_success_cannotRunInBkg_tenantId() {
   asyncTestCase.waitForSignals(1);
-  var expectedTenantId = '123456789012';
+  var expectedTenantId = 'TENANT_ID';
   var recordedHandler = null;
   // Mock OAuth sign in handler.
   var oAuthSignInHandlerInstance =
@@ -8077,12 +8602,14 @@ function testUser_reauthenticateWithPopup_success_cannotRunInBkg_tenantId() {
           actualOnInit,
           actualOnError,
           actualEventId,
-          actualAlreadyRedirected) {
+          actualAlreadyRedirected,
+          actualTenantId) {
             assertEquals(expectedPopup, actualPopupWin);
             assertEquals(fireauth.AuthEvent.Type.REAUTH_VIA_POPUP, actualMode);
             assertEquals(expectedProvider, actualProvider);
             assertEquals(expectedEventId, actualEventId);
             assertTrue(actualAlreadyRedirected);
+            assertEquals(expectedTenantId, actualTenantId);
             actualOnInit();
             return goog.Promise.resolve();
           });
@@ -8200,22 +8727,22 @@ function testUser_reauthenticateWithPopup_success_cannotRunInBkg_tenantId() {
         return goog.Promise.resolve(expectedPopupResult);
       });
   accountInfo['tenantId'] = expectedTenantId;
-  var user1 = new fireauth.AuthUser(config, tokenResponse, accountInfo);
+  var tenantUser = new fireauth.AuthUser(config, tokenResponse, accountInfo);
   // Set redirect storage manager.
   storageManager = new fireauth.storage.RedirectUserManager(
       fireauth.util.createStorageKey(config['apiKey'], config['appName']));
-  user1.setRedirectStorageManager(storageManager);
+  tenantUser.setRedirectStorageManager(storageManager);
   // Enable popup and redirect.
-  user1.enablePopupRedirect();
+  tenantUser.enablePopupRedirect();
   // The expected popup result.
   var expectedPopupResult = {
-    'user': user1,
+    'user': tenantUser,
     'credential': expectedGoogleCredential,
     'additionalUserInfo': expectedAdditionalUserInfo,
     'operationType': fireauth.constants.OperationType.REAUTHENTICATE
   };
   // reauthenticateWithPopup should succeed with the expected popup result.
-  user1.reauthenticateWithPopup(expectedProvider)
+  tenantUser.reauthenticateWithPopup(expectedProvider)
       .then(function(popupResult) {
     assertObjectEquals(expectedPopupResult, popupResult);
     // Popup user should never be saved in storage.
