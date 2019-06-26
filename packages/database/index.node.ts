@@ -96,8 +96,11 @@ try {
   const firebase = require('@firebase/app').default;
   registerDatabase(firebase);
 } catch (err) {
-  // catch 'MODULE_NOT_FOUND' error in firebase-admin
+  // catch and ignore 'MODULE_NOT_FOUND' error in firebase-admin context
   // we can safely ignore this error because RTDB in firebase-admin works without @firebase/app
+  if (err.code !== 'MODULE_NOT_FOUND') {
+    throw err;
+  }
 }
 
 // Types to export for the admin SDK
