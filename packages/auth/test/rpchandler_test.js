@@ -3910,6 +3910,58 @@ function testVerifyAssertion_needConfirmationError_oauthResponseAndEmail() {
 
 /**
  * Tests need confirmation verifyAssertionForIdToken Auth linking error with
+ * OAuth response and tenant ID.
+ */
+function testVerifyAssertion_needConfirmationError_tenantId() {
+  // Test Auth linking error when tenant ID is returned.
+  var credential = fireauth.GoogleAuthProvider.credential(null,
+      'googleAccessToken');
+  // Need confirmation error with tenant ID is returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.NEED_CONFIRMATION,
+      {
+        email: 'user@example.com',
+        credential: credential,
+        tenantId: 'TENANT_ID'
+      });
+  var expectedResponse = {
+    'needConfirmation': true,
+    'idToken': 'PENDING_TOKEN',
+    'email': 'user@example.com',
+    'oauthAccessToken': 'googleAccessToken',
+    'providerId': 'google.com',
+    'tenantId': 'TENANT_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=googleIdToken&access_token=accessToken&provide' +
+        'r_id=google.com',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=googleIdToken&access_token=accessToken&provider_id' +
+        '=google.com',
+    'requestUri': 'http://localhost'
+  }).thenCatch(
+      function(error) {
+        assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests need confirmation verifyAssertionForIdToken Auth linking error with
  * nonce passed via postBody.
  */
 function testVerifyAssertion_needConfirmationError_nonceIdToken() {
@@ -4194,6 +4246,59 @@ function testVerifyAssertion_credAlreadyInUseError_oauthResponseAndEmail() {
 
 /**
  * Tests verifyAssertionForIdToken when FEDERATED_USER_ID_ALREADY_LINKED error
+ * is returned by the server with tenant ID.
+ */
+function testVerifyAssertion_credAlreadyInUseError_tenantId() {
+  // Test Auth linking error when tenant ID is returned.
+  var credential = fireauth.GoogleAuthProvider.credential(null,
+      'googleAccessToken');
+  // Credential already in use error with tenant ID is returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        email: 'user@example.com',
+        credential: credential,
+        tenantId: 'TENANT_ID'
+      });
+  var expectedResponse = {
+    'kind': 'identitytoolkit#VerifyAssertionResponse',
+    'errorMessage': 'FEDERATED_USER_ID_ALREADY_LINKED',
+    'email': 'user@example.com',
+    'oauthAccessToken': 'googleAccessToken',
+    'oauthExpireIn': 5183999,
+    'providerId': 'google.com',
+    'tenantId': 'TENANT_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=googleIdToken&access_token=accessToken&provide' +
+        'r_id=google.com',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=googleIdToken&access_token=accessToken&provider_id' +
+        '=google.com',
+    'requestUri': 'http://localhost'
+  }).thenCatch(
+      function(error) {
+        assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests verifyAssertionForIdToken when FEDERATED_USER_ID_ALREADY_LINKED error
  * is returned by the server with nonce passed via postBody.
  */
 function testVerifyAssertion_credAlreadyInUseError_nonceIdToken() {
@@ -4373,6 +4478,56 @@ function testVerifyAssertion_emailExistsError_oauthResponseAndEmail() {
     'oauthAccessToken': 'facebookAccessToken',
     'oauthExpireIn': 5183999,
     'providerId': 'facebook.com'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'access_token=accessToken&provider_id=facebook.com',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'access_token=accessToken&provider_id=facebook.com',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests verifyAssertionForIdToken when EMAIL_EXISTS error is returned by the
+ * server with tenant ID.
+ */
+function testVerifyAssertion_emailExistsError_tenantId() {
+  // Test Auth linking error when tenant ID is returned.
+  var credential = fireauth.FacebookAuthProvider.credential(
+      'facebookAccessToken');
+  // Email exists error returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.EMAIL_EXISTS,
+      {
+        email: 'user@example.com',
+        credential: credential,
+        tenantId: 'TENANT_ID'
+      });
+  var expectedResponse = {
+    'kind': 'identitytoolkit#VerifyAssertionResponse',
+    'errorMessage': 'EMAIL_EXISTS',
+    'email': 'user@example.com',
+    'oauthAccessToken': 'facebookAccessToken',
+    'oauthExpireIn': 5183999,
+    'providerId': 'facebook.com',
+    'tenantId': 'TENANT_ID'
   };
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
