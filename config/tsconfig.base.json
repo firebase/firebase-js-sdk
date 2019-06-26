@@ -5,12 +5,24 @@
     "importHelpers": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
-    "lib": ["es2017", "dom"],
+    "lib": [
+      "es5",
+      "dom",
+      "es2015.promise",
+      "es2015.symbol",
+      "es2015.iterable",
+      "es2015.collection",
+      "es2015.symbol.wellknown",
+      "es2015.core",
+      "es2017.object",
+    ],
     "module": "ES2015",
     "moduleResolution": "node",
     "sourceMap": true,
     "target": "es5",
     "downlevelIteration": true,
-    "typeRoots": ["../node_modules/@types"]
+    "typeRoots": [
+      "../node_modules/@types"
+    ]
   }
 }
