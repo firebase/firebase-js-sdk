@@ -154,6 +154,7 @@ fireauth.authenum.Error = {
   INVALID_RECIPIENT_EMAIL: 'invalid-recipient-email',
   INVALID_SENDER: 'invalid-sender',
   INVALID_SESSION_INFO: 'invalid-verification-id',
+  INVALID_TENANT_ID: 'invalid-tenant-id',
   MISSING_ANDROID_PACKAGE_NAME: 'missing-android-pkg-name',
   MISSING_APP_CREDENTIAL: 'missing-app-credential',
   MISSING_AUTH_DOMAIN: 'auth-domain-config-required',
@@ -319,6 +320,8 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_SENDER] =
     'ion in the Firebase Console.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_SESSION_INFO] =
     'The verification ID used to create the phone auth credential is invalid.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_TENANT_ID] =
+    'The Auth instance\'s tenant ID is invalid.';
 fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.MISSING_ANDROID_PACKAGE_NAME] = 'An Android ' +
     'Package Name must be provided if the Android App is required to be ' +
@@ -386,8 +389,7 @@ fireauth.AuthError.MESSAGES_[
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.REJECTED_CREDENTIAL] =
     'The request contains malformed or mismatching credentials.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TENANT_ID_MISMATCH] =
-    'The provided user tenant ID does not match the Auth instance\'s tenant ' +
-    'ID.';
+    'The provided tenant ID does not match the Auth instance\'s tenant ID';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TIMEOUT] =
     'The operation has timed out.';
 fireauth.AuthError.MESSAGES_[

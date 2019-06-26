@@ -1473,9 +1473,10 @@ function testFetchSignInMethodsForEmail_error() {
 
 
 function testIsSignInWithEmailLink() {
-  var emailLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode';
+  var emailLink1 = 'https://www.example.com/action?mode=signIn&' +
+      'oobCode=oobCode&apiKey=API_KEY';
   var emailLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
-      'oobCode=oobCode';
+      'oobCode=oobCode&apiKey=API_KEY';
   var emailLink3 = 'https://www.example.com/action?mode=signIn';
   app1 = firebase.initializeApp(config1, appId1);
   auth1 = app1.auth();
@@ -1489,9 +1490,10 @@ function testIsSignInWithEmailLink() {
 
 
 function testIsSignInWithEmailLink_deepLink() {
-  var deepLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode';
+  var deepLink1 = 'https://www.example.com/action?mode=signIn&oobCode=oobCode' +
+      '&apiKey=API_KEY';
   var deepLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
-      'oobCode=oobCode';
+      'oobCode=oobCode&apiKey=API_KEY';
   var deepLink3 = 'https://www.example.com/action?mode=signIn';
 
   var emailLink1 = 'https://example.app.goo.gl/?link=' +
@@ -4309,7 +4311,8 @@ function testAuth_signInWithEmailLink_success() {
   fireauth.AuthEventManager.ENABLED = true;
   // Expected email and link.
   var expectedEmail = 'user@example.com';
-  var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code';
+  var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code' +
+      '&apiKey=API_KEY';
   var expectedOobCode = 'code';
   var expectedIdToken = 'HEAD.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ2' +
       '9vZ2xlLmNvbS8xMjM0NTY3OCIsDQogICJwaWN0dXJlIjogImh0dHBzOi8vcGx1cy5nb29' +
@@ -4361,10 +4364,93 @@ function testAuth_signInWithEmailLink_success() {
   };
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
-  // Sign in with email and password.
+  // Sign in with email and link.
   auth1.signInWithEmailLink(expectedEmail, expectedLink)
       .then(function(result) {
         assertObjectEquals(expectedResult, result);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_signInWithEmailLink_success_tenantId() {
+  // Tests successful signInWithEmailLink with tenant ID.
+  const expectedEmail = 'user@example.com';
+  // Sign-in email link with tenant ID.
+  const expectedLink = 'https://www.example.com?mode=signIn&oobCode=code' +
+      '&apiKey=API_KEY&tenantId=TENANT_ID';
+  const expectedOobCode = 'code';
+
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  const emailLinkSignIn =
+      mockControl.createMethodMock(auth1.getRpcHandler(), 'emailLinkSignIn');
+  emailLinkSignIn(expectedEmail, expectedOobCode).$once()
+      .$returns(goog.Promise.resolve(expectedTokenResponse4));
+  mockControl.$replayAll();
+  asyncTestCase.waitForSignals(1);
+
+  // Set tenant ID on Auth.
+  auth1.tenantId = 'TENANT_ID';
+  // Verify that tenant ID is set on Rpc handler.
+  assertEquals('TENANT_ID', auth1.getRpcHandler().getTenantId());
+  // Sign in with email and link.
+  return auth1.signInWithEmailLink(expectedEmail, expectedLink)
+      .then((result) => {
+        fireauth.common.testHelper.assertUserCredentialResponse(
+            auth1.currentUser,
+            null,
+            {'providerId': 'password', 'isNewUser': false},
+            fireauth.constants.OperationType.SIGN_IN,
+            result);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_signInWithEmailLink_error_tenantIdMismatch() {
+  // Tests when the tenant ID in link doesn't match the tenant ID on
+  // Auth instance.
+  const expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.TENANT_ID_MISMATCH);
+  fireauth.AuthEventManager.ENABLED = true;
+  const expectedEmail = 'user@example.com';
+  // Link with TENANT_ID1.
+  const expectedLink = 'https://www.example.com?mode=signIn&oobCode=code' +
+      '&apiKey=API_KEY&tenantId=TENANT_ID1';
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // Set the tenant ID to a different tenant ID from the link.
+  auth1.tenantId = 'TENANT_ID2';
+  // Sign in with email and link.
+  auth1.signInWithEmailLink(expectedEmail, expectedLink)
+      .thenCatch((error) => {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testAuth_signInWithEmailLink_error_tenantIdMismatch_nullTenantId() {
+  // Tests when the tenant ID is provided in the link but is set to null on
+  // Auth instance.
+  const expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.TENANT_ID_MISMATCH);
+  fireauth.AuthEventManager.ENABLED = true;
+  const expectedEmail = 'user@example.com';
+  // Link with TENANT_ID1.
+  const expectedLink = 'https://www.example.com?mode=signIn&oobCode=code' +
+      '&apiKey=API_KEY&tenantId=TENANT_ID1';
+  asyncTestCase.waitForSignals(1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  // Set the tenant ID to null on Auth instance.
+  auth1.tenantId = null;
+  // Sign in with email and link.
+  auth1.signInWithEmailLink(expectedEmail, expectedLink)
+      .thenCatch((error) => {
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
         asyncTestCase.signal();
       });
 }
@@ -4376,7 +4462,8 @@ function testAuth_signInWithEmailLink_deepLink_success() {
   fireauth.AuthEventManager.ENABLED = true;
   // Expected email and link.
   var expectedEmail = 'user@example.com';
-  var deepLink = 'https://www.example.com?mode=signIn&oobCode=code';
+  var deepLink = 'https://www.example.com?mode=signIn&oobCode=code' +
+      '&apiKey=API_KEY';
   var expectedLink = 'https://example.app.goo.gl/?link=' +
       encodeURIComponent(deepLink);
   var expectedOobCode = 'code';
@@ -4419,7 +4506,7 @@ function testAuth_signInWithEmailLink_deepLink_success() {
   };
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
-  // Sign in with email and password.
+  // Sign in with email and link.
   auth1.signInWithEmailLink(expectedEmail, expectedLink)
       .then(function(result) {
         fireauth.common.testHelper.assertUserCredentialResponse(
@@ -4438,7 +4525,8 @@ function testAuth_signInWithEmailLink_error() {
   fireauth.AuthEventManager.ENABLED = true;
   // Expected email and link.
   var expectedEmail = 'user@example.com';
-  var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code';
+  var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code' +
+      '&apiKey=API_KEY';
   var expectedOobCode = 'code';
   // Expected RPC error.
   var expectedError =
@@ -4467,7 +4555,7 @@ function testAuth_signInWithEmailLink_error() {
   asyncTestCase.waitForSignals(2);
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
-  // Sign in with email and password should throw expected error.
+  // Sign in with email and link should throw expected error.
   auth1.signInWithEmailLink(expectedEmail, expectedLink)
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);
@@ -4487,7 +4575,7 @@ function testAuth_signInWithEmailLink_invalidLink_error() {
   asyncTestCase.waitForSignals(1);
   app1 = firebase.initializeApp(config3, appId1);
   auth1 = app1.auth();
-  // Sign in with email and password should throw expected error.
+  // Sign in with email and link should throw expected error.
   auth1.signInWithEmailLink(expectedEmail, expectedLink)
       .thenCatch(function(error) {
         fireauth.common.testHelper.assertErrorEquals(expectedError, error);

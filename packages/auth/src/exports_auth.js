@@ -17,6 +17,8 @@
 
 goog.provide('fireauth.exports');
 
+goog.require('fireauth.ActionCodeInfo');
+goog.require('fireauth.ActionCodeURL');
 goog.require('fireauth.Auth');
 goog.require('fireauth.AuthCredential');
 goog.require('fireauth.AuthError');
@@ -609,6 +611,10 @@ fireauth.exportlib.exportPrototypeMethods(
       }
     });
 
+fireauth.exportlib.exportFunction(
+    fireauth.ActionCodeURL, 'parseLink',
+    fireauth.ActionCodeURL.parseLink, [fireauth.args.string('link')]);
+
 
 (function() {
   if (typeof firebase === 'undefined' || !firebase.INTERNAL ||
@@ -634,6 +640,15 @@ fireauth.exportlib.exportPrototypeMethods(
     };
 
     var namespace = {
+      // Exports firebase.auth.ActionCodeInfo.Operation.
+      'ActionCodeInfo': {
+        'Operation': {
+          'EMAIL_SIGNIN': fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN,
+          'PASSWORD_RESET': fireauth.ActionCodeInfo.Operation.PASSWORD_RESET,
+          'RECOVER_EMAIL': fireauth.ActionCodeInfo.Operation.RECOVER_EMAIL,
+          'VERIFY_EMAIL': fireauth.ActionCodeInfo.Operation.VERIFY_EMAIL
+        }
+      },
       'Auth': fireauth.Auth,
       'AuthCredential': fireauth.AuthCredential,
       'Error': fireauth.AuthError
@@ -669,6 +684,8 @@ fireauth.exportlib.exportPrototypeMethods(
           fireauth.args.object('recaptchaParameters', true),
           fireauth.args.firebaseApp(true)
         ]);
+    fireauth.exportlib.exportFunction(namespace,
+        'ActionCodeURL', fireauth.ActionCodeURL, []);
 
     // Register Auth service with firebase.App.
     firebase.INTERNAL.registerService(

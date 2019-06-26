@@ -1879,7 +1879,7 @@ fireauth.Auth.prototype.fetchSignInMethodsForEmail = function(email) {
  */
 fireauth.Auth.prototype.isSignInWithEmailLink = function(emailLink) {
   return  !!fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink);
+      .getActionCodeUrlFromSignInEmailLink(emailLink);
 };
 
 
@@ -2020,7 +2020,7 @@ fireauth.Auth.prototype.signInWithPhoneNumber =
           phoneNumber,
           appVerifier,
           // This will wait for redirectStateIsReady to resolve first.
-          goog.bind(this.signInAndRetrieveDataWithCredential, this))));
+          goog.bind(this.signInWithCredential, this))));
 };
 
 
@@ -2034,11 +2034,22 @@ fireauth.Auth.prototype.signInWithPhoneNumber =
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.Auth.prototype.signInWithEmailLink = function(email, opt_link) {
-  var self = this;
-  return this.registerPendingPromise_(
-      goog.Promise.resolve().then(function() {
-        var credential = fireauth.EmailAuthProvider.credentialWithLink(
-            email, opt_link || fireauth.util.getCurrentUrl());
-        return self.signInAndRetrieveDataWithCredential(credential);
-      }));
+  return this.registerPendingPromise_(goog.Promise.resolve().then(() => {
+      const link = opt_link || fireauth.util.getCurrentUrl();
+      const credential = fireauth.EmailAuthProvider.credentialWithLink(
+          email, link);
+      // Check if the tenant ID in the email link matches the tenant ID on Auth
+      // instance.
+      const actionCodeUrl =
+          fireauth.EmailAuthProvider.getActionCodeUrlFromSignInEmailLink(link);
+      if (!actionCodeUrl) {
+        throw new fireauth.AuthError(
+            fireauth.authenum.Error.ARGUMENT_ERROR, 'Invalid email link!');
+      }
+      if (actionCodeUrl['tenantId'] !== this.getTenantId()) {
+        throw new fireauth.AuthError(
+            fireauth.authenum.Error.TENANT_ID_MISMATCH);
+      }
+      return this.signInWithCredential(credential);
+  }));
 };

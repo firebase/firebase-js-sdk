@@ -2141,6 +2141,8 @@ function testFetchSignInMethodsForIdentifier_serverCaughtError() {
       fireauth.authenum.Error.INVALID_EMAIL;
   errorMap[fireauth.RpcHandler.ServerError.MISSING_CONTINUE_URI] =
       fireauth.authenum.Error.INTERNAL_ERROR;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.fetchSignInMethodsForIdentifier(identifier);
@@ -2432,6 +2434,8 @@ function testVerifyCustomToken_serverCaughtError() {
       fireauth.authenum.Error.INVALID_CUSTOM_TOKEN;
   errorMap[fireauth.RpcHandler.ServerError.CREDENTIAL_MISMATCH] =
       fireauth.authenum.Error.CREDENTIAL_MISMATCH;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyCustomToken(token);
@@ -2746,6 +2750,8 @@ function testEmailLinkSignIn_serverCaughtError() {
       fireauth.authenum.Error.TOO_MANY_ATTEMPTS_TRY_LATER;
   errorMap[fireauth.RpcHandler.ServerError.USER_DISABLED] =
       fireauth.authenum.Error.USER_DISABLED;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.emailLinkSignIn(email, oobCode);
@@ -2878,6 +2884,8 @@ function testVerifyPassword_serverCaughtError() {
       fireauth.authenum.Error.TOO_MANY_ATTEMPTS_TRY_LATER;
   errorMap[fireauth.RpcHandler.ServerError.USER_DISABLED] =
       fireauth.authenum.Error.USER_DISABLED;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyPassword(email, password);
@@ -3016,6 +3024,8 @@ function testCreateAccount_serverCaughtError() {
       fireauth.authenum.Error.WEAK_PASSWORD;
   errorMap[fireauth.RpcHandler.ServerError.ADMIN_ONLY_OPERATION] =
       fireauth.authenum.Error.ADMIN_ONLY_OPERATION;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.createAccount(email, password);
@@ -3861,6 +3871,8 @@ function testVerifyAssertion_serverCaughtError() {
       fireauth.authenum.Error.USER_CANCELLED;
   errorMap[fireauth.RpcHandler.ServerError.MISSING_OR_INVALID_NONCE] =
       fireauth.authenum.Error.MISSING_OR_INVALID_NONCE;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyAssertion(requestBody);
@@ -5424,6 +5436,8 @@ function testSendSignInLinkToEmail_serverCaughtError() {
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
       fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendSignInLinkToEmail(userEmail, {});
@@ -5645,6 +5659,8 @@ function testSendPasswordResetEmail_caughtServerError() {
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
       fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendPasswordResetEmail(userEmail, {});
@@ -5844,6 +5860,8 @@ function testSendEmailVerification_caughtServerError() {
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
       fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendEmailVerification(idToken, {});
@@ -5972,6 +5990,8 @@ function testConfirmPasswordReset_caughtServerError() {
       fireauth.authenum.Error.INVALID_OOB_CODE;
   errorMap[fireauth.RpcHandler.ServerError.MISSING_OOB_CODE] =
       fireauth.authenum.Error.INTERNAL_ERROR;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.confirmPasswordReset(code, newPassword);
@@ -6152,6 +6172,8 @@ function testCheckActionCode_caughtServerError() {
       fireauth.authenum.Error.INVALID_OOB_CODE;
   errorMap[fireauth.RpcHandler.ServerError.MISSING_OOB_CODE] =
       fireauth.authenum.Error.INTERNAL_ERROR;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.checkActionCode(code);
@@ -7609,6 +7631,8 @@ function testSendVerificationCode_caughtServerError() {
       fireauth.authenum.Error.QUOTA_EXCEEDED;
   errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
       fireauth.authenum.Error.REJECTED_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendVerificationCode(requestBody);
@@ -7867,6 +7891,8 @@ function testVerifyPhoneNumber_caughtServerError() {
       fireauth.authenum.Error.CODE_EXPIRED;
   errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
       fireauth.authenum.Error.REJECTED_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyPhoneNumber(requestBody);

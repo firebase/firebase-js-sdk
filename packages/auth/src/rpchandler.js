@@ -219,6 +219,7 @@ fireauth.RpcHandler.ServerError = {
   INVALID_SENDER: 'INVALID_SENDER',
   INVALID_SESSION_INFO: 'INVALID_SESSION_INFO',
   INVALID_TEMPORARY_PROOF: 'INVALID_TEMPORARY_PROOF',
+  INVALID_TENANT_ID: 'INVALID_TENANT_ID',
   MISSING_ANDROID_PACKAGE_NAME: 'MISSING_ANDROID_PACKAGE_NAME',
   MISSING_APP_CREDENTIAL: 'MISSING_APP_CREDENTIAL',
   MISSING_CODE: 'MISSING_CODE',
@@ -2508,6 +2509,8 @@ fireauth.RpcHandler.getDeveloperError_ =
   // Multi-tenant related errors.
   errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
       fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   // User actions (sign-up or deletion) disabled errors.
   errorMap[fireauth.RpcHandler.ServerError.ADMIN_ONLY_OPERATION] =
