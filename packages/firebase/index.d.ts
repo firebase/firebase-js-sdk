@@ -6182,20 +6182,20 @@ declare namespace firebase.firestore {
      * Clears the persistent storage. This includes pending writes and cached
      * documents.
      *
-     * Must be called while the firestore instance is not started (after the app is
-     * shutdown or when the app is first initialized). On startup, this method
-     * must be called before other methods (other than settings()). If the
-     * firestore instance is still running, the promise will be rejected with
-     * the error code of `failed-precondition`.
+     * Must be called while the firestore instance is not started (after the app
+     * is shutdown or when the app is first initialized). On startup, this
+     * method must be called before other methods (other than settings()). If
+     * the firestore instance is still running, the promise will be rejected
+     * with the error code of `failed-precondition`.
      *
      * Note: clearPersistence() is primarily intended to help write reliable
-     * tests that use Firestore. It uses the most efficient mechanism possible
-     * for dropping existing data but does not attempt to securely overwrite or
+     * tests that use Cloud Firestore. It uses an efficient mechanism for
+     * dropping existing data but does not attempt to securely overwrite or
      * otherwise make cached data unrecoverable. For applications that are
-     * sensitive to the disclosure of cache data in between user sessions we
-     * strongly recommend not to enable persistence in the first place.
+     * sensitive to the disclosure of cached data in between user sessions, we
+     * strongly recommend not enabling persistence at all.
      *
-     * @return A promise that is resolved once the persistent storage has been
+     * @return A promise that is resolved when the persistent storage is
      * cleared. Otherwise, the promise is rejected with an error.
      */
     clearPersistence(): Promise<void>;

@@ -1428,87 +1428,35 @@ export class Query implements firestore.Query {
       validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
     }
 
-    let fieldValue;
+    let fieldValue: FieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const operator = Operator.fromString(opStr);
     if (fieldPath.isKeyField()) {
       if (
         operator === Operator.ARRAY_CONTAINS ||
-        operator === Operator.ARRAY_CONTAINS_ANY ||
-        operator === Operator.IN
+        operator === Operator.ARRAY_CONTAINS_ANY
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `Invalid Query. You can't perform '${operator.toString()}' ` +
             'queries on FieldPath.documentId().'
         );
-      }
-      if (typeof value === 'string') {
-        if (value === '') {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Function Query.where() requires its third parameter to be a ' +
-              'valid document ID if the first parameter is ' +
-              'FieldPath.documentId(), but it was an empty string.'
-          );
+      } else if (operator === Operator.IN) {
+        this.validateDisjunctiveFilterElements(value, operator);
+        const referenceList: FieldValue[] = [];
+        for (const arrayValue of value as FieldValue[]) {
+          referenceList.push(this.parseDocumentIdValue(arrayValue));
         }
-        if (
-          !this._query.isCollectionGroupQuery() &&
-          value.indexOf('/') !== -1
-        ) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid third parameter to Query.where(). When querying a collection by ` +
-              `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
-              `'${value}' contains a slash.`
-          );
-        }
-        const path = this._query.path.child(ResourcePath.fromString(value));
-        if (!DocumentKey.isDocumentKey(path)) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid third parameter to Query.where(). When querying a collection group by ` +
-              `FieldPath.documentId(), the value provided must result in a valid document path, ` +
-              `but '${path}' is not because it has an odd number of segments (${
-                path.length
-              }).`
-          );
-        }
-        fieldValue = new RefValue(
-          this.firestore._databaseId,
-          new DocumentKey(path)
-        );
-      } else if (value instanceof DocumentReference) {
-        const ref = value as DocumentReference;
-        fieldValue = new RefValue(this.firestore._databaseId, ref._key);
+        fieldValue = new ArrayValue(referenceList);
       } else {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Function Query.where() requires its third parameter to be a ` +
-            `string or a DocumentReference if the first parameter is ` +
-            `FieldPath.documentId(), but it was: ` +
-            `${valueDescription(value)}.`
-        );
+        fieldValue = this.parseDocumentIdValue(value);
       }
     } else {
       if (
         operator === Operator.IN ||
         operator === Operator.ARRAY_CONTAINS_ANY
       ) {
-        if (!Array.isArray(value) || value.length === 0) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Invalid Query. A non-empty array is required for ' +
-              `'${operator.toString()}' filters.`
-          );
-        }
-        if (value.length > 10) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid Query. '${operator.toString()}' filters support a ` +
-              'maximum of 10 elements in the value array.'
-          );
-        }
+        this.validateDisjunctiveFilterElements(value, operator);
       }
       fieldValue = this.firestore._dataConverter.parseQueryValue(
         'Query.where',
@@ -1944,6 +1892,98 @@ export class Query implements firestore.Query {
         error: reject
       }
     );
+  }
+
+  /**
+   * Parses the given documentIdValue into a ReferenceValue, throwing
+   * appropriate errors if the value is anything other than a DocumentReference
+   * or String, or if the string is malformed.
+   */
+  private parseDocumentIdValue(documentIdValue: unknown): RefValue {
+    if (typeof documentIdValue === 'string') {
+      if (documentIdValue === '') {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Function Query.where() requires its third parameter to be a ' +
+            'valid document ID if the first parameter is ' +
+            'FieldPath.documentId(), but it was an empty string.'
+        );
+      }
+      if (
+        !this._query.isCollectionGroupQuery() &&
+        documentIdValue.indexOf('/') !== -1
+      ) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Invalid third parameter to Query.where(). When querying a collection by ` +
+            `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
+            `'${documentIdValue}' contains a slash.`
+        );
+      }
+      const path = this._query.path.child(
+        ResourcePath.fromString(documentIdValue)
+      );
+      if (!DocumentKey.isDocumentKey(path)) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Invalid third parameter to Query.where(). When querying a collection group by ` +
+            `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+            `but '${path}' is not because it has an odd number of segments (${
+              path.length
+            }).`
+        );
+      }
+      return new RefValue(this.firestore._databaseId, new DocumentKey(path));
+    } else if (documentIdValue instanceof DocumentReference) {
+      const ref = documentIdValue as DocumentReference;
+      return new RefValue(this.firestore._databaseId, ref._key);
+    } else {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Function Query.where() requires its third parameter to be a ` +
+          `string or a DocumentReference if the first parameter is ` +
+          `FieldPath.documentId(), but it was: ` +
+          `${valueDescription(documentIdValue)}.`
+      );
+    }
+  }
+
+  /**
+   * Validates that the value passed into a disjunctrive filter satisfies all
+   * array requirements.
+   */
+  private validateDisjunctiveFilterElements(
+    value: unknown,
+    operator: Operator
+  ): void {
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid Query. A non-empty array is required for ' +
+          `'${operator.toString()}' filters.`
+      );
+    }
+    if (value.length > 10) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. '${operator.toString()}' filters support a ` +
+          'maximum of 10 elements in the value array.'
+      );
+    }
+    if (value.indexOf(null) >= 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. '${operator.toString()}' filters cannot contain 'null' ` +
+          'in the value array.'
+      );
+    }
+    if (value.filter(element => Number.isNaN(element)).length > 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. '${operator.toString()}' filters cannot contain 'NaN' ` +
+          'in the value array.'
+      );
+    }
   }
 
   private validateNewFilter(filter: Filter): void {

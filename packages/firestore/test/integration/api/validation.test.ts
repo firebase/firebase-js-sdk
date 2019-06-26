@@ -1003,125 +1003,99 @@ apiDescribe('Validation:', (persistence: boolean) => {
       }
     );
 
-    validationIt(
-      persistence,
-      'cannot have multiple array-contains filters.',
-      db => {
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', 'array-contains', 1)
-            .where('foo', 'array-contains', 2)
-        ).to.throw(
-          "Invalid query. You cannot use more than one 'array-contains' filter."
-        );
-      }
-    );
+    validationIt(persistence, 'with multiple array filters fail', db => {
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', 'array-contains', 1)
+          .where('foo', 'array-contains', 2)
+      ).to.throw(
+        "Invalid query. You cannot use more than one 'array-contains' filter."
+      );
 
-    validationIt(
-      persistence,
-      'cannot have multiple IN or array-contains-any filters.',
-      db => {
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', inOp, [1, 2])
-            .where('foo', inOp, [2, 3])
-        ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', 'array-contains', 1)
+          .where('foo', arrayContainsAnyOp, [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use 'array-contains-any' filters with " +
+          "'array-contains' filters."
+      );
 
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', arrayContainsAnyOp, [1, 2])
-            .where('foo', arrayContainsAnyOp, [2, 3])
-        ).to.throw(
-          "Invalid query. You cannot use more than one 'array-contains-any'" +
-            ' filter.'
-        );
-      }
-    );
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', arrayContainsAnyOp, [2, 3])
+          .where('foo', 'array-contains', 1)
+      ).to.throw(
+        "Invalid query. You cannot use 'array-contains' filters with " +
+          "'array-contains-any' filters."
+      );
+    });
 
-    validationIt(
-      persistence,
-      'cannot have array-contains filter with array-contains-any filter.',
-      db => {
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', 'array-contains', 1)
-            .where('foo', arrayContainsAnyOp, [2, 3])
-        ).to.throw(
-          "Invalid query. You cannot use 'array-contains-any' filters with " +
-            "'array-contains' filters."
-        );
+    validationIt(persistence, 'with multiple disjunctive filters fail', db => {
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', inOp, [1, 2])
+          .where('foo', inOp, [2, 3])
+      ).to.throw("Invalid query. You cannot use more than one 'in' filter.");
 
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', arrayContainsAnyOp, [2, 3])
-            .where('foo', 'array-contains', 1)
-        ).to.throw(
-          "Invalid query. You cannot use 'array-contains' filters with " +
-            "'array-contains-any' filters."
-        );
-      }
-    );
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', arrayContainsAnyOp, [1, 2])
+          .where('foo', arrayContainsAnyOp, [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use more than one 'array-contains-any'" +
+          ' filter.'
+      );
 
-    validationIt(
-      persistence,
-      'cannot have array-contains-any filter with in filter.',
-      db => {
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', arrayContainsAnyOp, [2, 3])
-            .where('foo', inOp, [2, 3])
-        ).to.throw(
-          "Invalid query. You cannot use 'in' filters with " +
-            "'array-contains-any' filters."
-        );
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', arrayContainsAnyOp, [2, 3])
+          .where('foo', inOp, [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use 'in' filters with " +
+          "'array-contains-any' filters."
+      );
 
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', inOp, [2, 3])
-            .where('foo', arrayContainsAnyOp, [2, 3])
-        ).to.throw(
-          "Invalid query. You cannot use 'array-contains-any' filters with " +
-            "'in' filters."
-        );
-      }
-    );
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', inOp, [2, 3])
+          .where('foo', arrayContainsAnyOp, [2, 3])
+      ).to.throw(
+        "Invalid query. You cannot use 'array-contains-any' filters with " +
+          "'in' filters."
+      );
 
-    // This is redundant with the above tests, but makes sure our validation
-    // doesn't get confused.
-    validationIt(
-      persistence,
-      'cannot have array-contains, array-contains-any, and in filter.',
-      db => {
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', inOp, [2, 3])
-            .where('foo', 'array-contains', 1)
-            .where('foo', arrayContainsAnyOp, [2])
-        ).to.throw(
-          "Invalid query. You cannot use 'array-contains-any' filters with " +
-            "'in' filters."
-        );
+      // This is redundant with the above tests, but makes sure our validation
+      // doesn't get confused.
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', inOp, [2, 3])
+          .where('foo', 'array-contains', 1)
+          .where('foo', arrayContainsAnyOp, [2])
+      ).to.throw(
+        "Invalid query. You cannot use 'array-contains-any' filters with " +
+          "'in' filters."
+      );
 
-        expect(() =>
-          db
-            .collection('test')
-            .where('foo', 'array-contains', 1)
-            .where('foo', inOp, [2, 3])
-            .where('foo', arrayContainsAnyOp, [2])
-        ).to.throw(
-          "Invalid query. You cannot use 'array-contains-any' filters with " +
-            "'in' filters."
-        );
-      }
-    );
+      expect(() =>
+        db
+          .collection('test')
+          .where('foo', 'array-contains', 1)
+          .where('foo', inOp, [2, 3])
+          .where('foo', arrayContainsAnyOp, [2])
+      ).to.throw(
+        "Invalid query. You cannot use 'array-contains-any' filters with " +
+          "'in' filters."
+      );
+    });
 
     validationIt(
       persistence,
@@ -1163,7 +1137,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
 
     validationIt(
       persistence,
-      'cannot have an IN or array-contains-any filter with non-array values.',
+      'enforce array requirements for disjunctive filters',
       db => {
         expect(() => db.collection('test').where('foo', inOp, 2)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
@@ -1175,31 +1149,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
           'Invalid Query. A non-empty array is required for ' +
             "'array-contains-any' filters."
         );
-      }
-    );
 
-    validationIt(
-      persistence,
-      'cannot have an IN or array-contains-any filter with empty arrays.',
-      db => {
-        expect(() => db.collection('test').where('foo', inOp, [])).to.throw(
-          "Invalid Query. A non-empty array is required for 'in' filters."
-        );
-
-        expect(() =>
-          db.collection('test').where('foo', arrayContainsAnyOp, [])
-        ).to.throw(
-          'Invalid Query. A non-empty array is required for ' +
-            "'array-contains-any' filters."
-        );
-      }
-    );
-
-    validationIt(
-      persistence,
-      'cannot have an IN or array-contains-any filter with more than 10 ' +
-        'elements.',
-      db => {
         expect(() =>
           db
             .collection('test')
@@ -1217,6 +1167,45 @@ apiDescribe('Validation:', (persistence: boolean) => {
         ).to.throw(
           "Invalid Query. 'array-contains-any' filters support a maximum of " +
             '10 elements in the value array.'
+        );
+
+        expect(() => db.collection('test').where('foo', inOp, [])).to.throw(
+          "Invalid Query. A non-empty array is required for 'in' filters."
+        );
+
+        expect(() =>
+          db.collection('test').where('foo', arrayContainsAnyOp, [])
+        ).to.throw(
+          'Invalid Query. A non-empty array is required for ' +
+            "'array-contains-any' filters."
+        );
+
+        expect(() =>
+          db.collection('test').where('foo', inOp, [3, null])
+        ).to.throw(
+          "Invalid Query. 'in' filters cannot contain 'null' in the value array."
+        );
+
+        expect(() =>
+          db.collection('test').where('foo', arrayContainsAnyOp, [3, null])
+        ).to.throw(
+          "Invalid Query. 'array-contains-any' filters cannot contain 'null' " +
+            'in the value array.'
+        );
+
+        expect(() =>
+          db.collection('test').where('foo', inOp, [2, Number.NaN])
+        ).to.throw(
+          "Invalid Query. 'in' filters cannot contain 'NaN' in the value array."
+        );
+
+        expect(() =>
+          db
+            .collection('test')
+            .where('foo', arrayContainsAnyOp, [2, Number.NaN])
+        ).to.throw(
+          "Invalid Query. 'array-contains-any' filters cannot contain 'NaN' " +
+            'in the value array.'
         );
       }
     );
@@ -1288,12 +1277,49 @@ apiDescribe('Validation:', (persistence: boolean) => {
           "Invalid Query. You can't perform 'array-contains-any' queries on " +
             'FieldPath.documentId().'
         );
+      }
+    );
+
+    validationIt(
+      persistence,
+      'using IN and document id must have proper document references in array',
+      db => {
+        const collection = db.collection('test');
+
+        expect(() =>
+          collection.where(FieldPath.documentId(), inOp, [collection.path])
+        ).not.to.throw();
+
+        expect(() =>
+          collection.where(FieldPath.documentId(), inOp, [''])
+        ).to.throw(
+          'Function Query.where() requires its third parameter to be ' +
+            'a valid document ID if the first parameter is ' +
+            'FieldPath.documentId(), but it was an empty string.'
+        );
+
+        expect(() =>
+          collection.where(FieldPath.documentId(), inOp, ['foo/bar/baz'])
+        ).to.throw(
+          `Invalid third parameter to Query.where(). When querying a collection by ` +
+            `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
+            `'foo/bar/baz' contains a slash.`
+        );
 
         expect(() =>
           collection.where(FieldPath.documentId(), inOp, [1, 2])
         ).to.throw(
-          "Invalid Query. You can't perform 'in' queries on " +
-            'FieldPath.documentId().'
+          'Function Query.where() requires its third parameter to be ' +
+            'a string or a DocumentReference if the first parameter is ' +
+            'FieldPath.documentId(), but it was: 1.'
+        );
+
+        expect(() =>
+          db.collectionGroup('foo').where(FieldPath.documentId(), inOp, ['foo'])
+        ).to.throw(
+          `Invalid third parameter to Query.where(). When querying a collection group by ` +
+            `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+            `but 'foo' is not because it has an odd number of segments (1).`
         );
       }
     );
