@@ -29,7 +29,7 @@ import {
   FirebaseServiceNamespace,
   AppHook
 } from '@firebase/app-types/private';
-import { deepExtend, contains, CONSTANTS } from '@firebase/util';
+import { deepExtend, contains } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
 import { ERROR_FACTORY, AppError } from './errors';
 import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
