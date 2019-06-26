@@ -2373,6 +2373,50 @@ function testVerifyCustomToken_success() {
 }
 
 
+function testVerifyCustomToken_success_tenantId() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCusto' +
+      'mToken?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'token': 'CUSTOM_TOKEN',
+        'returnSecureToken': true,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.verifyCustomToken('CUSTOM_TOKEN').then(
+      function(response) {
+        assertEquals('ID_TOKEN', response['idToken']);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testVerifyCustomToken_unsupportedTenantOperation() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
+      'relyingparty/verifyCustomToken?key=apiKey';
+  var requestBody = {
+    'token': 'CUSTOM_TOKEN',
+    'returnSecureToken': true,
+    'tenantId': '123456789012'
+  };
+  rpcHandler.updateTenantId('123456789012');
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.verifyCustomToken('CUSTOM_TOKEN');
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
 function testVerifyCustomToken_serverCaughtError() {
   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
       'relyingparty/verifyCustomToken?key=apiKey';
@@ -6957,6 +7001,59 @@ function testSendVerificationCode_success() {
 
 
 /**
+ * Tests successful sendVerificationCode RPC call with tenant ID.
+ */
+function testSendVerificationCode_success_tenantId() {
+  var expectedRequest = {
+    'phoneNumber': '+15551234567',
+    'recaptchaToken': 'RECAPTCHA_TOKEN',
+    'tenantId': '123456789012'
+  };
+  var expectedResponse = {
+    'sessionInfo': 'SESSION_INFO'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/sendVerifi' +
+      'cationCode?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.sendVerificationCode({
+    'phoneNumber': '+15551234567',
+    'recaptchaToken': 'RECAPTCHA_TOKEN'
+  }).then(function(sessionInfo) {
+    assertEquals(expectedResponse['sessionInfo'], sessionInfo);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testSendVerificationCode_unsupportedTenantOperation() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/relyin' +
+      'gparty/sendVerificationCode?key=apiKey';
+  var requestBody = {
+    'phoneNumber': '+15551234567',
+    'recaptchaToken': 'RECAPTCHA_TOKEN',
+    'tenantId': '123456789012'
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  rpcHandler.updateTenantId('123456789012');
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.sendVerificationCode({
+      'phoneNumber': '+15551234567',
+      'recaptchaToken': 'RECAPTCHA_TOKEN'
+    });
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
  * Tests invalid request sendVerificationCode error for a missing phone number.
  */
 function testSendVerificationCode_invalidRequest_missingPhoneNumber() {
@@ -7126,6 +7223,56 @@ function testVerifyPhoneNumber_success_usingTemporaryProof() {
     assertEquals(expectedStsTokenResponse, response);
     asyncTestCase.signal();
   });
+}
+
+
+/**
+ * Tests successful verifyPhoneNumber RPC call with tenant ID.
+ */
+function testVerifyPhoneNumber_success_tenantId() {
+  var expectedRequest = {
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456',
+    'tenantId': '123456789012'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPhon' +
+      'eNumber?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedStsTokenResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.verifyPhoneNumber({
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456'
+  }).then(function(response) {
+    assertEquals(expectedStsTokenResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testVerifyPhoneNumber_unsupportedTenantOperation() {
+   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/relyin' +
+      'gparty/verifyPhoneNumber?key=apiKey';
+  var requestBody = {
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456',
+    'tenantId': '123456789012'
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  rpcHandler.updateTenantId('123456789012');
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.verifyPhoneNumber({
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    });
+  }, errorMap, expectedUrl, requestBody);
 }
 
 

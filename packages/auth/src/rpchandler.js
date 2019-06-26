@@ -2121,7 +2121,8 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'sendVerificationCode',
     // Currently only reCAPTCHA tokens supported.
     requestRequiredFields: ['phoneNumber', 'recaptchaToken'],
-    responseField: fireauth.RpcHandler.AuthServerField.SESSION_INFO
+    responseField: fireauth.RpcHandler.AuthServerField.SESSION_INFO,
+    requireTenantId: true
   },
   SET_ACCOUNT_INFO: {
     endpoint: 'setAccountInfo',
@@ -2169,7 +2170,8 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'verifyCustomToken',
     requestValidator: fireauth.RpcHandler.validateVerifyCustomTokenRequest_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    requireTenantId: true
   },
   VERIFY_PASSWORD: {
     endpoint: 'verifyPassword',
@@ -2181,7 +2183,8 @@ fireauth.RpcHandler.ApiMethod = {
   VERIFY_PHONE_NUMBER: {
     endpoint: 'verifyPhoneNumber',
     requestValidator: fireauth.RpcHandler.validateVerifyPhoneNumberRequest_,
-    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_
+    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
+    requireTenantId: true
   },
   VERIFY_PHONE_NUMBER_FOR_LINKING: {
     endpoint: 'verifyPhoneNumber',
