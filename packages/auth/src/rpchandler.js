@@ -2052,7 +2052,8 @@ fireauth.RpcHandler.ApiMethod = {
     requestRequiredFields: ['email', 'oobCode'],
     requestValidator: fireauth.RpcHandler.validateRequestHasEmail_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    requireTenantId: true
   },
   EMAIL_LINK_SIGNIN_FOR_LINKING: {
     endpoint: 'emailLinkSignin',
@@ -2074,7 +2075,8 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'getOobConfirmationCode',
     requestRequiredFields: ['requestType'],
     requestValidator: fireauth.RpcHandler.validateEmailSignInCodeRequest_,
-    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   GET_EMAIL_VERIFICATION_CODE: {
     endpoint: 'getOobConfirmationCode',

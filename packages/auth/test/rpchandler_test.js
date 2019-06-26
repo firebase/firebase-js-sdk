@@ -2704,6 +2704,31 @@ function testEmailLinkSignIn_success() {
 }
 
 
+function testEmailLinkSignIn_success_tenantId() {
+  var expectedResponse = {'idToken': 'ID_TOKEN'};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/emailLinkSi' +
+      'gnin?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'email': 'user@example.com',
+        'oobCode': 'OTP_CODE',
+        'returnSecureToken': true,
+        'tenantId': 'TENANT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('TENANT_ID');
+  rpcHandler.emailLinkSignIn('user@example.com', 'OTP_CODE')
+      .then(function(response) {
+        assertObjectEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testEmailLinkSignIn_serverCaughtError() {
   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
                     'relyingparty/emailLinkSignin?key=apiKey';
@@ -5260,6 +5285,40 @@ function testSendSignInLinkToEmail_success_customLocale() {
       delay,
       expectedResponse);
   rpcHandler.updateCustomLocaleHeader('es');
+  rpcHandler.sendSignInLinkToEmail('user@example.com', additionalRequestData)
+      .then(function(email) {
+        assertEquals(userEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests successful sendSignInLinkToEmail RPC call with tenant ID.
+ */
+function testSendSignInLinkToEmail_success_tenantId() {
+  var userEmail = 'user@example.com';
+  var additionalRequestData = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'canHandleCodeInApp': true,
+  };
+  var expectedResponse = {'email': userEmail};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType': fireauth.RpcHandler.GetOobCodeRequestType.EMAIL_SIGNIN,
+        'email': userEmail,
+        'continueUrl': 'https://www.example.com/?state=abc',
+        'canHandleCodeInApp': true,
+        'tenantId': 'TENANT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('TENANT_ID');
   rpcHandler.sendSignInLinkToEmail('user@example.com', additionalRequestData)
       .then(function(email) {
         assertEquals(userEmail, email);
