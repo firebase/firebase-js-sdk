@@ -22,26 +22,28 @@ const DATABASE_NAME = 'firebase-installations-database';
 const DATABASE_VERSION = 1;
 const OBJECT_STORE_NAME = 'firebase-installations-store';
 
-const dbPromise: Promise<DB> = openDb(
-  DATABASE_NAME,
-  DATABASE_VERSION,
-  upgradeDB => {
-    // We don't use 'break' in this switch statement, the fall-through
-    // behavior is what we want, because if there are multiple versions between
-    // the old version and the current version, we want ALL the migrations
-    // that correspond to those versions to run, not only the last one.
-    // eslint-disable-next-line default-case
-    switch (upgradeDB.oldVersion) {
-      case 0:
-        upgradeDB.createObjectStore(OBJECT_STORE_NAME);
-    }
+let dbPromise: Promise<DB> | null = null;
+function getDbPromise(): Promise<DB> {
+  if (!dbPromise) {
+    dbPromise = openDb(DATABASE_NAME, DATABASE_VERSION, upgradeDB => {
+      // We don't use 'break' in this switch statement, the fall-through
+      // behavior is what we want, because if there are multiple versions between
+      // the old version and the current version, we want ALL the migrations
+      // that correspond to those versions to run, not only the last one.
+      // eslint-disable-next-line default-case
+      switch (upgradeDB.oldVersion) {
+        case 0:
+          upgradeDB.createObjectStore(OBJECT_STORE_NAME);
+      }
+    });
   }
-);
+  return dbPromise;
+}
 
 /** Gets record(s) from the objectStore that match the given key. */
 export async function get(appConfig: AppConfig): Promise<unknown> {
   const key = getKey(appConfig);
-  const db = await dbPromise;
+  const db = await getDbPromise();
   return db
     .transaction(OBJECT_STORE_NAME)
     .objectStore(OBJECT_STORE_NAME)
@@ -54,7 +56,7 @@ export async function set<ValueType>(
   value: ValueType
 ): Promise<ValueType> {
   const key = getKey(appConfig);
-  const db = await dbPromise;
+  const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).put(value, key);
   await tx.complete;
@@ -64,7 +66,7 @@ export async function set<ValueType>(
 /** Removes record(s) from the objectStore that match the given key. */
 export async function remove(appConfig: AppConfig): Promise<void> {
   const key = getKey(appConfig);
-  const db = await dbPromise;
+  const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).delete(key);
   await tx.complete;
@@ -81,7 +83,7 @@ export async function update<OldType, NewType>(
   updateFn: (previousValue: OldType | undefined) => NewType
 ): Promise<NewType> {
   const key = getKey(appConfig);
-  const db = await dbPromise;
+  const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   const store = tx.objectStore(OBJECT_STORE_NAME);
   const oldValue = await store.get(key);
@@ -102,7 +104,7 @@ export async function update<OldType, NewType>(
 }
 
 export async function clear(): Promise<void> {
-  const db = await dbPromise;
+  const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   await tx.objectStore(OBJECT_STORE_NAME).clear();
   await tx.complete;
