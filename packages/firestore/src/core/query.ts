@@ -310,7 +310,9 @@ export class Query {
     let comparedOnKeyField = false;
     for (const orderBy of this.orderBy) {
       const comp = orderBy.compare(d1, d2);
-      if (comp !== 0) return comp;
+      if (comp !== 0) {
+        return comp;
+      }
       comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
     }
     // Assert that we actually compared by key
@@ -632,10 +634,6 @@ export class FieldFilter extends Filter {
 
 /** Filter that matches on key fields (i.e. '__name__'). */
 export class KeyFieldFilter extends FieldFilter {
-  constructor(field: FieldPath, op: Operator, value: RefValue) {
-    super(field, op, value);
-  }
-
   matches(doc: Document): boolean {
     const refValue = this.value as RefValue;
     const comparison = DocumentKey.comparator(doc.key, refValue.key);

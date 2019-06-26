@@ -35,6 +35,8 @@ import {
   withTestDb
 } from '../util/helpers';
 
+// tslint:disable:no-floating-promises
+
 const Blob = firebase.firestore!.Blob;
 const FieldPath = firebase.firestore!.FieldPath;
 const GeoPoint = firebase.firestore!.GeoPoint;
@@ -647,7 +649,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     const expectedError =
       'QuerySnapshot.docChanges has been changed from a property into a method';
 
-    // tslint:disable-next-line:no-any We are testing invalid API usage.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, We are testing invalid API usage.
     const docChange = querySnap.docChanges as any;
     expect(() => docChange.length).to.throw(expectedError);
     expect(() => {

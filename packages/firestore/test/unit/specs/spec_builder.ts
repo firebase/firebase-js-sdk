@@ -30,8 +30,8 @@ import {
   mapCodeFromRpcCode,
   mapRpcCodeFromCode
 } from '../../../src/remote/rpc_error';
-import { assert } from '../../../src/util/assert';
-import { fail } from '../../../src/util/assert';
+import { assert, fail } from '../../../src/util/assert';
+
 import { Code } from '../../../src/util/error';
 import * as objUtils from '../../../src/util/obj';
 import { isNullOrUndefined } from '../../../src/util/types';
@@ -54,11 +54,16 @@ import {
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.
-export type QueryMap = { [query: string]: TargetId };
-export type LimboMap = { [key: string]: TargetId };
-export type ActiveTargetMap = {
-  [targetId: number]: { query: SpecQuery; resumeToken: string };
-};
+export interface QueryMap {
+  [query: string]: TargetId;
+}
+export interface LimboMap {
+  [key: string]: TargetId;
+}
+
+export interface ActiveTargetMap {
+  [targetId: string]: { query: SpecQuery; resumeToken: string };
+}
 
 /**
  * Tracks the expected memory state of a client (e.g. the expected active watch

@@ -95,7 +95,7 @@ export type TestSnapshotVersion = number;
  */
 export const DELETE_SENTINEL = '<DELETE>';
 
-const preConverter = (input: unknown) => {
+const preConverter = (input: unknown): unknown => {
   return input === DELETE_SENTINEL ? FieldValueImpl.delete() : input;
 };
 
@@ -411,8 +411,12 @@ export function localViewChanges(
   targetId: TargetId,
   changes: { added?: string[]; removed?: string[] }
 ): LocalViewChanges {
-  if (!changes.added) changes.added = [];
-  if (!changes.removed) changes.removed = [];
+  if (!changes.added) {
+    changes.added = [];
+  }
+  if (!changes.removed) {
+    changes.removed = [];
+  }
 
   let addedKeys = documentKeySet();
   let removedKeys = documentKeySet();
@@ -551,7 +555,7 @@ export class DocComparator {
 /**
  * Two helper functions to simplify testing isEqual() method.
  */
-// tslint:disable-next-line:no-any so we can dynamically call .isEqual().
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, so we can dynamically call .isEqual().
 export function expectEqual(left: any, right: any, message?: string): void {
   message = message || '';
   if (typeof left.isEqual !== 'function') {
@@ -568,7 +572,7 @@ export function expectEqual(left: any, right: any, message?: string): void {
   expect(right.isEqual(left)).to.equal(true, message);
 }
 
-// tslint:disable-next-line:no-any so we can dynamically call .isEqual().
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, so we can dynamically call .isEqual().
 export function expectNotEqual(left: any, right: any, message?: string): void {
   expect(left.isEqual(right)).to.equal(false, message || '');
   expect(right.isEqual(left)).to.equal(false, message || '');

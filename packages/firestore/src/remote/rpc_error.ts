@@ -110,7 +110,7 @@ export function isPermanentWriteError(code: Code): boolean {
  *     there is no match.
  */
 export function mapCodeFromRpcStatus(status: string): Code | undefined {
-  // tslint:disable-next-line:no-any lookup by string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, lookup by string
   const code: RpcCode = RpcCode[status as any] as any;
   if (code === undefined) {
     return undefined;
@@ -286,9 +286,15 @@ export function mapCodeFromHttpStatus(status: number): Code {
       return Code.DEADLINE_EXCEEDED;
 
     default:
-      if (status >= 200 && status < 300) return Code.OK;
-      if (status >= 400 && status < 500) return Code.FAILED_PRECONDITION;
-      if (status >= 500 && status < 600) return Code.INTERNAL;
+      if (status >= 200 && status < 300) {
+        return Code.OK;
+      }
+      if (status >= 400 && status < 500) {
+        return Code.FAILED_PRECONDITION;
+      }
+      if (status >= 500 && status < 600) {
+        return Code.INTERNAL;
+      }
       return Code.UNKNOWN;
   }
 }

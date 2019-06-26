@@ -25,11 +25,13 @@ import { assert } from '../util/assert';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { Connection } from './connection';
-import { WatchStreamListener, WriteStreamListener } from './persistent_stream';
 import {
+  WatchStreamListener,
+  WriteStreamListener,
   PersistentListenStream,
   PersistentWriteStream
 } from './persistent_stream';
+
 import { JsonProtoSerializer } from './serializer';
 
 // The generated proto interfaces for these class are missing the database

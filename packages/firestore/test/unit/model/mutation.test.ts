@@ -459,9 +459,9 @@ describe('Mutation', () => {
   });
 
   it('can apply numeric add transform to unexpected type', () => {
-    const baseDoc = { string: 'zero' };
-    const transform = { string: FieldValue.increment(1) };
-    const expected = { string: 1 };
+    const baseDoc = { stringVal: 'zero' };
+    const transform = { stringVal: FieldValue.increment(1) };
+    const expected = { stringVal: 1 };
     verifyTransform(baseDoc, transform, expected);
   });
 
@@ -473,11 +473,11 @@ describe('Mutation', () => {
   });
 
   it('can apply numeric add transforms consecutively', () => {
-    const baseDoc = { number: 1 };
-    const transform1 = { number: FieldValue.increment(2) };
-    const transform2 = { number: FieldValue.increment(3) };
-    const transform3 = { number: FieldValue.increment(4) };
-    const expected = { number: 10 };
+    const baseDoc = { numberVal: 1 };
+    const transform1 = { numberVal: FieldValue.increment(2) };
+    const transform2 = { numberVal: FieldValue.increment(3) };
+    const transform3 = { numberVal: FieldValue.increment(4) };
+    const expected = { numberVal: 10 };
     verifyTransform(baseDoc, [transform1, transform2, transform3], expected);
   });
 

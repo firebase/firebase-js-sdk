@@ -74,7 +74,9 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
+// eslint-disable-next-line import/no-duplicates
 import * as log from '../util/log';
+// eslint-disable-next-line import/no-duplicates
 import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
@@ -102,11 +104,6 @@ import {
   fieldPathFromArgument,
   UserDataConverter
 } from './user_data_converter';
-
-// The objects that are a part of this API are exposed to third-parties as
-// compiled javascript so we want to flag our private members with a leading
-// underscore to discourage their use.
-// tslint:disable:strip-private-property-underscore
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -158,7 +155,7 @@ class FirestoreSettings {
   readonly forceLongPolling: boolean;
 
   // Can be a google-auth-library or gapi client.
-  // tslint:disable-next-line:no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   credentials?: any;
 
   constructor(settings: PrivateSettings) {
@@ -298,6 +295,9 @@ class FirestoreConfig {
  * The root reference to the database.
  */
 export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
+  // The objects that are a part of this API are exposed to third-parties as
+  // compiled javascript so we want to flag our private members with a leading
+  // underscore to discourage their use.
   private readonly _config: FirestoreConfig;
   readonly _databaseId: DatabaseId;
 
@@ -480,7 +480,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     const databaseInfo = this.makeDatabaseInfo();
 
-    const preConverter = (value: unknown) => {
+    const preConverter = (value: unknown): unknown => {
       if (value instanceof DocumentReference) {
         const thisDb = this._config.databaseId;
         const otherDb = value.firestore._config.databaseId;
@@ -1116,7 +1116,7 @@ export class DocumentReference implements firestore.DocumentReference {
     options: ListenOptions,
     observer: PartialObserver<firestore.DocumentSnapshot>
   ): Unsubscribe {
-    let errHandler = (err: Error) => {
+    let errHandler = (err: Error): void => {
       console.error('Uncaught Error in onSnapshot:', err);
     };
     if (observer.error) {
@@ -1387,16 +1387,6 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
 
 export class QueryDocumentSnapshot extends DocumentSnapshot
   implements firestore.QueryDocumentSnapshot {
-  constructor(
-    firestore: Firestore,
-    key: DocumentKey,
-    document: Document,
-    fromCache: boolean,
-    hasPendingWrites: boolean
-  ) {
-    super(firestore, key, document, fromCache, hasPendingWrites);
-  }
-
   data(options?: SnapshotOptions): firestore.DocumentData {
     const data = super.data(options);
     assert(
@@ -1808,7 +1798,7 @@ export class Query implements firestore.Query {
     options: ListenOptions,
     observer: PartialObserver<firestore.QuerySnapshot>
   ): Unsubscribe {
-    let errHandler = (err: Error) => {
+    let errHandler = (err: Error): void => {
       console.error('Uncaught Error in onSnapshot:', err);
     };
     if (observer.error) {
@@ -1830,7 +1820,7 @@ export class Query implements firestore.Query {
       asyncObserver,
       options
     );
-    return () => {
+    return (): void => {
       asyncObserver.mute();
       firestoreClient.unlisten(internalListener);
     };
@@ -2457,7 +2447,6 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
 
 // We're treating the variables as class names, so disable checking for lower
 // case variable names.
-// tslint:disable:variable-name
 export const PublicFirestore = makeConstructorPrivate(
   Firestore,
   'Use firebase.firestore() instead.'
@@ -2484,4 +2473,3 @@ export const PublicCollectionReference = makeConstructorPrivate(
   CollectionReference,
   'Use firebase.firestore().collection() instead.'
 );
-// tslint:enable:variable-name

@@ -257,10 +257,6 @@ function numericEquals(left: number, right: number): boolean {
 }
 
 export class IntegerValue extends NumberValue {
-  constructor(internalValue: number) {
-    super(internalValue);
-  }
-
   isEqual(other: FieldValue): boolean {
     // NOTE: DoubleValue and IntegerValue instances may compareTo() the same,
     // but that doesn't make them equal via isEqual().
@@ -275,10 +271,6 @@ export class IntegerValue extends NumberValue {
 }
 
 export class DoubleValue extends NumberValue {
-  constructor(readonly internalValue: number) {
-    super(internalValue);
-  }
-
   static NAN = new DoubleValue(NaN);
   static POSITIVE_INFINITY = new DoubleValue(Infinity);
   static NEGATIVE_INFINITY = new DoubleValue(-Infinity);

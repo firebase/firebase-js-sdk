@@ -15,13 +15,12 @@
  * limitations under the License.
  */
 
-import { expect } from 'chai';
+import { expect, use } from 'chai';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 
-import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 describe('PersistencePromise', () => {
   function async<R>(value: R): PersistencePromise<R> {

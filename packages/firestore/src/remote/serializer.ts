@@ -52,7 +52,6 @@ import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
 
-import { DoubleValue, NullValue, NumberValue } from '../model/field_value';
 import {
   ArrayRemoveTransformOperation,
   ArrayUnionTransformOperation,
@@ -60,7 +59,6 @@ import {
   ServerTimestampTransform,
   TransformOperation
 } from '../model/transform_operation';
-import { ApiClientObjectMap } from '../protos/firestore_proto_api';
 import { ExistenceFilter } from './existence_filter';
 import { mapCodeFromRpcCode, mapRpcCodeFromCode } from './rpc_error';
 import {
@@ -171,7 +169,7 @@ export class JsonProtoSerializer {
    */
   private toInt32Value(val: number | null): number | undefined {
     if (!typeUtils.isNullOrUndefined(val)) {
-      // tslint:disable-next-line:no-any We need to match generated Proto types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, We need to match generated Proto types.
       return { value: val } as any;
     } else {
       return undefined;
@@ -188,7 +186,7 @@ export class JsonProtoSerializer {
   private fromInt32Value(val: number | undefined): number | null {
     let result;
     if (typeof val === 'object') {
-      // tslint:disable-next-line:no-any We need to match generated Proto types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, We need to match generated Proto types.
       result = (val as any).value;
     } else {
       // We accept raw numbers (without the {value: ... } wrapper) for
@@ -209,7 +207,7 @@ export class JsonProtoSerializer {
     return {
       seconds: '' + timestamp.seconds,
       nanos: timestamp.nanoseconds
-      // tslint:disable-next-line:no-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any;
   }
 
@@ -979,11 +977,11 @@ export class JsonProtoSerializer {
     } else if ('increment' in proto) {
       const operand = this.fromValue(proto.increment!);
       assert(
-        operand instanceof NumberValue,
+        operand instanceof fieldValue.NumberValue,
         'NUMERIC_ADD transform requires a NumberValue'
       );
       transform = new NumericIncrementTransformOperation(
-        operand as NumberValue
+        operand as fieldValue.NumberValue
       );
     } else {
       fail('Unknown transform proto: ' + JSON.stringify(proto));
@@ -1113,7 +1111,7 @@ export class JsonProtoSerializer {
 
   toListenRequestLabels(
     queryData: QueryData
-  ): ApiClientObjectMap<string> | null {
+  ): api.ApiClientObjectMap<string> | null {
     const value = this.toLabel(queryData.purpose);
     if (value == null) {
       return null;
@@ -1159,7 +1157,9 @@ export class JsonProtoSerializer {
   }
 
   private toFilter(filters: Filter[]): api.Filter | undefined {
-    if (filters.length === 0) return;
+    if (filters.length === 0) {
+      return;
+    }
     const protos = filters.map(filter => {
       if (filter instanceof FieldFilter) {
         return this.toUnaryOrFieldFilter(filter);
@@ -1190,7 +1190,9 @@ export class JsonProtoSerializer {
   }
 
   private toOrder(orderBys: OrderBy[]): api.Order[] | undefined {
-    if (orderBys.length === 0) return;
+    if (orderBys.length === 0) {
+      return;
+    }
     return orderBys.map(order => this.toPropertyOrder(order));
   }
 
@@ -1292,14 +1294,14 @@ export class JsonProtoSerializer {
   // visible for testing
   toUnaryOrFieldFilter(filter: FieldFilter): api.Filter {
     if (filter.op === Operator.EQUAL) {
-      if (filter.value.isEqual(DoubleValue.NAN)) {
+      if (filter.value.isEqual(fieldValue.DoubleValue.NAN)) {
         return {
           unaryFilter: {
             field: this.toFieldPathReference(filter.field),
             op: 'IS_NAN'
           }
         };
-      } else if (filter.value.isEqual(NullValue.INSTANCE)) {
+      } else if (filter.value.isEqual(fieldValue.NullValue.INSTANCE)) {
         return {
           unaryFilter: {
             field: this.toFieldPathReference(filter.field),
@@ -1323,7 +1325,11 @@ export class JsonProtoSerializer {
         const nanField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return FieldFilter.create(nanField, Operator.EQUAL, DoubleValue.NAN);
+        return FieldFilter.create(
+          nanField,
+          Operator.EQUAL,
+          fieldValue.DoubleValue.NAN
+        );
       case 'IS_NULL':
         const nullField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
@@ -1331,7 +1337,7 @@ export class JsonProtoSerializer {
         return FieldFilter.create(
           nullField,
           Operator.EQUAL,
-          NullValue.INSTANCE
+          fieldValue.NullValue.INSTANCE
         );
       case 'OPERATOR_UNSPECIFIED':
         return fail('Unspecified filter');
