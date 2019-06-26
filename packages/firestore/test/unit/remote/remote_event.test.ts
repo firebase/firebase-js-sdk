@@ -50,7 +50,6 @@ interface TargetMap {
 interface PendingTargetResponses {
   [targetId: string]: number;
 }
-/* eslint-enable  @typescript-eslint/prefer-interface */
 
 function listens(...targetIds: TargetId[]): TargetMap {
   const targets: TargetMap = {};
