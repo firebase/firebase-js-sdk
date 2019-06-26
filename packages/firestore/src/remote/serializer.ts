@@ -1325,7 +1325,11 @@ export class JsonProtoSerializer {
         const nanField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
         );
-        return FieldFilter.create(nanField, Operator.EQUAL, fieldValue.DoubleValue.NAN);
+        return FieldFilter.create(
+          nanField,
+          Operator.EQUAL,
+          fieldValue.DoubleValue.NAN
+        );
       case 'IS_NULL':
         const nullField = this.fromFieldPathReference(
           filter.unaryFilter!.field!
