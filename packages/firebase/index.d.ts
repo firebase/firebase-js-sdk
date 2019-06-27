@@ -709,7 +709,7 @@ declare namespace firebase {
     ): Promise<void>;
     /**
      * The current user's tenant ID. This is a read-only property, which indicates
-     * the tenant ID used to sign in the current user. THis is null if the user is
+     * the tenant ID used to sign in the current user. This is null if the user is
      * signed in from the agent project.
      *
      * @example
