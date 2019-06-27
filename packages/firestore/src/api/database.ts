@@ -1894,9 +1894,8 @@ export class Query implements firestore.Query {
       if (documentIdValue === '') {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Function Query.where() requires its third parameter to be a ' +
-            'valid document ID if the first parameter is ' +
-            'FieldPath.documentId(), but it was an empty string.'
+          'Invalid query. When querying with FieldPath.documentId(), you ' +
+            'must provide a valid document ID, but it was an empty string.'
         );
       }
       if (
@@ -1905,9 +1904,9 @@ export class Query implements firestore.Query {
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `Invalid third parameter to Query.where(). When querying a collection by ` +
-            `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
-            `'${documentIdValue}' contains a slash.`
+          `Invalid query. When querying a collection by ` +
+            `FieldPath.documentId(), you must provide a plain document ID, but ` +
+            `'${documentIdValue}' contains a '/' character.`
         );
       }
       const path = this._query.path.child(
@@ -1916,7 +1915,7 @@ export class Query implements firestore.Query {
       if (!DocumentKey.isDocumentKey(path)) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `Invalid third parameter to Query.where(). When querying a collection group by ` +
+          `Invalid query. When querying a collection group by ` +
             `FieldPath.documentId(), the value provided must result in a valid document path, ` +
             `but '${path}' is not because it has an odd number of segments (${
               path.length
@@ -1930,9 +1929,8 @@ export class Query implements firestore.Query {
     } else {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        `Function Query.where() requires its third parameter to be a ` +
-          `string or a DocumentReference if the first parameter is ` +
-          `FieldPath.documentId(), but it was: ` +
+        `Invalid query. When querying with FieldPath.documentId(), you must provide a valid ` +
+          `string or a DocumentReference, but it was: ` +
           `${valueDescription(documentIdValue)}.`
       );
     }

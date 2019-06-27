@@ -1244,28 +1244,26 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', '')
         ).to.throw(
-          'Function Query.where() requires its third parameter to be ' +
-            'a valid document ID if the first parameter is ' +
-            'FieldPath.documentId(), but it was an empty string.'
+          'Invalid query. When querying with FieldPath.documentId(), you ' +
+            'must provide a valid document ID, but it was an empty string.'
         );
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 'foo/bar/baz')
         ).to.throw(
-          `Invalid third parameter to Query.where(). When querying a collection by ` +
-            `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
-            `'foo/bar/baz' contains a slash.`
+          `Invalid query. When querying a collection by ` +
+            `FieldPath.documentId(), you must provide a plain document ID, but ` +
+            `'foo/bar/baz' contains a '/' character.`
         );
         expect(() =>
           collection.where(FieldPath.documentId(), '>=', 1)
         ).to.throw(
-          'Function Query.where() requires its third parameter to be ' +
-            'a string or a DocumentReference if the first parameter is ' +
-            'FieldPath.documentId(), but it was: 1.'
+          'Invalid query. When querying with FieldPath.documentId(), you must ' +
+            'provide a valid string or a DocumentReference, but it was: 1.'
         );
         expect(() =>
           db.collectionGroup('foo').where(FieldPath.documentId(), '>=', 'foo')
         ).to.throw(
-          `Invalid third parameter to Query.where(). When querying a collection group by ` +
+          `Invalid query. When querying a collection group by ` +
             `FieldPath.documentId(), the value provided must result in a valid document path, ` +
             `but 'foo' is not because it has an odd number of segments (1).`
         );
@@ -1299,31 +1297,29 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expect(() =>
           collection.where(FieldPath.documentId(), inOp, [''])
         ).to.throw(
-          'Function Query.where() requires its third parameter to be ' +
-            'a valid document ID if the first parameter is ' +
-            'FieldPath.documentId(), but it was an empty string.'
+          'Invalid query. When querying with FieldPath.documentId(), you ' +
+            'must provide a valid document ID, but it was an empty string.'
         );
 
         expect(() =>
           collection.where(FieldPath.documentId(), inOp, ['foo/bar/baz'])
         ).to.throw(
-          `Invalid third parameter to Query.where(). When querying a collection by ` +
-            `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
-            `'foo/bar/baz' contains a slash.`
+          `Invalid query. When querying a collection by ` +
+            `FieldPath.documentId(), you must provide a plain document ID, but ` +
+            `'foo/bar/baz' contains a '/' character.`
         );
 
         expect(() =>
           collection.where(FieldPath.documentId(), inOp, [1, 2])
         ).to.throw(
-          'Function Query.where() requires its third parameter to be ' +
-            'a string or a DocumentReference if the first parameter is ' +
-            'FieldPath.documentId(), but it was: 1.'
+          'Invalid query. When querying with FieldPath.documentId(), you must ' +
+            'provide a valid string or a DocumentReference, but it was: 1.'
         );
 
         expect(() =>
           db.collectionGroup('foo').where(FieldPath.documentId(), inOp, ['foo'])
         ).to.throw(
-          `Invalid third parameter to Query.where(). When querying a collection group by ` +
+          `Invalid query. When querying a collection group by ` +
             `FieldPath.documentId(), the value provided must result in a valid document path, ` +
             `but 'foo' is not because it has an odd number of segments (1).`
         );
