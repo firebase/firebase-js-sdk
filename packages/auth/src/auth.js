@@ -1963,7 +1963,7 @@ fireauth.Auth.prototype.signInWithPhoneNumber =
           phoneNumber,
           appVerifier,
           // This will wait for redirectStateIsReady to resolve first.
-          goog.bind(this.signInAndRetrieveDataWithCredential, this))));
+          goog.bind(this.signInWithCredential, this))));
 };
 
 
@@ -1982,6 +1982,6 @@ fireauth.Auth.prototype.signInWithEmailLink = function(email, opt_link) {
       goog.Promise.resolve().then(function() {
         var credential = fireauth.EmailAuthProvider.credentialWithLink(
             email, opt_link || fireauth.util.getCurrentUrl());
-        return self.signInAndRetrieveDataWithCredential(credential);
+        return self.signInWithCredential(credential);
       }));
 };
