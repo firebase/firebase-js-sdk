@@ -1545,9 +1545,9 @@ declare namespace firebase.auth {
     /**
      * Parse the email action link string and returns an ActionCodeURL object
      * if the link is valid, otherwise returns null.
-     *  
+     *
      * @param link The email action link string.
-     * @return The ActionCodeURL object, or null if the link is invalid. 
+     * @return The ActionCodeURL object, or null if the link is invalid.
      */
     static parseLink(link: string): firebase.auth.ActionCodeURL | null;
     /**
@@ -2715,7 +2715,7 @@ declare namespace firebase.auth {
      * <dt>auth/null-user</dt>
      * <dd>Thrown if the user to be updated is null.</dd>
      * <dt>auth/tenant-id-mismatch</dt>
-     * <dd>Thrown if the provided user's tenant ID does not match the 
+     * <dd>Thrown if the provided user's tenant ID does not match the
      *     underlying Auth instance's configured tenant ID</dd>
      * </dl>
      */
@@ -3023,7 +3023,7 @@ declare namespace firebase.auth {
    */
   interface AuthError extends firebase.auth.Error {
     /**
-     * The {@link firebase.auth.AuthCredential} that can be used to resolve the 
+     * The {@link firebase.auth.AuthCredential} that can be used to resolve the
      * error.
      */
     credential?: firebase.auh.AuthCredential;
@@ -3732,7 +3732,6 @@ declare namespace firebase.auth.Auth {
   };
 }
 
-
 declare namespace firebase.auth.ActionCodeInfo {
   type Operation = string;
   /**
@@ -3757,7 +3756,6 @@ declare namespace firebase.auth.ActionCodeInfo {
     VERIFY_EMAIL: Operation;
   };
 }
-
 
 declare namespace firebase.database {
   /**
