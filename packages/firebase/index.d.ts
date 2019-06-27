@@ -3026,7 +3026,7 @@ declare namespace firebase.auth {
      * The {@link firebase.auth.AuthCredential} that can be used to resolve the
      * error.
      */
-    credential?: firebase.auh.AuthCredential;
+    credential?: firebase.auth.AuthCredential;
     /**
      * The email of the user's account used for sign-in/linking.
      */
