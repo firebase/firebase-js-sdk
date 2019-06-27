@@ -15,22 +15,15 @@
  * limitations under the License.
  */
 
-import { getValues, safeGet } from '@firebase/util';
 import { Change } from './Change';
 import { assert, assertionError } from '@firebase/util';
 
-/**
- * @constructor
- */
 export class ChildChangeAccumulator {
-  private changeMap_: { [k: string]: Change } = {};
+  private readonly changeMap: Map<string, Change> = new Map();
 
-  /**
-   * @param {!Change} change
-   */
   trackChildChange(change: Change) {
     const type = change.type;
-    const childKey /** @type {!string} */ = change.childName;
+    const childKey = change.childName!;
     assert(
       type == Change.CHILD_ADDED ||
         type == Change.CHILD_CHANGED ||
@@ -41,44 +34,50 @@ export class ChildChangeAccumulator {
       childKey !== '.priority',
       'Only non-priority child changes can be tracked.'
     );
-    const oldChange = safeGet(this.changeMap_, childKey) as Change;
+    const oldChange = this.changeMap.get(childKey);
     if (oldChange) {
       const oldType = oldChange.type;
       if (type == Change.CHILD_ADDED && oldType == Change.CHILD_REMOVED) {
-        this.changeMap_[childKey] = Change.childChangedChange(
+        this.changeMap.set(
           childKey,
-          change.snapshotNode,
-          oldChange.snapshotNode
+          Change.childChangedChange(
+            childKey,
+            change.snapshotNode,
+            oldChange.snapshotNode
+          )
         );
       } else if (
         type == Change.CHILD_REMOVED &&
         oldType == Change.CHILD_ADDED
       ) {
-        delete this.changeMap_[childKey];
+        this.changeMap.delete(childKey);
       } else if (
         type == Change.CHILD_REMOVED &&
         oldType == Change.CHILD_CHANGED
       ) {
-        this.changeMap_[childKey] = Change.childRemovedChange(
+        this.changeMap.set(
           childKey,
-          oldChange.oldSnap
+          Change.childRemovedChange(childKey, oldChange.oldSnap)
         );
       } else if (
         type == Change.CHILD_CHANGED &&
         oldType == Change.CHILD_ADDED
       ) {
-        this.changeMap_[childKey] = Change.childAddedChange(
+        this.changeMap.set(
           childKey,
-          change.snapshotNode
+          Change.childAddedChange(childKey, change.snapshotNode)
         );
       } else if (
         type == Change.CHILD_CHANGED &&
         oldType == Change.CHILD_CHANGED
       ) {
-        this.changeMap_[childKey] = Change.childChangedChange(
+        this.changeMap.set(
           childKey,
-          change.snapshotNode,
-          oldChange.oldSnap
+          Change.childChangedChange(
+            childKey,
+            change.snapshotNode,
+            oldChange.oldSnap
+          )
         );
       } else {
         throw assertionError(
@@ -89,14 +88,11 @@ export class ChildChangeAccumulator {
         );
       }
     } else {
-      this.changeMap_[childKey] = change;
+      this.changeMap.set(childKey, change);
     }
   }
 
-  /**
-   * @return {!Array.<!Change>}
-   */
   getChanges(): Change[] {
-    return getValues(this.changeMap_);
+    return Array.from(this.changeMap.values());
   }
 }

@@ -70,14 +70,11 @@ export class TransportManager {
       this.transports_ = [WebSocketConnection];
     } else {
       const transports = (this.transports_ = [] as TransportConstructor[]);
-      each(
-        TransportManager.ALL_TRANSPORTS,
-        (i: number, transport: TransportConstructor) => {
-          if (transport && transport['isAvailable']()) {
-            transports.push(transport);
-          }
+      for (const transport of TransportManager.ALL_TRANSPORTS) {
+        if (transport && transport['isAvailable']()) {
+          transports.push(transport);
         }
-      );
+      }
     }
   }
 

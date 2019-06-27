@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { clone, forEach } from '@firebase/util';
 import { StatsCollection } from './StatsCollection';
+import { each } from '../util/util';
 
 /**
  * Returns the delta from the previous call to get stats.
@@ -32,9 +32,9 @@ export class StatsListener {
   get(): { [k: string]: number } {
     const newStats = this.collection_.get();
 
-    const delta: typeof newStats = clone(newStats);
+    const delta = { ...newStats };
     if (this.last_) {
-      forEach(this.last_, (stat: string, value: number) => {
+      each(this.last_, (stat: string, value: number) => {
         delta[stat] = delta[stat] - value;
       });
     }

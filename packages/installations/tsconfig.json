@@ -1,7 +1,6 @@
 {
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["es2017", "dom"],
     "downlevelIteration": true,
     "resolveJsonModule": true,
 

@@ -27,7 +27,7 @@ import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
 import { stringify } from '@firebase/util';
 import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
-import { map, forEach, isEmpty } from '@firebase/util';
+import { map, isEmpty } from '@firebase/util';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { StatsManager } from './stats/StatsManager';
 import { StatsReporter } from './stats/StatsReporter';
@@ -70,26 +70,17 @@ export class Repo {
     | null = null;
   private __database: Database;
 
-  // A list of data pieces and paths to be set when this client disconnects.
+  /** A list of data pieces and paths to be set when this client disconnects. */
   private onDisconnect_ = new SparseSnapshotTree();
 
-  /**
-   * TODO: This should be @private but it's used by test_access.js and internal.js
-   * @type {?PersistentConnection}
-   */
+  // TODO: This should be @private but it's used by test_access.js and internal.js
   persistentConnection_: PersistentConnection | null = null;
 
-  /**
-   * @param {!RepoInfo} repoInfo_
-   * @param {boolean} forceRestClient
-   * @param {!FirebaseApp} app
-   */
   constructor(
     public repoInfo_: RepoInfo,
     forceRestClient: boolean,
     public app: FirebaseApp
   ) {
-    /** @type {!AuthTokenProvider} */
     const authTokenProvider = new AuthTokenProvider(app);
 
     this.stats_ = StatsManager.getCollection(repoInfo_);
@@ -183,7 +174,7 @@ export class Repo {
   }
 
   /**
-   * @return {string}  The URL corresponding to the root of this Firebase.
+   * @return The URL corresponding to the root of this Firebase.
    */
   toString(): string {
     return (
@@ -192,14 +183,14 @@ export class Repo {
   }
 
   /**
-   * @return {!string} The namespace represented by the repo.
+   * @return The namespace represented by the repo.
    */
   name(): string {
     return this.repoInfo_.namespace;
   }
 
   /**
-   * @return {!number} The time in milliseconds, taking the server offset into account if we have one.
+   * @return The time in milliseconds, taking the server offset into account if we have one.
    */
   serverTime(): number {
     const offsetNode = this.infoData_.getNode(
@@ -211,7 +202,6 @@ export class Repo {
 
   /**
    * Generate ServerValues using some variables from the repo object.
-   * @return {!Object}
    */
   generateServerValues(): Object {
     return generateWithValues({
@@ -221,12 +211,6 @@ export class Repo {
 
   /**
    * Called by realtime when we get new messages from the server.
-   *
-   * @private
-   * @param {string} pathString
-   * @param {*} data
-   * @param {boolean} isMerge
-   * @param {?number} tag
    */
   private onDataUpdate_(
     pathString: string,
@@ -277,19 +261,11 @@ export class Repo {
     this.eventQueue_.raiseEventsForChangedPath(affectedPath, events);
   }
 
-  /**
-   * TODO: This should be @private but it's used by test_access.js and internal.js
-   * @param {?function(!string, *):*} callback
-   * @private
-   */
+  // TODO: This should be @private but it's used by test_access.js and internal.js
   interceptServerData_(callback: ((a: string, b: any) => any) | null) {
     this.interceptServerDataCallback_ = callback;
   }
 
-  /**
-   * @param {!boolean} connectStatus
-   * @private
-   */
   private onConnectStatus_(connectStatus: boolean) {
     this.updateInfo_('connected', connectStatus);
     if (connectStatus === false) {
@@ -297,22 +273,12 @@ export class Repo {
     }
   }
 
-  /**
-   * @param {!Object} updates
-   * @private
-   */
   private onServerInfoUpdate_(updates: Object) {
     each(updates, (value: any, key: string) => {
       this.updateInfo_(key, value);
     });
   }
 
-  /**
-   *
-   * @param {!string} pathString
-   * @param {*} value
-   * @private
-   */
   private updateInfo_(pathString: string, value: any) {
     const path = new Path('/.info/' + pathString);
     const newNode = nodeFromJSON(value);
@@ -321,20 +287,10 @@ export class Repo {
     this.eventQueue_.raiseEventsForChangedPath(path, events);
   }
 
-  /**
-   * @return {!number}
-   * @private
-   */
   private getNextWriteId_(): number {
     return this.nextWriteId_++;
   }
 
-  /**
-   * @param {!Path} path
-   * @param {*} newVal
-   * @param {number|string|null} newPriority
-   * @param {?function(?Error, *=)} onComplete
-   */
   setWithPriority(
     path: Path,
     newVal: any,
@@ -387,11 +343,6 @@ export class Repo {
     this.eventQueue_.raiseEventsForChangedPath(affectedPath, []);
   }
 
-  /**
-   * @param {!Path} path
-   * @param {!Object} childrenToMerge
-   * @param {?function(?Error, *=)} onComplete
-   */
   update(
     path: Path,
     childrenToMerge: { [k: string]: any },
@@ -403,7 +354,7 @@ export class Repo {
     let empty = true;
     const serverValues = this.generateServerValues();
     const changedChildren: { [k: string]: Node } = {};
-    forEach(childrenToMerge, (changedKey: string, changedValue: any) => {
+    each(childrenToMerge, (changedKey: string, changedValue: any) => {
       empty = false;
       const newNodeUnresolved = nodeFromJSON(changedValue);
       changedChildren[changedKey] = resolveDeferredValueSnapshot(
@@ -440,7 +391,7 @@ export class Repo {
         }
       );
 
-      forEach(childrenToMerge, (changedPath: string) => {
+      each(childrenToMerge, (changedPath: string) => {
         const affectedPath = this.abortTransactions_(path.child(changedPath));
         this.rerunTransactions_(affectedPath);
       });
@@ -455,7 +406,6 @@ export class Repo {
 
   /**
    * Applies all of the changes stored up in the onDisconnect_ tree.
-   * @private
    */
   private runOnDisconnectEvents_() {
     this.log_('onDisconnectEvents');
@@ -479,10 +429,6 @@ export class Repo {
     this.eventQueue_.raiseEventsForChangedPath(Path.Empty, events);
   }
 
-  /**
-   * @param {!Path} path
-   * @param {?function(?Error, *=)} onComplete
-   */
   onDisconnectCancel(
     path: Path,
     onComplete: ((status: Error | null, errorReason?: string) => void) | null
@@ -495,11 +441,6 @@ export class Repo {
     });
   }
 
-  /**
-   * @param {!Path} path
-   * @param {*} value
-   * @param {?function(?Error, *=)} onComplete
-   */
   onDisconnectSet(
     path: Path,
     value: any,
@@ -518,12 +459,6 @@ export class Repo {
     );
   }
 
-  /**
-   * @param {!Path} path
-   * @param {*} value
-   * @param {*} priority
-   * @param {?function(?Error, *=)} onComplete
-   */
   onDisconnectSetWithPriority(
     path: Path,
     value: any,
@@ -543,11 +478,6 @@ export class Repo {
     );
   }
 
-  /**
-   * @param {!Path} path
-   * @param {*} childrenToMerge
-   * @param {?function(?Error, *=)} onComplete
-   */
   onDisconnectUpdate(
     path: Path,
     childrenToMerge: { [k: string]: any },
@@ -566,7 +496,7 @@ export class Repo {
       childrenToMerge,
       (status, errorReason) => {
         if (status === 'ok') {
-          forEach(childrenToMerge, (childName: string, childNode: any) => {
+          each(childrenToMerge, (childName: string, childNode: any) => {
             const newChildNode = nodeFromJSON(childNode);
             this.onDisconnect_.remember(path.child(childName), newChildNode);
           });
@@ -576,10 +506,6 @@ export class Repo {
     );
   }
 
-  /**
-   * @param {!Query} query
-   * @param {!EventRegistration} eventRegistration
-   */
   addEventCallbackForQuery(query: Query, eventRegistration: EventRegistration) {
     let events;
     if (query.path.getFront() === '.info') {
@@ -596,10 +522,6 @@ export class Repo {
     this.eventQueue_.raiseEventsAtPath(query.path, events);
   }
 
-  /**
-   * @param {!Query} query
-   * @param {?EventRegistration} eventRegistration
-   */
   removeEventCallbackForQuery(
     query: Query,
     eventRegistration: EventRegistration
@@ -651,10 +573,13 @@ export class Repo {
       0
     );
 
-    forEach(stats, (stat: string, value: any) => {
+    each(stats, (stat: string, value: any) => {
+      let paddedStat = stat;
       // pad stat names to be the same length (plus 2 extra spaces).
-      for (let i = stat.length; i < longestName + 2; i++) stat += ' ';
-      console.log(stat + value);
+      for (let i = stat.length; i < longestName + 2; i++) {
+        paddedStat += ' ';
+      }
+      console.log(paddedStat + value);
     });
   }
 
@@ -663,10 +588,6 @@ export class Repo {
     this.statsReporter_.includeStat(metric);
   }
 
-  /**
-   * @param {...*} var_args
-   * @private
-   */
   private log_(...var_args: any[]) {
     let prefix = '';
     if (this.persistentConnection_) {
@@ -675,11 +596,6 @@ export class Repo {
     log(prefix, ...var_args);
   }
 
-  /**
-   * @param {?function(?Error, *=)} callback
-   * @param {!string} status
-   * @param {?string=} errorReason
-   */
   callOnCompleteCallback(
     callback: ((status: Error | null, errorReason?: string) => void) | null,
     status: string,

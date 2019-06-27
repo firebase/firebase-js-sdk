@@ -1575,10 +1575,11 @@ describe('Query Tests', function() {
   });
 
   function dumpListens(node: Query) {
-    const listens = (node.repo.persistentConnection_ as any).listens_;
+    const listens: Map<string, Map<string, unknown>> = (node.repo
+      .persistentConnection_ as any).listens;
     const nodePath = getPath(node);
     const listenPaths = [];
-    for (let path in listens) {
+    for (let path of listens.keys()) {
       if (path.substring(0, nodePath.length) === nodePath) {
         listenPaths.push(path);
       }
@@ -1588,7 +1589,7 @@ describe('Query Tests', function() {
     const dumpPieces = [];
     for (let i = 0; i < listenPaths.length; i++) {
       const queryIds = [];
-      for (let queryId in listens[listenPaths[i]]) {
+      for (let queryId of listens.get(listenPaths[i]).keys()) {
         queryIds.push(queryId);
       }
       queryIds.sort();

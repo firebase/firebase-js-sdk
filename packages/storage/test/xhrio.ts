@@ -83,9 +83,9 @@ export class TestingXhrIo implements XhrIo {
     this.status = status;
     this.responseText = body;
     this.headers = {};
-    Object.keys(headers).forEach(key => {
-      this.headers[key.toLowerCase()] = headers[key].toString();
-    });
+    for (const [key, value] of Object.entries(headers)) {
+      this.headers[key.toLowerCase()] = value.toString();
+    }
     this.errorCode = ErrorCode.NO_ERROR;
 
     this.state = State.DONE;

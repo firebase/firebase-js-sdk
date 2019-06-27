@@ -16,10 +16,9 @@
  */
 
 import { assert } from '@firebase/util';
-import { errorForServerCode } from './util/util';
+import { errorForServerCode, each } from './util/util';
 import { AckUserWrite } from './operation/AckUserWrite';
 import { ChildrenNode } from './snap/ChildrenNode';
-import { forEach, safeGet } from '@firebase/util';
 import { ImmutableTree } from './util/ImmutableTree';
 import { ListenComplete } from './operation/ListenComplete';
 import { Merge } from './operation/Merge';
@@ -82,20 +81,16 @@ export interface ListenProvider {
 export class SyncTree {
   /**
    * Tree of SyncPoints.  There's a SyncPoint at any location that has 1 or more views.
-   * @type {!ImmutableTree.<!SyncPoint>}
-   * @private
    */
   private syncPointTree_: ImmutableTree<SyncPoint> = ImmutableTree.Empty;
 
   /**
    * A tree of all pending user writes (user-initiated set()'s, transaction()'s, update()'s, etc.).
-   * @type {!WriteTree}
-   * @private
    */
   private pendingWriteTree_ = new WriteTree();
 
-  private tagToQueryMap_: { [k: string]: string } = {};
-  private queryToTagMap_: { [k: string]: number } = {};
+  private readonly tagToQueryMap: Map<number, string> = new Map();
+  private readonly queryToTagMap: Map<string, number> = new Map();
 
   /**
    * @param {!ListenProvider} listenProvider_ Used by SyncTree to start / stop listening
@@ -106,11 +101,7 @@ export class SyncTree {
   /**
    * Apply the data changes for a user-generated set() or transaction() call.
    *
-   * @param {!Path} path
-   * @param {!Node} newData
-   * @param {number} writeId
-   * @param {boolean=} visible
-   * @return {!Array.<!Event>} Events to raise.
+   * @return Events to raise.
    */
   applyUserOverwrite(
     path: Path,
@@ -133,10 +124,7 @@ export class SyncTree {
   /**
    * Apply the data from a user-generated update() call
    *
-   * @param {!Path} path
-   * @param {!Object.<string, !Node>} changedChildren
-   * @param {!number} writeId
-   * @return {!Array.<!Event>} Events to raise.
+   * @return Events to raise.
    */
   applyUserMerge(
     path: Path,
@@ -156,9 +144,8 @@ export class SyncTree {
   /**
    * Acknowledge a pending user write that was previously registered with applyUserOverwrite() or applyUserMerge().
    *
-   * @param {!number} writeId
-   * @param {boolean=} revert True if the given write failed and needs to be reverted
-   * @return {!Array.<!Event>} Events to raise.
+   * @param revert True if the given write failed and needs to be reverted
+   * @return Events to raise.
    */
   ackUserWrite(writeId: number, revert: boolean = false) {
     const write = this.pendingWriteTree_.getWrite(writeId);
@@ -171,7 +158,7 @@ export class SyncTree {
         // overwrite
         affectedTree = affectedTree.set(Path.Empty, true);
       } else {
-        forEach(write.children, function(pathString: string, node: Node) {
+        each(write.children, function(pathString: string, node: Node) {
           affectedTree = affectedTree.set(new Path(pathString), node);
         });
       }
@@ -184,9 +171,7 @@ export class SyncTree {
   /**
    * Apply new server data for the specified path..
    *
-   * @param {!Path} path
-   * @param {!Node} newData
-   * @return {!Array.<!Event>} Events to raise.
+   * @return Events to raise.
    */
   applyServerOverwrite(path: Path, newData: Node): Event[] {
     return this.applyOperationToSyncPoints_(
@@ -197,9 +182,7 @@ export class SyncTree {
   /**
    * Apply new server data to be merged in at the specified path.
    *
-   * @param {!Path} path
-   * @param {!Object.<string, !Node>} changedChildren
-   * @return {!Array.<!Event>} Events to raise.
+   * @return Events to raise.
    */
   applyServerMerge(
     path: Path,
@@ -215,8 +198,7 @@ export class SyncTree {
   /**
    * Apply a listen complete for a query
    *
-   * @param {!Path} path
-   * @return {!Array.<!Event>} Events to raise.
+   * @return Events to raise.
    */
   applyListenComplete(path: Path): Event[] {
     return this.applyOperationToSyncPoints_(
@@ -227,10 +209,7 @@ export class SyncTree {
   /**
    * Apply new server data for the specified tagged query.
    *
-   * @param {!Path} path
-   * @param {!Node} snap
-   * @param {!number} tag
-   * @return {!Array.<!Event>} Events to raise.
+   * @return Events to raise.
    */
   applyTaggedQueryOverwrite(path: Path, snap: Node, tag: number): Event[] {
     const queryKey = this.queryKeyForTag_(tag);
@@ -254,10 +233,7 @@ export class SyncTree {
   /**
    * Apply server data to be merged in for the specified tagged query.
    *
-   * @param {!Path} path
-   * @param {!Object.<string, !Node>} changedChildren
-   * @param {!number} tag
-   * @return {!Array.<!Event>} Events to raise.
+   * @return Events to raise.
    */
   applyTaggedQueryMerge(
     path: Path,
@@ -286,9 +262,7 @@ export class SyncTree {
   /**
    * Apply a listen complete for a tagged query
    *
-   * @param {!Path} path
-   * @param {!number} tag
-   * @return {!Array.<!Event>} Events to raise.
+   * @return Events to raise.
    */
   applyTaggedListenComplete(path: Path, tag: number): Event[] {
     const queryKey = this.queryKeyForTag_(tag);
@@ -311,9 +285,7 @@ export class SyncTree {
   /**
    * Add an event callback for the specified query.
    *
-   * @param {!Query} query
-   * @param {!EventRegistration} eventRegistration
-   * @return {!Array.<!Event>} Events to raise.
+   * @return Events to raise.
    */
   addEventRegistration(
     query: Query,
@@ -364,13 +336,12 @@ export class SyncTree {
       // We need to track a tag for this query
       const queryKey = SyncTree.makeQueryKey_(query);
       assert(
-        !(queryKey in this.queryToTagMap_),
+        !this.queryToTagMap.has(queryKey),
         'View does not exist, but we have a tag'
       );
       const tag = SyncTree.getNextQueryTag_();
-      this.queryToTagMap_[queryKey] = tag;
-      // Coerce to string to avoid sparse arrays.
-      this.tagToQueryMap_['_' + tag] = queryKey;
+      this.queryToTagMap.set(queryKey, tag);
+      this.tagToQueryMap.set(tag, queryKey);
     }
     const writesCache = this.pendingWriteTree_.childWrites(path);
     let events = syncPoint.addEventRegistration(
@@ -393,10 +364,9 @@ export class SyncTree {
    * If query is the default query, we'll check all queries for the specified eventRegistration.
    * If eventRegistration is null, we'll remove all callbacks for the specified query/queries.
    *
-   * @param {!Query} query
-   * @param {?EventRegistration} eventRegistration If null, all callbacks are removed.
-   * @param {Error=} cancelError If a cancelError is provided, appropriate cancel events will be returned.
-   * @return {!Array.<!Event>} Cancel events, if cancelError was provided.
+   * @param eventRegistration If null, all callbacks are removed.
+   * @param cancelError If a cancelError is provided, appropriate cancel events will be returned.
+   * @return Cancel events, if cancelError was provided.
    */
   removeEventRegistration(
     query: Query,
@@ -485,9 +455,9 @@ export class SyncTree {
           );
         } else {
           removed.forEach((queryToRemove: Query) => {
-            const tagToRemove = this.queryToTagMap_[
+            const tagToRemove = this.queryToTagMap.get(
               SyncTree.makeQueryKey_(queryToRemove)
-            ];
+            );
             this.listenProvider_.stopListening(
               SyncTree.queryForListening_(queryToRemove),
               tagToRemove
@@ -508,9 +478,9 @@ export class SyncTree {
    * it, but as this is only used by transaction code, that should always be the case anyways.
    *
    * Note: this method will *include* hidden writes from transaction with applyLocally set to false.
-   * @param {!Path} path The path to the data we want
-   * @param {Array.<number>=} writeIdsToExclude A specific set to be excluded
-   * @return {?Node}
+   *
+   * @param path The path to the data we want
+   * @param writeIdsToExclude A specific set to be excluded
    */
   calcCompleteEventCache(
     path: Path,
@@ -539,10 +509,6 @@ export class SyncTree {
   /**
    * This collapses multiple unfiltered views into a single view, since we only need a single
    * listener for them.
-   *
-   * @param {!ImmutableTree.<!SyncPoint>} subtree
-   * @return {!Array.<!View>}
-   * @private
    */
   private collectDistinctViewsForSubTree_(
     subtree: ImmutableTree<SyncPoint>
@@ -558,7 +524,7 @@ export class SyncTree {
           if (maybeChildSyncPoint) {
             views = maybeChildSyncPoint.getQueryViews();
           }
-          forEach(childMap, function(key: string, childViews: View[]) {
+          each(childMap, function(_key: string, childViews: View[]) {
             views = views.concat(childViews);
           });
           return views;
@@ -567,28 +533,23 @@ export class SyncTree {
     );
   }
 
-  /**
-   * @param {!Array.<!Query>} queries
-   * @private
-   */
   private removeTags_(queries: Query[]) {
     for (let j = 0; j < queries.length; ++j) {
       const removedQuery = queries[j];
       if (!removedQuery.getQueryParams().loadsAllData()) {
         // We should have a tag for this
         const removedQueryKey = SyncTree.makeQueryKey_(removedQuery);
-        const removedQueryTag = this.queryToTagMap_[removedQueryKey];
-        delete this.queryToTagMap_[removedQueryKey];
-        delete this.tagToQueryMap_['_' + removedQueryTag];
+        const removedQueryTag = this.queryToTagMap.get(removedQueryKey);
+        this.queryToTagMap.delete(removedQueryKey);
+        this.tagToQueryMap.delete(removedQueryTag);
       }
     }
   }
 
   /**
    * Normalizes a query to a query we send the server for listening
-   * @param {!Query} query
-   * @return {!Query} The normalized query
-   * @private
+   *
+   * @return The normalized query
    */
   private static queryForListening_(query: Query): Query {
     if (
@@ -598,7 +559,7 @@ export class SyncTree {
       // We treat queries that load all data as default queries
       // Cast is necessary because ref() technically returns Firebase which is actually fb.api.Firebase which inherits
       // from Query
-      return /** @type {!Query} */ query.getRef();
+      return query.getRef()!;
     } else {
       return query;
     }
@@ -607,10 +568,7 @@ export class SyncTree {
   /**
    * For a given new listen, manage the de-duplication of outstanding subscriptions.
    *
-   * @param {!Query} query
-   * @param {!View} view
-   * @return {!Array.<!Event>} This method can return events to support synchronous data sources
-   * @private
+   * @return This method can return events to support synchronous data sources
    */
   private setupListener_(query: Query, view: View): Event[] {
     const path = query.path;
@@ -653,7 +611,7 @@ export class SyncTree {
               maybeChildSyncPoint.getQueryViews().map(view => view.getQuery())
             );
           }
-          forEach(childMap, function(key: string, childQueries: Query[]) {
+          each(childMap, function(_key: string, childQueries: Query[]) {
             queries = queries.concat(childQueries);
           });
           return queries;
@@ -670,12 +628,6 @@ export class SyncTree {
     return events;
   }
 
-  /**
-   *
-   * @param {!View} view
-   * @return {{hashFn: function(), onComplete: function(!string, *)}}
-   * @private
-   */
   private createListenerForView_(
     view: View
   ): { hashFn(): string; onComplete(a: string, b?: any): Event[] } {
@@ -710,9 +662,6 @@ export class SyncTree {
 
   /**
    * Given a query, computes a "queryKey" suitable for use in our queryToTagMap_.
-   * @private
-   * @param {!Query} query
-   * @return {string}
    */
   private static makeQueryKey_(query: Query): string {
     return query.path.toString() + '$' + query.queryIdentifier();
@@ -720,9 +669,6 @@ export class SyncTree {
 
   /**
    * Given a queryKey (created by makeQueryKey), parse it back into a path and queryId.
-   * @private
-   * @param {!string} queryKey
-   * @return {{queryId: !string, path: !Path}}
    */
   private static parseQueryKey_(
     queryKey: string
@@ -740,36 +686,26 @@ export class SyncTree {
 
   /**
    * Return the query associated with the given tag, if we have one
-   * @param {!number} tag
-   * @return {?string}
-   * @private
    */
   private queryKeyForTag_(tag: number): string | null {
-    return this.tagToQueryMap_['_' + tag];
+    return this.tagToQueryMap.get(tag);
   }
 
   /**
    * Return the tag associated with the given query.
-   * @param {!Query} query
-   * @return {?number}
-   * @private
    */
   private tagForQuery_(query: Query): number | null {
     const queryKey = SyncTree.makeQueryKey_(query);
-    return safeGet(this.queryToTagMap_, queryKey);
+    return this.queryToTagMap.get(queryKey);
   }
 
   /**
    * Static tracker for next query tag.
-   * @type {number}
-   * @private
    */
   private static nextQueryTag_ = 1;
 
   /**
    * Static accessor for query tags.
-   * @return {number}
-   * @private
    */
   private static getNextQueryTag_(): number {
     return SyncTree.nextQueryTag_++;
@@ -777,11 +713,6 @@ export class SyncTree {
 
   /**
    * A helper method to apply tagged operations
-   *
-   * @param {!Path} queryPath
-   * @param {!Operation} operation
-   * @return {!Array.<!Event>}
-   * @private
    */
   private applyTaggedOperation_(
     queryPath: Path,
@@ -809,10 +740,6 @@ export class SyncTree {
    *   3. A snapshot Node with cached server data, if we have it.
 
    * - We concatenate all of the events returned by each SyncPoint and return the result.
-   *
-   * @param {!Operation} operation
-   * @return {!Array.<!Event>}
-   * @private
    */
   private applyOperationToSyncPoints_(operation: Operation): Event[] {
     return this.applyOperationHelper_(
@@ -825,13 +752,6 @@ export class SyncTree {
 
   /**
    * Recursive helper for applyOperationToSyncPoints_
-   *
-   * @private
-   * @param {!Operation} operation
-   * @param {ImmutableTree.<!SyncPoint>} syncPointTree
-   * @param {?Node} serverCache
-   * @param {!WriteTreeRef} writesCache
-   * @return {!Array.<!Event>}
    */
   private applyOperationHelper_(
     operation: Operation,
@@ -885,13 +805,6 @@ export class SyncTree {
 
   /**
    * Recursive helper for applyOperationToSyncPoints_
-   *
-   * @private
-   * @param {!Operation} operation
-   * @param {ImmutableTree.<!SyncPoint>} syncPointTree
-   * @param {?Node} serverCache
-   * @param {!WriteTreeRef} writesCache
-   * @return {!Array.<!Event>}
    */
   private applyOperationDescendantsHelper_(
     operation: Operation,

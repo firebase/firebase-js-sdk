@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { contains, forEach } from '@firebase/util';
-import { setTimeoutNonBlocking } from '../util/util';
+import { contains } from '@firebase/util';
+import { setTimeoutNonBlocking, each } from '../util/util';
 import { StatsListener } from './StatsListener';
 import { StatsCollection } from './StatsCollection';
 import { ServerActions } from '../ServerActions';
@@ -59,7 +59,7 @@ export class StatsReporter {
     const reportedStats: typeof stats = {};
     let haveStatsToReport = false;
 
-    forEach(stats, (stat: string, value: number) => {
+    each(stats, (stat: string, value: number) => {
       if (value > 0 && contains(this.statsToReport_, stat)) {
         reportedStats[stat] = value;
         haveStatsToReport = true;
