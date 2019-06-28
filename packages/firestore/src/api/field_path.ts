@@ -28,7 +28,6 @@ import {
 // The objects that are a part of this API are exposed to third-parties as
 // compiled javascript so we want to flag our private members with a leading
 // underscore to discourage their use.
-// tslint:disable:strip-private-property-underscore
 
 /**
  * A FieldPath refers to a field in a document. The path may consist of a single

@@ -78,7 +78,7 @@ class ObserverProxy<T> implements Observer<T> {
   // Micro-task scheduling by calling task.then().
   private task = Promise.resolve();
   private finalized = false;
-  private finalError: Error;
+  private finalError?: Error;
 
   /**
    * @param executor Function which can make calls to a single Observer
@@ -126,7 +126,7 @@ class ObserverProxy<T> implements Observer<T> {
    *   call to subscribe().
    */
   subscribe(
-    nextOrObserver: PartialObserver<T> | Function,
+    nextOrObserver?: PartialObserver<T> | Function,
     error?: ErrorFn,
     complete?: CompleteFn
   ): Unsubscribe {
@@ -141,7 +141,13 @@ class ObserverProxy<T> implements Observer<T> {
     }
 
     // Assemble an Observer object when passed as callback functions.
-    if (implementsAnyMethods(nextOrObserver, ['next', 'error', 'complete'])) {
+    if (
+      implementsAnyMethods(nextOrObserver as { [key: string]: unknown }, [
+        'next',
+        'error',
+        'complete'
+      ])
+    ) {
       observer = nextOrObserver as Observer<T>;
     } else {
       observer = {

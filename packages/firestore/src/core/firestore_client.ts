@@ -252,7 +252,6 @@ export class FirestoreClient {
           if (!this.canFallback(error)) {
             throw error;
           }
-
           console.warn(
             'Error enabling offline persistence. Falling back to' +
               ' persistence disabled: ' +
@@ -431,14 +430,14 @@ export class FirestoreClient {
 
         const remoteStoreOnlineStateChangedHandler = (
           onlineState: OnlineState
-        ) =>
+        ): void =>
           this.syncEngine.applyOnlineStateChange(
             onlineState,
             OnlineStateSource.RemoteStore
           );
         const sharedClientStateOnlineStateChangedHandler = (
           onlineState: OnlineState
-        ) =>
+        ): void =>
           this.syncEngine.applyOnlineStateChange(
             onlineState,
             OnlineStateSource.SharedClientState

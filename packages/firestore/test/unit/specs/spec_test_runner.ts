@@ -258,7 +258,7 @@ class MockConnection implements Connection {
         }
       });
       this.writeStream = writeStream;
-      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, Replace 'any' with conditional types.
       return writeStream as any;
     } else {
       assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
@@ -292,7 +292,7 @@ class MockConnection implements Connection {
         }
       });
       this.watchStream = watchStream;
-      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, Replace 'any' with conditional types.
       return this.watchStream as any;
     }
   }
@@ -439,7 +439,9 @@ abstract class TestRunner {
       new EmptyCredentialsProvider(),
       this.serializer
     );
-    const remoteStoreOnlineStateChangedHandler = (onlineState: OnlineState) => {
+    const remoteStoreOnlineStateChangedHandler = (
+      onlineState: OnlineState
+    ): void => {
       this.syncEngine.applyOnlineStateChange(
         onlineState,
         OnlineStateSource.RemoteStore
@@ -447,7 +449,7 @@ abstract class TestRunner {
     };
     const sharedClientStateOnlineStateChangedHandler = (
       onlineState: OnlineState
-    ) => {
+    ): void => {
       this.syncEngine.applyOnlineStateChange(
         onlineState,
         OnlineStateSource.SharedClientState
@@ -1238,7 +1240,7 @@ export async function runSpec(
   config: SpecConfig,
   steps: SpecStep[]
 ): Promise<void> {
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log('Running spec: ' + name);
 
   const sharedMockStorage = new SharedFakeWebStorage();
@@ -1247,7 +1249,7 @@ export async function runSpec(
   const runners: TestRunner[] = [];
   const outstandingMutations = new SharedWriteTracker();
 
-  const ensureRunner = async (clientIndex: number) => {
+  const ensureRunner = async (clientIndex: number): Promise<TestRunner> => {
     if (!runners[clientIndex]) {
       const platform = new TestPlatform(
         PlatformSupport.getPlatform(),
@@ -1419,28 +1421,28 @@ export type SpecWatchCurrent = [TargetId[], string];
 /** [<target-id>, ...] */
 export type SpecWatchReset = TargetId[];
 
-export type SpecError = {
+export interface SpecError {
   code: number;
   message: string;
-};
+}
 
-export type SpecWatchRemove = {
+export interface SpecWatchRemove {
   targetIds: TargetId[];
   cause?: SpecError;
-};
+}
 
-export type SpecWatchSnapshot = {
+export interface SpecWatchSnapshot {
   version: TestSnapshotVersion;
   targetIds: TargetId[];
   resumeToken?: string;
-};
+}
 
-export type SpecWatchStreamClose = {
+export interface SpecWatchStreamClose {
   error: SpecError;
   runBackoffTimer: boolean;
-};
+}
 
-export type SpecWriteAck = {
+export interface SpecWriteAck {
   /** The version the backend uses to ack the write. */
   version: TestSnapshotVersion;
   /**
@@ -1452,9 +1454,9 @@ export type SpecWriteAck = {
    */
   // PORTING NOTE: Multi-Tab only.
   keepInQueue?: boolean;
-};
+}
 
-export type SpecWriteFailure = {
+export interface SpecWriteFailure {
   /** The error the backend uses to fail the write. */
   error: SpecError;
   /**
@@ -1465,7 +1467,7 @@ export type SpecWriteFailure = {
    * Defaults to false.
    */
   keepInQueue?: boolean;
-};
+}
 
 export interface SpecWatchEntity {
   // exactly one of key, doc or docs is set
@@ -1481,12 +1483,12 @@ export interface SpecWatchEntity {
 }
 
 // PORTING NOTE: Only used by web multi-tab tests.
-export type SpecClientState = {
+export interface SpecClientState {
   /** The visibility state of the browser tab running the client. */
   visibility?: VisibilityState;
   /** Whether this tab should try to forcefully become primary. */
   primary?: true;
-};
+}
 
 /**
  * [[<target-id>, ...], <key>, ...]

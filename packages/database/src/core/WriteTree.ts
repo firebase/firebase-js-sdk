@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { findKey, forEach, safeGet } from '@firebase/util';
+import { safeGet } from '@firebase/util';
 import { assert, assertionError } from '@firebase/util';
 import { Path } from './util/Path';
 import { CompoundWrite } from './CompoundWrite';
@@ -24,6 +24,7 @@ import { ChildrenNode } from './snap/ChildrenNode';
 import { NamedNode, Node } from './snap/Node';
 import { CacheNode } from './view/CacheNode';
 import { Index } from './snap/indexes/Index';
+import { each } from './util/util';
 
 /**
  * Defines a single user-initiated write operation. May be the result of a set(), transaction(), or update() call. In
@@ -203,7 +204,7 @@ export class WriteTree {
         );
       } else {
         const children = writeToRemove.children;
-        forEach(children, (childName: string) => {
+        each(children, (childName: string) => {
           this.visibleWrites_ = this.visibleWrites_.removeWrite(
             writeToRemove.path.child(childName)
           );
@@ -445,9 +446,6 @@ export class WriteTree {
    * Returns a node if there is a complete overwrite for this path. More specifically, if there is a write at
    * a higher path, this will return the child of that write relative to the write and this path.
    * Returns null if there is no write at this path.
-   *
-   * @param {!Path} path
-   * @return {?Node}
    */
   shadowingWrite(path: Path): Node | null {
     return this.visibleWrites_.getCompleteNode(path);
@@ -456,14 +454,6 @@ export class WriteTree {
   /**
    * This method is used when processing child remove events on a query. If we can, we pull in children that were outside
    * the window, but may now be in the window.
-   *
-   * @param {!Path} treePath
-   * @param {?Node} completeServerData
-   * @param {!NamedNode} startPost
-   * @param {!number} count
-   * @param {boolean} reverse
-   * @param {!Index} index
-   * @return {!Array.<!NamedNode>}
    */
   calcIndexedSlice(
     treePath: Path,
@@ -504,29 +494,24 @@ export class WriteTree {
     }
   }
 
-  /**
-   * @param {!WriteRecord} writeRecord
-   * @param {!Path} path
-   * @return {boolean}
-   * @private
-   */
   private recordContainsPath_(writeRecord: WriteRecord, path: Path): boolean {
     if (writeRecord.snap) {
       return writeRecord.path.contains(path);
     } else {
-      // findKey can return undefined, so use !! to coerce to boolean
-      return !!findKey(writeRecord.children, function(
-        childSnap: Node,
-        childName: string
-      ) {
-        return writeRecord.path.child(childName).contains(path);
-      });
+      for (const childName in writeRecord.children) {
+        if (
+          writeRecord.children.hasOwnProperty(childName) &&
+          writeRecord.path.child(childName).contains(path)
+        ) {
+          return true;
+        }
+      }
+      return false;
     }
   }
 
   /**
    * Re-layer the writes and merges into a tree so we can efficiently calculate event snapshots
-   * @private
    */
   private resetTree_() {
     this.visibleWrites_ = WriteTree.layerTree_(
@@ -543,10 +528,6 @@ export class WriteTree {
 
   /**
    * The default filter used when constructing the tree. Keep everything that's visible.
-   *
-   * @param {!WriteRecord} write
-   * @return {boolean}
-   * @private
    */
   private static DefaultFilter_(write: WriteRecord) {
     return write.visible;
@@ -555,12 +536,6 @@ export class WriteTree {
   /**
    * Static method. Given an array of WriteRecords, a filter for which ones to include, and a path, construct the tree of
    * event data at that path.
-   *
-   * @param {!Array.<!WriteRecord>} writes
-   * @param {!function(!WriteRecord):boolean} filter
-   * @param {!Path} treeRoot
-   * @return {!CompoundWrite}
-   * @private
    */
   private static layerTree_(
     writes: WriteRecord[],

@@ -22,7 +22,9 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 
-// tslint:disable-next-line:no-any Allow custom types for testing.
+// tslint:disable:no-floating-promises
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, Allow custom types for testing.
 type AnyTestData = any;
 
 const Timestamp = firebase.firestore!.Timestamp;

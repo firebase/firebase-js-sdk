@@ -29,7 +29,8 @@ import { FakeWindow, SharedFakeWebStorage } from './test_platform';
 // To use this code to run persistence-based tests in Node, include this module
 // and set the environment variable `USE_MOCK_PERSISTENCE` to `YES`.
 
-const globalAny = global as any; // tslint:disable-line:no-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any,
+const globalAny = global as any;
 
 const dbDir = fs.mkdtempSync(os.tmpdir() + '/firestore_tests');
 
@@ -50,6 +51,7 @@ if (process.env.USE_MOCK_PERSISTENCE === 'YES') {
   // We need to define the `Event` type as it is used in Node to send events to
   // WebStorage when using both the IndexedDB mock and the WebStorage mock.
   class Event {
+    // eslint-disable-next-line @typescript-eslint/no-useless-constructor
     constructor(typeArg: string, eventInitDict?: EventInit) {}
   }
 

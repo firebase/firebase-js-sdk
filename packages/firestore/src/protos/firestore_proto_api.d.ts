@@ -16,7 +16,11 @@
  */
 
 // Rather than pull these in from other protos, we just alias them to any.
-// tslint:disable:no-any
+/* 
+   eslint-disable
+   camelcase, @typescript-eslint/no-explicit-any, 
+   @typescript-eslint/interface-name-prefix,  @typescript-eslint/class-name-casing 
+*/
 export declare type ApiClientHookFactory = any;
 export declare type ApiClientObjectMap<T> = any;
 export declare type PromiseRequestService = any;
@@ -25,7 +29,7 @@ export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND';
 export interface ICompositeFilterOpEnum {
   OPERATOR_UNSPECIFIED: CompositeFilterOp;
   AND: CompositeFilterOp;
-  values(): Array<CompositeFilterOp>;
+  values(): CompositeFilterOp[];
 }
 export declare const CompositeFilterOpEnum: ICompositeFilterOpEnum;
 export declare type FieldFilterOp =
@@ -48,7 +52,7 @@ export interface IFieldFilterOpEnum {
   ARRAY_CONTAINS: FieldFilterOp;
   IN: FieldFilterOp;
   ARRAY_CONTAINS_ANY: FieldFilterOp;
-  values(): Array<FieldFilterOp>;
+  values(): FieldFilterOp[];
 }
 export declare const FieldFilterOpEnum: IFieldFilterOpEnum;
 export declare type FieldTransformSetToServerValue =
@@ -57,7 +61,7 @@ export declare type FieldTransformSetToServerValue =
 export interface IFieldTransformSetToServerValueEnum {
   SERVER_VALUE_UNSPECIFIED: FieldTransformSetToServerValue;
   REQUEST_TIME: FieldTransformSetToServerValue;
-  values(): Array<FieldTransformSetToServerValue>;
+  values(): FieldTransformSetToServerValue[];
 }
 export declare const FieldTransformSetToServerValueEnum: IFieldTransformSetToServerValueEnum;
 export declare type IndexFieldMode =
@@ -68,7 +72,7 @@ export interface IIndexFieldModeEnum {
   MODE_UNSPECIFIED: IndexFieldMode;
   ASCENDING: IndexFieldMode;
   DESCENDING: IndexFieldMode;
-  values(): Array<IndexFieldMode>;
+  values(): IndexFieldMode[];
 }
 export declare const IndexFieldModeEnum: IIndexFieldModeEnum;
 export declare type IndexState =
@@ -81,7 +85,7 @@ export interface IIndexStateEnum {
   CREATING: IndexState;
   READY: IndexState;
   ERROR: IndexState;
-  values(): Array<IndexState>;
+  values(): IndexState[];
 }
 export declare const IndexStateEnum: IIndexStateEnum;
 export declare type OrderDirection =
@@ -92,7 +96,7 @@ export interface IOrderDirectionEnum {
   DIRECTION_UNSPECIFIED: OrderDirection;
   ASCENDING: OrderDirection;
   DESCENDING: OrderDirection;
-  values(): Array<OrderDirection>;
+  values(): OrderDirection[];
 }
 export declare const OrderDirectionEnum: IOrderDirectionEnum;
 export declare type TargetChangeTargetChangeType =
@@ -107,7 +111,7 @@ export interface ITargetChangeTargetChangeTypeEnum {
   REMOVE: TargetChangeTargetChangeType;
   CURRENT: TargetChangeTargetChangeType;
   RESET: TargetChangeTargetChangeType;
-  values(): Array<TargetChangeTargetChangeType>;
+  values(): TargetChangeTargetChangeType[];
 }
 export declare const TargetChangeTargetChangeTypeEnum: ITargetChangeTargetChangeTypeEnum;
 export declare type UnaryFilterOp =
@@ -118,21 +122,21 @@ export interface IUnaryFilterOpEnum {
   OPERATOR_UNSPECIFIED: UnaryFilterOp;
   IS_NAN: UnaryFilterOp;
   IS_NULL: UnaryFilterOp;
-  values(): Array<UnaryFilterOp>;
+  values(): UnaryFilterOp[];
 }
 export declare const UnaryFilterOpEnum: IUnaryFilterOpEnum;
 export declare type ValueNullValue = 'NULL_VALUE';
 export interface IValueNullValueEnum {
   NULL_VALUE: ValueNullValue;
-  values(): Array<ValueNullValue>;
+  values(): ValueNullValue[];
 }
 export declare const ValueNullValueEnum: IValueNullValueEnum;
 export declare namespace firestoreV1ApiClientInterfaces {
   interface ArrayValue {
-    values?: Array<Value>;
+    values?: Value[];
   }
   interface BatchGetDocumentsRequest {
-    documents?: Array<string>;
+    documents?: string[];
     mask?: DocumentMask;
     transaction?: string;
     newTransaction?: TransactionOptions;
@@ -155,19 +159,19 @@ export declare namespace firestoreV1ApiClientInterfaces {
     allDescendants?: boolean;
   }
   interface CommitRequest {
-    writes?: Array<Write>;
+    writes?: Write[];
     transaction?: string;
   }
   interface CommitResponse {
-    writeResults?: Array<WriteResult>;
+    writeResults?: WriteResult[];
     commitTime?: string;
   }
   interface CompositeFilter {
     op?: CompositeFilterOp;
-    filters?: Array<Filter>;
+    filters?: Filter[];
   }
   interface Cursor {
-    values?: Array<Value>;
+    values?: Value[];
     before?: boolean;
   }
   interface Document {
@@ -178,28 +182,28 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
   interface DocumentChange {
     document?: Document;
-    targetIds?: Array<number>;
-    removedTargetIds?: Array<number>;
+    targetIds?: number[];
+    removedTargetIds?: number[];
   }
   interface DocumentDelete {
     document?: string;
-    removedTargetIds?: Array<number>;
+    removedTargetIds?: number[];
     readTime?: string;
   }
   interface DocumentMask {
-    fieldPaths?: Array<string>;
+    fieldPaths?: string[];
   }
   interface DocumentRemove {
     document?: string;
-    removedTargetIds?: Array<number>;
+    removedTargetIds?: number[];
     readTime?: string;
   }
   interface DocumentTransform {
     document?: string;
-    fieldTransforms?: Array<FieldTransform>;
+    fieldTransforms?: FieldTransform[];
   }
   interface DocumentsTarget {
-    documents?: Array<string>;
+    documents?: string[];
   }
   interface Empty {}
   interface ExistenceFilter {
@@ -229,7 +233,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   interface Index {
     name?: string;
     collectionId?: string;
-    fields?: Array<IndexField>;
+    fields?: IndexField[];
     state?: IndexState;
   }
   interface IndexField {
@@ -245,15 +249,15 @@ export declare namespace firestoreV1ApiClientInterfaces {
     pageToken?: string;
   }
   interface ListCollectionIdsResponse {
-    collectionIds?: Array<string>;
+    collectionIds?: string[];
     nextPageToken?: string;
   }
   interface ListDocumentsResponse {
-    documents?: Array<Document>;
+    documents?: Document[];
     nextPageToken?: string;
   }
   interface ListIndexesResponse {
-    indexes?: Array<Index>;
+    indexes?: Index[];
     nextPageToken?: string;
   }
   interface ListenRequest {
@@ -287,7 +291,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
     updateTime?: string;
   }
   interface Projection {
-    fields?: Array<FieldReference>;
+    fields?: FieldReference[];
   }
   interface QueryTarget {
     parent?: string;
@@ -321,9 +325,9 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
   interface StructuredQuery {
     select?: Projection;
-    from?: Array<CollectionSelector>;
+    from?: CollectionSelector[];
     where?: Filter;
-    orderBy?: Array<Order>;
+    orderBy?: Order[];
     startAt?: Cursor;
     endAt?: Cursor;
     offset?: number;
@@ -339,7 +343,7 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
   interface TargetChange {
     targetChangeType?: TargetChangeTargetChangeType;
-    targetIds?: Array<number>;
+    targetIds?: number[];
     cause?: Status;
     resumeToken?: string;
     readTime?: string;
@@ -374,19 +378,19 @@ export declare namespace firestoreV1ApiClientInterfaces {
   }
   interface WriteRequest {
     streamId?: string;
-    writes?: Array<Write>;
+    writes?: Write[];
     streamToken?: string;
     labels?: ApiClientObjectMap<string>;
   }
   interface WriteResponse {
     streamId?: string;
     streamToken?: string;
-    writeResults?: Array<WriteResult>;
+    writeResults?: WriteResult[];
     commitTime?: string;
   }
   interface WriteResult {
     updateTime?: string;
-    transformResults?: Array<Value>;
+    transformResults?: Value[];
   }
 }
 export declare type ArrayValue = firestoreV1ApiClientInterfaces.ArrayValue;
@@ -447,7 +451,7 @@ export declare type ProjectsDatabasesDocumentsApiClient$Xgafv = '1' | '2';
 export interface IProjectsDatabasesDocumentsApiClient$XgafvEnum {
   1: ProjectsDatabasesDocumentsApiClient$Xgafv;
   2: ProjectsDatabasesDocumentsApiClient$Xgafv;
-  values(): Array<ProjectsDatabasesDocumentsApiClient$Xgafv>;
+  values(): ProjectsDatabasesDocumentsApiClient$Xgafv[];
 }
 export declare const ProjectsDatabasesDocumentsApiClient$XgafvEnum: IProjectsDatabasesDocumentsApiClient$XgafvEnum;
 export declare type ProjectsDatabasesDocumentsApiClientAlt =
@@ -458,7 +462,7 @@ export interface IProjectsDatabasesDocumentsApiClientAltEnum {
   JSON: ProjectsDatabasesDocumentsApiClientAlt;
   MEDIA: ProjectsDatabasesDocumentsApiClientAlt;
   PROTO: ProjectsDatabasesDocumentsApiClientAlt;
-  values(): Array<ProjectsDatabasesDocumentsApiClientAlt>;
+  values(): ProjectsDatabasesDocumentsApiClientAlt[];
 }
 export declare const ProjectsDatabasesDocumentsApiClientAltEnum: IProjectsDatabasesDocumentsApiClientAltEnum;
 export interface ProjectsDatabasesDocumentsBatchGetNamedParameters {
@@ -521,7 +525,7 @@ export interface ProjectsDatabasesDocumentsCreateDocumentNamedParameters {
   uploadType?: string;
   $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
   documentId?: string;
-  maskFieldPaths?: Array<string>;
+  maskFieldPaths?: string[];
 }
 export interface ProjectsDatabasesDocumentsDeleteNamedParameters {
   access_token?: string;
@@ -554,7 +558,7 @@ export interface ProjectsDatabasesDocumentsGetNamedParameters {
   upload_protocol?: string;
   uploadType?: string;
   $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
-  maskFieldPaths?: Array<string>;
+  maskFieldPaths?: string[];
   transaction?: string;
   readTime?: string;
 }
@@ -590,7 +594,7 @@ export interface ProjectsDatabasesDocumentsListNamedParameters {
   pageSize?: number;
   pageToken?: string;
   orderBy?: string;
-  maskFieldPaths?: Array<string>;
+  maskFieldPaths?: string[];
   transaction?: string;
   readTime?: string;
   showMissing?: boolean;
@@ -624,8 +628,8 @@ export interface ProjectsDatabasesDocumentsPatchNamedParameters {
   upload_protocol?: string;
   uploadType?: string;
   $Xgafv?: ProjectsDatabasesDocumentsApiClient$Xgafv;
-  updateMaskFieldPaths?: Array<string>;
-  maskFieldPaths?: Array<string>;
+  updateMaskFieldPaths?: string[];
+  maskFieldPaths?: string[];
   currentDocumentExists?: boolean;
   currentDocumentUpdateTime?: string;
 }
@@ -1022,7 +1026,7 @@ export declare type ProjectsDatabasesIndexesApiClient$Xgafv = '1' | '2';
 export interface IProjectsDatabasesIndexesApiClient$XgafvEnum {
   1: ProjectsDatabasesIndexesApiClient$Xgafv;
   2: ProjectsDatabasesIndexesApiClient$Xgafv;
-  values(): Array<ProjectsDatabasesIndexesApiClient$Xgafv>;
+  values(): ProjectsDatabasesIndexesApiClient$Xgafv[];
 }
 export declare const ProjectsDatabasesIndexesApiClient$XgafvEnum: IProjectsDatabasesIndexesApiClient$XgafvEnum;
 export declare type ProjectsDatabasesIndexesApiClientAlt =
@@ -1033,7 +1037,7 @@ export interface IProjectsDatabasesIndexesApiClientAltEnum {
   JSON: ProjectsDatabasesIndexesApiClientAlt;
   MEDIA: ProjectsDatabasesIndexesApiClientAlt;
   PROTO: ProjectsDatabasesIndexesApiClientAlt;
-  values(): Array<ProjectsDatabasesIndexesApiClientAlt>;
+  values(): ProjectsDatabasesIndexesApiClientAlt[];
 }
 export declare const ProjectsDatabasesIndexesApiClientAltEnum: IProjectsDatabasesIndexesApiClientAltEnum;
 export interface ProjectsDatabasesIndexesCreateNamedParameters {

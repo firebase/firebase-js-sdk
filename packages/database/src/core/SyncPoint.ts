@@ -18,7 +18,6 @@
 import { CacheNode } from './view/CacheNode';
 import { ChildrenNode } from './snap/ChildrenNode';
 import { assert } from '@firebase/util';
-import { isEmpty, forEach, findValue, safeGet } from '@firebase/util';
 import { ViewCache } from './view/ViewCache';
 import { View } from './view/View';
 import { Operation } from './operation/Operation';
@@ -61,26 +60,13 @@ export class SyncPoint {
    * queryId and the value is the View for that query.
    *
    * NOTE: This list will be quite small (usually 1, but perhaps 2 or 3; any more is an odd use case).
-   *
-   * @type {!Object.<!string, !View>}
-   * @private
    */
-  private views_: { [k: string]: View } = {};
+  private readonly views: Map<string, View> = new Map();
 
-  /**
-   * @return {boolean}
-   */
   isEmpty(): boolean {
-    return isEmpty(this.views_);
+    return this.views.size === 0;
   }
 
-  /**
-   *
-   * @param {!Operation} operation
-   * @param {!WriteTreeRef} writesCache
-   * @param {?Node} optCompleteServerCache
-   * @return {!Array.<!Event>}
-   */
   applyOperation(
     operation: Operation,
     writesCache: WriteTreeRef,
@@ -88,7 +74,7 @@ export class SyncPoint {
   ): Event[] {
     const queryId = operation.source.queryId;
     if (queryId !== null) {
-      const view = safeGet(this.views_, queryId);
+      const view = this.views.get(queryId);
       assert(view != null, 'SyncTree gave us an op for an invalid query.');
       return view.applyOperation(
         operation,
@@ -98,11 +84,11 @@ export class SyncPoint {
     } else {
       let events: Event[] = [];
 
-      forEach(this.views_, function(key: string, view: View) {
+      for (const view of this.views.values()) {
         events = events.concat(
           view.applyOperation(operation, writesCache, optCompleteServerCache)
         );
-      });
+      }
 
       return events;
     }
@@ -126,7 +112,7 @@ export class SyncPoint {
     serverCacheComplete: boolean
   ): Event[] {
     const queryId = query.queryIdentifier();
-    let view = safeGet(this.views_, queryId);
+    let view = this.views.get(queryId);
     if (!view) {
       // TODO: make writesCache take flag for complete server node
       let eventCache = writesCache.calcCompleteEventCache(
@@ -155,7 +141,7 @@ export class SyncPoint {
         )
       );
       view = new View(query, viewCache);
-      this.views_[queryId] = view;
+      this.views.set(queryId, view);
     }
 
     // This is guaranteed to exist now, we just created anything that was missing
@@ -185,13 +171,12 @@ export class SyncPoint {
     const hadCompleteView = this.hasCompleteView();
     if (queryId === 'default') {
       // When you do ref.off(...), we search all views for the registration to remove.
-      const self = this;
-      forEach(this.views_, function(viewQueryId: string, view: View) {
+      for (const [viewQueryId, view] of this.views.entries()) {
         cancelEvents = cancelEvents.concat(
           view.removeEventRegistration(eventRegistration, cancelError)
         );
         if (view.isEmpty()) {
-          delete self.views_[viewQueryId];
+          this.views.delete(viewQueryId);
 
           // We'll deal with complete views later.
           if (
@@ -203,16 +188,16 @@ export class SyncPoint {
             removed.push(view.getQuery());
           }
         }
-      });
+      }
     } else {
       // remove the callback from the specific view.
-      const view = safeGet(this.views_, queryId);
+      const view = this.views.get(queryId);
       if (view) {
         cancelEvents = cancelEvents.concat(
           view.removeEventRegistration(eventRegistration, cancelError)
         );
         if (view.isEmpty()) {
-          delete this.views_[queryId];
+          this.views.delete(queryId);
 
           // We'll deal with complete views later.
           if (
@@ -237,71 +222,62 @@ export class SyncPoint {
     return { removed: removed, events: cancelEvents };
   }
 
-  /**
-   * @return {!Array.<!View>}
-   */
   getQueryViews(): View[] {
-    const values = Object.keys(this.views_).map(key => this.views_[key]);
-    return values.filter(function(view) {
-      return !view
-        .getQuery()
-        .getQueryParams()
-        .loadsAllData();
-    });
+    const result = [];
+    for (const view of this.views.values()) {
+      if (
+        !view
+          .getQuery()
+          .getQueryParams()
+          .loadsAllData()
+      ) {
+        result.push(view);
+      }
+    }
+    return result;
   }
 
   /**
-   *
-   * @param {!Path} path The path to the desired complete snapshot
-   * @return {?Node} A complete cache, if it exists
+   * @param path The path to the desired complete snapshot
+   * @return A complete cache, if it exists
    */
   getCompleteServerCache(path: Path): Node | null {
     let serverCache: Node | null = null;
-    forEach(this.views_, (key: string, view: View) => {
+    for (const view of this.views.values()) {
       serverCache = serverCache || view.getCompleteServerCache(path);
-    });
+    }
     return serverCache;
   }
 
-  /**
-   * @param {!Query} query
-   * @return {?View}
-   */
   viewForQuery(query: Query): View | null {
     const params = query.getQueryParams();
     if (params.loadsAllData()) {
       return this.getCompleteView();
     } else {
       const queryId = query.queryIdentifier();
-      return safeGet(this.views_, queryId);
+      return this.views.get(queryId);
     }
   }
 
-  /**
-   * @param {!Query} query
-   * @return {boolean}
-   */
   viewExistsForQuery(query: Query): boolean {
     return this.viewForQuery(query) != null;
   }
 
-  /**
-   * @return {boolean}
-   */
   hasCompleteView(): boolean {
     return this.getCompleteView() != null;
   }
 
-  /**
-   * @return {?View}
-   */
   getCompleteView(): View | null {
-    const completeView = findValue(this.views_, (view: View) =>
-      view
-        .getQuery()
-        .getQueryParams()
-        .loadsAllData()
-    );
-    return completeView || null;
+    for (const view of this.views.values()) {
+      if (
+        view
+          .getQuery()
+          .getQueryParams()
+          .loadsAllData()
+      ) {
+        return view;
+      }
+    }
+    return null;
   }
 }

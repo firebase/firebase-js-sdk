@@ -16,10 +16,14 @@
  */
 
 import { expect } from 'chai';
+import { stub } from 'sinon';
 import { PerformanceController } from '../controllers/perf';
 import { Trace } from '../resources/trace';
-import { setupApi } from '../services/api_service';
+import { Api, setupApi } from '../services/api_service';
 import { FirebaseApp } from '@firebase/app-types';
+import * as initializationService from '../services/initialization_service';
+import { consoleLogger } from '../utils/console_logger';
+import '../../test/setup';
 
 describe('Firebase Performance Test', () => {
   setupApi(window);
@@ -37,6 +41,18 @@ describe('Firebase Performance Test', () => {
   const fakeFirebaseApp = ({
     options: fakeFirebaseConfig
   } as unknown) as FirebaseApp;
+
+  describe('#constructor', () => {
+    it('does not initialize performance if the required apis are not available', () => {
+      stub(Api.prototype, 'requiredApisAvailable').returns(false);
+      stub(initializationService, 'getInitializationPromise');
+      stub(consoleLogger, 'info');
+      new PerformanceController(fakeFirebaseApp);
+
+      expect(initializationService.getInitializationPromise).not.be.called;
+      expect(consoleLogger.info).be.called;
+    });
+  });
 
   describe('#trace', () => {
     it('creates a custom trace', () => {

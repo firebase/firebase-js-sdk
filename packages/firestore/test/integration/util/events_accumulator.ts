@@ -61,7 +61,7 @@ export class EventsAccumulator<
     if (snapshot.metadata.hasPendingWrites) {
       return snapshot;
     } else {
-      return await this.awaitLocalEvent();
+      return this.awaitLocalEvent();
     }
   }
 
@@ -80,7 +80,7 @@ export class EventsAccumulator<
     if (!snapshot.metadata.hasPendingWrites) {
       return snapshot;
     } else {
-      return await this.awaitRemoteEvent();
+      return this.awaitRemoteEvent();
     }
   }
 

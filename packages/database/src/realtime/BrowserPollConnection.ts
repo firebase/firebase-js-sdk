@@ -24,7 +24,6 @@ import {
   LUIDGenerator,
   splitStringBySize
 } from '../core/util/util';
-import { CountedSet } from '../core/util/CountedSet';
 import { StatsManager } from '../core/stats/StatsManager';
 import { PacketReceiver } from './polling/PacketReceiver';
 import {
@@ -395,10 +394,7 @@ export interface IFrameElement extends HTMLIFrameElement {
 export class FirebaseIFrameScriptHolder {
   //We maintain a count of all of the outstanding requests, because if we have too many active at once it can cause
   //problems in some browsers.
-  /**
-   * @type {CountedSet.<number, number>}
-   */
-  outstandingRequests = new CountedSet<number, number>();
+  outstandingRequests = new Set<number>();
 
   //A queue of the pending segments waiting for transmission to the server.
   pendingSegs: { seg: number; ts: number; d: any }[] = [];
@@ -591,7 +587,7 @@ export class FirebaseIFrameScriptHolder {
     if (
       this.alive &&
       this.sendNewPolls &&
-      this.outstandingRequests.count() < (this.pendingSegs.length > 0 ? 2 : 1)
+      this.outstandingRequests.size < (this.pendingSegs.length > 0 ? 2 : 1)
     ) {
       //construct our url
       this.currentSerial++;
@@ -670,10 +666,10 @@ export class FirebaseIFrameScriptHolder {
    */
   private addLongPollTag_(url: string, serial: number) {
     //remember that we sent this request.
-    this.outstandingRequests.add(serial, 1);
+    this.outstandingRequests.add(serial);
 
     const doNewRequest = () => {
-      this.outstandingRequests.remove(serial);
+      this.outstandingRequests.delete(serial);
       this.newRequest_();
     };
 

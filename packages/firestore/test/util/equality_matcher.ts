@@ -38,7 +38,9 @@ function customDeepEqual(left: unknown, right: unknown): boolean {
   /**
    * END: Custom compare logic
    */
-  if (left === right) return true;
+  if (left === right) {
+    return true;
+  }
   if (
     typeof left === 'number' &&
     typeof right === 'number' &&
@@ -47,17 +49,27 @@ function customDeepEqual(left: unknown, right: unknown): boolean {
   ) {
     return true;
   }
-  if (typeof left !== typeof right) return false; // needed for structurally different objects
-  if (Object(left) !== left) return false; // primitive values
-  // @ts-ignore
-  const keys = Object.keys(left);
-  // @ts-ignore
-  if (keys.length !== Object.keys(right).length) return false;
+  if (typeof left !== typeof right) {
+    return false;
+  } // needed for structurally different objects
+  if (Object(left) !== left) {
+    return false;
+  } // primitive values
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const keys = Object.keys(left as any);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  if (keys.length !== Object.keys(right as any).length) {
+    return false;
+  }
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i];
-    if (!Object.prototype.hasOwnProperty.call(right, key)) return false;
-    // @ts-ignore
-    if (!customDeepEqual(left[key], right[key])) return false;
+    if (!Object.prototype.hasOwnProperty.call(right, key)) {
+      return false;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    if (!customDeepEqual((left as any)[key], (right as any)[key])) {
+      return false;
+    }
   }
   return true;
 }
@@ -72,6 +84,7 @@ export function addEqualityMatcher(): void {
     use((chai, utils) => {
       const Assertion = chai.Assertion;
 
+      // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const assertEql = (_super: (r: unknown, l: unknown) => boolean) => {
         originalFunction = originalFunction || _super;
         return function(...args: unknown[]): void {

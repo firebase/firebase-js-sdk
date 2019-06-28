@@ -22,6 +22,8 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
 
+// tslint:disable:no-floating-promises
+
 const apiDescribe = integrationHelpers.apiDescribe;
 const Timestamp = firebase.firestore!.Timestamp;
 const FieldValue = firebase.firestore!.FieldValue;

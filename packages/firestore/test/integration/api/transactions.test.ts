@@ -473,7 +473,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
   });
 
   describe('must return a promise:', () => {
-    const noop = () => {
+    const noop = (): void => {
       /* -_- */
     };
     const badReturns = [
@@ -487,7 +487,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
 
     for (const badReturn of badReturns) {
       it(badReturn + ' is rejected', () => {
-        // tslint:disable-next-line:no-any Intentionally returning bad type.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, Intentionally returning bad type.
         const fn = ((txn: firestore.Transaction) => badReturn) as any;
         return integrationHelpers.withTestDb(persistence, db => {
           return db

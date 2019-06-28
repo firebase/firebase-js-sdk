@@ -17,41 +17,37 @@
 import { Request } from './request';
 import * as constants from './constants';
 
-/**
- * @struct
- */
 export class RequestMap {
-  private map_: Map<number, Request<unknown>> = new Map<
-    number,
-    Request<unknown>
-  >();
-  private id_: number;
+  private readonly map: Map<number, Request<unknown>> = new Map();
+  private id: number;
 
   constructor() {
-    this.id_ = constants.MIN_SAFE_INTEGER;
+    this.id = constants.MIN_SAFE_INTEGER;
   }
 
   /**
    * Registers the given request with this map.
    * The request is unregistered when it completes.
-   * @param r The request to register.
+   *
+   * @param request The request to register.
    */
-  addRequest(r: Request<unknown>): void {
-    const id = this.id_;
-    this.id_++;
-    this.map_.set(id, r);
-    r.getPromise().then(() => this.map_.delete(id), () => this.map_.delete(id));
+  addRequest(request: Request<unknown>): void {
+    const id = this.id;
+    this.id++;
+    this.map.set(id, request);
+
+    request
+      .getPromise()
+      .then(() => this.map.delete(id), () => this.map.delete(id));
   }
 
   /**
    * Cancels all registered requests.
    */
   clear(): void {
-    this.map_.forEach(val => {
-      if (val) {
-        val.cancel(true);
-      }
+    this.map.forEach(v => {
+      v && v.cancel(true);
     });
-    this.map_.clear();
+    this.map.clear();
   }
 }

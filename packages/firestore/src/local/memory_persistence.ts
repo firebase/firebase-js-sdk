@@ -105,7 +105,7 @@ export class MemoryPersistence implements Persistence {
     this._started = true;
     this.referenceDelegate = referenceDelegateFactory(this);
     this.queryCache = new MemoryQueryCache(this);
-    const sizer = (doc: MaybeDocument) =>
+    const sizer = (doc: MaybeDocument): number =>
       this.referenceDelegate.documentSize(doc);
     this.indexManager = new MemoryIndexManager();
     this.remoteDocumentCache = new MemoryRemoteDocumentCache(

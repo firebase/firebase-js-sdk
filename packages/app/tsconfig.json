@@ -2,9 +2,8 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "strict": true
   },
-  "exclude": [
-    "dist/**/*"
-  ]
+  "exclude": ["dist/**/*"]
 }

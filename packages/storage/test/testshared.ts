@@ -58,9 +58,9 @@ export function makePool(sendHook: SendHook | null): XhrIoPool {
  */
 export function fakeXhrIo(headers: Headers, status: number = 200): XhrIo {
   const lower: StringHeaders = {};
-  Object.keys(headers).forEach(key => {
-    lower[key.toLowerCase()] = headers[key].toString();
-  });
+  for (const [key, value] of Object.entries(headers)) {
+    lower[key.toLowerCase()] = value.toString();
+  }
 
   const fakeXhrIo: any = {
     getResponseHeader(name: string): string {
@@ -123,7 +123,7 @@ export function assertObjectIncludes(
   included: { [name: string]: any },
   obj: { [name: string]: any }
 ): void {
-  Object.keys(included).forEach(key => {
-    expect(included[key]).to.deep.equal(obj[key]);
-  });
+  for (const [key, value] of Object.entries(included)) {
+    expect(value).to.deep.equal(obj[key]);
+  }
 }

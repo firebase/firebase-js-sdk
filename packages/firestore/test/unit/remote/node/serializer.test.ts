@@ -25,8 +25,12 @@ import { GeoPoint } from '../../../../src/api/geo_point';
 import { Timestamp } from '../../../../src/api/timestamp';
 import { DatabaseId } from '../../../../src/core/database_info';
 import {
+  ArrayContainsAnyFilter,
+  ArrayContainsFilter,
   Direction,
   FieldFilter,
+  InFilter,
+  KeyFieldFilter,
   Operator,
   OrderBy,
   Query
@@ -684,7 +688,7 @@ describe('Serializer', () => {
 
     it('makes dotted-property names', () => {
       const path = new FieldPath(['item', 'part', 'top']);
-      const input = new FieldFilter(path, Operator.EQUAL, wrap('food'));
+      const input = FieldFilter.create(path, Operator.EQUAL, wrap('food'));
       const actual = s.toUnaryOrFieldFilter(input);
       expect(actual).to.deep.equal({
         fieldFilter: {
@@ -693,7 +697,9 @@ describe('Serializer', () => {
           value: { stringValue: 'food' }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(FieldFilter);
     });
 
     it('converts LessThan', () => {
@@ -706,7 +712,9 @@ describe('Serializer', () => {
           value: { integerValue: '42' }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(FieldFilter);
     });
 
     it('converts LessThanOrEqual', () => {
@@ -719,7 +727,9 @@ describe('Serializer', () => {
           value: { stringValue: 'food' }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(FieldFilter);
     });
 
     it('converts GreaterThan', () => {
@@ -732,7 +742,9 @@ describe('Serializer', () => {
           value: { booleanValue: false }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(FieldFilter);
     });
 
     it('converts GreaterThanOrEqual', () => {
@@ -745,7 +757,31 @@ describe('Serializer', () => {
           value: { doubleValue: 1e100 }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(FieldFilter);
+    });
+
+    it('converts key field', () => {
+      const input = filter(
+        DOCUMENT_KEY_NAME,
+        '==',
+        ref('project/database', 'coll/doc')
+      );
+      const actual = s.toUnaryOrFieldFilter(input);
+      expect(actual).to.deep.equal({
+        fieldFilter: {
+          field: { fieldPath: '__name__' },
+          op: 'EQUAL',
+          value: {
+            referenceValue:
+              'projects/project/databases/database/documents/coll/doc'
+          }
+        }
+      });
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(KeyFieldFilter);
     });
 
     it('converts array-contains', () => {
@@ -758,7 +794,9 @@ describe('Serializer', () => {
           value: { integerValue: '42' }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(ArrayContainsFilter);
     });
 
     it('converts IN', () => {
@@ -779,7 +817,9 @@ describe('Serializer', () => {
           }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(InFilter);
     });
 
     it('converts array-contains-any', () => {
@@ -800,7 +840,9 @@ describe('Serializer', () => {
           }
         }
       });
-      expect(s.fromFieldFilter(actual)).to.deep.equal(input);
+      const roundtripped = s.fromFieldFilter(actual);
+      expect(roundtripped).to.deep.equal(input);
+      expect(roundtripped).to.be.instanceof(ArrayContainsAnyFilter);
     });
   });
 
@@ -1181,7 +1223,7 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('contains all Operators', () => {
-      // tslint:disable-next-line:no-any giant hack
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, giant hack
       obj.forEach(Operator as any, (name, op) => {
         if (op instanceof Operator) {
           expect(s.toOperatorName(op), 'for name').to.exist;
@@ -1195,7 +1237,7 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('contains all Directions', () => {
-      // tslint:disable-next-line:no-any giant hack
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, giant hack
       obj.forEach(Direction as any, (name, dir) => {
         if (dir instanceof Direction) {
           expect(s.toDirection(dir), 'for ' + name).to.exist;
