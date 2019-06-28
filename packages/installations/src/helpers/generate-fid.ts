@@ -28,6 +28,8 @@ export function generateFid(): string {
     // A valid FID has exactly 22 base64 characters, which is 132 bits, or 16.5
     // bytes. our implementation generates a 17 byte array instead.
     const fidByteArray = new Uint8Array(17);
+    const crypto =
+      self.crypto || ((self as unknown) as { msCrypto: Crypto }).msCrypto;
     crypto.getRandomValues(fidByteArray);
 
     // Replace the first 4 random bits with the constant FID header of 0b0111.

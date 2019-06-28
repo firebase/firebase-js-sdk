@@ -28,10 +28,4 @@ describe('bufferToBase64', () => {
       BASE_64_REPRESENTATION
     );
   });
-
-  it('returns a base64 representation of an ArrayBuffer', () => {
-    expect(bufferToBase64UrlSafe(TYPED_ARRAY_REPRESENTATION.buffer)).to.equal(
-      BASE_64_REPRESENTATION
-    );
-  });
 });

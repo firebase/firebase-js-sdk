@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-export function bufferToBase64UrlSafe(
-  buffer: ArrayBuffer | Uint8Array
-): string {
-  const array = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+export function bufferToBase64UrlSafe(array: Uint8Array): string {
   const b64 = btoa(String.fromCharCode(...array));
   return b64.replace(/\+/g, '-').replace(/\//g, '_');
 }
