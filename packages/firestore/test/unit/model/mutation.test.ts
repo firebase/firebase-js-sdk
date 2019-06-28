@@ -637,22 +637,22 @@ describe('Mutation', () => {
       ignore: 'foo',
       double: 42.0,
       long: 42,
-      string: 'foo',
+      text: 'foo',
       map: {},
-      nested: { ignore: 'foo', double: 42.0, long: 42, string: 'foo', map: {} }
+      nested: { ignore: 'foo', double: 42.0, long: 42, text: 'foo', map: {} }
     };
     const baseDoc = doc('collection/key', 0, allValues);
 
     const allTransforms = {
       double: FieldValue.increment(1),
       long: FieldValue.increment(1),
-      string: FieldValue.increment(1),
+      text: FieldValue.increment(1),
       map: FieldValue.increment(1),
       missing: FieldValue.increment(1),
       nested: {
         double: FieldValue.increment(1),
         long: FieldValue.increment(1),
-        string: FieldValue.increment(1),
+        text: FieldValue.increment(1),
         map: FieldValue.increment(1),
         missing: FieldValue.increment(1)
       }
@@ -662,10 +662,10 @@ describe('Mutation', () => {
     const expectedBaseValue = wrap({
       double: 42.0,
       long: 42,
-      string: 0,
+      text: 0,
       map: 0,
       missing: 0,
-      nested: { double: 42.0, long: 42, string: 0, map: 0, missing: 0 }
+      nested: { double: 42.0, long: 42, text: 0, map: 0, missing: 0 }
     });
     const actualBaseValue = transform.extractBaseValue(baseDoc);
 

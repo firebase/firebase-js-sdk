@@ -582,11 +582,11 @@ export class TransformMutation extends Mutation {
   extractBaseValue(maybeDoc: MaybeDocument | null): ObjectValue | null {
     let baseObject: ObjectValue | null = null;
     for (const fieldTransform of this.fieldTransforms) {
-      let existingValue =
+      const existingValue =
         maybeDoc instanceof Document
           ? maybeDoc.field(fieldTransform.field)
           : undefined;
-      let coercedValue = fieldTransform.transform.computeBaseValue(
+      const coercedValue = fieldTransform.transform.computeBaseValue(
         existingValue || null
       );
 
@@ -695,7 +695,7 @@ export class TransformMutation extends Mutation {
         previousValue = maybeDoc.field(fieldTransform.field);
       }
 
-      if (previousValue == undefined && baseDoc instanceof Document) {
+      if (previousValue === null && baseDoc instanceof Document) {
         // If the current document does not contain a value for the mutated
         // field, use the value that existed before applying this mutation
         // batch. This solves an edge case where a PatchMutation clears the

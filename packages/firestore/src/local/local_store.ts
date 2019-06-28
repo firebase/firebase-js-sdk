@@ -27,7 +27,7 @@ import {
   maybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
+import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, PatchMutation, Precondition } from '../model/mutation';
 import {
@@ -40,7 +40,6 @@ import { assert } from '../util/assert';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
-import { ObjectValue } from '../model/field_value';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
@@ -272,7 +271,7 @@ export class LocalStore {
             const baseMutations: Mutation[] = [];
 
             for (const mutation of mutations) {
-              let baseValue = mutation.extractBaseValue(
+              const baseValue = mutation.extractBaseValue(
                 existingDocs.get(mutation.key)
               );
               if (baseValue != null) {
