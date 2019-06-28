@@ -710,7 +710,7 @@ declare namespace firebase {
     /**
      * The current user's tenant ID. This is a read-only property, which indicates
      * the tenant ID used to sign in the current user. This is null if the user is
-     * signed in from the agent project.
+     * signed in from the parent project.
      *
      * @example
      * ```javascript
@@ -1552,7 +1552,7 @@ declare namespace firebase.auth {
     static parseLink(link: string): firebase.auth.ActionCodeURL | null;
     /**
      * The tenant ID of the email action link. Null if the email action
-     * is from agent project.
+     * is from the parent project.
      */
     tenantId: string | null;
   }
@@ -2675,7 +2675,7 @@ declare namespace firebase.auth {
      * property. When set the enant ID on a Auth instance, all future
      * sign-in/sign-up operations will pass this tenant ID and sign in
      * or sign up users to the specified project as identified by the tenant.
-     * When set to null, users are signed in to the agent project. By default,
+     * When set to null, users are signed in to the parent project. By default,
      * this is set to null.
      *
      * @example

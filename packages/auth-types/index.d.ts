@@ -353,7 +353,7 @@ export class FirebaseAuth {
   signInWithPopup(provider: AuthProvider): Promise<UserCredential>;
   signInWithRedirect(provider: AuthProvider): Promise<void>;
   signOut(): Promise<void>;
-  tenantId: string | null;
+  readonly tenantId: string | null;
   updateCurrentUser(user: User | null): Promise<void>;
   useDeviceLanguage(): void;
   verifyPasswordResetCode(code: string): Promise<string>;
