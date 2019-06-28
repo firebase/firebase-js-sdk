@@ -22,10 +22,11 @@ import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import { assert, fail } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
-import { SortedMap } from '../util/sorted_map';
-
 import { DocumentKey } from './document_key';
+import { FieldMask } from './mutation';
 import { FieldPath } from './path';
+import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
 
 /**
  * Supported data value types:
@@ -603,6 +604,31 @@ export class ObjectValue extends FieldValue {
       }
     });
     return field;
+  }
+
+  /** Recursively extracts the FieldPaths that are set in this ObjectValue. */
+  fieldMask(): FieldMask {
+    let fields = new SortedSet<FieldPath>(FieldPath.comparator);
+    this.internalValue.forEach((key, value) => {
+      const currentPath = new FieldPath([key]);
+      if (value instanceof ObjectValue) {
+        const nestedMask = value.fieldMask();
+        const nestedFields = nestedMask.fields;
+        if (nestedFields.isEmpty()) {
+          // Preserve the empty map by adding it to the FieldMask.
+          fields = fields.add(currentPath);
+        } else {
+          // For nested and non-empty ObjectValues, add the FieldPath of the
+          // leaf nodes.
+          nestedFields.forEach(nestedPath => {
+            fields = fields.add(currentPath.child(nestedPath));
+          });
+        }
+      } else {
+        fields = fields.add(currentPath);
+      }
+    });
+    return FieldMask.fromSet(fields);
   }
 
   toString(): string {

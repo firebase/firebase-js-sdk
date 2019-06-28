@@ -272,32 +272,21 @@ export class LocalStore {
             const baseMutations: Mutation[] = [];
 
             for (const mutation of mutations) {
-              const maybeDoc = existingDocs.get(mutation.key);
-              if (!mutation.isIdempotent) {
-                // Theoretically, we should only include non-idempotent fields
-                // in this field mask as this mask is used to populate the base
-                // state for all DocumentTransforms.  By  including all fields,
-                // we incorrectly prevent rebasing of idempotent transforms
-                // (such as `arrayUnion()`) when any non-idempotent transforms
-                // are present.
-                const fieldMask = mutation.fieldMask;
-                if (fieldMask) {
-                  const baseValues =
-                    maybeDoc instanceof Document
-                      ? fieldMask.applyTo(maybeDoc.data)
-                      : ObjectValue.EMPTY;
-                  // NOTE: The base state should only be applied if there's some
-                  // existing document to override, so use a Precondition of
-                  // exists=true
-                  baseMutations.push(
-                    new PatchMutation(
-                      mutation.key,
-                      baseValues,
-                      fieldMask,
-                      Precondition.exists(true)
-                    )
-                  );
-                }
+              let baseValue = mutation.extractBaseValue(
+                existingDocs.get(mutation.key)
+              );
+              if (baseValue != null) {
+                // NOTE: The base state should only be applied if there's some
+                // existing document to override, so use a Precondition of
+                // exists=true
+                baseMutations.push(
+                  new PatchMutation(
+                    mutation.key,
+                    baseValue,
+                    baseValue.fieldMask(),
+                    Precondition.exists(true)
+                  )
+                );
               }
             }
 

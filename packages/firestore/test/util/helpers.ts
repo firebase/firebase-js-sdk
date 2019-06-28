@@ -67,6 +67,7 @@ import {
 } from '../../src/model/field_value';
 import {
   DeleteMutation,
+  FieldMask,
   MutationResult,
   PatchMutation,
   Precondition,
@@ -179,6 +180,14 @@ export function path(path: string, offset?: number): ResourcePath {
 
 export function field(path: string): FieldPath {
   return fromDotSeparatedString(path)._internalPath;
+}
+
+export function mask(...paths: string[]): FieldMask {
+  let fieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
+  for (const path of paths) {
+    fieldPaths = fieldPaths.add(field(path));
+  }
+  return FieldMask.fromSet(fieldPaths);
 }
 
 export function blob(...bytes: number[]): Blob {

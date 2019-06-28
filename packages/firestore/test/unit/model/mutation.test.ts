@@ -603,4 +603,93 @@ describe('Mutation', () => {
     assertVersionTransitions(deleter, deletedV3, mutationResult, docV7Deleted);
     assertVersionTransitions(deleter, null, mutationResult, docV7Deleted);
   });
+
+  it('extracts null base value for non-transform mutation', () => {
+    const data = { foo: 'foo' };
+    const baseDoc = doc('collection/key', 0, data);
+
+    const set = setMutation('collection/key', { foo: 'bar' });
+    expect(set.extractBaseValue(baseDoc)).to.be.null;
+
+    const patch = patchMutation('collection/key', { foo: 'bar' });
+    expect(patch.extractBaseValue(baseDoc)).to.be.null;
+
+    const deleter = deleteMutation('collection/key');
+    expect(deleter.extractBaseValue(baseDoc)).to.be.null;
+  });
+
+  it('extracts null base value for ServerTimestamp', () => {
+    const allValues = { time: 'foo', nested: { time: 'foo' } };
+    const baseDoc = doc('collection/key', 0, allValues);
+
+    const allTransforms = {
+      time: FieldValue.serverTimestamp(),
+      nested: { time: FieldValue.serverTimestamp() }
+    };
+
+    // Server timestamps are idempotent and don't have base values.
+    const transform = transformMutation('collection/key', allTransforms);
+    expect(transform.extractBaseValue(baseDoc)).to.be.null;
+  });
+
+  it('extracts base value for increment', () => {
+    const allValues = {
+      ignore: 'foo',
+      double: 42.0,
+      long: 42,
+      string: 'foo',
+      map: {},
+      nested: { ignore: 'foo', double: 42.0, long: 42, string: 'foo', map: {} }
+    };
+    const baseDoc = doc('collection/key', 0, allValues);
+
+    const allTransforms = {
+      double: FieldValue.increment(1),
+      long: FieldValue.increment(1),
+      string: FieldValue.increment(1),
+      map: FieldValue.increment(1),
+      missing: FieldValue.increment(1),
+      nested: {
+        double: FieldValue.increment(1),
+        long: FieldValue.increment(1),
+        string: FieldValue.increment(1),
+        map: FieldValue.increment(1),
+        missing: FieldValue.increment(1)
+      }
+    };
+    const transform = transformMutation('collection/key', allTransforms);
+
+    const expectedBaseValue = wrap({
+      double: 42.0,
+      long: 42,
+      string: 0,
+      map: 0,
+      missing: 0,
+      nested: { double: 42.0, long: 42, string: 0, map: 0, missing: 0 }
+    });
+    const actualBaseValue = transform.extractBaseValue(baseDoc);
+
+    expect(expectedBaseValue.isEqual(actualBaseValue!)).to.be.true;
+  });
+
+  it('increment twice', () => {
+    const baseDoc = doc('collection/key', 0, { sum: 0 });
+
+    const increment = { sum: FieldValue.increment(1) };
+    const transform = transformMutation('collection/key', increment);
+
+    let mutatedDoc = transform.applyToLocalView(
+      baseDoc,
+      baseDoc,
+      Timestamp.now()
+    );
+    mutatedDoc = transform.applyToLocalView(
+      mutatedDoc,
+      baseDoc,
+      Timestamp.now()
+    );
+
+    expect(mutatedDoc).to.be.an.instanceof(Document);
+    expect((mutatedDoc as Document).field(field('sum'))!.value()).to.equal(2);
+  });
 });
