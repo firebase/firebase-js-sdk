@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import '../testing/setup';
-import { generateFid } from './generate-fid';
+import { generateFid, VALID_FID } from './generate-fid';
 
 /** A few random values to generate a FID from. */
 // prettier-ignore
@@ -52,8 +52,6 @@ const EXPECTED_FIDS = [
   'cAAAAAAAAAAAAAAAAAAAAA',
   'f_____________________'
 ];
-
-const VALID_FID = /^[cdef][A-Za-z0-9_-]{21}$/;
 
 describe('generateFid', () => {
   it('deterministically generates FIDs based on crypto.getRandomValues', () => {
@@ -117,4 +115,11 @@ describe('generateFid', () => {
       });
     }
   }).timeout(30000);
+
+  it('returns an empty string if FID generation fails', () => {
+    stub(crypto, 'getRandomValues').throws();
+
+    const fid = generateFid();
+    expect(fid).to.equal('');
+  });
 });

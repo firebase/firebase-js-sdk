@@ -58,7 +58,8 @@ describe('createInstallation', () => {
         token:
           'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
         expiresIn: '604800s'
-      }
+      },
+      fid: FID
     };
     fetchSpy = stub(self, 'fetch');
   });
