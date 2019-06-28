@@ -54,7 +54,7 @@ export interface User extends UserInfo {
   sendEmailVerification(
     actionCodeSettings?: ActionCodeSettings | null
   ): Promise<void>;
-  tenantId: string | null;
+  readonly tenantId: string | null;
   toJSON(): Object;
   unlink(providerId: string): Promise<User>;
   updateEmail(newEmail: string): Promise<void>;
@@ -353,7 +353,7 @@ export class FirebaseAuth {
   signInWithPopup(provider: AuthProvider): Promise<UserCredential>;
   signInWithRedirect(provider: AuthProvider): Promise<void>;
   signOut(): Promise<void>;
-  readonly tenantId: string | null;
+  tenantId: string | null;
   updateCurrentUser(user: User | null): Promise<void>;
   useDeviceLanguage(): void;
   verifyPasswordResetCode(code: string): Promise<string>;
