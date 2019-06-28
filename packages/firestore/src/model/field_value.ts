@@ -590,17 +590,17 @@ export class ObjectValue extends FieldValue {
   }
 
   contains(path: FieldPath): boolean {
-    return this.field(path) !== undefined;
+    return this.field(path) !== null;
   }
 
-  field(path: FieldPath): FieldValue | undefined {
+  field(path: FieldPath): FieldValue | null {
     assert(!path.isEmpty(), "Can't get field of empty path");
-    let field: FieldValue | undefined = this;
+    let field: FieldValue | null = this;
     path.forEach((pathSegment: string) => {
       if (field instanceof ObjectValue) {
-        field = field.internalValue.get(pathSegment) || undefined;
+        field = field.internalValue.get(pathSegment);
       } else {
-        field = undefined;
+        field = null;
       }
     });
     return field;

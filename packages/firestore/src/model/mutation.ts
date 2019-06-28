@@ -489,7 +489,7 @@ export class PatchMutation extends Mutation {
     this.fieldMask.fields.forEach(fieldPath => {
       if (!fieldPath.isEmpty()) {
         const newValue = this.data.field(fieldPath);
-        if (newValue !== undefined) {
+        if (newValue !== null) {
           data = data.set(fieldPath, newValue);
         } else {
           data = data.delete(fieldPath);
@@ -657,7 +657,7 @@ export class TransformMutation extends Mutation {
       const transform = fieldTransform.transform;
       let previousValue: FieldValue | null = null;
       if (baseDoc instanceof Document) {
-        previousValue = baseDoc.field(fieldTransform.field) || null;
+        previousValue = baseDoc.field(fieldTransform.field);
       }
       transformResults.push(
         transform.applyToRemoteDocument(
@@ -690,7 +690,7 @@ export class TransformMutation extends Mutation {
     for (const fieldTransform of this.fieldTransforms) {
       const transform = fieldTransform.transform;
 
-      let previousValue: FieldValue | undefined = undefined;
+      let previousValue: FieldValue | null = null;
       if (maybeDoc instanceof Document) {
         previousValue = maybeDoc.field(fieldTransform.field);
       }
@@ -704,7 +704,7 @@ export class TransformMutation extends Mutation {
       }
 
       transformResults.push(
-        transform.applyToLocalView(previousValue || null, localWriteTime)
+        transform.applyToLocalView(previousValue, localWriteTime)
       );
     }
     return transformResults;
