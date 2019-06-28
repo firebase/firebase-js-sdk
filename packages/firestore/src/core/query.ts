@@ -401,10 +401,7 @@ export class Query {
   private matchesOrderBy(doc: Document): boolean {
     for (const orderBy of this.explicitOrderBy) {
       // order by key always matches
-      if (
-        !orderBy.field.isKeyField() &&
-        doc.field(orderBy.field) === null
-      ) {
+      if (!orderBy.field.isKeyField() && doc.field(orderBy.field) === null) {
         return false;
       }
     }
