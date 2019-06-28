@@ -76,7 +76,7 @@ export class Document extends MaybeDocument {
   }
 
   field(path: FieldPath): FieldValue | null {
-    return this.data.field(path) || null;
+    return this.data.field(path);
   }
 
   fieldValue(path: FieldPath): unknown {

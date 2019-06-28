@@ -1294,7 +1294,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
       const value = this._document.data.field(
         fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
       );
-      if (value !== undefined) {
+      if (value !== null) {
         return this.convertValue(
           value,
           FieldValueOptions.fromSnapshotOptions(

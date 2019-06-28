@@ -85,7 +85,7 @@ export class FieldMask {
         return data;
       } else {
         const newValue = data.field(fieldMaskPath);
-        if (newValue !== undefined) {
+        if (newValue !== null) {
           filteredObject = filteredObject.set(fieldMaskPath, newValue);
         }
       }
@@ -511,7 +511,7 @@ export class PatchMutation extends Mutation {
     this.fieldMask.fields.forEach(fieldPath => {
       if (!fieldPath.isEmpty()) {
         const newValue = this.data.field(fieldPath);
-        if (newValue !== undefined) {
+        if (newValue !== null) {
           data = data.set(fieldPath, newValue);
         } else {
           data = data.delete(fieldPath);
