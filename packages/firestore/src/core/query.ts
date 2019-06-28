@@ -403,7 +403,7 @@ export class Query {
       // order by key always matches
       if (
         !orderBy.field.isKeyField() &&
-        doc.field(orderBy.field) === undefined
+        doc.field(orderBy.field) === null
       ) {
         return false;
       }
@@ -572,7 +572,7 @@ export class FieldFilter extends Filter {
 
     // Only compare types with matching backend order (such as double and int).
     return (
-      other !== undefined &&
+      other !== null &&
       this.value.typeOrder === other.typeOrder &&
       this.matchesComparison(other.compareTo(this.value))
     );
@@ -676,7 +676,7 @@ export class InFilter extends FieldFilter {
   matches(doc: Document): boolean {
     const arrayValue = this.value;
     const other = doc.field(this.field);
-    return other !== undefined && arrayValue.contains(other);
+    return other !== null && arrayValue.contains(other);
   }
 }
 

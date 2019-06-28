@@ -671,7 +671,7 @@ export class TransformMutation extends Mutation {
       const transform = fieldTransform.transform;
       let previousValue: FieldValue | null = null;
       if (baseDoc instanceof Document) {
-        previousValue = baseDoc.field(fieldTransform.field) || null;
+        previousValue = baseDoc.field(fieldTransform.field);
       }
       transformResults.push(
         transform.applyToRemoteDocument(
@@ -703,7 +703,7 @@ export class TransformMutation extends Mutation {
 
       let previousValue: FieldValue | null = null;
       if (baseDoc instanceof Document) {
-        previousValue = baseDoc.field(fieldTransform.field) || null;
+        previousValue = baseDoc.field(fieldTransform.field);
       }
 
       transformResults.push(
