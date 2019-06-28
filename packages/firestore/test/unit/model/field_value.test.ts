@@ -193,9 +193,9 @@ describe('FieldValue', () => {
       fieldValue.StringValue
     );
 
-    expect(objValue.field(field('foo.a.b'))).to.equal(undefined);
-    expect(objValue.field(field('bar'))).to.equal(undefined);
-    expect(objValue.field(field('bar.a'))).to.equal(undefined);
+    expect(objValue.field(field('foo.a.b'))).to.be.null;
+    expect(objValue.field(field('bar'))).to.be.null;
+    expect(objValue.field(field('bar.a'))).to.be.null;
 
     expect(objValue.field(field('foo'))!.value()).to.deep.equal({
       a: 1,

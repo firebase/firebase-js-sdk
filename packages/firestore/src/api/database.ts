@@ -1294,7 +1294,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
       const value = this._document.data.field(
         fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
       );
-      if (value !== undefined) {
+      if (value !== null) {
         return this.convertValue(
           value,
           FieldValueOptions.fromSnapshotOptions(
@@ -1648,7 +1648,7 @@ export class Query implements firestore.Query {
               '" is an uncommitted server timestamp. (Since the value of ' +
               'this field is unknown, you cannot start/end a query with it.)'
           );
-        } else if (value !== undefined) {
+        } else if (value !== null) {
           components.push(value);
         } else {
           const field = orderBy.field.canonicalString();
