@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import '../testing/setup';
-import { generateFid, VALID_FID } from './generate-fid';
+import { generateFid, VALID_FID_PATTERN } from './generate-fid';
 
 /** A few random values to generate a FID from. */
 // prettier-ignore
@@ -75,7 +75,10 @@ describe('generateFid', () => {
   it('generates valid FIDs', () => {
     for (let i = 0; i < 1000; i++) {
       const fid = generateFid();
-      expect(VALID_FID.test(fid)).to.equal(true, `${fid} is not a valid FID`);
+      expect(VALID_FID_PATTERN.test(fid)).to.equal(
+        true,
+        `${fid} is not a valid FID`
+      );
     }
   });
 

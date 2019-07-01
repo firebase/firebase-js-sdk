@@ -26,7 +26,7 @@ import {
 import { PENDING_TIMEOUT_MS } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode, isServerError } from '../util/errors';
 import { sleep } from '../util/sleep';
-import { generateFid } from './generate-fid';
+import { generateFid, INVALID_FID } from './generate-fid';
 import { remove, set, update } from './idb-manager';
 
 export interface InstallationEntryWithRegistrationPromise {
@@ -56,7 +56,7 @@ export async function getInstallationEntry(
     }
   );
 
-  if (installationEntry.fid === '') {
+  if (installationEntry.fid === INVALID_FID) {
     // FID generation failed. Waiting for the FID from the server.
     return { installationEntry: await registrationPromise! };
   }

@@ -17,7 +17,8 @@
 
 import { bufferToBase64UrlSafe } from './buffer-to-base64-url-safe';
 
-export const VALID_FID = /^[cdef][\w-]{21}$/;
+export const VALID_FID_PATTERN = /^[cdef][\w-]{21}$/;
+export const INVALID_FID = '';
 
 /**
  * Generates a new FID using random values from Web Crypto API.
@@ -37,10 +38,10 @@ export function generateFid(): string {
 
     const fid = encode(fidByteArray);
 
-    return VALID_FID.test(fid) ? fid : '';
+    return VALID_FID_PATTERN.test(fid) ? fid : INVALID_FID;
   } catch {
     // FID generation errored
-    return '';
+    return INVALID_FID;
   }
 }
 

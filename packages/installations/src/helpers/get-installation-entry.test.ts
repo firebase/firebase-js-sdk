@@ -29,7 +29,7 @@ import { getFakeAppConfig } from '../testing/get-fake-app';
 import '../testing/setup';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
-import * as fidGenerator from './generate-fid';
+import * as generateFidModule from './generate-fid';
 import { getInstallationEntry } from './get-installation-entry';
 import { get, set } from './idb-manager';
 
@@ -180,9 +180,10 @@ describe('getInstallationEntry', () => {
     let generateInstallationEntrySpy: SinonStub<[], string>;
 
     beforeEach(() => {
-      generateInstallationEntrySpy = stub(fidGenerator, 'generateFid').returns(
-        FID
-      );
+      generateInstallationEntrySpy = stub(
+        generateFidModule,
+        'generateFid'
+      ).returns(FID);
     });
 
     it('returns a new pending InstallationEntry and triggers createInstallation', async () => {
@@ -263,7 +264,7 @@ describe('getInstallationEntry', () => {
       clock = useFakeTimers({ shouldAdvanceTime: true });
 
       // FID generation fails.
-      generateInstallationEntrySpy.returns('');
+      generateInstallationEntrySpy.returns(generateFidModule.INVALID_FID);
 
       const getInstallationEntryPromise = getInstallationEntry(appConfig);
 
