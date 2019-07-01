@@ -1,3 +1,6 @@
+node_modules
+dist
+
 /rxfire*.js
 /rxfire*.map
 /rxfire*.gz

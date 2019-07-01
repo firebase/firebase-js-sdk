@@ -44,7 +44,8 @@ export function getMetadata(ref: storage.Reference): Observable<any> {
 
 export function put(
   ref: storage.Reference,
-  data: unknown,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  data: any,
   metadata?: storage.UploadMetadata
 ): Observable<storage.UploadTaskSnapshot> {
   return fromTask(ref.put(data, metadata));

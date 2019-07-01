@@ -41,8 +41,8 @@ const rando = (): string =>
     .toString(36)
     .substring(5);
 
-let batch = (items: { name: string; key: string }[]): Readonly<{}> => {
-  let batch: { [key: string]: unknown } = {};
+const batch = (items: Array<{ name: string; key: string }>): Readonly<{[key: string]: unknown}> => {
+  const batch: { [key: string]: unknown } = {};
   items.forEach(item => {
     batch[item.key] = item;
   });
