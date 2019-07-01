@@ -30,7 +30,7 @@ import * as type from './type';
  *     modified after this blob's construction.
  */
 export class FbsBlob {
-  private data_: Blob | Uint8Array;
+  private data_!: Blob | Uint8Array;
   private size_: number;
   private type_: string;
 
