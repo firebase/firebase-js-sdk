@@ -308,7 +308,10 @@ describe('Firebase Storage > Service', () => {
           TaskEvent.STATE_CHANGED,
           null,
           (err: FirebaseStorageError | Error) => {
-            assert.equal((err as FirebaseStorageError).code, 'storage/app-deleted');
+            assert.equal(
+              (err as FirebaseStorageError).code,
+              'storage/app-deleted'
+            );
             resolve();
           },
           () => {

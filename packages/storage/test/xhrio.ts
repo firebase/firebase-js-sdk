@@ -75,7 +75,11 @@ export class TestingXhrIo implements XhrIo {
     return this.sendPromise;
   }
 
-  simulateResponse(status: number, body: string, headers: { [key: string]: string }): void {
+  simulateResponse(
+    status: number,
+    body: string,
+    headers: { [key: string]: string }
+  ): void {
     if (this.state !== State.SENT) {
       throw new Error("Can't simulate response before send/more than once");
     }

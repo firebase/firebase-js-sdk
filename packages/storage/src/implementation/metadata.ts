@@ -134,7 +134,10 @@ export function fromResource(
   const len = mappings.length;
   for (let i = 0; i < len; i++) {
     const mapping = mappings[i];
-    metadata[mapping.local] = (mapping as Mapping<unknown>).xform(metadata, resource[mapping.server]);
+    metadata[mapping.local] = (mapping as Mapping<unknown>).xform(
+      metadata,
+      resource[mapping.server]
+    );
   }
   addRef(metadata, authWrapper);
   return metadata;
