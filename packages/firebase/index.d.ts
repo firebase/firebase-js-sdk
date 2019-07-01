@@ -1538,7 +1538,7 @@ declare namespace firebase.auth {
      */
     languageCode: string | null;
     /**
-     * The email action type of the email action link. It returns from one
+     * The action performed by the email action link. It returns from one
      * of the types from {@link firebase.auth.ActionCodeInfo}.
      */
     operation: firebase.auth.ActionCodeInfo.Operation;
@@ -2672,9 +2672,9 @@ declare namespace firebase.auth {
     signOut(): Promise<void>;
     /**
      * The current Auth instance's tenant ID. This is a readable/writable
-     * property. When set the enant ID on a Auth instance, all future
-     * sign-in/sign-up operations will pass this tenant ID and sign in
-     * or sign up users to the specified project as identified by the tenant.
+     * property. When you set the tenant ID of an Auth instance, all future
+     * sign-in/sign-up operations will pass this tenant ID and sign in or
+     * sign up users to the specified tenant project.
      * When set to null, users are signed in to the parent project. By default,
      * this is set to null.
      *
@@ -3739,11 +3739,11 @@ declare namespace firebase.auth.ActionCodeInfo {
    */
   var Operation: {
     /**
-     * The email link sign in email action.
+     * The email link sign-in action.
      */
     EMAIL_SIGNIN: Operation;
     /**
-     * The reset password email action.
+     * The password reset action.
      */
     PASSWORD_RESET: Operation;
     /**
