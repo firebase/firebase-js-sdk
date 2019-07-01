@@ -19,8 +19,7 @@ import { RepoInfo } from '../core/RepoInfo';
 
 declare const MozWebSocket: any;
 
-import firebase from '@firebase/app';
-import { assert } from '@firebase/util';
+import { assert, CONSTANTS as ENV_CONSTANTS } from '@firebase/util';
 import { logWrapper, splitStringBySize } from '../core/util/util';
 import { StatsManager } from '../core/stats/StatsManager';
 import {
@@ -33,12 +32,12 @@ import {
   VERSION_PARAM,
   WEBSOCKET
 } from './Constants';
-import { CONSTANTS as ENV_CONSTANTS } from '@firebase/util';
 import { PersistentStorage } from '../core/storage/storage';
 import { jsonEval, stringify } from '@firebase/util';
 import { isNodeSdk } from '@firebase/util';
 import { Transport } from './Transport';
 import { StatsCollection } from '../core/stats/StatsCollection';
+import { SDK_VERSION } from '../core/version';
 
 const WEBSOCKET_MAX_FRAME_SIZE = 16384;
 const WEBSOCKET_KEEPALIVE_INTERVAL = 45000;
@@ -150,9 +149,9 @@ export class WebSocketConnection implements Transport {
         // UA Format: Firebase/<wire_protocol>/<sdk_version>/<platform>/<device>
         const options: { [k: string]: object } = {
           headers: {
-            'User-Agent': `Firebase/${PROTOCOL_VERSION}/${
-              firebase.SDK_VERSION
-            }/${process.platform}/${device}`
+            'User-Agent': `Firebase/${PROTOCOL_VERSION}/${SDK_VERSION}/${
+              process.platform
+            }/${device}`
           }
         };
 
