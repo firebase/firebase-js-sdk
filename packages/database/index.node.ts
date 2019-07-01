@@ -28,7 +28,7 @@ import * as TEST_ACCESS from './src/api/test_access';
 import './src/nodePatches';
 import * as types from '@firebase/database-types';
 import { setSDKVersion } from './src/core/version';
-import { CONSTANTS } from '@firebase/util';
+import { CONSTANTS, isNodeSdk } from '@firebase/util';
 
 const ServerValue = Database.ServerValue;
 
@@ -68,7 +68,7 @@ export function registerDatabase(instance: FirebaseNamespace) {
   setSDKVersion(instance.SDK_VERSION);
 
   // Register the Database Service with the 'firebase' namespace.
-  (instance as _FirebaseNamespace).INTERNAL.registerService(
+  const namespace = (instance as _FirebaseNamespace).INTERNAL.registerService(
     'database',
     (app, unused, url) => RepoManager.getInstance().databaseFromApp(app, url),
     // firebase.database namespace properties
@@ -85,6 +85,10 @@ export function registerDatabase(instance: FirebaseNamespace) {
     null,
     true
   );
+
+  if (isNodeSdk()) {
+    module.exports = Object.assign({}, namespace, { initStandalone });
+  }
 }
 
 try {
