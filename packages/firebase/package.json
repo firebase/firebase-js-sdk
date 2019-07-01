@@ -43,7 +43,7 @@
     "@firebase/database": "0.4.6",
     "@firebase/firestore": "1.4.2",
     "@firebase/functions": "0.4.10",
-    "@firebase/installations": "0.1.7",
+    "@firebase/installations": "0.2.0",
     "@firebase/messaging": "0.4.3",
     "@firebase/polyfill": "0.3.14",
     "@firebase/storage": "0.3.4",
