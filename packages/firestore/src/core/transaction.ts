@@ -67,13 +67,13 @@ export class Transaction {
   lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
     if (this.committed) {
       throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
+        Code.INVALID_ARGUMENT,
         'Transaction has already completed.'
       );
     }
     if (this.mutations.length > 0) {
       throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
+        Code.INVALID_ARGUMENT,
         'Firestore transactions require all reads to be executed before all writes.'
       );
     }
@@ -92,7 +92,7 @@ export class Transaction {
   private write(mutations: Mutation[]): void {
     if (this.committed) {
       throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
+        Code.INVALID_ARGUMENT,
         'Transaction has already completed.'
       );
     }
@@ -153,7 +153,7 @@ export class Transaction {
     });
     if (!unwritten.isEmpty()) {
       throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
+        Code.INVALID_ARGUMENT,
         'Every document read in a transaction must also be written.'
       );
     }

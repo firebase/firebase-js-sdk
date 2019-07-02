@@ -464,7 +464,10 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         })
         .catch((err: firestore.FirestoreError) => {
           expect(err).to.exist;
-          expect(err.code).to.equal('failed-precondition');
+          expect(err.code).to.equal('invalid-argument');
+          expect(err.message).to.contain(
+            'Firestore transactions require all reads to be executed'
+          );
         });
     });
   });
@@ -521,7 +524,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           .then(() => expect.fail('transaction should fail'))
           .catch((err: firestore.FirestoreError) => {
             expect(err).to.exist;
-            expect(err.code).to.equal('failed-precondition');
+            expect(err.code).to.equal('invalid-argument');
             expect(err.message).to.contain(
               'Every document read in a transaction must also be ' + 'written'
             );
