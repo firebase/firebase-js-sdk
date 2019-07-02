@@ -105,6 +105,24 @@ describe('createInstallation', () => {
     });
   });
 
+  it('returns the FID from the request if the response does not contain one', async () => {
+    response = {
+      refreshToken: 'refreshToken',
+      authToken: {
+        token:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+        expiresIn: '604800s'
+      }
+    };
+    fetchSpy.resolves(new Response(JSON.stringify(response)));
+
+    const registeredInstallationEntry = await createInstallation(
+      appConfig,
+      inProgressInstallationEntry
+    );
+    expect(registeredInstallationEntry.fid).to.equal(FID);
+  });
+
   describe('failed request', () => {
     it('throws a FirebaseError with the error information from the server', async () => {
       const errorResponse: ErrorResponse = {
