@@ -71,9 +71,10 @@
     "webpack": "4.30.0",
     "yargs": "13.2.2",
     "eslint": "5.16.0",
-    "@typescript-eslint/parser": "1.9.0",
-    "@typescript-eslint/eslint-plugin": "1.9.0",
-    "@typescript-eslint/eslint-plugin-tslint": "1.9.0"
+    "@typescript-eslint/parser": "1.10.2",
+    "@typescript-eslint/eslint-plugin": "1.10.2",
+    "@typescript-eslint/eslint-plugin-tslint": "1.10.2",
+    "eslint-plugin-import": "2.17.3"
   },
   "typings": "dist/index.d.ts",
   "files": [
