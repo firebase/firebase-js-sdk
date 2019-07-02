@@ -606,7 +606,10 @@ export class ObjectValue extends FieldValue {
     return field;
   }
 
-  /** Recursively extracts the FieldPaths that are set in this ObjectValue. */
+  /**
+   * Returns a FieldMask built from all FieldPaths starting from this ObjectValue,
+   * including paths from nested objects.
+   */
   fieldMask(): FieldMask {
     let fields = new SortedSet<FieldPath>(FieldPath.comparator);
     this.internalValue.forEach((key, value) => {

@@ -48,9 +48,10 @@ export interface TransformOperation {
   ): FieldValue;
 
   /**
-   * If applicable, returns the base value to persist for this transform. If a
-   * base value is provided, the transform operation is always applied to this
-   * base value, even if document has already been updated.
+   * If this transform operation is not idempotent, returns the base value to
+   * persist for this transform. If a base value is returned, the transform
+   * operation is always applied to this base value, even if document has
+   * already been updated.
    *
    * Base values provide consistent behavior for non-idempotent transforms and
    * allow us to return the same latency-compensated value even if the backend

@@ -277,9 +277,9 @@ export abstract class Mutation {
   ): MaybeDocument | null;
 
   /**
-   * If applicable, returns the base value to persist with this mutation. If a
-   * base value is provided, the mutation is always applied to this base value,
-   * even if document has already beenupdated.
+   * If this mutation is not idempotent, returns the base value to persist with
+   * this mutation. If a base value is returned, the mutation is always applied
+   * to this base value, even if document has already been updated.
    *
    * The base value is a sparse object that consists of only the document
    * fields for which this mutation contains a non-idempotent transformation
