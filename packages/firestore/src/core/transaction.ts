@@ -66,13 +66,15 @@ export class Transaction {
 
   lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
     if (this.committed) {
-      return Promise.reject<MaybeDocument[]>(
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
         'Transaction has already completed.'
       );
     }
     if (this.mutations.length > 0) {
-      return Promise.reject<MaybeDocument[]>(
-        'Transactions lookups are invalid after writes.'
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'Firestore transactions require all reads to be executed before all writes.'
       );
     }
     return this.datastore.lookup(keys).then(docs => {
@@ -115,14 +117,7 @@ export class Transaction {
    */
   private preconditionForUpdate(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key);
-    if (version && version.isEqual(SnapshotVersion.forDeletedDoc())) {
-      // The document doesn't exist, so fail the transaction.
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        "Can't update a document that doesn't exist."
-      );
-    } else if (version) {
-      // Document exists, base precondition on document update time.
+    if (version && !version.isEqual(SnapshotVersion.forDeletedDoc())) {
       return Precondition.updateTime(version);
     } else {
       // Document was not read, so we just use the preconditions for a blind
@@ -156,8 +151,9 @@ export class Transaction {
       unwritten = unwritten.remove(mutation.key);
     });
     if (!unwritten.isEmpty()) {
-      return Promise.reject(
-        Error('Every document read in a transaction must also be written.')
+      throw new FirestoreError(
+        Code.FAILED_PRECONDITION,
+        'Every document read in a transaction must also be written.'
       );
     }
     return this.datastore.commit(this.mutations).then(() => {
