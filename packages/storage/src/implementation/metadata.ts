@@ -69,7 +69,7 @@ export function getMappings(): Mappings {
   if (mappings_) {
     return mappings_;
   }
-  const mappings: Array<Mapping<string> | Mapping<number>> = [];
+  const mappings: Mappings = [];
   mappings.push(new Mapping<string>('bucket'));
   mappings.push(new Mapping<string>('generation'));
   mappings.push(new Mapping<string>('metageneration'));
