@@ -118,6 +118,7 @@ export class Transaction {
   private preconditionForUpdate(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key);
     if (version && !version.isEqual(SnapshotVersion.forDeletedDoc())) {
+      // Document exists, just base precondition on document update time.
       return Precondition.updateTime(version);
     } else {
       // Document was not read, so we just use the preconditions for a blind
