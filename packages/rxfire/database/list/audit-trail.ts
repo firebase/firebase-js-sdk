@@ -32,7 +32,7 @@ export function auditTrail(
   events?: ListenEvent[]
 ): Observable<QueryChange[]> {
   const auditTrail$ = stateChanges(query, events).pipe(
-    scan<QueryChange>((current, changes) => [...current, changes], [])
+    scan<QueryChange, QueryChange[]>((current, changes) => [...current, changes], [])
   );
   return waitForLoaded(query, auditTrail$);
 }
