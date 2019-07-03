@@ -71,7 +71,7 @@ describe('Performance Monitoring > remote_config_service', () => {
   beforeEach(() => {
     fetchStub = stub(self, 'fetch');
     // we need to stub the entire localStorage, because storage can't be stubbed in Firefox and IE.
-    // stubbing on self(window) seems to only work the first time (at least in Firefox), the subsequent 
+    // stubbing on self(window) seems to only work the first time (at least in Firefox), the subsequent
     // tests will have the same stub. stub.reset() in afterEach doesn't help either. As a result, we stub on ApiInstance
     // https://github.com/sinonjs/sinon/issues/662
     storageStub = stub(ApiInstance, 'localStorage');
@@ -122,11 +122,10 @@ describe('Performance Monitoring > remote_config_service', () => {
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895330';
 
       storageStub.value({
-        getItem:
-          storageGetItemFakeFactory(
-            EXPIRY_LOCAL_STORAGE_VALUE,
-            STRINGIFIED_CONFIG
-          )
+        getItem: storageGetItemFakeFactory(
+          EXPIRY_LOCAL_STORAGE_VALUE,
+          STRINGIFIED_CONFIG
+        )
       });
 
       await getConfig(IID);
@@ -168,11 +167,10 @@ describe('Performance Monitoring > remote_config_service', () => {
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
 
       storageStub.value({
-        getItem: 
-          storageGetItemFakeFactory(
-            EXPIRY_LOCAL_STORAGE_VALUE,
-            'not a valid config and should not be used'
-          ),
+        getItem: storageGetItemFakeFactory(
+          EXPIRY_LOCAL_STORAGE_VALUE,
+          'not a valid config and should not be used'
+        ),
         setItem: () => {}
       });
 
@@ -186,11 +184,10 @@ describe('Performance Monitoring > remote_config_service', () => {
       // Expired local config.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
       storageStub.value({
-        getItem: 
-          storageGetItemFakeFactory(
-            EXPIRY_LOCAL_STORAGE_VALUE,
-            'not a valid config and should not be used'
-          ),
+        getItem: storageGetItemFakeFactory(
+          EXPIRY_LOCAL_STORAGE_VALUE,
+          'not a valid config and should not be used'
+        ),
         setItem: () => {}
       });
       const STRINGIFIED_PARTIAL_CONFIG = `{"entries":{\
@@ -207,11 +204,10 @@ describe('Performance Monitoring > remote_config_service', () => {
       // Expired local config.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
       storageStub.value({
-        getItem: 
-          storageGetItemFakeFactory(
-            EXPIRY_LOCAL_STORAGE_VALUE,
-            'not a valid config and should not be used'
-          ),
+        getItem: storageGetItemFakeFactory(
+          EXPIRY_LOCAL_STORAGE_VALUE,
+          'not a valid config and should not be used'
+        ),
         setItem: () => {}
       });
       const STRINGIFIED_PARTIAL_CONFIG = '{"state":"NO TEMPLATE"}';
