@@ -676,7 +676,7 @@ export class PersistentWriteStream extends PersistentStream<
    *
    * PersistentWriteStream manages propagating this value from responses to the
    * next request.
-   * 
+   *
    * This is never null checked but it is zero-length-checked.
    */
   lastStreamToken: ProtoByteString = '';
