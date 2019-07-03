@@ -119,7 +119,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .then(() => expect.fail('transaction should fail'))
         .catch((err: firestore.FirestoreError) => {
           expect(err).to.exist;
-          expect(err.code).to.equal('not-found');
+          expect(err.code).to.equal('invalid-argument');
         });
     });
   });
@@ -471,6 +471,41 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         });
     });
   });
+
+  it(
+    'cannot read non-existent document then update, even if ' +
+      'document is written after the read',
+    () => {
+      return integrationHelpers.withTestDb(persistence, db => {
+        const doc = db.collection('towns').doc();
+        return db
+          .runTransaction(transaction => {
+            // Get the doc once.
+            return (
+              transaction
+                .get(doc)
+                // Do a write outside of the transaction.
+                .then(() => doc.set({ count: 1234 }))
+                // Now try to update the doc from within the transaction. This
+                // should fail, because the document didn't exist at the start
+                // of the transaction.
+                .then(() => transaction.update(doc, { count: 16 }))
+            );
+          })
+          .then(() => expect.fail('transaction should fail'))
+          .catch(err => {
+            expect(err).to.exist;
+            expect((err as firestore.FirestoreError).code).to.equal(
+              'invalid-argument'
+            );
+          })
+          .then(() => doc.get())
+          .then(snapshot => {
+            expect(snapshot.data()!['count']).to.equal(1234);
+          });
+      });
+    }
+  );
 
   describe('must return a promise:', () => {
     const noop = (): void => {

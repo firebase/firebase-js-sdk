@@ -117,7 +117,13 @@ export class Transaction {
    */
   private preconditionForUpdate(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key);
-    if (version && !version.isEqual(SnapshotVersion.forDeletedDoc())) {
+    if (version && version.isEqual(SnapshotVersion.forDeletedDoc())) {
+      // The document doesn't exist, so fail the transaction.
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        "Can't update a document that doesn't exist."
+      );
+    } else if (version) {
       // Document exists, just base precondition on document update time.
       return Precondition.updateTime(version);
     } else {
