@@ -24,9 +24,10 @@ export const DOCUMENT_KEY_NAME = '__name__';
  * Path represents an ordered sequence of string segments.
  */
 abstract class Path {
-  private segments: string[];
-  private offset: number;
-  private len: number;
+  // These are definitely set in init().
+  private segments!: string[];
+  private offset!: number;
+  private len!: number;
 
   constructor(segments: string[], offset?: number, length?: number) {
     this.init(segments, offset, length);

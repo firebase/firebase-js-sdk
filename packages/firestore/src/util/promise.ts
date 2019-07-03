@@ -29,8 +29,10 @@ export interface CancelablePromise<T> extends Promise<T> {
 
 export class Deferred<R> {
   promise: Promise<R>;
-  resolve: Resolver<R>;
-  reject: Rejecter;
+  // These are assigned in the constructor, but Typescript does not recognize
+  // it because it is async.
+  resolve!: Resolver<R>;
+  reject!: Rejecter;
 
   constructor() {
     this.promise = new Promise((resolve: Resolver<R>, reject: Rejecter) => {

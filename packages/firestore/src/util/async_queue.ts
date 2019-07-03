@@ -193,7 +193,7 @@ export class AsyncQueue {
   private delayedOperations: Array<DelayedOperation<unknown>> = [];
 
   // visible for testing
-  failure: Error;
+  failure?: Error;
 
   // Flag set while there's an outstanding AsyncQueue operation, used for
   // assertion sanity-checks.
@@ -279,7 +279,7 @@ export class AsyncQueue {
     );
     this.delayedOperations.push(delayedOp);
 
-    return delayedOp;
+    return delayedOp as DelayedOperation<T>;
   }
 
   private verifyNotFailed(): void {

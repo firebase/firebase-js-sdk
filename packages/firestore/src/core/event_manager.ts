@@ -28,8 +28,8 @@ import { DocumentViewChange, ChangeType, ViewSnapshot } from './view_snapshot';
  * tracked by EventManager.
  */
 class QueryListenersInfo {
-  viewSnap: ViewSnapshot | null;
-  targetId: TargetId;
+  viewSnap: ViewSnapshot | null = null;
+  targetId?: TargetId;
   listeners: QueryListener[] = [];
 }
 
@@ -81,7 +81,7 @@ export class EventManager implements SyncEngineListener {
         return targetId;
       });
     } else {
-      return Promise.resolve(queryInfo.targetId);
+      return Promise.resolve(queryInfo.targetId!);
     }
   }
 
@@ -166,7 +166,7 @@ export class QueryListener {
 
   private options: ListenOptions;
 
-  private snap: ViewSnapshot;
+  private snap?: ViewSnapshot;
 
   private onlineState: OnlineState = OnlineState.Unknown;
 

@@ -77,11 +77,12 @@ export interface ActiveTargetMap {
  * the tests.
  */
 export class ClientMemoryState {
-  activeTargets: ActiveTargetMap;
-  queryMapping: QueryMap;
-  limboMapping: LimboMap;
+  // These values are set by reset() which is called in the constructor.
+  activeTargets!: ActiveTargetMap;
+  queryMapping!: QueryMap;
+  limboMapping!: LimboMap;
 
-  limboIdGenerator: TargetIdGenerator;
+  limboIdGenerator!: TargetIdGenerator;
 
   constructor() {
     this.reset();

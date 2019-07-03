@@ -93,7 +93,9 @@ export function isRunningAgainstEmulator(): boolean {
  * persistence both disabled and enabled (if the browser is supported).
  */
 export const apiDescribe = apiDescribeInternal.bind(null, describe);
+// @ts-ignore Patching a prototypal function.
 apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
+// @ts-ignore Patching a prototypal function.
 apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
 
 function apiDescribeInternal(

@@ -259,9 +259,10 @@ export class Precondition {
  * to some source document.
  */
 export abstract class Mutation {
-  readonly type: MutationType;
-  readonly key: DocumentKey;
-  readonly precondition: Precondition;
+  readonly type?: MutationType;
+  // All classes extending this class assign key in the constructor.
+  readonly key!: DocumentKey;
+  readonly precondition?: Precondition;
 
   /**
    * Applies this mutation to the given MaybeDocument or null for the purposes

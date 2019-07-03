@@ -217,7 +217,7 @@ const REGULAR_GC_DELAY_MS = 5 * 60 * 1000;
  * whether or not GC is enabled, as well as which delay to use before the next run.
  */
 export class LruScheduler {
-  private hasRun: boolean;
+  private hasRun: boolean = false;
   private gcTask: CancelablePromise<void> | null;
 
   constructor(

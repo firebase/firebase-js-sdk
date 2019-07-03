@@ -526,11 +526,15 @@ export class LLRBNode<K, V> {
 
 // Represents an empty node (a leaf node in the Red-Black Tree).
 export class LLRBEmptyNode<K, V> {
-  key: K;
-  value: V;
-  color: boolean;
-  left: LLRBNode<K, V>;
-  right: LLRBNode<K, V>;
+  // These values actually can be and are undefined but the isEmpty() check
+  // in each SortedMap function will bail out before they are called.
+  // Typing them as possibly null or undefined causes many errors because
+  // we do not null check every property.
+  key!: K;
+  value!: V;
+  color!: boolean;
+  left!: LLRBNode<K, V>;
+  right!: LLRBNode<K, V>;
   size = 0;
 
   // Returns a copy of the current node.

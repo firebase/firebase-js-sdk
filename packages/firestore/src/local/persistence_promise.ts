@@ -231,7 +231,7 @@ export class PersistencePromise<T> {
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
     collection.forEach((r, s) => {
-      promises.push(f.call(this, r, s));
+      promises.push(f.call(this, r, s as S));
     });
     return this.waitFor(promises);
   }

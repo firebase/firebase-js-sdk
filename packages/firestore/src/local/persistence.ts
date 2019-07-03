@@ -36,7 +36,8 @@ import { ClientId } from './shared_client_state';
  * on persistence.
  */
 export abstract class PersistenceTransaction {
-  readonly currentSequenceNumber: ListenSequenceNumber;
+  // Classes that extend/implement this class always assign this in the constructor.
+  readonly currentSequenceNumber!: ListenSequenceNumber;
 }
 
 /**

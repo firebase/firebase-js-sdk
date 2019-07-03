@@ -31,7 +31,7 @@ function runTest(port: number, projectId: string): ChildProcessPromise {
       FIRESTORE_EMULATOR_PORT: port,
       FIRESTORE_EMULATOR_PROJECT_ID: projectId
     }),
-    stdio: 'inherit'
+    stdio: ['inherit', process.stdout, process.stderr]
   };
   // TODO(b/113267261): Include browser test once WebChannel support is
   // ready in Firestore emulator.

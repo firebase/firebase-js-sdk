@@ -119,7 +119,7 @@ export type FieldType = null | boolean | number | string | {};
  * A field value represents a datatype as stored by Firestore.
  */
 export abstract class FieldValue {
-  readonly typeOrder: TypeOrder;
+  readonly typeOrder?: TypeOrder;
 
   abstract value(options?: FieldValueOptions): FieldType;
   abstract isEqual(other: FieldValue): boolean;

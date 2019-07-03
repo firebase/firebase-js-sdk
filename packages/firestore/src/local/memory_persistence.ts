@@ -207,8 +207,9 @@ export class MemoryTransaction implements PersistenceTransaction {
 }
 
 export class MemoryEagerDelegate implements ReferenceDelegate {
-  private inMemoryPins: ReferenceSet | null;
-  private orphanedDocuments: Set<DocumentKey>;
+  private inMemoryPins: ReferenceSet | null = null;
+  // Will be set by onTransactionStarted().
+  private orphanedDocuments!: Set<DocumentKey>;
 
   constructor(private readonly persistence: MemoryPersistence) {}
 
@@ -308,7 +309,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
 }
 
 export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
-  private inMemoryPins: ReferenceSet | null;
+  private inMemoryPins: ReferenceSet | null = null;
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber

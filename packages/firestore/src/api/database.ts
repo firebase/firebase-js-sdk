@@ -283,12 +283,12 @@ class FirestoreSettings {
 }
 
 class FirestoreConfig {
-  databaseId: DatabaseId;
-  persistenceKey: string;
-  credentials: CredentialsProvider;
-  firebaseApp: FirebaseApp;
-  settings: FirestoreSettings;
-  persistence: boolean;
+  databaseId!: DatabaseId;
+  persistenceKey!: string;
+  credentials!: CredentialsProvider;
+  firebaseApp?: FirebaseApp;
+  settings!: FirestoreSettings;
+  persistence?: boolean;
 }
 
 /**
@@ -313,7 +313,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // TODO(mikelehen): Use modularized initialization instead.
   readonly _queue = new AsyncQueue();
 
-  _dataConverter: UserDataConverter;
+  _dataConverter!: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
     const config = new FirestoreConfig();

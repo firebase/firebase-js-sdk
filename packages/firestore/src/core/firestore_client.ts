@@ -96,21 +96,20 @@ export class FirestoreClient {
   // NOTE: These should technically have '|undefined' in the types, since
   // they're initialized asynchronously rather than in the constructor, but
   // given that all work is done on the async queue and we assert that
-  // initialization completes before any other work is queued, we're cheating
-  // with the types rather than littering the code with '!' or unnecessary
-  // undefined checks.
-  private eventMgr: EventManager;
-  private persistence: Persistence;
-  private localStore: LocalStore;
-  private remoteStore: RemoteStore;
-  private syncEngine: SyncEngine;
+  // initialization completes before any other work is queued, we use !
+  // to guarantee these will be initialized when called.
+  private eventMgr!: EventManager;
+  private persistence!: Persistence;
+  private localStore!: LocalStore;
+  private remoteStore!: RemoteStore;
+  private syncEngine!: SyncEngine;
   private lruScheduler?: LruScheduler;
 
   private readonly clientId = AutoId.newId();
   private _clientShutdown = false;
 
   // PORTING NOTE: SharedClientState is only used for multi-tab web.
-  private sharedClientState: SharedClientState;
+  private sharedClientState!: SharedClientState;
 
   constructor(
     private platform: Platform,

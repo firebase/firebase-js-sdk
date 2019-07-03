@@ -169,7 +169,8 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /** SyncEngine to notify of watch and write events. */
-  syncEngine: RemoteSyncer;
+  // Will be initialized during FirestoreClient initialization.
+  syncEngine!: RemoteSyncer;
 
   /**
    * Starts up the remote store, creating streams, restoring state from

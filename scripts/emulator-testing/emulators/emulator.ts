@@ -29,11 +29,14 @@ export interface ChildProcessPromise extends Promise<void> {
 }
 
 export abstract class Emulator {
-  binaryName: string;
-  binaryUrl: string;
-  binaryPath: string;
+  // Always set in constructor of extended classes.
+  binaryName!: string;
+  binaryUrl!: string;
+  // Set in download() which is always called.
+  binaryPath!: string;
 
-  emulator: ChildProcess;
+  // Set in setUp() which is always called.
+  emulator!: ChildProcess;
   port: number;
 
   constructor(port: number) {
@@ -76,7 +79,7 @@ export abstract class Emulator {
         ['-jar', path.basename(this.binaryPath), '--port', this.port],
         {
           cwd: path.dirname(this.binaryPath),
-          stdio: 'inherit'
+          stdio: ['inherit', process.stdout, process.stderr]
         }
       );
       promise.catch(reject);
