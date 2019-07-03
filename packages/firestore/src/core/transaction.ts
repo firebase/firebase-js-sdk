@@ -124,7 +124,7 @@ export class Transaction {
         "Can't update a document that doesn't exist."
       );
     } else if (version) {
-      // Document exists, just base precondition on document update time.
+      // Document exists, base precondition on document update time.
       return Precondition.updateTime(version);
     } else {
       // Document was not read, so we just use the preconditions for a blind

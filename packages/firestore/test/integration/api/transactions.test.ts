@@ -20,6 +20,7 @@ import { expect } from 'chai';
 import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
+import { fail } from '../../../src/util/assert';
 
 const apiDescribe = integrationHelpers.apiDescribe;
 
@@ -441,7 +442,6 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .then(() => expect.fail('transaction should fail'))
         .catch(err => {
           expect(err).to.exist;
-          // This is the error surfaced by the backend.
           expect((err as firestore.FirestoreError).code).to.equal('aborted');
         })
         .then(() => doc.get())
@@ -478,8 +478,10 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     () => {
       return integrationHelpers.withTestDb(persistence, db => {
         const doc = db.collection('towns').doc();
+        let counter = 0;
         return db
           .runTransaction(transaction => {
+            counter += 1;
             // Get the doc once.
             return (
               transaction
@@ -490,6 +492,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
                 // should fail, because the document didn't exist at the start
                 // of the transaction.
                 .then(() => transaction.update(doc, { count: 16 }))
+                .then(() => fail('transaction.update should fail'))
             );
           })
           .then(() => expect.fail('transaction should fail'))
@@ -498,10 +501,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
             expect((err as firestore.FirestoreError).code).to.equal(
               'invalid-argument'
             );
-          })
-          .then(() => doc.get())
-          .then(snapshot => {
-            expect(snapshot.data()!['count']).to.equal(1234);
+            // The transaction should not be retried after the initial failure.
+            expect(counter).to.equal(1);
           });
       });
     }
