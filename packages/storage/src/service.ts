@@ -90,6 +90,9 @@ export class Service {
    */
   refFromURL(url: string): Reference {
     function validator(p: unknown): void {
+      if (typeof p !== 'string') {
+        throw 'Path is not a string.';
+      }
       if (!/^[A-Za-z]+:\/\//.test(p as string)) {
         throw 'Expected full URL but got a child path, use ref instead.';
       }
