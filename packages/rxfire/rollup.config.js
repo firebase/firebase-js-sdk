@@ -39,9 +39,6 @@ const pkgsByName = {
 
 const plugins = [
   resolveModule(),
-  typescriptPlugin({
-    typescript
-  }),
   commonjs()
 ];
 
@@ -71,7 +68,12 @@ const componentBuilds = components
             sourcemap: true
           }
         ],
-        plugins,
+        plugins: [
+          ...plugins,
+          typescriptPlugin({
+            typescript
+          })
+        ],
         external
       },
       {
@@ -88,7 +90,17 @@ const componentBuilds = components
             'rxjs/operators': 'rxjs.operators'
           }
         },
-        plugins: [...plugins, uglify()],
+        plugins: [
+          ...plugins,
+          typescriptPlugin({
+            typescript,
+            tsconfigOverride: {
+              compilerOptions: {
+                declaration: false
+              }
+            }
+          }),
+          uglify()],
         external
       }
     ];
