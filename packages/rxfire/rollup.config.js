@@ -37,10 +37,7 @@ const pkgsByName = {
   database: databasePkg
 };
 
-const plugins = [
-  resolveModule(),
-  commonjs()
-];
+const plugins = [resolveModule(), commonjs()];
 
 const external = [...Object.keys(pkg.peerDependencies || {}), 'rxjs/operators'];
 
@@ -100,7 +97,8 @@ const componentBuilds = components
               }
             }
           }),
-          uglify()],
+          uglify()
+        ],
         external
       }
     ];
