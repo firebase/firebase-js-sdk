@@ -1,21 +1,7 @@
+node_modules
+dist
+
 /rxfire*.js
 /rxfire*.map
 /rxfire*.gz
 /rxfire*.tgz
-
-# generated declaration files
-# declaration files currently break testing builds
-auth/index.d.ts
-firestore/collection/index.d.ts
-firestore/document/index.d.ts
-firestore/fromRef.d.ts
-firestore/index.d.ts
-database/fromRef.d.ts
-database/interfaces.d.ts
-database/utils.d.ts
-database/list/audit-trail.d.ts
-functions/index.d.ts
-index.d.ts
-storage/index.d.ts
-test/index.d.ts
-test/firestore.test.d.ts

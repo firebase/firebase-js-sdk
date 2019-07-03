@@ -17,7 +17,7 @@
 
 import { database } from 'firebase';
 import { Observable } from 'rxjs';
-import { map, delay, share } from 'rxjs/operators';
+import { delay } from 'rxjs/operators';
 import { ListenEvent, QueryChange } from './interfaces';
 
 /**

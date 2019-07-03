@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+// auth is used as a namespace to access types
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { auth, User } from 'firebase';
 import { Observable, from, of } from 'rxjs';
 import { switchMap } from 'rxjs/operators';

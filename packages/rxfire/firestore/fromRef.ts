@@ -18,6 +18,7 @@
 import { firestore } from 'firebase/app';
 import { Observable } from 'rxjs';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function _fromRef(ref: any): Observable<any> {
   return new Observable(subscriber => {
     const unsubscribe = ref.onSnapshot(subscriber);
@@ -25,18 +26,20 @@ function _fromRef(ref: any): Observable<any> {
   });
 }
 
-export function fromRef(ref: firestore.DocumentReference | firestore.Query) {
+export function fromRef(
+  ref: firestore.DocumentReference | firestore.Query
+): Observable<{}> {
   return _fromRef(ref);
 }
 
 export function fromDocRef(
   ref: firestore.DocumentReference
 ): Observable<firestore.DocumentSnapshot> {
-  return fromRef(ref);
+  return fromRef(ref) as Observable<firestore.DocumentSnapshot>;
 }
 
 export function fromCollectionRef(
   ref: firestore.Query
 ): Observable<firestore.QuerySnapshot> {
-  return fromRef(ref);
+  return fromRef(ref) as Observable<firestore.QuerySnapshot>;
 }
