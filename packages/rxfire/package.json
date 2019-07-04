@@ -34,7 +34,7 @@
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "peerDependencies": {
-    "firebase": "5.x.x",
+    "firebase": "6.x.x",
     "rxjs": "6.x.x"
   },
   "devDependencies": {
