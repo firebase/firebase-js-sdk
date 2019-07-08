@@ -50,8 +50,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
               //   expect(snapshot.data()['owner']).to.equal('Jonny');
               // });
               .then(() => expect.fail('transaction should fail'))
-              .catch(err => {
+              .catch((err: firestore.FirestoreError) => {
                 expect(err).to.exist;
+                expect(err.code).to.equal('invalid-argument');
                 expect(err.message).to.contain(
                   'Every document read in a transaction must also be' +
                     ' written'
@@ -476,29 +477,25 @@ apiDescribe('Database transactions', (persistence: boolean) => {
       'document is written after the read',
     () => {
       return integrationHelpers.withTestDb(persistence, db => {
-        let counter = 0;
         return db
           .runTransaction(transaction => {
-            counter += 1;
-            const doc = db.collection('nonexistent' + counter).doc();
+            const doc = db.collection('nonexistent').doc();
             return (
               transaction
                 // Get and update a document that doesn't exist so that the transaction fails.
                 .get(doc)
                 // Do a write outside of the transaction.
-                .then(() => doc.set({ count: counter }))
+                .then(() => doc.set({ count: 1234 }))
                 // Now try to update the doc from within the transaction. This
                 // should fail, because the document didn't exist at the start
                 // of the transaction.
-                .then(() => transaction.update(doc, { count: 1234 }))
+                .then(() => transaction.update(doc, { count: 16 }))
             );
           })
           .then(() => expect.fail('transaction should fail'))
-          .catch(err => {
+          .catch((err: firestore.FirestoreError) => {
             expect(err).to.exist;
-            expect((err as firestore.FirestoreError).code).to.equal(
-              'invalid-argument'
-            );
+            expect(err.code).to.equal('invalid-argument');
             expect(err.message).to.contain(
               "Can't update a document that doesn't exist."
             );

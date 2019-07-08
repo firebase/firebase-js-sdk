@@ -37,8 +37,8 @@ export class Transaction {
   private committed = false;
 
   /**
-   * An error that may have occurred as a consequence of a write.
-   * If set, commit() will throw the stored error.
+   * A deferred usage error that occurred previously in this transaction that
+   * will cause the transaction to fail once it actually commits.
    */
   private lastWriteError: FirestoreError;
 
@@ -119,6 +119,15 @@ export class Transaction {
     const version = this.readVersions.get(key);
     if (version && version.isEqual(SnapshotVersion.forDeletedDoc())) {
       // The document doesn't exist, so fail the transaction.
+
+      // This has to be validated locally because you can't send a precondition
+      // that a document does not exist without changing the semantics of the
+      // backend write to be an insert. This is the reverse of what we want,
+      // since we want to assert that the document doesn't exist but then send
+      // the update and have it fail. Since we can't express that to the backend,
+      // we have to validate locally.
+
+      // Note: this can change once we can send separate verify writes in the transaction.
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         "Can't update a document that doesn't exist."
