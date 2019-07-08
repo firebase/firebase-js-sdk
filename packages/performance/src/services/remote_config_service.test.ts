@@ -68,17 +68,18 @@ describe('Performance Monitoring > remote_config_service', () => {
 
   // parameterized beforeEach. Should be called at beginning of each test.
   function setup(
-    storageConfig: { expiry: string, config: string },
-    fetchConfig?: { reject: boolean, value?: Response }
+    storageConfig: { expiry: string; config: string },
+    fetchConfig?: { reject: boolean; value?: Response }
   ): {
-    storageGetItemStub: SinonStub<[string], string | null>
-    fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>
+    storageGetItemStub: SinonStub<[string], string | null>;
+    fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
   } {
-
     const fetchStub = stub(self, 'fetch');
 
     if (fetchConfig) {
-      fetchConfig.reject ? fetchStub.rejects() : fetchStub.resolves(fetchConfig.value);
+      fetchConfig.reject
+        ? fetchStub.rejects()
+        : fetchStub.resolves(fetchConfig.value);
     }
 
     stub(iidService, 'getAuthTokenPromise').returns(
@@ -98,8 +99,10 @@ describe('Performance Monitoring > remote_config_service', () => {
     const getItemStub: SinonStub<[string], string | null> = stub();
 
     storageStub.value({
-      getItem: getItemStub.callsFake(storageGetItemFakeFactory(storageConfig.expiry, storageConfig.config)),
-      setItem: () => { }
+      getItem: getItemStub.callsFake(
+        storageGetItemFakeFactory(storageConfig.expiry, storageConfig.config)
+      ),
+      setItem: () => {}
     });
 
     return { storageGetItemStub: getItemStub, fetchStub };
@@ -114,9 +117,10 @@ describe('Performance Monitoring > remote_config_service', () => {
     it('gets the config from the local storage if available and valid', async () => {
       // After global clock. Config not expired.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895330';
-      const { storageGetItemStub: getItemStub } = setup(
-        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: STRINGIFIED_CONFIG }
-      );
+      const { storageGetItemStub: getItemStub } = setup({
+        expiry: EXPIRY_LOCAL_STORAGE_VALUE,
+        config: STRINGIFIED_CONFIG
+      });
 
       await getConfig(IID);
 
@@ -136,9 +140,10 @@ describe('Performance Monitoring > remote_config_service', () => {
       // After global clock. Config not expired.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895330';
 
-      const { fetchStub } = setup(
-        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: STRINGIFIED_CONFIG }
-      );
+      const { fetchStub } = setup({
+        expiry: EXPIRY_LOCAL_STORAGE_VALUE,
+        config: STRINGIFIED_CONFIG
+      });
 
       await getConfig(IID);
 
@@ -173,7 +178,10 @@ describe('Performance Monitoring > remote_config_service', () => {
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
 
       setup(
-        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: 'not a valid config and should not be used' },
+        {
+          expiry: EXPIRY_LOCAL_STORAGE_VALUE,
+          config: 'not a valid config and should not be used'
+        },
         { reject: true }
       );
 
@@ -191,7 +199,10 @@ describe('Performance Monitoring > remote_config_service', () => {
       "state":"UPDATE"}`;
 
       setup(
-        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: 'not a valid config and should not be used' },
+        {
+          expiry: EXPIRY_LOCAL_STORAGE_VALUE,
+          config: 'not a valid config and should not be used'
+        },
         { reject: false, value: new Response(STRINGIFIED_PARTIAL_CONFIG) }
       );
 
@@ -206,7 +217,10 @@ describe('Performance Monitoring > remote_config_service', () => {
       const STRINGIFIED_PARTIAL_CONFIG = '{"state":"NO TEMPLATE"}';
 
       setup(
-        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: 'not a valid config and should not be used' },
+        {
+          expiry: EXPIRY_LOCAL_STORAGE_VALUE,
+          config: 'not a valid config and should not be used'
+        },
         { reject: false, value: new Response(STRINGIFIED_PARTIAL_CONFIG) }
       );
       await getConfig(IID);
