@@ -22,7 +22,7 @@ import { Document, NoDocument, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { Datastore } from '../remote/datastore';
-import { fail } from '../util/assert';
+import { fail, assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { SnapshotVersion } from './snapshot_version';
 
@@ -71,12 +71,8 @@ export class Transaction {
   }
 
   lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
-    if (this.committed) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Transaction has already completed.'
-      );
-    }
+    this.ensureCommitNotCalled();
+
     if (this.mutations.length > 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -96,6 +92,7 @@ export class Transaction {
   }
 
   private write(mutations: Mutation[]): void {
+    this.ensureCommitNotCalled();
     this.mutations = this.mutations.concat(mutations);
   }
 
@@ -165,12 +162,8 @@ export class Transaction {
   }
 
   commit(): Promise<void> {
-    if (this.committed) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Transaction has already completed.'
-      );
-    }
+    this.ensureCommitNotCalled();
+
     if (this.lastWriteError) {
       throw this.lastWriteError;
     }
@@ -188,5 +181,12 @@ export class Transaction {
     return this.datastore.commit(this.mutations).then(() => {
       this.committed = true;
     });
+  }
+
+  private ensureCommitNotCalled(): void {
+    assert(
+      !this.committed,
+      'A transaction object cannot be used after its update callback has been invoked.'
+    );
   }
 }
