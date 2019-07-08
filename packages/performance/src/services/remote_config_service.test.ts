@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { stub, SinonStub, useFakeTimers, SinonFakeTimers } from 'sinon';
+import { stub, useFakeTimers, SinonFakeTimers, SinonStub } from 'sinon';
 import { expect } from 'chai';
 import { SettingsService } from './settings_service';
 import { CONFIG_EXPIRY_LOCAL_STORAGE_KEY } from '../constants';
@@ -41,8 +41,6 @@ describe('Performance Monitoring > remote_config_service', () => {
   const APP_ID = '1:23r:web:fewq';
   const API_KEY = 'asdfghjk';
 
-  let fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
-  let storageStub: SinonStub<any[], any>;
   let clock: SinonFakeTimers;
 
   setupApi(self);
@@ -68,22 +66,44 @@ describe('Performance Monitoring > remote_config_service', () => {
     settingsService.tracesSamplingRate = 1;
   }
 
-  beforeEach(() => {
-    fetchStub = stub(self, 'fetch');
-    // we need to stub the entire localStorage, because storage can't be stubbed in Firefox and IE.
-    // stubbing on self(window) seems to only work the first time (at least in Firefox), the subsequent
-    // tests will have the same stub. stub.reset() in afterEach doesn't help either. As a result, we stub on ApiInstance
-    // https://github.com/sinonjs/sinon/issues/662
-    storageStub = stub(ApiInstance, 'localStorage');
+  // parameterized beforeEach. Should be called at beginning of each test.
+  function setup(
+    storageConfig: { expiry: string, config: string },
+    fetchConfig?: { reject: boolean, value?: Response }
+  ): {
+    storageGetItemStub: SinonStub<[string], string | null>
+    fetchStub: SinonStub<[RequestInfo, RequestInit?], Promise<Response>>
+  } {
+
+    const fetchStub = stub(self, 'fetch');
+
+    if (fetchConfig) {
+      fetchConfig.reject ? fetchStub.rejects() : fetchStub.resolves(fetchConfig.value);
+    }
 
     stub(iidService, 'getAuthTokenPromise').returns(
       Promise.resolve(AUTH_TOKEN)
     );
+
     clock = useFakeTimers(GLOBAL_CLOCK_NOW);
     SettingsService.prototype.firebaseAppInstance = ({
       options: { projectId: PROJECT_ID, appId: APP_ID, apiKey: API_KEY }
     } as unknown) as FirebaseApp;
-  });
+
+    // we need to stub the entire localStorage, because storage can't be stubbed in Firefox and IE.
+    // stubbing on self(window) seems to only work the first time (at least in Firefox), the subsequent
+    // tests will have the same stub. stub.reset() in afterEach doesn't help either. As a result, we stub on ApiInstance.
+    // https://github.com/sinonjs/sinon/issues/662
+    const storageStub = stub(ApiInstance, 'localStorage');
+    const getItemStub: SinonStub<[string], string | null> = stub();
+
+    storageStub.value({
+      getItem: getItemStub.callsFake(storageGetItemFakeFactory(storageConfig.expiry, storageConfig.config)),
+      setItem: () => { }
+    });
+
+    return { storageGetItemStub: getItemStub, fetchStub };
+  }
 
   afterEach(() => {
     resetSettingsService();
@@ -94,15 +114,10 @@ describe('Performance Monitoring > remote_config_service', () => {
     it('gets the config from the local storage if available and valid', async () => {
       // After global clock. Config not expired.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895330';
-      const getItemStub = stub();
-      storageStub.value({
-        getItem: getItemStub.callsFake(
-          storageGetItemFakeFactory(
-            EXPIRY_LOCAL_STORAGE_VALUE,
-            STRINGIFIED_CONFIG
-          )
-        )
-      });
+      const { storageGetItemStub: getItemStub } = setup(
+        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: STRINGIFIED_CONFIG }
+      );
+
       await getConfig(IID);
 
       expect(getItemStub).to.be.called;
@@ -121,12 +136,9 @@ describe('Performance Monitoring > remote_config_service', () => {
       // After global clock. Config not expired.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895330';
 
-      storageStub.value({
-        getItem: storageGetItemFakeFactory(
-          EXPIRY_LOCAL_STORAGE_VALUE,
-          STRINGIFIED_CONFIG
-        )
-      });
+      const { fetchStub } = setup(
+        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: STRINGIFIED_CONFIG }
+      );
 
       await getConfig(IID);
 
@@ -136,18 +148,12 @@ describe('Performance Monitoring > remote_config_service', () => {
     it('gets the config from RC if local version is not valid', async () => {
       // Expired local config.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
-      const getItemStub = stub();
-      storageStub.value({
-        getItem: getItemStub.callsFake(
-          storageGetItemFakeFactory(
-            EXPIRY_LOCAL_STORAGE_VALUE,
-            'not a valid config and should not be used'
-          )
-        ),
-        setItem: () => {}
-      });
 
-      fetchStub.resolves(new Response(STRINGIFIED_CONFIG));
+      const { storageGetItemStub: getItemStub } = setup(
+        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: STRINGIFIED_CONFIG },
+        { reject: false, value: new Response(STRINGIFIED_CONFIG) }
+      );
+
       await getConfig(IID);
 
       expect(getItemStub).to.be.calledOnce;
@@ -166,15 +172,11 @@ describe('Performance Monitoring > remote_config_service', () => {
       // Expired local config.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
 
-      storageStub.value({
-        getItem: storageGetItemFakeFactory(
-          EXPIRY_LOCAL_STORAGE_VALUE,
-          'not a valid config and should not be used'
-        ),
-        setItem: () => {}
-      });
+      setup(
+        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: 'not a valid config and should not be used' },
+        { reject: true }
+      );
 
-      fetchStub.rejects();
       await getConfig(IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.equal(false);
@@ -183,18 +185,16 @@ describe('Performance Monitoring > remote_config_service', () => {
     it('uses secondary configs if the response does not have all the fields', async () => {
       // Expired local config.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
-      storageStub.value({
-        getItem: storageGetItemFakeFactory(
-          EXPIRY_LOCAL_STORAGE_VALUE,
-          'not a valid config and should not be used'
-        ),
-        setItem: () => {}
-      });
       const STRINGIFIED_PARTIAL_CONFIG = `{"entries":{\
       "fpr_vc_network_request_sampling_rate":"0.250000",\
       "fpr_vc_session_sampling_rate":"0.250000","fpr_vc_trace_sampling_rate":"0.500000"},\
       "state":"UPDATE"}`;
-      fetchStub.resolves(new Response(STRINGIFIED_PARTIAL_CONFIG));
+
+      setup(
+        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: 'not a valid config and should not be used' },
+        { reject: false, value: new Response(STRINGIFIED_PARTIAL_CONFIG) }
+      );
+
       await getConfig(IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
@@ -203,15 +203,12 @@ describe('Performance Monitoring > remote_config_service', () => {
     it('uses secondary configs if the response does not have any fields', async () => {
       // Expired local config.
       const EXPIRY_LOCAL_STORAGE_VALUE = '1556524895320';
-      storageStub.value({
-        getItem: storageGetItemFakeFactory(
-          EXPIRY_LOCAL_STORAGE_VALUE,
-          'not a valid config and should not be used'
-        ),
-        setItem: () => {}
-      });
       const STRINGIFIED_PARTIAL_CONFIG = '{"state":"NO TEMPLATE"}';
-      fetchStub.resolves(new Response(STRINGIFIED_PARTIAL_CONFIG));
+
+      setup(
+        { expiry: EXPIRY_LOCAL_STORAGE_VALUE, config: 'not a valid config and should not be used' },
+        { reject: false, value: new Response(STRINGIFIED_PARTIAL_CONFIG) }
+      );
       await getConfig(IID);
 
       expect(SettingsService.getInstance().loggingEnabled).to.be.true;
