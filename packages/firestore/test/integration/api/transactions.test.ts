@@ -405,8 +405,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           // })
           // .then(snapshot => expect(snapshot.data()['count']).to.equal(16));
           .then(() => expect.fail('transaction should fail'))
-          .catch(err => {
+          .catch((err: firestore.FirestoreError) => {
             expect(err).to.exist;
+            expect(err.code).to.equal('invalid-argument');
             expect(err.message).to.contain(
               'Every document read in a transaction must also be ' + 'written'
             );
