@@ -417,7 +417,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             return Promise.reject<T>(error);
           }
           // TODO(klimt): Put in a retry delay?
-          console.warn('retried at count = ', retries);
           return this.runTransaction(updateFunction, retries - 1);
         });
     });

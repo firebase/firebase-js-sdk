@@ -477,22 +477,21 @@ apiDescribe('Database transactions', (persistence: boolean) => {
       'document is written after the read',
     () => {
       return integrationHelpers.withTestDb(persistence, db => {
-        const doc = db.collection('towns').doc();
         let counter = 0;
         return db
           .runTransaction(transaction => {
             counter += 1;
-            // Get the doc once.
+            const doc = db.collection('nonexistent' + counter).doc();
             return (
               transaction
+                // Get and update a document that doesn't exist so that the transaction fails.
                 .get(doc)
                 // Do a write outside of the transaction.
-                .then(() => doc.set({ count: 1234 }))
+                .then(() => doc.set({ count: counter }))
                 // Now try to update the doc from within the transaction. This
                 // should fail, because the document didn't exist at the start
                 // of the transaction.
-                .then(() => transaction.update(doc, { count: 16 }))
-                .then(() => fail('transaction.update should fail'))
+                .then(() => transaction.update(doc, { count: 1234 }))
             );
           })
           .then(() => expect.fail('transaction should fail'))
@@ -501,8 +500,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
             expect((err as firestore.FirestoreError).code).to.equal(
               'invalid-argument'
             );
-            // The transaction should not be retried after the initial failure.
-            expect(counter).to.equal(1);
+            expect(err.message).to.contain(
+              "Can't update a document that doesn't exist."
+            );
           });
       });
     }

@@ -36,6 +36,12 @@ export class Transaction {
   private mutations: Mutation[] = [];
   private committed = false;
 
+  /**
+   * An error that may have occurred as a consequence of a write. 
+   * If set, commit() will throw the stored error.
+   */
+  private lastWriteError: FirestoreError;
+
   constructor(private datastore: Datastore) {}
 
   private recordVersion(doc: MaybeDocument): void {
@@ -90,12 +96,6 @@ export class Transaction {
   }
 
   private write(mutations: Mutation[]): void {
-    if (this.committed) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Transaction has already completed.'
-      );
-    }
     this.mutations = this.mutations.concat(mutations);
   }
 
@@ -138,7 +138,11 @@ export class Transaction {
   }
 
   update(key: DocumentKey, data: ParsedUpdateData): void {
-    this.write(data.toMutations(key, this.preconditionForUpdate(key)));
+    try {
+      this.write(data.toMutations(key, this.preconditionForUpdate(key)));
+    } catch (e) {
+      this.lastWriteError = e;
+    }
   }
 
   delete(key: DocumentKey): void {
@@ -152,6 +156,15 @@ export class Transaction {
   }
 
   commit(): Promise<void> {
+    if (this.committed) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Transaction has already completed.'
+      );
+    }
+    if (this.lastWriteError) {
+      throw this.lastWriteError;
+    }
     let unwritten = this.readVersions;
     // For each mutation, note that the doc was written.
     this.mutations.forEach(mutation => {
