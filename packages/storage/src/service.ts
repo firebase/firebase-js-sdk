@@ -63,8 +63,11 @@ export class Service {
    * bucket.
    */
   ref(path?: string): Reference {
-    function validator(path: string): void {
-      if (/^[A-Za-z]+:\/\//.test(path)) {
+    function validator(path: unknown): void {
+      if (typeof path !== 'string') {
+        throw 'Path is not a string.';
+      }
+      if (/^[A-Za-z]+:\/\//.test(path as string)) {
         throw 'Expected child path but got a URL, use refFromURL instead.';
       }
     }
@@ -86,12 +89,15 @@ export class Service {
    * which must be a gs:// or http[s]:// URL.
    */
   refFromURL(url: string): Reference {
-    function validator(p: string): void {
-      if (!/^[A-Za-z]+:\/\//.test(p)) {
+    function validator(p: unknown): void {
+      if (typeof p !== 'string') {
+        throw 'Path is not a string.';
+      }
+      if (!/^[A-Za-z]+:\/\//.test(p as string)) {
         throw 'Expected full URL but got a child path, use ref instead.';
       }
       try {
-        Location.makeFromUrl(p);
+        Location.makeFromUrl(p as string);
       } catch (e) {
         throw 'Expected valid full URL but got an invalid one.';
       }

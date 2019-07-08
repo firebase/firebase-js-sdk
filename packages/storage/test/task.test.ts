@@ -45,7 +45,7 @@ interface Response {
 type RequestHandler = (
   url: string,
   method: string,
-  body?: ArrayBufferView | Blob | string,
+  body?: ArrayBufferView | Blob | string | null,
   headers?: Headers
 ) => Response;
 
@@ -54,7 +54,7 @@ function authWrapperWithHandler(handler: RequestHandler): AuthWrapper {
     xhrio: TestingXhrIo,
     url: string,
     method: string,
-    body?: ArrayBufferView | Blob | string,
+    body?: ArrayBufferView | Blob | string | null,
     headers?: Headers
   ): void {
     const response = handler(url, method, body, headers);
@@ -97,7 +97,7 @@ function fakeServerHandler(): RequestHandler {
   function handler(
     url: string,
     method: string,
-    content?: ArrayBufferView | Blob | string,
+    content?: ArrayBufferView | Blob | string | null,
     headers?: Headers
   ): Response {
     method = method || 'GET';
@@ -268,7 +268,7 @@ describe('Firebase Storage > Upload Task', () => {
 
     // h3: This one will get executed immediately
     (() => {
-      let lastState;
+      let lastState: TaskState;
       return task.on(
         TaskEvent.STATE_CHANGED,
         snapshot => {
@@ -346,7 +346,7 @@ describe('Firebase Storage > Upload Task', () => {
     function promiseAssertWrapper<T>(func: T): T {
       function wrapped(..._args: any[]): void {
         try {
-          ((func as any) as (...args: any[]) => void).apply(null, arguments);
+          ((func as any) as (...args: any[]) => void).apply(null, _args);
         } catch (e) {
           reject(e);
           // also throw to further unwind the stack
