@@ -37,7 +37,7 @@ export class Transaction {
   private committed = false;
 
   /**
-   * An error that may have occurred as a consequence of a write. 
+   * An error that may have occurred as a consequence of a write.
    * If set, commit() will throw the stored error.
    */
   private lastWriteError: FirestoreError;
