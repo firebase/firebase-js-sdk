@@ -591,7 +591,8 @@ describe('Firebase Storage > Reference', () => {
     });
     it('updateMetadata throws', () => {
       testShared.assertThrows(
-        root.updateMetadata.bind(root, {}),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (root as any).updateMetadata.bind(root, {}),
         'storage/invalid-root-operation'
       );
     });

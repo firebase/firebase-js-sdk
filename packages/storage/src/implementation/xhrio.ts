@@ -45,9 +45,9 @@ export interface XhrIo {
 
   getResponseHeader(header: string): string | null;
 
-  addUploadProgressListener(listener: (p1: Event) => void): void;
+  addUploadProgressListener(listener: (p1: ProgressEvent) => void): void;
 
-  removeUploadProgressListener(listener: (p1: Event) => void): void;
+  removeUploadProgressListener(listener: (p1: ProgressEvent) => void): void;
 }
 
 /**

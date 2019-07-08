@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 
+// function is used as a namespace to access types
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { functions } from 'firebase/app';
-import { Observable, from } from 'rxjs';
+import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-export function httpsCallable<T = any, R = any>(
+export function httpsCallable<T, R>(
   functions: functions.Functions,
   name: string
-) {
+): (data: T) => Observable<R> {
   const callable = functions.httpsCallable(name);
   return (data: T) => {
     return from(callable(data)).pipe(map(r => r.data as R));

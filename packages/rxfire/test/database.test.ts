@@ -15,23 +15,36 @@
  * limitations under the License.
  */
 
+// tslint:disable:no-floating-promises
+
 import { expect } from 'chai';
+// app/database is used as namespaces to access types
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { initializeApp, database, app } from 'firebase';
 import { fromRef } from '../database/fromRef';
-import { list, ListenEvent, objectVal, listVal } from '../database';
+import {
+  list,
+  ListenEvent,
+  objectVal,
+  listVal,
+  QueryChange
+} from '../database';
 import { take, skip, switchMap } from 'rxjs/operators';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { auditTrail } from '../database/list/audit-trail';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
 
-const rando = () =>
+const rando = (): string =>
   Math.random()
     .toString(36)
     .substring(5);
 
-let batch = (items: { name: string; key: string }[]) => {
-  let batch: { [key: string]: unknown } = {};
+const batch = (
+  items: Array<{ name: string; key: string }>
+): Readonly<{ [key: string]: unknown }> => {
+  const batch: { [key: string]: unknown } = {};
   items.forEach(item => {
     batch[item.key] = item;
   });
@@ -42,14 +55,17 @@ let batch = (items: { name: string; key: string }[]) => {
 describe('RxFire Database', () => {
   let app: app.App;
   let database: database.Database;
-  let ref = (path: string) => {
+  const ref = (path: string): database.Reference => {
     app!.database().goOffline();
     return app!.database().ref(path);
   };
 
   function prepareList(
     opts: { events?: ListenEvent[]; skipnumber: number } = { skipnumber: 0 }
-  ) {
+  ): {
+    snapChanges: Observable<QueryChange[]>;
+    ref: database.Reference;
+  } {
     const { events, skipnumber } = opts;
     const aref = ref(rando());
     const snapChanges = list(aref, events);
@@ -385,7 +401,7 @@ describe('RxFire Database', () => {
       it('should process a new child_removed event', done => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added, ListenEvent.removed]);
-        const sub = obs
+        const _sub = obs
           .pipe(
             skip(1),
             take(1)
@@ -408,7 +424,7 @@ describe('RxFire Database', () => {
       it('should process a new child_changed event', done => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added, ListenEvent.changed]);
-        const sub = obs
+        const _sub = obs
           .pipe(
             skip(1),
             take(1)
@@ -431,7 +447,7 @@ describe('RxFire Database', () => {
       it('should process a new child_moved event', done => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added, ListenEvent.moved]);
-        const sub = obs
+        const _sub = obs
           .pipe(
             skip(1),
             take(1)
@@ -567,7 +583,7 @@ describe('RxFire Database', () => {
        */
       it('should handle dynamic queries that return empty sets', done => {
         let count = 0;
-        let namefilter$ = new BehaviorSubject<number | null>(null);
+        const namefilter$ = new BehaviorSubject<number | null>(null);
         const aref = ref(rando());
         aref.set(itemsObj);
         namefilter$
@@ -606,7 +622,10 @@ describe('RxFire Database', () => {
 
     function prepareAuditTrail(
       opts: { events?: ListenEvent[]; skipnumber: number } = { skipnumber: 0 }
-    ) {
+    ): {
+      changes: Observable<QueryChange[]>;
+      ref: database.Reference;
+    } {
       const { events, skipnumber } = opts;
       const aref = ref(rando());
       aref.set(itemsObj);

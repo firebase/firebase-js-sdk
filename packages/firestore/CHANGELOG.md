@@ -1,5 +1,8 @@
 
 # Unreleased
+- [fixed] Fixed an internal assertion that was triggered when an update
+   with a `FieldValue.serverTimestamp()` and an update with a
+  `FieldValue.increment()` were pending for the same document.
 - [feature] Added `clearPersistence()`, which clears the persistent storage
   including pending writes and cached documents. This is intended to help
   write reliable tests (#449).

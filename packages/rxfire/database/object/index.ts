@@ -43,7 +43,7 @@ export function objectVal<T>(
   );
 }
 
-export function changeToData(change: QueryChange, keyField?: string) {
+export function changeToData(change: QueryChange, keyField?: string): {} {
   return {
     ...change.snapshot.val(),
     ...(keyField ? { [keyField]: change.snapshot.key } : null)

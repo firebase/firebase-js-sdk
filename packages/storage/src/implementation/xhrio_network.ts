@@ -131,7 +131,7 @@ export class NetworkXhrIo implements XhrIo {
   /**
    * @override
    */
-  addUploadProgressListener(listener: (p1: Event) => void): void {
+  addUploadProgressListener(listener: (p1: ProgressEvent) => void): void {
     if (type.isDef(this.xhr_.upload)) {
       this.xhr_.upload.addEventListener('progress', listener);
     }
@@ -140,7 +140,7 @@ export class NetworkXhrIo implements XhrIo {
   /**
    * @override
    */
-  removeUploadProgressListener(listener: (p1: Event) => void): void {
+  removeUploadProgressListener(listener: (p1: ProgressEvent) => void): void {
     if (type.isDef(this.xhr_.upload)) {
       this.xhr_.upload.removeEventListener('progress', listener);
     }

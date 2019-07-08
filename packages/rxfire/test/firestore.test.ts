@@ -14,7 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+// tslint:disable:no-floating-promises
+
 import { expect } from 'chai';
+// app is used as namespaces to access types
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { initializeApp, firestore, app } from 'firebase/app';
 import 'firebase/firestore';
 import {
@@ -27,9 +32,10 @@ import {
 } from '../firestore';
 import { map, take, skip } from 'rxjs/operators';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../config/project.json');
 
-const createId = () =>
+const createId = (): string =>
   Math.random()
     .toString(36)
     .substring(5);
@@ -38,8 +44,9 @@ const createId = () =>
  * Create a collection with a random name. This helps sandbox offline tests and
  * makes sure tests don't interfere with each other as they run.
  */
-const createRandomCol = (firestore: firestore.Firestore) =>
-  firestore.collection(createId());
+const createRandomCol = (
+  firestore: firestore.Firestore
+): firestore.CollectionReference => firestore.collection(createId());
 
 /**
  * Unwrap a snapshot but add the type property to the data object.
@@ -52,7 +59,7 @@ const unwrapChange = map((changes: firestore.DocumentChange[]) => {
  * Create an environment for the tests to run in. The information is returned
  * from the function for use within the test.
  */
-const seedTest = (firestore: firestore.Firestore) => {
+const seedTest = (firestore: firestore.Firestore): any => {
   const colRef = createRandomCol(firestore);
   const davidDoc = colRef.doc('david');
   davidDoc.set({ name: 'David' });
@@ -159,7 +166,6 @@ describe('RxFire Firestore', () => {
       );
 
       addedChanges.subscribe(data => {
-        debugger;
         const expectedNames = [
           { name: 'David', type: 'added' },
           { name: 'Shannon', type: 'added' }
