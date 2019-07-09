@@ -1,7 +1,7 @@
 {
   "extends": [
     "config:base",
-    "group: allNonMajor"
+    "group:allNonMajor"
   ],
   "ignoreDeps": [
     "karma-sauce-launcher",
