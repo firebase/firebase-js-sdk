@@ -1,0 +1,18 @@
+{
+  "extends": [
+    "config:base",
+    "group: allNonMajor"
+  ],
+  "ignoreDeps": [
+    "karma-sauce-launcher",
+    "protractor",
+    "long",
+    "rollup-plugin-copy-assets",
+    "idb",
+    "whatwg-fetch"
+  ],
+  "reviewers": [
+    "@Feiyang1",
+    "@hsubox76"
+  ]
+}
