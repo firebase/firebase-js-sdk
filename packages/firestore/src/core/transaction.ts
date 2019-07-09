@@ -22,7 +22,7 @@ import { Document, NoDocument, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { DeleteMutation, Mutation, Precondition } from '../model/mutation';
 import { Datastore } from '../remote/datastore';
-import { fail } from '../util/assert';
+import { fail, assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { SnapshotVersion } from './snapshot_version';
 
@@ -35,6 +35,12 @@ export class Transaction {
   private readVersions = documentVersionMap();
   private mutations: Mutation[] = [];
   private committed = false;
+
+  /**
+   * A deferred usage error that occurred previously in this transaction that
+   * will cause the transaction to fail once it actually commits.
+   */
+  private lastWriteError: FirestoreError;
 
   constructor(private datastore: Datastore) {}
 
@@ -65,14 +71,12 @@ export class Transaction {
   }
 
   lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
-    if (this.committed) {
-      return Promise.reject<MaybeDocument[]>(
-        'Transaction has already completed.'
-      );
-    }
+    this.ensureCommitNotCalled();
+
     if (this.mutations.length > 0) {
-      return Promise.reject<MaybeDocument[]>(
-        'Transactions lookups are invalid after writes.'
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Firestore transactions require all reads to be executed before all writes.'
       );
     }
     return this.datastore.lookup(keys).then(docs => {
@@ -88,12 +92,7 @@ export class Transaction {
   }
 
   private write(mutations: Mutation[]): void {
-    if (this.committed) {
-      throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
-        'Transaction has already completed.'
-      );
-    }
+    this.ensureCommitNotCalled();
     this.mutations = this.mutations.concat(mutations);
   }
 
@@ -117,8 +116,17 @@ export class Transaction {
     const version = this.readVersions.get(key);
     if (version && version.isEqual(SnapshotVersion.forDeletedDoc())) {
       // The document doesn't exist, so fail the transaction.
+
+      // This has to be validated locally because you can't send a precondition
+      // that a document does not exist without changing the semantics of the
+      // backend write to be an insert. This is the reverse of what we want,
+      // since we want to assert that the document doesn't exist but then send
+      // the update and have it fail. Since we can't express that to the backend,
+      // we have to validate locally.
+
+      // Note: this can change once we can send separate verify writes in the transaction.
       throw new FirestoreError(
-        Code.FAILED_PRECONDITION,
+        Code.INVALID_ARGUMENT,
         "Can't update a document that doesn't exist."
       );
     } else if (version) {
@@ -136,7 +144,11 @@ export class Transaction {
   }
 
   update(key: DocumentKey, data: ParsedUpdateData): void {
-    this.write(data.toMutations(key, this.preconditionForUpdate(key)));
+    try {
+      this.write(data.toMutations(key, this.preconditionForUpdate(key)));
+    } catch (e) {
+      this.lastWriteError = e;
+    }
   }
 
   delete(key: DocumentKey): void {
@@ -150,18 +162,31 @@ export class Transaction {
   }
 
   commit(): Promise<void> {
+    this.ensureCommitNotCalled();
+
+    if (this.lastWriteError) {
+      throw this.lastWriteError;
+    }
     let unwritten = this.readVersions;
     // For each mutation, note that the doc was written.
     this.mutations.forEach(mutation => {
       unwritten = unwritten.remove(mutation.key);
     });
     if (!unwritten.isEmpty()) {
-      return Promise.reject(
-        Error('Every document read in a transaction must also be written.')
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Every document read in a transaction must also be written.'
       );
     }
     return this.datastore.commit(this.mutations).then(() => {
       this.committed = true;
     });
+  }
+
+  private ensureCommitNotCalled(): void {
+    assert(
+      !this.committed,
+      'A transaction object cannot be used after its update callback has been invoked.'
+    );
   }
 }

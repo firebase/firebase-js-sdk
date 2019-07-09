@@ -50,8 +50,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
               //   expect(snapshot.data()['owner']).to.equal('Jonny');
               // });
               .then(() => expect.fail('transaction should fail'))
-              .catch(err => {
+              .catch((err: firestore.FirestoreError) => {
                 expect(err).to.exist;
+                expect(err.code).to.equal('invalid-argument');
                 expect(err.message).to.contain(
                   'Every document read in a transaction must also be' +
                     ' written'
@@ -117,11 +118,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           });
         })
         .then(() => expect.fail('transaction should fail'))
-        .catch(err => {
+        .catch((err: firestore.FirestoreError) => {
           expect(err).to.exist;
-          expect(err.message).to.equal(
-            "Can't update a document that doesn't exist."
-          );
+          expect(err.code).to.equal('invalid-argument');
         });
     });
   });
@@ -139,16 +138,10 @@ apiDescribe('Database transactions', (persistence: boolean) => {
               transaction.update(docRef, { foo: 'new-bar' });
             });
           })
-          .then(() => expect.fail('transaction should fail'))
-          .catch(err => {
+          .catch((err: firestore.FirestoreError) => {
             expect(err).to.exist;
-            // TODO(b/65409268): This is likely the wrong error code
-            expect((err as firestore.FirestoreError).code).to.equal(
-              'failed-precondition'
-            );
-            expect(err.message).to.equal(
-              "Can't update a document that doesn't exist."
-            );
+            // This is the error surfaced by the backend.
+            expect(err.code).to.equal('invalid-argument');
           });
       });
     });
@@ -172,7 +165,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           .then(() => expect.fail('transaction should fail'))
           .catch(err => {
             expect(err).to.exist;
-            // TODO(b/65409268): This is likely the wrong error code
+            // This is the error surfaced by the backend.
             expect((err as firestore.FirestoreError).code).to.equal(
               'invalid-argument'
             );
@@ -412,8 +405,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           // })
           // .then(snapshot => expect(snapshot.data()['count']).to.equal(16));
           .then(() => expect.fail('transaction should fail'))
-          .catch(err => {
+          .catch((err: firestore.FirestoreError) => {
             expect(err).to.exist;
+            expect(err.code).to.equal('invalid-argument');
             expect(err.message).to.contain(
               'Every document read in a transaction must also be ' + 'written'
             );
@@ -447,7 +441,10 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           });
         })
         .then(() => expect.fail('transaction should fail'))
-        .catch(err => expect(err).to.exist)
+        .catch(err => {
+          expect(err).to.exist;
+          expect((err as firestore.FirestoreError).code).to.equal('aborted');
+        })
         .then(() => doc.get())
         .then(snapshot => {
           expect(snapshot.data()!['count']).to.equal(1234);
@@ -466,11 +463,47 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .then(() => {
           expect.fail('transaction should fail');
         })
-        .catch(err => {
+        .catch((err: firestore.FirestoreError) => {
           expect(err).to.exist;
+          expect(err.code).to.equal('invalid-argument');
+          expect(err.message).to.contain(
+            'Firestore transactions require all reads to be executed'
+          );
         });
     });
   });
+
+  it(
+    'cannot read non-existent document then update, even if ' +
+      'document is written after the read',
+    () => {
+      return integrationHelpers.withTestDb(persistence, db => {
+        return db
+          .runTransaction(transaction => {
+            const doc = db.collection('nonexistent').doc();
+            return (
+              transaction
+                // Get and update a document that doesn't exist so that the transaction fails.
+                .get(doc)
+                // Do a write outside of the transaction.
+                .then(() => doc.set({ count: 1234 }))
+                // Now try to update the doc from within the transaction. This
+                // should fail, because the document didn't exist at the start
+                // of the transaction.
+                .then(() => transaction.update(doc, { count: 16 }))
+            );
+          })
+          .then(() => expect.fail('transaction should fail'))
+          .catch((err: firestore.FirestoreError) => {
+            expect(err).to.exist;
+            expect(err.code).to.equal('invalid-argument');
+            expect(err.message).to.contain(
+              "Can't update a document that doesn't exist."
+            );
+          });
+      });
+    }
+  );
 
   describe('must return a promise:', () => {
     const noop = (): void => {
@@ -522,8 +555,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           //   expect(snapshot.data()['foo']).to.equal('bar');
           // });
           .then(() => expect.fail('transaction should fail'))
-          .catch(err => {
+          .catch((err: firestore.FirestoreError) => {
             expect(err).to.exist;
+            expect(err.code).to.equal('invalid-argument');
             expect(err.message).to.contain(
               'Every document read in a transaction must also be ' + 'written'
             );
