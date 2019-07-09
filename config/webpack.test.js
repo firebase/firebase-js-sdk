@@ -31,6 +31,7 @@ module.exports = {
           options: {
             compilerOptions: {
               module: 'commonjs',
+              target: 'es5',
               downlevelIteration: true,
               resolveJsonModule: true
             }
