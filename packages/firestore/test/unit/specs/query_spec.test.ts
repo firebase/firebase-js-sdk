@@ -98,4 +98,30 @@ describeSpec('Queries:', [], () => {
         hasPendingWrites: true
       });
   });
+
+  specTest(
+    'Ensure correct query results for latency-compensated updates',
+    [],
+    () => {
+      const fullQuery = Query.atPath(ResourcePath.fromString('collection'));
+      const filteredQuery = fullQuery.addFilter(filter("match", "==", true));
+      const docA = doc('collection/a', 1000, { match: false });
+      const docAv2Local = doc('collection/a', 1000, { match: true }, { hasLocalMutations: true });
+
+      return (
+        spec()
+          .userListens(fullQuery)
+          .watchAcksFull(fullQuery, 1000, docA)
+          .expectEvents(fullQuery, { added: [docA] })
+
+          // patch docA so that it will now match the filtered query.
+          .userPatches("collection/a", {match: true })
+          .expectEvents(fullQuery, { modified: [docAv2Local], hasPendingWrites: true })
+          // Make sure docA shows up in filtered query.
+          .userListens(filteredQuery)
+          .expectEvents(filteredQuery, { added: [docAv2Local], fromCache: true,
+          hasPendingWrites: true })
+      );
+    }
+  );
 });

@@ -24,7 +24,8 @@ import {
   MaybeDocumentMap,
   maybeDocumentMap,
   NullableMaybeDocumentMap,
-  nullableMaybeDocumentMap
+  nullableMaybeDocumentMap,
+  documentKeySet,
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -37,6 +38,7 @@ import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
+import { PatchMutation } from '../model/mutation';
 
 /**
  * A readonly view of the local state of all documents we're tracking (i.e. we
@@ -49,7 +51,7 @@ export class LocalDocumentsView {
     private remoteDocumentCache: RemoteDocumentCache,
     private mutationQueue: MutationQueue,
     private indexManager: IndexManager
-  ) {}
+  ) { }
 
   /**
    * Get the local view of the document identified by `key`.
@@ -208,6 +210,7 @@ export class LocalDocumentsView {
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let results: DocumentMap;
+    let mutationBatches: MutationBatch[];
     return this.remoteDocumentCache
       .getDocumentsMatchingQuery(transaction, query)
       .next(queryResults => {
@@ -218,7 +221,35 @@ export class LocalDocumentsView {
         );
       })
       .next(matchingMutationBatches => {
+        mutationBatches = matchingMutationBatches;
+        // It is possible that a PatchMutation can make a document a match to the query,
+        // but the version in `remoteDocumentCache` is not a match yet (waiting for server
+        // to ack). To handle this, we find all document keys affected by some`PatchMutation`s
+        // that are not in `result` yet, and back fill them via `remoteDocumentCache.getEntries`,
+        // otherwise those `PatchMutations` will be ignored because no base document can be found,
+        // and lead to missing result for the query.
+        let missingBaseDocEntriesForPatching = documentKeySet();
         for (const batch of matchingMutationBatches) {
+          for (const mutation of batch.mutations) {
+            const key = mutation.key;
+            // Only process documents belonging to the collection.
+            if (!query.path.isImmediateParentOf(key.path)) {
+              continue;
+            }
+            if (mutation instanceof PatchMutation && results.get(mutation.key) === null) {
+              missingBaseDocEntriesForPatching = missingBaseDocEntriesForPatching.add(mutation.key);
+            }
+          }
+        }
+        return this.remoteDocumentCache.getEntries(transaction, missingBaseDocEntriesForPatching);
+      })
+      .next(baseDocsForPatching => {
+        baseDocsForPatching.forEach((key, doc) => {
+          if (doc !== null && doc instanceof Document) {
+            results = results.insert(key, doc);
+          }
+        });
+        for (const batch of mutationBatches) {
           for (const mutation of batch.mutations) {
             const key = mutation.key;
             // Only process documents belonging to the collection.
