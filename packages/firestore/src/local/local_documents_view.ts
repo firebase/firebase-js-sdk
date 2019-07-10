@@ -231,9 +231,8 @@ export class LocalDocumentsView {
         let missingBaseDocEntriesForPatching = documentKeySet();
         for (const batch of matchingMutationBatches) {
           for (const mutation of batch.mutations) {
-            const key = mutation.key;
             // Only process documents belonging to the collection.
-            if (!query.path.isImmediateParentOf(key.path)) {
+            if (!query.path.isImmediateParentOf(mutation.key.path)) {
               continue;
             }
             if (
@@ -251,8 +250,8 @@ export class LocalDocumentsView {
           missingBaseDocEntriesForPatching
         );
       })
-      .next(baseDocsForPatching => {
-        baseDocsForPatching.forEach((key, doc) => {
+      .next(docsWithPendingPatches => {
+        docsWithPendingPatches.forEach((key, doc) => {
           if (doc !== null && doc instanceof Document) {
             results = results.insert(key, doc);
           }
