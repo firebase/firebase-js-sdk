@@ -56,6 +56,7 @@ module.exports = {
   },
   resolve: {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
+    mainFields: ['browser', 'main', 'module'],
     extensions: ['.js', '.ts']
   },
   plugins: [
