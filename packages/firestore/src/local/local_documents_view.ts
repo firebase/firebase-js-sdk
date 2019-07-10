@@ -25,7 +25,7 @@ import {
   maybeDocumentMap,
   NullableMaybeDocumentMap,
   nullableMaybeDocumentMap,
-  documentKeySet,
+  documentKeySet
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -51,7 +51,7 @@ export class LocalDocumentsView {
     private remoteDocumentCache: RemoteDocumentCache,
     private mutationQueue: MutationQueue,
     private indexManager: IndexManager
-  ) { }
+  ) {}
 
   /**
    * Get the local view of the document identified by `key`.
@@ -236,12 +236,20 @@ export class LocalDocumentsView {
             if (!query.path.isImmediateParentOf(key.path)) {
               continue;
             }
-            if (mutation instanceof PatchMutation && results.get(mutation.key) === null) {
-              missingBaseDocEntriesForPatching = missingBaseDocEntriesForPatching.add(mutation.key);
+            if (
+              mutation instanceof PatchMutation &&
+              results.get(mutation.key) === null
+            ) {
+              missingBaseDocEntriesForPatching = missingBaseDocEntriesForPatching.add(
+                mutation.key
+              );
             }
           }
         }
-        return this.remoteDocumentCache.getEntries(transaction, missingBaseDocEntriesForPatching);
+        return this.remoteDocumentCache.getEntries(
+          transaction,
+          missingBaseDocEntriesForPatching
+        );
       })
       .next(baseDocsForPatching => {
         baseDocsForPatching.forEach((key, doc) => {
