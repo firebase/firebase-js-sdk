@@ -434,4 +434,59 @@ describeSpec('Limbo Documents:', [], () => {
         .expectEvents(query, { removed: [docC] });
     }
   );
+
+  specTest('Limbo documents stay consistent between views', [], () => {
+    // This tests verifies that a document is consistent between views, even
+    // if the document is only in Limbo in one of the.
+    const originalQuery = Query.atPath(path('collection')).addFilter(
+      filter('matches', '==', true)
+    );
+    const filteredQuery = Query.atPath(path('collection'))
+      .addFilter(filter('matches', '==', true))
+      .addFilter(filter('key', '>=', 'a'));
+
+    const docA = doc('collection/a', 1000, { key: 'a', matches: true });
+    const docACommitted = doc(
+      'collection/a',
+      1000,
+      { key: 'a', matches: true },
+      { hasCommittedMutations: true }
+    );
+    const docBCommitted = doc(
+      'collection/b',
+      1001,
+      { key: 'b', matches: true },
+      { hasCommittedMutations: true }
+    );
+
+    return (
+      client(0)
+        .userSets('collection/a', { key: 'a', matches: true })
+        .userSets('collection/b', { key: 'b', matches: true })
+        .writeAcks('collection/a', 1000)
+        .writeAcks('collection/b', 1001)
+        .userListens(originalQuery)
+        .expectEvents(originalQuery, {
+          added: [docACommitted, docBCommitted],
+          fromCache: true
+        })
+        .watchAcksFull(originalQuery, 2000, docACommitted)
+        .expectLimboDocs(docBCommitted.key)
+        .userListens(filteredQuery)
+        .expectEvents(filteredQuery, {
+          added: [docA, docBCommitted],
+          fromCache: true
+        })
+        .userUnlistens(originalQuery)
+        .expectLimboDocs()
+        // Re-run the query. Note that we still return the unresolved limbo
+        // document `docBCommitted` even though the backend told us earlier that
+        // it does not match.
+        .userListens(originalQuery, 'resume-token-2000')
+        .expectEvents(originalQuery, {
+          added: [docA, docBCommitted],
+          fromCache: true
+        })
+    );
+  });
 });

@@ -1021,11 +1021,11 @@ abstract class TestRunner {
       );
     });
     for (const expectedLimboDoc of this.expectedLimboDocs) {
-      expect(
-        actualLimboDocs.get(expectedLimboDoc),
+      expect(actualLimboDocs.get(expectedLimboDoc)).to.not.equal(
+        null,
         'Expected doc to be in limbo, but was not: ' +
           expectedLimboDoc.toString()
-      ).to.be.ok;
+      );
       actualLimboDocs = actualLimboDocs.remove(expectedLimboDoc);
     }
     expect(actualLimboDocs.size).to.equal(
