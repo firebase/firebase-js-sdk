@@ -51,7 +51,7 @@ export class LocalDocumentsView {
     private remoteDocumentCache: RemoteDocumentCache,
     private mutationQueue: MutationQueue,
     private indexManager: IndexManager
-  ) {}
+  ) { }
 
   /**
    * Get the local view of the document identified by `key`.
@@ -222,22 +222,23 @@ export class LocalDocumentsView {
       })
       .next(matchingMutationBatches => {
         mutationBatches = matchingMutationBatches;
-        // It is possible that a PatchMutation can make a document a match to the query,
-        // but the version in `remoteDocumentCache` is not a match yet (waiting for server
-        // to ack). To handle this, we find all document keys affected by some`PatchMutation`s
+        // It is possible that a PatchMutation can make a document match a query, even if
+        // the version in the RemoteDocumentCache is not a match yet (waiting for server
+        // to ack). To handle this, we find all document keys affected by the PatchMutations
         // that are not in `result` yet, and back fill them via `remoteDocumentCache.getEntries`,
         // otherwise those `PatchMutations` will be ignored because no base document can be found,
         // and lead to missing result for the query.
-        return this.getDocumentWithPendingPatches(
+        return this.getMissingBaseDocuments(
           transaction,
           mutationBatches,
           results
-        ).next(docsWithPendingPatches => {
-          docsWithPendingPatches.forEach((key, doc) => {
+        ).next(missingBaseDocuments => {
+          missingBaseDocuments.forEach((key, doc) => {
             if (doc !== null && doc instanceof Document) {
               results = results.insert(key, doc);
             }
           });
+
           for (const batch of mutationBatches) {
             for (const mutation of batch.mutations) {
               const key = mutation.key;
@@ -269,17 +270,17 @@ export class LocalDocumentsView {
       });
   }
 
-  private getDocumentWithPendingPatches(
+  private getMissingBaseDocuments(
     transaction: PersistenceTransaction,
     matchingMutationBatches: MutationBatch[],
-    results: DocumentMap
+    existingDocuments: DocumentMap
   ): PersistencePromise<NullableMaybeDocumentMap> {
     let missingBaseDocEntriesForPatching = documentKeySet();
     for (const batch of matchingMutationBatches) {
       for (const mutation of batch.mutations) {
         if (
           mutation instanceof PatchMutation &&
-          results.get(mutation.key) === null
+          existingDocuments.get(mutation.key) === null
         ) {
           missingBaseDocEntriesForPatching = missingBaseDocEntriesForPatching.add(
             mutation.key
