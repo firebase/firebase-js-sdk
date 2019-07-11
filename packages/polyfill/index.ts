@@ -26,6 +26,7 @@ import 'core-js/features/array/find';
 import 'core-js/features/array/find-index';
 import 'core-js/features/array/from';
 import 'core-js/features/array/some';
+import 'core-js/features/typed-array/iterator';
 import 'core-js/features/object/assign';
 import 'core-js/features/object/entries';
 import 'core-js/features/object/values';
