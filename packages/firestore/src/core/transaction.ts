@@ -31,7 +31,9 @@ import { SnapshotVersion } from './snapshot_version';
  * perform and the base versions for any documents read.
  */
 export class Transaction {
-  // The version of each document that was read during this transaction.
+  /**
+   * The version of each document that was read during this transaction.
+   */
   private readVersions = documentVersionMap();
   private mutations: Mutation[] = [];
   private committed = false;
@@ -42,7 +44,77 @@ export class Transaction {
    */
   private lastWriteError: FirestoreError;
 
+  /**
+   * Set of documents that have been written in the transaction.
+   */
+  private writtenDocs: Set<DocumentKey> = new Set();
+
   constructor(private datastore: Datastore) {}
+
+  lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
+    this.ensureCommitNotCalled();
+
+    if (this.mutations.length > 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Firestore transactions require all reads to be executed before all writes.'
+      );
+    }
+    return this.datastore.lookup(keys).then(docs => {
+      docs.forEach(doc => {
+        if (doc instanceof NoDocument || doc instanceof Document) {
+          this.recordVersion(doc);
+        } else {
+          fail('Document in a transaction was a ' + doc.constructor.name);
+        }
+      });
+      return docs;
+    });
+  }
+
+  set(key: DocumentKey, data: ParsedSetData): void {
+    this.write(data.toMutations(key, this.precondition(key)));
+    this.writtenDocs.add(key);
+  }
+
+  update(key: DocumentKey, data: ParsedUpdateData): void {
+    try {
+      this.write(data.toMutations(key, this.preconditionForUpdate(key)));
+    } catch (e) {
+      this.lastWriteError = e;
+    }
+    this.writtenDocs.add(key);
+  }
+
+  delete(key: DocumentKey): void {
+    this.write([new DeleteMutation(key, this.precondition(key))]);
+    // Since the delete will be applied before all following writes, we need to
+    // ensure that the precondition for the next write will be exists: false.
+    // nomore
+    this.writtenDocs.add(key);
+  }
+
+  commit(): Promise<void> {
+    this.ensureCommitNotCalled();
+
+    if (this.lastWriteError) {
+      throw this.lastWriteError;
+    }
+    let unwritten = this.readVersions;
+    // For each mutation, note that the doc was written.
+    this.mutations.forEach(mutation => {
+      unwritten = unwritten.remove(mutation.key);
+    });
+    if (!unwritten.isEmpty()) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Every document read in a transaction must also be written.'
+      );
+    }
+    return this.datastore.commit(this.mutations).then(() => {
+      this.committed = true;
+    });
+  }
 
   private recordVersion(doc: MaybeDocument): void {
     let docVersion: SnapshotVersion;
@@ -70,27 +142,6 @@ export class Transaction {
     }
   }
 
-  lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
-    this.ensureCommitNotCalled();
-
-    if (this.mutations.length > 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Firestore transactions require all reads to be executed before all writes.'
-      );
-    }
-    return this.datastore.lookup(keys).then(docs => {
-      docs.forEach(doc => {
-        if (doc instanceof NoDocument || doc instanceof Document) {
-          this.recordVersion(doc);
-        } else {
-          fail('Document in a transaction was a ' + doc.constructor.name);
-        }
-      });
-      return docs;
-    });
-  }
-
   private write(mutations: Mutation[]): void {
     this.ensureCommitNotCalled();
     this.mutations = this.mutations.concat(mutations);
@@ -102,7 +153,7 @@ export class Transaction {
    */
   private precondition(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key);
-    if (version) {
+    if (!this.writtenDocs.has(key) && version) {
       return Precondition.updateTime(version);
     } else {
       return Precondition.NONE;
@@ -114,73 +165,33 @@ export class Transaction {
    */
   private preconditionForUpdate(key: DocumentKey): Precondition {
     const version = this.readVersions.get(key);
-    if (version && version.isEqual(SnapshotVersion.forDeletedDoc())) {
-      // The document doesn't exist, so fail the transaction.
+    // The first time a document is written, we want to take into account the
+    // read time and existence
+    if (!this.writtenDocs.has(key) && version) {
+      if (version.isEqual(SnapshotVersion.forDeletedDoc())) {
+        // The document doesn't exist, so fail the transaction.
 
-      // This has to be validated locally because you can't send a precondition
-      // that a document does not exist without changing the semantics of the
-      // backend write to be an insert. This is the reverse of what we want,
-      // since we want to assert that the document doesn't exist but then send
-      // the update and have it fail. Since we can't express that to the backend,
-      // we have to validate locally.
+        // This has to be validated locally because you can't send a precondition
+        // that a document does not exist without changing the semantics of the
+        // backend write to be an insert. This is the reverse of what we want,
+        // since we want to assert that the document doesn't exist but then send
+        // the update and have it fail. Since we can't express that to the backend,
+        // we have to validate locally.
 
-      // Note: this can change once we can send separate verify writes in the transaction.
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        "Can't update a document that doesn't exist."
-      );
-    } else if (version) {
+        // Note: this can change once we can send separate verify writes in the transaction.
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          "Can't update a document that doesn't exist."
+        );
+      }
       // Document exists, base precondition on document update time.
       return Precondition.updateTime(version);
+      // else !firstWrite GENERAL
     } else {
       // Document was not read, so we just use the preconditions for a blind
       // update.
       return Precondition.exists(true);
     }
-  }
-
-  set(key: DocumentKey, data: ParsedSetData): void {
-    this.write(data.toMutations(key, this.precondition(key)));
-  }
-
-  update(key: DocumentKey, data: ParsedUpdateData): void {
-    try {
-      this.write(data.toMutations(key, this.preconditionForUpdate(key)));
-    } catch (e) {
-      this.lastWriteError = e;
-    }
-  }
-
-  delete(key: DocumentKey): void {
-    this.write([new DeleteMutation(key, this.precondition(key))]);
-    // Since the delete will be applied before all following writes, we need to
-    // ensure that the precondition for the next write will be exists: false.
-    this.readVersions = this.readVersions.insert(
-      key,
-      SnapshotVersion.forDeletedDoc()
-    );
-  }
-
-  commit(): Promise<void> {
-    this.ensureCommitNotCalled();
-
-    if (this.lastWriteError) {
-      throw this.lastWriteError;
-    }
-    let unwritten = this.readVersions;
-    // For each mutation, note that the doc was written.
-    this.mutations.forEach(mutation => {
-      unwritten = unwritten.remove(mutation.key);
-    });
-    if (!unwritten.isEmpty()) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        'Every document read in a transaction must also be written.'
-      );
-    }
-    return this.datastore.commit(this.mutations).then(() => {
-      this.committed = true;
-    });
   }
 
   private ensureCommitNotCalled(): void {

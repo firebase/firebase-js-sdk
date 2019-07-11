@@ -23,7 +23,184 @@ import * as integrationHelpers from '../util/helpers';
 
 const apiDescribe = integrationHelpers.apiDescribe;
 
-apiDescribe('Database transactions', (persistence: boolean) => {
+apiDescribe.only('Database transactions', (persistence: boolean) => {
+  type TransactionStep = (
+    transaction: firestore.Transaction,
+    docRef: firestore.DocumentReference
+  ) => void;
+
+  /**
+   * Used for testing that all possible combinations of executing transactions
+   * result in the desired document value or error.
+   *
+   * The transaction steps are postfixed by numbers to indicate the calling
+   * order. For example, calling `set1()` followed by `set2()` should result in
+   * the document being set to the value specified by `set2()`.
+   */
+  class TransactionTester {
+    constructor(readonly db: firestore.FirebaseFirestore) {}
+
+    async delete(
+      transaction: firestore.Transaction,
+      docRef: firestore.DocumentReference
+    ): Promise<void> {
+      transaction.delete(docRef);
+    }
+
+    async update1(
+      transaction: firestore.Transaction,
+      docRef: firestore.DocumentReference
+    ): Promise<void> {
+      transaction.update(docRef, { foo: 'bar1' });
+    }
+
+    async update2(
+      transaction: firestore.Transaction,
+      docRef: firestore.DocumentReference
+    ): Promise<void> {
+      transaction.update(docRef, { foo: 'bar2' });
+    }
+
+    async set1(
+      transaction: firestore.Transaction,
+      docRef: firestore.DocumentReference
+    ): Promise<void> {
+      transaction.set(docRef, { foo: 'bar1' });
+    }
+
+    async set2(
+      transaction: firestore.Transaction,
+      docRef: firestore.DocumentReference
+    ): Promise<void> {
+      transaction.set(docRef, { foo: 'bar2' });
+    }
+
+    async getExisting(
+      transaction: firestore.Transaction,
+      docRef: firestore.DocumentReference
+    ): Promise<void> {
+      return transaction.get(docRef).then(docSnap => {
+        expect(docSnap.exists).to.equal(true);
+      });
+    }
+
+    async getMissing(
+      transaction: firestore.Transaction,
+      docRef: firestore.DocumentReference
+    ): Promise<void> {
+      return transaction.get(docRef).then(docSnap => {
+        expect(docSnap.exists).to.equal(false);
+      });
+    }
+
+    /**
+     * Validates that executing the provided steps in a transaction results in
+     * the doc value equal to the expected value.
+     *
+     * @param expected The expected value of the doc.
+     * @param docExists Whether the document the transaction is being run on
+     * should exist beforehand.
+     * @param stages The series of transaction steps to execute inside the
+     * transaction.
+     */
+    async validateSequenceSuccess(
+      expected: object | undefined,
+      docExists: boolean,
+      ...stages: TransactionStep[]
+    ) {
+      const docRef = this.db.collection('sighs').doc();
+      if (docExists) {
+        await docRef.set({ foo: 'bar0' });
+        const docSnap = await docRef.get();
+        expect(docSnap.exists).to.equal(true);
+      }
+      await this.db
+        .runTransaction(async transaction => {
+          for (let stage of stages) {
+            await stage(transaction, docRef);
+          }
+          return docRef;
+        })
+        .then(async (docRef: firestore.DocumentReference) => {
+          const snapshot = await docRef.get();
+          if (expected) {
+            expect(snapshot.exists).to.equal(true);
+            expect(snapshot.data()).to.deep.equal(expected);
+          } else {
+            expect(snapshot.exists).to.equal(false);
+          }
+        })
+        .catch(err => {
+          expect.fail(
+            'Expected the sequence (' +
+              this.listSteps(stages) +
+              ') to succeed, but got ' +
+              err
+          );
+        });
+    }
+
+    /**
+     * Validates that executing the provided steps in a transaction results a
+     * FirestoreError after executing the transaction.
+     *
+     * @param expected The expected FirestoreError code.
+     * @param docExists Whether the document the transaction is being run on
+     * should exist beforehand.
+     * @param stages The series of transaction steps to execute inside the
+     * transaction.
+     */
+    async validateSequenceError(
+      expected: string,
+      docExists: boolean,
+      ...stages: TransactionStep[]
+    ) {
+      const docRef = this.db.collection('sighs').doc();
+      if (docExists) {
+        await docRef.set({ foo: 'bar0' });
+        const docSnap = await docRef.get();
+        expect(docSnap.exists).to.equal(true);
+      }
+      await this.db
+        .runTransaction(async transaction => {
+          for (let stage of stages) {
+            await stage(transaction, docRef);
+          }
+        })
+        .then(
+          () => {
+            expect.fail(
+              'Expected the sequence (' +
+                this.listSteps(stages) +
+                ') to fail with the error ' +
+                expected
+            );
+          },
+          err => {
+            expect((err as firestore.FirestoreError).code).to.equal(expected);
+          }
+        );
+    }
+
+    private listSteps(stages: TransactionStep[]): string {
+      let seqList: string[] = [];
+      for (let step of stages) {
+        if (step === this.delete) {
+          seqList.push('delete');
+        } else if (step === this.update1 || step === this.update2) {
+          seqList.push('update');
+        } else if (step === this.set1 || step === this.set2) {
+          seqList.push('set');
+        } else if (step === this.getExisting || step === this.getMissing) {
+          seqList.push('get');
+        } else {
+          throw new Error('Step not recognized.');
+        }
+      }
+      return seqList.join(', ');
+    }
+  }
+
   // TODO(klimt): Test that transactions don't see latency compensation
   // changes, using the other kind of integration test.
   // We currently require every document read to also be written.
@@ -63,131 +240,261 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
-  it('delete documents', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const doc = db.collection('towns').doc();
-      return doc
-        .set({ foo: 'bar' })
-        .then(() => {
-          return doc.get();
-        })
-        .then(snapshot => {
-          expect(snapshot).to.exist;
-          expect(snapshot.data()!['foo']).to.equal('bar');
-          return db.runTransaction(async transaction => {
-            transaction.delete(doc);
-          });
-        })
-        .then(() => {
-          return doc.get();
-        })
-        .then(snapshot => {
-          expect(snapshot.exists).to.equal(false);
-        });
+  it('run transactions after getting existing document', async () => {
+    return integrationHelpers.withTestDb(persistence, async db => {
+      const tt = new TransactionTester(db);
+      await tt.validateSequenceSuccess(
+        undefined,
+        /** docExists = */ true,
+        tt.getExisting,
+        tt.delete,
+        tt.delete
+      );
+      await tt.validateSequenceError(
+        'invalid-argument',
+        /** docExists = */ true,
+        tt.getExisting,
+        tt.delete,
+        tt.update2
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ true,
+        tt.getExisting,
+        tt.delete,
+        tt.set2
+      );
+      await tt.validateSequenceSuccess(
+        undefined,
+        /** docExists = */ true,
+        tt.getExisting,
+        tt.update1,
+        tt.delete
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ true,
+        tt.getExisting,
+        tt.update1,
+        tt.update2
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ true,
+        tt.getExisting,
+        tt.update1,
+        tt.set2
+      );
+      await tt.validateSequenceSuccess(
+        undefined,
+        /** docExists = */ true,
+        tt.getExisting,
+        tt.set1,
+        tt.delete
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ true,
+        tt.getExisting,
+        tt.set1,
+        tt.update2
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ true,
+        tt.getExisting,
+        tt.set1,
+        tt.set2
+      );
     });
   });
 
-  it('get nonexistent document then create', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const docRef = db.collection('towns').doc();
-      return db
-        .runTransaction(transaction => {
-          return transaction.get(docRef).then(docSnap => {
-            expect(docSnap.exists).to.equal(false);
-            transaction.set(docRef, { foo: 'bar' });
-          });
-        })
-        .then(() => {
-          return docRef.get();
-        })
-        .then(snapshot => {
-          expect(snapshot.exists).to.equal(true);
-          expect(snapshot.data()).to.deep.equal({ foo: 'bar' });
-        });
+  it('run transactions after getting non-existent document', async () => {
+    return integrationHelpers.withTestDb(persistence, async db => {
+      const tt = new TransactionTester(db);
+      await tt.validateSequenceSuccess(
+        undefined,
+        /** docExists = */ false,
+        tt.getMissing,
+        tt.delete,
+        tt.delete
+      );
+      await tt.validateSequenceError(
+        'invalid-argument',
+        /** docExists = */ false,
+        tt.getMissing,
+        tt.delete,
+        tt.update2
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ false,
+        tt.getMissing,
+        tt.delete,
+        tt.set2
+      );
+      await tt.validateSequenceError(
+        'invalid-argument',
+        /** docExists = */ false,
+        tt.getMissing,
+        tt.update1,
+        tt.delete
+      );
+      await tt.validateSequenceError(
+        'invalid-argument',
+        /** docExists = */ false,
+        tt.getMissing,
+        tt.update1,
+        tt.update2
+      );
+      await tt.validateSequenceError(
+        'invalid-argument',
+        /** docExists = */ false,
+        tt.getMissing,
+        tt.update1,
+        tt.set2
+      );
+      await tt.validateSequenceSuccess(
+        undefined,
+        /** docExists = */ false,
+        tt.getMissing,
+        tt.set1,
+        tt.delete
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ false,
+        tt.getMissing,
+        tt.set1,
+        tt.update2
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ false,
+        tt.getMissing,
+        tt.set1,
+        tt.set2
+      );
     });
   });
 
-  it('get nonexistent document then fail patch', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const docRef = db.collection('towns').doc();
-      return db
-        .runTransaction(transaction => {
-          return transaction.get(docRef).then(docSnap => {
-            expect(docSnap.exists).to.equal(false);
-            transaction.update(docRef, { foo: 'bar' });
-          });
-        })
-        .then(() => expect.fail('transaction should fail'))
-        .catch((err: firestore.FirestoreError) => {
-          expect(err).to.exist;
-          expect(err.code).to.equal('invalid-argument');
-        });
+  it('run transactions on existing document ', async () => {
+    return integrationHelpers.withTestDb(persistence, async db => {
+      const tt = new TransactionTester(db);
+      await tt.validateSequenceSuccess(
+        undefined,
+        /** docExists = */ true,
+        tt.delete,
+        tt.delete
+      );
+      await tt.validateSequenceError(
+        'invalid-argument',
+        /** docExists = */ true,
+        tt.delete,
+        tt.update2
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ true,
+        tt.delete,
+        tt.set2
+      );
+      await tt.validateSequenceSuccess(
+        undefined,
+        /** docExists = */ true,
+        tt.update1,
+        tt.delete
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ true,
+        tt.update1,
+        tt.update2
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ true,
+        tt.update1,
+        tt.set2
+      );
+      await tt.validateSequenceSuccess(
+        undefined,
+        /** docExists = */ true,
+        tt.set1,
+        tt.delete
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ true,
+        tt.set1,
+        tt.update2
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ true,
+        tt.set1,
+        tt.set2
+      );
     });
   });
 
-  it("can't delete document then patch", () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const docRef = db.collection('towns').doc();
-      return docRef.set({ foo: 'bar' }).then(() => {
-        return db
-          .runTransaction(transaction => {
-            return transaction.get(docRef).then(docSnap => {
-              expect(docSnap.exists).to.equal(true);
-              transaction.delete(docRef);
-              // Since we deleted the doc, the update will fail
-              transaction.update(docRef, { foo: 'new-bar' });
-            });
-          })
-          .catch((err: firestore.FirestoreError) => {
-            expect(err).to.exist;
-            // This is the error surfaced by the backend.
-            expect(err.code).to.equal('invalid-argument');
-          });
-      });
-    });
-  });
-
-  it("can't delete document then set", () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const docRef = db.collection('towns').doc();
-      return docRef.set({ foo: 'bar' }).then(() => {
-        return db
-          .runTransaction(transaction => {
-            return transaction.get(docRef).then(docSnap => {
-              expect(docSnap.exists).to.equal(true);
-              transaction.delete(docRef);
-              // TODO(dimond): In theory this should work, but it's complex to
-              // make it work, so instead we just let the transaction fail and
-              // verify it's unsupported for now
-              transaction.set(docRef, { foo: 'new-bar' });
-            });
-          })
-          .then(() => expect.fail('transaction should fail'))
-          .catch(err => {
-            expect(err).to.exist;
-            // This is the error surfaced by the backend.
-            expect((err as firestore.FirestoreError).code).to.equal(
-              'invalid-argument'
-            );
-          });
-      });
-    });
-  });
-
-  it('write document twice', () => {
-    return integrationHelpers.withTestDb(persistence, db => {
-      const doc = db.collection('towns').doc();
-      return db
-        .runTransaction(async transaction => {
-          transaction.set(doc, { a: 'b' }).set(doc, { c: 'd' });
-        })
-        .then(() => {
-          return doc.get();
-        })
-        .then(snapshot => {
-          expect(snapshot.exists).to.equal(true);
-          expect(snapshot.data()).to.deep.equal({ c: 'd' });
-        });
+  it('run transactions on non-existent document ', async () => {
+    return integrationHelpers.withTestDb(persistence, async db => {
+      const tt = new TransactionTester(db);
+      await tt.validateSequenceSuccess(
+        undefined,
+        /** docExists = */ false,
+        tt.delete,
+        tt.delete
+      );
+      await tt.validateSequenceError(
+        'invalid-argument',
+        /** docExists = */ false,
+        tt.delete,
+        tt.update2
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ false,
+        tt.delete,
+        tt.set2
+      );
+      await tt.validateSequenceError(
+        'not-found',
+        /** docExists = */ false,
+        tt.update1,
+        tt.delete
+      );
+      await tt.validateSequenceError(
+        'not-found',
+        /** docExists = */ false,
+        tt.update1,
+        tt.update2
+      );
+      await tt.validateSequenceError(
+        'not-found',
+        /** docExists = */ false,
+        tt.update1,
+        tt.set2
+      );
+      await tt.validateSequenceSuccess(
+        undefined,
+        /** docExists = */ false,
+        tt.set1,
+        tt.delete
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ false,
+        tt.set1,
+        tt.update2
+      );
+      await tt.validateSequenceSuccess(
+        { foo: 'bar2' },
+        /** docExists = */ false,
+        tt.set1,
+        tt.set2
+      );
     });
   });
 
