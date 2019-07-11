@@ -19,13 +19,13 @@ import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
+  documentKeySet,
   DocumentMap,
   documentMap,
   MaybeDocumentMap,
   maybeDocumentMap,
   NullableMaybeDocumentMap,
   nullableMaybeDocumentMap,
-  documentKeySet
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -35,10 +35,10 @@ import { ResourcePath } from '../model/path';
 import { assert } from '../util/assert';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
+import { PatchMutation } from '../model/mutation';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { PatchMutation } from '../model/mutation';
 
 /**
  * A readonly view of the local state of all documents we're tracking (i.e. we
@@ -51,7 +51,7 @@ export class LocalDocumentsView {
     private remoteDocumentCache: RemoteDocumentCache,
     private mutationQueue: MutationQueue,
     private indexManager: IndexManager
-  ) {}
+  ) { }
 
   /**
    * Get the local view of the document identified by `key`.
@@ -228,57 +228,31 @@ export class LocalDocumentsView {
         // that are not in `result` yet, and back fill them via `remoteDocumentCache.getEntries`,
         // otherwise those `PatchMutations` will be ignored because no base document can be found,
         // and lead to missing result for the query.
-        let missingBaseDocEntriesForPatching = documentKeySet();
-        for (const batch of matchingMutationBatches) {
-          for (const mutation of batch.mutations) {
-            // Only process documents belonging to the collection.
-            if (!query.path.isImmediateParentOf(mutation.key.path)) {
-              continue;
+        return this.getDocumentWithPendingPatches(transaction, mutationBatches, results)
+          .next(docsWithPendingPatches => {
+            docsWithPendingPatches.forEach((key, doc) => {
+              if (doc !== null && doc instanceof Document) {
+                results = results.insert(key, doc);
+              }
+            });
+            for (const batch of mutationBatches) {
+              for (const mutation of batch.mutations) {
+                const key = mutation.key;
+                const baseDoc = results.get(key);
+                const mutatedDoc = mutation.applyToLocalView(
+                  baseDoc,
+                  baseDoc,
+                  batch.localWriteTime
+                );
+                if (mutatedDoc instanceof Document) {
+                  results = results.insert(key, mutatedDoc);
+                } else {
+                  results = results.remove(key);
+                }
+              }
             }
-            if (
-              mutation instanceof PatchMutation &&
-              results.get(mutation.key) === null
-            ) {
-              missingBaseDocEntriesForPatching = missingBaseDocEntriesForPatching.add(
-                mutation.key
-              );
-            }
-          }
-        }
-        return this.remoteDocumentCache.getEntries(
-          transaction,
-          missingBaseDocEntriesForPatching
-        );
-      })
-      .next(docsWithPendingPatches => {
-        docsWithPendingPatches.forEach((key, doc) => {
-          if (doc !== null && doc instanceof Document) {
-            results = results.insert(key, doc);
-          }
-        });
-        for (const batch of mutationBatches) {
-          for (const mutation of batch.mutations) {
-            const key = mutation.key;
-            // Only process documents belonging to the collection.
-            if (!query.path.isImmediateParentOf(key.path)) {
-              continue;
-            }
-
-            const baseDoc = results.get(key);
-            const mutatedDoc = mutation.applyToLocalView(
-              baseDoc,
-              baseDoc,
-              batch.localWriteTime
-            );
-            if (mutatedDoc instanceof Document) {
-              results = results.insert(key, mutatedDoc);
-            } else {
-              results = results.remove(key);
-            }
-          }
-        }
-      })
-      .next(() => {
+          });
+      }).next(() => {
         // Finally, filter out any documents that don't actually match
         // the query.
         results.forEach((key, doc) => {
@@ -289,5 +263,29 @@ export class LocalDocumentsView {
 
         return results;
       });
+  }
+
+  private getDocumentWithPendingPatches(
+    transaction: PersistenceTransaction,
+    matchingMutationBatches: MutationBatch[],
+    results: DocumentMap
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    let missingBaseDocEntriesForPatching = documentKeySet();
+    for (const batch of matchingMutationBatches) {
+      for (const mutation of batch.mutations) {
+        if (
+          mutation instanceof PatchMutation &&
+          results.get(mutation.key) === null
+        ) {
+          missingBaseDocEntriesForPatching = missingBaseDocEntriesForPatching.add(
+            mutation.key
+          );
+        }
+      }
+    }
+    return this.remoteDocumentCache.getEntries(
+      transaction,
+      missingBaseDocEntriesForPatching
+    );
   }
 }

@@ -16,7 +16,7 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, filter } from '../../util/helpers';
+import { doc, filter, path } from '../../util/helpers';
 
 import { Document } from '../../../src/model/document';
 import { ResourcePath } from '../../../src/model/path';
@@ -100,10 +100,10 @@ describeSpec('Queries:', [], () => {
   });
 
   specTest(
-    'Ensure correct query results for latency-compensated updates',
+    'Latency-compensated updates are included in query results',
     [],
     () => {
-      const fullQuery = Query.atPath(ResourcePath.fromString('collection'));
+      const fullQuery = Query.atPath(path('collection'));
       const filteredQuery = fullQuery.addFilter(filter('match', '==', true));
       const docA = doc('collection/a', 1000, { match: false });
       const docAv2Local = doc(
