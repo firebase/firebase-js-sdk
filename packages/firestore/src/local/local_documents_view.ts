@@ -25,7 +25,7 @@ import {
   MaybeDocumentMap,
   maybeDocumentMap,
   NullableMaybeDocumentMap,
-  nullableMaybeDocumentMap,
+  nullableMaybeDocumentMap
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
@@ -51,7 +51,7 @@ export class LocalDocumentsView {
     private remoteDocumentCache: RemoteDocumentCache,
     private mutationQueue: MutationQueue,
     private indexManager: IndexManager
-  ) { }
+  ) {}
 
   /**
    * Get the local view of the document identified by `key`.
@@ -228,31 +228,35 @@ export class LocalDocumentsView {
         // that are not in `result` yet, and back fill them via `remoteDocumentCache.getEntries`,
         // otherwise those `PatchMutations` will be ignored because no base document can be found,
         // and lead to missing result for the query.
-        return this.getDocumentWithPendingPatches(transaction, mutationBatches, results)
-          .next(docsWithPendingPatches => {
-            docsWithPendingPatches.forEach((key, doc) => {
-              if (doc !== null && doc instanceof Document) {
-                results = results.insert(key, doc);
-              }
-            });
-            for (const batch of mutationBatches) {
-              for (const mutation of batch.mutations) {
-                const key = mutation.key;
-                const baseDoc = results.get(key);
-                const mutatedDoc = mutation.applyToLocalView(
-                  baseDoc,
-                  baseDoc,
-                  batch.localWriteTime
-                );
-                if (mutatedDoc instanceof Document) {
-                  results = results.insert(key, mutatedDoc);
-                } else {
-                  results = results.remove(key);
-                }
-              }
+        return this.getDocumentWithPendingPatches(
+          transaction,
+          mutationBatches,
+          results
+        ).next(docsWithPendingPatches => {
+          docsWithPendingPatches.forEach((key, doc) => {
+            if (doc !== null && doc instanceof Document) {
+              results = results.insert(key, doc);
             }
           });
-      }).next(() => {
+          for (const batch of mutationBatches) {
+            for (const mutation of batch.mutations) {
+              const key = mutation.key;
+              const baseDoc = results.get(key);
+              const mutatedDoc = mutation.applyToLocalView(
+                baseDoc,
+                baseDoc,
+                batch.localWriteTime
+              );
+              if (mutatedDoc instanceof Document) {
+                results = results.insert(key, mutatedDoc);
+              } else {
+                results = results.remove(key);
+              }
+            }
+          }
+        });
+      })
+      .next(() => {
         // Finally, filter out any documents that don't actually match
         // the query.
         results.forEach((key, doc) => {
