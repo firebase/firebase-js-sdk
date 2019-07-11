@@ -31,9 +31,7 @@ import { SnapshotVersion } from './snapshot_version';
  * perform and the base versions for any documents read.
  */
 export class Transaction {
-  /**
-   * The version of each document that was read during this transaction.
-   */
+  // The version of each document that was read during this transaction.
   private readVersions = documentVersionMap();
   private mutations: Mutation[] = [];
   private committed = false;
@@ -46,6 +44,9 @@ export class Transaction {
 
   /**
    * Set of documents that have been written in the transaction.
+   *
+   * When there's more than one write to the same key in a transaction, any
+   * writes after hte first are handled differently.
    */
   private writtenDocs: Set<DocumentKey> = new Set();
 
@@ -88,9 +89,6 @@ export class Transaction {
 
   delete(key: DocumentKey): void {
     this.write([new DeleteMutation(key, this.precondition(key))]);
-    // Since the delete will be applied before all following writes, we need to
-    // ensure that the precondition for the next write will be exists: false.
-    // nomore
     this.writtenDocs.add(key);
   }
 
@@ -142,11 +140,6 @@ export class Transaction {
     }
   }
 
-  private write(mutations: Mutation[]): void {
-    this.ensureCommitNotCalled();
-    this.mutations = this.mutations.concat(mutations);
-  }
-
   /**
    * Returns the version of this document when it was read in this transaction,
    * as a precondition, or no precondition if it was not read.
@@ -171,14 +164,15 @@ export class Transaction {
       if (version.isEqual(SnapshotVersion.forDeletedDoc())) {
         // The document doesn't exist, so fail the transaction.
 
-        // This has to be validated locally because you can't send a precondition
-        // that a document does not exist without changing the semantics of the
-        // backend write to be an insert. This is the reverse of what we want,
-        // since we want to assert that the document doesn't exist but then send
-        // the update and have it fail. Since we can't express that to the backend,
-        // we have to validate locally.
+        // This has to be validated locally because you can't send a
+        // precondition that a document does not exist without changing the
+        // semantics of the backend write to be an insert. This is the reverse
+        // of what we want, since we want to assert that the document doesn't
+        // exist but then send the update and have it fail. Since we can't
+        // express that to the backend, we have to validate locally.
 
-        // Note: this can change once we can send separate verify writes in the transaction.
+        // Note: this can change once we can send separate verify writes in the
+        // transaction.
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           "Can't update a document that doesn't exist."
@@ -186,12 +180,16 @@ export class Transaction {
       }
       // Document exists, base precondition on document update time.
       return Precondition.updateTime(version);
-      // else !firstWrite GENERAL
     } else {
       // Document was not read, so we just use the preconditions for a blind
       // update.
       return Precondition.exists(true);
     }
+  }
+
+  private write(mutations: Mutation[]): void {
+    this.ensureCommitNotCalled();
+    this.mutations = this.mutations.concat(mutations);
   }
 
   private ensureCommitNotCalled(): void {
