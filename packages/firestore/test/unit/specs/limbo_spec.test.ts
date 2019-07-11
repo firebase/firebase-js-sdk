@@ -437,54 +437,54 @@ describeSpec('Limbo Documents:', [], () => {
 
   specTest('Limbo documents stay consistent between views', [], () => {
     // This tests verifies that a document is consistent between views, even
-    // if the document is only in Limbo in one of the.
-    const originalQuery = Query.atPath(path('collection')).addFilter(
-      filter('matches', '==', true)
-    );
+    // if the document is only in Limbo in one of them.
+    const originalQuery = Query.atPath(path('collection'));
     const filteredQuery = Query.atPath(path('collection'))
-      .addFilter(filter('matches', '==', true))
-      .addFilter(filter('key', '>=', 'a'));
+      .addFilter(filter('matches', '==', true));
 
-    const docA = doc('collection/a', 1000, { key: 'a', matches: true });
-    const docACommitted = doc(
+    const docA = doc('collection/a', 1000, { matches: true });
+    const docADirty = doc(
       'collection/a',
       1000,
-      { key: 'a', matches: true },
+      {  matches: true },
       { hasCommittedMutations: true }
     );
-    const docBCommitted = doc(
+    const docBDirty = doc(
       'collection/b',
       1001,
-      { key: 'b', matches: true },
+      {  matches: true },
       { hasCommittedMutations: true }
     );
 
     return (
       client(0)
-        .userSets('collection/a', { key: 'a', matches: true })
-        .userSets('collection/b', { key: 'b', matches: true })
+        .userSets('collection/a', { matches: true })
+        .userSets('collection/b', { matches: true })
         .writeAcks('collection/a', 1000)
         .writeAcks('collection/b', 1001)
         .userListens(originalQuery)
         .expectEvents(originalQuery, {
-          added: [docACommitted, docBCommitted],
+          added: [docADirty, docBDirty],
           fromCache: true
         })
-        .watchAcksFull(originalQuery, 2000, docACommitted)
-        .expectLimboDocs(docBCommitted.key)
+        // Watch only includes docA in the result set, indicating that docB was
+        // modified out-of-band.
+        .watchAcksFull(originalQuery, 2000, docA)
+        .expectLimboDocs(docBDirty.key)
         .userListens(filteredQuery)
         .expectEvents(filteredQuery, {
-          added: [docA, docBCommitted],
+          added: [docA, docBDirty],
           fromCache: true
         })
         .userUnlistens(originalQuery)
         .expectLimboDocs()
         // Re-run the query. Note that we still return the unresolved limbo
-        // document `docBCommitted` even though the backend told us earlier that
-        // it does not match.
+        // document `docBCommitted`, since we haven't received the resolved
+        // document from Watch. Until we do, we return the version from cache
+        // even though the backend told it does not match.
         .userListens(originalQuery, 'resume-token-2000')
         .expectEvents(originalQuery, {
-          added: [docA, docBCommitted],
+          added: [docA, docBDirty],
           fromCache: true
         })
     );
