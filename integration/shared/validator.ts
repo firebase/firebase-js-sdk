@@ -17,7 +17,7 @@
 
 let validatedVersion = false;
 
-function validateNamespace(definition, candidate) {
+export function validateNamespace(definition: any, candidate: any) {
   const __expect = require('chai').expect;
   const keys = Object.keys(definition).filter(key => !~key.indexOf('__'));
 
@@ -104,5 +104,3 @@ function validateNamespace(definition, candidate) {
     });
   });
 }
-
-module.exports = validateNamespace;

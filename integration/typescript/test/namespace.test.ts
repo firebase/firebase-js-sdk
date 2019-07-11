@@ -17,7 +17,7 @@
 
 import * as firebase from 'firebase';
 import * as namespaceDefinition from '../../shared/namespaceDefinition.json';
-import validateNamespace from '../../shared/validator';
+import { validateNamespace } from '../../shared/validator';
 
 firebase.initializeApp({
   apiKey: 'test-api-key',
@@ -28,6 +28,6 @@ firebase.initializeApp({
   messagingSenderId: '012345678910'
 });
 
-describe('Firebase Namespace Validation', function() {
+describe('Firebase Namespace Validation', function () {
   validateNamespace(namespaceDefinition, firebase);
 });
