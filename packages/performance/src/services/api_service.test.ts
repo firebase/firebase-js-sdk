@@ -31,6 +31,8 @@ describe('Firebase Performance > api_service', () => {
   };
 
   const mockWindow = { ...self };
+  // hack for IE11. self.hasOwnProperty('performance') returns false in IE11
+  mockWindow.performance = self.performance;
 
   let api: Api;
 

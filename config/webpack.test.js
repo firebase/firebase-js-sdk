@@ -51,6 +51,23 @@ module.exports = {
         },
         enforce: 'post',
         include: path.resolve(process.cwd(), 'src')
+      },
+      {
+        test: /\.js$/,
+        include: [/node_modules\/chai-as-promised/],
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets: ['ie 11']
+                }
+              ]
+            ]
+          }
+        }
       }
     ]
   },
