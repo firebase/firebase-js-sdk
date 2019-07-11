@@ -28,6 +28,6 @@ firebase.initializeApp({
   messagingSenderId: '012345678910'
 });
 
-describe('Firebase Namespace Validation', function () {
+describe('Firebase Namespace Validation', function() {
   validateNamespace(namespaceDefinition, firebase);
 });

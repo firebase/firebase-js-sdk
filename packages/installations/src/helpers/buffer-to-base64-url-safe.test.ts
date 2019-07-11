@@ -21,12 +21,11 @@ import { bufferToBase64UrlSafe } from './buffer-to-base64-url-safe';
 
 var str = 'hello world';
 var TYPED_ARRAY_REPRESENTATION = new Uint8Array(str.length);
-for ( var i = 0; i < str.length; i++) {
+for (var i = 0; i < str.length; i++) {
   TYPED_ARRAY_REPRESENTATION[i] = str.charCodeAt(i);
 }
 
 const BASE_64_REPRESENTATION = btoa(str);
-
 
 describe('bufferToBase64', () => {
   it('returns a base64 representation of a Uint8Array', () => {
