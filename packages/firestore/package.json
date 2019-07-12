@@ -68,7 +68,7 @@
     "protobufjs": "6.8.8",
     "rollup": "1.16.7",
     "rollup-plugin-copy-assets": "1.1.0",
-    "rollup-plugin-node-resolve": "4.2.4",
+    "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.22.0",
     "sinon": "7.3.2",
