@@ -35,7 +35,7 @@ const PROTO_FILE = resolve(
 );
 const PKG_DEF = protoLoader.loadSync(PROTO_FILE, { includeDirs: [PROTO_ROOT] });
 const PROTOS = grpc.loadPackageDefinition(PKG_DEF);
-const EMULATOR = PROTOS['google']['firestore']['emulator']['v1'];
+const EMULATOR = (PROTOS['google'] as any)['firestore']['emulator']['v1'];
 
 /** If this environment variable is set, use it for the database emulator's address. */
 const DATABASE_ADDRESS_ENV: string = 'FIREBASE_DATABASE_EMULATOR_ADDRESS';
