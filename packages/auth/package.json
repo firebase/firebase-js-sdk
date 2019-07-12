@@ -22,7 +22,7 @@
     "@firebase/auth-types": "0.7.0"
   },
   "devDependencies": {
-    "del": "4.1.1",
+    "del": "5.0.0",
     "express": "4.17.1",
     "firebase-functions": "2.3.1",
     "firebase-tools": "6.12.0",
