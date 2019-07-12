@@ -19,9 +19,9 @@ import { expect } from 'chai';
 import '../testing/setup';
 import { bufferToBase64UrlSafe } from './buffer-to-base64-url-safe';
 
-var str = 'hello world';
-var TYPED_ARRAY_REPRESENTATION = new Uint8Array(str.length);
-for (var i = 0; i < str.length; i++) {
+const str = 'hello world';
+const TYPED_ARRAY_REPRESENTATION = new Uint8Array(str.length);
+for (let i = 0; i < str.length; i++) {
   TYPED_ARRAY_REPRESENTATION[i] = str.charCodeAt(i);
 }
 
