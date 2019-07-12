@@ -31,7 +31,7 @@
     "http-server": "0.11.1",
     "mocha": "6.1.4",
     "rollup": "1.16.7",
-    "rollup-plugin-commonjs": "9.3.4",
+    "rollup-plugin-commonjs": "10.0.1",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "4.2.4",
     "rollup-plugin-typescript2": "0.22.0",
