@@ -63,10 +63,10 @@
     pify "^4.0.0"
     retry-request "^4.0.0"
 
-"@google-cloud/firestore@^1.2.0":
-  version "1.2.0"
-  resolved "https://registry.npmjs.org/@google-cloud/firestore/-/firestore-1.2.0.tgz#ac81f84f7e55c5a25956011ebab628e1bbf4b2b0"
-  integrity sha512-Xku0KpZ/N+vbqX7rETlJVHV9YannCYja2v8vVvqe4sR9Rz0WkHqyDCZcjaXmcIC4DDKN+vzrb3IinBKDsniFag==
+"@google-cloud/firestore@^1.3.0":
+  version "1.3.0"
+  resolved "https://registry.npmjs.org/@google-cloud/firestore/-/firestore-1.3.0.tgz#193c4a3a1021c1b44c7f9a06f5e0bd49485f566a"
+  integrity sha512-KUKcHUU+FwwBmJH1LqJcd+XtLPzMcS/Vni6/WCJGHBGrOBmXCey4i3Gc41ZsuSk1Qx4msH5f+4h0b3t6YLyydg==
   dependencies:
     bun "^0.0.12"
     deep-equal "^1.0.1"
@@ -692,10 +692,10 @@ finalhandler@1.1.1:
     statuses "~1.4.0"
     unpipe "~1.0.0"
 
-firebase-admin@7.3.0:
-  version "7.3.0"
-  resolved "https://registry.npmjs.org/firebase-admin/-/firebase-admin-7.3.0.tgz#be9940fbabb58fc6a4404ac52c6a1e1b14b2ea38"
-  integrity sha512-G+gUU+u+8Mr/8IELeXA/44VYrGM6EEvUgYm5F6I5/oO6clUbM8b8x9QJasSeD14KQmP3iAPXcKQUALgH1wY+Vw==
+firebase-admin@7.4.0:
+  version "7.4.0"
+  resolved "https://registry.npmjs.org/firebase-admin/-/firebase-admin-7.4.0.tgz#f4eef59095c7f41a24fcacade99ab92f6b6dd27f"
+  integrity sha512-CMgFy9ul8P4TpUR0x9yTHBUhqa1r+Zj0h+NuhHES0bQkExUkLVg7Sf1cALe8/5pcbiveugyqPZw0oFSIhJlLCQ==
   dependencies:
     "@firebase/app" "^0.3.4"
     "@firebase/database" "^0.3.6"
@@ -704,13 +704,13 @@ firebase-admin@7.3.0:
     jsonwebtoken "8.1.0"
     node-forge "0.7.4"
   optionalDependencies:
-    "@google-cloud/firestore" "^1.2.0"
+    "@google-cloud/firestore" "^1.3.0"
     "@google-cloud/storage" "^2.3.0"
 
-firebase-functions@2.3.0:
-  version "2.3.0"
-  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-2.3.0.tgz#89433939b05f3cf2b8b617409b7b51963fd2a5d3"
-  integrity sha512-bUhaX5aW5SaLxDsC+F7Phbbb4KPPYyn4XlhqR8jdQCbiQMC9udxIOYy21d+vGR2XvSPH2fE7vgHsvOOzEQ0SmQ==
+firebase-functions@2.3.1:
+  version "2.3.1"
+  resolved "https://registry.npmjs.org/firebase-functions/-/firebase-functions-2.3.1.tgz#6ad741cb5f38f4ed1a679607ffdbec68fa11127f"
+  integrity sha512-MPeuzGFLS63VqfGErgf+kbZinXE4SoK+jxXh1NBWrjYUjXlOJBKRmVNAFJoQB8wzCvOtBuDYjGcnBNz6sKXsfw==
   dependencies:
     "@types/cors" "^2.8.1"
     "@types/express" "^4.11.1"

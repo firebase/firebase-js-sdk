@@ -20,6 +20,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "3.4.5"
+    "typescript": "3.5.3"
   }
 }
