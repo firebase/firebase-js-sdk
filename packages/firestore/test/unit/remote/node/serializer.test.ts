@@ -161,7 +161,7 @@ describe('Serializer', () => {
         const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
           actualJsonProto
         );
-        expect((actualProtobufjsProto as Indexable)[valueType]).to.deep.equal(
+        expect((actualProtobufjsProto as unknown as Indexable)[valueType]).to.deep.equal(
           protobufJsValue
         );
 
