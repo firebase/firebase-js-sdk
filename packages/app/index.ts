@@ -60,8 +60,8 @@ firebaseNamespace.initializeApp = function(...args: any) {
       "resolve.mainFields":
       https://webpack.js.org/configuration/resolve/#resolvemainfields
       
-      If using Rollup, use the rollup-plugin-node-resolve plugin and set the
-      "mainFields" field to ['main', 'module'].
+      If using Rollup, use the rollup-plugin-node-resolve plugin and specify "main"
+      as the first item in "mainFields", e.g. ['main', 'module'].
       https://github.com/rollup/rollup-plugin-node-resolve
       `);
   }
