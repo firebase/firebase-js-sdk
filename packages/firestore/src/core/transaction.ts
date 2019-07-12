@@ -52,7 +52,7 @@ export class Transaction {
 
   constructor(private datastore: Datastore) {}
 
-  lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
+  async lookup(keys: DocumentKey[]): Promise<MaybeDocument[]> {
     this.ensureCommitNotCalled();
 
     if (this.mutations.length > 0) {
@@ -61,16 +61,15 @@ export class Transaction {
         'Firestore transactions require all reads to be executed before all writes.'
       );
     }
-    return this.datastore.lookup(keys).then(docs => {
-      docs.forEach(doc => {
-        if (doc instanceof NoDocument || doc instanceof Document) {
-          this.recordVersion(doc);
-        } else {
-          fail('Document in a transaction was a ' + doc.constructor.name);
-        }
-      });
-      return docs;
+    const docs = await this.datastore.lookup(keys);
+    docs.forEach(doc => {
+      if (doc instanceof NoDocument || doc instanceof Document) {
+        this.recordVersion(doc);
+      } else {
+        fail('Document in a transaction was a ' + doc.constructor.name);
+      }
     });
+    return docs;
   }
 
   set(key: DocumentKey, data: ParsedSetData): void {
@@ -92,7 +91,7 @@ export class Transaction {
     this.writtenDocs.add(key);
   }
 
-  commit(): Promise<void> {
+  async commit(): Promise<void> {
     this.ensureCommitNotCalled();
 
     if (this.lastWriteError) {
@@ -109,9 +108,8 @@ export class Transaction {
         'Every document read in a transaction must also be written.'
       );
     }
-    return this.datastore.commit(this.mutations).then(() => {
-      this.committed = true;
-    });
+    await this.datastore.commit(this.mutations);
+    this.committed = true;
   }
 
   private recordVersion(doc: MaybeDocument): void {
