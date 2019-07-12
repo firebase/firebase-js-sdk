@@ -168,9 +168,7 @@ export function loadDatabaseRules(
   return new Promise((resolve, reject) => {
     request.put(
       {
-        uri: `http://${DATABASE_ADDRESS}/.settings/rules.json?ns=${
-          options.databaseName
-        }`,
+        uri: `http://${DATABASE_ADDRESS}/.settings/rules.json?ns=${options.databaseName}`,
         headers: { Authorization: 'Bearer owner' },
         body: options.rules
       },
