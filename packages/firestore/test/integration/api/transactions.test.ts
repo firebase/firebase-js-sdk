@@ -30,9 +30,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
   ) => void;
 
   /**
-   * The transaction steps are postfixed by numbers to indicate the calling
-   * order. For example, calling `set1()` followed by `set2()` should result in
-   * the document being set to the value specified by `set2()`.
+   * The transaction stages that follow are postfixed by numbers to indicate the
+   * calling order. For example, calling `set1()` followed by `set2()` should
+   * result in the document being set to the value specified by `set2()`.
    */
   async function delete1(
     transaction: firestore.Transaction,
@@ -109,57 +109,57 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     }
 
     async expectDoc(expected: object): Promise<void> {
-      await this.prepareDoc();
-      await this.runTransaction()
-        .then(async () => {
-          const snapshot = await this.docRef.get();
-          expect(snapshot.exists).to.equal(true);
-          expect(snapshot.data()).to.deep.equal(expected);
-        })
-        .catch(err => {
-          expect.fail(
-            'Expected the sequence (' +
-              this.listSteps(this.stages) +
-              ') to succeed, but got ' +
-              err
-          );
-        });
+      try {
+        await this.prepareDoc();
+        await this.runTransaction();
+        const snapshot = await this.docRef.get();
+        expect(snapshot.exists).to.equal(true);
+        expect(snapshot.data()).to.deep.equal(expected);
+      } catch (err) {
+        expect.fail(
+          'Expected the sequence (' +
+            this.listStages(this.stages) +
+            ') to succeed, but got ' +
+            err
+        );
+      }
       this.cleanupTester();
     }
 
     async expectNoDoc(): Promise<void> {
-      await this.prepareDoc();
-      await this.runTransaction()
-        .then(async () => {
-          const snapshot = await this.docRef.get();
-          expect(snapshot.exists).to.equal(false);
-        })
-        .catch(err => {
-          expect.fail(
-            'Expected the sequence (' +
-              this.listSteps(this.stages) +
-              ') to succeed, but got ' +
-              err
-          );
-        });
+      try {
+        await this.prepareDoc();
+        await this.runTransaction();
+        const snapshot = await this.docRef.get();
+        expect(snapshot.exists).to.equal(false);
+      } catch (err) {
+        expect.fail(
+          'Expected the sequence (' +
+            this.listStages(this.stages) +
+            ') to succeed, but got ' +
+            err
+        );
+      }
       this.cleanupTester();
     }
 
     async expectError(expected: string): Promise<void> {
-      await this.prepareDoc();
-      await this.runTransaction().then(
-        () => {
-          expect.fail(
-            'Expected the sequence (' +
-              this.listSteps(this.stages) +
-              ') to fail with the error ' +
-              expected
-          );
-        },
-        err => {
-          expect((err as firestore.FirestoreError).code).to.equal(expected);
-        }
-      );
+      let succeeded = false;
+      try {
+        await this.prepareDoc();
+        await this.runTransaction();
+        succeeded = true;
+      } catch (err) {
+        expect((err as firestore.FirestoreError).code).to.equal(expected);
+      }
+      if (succeeded) {
+        expect.fail(
+          'Expected the sequence (' +
+            this.listStages(this.stages) +
+            ') to fail with the error ' +
+            expected
+        );
+      }
       this.cleanupTester();
     }
 
@@ -169,9 +169,6 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         await this.docRef.set({ foo: 'bar0' });
         const docSnap = await this.docRef.get();
         expect(docSnap.exists).to.equal(true);
-      } else {
-        const docSnap = await this.docRef.get();
-        expect(docSnap.exists).to.equal(false);
       }
     }
 
@@ -183,25 +180,25 @@ apiDescribe('Database transactions', (persistence: boolean) => {
       });
     }
 
-    private async cleanupTester(): Promise<void> {
+    private cleanupTester(): void {
       this.stages = [];
       // Set the docRef to something else to lose the original reference.
       this.docRef = this.db.collection('reset').doc();
     }
 
-    private listSteps(stages: TransactionStage[]): string {
+    private listStages(stages: TransactionStage[]): string {
       const seqList: string[] = [];
-      for (const step of stages) {
-        if (step === delete1) {
+      for (const stage of stages) {
+        if (stage === delete1) {
           seqList.push('delete');
-        } else if (step === update1 || step === update2) {
+        } else if (stage === update1 || stage === update2) {
           seqList.push('update');
-        } else if (step === set1 || step === set2) {
+        } else if (stage === set1 || stage === set2) {
           seqList.push('set');
-        } else if (step === get) {
+        } else if (stage === get) {
           seqList.push('get');
         } else {
-          throw new Error('Step not recognized.');
+          throw new Error('Stage not recognized.');
         }
       }
       return seqList.join(', ');
@@ -338,7 +335,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
-  it('runs transactions on existing document ', async () => {
+  it('runs transactions on existing document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
@@ -383,7 +380,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
-  it('runs transactions on non-existent document ', async () => {
+  it('runs transactions on non-existent document', async () => {
     return integrationHelpers.withTestDb(persistence, async db => {
       const tt = new TransactionTester(db);
 
