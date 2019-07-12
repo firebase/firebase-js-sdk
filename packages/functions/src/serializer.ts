@@ -19,7 +19,9 @@ const LONG_TYPE = 'type.googleapis.com/google.protobuf.Int64Value';
 const UNSIGNED_LONG_TYPE = 'type.googleapis.com/google.protobuf.UInt64Value';
 
 function mapValues(
-  o: { [key: string]: unknown },
+  // { [k: string]: unknown } is no longer a wildcard assignment target after typescript 3.5
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  o: { [key: string]: any },
   f: (arg0: unknown) => unknown
 ): object {
   const result: { [key: string]: unknown } = {};
@@ -91,9 +93,7 @@ export class Serializer {
       return json.map(x => this.decode(x));
     }
     if (typeof json === 'function' || typeof json === 'object') {
-      return mapValues(json as Function | object, x =>
-        this.decode(x as {} | null)
-      );
+      return mapValues(json as object, x => this.decode(x as {} | null));
     }
     // Anything else is safe to return.
     return json;

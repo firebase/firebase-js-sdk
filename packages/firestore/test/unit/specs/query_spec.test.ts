@@ -16,7 +16,7 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { doc, filter } from '../../util/helpers';
+import { doc, filter, path } from '../../util/helpers';
 
 import { Document } from '../../../src/model/document';
 import { ResourcePath } from '../../../src/model/path';
@@ -98,4 +98,41 @@ describeSpec('Queries:', [], () => {
         hasPendingWrites: true
       });
   });
+
+  specTest(
+    'Latency-compensated updates are included in query results',
+    [],
+    () => {
+      const fullQuery = Query.atPath(path('collection'));
+      const filteredQuery = fullQuery.addFilter(filter('match', '==', true));
+      const docA = doc('collection/a', 1000, { match: false });
+      const docAv2Local = doc(
+        'collection/a',
+        1000,
+        { match: true },
+        { hasLocalMutations: true }
+      );
+
+      return (
+        spec()
+          .userListens(fullQuery)
+          .watchAcksFull(fullQuery, 1000, docA)
+          .expectEvents(fullQuery, { added: [docA] })
+
+          // patch docA so that it will now match the filtered query.
+          .userPatches('collection/a', { match: true })
+          .expectEvents(fullQuery, {
+            modified: [docAv2Local],
+            hasPendingWrites: true
+          })
+          // Make sure docA shows up in filtered query.
+          .userListens(filteredQuery)
+          .expectEvents(filteredQuery, {
+            added: [docAv2Local],
+            fromCache: true,
+            hasPendingWrites: true
+          })
+      );
+    }
+  );
 });
