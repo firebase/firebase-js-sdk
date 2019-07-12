@@ -79,11 +79,11 @@ apiDescribe('Database transactions', (persistence: boolean) => {
   /**
    * Used for testing that all possible combinations of executing transactions
    * result in the desired document value or error.
-   * 
+   *
    * `run()`, `withExistingDoc()`, and `withNonexistentDoc()` don't actually do
    * anything except assign variables into the TransactionTester.
-   * 
-   * `expectDoc()`, `expectNoDoc()`, and `expectError()` will trigger the 
+   *
+   * `expectDoc()`, `expectNoDoc()`, and `expectError()` will trigger the
    * transaction to run and assert that the end result matches the input.
    */
   class TransactionTester {
