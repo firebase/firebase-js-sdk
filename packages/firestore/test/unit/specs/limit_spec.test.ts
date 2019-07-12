@@ -16,7 +16,7 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { deletedDoc, doc, path } from '../../util/helpers';
+import { deletedDoc, doc, filter, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -154,6 +154,35 @@ describeSpec('Limits:', [], () => {
       );
     }
   );
+
+  specTest('Limits are re-filled from cache', [], () => {
+    // This test verifies that our Query handling backfills a limit query from
+    // cache even if the backend has not told us that an existing
+    // RemoteDocument is within the limit.
+    const fullQuery = Query.atPath(path('collection')).addFilter(
+      filter('matches', '==', true)
+    );
+    const limitQuery = Query.atPath(path('collection'))
+      .addFilter(filter('matches', '==', true))
+      .withLimit(2);
+    const doc1 = doc('collection/a', 1001, {  matches: true });
+    const doc2 = doc('collection/b', 1002, {  matches: true });
+    const doc3 = doc('collection/c', 1000, {  matches: true });
+    return spec()
+      .withGCEnabled(false)
+      .userListens(fullQuery)
+      .watchAcksFull(fullQuery, 1002, doc1, doc2, doc3)
+      .expectEvents(fullQuery, { added: [doc1, doc2, doc3] })
+      .userUnlistens(fullQuery)
+      .userListens(limitQuery)
+      .expectEvents(limitQuery, { added: [doc1, doc2], fromCache: true })
+      .userSets('collection/a', {  matches: false })
+      .expectEvents(limitQuery, {
+        added: [doc3],
+        removed: [doc1],
+        fromCache: true
+      });
+  });
 
   specTest('Multiple docs in limbo in full limit query', [], () => {
     const query1 = Query.atPath(path('collection')).withLimit(2);

@@ -434,4 +434,59 @@ describeSpec('Limbo Documents:', [], () => {
         .expectEvents(query, { removed: [docC] });
     }
   );
+
+  specTest('Limbo documents stay consistent between views', [], () => {
+    // This tests verifies that a document is consistent between views, even
+    // if the document is only in Limbo in one of them.
+    const originalQuery = Query.atPath(path('collection'));
+    const filteredQuery = Query.atPath(path('collection'))
+      .addFilter(filter('matches', '==', true));
+
+    const docA = doc('collection/a', 1000, { matches: true });
+    const docADirty = doc(
+      'collection/a',
+      1000,
+      {  matches: true },
+      { hasCommittedMutations: true }
+    );
+    const docBDirty = doc(
+      'collection/b',
+      1001,
+      {  matches: true },
+      { hasCommittedMutations: true }
+    );
+
+    return (
+      client(0)
+        .userSets('collection/a', { matches: true })
+        .userSets('collection/b', { matches: true })
+        .writeAcks('collection/a', 1000)
+        .writeAcks('collection/b', 1001)
+        .userListens(originalQuery)
+        .expectEvents(originalQuery, {
+          added: [docADirty, docBDirty],
+          fromCache: true
+        })
+        // Watch only includes docA in the result set, indicating that docB was
+        // modified out-of-band.
+        .watchAcksFull(originalQuery, 2000, docA)
+        .expectLimboDocs(docBDirty.key)
+        .userListens(filteredQuery)
+        .expectEvents(filteredQuery, {
+          added: [docA, docBDirty],
+          fromCache: true
+        })
+        .userUnlistens(originalQuery)
+        .expectLimboDocs()
+        // Re-run the query. Note that we still return the unresolved limbo
+        // document `docBCommitted`, since we haven't received the resolved
+        // document from Watch. Until we do, we return the version from cache
+        // even though the backend told it does not match.
+        .userListens(originalQuery, 'resume-token-2000')
+        .expectEvents(originalQuery, {
+          added: [docA, docBDirty],
+          fromCache: true
+        })
+    );
+  });
 });
