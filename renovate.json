@@ -1,7 +1,17 @@
 {
   "extends": [
-    "config:base",
-    "group:allNonMajor"
+    "config:base"
+  ],
+  "packageRules": [
+    {
+      "packagePatterns": [
+        "^((?!^typescript$).)*$"
+      ],
+      "minor": {
+        "groupName": "all non-major dependencies",
+        "groupSlug": "all-minor-patch"
+      }
+    }
   ],
   "ignoreDeps": [
     "karma-sauce-launcher",
@@ -11,8 +21,9 @@
     "idb",
     "whatwg-fetch"
   ],
-  "reviewers": [
+  "assignees": [
     "@Feiyang1",
     "@hsubox76"
-  ]
+  ],
+  "schedule": "before 3am on Friday"
 }
