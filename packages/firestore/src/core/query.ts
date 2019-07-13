@@ -533,7 +533,7 @@ export class FieldFilter extends Filter {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. You can only perform equals comparisons on null.'
+          'Invalid query. Null supports only equality comparisons.'
         );
       }
       return new FieldFilter(field, op, value);
@@ -541,7 +541,7 @@ export class FieldFilter extends Filter {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. You can only perform equals comparisons on NaN.'
+          'Invalid query. NaN supports only equality comparisons.'
         );
       }
       return new FieldFilter(field, op, value);
