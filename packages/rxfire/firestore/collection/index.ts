@@ -180,7 +180,10 @@ export function auditTrail(
   events?: firestore.DocumentChangeType[]
 ): Observable<firestore.DocumentChange[]> {
   return collectionChanges(query, events).pipe(
-    scan((current, action) => [...current, ...action], [])
+    scan(
+      (current, action) => [...current, ...action],
+      [] as firestore.DocumentChange[]
+    )
   );
 }
 
