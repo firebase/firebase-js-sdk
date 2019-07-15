@@ -3,8 +3,7 @@
   "compilerOptions": {
     "outDir": "dist",
     "declaration": false,
-    "allowSyntheticDefaultImports": true,
-    "strict": true
+    "allowSyntheticDefaultImports": true
   },
   "exclude": [
     "dist/**/*"
