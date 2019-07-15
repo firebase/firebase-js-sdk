@@ -401,8 +401,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
   async applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
     this.assertSubscribed('applyRemoteEvent()');
-    const changes = await this.localStore.applyRemoteEvent(remoteEvent);
     try {
+      const changes = await this.localStore.applyRemoteEvent(remoteEvent);
       // Update `receivedDocument` as appropriate for any limbo targets.
       objUtils.forEach(remoteEvent.targetChanges, (targetId, targetChange) => {
         const limboResolution = this.limboResolutionsByTarget[Number(targetId)];
@@ -576,8 +576,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // before listen events.
     this.processUserCallback(batchId, /*error=*/ null);
 
-    const changes = await this.localStore.acknowledgeBatch(mutationBatchResult);
     try {
+      const changes = await this.localStore.acknowledgeBatch(
+        mutationBatchResult
+      );
       this.sharedClientState.updateMutationState(batchId, 'acknowledged');
       await this.emitNewSnapsAndNotifyLocalStore(changes);
     } catch (error) {
@@ -597,8 +599,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // listen events.
     this.processUserCallback(batchId, error);
 
-    const changes = await this.localStore.rejectBatch(batchId);
     try {
+      const changes = await this.localStore.rejectBatch(batchId);
       this.sharedClientState.updateMutationState(batchId, 'rejected', error);
       await this.emitNewSnapsAndNotifyLocalStore(changes);
     } catch (error) {
@@ -948,6 +950,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
               changes,
               synthesizedRemoteEvent
             );
+            break;
           } catch (error) {
             if (isDocumentChangeMissingError(error)) {
               const activeTargets: TargetId[] = [];
