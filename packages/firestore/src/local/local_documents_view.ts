@@ -284,6 +284,7 @@ export class LocalDocumentsView {
         }
       }
     }
+
     let mergedDocuments = existingDocuments;
     return this.remoteDocumentCache
       .getEntries(transaction, missingBaseDocEntriesForPatching)
