@@ -186,6 +186,16 @@ toc:
   - title: "Trace"
     path: /docs/reference/js/firebase.performance.Trace
 
+- title: "firebase.remoteconfig"
+  path: /docs/reference/js/firebase.remoteconfig
+  section:
+  - title: "RemoteConfig"
+    path: /docs/reference/js/firebase.remoteconfig.RemoteConfig
+  - title: "Settings"
+    path: /docs/reference/js/firebase.remoteconfig.Settings
+  - title: "Value"
+    path: /docs/reference/js/firebase.remoteconfig.Value
+
 - title: "firebase.storage"
   path: /docs/reference/js/firebase.storage
   section:

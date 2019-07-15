@@ -15,6 +15,12 @@
  * limitations under the License.
  */
 
-export interface TestType {
-  prop?: string;
-}
+import { use } from 'chai';
+import * as sinonChai from 'sinon-chai';
+import * as chaiAsPromised from 'chai-as-promised';
+
+// Normalizes Sinon assertions to Chai syntax.
+use(sinonChai);
+
+// Adds Promise-friendly syntax to Chai.
+use(chaiAsPromised);

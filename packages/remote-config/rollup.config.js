@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import json from 'rollup-plugin-json'; // Enables package.json import in TypeScript.
 import typescriptPlugin from 'rollup-plugin-typescript2';
 import typescript from 'typescript';
 import pkg from './package.json';
@@ -29,7 +30,8 @@ const deps = Object.keys(
 const es5BuildPlugins = [
   typescriptPlugin({
     typescript
-  })
+  }),
+  json()
 ];
 
 const es5Builds = [
@@ -42,15 +44,6 @@ const es5Builds = [
       { file: pkg.browser, format: 'cjs', sourcemap: true },
       { file: pkg.module, format: 'es', sourcemap: true }
     ],
-    plugins: es5BuildPlugins,
-    external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
-  },
-  /**
-   * Node.js Build
-   */
-  {
-    input: 'index.node.ts',
-    output: [{ file: pkg.main, format: 'cjs', sourcemap: true }],
     plugins: es5BuildPlugins,
     external: id => deps.some(dep => id === dep || id.startsWith(`${dep}/`))
   }
@@ -67,7 +60,8 @@ const es2017BuildPlugins = [
         target: 'es2017'
       }
     }
-  })
+  }),
+  json({ preferConst: true })
 ];
 
 const es2017Builds = [

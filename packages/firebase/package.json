@@ -12,7 +12,8 @@
     "firebase",
     "realtime",
     "storage",
-    "performance"
+    "performance",
+    "remote-config"
   ],
   "files": [
     "**/dist/",
@@ -48,6 +49,7 @@
     "@firebase/polyfill": "0.3.22",
     "@firebase/storage": "0.3.12",
     "@firebase/performance": "0.2.19",
+    "@firebase/remote-config": "0.1.0",
     "@firebase/util": "0.2.28"
   },
   "devDependencies": {
@@ -73,6 +75,7 @@
     "installations",
     "messaging",
     "storage",
-    "performance"
+    "performance",
+    "remote-config"
   ]
 }
