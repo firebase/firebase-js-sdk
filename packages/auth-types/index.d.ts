@@ -436,6 +436,7 @@ declare module '@firebase/app-types' {
       SAMLAuthProvider: typeof SAMLAuthProvider;
       PhoneAuthProvider: typeof PhoneAuthProvider;
       PhoneAuthProvider_Instance: typeof PhoneAuthProvider_Instance;
+      PhoneMultiFactorGenerator: typeof PhoneMultiFactorGenerator;
       RecaptchaVerifier: typeof RecaptchaVerifier;
       RecaptchaVerifier_Instance: typeof RecaptchaVerifier_Instance;
       TwitterAuthProvider: typeof TwitterAuthProvider;
