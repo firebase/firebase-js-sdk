@@ -13,7 +13,7 @@
     "@babel/core": "7.5.4",
     "@babel/preset-env": "7.5.4",
     "chai": "4.2.0",
-    "karma": "4.1.0",
+    "karma": "4.2.0",
     "karma-babel-preprocessor": "8.0.1",
     "karma-chrome-launcher": "3.0.0",
     "karma-firefox-launcher": "1.1.0",
@@ -22,6 +22,6 @@
     "karma-spec-reporter": "0.0.32",
     "mocha": "6.1.4",
     "webpack": "4.35.3",
-    "webpack-cli": "3.3.5"
+    "webpack-cli": "3.3.6"
   }
 }
