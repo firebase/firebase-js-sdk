@@ -51,7 +51,7 @@ export class LocalDocumentsView {
     private remoteDocumentCache: RemoteDocumentCache,
     private mutationQueue: MutationQueue,
     private indexManager: IndexManager
-  ) { }
+  ) {}
 
   /**
    * Get the local view of the document identified by `key`.
@@ -228,16 +228,12 @@ export class LocalDocumentsView {
         // that are not in `result` yet, and back fill them via `remoteDocumentCache.getEntries`,
         // otherwise those `PatchMutations` will be ignored because no base document can be found,
         // and lead to missing result for the query.
-        return this.getMissingBaseDocuments(
+        return this.addMissingBaseDocuments(
           transaction,
           mutationBatches,
           results
-        ).next(missingBaseDocuments => {
-          missingBaseDocuments.forEach((key, doc) => {
-            if (doc !== null && doc instanceof Document) {
-              results = results.insert(key, doc);
-            }
-          });
+        ).next(mergedDocuments => {
+          results = mergedDocuments;
 
           for (const batch of mutationBatches) {
             for (const mutation of batch.mutations) {
@@ -270,11 +266,11 @@ export class LocalDocumentsView {
       });
   }
 
-  private getMissingBaseDocuments(
+  private addMissingBaseDocuments(
     transaction: PersistenceTransaction,
     matchingMutationBatches: MutationBatch[],
     existingDocuments: DocumentMap
-  ): PersistencePromise<NullableMaybeDocumentMap> {
+  ): PersistencePromise<DocumentMap> {
     let missingBaseDocEntriesForPatching = documentKeySet();
     for (const batch of matchingMutationBatches) {
       for (const mutation of batch.mutations) {
@@ -288,9 +284,17 @@ export class LocalDocumentsView {
         }
       }
     }
-    return this.remoteDocumentCache.getEntries(
-      transaction,
-      missingBaseDocEntriesForPatching
-    );
+
+    let mergedDocuments = existingDocuments;
+    return this.remoteDocumentCache
+      .getEntries(transaction, missingBaseDocEntriesForPatching)
+      .next(missingBaseDocs => {
+        missingBaseDocs.forEach((key, doc) => {
+          if (doc !== null && doc instanceof Document) {
+            mergedDocuments = mergedDocuments.insert(key, doc);
+          }
+        });
+        return mergedDocuments;
+      });
   }
 }
