@@ -815,10 +815,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
       db => {
         const collection = db.collection('test');
         expect(() => collection.where('a', '>', null)).to.throw(
-          'Invalid query. You can only perform equals comparisons on null.'
+          'Invalid query. Null supports only equality comparisons.'
         );
         expect(() => collection.where('a', 'array-contains', null)).to.throw(
-          'Invalid query. You can only perform equals comparisons on null.'
+          'Invalid query. Null supports only equality comparisons.'
         );
         expect(() => collection.where('a', inOp, null)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
@@ -828,13 +828,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
         );
 
         expect(() => collection.where('a', '>', Number.NaN)).to.throw(
-          'Invalid query. You can only perform equals comparisons on NaN.'
+          'Invalid query. NaN supports only equality comparisons.'
         );
         expect(() =>
           collection.where('a', 'array-contains', Number.NaN)
-        ).to.throw(
-          'Invalid query. You can only perform equals comparisons on NaN.'
-        );
+        ).to.throw('Invalid query. NaN supports only equality comparisons.');
         expect(() => collection.where('a', inOp, Number.NaN)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
