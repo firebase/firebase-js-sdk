@@ -20,7 +20,7 @@ for more details.
 
 ### Setting up the Firestore emulator
 
-The unit and integration tests require that the Firestore emulator is running
+The integration tests require that the Firestore emulator is running
 on port 8080, which is default when running it via CLI.
 
   * [Install the Firebase CLI](https://firebase.google.com/docs/cli/).

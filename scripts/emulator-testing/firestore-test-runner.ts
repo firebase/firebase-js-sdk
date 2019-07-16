@@ -35,7 +35,8 @@ function runTest(port: number, projectId: string): ChildProcessPromise {
   };
   // TODO(b/113267261): Include browser test once WebChannel support is
   // ready in Firestore emulator.
-  return spawn('yarn', ['test:node'], options);
+  // Use test:node:prod to allow runner's env var overrides to work.
+  return spawn('yarn', ['test:node:prod'], options);
 }
 
 async function run(): Promise<void> {
