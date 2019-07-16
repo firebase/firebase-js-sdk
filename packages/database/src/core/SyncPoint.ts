@@ -130,12 +130,12 @@ export class SyncPoint {
       }
       const viewCache = new ViewCache(
         new CacheNode(
-          /** @type {!Node} */ (eventCache),
+          /** @type {!Node} */ eventCache,
           eventCacheComplete,
           false
         ),
         new CacheNode(
-          /** @type {!Node} */ (serverCache),
+          /** @type {!Node} */ serverCache,
           serverCacheComplete,
           false
         )

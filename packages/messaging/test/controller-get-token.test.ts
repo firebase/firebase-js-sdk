@@ -190,9 +190,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
   servicesToTest.forEach(serviceClass => {
     vapidSetupToTest.forEach(vapidSetup => {
-      it(`should get saved token in ${
-        serviceClass.name
-      } for ${vapidSetup} VAPID setup`, async () => {
+      it(`should get saved token in ${serviceClass.name} for ${vapidSetup} VAPID setup`, async () => {
         const regPromise = generateFakeReg();
         const subscription = makeFakeSubscription();
         mockGetReg(regPromise);
@@ -226,9 +224,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       });
     });
 
-    it(`should get saved token with custom VAPID in ${
-      serviceClass.name
-    }`, async () => {
+    it(`should get saved token with custom VAPID in ${serviceClass.name}`, async () => {
       const registration = generateFakeReg();
       const subscription = makeFakeSubscription();
       mockGetReg(Promise.resolve(registration));
@@ -296,9 +292,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
 
   servicesToTest.forEach(serviceClass => {
     vapidSetupToTest.forEach(vapidSetup => {
-      it(`should get a new token in ${
-        serviceClass.name
-      } for ${vapidSetup} VAPID setup`, async () => {
+      it(`should get a new token in ${serviceClass.name} for ${vapidSetup} VAPID setup`, async () => {
         const regPromise = generateFakeReg();
         const subscription = makeFakeSubscription();
         mockGetReg(regPromise);
@@ -372,9 +366,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         assert.equal(tokenModelArgs[0].fcmPushSet, TOKEN_DETAILS.pushSet);
       });
 
-      it(`should get a new token in ${
-        serviceClass.name
-      } if PushSubscription details have changed`, async () => {
+      it(`should get a new token in ${serviceClass.name} if PushSubscription details have changed`, async () => {
         // Stubs
         const deleteTokenStub = sandbox.stub(
           TokenDetailsModel.prototype,
@@ -452,9 +444,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
   });
 
   servicesToTest.forEach(serviceClass => {
-    it(`should get new token if VAPID details are updated in ${
-      serviceClass.name
-    }`, async () => {
+    it(`should get new token if VAPID details are updated in ${serviceClass.name}`, async () => {
       const regPromise = generateFakeReg();
       const subscription = makeFakeSubscription();
       mockGetReg(regPromise);
@@ -535,9 +525,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
   });
 
   servicesToTest.forEach(serviceClass => {
-    it(`should handle update token errors in ${
-      serviceClass.name
-    }`, async () => {
+    it(`should handle update token errors in ${serviceClass.name}`, async () => {
       const regPromise = generateFakeReg();
       const subscription = makeFakeSubscription();
       mockGetReg(regPromise);
