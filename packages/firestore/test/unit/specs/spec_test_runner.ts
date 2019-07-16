@@ -1282,7 +1282,7 @@ export async function runSpec(
   try {
     await sequence(steps, async step => {
       assert(
-        step.clientIndex === undefined || tags.indexOf(MULTI_CLIENT_TAG) != -1,
+        step.clientIndex === undefined || tags.indexOf(MULTI_CLIENT_TAG) !== -1,
         "Cannot use 'client()' to initialize a test that is not tagged with " +
           "'multi-client'. Did you mean to use 'spec()'?"
       );
