@@ -5,7 +5,9 @@ contributing to the Firebase JavaScript SDK (including Cloud Firestore).
 Follow instructions there to install dependencies, build the SDK, and set up
 the testing environment.
 
-## Setting up a project for testing
+## Integration Testing
+
+### Setting up a project for testing
 
 You will need a production project to test the Firestore SDK. You can create
 a new project by visiting the 
@@ -16,10 +18,30 @@ See
 [Automated Setup](https://github.com/firebase/firebase-js-sdk#automated-setup) 
 for more details.
 
+### Setting up the Firestore emulator
 
-## Running Firestore Tests
+Running the integration tests against the Firestore emulator is much faster
+than running against the prod server. The integration tests require that the
+Firestore emulator is running on port 8080, which is default when running it
+via CLI.
 
-All commands must be run from this `packages/firestore/` directory.
+  * [Install the Firebase CLI](https://firebase.google.com/docs/cli/).
+    ```
+    npm install -g firebase-tools
+    ```
+  * [Install the Firestore
+    emulator](https://firebase.google.com/docs/firestore/security/test-rules-emulator#install_the_emulator).
+    ```
+    firebase setup:emulators:firestore
+    ```
+  * Run the emulator
+    ```
+    firebase serve --only firestore
+    ```
+
+### Running Integration Tests
+
+All commands must be run from the `packages/firestore/` directory. 
 
 ```
 # Come up to date on dependencies after performing git pull
@@ -43,7 +65,17 @@ yarn test:browser --integration
 # localhost:8080.
 yarn test:browser --integration --local
 
+# Run node tests once.
+yarn test:node
+
 # Run a subset of tests whose names match a filter.
 yarn test:browser --grep 'SortedSet keeps elements in the right order'
 yarn test:node --grep 'SortedSet keeps elements in the right order'
+
+# Run tests against against a Firestore emulator (emulator will be downloaded).
+yarn test:emulator
+
+# Run tests against a Firestore emulator running on localhost:8080.
+yarn test:node:emulator
+yarn test:node:persistence:emulator
 ```
