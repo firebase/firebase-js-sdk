@@ -71,6 +71,6 @@ yarn test:browser --grep 'SortedSet keeps elements in the right order'
 yarn test:node --grep 'SortedSet keeps elements in the right order'
 
 # Run tests against the production backend.
-yarn test:node:emulator
-yarn test:node:persistence:emulator
+yarn test:node:prod
+yarn test:node:persistence:prod
 ```
