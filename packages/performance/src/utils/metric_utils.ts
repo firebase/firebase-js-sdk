@@ -19,7 +19,7 @@ const MAX_METRIC_NAME_LENGTH = 100;
 const RESERVED_AUTO_PREFIX = '_';
 
 export function isValidCustomMetricName(name: string): boolean {
-  if (name.length > MAX_METRIC_NAME_LENGTH) {
+  if (name.length == 0 || name.length > MAX_METRIC_NAME_LENGTH) {
     return false;
   }
   return !name.startsWith(RESERVED_AUTO_PREFIX);

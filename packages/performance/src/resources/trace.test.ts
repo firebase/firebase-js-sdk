@@ -117,13 +117,13 @@ describe('Firebase Performance > trace', () => {
       expect(trace.getMetric('cacheHits')).to.eql(600);
     });
 
-    it("throws error if metric doesn't exist and has invalid name", () => {
+    it('throws error if metric doesn\'t exist and has invalid name', () => {
       expect(() => trace.incrementMetric('_invalidMetric', 1)).to.throw();
     });
   });
 
   describe('#putMetric', () => {
-    it('creates new metric if one doesnt exist and has valid name.', () => {
+    it('creates new metric if one doesn\'t exist and has valid name.', () => {
       trace.putMetric('cacheHits', 200);
 
       expect(trace.getMetric('cacheHits')).to.eql(200);
@@ -136,7 +136,7 @@ describe('Firebase Performance > trace', () => {
       expect(trace.getMetric('cacheHits')).to.eql(400);
     });
 
-    it("throws error if metric doesn't exist and has invalid name", () => {
+    it('throws error if metric doesn\'t exist and has invalid name', () => {
       expect(() => trace.putMetric('_invalidMetric', 1)).to.throw();
     });
   });

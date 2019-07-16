@@ -176,13 +176,13 @@ describe('Firebase Performance > attribute_utils', () => {
   });
 
   describe('#isValidCustomAttributeName', () => {
-    afterEach(() => {
-      restore();
-    });
-
     it('returns true when name is valid', () => {
       expect(isValidCustomAttributeName('validCustom_Attribute_Name')).to.be
         .true;
+    });
+
+    it('returns false when name is blank', () => {
+      expect(isValidCustomAttributeName('')).to.be.false;
     });
 
     it('returns false when name is too long', () => {
@@ -206,12 +206,12 @@ describe('Firebase Performance > attribute_utils', () => {
   });
 
   describe('#isValidCustomAttributeValue', () => {
-    afterEach(() => {
-      restore();
-    });
-
     it('returns true when value is valid', () => {
       expect(isValidCustomAttributeValue('valid_attribute_value')).to.be.true;
+    });
+
+    it('returns false when value is blank', () => {
+      expect(isValidCustomAttributeValue('')).to.be.false;
     });
 
     it('returns false when value is too long', () => {

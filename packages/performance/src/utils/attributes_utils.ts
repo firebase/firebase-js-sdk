@@ -95,7 +95,7 @@ export function getEffectiveConnectionType(): EffectiveConnectionType {
 }
 
 export function isValidCustomAttributeName(name: string): boolean {
-  if (name.length > MAX_ATTRIBUTE_NAME_LENGTH) {
+  if (name.length == 0 || name.length > MAX_ATTRIBUTE_NAME_LENGTH) {
     return false;
   }
   const matchesReservedPrefix = RESERVED_ATTRIBUTE_PREFIXES.some(prefix =>
@@ -105,5 +105,5 @@ export function isValidCustomAttributeName(name: string): boolean {
 }
 
 export function isValidCustomAttributeValue(value: string): boolean {
-  return value.length <= MAX_ATTRIBUTE_VALUE_LENGTH;
+  return value.length != 0 && value.length <= MAX_ATTRIBUTE_VALUE_LENGTH;
 }
