@@ -195,9 +195,13 @@ export class SpecBuilder {
    * Run the spec as a test. If persistence is available it will run it with and
    * without persistence enabled.
    */
-  runAsTest(name: string, usePersistence: boolean): Promise<void> {
+  runAsTest(
+    name: string,
+    tags: string[],
+    usePersistence: boolean
+  ): Promise<void> {
     this.nextStep();
-    return runSpec(name, usePersistence, this.config, this.steps);
+    return runSpec(name, tags, usePersistence, this.config, this.steps);
   }
 
   // Configures Garbage Collection behavior (on or off). Default is on.
