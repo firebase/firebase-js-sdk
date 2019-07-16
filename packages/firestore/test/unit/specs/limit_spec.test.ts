@@ -165,9 +165,9 @@ describeSpec('Limits:', [], () => {
     const limitQuery = Query.atPath(path('collection'))
       .addFilter(filter('matches', '==', true))
       .withLimit(2);
-    const doc1 = doc('collection/a', 1001, {  matches: true });
-    const doc2 = doc('collection/b', 1002, {  matches: true });
-    const doc3 = doc('collection/c', 1000, {  matches: true });
+    const doc1 = doc('collection/a', 1001, { matches: true });
+    const doc2 = doc('collection/b', 1002, { matches: true });
+    const doc3 = doc('collection/c', 1000, { matches: true });
     return spec()
       .withGCEnabled(false)
       .userListens(fullQuery)
@@ -176,7 +176,7 @@ describeSpec('Limits:', [], () => {
       .userUnlistens(fullQuery)
       .userListens(limitQuery)
       .expectEvents(limitQuery, { added: [doc1, doc2], fromCache: true })
-      .userSets('collection/a', {  matches: false })
+      .userSets('collection/a', { matches: false })
       .expectEvents(limitQuery, {
         added: [doc3],
         removed: [doc1],
