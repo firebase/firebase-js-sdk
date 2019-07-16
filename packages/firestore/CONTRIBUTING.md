@@ -20,10 +20,8 @@ for more details.
 
 ### Setting up the Firestore emulator
 
-Running the integration tests against the Firestore emulator is much faster
-than running against the prod server. The integration tests require that the
-Firestore emulator is running on port 8080, which is default when running it
-via CLI.
+The unit and integration tests require that the Firestore emulator is running
+on port 8080, which is default when running it via CLI.
 
   * [Install the Firebase CLI](https://firebase.google.com/docs/cli/).
     ```
@@ -39,7 +37,7 @@ via CLI.
     firebase serve --only firestore
     ```
 
-### Running Integration Tests
+### Running Firestore Tests
 
 All commands must be run from the `packages/firestore/` directory. 
 
@@ -65,17 +63,14 @@ yarn test:browser --integration
 # localhost:8080.
 yarn test:browser --integration --local
 
-# Run node tests once.
+# Run all node tests once (unit and integration) against the emulator.
 yarn test:node
 
 # Run a subset of tests whose names match a filter.
 yarn test:browser --grep 'SortedSet keeps elements in the right order'
 yarn test:node --grep 'SortedSet keeps elements in the right order'
 
-# Run tests against against a Firestore emulator (emulator will be downloaded).
-yarn test:emulator
-
-# Run tests against a Firestore emulator running on localhost:8080.
+# Run tests against the production backend.
 yarn test:node:emulator
 yarn test:node:persistence:emulator
 ```
