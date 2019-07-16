@@ -206,9 +206,7 @@ export class ViewProcessor {
         accumulator.length > 0 ||
         !oldViewCache.getEventCache().isFullyInitialized() ||
         (isLeafOrEmpty &&
-          !eventSnap
-            .getNode()
-            .equals(/** @type {!Node} */ (oldCompleteSnap))) ||
+          !eventSnap.getNode().equals(/** @type {!Node} */ oldCompleteSnap)) ||
         !eventSnap
           .getNode()
           .getPriority()

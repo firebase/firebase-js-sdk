@@ -30,24 +30,16 @@ import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 export async function deleteInstallation(app: FirebaseApp): Promise<void> {
   const appConfig = extractAppConfig(app);
 
-  const entry = await update(
-    appConfig,
-    (
-      oldEntry?: InstallationEntry
-    ):
-      | InProgressInstallationEntry
-      | RegisteredInstallationEntry
-      | undefined => {
-      if (
-        oldEntry &&
-        oldEntry.registrationStatus === RequestStatus.NOT_STARTED
-      ) {
-        // Delete the unregistered entry without sending a deleteInstallation request.
-        return undefined;
-      }
-      return oldEntry;
+  const entry = await update(appConfig, (oldEntry?: InstallationEntry):
+    | InProgressInstallationEntry
+    | RegisteredInstallationEntry
+    | undefined => {
+    if (oldEntry && oldEntry.registrationStatus === RequestStatus.NOT_STARTED) {
+      // Delete the unregistered entry without sending a deleteInstallation request.
+      return undefined;
     }
-  );
+    return oldEntry;
+  });
 
   if (entry) {
     if (entry.registrationStatus === RequestStatus.IN_PROGRESS) {

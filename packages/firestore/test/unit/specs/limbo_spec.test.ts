@@ -439,20 +439,21 @@ describeSpec('Limbo Documents:', [], () => {
     // This tests verifies that a document is consistent between views, even
     // if the document is only in Limbo in one of them.
     const originalQuery = Query.atPath(path('collection'));
-    const filteredQuery = Query.atPath(path('collection'))
-      .addFilter(filter('matches', '==', true));
+    const filteredQuery = Query.atPath(path('collection')).addFilter(
+      filter('matches', '==', true)
+    );
 
     const docA = doc('collection/a', 1000, { matches: true });
     const docADirty = doc(
       'collection/a',
       1000,
-      {  matches: true },
+      { matches: true },
       { hasCommittedMutations: true }
     );
     const docBDirty = doc(
       'collection/b',
       1001,
-      {  matches: true },
+      { matches: true },
       { hasCommittedMutations: true }
     );
 

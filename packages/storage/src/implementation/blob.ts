@@ -112,11 +112,9 @@ export class FbsBlob {
         }
       );
       let finalLength = 0;
-      uint8Arrays.forEach(
-        (array: Uint8Array): void => {
-          finalLength += array.byteLength;
-        }
-      );
+      uint8Arrays.forEach((array: Uint8Array): void => {
+        finalLength += array.byteLength;
+      });
       const merged = new Uint8Array(finalLength);
       let index = 0;
       uint8Arrays.forEach((array: Uint8Array) => {

@@ -351,9 +351,7 @@ export class LruGarbageCollector {
         log.debug(
           'LruGarbageCollector',
           `Garbage collection skipped; Cache size ${cacheSize} ` +
-            `is lower than threshold ${
-              this.params.cacheSizeCollectionThreshold
-            }`
+            `is lower than threshold ${this.params.cacheSizeCollectionThreshold}`
         );
         return GC_DID_NOT_RUN;
       } else {
@@ -385,9 +383,7 @@ export class LruGarbageCollector {
           log.debug(
             'LruGarbageCollector',
             'Capping sequence numbers to collect down ' +
-              `to the maximum of ${
-                this.params.maximumSequenceNumbersToCollect
-              } ` +
+              `to the maximum of ${this.params.maximumSequenceNumbersToCollect} ` +
               `from ${sequenceNumbers}`
           );
           sequenceNumbersToCollect = this.params

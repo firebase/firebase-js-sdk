@@ -249,9 +249,7 @@ class FirestoreSettings {
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `cacheSizeBytes must be at least ${
-            LruParams.MINIMUM_CACHE_SIZE_BYTES
-          }`
+          `cacheSizeBytes must be at least ${LruParams.MINIMUM_CACHE_SIZE_BYTES}`
         );
       } else {
         this.cacheSizeBytes = settings.cacheSizeBytes;
@@ -686,9 +684,7 @@ export class Transaction implements firestore.Transaction {
           );
         } else {
           throw fail(
-            `BatchGetDocumentsRequest returned unexpected document type: ${
-              doc.constructor.name
-            }`
+            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
           );
         }
       });
@@ -1361,9 +1357,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
         log.error(
           `Document ${this._key.path} contains a document ` +
             `reference within a different database (` +
-            `${value.databaseId.projectId}/${
-              value.databaseId.database
-            }) which is not ` +
+            `${value.databaseId.projectId}/${value.databaseId.database}) which is not ` +
             `supported. It will be treated as a reference in the current ` +
             `database (${database.projectId}/${database.database}) ` +
             `instead.`
@@ -1917,9 +1911,7 @@ export class Query implements firestore.Query {
           Code.INVALID_ARGUMENT,
           `Invalid query. When querying a collection group by ` +
             `FieldPath.documentId(), the value provided must result in a valid document path, ` +
-            `but '${path}' is not because it has an odd number of segments (${
-              path.length
-            }).`
+            `but '${path}' is not because it has an odd number of segments (${path.length}).`
         );
       }
       return new RefValue(this.firestore._databaseId, new DocumentKey(path));
