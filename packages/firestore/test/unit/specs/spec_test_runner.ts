@@ -109,6 +109,7 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
+import { MULTI_CLIENT_TAG } from './describe_spec';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -1236,6 +1237,7 @@ class IndexedDbTestRunner extends TestRunner {
  */
 export async function runSpec(
   name: string,
+  tags: string[],
   usePersistence: boolean,
   config: SpecConfig,
   steps: SpecStep[]
@@ -1279,6 +1281,12 @@ export async function runSpec(
   let count = 0;
   try {
     await sequence(steps, async step => {
+      assert(
+        step.clientIndex === undefined || tags.indexOf(MULTI_CLIENT_TAG) !== -1,
+        "Cannot use 'client()' to initialize a test that is not tagged with " +
+          "'multi-client'. Did you mean to use 'spec()'?"
+      );
+
       ++count;
       lastStep = step;
       return ensureRunner(step.clientIndex || 0).then(runner =>
