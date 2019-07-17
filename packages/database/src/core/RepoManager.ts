@@ -27,6 +27,9 @@ import { RepoInfo } from './RepoInfo';
 
 /** @const {string} */
 const DATABASE_URL_OPTION = 'databaseURL';
+const PROJECT_ID_OPTION = 'projectId';
+const FIREBASE_DATABASE_EMULATOR_HOST_VAR = 'FIREBASE_DATABASE_EMULATOR_HOST';
+const DEFAULT_DATABASE_EMULATOR_PROJECT_ID: string = 'fake-server';
 
 let _staticInstance: RepoManager;
 
@@ -80,7 +83,11 @@ export class RepoManager {
    * @return {!Database}
    */
   databaseFromApp(app: FirebaseApp, url?: string): Database {
-    const dbUrl: string = url || app.options[DATABASE_URL_OPTION];
+    let dbEmulatorUrl = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]
+    if (dbEmulatorUrl) {
+      dbEmulatorUrl = `${dbEmulatorUrl}?ns=${app.options[PROJECT_ID_OPTION] || DEFAULT_DATABASE_EMULATOR_PROJECT_ID}`
+    }
+    const dbUrl: string = dbEmulatorUrl || url || app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
       fatal(
         "Can't determine Firebase Database URL.  Be sure to include " +
