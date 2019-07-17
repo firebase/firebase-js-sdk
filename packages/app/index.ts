@@ -39,7 +39,7 @@ if (isBrowser() && (self as any).firebase !== undefined) {
     `);
   }
 }
-
+// this is a test                                         
 const firebaseNamespace = createFirebaseNamespace();
 const initializeApp = firebaseNamespace.initializeApp;
 
