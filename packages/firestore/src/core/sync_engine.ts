@@ -948,6 +948,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
               synthesizedRemoteEvent
             );
             break;
+          // Catch errors thrown by getNewDocumentchanges().
           } catch (error) {
             if (isDocumentChangeMissingError(error)) {
               const activeTargets: TargetId[] = [];
