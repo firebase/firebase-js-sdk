@@ -67,7 +67,8 @@ import {
   LimboDocumentChange,
   RemovedLimboDocument,
   View,
-  ViewChange
+  ViewChange,
+  ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
 
@@ -370,24 +371,17 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     assert(retries >= 0, 'Got negative number of retries for transaction.');
     const transaction = this.remoteStore.createTransaction();
     let result: T;
-    try {
-      const userPromise = updateFunction(transaction);
-      if (
-        isNullOrUndefined(userPromise) ||
-        !userPromise.catch ||
-        !userPromise.then
-      ) {
-        return Promise.reject<T>(
-          Error('Transaction callback must return a Promise')
-        );
-      }
-      userPromise.catch(error => {
-        return Promise.reject<T>(error);
-      });
-      result = await userPromise;
-    } catch (error) {
-      return Promise.reject<T>(error);
+    const userPromise = updateFunction(transaction);
+    if (
+      isNullOrUndefined(userPromise) ||
+      !userPromise.catch ||
+      !userPromise.then
+    ) {
+      return Promise.reject<T>(
+        Error('Transaction callback must return a Promise')
+      );
     }
+    result = await userPromise;
     try {
       await transaction.commit();
       return result;
@@ -740,51 +734,55 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   ): Promise<void> {
     const newSnaps: ViewSnapshot[] = [];
     const docChangesInAllViews: LocalViewChanges[] = [];
-    const queriesProcessed: Array<() => Promise<void>> = [];
+    const queriesProcessed: Array<Promise<void>> = [];
 
     this.queryViewsByQuery.forEach((_, queryView) => {
-      const processor = async (): Promise<void> => {
-        let viewDocChanges = queryView.view.computeDocChanges(changes);
-        if (viewDocChanges.needsRefill) {
-          // The query has a limit and some docs were removed, so we need
-          // to re-run the query against the local store to make sure we
-          // didn't lose any good docs that had been past the limit.
-          const docs = await this.localStore.executeQuery(queryView.query);
-          viewDocChanges = queryView.view.computeDocChanges(
-            docs,
-            viewDocChanges
-          );
-        }
-        const targetChange =
-          remoteEvent && remoteEvent.targetChanges[queryView.targetId];
-        const viewChange = queryView.view.applyChanges(
-          viewDocChanges,
-          /* updateLimboDocuments= */ this.isPrimary === true,
-          targetChange
-        );
-        this.updateTrackedLimbos(queryView.targetId, viewChange.limboChanges);
-        if (viewChange.snapshot) {
-          if (this.isPrimary) {
-            this.sharedClientState.updateQueryState(
-              queryView.targetId,
-              viewChange.snapshot.fromCache ? 'not-current' : 'current'
+      queriesProcessed.push(
+        Promise.resolve()
+          .then(() => {
+            const viewDocChanges = queryView.view.computeDocChanges(changes);
+            if (!viewDocChanges.needsRefill) {
+              return viewDocChanges;
+            }
+            // The query has a limit and some docs were removed, so we need
+            // to re-run the query against the local store to make sure we
+            // didn't lose any good docs that had been past the limit.
+            return this.localStore.executeQuery(queryView.query).then(docs => {
+              return queryView.view.computeDocChanges(docs, viewDocChanges);
+            });
+          })
+          .then((viewDocChanges: ViewDocumentChanges) => {
+            const targetChange =
+              remoteEvent && remoteEvent.targetChanges[queryView.targetId];
+            const viewChange = queryView.view.applyChanges(
+              viewDocChanges,
+              /* updateLimboDocuments= */ this.isPrimary === true,
+              targetChange
             );
-          }
+            this.updateTrackedLimbos(
+              queryView.targetId,
+              viewChange.limboChanges
+            );
+            if (viewChange.snapshot) {
+              if (this.isPrimary) {
+                this.sharedClientState.updateQueryState(
+                  queryView.targetId,
+                  viewChange.snapshot.fromCache ? 'not-current' : 'current'
+                );
+              }
 
-          newSnaps.push(viewChange.snapshot);
-          const docChanges = LocalViewChanges.fromSnapshot(
-            queryView.targetId,
-            viewChange.snapshot
-          );
-          docChangesInAllViews.push(docChanges);
-        }
-      };
-      queriesProcessed.push(processor);
+              newSnaps.push(viewChange.snapshot);
+              const docChanges = LocalViewChanges.fromSnapshot(
+                queryView.targetId,
+                viewChange.snapshot
+              );
+              docChangesInAllViews.push(docChanges);
+            }
+          })
+      );
     });
 
-    for (const queryProcess of queriesProcessed) {
-      await queryProcess();
-    }
+    await Promise.all(queriesProcessed);
     this.syncEngineListener!.onWatchChange(newSnaps);
     await this.localStore.notifyLocalViewChanges(docChangesInAllViews);
   }
