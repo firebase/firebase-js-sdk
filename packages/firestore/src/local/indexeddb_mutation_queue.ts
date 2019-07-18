@@ -322,9 +322,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
             }
             assert(
               mutation.userId === this.userId,
-              `Unexpected user '${
-                mutation.userId
-              }' for mutation batch ${batchId}`
+              `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
             results.push(this.serializer.fromDbMutationBatch(mutation!));
           });
@@ -455,9 +453,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
             }
             assert(
               mutation.userId === this.userId,
-              `Unexpected user '${
-                mutation.userId
-              }' for mutation batch ${batchId}`
+              `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
             results.push(this.serializer.fromDbMutationBatch(mutation!));
           })

@@ -206,9 +206,7 @@ export class WebChannelConnection implements Connection {
       messageUrlParams: {
         // This param is used to improve routing and project isolation by the
         // backend and must be included in every request.
-        database: `projects/${this.databaseId.projectId}/databases/${
-          this.databaseId.database
-        }`
+        database: `projects/${this.databaseId.projectId}/databases/${this.databaseId.database}`
       },
       sendRawJson: true,
       supportsCrossDomainXhr: true,

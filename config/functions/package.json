@@ -6,5 +6,8 @@
     "firebase-admin": "8.2.0",
     "firebase-functions": "3.1.0"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": "8"
+  }
 }

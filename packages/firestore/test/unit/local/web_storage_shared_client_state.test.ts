@@ -55,9 +55,7 @@ const TEST_ERROR = new FirestoreError('internal', 'Test Error');
 
 function mutationKey(user: User, batchId: BatchId): string {
   if (user.isAuthenticated()) {
-    return `firestore_mutations_${TEST_PERSISTENCE_PREFIX}_${batchId}_${
-      user.uid
-    }`;
+    return `firestore_mutations_${TEST_PERSISTENCE_PREFIX}_${batchId}_${user.uid}`;
   } else {
     return `firestore_mutations_${TEST_PERSISTENCE_PREFIX}_${batchId}`;
   }
