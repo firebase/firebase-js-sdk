@@ -86,10 +86,10 @@ const byteArrayToString = function(bytes: number[]): string {
 };
 
 interface Base64 {
-  byteToCharMap_: { [key: number]: string } | null ;
-  charToByteMap_: { [key: string]: number } | null ;
-  byteToCharMapWebSafe_: { [key: number]: string } | null ;
-  charToByteMapWebSafe_: { [key: string]: number } | null ;
+  byteToCharMap_: { [key: number]: string } | null;
+  charToByteMap_: { [key: string]: number } | null;
+  byteToCharMapWebSafe_: { [key: number]: string } | null;
+  charToByteMapWebSafe_: { [key: string]: number } | null;
   ENCODED_VALS_BASE: string;
   readonly ENCODED_VALS: string;
   readonly ENCODED_VALS_WEBSAFE: string;
@@ -99,7 +99,6 @@ interface Base64 {
   decodeString(input: string, webSafe: boolean): string;
   decodeStringToByteArray(input: string, webSafe: boolean): number[];
   init_(): void;
-
 }
 
 // We define it as an object literal instead of a class because a class compiled down to es5 can't
