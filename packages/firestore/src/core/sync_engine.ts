@@ -370,7 +370,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   ): Promise<T> {
     assert(retries >= 0, 'Got negative number of retries for transaction.');
     const transaction = this.remoteStore.createTransaction();
-    let result: T;
     const userPromise = updateFunction(transaction);
     if (
       isNullOrUndefined(userPromise) ||
@@ -381,7 +380,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         Error('Transaction callback must return a Promise')
       );
     }
-    result = await userPromise;
+    const result = await userPromise;
     try {
       await transaction.commit();
       return result;
