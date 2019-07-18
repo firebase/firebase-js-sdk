@@ -107,28 +107,22 @@ interface Base64 {
 export const base64: Base64 = {
   /**
    * Maps bytes to characters.
-   * @type {Object}
-   * @private
    */
   byteToCharMap_: null,
 
   /**
    * Maps characters to bytes.
-   * @type {Object}
-   * @private
    */
   charToByteMap_: null,
 
   /**
    * Maps bytes to websafe characters.
-   * @type {Object}
    * @private
    */
   byteToCharMapWebSafe_: null,
 
   /**
    * Maps websafe characters to bytes.
-   * @type {Object}
    * @private
    */
   charToByteMapWebSafe_: null,
@@ -136,14 +130,12 @@ export const base64: Base64 = {
   /**
    * Our default alphabet, shared between
    * ENCODED_VALS and ENCODED_VALS_WEBSAFE
-   * @type {string}
    */
   ENCODED_VALS_BASE:
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz' + '0123456789',
 
   /**
    * Our default alphabet. Value 64 (=) is special; it means "nothing."
-   * @type {string}
    */
   get ENCODED_VALS() {
     return this.ENCODED_VALS_BASE + '+/=';
@@ -151,7 +143,6 @@ export const base64: Base64 = {
 
   /**
    * Our websafe alphabet.
-   * @type {string}
    */
   get ENCODED_VALS_WEBSAFE() {
     return this.ENCODED_VALS_BASE + '-_.';
@@ -163,7 +154,6 @@ export const base64: Base64 = {
    * ASSUME_* variables to avoid pulling in the full useragent detection library
    * but still allowing the standard per-browser compilations.
    *
-   * @type {boolean}
    */
   HAS_NATIVE_SUPPORT: typeof atob === 'function',
 
