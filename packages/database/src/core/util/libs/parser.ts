@@ -138,7 +138,7 @@ export const parseURL = function(
 
   // Don't use SSL if we are parsing an emulator URL.
   if (process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]) {
-    scheme = 'http'
+    scheme = 'http';
   }
 
   // Don't do any validation here. The caller is responsible for validating the result of parsing.
