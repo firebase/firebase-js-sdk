@@ -297,7 +297,6 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .withNonexistentDoc()
         .run(get, delete1, delete1)
         .expectNoDoc();
-      console.warn('finished first test');
       await tt
         .withNonexistentDoc()
         .run(get, delete1, update2)
@@ -556,6 +555,9 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         })
         .then(() => {
           // Now all transaction should be completed, so check the result.
+          // There should be a maximum of 3 retries: once for the 2nd update,
+          // and twice for the 3rd update.
+          expect(started).to.be.lessThan(7);
           return doc.get();
         })
         .then(snapshot => {
@@ -653,18 +655,21 @@ apiDescribe('Database transactions', (persistence: boolean) => {
   it('handle reading a doc twice with different versions', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('counters').doc();
+      let counter = 0;
       return doc
         .set({
           count: 15
         })
         .then(() => {
           return db.runTransaction(transaction => {
+            counter++;
             // Get the doc once.
             return (
               transaction
                 .get(doc)
-                // Do a write outside of the transaction.
-                .then(() => doc.set({ count: 1234 }))
+                // Do a write outside of the transaction. Because the transaction
+                // will retry, set the document to a different value each time.
+                .then(() => doc.set({ count: 1234 + counter }))
                 // Get the doc again in the transaction with the new
                 // version.
                 .then(() => transaction.get(doc))
@@ -681,7 +686,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         })
         .then(() => doc.get())
         .then(snapshot => {
-          expect(snapshot.data()!['count']).to.equal(1234);
+          expect(snapshot.data()!['count']).to.equal(1234 + counter);
         });
     });
   });
@@ -800,6 +805,28 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     });
   });
 
+  it('does not retry on permanent errors', () => {
+    return integrationHelpers.withTestDb(persistence, db => {
+      let count = 0;
+      return db
+        .runTransaction(transaction => {
+          count++;
+          const doc = db.collection('nonexistent').doc();
+          return (
+            transaction
+              // Get and update a document that doesn't exist so that the transaction fails.
+              .get(doc)
+              .then(() => transaction.update(doc, { count: 16 }))
+          );
+        })
+        .then(() => expect.fail('transaction should fail'))
+        .catch((err: firestore.FirestoreError) => {
+          expect(err.code).to.equal('invalid-argument');
+          expect(count).to.equal(1);
+        });
+    });
+  });
+
   it('are successful with no transaction operations', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       return db.runTransaction(async txn => {});
@@ -809,10 +836,10 @@ apiDescribe('Database transactions', (persistence: boolean) => {
   it('are cancelled on rejected promise', () => {
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('towns').doc();
-      let count = 0;
+      let counter = 0;
       return db
         .runTransaction(transaction => {
-          count++;
+          counter++;
           transaction.set(doc, { foo: 'bar' });
           return Promise.reject('no');
         })
@@ -820,7 +847,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .catch(err => {
           expect(err).to.exist;
           expect(err).to.equal('no');
-          expect(count).to.equal(1);
+          expect(counter).to.equal(1);
           return doc.get();
         })
         .then(snapshot => {

@@ -71,6 +71,7 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
+import { isPermanentError } from '../remote/rpc_error';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -380,15 +381,22 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         Error('Transaction callback must return a Promise')
       );
     }
-    const result = await userPromise;
     try {
-      await transaction.commit();
-      return result;
-    } catch (error) {
-      if (retries === 0) {
+      const result = await userPromise;
+      try {
+        await transaction.commit();
+        return result;
+      } catch (error) {
+        if (retries > 0 && this.isRetryableTransactionError(error)) {
+          return await this.runTransaction(updateFunction, retries - 1);
+        }
         return Promise.reject<T>(error);
       }
-      return this.runTransaction(updateFunction, retries - 1);
+    } catch (error) {
+      if (retries > 0 && this.isRetryableTransactionError(error)) {
+        return this.runTransaction(updateFunction, retries - 1);
+      }
+      return Promise.reject<T>(error);
     }
   }
 
@@ -913,6 +921,20 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
     this.syncEngineListener!.onWatchChange(newViewSnapshots);
     return activeQueries;
+  }
+
+  private isRetryableTransactionError(error: Error): boolean {
+    if (error.name === 'FirebaseError') {
+      // In transactions, the backend will fail outdated reads with FAILED_PRECONDITION and
+      // non-matching document versions with ABORTED. These errors should be retried.
+      const code = (error as FirestoreError).code;
+      return (
+        code === 'aborted' ||
+        code === 'failed-precondition' ||
+        !isPermanentError(code)
+      );
+    }
+    return false;
   }
 
   // PORTING NOTE: Multi-tab only
