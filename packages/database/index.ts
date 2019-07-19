@@ -32,6 +32,8 @@ import { setSDKVersion } from './src/core/version';
 
 const ServerValue = Database.ServerValue;
 
+export { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './src/core/RepoManager';
+
 export function registerDatabase(instance: FirebaseNamespace) {
   // set SDK_VERSION
   setSDKVersion(instance.SDK_VERSION);

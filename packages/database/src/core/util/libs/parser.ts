@@ -18,8 +18,7 @@
 import { Path } from '../Path';
 import { RepoInfo } from '../../RepoInfo';
 import { warnIfPageIsSecure, warn, fatal } from '../util';
-
-const FIREBASE_DATABASE_EMULATOR_HOST_VAR = 'FIREBASE_DATABASE_EMULATOR_HOST';
+import { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from '../../RepoManager';
 
 /**
  * @param {!string} pathString
@@ -136,11 +135,6 @@ export const parseURL = function(
     scheme = 'https',
     port = 443;
 
-  // Don't use SSL if we are parsing an emulator URL.
-  if (process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]) {
-    scheme = 'http';
-  }
-
   // Don't do any validation here. The caller is responsible for validating the result of parsing.
   if (typeof dataURL === 'string') {
     // Parse scheme.
@@ -167,7 +161,6 @@ export const parseURL = function(
     let queryParams = decodeQuery(
       dataURL.substring(Math.min(dataURL.length, questionMarkInd))
     );
-
     // If we have a port, use scheme for determining if it's secure.
     colonInd = host.indexOf(':');
     if (colonInd >= 0) {
