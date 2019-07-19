@@ -85,7 +85,8 @@ export class RepoManager {
     if (dbEmulatorHost) {
       dbEmulatorHost = `http://${dbEmulatorHost}`;
     }
-    const dbUrl: string = url || app.options[DATABASE_URL_OPTION] || dbEmulatorHost
+    const dbUrl: string =
+      url || app.options[DATABASE_URL_OPTION] || dbEmulatorHost;
     if (dbUrl === undefined) {
       fatal(
         "Can't determine Firebase Database URL.  Be sure to include " +
