@@ -11,6 +11,10 @@
   the SDK to potentially crash when persistence is enabled).
 - [fixed] Fixed an issue for environments missing `window.addEventListener`, 
   such as in React Native with Expo (#1824).
+- [changed] Transactions are now more flexible. Some sequences of operations
+  that were previously incorrectly disallowed are now allowed. For example,
+  after reading a document that doesn't exist, you can now set it multiple
+  times successfully in a transaction.
 
 # 1.3.3
 - [changed] Firestore now recovers more quickly after network connectivity
