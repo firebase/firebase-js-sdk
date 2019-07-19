@@ -85,7 +85,7 @@ export class RepoManager {
   databaseFromApp(app: FirebaseApp, url?: string): Database {
     const dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
     const dbUrl: string =
-      url || app.options[DATABASE_URL_OPTION] || dbEmulatorUrl
+      url || app.options[DATABASE_URL_OPTION] || dbEmulatorHost
         ? `http://${dbEmulatorHost}`
         : undefined;
     if (dbUrl === undefined) {
