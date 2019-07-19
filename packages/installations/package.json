@@ -29,7 +29,7 @@
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "http-server": "0.11.1",
-    "mocha": "6.1.4",
+    "mocha": "6.2.0",
     "rollup": "1.17.0",
     "rollup-plugin-commonjs": "10.0.1",
     "rollup-plugin-json": "4.0.0",
@@ -40,11 +40,11 @@
     "sinon-chai": "3.3.0",
     "tslint": "5.18.0",
     "typescript": "3.5.3",
-    "eslint": "5.16.0",
+    "eslint": "6.0.1",
     "@typescript-eslint/parser": "1.12.0",
     "@typescript-eslint/eslint-plugin": "1.12.0",
     "@typescript-eslint/eslint-plugin-tslint": "1.12.0",
-    "eslint-plugin-import": "2.18.0"
+    "eslint-plugin-import": "2.18.1"
   },
   "peerDependencies": {
     "@firebase/app": "0.x",
@@ -53,7 +53,7 @@
   "dependencies": {
     "@firebase/installations-types": "0.1.2",
     "@firebase/util": "0.2.22",
-    "idb": "3.0.2",
+    "idb": "4.0.4",
     "tslib": "1.10.0"
   }
 }
