@@ -25,7 +25,7 @@
     "del": "5.0.0",
     "express": "4.17.1",
     "firebase-functions": "3.1.0",
-    "firebase-tools": "7.1.0",
+    "firebase-tools": "7.1.1",
     "google-closure-compiler": "20190415.0.0",
     "google-closure-library": "20190415.0.0",
     "gulp": "4.0.2",
