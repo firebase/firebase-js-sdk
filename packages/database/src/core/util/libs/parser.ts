@@ -18,7 +18,6 @@
 import { Path } from '../Path';
 import { RepoInfo } from '../../RepoInfo';
 import { warnIfPageIsSecure, warn, fatal } from '../util';
-import { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from '../../RepoManager';
 
 /**
  * @param {!string} pathString
