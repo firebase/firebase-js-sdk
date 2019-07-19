@@ -28,6 +28,6 @@ export class FirestoreEmulator extends Emulator {
     // The latest version can be found from firestore emulator doc:
     // https://firebase.google.com/docs/firestore/security/test-rules-emulator
     this.binaryUrl =
-      'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.5.0.jar';
+      'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.6.2.jar';
   }
 }
