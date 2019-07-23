@@ -19,7 +19,7 @@ import { FirebaseApp } from '@firebase/app-types';
 import { safeGet } from '@firebase/util';
 import { Repo } from './Repo';
 import { fatal } from './util/util';
-import { parseRepoInfo } from './util/libs/parser';
+import { parseRepoInfo, parseURL } from './util/libs/parser';
 import { validateUrl } from './util/validation';
 import './Repo_transaction';
 import { Database } from '../api/Database';
@@ -104,7 +104,7 @@ export class RepoManager {
 
     let dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
     if (dbEmulatorHost) {
-      dbUrl = `http://${dbEmulatorHost}?ns=${parsedUrl.subdomain}`;
+      dbUrl = `http://${dbEmulatorHost}?ns=${parseURL(dbUrl).subdomain}`;
     }
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
