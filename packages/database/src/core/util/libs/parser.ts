@@ -161,7 +161,7 @@ export const parseURL = function(
       dataURL.substring(Math.min(dataURL.length, questionMarkInd))
     );
     if (process.env['FIREBASE_DATABASE_EMULATOR_HOST']) {
-      scheme = "http";
+      scheme = 'http';
     }
     // If we have a port, use scheme for determining if it's secure.
     colonInd = host.indexOf(':');
