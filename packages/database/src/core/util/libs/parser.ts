@@ -160,9 +160,6 @@ export const parseURL = function(
     let queryParams = decodeQuery(
       dataURL.substring(Math.min(dataURL.length, questionMarkInd))
     );
-    if (process.env['FIREBASE_DATABASE_EMULATOR_HOST']) {
-      scheme = 'http';
-    }
     // If we have a port, use scheme for determining if it's secure.
     colonInd = host.indexOf(':');
     if (colonInd >= 0) {
