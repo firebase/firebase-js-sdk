@@ -7524,23 +7524,25 @@ declare namespace firebase.firestore {
    * - 'unauthenticated': The request does not have valid authentication
    *   credentials for the operation.
    */
-  export type FirestoreErrorCode =
-    | 'cancelled'
-    | 'unknown'
-    | 'invalid-argument'
-    | 'deadline-exceeded'
-    | 'not-found'
-    | 'already-exists'
-    | 'permission-denied'
-    | 'resource-exhausted'
-    | 'failed-precondition'
-    | 'aborted'
-    | 'out-of-range'
-    | 'unimplemented'
-    | 'internal'
-    | 'unavailable'
-    | 'data-loss'
-    | 'unauthenticated';
+  export enum FirestoreErrorCode {
+    OK = 'ok',
+    CANCELLED = 'cancelled',
+    UNKNOWN = 'unknown',
+    INVALID_ARGUMENT = 'invalid-argument',
+    DEADLINE_EXCEEDED = 'deadline-exceeded',
+    NOT_FOUND = 'not-found',
+    ALREADY_EXISTS = 'already-exists',
+    PERMISSION_DENIED = 'permission-denied',
+    UNAUTHENTICATED = 'unauthenticated',
+    RESOURCE_EXHAUSTED = 'resource-exhausted',
+    FAILED_PRECONDITION = 'failed-precondition',
+    ABORTED = 'aborted',
+    OUT_OF_RANGE = 'out-of-range',
+    UNIMPLEMENTED = 'unimplemented',
+    INTERNAL = 'internal',
+    UNAVAILABLE = 'unavailable',
+    DATA_LOSS = 'data-loss'
+  }
 
   /** An error returned by a Firestore operation. */
   // TODO(b/63008957): FirestoreError should extend firebase.FirebaseError

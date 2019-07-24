@@ -735,7 +735,7 @@ function checkForAndReportiOSError(error: DOMException): Error {
     if (error.message.indexOf(IOS_ERROR) >= 0) {
       // Wrap error in a more descriptive one.
       const newError = new FirestoreError(
-        'internal',
+        Code.INTERNAL,
         `IOS_INDEXEDDB_BUG1: IndexedDb has thrown '${IOS_ERROR}'. This is likely ` +
           `due to an unavoidable bug in iOS. See https://stackoverflow.com/q/56496296/110915 ` +
           `for details and a potential workaround.`
