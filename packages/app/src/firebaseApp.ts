@@ -170,11 +170,11 @@ export class FirebaseAppImpl implements FirebaseApp {
   }
   /**
    * Remove a service instance from the cache, so we will create a new instance for this service
-   * when people try to get this service again. 
-   * 
+   * when people try to get this service again.
+   *
    * NOTE: currently only firestore is using this functionality to support firestore shutdown.
-   * 
-   * @param name The service name 
+   *
+   * @param name The service name
    * @param instanceIdentifier instance identifier in case multiple instances are allowed
    * @internal
    */
