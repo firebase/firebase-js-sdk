@@ -276,6 +276,24 @@ function executeFirebaseTests(): void {
           assert.equal('tokenFor1', token!.accessToken);
         });
     });
+
+    it(`Should create a new instance of a service after removing the existing instance`, () => {
+      const app = firebase.initializeApp({});
+      (firebase as _FirebaseNamespace).INTERNAL.registerService(
+        'test',
+        (app: FirebaseApp) => {
+          return new TestService(app);
+        }
+      );
+
+      const service = (firebase as any).test();
+
+      assert.equal(service, (firebase as any).test());
+
+      (app as _FirebaseApp)._removeServiceInstance('test');
+
+      assert.notEqual(service, (firebase as any).test());
+    });
   });
 }
 
