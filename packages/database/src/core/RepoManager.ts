@@ -90,7 +90,7 @@ export class RepoManager {
    * @return {!Database}
    */
   databaseFromApp(app: FirebaseApp, url?: string): Database {
-    let dbUrl: string = url || app.options[DATABASE_URL_OPTION];
+    let dbUrl: string | undefined = url || app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
       fatal(
         "Can't determine Firebase Database URL.  Be sure to include " +
