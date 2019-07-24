@@ -104,7 +104,7 @@ export class RepoManager {
 
     let dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
     if (dbEmulatorHost) {
-      dbUrl = `http://${dbEmulatorHost}?ns=${parseURL(dbUrl).subdomain}`;
+      dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
     }
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
