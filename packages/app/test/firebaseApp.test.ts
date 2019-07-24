@@ -311,14 +311,22 @@ function executeFirebaseTests(): void {
       // default instance
       const instance1 = (firebase.app() as any).multiInstance();
       const serviceIdentifier = 'custom instance identifier';
-      const instance2 = (firebase.app() as any).multiInstance(serviceIdentifier);
+      const instance2 = (firebase.app() as any).multiInstance(
+        serviceIdentifier
+      );
 
-      (app as _FirebaseApp)._removeServiceInstance('multiInstance', serviceIdentifier);
+      (app as _FirebaseApp)._removeServiceInstance(
+        'multiInstance',
+        serviceIdentifier
+      );
 
       // default instance should not be changed
       assert.equal(instance1, (firebase.app() as any).multiInstance());
 
-      assert.notEqual(instance2, (firebase.app() as any).multiInstance(serviceIdentifier));
+      assert.notEqual(
+        instance2,
+        (firebase.app() as any).multiInstance(serviceIdentifier)
+      );
     });
   });
 }
@@ -510,7 +518,7 @@ function firebaseAppTests(
 }
 
 class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) { }
+  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
 
   // TODO(koss): Shouldn't this just be an added method on
   // the service instance?
