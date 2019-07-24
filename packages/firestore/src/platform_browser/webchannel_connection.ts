@@ -31,8 +31,8 @@ import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { SDK_VERSION } from '../core/version';
 import { Connection, Stream } from '../remote/connection';
 import {
-  mapCodeFromHttpStatus,
-  mapCodeFromRpcStatus
+  mapCodeFromRpcStatus,
+  mapCodeFromHttpReponse
 } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
 import { assert, fail } from '../util/assert';
@@ -123,20 +123,21 @@ export class WebChannelConnection implements Connection {
                 xhr.getResponseText()
               );
               if (status > 0) {
-                const response = xhr.getResponseJson().error;
-                if (!!response) {
-                  const serverError = response.status
-                    .toLowerCase()
-                    .replace('_', '-');
-                  const firestoreError: Code =
-                    Object.values(Code).indexOf(serverError) >= 0
-                      ? (serverError as Code)
-                      : Code.UNKNOWN;
-                  reject(new FirestoreError(firestoreError, response.message));
+                const responseError = xhr.getResponseJson().error;
+                if (!!responseError) {
+                  const firestoreErrorCode = mapCodeFromHttpReponse(
+                    responseError.status
+                  );
+                  reject(
+                    new FirestoreError(
+                      firestoreErrorCode,
+                      responseError.message
+                    )
+                  );
                 } else {
                   reject(
                     new FirestoreError(
-                      mapCodeFromHttpStatus(status),
+                      Code.UNKNOWN,
                       'Server responded with status ' + xhr.getStatus()
                     )
                   );

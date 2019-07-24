@@ -298,3 +298,17 @@ export function mapCodeFromHttpStatus(status: number): Code {
       return Code.UNKNOWN;
   }
 }
+
+/**
+ * Converts an HTTP error response to the equivalent error code.
+ *
+ * @param status An HTTP error response ("FAILED_PRECONDITION", "UNKNOWN", etc.)
+ * @returns The equivalent Code. Non-matching responses are mapped to
+ *     Code.UNKNOWN.
+ */
+export function mapCodeFromHttpReponse(status: string): Code {
+  const serverError = status.toLowerCase().replace('_', '-');
+  return Object.values(Code).indexOf(serverError as Code) >= 0
+    ? (serverError as Code)
+    : Code.UNKNOWN;
+}
