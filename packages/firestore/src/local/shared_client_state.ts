@@ -236,7 +236,7 @@ export class MutationMetadata {
       validData =
         typeof mutationBatch.error.message === 'string' &&
         typeof mutationBatch.error.code === 'string';
-      if (validData) { 
+      if (validData) {
         firestoreError = new FirestoreError(
           mutationBatch.error.code as Code,
           mutationBatch.error.message

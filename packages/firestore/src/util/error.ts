@@ -16,9 +16,10 @@
  */
 
 import * as firestore from '@firebase/firestore-types';
-import {FirestoreErrorCode} from '@firebase/firestore-types';
+// @ts-ignore: We cannot selectively import FirestoreError from firestore-types
+import { FirestoreErrorCode } from '@firebase/firestore-types';
 
-export {FirestoreErrorCode as Code};
+export { FirestoreErrorCode as Code };
 
 /**
  * An error class used for Firestore-generated errors. Ideally we should be
