@@ -31,8 +31,8 @@ import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { SDK_VERSION } from '../core/version';
 import { Connection, Stream } from '../remote/connection';
 import {
-  mapCodeFromHttpStatus,
-  mapCodeFromRpcStatus
+  mapCodeFromRpcStatus,
+  mapCodeFromHttpResponseErrorStatus
 } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
 import { assert, fail } from '../util/assert';
@@ -123,12 +123,29 @@ export class WebChannelConnection implements Connection {
                 xhr.getResponseText()
               );
               if (status > 0) {
-                reject(
-                  new FirestoreError(
-                    mapCodeFromHttpStatus(status),
-                    'Server responded with status ' + xhr.getStatusText()
-                  )
-                );
+                const responseError = xhr.getResponseJson().error;
+                if (
+                  !!responseError &&
+                  !!responseError.status &&
+                  !!responseError.message
+                ) {
+                  const firestoreErrorCode = mapCodeFromHttpResponseErrorStatus(
+                    responseError.status
+                  );
+                  reject(
+                    new FirestoreError(
+                      firestoreErrorCode,
+                      responseError.message
+                    )
+                  );
+                } else {
+                  reject(
+                    new FirestoreError(
+                      Code.UNKNOWN,
+                      'Server responded with status ' + xhr.getStatus()
+                    )
+                  );
+                }
               } else {
                 // If we received an HTTP_ERROR but there's no status code,
                 // it's most probably a connection issue
