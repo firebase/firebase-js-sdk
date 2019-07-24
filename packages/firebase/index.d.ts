@@ -6225,7 +6225,10 @@ declare namespace firebase.firestore {
     /**
      * @hidden
      */
-    INTERNAL: { delete: () => Promise<void> };
+    INTERNAL: { 
+      delete: () => Promise<void>
+      isShutdown: () => boolean
+    };
   }
 
   /**

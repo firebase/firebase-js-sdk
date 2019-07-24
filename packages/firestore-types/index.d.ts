@@ -276,7 +276,10 @@ export class FirebaseFirestore {
    */
   disableNetwork(): Promise<void>;
 
-  INTERNAL: { delete: () => Promise<void> };
+  INTERNAL: { 
+    delete: () => Promise<void>
+    isShutdown: () => boolean
+  };
 }
 
 /**

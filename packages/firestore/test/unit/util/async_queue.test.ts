@@ -209,6 +209,28 @@ describe('AsyncQueue', () => {
     await queue.drain();
     expect(completedSteps).to.deep.equal([1, 2]);
   });
+
+  it('Schedules operaions with respect to shut down', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps: number[] = [];
+    const doStep = (n: number): Promise<number> =>
+      defer(() => {
+        const result = completedSteps.push(n);
+        return result;
+      });
+
+    queue.enqueueAndForget(() => doStep(1));
+
+    // After this call, only operations requested via
+    // `enqueueAndForgetEvenAfterShutdown` gets executed.
+    // tslint:disable-next-line:no-floating-promises
+    queue.enqueueAndInitilizeShutdown(() => doStep(2));
+    queue.enqueueAndForget(() => doStep(3));
+    queue.enqueueAndForgetEvenAfterShutdown(() => doStep(4));
+
+    await queue.drain();
+    expect(completedSteps).to.deep.equal([1, 2, 4]);
+  });
 });
 
 function defer<T>(op: () => T): Promise<T> {
