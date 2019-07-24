@@ -123,12 +123,24 @@ export class WebChannelConnection implements Connection {
                 xhr.getResponseText()
               );
               if (status > 0) {
-                reject(
-                  new FirestoreError(
-                    mapCodeFromHttpStatus(status),
-                    'Server responded with status ' + xhr.getStatusText()
-                  )
-                );
+                const response = xhr.getResponseJson().error;
+                if (!!response) {
+                  const serverError = response.status
+                    .toLowerCase()
+                    .replace('_', '-');
+                  const firestoreError: Code =
+                    Object.values(Code).indexOf(serverError) >= 0
+                      ? (serverError as Code)
+                      : Code.UNKNOWN;
+                  reject(new FirestoreError(firestoreError, response.message));
+                } else {
+                  reject(
+                    new FirestoreError(
+                      mapCodeFromHttpStatus(status),
+                      'Server responded with status ' + xhr.getStatus()
+                    )
+                  );
+                }
               } else {
                 // If we received an HTTP_ERROR but there's no status code,
                 // it's most probably a connection issue
