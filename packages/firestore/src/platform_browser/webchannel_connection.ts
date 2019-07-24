@@ -32,7 +32,7 @@ import { SDK_VERSION } from '../core/version';
 import { Connection, Stream } from '../remote/connection';
 import {
   mapCodeFromRpcStatus,
-  mapCodeFromHttpReponse
+  mapCodeFromHttpResponseErrorStatus
 } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
 import { assert, fail } from '../util/assert';
@@ -124,8 +124,12 @@ export class WebChannelConnection implements Connection {
               );
               if (status > 0) {
                 const responseError = xhr.getResponseJson().error;
-                if (!!responseError) {
-                  const firestoreErrorCode = mapCodeFromHttpReponse(
+                if (
+                  !!responseError &&
+                  !!responseError.status &&
+                  !!responseError.message
+                ) {
+                  const firestoreErrorCode = mapCodeFromHttpResponseErrorStatus(
                     responseError.status
                   );
                   reject(
