@@ -1,6 +1,6 @@
 {
   "name": "rxfire",
-  "version": "3.6.6",
+  "version": "3.6.7",
   "private": false,
   "description": "Firebase JavaScript library RxJS",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -38,7 +38,7 @@
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "6.3.1",
+    "firebase": "6.3.2",
     "rxjs": "6.5.2",
     "rollup": "1.17.0",
     "rollup-plugin-commonjs": "10.0.1",
