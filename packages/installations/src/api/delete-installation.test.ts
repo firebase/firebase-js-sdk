@@ -33,7 +33,7 @@ import {
 import { ErrorResponse } from './common';
 import { deleteInstallation } from './delete-installation';
 
-const FID = 'defenders-of-the-faith';
+const FID = 'foreclosure-of-a-dream';
 
 describe('deleteInstallation', () => {
   let appConfig: AppConfig;
