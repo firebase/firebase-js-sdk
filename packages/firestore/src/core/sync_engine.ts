@@ -383,15 +383,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
     try {
       const result = await userPromise;
-      try {
-        await transaction.commit();
-        return result;
-      } catch (error) {
-        if (retries > 0 && this.isRetryableTransactionError(error)) {
-          return await this.runTransaction(updateFunction, retries - 1);
-        }
-        return Promise.reject<T>(error);
-      }
+      await transaction.commit();
+      return result;
     } catch (error) {
       if (retries > 0 && this.isRetryableTransactionError(error)) {
         return this.runTransaction(updateFunction, retries - 1);

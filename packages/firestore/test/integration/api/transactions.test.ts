@@ -513,7 +513,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     const readPromises: Array<Promise<void>> = [];
     // A barrier to make sure every transaction reaches the same spot.
     const barrier = new Deferred();
-    let started = 0;
+    let counter = 0;
 
     return integrationHelpers.withTestDb(persistence, db => {
       const doc = db.collection('counters').doc();
@@ -531,7 +531,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
               db.runTransaction(transaction => {
                 return transaction.get(doc).then(snapshot => {
                   expect(snapshot).to.exist;
-                  started = started + 1;
+                  counter = counter + 1;
                   resolveRead.resolve();
                   return barrier.promise.then(() => {
                     transaction.update(doc, {
@@ -548,8 +548,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         })
         .then(() => {
           // Let all of the transactions continue and wait for them to
-          // finish.
-          expect(started).to.equal(3);
+          // finish. There should be 3 initial transaction runs.
+          expect(counter).to.equal(3);
           barrier.resolve();
           return Promise.all(transactionPromises);
         })
@@ -557,7 +557,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
           // Now all transaction should be completed, so check the result.
           // There should be a maximum of 3 retries: once for the 2nd update,
           // and twice for the 3rd update.
-          expect(started).to.be.lessThan(7);
+          expect(counter).to.be.lessThan(7);
           return doc.get();
         })
         .then(snapshot => {
@@ -807,10 +807,11 @@ apiDescribe('Database transactions', (persistence: boolean) => {
 
   it('does not retry on permanent errors', () => {
     return integrationHelpers.withTestDb(persistence, db => {
-      let count = 0;
+      let counter = 0;
       return db
         .runTransaction(transaction => {
-          count++;
+          // Make a transaction that should fail with a permanent error.
+          counter++;
           const doc = db.collection('nonexistent').doc();
           return (
             transaction
@@ -822,7 +823,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
         .then(() => expect.fail('transaction should fail'))
         .catch((err: firestore.FirestoreError) => {
           expect(err.code).to.equal('invalid-argument');
-          expect(count).to.equal(1);
+          expect(counter).to.equal(1);
         });
     });
   });
