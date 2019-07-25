@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.4.12",
+  "version": "0.4.13",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -59,7 +59,7 @@
     "@typescript-eslint/parser": "1.12.0",
     "@typescript-eslint/eslint-plugin": "1.12.0",
     "@typescript-eslint/eslint-plugin-tslint": "1.12.0",
-    "@firebase/messaging": "0.4.5"
+    "@firebase/messaging": "0.4.6"
   },
   "repository": {
     "directory": "packages/functions",
@@ -71,8 +71,8 @@
   },
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@firebase/functions-types": "0.3.7",
-    "@firebase/messaging-types": "0.3.1",
+    "@firebase/functions-types": "0.3.8",
+    "@firebase/messaging-types": "0.3.2",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.10.0"
   },
