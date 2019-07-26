@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.2.1",
   "scripts": {
-    "test": "tsc index.ts --outDir dist"
+    "test": "tsc"
   },
   "dependencies": {
     "firebase": "6.3.3"
