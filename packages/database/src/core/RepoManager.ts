@@ -102,7 +102,10 @@ export class RepoManager {
     const parsedUrl = parseRepoInfo(dbUrl);
     const repoInfo = parsedUrl.repoInfo;
 
-    let dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
+    let dbEmulatorHost: string | undefined = undefined;
+    if (typeof process !== 'undefined') {
+      dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
+    }
     if (dbEmulatorHost) {
       dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
     }
