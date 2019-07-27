@@ -28,7 +28,8 @@ import { RepoInfo } from './RepoInfo';
 /** @const {string} */
 const DATABASE_URL_OPTION = 'databaseURL';
 
-export const FIREBASE_DATABASE_EMULATOR_HOST_VAR = 'FIREBASE_DATABASE_EMULATOR_HOST';
+export const FIREBASE_DATABASE_EMULATOR_HOST_VAR =
+  'FIREBASE_DATABASE_EMULATOR_HOST';
 
 let _staticInstance: RepoManager;
 

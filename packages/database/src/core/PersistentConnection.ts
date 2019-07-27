@@ -743,9 +743,14 @@ export class PersistentConnection extends ServerActions {
       const forceRefresh = this.forceTokenRefresh_;
       this.forceTokenRefresh_ = false;
 
-      if (typeof process !== 'undefined' && process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]) {
-        log('Connecting to a database emulator, ommitting access token requests.');
-        self.authToken_ = "owner"
+      if (
+        typeof process !== 'undefined' &&
+        process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]
+      ) {
+        log(
+          'Connecting to a database emulator, ommitting access token requests.'
+        );
+        self.authToken_ = 'owner';
         connection = new Connection(
           connId,
           self.repoInfo_,
