@@ -74,6 +74,7 @@ export interface FirebaseAppInternals {
 
 export interface _FirebaseApp extends FirebaseApp {
   INTERNAL: FirebaseAppInternals;
+  _removeServiceInstance: (name: string, instanceIdentifier?: string) => void;
 }
 export interface _FirebaseNamespace extends FirebaseNamespace {
   INTERNAL: {
