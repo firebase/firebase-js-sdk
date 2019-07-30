@@ -1543,7 +1543,7 @@ declare namespace firebase.auth {
      */
     operation: firebase.auth.ActionCodeInfo.Operation;
     /**
-     * Parse the email action link string and returns an ActionCodeURL object
+     * Parses the email action link string and returns an ActionCodeURL object
      * if the link is valid, otherwise returns null.
      *
      * @param link The email action link string.
