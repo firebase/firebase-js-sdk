@@ -310,7 +310,9 @@ export class Query {
     let comparedOnKeyField = false;
     for (const orderBy of this.orderBy) {
       const comp = orderBy.compare(d1, d2);
-      if (comp !== 0) return comp;
+      if (comp !== 0) {
+        return comp;
+      }
       comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
     }
     // Assert that we actually compared by key
@@ -399,10 +401,7 @@ export class Query {
   private matchesOrderBy(doc: Document): boolean {
     for (const orderBy of this.explicitOrderBy) {
       // order by key always matches
-      if (
-        !orderBy.field.isKeyField() &&
-        doc.field(orderBy.field) === undefined
-      ) {
+      if (!orderBy.field.isKeyField() && doc.field(orderBy.field) === null) {
         return false;
       }
     }
@@ -507,22 +506,34 @@ export class FieldFilter extends Filter {
     value: FieldValue
   ): FieldFilter {
     if (field.isKeyField()) {
-      assert(
-        value instanceof RefValue,
-        'Comparing on key, but filter value not a RefValue'
-      );
-      assert(
-        op !== Operator.ARRAY_CONTAINS &&
-          op !== Operator.ARRAY_CONTAINS_ANY &&
-          op !== Operator.IN,
-        `'${op.toString()}' queries don't make sense on document keys.`
-      );
-      return new KeyFieldFilter(field, op, value as RefValue);
+      if (op === Operator.IN) {
+        assert(
+          value instanceof ArrayValue,
+          'Comparing on key with IN, but filter value not an ArrayValue'
+        );
+        assert(
+          (value as ArrayValue).internalValue.every(elem => {
+            return elem instanceof RefValue;
+          }),
+          'Comparing on key with IN, but an array value was not a RefValue'
+        );
+        return new KeyFieldInFilter(field, value as ArrayValue);
+      } else {
+        assert(
+          value instanceof RefValue,
+          'Comparing on key, but filter value not a RefValue'
+        );
+        assert(
+          op !== Operator.ARRAY_CONTAINS && op !== Operator.ARRAY_CONTAINS_ANY,
+          `'${op.toString()}' queries don't make sense on document keys.`
+        );
+        return new KeyFieldFilter(field, op, value as RefValue);
+      }
     } else if (value.isEqual(NullValue.INSTANCE)) {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. You can only perform equals comparisons on null.'
+          'Invalid query. Null supports only equality comparisons.'
         );
       }
       return new FieldFilter(field, op, value);
@@ -530,7 +541,7 @@ export class FieldFilter extends Filter {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. You can only perform equals comparisons on NaN.'
+          'Invalid query. NaN supports only equality comparisons.'
         );
       }
       return new FieldFilter(field, op, value);
@@ -558,7 +569,7 @@ export class FieldFilter extends Filter {
 
     // Only compare types with matching backend order (such as double and int).
     return (
-      other !== undefined &&
+      other !== null &&
       this.value.typeOrder === other.typeOrder &&
       this.matchesComparison(other.compareTo(this.value))
     );
@@ -620,14 +631,24 @@ export class FieldFilter extends Filter {
 
 /** Filter that matches on key fields (i.e. '__name__'). */
 export class KeyFieldFilter extends FieldFilter {
-  constructor(field: FieldPath, op: Operator, value: RefValue) {
-    super(field, op, value);
-  }
-
   matches(doc: Document): boolean {
     const refValue = this.value as RefValue;
     const comparison = DocumentKey.comparator(doc.key, refValue.key);
     return this.matchesComparison(comparison);
+  }
+}
+
+/** Filter that matches on key fields within an array. */
+export class KeyFieldInFilter extends FieldFilter {
+  constructor(field: FieldPath, public value: ArrayValue) {
+    super(field, Operator.IN, value);
+  }
+
+  matches(doc: Document): boolean {
+    const arrayValue = this.value;
+    return arrayValue.internalValue.some(refValue => {
+      return doc.key.isEqual((refValue as RefValue).key);
+    });
   }
 }
 
@@ -645,30 +666,29 @@ export class ArrayContainsFilter extends FieldFilter {
 
 /** A Filter that implements the IN operator. */
 export class InFilter extends FieldFilter {
-  constructor(field: FieldPath, value: ArrayValue) {
+  constructor(field: FieldPath, public value: ArrayValue) {
     super(field, Operator.IN, value);
   }
 
   matches(doc: Document): boolean {
-    const arrayValue = this.value as ArrayValue;
+    const arrayValue = this.value;
     const other = doc.field(this.field);
-    return other !== undefined && arrayValue.contains(other);
+    return other !== null && arrayValue.contains(other);
   }
 }
 
 /** A Filter that implements the array-contains-any operator. */
 export class ArrayContainsAnyFilter extends FieldFilter {
-  constructor(field: FieldPath, value: ArrayValue) {
+  constructor(field: FieldPath, public value: ArrayValue) {
     super(field, Operator.ARRAY_CONTAINS_ANY, value);
   }
 
   matches(doc: Document): boolean {
-    const arrayValue = this.value as ArrayValue;
     const other = doc.field(this.field);
     return (
       other instanceof ArrayValue &&
       other.internalValue.some(lhsElem => {
-        return arrayValue.contains(lhsElem);
+        return this.value.contains(lhsElem);
       })
     );
   }

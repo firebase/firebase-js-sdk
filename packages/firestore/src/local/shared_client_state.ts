@@ -936,9 +936,7 @@ export class WebStorageSharedClientState implements SharedClientState {
 
   /** Assembles the key for a mutation batch in WebStorage */
   private toWebStorageMutationBatchKey(batchId: BatchId): string {
-    let mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${
-      this.persistenceKey
-    }_${batchId}`;
+    let mutationKey = `${MUTATION_BATCH_KEY_PREFIX}_${this.persistenceKey}_${batchId}`;
 
     if (this.currentUser.isAuthenticated()) {
       mutationKey += `_${this.currentUser.uid}`;

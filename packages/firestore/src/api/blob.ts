@@ -136,8 +136,7 @@ export class Blob {
 // instanceof checks.
 // For our internal TypeScript code PublicBlob doesn't exist as a type, and so
 // we need to use Blob as type and export it too.
-// tslint:disable-next-line:variable-name We're treating this as a class name.
-export let PublicBlob = makeConstructorPrivate(
+export const PublicBlob = makeConstructorPrivate(
   Blob,
   'Use Blob.fromUint8Array() or Blob.fromBase64String() instead.'
 );

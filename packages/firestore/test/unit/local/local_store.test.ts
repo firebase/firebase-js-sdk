@@ -1132,12 +1132,12 @@ function genericLocalStoreTests(
       expectLocalStore()
         .afterAllocatingQuery(query)
         .toReturnTargetId(2)
-        .after(setMutation('foo/bar', { sum: 0, array_union: [] }))
+        .after(setMutation('foo/bar', { sum: 0, arrayUnion: [] }))
         .toReturnChanged(
           doc(
             'foo/bar',
             0,
-            { sum: 0, array_union: [] },
+            { sum: 0, arrayUnion: [] },
             { hasLocalMutations: true }
           )
         )
@@ -1146,27 +1146,27 @@ function genericLocalStoreTests(
           doc(
             'foo/bar',
             1,
-            { sum: 0, array_union: [] },
+            { sum: 0, arrayUnion: [] },
             { hasCommittedMutations: true }
           )
         )
         .afterRemoteEvent(
-          docAddedRemoteEvent(doc('foo/bar', 1, { sum: 0, array_union: [] }), [
+          docAddedRemoteEvent(doc('foo/bar', 1, { sum: 0, arrayUnion: [] }), [
             2
           ])
         )
-        .toReturnChanged(doc('foo/bar', 1, { sum: 0, array_union: [] }))
+        .toReturnChanged(doc('foo/bar', 1, { sum: 0, arrayUnion: [] }))
         .afterMutations([
           transformMutation('foo/bar', { sum: PublicFieldValue.increment(1) }),
           transformMutation('foo/bar', {
-            array_union: PublicFieldValue.arrayUnion('foo')
+            arrayUnion: PublicFieldValue.arrayUnion('foo')
           })
         ])
         .toReturnChanged(
           doc(
             'foo/bar',
             1,
-            { sum: 1, array_union: ['foo'] },
+            { sum: 1, arrayUnion: ['foo'] },
             { hasLocalMutations: true }
           )
         )
@@ -1175,7 +1175,7 @@ function genericLocalStoreTests(
         // backend value.
         .afterRemoteEvent(
           docUpdateRemoteEvent(
-            doc('foo/bar', 2, { sum: 1337, array_union: ['bar'] }),
+            doc('foo/bar', 2, { sum: 1337, arrayUnion: ['bar'] }),
             [2]
           )
         )
@@ -1183,7 +1183,7 @@ function genericLocalStoreTests(
           doc(
             'foo/bar',
             2,
-            { sum: 1, array_union: ['bar', 'foo'] },
+            { sum: 1, arrayUnion: ['bar', 'foo'] },
             { hasLocalMutations: true }
           )
         )

@@ -36,6 +36,10 @@ export function registerPerformance(instance: FirebaseNamespace): void {
     if (app.name !== DEFAULT_ENTRY_NAME) {
       throw ERROR_FACTORY.create(ErrorCode.FB_NOT_DEFAULT);
     }
+    if (typeof window === 'undefined') {
+      throw ERROR_FACTORY.create(ErrorCode.NO_WINDOW);
+    }
+    setupApi(window);
     SettingsService.getInstance().firebaseAppInstance = app;
     return new PerformanceController(app);
   };
@@ -49,7 +53,6 @@ export function registerPerformance(instance: FirebaseNamespace): void {
   );
 }
 
-setupApi(window);
 registerPerformance(firebase);
 
 declare module '@firebase/app-types' {

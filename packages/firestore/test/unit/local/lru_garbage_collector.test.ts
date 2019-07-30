@@ -122,7 +122,7 @@ function genericLruGarbageCollectorTests(
     );
     const referenceDelegate = persistence.referenceDelegate;
     referenceDelegate.setInMemoryPins(new ReferenceSet());
-    // tslint:disable-next-line:no-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     garbageCollector = ((referenceDelegate as any) as LruDelegate)
       .garbageCollector;
   }
@@ -942,7 +942,7 @@ function genericLruGarbageCollectorTests(
     await initializeTestResources(LruParams.withCacheSize(100));
     expect(persistence.started).to.be.true;
 
-    // Add 50 targets and 10 documents to each.
+    // Add 50 targets and 5 documents to each.
     for (let i = 0; i < 50; i++) {
       // Use separate transactions so that each target and associated documents get their own
       // sequence number.
@@ -953,7 +953,7 @@ function genericLruGarbageCollectorTests(
           return addNextTargetInTransaction(txn).next(queryData => {
             const targetId = queryData.targetId;
             const promises: Array<PersistencePromise<void>> = [];
-            for (let j = 0; j < 10; j++) {
+            for (let j = 0; j < 5; j++) {
               promises.push(
                 cacheADocumentInTransaction(txn).next(docKey =>
                   queryCache.addMatchingKeys(
@@ -987,7 +987,7 @@ function genericLruGarbageCollectorTests(
     );
     expect(results.didRun).to.be.true;
     expect(results.targetsRemoved).to.equal(5);
-    expect(results.documentsRemoved).to.equal(50);
+    expect(results.documentsRemoved).to.equal(25);
 
     // Verify that we updated the cache size by checking that it's smaller now.
     const finalCacheSize = await persistence.runTransaction(
@@ -1004,8 +1004,8 @@ function genericLruGarbageCollectorTests(
     const params = new LruParams(100, 100, 5);
     await initializeTestResources(params);
 
-    // Add 50 targets and 10 documents to each.
-    for (let i = 0; i < 50; i++) {
+    // Add 25 targets and 5 documents to each.
+    for (let i = 0; i < 25; i++) {
       // Use separate transactions so that each target and associated documents get their own
       // sequence number.
       await persistence.runTransaction(
@@ -1015,7 +1015,7 @@ function genericLruGarbageCollectorTests(
           return addNextTargetInTransaction(txn).next(queryData => {
             const targetId = queryData.targetId;
             const promises: Array<PersistencePromise<void>> = [];
-            for (let j = 0; j < 10; j++) {
+            for (let j = 0; j < 5; j++) {
               promises.push(
                 cacheADocumentInTransaction(txn).next(docKey =>
                   queryCache.addMatchingKeys(

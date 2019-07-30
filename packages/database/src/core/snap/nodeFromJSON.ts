@@ -18,13 +18,14 @@
 import { ChildrenNode } from './ChildrenNode';
 import { LeafNode } from './LeafNode';
 import { NamedNode, Node } from './Node';
-import { forEach, contains } from '@firebase/util';
+import { contains } from '@firebase/util';
 import { assert } from '@firebase/util';
 import { buildChildSet } from './childSet';
 import { NAME_COMPARATOR, NAME_ONLY_COMPARATOR } from './comparators';
 import { IndexMap } from './IndexMap';
 import { PRIORITY_INDEX, setNodeFromJSON } from './indexes/PriorityIndex';
 import { SortedMap } from '../util/SortedMap';
+import { each } from '../util/util';
 
 const USE_HINZE = true;
 
@@ -68,11 +69,11 @@ export function nodeFromJSON(
   if (!(json instanceof Array) && USE_HINZE) {
     const children: NamedNode[] = [];
     let childrenHavePriority = false;
-    const hinzeJsonObj: { [k: string]: any } = json as object;
-    forEach(hinzeJsonObj, (key: string, child: any) => {
-      if (typeof key !== 'string' || key.substring(0, 1) !== '.') {
+    const hinzeJsonObj: { [k: string]: any } = json;
+    each(hinzeJsonObj, (key, child) => {
+      if (key.substring(0, 1) !== '.') {
         // Ignore metadata nodes
-        const childNode = nodeFromJSON(hinzeJsonObj[key]);
+        const childNode = nodeFromJSON(child);
         if (!childNode.isEmpty()) {
           childrenHavePriority =
             childrenHavePriority || !childNode.getPriority().isEmpty();
@@ -113,9 +114,8 @@ export function nodeFromJSON(
     }
   } else {
     let node: Node = ChildrenNode.EMPTY_NODE;
-    const jsonObj = json as { [key: string]: unknown };
-    forEach(jsonObj, (key: string, childData: any) => {
-      if (contains(jsonObj, key)) {
+    each(json, (key: string, childData: any) => {
+      if (contains(json, key)) {
         if (key.substring(0, 1) !== '.') {
           // ignore metadata nodes.
           const childNode = nodeFromJSON(childData);

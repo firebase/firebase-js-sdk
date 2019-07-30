@@ -73,27 +73,6 @@ export class FieldMask {
     return found;
   }
 
-  /**
-   * Applies this field mask to the provided object value and returns an object
-   * that only contains fields that are specified in both the input object and
-   * this field mask.
-   */
-  applyTo(data: ObjectValue): ObjectValue {
-    let filteredObject = ObjectValue.EMPTY;
-    this.fields.forEach(fieldMaskPath => {
-      if (fieldMaskPath.isEmpty()) {
-        return data;
-      } else {
-        const newValue = data.field(fieldMaskPath);
-        if (newValue !== undefined) {
-          filteredObject = filteredObject.set(fieldMaskPath, newValue);
-        }
-      }
-    });
-
-    return filteredObject;
-  }
-
   isEqual(other: FieldMask): boolean {
     return this.fields.isEqual(other.fields);
   }
@@ -105,11 +84,6 @@ export class FieldTransform {
     readonly field: FieldPath,
     readonly transform: TransformOperation
   ) {}
-
-  /** Whether this field transform is idempotent. */
-  get isIdempotent(): boolean {
-    return this.transform.isIdempotent;
-  }
 
   isEqual(other: FieldTransform): boolean {
     return (
@@ -302,17 +276,25 @@ export abstract class Mutation {
     localWriteTime: Timestamp
   ): MaybeDocument | null;
 
-  abstract isEqual(other: Mutation): boolean;
-
   /**
-   * If applicable, returns the field mask for this mutation. Fields that are
-   * not included in this field mask are not modified when this mutation is
-   * applied. Mutations that replace the entire document return 'null'.
+   * If this mutation is not idempotent, returns the base value to persist with
+   * this mutation. If a base value is returned, the mutation is always applied
+   * to this base value, even if document has already been updated.
+   *
+   * The base value is a sparse object that consists of only the document
+   * fields for which this mutation contains a non-idempotent transformation
+   * (e.g. a numeric increment). The provided alue guarantees consistent
+   * behavior for non-idempotent transforms and allow us to return the same
+   * latency-compensated value even if the backend has already applied the
+   * mutation. The base value is null for idempotent mutations, as they can be
+   * re-played even if the backend has already applied them.
+   *
+   * @return a base value to store along with the mutation, or null for
+   * idempotent mutations.
    */
-  abstract get fieldMask(): FieldMask | null;
+  abstract extractBaseValue(maybeDoc: MaybeDocument | null): ObjectValue | null;
 
-  /** Returns whether all operations in the mutation are idempotent. */
-  abstract get isIdempotent(): boolean;
+  abstract isEqual(other: Mutation): boolean;
 
   protected verifyKeyMatches(maybeDoc: MaybeDocument | null): void {
     if (maybeDoc != null) {
@@ -393,11 +375,7 @@ export class SetMutation extends Mutation {
     });
   }
 
-  get isIdempotent(): true {
-    return true;
-  }
-
-  get fieldMask(): null {
+  extractBaseValue(maybeDoc: MaybeDocument | null): null {
     return null;
   }
 
@@ -479,8 +457,8 @@ export class PatchMutation extends Mutation {
     });
   }
 
-  get isIdempotent(): true {
-    return true;
+  extractBaseValue(maybeDoc: MaybeDocument | null): null {
+    return null;
   }
 
   isEqual(other: Mutation): boolean {
@@ -511,7 +489,7 @@ export class PatchMutation extends Mutation {
     this.fieldMask.fields.forEach(fieldPath => {
       if (!fieldPath.isEmpty()) {
         const newValue = this.data.field(fieldPath);
-        if (newValue !== undefined) {
+        if (newValue !== null) {
           data = data.set(fieldPath, newValue);
         } else {
           data = data.delete(fieldPath);
@@ -592,6 +570,7 @@ export class TransformMutation extends Mutation {
     const doc = this.requireDocument(maybeDoc);
     const transformResults = this.localTransformResults(
       localWriteTime,
+      maybeDoc,
       baseDoc
     );
     const newData = this.transformObject(doc.data, transformResults);
@@ -600,22 +579,29 @@ export class TransformMutation extends Mutation {
     });
   }
 
-  get isIdempotent(): boolean {
+  extractBaseValue(maybeDoc: MaybeDocument | null): ObjectValue | null {
+    let baseObject: ObjectValue | null = null;
     for (const fieldTransform of this.fieldTransforms) {
-      if (!fieldTransform.isIdempotent) {
-        return false;
+      const existingValue =
+        maybeDoc instanceof Document
+          ? maybeDoc.field(fieldTransform.field)
+          : undefined;
+      const coercedValue = fieldTransform.transform.computeBaseValue(
+        existingValue || null
+      );
+
+      if (coercedValue != null) {
+        if (baseObject == null) {
+          baseObject = ObjectValue.EMPTY.set(
+            fieldTransform.field,
+            coercedValue
+          );
+        } else {
+          baseObject = baseObject.set(fieldTransform.field, coercedValue);
+        }
       }
     }
-
-    return true;
-  }
-
-  get fieldMask(): FieldMask {
-    let fieldMask = new SortedSet<FieldPath>(FieldPath.comparator);
-    this.fieldTransforms.forEach(
-      transform => (fieldMask = fieldMask.add(transform.field))
-    );
-    return new FieldMask(fieldMask);
+    return baseObject;
   }
 
   isEqual(other: Mutation): boolean {
@@ -671,7 +657,7 @@ export class TransformMutation extends Mutation {
       const transform = fieldTransform.transform;
       let previousValue: FieldValue | null = null;
       if (baseDoc instanceof Document) {
-        previousValue = baseDoc.field(fieldTransform.field) || null;
+        previousValue = baseDoc.field(fieldTransform.field);
       }
       transformResults.push(
         transform.applyToRemoteDocument(
@@ -690,11 +676,14 @@ export class TransformMutation extends Mutation {
    *
    * @param localWriteTime The local time of the transform mutation (used to
    *     generate ServerTimestampValues).
+   * @param maybeDoc The current state of the document after applying all
+   *     previous mutations.
    * @param baseDoc The document prior to applying this mutation batch.
    * @return The transform results list.
    */
   private localTransformResults(
     localWriteTime: Timestamp,
+    maybeDoc: MaybeDocument | null,
     baseDoc: MaybeDocument | null
   ): FieldValue[] {
     const transformResults = [] as FieldValue[];
@@ -702,8 +691,16 @@ export class TransformMutation extends Mutation {
       const transform = fieldTransform.transform;
 
       let previousValue: FieldValue | null = null;
-      if (baseDoc instanceof Document) {
-        previousValue = baseDoc.field(fieldTransform.field) || null;
+      if (maybeDoc instanceof Document) {
+        previousValue = maybeDoc.field(fieldTransform.field);
+      }
+
+      if (previousValue === null && baseDoc instanceof Document) {
+        // If the current document does not contain a value for the mutated
+        // field, use the value that existed before applying this mutation
+        // batch. This solves an edge case where a PatchMutation clears the
+        // values in a nested map before the TransformMutation is applied.
+        previousValue = baseDoc.field(fieldTransform.field);
       }
 
       transformResults.push(
@@ -779,19 +776,15 @@ export class DeleteMutation extends Mutation {
     return new NoDocument(this.key, SnapshotVersion.forDeletedDoc());
   }
 
+  extractBaseValue(maybeDoc: MaybeDocument | null): null {
+    return null;
+  }
+
   isEqual(other: Mutation): boolean {
     return (
       other instanceof DeleteMutation &&
       this.key.isEqual(other.key) &&
       this.precondition.isEqual(other.precondition)
     );
-  }
-
-  get isIdempotent(): true {
-    return true;
-  }
-
-  get fieldMask(): null {
-    return null;
   }
 }

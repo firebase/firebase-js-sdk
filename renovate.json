@@ -1,0 +1,29 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "packageRules": [
+    {
+      "packagePatterns": [
+        "^((?!^typescript$).)*$"
+      ],
+      "minor": {
+        "groupName": "all non-major dependencies",
+        "groupSlug": "all-minor-patch"
+      }
+    }
+  ],
+  "ignoreDeps": [
+    "karma-sauce-launcher",
+    "protractor",
+    "long",
+    "rollup-plugin-copy-assets",
+    "idb",
+    "whatwg-fetch"
+  ],
+  "assignees": [
+    "@Feiyang1",
+    "@hsubox76"
+  ],
+  "schedule": "before 3am on Friday"
+}

@@ -75,7 +75,7 @@ export class Document extends MaybeDocument {
     this.hasCommittedMutations = !!options.hasCommittedMutations;
   }
 
-  field(path: FieldPath): FieldValue | undefined {
+  field(path: FieldPath): FieldValue | null {
     return this.data.field(path);
   }
 
@@ -114,7 +114,7 @@ export class Document extends MaybeDocument {
   static compareByField(field: FieldPath, d1: Document, d2: Document): number {
     const v1 = d1.field(field);
     const v2 = d2.field(field);
-    if (v1 !== undefined && v2 !== undefined) {
+    if (v1 !== null && v2 !== null) {
       return v1.compareTo(v2);
     } else {
       return fail("Trying to compare documents on fields that don't exist");
@@ -162,10 +162,6 @@ export class NoDocument extends MaybeDocument {
  * document that was updated without a known base document).
  */
 export class UnknownDocument extends MaybeDocument {
-  constructor(key: DocumentKey, version: SnapshotVersion) {
-    super(key, version);
-  }
-
   toString(): string {
     return `UnknownDocument(${this.key}, ${this.version})`;
   }

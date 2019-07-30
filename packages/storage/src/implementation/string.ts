@@ -27,7 +27,7 @@ export const StringFormat = {
   DATA_URL: 'data_url'
 };
 
-export function formatValidator(stringFormat: string): void {
+export function formatValidator(stringFormat: unknown): void {
   switch (stringFormat) {
     case StringFormat.RAW:
     case StringFormat.BASE64:

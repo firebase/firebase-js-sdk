@@ -448,8 +448,9 @@ describeSpec('Listens:', [], () => {
   });
 
   specTest('Listens are reestablished after network disconnect', [], () => {
-    const expectRequestCount = (requestCounts: { [type: string]: number }) =>
-      requestCounts.addTarget + requestCounts.removeTarget;
+    const expectRequestCount = (requestCounts: {
+      [type: string]: number;
+    }): number => requestCounts.addTarget + requestCounts.removeTarget;
 
     const query = Query.atPath(path('collection'));
     const docA = doc('collection/a', 1000, { key: 'a' });

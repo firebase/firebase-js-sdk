@@ -772,7 +772,9 @@ describeSpec('Writes:', [], () => {
   );
 
   specTest('Writes are resent after network disconnect', [], () => {
-    const expectRequestCount = (requestCounts: { [type: string]: number }) =>
+    const expectRequestCount = (requestCounts: {
+      [type: string]: number;
+    }): number =>
       requestCounts.handshakes + requestCounts.writes + requestCounts.closes;
 
     return spec()

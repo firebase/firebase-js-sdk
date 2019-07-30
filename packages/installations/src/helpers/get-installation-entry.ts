@@ -20,17 +20,18 @@ import { AppConfig } from '../interfaces/app-config';
 import {
   InProgressInstallationEntry,
   InstallationEntry,
-  RequestStatus
+  RequestStatus,
+  RegisteredInstallationEntry
 } from '../interfaces/installation-entry';
 import { PENDING_TIMEOUT_MS } from '../util/constants';
 import { ERROR_FACTORY, ErrorCode, isServerError } from '../util/errors';
 import { sleep } from '../util/sleep';
-import { generateFid } from './generate-fid';
+import { generateFid, INVALID_FID } from './generate-fid';
 import { remove, set, update } from './idb-manager';
 
 export interface InstallationEntryWithRegistrationPromise {
   installationEntry: InstallationEntry;
-  registrationPromise?: Promise<void>;
+  registrationPromise?: Promise<RegisteredInstallationEntry>;
 }
 
 /**
@@ -40,26 +41,33 @@ export interface InstallationEntryWithRegistrationPromise {
 export async function getInstallationEntry(
   appConfig: AppConfig
 ): Promise<InstallationEntryWithRegistrationPromise> {
-  let registrationPromise: Promise<void> | undefined;
+  let registrationPromise: Promise<RegisteredInstallationEntry> | undefined;
+
+  const installationEntry = await update(
+    appConfig,
+    (oldEntry?: InstallationEntry): InstallationEntry => {
+      const installationEntry = updateOrCreateInstallationEntry(oldEntry);
+      const entryWithPromise = triggerRegistrationIfNecessary(
+        appConfig,
+        installationEntry
+      );
+      registrationPromise = entryWithPromise.registrationPromise;
+      return entryWithPromise.installationEntry;
+    }
+  );
+
+  if (installationEntry.fid === INVALID_FID) {
+    // FID generation failed. Waiting for the FID from the server.
+    return { installationEntry: await registrationPromise! };
+  }
 
   return {
-    installationEntry: await update(
-      appConfig,
-      (oldEntry?: InstallationEntry): InstallationEntry => {
-        const installationEntry = updateOrCreateFid(oldEntry);
-        const entryWithPromise = triggerRegistrationIfNecessary(
-          appConfig,
-          installationEntry
-        );
-        registrationPromise = entryWithPromise.registrationPromise;
-        return entryWithPromise.installationEntry;
-      }
-    ),
+    installationEntry,
     registrationPromise
   };
 }
 
-function updateOrCreateFid(
+function updateOrCreateInstallationEntry(
   oldEntry: InstallationEntry | undefined
 ): InstallationEntry {
   const entry: InstallationEntry = oldEntry || {
@@ -124,13 +132,13 @@ function triggerRegistrationIfNecessary(
 async function registerInstallation(
   appConfig: AppConfig,
   installationEntry: InProgressInstallationEntry
-): Promise<void> {
+): Promise<RegisteredInstallationEntry> {
   try {
     const registeredInstallationEntry = await createInstallation(
       appConfig,
       installationEntry
     );
-    await set(appConfig, registeredInstallationEntry);
+    return set(appConfig, registeredInstallationEntry);
   } catch (e) {
     if (isServerError(e) && e.serverCode === 409) {
       // Server returned a "FID can not be used" error.
@@ -148,7 +156,9 @@ async function registerInstallation(
 }
 
 /** Call if FID registration is pending. */
-async function waitUntilFidRegistration(appConfig: AppConfig): Promise<void> {
+async function waitUntilFidRegistration(
+  appConfig: AppConfig
+): Promise<RegisteredInstallationEntry> {
   // Unfortunately, there is no way of reliably observing when a value in
   // IndexedDB changes (yet, see https://github.com/WICG/indexed-db-observers),
   // so we need to poll.
@@ -164,6 +174,8 @@ async function waitUntilFidRegistration(appConfig: AppConfig): Promise<void> {
   if (entry.registrationStatus === RequestStatus.NOT_STARTED) {
     throw ERROR_FACTORY.create(ErrorCode.CREATE_INSTALLATION_FAILED);
   }
+
+  return entry;
 }
 
 /**

@@ -20,8 +20,10 @@ import * as firestore from '@firebase/firestore-types';
 import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import { DocumentKey } from '../model/document_key';
-import { FieldValue, NumberValue, ObjectValue } from '../model/field_value';
 import {
+  FieldValue,
+  NumberValue,
+  ObjectValue,
   ArrayValue,
   BlobValue,
   BooleanValue,
@@ -33,6 +35,7 @@ import {
   StringValue,
   TimestampValue
 } from '../model/field_value';
+
 import {
   FieldMask,
   FieldTransform,
@@ -47,8 +50,7 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isPlainObject, valueDescription } from '../util/input_validation';
 import { primitiveComparator } from '../util/misc';
-import * as objUtils from '../util/obj';
-import { Dict } from '../util/obj';
+import { Dict, forEach, isEmpty } from '../util/obj';
 import { SortedMap } from '../util/sorted_map';
 import * as typeUtils from '../util/types';
 
@@ -394,7 +396,7 @@ export class UserDataConverter {
 
     let fieldMaskPaths = new SortedSet<FieldPath>(FieldPath.comparator);
     let updateData = ObjectValue.EMPTY;
-    objUtils.forEach(input as Dict<unknown>, (key, value) => {
+    forEach(input as Dict<unknown>, (key, value) => {
       const path = fieldPathFromDotSeparatedString(methodName, key);
 
       const childContext = context.childContextForFieldPath(path);
@@ -544,14 +546,14 @@ export class UserDataConverter {
   private parseObject(obj: Dict<unknown>, context: ParseContext): FieldValue {
     let result = new SortedMap<string, FieldValue>(primitiveComparator);
 
-    if (objUtils.isEmpty(obj)) {
+    if (isEmpty(obj)) {
       // If we encounter an empty object, we explicitly add it to the update
       // mask to ensure that the server creates a map entry.
       if (context.path && context.path.length > 0) {
         context.fieldMask.push(context.path);
       }
     } else {
-      objUtils.forEach(obj, (key: string, val: unknown) => {
+      forEach(obj, (key: string, val: unknown) => {
         const parsedValue = this.parseData(
           val,
           context.childContextForField(key)

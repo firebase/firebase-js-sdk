@@ -22,10 +22,11 @@ import { Timestamp } from '../api/timestamp';
 import { DatabaseId } from '../core/database_info';
 import { assert, fail } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
-import { SortedMap } from '../util/sorted_map';
-
 import { DocumentKey } from './document_key';
+import { FieldMask } from './mutation';
 import { FieldPath } from './path';
+import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
 
 /**
  * Supported data value types:
@@ -257,10 +258,6 @@ function numericEquals(left: number, right: number): boolean {
 }
 
 export class IntegerValue extends NumberValue {
-  constructor(internalValue: number) {
-    super(internalValue);
-  }
-
   isEqual(other: FieldValue): boolean {
     // NOTE: DoubleValue and IntegerValue instances may compareTo() the same,
     // but that doesn't make them equal via isEqual().
@@ -275,10 +272,6 @@ export class IntegerValue extends NumberValue {
 }
 
 export class DoubleValue extends NumberValue {
-  constructor(readonly internalValue: number) {
-    super(internalValue);
-  }
-
   static NAN = new DoubleValue(NaN);
   static POSITIVE_INFINITY = new DoubleValue(Infinity);
   static NEGATIVE_INFINITY = new DoubleValue(-Infinity);
@@ -597,20 +590,48 @@ export class ObjectValue extends FieldValue {
   }
 
   contains(path: FieldPath): boolean {
-    return this.field(path) !== undefined;
+    return this.field(path) !== null;
   }
 
-  field(path: FieldPath): FieldValue | undefined {
+  field(path: FieldPath): FieldValue | null {
     assert(!path.isEmpty(), "Can't get field of empty path");
-    let field: FieldValue | undefined = this;
+    let field: FieldValue | null = this;
     path.forEach((pathSegment: string) => {
       if (field instanceof ObjectValue) {
-        field = field.internalValue.get(pathSegment) || undefined;
+        field = field.internalValue.get(pathSegment);
       } else {
-        field = undefined;
+        field = null;
       }
     });
     return field;
+  }
+
+  /**
+   * Returns a FieldMask built from all FieldPaths starting from this ObjectValue,
+   * including paths from nested objects.
+   */
+  fieldMask(): FieldMask {
+    let fields = new SortedSet<FieldPath>(FieldPath.comparator);
+    this.internalValue.forEach((key, value) => {
+      const currentPath = new FieldPath([key]);
+      if (value instanceof ObjectValue) {
+        const nestedMask = value.fieldMask();
+        const nestedFields = nestedMask.fields;
+        if (nestedFields.isEmpty()) {
+          // Preserve the empty map by adding it to the FieldMask.
+          fields = fields.add(currentPath);
+        } else {
+          // For nested and non-empty ObjectValues, add the FieldPath of the
+          // leaf nodes.
+          nestedFields.forEach(nestedPath => {
+            fields = fields.add(currentPath.child(nestedPath));
+          });
+        }
+      } else {
+        fields = fields.add(currentPath);
+      }
+    });
+    return FieldMask.fromSet(fields);
   }
 
   toString(): string {

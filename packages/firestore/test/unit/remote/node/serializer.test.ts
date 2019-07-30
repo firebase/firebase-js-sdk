@@ -161,9 +161,9 @@ describe('Serializer', () => {
         const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
           actualJsonProto
         );
-        expect((actualProtobufjsProto as Indexable)[valueType]).to.deep.equal(
-          protobufJsValue
-        );
+        expect(
+          ((actualProtobufjsProto as unknown) as Indexable)[valueType]
+        ).to.deep.equal(protobufJsValue);
 
         // Convert protobufjs back to JSON.
         const returnJsonProto = ValueMessage.toObject(
@@ -1223,7 +1223,7 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('contains all Operators', () => {
-      // tslint:disable-next-line:no-any giant hack
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, giant hack
       obj.forEach(Operator as any, (name, op) => {
         if (op instanceof Operator) {
           expect(s.toOperatorName(op), 'for name').to.exist;
@@ -1237,7 +1237,7 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('contains all Directions', () => {
-      // tslint:disable-next-line:no-any giant hack
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, giant hack
       obj.forEach(Direction as any, (name, dir) => {
         if (dir instanceof Direction) {
           expect(s.toDirection(dir), 'for ' + name).to.exist;

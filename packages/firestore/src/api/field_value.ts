@@ -29,7 +29,6 @@ import {
  * An opaque base class for FieldValue sentinel objects in our public API,
  * with public static methods for creating said sentinel objects.
  */
-// tslint:disable-next-line:class-as-namespace  We use this as a base class.
 export abstract class FieldValueImpl implements firestore.FieldValue {
   protected constructor(readonly _methodName: string) {}
 
@@ -109,7 +108,6 @@ export class NumericIncrementFieldValueImpl extends FieldValueImpl {
 // PublicFieldValue can be used interchangeably in instanceof checks.
 // For our internal TypeScript code PublicFieldValue doesn't exist as a type,
 // and so we need to use FieldValueImpl as type and export it too.
-// tslint:disable-next-line:variable-name  We treat this as a class name.
 export const PublicFieldValue = makeConstructorPrivate(
   FieldValueImpl,
   'Use FieldValue.<field>() instead.'

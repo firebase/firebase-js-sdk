@@ -3,7 +3,6 @@
   "compilerOptions": {
     "outDir": "dist",
     "resolveJsonModule": true,
-    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noImplicitReturns": true,

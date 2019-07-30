@@ -1,6 +1,6 @@
 {
   "name": "@firebase/firestore-types",
-  "version": "1.4.1",
+  "version": "1.4.4",
   "description": "@firebase/firestore Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -22,6 +22,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "3.4.5"
+    "typescript": "3.5.3"
   }
 }

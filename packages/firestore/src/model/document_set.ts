@@ -120,15 +120,21 @@ export class DocumentSet {
   }
 
   isEqual(other: DocumentSet | null | undefined): boolean {
-    if (!(other instanceof DocumentSet)) return false;
-    if (this.size !== other.size) return false;
+    if (!(other instanceof DocumentSet)) {
+      return false;
+    }
+    if (this.size !== other.size) {
+      return false;
+    }
 
     const thisIt = this.sortedSet.getIterator();
     const otherIt = other.sortedSet.getIterator();
     while (thisIt.hasNext()) {
       const thisDoc = thisIt.getNext().key;
       const otherDoc = otherIt.getNext().key;
-      if (!thisDoc.isEqual(otherDoc)) return false;
+      if (!thisDoc.isEqual(otherDoc)) {
+        return false;
+      }
     }
     return true;
   }

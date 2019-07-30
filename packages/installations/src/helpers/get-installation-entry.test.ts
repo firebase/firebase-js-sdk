@@ -29,7 +29,7 @@ import { getFakeAppConfig } from '../testing/get-fake-app';
 import '../testing/setup';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 import { sleep } from '../util/sleep';
-import * as fidGenerator from './generate-fid';
+import * as generateFidModule from './generate-fid';
 import { getInstallationEntry } from './get-installation-entry';
 import { get, set } from './idb-manager';
 
@@ -53,7 +53,8 @@ describe('getInstallationEntry', () => {
       async (_, installationEntry): Promise<RegisteredInstallationEntry> => {
         await sleep(100); // Request would take some time
         const registeredInstallationEntry: RegisteredInstallationEntry = {
-          fid: installationEntry.fid,
+          // Returns new FID if client FID is invalid.
+          fid: installationEntry.fid || FID,
           registrationStatus: RequestStatus.COMPLETED,
           refreshToken: 'refreshToken',
           authToken: {
@@ -179,9 +180,10 @@ describe('getInstallationEntry', () => {
     let generateInstallationEntrySpy: SinonStub<[], string>;
 
     beforeEach(() => {
-      generateInstallationEntrySpy = stub(fidGenerator, 'generateFid').returns(
-        FID
-      );
+      generateInstallationEntrySpy = stub(
+        generateFidModule,
+        'generateFid'
+      ).returns(FID);
     });
 
     it('returns a new pending InstallationEntry and triggers createInstallation', async () => {
@@ -254,6 +256,25 @@ describe('getInstallationEntry', () => {
       expect(promise2).to.be.undefined;
 
       expect(createInstallationSpy).to.be.calledOnce;
+    });
+
+    it('waits for the FID from the server if FID generation fails', async () => {
+      clock.restore();
+      // Needed to allow the createInstallation request to complete.
+      clock = useFakeTimers({ shouldAdvanceTime: true });
+
+      // FID generation fails.
+      generateInstallationEntrySpy.returns(generateFidModule.INVALID_FID);
+
+      const getInstallationEntryPromise = getInstallationEntry(appConfig);
+
+      const {
+        installationEntry,
+        registrationPromise
+      } = await getInstallationEntryPromise;
+
+      expect(installationEntry.fid).to.equal(FID);
+      expect(registrationPromise).to.be.undefined;
     });
   });
 

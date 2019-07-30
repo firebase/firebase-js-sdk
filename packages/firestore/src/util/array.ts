@@ -20,7 +20,9 @@
  */
 export function includes<T>(array: T[], value: T): boolean {
   for (let i = 0; i < array.length; i++) {
-    if (array[i] === value) return true;
+    if (array[i] === value) {
+      return true;
+    }
   }
   return false;
 }
@@ -30,7 +32,9 @@ export function includes<T>(array: T[], value: T): boolean {
  */
 export function some<T>(array: T[], predicate: (t: T) => boolean): boolean {
   for (let i = 0; i < array.length; i++) {
-    if (predicate(array[i])) return true;
+    if (predicate(array[i])) {
+      return true;
+    }
   }
   return false;
 }

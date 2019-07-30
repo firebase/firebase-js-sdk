@@ -468,7 +468,7 @@ export class View {
 }
 
 function compareChangeType(c1: ChangeType, c2: ChangeType): number {
-  const order = (change: ChangeType) => {
+  const order = (change: ChangeType): 0 | 1 | 2 => {
     switch (change) {
       case ChangeType.Added:
         return 1;

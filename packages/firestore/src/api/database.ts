@@ -74,7 +74,9 @@ import {
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
+// eslint-disable-next-line import/no-duplicates
 import * as log from '../util/log';
+// eslint-disable-next-line import/no-duplicates
 import { LogLevel } from '../util/log';
 import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
@@ -102,11 +104,6 @@ import {
   fieldPathFromArgument,
   UserDataConverter
 } from './user_data_converter';
-
-// The objects that are a part of this API are exposed to third-parties as
-// compiled javascript so we want to flag our private members with a leading
-// underscore to discourage their use.
-// tslint:disable:strip-private-property-underscore
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -158,7 +155,7 @@ class FirestoreSettings {
   readonly forceLongPolling: boolean;
 
   // Can be a google-auth-library or gapi client.
-  // tslint:disable-next-line:no-any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   credentials?: any;
 
   constructor(settings: PrivateSettings) {
@@ -252,9 +249,7 @@ class FirestoreSettings {
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `cacheSizeBytes must be at least ${
-            LruParams.MINIMUM_CACHE_SIZE_BYTES
-          }`
+          `cacheSizeBytes must be at least ${LruParams.MINIMUM_CACHE_SIZE_BYTES}`
         );
       } else {
         this.cacheSizeBytes = settings.cacheSizeBytes;
@@ -298,6 +293,9 @@ class FirestoreConfig {
  * The root reference to the database.
  */
 export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
+  // The objects that are a part of this API are exposed to third-parties as
+  // compiled javascript so we want to flag our private members with a leading
+  // underscore to discourage their use.
   private readonly _config: FirestoreConfig;
   readonly _databaseId: DatabaseId;
 
@@ -480,7 +478,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     const databaseInfo = this.makeDatabaseInfo();
 
-    const preConverter = (value: unknown) => {
+    const preConverter = (value: unknown): unknown => {
       if (value instanceof DocumentReference) {
         const thisDb = this._config.databaseId;
         const otherDb = value.firestore._config.databaseId;
@@ -686,9 +684,7 @@ export class Transaction implements firestore.Transaction {
           );
         } else {
           throw fail(
-            `BatchGetDocumentsRequest returned unexpected document type: ${
-              doc.constructor.name
-            }`
+            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
           );
         }
       });
@@ -1116,7 +1112,7 @@ export class DocumentReference implements firestore.DocumentReference {
     options: ListenOptions,
     observer: PartialObserver<firestore.DocumentSnapshot>
   ): Unsubscribe {
-    let errHandler = (err: Error) => {
+    let errHandler = (err: Error): void => {
       console.error('Uncaught Error in onSnapshot:', err);
     };
     if (observer.error) {
@@ -1294,7 +1290,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
       const value = this._document.data.field(
         fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
       );
-      if (value !== undefined) {
+      if (value !== null) {
         return this.convertValue(
           value,
           FieldValueOptions.fromSnapshotOptions(
@@ -1361,9 +1357,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
         log.error(
           `Document ${this._key.path} contains a document ` +
             `reference within a different database (` +
-            `${value.databaseId.projectId}/${
-              value.databaseId.database
-            }) which is not ` +
+            `${value.databaseId.projectId}/${value.databaseId.database}) which is not ` +
             `supported. It will be treated as a reference in the current ` +
             `database (${database.projectId}/${database.database}) ` +
             `instead.`
@@ -1387,16 +1381,6 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
 
 export class QueryDocumentSnapshot extends DocumentSnapshot
   implements firestore.QueryDocumentSnapshot {
-  constructor(
-    firestore: Firestore,
-    key: DocumentKey,
-    document: Document,
-    fromCache: boolean,
-    hasPendingWrites: boolean
-  ) {
-    super(firestore, key, document, fromCache, hasPendingWrites);
-  }
-
   data(options?: SnapshotOptions): firestore.DocumentData {
     const data = super.data(options);
     assert(
@@ -1428,87 +1412,35 @@ export class Query implements firestore.Query {
       validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
     }
 
-    let fieldValue;
+    let fieldValue: FieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
     const operator = Operator.fromString(opStr);
     if (fieldPath.isKeyField()) {
       if (
         operator === Operator.ARRAY_CONTAINS ||
-        operator === Operator.ARRAY_CONTAINS_ANY ||
-        operator === Operator.IN
+        operator === Operator.ARRAY_CONTAINS_ANY
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `Invalid Query. You can't perform '${operator.toString()}' ` +
             'queries on FieldPath.documentId().'
         );
-      }
-      if (typeof value === 'string') {
-        if (value === '') {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Function Query.where() requires its third parameter to be a ' +
-              'valid document ID if the first parameter is ' +
-              'FieldPath.documentId(), but it was an empty string.'
-          );
+      } else if (operator === Operator.IN) {
+        this.validateDisjunctiveFilterElements(value, operator);
+        const referenceList: FieldValue[] = [];
+        for (const arrayValue of value as FieldValue[]) {
+          referenceList.push(this.parseDocumentIdValue(arrayValue));
         }
-        if (
-          !this._query.isCollectionGroupQuery() &&
-          value.indexOf('/') !== -1
-        ) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid third parameter to Query.where(). When querying a collection by ` +
-              `FieldPath.documentId(), the value provided must be a plain document ID, but ` +
-              `'${value}' contains a slash.`
-          );
-        }
-        const path = this._query.path.child(ResourcePath.fromString(value));
-        if (!DocumentKey.isDocumentKey(path)) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid third parameter to Query.where(). When querying a collection group by ` +
-              `FieldPath.documentId(), the value provided must result in a valid document path, ` +
-              `but '${path}' is not because it has an odd number of segments (${
-                path.length
-              }).`
-          );
-        }
-        fieldValue = new RefValue(
-          this.firestore._databaseId,
-          new DocumentKey(path)
-        );
-      } else if (value instanceof DocumentReference) {
-        const ref = value as DocumentReference;
-        fieldValue = new RefValue(this.firestore._databaseId, ref._key);
+        fieldValue = new ArrayValue(referenceList);
       } else {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Function Query.where() requires its third parameter to be a ` +
-            `string or a DocumentReference if the first parameter is ` +
-            `FieldPath.documentId(), but it was: ` +
-            `${valueDescription(value)}.`
-        );
+        fieldValue = this.parseDocumentIdValue(value);
       }
     } else {
       if (
         operator === Operator.IN ||
         operator === Operator.ARRAY_CONTAINS_ANY
       ) {
-        if (!Array.isArray(value) || value.length === 0) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            'Invalid Query. A non-empty array is required for ' +
-              `'${operator.toString()}' filters.`
-          );
-        }
-        if (value.length > 10) {
-          throw new FirestoreError(
-            Code.INVALID_ARGUMENT,
-            `Invalid Query. '${operator.toString()}' filters support a ` +
-              'maximum of 10 elements in the value array.'
-          );
-        }
+        this.validateDisjunctiveFilterElements(value, operator);
       }
       fieldValue = this.firestore._dataConverter.parseQueryValue(
         'Query.where',
@@ -1710,7 +1642,7 @@ export class Query implements firestore.Query {
               '" is an uncommitted server timestamp. (Since the value of ' +
               'this field is unknown, you cannot start/end a query with it.)'
           );
-        } else if (value !== undefined) {
+        } else if (value !== null) {
           components.push(value);
         } else {
           const field = orderBy.field.canonicalString();
@@ -1860,7 +1792,7 @@ export class Query implements firestore.Query {
     options: ListenOptions,
     observer: PartialObserver<firestore.QuerySnapshot>
   ): Unsubscribe {
-    let errHandler = (err: Error) => {
+    let errHandler = (err: Error): void => {
       console.error('Uncaught Error in onSnapshot:', err);
     };
     if (observer.error) {
@@ -1882,7 +1814,7 @@ export class Query implements firestore.Query {
       asyncObserver,
       options
     );
-    return () => {
+    return (): void => {
       asyncObserver.mute();
       firestoreClient.unlisten(internalListener);
     };
@@ -1944,6 +1876,94 @@ export class Query implements firestore.Query {
         error: reject
       }
     );
+  }
+
+  /**
+   * Parses the given documentIdValue into a ReferenceValue, throwing
+   * appropriate errors if the value is anything other than a DocumentReference
+   * or String, or if the string is malformed.
+   */
+  private parseDocumentIdValue(documentIdValue: unknown): RefValue {
+    if (typeof documentIdValue === 'string') {
+      if (documentIdValue === '') {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          'Invalid query. When querying with FieldPath.documentId(), you ' +
+            'must provide a valid document ID, but it was an empty string.'
+        );
+      }
+      if (
+        !this._query.isCollectionGroupQuery() &&
+        documentIdValue.indexOf('/') !== -1
+      ) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Invalid query. When querying a collection by ` +
+            `FieldPath.documentId(), you must provide a plain document ID, but ` +
+            `'${documentIdValue}' contains a '/' character.`
+        );
+      }
+      const path = this._query.path.child(
+        ResourcePath.fromString(documentIdValue)
+      );
+      if (!DocumentKey.isDocumentKey(path)) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Invalid query. When querying a collection group by ` +
+            `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+            `but '${path}' is not because it has an odd number of segments (${path.length}).`
+        );
+      }
+      return new RefValue(this.firestore._databaseId, new DocumentKey(path));
+    } else if (documentIdValue instanceof DocumentReference) {
+      const ref = documentIdValue as DocumentReference;
+      return new RefValue(this.firestore._databaseId, ref._key);
+    } else {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid query. When querying with FieldPath.documentId(), you must provide a valid ` +
+          `string or a DocumentReference, but it was: ` +
+          `${valueDescription(documentIdValue)}.`
+      );
+    }
+  }
+
+  /**
+   * Validates that the value passed into a disjunctrive filter satisfies all
+   * array requirements.
+   */
+  private validateDisjunctiveFilterElements(
+    value: unknown,
+    operator: Operator
+  ): void {
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        'Invalid Query. A non-empty array is required for ' +
+          `'${operator.toString()}' filters.`
+      );
+    }
+    if (value.length > 10) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. '${operator.toString()}' filters support a ` +
+          'maximum of 10 elements in the value array.'
+      );
+    }
+    if (value.indexOf(null) >= 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. '${operator.toString()}' filters cannot contain 'null' ` +
+          'in the value array.'
+      );
+    }
+    if (value.filter(element => Number.isNaN(element)).length > 0) {
+      throw new FirestoreError(
+        Code.INVALID_ARGUMENT,
+        `Invalid Query. '${operator.toString()}' filters cannot contain 'NaN' ` +
+          'in the value array.'
+      );
+    }
   }
 
   private validateNewFilter(filter: Filter): void {
@@ -2417,7 +2437,6 @@ function resultChangeType(type: ChangeType): firestore.DocumentChangeType {
 
 // We're treating the variables as class names, so disable checking for lower
 // case variable names.
-// tslint:disable:variable-name
 export const PublicFirestore = makeConstructorPrivate(
   Firestore,
   'Use firebase.firestore() instead.'
@@ -2444,4 +2463,3 @@ export const PublicCollectionReference = makeConstructorPrivate(
   CollectionReference,
   'Use firebase.firestore().collection() instead.'
 );
-// tslint:enable:variable-name

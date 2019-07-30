@@ -85,32 +85,44 @@ const byteArrayToString = function(bytes: number[]): string {
   return out.join('');
 };
 
+interface Base64 {
+  byteToCharMap_: { [key: number]: string } | null;
+  charToByteMap_: { [key: string]: number } | null;
+  byteToCharMapWebSafe_: { [key: number]: string } | null;
+  charToByteMapWebSafe_: { [key: string]: number } | null;
+  ENCODED_VALS_BASE: string;
+  readonly ENCODED_VALS: string;
+  readonly ENCODED_VALS_WEBSAFE: string;
+  HAS_NATIVE_SUPPORT: boolean;
+  encodeByteArray(input: number[] | Uint8Array, webSafe?: boolean): string;
+  encodeString(input: string, webSafe?: boolean): string;
+  decodeString(input: string, webSafe: boolean): string;
+  decodeStringToByteArray(input: string, webSafe: boolean): number[];
+  init_(): void;
+}
+
+// We define it as an object literal instead of a class because a class compiled down to es5 can't
+// be treeshaked. https://github.com/rollup/rollup/issues/1691
 // Static lookup maps, lazily populated by init_()
-export const base64 = {
+export const base64: Base64 = {
   /**
    * Maps bytes to characters.
-   * @type {Object}
-   * @private
    */
   byteToCharMap_: null,
 
   /**
    * Maps characters to bytes.
-   * @type {Object}
-   * @private
    */
   charToByteMap_: null,
 
   /**
    * Maps bytes to websafe characters.
-   * @type {Object}
    * @private
    */
   byteToCharMapWebSafe_: null,
 
   /**
    * Maps websafe characters to bytes.
-   * @type {Object}
    * @private
    */
   charToByteMapWebSafe_: null,
@@ -118,14 +130,12 @@ export const base64 = {
   /**
    * Our default alphabet, shared between
    * ENCODED_VALS and ENCODED_VALS_WEBSAFE
-   * @type {string}
    */
   ENCODED_VALS_BASE:
     'ABCDEFGHIJKLMNOPQRSTUVWXYZ' + 'abcdefghijklmnopqrstuvwxyz' + '0123456789',
 
   /**
    * Our default alphabet. Value 64 (=) is special; it means "nothing."
-   * @type {string}
    */
   get ENCODED_VALS() {
     return this.ENCODED_VALS_BASE + '+/=';
@@ -133,7 +143,6 @@ export const base64 = {
 
   /**
    * Our websafe alphabet.
-   * @type {string}
    */
   get ENCODED_VALS_WEBSAFE() {
     return this.ENCODED_VALS_BASE + '-_.';
@@ -145,7 +154,6 @@ export const base64 = {
    * ASSUME_* variables to avoid pulling in the full useragent detection library
    * but still allowing the standard per-browser compilations.
    *
-   * @type {boolean}
    */
   HAS_NATIVE_SUPPORT: typeof atob === 'function',
 
@@ -165,11 +173,11 @@ export const base64 = {
 
     this.init_();
 
-    const byteToCharMap: number[] = webSafe
-      ? this.byteToCharMapWebSafe_
-      : this.byteToCharMap_;
+    const byteToCharMap = webSafe
+      ? this.byteToCharMapWebSafe_!
+      : this.byteToCharMap_!;
 
-    const output: number[] = [];
+    const output = [];
 
     for (let i = 0; i < input.length; i += 3) {
       const byte1 = input[i];
@@ -255,8 +263,8 @@ export const base64 = {
     this.init_();
 
     const charToByteMap = webSafe
-      ? this.charToByteMapWebSafe_
-      : this.charToByteMap_;
+      ? this.charToByteMapWebSafe_!
+      : this.charToByteMap_!;
 
     const output: number[] = [];
 

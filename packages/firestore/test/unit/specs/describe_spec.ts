@@ -33,7 +33,7 @@ const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
 // The remaining tags specify features that must be present to run a given test
 // Multi-client related tests (which imply persistence).
-const MULTI_CLIENT_TAG = 'multi-client';
+export const MULTI_CLIENT_TAG = 'multi-client';
 const EAGER_GC_TAG = 'eager-gc';
 const DURABLE_PERSISTENCE_TAG = 'durable-persistence';
 const BENCHMARK_TAG = 'benchmark';
@@ -173,10 +173,10 @@ export function specTest(
       const fullName = `${mode} ${name}`;
       const queuedTest = runner(fullName, async () => {
         const start = Date.now();
-        await spec.runAsTest(fullName, usePersistence);
+        await spec.runAsTest(fullName, tags, usePersistence);
         const end = Date.now();
         if (tags.indexOf(BENCHMARK_TAG) >= 0) {
-          // tslint:disable-next-line:no-console
+          // eslint-disable-next-line no-console
           console.log(`Runtime: ${end - start} ms.`);
         }
       });

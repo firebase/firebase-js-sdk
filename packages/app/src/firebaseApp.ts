@@ -119,19 +119,17 @@ export class FirebaseAppImpl implements FirebaseApp {
             .map(service => service.INTERNAL!.delete())
         );
       })
-      .then(
-        (): void => {
-          this.isDeleted_ = true;
-          this.services_ = {};
-        }
-      );
+      .then((): void => {
+        this.isDeleted_ = true;
+        this.services_ = {};
+      });
   }
 
   /**
    * Return a service instance associated with this app (creating it
    * on demand), identified by the passed instanceIdentifier.
    *
-   * NOTE: Currently storage is the only one that is leveraging this
+   * NOTE: Currently storage and functions are the only ones that are leveraging this
    * functionality. They invoke it by calling:
    *
    * ```javascript
@@ -170,6 +168,24 @@ export class FirebaseAppImpl implements FirebaseApp {
 
     return this.services_[name][instanceIdentifier];
   }
+  /**
+   * Remove a service instance from the cache, so we will create a new instance for this service
+   * when people try to get this service again.
+   *
+   * NOTE: currently only firestore is using this functionality to support firestore shutdown.
+   *
+   * @param name The service name
+   * @param instanceIdentifier instance identifier in case multiple instances are allowed
+   * @internal
+   */
+  _removeServiceInstance(
+    name: string,
+    instanceIdentifier: string = DEFAULT_ENTRY_NAME
+  ): void {
+    if (this.services_[name] && this.services_[name][instanceIdentifier]) {
+      delete this.services_[name][instanceIdentifier];
+    }
+  }
 
   /**
    * Callback function used to extend an App instance at the time
@@ -203,7 +219,7 @@ export class FirebaseAppImpl implements FirebaseApp {
    */
   private checkDestroyed_(): void {
     if (this.isDeleted_) {
-      throw ERROR_FACTORY.create(AppError.APP_DELETED, { name: this.name_ });
+      throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this.name_ });
     }
   }
 }

@@ -19,7 +19,7 @@ import { FirebaseApp } from '@firebase/app-types';
 import { safeGet } from '@firebase/util';
 import { Repo } from './Repo';
 import { fatal } from './util/util';
-import { parseRepoInfo } from './util/libs/parser';
+import { parseRepoInfo, parseURL } from './util/libs/parser';
 import { validateUrl } from './util/validation';
 import './Repo_transaction';
 import { Database } from '../api/Database';
@@ -27,6 +27,16 @@ import { RepoInfo } from './RepoInfo';
 
 /** @const {string} */
 const DATABASE_URL_OPTION = 'databaseURL';
+
+/**
+ * This variable is also defined in the firebase node.js admin SDK. Before
+ * modifying this definition, consult the definition in:
+ *
+ * https://github.com/firebase/firebase-admin-node
+ *
+ * and make sure the two are consistent.
+ */
+const FIREBASE_DATABASE_EMULATOR_HOST_VAR = 'FIREBASE_DATABASE_EMULATOR_HOST';
 
 let _staticInstance: RepoManager;
 
@@ -80,7 +90,7 @@ export class RepoManager {
    * @return {!Database}
    */
   databaseFromApp(app: FirebaseApp, url?: string): Database {
-    const dbUrl: string = url || app.options[DATABASE_URL_OPTION];
+    let dbUrl: string | undefined = url || app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
       fatal(
         "Can't determine Firebase Database URL.  Be sure to include " +
@@ -91,6 +101,14 @@ export class RepoManager {
 
     const parsedUrl = parseRepoInfo(dbUrl);
     const repoInfo = parsedUrl.repoInfo;
+
+    let dbEmulatorHost: string | undefined = undefined;
+    if (typeof process !== 'undefined') {
+      dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
+    }
+    if (dbEmulatorHost) {
+      dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
+    }
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
     if (!parsedUrl.path.isEmpty()) {

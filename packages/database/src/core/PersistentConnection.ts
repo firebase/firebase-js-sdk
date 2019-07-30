@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import { forEach, contains, isEmpty, getCount, safeGet } from '@firebase/util';
+import { contains, isEmpty, safeGet, CONSTANTS } from '@firebase/util';
 import { stringify } from '@firebase/util';
 import { assert } from '@firebase/util';
 import { error, log, logWrapper, warn, ObjectToUniqueKey } from './util/util';
@@ -25,12 +24,12 @@ import { VisibilityMonitor } from './util/VisibilityMonitor';
 import { OnlineMonitor } from './util/OnlineMonitor';
 import { isAdmin, isValidFormat } from '@firebase/util';
 import { Connection } from '../realtime/Connection';
-import { CONSTANTS } from '@firebase/util';
 import { isMobileCordova, isReactNative, isNodeSdk } from '@firebase/util';
 import { ServerActions } from './ServerActions';
 import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
 import { Query } from '../api/Query';
+import { SDK_VERSION } from './version';
 
 const RECONNECT_MIN_DELAY = 1000;
 const RECONNECT_MAX_DELAY_DEFAULT = 60 * 5 * 1000; // 5 minutes in milliseconds (Case: 1858)
@@ -76,9 +75,12 @@ export class PersistentConnection extends ServerActions {
   id = PersistentConnection.nextPersistentConnectionId_++;
   private log_ = logWrapper('p:' + this.id + ':');
 
-  /** @private {Object} */
   private interruptReasons_: { [reason: string]: boolean } = {};
-  private listens_: { [path: string]: { [queryId: string]: ListenSpec } } = {};
+  /** Map<path, Map<queryId, ListenSpec>> */
+  private readonly listens: Map<
+    /* path */ string,
+    Map</* queryId */ string, ListenSpec>
+  > = new Map();
   private outstandingPuts_: OutstandingPut[] = [];
   private outstandingPutCount_ = 0;
   private onDisconnectRequestQueue_: OnDisconnectRequest[] = [];
@@ -88,26 +90,19 @@ export class PersistentConnection extends ServerActions {
   private securityDebugCallback_: ((a: Object) => void) | null = null;
   lastSessionId: string | null = null;
 
-  /** @private {number|null} */
   private establishConnectionTimer_: number | null = null;
 
-  /** @private {boolean} */
   private visible_: boolean = false;
 
   // Before we get connected, we keep a queue of pending messages to send.
   private requestCBHash_: { [k: number]: (a: any) => void } = {};
   private requestNumber_ = 0;
 
-  /** @private {?{
-   *   sendRequest(Object),
-   *   close()
-   * }} */
   private realtime_: {
     sendRequest(a: Object): void;
     close(): void;
   } | null = null;
 
-  /** @private {string|null} */
   private authToken_: string | null = null;
   private forceTokenRefresh_ = false;
   private invalidAuthTokenCount_ = 0;
@@ -116,26 +111,17 @@ export class PersistentConnection extends ServerActions {
   private lastConnectionAttemptTime_: number | null = null;
   private lastConnectionEstablishedTime_: number | null = null;
 
-  /**
-   * @private
-   */
   private static nextPersistentConnectionId_ = 0;
 
   /**
    * Counter for number of connections created. Mainly used for tagging in the logs
-   * @type {number}
-   * @private
    */
   private static nextConnectionId_ = 0;
 
   /**
    * @implements {ServerActions}
-   * @param {!RepoInfo} repoInfo_ Data about the namespace we are connecting to
-   * @param {function(string, *, boolean, ?number)} onDataUpdate_ A callback for new data from the server
-   * @param onConnectStatus_
-   * @param onServerInfoUpdate_
-   * @param authTokenProvider_
-   * @param authOverride_
+   * @param repoInfo_ Data about the namespace we are connecting to
+   * @param onDataUpdate_ A callback for new data from the server
    */
   constructor(
     private repoInfo_: RepoInfo,
@@ -166,12 +152,6 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  /**
-   * @param {!string} action
-   * @param {*} body
-   * @param {function(*)=} onResponse
-   * @protected
-   */
   protected sendRequest(
     action: string,
     body: any,
@@ -203,14 +183,16 @@ export class PersistentConnection extends ServerActions {
     const queryId = query.queryIdentifier();
     const pathString = query.path.toString();
     this.log_('Listen called for ' + pathString + ' ' + queryId);
-    this.listens_[pathString] = this.listens_[pathString] || {};
+    if (!this.listens.has(pathString)) {
+      this.listens.set(pathString, new Map());
+    }
     assert(
       query.getQueryParams().isDefault() ||
         !query.getQueryParams().loadsAllData(),
       'listen() called for non-default but complete query'
     );
     assert(
-      !this.listens_[pathString][queryId],
+      !this.listens.get(pathString)!.has(queryId),
       'listen() called twice for same path/queryId.'
     );
     const listenSpec: ListenSpec = {
@@ -219,20 +201,13 @@ export class PersistentConnection extends ServerActions {
       query: query,
       tag: tag
     };
-    this.listens_[pathString][queryId] = listenSpec;
+    this.listens.get(pathString)!.set(queryId, listenSpec);
 
     if (this.connected_) {
       this.sendListen_(listenSpec);
     }
   }
 
-  /**
-   * @param {!{onComplete(),
-   *           hashFn():!string,
-   *           query: !Query,
-   *           tag: ?number}} listenSpec
-   * @private
-   */
   private sendListen_(listenSpec: ListenSpec) {
     const query = listenSpec.query;
     const pathString = query.path.toString();
@@ -258,7 +233,8 @@ export class PersistentConnection extends ServerActions {
       PersistentConnection.warnOnListenWarnings_(payload, query);
 
       const currentListenSpec =
-        this.listens_[pathString] && this.listens_[pathString][queryId];
+        this.listens.get(pathString) &&
+        this.listens.get(pathString)!.get(queryId);
       // only trigger actions if the listen hasn't been removed and readded
       if (currentListenSpec === listenSpec) {
         this.log_('listen response', message);
@@ -274,11 +250,6 @@ export class PersistentConnection extends ServerActions {
     });
   }
 
-  /**
-   * @param {*} payload
-   * @param {!Query} query
-   * @private
-   */
   private static warnOnListenWarnings_(payload: any, query: Query) {
     if (payload && typeof payload === 'object' && contains(payload, 'w')) {
       const warnings = safeGet(payload, 'w');
@@ -319,10 +290,6 @@ export class PersistentConnection extends ServerActions {
     this.reduceReconnectDelayIfAdminCredential_(token);
   }
 
-  /**
-   * @param {!string} credential
-   * @private
-   */
   private reduceReconnectDelayIfAdminCredential_(credential: string) {
     // NOTE: This isn't intended to be bulletproof (a malicious developer can always just modify the client).
     // Additionally, we don't bother resetting the max delay back to the default if auth fails / expires.
@@ -576,10 +543,6 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  /**
-   * @param {*} message
-   * @private
-   */
   private onDataMessage_(message: { [k: string]: any }) {
     if ('r' in message) {
       // this is a response
@@ -663,10 +626,6 @@ export class PersistentConnection extends ServerActions {
     }, Math.floor(timeout)) as any;
   }
 
-  /**
-   * @param {boolean} visible
-   * @private
-   */
   private onVisible_(visible: boolean) {
     // NOTE: Tabbing away and back to a window will defeat our reconnect backoff, but I think that's fine.
     if (
@@ -819,9 +778,6 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  /**
-   * @param {string} reason
-   */
   interrupt(reason: string) {
     log('Interrupting connection for reason: ' + reason);
     this.interruptReasons_[reason] = true;
@@ -838,9 +794,6 @@ export class PersistentConnection extends ServerActions {
     }
   }
 
-  /**
-   * @param {string} reason
-   */
   resume(reason: string) {
     log('Resuming connection for reason: ' + reason);
     delete this.interruptReasons_[reason];
@@ -872,11 +825,6 @@ export class PersistentConnection extends ServerActions {
     if (this.outstandingPutCount_ === 0) this.outstandingPuts_ = [];
   }
 
-  /**
-   * @param {!string} pathString
-   * @param {Array.<*>=} query
-   * @private
-   */
   private onListenRevoked_(pathString: string, query?: any[]) {
     // Remove the listen and manufacture a "permission_denied" error for the failed listen.
     let queryId;
@@ -889,20 +837,15 @@ export class PersistentConnection extends ServerActions {
     if (listen && listen.onComplete) listen.onComplete('permission_denied');
   }
 
-  /**
-   * @param {!string} pathString
-   * @param {!string} queryId
-   * @return {{queries:Array.<Query>, onComplete:function(string)}}
-   * @private
-   */
   private removeListen_(pathString: string, queryId: string): ListenSpec {
     const normalizedPathString = new Path(pathString).toString(); // normalize path.
     let listen;
-    if (this.listens_[normalizedPathString] !== undefined) {
-      listen = this.listens_[normalizedPathString][queryId];
-      delete this.listens_[normalizedPathString][queryId];
-      if (getCount(this.listens_[normalizedPathString]) === 0) {
-        delete this.listens_[normalizedPathString];
+    if (this.listens.has(normalizedPathString)) {
+      const map = this.listens.get(normalizedPathString)!;
+      listen = map.get(queryId);
+      map.delete(queryId);
+      if (map.size === 0) {
+        this.listens.delete(normalizedPathString);
       }
     } else {
       // all listens for this path has already been removed
@@ -948,14 +891,11 @@ export class PersistentConnection extends ServerActions {
 
     // Puts depend on having received the corresponding data update from the server before they complete, so we must
     // make sure to send listens before puts.
-    forEach(
-      this.listens_,
-      (pathString: string, queries: { [key: string]: ListenSpec }) => {
-        forEach(queries, (key: string, listenSpec: ListenSpec) => {
-          this.sendListen_(listenSpec);
-        });
+    for (const queries of this.listens.values()) {
+      for (const listenSpec of queries.values()) {
+        this.sendListen_(listenSpec);
       }
-    );
+    }
 
     for (let i = 0; i < this.outstandingPuts_.length; i++) {
       if (this.outstandingPuts_[i]) this.sendPut_(i);
@@ -974,7 +914,6 @@ export class PersistentConnection extends ServerActions {
 
   /**
    * Sends client stats for first connection
-   * @private
    */
   private sendConnectStats_() {
     const stats: { [k: string]: number } = {};
@@ -986,9 +925,7 @@ export class PersistentConnection extends ServerActions {
       clientName = 'node';
     }
 
-    stats[
-      'sdk.' + clientName + '.' + firebase.SDK_VERSION.replace(/\./g, '-')
-    ] = 1;
+    stats['sdk.' + clientName + '.' + SDK_VERSION.replace(/\./g, '-')] = 1;
 
     if (isMobileCordova()) {
       stats['framework.cordova'] = 1;
@@ -998,10 +935,6 @@ export class PersistentConnection extends ServerActions {
     this.reportStats(stats);
   }
 
-  /**
-   * @return {boolean}
-   * @private
-   */
   private shouldReconnect_(): boolean {
     const online = OnlineMonitor.getInstance().currentlyOnline();
     return isEmpty(this.interruptReasons_) && online;

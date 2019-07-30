@@ -86,9 +86,9 @@ export interface LruDelegate {
  * Describes an object whose keys are active target ids. We do not care about the type of the
  * values.
  */
-export type ActiveTargets = {
+export interface ActiveTargets {
   [id: number]: unknown;
-};
+}
 
 // The type and comparator for the items contained in the SortedSet used in
 // place of a priority queue for the RollingSequenceNumberBuffer.
@@ -154,12 +154,12 @@ class RollingSequenceNumberBuffer {
  * has not hit the threshold). If collection ran, the other fields will be
  * filled in with the details of the results.
  */
-export type LruResults = {
+export interface LruResults {
   readonly didRun: boolean;
   readonly sequenceNumbersCollected: number;
   readonly targetsRemoved: number;
   readonly documentsRemoved: number;
-};
+}
 
 const GC_DID_NOT_RUN: LruResults = {
   didRun: false,
@@ -351,9 +351,7 @@ export class LruGarbageCollector {
         log.debug(
           'LruGarbageCollector',
           `Garbage collection skipped; Cache size ${cacheSize} ` +
-            `is lower than threshold ${
-              this.params.cacheSizeCollectionThreshold
-            }`
+            `is lower than threshold ${this.params.cacheSizeCollectionThreshold}`
         );
         return GC_DID_NOT_RUN;
       } else {
@@ -373,12 +371,11 @@ export class LruGarbageCollector {
     let upperBoundSequenceNumber: number;
     let sequenceNumbersToCollect: number, targetsRemoved: number;
     // Timestamps for various pieces of the process
-    let startTs: number,
-      countedTargetsTs: number,
+    let countedTargetsTs: number,
       foundUpperBoundTs: number,
       removedTargetsTs: number,
       removedDocumentsTs: number;
-    startTs = Date.now();
+    const startTs = Date.now();
     return this.calculateTargetCount(txn, this.params.percentileToCollect)
       .next(sequenceNumbers => {
         // Cap at the configured max
@@ -386,9 +383,7 @@ export class LruGarbageCollector {
           log.debug(
             'LruGarbageCollector',
             'Capping sequence numbers to collect down ' +
-              `to the maximum of ${
-                this.params.maximumSequenceNumbersToCollect
-              } ` +
+              `to the maximum of ${this.params.maximumSequenceNumbersToCollect} ` +
               `from ${sequenceNumbers}`
           );
           sequenceNumbersToCollect = this.params

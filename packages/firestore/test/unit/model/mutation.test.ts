@@ -459,9 +459,9 @@ describe('Mutation', () => {
   });
 
   it('can apply numeric add transform to unexpected type', () => {
-    const baseDoc = { string: 'zero' };
-    const transform = { string: FieldValue.increment(1) };
-    const expected = { string: 1 };
+    const baseDoc = { stringVal: 'zero' };
+    const transform = { stringVal: FieldValue.increment(1) };
+    const expected = { stringVal: 1 };
     verifyTransform(baseDoc, transform, expected);
   });
 
@@ -473,11 +473,11 @@ describe('Mutation', () => {
   });
 
   it('can apply numeric add transforms consecutively', () => {
-    const baseDoc = { number: 1 };
-    const transform1 = { number: FieldValue.increment(2) };
-    const transform2 = { number: FieldValue.increment(3) };
-    const transform3 = { number: FieldValue.increment(4) };
-    const expected = { number: 10 };
+    const baseDoc = { numberVal: 1 };
+    const transform1 = { numberVal: FieldValue.increment(2) };
+    const transform2 = { numberVal: FieldValue.increment(3) };
+    const transform3 = { numberVal: FieldValue.increment(4) };
+    const expected = { numberVal: 10 };
     verifyTransform(baseDoc, [transform1, transform2, transform3], expected);
   });
 
@@ -602,5 +602,94 @@ describe('Mutation', () => {
     assertVersionTransitions(deleter, docV3, mutationResult, docV7Deleted);
     assertVersionTransitions(deleter, deletedV3, mutationResult, docV7Deleted);
     assertVersionTransitions(deleter, null, mutationResult, docV7Deleted);
+  });
+
+  it('extracts null base value for non-transform mutation', () => {
+    const data = { foo: 'foo' };
+    const baseDoc = doc('collection/key', 0, data);
+
+    const set = setMutation('collection/key', { foo: 'bar' });
+    expect(set.extractBaseValue(baseDoc)).to.be.null;
+
+    const patch = patchMutation('collection/key', { foo: 'bar' });
+    expect(patch.extractBaseValue(baseDoc)).to.be.null;
+
+    const deleter = deleteMutation('collection/key');
+    expect(deleter.extractBaseValue(baseDoc)).to.be.null;
+  });
+
+  it('extracts null base value for ServerTimestamp', () => {
+    const allValues = { time: 'foo', nested: { time: 'foo' } };
+    const baseDoc = doc('collection/key', 0, allValues);
+
+    const allTransforms = {
+      time: FieldValue.serverTimestamp(),
+      nested: { time: FieldValue.serverTimestamp() }
+    };
+
+    // Server timestamps are idempotent and don't have base values.
+    const transform = transformMutation('collection/key', allTransforms);
+    expect(transform.extractBaseValue(baseDoc)).to.be.null;
+  });
+
+  it('extracts base value for increment', () => {
+    const allValues = {
+      ignore: 'foo',
+      double: 42.0,
+      long: 42,
+      text: 'foo',
+      map: {},
+      nested: { ignore: 'foo', double: 42.0, long: 42, text: 'foo', map: {} }
+    };
+    const baseDoc = doc('collection/key', 0, allValues);
+
+    const allTransforms = {
+      double: FieldValue.increment(1),
+      long: FieldValue.increment(1),
+      text: FieldValue.increment(1),
+      map: FieldValue.increment(1),
+      missing: FieldValue.increment(1),
+      nested: {
+        double: FieldValue.increment(1),
+        long: FieldValue.increment(1),
+        text: FieldValue.increment(1),
+        map: FieldValue.increment(1),
+        missing: FieldValue.increment(1)
+      }
+    };
+    const transform = transformMutation('collection/key', allTransforms);
+
+    const expectedBaseValue = wrap({
+      double: 42.0,
+      long: 42,
+      text: 0,
+      map: 0,
+      missing: 0,
+      nested: { double: 42.0, long: 42, text: 0, map: 0, missing: 0 }
+    });
+    const actualBaseValue = transform.extractBaseValue(baseDoc);
+
+    expect(expectedBaseValue.isEqual(actualBaseValue!)).to.be.true;
+  });
+
+  it('increment twice', () => {
+    const baseDoc = doc('collection/key', 0, { sum: 0 });
+
+    const increment = { sum: FieldValue.increment(1) };
+    const transform = transformMutation('collection/key', increment);
+
+    let mutatedDoc = transform.applyToLocalView(
+      baseDoc,
+      baseDoc,
+      Timestamp.now()
+    );
+    mutatedDoc = transform.applyToLocalView(
+      mutatedDoc,
+      baseDoc,
+      Timestamp.now()
+    );
+
+    expect(mutatedDoc).to.be.an.instanceof(Document);
+    expect((mutatedDoc as Document).field(field('sum'))!.value()).to.equal(2);
   });
 });

@@ -17,41 +17,30 @@
 
 import { Path } from './util/Path';
 import { PRIORITY_INDEX } from './snap/indexes/PriorityIndex';
-import { CountedSet } from './util/CountedSet';
 import { Node } from './snap/Node';
 
 /**
  * Helper class to store a sparse set of snapshots.
- *
- * @constructor
  */
 export class SparseSnapshotTree {
-  /**
-   * @private
-   * @type {Node}
-   */
-  private value_: Node | null = null;
+  private value: Node | null = null;
 
-  /**
-   * @private
-   * @type {CountedSet}
-   */
-  private children_: CountedSet<string, SparseSnapshotTree> | null = null;
+  private readonly children: Map<string, SparseSnapshotTree> = new Map();
 
   /**
    * Gets the node stored at the given path if one exists.
    *
-   * @param {!Path} path Path to look up snapshot for.
-   * @return {?Node} The retrieved node, or null.
+   * @param path Path to look up snapshot for.
+   * @return The retrieved node, or null.
    */
   find(path: Path): Node | null {
-    if (this.value_ != null) {
-      return this.value_.getChild(path);
-    } else if (!path.isEmpty() && this.children_ != null) {
+    if (this.value != null) {
+      return this.value.getChild(path);
+    } else if (!path.isEmpty() && this.children.size > 0) {
       const childKey = path.getFront();
       path = path.popFront();
-      if (this.children_.contains(childKey)) {
-        const childTree = this.children_.get(childKey) as SparseSnapshotTree;
+      if (this.children.has(childKey)) {
+        const childTree = this.children.get(childKey);
         return childTree.find(path);
       } else {
         return null;
@@ -65,26 +54,22 @@ export class SparseSnapshotTree {
    * Stores the given node at the specified path. If there is already a node
    * at a shallower path, it merges the new data into that snapshot node.
    *
-   * @param {!Path} path Path to look up snapshot for.
-   * @param {!Node} data The new data, or null.
+   * @param path Path to look up snapshot for.
+   * @param data The new data, or null.
    */
   remember(path: Path, data: Node) {
     if (path.isEmpty()) {
-      this.value_ = data;
-      this.children_ = null;
-    } else if (this.value_ !== null) {
-      this.value_ = this.value_.updateChild(path, data);
+      this.value = data;
+      this.children.clear();
+    } else if (this.value !== null) {
+      this.value = this.value.updateChild(path, data);
     } else {
-      if (this.children_ == null) {
-        this.children_ = new CountedSet<string, SparseSnapshotTree>();
-      }
-
       const childKey = path.getFront();
-      if (!this.children_.contains(childKey)) {
-        this.children_.add(childKey, new SparseSnapshotTree());
+      if (!this.children.has(childKey)) {
+        this.children.set(childKey, new SparseSnapshotTree());
       }
 
-      const child = this.children_.get(childKey) as SparseSnapshotTree;
+      const child = this.children.get(childKey);
       path = path.popFront();
       child.remember(path, data);
     }
@@ -93,22 +78,22 @@ export class SparseSnapshotTree {
   /**
    * Purge the data at path from the cache.
    *
-   * @param {!Path} path Path to look up snapshot for.
-   * @return {boolean} True if this node should now be removed.
+   * @param path Path to look up snapshot for.
+   * @return True if this node should now be removed.
    */
   forget(path: Path): boolean {
     if (path.isEmpty()) {
-      this.value_ = null;
-      this.children_ = null;
+      this.value = null;
+      this.children.clear();
       return true;
     } else {
-      if (this.value_ !== null) {
-        if (this.value_.isLeafNode()) {
+      if (this.value !== null) {
+        if (this.value.isLeafNode()) {
           // We're trying to forget a node that doesn't exist
           return false;
         } else {
-          const value = this.value_;
-          this.value_ = null;
+          const value = this.value;
+          this.value = null;
 
           const self = this;
           value.forEachChild(PRIORITY_INDEX, function(key, tree) {
@@ -117,24 +102,17 @@ export class SparseSnapshotTree {
 
           return this.forget(path);
         }
-      } else if (this.children_ !== null) {
+      } else if (this.children.size > 0) {
         const childKey = path.getFront();
         path = path.popFront();
-        if (this.children_.contains(childKey)) {
-          const safeToRemove = (this.children_.get(
-            childKey
-          ) as SparseSnapshotTree).forget(path);
+        if (this.children.has(childKey)) {
+          const safeToRemove = this.children.get(childKey).forget(path);
           if (safeToRemove) {
-            this.children_.remove(childKey);
+            this.children.delete(childKey);
           }
         }
 
-        if (this.children_.isEmpty()) {
-          this.children_ = null;
-          return true;
-        } else {
-          return false;
-        }
+        return this.children.size === 0;
       } else {
         return true;
       }
@@ -145,12 +123,12 @@ export class SparseSnapshotTree {
    * Recursively iterates through all of the stored tree and calls the
    * callback on each one.
    *
-   * @param {!Path} prefixPath Path to look up node for.
-   * @param {!Function} func The function to invoke for each tree.
+   * @param prefixPath Path to look up node for.
+   * @param func The function to invoke for each tree.
    */
   forEachTree(prefixPath: Path, func: (a: Path, b: Node) => any) {
-    if (this.value_ !== null) {
-      func(prefixPath, this.value_);
+    if (this.value !== null) {
+      func(prefixPath, this.value);
     } else {
       this.forEachChild((key, tree) => {
         const path = new Path(prefixPath.toString() + '/' + key);
@@ -162,13 +140,11 @@ export class SparseSnapshotTree {
   /**
    * Iterates through each immediate child and triggers the callback.
    *
-   * @param {!Function} func The function to invoke for each child.
+   * @param func The function to invoke for each child.
    */
   forEachChild(func: (a: string, b: SparseSnapshotTree) => void) {
-    if (this.children_ !== null) {
-      this.children_.each((key, tree) => {
-        func(key, tree);
-      });
-    }
+    this.children.forEach((tree, key) => {
+      func(key, tree);
+    });
   }
 }

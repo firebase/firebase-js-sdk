@@ -15,23 +15,21 @@
  * limitations under the License.
  */
 
-import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 
-import { expect } from 'chai';
+import { expect, use } from 'chai';
 import {
   SimpleDb,
-  SimpleDbSchemaConverter
-} from '../../../src/local/simple_db';
-
-import { PersistencePromise } from '../../../src/local/persistence_promise';
-import {
+  SimpleDbSchemaConverter,
   SimpleDbStore,
   SimpleDbTransaction
 } from '../../../src/local/simple_db';
+
+import { PersistencePromise } from '../../../src/local/persistence_promise';
+
 import { fail } from '../../../src/util/assert';
 
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 interface User {
   id: number;
@@ -511,7 +509,7 @@ describe('SimpleDb', () => {
       }
       return PersistencePromise.waitFor(promises).next(() => {
         const end = new Date().getTime();
-        // tslint:disable-next-line:no-console
+        // eslint-disable-next-line no-console
         console.log(`Writing: ${end - start} ms`);
       });
     }).then(() => {
@@ -523,7 +521,7 @@ describe('SimpleDb', () => {
         }
         return PersistencePromise.waitFor(promises).next(() => {
           const end = new Date().getTime();
-          // tslint:disable-next-line:no-console
+          // eslint-disable-next-line no-console
           console.log(`Reading: ${end - start} ms`);
         });
       });

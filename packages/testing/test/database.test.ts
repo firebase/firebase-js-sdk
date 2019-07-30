@@ -87,14 +87,17 @@ describe('Testing Module Tests', function() {
   });
 
   it('loadDatabaseRules() throws if no databaseName or rules', async function() {
-    await expect(firebase.loadDatabaseRules.bind(null, {})).to.throw(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await expect((firebase as any).loadDatabaseRules.bind(null, {})).to.throw(
       /databaseName not specified/
     );
-    await expect(firebase.loadDatabaseRules.bind(null, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await expect((firebase as any).loadDatabaseRules.bind(null, {
       databaseName: 'foo'
     }) as Promise<void>).to.throw(/must provide rules/);
     await expect(
-      firebase.loadDatabaseRules.bind(null, { rules: '{}' })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (firebase as any).loadDatabaseRules.bind(null, { rules: '{}' })
     ).to.throw(/databaseName not specified/);
   });
 

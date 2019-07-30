@@ -38,7 +38,7 @@ export interface StringHeaders {
 export class TestingXhrIo implements XhrIo {
   private state: State;
   private sendPromise: Promise<XhrIo>;
-  private resolve: (xhrIo: XhrIo) => void;
+  private resolve!: (xhrIo: XhrIo) => void;
   private sendHook: SendHook | null;
   private status: number;
   private responseText: string;
@@ -75,7 +75,11 @@ export class TestingXhrIo implements XhrIo {
     return this.sendPromise;
   }
 
-  simulateResponse(status: number, body: string, headers: Headers): void {
+  simulateResponse(
+    status: number,
+    body: string,
+    headers: { [key: string]: string }
+  ): void {
     if (this.state !== State.SENT) {
       throw new Error("Can't simulate response before send/more than once");
     }
@@ -83,9 +87,9 @@ export class TestingXhrIo implements XhrIo {
     this.status = status;
     this.responseText = body;
     this.headers = {};
-    Object.keys(headers).forEach(key => {
-      this.headers[key.toLowerCase()] = headers[key].toString();
-    });
+    for (const [key, value] of Object.entries(headers)) {
+      this.headers[key.toLowerCase()] = value.toString();
+    }
     this.errorCode = ErrorCode.NO_ERROR;
 
     this.state = State.DONE;

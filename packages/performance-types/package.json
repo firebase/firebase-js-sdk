@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance-types",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "@firebase/performance Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -11,7 +11,7 @@
     "index.d.ts"
   ],
   "devDependencies": {
-    "typescript": "3.4.5"
+    "typescript": "3.5.3"
   },
   "repository": {
     "type": "git",

@@ -199,7 +199,7 @@ export class SharedFakeWebStorage {
         oldValue,
         newValue,
         storageArea: client.storageArea
-      } as any); // tslint:disable-line:no-any Not mocking entire Event type.
+      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any, Not mocking entire Event type.
     });
   }
 }
@@ -220,12 +220,12 @@ export class TestPlatform implements Platform {
   }
 
   get document(): Document | null {
-    // tslint:disable-next-line:no-any FakeWindow doesn't support full Document interface.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, FakeWindow doesn't support full Document interface.
     return this.mockDocument as any;
   }
 
   get window(): Window | null {
-    // tslint:disable-next-line:no-any FakeWindow doesn't support full Window interface.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any, FakeWindow doesn't support full Window interface.
     return this.mockWindow as any;
   }
 

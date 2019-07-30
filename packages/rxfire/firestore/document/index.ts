@@ -20,7 +20,9 @@ import { fromDocRef } from '../fromRef';
 import { map } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 
-export function doc(ref: firestore.DocumentReference) {
+export function doc(
+  ref: firestore.DocumentReference
+): Observable<firestore.DocumentSnapshot> {
   return fromDocRef(ref);
 }
 
@@ -38,7 +40,7 @@ export function docData<T>(
 export function snapToData(
   snapshot: firestore.DocumentSnapshot,
   idField?: string
-) {
+): {} {
   return {
     ...snapshot.data(),
     ...(idField ? { [idField]: snapshot.id } : null)

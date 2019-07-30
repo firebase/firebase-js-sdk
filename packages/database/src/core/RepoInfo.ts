@@ -16,9 +16,9 @@
  */
 
 import { assert } from '@firebase/util';
-import { forEach } from '@firebase/util';
 import { PersistentStorage } from './storage/storage';
 import { LONG_POLLING, WEBSOCKET } from '../realtime/Constants';
+import { each } from './util/util';
 
 /**
  * A class that holds metadata about a Repo object
@@ -102,7 +102,7 @@ export class RepoInfo {
 
     const pairs: string[] = [];
 
-    forEach(params, (key: string, value: string) => {
+    each(params, (key: string, value: string) => {
       pairs.push(key + '=' + value);
     });
 

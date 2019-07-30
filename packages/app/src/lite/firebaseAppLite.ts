@@ -101,12 +101,10 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
             .map(service => service.INTERNAL!.delete())
         );
       })
-      .then(
-        (): void => {
-          this.isDeleted_ = true;
-          this.services_ = {};
-        }
-      );
+      .then((): void => {
+        this.isDeleted_ = true;
+        this.services_ = {};
+      });
   }
 
   /**
@@ -168,7 +166,7 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
    */
   private checkDestroyed_(): void {
     if (this.isDeleted_) {
-      throw ERROR_FACTORY.create(AppError.APP_DELETED, { name: this.name_ });
+      throw ERROR_FACTORY.create(AppError.APP_DELETED, { appName: this.name_ });
     }
   }
 }

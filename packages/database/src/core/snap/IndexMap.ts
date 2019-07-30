@@ -17,7 +17,7 @@
 
 import { assert } from '@firebase/util';
 import { buildChildSet } from './childSet';
-import { contains, clone, map, safeGet } from '@firebase/util';
+import { contains, map, safeGet } from '@firebase/util';
 import { NamedNode, Node } from './Node';
 import { PRIORITY_INDEX } from './indexes/PriorityIndex';
 import { KEY_INDEX } from './indexes/KeyIndex';
@@ -28,17 +28,9 @@ let _defaultIndexMap: IndexMap;
 
 const fallbackObject = {};
 
-/**
- *
- * @param {Object.<string, FallbackType|SortedMap.<NamedNode, Node>>} indexes
- * @param {Object.<string, Index>} indexSet
- * @constructor
- */
 export class IndexMap {
   /**
    * The default IndexMap for nodes without a priority
-   * @type {!IndexMap}
-   * @const
    */
   static get Default(): IndexMap {
     assert(
@@ -61,37 +53,23 @@ export class IndexMap {
     private indexSet_: { [k: string]: Index }
   ) {}
 
-  /**
-   *
-   * @param {!string} indexKey
-   * @return {?SortedMap.<NamedNode, Node>}
-   */
   get(indexKey: string): SortedMap<NamedNode, Node> | null {
     const sortedMap = safeGet(this.indexes_, indexKey);
     if (!sortedMap) throw new Error('No index defined for ' + indexKey);
 
-    if (sortedMap === fallbackObject) {
+    if (sortedMap instanceof SortedMap) {
+      return sortedMap;
+    } else {
       // The index exists, but it falls back to just name comparison. Return null so that the calling code uses the
       // regular child map
       return null;
-    } else {
-      return sortedMap as SortedMap<NamedNode, Node>;
     }
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @return {boolean}
-   */
   hasIndex(indexDefinition: Index): boolean {
     return contains(this.indexSet_, indexDefinition.toString());
   }
 
-  /**
-   * @param {!Index} indexDefinition
-   * @param {!SortedMap.<string, !Node>} existingChildren
-   * @return {!IndexMap}
-   */
   addIndex(
     indexDefinition: Index,
     existingChildren: SortedMap<string, Node>
@@ -117,18 +95,15 @@ export class IndexMap {
       newIndex = fallbackObject;
     }
     const indexName = indexDefinition.toString();
-    const newIndexSet = clone(this.indexSet_);
+    const newIndexSet = { ...this.indexSet_ };
     newIndexSet[indexName] = indexDefinition;
-    const newIndexes = clone(this.indexes_);
+    const newIndexes = { ...this.indexes_ };
     newIndexes[indexName] = newIndex;
     return new IndexMap(newIndexes, newIndexSet);
   }
 
   /**
    * Ensure that this node is properly tracked in any indexes that we're maintaining
-   * @param {!NamedNode} namedNode
-   * @param {!SortedMap.<string, !Node>} existingChildren
-   * @return {!IndexMap}
    */
   addToIndexes(
     namedNode: NamedNode,
@@ -175,9 +150,6 @@ export class IndexMap {
 
   /**
    * Create a new IndexMap instance with the given value removed
-   * @param {!NamedNode} namedNode
-   * @param {!SortedMap.<string, !Node>} existingChildren
-   * @return {!IndexMap}
    */
   removeFromIndexes(
     namedNode: NamedNode,

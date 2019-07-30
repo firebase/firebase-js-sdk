@@ -16,7 +16,7 @@
  */
 
 import firebase from '@firebase/app';
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { Database } from './src/api/Database';
 import { DataSnapshot } from './src/api/DataSnapshot';
@@ -28,10 +28,14 @@ import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
 import { isNodeSdk } from '@firebase/util';
 import * as types from '@firebase/database-types';
+import { setSDKVersion } from './src/core/version';
 
 const ServerValue = Database.ServerValue;
 
 export function registerDatabase(instance: FirebaseNamespace) {
+  // set SDK_VERSION
+  setSDKVersion(instance.SDK_VERSION);
+
   // Register the Database Service with the 'firebase' namespace.
   const namespace = (instance as _FirebaseNamespace).INTERNAL.registerService(
     'database',

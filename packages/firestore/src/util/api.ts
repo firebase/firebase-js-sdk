@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-// We are doing some heavy reflective stuff, lots of any casting necessary
-/* tslint:disable:no-any */
-
 import { Code, FirestoreError } from './error';
 
 /**
@@ -31,7 +28,10 @@ import { Code, FirestoreError } from './error';
  * To also make all the static methods available, all properties of the
  * original constructor are copied to the new constructor.
  */
-export function makeConstructorPrivate<T>(cls: T, optionalMessage?: string): T {
+export function makeConstructorPrivate<T extends Function>(
+  cls: T,
+  optionalMessage?: string
+): T {
   function PublicConstructor(): never {
     let error = 'This constructor is private.';
     if (optionalMessage) {
@@ -43,14 +43,15 @@ export function makeConstructorPrivate<T>(cls: T, optionalMessage?: string): T {
 
   // Make sure instanceof checks work and all methods are exposed on the public
   // constructor
-  PublicConstructor.prototype = (cls as any).prototype;
+  PublicConstructor.prototype = cls.prototype;
 
   // Copy any static methods/members
   for (const staticProperty in cls) {
     if (cls.hasOwnProperty(staticProperty)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (PublicConstructor as any)[staticProperty] = (cls as any)[staticProperty];
     }
   }
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return PublicConstructor as any;
 }

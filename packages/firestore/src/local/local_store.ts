@@ -27,7 +27,7 @@ import {
   maybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument } from '../model/document';
+import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, PatchMutation, Precondition } from '../model/mutation';
 import {
@@ -40,7 +40,6 @@ import { assert } from '../util/assert';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
 
-import { ObjectValue } from '../model/field_value';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
@@ -272,32 +271,21 @@ export class LocalStore {
             const baseMutations: Mutation[] = [];
 
             for (const mutation of mutations) {
-              const maybeDoc = existingDocs.get(mutation.key);
-              if (!mutation.isIdempotent) {
-                // Theoretically, we should only include non-idempotent fields
-                // in this field mask as this mask is used to populate the base
-                // state for all DocumentTransforms.  By  including all fields,
-                // we incorrectly prevent rebasing of idempotent transforms
-                // (such as `arrayUnion()`) when any non-idempotent transforms
-                // are present.
-                const fieldMask = mutation.fieldMask;
-                if (fieldMask) {
-                  const baseValues =
-                    maybeDoc instanceof Document
-                      ? fieldMask.applyTo(maybeDoc.data)
-                      : ObjectValue.EMPTY;
-                  // NOTE: The base state should only be applied if there's some
-                  // existing document to override, so use a Precondition of
-                  // exists=true
-                  baseMutations.push(
-                    new PatchMutation(
-                      mutation.key,
-                      baseValues,
-                      fieldMask,
-                      Precondition.exists(true)
-                    )
-                  );
-                }
+              const baseValue = mutation.extractBaseValue(
+                existingDocs.get(mutation.key)
+              );
+              if (baseValue != null) {
+                // NOTE: The base state should only be applied if there's some
+                // existing document to override, so use a Precondition of
+                // exists=true
+                baseMutations.push(
+                  new PatchMutation(
+                    mutation.key,
+                    baseValue,
+                    baseValue.fieldMask(),
+                    Precondition.exists(true)
+                  )
+                );
               }
             }
 
@@ -458,7 +446,9 @@ export class LocalStore {
           (targetId: TargetId, change: TargetChange) => {
             // Do not ref/unref unassigned targetIds - it may lead to leaks.
             let queryData = this.queryDataByTarget[targetId];
-            if (!queryData) return;
+            if (!queryData) {
+              return;
+            }
 
             // When a global snapshot contains updates (either add or modify) we
             // can completely trust these updates as authoritative and blindly
@@ -616,10 +606,14 @@ export class LocalStore {
     change: TargetChange
   ): boolean {
     // Avoid clearing any existing value
-    if (newQueryData.resumeToken.length === 0) return false;
+    if (newQueryData.resumeToken.length === 0) {
+      return false;
+    }
 
     // Any resume token is interesting if there isn't one already.
-    if (oldQueryData.resumeToken.length === 0) return true;
+    if (oldQueryData.resumeToken.length === 0) {
+      return true;
+    }
 
     // Don't allow resume token changes to be buffered indefinitely. This
     // allows us to be reasonably up-to-date after a crash and avoids needing
@@ -629,7 +623,9 @@ export class LocalStore {
     const timeDelta =
       newQueryData.snapshotVersion.toMicroseconds() -
       oldQueryData.snapshotVersion.toMicroseconds();
-    if (timeDelta >= this.RESUME_TOKEN_MAX_AGE_MICROS) return true;
+    if (timeDelta >= this.RESUME_TOKEN_MAX_AGE_MICROS) {
+      return true;
+    }
 
     // Otherwise if the only thing that has changed about a target is its resume
     // token it's not worth persisting. Note that the RemoteStore keeps an

@@ -109,6 +109,7 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
+import { MULTI_CLIENT_TAG } from './describe_spec';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -258,7 +259,7 @@ class MockConnection implements Connection {
         }
       });
       this.writeStream = writeStream;
-      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, Replace 'any' with conditional types.
       return writeStream as any;
     } else {
       assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
@@ -292,7 +293,7 @@ class MockConnection implements Connection {
         }
       });
       this.watchStream = watchStream;
-      // tslint:disable-next-line:no-any Replace 'any' with conditional types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, Replace 'any' with conditional types.
       return this.watchStream as any;
     }
   }
@@ -439,7 +440,9 @@ abstract class TestRunner {
       new EmptyCredentialsProvider(),
       this.serializer
     );
-    const remoteStoreOnlineStateChangedHandler = (onlineState: OnlineState) => {
+    const remoteStoreOnlineStateChangedHandler = (
+      onlineState: OnlineState
+    ): void => {
       this.syncEngine.applyOnlineStateChange(
         onlineState,
         OnlineStateSource.RemoteStore
@@ -447,7 +450,7 @@ abstract class TestRunner {
     };
     const sharedClientStateOnlineStateChangedHandler = (
       onlineState: OnlineState
-    ) => {
+    ): void => {
       this.syncEngine.applyOnlineStateChange(
         onlineState,
         OnlineStateSource.SharedClientState
@@ -1019,11 +1022,11 @@ abstract class TestRunner {
       );
     });
     for (const expectedLimboDoc of this.expectedLimboDocs) {
-      expect(
-        actualLimboDocs.get(expectedLimboDoc),
+      expect(actualLimboDocs.get(expectedLimboDoc)).to.not.equal(
+        null,
         'Expected doc to be in limbo, but was not: ' +
           expectedLimboDoc.toString()
-      ).to.be.ok;
+      );
       actualLimboDocs = actualLimboDocs.remove(expectedLimboDoc);
     }
     expect(actualLimboDocs.size).to.equal(
@@ -1234,11 +1237,12 @@ class IndexedDbTestRunner extends TestRunner {
  */
 export async function runSpec(
   name: string,
+  tags: string[],
   usePersistence: boolean,
   config: SpecConfig,
   steps: SpecStep[]
 ): Promise<void> {
-  // tslint:disable-next-line:no-console
+  // eslint-disable-next-line no-console
   console.log('Running spec: ' + name);
 
   const sharedMockStorage = new SharedFakeWebStorage();
@@ -1247,7 +1251,7 @@ export async function runSpec(
   const runners: TestRunner[] = [];
   const outstandingMutations = new SharedWriteTracker();
 
-  const ensureRunner = async (clientIndex: number) => {
+  const ensureRunner = async (clientIndex: number): Promise<TestRunner> => {
     if (!runners[clientIndex]) {
       const platform = new TestPlatform(
         PlatformSupport.getPlatform(),
@@ -1277,6 +1281,12 @@ export async function runSpec(
   let count = 0;
   try {
     await sequence(steps, async step => {
+      assert(
+        step.clientIndex === undefined || tags.indexOf(MULTI_CLIENT_TAG) !== -1,
+        "Cannot use 'client()' to initialize a test that is not tagged with " +
+          "'multi-client'. Did you mean to use 'spec()'?"
+      );
+
       ++count;
       lastStep = step;
       return ensureRunner(step.clientIndex || 0).then(runner =>
@@ -1419,28 +1429,28 @@ export type SpecWatchCurrent = [TargetId[], string];
 /** [<target-id>, ...] */
 export type SpecWatchReset = TargetId[];
 
-export type SpecError = {
+export interface SpecError {
   code: number;
   message: string;
-};
+}
 
-export type SpecWatchRemove = {
+export interface SpecWatchRemove {
   targetIds: TargetId[];
   cause?: SpecError;
-};
+}
 
-export type SpecWatchSnapshot = {
+export interface SpecWatchSnapshot {
   version: TestSnapshotVersion;
   targetIds: TargetId[];
   resumeToken?: string;
-};
+}
 
-export type SpecWatchStreamClose = {
+export interface SpecWatchStreamClose {
   error: SpecError;
   runBackoffTimer: boolean;
-};
+}
 
-export type SpecWriteAck = {
+export interface SpecWriteAck {
   /** The version the backend uses to ack the write. */
   version: TestSnapshotVersion;
   /**
@@ -1452,9 +1462,9 @@ export type SpecWriteAck = {
    */
   // PORTING NOTE: Multi-Tab only.
   keepInQueue?: boolean;
-};
+}
 
-export type SpecWriteFailure = {
+export interface SpecWriteFailure {
   /** The error the backend uses to fail the write. */
   error: SpecError;
   /**
@@ -1465,7 +1475,7 @@ export type SpecWriteFailure = {
    * Defaults to false.
    */
   keepInQueue?: boolean;
-};
+}
 
 export interface SpecWatchEntity {
   // exactly one of key, doc or docs is set
@@ -1481,12 +1491,12 @@ export interface SpecWatchEntity {
 }
 
 // PORTING NOTE: Only used by web multi-tab tests.
-export type SpecClientState = {
+export interface SpecClientState {
   /** The visibility state of the browser tab running the client. */
   visibility?: VisibilityState;
   /** Whether this tab should try to forcefully become primary. */
   primary?: true;
-};
+}
 
 /**
  * [[<target-id>, ...], <key>, ...]

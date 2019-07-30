@@ -507,7 +507,7 @@ export class UploadTask {
       specs: ArgSpec[] | null
     ): Subscribe<UploadTaskSnapshot> {
       function binder(
-        nextOrObserver:
+        nextOrObserver?:
           | NextFn<UploadTaskSnapshot>
           | StorageObserver<UploadTaskSnapshot>
           | null,
@@ -526,7 +526,7 @@ export class UploadTask {
       return binder;
     }
 
-    function binderNextOrObserverValidator(p: {}): void {
+    function binderNextOrObserverValidator(p: unknown): void {
       if (p === null) {
         throw nextOrObserverMessage;
       }
@@ -557,7 +557,7 @@ export class UploadTask {
    */
   then<U>(
     onFulfilled?: ((value: UploadTaskSnapshot) => U | Promise<U>) | null,
-    onRejected?: ((error: unknown) => U | Promise<U>) | null
+    onRejected?: ((error: Error) => U | Promise<U>) | null
   ): Promise<U> {
     // These casts are needed so that TypeScript can infer the types of the
     // resulting Promise.

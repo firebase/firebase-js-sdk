@@ -18,6 +18,7 @@
 export interface CreateInstallationResponse {
   readonly refreshToken: string;
   readonly authToken: GenerateAuthTokenResponse;
+  readonly fid?: string;
 }
 
 export interface GenerateAuthTokenResponse {

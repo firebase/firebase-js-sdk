@@ -22,6 +22,8 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 
+// tslint:disable:no-floating-promises
+
 // tslint:disable-next-line:variable-name Type alias can be capitalized.
 const FieldValue = firebase.firestore!.FieldValue;
 
@@ -159,6 +161,57 @@ apiDescribe('Numeric Transforms:', (persistence: boolean) => {
 
       snap = await accumulator.awaitRemoteEvent();
       expect(snap.get('sum')).to.be.closeTo(0.111, DOUBLE_EPSILON);
+    });
+  });
+
+  it('increment twice in a batch', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: 'overwrite' });
+
+      const batch = docRef.firestore.batch();
+      batch.update(docRef, 'sum', FieldValue.increment(1));
+      batch.update(docRef, 'sum', FieldValue.increment(1));
+      await batch.commit();
+
+      await expectLocalAndRemoteValue(2);
+    });
+  });
+
+  it('increment, delete and increment in a batch', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: 'overwrite' });
+
+      const batch = docRef.firestore.batch();
+      batch.update(docRef, 'sum', FieldValue.increment(1));
+      batch.update(docRef, 'sum', FieldValue.delete());
+      batch.update(docRef, 'sum', FieldValue.increment(3));
+      await batch.commit();
+
+      await expectLocalAndRemoteValue(3);
+    });
+  });
+
+  it('increment on top of ServerTimestamp', async () => {
+    // This test stacks two pending transforms (a ServerTimestamp and an Increment transform)
+    // and reproduces the setup that was reported in
+    // https://github.com/firebase/firebase-android-sdk/issues/491
+    // In our original code, a NumericIncrementTransformOperation could cause us to decode the
+    // ServerTimestamp as part of a PatchMutation, which triggered an assertion failure.
+    await withTestSetup(async () => {
+      await docRef.firestore.disableNetwork();
+
+      docRef.set({ val: FieldValue.serverTimestamp() });
+      let snap = await accumulator.awaitLocalEvent();
+      expect(snap.get('val', { serverTimestamps: 'estimate' })).to.not.be.null;
+
+      docRef.set({ val: FieldValue.increment(1) });
+      snap = await accumulator.awaitLocalEvent();
+      expect(snap.get('val')).to.equal(1);
+
+      await docRef.firestore.enableNetwork();
+
+      snap = await accumulator.awaitRemoteEvent();
+      expect(snap.get('val')).to.equal(1);
     });
   });
 });

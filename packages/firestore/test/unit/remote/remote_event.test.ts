@@ -44,18 +44,19 @@ import {
   version
 } from '../../util/helpers';
 
-type TargetMap = {
-  [targetId: number]: QueryData;
-};
-type PendingTargetResponses = {
-  [targetId: number]: number;
-};
+interface TargetMap {
+  [targetId: string]: QueryData;
+}
+interface PendingTargetResponses {
+  [targetId: string]: number;
+}
 
 function listens(...targetIds: TargetId[]): TargetMap {
   const targets: TargetMap = {};
   for (const target of targetIds) {
     targets[target] = queryData(target, QueryPurpose.Listen, 'coll');
   }
+
   return targets;
 }
 
