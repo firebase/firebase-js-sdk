@@ -1016,9 +1016,12 @@ abstract class TestRunner {
     let actualLimboDocs = this.syncEngine.currentLimboDocs();
     // Validate that each limbo doc has an expected active target
     actualLimboDocs.forEach((key, targetId) => {
+      const targetIds: number[] = [];
+      obj.forEachNumber(this.expectedActiveTargets, id => targetIds.push(id));
       expect(obj.contains(this.expectedActiveTargets, targetId)).to.equal(
         true,
-        'Found limbo doc without an expected active target'
+        `Found limbo doc, but its target ID ${targetId} was not in the set of ` +
+          `expected active target IDs (${targetIds.join(', ')})`
       );
     });
     for (const expectedLimboDoc of this.expectedLimboDocs) {
