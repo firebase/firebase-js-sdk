@@ -251,7 +251,6 @@ firebase.User.prototype.providerData;
  */
 firebase.User.prototype.refreshToken;
 
-
 /**
  * The current user's tenant ID. This is a read-only property, which indicates
  * the tenant ID used to sign in the current user. This is null if the user is
@@ -273,7 +272,6 @@ firebase.User.prototype.refreshToken;
  * @type {?string}
  */
 firebase.User.prototype.tenantId;
-
 
 /**
  * Returns a JWT token used to identify the user to a Firebase service.
@@ -879,14 +877,12 @@ firebase.auth.ActionCodeInfo.prototype.data;
  */
 firebase.auth.ActionCodeInfo.prototype.operation;
 
-
 /**
  * A utility class to parse email action URLs.
  *
  * @constructor
  */
 firebase.auth.ActionCodeURL = function() {};
-
 
 /**
  * The API key of the email action link.
@@ -895,14 +891,12 @@ firebase.auth.ActionCodeURL = function() {};
  */
 firebase.auth.ActionCodeURL.prototype.apiKey;
 
-
 /**
  * The action code of the email action link.
  *
  * @type {string}
  */
 firebase.auth.ActionCodeURL.prototype.code;
-
 
 /**
  * The continue URL of the email action link. Null if not provided.
@@ -911,14 +905,12 @@ firebase.auth.ActionCodeURL.prototype.code;
  */
 firebase.auth.ActionCodeURL.prototype.continueUrl;
 
-
 /**
  * The language code of the email action link. Null if not provided.
  *
  * @type {?string}
  */
 firebase.auth.ActionCodeURL.prototype.languageCode;
-
 
 /**
  * The action performed by the email action link. It returns from one
@@ -928,7 +920,6 @@ firebase.auth.ActionCodeURL.prototype.languageCode;
  */
 firebase.auth.ActionCodeURL.prototype.operation;
 
-
 /**
  * The tenant ID of the email action link. Null if the email action
  * is from the parent project.
@@ -936,7 +927,6 @@ firebase.auth.ActionCodeURL.prototype.operation;
  * @type {?string}
  */
 firebase.auth.ActionCodeURL.prototype.tenantId;
-
 
 /**
  * Parses the email action link string and returns an ActionCodeURL object
@@ -947,7 +937,6 @@ firebase.auth.ActionCodeURL.prototype.tenantId;
  *     the link is invalid.
  */
 firebase.auth.ActionCodeURL.parseLink = function(link) {};
-
 
 /**
  * This is the interface that defines the required continue/state URL with
@@ -1060,7 +1049,6 @@ firebase.auth.Auth.prototype.app;
  */
 firebase.auth.Auth.prototype.currentUser;
 
-
 /**
  * The current Auth instance's tenant ID. This is a readable/writable
  * property. When you set the tenant ID of an Auth instance, all future
@@ -1086,7 +1074,6 @@ firebase.auth.Auth.prototype.currentUser;
  * @type {?string}
  */
 firebase.auth.Auth.prototype.tenantId;
-
 
 /**
  * @enum {string}
@@ -2072,7 +2059,6 @@ firebase.auth.Error.prototype.code;
  */
 firebase.auth.Error.prototype.message;
 
-
 /**
  * The account conflict error.
  * Refer to {@link firebase.auth.Auth.signInWithPopup} for more information.
@@ -2122,7 +2108,6 @@ firebase.auth.Error.prototype.message;
  */
 firebase.auth.AuthError = function() {};
 
-
 /**
  * The {@link firebase.auth.AuthCredential} that can be used to resolve the
  * error.
@@ -2131,7 +2116,6 @@ firebase.auth.AuthError = function() {};
  */
 firebase.auth.AuthError.prototype.credential;
 
-
 /**
  * The email of the user's account used for sign-in/linking.
  *
@@ -2139,14 +2123,12 @@ firebase.auth.AuthError.prototype.credential;
  */
 firebase.auth.AuthError.prototype.email;
 
-
 /**
  * The phone number of the user's account used for sign-in/linking.
  *
  * @type {string|undefined}
  */
 firebase.auth.AuthError.prototype.phoneNumber;
-
 
 /**
  * The tenant ID being used for sign-in/linking. If you use
@@ -2157,7 +2139,6 @@ firebase.auth.AuthError.prototype.phoneNumber;
  * @type {string|undefined}
  */
 firebase.auth.AuthError.prototype.tenantId;
-
 
 //
 // List of Auth Providers.
