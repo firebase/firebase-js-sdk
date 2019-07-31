@@ -86,7 +86,7 @@ class DelayedOperation<T extends unknown> implements CancelablePromise<T> {
     // It's normal for the deferred promise to be canceled (due to cancellation)
     // and so we attach a dummy catch callback to avoid
     // 'UnhandledPromiseRejectionWarning' log spam.
-    this.deferred.promise.catch(err => {});
+    this.deferred.promise.catch(err => { });
   }
 
   /**
@@ -188,6 +188,10 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<unknown> = Promise.resolve();
 
+  // Is this AsyncQueue being shutting down? Once it is set to true, it will not
+  // be changed again.
+  private _isShuttingDown: boolean = false;
+
   // Operations scheduled to be queued in the future. Operations are
   // automatically removed after they are run or canceled.
   private delayedOperations: Array<DelayedOperation<unknown>> = [];
@@ -199,6 +203,10 @@ export class AsyncQueue {
   // assertion sanity-checks.
   private operationInProgress = false;
 
+  // Is this AsyncQueue being shutting down? If true, this instance will not enqueue
+  // any new operations, Promises from enqueue requests will not resolve.
+  get isShuttingDown(): boolean { return this._isShuttingDown; }
+
   /**
    * Adds a new operation to the queue without waiting for it to complete (i.e.
    * we ignore the Promise result).
@@ -209,11 +217,58 @@ export class AsyncQueue {
   }
 
   /**
+   * Regardless if the queue has initialized shutdown, adds a new operation to the
+   * queue without waiting for it to complete (i.e. we ignore the Promise result).
+   */
+  enqueueAndForgetEvenAfterShutdown<T extends unknown>(op: () => Promise<T>): void {
+    this.verifyNotFailed();
+    // tslint:disable-next-line:no-floating-promises
+    this.enqueueInternal(op);
+  }
+
+  /**
+   * Regardless if the queue has initialized shutdown, adds a new operation to the
+   * queue.
+   */
+  private enqueueEvenAfterShutdown<T extends unknown>(op: () => Promise<T>): Promise<T> {
+    this.verifyNotFailed();
+    // tslint:disable-next-line:no-floating-promises
+    return this.enqueueInternal(op);
+  }
+
+  /**
+   * Adds a new operation to the queue and initialize the shut down of this queue.
+   * Returns a promise that will be resolved when the promise returned by the new
+   * operation is (with its value).
+   * Once this method is called, the only possible way to request running an operation
+   * is through `enqueueAndForgetEvenAfterShutdown`.
+   */
+  enqueueAndInitilizeShutdown<T extends unknown>(op: () => Promise<T>): Promise<T> {
+    this.verifyNotFailed();
+    if (this._isShuttingDown) {
+      // Return a Promise resolves right away if it is already shutdown.
+      return new Promise<T>((resolve) => resolve(undefined));
+    }
+
+    const promise = this.enqueueInternal(op);
+    this._isShuttingDown = true;
+    return promise;
+  }
+
+  /**
    * Adds a new operation to the queue. Returns a promise that will be resolved
    * when the promise returned by the new operation is (with its value).
    */
   enqueue<T extends unknown>(op: () => Promise<T>): Promise<T> {
     this.verifyNotFailed();
+    if (this._isShuttingDown) {
+      // Return a Promise which never resolves.
+      return new Promise<T>((resolve) => {});
+    }
+    return this.enqueueInternal(op);
+  }
+
+  private enqueueInternal<T extends unknown>(op: () => Promise<T>): Promise<T> {
     const newTail = this.tail.then(() => {
       this.operationInProgress = true;
       return op()
@@ -286,7 +341,7 @@ export class AsyncQueue {
     if (this.failure) {
       fail(
         'AsyncQueue is already failed: ' +
-          (this.failure.stack || this.failure.message)
+        (this.failure.stack || this.failure.message)
       );
     }
   }
@@ -309,7 +364,8 @@ export class AsyncQueue {
    * operations are not run.
    */
   drain(): Promise<void> {
-    return this.enqueue(() => Promise.resolve());
+    // It should still be possible to drain the queue after it is shutting down.
+    return this.enqueueEvenAfterShutdown(() => Promise.resolve());
   }
 
   /**
@@ -338,7 +394,7 @@ export class AsyncQueue {
     return this.drain().then(() => {
       assert(
         lastTimerId === TimerId.All ||
-          this.containsDelayedOperation(lastTimerId),
+        this.containsDelayedOperation(lastTimerId),
         `Attempted to drain to missing operation ${lastTimerId}`
       );
 

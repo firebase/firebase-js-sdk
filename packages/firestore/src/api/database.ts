@@ -18,7 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseService } from '@firebase/app-types/private';
+import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
@@ -353,7 +353,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         '"persistence" is now specified with a separate call to ' +
-          'firestore.enablePersistence().'
+        'firestore.enablePersistence().'
       );
     }
 
@@ -362,8 +362,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
-          'be changed. You can only call settings() before calling any other ' +
-          'methods on a Firestore object.'
+        'be changed. You can only call settings() before calling any other ' +
+        'methods on a Firestore object.'
       );
     }
 
@@ -390,8 +390,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and persistence can no longer ' +
-          'be enabled. You can only call enablePersistence() before calling ' +
-          'any other methods on a Firestore object.'
+        'be enabled. You can only call enablePersistence() before calling ' +
+        'any other methods on a Firestore object.'
       );
     }
 
@@ -401,9 +401,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       if (settings.experimentalTabSynchronization !== undefined) {
         log.error(
           "The 'experimentalTabSynchronization' setting has been renamed to " +
-            "'synchronizeTabs'. In a future release, the setting will be removed " +
-            'and it is recommended that you update your ' +
-            "firestore.enablePersistence() call to use 'synchronizeTabs'."
+          "'synchronizeTabs'. In a future release, the setting will be removed " +
+          'and it is recommended that you update your ' +
+          "firestore.enablePersistence() call to use 'synchronizeTabs'."
         );
       }
       synchronizeTabs = objUtils.defaulted(
@@ -427,7 +427,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this.makeDatabaseInfo()
     );
     const deferred = new Deferred<void>();
-    this._queue.enqueueAndForget(async () => {
+    this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
       try {
         if (
           this._firestoreClient !== undefined &&
@@ -486,8 +486,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             'Document reference is for database ' +
-              `${otherDb.projectId}/${otherDb.database} but should be ` +
-              `for database ${thisDb.projectId}/${thisDb.database}`
+            `${otherDb.projectId}/${otherDb.database} but should be ` +
+            `for database ${thisDb.projectId}/${thisDb.database}`
           );
         }
         return new DocumentKeyReference(this._config.databaseId, value._key);
@@ -531,7 +531,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         "Firestore was not initialized using the Firebase SDK. 'app' is " +
-          'not available'
+        'not available'
       );
     }
     return this._config.firebaseApp;
@@ -543,6 +543,36 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       // throws an exception.
       this.ensureClientConfigured();
       await this._firestoreClient!.shutdown();
+    },
+
+    /**
+     * Shuts down this FirebaseFirestore instance.
+     *
+     * After shutdown only the `clearPersistence()` method may be used. Any other method
+     * will throw an `FirestoreError`.
+     *
+     * To restart after shutdown, simply create a new instance of FirebaseFirestore with 
+     * `Firebase.firestore()`.
+     *
+     * Shutdown does not cancel any pending writes and any promises that are awaiting a response
+     * from the server will not be resolved. The next time you start this instance,
+     * it will resume attempting to send these writes to the server.
+     *
+     * Note: Under normal circumstances, calling `shutdown()` is not required. This
+     * method is useful only when you want to force this instance to release all of its resources or
+     * in combination with `clearPersistence()` to ensure that all local state is destroyed
+     * between test runs.
+     *
+     * @return A promise that is resolved when the instance has been successfully shut down.
+     */
+    // TODO(b/135755126): make this public.
+    shutdown: (): Promise<void> => {
+      (this._config.firebaseApp as _FirebaseApp)._removeServiceInstance('firestore');
+      return this.INTERNAL.delete();
+    },
+
+    isShutdown: (): boolean => {
+      return this._firestoreClient!.clientShutdown;
     }
   };
 
@@ -572,7 +602,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid collection ID '${collectionId}' passed to function ` +
-          `Firestore.collectionGroup(). Collection IDs must not contain '/'.`
+        `Firestore.collectionGroup(). Collection IDs must not contain '/'.`
       );
     }
     this.ensureClientConfigured();
@@ -648,7 +678,7 @@ export class Transaction implements firestore.Transaction {
   constructor(
     private _firestore: Firestore,
     private _transaction: InternalTransaction
-  ) {}
+  ) { }
 
   get(
     documentRef: firestore.DocumentReference
@@ -705,10 +735,10 @@ export class Transaction implements firestore.Transaction {
     const parsed =
       options.merge || options.mergeFields
         ? this._firestore._dataConverter.parseMergeData(
-            'Transaction.set',
-            value,
-            options.mergeFields
-          )
+          'Transaction.set',
+          value,
+          options.mergeFields
+        )
         : this._firestore._dataConverter.parseSetData('Transaction.set', value);
     this._transaction.set(ref._key, parsed);
     return this;
@@ -782,7 +812,7 @@ export class WriteBatch implements firestore.WriteBatch {
   private _mutations = [] as Mutation[];
   private _committed = false;
 
-  constructor(private _firestore: Firestore) {}
+  constructor(private _firestore: Firestore) { }
 
   set(
     documentRef: firestore.DocumentReference,
@@ -800,10 +830,10 @@ export class WriteBatch implements firestore.WriteBatch {
     const parsed =
       options.merge || options.mergeFields
         ? this._firestore._dataConverter.parseMergeData(
-            'WriteBatch.set',
-            value,
-            options.mergeFields
-          )
+          'WriteBatch.set',
+          value,
+          options.mergeFields
+        )
         : this._firestore._dataConverter.parseSetData('WriteBatch.set', value);
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.NONE)
@@ -894,7 +924,7 @@ export class WriteBatch implements firestore.WriteBatch {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'A write batch can no longer be used after commit() ' +
-          'has been called.'
+        'has been called.'
       );
     }
   }
@@ -915,8 +945,8 @@ export class DocumentReference implements firestore.DocumentReference {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid document reference. Document ' +
-          'references must have an even number of segments, but ' +
-          `${path.canonicalString()} has ${path.length}`
+        'references must have an even number of segments, but ' +
+        `${path.canonicalString()} has ${path.length}`
       );
     }
     return new DocumentReference(new DocumentKey(path), firestore);
@@ -969,14 +999,14 @@ export class DocumentReference implements firestore.DocumentReference {
     const parsed =
       options.merge || options.mergeFields
         ? this.firestore._dataConverter.parseMergeData(
-            'DocumentReference.set',
-            value,
-            options.mergeFields
-          )
+          'DocumentReference.set',
+          value,
+          options.mergeFields
+        )
         : this.firestore._dataConverter.parseSetData(
-            'DocumentReference.set',
-            value
-          );
+          'DocumentReference.set',
+          value
+        );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.NONE)
     );
@@ -1020,7 +1050,7 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 
   delete(): Promise<void> {
-    validateExactNumberOfArgs('DocumentReference.delete', arguments, 0);
+    validateExactNumberOfArgs('FirebaseFirestore.shutdown', arguments, 0);
     return this._firestoreClient.write([
       new DeleteMutation(this._key, Precondition.NONE)
     ]);
@@ -1220,9 +1250,9 @@ export class DocumentReference implements firestore.DocumentReference {
               new FirestoreError(
                 Code.UNAVAILABLE,
                 'Failed to get document from server. (However, this ' +
-                  'document does exist in the local cache. Run again ' +
-                  'without setting source to "server" to ' +
-                  'retrieve the cached document.)'
+                'document does exist in the local cache. Run again ' +
+                'without setting source to "server" to ' +
+                'retrieve the cached document.)'
               )
             );
           } else {
@@ -1239,7 +1269,7 @@ class SnapshotMetadata implements firestore.SnapshotMetadata {
   constructor(
     readonly hasPendingWrites: boolean,
     readonly fromCache: boolean
-  ) {}
+  ) { }
 
   isEqual(other: firestore.SnapshotMetadata): boolean {
     return (
@@ -1253,7 +1283,7 @@ class SnapshotMetadata implements firestore.SnapshotMetadata {
  * Options interface that can be provided to configure the deserialization of
  * DocumentSnapshots.
  */
-export interface SnapshotOptions extends firestore.SnapshotOptions {}
+export interface SnapshotOptions extends firestore.SnapshotOptions { }
 
 export class DocumentSnapshot implements firestore.DocumentSnapshot {
   constructor(
@@ -1262,7 +1292,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     public _document: Document | null,
     private _fromCache: boolean,
     private _hasPendingWrites: boolean
-  ) {}
+  ) { }
 
   data(
     options?: firestore.SnapshotOptions
@@ -1272,12 +1302,12 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     return !this._document
       ? undefined
       : this.convertObject(
-          this._document.data,
-          FieldValueOptions.fromSnapshotOptions(
-            options,
-            this._firestore._areTimestampsInSnapshotsEnabled()
-          )
-        );
+        this._document.data,
+        FieldValueOptions.fromSnapshotOptions(
+          options,
+          this._firestore._areTimestampsInSnapshotsEnabled()
+        )
+      );
   }
 
   get(
@@ -1356,11 +1386,11 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
         // TODO(b/64130202): Somehow support foreign references.
         log.error(
           `Document ${this._key.path} contains a document ` +
-            `reference within a different database (` +
-            `${value.databaseId.projectId}/${value.databaseId.database}) which is not ` +
-            `supported. It will be treated as a reference in the current ` +
-            `database (${database.projectId}/${database.database}) ` +
-            `instead.`
+          `reference within a different database (` +
+          `${value.databaseId.projectId}/${value.databaseId.database}) which is not ` +
+          `supported. It will be treated as a reference in the current ` +
+          `database (${database.projectId}/${database.database}) ` +
+          `instead.`
         );
       }
       return new DocumentReference(key, this._firestore);
@@ -1392,7 +1422,7 @@ export class QueryDocumentSnapshot extends DocumentSnapshot
 }
 
 export class Query implements firestore.Query {
-  constructor(public _query: InternalQuery, readonly firestore: Firestore) {}
+  constructor(public _query: InternalQuery, readonly firestore: Firestore) { }
 
   where(
     field: string | ExternalFieldPath,
@@ -1423,7 +1453,7 @@ export class Query implements firestore.Query {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `Invalid Query. You can't perform '${operator.toString()}' ` +
-            'queries on FieldPath.documentId().'
+          'queries on FieldPath.documentId().'
         );
       } else if (operator === Operator.IN) {
         this.validateDisjunctiveFilterElements(value, operator);
@@ -1472,21 +1502,21 @@ export class Query implements firestore.Query {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Function Query.orderBy() has unknown direction '${directionStr}', ` +
-          `expected 'asc' or 'desc'.`
+        `expected 'asc' or 'desc'.`
       );
     }
     if (this._query.startAt !== null) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid query. You must not call Query.startAt() or ' +
-          'Query.startAfter() before calling Query.orderBy().'
+        'Query.startAfter() before calling Query.orderBy().'
       );
     }
     if (this._query.endAt !== null) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid query. You must not call Query.endAt() or ' +
-          'Query.endBefore() before calling Query.orderBy().'
+        'Query.endBefore() before calling Query.orderBy().'
       );
     }
     const fieldPath = fieldPathFromArgument('Query.orderBy', field);
@@ -1502,7 +1532,7 @@ export class Query implements firestore.Query {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid Query. Query limit (${n}) is invalid. Limit must be ` +
-          'positive.'
+        'positive.'
       );
     }
     return new Query(this._query.withLimit(n), this.firestore);
@@ -1593,7 +1623,7 @@ export class Query implements firestore.Query {
         throw new FirestoreError(
           Code.NOT_FOUND,
           `Can't use a DocumentSnapshot that doesn't exist for ` +
-            `${methodName}().`
+          `${methodName}().`
         );
       }
       return this.boundFromDocument(methodName, snap._document!, before);
@@ -1637,10 +1667,10 @@ export class Query implements firestore.Query {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             'Invalid query. You are trying to start or end a query using a ' +
-              'document for which the field "' +
-              orderBy.field +
-              '" is an uncommitted server timestamp. (Since the value of ' +
-              'this field is unknown, you cannot start/end a query with it.)'
+            'document for which the field "' +
+            orderBy.field +
+            '" is an uncommitted server timestamp. (Since the value of ' +
+            'this field is unknown, you cannot start/end a query with it.)'
           );
         } else if (value !== null) {
           components.push(value);
@@ -1649,8 +1679,8 @@ export class Query implements firestore.Query {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             `Invalid query. You are trying to start or end a query using a ` +
-              `document for which the field '${field}' (used as the ` +
-              `orderBy) does not exist.`
+            `document for which the field '${field}' (used as the ` +
+            `orderBy) does not exist.`
           );
         }
       }
@@ -1672,8 +1702,8 @@ export class Query implements firestore.Query {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Too many arguments provided to ${methodName}(). ` +
-          `The number of arguments must be less than or equal to the ` +
-          `number of Query.orderBy() clauses`
+        `The number of arguments must be less than or equal to the ` +
+        `number of Query.orderBy() clauses`
       );
     }
 
@@ -1686,7 +1716,7 @@ export class Query implements firestore.Query {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             `Invalid query. Expected a string for document ID in ` +
-              `${methodName}(), but got a ${typeof rawValue}`
+            `${methodName}(), but got a ${typeof rawValue}`
           );
         }
         if (
@@ -1696,8 +1726,8 @@ export class Query implements firestore.Query {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             `Invalid query. When querying a collection and ordering by FieldPath.documentId(), ` +
-              `the value passed to ${methodName}() must be a plain document ID, but ` +
-              `'${rawValue}' contains a slash.`
+            `the value passed to ${methodName}() must be a plain document ID, but ` +
+            `'${rawValue}' contains a slash.`
           );
         }
         const path = this._query.path.child(ResourcePath.fromString(rawValue));
@@ -1705,9 +1735,9 @@ export class Query implements firestore.Query {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             `Invalid query. When querying a collection group and ordering by ` +
-              `FieldPath.documentId(), the value passed to ${methodName}() must result in a ` +
-              `valid document path, but '${path}' is not because it contains an odd number ` +
-              `of segments.`
+            `FieldPath.documentId(), the value passed to ${methodName}() must result in a ` +
+            `valid document path, but '${path}' is not because it contains an odd number ` +
+            `of segments.`
           );
         }
         const key = new DocumentKey(path);
@@ -1864,9 +1894,9 @@ export class Query implements firestore.Query {
               new FirestoreError(
                 Code.UNAVAILABLE,
                 'Failed to get documents from server. (However, these ' +
-                  'documents may exist in the local cache. Run again ' +
-                  'without setting source to "server" to ' +
-                  'retrieve the cached documents.)'
+                'documents may exist in the local cache. Run again ' +
+                'without setting source to "server" to ' +
+                'retrieve the cached documents.)'
               )
             );
           } else {
@@ -1889,7 +1919,7 @@ export class Query implements firestore.Query {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           'Invalid query. When querying with FieldPath.documentId(), you ' +
-            'must provide a valid document ID, but it was an empty string.'
+          'must provide a valid document ID, but it was an empty string.'
         );
       }
       if (
@@ -1899,8 +1929,8 @@ export class Query implements firestore.Query {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `Invalid query. When querying a collection by ` +
-            `FieldPath.documentId(), you must provide a plain document ID, but ` +
-            `'${documentIdValue}' contains a '/' character.`
+          `FieldPath.documentId(), you must provide a plain document ID, but ` +
+          `'${documentIdValue}' contains a '/' character.`
         );
       }
       const path = this._query.path.child(
@@ -1910,8 +1940,8 @@ export class Query implements firestore.Query {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
           `Invalid query. When querying a collection group by ` +
-            `FieldPath.documentId(), the value provided must result in a valid document path, ` +
-            `but '${path}' is not because it has an odd number of segments (${path.length}).`
+          `FieldPath.documentId(), the value provided must result in a valid document path, ` +
+          `but '${path}' is not because it has an odd number of segments (${path.length}).`
         );
       }
       return new RefValue(this.firestore._databaseId, new DocumentKey(path));
@@ -1922,8 +1952,8 @@ export class Query implements firestore.Query {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid query. When querying with FieldPath.documentId(), you must provide a valid ` +
-          `string or a DocumentReference, but it was: ` +
-          `${valueDescription(documentIdValue)}.`
+        `string or a DocumentReference, but it was: ` +
+        `${valueDescription(documentIdValue)}.`
       );
     }
   }
@@ -1940,28 +1970,28 @@ export class Query implements firestore.Query {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid Query. A non-empty array is required for ' +
-          `'${operator.toString()}' filters.`
+        `'${operator.toString()}' filters.`
       );
     }
     if (value.length > 10) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid Query. '${operator.toString()}' filters support a ` +
-          'maximum of 10 elements in the value array.'
+        'maximum of 10 elements in the value array.'
       );
     }
     if (value.indexOf(null) >= 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid Query. '${operator.toString()}' filters cannot contain 'null' ` +
-          'in the value array.'
+        'in the value array.'
       );
     }
     if (value.filter(element => Number.isNaN(element)).length > 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid Query. '${operator.toString()}' filters cannot contain 'NaN' ` +
-          'in the value array.'
+        'in the value array.'
       );
     }
   }
@@ -1979,9 +2009,9 @@ export class Query implements firestore.Query {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
             'Invalid query. All where filters with an inequality' +
-              ' (<, <=, >, or >=) must be on the same field. But you have' +
-              ` inequality filters on '${existingField.toString()}'` +
-              ` and '${filter.field.toString()}'`
+            ' (<, <=, >, or >=) must be on the same field. But you have' +
+            ` inequality filters on '${existingField.toString()}'` +
+            ` and '${filter.field.toString()}'`
           );
         }
 
@@ -2008,13 +2038,13 @@ export class Query implements firestore.Query {
             throw new FirestoreError(
               Code.INVALID_ARGUMENT,
               'Invalid query. You cannot use more than one ' +
-                `'${filter.op.toString()}' filter.`
+              `'${filter.op.toString()}' filter.`
             );
           } else {
             throw new FirestoreError(
               Code.INVALID_ARGUMENT,
               `Invalid query. You cannot use '${filter.op.toString()}' filters ` +
-                `with '${conflictingOp.toString()}' filters.`
+              `with '${conflictingOp.toString()}' filters.`
             );
           }
         }
@@ -2040,10 +2070,10 @@ export class Query implements firestore.Query {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         `Invalid query. You have a where filter with an inequality ` +
-          `(<, <=, >, or >=) on field '${inequality.toString()}' ` +
-          `and so you must also use '${inequality.toString()}' ` +
-          `as your first Query.orderBy(), but your first Query.orderBy() ` +
-          `is on field '${orderBy.toString()}' instead.`
+        `(<, <=, >, or >=) on field '${inequality.toString()}' ` +
+        `and so you must also use '${inequality.toString()}' ` +
+        `as your first Query.orderBy(), but your first Query.orderBy() ` +
+        `is on field '${orderBy.toString()}' instead.`
       );
     }
   }
@@ -2118,7 +2148,7 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'To include metadata changes with your document changes, you must ' +
-          'also pass { includeMetadataChanges:true } to onSnapshot().'
+        'also pass { includeMetadataChanges:true } to onSnapshot().'
       );
     }
 
@@ -2171,8 +2201,8 @@ function throwDocChangesMethodError(): never {
   throw new FirestoreError(
     Code.INVALID_ARGUMENT,
     'QuerySnapshot.docChanges has been changed from a property into a ' +
-      'method, so usages like "querySnapshot.docChanges" should become ' +
-      '"querySnapshot.docChanges()"'
+    'method, so usages like "querySnapshot.docChanges" should become ' +
+    '"querySnapshot.docChanges()"'
   );
 }
 
@@ -2194,7 +2224,7 @@ docChangesPropertiesToOverride.forEach(property => {
     Object.defineProperty(QuerySnapshot.prototype.docChanges, property, {
       get: () => throwDocChangesMethodError()
     });
-  } catch (err) {} // Ignore this failure intentionally
+  } catch (err) { } // Ignore this failure intentionally
 });
 
 export class CollectionReference extends Query
@@ -2205,8 +2235,8 @@ export class CollectionReference extends Query
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid collection reference. Collection ' +
-          'references must have an odd number of segments, but ' +
-          `${path.canonicalString()} has ${path.length}`
+        'references must have an odd number of segments, but ' +
+        `${path.canonicalString()} has ${path.length}`
       );
     }
   }
@@ -2287,7 +2317,7 @@ function validateSetOptions(
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
       `Invalid options passed to function ${methodName}(): You cannot specify both "merge" ` +
-        `and "mergeFields".`
+      `and "mergeFields".`
     );
   }
 

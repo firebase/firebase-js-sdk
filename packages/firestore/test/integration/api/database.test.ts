@@ -962,7 +962,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  (persistence ? it : it.skip)(
+  (persistence ? it: it.skip)(
     'maintains persistence after restarting app',
     async () => {
       await withTestDoc(persistence, async docRef => {
@@ -1066,6 +1066,51 @@ apiDescribe('Database', (persistence: boolean) => {
       await db.disableNetwork();
       await db.disableNetwork();
       await db.enableNetwork();
+    });
+  });
+
+  it('can start a new instance after shut down', async () => {
+    return withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await firestore.INTERNAL.shutdown();
+
+      const newFirestore = firebase.firestore!(firestore.app);
+      await newFirestore.doc(docRef.path).set({foo: 'bar'});
+      const doc = await newFirestore.doc(docRef.path).get();
+      expect(doc.data()).to.deep.equal({ foo: 'bar' });
+    });
+  });
+
+  it('app delete leads to instance shutdown', async () => {
+    await withTestDoc(persistence, async docRef => {
+      await docRef.set({ foo: 'bar' });
+      const app = docRef.firestore.app;
+      await app.delete();
+      
+      expect(docRef.firestore.INTERNAL.isShutdown()).to.be.true;
+    });
+  });
+
+  it('new operation after shutdown should throw', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await firestore.INTERNAL.shutdown();
+
+      expect(() => {
+        firestore.doc(docRef.path).set({foo: 'bar'});
+      }).to.throw();
+    });
+  });
+
+  it('calling shutdown mutiple times should proceed', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await firestore.INTERNAL.shutdown();
+      await firestore.INTERNAL.shutdown();
+
+      expect(() => {
+        firestore.doc(docRef.path).set({foo: 'bar'});
+      }).to.throw();
     });
   });
 });
