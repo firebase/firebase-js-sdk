@@ -74,14 +74,14 @@ export class IndexedDbPersistenceSettings {
   constructor(
     readonly cacheSizeBytes: number,
     readonly synchronizeTabs: boolean
-  ) { }
+  ) {}
 
   lruParams(): LruParams {
     return LruParams.withCacheSize(this.cacheSizeBytes);
   }
 }
 
-export class MemoryPersistenceSettings { }
+export class MemoryPersistenceSettings {}
 
 export type InternalPersistenceSettings =
   | IndexedDbPersistenceSettings
@@ -124,7 +124,7 @@ export class FirestoreClient {
      * an async I/O to complete).
      */
     private asyncQueue: AsyncQueue
-  ) { }
+  ) {}
 
   /**
    * Starts up the FirestoreClient, returning only whether or not enabling
@@ -253,8 +253,8 @@ export class FirestoreClient {
           }
           console.warn(
             'Error enabling offline persistence. Falling back to' +
-            ' persistence disabled: ' +
-            error
+              ' persistence disabled: ' +
+              error
           );
           return this.startMemoryPersistence();
         });
@@ -557,9 +557,9 @@ export class FirestoreClient {
           throw new FirestoreError(
             Code.UNAVAILABLE,
             'Failed to get document from cache. (However, this document may ' +
-            "exist on the server. Run again without setting 'source' in " +
-            'the GetOptions to attempt to retrieve the document from the ' +
-            'server.)'
+              "exist on the server. Run again without setting 'source' in " +
+              'the GetOptions to attempt to retrieve the document from the ' +
+              'server.)'
           );
         }
       });
@@ -611,7 +611,7 @@ export class FirestoreClient {
     this.verifyNotShutdown();
     // We have to wait for the async queue to be sure syncEngine is initialized.
     return this.asyncQueue
-      .enqueue(async () => { })
+      .enqueue(async () => {})
       .then(() => this.syncEngine.runTransaction(updateFunction));
   }
 }
