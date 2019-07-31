@@ -298,8 +298,8 @@ describeSpec('Limits:', [], () => {
         })
         .userUnlistens(fullQuery)
         .watchRemoves(fullQuery)
-        // Re-issue the limit query and verify that we return `secondDocument` from
-        // cache.
+        // Re-issue the limit query and verify that we return `secondDocument`
+        // from cache.
         .userListens(limitQuery, 'resume-token-2001')
         .expectEvents(limitQuery, {
           added: [secondDocument],
