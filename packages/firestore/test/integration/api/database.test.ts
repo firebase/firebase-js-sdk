@@ -21,7 +21,7 @@ import * as firestore from '@firebase/firestore-types';
 import { expect, use } from 'chai';
 
 import { SimpleDb } from '../../../src/local/simple_db';
-import { fail } from '../../../src/util/assert';
+import { fail, assert } from '../../../src/util/assert';
 import { Code } from '../../../src/util/error';
 import { query } from '../../util/api_helpers';
 import { Deferred } from '../../util/promise';
@@ -1069,13 +1069,13 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('can start a new instance after shut down', async () => {
+  it.only('can start a new instance after shut down', async () => {
     return withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      // TODO(b/135755126): use public `shutdown` once it is availabe.
-      await firestore.INTERNAL.delete();
+      await firestore.INTERNAL.shutdown();
 
       const newFirestore = firebase.firestore!(firestore.app);
+      expect(newFirestore).to.not.equal(firestore);
       await newFirestore.doc(docRef.path).set({ foo: 'bar' });
       const doc = await newFirestore.doc(docRef.path).get();
       expect(doc.data()).to.deep.equal({ foo: 'bar' });
@@ -1091,5 +1091,27 @@ apiDescribe('Database', (persistence: boolean) => {
       expect(docRef.firestore.INTERNAL.isShutdown()).to.be.true;
     });
   });
-  it('calling shutdown mutiple times should proceed', async () => {});
+
+  it('new operation after shutdown should throw', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await firestore.INTERNAL.shutdown();
+
+      expect(() => {
+        firestore.doc(docRef.path).set({ foo: 'bar' });
+      }).to.throw();
+    });
+  });
+
+  it('calling shutdown mutiple times should proceed', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await firestore.INTERNAL.shutdown();
+      await firestore.INTERNAL.shutdown();
+
+      expect(() => {
+        firestore.doc(docRef.path).set({ foo: 'bar' });
+      }).to.throw();
+    });
+  });
 });

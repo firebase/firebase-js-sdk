@@ -270,8 +270,8 @@ export class AsyncQueue {
   enqueue<T extends unknown>(op: () => Promise<T>): Promise<T> {
     this.verifyNotFailed();
     if (this._isShuttingDown) {
-      // Return a Promise resolves to undefined right away
-      return new Promise<T>(resolve => resolve(undefined));
+      // Return a Promise which never resolves.
+      return new Promise<T>(resolve => {});
     }
     return this.enqueueInternal(op);
   }

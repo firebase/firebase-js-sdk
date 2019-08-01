@@ -278,6 +278,7 @@ export class FirebaseFirestore {
 
   INTERNAL: {
     delete: () => Promise<void>;
+    shutdown: () => Promise<void>;
     isShutdown: () => boolean;
   };
 }

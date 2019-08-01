@@ -18,7 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseService } from '@firebase/app-types/private';
+import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
@@ -571,7 +571,34 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       await this._firestoreClient!.shutdown();
     },
 
+    /**
+     * Shuts down this Firestore instance.
+     *
+     * After shutdown only the `clearPersistence()` method may be used. Any other method
+     * will throw an `FirestoreError`.
+     *
+     * To restart after shutdown, simply create a new instance of FirebaseFirestore with
+     * `Firebase.firestore()`.
+     *
+     * Shutdown does not cancel any pending writes and any promises that are awaiting a response
+     * from the server will not be resolved. The next time you start this instance,
+     * it will resume attempting to send these writes to the server.
+     *
+     * Note: Under normal circumstances, calling `shutdown()` is not required. This
+     * method is useful only when you want to force this instance to release all of its resources or
+     * in combination with `clearPersistence()` to ensure that all local state is destroyed
+     * between test runs.
+     *
+     * @return A promise that is resolved when the instance has been successfully shut down.
+     */
     // TODO(b/135755126): make this public.
+    shutdown: (): Promise<void> => {
+      (this._config.firebaseApp as _FirebaseApp)._removeServiceInstance(
+        'firestore'
+      );
+      return this.INTERNAL.delete();
+    },
+
     isShutdown: (): boolean => {
       return this._firestoreClient!.clientShutdown;
     }
