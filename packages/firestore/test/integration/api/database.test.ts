@@ -962,7 +962,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  (persistence ? it: it.skip)(
+  (persistence ? it : it.skip)(
     'maintains persistence after restarting app',
     async () => {
       await withTestDoc(persistence, async docRef => {
@@ -1076,7 +1076,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
       const newFirestore = firebase.firestore!(firestore.app);
       expect(newFirestore).to.not.equal(firestore);
-      await newFirestore.doc(docRef.path).set({foo: 'bar'});
+      await newFirestore.doc(docRef.path).set({ foo: 'bar' });
       const doc = await newFirestore.doc(docRef.path).get();
       expect(doc.data()).to.deep.equal({ foo: 'bar' });
     });
@@ -1087,7 +1087,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await docRef.set({ foo: 'bar' });
       const app = docRef.firestore.app;
       await app.delete();
-      
+
       expect(docRef.firestore.INTERNAL.isShutdown()).to.be.true;
     });
   });
@@ -1098,7 +1098,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await firestore.INTERNAL.shutdown();
 
       expect(() => {
-        firestore.doc(docRef.path).set({foo: 'bar'});
+        firestore.doc(docRef.path).set({ foo: 'bar' });
       }).to.throw();
     });
   });
@@ -1110,7 +1110,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await firestore.INTERNAL.shutdown();
 
       expect(() => {
-        firestore.doc(docRef.path).set({foo: 'bar'});
+        firestore.doc(docRef.path).set({ foo: 'bar' });
       }).to.throw();
     });
   });
