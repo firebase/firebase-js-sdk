@@ -1053,7 +1053,7 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 
   delete(): Promise<void> {
-    validateExactNumberOfArgs('FirebaseFirestore.delete', arguments, 0);
+    validateExactNumberOfArgs('DocumentReference.delete', arguments, 0);
     return this._firestoreClient.write([
       new DeleteMutation(this._key, Precondition.NONE)
     ]);

@@ -188,7 +188,7 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<unknown> = Promise.resolve();
 
-  // Is this AsyncQueue being shutting down? Once it is set to true, it will not
+  // Is this AsyncQueue being shut down? Once it is set to true, it will not
   // be changed again.
   private _isShuttingDown: boolean = false;
 
@@ -203,7 +203,7 @@ export class AsyncQueue {
   // assertion sanity-checks.
   private operationInProgress = false;
 
-  // Is this AsyncQueue being shutting down? If true, this instance will not enqueue
+  // Is this AsyncQueue being shut down? If true, this instance will not enqueue
   // any new operations, Promises from enqueue requests will not resolve.
   get isShuttingDown(): boolean {
     return this._isShuttingDown;
