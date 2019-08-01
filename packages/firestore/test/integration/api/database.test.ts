@@ -21,7 +21,7 @@ import * as firestore from '@firebase/firestore-types';
 import { expect, use } from 'chai';
 
 import { SimpleDb } from '../../../src/local/simple_db';
-import { fail, assert } from '../../../src/util/assert';
+import { fail } from '../../../src/util/assert';
 import { Code } from '../../../src/util/error';
 import { query } from '../../util/api_helpers';
 import { Deferred } from '../../util/promise';
@@ -35,7 +35,8 @@ import {
   withTestDb,
   withTestDbs,
   withTestDoc,
-  withTestDocAndInitialData
+  withTestDocAndInitialData,
+  DEFAULT_SETTINGS
 } from '../util/helpers';
 
 // tslint:disable:no-floating-promises
@@ -1069,13 +1070,16 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it.only('can start a new instance after shut down', async () => {
+  it('can start a new instance after shut down', async () => {
     return withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
       await firestore.INTERNAL.shutdown();
 
       const newFirestore = firebase.firestore!(firestore.app);
       expect(newFirestore).to.not.equal(firestore);
+
+      // New instance functions.
+      newFirestore.settings(DEFAULT_SETTINGS);
       await newFirestore.doc(docRef.path).set({ foo: 'bar' });
       const doc = await newFirestore.doc(docRef.path).get();
       expect(doc.data()).to.deep.equal({ foo: 'bar' });

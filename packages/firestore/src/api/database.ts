@@ -537,31 +537,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this._config.firebaseApp;
   }
 
-  /**
-   * Shuts down this FirebaseFirestore instance.
-   *
-   * After shutdown only the `clearPersistence()` method may be used. Any other method
-   * will throw an `FirestoreError`.
-   *
-   * To restart after shutdown, simply create a new instance of FirebaseFirestore with
-   * `Firebase.firestore()`.
-   *
-   * Shutdown does not cancel any pending writes and any promises that are awaiting a response from
-   * the server will be resolved with `undefined`. The next time you start this instance, it will resume
-   * attempting to send these writes to the server.
-   *
-   * Note: Under normal circumstances, calling `shutdown()` is not required. This
-   * method is useful only when you want to force this instance to release all of its resources or
-   * in combination with `clearPersistence()` to ensure that all local state is destroyed
-   * between test runs.
-   *
-   * @return A promise that is resolved when the instance has been successfully shut down.
-   */
-  // TODO(b/135755126): make this public.
-  private shutdown(): Promise<void> {
-    return this.INTERNAL.delete();
-  }
-
   INTERNAL = {
     // TODO(b/135755126): Make this public
     delete: async (): Promise<void> => {
@@ -1078,7 +1053,7 @@ export class DocumentReference implements firestore.DocumentReference {
   }
 
   delete(): Promise<void> {
-    validateExactNumberOfArgs('FirebaseFirestore.shutdown', arguments, 0);
+    validateExactNumberOfArgs('FirebaseFirestore.delete', arguments, 0);
     return this._firestoreClient.write([
       new DeleteMutation(this._key, Precondition.NONE)
     ]);
