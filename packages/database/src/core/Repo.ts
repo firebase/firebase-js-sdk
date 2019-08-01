@@ -38,7 +38,7 @@ import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
 import { FirebaseApp } from '@firebase/app-types';
 import { RepoInfo } from './RepoInfo';
-import { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './RepoManager'
+import { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './RepoManager';
 import { Database } from '../api/Database';
 import { ServerActions } from './ServerActions';
 import { Query } from '../api/Query';
@@ -84,7 +84,10 @@ export class Repo {
     public app: FirebaseApp
   ) {
     let authTokenProvider: TokenProvider;
-    if (typeof process !== 'undefined' && process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]) {
+    if (
+      typeof process !== 'undefined' &&
+      process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]
+    ) {
       authTokenProvider = new EmulatorAuthTokenProvider(app);
     } else {
       authTokenProvider = new AuthTokenProvider(app);

@@ -22,23 +22,23 @@ import { TokenProvider } from './AuthTokenProvider';
 import { log, warn } from './util/util';
 
 class EmulatorAuthToken implements FirebaseAuthTokenData {
-    constructor(public accessToken: string) {};
+  constructor(public accessToken: string) {}
 }
 
 export class EmulatorAuthTokenProvider implements TokenProvider {
-    constructor(private app_: FirebaseApp) {}
+  constructor(private app_: FirebaseApp) {}
 
-    getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {
-        return new Promise(() => new EmulatorAuthToken("owner"));
-    }
+  getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {
+    return new Promise(() => new EmulatorAuthToken('owner'));
+  }
 
-    addTokenChangeListener(listener: (token: string | null) => void) {}
+  addTokenChangeListener(listener: (token: string | null) => void) {}
 
-    removeTokenChangeListener(listener: (token: string | null) => void)  {}
+  removeTokenChangeListener(listener: (token: string | null) => void) {}
 
-    notifyForInvalidToken() {
-        let errorMessage =
-            'Database emulator unexpectedly rejected fake "owner" credentials.';
-        warn(errorMessage);
-    }
+  notifyForInvalidToken() {
+    let errorMessage =
+      'Database emulator unexpectedly rejected fake "owner" credentials.';
+    warn(errorMessage);
+  }
 }
