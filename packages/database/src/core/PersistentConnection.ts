@@ -26,7 +26,7 @@ import { isAdmin, isValidFormat } from '@firebase/util';
 import { Connection } from '../realtime/Connection';
 import { isMobileCordova, isReactNative, isNodeSdk } from '@firebase/util';
 import { ServerActions } from './ServerActions';
-import { AuthTokenProvider } from './AuthTokenProvider';
+import { TokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
 import { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './RepoManager';
 import { Query } from '../api/Query';
@@ -41,8 +41,6 @@ const SERVER_KILL_INTERRUPT_REASON = 'server_kill';
 
 // If auth fails repeatedly, we'll assume something is wrong and log a warning / back off.
 const INVALID_AUTH_TOKEN_THRESHOLD = 3;
-
-const FIREBASE_DATABASE_EMULATOR_HOST_VAR = 'FIREBASE_DATABASE_EMULATOR_HOST';
 
 interface ListenSpec {
   onComplete(s: string, p?: any): void;
@@ -136,7 +134,7 @@ export class PersistentConnection extends ServerActions {
     ) => void,
     private onConnectStatus_: (a: boolean) => void,
     private onServerInfoUpdate_: (a: any) => void,
-    private authTokenProvider_: AuthTokenProvider,
+    private authTokenProvider_: TokenProvider,
     private authOverride_?: Object | null
   ) {
     super();
@@ -743,63 +741,41 @@ export class PersistentConnection extends ServerActions {
       const forceRefresh = this.forceTokenRefresh_;
       this.forceTokenRefresh_ = false;
 
-      if (
-        typeof process !== 'undefined' &&
-        process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]
-      ) {
-        log(
-          'Connecting to a database emulator, ommitting access token requests.'
-        );
-        self.authToken_ = 'owner';
-        connection = new Connection(
-          connId,
-          self.repoInfo_,
-          onDataMessage,
-          onReady,
-          onDisconnect,
-          /* onKill= */ function(reason) {
-            warn(reason + ' (' + self.repoInfo_.toString() + ')');
-            self.interrupt(SERVER_KILL_INTERRUPT_REASON);
-          },
-          lastSessionId
-        );
-      } else {
-        // First fetch auth token, and establish connection after fetching the token was successful
-        this.authTokenProvider_
-          .getToken(forceRefresh)
-          .then(function(result) {
-            if (!canceled) {
-              log('getToken() completed. Creating connection.');
-              self.authToken_ = result && result.accessToken;
-              connection = new Connection(
-                connId,
-                self.repoInfo_,
-                onDataMessage,
-                onReady,
-                onDisconnect,
-                /* onKill= */ function(reason) {
-                  warn(reason + ' (' + self.repoInfo_.toString() + ')');
-                  self.interrupt(SERVER_KILL_INTERRUPT_REASON);
-                },
-                lastSessionId
-              );
-            } else {
-              log('getToken() completed but was canceled');
+      // First fetch auth token, and establish connection after fetching the token was successful
+      this.authTokenProvider_
+        .getToken(forceRefresh)
+        .then(function(result) {
+          if (!canceled) {
+            log('getToken() completed. Creating connection.');
+            self.authToken_ = result && result.accessToken;
+            connection = new Connection(
+              connId,
+              self.repoInfo_,
+              onDataMessage,
+              onReady,
+              onDisconnect,
+              /* onKill= */ function(reason) {
+                warn(reason + ' (' + self.repoInfo_.toString() + ')');
+                self.interrupt(SERVER_KILL_INTERRUPT_REASON);
+              },
+              lastSessionId
+            );
+          } else {
+            log('getToken() completed but was canceled');
+          }
+        })
+        .then(null, function(error) {
+          self.log_('Failed to get token: ' + error);
+          if (!canceled) {
+            if (CONSTANTS.NODE_ADMIN) {
+              // This may be a critical error for the Admin Node.js SDK, so log a warning.
+              // But getToken() may also just have temporarily failed, so we still want to
+              // continue retrying.
+              warn(error);
             }
-          })
-          .then(null, function(error) {
-            self.log_('Failed to get token: ' + error);
-            if (!canceled) {
-              if (CONSTANTS.NODE_ADMIN) {
-                // This may be a critical error for the Admin Node.js SDK, so log a warning.
-                // But getToken() may also just have temporarily failed, so we still want to
-                // continue retrying.
-                warn(error);
-              }
-              closeFn();
-            }
-          });
-      }
+            closeFn();
+          }
+        });
     }
   }
 

@@ -28,7 +28,8 @@ import { SnapshotHolder } from './SnapshotHolder';
 import { stringify } from '@firebase/util';
 import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
 import { map, isEmpty } from '@firebase/util';
-import { AuthTokenProvider } from './AuthTokenProvider';
+import { AuthTokenProvider, TokenProvider } from './AuthTokenProvider';
+import { EmulatorAuthTokenProvider } from './EmulatorAuthTokenProvider';
 import { StatsManager } from './stats/StatsManager';
 import { StatsReporter } from './stats/StatsReporter';
 import { StatsListener } from './stats/StatsListener';
@@ -37,6 +38,7 @@ import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
 import { FirebaseApp } from '@firebase/app-types';
 import { RepoInfo } from './RepoInfo';
+import { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './RepoManager'
 import { Database } from '../api/Database';
 import { ServerActions } from './ServerActions';
 import { Query } from '../api/Query';
@@ -81,7 +83,12 @@ export class Repo {
     forceRestClient: boolean,
     public app: FirebaseApp
   ) {
-    const authTokenProvider = new AuthTokenProvider(app);
+    let authTokenProvider: TokenProvider;
+    if (typeof process !== 'undefined' && process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]) {
+      authTokenProvider = new EmulatorAuthTokenProvider(app);
+    } else {
+      authTokenProvider = new AuthTokenProvider(app);
+    }
 
     this.stats_ = StatsManager.getCollection(repoInfo_);
 

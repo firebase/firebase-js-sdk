@@ -19,10 +19,24 @@ import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseAuthTokenData } from '@firebase/app-types/private';
 import { log, warn } from './util/util';
 
+export interface TokenProvider {
+  /**
+   * @param {boolean} forceRefresh
+   * @return {!Promise<FirebaseAuthTokenData>}
+   */
+  getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData>;
+
+  addTokenChangeListener(listener: (token: string | null) => void);
+
+  removeTokenChangeListener(listener: (token: string | null) => void);
+
+  notifyForInvalidToken();
+}
+
 /**
  * Abstraction around FirebaseApp's token fetching capabilities.
  */
-export class AuthTokenProvider {
+export class AuthTokenProvider implements TokenProvider {
   /**
    * @param {!FirebaseApp} app_
    */
