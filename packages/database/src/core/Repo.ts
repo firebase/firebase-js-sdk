@@ -38,7 +38,7 @@ import { PersistentConnection } from './PersistentConnection';
 import { ReadonlyRestClient } from './ReadonlyRestClient';
 import { FirebaseApp } from '@firebase/app-types';
 import { RepoInfo } from './RepoInfo';
-import { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './RepoManager';
+import { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './Constants';
 import { Database } from '../api/Database';
 import { ServerActions } from './ServerActions';
 import { Query } from '../api/Query';

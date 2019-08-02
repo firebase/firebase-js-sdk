@@ -28,7 +28,6 @@ import { isMobileCordova, isReactNative, isNodeSdk } from '@firebase/util';
 import { ServerActions } from './ServerActions';
 import { TokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
-import { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './RepoManager';
 import { Query } from '../api/Query';
 import { SDK_VERSION } from './version';
 

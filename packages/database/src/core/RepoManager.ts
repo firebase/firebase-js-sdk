@@ -17,6 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { safeGet } from '@firebase/util';
+import { FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './Constants';
 import { Repo } from './Repo';
 import { fatal } from './util/util';
 import { parseRepoInfo, parseURL } from './util/libs/parser';
@@ -27,9 +28,6 @@ import { RepoInfo } from './RepoInfo';
 
 /** @const {string} */
 const DATABASE_URL_OPTION = 'databaseURL';
-
-export const FIREBASE_DATABASE_EMULATOR_HOST_VAR =
-  'FIREBASE_DATABASE_EMULATOR_HOST';
 
 let _staticInstance: RepoManager;
 
