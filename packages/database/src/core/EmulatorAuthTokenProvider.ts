@@ -29,7 +29,7 @@ export class EmulatorAuthTokenProvider implements TokenProvider {
   constructor(private app_: FirebaseApp) {}
 
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {
-    return new Promise(() => new EmulatorAuthToken('owner'));
+    return Promise.resolve(new EmulatorAuthToken('owner'));
   }
 
   addTokenChangeListener(listener: (token: string | null) => void) {}
