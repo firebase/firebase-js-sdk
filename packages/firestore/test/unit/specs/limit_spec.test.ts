@@ -185,6 +185,33 @@ describeSpec('Limits:', [], () => {
   });
 
   specTest(
+    'Initial snapshots for limit queries are re-filled from cache',
+    [],
+    () => {
+      // Verify that views for limit queries are re-filled even if the initial
+      // snapshot does not contain the requested number of results.
+      const fullQuery = Query.atPath(path('collection')).addFilter(
+        filter('matches', '==', true)
+      );
+      const limitQuery = Query.atPath(path('collection'))
+        .addFilter(filter('matches', '==', true))
+        .withLimit(2);
+      const doc1 = doc('collection/a', 1001, { matches: true });
+      const doc2 = doc('collection/b', 1002, { matches: true });
+      const doc3 = doc('collection/c', 1003, { matches: true });
+      return spec()
+        .withGCEnabled(false)
+        .userListens(fullQuery)
+        .watchAcksFull(fullQuery, 1003, doc1, doc2, doc3)
+        .expectEvents(fullQuery, { added: [doc1, doc2, doc3] })
+        .userUnlistens(fullQuery)
+        .userSets('collection/a', { matches: false })
+        .userListens(limitQuery)
+        .expectEvents(limitQuery, { added: [doc2, doc3], fromCache: true });
+    }
+  );
+
+  specTest(
     'Resumed limit queries exclude deleted documents ',
     ['durable-persistence'],
     () => {
