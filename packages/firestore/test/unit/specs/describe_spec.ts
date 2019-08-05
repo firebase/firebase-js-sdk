@@ -166,12 +166,12 @@ export function specTest(
       ? [true, false]
       : [false];
     for (const usePersistence of persistenceModes) {
-      const spec = builder();
       const runner = getTestRunner(tags, usePersistence);
       const timeout = getTestTimeout(tags);
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
       const queuedTest = runner(fullName, async () => {
+        const spec = builder();
         const start = Date.now();
         await spec.runAsTest(fullName, tags, usePersistence);
         const end = Date.now();
