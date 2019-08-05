@@ -201,18 +201,18 @@ describeSpec('Limits:', [], () => {
       const doc3 = doc('collection/c', 1003, { matches: true });
       return spec()
         .withGCEnabled(false)
+        .userListens(fullQuery)
+        .watchAcksFull(fullQuery, 1003, doc1, doc2, doc3)
+        .expectEvents(fullQuery, { added: [doc1, doc2, doc3] })
+        .userUnlistens(fullQuery)
         .userListens(limitQuery)
-        .watchAcksFull(limitQuery, 1002, doc1, doc2)
-        .expectEvents(limitQuery, { added: [doc1, doc2] })
+        .expectEvents(limitQuery, { added: [doc1, doc2], fromCache: true })
+        .watchAcksFull(limitQuery, 1004, doc1, doc2)
+        .expectEvents(limitQuery, {})
         .userUnlistens(limitQuery)
         .watchRemoves(limitQuery)
-        .userListens(fullQuery)
-        .expectEvents(fullQuery, { added: [doc1, doc2], fromCache: true })
-        .watchAcksFull(fullQuery, 1003, doc1, doc2, doc3)
-        .expectEvents(fullQuery, { added: [doc3] })
-        .userUnlistens(fullQuery)
         .userSets('collection/a', { matches: false })
-        .userListens(limitQuery, 'resume-token-1002')
+        .userListens(limitQuery, 'resume-token-1004')
         .expectEvents(limitQuery, { added: [doc2, doc3], fromCache: true });
     }
   );
