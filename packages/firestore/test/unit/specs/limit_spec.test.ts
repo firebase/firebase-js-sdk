@@ -218,12 +218,12 @@ describeSpec('Limits:', [], () => {
   );
 
   specTest(
-    'Initial snapshots for limit queries are re-filled from cache (with order change)',
+    'Initial snapshots for limit queries are re-filled from cache (with uncommitted change)',
     [],
     () => {
       // Verify that views for limit queries contain the correct set of documents
-      // even if a previously matching document is updated to sort below an older
-      // document.
+      // even if a previously matching document receives a latency-compensate update
+      // that makes it sort below an older document.
       const fullQuery = Query.atPath(path('collection'));
       const limitQuery = Query.atPath(path('collection'))
         .addOrderBy(orderBy('pos'))
@@ -237,6 +237,7 @@ describeSpec('Limits:', [], () => {
         .watchAcksFull(fullQuery, 1003, doc1, doc2, doc3)
         .expectEvents(fullQuery, { added: [doc1, doc2, doc3] })
         .userUnlistens(fullQuery)
+        .watchRemoves(fullQuery)
         .userListens(limitQuery)
         .expectEvents(limitQuery, { added: [doc1, doc2], fromCache: true })
         .watchAcksFull(limitQuery, 1004, doc1, doc2)
@@ -244,6 +245,43 @@ describeSpec('Limits:', [], () => {
         .userUnlistens(limitQuery)
         .watchRemoves(limitQuery)
         .userSets('collection/a', { pos: 4 })
+        .userListens(limitQuery, 'resume-token-1004')
+        .expectEvents(limitQuery, { added: [doc2, doc3], fromCache: true });
+    }
+  );
+
+  specTest(
+    'Initial snapshots for limit queries are re-filled from cache (with committed change)',
+    [],
+    () => {
+      // Verify that views for limit queries contain the correct set of documents
+      // even if a previously matching document receives an update from the backend
+      // that makes it sort below an older document.
+      const fullQuery = Query.atPath(path('collection'));
+      const limitQuery = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('pos'))
+        .withLimit(2);
+      const doc1 = doc('collection/a', 1001, { pos: 1 });
+      const doc1Edited = doc('collection/a', 1005, { pos: 4 });
+      const doc2 = doc('collection/b', 1002, { pos: 2 });
+      const doc3 = doc('collection/c', 1003, { pos: 3 });
+      return spec()
+        .withGCEnabled(false)
+        .userListens(fullQuery)
+        .watchAcksFull(fullQuery, 1003, doc1, doc2, doc3)
+        .expectEvents(fullQuery, { added: [doc1, doc2, doc3] })
+        .userUnlistens(fullQuery)
+        .watchRemoves(fullQuery)
+        .userListens(limitQuery)
+        .expectEvents(limitQuery, { added: [doc1, doc2], fromCache: true })
+        .watchAcksFull(limitQuery, 1004, doc1, doc2)
+        .expectEvents(limitQuery, {})
+        .userUnlistens(limitQuery)
+        .watchRemoves(limitQuery)
+        .userListens(fullQuery, 'resume-token-1003')
+        .expectEvents(fullQuery, { added: [doc1, doc2, doc3], fromCache: true })
+        .watchAcksFull(fullQuery, 1005, doc1Edited)
+        .expectEvents(fullQuery, { modified: [doc1Edited] })
         .userListens(limitQuery, 'resume-token-1004')
         .expectEvents(limitQuery, { added: [doc2, doc3], fromCache: true });
     }
