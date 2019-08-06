@@ -218,7 +218,7 @@ describeSpec('Limits:', [], () => {
   );
 
   specTest(
-    'Initial snapshots for limit queries are re-filled from cache (with uncommitted change)',
+    'Initial snapshots for limit queries are re-filled from cache (with latency-compensated edit)',
     [],
     () => {
       // Verify that views for limit queries contain the correct set of documents
@@ -251,7 +251,7 @@ describeSpec('Limits:', [], () => {
   );
 
   specTest(
-    'Initial snapshots for limit queries are re-filled from cache (with committed change)',
+    'Initial snapshots for limit queries are re-filled from cache (with update from backend)',
     [],
     () => {
       // Verify that views for limit queries contain the correct set of documents
