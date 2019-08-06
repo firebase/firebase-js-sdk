@@ -1073,7 +1073,7 @@ apiDescribe('Database', (persistence: boolean) => {
   it('can start a new instance after shut down', async () => {
     return withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await firestore.INTERNAL.shutdown();
+      await (firestore as any)._shutdown();
 
       const newFirestore = firebase.firestore!(firestore.app);
       expect(newFirestore).to.not.equal(firestore);
@@ -1092,14 +1092,14 @@ apiDescribe('Database', (persistence: boolean) => {
       const app = docRef.firestore.app;
       await app.delete();
 
-      expect(docRef.firestore.INTERNAL.isShutdown()).to.be.true;
+      expect((docRef.firestore as any)._isShutdown).to.be.true;
     });
   });
 
   it('new operation after shutdown should throw', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await firestore.INTERNAL.shutdown();
+      await (firestore as any)._shutdown();
 
       expect(() => {
         firestore.doc(docRef.path).set({ foo: 'bar' });
@@ -1110,8 +1110,8 @@ apiDescribe('Database', (persistence: boolean) => {
   it('calling shutdown mutiple times should proceed', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await firestore.INTERNAL.shutdown();
-      await firestore.INTERNAL.shutdown();
+      await (firestore as any)._shutdown();
+      await (firestore as any)._shutdown();
 
       expect(() => {
         firestore.doc(docRef.path).set({ foo: 'bar' });

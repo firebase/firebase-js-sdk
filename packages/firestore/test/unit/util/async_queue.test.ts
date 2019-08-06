@@ -213,10 +213,9 @@ describe('AsyncQueue', () => {
   it('Schedules operaions with respect to shut down', async () => {
     const queue = new AsyncQueue();
     const completedSteps: number[] = [];
-    const doStep = (n: number): Promise<number> =>
+    const doStep = (n: number): Promise<void> =>
       defer(() => {
-        const result = completedSteps.push(n);
-        return result;
+        completedSteps.push(n);
       });
 
     queue.enqueueAndForget(() => doStep(1));
@@ -224,7 +223,7 @@ describe('AsyncQueue', () => {
     // After this call, only operations requested via
     // `enqueueAndForgetEvenAfterShutdown` gets executed.
     // tslint:disable-next-line:no-floating-promises
-    queue.enqueueAndInitilizeShutdown(() => doStep(2));
+    queue.enqueueAndInitiateShutdown(() => doStep(2));
     queue.enqueueAndForget(() => doStep(3));
     queue.enqueueAndForgetEvenAfterShutdown(() => doStep(4));
 

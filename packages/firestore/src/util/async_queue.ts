@@ -226,7 +226,6 @@ export class AsyncQueue {
     op: () => Promise<T>
   ): void {
     this.verifyNotFailed();
-    // tslint:disable-next-line:no-floating-promises
     this.enqueueInternal(op);
   }
 
@@ -238,7 +237,6 @@ export class AsyncQueue {
     op: () => Promise<T>
   ): Promise<T> {
     this.verifyNotFailed();
-    // tslint:disable-next-line:no-floating-promises
     return this.enqueueInternal(op);
   }
 
@@ -249,18 +247,12 @@ export class AsyncQueue {
    * Once this method is called, the only possible way to request running an operation
    * is through `enqueueAndForgetEvenAfterShutdown`.
    */
-  enqueueAndInitilizeShutdown<T extends unknown>(
-    op: () => Promise<T>
-  ): Promise<T> {
+  async enqueueAndInitiateShutdown(op: () => Promise<void>): Promise<void> {
     this.verifyNotFailed();
-    if (this._isShuttingDown) {
-      // Return a Promise resolves right away if it is already shutdown.
-      return new Promise<T>(resolve => resolve(undefined));
+    if (!this._isShuttingDown) {
+      this._isShuttingDown = true;
+      await this.enqueueEvenAfterShutdown(op);
     }
-
-    const promise = this.enqueueInternal(op);
-    this._isShuttingDown = true;
-    return promise;
   }
 
   /**
