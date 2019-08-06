@@ -226,6 +226,7 @@ export class AsyncQueue {
     op: () => Promise<T>
   ): void {
     this.verifyNotFailed();
+    // tslint:disable-next-line:no-floating-promises
     this.enqueueInternal(op);
   }
 

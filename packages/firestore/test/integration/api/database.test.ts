@@ -31,6 +31,7 @@ import {
   apiDescribe,
   arrayContainsAnyOp,
   inOp,
+  shutdownDb,
   withTestCollection,
   withTestDb,
   withTestDbs,
@@ -1073,7 +1074,7 @@ apiDescribe('Database', (persistence: boolean) => {
   it('can start a new instance after shut down', async () => {
     return withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await (firestore as any)._shutdown();
+      await shutdownDb(firestore);
 
       const newFirestore = firebase.firestore!(firestore.app);
       expect(newFirestore).to.not.equal(firestore);
@@ -1092,6 +1093,7 @@ apiDescribe('Database', (persistence: boolean) => {
       const app = docRef.firestore.app;
       await app.delete();
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       expect((docRef.firestore as any)._isShutdown).to.be.true;
     });
   });
@@ -1099,7 +1101,7 @@ apiDescribe('Database', (persistence: boolean) => {
   it('new operation after shutdown should throw', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await (firestore as any)._shutdown();
+      await shutdownDb(firestore);
 
       expect(() => {
         firestore.doc(docRef.path).set({ foo: 'bar' });
@@ -1110,8 +1112,8 @@ apiDescribe('Database', (persistence: boolean) => {
   it('calling shutdown mutiple times should proceed', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
-      await (firestore as any)._shutdown();
-      await (firestore as any)._shutdown();
+      await shutdownDb(firestore);
+      await shutdownDb(firestore);
 
       expect(() => {
         firestore.doc(docRef.path).set({ foo: 'bar' });
