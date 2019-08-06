@@ -18,6 +18,6 @@
     "mocha": "6.2.0",
     "node-fetch": "2.6.0",
     "selenium-assistant": "5.4.0",
-    "sinon": "7.3.2"
+    "sinon": "7.4.1"
   }
 }
