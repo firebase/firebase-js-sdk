@@ -26,9 +26,19 @@ import { SparseSnapshotTree } from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
 import { stringify } from '@firebase/util';
-import { beingCrawled, each, exceptionGuard, warn, log, FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './util/util';
+import {
+  beingCrawled,
+  each,
+  exceptionGuard,
+  warn,
+  log,
+  FIREBASE_DATABASE_EMULATOR_HOST_VAR
+} from './util/util';
 import { map, isEmpty } from '@firebase/util';
-import { FirebaseAuthTokenProvider, AuthTokenProvider } from './AuthTokenProvider';
+import {
+  FirebaseAuthTokenProvider,
+  AuthTokenProvider
+} from './AuthTokenProvider';
 import { EmulatorAuthTokenProvider } from './EmulatorAuthTokenProvider';
 import { StatsManager } from './stats/StatsManager';
 import { StatsReporter } from './stats/StatsReporter';
