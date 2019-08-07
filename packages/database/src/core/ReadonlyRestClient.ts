@@ -70,7 +70,7 @@ export class ReadonlyRestClient extends ServerActions {
   /**
    * @param {!RepoInfo} repoInfo_ Data about the namespace we are connecting to
    * @param {function(string, *, boolean, ?number)} onDataUpdate_ A callback for new data from the server
-   * @param {FirebaseAuthTokenProvider} authTokenProvider_
+   * @param {AuthTokenProvider} authTokenProvider_
    * @implements {ServerActions}
    */
   constructor(
