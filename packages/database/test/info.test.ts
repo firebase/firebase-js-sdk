@@ -107,7 +107,7 @@ describe('.info Tests', function() {
 
   // Skipping this test as it is expecting a server time diff from a
   // local Firebase
-  it.skip('.info/serverTimeOffset', async function() {
+  it('.info/serverTimeOffset', async function() {
     const ref = getRootNode() as Reference;
 
     // make sure push works
