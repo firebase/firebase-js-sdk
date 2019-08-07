@@ -19,7 +19,7 @@ import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseAuthTokenData } from '@firebase/app-types/private';
 import { log, warn } from './util/util';
 
-export interface TokenProvider {
+export interface AuthTokenProvider {
   /**
    * @param {boolean} forceRefresh
    * @return {!Promise<FirebaseAuthTokenData>}
@@ -36,7 +36,7 @@ export interface TokenProvider {
 /**
  * Abstraction around FirebaseApp's token fetching capabilities.
  */
-export class AuthTokenProvider implements TokenProvider {
+export class FirebaseAuthTokenProvider implements AuthTokenProvider {
   /**
    * @param {!FirebaseApp} app_
    */

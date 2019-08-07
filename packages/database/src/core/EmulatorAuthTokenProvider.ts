@@ -18,14 +18,14 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseAuthTokenData } from '@firebase/app-types/private';
 
-import { TokenProvider } from './AuthTokenProvider';
+import { AuthTokenProvider } from './AuthTokenProvider';
 import { log, warn } from './util/util';
 
 class EmulatorAuthToken implements FirebaseAuthTokenData {
   constructor(public accessToken: string) {}
 }
 
-export class EmulatorAuthTokenProvider implements TokenProvider {
+export class EmulatorAuthTokenProvider implements AuthTokenProvider {
   constructor(private app_: FirebaseApp) {}
 
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {

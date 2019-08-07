@@ -26,7 +26,7 @@ import { isAdmin, isValidFormat } from '@firebase/util';
 import { Connection } from '../realtime/Connection';
 import { isMobileCordova, isReactNative, isNodeSdk } from '@firebase/util';
 import { ServerActions } from './ServerActions';
-import { TokenProvider } from './AuthTokenProvider';
+import { AuthTokenProvider } from './AuthTokenProvider';
 import { RepoInfo } from './RepoInfo';
 import { Query } from '../api/Query';
 import { SDK_VERSION } from './version';
@@ -133,7 +133,7 @@ export class PersistentConnection extends ServerActions {
     ) => void,
     private onConnectStatus_: (a: boolean) => void,
     private onServerInfoUpdate_: (a: any) => void,
-    private authTokenProvider_: TokenProvider,
+    private authTokenProvider_: AuthTokenProvider,
     private authOverride_?: Object | null
   ) {
     super();

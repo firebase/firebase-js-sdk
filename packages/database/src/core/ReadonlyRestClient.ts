@@ -22,7 +22,7 @@ import { safeGet } from '@firebase/util';
 import { querystring } from '@firebase/util';
 import { ServerActions } from './ServerActions';
 import { RepoInfo } from './RepoInfo';
-import { TokenProvider } from './AuthTokenProvider';
+import { FirebaseAuthTokenProvider, AuthTokenProvider } from './AuthTokenProvider';
 import { Query } from '../api/Query';
 
 /**
@@ -67,7 +67,7 @@ export class ReadonlyRestClient extends ServerActions {
   /**
    * @param {!RepoInfo} repoInfo_ Data about the namespace we are connecting to
    * @param {function(string, *, boolean, ?number)} onDataUpdate_ A callback for new data from the server
-   * @param {TokenProvider} authTokenProvider_
+   * @param {FirebaseAuthTokenProvider} authTokenProvider_
    * @implements {ServerActions}
    */
   constructor(
@@ -78,7 +78,7 @@ export class ReadonlyRestClient extends ServerActions {
       c: boolean,
       d: number | null
     ) => void,
-    private authTokenProvider_: TokenProvider
+    private authTokenProvider_: AuthTokenProvider
   ) {
     super();
   }
