@@ -198,6 +198,6 @@ export const parseDatabaseURL = function(
     secure,
     scheme,
     pathString,
-    namespace,
+    namespace
   };
 };
