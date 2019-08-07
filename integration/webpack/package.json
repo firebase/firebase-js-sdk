@@ -7,7 +7,7 @@
     "test": "karma start --single-run"
   },
   "dependencies": {
-    "firebase": "6.3.3"
+    "firebase": "6.3.4"
   },
   "devDependencies": {
     "@babel/core": "7.5.5",
@@ -21,7 +21,7 @@
     "karma-sauce-launcher": "1.2.0",
     "karma-spec-reporter": "0.0.32",
     "mocha": "6.2.0",
-    "webpack": "4.38.0",
+    "webpack": "4.39.1",
     "webpack-cli": "3.3.6"
   }
 }

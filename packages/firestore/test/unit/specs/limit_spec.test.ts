@@ -16,7 +16,7 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { deletedDoc, doc, filter, path } from '../../util/helpers';
+import { deletedDoc, doc, filter, orderBy, path } from '../../util/helpers';
 
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
@@ -182,6 +182,157 @@ describeSpec('Limits:', [], () => {
         removed: [doc1],
         fromCache: true
       });
+  });
+
+  specTest(
+    'Initial snapshots for limit queries are re-filled from cache',
+    [],
+    () => {
+      // Verify that views for limit queries are re-filled even if the initial
+      // snapshot does not contain the requested number of results.
+      const fullQuery = Query.atPath(path('collection')).addFilter(
+        filter('matches', '==', true)
+      );
+      const limitQuery = Query.atPath(path('collection'))
+        .addFilter(filter('matches', '==', true))
+        .withLimit(2);
+      const doc1 = doc('collection/a', 1001, { matches: true });
+      const doc2 = doc('collection/b', 1002, { matches: true });
+      const doc3 = doc('collection/c', 1003, { matches: true });
+      return spec()
+        .withGCEnabled(false)
+        .userListens(fullQuery)
+        .watchAcksFull(fullQuery, 1003, doc1, doc2, doc3)
+        .expectEvents(fullQuery, { added: [doc1, doc2, doc3] })
+        .userUnlistens(fullQuery)
+        .userSets('collection/a', { matches: false })
+        .userListens(limitQuery)
+        .expectEvents(limitQuery, { added: [doc2, doc3], fromCache: true });
+    }
+  );
+
+  specTest(
+    'Resumed limit queries exclude deleted documents ',
+    ['durable-persistence'],
+    () => {
+      // This test verifies that views for limit queries are updated even
+      // when documents are deleted while the query is inactive.
+
+      const limitQuery = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('a'))
+        .withLimit(1);
+      const fullQuery = Query.atPath(path('collection')).addOrderBy(
+        orderBy('a')
+      );
+
+      const firstDocument = doc('collection/a', 1001, { a: 1 });
+      const firstDocumentDeleted = deletedDoc('collection/a', 1003);
+      const secondDocument = doc('collection/b', 1000, { a: 2 });
+
+      return (
+        spec()
+          .withGCEnabled(false)
+          .userListens(limitQuery)
+          .watchAcksFull(limitQuery, 1001, firstDocument)
+          .expectEvents(limitQuery, { added: [firstDocument] })
+          .userUnlistens(limitQuery)
+          .watchRemoves(limitQuery)
+          .userListens(fullQuery)
+          .expectEvents(fullQuery, { added: [firstDocument], fromCache: true })
+          .watchAcksFull(fullQuery, 1002, firstDocument, secondDocument)
+          .expectEvents(fullQuery, { added: [secondDocument] })
+          // Another client modified `firstDocument` and we lost access to it.
+          // Watch sends us a remove, but doesn't tell us the new document state.
+          // Since we don't know the state of the document, we mark it as limbo.
+          .watchRemovesDoc(firstDocument.key, fullQuery)
+          .watchSnapshots(1003)
+          .expectEvents(fullQuery, { fromCache: true })
+          .expectLimboDocs(firstDocument.key)
+          .userUnlistens(fullQuery)
+          // Since we stop listening to `fullQuery`, we disregard our attempt to
+          // resolve the limbo state of `firstDocument`.
+          .expectLimboDocs()
+          .watchRemoves(fullQuery)
+          // We restart the client, which clears the limbo target mapping in the
+          // spec test runner. Without restarting, the runner assumes that each
+          // limbo document is always assigned the same target ID. SyncEngine,
+          // however, uses new target IDs if a document goes in and out of limbo.
+          .restart()
+          // We listen to the limit query again. Note that we include
+          // `firstDocument` in the local result since we did not resolve its
+          // limbo state.
+          .userListens(limitQuery, 'resume-token-1001')
+          .expectEvents(limitQuery, { added: [firstDocument], fromCache: true })
+          .watchAcks(limitQuery)
+          // Watch resumes the query from the provided resume token, but does
+          // not guarantee to send us the removal of `firstDocument`. Instead,
+          // we receive an existence filter, which indicates that our view is
+          // out of sync.
+          .watchSends({ affects: [limitQuery] }, secondDocument)
+          .watchFilters([limitQuery], secondDocument.key)
+          .watchSnapshots(1004)
+          .expectActiveTargets({ query: limitQuery, resumeToken: '' })
+          .watchRemoves(limitQuery)
+          .watchAcksFull(limitQuery, 1005, secondDocument)
+          // The snapshot after the existence filter mismatch triggers limbo
+          // resolution. The local view still contains `firstDocument` and
+          // hence we do not yet raise a new snapshot.
+          .expectLimboDocs(firstDocument.key)
+          .ackLimbo(1006, firstDocumentDeleted)
+          .expectLimboDocs()
+          // We raise the final snapshot when limbo resolution completes. We now
+          // include `secondDocument`, which matches the backend result.
+          .expectEvents(limitQuery, {
+            added: [secondDocument],
+            removed: [firstDocument]
+          })
+      );
+    }
+  );
+
+  specTest('Resumed limit queries use updated documents ', [], () => {
+    // This test verifies that a resumed limit query will not contain documents
+    // that fell out of the limit while the query was inactive.
+
+    const limitQuery = Query.atPath(path('collection'))
+      .addOrderBy(orderBy('a'))
+      .withLimit(1);
+    const fullQuery = Query.atPath(path('collection')).addOrderBy(orderBy('a'));
+
+    const firstDocument = doc('collection/a', 2001, { a: 1 });
+    const firstDocumentUpdated = doc('collection/a', 2003, { a: 3 });
+    const secondDocument = doc('collection/c', 1000, { a: 2 });
+
+    return (
+      spec()
+        .withGCEnabled(false)
+        // We issue a limit query with an orderBy constraint.
+        .userListens(limitQuery)
+        .watchAcksFull(limitQuery, 2001, firstDocument)
+        .expectEvents(limitQuery, { added: [firstDocument] })
+        .userUnlistens(limitQuery)
+        .watchRemoves(limitQuery)
+        // We issue a second query which adds `secondDocument` to the cache. We
+        // also update `firstDocument` to sort after `secondDocument`.
+        // `secondDocument` is now older than `firstDocument` but sorts before it
+        // in the limit query.
+        .userListens(fullQuery)
+        .expectEvents(fullQuery, { added: [firstDocument], fromCache: true })
+        .watchAcksFull(fullQuery, 2003, firstDocumentUpdated, secondDocument)
+        .expectEvents(fullQuery, {
+          added: [secondDocument],
+          modified: [firstDocumentUpdated]
+        })
+        .userUnlistens(fullQuery)
+        .watchRemoves(fullQuery)
+        // Re-issue the limit query and verify that we return `secondDocument`
+        // from cache.
+        .userListens(limitQuery, 'resume-token-2001')
+        .expectEvents(limitQuery, {
+          added: [secondDocument],
+          fromCache: true
+        })
+    );
   });
 
   specTest('Multiple docs in limbo in full limit query', [], () => {
