@@ -18,7 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseService } from '@firebase/app-types/private';
+import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
@@ -427,7 +427,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this.makeDatabaseInfo()
     );
     const deferred = new Deferred<void>();
-    this._queue.enqueueAndForget(async () => {
+    this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
       try {
         if (
           this._firestoreClient !== undefined &&
@@ -445,6 +445,37 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       }
     });
     return deferred.promise;
+  }
+
+  /**
+   * Shuts down this Firestore instance.
+   *
+   * After shutdown only the `clearPersistence()` method may be used. Any other method
+   * will throw a `FirestoreError`.
+   *
+   * To restart after shutdown, simply create a new instance of FirebaseFirestore with
+   * `firebase.firestore()`.
+   *
+   * Shutdown does not cancel any pending writes and any promises that are awaiting a response
+   * from the server will not be resolved. If you have persistence enabled, the next time you
+   * start this instance, it will resume attempting to send these writes to the server.
+   *
+   * Note: Under normal circumstances, calling `shutdown()` is not required. This
+   * method is useful only when you want to force this instance to release all of its resources or
+   * in combination with `clearPersistence()` to ensure that all local state is destroyed
+   * between test runs.
+   *
+   * @return A promise that is resolved when the instance has been successfully shut down.
+   */
+  // TODO(b/135755126): make this public.
+  _shutdown(): Promise<void> {
+    (this.app as _FirebaseApp)._removeServiceInstance('firestore');
+    return this.INTERNAL.delete();
+  }
+
+  get _isShutdown(): boolean {
+    this.ensureClientConfigured();
+    return this._firestoreClient!.clientShutdown;
   }
 
   ensureClientConfigured(): FirestoreClient {
