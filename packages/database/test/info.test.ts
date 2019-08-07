@@ -105,8 +105,6 @@ describe('.info Tests', function() {
     return ea.promise;
   });
 
-  // Skipping this test as it is expecting a server time diff from a
-  // local Firebase
   it('.info/serverTimeOffset', async function() {
     const ref = getRootNode() as Reference;
 
