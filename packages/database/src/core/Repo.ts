@@ -274,7 +274,7 @@ export class Repo {
   }
 
   private onServerInfoUpdate_(updates: Object) {
-    each(updates, (key: string, value: string) => {
+    each(updates, (key: string, value: any) => {
       this.updateInfo_(key, value);
     });
   }
