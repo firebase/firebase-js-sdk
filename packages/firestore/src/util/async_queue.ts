@@ -202,6 +202,9 @@ export class AsyncQueue {
   // assertion sanity-checks.
   private operationInProgress = false;
 
+  // List of TimerIds to fast-forward delays for.
+  private timerIdsToSkip: TimerId[] = [];
+
   /**
    * Adds a new operation to the queue without waiting for it to complete (i.e.
    * we ignore the Promise result).
@@ -274,6 +277,15 @@ export class AsyncQueue {
       op => this.removeDelayedOperation(op)
     );
     this.delayedOperations.push(delayedOp);
+
+    // Fast-forward delays for timerIds that have been overriden.
+    for (const timerIdToSkip of this.timerIdsToSkip) {
+      if (this.containsDelayedOperation(timerIdToSkip)) {
+        this.runDelayedOperationsEarly(timerIdToSkip)
+          .then(() => {})
+          .catch(() => 'obligatory catch');
+      }
+    }
 
     return delayedOp;
   }
@@ -350,6 +362,13 @@ export class AsyncQueue {
 
       return this.drain();
     });
+  }
+
+  /**
+   * For Tests: Skip all delays for a timer id.
+   */
+  skipDelaysForTimerId(timerId: TimerId): void {
+    this.timerIdsToSkip.push(timerId);
   }
 
   /** Called once a DelayedOperation is run or canceled. */

@@ -71,17 +71,6 @@ const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
-/**
- * Initial backoff time in milliseconds after an error.
- * Set to 1s according to https://cloud.google.com/apis/design/errors.
- */
-const BACKOFF_INITIAL_DELAY_MS = 1000;
-
-/** Maximum backoff time in milliseconds */
-const BACKOFF_MAX_DELAY_MS = 60 * 1000;
-
-const BACKOFF_FACTOR = 1.5;
-
 export class IndexedDbPersistenceSettings {
   constructor(
     readonly cacheSizeBytes: number,
@@ -628,10 +617,7 @@ export class FirestoreClient {
       .then(() => {
         const backoff = new ExponentialBackoff(
           this.asyncQueue,
-          TimerId.RetryTransaction,
-          BACKOFF_INITIAL_DELAY_MS,
-          BACKOFF_FACTOR,
-          BACKOFF_MAX_DELAY_MS
+          TimerId.RetryTransaction
         );
         return this.syncEngine.runTransaction(updateFunction, backoff);
       });

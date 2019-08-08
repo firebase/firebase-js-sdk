@@ -115,17 +115,6 @@ export interface PersistentStreamListener {
   onClose: (err?: FirestoreError) => Promise<void>;
 }
 
-/**
- * Initial backoff time in milliseconds after an error.
- * Set to 1s according to https://cloud.google.com/apis/design/errors.
- */
-const BACKOFF_INITIAL_DELAY_MS = 1000;
-
-/** Maximum backoff time in milliseconds */
-const BACKOFF_MAX_DELAY_MS = 60 * 1000;
-
-const BACKOFF_FACTOR = 1.5;
-
 /** The time a stream stays open after it is marked idle. */
 const IDLE_TIMEOUT_MS = 60 * 1000;
 
@@ -187,13 +176,7 @@ export abstract class PersistentStream<
     private credentialsProvider: CredentialsProvider,
     protected listener: ListenerType
   ) {
-    this.backoff = new ExponentialBackoff(
-      queue,
-      connectionTimerId,
-      BACKOFF_INITIAL_DELAY_MS,
-      BACKOFF_FACTOR,
-      BACKOFF_MAX_DELAY_MS
-    );
+    this.backoff = new ExponentialBackoff(queue, connectionTimerId);
   }
 
   /**
