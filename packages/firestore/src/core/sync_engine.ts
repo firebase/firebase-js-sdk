@@ -72,6 +72,7 @@ import {
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
 import { isPermanentError } from '../remote/rpc_error';
+import { ExponentialBackoff } from '../remote/backoff';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -352,10 +353,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * Takes an updateFunction in which a set of reads and writes can be performed
    * atomically. In the updateFunction, the client can read and write values
    * using the supplied transaction object. After the updateFunction, all
-   * changes will be committed. If some other client has changed any of the data
-   * referenced, then the updateFunction will be called again. If the
-   * updateFunction still fails after the given number of retries, then the
-   * transaction will be rejected.
+   * changes will be committed. If a retryable error occurs (ex: some other
+   * client has changed any of the data referenced), then the updateFunction
+   * will be called again after a backoff. If the updateFunction still fails
+   * after the given number of retries, then the transaction will be rejected.
    *
    * The transaction object passed to the updateFunction contains methods for
    * accessing documents and collections. Unlike other datastore access, data
@@ -367,30 +368,41 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   async runTransaction<T>(
     updateFunction: (transaction: Transaction) => Promise<T>,
+    backoff: ExponentialBackoff,
     retries = 5
   ): Promise<T> {
     assert(retries >= 0, 'Got negative number of retries for transaction.');
-    const transaction = this.remoteStore.createTransaction();
-    const userPromise = updateFunction(transaction);
-    if (
-      isNullOrUndefined(userPromise) ||
-      !userPromise.catch ||
-      !userPromise.then
-    ) {
-      return Promise.reject<T>(
-        Error('Transaction callback must return a Promise')
-      );
-    }
-    try {
-      const result = await userPromise;
-      await transaction.commit();
-      return result;
-    } catch (error) {
-      if (retries > 0 && this.isRetryableTransactionError(error)) {
-        return this.runTransaction(updateFunction, retries - 1);
+    let transactionError;
+    for (let i = 0; i < retries; i++) {
+      const backoffDeferred = new Deferred<void>();
+      backoff.backoffAndRun(async () => {
+        backoffDeferred.resolve();
+      });
+
+      try {
+        await backoffDeferred.promise;
+        const transaction = this.remoteStore.createTransaction();
+        const userPromise = updateFunction(transaction);
+        if (
+          isNullOrUndefined(userPromise) ||
+          !userPromise.catch ||
+          !userPromise.then
+        ) {
+          return Promise.reject<T>(
+            Error('Transaction callback must return a Promise')
+          );
+        }
+        const result = await userPromise;
+        await transaction.commit();
+        return result;
+      } catch (error) {
+        transactionError = error;
+        if (!this.isRetryableTransactionError(error)) {
+          break;
+        }
       }
-      return Promise.reject<T>(error);
     }
+    return Promise.reject<T>(transactionError);
   }
 
   async applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {

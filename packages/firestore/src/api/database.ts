@@ -307,9 +307,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // are already set to synchronize on the async queue.
   private _firestoreClient: FirestoreClient | undefined;
 
-  // Public for use in tests.
   // TODO(mikelehen): Use modularized initialization instead.
-  readonly _queue = new AsyncQueue();
+  private _queue = new AsyncQueue();
 
   _dataConverter: UserDataConverter;
 
@@ -454,6 +453,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this.configureClient(new MemoryPersistenceSettings());
     }
     return this._firestoreClient as FirestoreClient;
+  }
+
+  // Public for use in tests.
+  getQueue(): AsyncQueue {
+    return this._queue;
+  }
+
+  // Public for use in tests.
+  setQueue(newQueue: AsyncQueue): void {
+    this._queue = newQueue;
   }
 
   private makeDatabaseInfo(): DatabaseInfo {

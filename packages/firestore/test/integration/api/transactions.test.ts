@@ -20,9 +20,31 @@ import { expect } from 'chai';
 import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
+import { setAsyncQueue } from '../util/internal_helpers';
+import { AsyncQueue, TimerId } from '../../../src/util/async_queue';
+import { CancelablePromise } from '../../../src/util/promise';
+
+/**
+ * Version of the AsyncQueue that overrides `enqueueAfterDelay` to fast-forward
+ * the backoffs used in retrying transactions.
+ */
+class AsyncQueueWithoutTransactionBackoff extends AsyncQueue {
+  enqueueAfterDelay<T extends unknown>(
+    timerId: TimerId,
+    delayMs: number,
+    op: () => Promise<T>
+  ): CancelablePromise<T> {
+    const result = super.enqueueAfterDelay(timerId, delayMs, op);
+    if (this.containsDelayedOperation(TimerId.RetryTransaction)) {
+      this.runDelayedOperationsEarly(TimerId.RetryTransaction)
+        .then(() => {})
+        .catch(() => 'obligatory catch');
+    }
+    return result;
+  }
+}
 
 const apiDescribe = integrationHelpers.apiDescribe;
-
 apiDescribe('Database transactions', (persistence: boolean) => {
   type TransactionStage = (
     transaction: firestore.Transaction,
@@ -460,6 +482,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     let started = 0;
 
     return integrationHelpers.withTestDb(persistence, db => {
+      setAsyncQueue(db, new AsyncQueueWithoutTransactionBackoff());
       const doc = db.collection('counters').doc();
       return doc
         .set({
@@ -516,6 +539,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     let counter = 0;
 
     return integrationHelpers.withTestDb(persistence, db => {
+      setAsyncQueue(db, new AsyncQueueWithoutTransactionBackoff());
       const doc = db.collection('counters').doc();
       return doc
         .set({
@@ -654,6 +678,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
 
   it('handle reading a doc twice with different versions', () => {
     return integrationHelpers.withTestDb(persistence, db => {
+      setAsyncQueue(db, new AsyncQueueWithoutTransactionBackoff());
       const doc = db.collection('counters').doc();
       let counter = 0;
       return doc

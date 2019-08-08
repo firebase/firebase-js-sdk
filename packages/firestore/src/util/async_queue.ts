@@ -59,7 +59,10 @@ export enum TimerId {
   ClientMetadataRefresh = 'client_metadata_refresh',
 
   /** A timer used to periodically attempt LRU Garbage collection */
-  LruGarbageCollection = 'lru_garbage_collection'
+  LruGarbageCollection = 'lru_garbage_collection',
+
+  /** A timer used to retry transactions. */
+  RetryTransaction = 'retry_transaction'
 }
 
 /**
@@ -261,13 +264,6 @@ export class AsyncQueue {
     assert(
       delayMs >= 0,
       `Attempted to schedule an operation with a negative delay of ${delayMs}`
-    );
-
-    // While not necessarily harmful, we currently don't expect to have multiple
-    // ops with the same timer id in the queue, so defensively reject them.
-    assert(
-      !this.containsDelayedOperation(timerId),
-      `Attempted to schedule multiple operations with timer id ${timerId}.`
     );
 
     const delayedOp = DelayedOperation.createAndSchedule<unknown>(

@@ -33,7 +33,7 @@ import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { AsyncQueue } from '../util/async_queue';
+import { AsyncQueue, TimerId } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -62,6 +62,7 @@ import { Query } from './query';
 import { Transaction } from './transaction';
 import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
+import { ExponentialBackoff } from '../remote/backoff';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -69,6 +70,17 @@ const LOG_TAG = 'FirestoreClient';
 const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
+
+/**
+ * Initial backoff time in milliseconds after an error.
+ * Set to 1s according to https://cloud.google.com/apis/design/errors.
+ */
+const BACKOFF_INITIAL_DELAY_MS = 1000;
+
+/** Maximum backoff time in milliseconds */
+const BACKOFF_MAX_DELAY_MS = 60 * 1000;
+
+const BACKOFF_FACTOR = 1.5;
 
 export class IndexedDbPersistenceSettings {
   constructor(
@@ -613,6 +625,15 @@ export class FirestoreClient {
     // We have to wait for the async queue to be sure syncEngine is initialized.
     return this.asyncQueue
       .enqueue(async () => {})
-      .then(() => this.syncEngine.runTransaction(updateFunction));
+      .then(() => {
+        const backoff = new ExponentialBackoff(
+          this.asyncQueue,
+          TimerId.RetryTransaction,
+          BACKOFF_INITIAL_DELAY_MS,
+          BACKOFF_FACTOR,
+          BACKOFF_MAX_DELAY_MS
+        );
+        return this.syncEngine.runTransaction(updateFunction, backoff);
+      });
   }
 }

@@ -31,7 +31,15 @@ import { DEFAULT_PROJECT_ID, DEFAULT_SETTINGS } from './helpers';
 
 /** Helper to retrieve the AsyncQueue for a give FirebaseFirestore instance. */
 export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {
-  return (db as Firestore)._queue;
+  return (db as Firestore).getQueue();
+}
+
+/** Helper to override the AsyncQueue for a give FirebaseFirestore instance. */
+export function setAsyncQueue(
+  db: firestore.FirebaseFirestore,
+  newQueue: AsyncQueue
+): void {
+  (db as Firestore).setQueue(newQueue);
 }
 
 export function getDefaultDatabaseInfo(): DatabaseInfo {
