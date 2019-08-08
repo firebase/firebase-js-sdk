@@ -88,6 +88,15 @@ describe('Database Tests', function() {
     expect(db.ref().toString()).to.equal('https://bar.firebaseio.com/');
   });
 
+  it('Interprets FIREBASE_DATABASE_EMULATOR_HOST var correctly', function() {
+    process.env['FIREBASE_DATABASE_EMULATOR_HOST'] = "localhost:9000";
+    var db = defaultApp.database('https://bar.firebaseio.com');
+    expect(db).to.be.ok;
+    expect(db.repo_.repoInfo_.namespace).to.equal('bar');
+    expect(db.repo_.repoInfo_.host).to.equal('localhost:9000');
+    delete process.env['FIREBASE_DATABASE_EMULATOR_HOST'];
+  })
+
   it('Different instances for different URLs', function() {
     var db1 = defaultApp.database('http://foo1.bar.com');
     var db2 = defaultApp.database('http://foo2.bar.com');
