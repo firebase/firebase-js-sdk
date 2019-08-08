@@ -2,6 +2,7 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
+    "noImplicitThis": false,
     "strictBindCallApply": false,
     "strictPropertyInitialization": false
   },
