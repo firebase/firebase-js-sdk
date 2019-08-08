@@ -108,7 +108,6 @@ export class FirestoreClient {
   private lruScheduler?: LruScheduler;
 
   private readonly clientId = AutoId.newId();
-  private _clientShutdown = false;
 
   // PORTING NOTE: SharedClientState is only used for multi-tab web.
   private sharedClientState: SharedClientState;
@@ -311,7 +310,7 @@ export class FirestoreClient {
    * this class cannot be called after the client is shutdown.
    */
   private verifyNotShutdown(): void {
-    if (this._clientShutdown) {
+    if (this.asyncQueue.isShuttingDown) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'The client has already been shutdown.'
@@ -508,22 +507,19 @@ export class FirestoreClient {
   }
 
   shutdown(): Promise<void> {
-    return this.asyncQueue.enqueue(async () => {
-      if (!this._clientShutdown) {
-        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-        if (this.lruScheduler) {
-          this.lruScheduler.stop();
-        }
-        await this.remoteStore.shutdown();
-        await this.sharedClientState.shutdown();
-        await this.persistence.shutdown();
-
-        // `removeChangeListener` must be called after shutting down the
-        // RemoteStore as it will prevent the RemoteStore from retrieving
-        // auth tokens.
-        this.credentials.removeChangeListener();
-        this._clientShutdown = true;
+    return this.asyncQueue.enqueueAndInitiateShutdown(async () => {
+      // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
+      if (this.lruScheduler) {
+        this.lruScheduler.stop();
       }
+      await this.remoteStore.shutdown();
+      await this.sharedClientState.shutdown();
+      await this.persistence.shutdown();
+
+      // `removeChangeListener` must be called after shutting down the
+      // RemoteStore as it will prevent the RemoteStore from retrieving
+      // auth tokens.
+      this.credentials.removeChangeListener();
     });
   }
 
@@ -604,7 +600,10 @@ export class FirestoreClient {
   }
 
   get clientShutdown(): boolean {
-    return this._clientShutdown;
+    // Technically, the asyncQueue is still running, but only accepting operations
+    // related to shutdown or supposed to be run after shutdown. It is effectively
+    // shut down to the eyes of users.
+    return this.asyncQueue.isShuttingDown;
   }
 
   transaction<T>(
