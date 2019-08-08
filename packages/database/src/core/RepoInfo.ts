@@ -51,7 +51,11 @@ export class RepoInfo {
   }
 
   needsQueryParam(): boolean {
-    return this.host !== this.internalHost || this.isCustomHost() || this.withQueryParam;
+    return (
+      this.host !== this.internalHost ||
+      this.isCustomHost() ||
+      this.withQueryParam
+    );
   }
 
   isCacheableHost(): boolean {

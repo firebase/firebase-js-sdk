@@ -103,7 +103,7 @@ export const parseRepoInfo = function(
       namespace,
       webSocketOnly,
       '',
-      parsedUrl.namespace != parsedUrl.subdomain,
+      parsedUrl.namespace != parsedUrl.subdomain
     ),
     path: new Path(parsedUrl.pathString)
   };
