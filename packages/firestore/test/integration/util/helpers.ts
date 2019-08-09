@@ -89,15 +89,11 @@ export function isRunningAgainstEmulator(): boolean {
 }
 
 /**
- * A wrapper around Jasmine's describe method that allows for it to be run with
+ * A wrapper around Mocha's describe method that allows for it to be run with
  * persistence both disabled and enabled (if the browser is supported).
  */
-export const apiDescribe = apiDescribeInternal.bind(null, describe);
-apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
-apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
-
 function apiDescribeInternal(
-  describeFn: Mocha.IContextDefinition,
+  describeFn: Mocha.PendingSuiteFunction,
   message: string,
   testSuite: (persistence: boolean) => void
 ): void {
@@ -110,6 +106,23 @@ function apiDescribeInternal(
     describeFn(`(Persistence=${enabled}) ${message}`, () => testSuite(enabled));
   }
 }
+
+type ApiSuiteFunction = (
+  message: string,
+  testSuite: (persistence: boolean) => void
+) => void;
+interface ApiDescribe {
+  (message: string, testSuite: (persistence: boolean) => void): void;
+  skip: ApiSuiteFunction;
+  only: ApiSuiteFunction;
+}
+
+export const apiDescribe = apiDescribeInternal.bind(
+  null,
+  describe
+) as ApiDescribe;
+apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
+apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
 
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(

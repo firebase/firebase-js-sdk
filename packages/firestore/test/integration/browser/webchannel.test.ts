@@ -42,7 +42,7 @@ describeFn('WebChannel', () => {
     const makeUrl = conn.makeUrl.bind(conn);
 
     it('includes project ID and database ID', () => {
-      const url = makeUrl('Commit', {});
+      const url = makeUrl('Commit');
       expect(url).to.equal(
         'http://example.com/v1/projects/testproject/' +
           'databases/(default)/documents:commit'
