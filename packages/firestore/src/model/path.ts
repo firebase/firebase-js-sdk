@@ -23,29 +23,12 @@ export const DOCUMENT_KEY_NAME = '__name__';
 /**
  * Path represents an ordered sequence of string segments.
  */
-abstract class Path {
+abstract class BasePath<B extends BasePath<B>> {
   private segments: string[];
   private offset: number;
   private len: number;
 
   constructor(segments: string[], offset?: number, length?: number) {
-    this.init(segments, offset, length);
-  }
-
-  /**
-   * Returns a String representation.
-   *
-   * Implementing classes are required to provide deterministic implementations as
-   * the String representation is used to obtain canonical Query IDs.
-   */
-  abstract toString(): string;
-
-  /**
-   * An initialization method that can be called from outside the constructor.
-   * We need this so that we can have a non-static construct method that returns
-   * the polymorphic `this` type.
-   */
-  private init(segments: string[], offset?: number, length?: number): void {
     if (offset === undefined) {
       offset = 0;
     } else if (offset > segments.length) {
@@ -63,31 +46,34 @@ abstract class Path {
   }
 
   /**
-   * Constructs a new instance of Path using the same concrete type as `this`.
-   * We need this instead of using the normal constructor, because polymorphic
-   * `this` doesn't work on static methods.
+   * Abstract constructor method to construct an instance of B with the given
+   * parameters.
    */
-  private construct(
+  protected abstract construct(
     segments: string[],
     offset?: number,
     length?: number
-  ): this {
-    const path: this = Object.create(Object.getPrototypeOf(this));
-    path.init(segments, offset, length);
-    return path;
-  }
+  ): B;
+
+  /**
+   * Returns a String representation.
+   *
+   * Implementing classes are required to provide deterministic implementations as
+   * the String representation is used to obtain canonical Query IDs.
+   */
+  abstract toString(): string;
 
   get length(): number {
     return this.len;
   }
 
-  isEqual(other: Path): boolean {
-    return Path.comparator(this, other) === 0;
+  isEqual(other: this): boolean {
+    return BasePath.comparator(this, other) === 0;
   }
 
-  child(nameOrPath: string | this): this {
+  child(nameOrPath: string | this): B {
     const segments = this.segments.slice(this.offset, this.limit());
-    if (nameOrPath instanceof Path) {
+    if (nameOrPath instanceof BasePath) {
       nameOrPath.forEach(segment => {
         segments.push(segment);
       });
@@ -104,7 +90,7 @@ abstract class Path {
     return this.offset + this.length;
   }
 
-  popFirst(size?: number): this {
+  popFirst(size?: number): B {
     size = size === undefined ? 1 : size;
     assert(this.length >= size, "Can't call popFirst() with less segments");
     return this.construct(
@@ -114,7 +100,7 @@ abstract class Path {
     );
   }
 
-  popLast(): this {
+  popLast(): B {
     assert(!this.isEmpty(), "Can't call popLast() on empty path");
     return this.construct(this.segments, this.offset, this.length - 1);
   }
@@ -175,7 +161,10 @@ abstract class Path {
     return this.segments.slice(this.offset, this.limit());
   }
 
-  static comparator(p1: Path, p2: Path): number {
+  static comparator<T extends BasePath<T>>(
+    p1: BasePath<T>,
+    p2: BasePath<T>
+  ): number {
     const len = Math.min(p1.length, p2.length);
     for (let i = 0; i < len; i++) {
       const left = p1.get(i);
@@ -201,7 +190,15 @@ abstract class Path {
  * A slash-separated path for navigating resources (documents and collections)
  * within Firestore.
  */
-export class ResourcePath extends Path {
+export class ResourcePath extends BasePath<ResourcePath> {
+  protected construct(
+    segments: string[],
+    offset?: number,
+    length?: number
+  ): ResourcePath {
+    return new ResourcePath(segments, offset, length);
+  }
+
   canonicalString(): string {
     // NOTE: The client is ignorant of any path segments containing escape
     // sequences (e.g. __id123__) and just passes them through raw (they exist
@@ -242,7 +239,15 @@ export class ResourcePath extends Path {
 const identifierRegExp = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 
 /** A dot-separated path for navigating sub-objects within a document. */
-export class FieldPath extends Path {
+export class FieldPath extends BasePath<FieldPath> {
+  protected construct(
+    segments: string[],
+    offset?: number,
+    length?: number
+  ): FieldPath {
+    return new FieldPath(segments, offset, length);
+  }
+
   /**
    * Returns true if the string could be used as a segment in a field path
    * without escaping.
