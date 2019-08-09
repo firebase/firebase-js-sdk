@@ -236,23 +236,28 @@ export class IndexedDbPersistence implements Persistence {
   private readonly document: Document | null;
   private readonly window: Window;
 
-  private simpleDb: SimpleDb;
+  // Technically these types should be `| undefined` because they are
+  // initialized asynchronously by start(), but that would be more misleading
+  // than useful.
+  private simpleDb!: SimpleDb;
+  private listenSequence!: ListenSequence;
+
   private _started = false;
   private isPrimary = false;
   private networkEnabled = true;
   private dbName: string;
 
   /** Our window.unload handler, if registered. */
-  private windowUnloadHandler: (() => void) | null;
+  private windowUnloadHandler: (() => void) | null = null;
   private inForeground = false;
 
   private serializer: LocalSerializer;
 
   /** Our 'visibilitychange' listener if registered. */
-  private documentVisibilityHandler: ((e?: Event) => void) | null;
+  private documentVisibilityHandler: ((e?: Event) => void) | null = null;
 
   /** The client metadata refresh task. */
-  private clientMetadataRefresher: CancelablePromise<void>;
+  private clientMetadataRefresher: CancelablePromise<void> | null = null;
 
   /** The last time we garbage collected the Remote Document Changelog. */
   private lastGarbageCollectionTime = Number.NEGATIVE_INFINITY;
@@ -267,7 +272,6 @@ export class IndexedDbPersistence implements Persistence {
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage;
-  private listenSequence: ListenSequence;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
   // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
@@ -692,6 +696,7 @@ export class IndexedDbPersistence implements Persistence {
     this.markClientZombied();
     if (this.clientMetadataRefresher) {
       this.clientMetadataRefresher.cancel();
+      this.clientMetadataRefresher = null;
     }
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
@@ -1131,7 +1136,7 @@ function clientMetadataStore(
 
 /** Provides LRU functionality for IndexedDB persistence. */
 export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
-  private inMemoryPins: ReferenceSet | null;
+  private inMemoryPins: ReferenceSet | null = null;
 
   readonly garbageCollector: LruGarbageCollector;
 
