@@ -305,7 +305,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // TODO(mikelehen): Use modularized initialization instead.
   readonly _queue = new AsyncQueue();
 
-  _dataConverter: UserDataConverter;
+  readonly _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
@@ -332,6 +332,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     this._settings = new FirestoreSettings({});
+    this._dataConverter = Firestore.makeDataConverter(this._databaseId);
   }
 
   settings(settingsLiteral: firestore.Settings): void {
@@ -495,9 +496,20 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     const databaseInfo = this.makeDatabaseInfo();
 
+    this._firestoreClient = new FirestoreClient(
+      PlatformSupport.getPlatform(),
+      databaseInfo,
+      this._credentials,
+      this._queue
+    );
+
+    return this._firestoreClient.start(persistenceSettings);
+  }
+
+  private static makeDataConverter(databaseId: DatabaseId): UserDataConverter {
     const preConverter = (value: unknown): unknown => {
       if (value instanceof DocumentReference) {
-        const thisDb = this._databaseId;
+        const thisDb = databaseId;
         const otherDb = value.firestore._databaseId;
         if (!otherDb.isEqual(thisDb)) {
           throw new FirestoreError(
@@ -507,21 +519,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
               `for database ${thisDb.projectId}/${thisDb.database}`
           );
         }
-        return new DocumentKeyReference(this._databaseId, value._key);
+        return new DocumentKeyReference(databaseId, value._key);
       } else {
         return value;
       }
     };
-    this._dataConverter = new UserDataConverter(preConverter);
-
-    this._firestoreClient = new FirestoreClient(
-      PlatformSupport.getPlatform(),
-      databaseInfo,
-      this._credentials,
-      this._queue
-    );
-
-    return this._firestoreClient.start(persistenceSettings);
+    return new UserDataConverter(preConverter);
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
