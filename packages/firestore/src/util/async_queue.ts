@@ -331,7 +331,8 @@ export class AsyncQueue {
       timerId,
       delayMs,
       op,
-      op => this.removeDelayedOperation(op as DelayedOperation<unknown>)
+      removedOp =>
+        this.removeDelayedOperation(removedOp as DelayedOperation<unknown>)
     );
     this.delayedOperations.push(delayedOp as DelayedOperation<unknown>);
 
