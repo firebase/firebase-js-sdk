@@ -942,8 +942,8 @@ function genericLruGarbageCollectorTests(
     await initializeTestResources(LruParams.withCacheSize(100));
     expect(persistence.started).to.be.true;
 
-    // Add 50 targets and 5 documents to each.
-    for (let i = 0; i < 50; i++) {
+    // Add 20 targets and 5 documents to each.
+    for (let i = 0; i < 20; i++) {
       // Use separate transactions so that each target and associated documents get their own
       // sequence number.
       await persistence.runTransaction(
@@ -986,8 +986,8 @@ function genericLruGarbageCollectorTests(
       txn => garbageCollector.collect(txn, {})
     );
     expect(results.didRun).to.be.true;
-    expect(results.targetsRemoved).to.equal(5);
-    expect(results.documentsRemoved).to.equal(25);
+    expect(results.targetsRemoved).to.equal(2);
+    expect(results.documentsRemoved).to.equal(10);
 
     // Verify that we updated the cache size by checking that it's smaller now.
     const finalCacheSize = await persistence.runTransaction(
