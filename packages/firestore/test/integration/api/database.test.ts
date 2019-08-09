@@ -31,11 +31,13 @@ import {
   apiDescribe,
   arrayContainsAnyOp,
   inOp,
+  shutdownDb,
   withTestCollection,
   withTestDb,
   withTestDbs,
   withTestDoc,
-  withTestDocAndInitialData
+  withTestDocAndInitialData,
+  DEFAULT_SETTINGS
 } from '../util/helpers';
 
 // tslint:disable:no-floating-promises
@@ -1066,6 +1068,56 @@ apiDescribe('Database', (persistence: boolean) => {
       await db.disableNetwork();
       await db.disableNetwork();
       await db.enableNetwork();
+    });
+  });
+
+  it('can start a new instance after shut down', async () => {
+    return withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await shutdownDb(firestore);
+
+      const newFirestore = firebase.firestore!(firestore.app);
+      expect(newFirestore).to.not.equal(firestore);
+
+      // New instance functions.
+      newFirestore.settings(DEFAULT_SETTINGS);
+      await newFirestore.doc(docRef.path).set({ foo: 'bar' });
+      const doc = await newFirestore.doc(docRef.path).get();
+      expect(doc.data()).to.deep.equal({ foo: 'bar' });
+    });
+  });
+
+  it('app delete leads to instance shutdown', async () => {
+    await withTestDoc(persistence, async docRef => {
+      await docRef.set({ foo: 'bar' });
+      const app = docRef.firestore.app;
+      await app.delete();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((docRef.firestore as any)._isShutdown).to.be.true;
+    });
+  });
+
+  it('new operation after shutdown should throw', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await shutdownDb(firestore);
+
+      expect(() => {
+        firestore.doc(docRef.path).set({ foo: 'bar' });
+      }).to.throw();
+    });
+  });
+
+  it('calling shutdown mutiple times should proceed', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await shutdownDb(firestore);
+      await shutdownDb(firestore);
+
+      expect(() => {
+        firestore.doc(docRef.path).set({ foo: 'bar' });
+      }).to.throw();
     });
   });
 });

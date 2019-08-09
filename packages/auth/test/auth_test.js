@@ -6959,6 +6959,155 @@ function testAuth_getRedirectResult_unsupportedEnvironment() {
 }
 
 
+function testAuth_signOut_clearSuccessRedirectResult() {
+  // Tests getRedirectResult with success event after signOut being called.
+  fireauth.AuthEventManager.ENABLED = true;
+  const expectedCred = fireauth.GoogleAuthProvider.credential(
+      null, 'ACCESS_TOKEN');
+  // Expected sign in via redirect successful Auth event.
+  const expectedAuthEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
+      null,
+      'http://www.example.com/#response',
+      'SESSION_ID');
+  // Stub instantiateOAuthSignInHandler.
+  stubs.replace(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler',
+      function(authDomain, apiKey, appName) {
+        return {
+          'addAuthEventListener': function(handler) {
+            // auth1 should be subscribed.
+            const manager = fireauth.AuthEventManager.getManager(
+                config3['authDomain'], config3['apiKey'], app1.name);
+            assertTrue(manager.isSubscribed(auth1));
+            // In this case run immediately with expected redirect event.
+            handler(expectedAuthEvent);
+            asyncTestCase.signal();
+          },
+          'initializeAndWait': function() { return goog.Promise.resolve(); },
+          'shouldBeInitializedEarly': function() { return false; },
+          'hasVolatileStorage': function() { return false; }
+        };
+      });
+  // Simulate successful finishPopupAndRedirectSignIn.
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'finishPopupAndRedirectSignIn',
+      function(requestUri, sessionId, postBody) {
+        assertEquals('http://www.example.com/#response', requestUri);
+        assertEquals('SESSION_ID', sessionId);
+        assertNull(postBody);
+        user1 = new fireauth.AuthUser(
+            config3, expectedTokenResponse, accountInfo);
+        expectedPopupResult = {
+          'user': user1,
+          'credential': expectedCred,
+          'additionalUserInfo': expectedAdditionalUserInfo,
+          'operationType': fireauth.constants.OperationType.SIGN_IN
+        };
+        // User 1 should be set here and saved to storage.
+        auth1.setCurrentUser_(user1);
+        asyncTestCase.signal();
+        return currentUserStorageManager.setCurrentUser(user1).then(() => {
+          return expectedPopupResult;
+        });
+      });
+  let user1, expectedPopupResult;
+  asyncTestCase.waitForSignals(3);
+  const pendingRedirectManager = new fireauth.storage.PendingRedirectManager(
+      config3['apiKey'] + ':' + appId1);
+  currentUserStorageManager = new fireauth.storage.UserManager(
+      config3['apiKey'] + ':' + appId1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  pendingRedirectManager.setPendingStatus().then(() => {
+    // Verify that the redirect result is resolved before signing out.
+    const manager = fireauth.AuthEventManager.getManager(
+        config3['authDomain'], config3['apiKey'], app1.name);
+    return manager.getRedirectResult().then((result) => {
+      // Expected result returned.
+      assertObjectEquals(expectedPopupResult, result);
+      return auth1.signOut();
+    }).then(() => {
+      // signOut should clear the cached redirect result.
+      return auth1.getRedirectResult();
+    }).then((resultAfterClearing) => {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
+      asyncTestCase.signal();
+    });
+  });
+}
+
+
+function testAuth_signOut_clearErrorRedirectResult() {
+  // Tests getRedirectResult with error event after signOut being called.
+  fireauth.AuthEventManager.ENABLED = true;
+  // The expected error.
+  const expectedError =
+      new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR);
+  // Expected sign in via redirect error Auth event.
+  const expectedAuthEvent = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
+      null,
+      null,
+      null,
+      expectedError);
+  // Stub instantiateOAuthSignInHandler.
+  stubs.replace(
+      fireauth.AuthEventManager, 'instantiateOAuthSignInHandler',
+      function(authDomain, apiKey, appName) {
+        return {
+          'addAuthEventListener': function(handler) {
+            // auth1 should be subscribed.
+            const manager = fireauth.AuthEventManager.getManager(
+                config3['authDomain'], config3['apiKey'], app1.name);
+            assertTrue(manager.isSubscribed(auth1));
+            // In this case run immediately with expected redirect event.
+            handler(expectedAuthEvent);
+            asyncTestCase.signal();
+          },
+          'initializeAndWait': function() { return goog.Promise.resolve(); },
+          'shouldBeInitializedEarly': function() { return false; },
+          'hasVolatileStorage': function() { return false; }
+        };
+      });
+  stubs.replace(
+      fireauth.Auth.prototype,
+      'finishPopupAndRedirectSignIn',
+      function(requestUri, sessionId, postBody) {
+        fail('finishPopupAndRedirectSignIn should not run on event error!');
+      });
+  asyncTestCase.waitForSignals(2);
+  const pendingRedirectManager = new fireauth.storage.PendingRedirectManager(
+      config3['apiKey'] + ':' + appId1);
+  currentUserStorageManager = new fireauth.storage.UserManager(
+      config3['apiKey'] + ':' + appId1);
+  app1 = firebase.initializeApp(config3, appId1);
+  auth1 = app1.auth();
+  pendingRedirectManager.setPendingStatus().then(() => {
+    // Verify that the redirect result is rejected with error before
+    // signing out.
+    const manager = fireauth.AuthEventManager.getManager(
+        config3['authDomain'], config3['apiKey'], app1.name);
+    return manager.getRedirectResult().thenCatch((error) => {
+      // Expected error returned.
+      fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+      return auth1.signOut();
+    }).then(() => {
+      // signOut should clear the error in cached redirect result.
+      return auth1.getRedirectResult();
+    }).then((resultAfterClearing) => {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
+      asyncTestCase.signal();
+    });
+  }).thenCatch((error) => {
+    fail('Redirect result should be cleared by signOut.');
+  }) ;
+}
+
+
 function testAuth_returnFromSignInWithRedirect_success_withoutPostBody() {
   // Tests the return from a successful sign in with redirect.
   fireauth.AuthEventManager.ENABLED = true;
@@ -7025,6 +7174,11 @@ function testAuth_returnFromSignInWithRedirect_success_withoutPostBody() {
     auth1.getRedirectResult().then(function(result) {
       // Expected result returned.
       assertObjectEquals(expectedPopupResult, result);
+      // Redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(resultAfterClearing) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
       asyncTestCase.signal();
     });
   });
@@ -7114,6 +7268,11 @@ function testAuth_returnFromSignInWithRedirect_success_withPostBody() {
     auth1.getRedirectResult().then(function(result) {
       // Expected result returned.
       assertObjectEquals(expectedPopupResult, result);
+      // Redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(resultAfterClearing) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
       asyncTestCase.signal();
     });
   });
@@ -7226,6 +7385,11 @@ function testAuth_returnFromSignInWithRedirect_withExistingUser() {
       // Newly signed in user.
       assertEquals(user1, auth1['currentUser']);
       assertObjectEquals(expectedPopupResult, result);
+      // Redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(resultAfterClearing) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
       asyncTestCase.signal();
     });
     // State listener should fire once only with the final redirected user.
@@ -7296,7 +7460,14 @@ function testAuth_returnFromSignInWithRedirect_error() {
     // Get redirect result should return the expected error.
     auth1.getRedirectResult().thenCatch(function(error) {
       fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+      // Error in redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(resultAfterClearing) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
       asyncTestCase.signal();
+    }).thenCatch(function(error) {
+      fail('Error in event should only be thrown once.');
     });
   });
   // State listener should fire once only with null user.
@@ -7365,6 +7536,12 @@ function testAuth_returnFromSignInWithRedirect_error_webStorageNotSupported() {
   pendingRedirectManager.setPendingStatus().then(function() {
     // Get redirect result should return the expected error.
     auth1.getRedirectResult().thenCatch(function(error) {
+      fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+      // Errors not being tied to a sign-in session should not be cleared.
+      return auth1.getRedirectResult();
+    }).then(function(result) {
+      fail('Errors not being tied to a sign-in session should not be cleared.');
+    }).thenCatch(function(error) {
       fireauth.common.testHelper.assertErrorEquals(expectedError, error);
       asyncTestCase.signal();
     });
@@ -7535,6 +7712,11 @@ function testAuth_returnFromLinkWithRedirect_success_withoutPostBody() {
     // Get redirect result should resolve with expected user and credential.
     auth1.getRedirectResult().then(function(result) {
       assertObjectEquals(expectedPopupResult, result);
+      // Redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(resultAfterClearing) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
       asyncTestCase.signal();
     });
     // Should fire once only with the final redirected user.
@@ -7636,6 +7818,11 @@ function testAuth_returnFromLinkWithRedirect_success_withPostBody() {
     // Get redirect result should resolve with expected user and credential.
     auth1.getRedirectResult().then(function(result) {
       assertObjectEquals(expectedPopupResult, result);
+      // Redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(resultAfterClearing) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
       asyncTestCase.signal();
     });
     // Should fire once only with the final redirected user.
@@ -7779,6 +7966,11 @@ function testAuth_returnFromLinkWithRedirect_redirectedLoggedOutUser_success() {
       assertEquals('fr', result.user.getLanguageCode());
       auth1.languageCode = 'de';
       assertEquals('de', result.user.getLanguageCode());
+      // Redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(resultAfterClearing) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
       asyncTestCase.signal();
     });
     // Should fire once only with the original user.
@@ -7889,6 +8081,11 @@ function testAuth_redirectedLoggedOutUser_differentAuthDomain() {
         assertEquals('fr', result.user.getLanguageCode());
         auth1.languageCode = 'de';
         assertEquals('de', result.user.getLanguageCode());
+        // Redirect result should be cleared after being returned once.
+        return auth1.getRedirectResult();
+      }).then(function(resultAfterClearing) {
+        fireauth.common.testHelper.assertUserCredentialResponse(
+            null, null, null, undefined, resultAfterClearing);
         asyncTestCase.signal();
       });
       // Should fire once only with null user.
@@ -8014,6 +8211,11 @@ function testAuth_returnFromLinkWithRedirect_noCurrentUser_redirectUser() {
       assertEquals('fr', result.user.getLanguageCode());
       auth1.languageCode = 'de';
       assertEquals('de', result.user.getLanguageCode());
+      // Redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(resultAfterClearing) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
       asyncTestCase.signal();
     });
     // Should fire once only with null user.
@@ -8217,6 +8419,11 @@ function testAuth_returnFromLinkWithRedirect_redirectedLoggedInUser_success() {
           // operationType not implemented yet.
           fireauth.constants.OperationType.SIGN_IN,
           result);
+      // Redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(resultAfterClearing) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
       asyncTestCase.signal();
     });
     // Should fire once only with redirected user.
@@ -8402,7 +8609,14 @@ function testAuth_returnFromLinkWithRedirect_error() {
     // Get redirect result should contain an error.
     auth1.getRedirectResult().thenCatch(function(error) {
       fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+      // Error in redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(resultAfterClearing) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, resultAfterClearing);
       asyncTestCase.signal();
+    }).thenCatch(function(error) {
+      fail('Error in event should only be thrown once.');
     });
     // Should fire once only with original user1.
     var idTokenChangeCounter = 0;

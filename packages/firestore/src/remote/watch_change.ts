@@ -29,6 +29,7 @@ import { DocumentKey } from '../model/document_key';
 import { emptyByteString } from '../platform/platform';
 import { assert, fail } from '../util/assert';
 import { FirestoreError } from '../util/error';
+import { debug } from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { SortedMap } from '../util/sorted_map';
@@ -252,6 +253,8 @@ export interface TargetMetadataProvider {
    */
   getQueryDataForTarget(targetId: TargetId): QueryData | null;
 }
+
+const LOG_TAG = 'WatchChangeAggregator';
 
 /**
  * A helper class to accumulate watch changes into a RemoteEvent.
@@ -617,7 +620,11 @@ export class WatchChangeAggregator {
    * from watch.
    */
   protected isActiveTarget(targetId: TargetId): boolean {
-    return this.queryDataForActiveTarget(targetId) !== null;
+    const targetActive = this.queryDataForActiveTarget(targetId) !== null;
+    if (!targetActive) {
+      debug(LOG_TAG, 'Detected inactive target', targetId);
+    }
+    return targetActive;
   }
 
   /**

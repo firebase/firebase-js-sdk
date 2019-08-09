@@ -29,7 +29,7 @@ Please see [Environment Support](https://firebase.google.com/support/guides/envi
 #### Node.js
 
 Before you can start working on the Firebase JS SDK, you need to have Node.js
-installed on your machine. The currently supported versions are `8.0.0` or greater.
+installed on your machine. The currently supported versions are `8.13.0` or greater.
 
 To download Node.js visit https://nodejs.org/en/download/.
 

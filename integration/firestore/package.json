@@ -24,7 +24,7 @@
     "mocha": "6.2.0",
     "ts-loader": "6.0.4",
     "typescript": "3.5.3",
-    "webpack": "4.38.0",
+    "webpack": "4.39.1",
     "webpack-stream": "5.2.1"
   }
 }
