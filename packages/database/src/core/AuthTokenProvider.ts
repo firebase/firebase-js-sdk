@@ -40,15 +40,8 @@ export interface AuthTokenProvider {
  * Abstraction around FirebaseApp's token fetching capabilities.
  */
 export class FirebaseAuthTokenProvider implements AuthTokenProvider {
-  /**
-   * @param {!FirebaseApp} app_
-   */
   constructor(private app_: FirebaseApp) {}
 
-  /**
-   * @param {boolean} forceRefresh
-   * @return {!Promise<FirebaseAuthTokenData>}
-   */
   getToken(forceRefresh: boolean): Promise<FirebaseAuthTokenData> {
     return this.app_['INTERNAL']['getToken'](forceRefresh).then(
       null,
