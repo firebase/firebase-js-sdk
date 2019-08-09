@@ -89,8 +89,8 @@ export class RepoManager {
       );
     }
 
-    const parsedUrl = parseRepoInfo(dbUrl);
-    const repoInfo = parsedUrl.repoInfo;
+    let parsedUrl = parseRepoInfo(dbUrl);
+    let repoInfo = parsedUrl.repoInfo;
 
     let dbEmulatorHost: string | undefined = undefined;
     if (typeof process !== 'undefined') {
@@ -98,6 +98,8 @@ export class RepoManager {
     }
     if (dbEmulatorHost) {
       dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
+      parsedUrl = parseRepoInfo(dbUrl);
+      repoInfo = parsedUrl.repoInfo;
     }
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
