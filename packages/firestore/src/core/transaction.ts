@@ -40,7 +40,7 @@ export class Transaction {
    * A deferred usage error that occurred previously in this transaction that
    * will cause the transaction to fail once it actually commits.
    */
-  private lastWriteError: FirestoreError;
+  private lastWriteError: FirestoreError | null = null;
 
   /**
    * Set of documents that have been written in the transaction.

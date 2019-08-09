@@ -134,7 +134,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   private tokenListener: ((token: string | null) => void) | null = null;
 
   /** Tracks the current User. */
-  private currentUser: User;
+  private currentUser: User = User.UNAUTHENTICATED;
 
   /**
    * Counter used to detect if the token changed while a getToken request was
