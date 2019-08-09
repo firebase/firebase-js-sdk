@@ -326,14 +326,14 @@ export class AsyncQueue {
       `Attempted to schedule multiple operations with timer id ${timerId}.`
     );
 
-    const delayedOp = DelayedOperation.createAndSchedule<unknown>(
+    const delayedOp = DelayedOperation.createAndSchedule<T>(
       this,
       timerId,
       delayMs,
       op,
-      op => this.removeDelayedOperation(op)
+      op => this.removeDelayedOperation(op as DelayedOperation<unknown>)
     );
-    this.delayedOperations.push(delayedOp);
+    this.delayedOperations.push(delayedOp as DelayedOperation<unknown>);
 
     return delayedOp;
   }

@@ -224,10 +224,18 @@ export class PersistencePromise<T> {
    * to resolve.
    */
   static forEach<R, S>(
-    collection: { forEach: (cb: (r: R, s?: S) => void) => void },
+    collection: { forEach: (cb: (r: R, s: S) => void) => void },
     f:
       | ((r: R, s: S) => PersistencePromise<void>)
       | ((r: R) => PersistencePromise<void>)
+  ): PersistencePromise<void>;
+  static forEach<R>(
+    collection: { forEach: (cb: (r: R) => void) => void },
+    f: (r: R) => PersistencePromise<void>
+  ): PersistencePromise<void>;
+  static forEach<R, S>(
+    collection: { forEach: (cb: (r: R, s?: S) => void) => void },
+    f: (r: R, s?: S) => PersistencePromise<void>
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
     collection.forEach((r, s) => {

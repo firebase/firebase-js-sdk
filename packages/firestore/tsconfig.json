@@ -2,7 +2,6 @@
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
     "outDir": "dist",
-    "strictBindCallApply": false,
     "strictPropertyInitialization": false
   },
   "exclude": [
