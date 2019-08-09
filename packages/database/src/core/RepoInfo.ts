@@ -43,7 +43,7 @@ export class RepoInfo {
     public namespace: string,
     public webSocketOnly: boolean,
     public persistenceKey: string = '',
-    private withQueryParam: boolean = false
+    public includeNamespaceInQueryParams: boolean = false
   ) {
     this.host = host.toLowerCase();
     this.domain = this.host.substr(this.host.indexOf('.') + 1);
@@ -54,7 +54,7 @@ export class RepoInfo {
     return (
       this.host !== this.internalHost ||
       this.isCustomHost() ||
-      this.withQueryParam
+      this.includeNamespaceInQueryParams
     );
   }
 
