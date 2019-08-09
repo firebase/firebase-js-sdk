@@ -526,11 +526,21 @@ export class LLRBNode<K, V> {
 
 // Represents an empty node (a leaf node in the Red-Black Tree).
 export class LLRBEmptyNode<K, V> {
-  key: K;
-  value: V;
-  color: boolean;
-  left: LLRBNode<K, V>;
-  right: LLRBNode<K, V>;
+  get key(): K {
+    throw fail('LLRBEmptyNode has no key.');
+  }
+  get value(): V {
+    throw fail('LLRBEmptyNode has no value.');
+  }
+  get color(): boolean {
+    throw fail('LLRBEmptyNode has no color.');
+  }
+  get left(): LLRBEmptyNode<K, V> {
+    throw fail('LLRBEmptyNode has no left child.');
+  }
+  get right(): LLRBEmptyNode<K, V> {
+    throw fail('LLRBEmptyNode has no right child.');
+  }
   size = 0;
 
   // Returns a copy of the current node.
