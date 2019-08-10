@@ -607,17 +607,29 @@ export class FirestoreClient {
   }
 
   transaction<T>(
-    updateFunction: (transaction: Transaction) => Promise<T>
+    updateFunction: (transaction: Transaction) => Promise<T>,
+    skipTransactionBackoffs: boolean = false
   ): Promise<T> {
     this.verifyNotShutdown();
     // We have to wait for the async queue to be sure syncEngine is initialized.
     return this.asyncQueue
       .enqueue(async () => {})
       .then(() => {
-        const backoff = new ExponentialBackoff(
-          this.asyncQueue,
-          TimerId.RetryTransaction
-        );
+        let backoff;
+        if (skipTransactionBackoffs) {
+          backoff = new ExponentialBackoff(
+            this.asyncQueue,
+            TimerId.RetryTransaction,
+            1,
+            2,
+            10
+          );
+        } else {
+          backoff = new ExponentialBackoff(
+            this.asyncQueue,
+            TimerId.RetryTransaction
+          );
+        }
         return this.syncEngine.runTransaction(updateFunction, backoff);
       });
   }

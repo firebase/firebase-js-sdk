@@ -34,6 +34,12 @@ export function asyncQueue(db: firestore.FirebaseFirestore): AsyncQueue {
   return (db as Firestore)._queue;
 }
 
+export function removeTransactionBackoffs(
+  db: firestore.FirebaseFirestore
+): void {
+  (db as Firestore).removeTransactionBackoffs();
+}
+
 export function getDefaultDatabaseInfo(): DatabaseInfo {
   return new DatabaseInfo(
     new DatabaseId(DEFAULT_PROJECT_ID),

@@ -20,8 +20,7 @@ import { expect } from 'chai';
 import { Deferred } from '../../util/promise';
 import firebase from '../util/firebase_export';
 import * as integrationHelpers from '../util/helpers';
-import { asyncQueue } from '../util/internal_helpers';
-import { TimerId } from '../../../src/util/async_queue';
+import { removeTransactionBackoffs } from '../util/internal_helpers';
 
 const apiDescribe = integrationHelpers.apiDescribe;
 apiDescribe('Database transactions', (persistence: boolean) => {
@@ -461,7 +460,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     let started = 0;
 
     return integrationHelpers.withTestDb(persistence, db => {
-      asyncQueue(db).skipDelaysForTimerId(TimerId.RetryTransaction);
+      removeTransactionBackoffs(db);
       const doc = db.collection('counters').doc();
       return doc
         .set({
@@ -518,7 +517,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
     let counter = 0;
 
     return integrationHelpers.withTestDb(persistence, db => {
-      asyncQueue(db).skipDelaysForTimerId(TimerId.RetryTransaction);
+      removeTransactionBackoffs(db);
       const doc = db.collection('counters').doc();
       return doc
         .set({
@@ -657,7 +656,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
 
   it('handle reading a doc twice with different versions', () => {
     return integrationHelpers.withTestDb(persistence, db => {
-      asyncQueue(db).skipDelaysForTimerId(TimerId.RetryTransaction);
+      removeTransactionBackoffs(db);
       const doc = db.collection('counters').doc();
       let counter = 0;
       return doc

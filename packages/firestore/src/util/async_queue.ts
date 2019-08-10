@@ -215,7 +215,6 @@ export class AsyncQueue {
     return this._isShuttingDown;
   }
 
-
   /**
    * Adds a new operation to the queue without waiting for it to complete (i.e.
    * we ignore the Promise result).
@@ -331,7 +330,7 @@ export class AsyncQueue {
       timerId,
       delayMs,
       op,
-    removedOp =>
+      removedOp =>
         this.removeDelayedOperation(removedOp as DelayedOperation<unknown>)
     );
     this.delayedOperations.push(delayedOp as DelayedOperation<unknown>);

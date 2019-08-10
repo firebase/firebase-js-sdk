@@ -307,6 +307,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // are already set to synchronize on the async queue.
   private _firestoreClient: FirestoreClient | undefined;
 
+  // For tests only: Whether to skip all backoffs scheduled by transactions.
+  private skipTransactionBackoffs = false;
+
   // Public for use in tests.
   // TODO(mikelehen): Use modularized initialization instead.
   readonly _queue = new AsyncQueue();
@@ -613,6 +616,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     );
   }
 
+  /**
+   * For tests: Skip all transaction backoffs to make integration tests
+   * complete faster.
+   */
+  removeTransactionBackoffs(): void {
+    this.skipTransactionBackoffs = true;
+  }
+
   runTransaction<T>(
     updateFunction: (transaction: firestore.Transaction) => Promise<T>
   ): Promise<T> {
@@ -621,7 +632,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this.ensureClientConfigured().transaction(
       (transaction: InternalTransaction) => {
         return updateFunction(new Transaction(this, transaction));
-      }
+      },
+      this.skipTransactionBackoffs
     );
   }
 
