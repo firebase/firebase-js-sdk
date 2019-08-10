@@ -26,9 +26,20 @@ import { SparseSnapshotTree } from './SparseSnapshotTree';
 import { SyncTree } from './SyncTree';
 import { SnapshotHolder } from './SnapshotHolder';
 import { stringify } from '@firebase/util';
-import { beingCrawled, each, exceptionGuard, warn, log } from './util/util';
+import {
+  beingCrawled,
+  each,
+  exceptionGuard,
+  warn,
+  log,
+  FIREBASE_DATABASE_EMULATOR_HOST_VAR
+} from './util/util';
 import { map, isEmpty } from '@firebase/util';
-import { AuthTokenProvider } from './AuthTokenProvider';
+import {
+  FirebaseAuthTokenProvider,
+  AuthTokenProvider
+} from './AuthTokenProvider';
+import { EmulatorAuthTokenProvider } from './EmulatorAuthTokenProvider';
 import { StatsManager } from './stats/StatsManager';
 import { StatsReporter } from './stats/StatsReporter';
 import { StatsListener } from './stats/StatsListener';
@@ -81,7 +92,15 @@ export class Repo {
     forceRestClient: boolean,
     public app: FirebaseApp
   ) {
-    const authTokenProvider = new AuthTokenProvider(app);
+    let authTokenProvider: AuthTokenProvider;
+    if (
+      typeof process !== 'undefined' &&
+      process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR]
+    ) {
+      authTokenProvider = new EmulatorAuthTokenProvider(app);
+    } else {
+      authTokenProvider = new FirebaseAuthTokenProvider(app);
+    }
 
     this.stats_ = StatsManager.getCollection(repoInfo_);
 
