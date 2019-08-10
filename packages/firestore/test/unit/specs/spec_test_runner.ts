@@ -358,9 +358,10 @@ class SharedWriteTracker {
 abstract class TestRunner {
   protected queue: AsyncQueue;
 
-  private connection: MockConnection;
-  private eventManager: EventManager;
-  private syncEngine: SyncEngine;
+  // Initialized asynchronously via start().
+  private connection!: MockConnection;
+  private eventManager!: EventManager;
+  private syncEngine!: SyncEngine;
 
   private eventList: QueryEvent[] = [];
   private acknowledgedDocs: string[];
@@ -377,11 +378,13 @@ abstract class TestRunner {
 
   private networkEnabled = true;
 
-  private datastore: Datastore;
-  private localStore: LocalStore;
-  private remoteStore: RemoteStore;
-  private persistence: Persistence;
-  protected sharedClientState: SharedClientState;
+  // Initialized asynchronously via start().
+  private datastore!: Datastore;
+  private localStore!: LocalStore;
+  private remoteStore!: RemoteStore;
+  private persistence!: Persistence;
+  protected sharedClientState!: SharedClientState;
+
   private useGarbageCollection: boolean;
   private numClients: number;
   private databaseInfo: DatabaseInfo;
