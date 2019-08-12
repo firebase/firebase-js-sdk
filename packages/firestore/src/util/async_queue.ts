@@ -206,6 +206,9 @@ export class AsyncQueue {
   // assertion sanity-checks.
   private operationInProgress = false;
 
+  // List of TimerIds to fast-forward delays for.
+  private timerIdsToSkip: TimerId[] = [];
+
   // Is this AsyncQueue being shut down? If true, this instance will not enqueue
   // any new operations, Promises from enqueue requests will not resolve.
   get isShuttingDown(): boolean {
@@ -332,6 +335,15 @@ export class AsyncQueue {
     );
     this.delayedOperations.push(delayedOp as DelayedOperation<unknown>);
 
+    // Fast-forward delays for timerIds that have been overriden.
+    for (const timerIdToSkip of this.timerIdsToSkip) {
+      if (this.containsDelayedOperation(timerIdToSkip)) {
+        this.runDelayedOperationsEarly(timerIdToSkip)
+          .then(() => {})
+          .catch(() => 'obligatory catch');
+      }
+    }
+
     return delayedOp;
   }
 
@@ -408,6 +420,13 @@ export class AsyncQueue {
 
       return this.drain();
     });
+  }
+
+  /**
+   * For Tests: Skip all delays for a timer id.
+   */
+  skipDelaysForTimerId(timerId: TimerId): void {
+    this.timerIdsToSkip.push(timerId);
   }
 
   /** Called once a DelayedOperation is run or canceled. */
