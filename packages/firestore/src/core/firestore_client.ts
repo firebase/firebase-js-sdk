@@ -33,7 +33,7 @@ import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
 import { JsonProtoSerializer } from '../remote/serializer';
-import { AsyncQueue, TimerId } from '../util/async_queue';
+import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -62,7 +62,6 @@ import { Query } from './query';
 import { Transaction } from './transaction';
 import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
-import { ExponentialBackoff } from '../remote/backoff';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -607,30 +606,18 @@ export class FirestoreClient {
   }
 
   transaction<T>(
-    updateFunction: (transaction: Transaction) => Promise<T>,
-    skipTransactionBackoffs: boolean = false
+    updateFunction: (transaction: Transaction) => Promise<T>
   ): Promise<T> {
     this.verifyNotShutdown();
-    // We have to wait for the async queue to be sure syncEngine is initialized.
-    return this.asyncQueue
-      .enqueue(async () => {})
-      .then(() => {
-        let backoff;
-        if (skipTransactionBackoffs) {
-          backoff = new ExponentialBackoff(
-            this.asyncQueue,
-            TimerId.RetryTransaction,
-            1,
-            2,
-            10
-          );
-        } else {
-          backoff = new ExponentialBackoff(
-            this.asyncQueue,
-            TimerId.RetryTransaction
-          );
-        }
-        return this.syncEngine.runTransaction(updateFunction, backoff);
-      });
+    const deferred = new Deferred<T>();
+    this.asyncQueue.enqueueAndForget(() => {
+      this.syncEngine
+        .runTransaction(this.asyncQueue, updateFunction, deferred)
+        .then(() => {})
+        .catch(() => 'obligatory catch');
+      // We want to queue the transaction onto the async queue without blocking.
+      return Promise.resolve();
+    });
+    return deferred.promise;
   }
 }

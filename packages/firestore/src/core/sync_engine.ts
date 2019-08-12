@@ -39,7 +39,6 @@ import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
-import { isNullOrUndefined } from '../util/types';
 
 import { ignoreIfPrimaryLeaseLoss } from '../local/indexeddb_persistence';
 import { isDocumentChangeMissingError } from '../local/indexeddb_remote_document_cache';
@@ -71,8 +70,8 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { isPermanentError } from '../remote/rpc_error';
-import { ExponentialBackoff } from '../remote/backoff';
+import { AsyncQueue } from '../util/async_queue';
+import { TransactionRunner } from './transaction_runner';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -367,42 +366,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * The promise returned is resolved when the transaction is fully committed.
    */
   async runTransaction<T>(
+    asyncQueue: AsyncQueue,
     updateFunction: (transaction: Transaction) => Promise<T>,
-    backoff: ExponentialBackoff,
-    retries = 5
+    deferred: Deferred<T>
   ): Promise<T> {
-    assert(retries >= 0, 'Got negative number of retries for transaction.');
-    let transactionError;
-    for (let i = 0; i < retries; i++) {
-      const backoffDeferred = new Deferred<void>();
-      backoff.backoffAndRun(async () => {
-        backoffDeferred.resolve();
-      });
-
-      try {
-        await backoffDeferred.promise;
-        const transaction = this.remoteStore.createTransaction();
-        const userPromise = updateFunction(transaction);
-        if (
-          isNullOrUndefined(userPromise) ||
-          !userPromise.catch ||
-          !userPromise.then
-        ) {
-          return Promise.reject<T>(
-            Error('Transaction callback must return a Promise')
-          );
-        }
-        const result = await userPromise;
-        await transaction.commit();
-        return result;
-      } catch (error) {
-        transactionError = error;
-        if (!this.isRetryableTransactionError(error)) {
-          break;
-        }
-      }
-    }
-    return Promise.reject<T>(transactionError);
+    return new TransactionRunner<T>(
+      asyncQueue,
+      this.remoteStore,
+      updateFunction,
+      deferred
+    ).run();
   }
 
   async applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
@@ -926,20 +899,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
     this.syncEngineListener!.onWatchChange(newViewSnapshots);
     return activeQueries;
-  }
-
-  private isRetryableTransactionError(error: Error): boolean {
-    if (error.name === 'FirebaseError') {
-      // In transactions, the backend will fail outdated reads with FAILED_PRECONDITION and
-      // non-matching document versions with ABORTED. These errors should be retried.
-      const code = (error as FirestoreError).code;
-      return (
-        code === 'aborted' ||
-        code === 'failed-precondition' ||
-        !isPermanentError(code)
-      );
-    }
-    return false;
   }
 
   // PORTING NOTE: Multi-tab only
