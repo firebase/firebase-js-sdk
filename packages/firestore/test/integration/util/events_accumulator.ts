@@ -27,7 +27,7 @@ export class EventsAccumulator<
   T extends firestore.DocumentSnapshot | firestore.QuerySnapshot
 > {
   private events: T[] = [];
-  private waitingFor: number;
+  private waitingFor: number = 0;
   private deferred: Deferred<T[]> | null = null;
   private rejectAdditionalEvents = false;
 

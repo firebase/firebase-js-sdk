@@ -89,7 +89,7 @@ apiDescribe('Database transactions', (persistence: boolean) => {
   class TransactionTester {
     constructor(readonly db: firestore.FirebaseFirestore) {}
 
-    private docRef: firestore.DocumentReference;
+    private docRef!: firestore.DocumentReference;
     private fromExistingDoc: boolean = false;
     private stages: TransactionStage[] = [];
 

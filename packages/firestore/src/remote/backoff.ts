@@ -30,7 +30,7 @@ const LOG_TAG = 'ExponentialBackoff';
  * delays causing spikes of load to the backend.
  */
 export class ExponentialBackoff {
-  private currentBaseMs: number;
+  private currentBaseMs: number = 0;
   private timerPromise: CancelablePromise<void> | null = null;
   /** The last backoff attempt, as epoch milliseconds. */
   private lastAttemptTime = Date.now();

@@ -207,10 +207,18 @@ export class MemoryTransaction implements PersistenceTransaction {
 }
 
 export class MemoryEagerDelegate implements ReferenceDelegate {
-  private inMemoryPins: ReferenceSet | null;
-  private orphanedDocuments: Set<DocumentKey>;
+  private inMemoryPins: ReferenceSet | null = null;
+  private _orphanedDocuments: Set<DocumentKey> | null = null;
 
   constructor(private readonly persistence: MemoryPersistence) {}
+
+  private get orphanedDocuments(): Set<DocumentKey> {
+    if (!this._orphanedDocuments) {
+      throw fail('orphanedDocuments is only valid during a transaction.');
+    } else {
+      return this._orphanedDocuments;
+    }
+  }
 
   setInMemoryPins(inMemoryPins: ReferenceSet): void {
     this.inMemoryPins = inMemoryPins;
@@ -254,7 +262,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
   }
 
   onTransactionStarted(): void {
-    this.orphanedDocuments = new Set<DocumentKey>();
+    this._orphanedDocuments = new Set<DocumentKey>();
   }
 
   onTransactionCommitted(
@@ -274,7 +282,9 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
           return PersistencePromise.resolve();
         });
       }
-    );
+    ).next(() => {
+      this._orphanedDocuments = null;
+    });
   }
 
   updateLimboDocument(
@@ -308,7 +318,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
 }
 
 export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
-  private inMemoryPins: ReferenceSet | null;
+  private inMemoryPins: ReferenceSet | null = null;
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber

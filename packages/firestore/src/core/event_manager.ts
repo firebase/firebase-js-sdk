@@ -28,8 +28,8 @@ import { DocumentViewChange, ChangeType, ViewSnapshot } from './view_snapshot';
  * tracked by EventManager.
  */
 class QueryListenersInfo {
-  viewSnap: ViewSnapshot | null;
-  targetId: TargetId;
+  viewSnap: ViewSnapshot | null = null;
+  targetId: TargetId = 0;
   listeners: QueryListener[] = [];
 }
 
@@ -166,7 +166,7 @@ export class QueryListener {
 
   private options: ListenOptions;
 
-  private snap: ViewSnapshot;
+  private snap: ViewSnapshot | null = null;
 
   private onlineState: OnlineState = OnlineState.Unknown;
 
