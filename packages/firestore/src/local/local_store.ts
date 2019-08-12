@@ -27,7 +27,7 @@ import {
   maybeDocumentMap,
   MaybeDocumentMap
 } from '../model/collections';
-import { MaybeDocument } from '../model/document';
+import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation, PatchMutation, Precondition } from '../model/mutation';
 import {
@@ -521,12 +521,22 @@ export class LocalStore {
               // resolution failing).
               if (
                 existingDoc == null ||
-                doc.version.isEqual(SnapshotVersion.MIN) ||
                 (authoritativeUpdates.has(doc.key) &&
                   !existingDoc.hasPendingWrites) ||
                 doc.version.compareTo(existingDoc.version) >= 0
               ) {
+                // If a document update isn't authoritative, make sure we don't apply an old document
+                // version to the remote cache.
                 documentBuffer.addEntry(doc);
+                changedDocs = changedDocs.insert(key, doc);
+              } else if (
+                doc instanceof NoDocument &&
+                doc.version.isEqual(SnapshotVersion.MIN)
+              ) {
+                // NoDocuments with SnapshotVersion.MIN are used in manufactured events (e.g. in the
+                // case of a limbo document resolution failing). We remove these documents from cache
+                // since we lost access.
+                documentBuffer.removeEntry(key);
                 changedDocs = changedDocs.insert(key, doc);
               } else {
                 log.debug(

@@ -64,23 +64,29 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   /**
    * Adds the supplied entries to the cache. Adds the given size delta to the cached size.
    */
-  addEntries(
+  modifyEntries(
     transaction: PersistenceTransaction,
-    entries: DocumentSizeEntry[],
+    entries: Array<{ key: DocumentKey; doc?: MaybeDocument; size?: number }>,
     sizeDelta: number
   ): PersistencePromise<void> {
     const promises = [] as Array<PersistencePromise<void>>;
-    for (const entry of entries) {
-      const key = entry.maybeDocument.key;
-      this.docs = this.docs.insert(key, entry);
+    for (const { key, doc, size } of entries) {
+      if (doc) {
+        assert(size !== undefined, 'Size missing for document ' + doc.key);
+        this.docs = this.docs.insert(key, {
+          maybeDocument: doc,
+          size: size!
+        });
+        promises.push(
+          this.indexManager.addToCollectionParentIndex(
+            transaction,
+            key.path.popLast()
+          )
+        );
+      } else {
+        this.docs = this.docs.remove(key);
+      }
       this.newDocumentChanges = this.newDocumentChanges.add(key);
-
-      promises.push(
-        this.indexManager.addToCollectionParentIndex(
-          transaction,
-          key.path.popLast()
-        )
-      );
     }
     this.size += sizeDelta;
     return PersistencePromise.waitFor(promises);
@@ -235,21 +241,30 @@ export class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer
   protected applyChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<void> {
-    const changes = this.assertChanges();
+    this.assertChanges();
     let delta = 0;
-    const docs: DocumentSizeEntry[] = [];
-    changes.forEach((key, maybeDocument) => {
+    const entries: Array<{
+      key: DocumentKey;
+      doc?: MaybeDocument;
+      size?: number;
+    }> = [];
+    this.changes!.forEach((key, doc) => {
       const previousSize = this.documentSizes.get(key);
       assert(
         previousSize !== undefined,
         `Attempting to change document ${key.toString()} without having read it first`
       );
-      const size = this.sizer(maybeDocument);
-      delta += size - previousSize!;
-      docs.push({ maybeDocument, size });
+      if (doc) {
+        const size = this.sizer(doc);
+        delta += size - previousSize!;
+        entries.push({ key, doc, size });
+      } else {
+        delta -= previousSize!;
+        entries.push({ key });
+      }
     });
 
-    return this.documentCache.addEntries(transaction, docs, delta);
+    return this.documentCache.modifyEntries(transaction, entries, delta);
   }
 
   protected getFromCache(

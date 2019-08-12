@@ -19,8 +19,6 @@ import {
   DocumentKeySet,
   DocumentSizeEntries,
   DocumentSizeEntry,
-  maybeDocumentMap,
-  MaybeDocumentMap,
   NullableMaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
@@ -46,7 +44,10 @@ import { PersistencePromise } from './persistence_promise';
  * porting this class as part of that implementation work.
  */
 export abstract class RemoteDocumentChangeBuffer {
-  private changes: MaybeDocumentMap | null = maybeDocumentMap();
+  protected changes: ObjectMap<
+    DocumentKey,
+    MaybeDocument | null
+  > | null = new ObjectMap(key => key.toString());
   protected documentSizes: ObjectMap<DocumentKey, number> = new ObjectMap(key =>
     key.toString()
   );
@@ -67,8 +68,14 @@ export abstract class RemoteDocumentChangeBuffer {
 
   /** Buffers a `RemoteDocumentCache.addEntry()` call. */
   addEntry(maybeDocument: MaybeDocument): void {
-    const changes = this.assertChanges();
-    this.changes = changes.insert(maybeDocument.key, maybeDocument);
+    this.assertChanges();
+    this.changes!.set(maybeDocument.key, maybeDocument);
+  }
+
+  /** Buffers a `RemoteDocumentCache.removeEntry()` call. */
+  removeEntry(key: DocumentKey): void {
+    this.assertChanges();
+    this.changes!.set(key, null);
   }
 
   // NOTE: removeEntry() is intentionally omitted. If it needs to be added in
@@ -89,10 +96,9 @@ export abstract class RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
-    const changes = this.assertChanges();
-
-    const bufferedEntry = changes.get(documentKey);
-    if (bufferedEntry) {
+    this.assertChanges();
+    const bufferedEntry = this.changes!.get(documentKey);
+    if (bufferedEntry !== undefined) {
       return PersistencePromise.resolve<MaybeDocument | null>(bufferedEntry);
     } else {
       // Record the size of everything we load from the cache so we can compute a delta later.
@@ -149,9 +155,8 @@ export abstract class RemoteDocumentChangeBuffer {
     return result;
   }
 
-  /** Helper to assert this.changes is not null and return it. */
-  protected assertChanges(): MaybeDocumentMap {
+  /** Helper to assert this.changes is not null  */
+  protected assertChanges(): void {
     assert(this.changes !== null, 'Changes have already been applied.');
-    return this.changes!;
   }
 }

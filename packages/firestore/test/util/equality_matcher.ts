@@ -87,7 +87,11 @@ export function addEqualityMatcher(): void {
       // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
       const assertEql = (_super: (r: unknown, l: unknown) => boolean) => {
         originalFunction = originalFunction || _super;
-        return function(this: unknown, expected?: unknown, msg?: unknown): void {
+        return function(
+          this: unknown,
+          expected?: unknown,
+          msg?: unknown
+        ): void {
           if (isActive) {
             utils.flag(this, 'message', msg);
             const actual = utils.flag(this, 'object');

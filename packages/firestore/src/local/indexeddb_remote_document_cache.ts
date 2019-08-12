@@ -97,9 +97,9 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /**
    * Adds the supplied entries to the cache. Adds the given size delta to the cached size.
    */
-  addEntries(
+  modifyEntries(
     transaction: PersistenceTransaction,
-    entries: Array<{ key: DocumentKey; doc: DbRemoteDocument }>,
+    entries: Array<{ key: DocumentKey; doc?: DbRemoteDocument }>,
     sizeDelta: number
   ): PersistencePromise<void> {
     const promises: Array<PersistencePromise<void>> = [];
@@ -108,15 +108,18 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       const documentStore = remoteDocumentsStore(transaction);
       let changedKeys = documentKeySet();
       for (const { key, doc } of entries) {
-        promises.push(documentStore.put(dbKey(key), doc));
+        if (doc) {
+          promises.push(documentStore.put(dbKey(key), doc));
+          promises.push(
+            this.indexManager.addToCollectionParentIndex(
+              transaction,
+              key.path.popLast()
+            )
+          );
+        } else {
+          promises.push(documentStore.delete(dbKey(key)));
+        }
         changedKeys = changedKeys.add(key);
-
-        promises.push(
-          this.indexManager.addToCollectionParentIndex(
-            transaction,
-            key.path.popLast()
-          )
-        );
       }
 
       if (this.keepDocumentChangeLog) {
@@ -487,26 +490,34 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
   protected applyChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<void> {
-    const changes = this.assertChanges();
     let delta = 0;
-    const toApply: Array<{ doc: DbRemoteDocument; key: DocumentKey }> = [];
-    changes.forEach((key, maybeDocument) => {
-      const doc = this.documentCache.serializer.toDbRemoteDocument(
-        maybeDocument
-      );
+    const toApply: Array<{
+      key: DocumentKey;
+      doc?: DbRemoteDocument;
+      size?: number;
+    }> = [];
+
+    this.assertChanges();
+    this.changes!.forEach((key, maybeDocument) => {
       const previousSize = this.documentSizes.get(key);
-      // NOTE: if we ever decide we need to support doing writes without
-      // reading first, this assert will need to change to do the read automatically.
       assert(
         previousSize !== undefined,
         `Attempting to change document ${key.toString()} without having read it first`
       );
-      const size = dbDocumentSize(doc);
-      delta += size - previousSize!;
-      toApply.push({ key, doc });
+      if (maybeDocument) {
+        const doc = this.documentCache.serializer.toDbRemoteDocument(
+          maybeDocument
+        );
+        const size = dbDocumentSize(doc);
+        delta += size - previousSize!;
+        toApply.push({ key, doc, size });
+      } else {
+        delta -= previousSize!;
+        toApply.push({ key });
+      }
     });
 
-    return this.documentCache.addEntries(transaction, toApply, delta);
+    return this.documentCache.modifyEntries(transaction, toApply, delta);
   }
 
   protected getFromCache(
