@@ -332,7 +332,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     this._settings = new FirestoreSettings({});
-    this._dataConverter = Firestore.makeDataConverter(this._databaseId);
+    this._dataConverter = this.createDataConverter(this._databaseId);
   }
 
   settings(settingsLiteral: firestore.Settings): void {
@@ -490,7 +490,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   private configureClient(
     persistenceSettings: InternalPersistenceSettings
   ): Promise<void> {
-    assert(!!this._settings.host, 'FirestoreSettings.host cannot be falsey');
+    assert(!!this._settings.host, 'FirestoreSettings.host is not set');
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
@@ -506,7 +506,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this._firestoreClient.start(persistenceSettings);
   }
 
-  private static makeDataConverter(databaseId: DatabaseId): UserDataConverter {
+  private createDataConverter(databaseId: DatabaseId): UserDataConverter {
     const preConverter = (value: unknown): unknown => {
       if (value instanceof DocumentReference) {
         const thisDb = databaseId;

@@ -32,6 +32,7 @@ import { ExponentialBackoff } from './backoff';
 import { Connection, Stream } from './connection';
 import { JsonProtoSerializer } from './serializer';
 import { WatchChange } from './watch_change';
+import { emptyByteString } from '../platform/platform';
 
 const LOG_TAG = 'PersistentStream';
 
@@ -677,7 +678,7 @@ export class PersistentWriteStream extends PersistentStream<
    * PersistentWriteStream manages propagating this value from responses to the
    * next request.
    */
-  lastStreamToken: ProtoByteString = '';
+  lastStreamToken: ProtoByteString = emptyByteString();
 
   /**
    * Tracks whether or not a handshake has been successfully exchanged and

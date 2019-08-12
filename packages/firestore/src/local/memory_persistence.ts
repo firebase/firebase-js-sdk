@@ -209,6 +209,9 @@ export class MemoryTransaction implements PersistenceTransaction {
 export class MemoryEagerDelegate implements ReferenceDelegate {
   private inMemoryPins: ReferenceSet | null = null;
   private _orphanedDocuments: Set<DocumentKey> | null = null;
+
+  constructor(private readonly persistence: MemoryPersistence) {}
+
   private get orphanedDocuments(): Set<DocumentKey> {
     if (!this._orphanedDocuments) {
       throw fail('orphanedDocuments is only valid during a transaction.');
@@ -216,8 +219,6 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
       return this._orphanedDocuments;
     }
   }
-
-  constructor(private readonly persistence: MemoryPersistence) {}
 
   setInMemoryPins(inMemoryPins: ReferenceSet): void {
     this.inMemoryPins = inMemoryPins;

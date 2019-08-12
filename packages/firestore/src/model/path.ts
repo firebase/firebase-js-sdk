@@ -67,20 +67,18 @@ abstract class BasePath<B extends BasePath<B>> {
     return this.len;
   }
 
-  isEqual(other: this): boolean {
+  isEqual(other: B): boolean {
     return BasePath.comparator(this, other) === 0;
   }
 
-  child(nameOrPath: string | this): B {
+  child(nameOrPath: string | B): B {
     const segments = this.segments.slice(this.offset, this.limit());
     if (nameOrPath instanceof BasePath) {
       nameOrPath.forEach(segment => {
         segments.push(segment);
       });
-    } else if (typeof nameOrPath === 'string') {
-      segments.push(nameOrPath);
     } else {
-      fail('Unknown parameter type for Path.child(): ' + nameOrPath);
+      segments.push(nameOrPath);
     }
     return this.construct(segments);
   }
