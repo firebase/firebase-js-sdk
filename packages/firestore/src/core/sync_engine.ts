@@ -363,14 +363,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * been committed. For this reason, it is required that all reads are
    * performed before any writes. Transactions must be performed while online.
    *
-   * The promise returned is resolved when the transaction is fully committed.
+   * The Deferred input is resolved when the transaction is fully committed.
    */
-  async runTransaction<T>(
+  runTransaction<T>(
     asyncQueue: AsyncQueue,
     updateFunction: (transaction: Transaction) => Promise<T>,
     deferred: Deferred<T>
-  ): Promise<T> {
-    return new TransactionRunner<T>(
+  ): void {
+    new TransactionRunner<T>(
       asyncQueue,
       this.remoteStore,
       updateFunction,

@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Deferred } from './../util/promise';
-import { TimerId, AsyncQueue } from './../util/async_queue';
-import { ExponentialBackoff } from './../remote/backoff';
+import { Deferred } from '../util/promise';
+import { TimerId, AsyncQueue } from '../util/async_queue';
+import { ExponentialBackoff } from '../remote/backoff';
 import { Transaction } from './transaction';
 import { RemoteStore } from '../remote/remote_store';
 import { isNullOrUndefined } from '../util/types';
@@ -25,6 +25,7 @@ import { isPermanentError } from '../remote/rpc_error';
 import { FirestoreError } from '../util/error';
 
 const RETRY_COUNT = 5;
+
 /**
  * TransactionRunner encapsulates the logic needed to run and retry transactions
  * with backoff.
@@ -44,30 +45,20 @@ export class TransactionRunner<T> {
       TimerId.RetryTransaction
     );
   }
-  /** Runs the transaction and returns a Promise containing the result. */
-  async run(): Promise<T> {
+
+  /** Runs the transaction and sets the result on deferred. */
+  run(): void {
     this.runWithBackOff();
-    return this.deferred.promise;
   }
 
   private runWithBackOff(): void {
     this.backoff.backoffAndRun(async () => {
       const transaction = this.remoteStore.createTransaction();
-      try {
-        const userPromise = this.updateFunction(transaction);
-        if (
-          isNullOrUndefined(userPromise) ||
-          !userPromise.catch ||
-          !userPromise.then
-        ) {
-          this.deferred.reject(
-            Error('Transaction callback must return a Promise')
-          );
-          return;
-        }
+      const userPromise = this.tryRunUpdateFunction(transaction);
+      if (userPromise) {
         userPromise
           .then(result => {
-            return this.asyncQueue.enqueue(() => {
+            this.asyncQueue.enqueueAndForget(() => {
               return transaction
                 .commit()
                 .then(() => {
@@ -81,17 +72,38 @@ export class TransactionRunner<T> {
           .catch(error => {
             this.handleTransactionError(error);
           });
-      } catch (error) {
-        // Do not retry errors thrown by user provided updateFunction.
-        this.deferred.reject(error);
       }
     });
+  }
+
+  private tryRunUpdateFunction(transaction: Transaction): Promise<T> | null {
+    try {
+      const userPromise = this.updateFunction(transaction);
+      if (
+        isNullOrUndefined(userPromise) ||
+        !userPromise.catch ||
+        !userPromise.then
+      ) {
+        this.deferred.reject(
+          Error('Transaction callback must return a Promise')
+        );
+        return null;
+      }
+      return userPromise;
+    } catch (error) {
+      // Do not retry errors thrown by user provided updateFunction.
+      this.deferred.reject(error);
+      return null;
+    }
   }
 
   private handleTransactionError(error: Error): void {
     if (this.retries > 0 && this.isRetryableTransactionError(error)) {
       this.retries -= 1;
-      this.runWithBackOff();
+      this.asyncQueue.enqueueAndForget(() => {
+        this.runWithBackOff();
+        return Promise.resolve();
+      });
     } else {
       this.deferred.reject(error);
     }

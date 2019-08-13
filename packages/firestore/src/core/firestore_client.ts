@@ -611,11 +611,7 @@ export class FirestoreClient {
     this.verifyNotShutdown();
     const deferred = new Deferred<T>();
     this.asyncQueue.enqueueAndForget(() => {
-      this.syncEngine
-        .runTransaction(this.asyncQueue, updateFunction, deferred)
-        .then(() => {})
-        .catch(() => 'obligatory catch');
-      // We want to queue the transaction onto the async queue without blocking.
+      this.syncEngine.runTransaction(this.asyncQueue, updateFunction, deferred);
       return Promise.resolve();
     });
     return deferred.promise;
