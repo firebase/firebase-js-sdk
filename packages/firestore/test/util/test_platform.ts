@@ -89,7 +89,7 @@ export class FakeWindow {
  */
 export class FakeDocument {
   private _visibilityState: VisibilityState = 'hidden';
-  private visibilityListener: EventListener | null;
+  private visibilityListener: EventListener | null = null;
 
   get visibilityState(): VisibilityState {
     return this._visibilityState;

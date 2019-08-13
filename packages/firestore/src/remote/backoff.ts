@@ -41,7 +41,7 @@ const DEFAULT_BACKOFF_MAX_DELAY_MS = 60 * 1000;
  * delays causing spikes of load to the backend.
  */
 export class ExponentialBackoff {
-  private currentBaseMs: number;
+  private currentBaseMs: number = 0;
   private timerPromise: CancelablePromise<void> | null = null;
   /** The last backoff attempt, as epoch milliseconds. */
   private lastAttemptTime = Date.now();

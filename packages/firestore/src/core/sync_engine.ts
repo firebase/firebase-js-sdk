@@ -110,7 +110,7 @@ class LimboResolution {
    * decide whether it needs to manufacture a delete event for the target once
    * the target is CURRENT.
    */
-  receivedDocument: boolean;
+  receivedDocument: boolean = false;
 }
 
 /**

@@ -77,11 +77,11 @@ export interface ActiveTargetMap {
  * the tests.
  */
 export class ClientMemoryState {
-  activeTargets: ActiveTargetMap;
-  queryMapping: QueryMap;
-  limboMapping: LimboMap;
+  activeTargets: ActiveTargetMap = {};
+  queryMapping: QueryMap = {};
+  limboMapping: LimboMap = {};
 
-  limboIdGenerator: TargetIdGenerator;
+  limboIdGenerator: TargetIdGenerator = TargetIdGenerator.forSyncEngine();
 
   constructor() {
     this.reset();

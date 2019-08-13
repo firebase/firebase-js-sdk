@@ -29,16 +29,14 @@ export interface ChildProcessPromise extends Promise<void> {
 }
 
 export abstract class Emulator {
-  binaryName: string;
-  binaryUrl: string;
-  binaryPath: string;
+  binaryPath: string | null = null;
+  emulator: ChildProcess | null = null;
 
-  emulator: ChildProcess;
-  port: number;
-
-  constructor(port: number) {
-    this.port = port;
-  }
+  constructor(
+    private binaryName: string,
+    private binaryUrl: string,
+    public port: number
+  ) {}
 
   download(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
@@ -71,6 +69,9 @@ export abstract class Emulator {
 
   setUp(): Promise<void> {
     return new Promise<void>((resolve, reject) => {
+      if (!this.binaryPath) {
+        throw new Error('You must call download() before setUp()');
+      }
       const promise: ChildProcessPromise = spawn(
         'java',
         ['-jar', path.basename(this.binaryPath), '--port', this.port],
