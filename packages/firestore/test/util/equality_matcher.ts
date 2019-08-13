@@ -88,7 +88,7 @@ export function addEqualityMatcher(): void {
       const assertEql = (_super: (r: unknown, l: unknown) => boolean) => {
         originalFunction = originalFunction || _super;
         return function(
-          this: unknown,
+          this: Chai.Assertion,
           expected?: unknown,
           msg?: unknown
         ): void {
@@ -96,7 +96,8 @@ export function addEqualityMatcher(): void {
             utils.flag(this, 'message', msg);
             const actual = utils.flag(this, 'object');
 
-            const assertion = new chai.Assertion();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const assertion = new (chai.Assertion as any)();
             utils.transferFlags(this, assertion, /*includeAll=*/ true);
             // NOTE: Unlike the top-level chai assert() method, Assertion.assert()
             // takes the expected value before the actual value.
