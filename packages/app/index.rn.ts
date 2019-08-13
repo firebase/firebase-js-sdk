@@ -29,13 +29,13 @@ import { createFirebaseNamespace } from './src/firebaseNamespace';
 let AsyncStorage: any;
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  ({ AsyncStorage } = require('@react-native-community/async-storage'));
+  AsyncStorage = require('@react-native-community/async-storage').default;
 } catch (e) {
   if (e.code !== 'MODULE_NOT_FOUND') {
     throw e;
   }
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  ({ AsyncStorage } = require('react-native'));
+  AsyncStorage = require('react-native').AsyncStorage;
 }
 
 const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
