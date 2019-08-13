@@ -339,10 +339,8 @@ export class AsyncQueue {
     this.delayedOperations.push(delayedOp as DelayedOperation<unknown>);
 
     // Fast-forward delays for timerIds that have been overriden.
-    for (const timerIdToSkip of this.timerIdsToSkip) {
-      if (delayedOp.timerId === timerIdToSkip) {
-        delayedOp.skipDelay();
-      }
+    if (this.timerIdsToSkip.indexOf(delayedOp.timerId) > -1) {
+      delayedOp.skipDelay();
     }
 
     return delayedOp;

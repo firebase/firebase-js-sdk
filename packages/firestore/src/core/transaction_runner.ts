@@ -27,8 +27,7 @@ import { FirestoreError } from '../util/error';
 const RETRY_COUNT = 5;
 /**
  * TransactionRunner encapsulates the logic needed to run and retry transactions
- * so that the caller does not have to manage the backoff and retry count through
- * recursive calls.
+ * with backoff.
  */
 export class TransactionRunner<T> {
   private retries = RETRY_COUNT;
