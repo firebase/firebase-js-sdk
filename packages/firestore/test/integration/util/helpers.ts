@@ -18,6 +18,8 @@
 import * as firestore from '@firebase/firestore-types';
 import { clearTestPersistence } from './../../unit/local/persistence_test_helpers';
 import firebase from './firebase_export';
+import { EmptyCredentialsProvider, CredentialChangeListener } from '../../../src/api/credentials';
+import { User } from '../../../src/auth/user';
 
 /**
  * NOTE: These helpers are used by api/ tests and therefore may not have any
@@ -124,6 +126,20 @@ export const apiDescribe = apiDescribeInternal.bind(
 apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
 apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
 
+export class MockCredentialsProvider extends EmptyCredentialsProvider {
+
+  private listener: CredentialChangeListener | null = null;
+
+  changeUserTo(user: User): void {
+    this.listener!(user);
+  }
+
+  setChangeListener(listener: CredentialChangeListener): void {
+    super.setChangeListener(listener);
+    this.listener = listener;
+  }
+}
+
 /** Converts the documents in a QuerySnapshot to an array with the data of each document. */
 export function toDataArray(
   docSet: firestore.QuerySnapshot
@@ -161,6 +177,20 @@ export function withTestDb(
   return withTestDbs(persistence, 1, ([db]) => {
     return fn(db);
   });
+}
+
+export function withMockCredentialProviderTestDb(
+  persistence: boolean,
+  fn: (db: firestore.FirebaseFirestore, mockCredential: MockCredentialsProvider) => Promise<void>
+): Promise<void> {
+  const mockCredentialsProvider = new MockCredentialsProvider();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const settings: any = { ...DEFAULT_SETTINGS };
+  settings.credentials = { client: mockCredentialsProvider, type: 'provider' };
+  return withTestDbsSettings(persistence, DEFAULT_PROJECT_ID, settings, 1,
+    ([db]) => {
+      return fn(db, mockCredentialsProvider);
+    });
 }
 
 /** Runs provided fn with a db for an alternate project id. */
@@ -319,6 +349,11 @@ function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
 export function shutdownDb(db: firestore.FirebaseFirestore): Promise<void> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (db as any)._shutdown();
+}
+
+export function waitForPendingWrites(db: firestore.FirebaseFirestore): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (db as any)._waitForPendingWrites();
 }
 
 // TODO(in-queries): This exists just so we don't have to do the cast

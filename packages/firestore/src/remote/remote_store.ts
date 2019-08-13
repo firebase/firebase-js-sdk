@@ -327,7 +327,7 @@ export class RemoteStore implements TargetMetadataProvider {
     );
   }
 
-  private canUseNetwork(): boolean {
+  canUseNetwork(): boolean {
     return this.isPrimary && this.networkEnabled;
   }
 

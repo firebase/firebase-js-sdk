@@ -265,6 +265,26 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => foundBatch);
   }
 
+  getHighestUnacknowledgedBatchId(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<BatchId> {
+    const range = IDBKeyRange.bound(
+      [this.userId, Number.NEGATIVE_INFINITY],
+      [this.userId, Number.POSITIVE_INFINITY]
+    );
+
+    let batchId = BATCHID_UNKNOWN;
+    return mutationsStore(transaction)
+      .iterate(
+        { index: DbMutationBatch.userMutationsIndex, range, reverse: true },
+        (key, dbBatch, control) => {
+          batchId = dbBatch.batchId;
+          control.done();
+        }
+      )
+      .next(() => batchId);
+  }
+
   getAllMutationBatches(
     transaction: PersistenceTransaction
   ): PersistencePromise<MutationBatch[]> {
