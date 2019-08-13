@@ -1,12 +1,3 @@
-import { Deferred } from './../util/promise';
-import { TimerId, AsyncQueue } from './../util/async_queue';
-import { ExponentialBackoff } from './../remote/backoff';
-import { Transaction } from './transaction';
-import { RemoteStore } from '../remote/remote_store';
-import { isNullOrUndefined } from '../util/types';
-import { isPermanentError } from '../remote/rpc_error';
-import { FirestoreError } from '../util/error';
-
 /**
  * @license
  * Copyright 2019 Google Inc.
@@ -23,6 +14,15 @@ import { FirestoreError } from '../util/error';
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import { Deferred } from './../util/promise';
+import { TimerId, AsyncQueue } from './../util/async_queue';
+import { ExponentialBackoff } from './../remote/backoff';
+import { Transaction } from './transaction';
+import { RemoteStore } from '../remote/remote_store';
+import { isNullOrUndefined } from '../util/types';
+import { isPermanentError } from '../remote/rpc_error';
+import { FirestoreError } from '../util/error';
 
 const RETRY_COUNT = 5;
 /**
@@ -45,7 +45,7 @@ export class TransactionRunner<T> {
       TimerId.RetryTransaction
     );
   }
-
+  /** Runs the transaction and returns a Promise containing the result. */
   async run(): Promise<T> {
     this.runWithBackOff();
     return this.deferred.promise;

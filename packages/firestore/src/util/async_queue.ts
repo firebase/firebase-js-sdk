@@ -61,7 +61,10 @@ export enum TimerId {
   /** A timer used to periodically attempt LRU Garbage collection */
   LruGarbageCollection = 'lru_garbage_collection',
 
-  /** A timer used to retry transactions. */
+  /**
+   * A timer used to retry transactions. Since there can be multiple concurrent
+   * transactions, multiple of these may be in the queue at a given time.
+   */
   RetryTransaction = 'retry_transaction'
 }
 
@@ -421,7 +424,7 @@ export class AsyncQueue {
   }
 
   /**
-   * For Tests: Skip all delays for a timer id.
+   * For Tests: Skip all subsequent delays for a timer id.
    */
   skipDelaysForTimerId(timerId: TimerId): void {
     this.timerIdsToSkip.push(timerId);

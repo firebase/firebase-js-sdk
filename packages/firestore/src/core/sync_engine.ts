@@ -355,7 +355,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * changes will be committed. If a retryable error occurs (ex: some other
    * client has changed any of the data referenced), then the updateFunction
    * will be called again after a backoff. If the updateFunction still fails
-   * after the given number of retries, then the transaction will be rejected.
+   * after all retries, then the transaction will be rejected.
    *
    * The transaction object passed to the updateFunction contains methods for
    * accessing documents and collections. Unlike other datastore access, data
