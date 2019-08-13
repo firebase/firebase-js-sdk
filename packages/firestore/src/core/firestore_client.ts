@@ -609,9 +609,11 @@ export class FirestoreClient {
     updateFunction: (transaction: Transaction) => Promise<T>
   ): Promise<T> {
     this.verifyNotShutdown();
-    // We have to wait for the async queue to be sure syncEngine is initialized.
-    return this.asyncQueue
-      .enqueue(async () => {})
-      .then(() => this.syncEngine.runTransaction(updateFunction));
+    const deferred = new Deferred<T>();
+    this.asyncQueue.enqueueAndForget(() => {
+      this.syncEngine.runTransaction(this.asyncQueue, updateFunction, deferred);
+      return Promise.resolve();
+    });
+    return deferred.promise;
   }
 }
