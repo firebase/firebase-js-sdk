@@ -64,13 +64,13 @@ export class TransactionRunner<T> {
                 .then(() => {
                   this.deferred.resolve(result);
                 })
-                .catch(error => {
-                  this.handleTransactionError(error);
+                .catch(commitError => {
+                  this.handleTransactionError(commitError);
                 });
             });
           })
-          .catch(error => {
-            this.handleTransactionError(error);
+          .catch(userPromiseError => {
+            this.handleTransactionError(userPromiseError);
           });
       }
     });
