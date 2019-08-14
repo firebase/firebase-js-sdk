@@ -15,6 +15,9 @@
   that were previously incorrectly disallowed are now allowed. For example,
   after reading a document that doesn't exist, you can now set it multiple
   times successfully in a transaction.
+- [changed] Transactions now perform exponential backoff before retrying.
+  This means transactions on highly contended documents are more likely to
+  succeed.
 
 # 1.3.3
 - [changed] Firestore now recovers more quickly after network connectivity
