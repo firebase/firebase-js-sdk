@@ -536,7 +536,6 @@ export class FirestoreClient {
   }
 
   unlisten(listener: QueryListener): void {
-    this.verifyNotShutdown();
     this.asyncQueue.enqueueAndForget(() => {
       return this.eventMgr.unlisten(listener);
     });

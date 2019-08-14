@@ -1120,4 +1120,19 @@ apiDescribe('Database', (persistence: boolean) => {
       }).to.throw();
     });
   });
+
+  it('can unlisten queries after shutdown', async () => {	
+    return withTestDoc(persistence, async docRef => {	
+      const firestore = docRef.firestore;	
+      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();	
+      const unsubscribe = docRef.onSnapshot(accumulator.storeEvent);	
+      await accumulator.awaitEvent();	
+      await shutdownDb(firestore);	
+
+       // This should proceed without error.	
+      unsubscribe();	
+      // Multiple calls should proceed as well.	
+      unsubscribe();	
+    });	
+  });
 });
