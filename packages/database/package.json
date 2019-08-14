@@ -31,6 +31,8 @@
     "tslib": "1.10.0"
   },
   "devDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x",
     "@types/chai": "4.1.7",
     "@types/mocha": "5.2.7",
     "@types/node": "11.13.18",
