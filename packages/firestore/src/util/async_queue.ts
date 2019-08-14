@@ -59,7 +59,13 @@ export enum TimerId {
   ClientMetadataRefresh = 'client_metadata_refresh',
 
   /** A timer used to periodically attempt LRU Garbage collection */
-  LruGarbageCollection = 'lru_garbage_collection'
+  LruGarbageCollection = 'lru_garbage_collection',
+
+  /**
+   * A timer used to retry transactions. Since there can be multiple concurrent
+   * transactions, multiple of these may be in the queue at a given time.
+   */
+  RetryTransaction = 'retry_transaction'
 }
 
 /**
@@ -203,6 +209,9 @@ export class AsyncQueue {
   // assertion sanity-checks.
   private operationInProgress = false;
 
+  // List of TimerIds to fast-forward delays for.
+  private timerIdsToSkip: TimerId[] = [];
+
   // Is this AsyncQueue being shut down? If true, this instance will not enqueue
   // any new operations, Promises from enqueue requests will not resolve.
   get isShuttingDown(): boolean {
@@ -319,13 +328,6 @@ export class AsyncQueue {
       `Attempted to schedule an operation with a negative delay of ${delayMs}`
     );
 
-    // While not necessarily harmful, we currently don't expect to have multiple
-    // ops with the same timer id in the queue, so defensively reject them.
-    assert(
-      !this.containsDelayedOperation(timerId),
-      `Attempted to schedule multiple operations with timer id ${timerId}.`
-    );
-
     const delayedOp = DelayedOperation.createAndSchedule<T>(
       this,
       timerId,
@@ -335,6 +337,11 @@ export class AsyncQueue {
         this.removeDelayedOperation(removedOp as DelayedOperation<unknown>)
     );
     this.delayedOperations.push(delayedOp as DelayedOperation<unknown>);
+
+    // Fast-forward delays for timerIds that have been overriden.
+    if (this.timerIdsToSkip.indexOf(delayedOp.timerId) > -1) {
+      delayedOp.skipDelay();
+    }
 
     return delayedOp;
   }
@@ -412,6 +419,13 @@ export class AsyncQueue {
 
       return this.drain();
     });
+  }
+
+  /**
+   * For Tests: Skip all subsequent delays for a timer id.
+   */
+  skipDelaysForTimerId(timerId: TimerId): void {
+    this.timerIdsToSkip.push(timerId);
   }
 
   /** Called once a DelayedOperation is run or canceled. */

@@ -39,7 +39,6 @@ import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
-import { isNullOrUndefined } from '../util/types';
 
 import { ignoreIfPrimaryLeaseLoss } from '../local/indexeddb_persistence';
 import { isDocumentChangeMissingError } from '../local/indexeddb_remote_document_cache';
@@ -71,7 +70,8 @@ import {
   ViewDocumentChanges
 } from './view';
 import { ViewSnapshot } from './view_snapshot';
-import { isPermanentError } from '../remote/rpc_error';
+import { AsyncQueue } from '../util/async_queue';
+import { TransactionRunner } from './transaction_runner';
 
 const LOG_TAG = 'SyncEngine';
 
@@ -352,10 +352,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * Takes an updateFunction in which a set of reads and writes can be performed
    * atomically. In the updateFunction, the client can read and write values
    * using the supplied transaction object. After the updateFunction, all
-   * changes will be committed. If some other client has changed any of the data
-   * referenced, then the updateFunction will be called again. If the
-   * updateFunction still fails after the given number of retries, then the
-   * transaction will be rejected.
+   * changes will be committed. If a retryable error occurs (ex: some other
+   * client has changed any of the data referenced), then the updateFunction
+   * will be called again after a backoff. If the updateFunction still fails
+   * after all retries, then the transaction will be rejected.
    *
    * The transaction object passed to the updateFunction contains methods for
    * accessing documents and collections. Unlike other datastore access, data
@@ -363,34 +363,19 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * been committed. For this reason, it is required that all reads are
    * performed before any writes. Transactions must be performed while online.
    *
-   * The promise returned is resolved when the transaction is fully committed.
+   * The Deferred input is resolved when the transaction is fully committed.
    */
-  async runTransaction<T>(
+  runTransaction<T>(
+    asyncQueue: AsyncQueue,
     updateFunction: (transaction: Transaction) => Promise<T>,
-    retries = 5
-  ): Promise<T> {
-    assert(retries >= 0, 'Got negative number of retries for transaction.');
-    const transaction = this.remoteStore.createTransaction();
-    const userPromise = updateFunction(transaction);
-    if (
-      isNullOrUndefined(userPromise) ||
-      !userPromise.catch ||
-      !userPromise.then
-    ) {
-      return Promise.reject<T>(
-        Error('Transaction callback must return a Promise')
-      );
-    }
-    try {
-      const result = await userPromise;
-      await transaction.commit();
-      return result;
-    } catch (error) {
-      if (retries > 0 && this.isRetryableTransactionError(error)) {
-        return this.runTransaction(updateFunction, retries - 1);
-      }
-      return Promise.reject<T>(error);
-    }
+    deferred: Deferred<T>
+  ): void {
+    new TransactionRunner<T>(
+      asyncQueue,
+      this.remoteStore,
+      updateFunction,
+      deferred
+    ).run();
   }
 
   async applyRemoteEvent(remoteEvent: RemoteEvent): Promise<void> {
@@ -914,20 +899,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     }
     this.syncEngineListener!.onWatchChange(newViewSnapshots);
     return activeQueries;
-  }
-
-  private isRetryableTransactionError(error: Error): boolean {
-    if (error.name === 'FirebaseError') {
-      // In transactions, the backend will fail outdated reads with FAILED_PRECONDITION and
-      // non-matching document versions with ABORTED. These errors should be retried.
-      const code = (error as FirestoreError).code;
-      return (
-        code === 'aborted' ||
-        code === 'failed-precondition' ||
-        !isPermanentError(code)
-      );
-    }
-    return false;
   }
 
   // PORTING NOTE: Multi-tab only
