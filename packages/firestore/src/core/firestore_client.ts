@@ -536,7 +536,8 @@ export class FirestoreClient {
   }
 
   unlisten(listener: QueryListener): void {
-    // Make unlisten a no-op if client is shut down.
+    // Checks for shutdown but does not raise error, allowing unlisten after
+    // shutdown to be a no-op.
     if (this.clientShutdown) {
       return;
     }
