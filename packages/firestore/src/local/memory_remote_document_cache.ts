@@ -74,7 +74,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
 
     this.docs = this.docs.insert(key, {
       maybeDocument: doc,
-      size: size
+      size
     });
 
     this.newDocumentChanges = this.newDocumentChanges.add(key);
@@ -194,7 +194,7 @@ export class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer
   protected applyChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<void> {
-    const promises: PersistencePromise<void>[] = [];
+    const promises: Array<PersistencePromise<void>> = [];
     this.changes.forEach((key, doc) => {
       if (doc) {
         const size = this.sizer(doc);

@@ -142,7 +142,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     changedKeys: DocumentKeySet,
     sizeDelta: number
-  ) {
+  ) : PersistencePromise<void> {
     return this.getMetadata(transaction).next(metadata => {
       metadata.byteSize += sizeDelta;
       return this.setMetadata(transaction, metadata).next(() => {
@@ -477,7 +477,7 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
   protected applyChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<void> {
-    const promises: PersistencePromise<void>[] = [];
+    const promises: Array<PersistencePromise<void>> = [];
 
     let sizeDelta = 0;
     let changedKeys = documentKeySet();
