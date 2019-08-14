@@ -537,7 +537,7 @@ export class FirestoreClient {
 
   unlisten(listener: QueryListener): void {
     // Make unlisten a no-op if client is shut down.
-    if(this.clientShutdown) {
+    if (this.clientShutdown) {
       return;
     }
     this.asyncQueue.enqueueAndForget(() => {
