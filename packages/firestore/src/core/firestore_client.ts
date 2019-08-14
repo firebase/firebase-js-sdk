@@ -523,8 +523,9 @@ export class FirestoreClient {
   }
 
   /**
-   * Returns a `Promise` resolves when all the pending writes at the time when this method is called
-   * received server acknowledgement. An acknowledgement can be either acceptance or rejections.
+   * Returns a Promise that resolves when when all writes that were pending at the time when this
+   * method is called received server acknowledgement. An acknowledgement can be either acceptance
+   * or rejections.
    */
   waitForPendingWrites(): Promise<void> {
     this.verifyNotShutdown();
@@ -550,6 +551,7 @@ export class FirestoreClient {
   }
 
   unlisten(listener: QueryListener): void {
+    this.verifyNotShutdown();
     this.asyncQueue.enqueueAndForget(() => {
       return this.eventMgr.unlisten(listener);
     });

@@ -610,9 +610,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   /**
-   * Takes a snapshot of current mutation queue, and register a user callback
-   * which will be called when all those mutations in the snapshot are either
-   * accepted or rejected by the server.
+   * Registers a user callback with all the pending mutations at the moment of calling.
+   * When all those mutations are either accepted or rejected by the server, the
+   * registered callback will be triggered.
    */
   async registerPendingWritesCallback(callback: Deferred<void>): Promise<void> {
     if (!this.remoteStore.canUseNetwork()) {
@@ -623,22 +623,20 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
     }
 
-    const largestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
-
-    if (largestBatchId === BATCHID_UNKNOWN) {
+    const highestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
+    if (highestBatchId === BATCHID_UNKNOWN) {
       // Trigger the callback right away if there is no pending writes at the moment.
       callback.resolve();
-      return Promise.resolve();
+      return;
     }
 
-    const callbacks = this.pendingWritesCallbacks.get(largestBatchId) || [];
+    const callbacks = this.pendingWritesCallbacks.get(highestBatchId) || [];
     callbacks.push(callback);
-    this.pendingWritesCallbacks.set(largestBatchId, callbacks);
-    return Promise.resolve();
+    this.pendingWritesCallbacks.set(highestBatchId, callbacks);
   }
 
   /**
-   * Triggers callbacks waiting for this batch id to get acknowledged by server,
+   * Triggers the callbacks that are waiting for this batch id to get acknowledged by server,
    * if there are any.
    */
   private triggerPendingWritesCallbacks(batchId: BatchId): void {
@@ -650,13 +648,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   /** Reject all outstanding callbacks waiting for pending writes to complete. */
-  private rejectOutstandingPendingWritesCallbacks(): void {
+  private rejectOutstandingPendingWritesCallbacks(errorMessage: string): void {
     this.pendingWritesCallbacks.forEach(callbacks => {
       callbacks.forEach(callback => {
         callback.reject(
           new FirestoreError(
-            Code.CANCELLED,
-            "'waitForPendingWrites' task is cancelled due to User change."
+            Code.CANCELLED, errorMessage
           )
         );
       });
@@ -863,7 +860,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     if (userChanged) {
       // Fails tasks waiting for pending writes requested by previous user.
-      this.rejectOutstandingPendingWritesCallbacks();
+      this.rejectOutstandingPendingWritesCallbacks(
+            "'waitForPendingWrites' promise is rejected due to a user change."
+      );
 
       const result = await this.localStore.handleUserChange(user);
       // TODO(b/114226417): Consider calling this only in the primary tab.

@@ -1101,21 +1101,6 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('can unlisten queries after shutdown', async () => {
-    return withTestDoc(persistence, async docRef => {
-      const firestore = docRef.firestore;
-      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
-      const unsubscribe = docRef.onSnapshot(accumulator.storeEvent);
-      await accumulator.awaitEvent();
-      await shutdownDb(firestore);
-
-      // This should proceed without error.
-      unsubscribe();
-      // Multiple calls should proceed as well.
-      unsubscribe();
-    });
-  });
-
   it('new operation after shutdown should throw', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
@@ -1139,24 +1124,19 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('can wait for pending writes as expected', async () => {
+  it('can wait for pending writes', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
       // Prevent pending writes receiving acknowledgement.
       await firestore.disableNetwork();
 
-      const awaitPendingWrites1 = waitForPendingWrites(firestore);
       const pendingWrites = docRef.set({ foo: 'bar' });
-      const awaitPendingWrites2 = waitForPendingWrites(firestore);
-
-      // `awaitsPendingWrites1` resolves immediately because there are no pending writes at
-      // the time it is created.
-      await expect(awaitPendingWrites1).to.be.eventually.fulfilled;
+      const awaitPendingWrites = waitForPendingWrites(firestore);
 
       // pending writes can receive acknowledgements now.
       await firestore.enableNetwork();
-      await expect(pendingWrites).to.be.eventually.fulfilled;
-      await expect(awaitPendingWrites2).to.be.eventually.fulfilled;
+      await pendingWrites;
+      await awaitPendingWrites;
     });
   });
 
@@ -1167,9 +1147,11 @@ apiDescribe('Database', (persistence: boolean) => {
       db.doc('abc/123').set({ foo: 'bar' });
       const awaitPendingWrite = waitForPendingWrites(db);
 
-      mockCredentialsProvider.changeUserTo(new User('user_1'));
+      mockCredentialsProvider.triggerUserChange(new User('user_1'));
 
-      await expect(awaitPendingWrite).to.be.eventually.rejected;
+      await expect(awaitPendingWrite).to.be.eventually.rejectedWith(
+        "'waitForPendingWrites' promise is rejected due to a user change."
+      );
     });
   });
 
@@ -1180,8 +1162,10 @@ apiDescribe('Database', (persistence: boolean) => {
         // Prevent pending writes receiving acknowledgement.
         await firestore.disableNetwork();
 
+      // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
+      // immediately even if we are offline.
         const awaitPendingWrites = waitForPendingWrites(firestore);
-        await expect(awaitPendingWrites).to.be.eventually.fulfilled;
+        await awaitPendingWrites;
       });
     });
 });

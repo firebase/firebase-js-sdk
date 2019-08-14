@@ -130,8 +130,8 @@ export class MockCredentialsProvider extends EmptyCredentialsProvider {
 
   private listener: CredentialChangeListener | null = null;
 
-  changeUserTo(user: User): void {
-    this.listener!(user);
+  triggerUserChange(newUser: User): void {
+    this.listener!(newUser);
   }
 
   setChangeListener(listener: CredentialChangeListener): void {
@@ -185,8 +185,8 @@ export function withMockCredentialProviderTestDb(
 ): Promise<void> {
   const mockCredentialsProvider = new MockCredentialsProvider();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const settings: any = { ...DEFAULT_SETTINGS };
-  settings.credentials = { client: mockCredentialsProvider, type: 'provider' };
+  const settings = {... DEFAULT_SETTINGS,
+    credentials: { client: mockCredentialsProvider, type: 'provider' }};
   return withTestDbsSettings(persistence, DEFAULT_PROJECT_ID, settings, 1,
     ([db]) => {
       return fn(db, mockCredentialsProvider);
