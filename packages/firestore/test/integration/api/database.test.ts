@@ -1162,10 +1162,9 @@ apiDescribe('Database', (persistence: boolean) => {
         // Prevent pending writes receiving acknowledgement.
         await firestore.disableNetwork();
 
-      // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
-      // immediately even if we are offline.
-        const awaitPendingWrites = waitForPendingWrites(firestore);
-        await awaitPendingWrites;
+        // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
+        // immediately even if we are offline.
+        await waitForPendingWrites(firestore);
       });
     });
 });

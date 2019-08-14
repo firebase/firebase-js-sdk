@@ -523,9 +523,9 @@ export class FirestoreClient {
   }
 
   /**
-   * Returns a Promise that resolves when when all writes that were pending at the time when this
-   * method is called received server acknowledgement. An acknowledgement can be either acceptance
-   * or rejections.
+   * Returns a Promise that resolves when all writes that were pending at the time this
+   * method was called received server acknowledgement. An acknowledgement can be either acceptance
+   * or rejection.
    */
   waitForPendingWrites(): Promise<void> {
     this.verifyNotShutdown();

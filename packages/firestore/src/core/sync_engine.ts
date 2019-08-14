@@ -610,9 +610,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   }
 
   /**
-   * Registers a user callback with all the pending mutations at the moment of calling.
-   * When all those mutations are either accepted or rejected by the server, the
-   * registered callback will be triggered.
+   * Registers a user callback that resolves when all pending mutations at the moment of calling
+   * are acknowledged .
    */
   async registerPendingWritesCallback(callback: Deferred<void>): Promise<void> {
     if (!this.remoteStore.canUseNetwork()) {
