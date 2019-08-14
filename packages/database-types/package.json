@@ -10,7 +10,8 @@
   "files": [
     "index.d.ts"
   ],
-  "peerDependencies": {
+  "dependencies": {
+    "@firebase/app-types": "0.x"
   },
   "repository": {
     "directory": "packages/database-types",
