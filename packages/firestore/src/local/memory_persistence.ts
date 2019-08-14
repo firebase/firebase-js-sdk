@@ -277,9 +277,8 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
             // Since this is the eager delegate and memory persistence,
             // we don't care about the size of documents. We don't track
             // the size of the cache for eager GC.
-            return cache.removeEntry(txn, key).next(() => {});
+            cache.removeEntry(key);
           }
-          return PersistencePromise.resolve();
         });
       }
     ).next(() => {
@@ -421,7 +420,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
           // The memory remote document cache does its own byte
           // accounting on removal. This is ok because updating the size
           // for memory persistence does not incur IO.
-          return cache.removeEntry(txn, key).next();
+          cache.removeEntry(key);
         }
       });
     });

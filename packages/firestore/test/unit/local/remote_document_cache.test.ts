@@ -227,14 +227,12 @@ function eagerRemoteDocumentCacheTests(
     const totalSize = await cache.getSize();
     expect(totalSize).to.equal(0);
 
-    const doc2Size = await cache.removeEntry(doc2.key);
-    expect(doc2Size).to.equal(0);
+    await cache.removeEntry(doc2.key);
 
     const currentSize = await cache.getSize();
     expect(currentSize).to.equal(0);
 
-    const removedSize = await cache.removeEntry(doc1.key);
-    expect(removedSize).to.equal(0);
+    await cache.removeEntry(doc1.key);
 
     const finalSize = await cache.getSize();
     expect(finalSize).to.equal(0);
@@ -267,15 +265,12 @@ function lruRemoteDocumentCacheTests(
     const totalSize = await cache.getSize();
     expect(totalSize).to.be.greaterThan(doc1Size);
 
-    const expectedDoc2Size = totalSize - doc1Size;
-    const doc2Size = await cache.removeEntry(doc2.key);
-    expect(doc2Size).to.equal(expectedDoc2Size);
+    await cache.removeEntry(doc2.key);
 
     const currentSize = await cache.getSize();
     expect(currentSize).to.equal(doc1Size);
 
-    const removedSize = await cache.removeEntry(doc1.key);
-    expect(removedSize).to.equal(doc1Size);
+    await cache.removeEntry(doc1.key);
 
     const finalSize = await cache.getSize();
     expect(finalSize).to.equal(0);

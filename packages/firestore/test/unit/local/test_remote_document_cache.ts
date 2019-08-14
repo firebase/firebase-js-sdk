@@ -28,6 +28,7 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import {
+  documentKeySet,
   DocumentKeySet,
   DocumentMap,
   MaybeDocumentMap,
@@ -70,7 +71,7 @@ export abstract class TestRemoteDocumentCache {
     );
   }
 
-  removeEntry(documentKey: DocumentKey): Promise<number> {
+  removeEntry(documentKey: DocumentKey): Promise<void> {
     return this.persistence.runTransaction(
       'removeEntry',
       'readwrite-primary',
@@ -83,7 +84,7 @@ export abstract class TestRemoteDocumentCache {
   protected abstract removeInternal(
     txn: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<number>;
+  ): PersistencePromise<void>;
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
     return this.persistence.runTransaction('getEntry', 'readonly', txn => {
@@ -156,8 +157,10 @@ export class TestMemoryRemoteDocumentCache extends TestRemoteDocumentCache {
   protected removeInternal(
     txn: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<number> {
-    return this.memoryCache.removeEntry(txn, documentKey);
+  ): PersistencePromise<void> {
+    return PersistencePromise.resolve(
+      this.memoryCache.removeEntry(documentKey)
+    );
   }
 }
 
@@ -178,13 +181,19 @@ export class TestIndexedDbRemoteDocumentCache extends TestRemoteDocumentCache {
   protected removeInternal(
     txn: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<number> {
-    return this.indexedDbCache
-      .removeEntry(txn, documentKey)
-      .next(bytesRemoved => {
+  ): PersistencePromise<void> {
+    return this.indexedDbCache.getSizedEntry(txn, documentKey).next(entry => {
+      if (entry) {
         return this.indexedDbCache
-          .updateSize(txn, -bytesRemoved)
-          .next(() => bytesRemoved);
-      });
+          .removeEntry(txn, documentKey)
+          .next(() =>
+            this.indexedDbCache.updateMetadata(
+              txn,
+              documentKeySet(documentKey),
+              -entry.size
+            )
+          );
+      }
+    });
   }
 }

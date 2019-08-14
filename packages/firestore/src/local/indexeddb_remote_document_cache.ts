@@ -51,6 +51,7 @@ import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { ObjectMap } from '../util/obj_map';
 
 const REMOTE_DOCUMENT_CHANGE_MISSING_ERR_MSG =
   'The remote document changelog no longer contains all changes for all ' +
@@ -95,51 +96,30 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   /**
-   * Adds the supplied entries to the cache. Adds the given size delta to the cached size.
+   * Adds the supplied entries to the cache.
+   *
+   * Callees must ensure that the total document size in the cache is updated
+   * after all entries are written (via `updateMetadata()`).
    */
-  modifyEntries(
+  addEntry(
     transaction: PersistenceTransaction,
-    entries: Array<{ key: DocumentKey; doc?: DbRemoteDocument }>,
-    sizeDelta: number
+    key: DocumentKey,
+    doc: DbRemoteDocument
   ): PersistencePromise<void> {
-    const promises: Array<PersistencePromise<void>> = [];
-
-    if (entries.length > 0) {
-      const documentStore = remoteDocumentsStore(transaction);
-      let changedKeys = documentKeySet();
-      for (const { key, doc } of entries) {
-        if (doc) {
-          promises.push(documentStore.put(dbKey(key), doc));
-          promises.push(
-            this.indexManager.addToCollectionParentIndex(
-              transaction,
-              key.path.popLast()
-            )
-          );
-        } else {
-          promises.push(documentStore.delete(dbKey(key)));
-        }
-        changedKeys = changedKeys.add(key);
-      }
-
-      if (this.keepDocumentChangeLog) {
-        promises.push(
-          documentChangesStore(transaction).put({
-            changes: this.serializer.toDbResourcePaths(changedKeys)
-          })
-        );
-      }
-
-      promises.push(this.updateSize(transaction, sizeDelta));
-    }
-
-    return PersistencePromise.waitFor(promises);
+    const documentStore = remoteDocumentsStore(transaction);
+    return documentStore.put(dbKey(key), doc).next(() => {
+      this.indexManager.addToCollectionParentIndex(
+        transaction,
+        key.path.popLast()
+      );
+    });
   }
 
   /**
-   * Removes a document from the cache. Note that this method does *not* do any
-   * size accounting. It is the responsibility of the caller to count the bytes removed
-   * and issue a final updateSize() call after removing documents.
+   * Removes a document from the cache.
+   *
+   * Callees must ensure that the total document size in the cache is updated
+   * after all entries are written (via `updateMetadata()`).
    *
    * @param documentKey The key of the document to remove
    * @return The size of the document that was removed.
@@ -147,17 +127,31 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   removeEntry(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<number> {
-    // We don't need to keep changelog for these removals since `removeEntry` is
-    // only used for garbage collection.
+  ): PersistencePromise<void> {
     const store = remoteDocumentsStore(transaction);
     const key = dbKey(documentKey);
-    return store.get(key).next(document => {
-      if (document) {
-        return store.delete(key).next(() => dbDocumentSize(document));
-      } else {
-        return PersistencePromise.resolve(0);
-      }
+    return store.delete(key);
+  }
+
+  /**
+   * Udpates the document change log and adds the given delta to the cached current size.
+   * Callers to `addEntry()` and `removeEntry()` *must* call this afterwards to update the
+   * cache's metadata.
+   */
+  updateMetadata(
+    transaction: PersistenceTransaction,
+    changedKeys: DocumentKeySet,
+    sizeDelta: number
+  ) {
+    return this.getMetadata(transaction).next(metadata => {
+      metadata.byteSize += sizeDelta;
+      return this.setMetadata(transaction, metadata).next(() => {
+        if (this.keepDocumentChangeLog) {
+          return documentChangesStore(transaction).put({
+            changes: this.serializer.toDbResourcePaths(changedKeys)
+          });
+        }
+      });
     });
   }
 
@@ -452,22 +446,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   ): PersistencePromise<void> {
     return documentGlobalStore(txn).put(DbRemoteDocumentGlobal.key, metadata);
   }
-
-  /**
-   * Adds the given delta to the cached current size. Callers to removeEntry *must* call this
-   * afterwards to update the size of the cache.
-   *
-   * @param sizeDelta
-   */
-  updateSize(
-    txn: PersistenceTransaction,
-    sizeDelta: number
-  ): PersistencePromise<void> {
-    return this.getMetadata(txn).next(metadata => {
-      metadata.byteSize += sizeDelta;
-      return this.setMetadata(txn, metadata);
-    });
-  }
 }
 
 function documentGlobalStore(
@@ -480,9 +458,18 @@ function documentGlobalStore(
 }
 
 /**
- * Handles the details of adding and updating documents in the IndexedDbRemoteDocumentCache
+ * Handles the details of adding and updating documents in the IndexedDbRemoteDocumentCache.
+ *
+ * Unlike the MemoryRemoteDocumentChangeBuffer, the IndexedDb implementation computes the size
+ * delta for all submitted changes. This avoids having to re-read all documents from IndexedDb
+ * when we apply the changes.
  */
 class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
+  // A map of document sizes prior to applying the changes in this buffer.
+  protected documentSizes: ObjectMap<DocumentKey, number> = new ObjectMap(key =>
+    key.toString()
+  );
+
   constructor(private readonly documentCache: IndexedDbRemoteDocumentCache) {
     super();
   }
@@ -490,48 +477,74 @@ class IndexedDbRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer {
   protected applyChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<void> {
-    let delta = 0;
-    const toApply: Array<{
-      key: DocumentKey;
-      doc?: DbRemoteDocument;
-      size?: number;
-    }> = [];
+    const promises: PersistencePromise<void>[] = [];
 
-    this.assertChanges();
-    this.changes!.forEach((key, maybeDocument) => {
+    let sizeDelta = 0;
+    let changedKeys = documentKeySet();
+
+    this.changes.forEach((key, maybeDocument) => {
       const previousSize = this.documentSizes.get(key);
       assert(
         previousSize !== undefined,
-        `Attempting to change document ${key.toString()} without having read it first`
+        `Cannot modify a document that wasn't read (for ${key})`
       );
       if (maybeDocument) {
         const doc = this.documentCache.serializer.toDbRemoteDocument(
           maybeDocument
         );
         const size = dbDocumentSize(doc);
-        delta += size - previousSize!;
-        toApply.push({ key, doc, size });
+        sizeDelta += size - previousSize!;
+        promises.push(this.documentCache.addEntry(transaction, key, doc));
       } else {
-        delta -= previousSize!;
-        toApply.push({ key });
+        sizeDelta -= previousSize!;
+        promises.push(this.documentCache.removeEntry(transaction, key));
       }
+
+      changedKeys = changedKeys.add(key);
     });
 
-    return this.documentCache.modifyEntries(transaction, toApply, delta);
+    promises.push(
+      this.documentCache.updateMetadata(transaction, changedKeys, sizeDelta)
+    );
+
+    return PersistencePromise.waitFor(promises);
   }
 
   protected getFromCache(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<DocumentSizeEntry | null> {
-    return this.documentCache.getSizedEntry(transaction, documentKey);
+  ): PersistencePromise<MaybeDocument | null> {
+    // Record the size of everything we load from the cache so we can compute a delta later.
+    return this.documentCache
+      .getSizedEntry(transaction, documentKey)
+      .next(getResult => {
+        if (getResult === null) {
+          this.documentSizes.set(documentKey, 0);
+          return null;
+        } else {
+          this.documentSizes.set(documentKey, getResult.size);
+          return getResult.maybeDocument;
+        }
+      });
   }
 
   protected getAllFromCache(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<DocumentSizeEntries> {
-    return this.documentCache.getSizedEntries(transaction, documentKeys);
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    // Record the size of everything we load from the cache so we can compute
+    // a delta later.
+    return this.documentCache
+      .getSizedEntries(transaction, documentKeys)
+      .next(({ maybeDocuments, sizeMap }) => {
+        // Note: `getAllFromCache` returns two maps instead of a single map from
+        // keys to `DocumentSizeEntry`s. This is to allow returning the
+        // `NullableMaybeDocumentMap` directly, without a conversion.
+        sizeMap.forEach((documentKey, size) => {
+          this.documentSizes.set(documentKey, size);
+        });
+        return maybeDocuments;
+      });
   }
 }
 

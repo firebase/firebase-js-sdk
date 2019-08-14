@@ -21,7 +21,6 @@ import {
   documentKeySet,
   DocumentMap,
   documentMap,
-  DocumentSizeEntries,
   DocumentSizeEntry,
   MaybeDocumentMap,
   maybeDocumentMap,
@@ -62,50 +61,39 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   ) {}
 
   /**
-   * Adds the supplied entries to the cache. Adds the given size delta to the cached size.
+   * Adds the supplied entry to the cache and updates the cache size as appropriate.
    */
-  modifyEntries(
+  addEntry(
     transaction: PersistenceTransaction,
-    entries: Array<{ key: DocumentKey; doc?: MaybeDocument; size?: number }>,
-    sizeDelta: number
+    doc: MaybeDocument,
+    size: number
   ): PersistencePromise<void> {
-    const promises = [] as Array<PersistencePromise<void>>;
-    for (const { key, doc, size } of entries) {
-      if (doc) {
-        assert(size !== undefined, 'Size missing for document ' + doc.key);
-        this.docs = this.docs.insert(key, {
-          maybeDocument: doc,
-          size: size!
-        });
-        promises.push(
-          this.indexManager.addToCollectionParentIndex(
-            transaction,
-            key.path.popLast()
-          )
-        );
-      } else {
-        this.docs = this.docs.remove(key);
-      }
-      this.newDocumentChanges = this.newDocumentChanges.add(key);
-    }
-    this.size += sizeDelta;
-    return PersistencePromise.waitFor(promises);
+    const key = doc.key;
+    const entry = this.docs.get(key);
+    const previousSize = entry ? entry.size : 0;
+
+    this.docs = this.docs.insert(key, {
+      maybeDocument: doc,
+      size: size
+    });
+
+    this.newDocumentChanges = this.newDocumentChanges.add(key);
+    this.size += size - previousSize;
+
+    return this.indexManager.addToCollectionParentIndex(
+      transaction,
+      key.path.popLast()
+    );
   }
 
   /**
-   * Removes the specified entry from the cache and updates the size as appropriate.
+   * Removes the specified entry from the cache and updates the cache size as appropriate.
    */
-  removeEntry(
-    transaction: PersistenceTransaction,
-    documentKey: DocumentKey
-  ): PersistencePromise<number> {
+  removeEntry(documentKey: DocumentKey): void {
     const entry = this.docs.get(documentKey);
     if (entry) {
       this.docs = this.docs.remove(documentKey);
       this.size -= entry.size;
-      return PersistencePromise.resolve(entry.size);
-    } else {
-      return PersistencePromise.resolve(0);
     }
   }
 
@@ -115,19 +103,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   ): PersistencePromise<MaybeDocument | null> {
     const entry = this.docs.get(documentKey);
     return PersistencePromise.resolve(entry ? entry.maybeDocument : null);
-  }
-
-  /**
-   * Looks up an entry in the cache.
-   *
-   * @param documentKey The key of the entry to look up.
-   * @return The cached MaybeDocument entry and its size, or null if we have nothing cached.
-   */
-  getSizedEntry(
-    transaction: PersistenceTransaction,
-    documentKey: DocumentKey
-  ): PersistencePromise<DocumentSizeEntry | null> {
-    return PersistencePromise.resolve(this.docs.get(documentKey));
   }
 
   getEntries(
@@ -140,28 +115,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       results = results.insert(documentKey, entry ? entry.maybeDocument : null);
     });
     return PersistencePromise.resolve(results);
-  }
-
-  /**
-   * Looks up several entries in the cache.
-   *
-   * @param documentKeys The set of keys entries to look up.
-   * @return A map of MaybeDocuments indexed by key (if a document cannot be
-   *     found, the key will be mapped to null) and a map of sizes indexed by
-   *     key (zero if the key cannot be found).
-   */
-  getSizedEntries(
-    transaction: PersistenceTransaction,
-    documentKeys: DocumentKeySet
-  ): PersistencePromise<DocumentSizeEntries> {
-    let results = nullableMaybeDocumentMap();
-    let sizeMap = new SortedMap<DocumentKey, number>(DocumentKey.comparator);
-    documentKeys.forEach(documentKey => {
-      const entry = this.docs.get(documentKey);
-      results = results.insert(documentKey, entry ? entry.maybeDocument : null);
-      sizeMap = sizeMap.insert(documentKey, entry ? entry.size : 0);
-    });
-    return PersistencePromise.resolve({ maybeDocuments: results, sizeMap });
   }
 
   getDocumentsMatchingQuery(
@@ -241,43 +194,29 @@ export class MemoryRemoteDocumentChangeBuffer extends RemoteDocumentChangeBuffer
   protected applyChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<void> {
-    this.assertChanges();
-    let delta = 0;
-    const entries: Array<{
-      key: DocumentKey;
-      doc?: MaybeDocument;
-      size?: number;
-    }> = [];
-    this.changes!.forEach((key, doc) => {
-      const previousSize = this.documentSizes.get(key);
-      assert(
-        previousSize !== undefined,
-        `Attempting to change document ${key.toString()} without having read it first`
-      );
+    const promises: PersistencePromise<void>[] = [];
+    this.changes.forEach((key, doc) => {
       if (doc) {
         const size = this.sizer(doc);
-        delta += size - previousSize!;
-        entries.push({ key, doc, size });
+        promises.push(this.documentCache.addEntry(transaction, doc, size));
       } else {
-        delta -= previousSize!;
-        entries.push({ key });
+        this.documentCache.removeEntry(key);
       }
     });
-
-    return this.documentCache.modifyEntries(transaction, entries, delta);
+    return PersistencePromise.waitFor(promises);
   }
 
   protected getFromCache(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<DocumentSizeEntry | null> {
-    return this.documentCache.getSizedEntry(transaction, documentKey);
+  ): PersistencePromise<MaybeDocument | null> {
+    return this.documentCache.getEntry(transaction, documentKey);
   }
 
   protected getAllFromCache(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<DocumentSizeEntries> {
-    return this.documentCache.getSizedEntries(transaction, documentKeys);
+  ): PersistencePromise<NullableMaybeDocumentMap> {
+    return this.documentCache.getEntries(transaction, documentKeys);
   }
 }
