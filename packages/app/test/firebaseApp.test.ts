@@ -24,6 +24,7 @@ import {
 import { createFirebaseNamespace } from '../src/firebaseNamespace';
 import { createFirebaseNamespaceLite } from '../src/lite/firebaseNamespaceLite';
 import { assert } from 'chai';
+import { stub } from 'sinon';
 
 executeFirebaseTests();
 executeFirebaseLiteTests();
@@ -89,6 +90,8 @@ function executeFirebaseTests(): void {
 
     it('Will do nothing if registerService is called again with the same name', () => {
       let registrations = 0;
+      const registerStub =
+        stub((firebase as _FirebaseNamespace).INTERNAL, 'registerService').callThrough();
       (firebase as _FirebaseNamespace).INTERNAL.registerService(
         'test',
         (app: FirebaseApp) => {
@@ -111,6 +114,7 @@ function executeFirebaseTests(): void {
 
       const service2 = (firebase as any).test();
       assert.strictEqual(service, service2);
+      assert.doesNotThrow(registerStub);
     });
 
     it('Can lazy load a service', () => {
