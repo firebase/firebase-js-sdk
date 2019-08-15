@@ -16,19 +16,12 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
-import { MemoryPersistence } from '../../../src/local/memory_persistence';
-import { MemoryRemoteDocumentCache } from '../../../src/local/memory_remote_document_cache';
-import {
-  Persistence,
-  PersistenceTransaction
-} from '../../../src/local/persistence';
+import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import {
-  documentKeySet,
   DocumentKeySet,
   DocumentMap,
   MaybeDocumentMap,
