@@ -468,6 +468,25 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this._firestoreClient!.clientShutdown;
   }
 
+  /**
+   * Waits until all currently pending writes for the active user have been acknowledged by the
+   * backend.
+   *
+   * The returned Promise resolves immediately if there are no outstanding writes. Otherwise, the
+   * Promise waits for all previously issued writes (including those written in a previous app
+   * session), but it does not wait for writes that were added after the method is called. If you
+   * wish to wait for additional writes, you have to call `waitForPendingWrites()` again.
+   *
+   * Any outstanding `waitForPendingWrites()` Promises are rejected during user changes.
+   *
+   * @return A Promise which resolves when all currently pending writes have been
+   * acknowledged by the backend.
+   */
+  _waitForPendingWrites(): Promise<void> {
+    this.ensureClientConfigured();
+    return this._firestoreClient!.waitForPendingWrites();
+  }
+
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.

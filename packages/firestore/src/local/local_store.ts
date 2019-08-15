@@ -387,6 +387,20 @@ export class LocalStore {
     );
   }
 
+  /**
+   * Returns the largest (latest) batch id in mutation queue that is pending server response.
+   * Returns `BATCHID_UNKNOWN` if the queue is empty.
+   */
+  getHighestUnacknowledgedBatchId(): Promise<BatchId> {
+    return this.persistence.runTransaction(
+      'Get highest unacknowledged batch id',
+      'readonly',
+      txn => {
+        return this.mutationQueue.getHighestUnacknowledgedBatchId(txn);
+      }
+    );
+  }
+
   /** Returns the last recorded stream token for the current user. */
   getLastStreamToken(): Promise<ProtoByteString> {
     return this.persistence.runTransaction(

@@ -28,12 +28,12 @@ import {
 import { MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { MutationBatchResult } from '../model/mutation_batch';
+import { MutationBatchResult, BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
 import { assert, fail } from '../util/assert';
-import { FirestoreError } from '../util/error';
+import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
@@ -160,6 +160,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private mutationUserCallbacks = {} as {
     [uidKey: string]: SortedMap<BatchId, Deferred<void>>;
   };
+  /** Stores user callbacks waiting for all pending writes to be acknowledged. */
+  private pendingWritesCallbacks = new Map<BatchId, Array<Deferred<void>>>();
   private limboTargetIdGenerator = TargetIdGenerator.forSyncEngine();
 
   // The primary state is set to `true` or `false` immediately after Firestore
@@ -435,6 +437,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       (this.isPrimary && source === OnlineStateSource.RemoteStore) ||
       (!this.isPrimary && source === OnlineStateSource.SharedClientState)
     ) {
+      this.assertSubscribed('applyOnlineStateChange()');
       const newViewSnapshots = [] as ViewSnapshot[];
       this.queryViewsByQuery.forEach((query, queryView) => {
         const viewChange = queryView.view.applyOnlineStateChange(onlineState);
@@ -555,6 +558,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // before listen events.
     this.processUserCallback(batchId, /*error=*/ null);
 
+    this.triggerPendingWritesCallbacks(batchId);
+
     try {
       const changes = await this.localStore.acknowledgeBatch(
         mutationBatchResult
@@ -578,6 +583,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     // listen events.
     this.processUserCallback(batchId, error);
 
+    this.triggerPendingWritesCallbacks(batchId);
+
     try {
       const changes = await this.localStore.rejectBatch(batchId);
       this.sharedClientState.updateMutationState(batchId, 'rejected', error);
@@ -585,6 +592,58 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     } catch (error) {
       await ignoreIfPrimaryLeaseLoss(error);
     }
+  }
+
+  /**
+   * Registers a user callback that resolves when all pending mutations at the moment of calling
+   * are acknowledged .
+   */
+  async registerPendingWritesCallback(callback: Deferred<void>): Promise<void> {
+    if (!this.remoteStore.canUseNetwork()) {
+      log.debug(
+        LOG_TAG,
+        'The network is disabled. The task returned by ' +
+          "'awaitPendingWrites()' will not complete until the network is enabled."
+      );
+    }
+
+    const highestBatchId = await this.localStore.getHighestUnacknowledgedBatchId();
+    if (highestBatchId === BATCHID_UNKNOWN) {
+      // Trigger the callback right away if there is no pending writes at the moment.
+      callback.resolve();
+      return;
+    }
+
+    const callbacks = this.pendingWritesCallbacks.get(highestBatchId) || [];
+    callbacks.push(callback);
+    this.pendingWritesCallbacks.set(highestBatchId, callbacks);
+  }
+
+  /**
+   * Triggers the callbacks that are waiting for this batch id to get acknowledged by server,
+   * if there are any.
+   */
+  private triggerPendingWritesCallbacks(batchId: BatchId): void {
+    (this.pendingWritesCallbacks.get(batchId) || []).forEach(callback => {
+      callback.resolve();
+    });
+
+    this.pendingWritesCallbacks.delete(batchId);
+  }
+
+  /** Reject all outstanding callbacks waiting for pending writes to complete. */
+  private rejectOutstandingPendingWritesCallbacks(errorMessage: string): void {
+    this.pendingWritesCallbacks.forEach(callbacks => {
+      callbacks.forEach(callback => {
+        callback.reject(
+          new FirestoreError(
+            Code.CANCELLED, errorMessage
+          )
+        );
+      });
+    });
+
+    this.pendingWritesCallbacks.clear();
   }
 
   private addMutationCallback(
@@ -784,6 +843,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.currentUser = user;
 
     if (userChanged) {
+      // Fails tasks waiting for pending writes requested by previous user.
+      this.rejectOutstandingPendingWritesCallbacks(
+            "'waitForPendingWrites' promise is rejected due to a user change."
+      );
+
       const result = await this.localStore.handleUserChange(user);
       // TODO(b/114226417): Consider calling this only in the primary tab.
       this.sharedClientState.handleUserChange(

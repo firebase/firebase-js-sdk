@@ -522,6 +522,21 @@ export class FirestoreClient {
     });
   }
 
+  /**
+   * Returns a Promise that resolves when all writes that were pending at the time this
+   * method was called received server acknowledgement. An acknowledgement can be either acceptance
+   * or rejection.
+   */
+  waitForPendingWrites(): Promise<void> {
+    this.verifyNotShutdown();
+
+    const deferred = new Deferred<void>();
+    this.asyncQueue.enqueueAndForget(() => {
+      return this.syncEngine.registerPendingWritesCallback(deferred);
+    });
+    return deferred.promise;
+  }
+
   listen(
     query: Query,
     observer: Observer<ViewSnapshot>,
