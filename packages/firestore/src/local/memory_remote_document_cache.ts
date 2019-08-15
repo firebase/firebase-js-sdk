@@ -68,7 +68,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
    */
   private addEntry(
     transaction: PersistenceTransaction,
-    doc: MaybeDocument,
+    doc: MaybeDocument
   ): PersistencePromise<void> {
     const key = doc.key;
     const entry = this.docs.get(key);
