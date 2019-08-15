@@ -90,8 +90,10 @@ function executeFirebaseTests(): void {
 
     it('Will do nothing if registerService is called again with the same name', () => {
       let registrations = 0;
-      const registerStub =
-        stub((firebase as _FirebaseNamespace).INTERNAL, 'registerService').callThrough();
+      const registerStub = stub(
+        (firebase as _FirebaseNamespace).INTERNAL,
+        'registerService'
+      ).callThrough();
       (firebase as _FirebaseNamespace).INTERNAL.registerService(
         'test',
         (app: FirebaseApp) => {
