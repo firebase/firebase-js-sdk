@@ -35,7 +35,7 @@ import { DocumentKey } from '../../../src/model/document_key';
  * transaction around every operation to reduce test boilerplate.
  */
 export class TestRemoteDocumentCache {
-  private cache: RemoteDocumentCache;
+  private readonly cache: RemoteDocumentCache;
 
   constructor(private readonly persistence: Persistence) {
     this.cache = persistence.getRemoteDocumentCache();
