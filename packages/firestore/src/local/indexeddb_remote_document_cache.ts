@@ -135,7 +135,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    * Callers to `addEntry()` and `removeEntry()` *must* call this afterwards to update the
    * cache's metadata.
    */
-  updateMetadata(
+  private updateMetadata(
     transaction: PersistenceTransaction,
     changedKeys: DocumentKeySet,
     sizeDelta: number
