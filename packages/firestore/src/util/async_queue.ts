@@ -328,6 +328,11 @@ export class AsyncQueue {
       `Attempted to schedule an operation with a negative delay of ${delayMs}`
     );
 
+     // Fast-forward delays for timerIds that have been overriden.
+     if (this.timerIdsToSkip.indexOf(timerId) > -1) {
+      delayMs = 0;
+    }
+
     const delayedOp = DelayedOperation.createAndSchedule<T>(
       this,
       timerId,
@@ -337,12 +342,6 @@ export class AsyncQueue {
         this.removeDelayedOperation(removedOp as DelayedOperation<unknown>)
     );
     this.delayedOperations.push(delayedOp as DelayedOperation<unknown>);
-
-    // Fast-forward delays for timerIds that have been overriden.
-    if (this.timerIdsToSkip.indexOf(delayedOp.timerId) > -1) {
-      delayedOp.skipDelay();
-    }
-
     return delayedOp;
   }
 
