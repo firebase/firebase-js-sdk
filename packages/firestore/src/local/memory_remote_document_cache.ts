@@ -69,19 +69,19 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private addEntry(
     transaction: PersistenceTransaction,
     doc: MaybeDocument,
-    size: number
   ): PersistencePromise<void> {
     const key = doc.key;
     const entry = this.docs.get(key);
     const previousSize = entry ? entry.size : 0;
+    const currentSize = this.sizer(doc);
 
     this.docs = this.docs.insert(key, {
       maybeDocument: doc,
-      size
+      size: currentSize
     });
 
     this.newDocumentChanges = this.newDocumentChanges.add(key);
-    this.size += size - previousSize;
+    this.size += currentSize - previousSize;
 
     return this.indexManager.addToCollectionParentIndex(
       transaction,
@@ -199,8 +199,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       const promises: Array<PersistencePromise<void>> = [];
       this.changes.forEach((key, doc) => {
         if (doc) {
-          const size = this.documentCache.sizer(doc);
-          promises.push(this.documentCache.addEntry(transaction, doc, size));
+          promises.push(this.documentCache.addEntry(transaction, doc));
         } else {
           this.documentCache.removeEntry(key);
         }
