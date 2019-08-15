@@ -98,7 +98,7 @@ function executeFirebaseTests(): void {
       );
       firebase.initializeApp({});
       assert.equal(registrations, 0);
-      (firebase as any).test();
+      const service = (firebase as any).test();
       assert.equal(registrations, 1);
 
       (firebase as _FirebaseNamespace).INTERNAL.registerService(
@@ -109,8 +109,8 @@ function executeFirebaseTests(): void {
         }
       );
 
-      (firebase as any).test();
-      assert.equal(registrations, 1);
+      const service2 = (firebase as any).test();
+      assert.strictEqual(service, service2);
     });
 
     it('Can lazy load a service', () => {

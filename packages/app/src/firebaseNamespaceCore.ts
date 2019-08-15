@@ -35,6 +35,7 @@ import { ERROR_FACTORY, AppError } from './errors';
 import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { version } from '../../firebase/package.json';
+import { logger } from './logger';
 
 /**
  * Because auth can't share code with other components, we attach the utility functions
@@ -180,8 +181,9 @@ export function createFirebaseNamespaceCore(
     appHook?: AppHook,
     allowMultipleInstances = false
   ): FirebaseServiceNamespace<FirebaseService> {
-    // Cannot re-register a service that already exists
+    // If re-registering a service that already exists, return existing service
     if (factories[name]) {
+      logger.debug(`There were multiple attempts to register service ${name}.`);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return (namespace as any)[name] as FirebaseServiceNamespace<
         FirebaseService
