@@ -182,7 +182,10 @@ export function createFirebaseNamespaceCore(
   ): FirebaseServiceNamespace<FirebaseService> {
     // Cannot re-register a service that already exists
     if (factories[name]) {
-      throw ERROR_FACTORY.create(AppError.DUPLICATE_SERVICE, { appName: name });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (namespace as any)[name] as FirebaseServiceNamespace<
+        FirebaseService
+      >;
     }
 
     // Capture the service factory for later service instantiation

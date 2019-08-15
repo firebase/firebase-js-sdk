@@ -87,6 +87,32 @@ function executeFirebaseTests(): void {
       assert.equal(registrations, 2);
     });
 
+    it('Will do nothing if registerService is called again with the same name', () => {
+      let registrations = 0;
+      (firebase as _FirebaseNamespace).INTERNAL.registerService(
+        'test',
+        (app: FirebaseApp) => {
+          registrations += 1;
+          return new TestService(app);
+        }
+      );
+      firebase.initializeApp({});
+      assert.equal(registrations, 0);
+      (firebase as any).test();
+      assert.equal(registrations, 1);
+
+      (firebase as _FirebaseNamespace).INTERNAL.registerService(
+        'test',
+        (app: FirebaseApp) => {
+          registrations += 1;
+          return new TestService(app);
+        }
+      );
+
+      (firebase as any).test();
+      assert.equal(registrations, 1);
+    });
+
     it('Can lazy load a service', () => {
       let registrations = 0;
 
