@@ -92,7 +92,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   /**
    * Removes the specified entry from the cache and updates the cache size as appropriate.
    *
-   * All calls of `removeEntry` are required to gothrough the RemoteDocumentChangeBuffer
+   * All calls of `removeEntry` are required to go through the RemoteDocumentChangeBuffer
    * returned by `newChangeBuffer()`.
    */
   private removeEntry(documentKey: DocumentKey): void {
