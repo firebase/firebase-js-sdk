@@ -15,23 +15,5 @@
  * limitations under the License.
  */
 
-const karma = require('karma');
-const path = require('path');
-const karmaBase = require('../../config/karma.base');
-
-const files = ['test/**/*', 'src/**/*.test.ts'];
-
-module.exports = function(config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
-    // files to load into karma
-    files: files,
-    // frameworks to use
-    // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
-    frameworks: ['mocha']
-  });
-
-  config.set(karmaConfig);
-};
-
-module.exports.files = files;
+export { Component, ComponentType } from './src/component';
+export { ComponentContainer } from './src/component_container';

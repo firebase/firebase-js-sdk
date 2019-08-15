@@ -28,6 +28,7 @@ import {
 import { deepCopy, deepExtend } from '@firebase/util';
 import { ERROR_FACTORY, AppError } from '../errors';
 import { DEFAULT_ENTRY_NAME } from '../constants';
+import { ComponentContainer, Component } from '@firebase/component';
 
 interface ServicesCache {
   [name: string]: {
@@ -43,8 +44,8 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
   private readonly options_: FirebaseOptions;
   private readonly name_: string;
   private isDeleted_ = false;
-  private services_: ServicesCache = {};
   private automaticDataCollectionEnabled_: boolean;
+  private container: ComponentContainer;
 
   // lite version has an empty INTERNAL namespace
   readonly INTERNAL = {};
@@ -58,6 +59,14 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
     this.automaticDataCollectionEnabled_ =
       config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);
+    this.container = new ComponentContainer(config.name!);
+
+    // add itself to container
+    this.container.addComponent(new Component('app', () => this));
+    // populate ComponentContainer with existing components
+    for (const component of this.firebase_.INTERNAL.components.values()) {
+      this.container.addComponent(component);
+    }
   }
 
   get automaticDataCollectionEnabled(): boolean {
@@ -87,23 +96,13 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
     })
       .then(() => {
         this.firebase_.INTERNAL.removeApp(this.name_);
-        const services: FirebaseService[] = [];
-
-        for (const serviceKey of Object.keys(this.services_)) {
-          for (const instanceKey of Object.keys(this.services_[serviceKey])) {
-            services.push(this.services_[serviceKey][instanceKey]);
-          }
-        }
 
         return Promise.all(
-          services
-            .filter(service => 'INTERNAL' in service)
-            .map(service => service.INTERNAL!.delete())
+          this.container.getProviders().map(provider => provider.delete())
         );
       })
       .then((): void => {
         this.isDeleted_ = true;
-        this.services_ = {};
       });
   }
 
@@ -127,37 +126,10 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
   ): FirebaseService {
     this.checkDestroyed_();
 
-    if (!this.services_[name]) {
-      this.services_[name] = {};
-    }
-
-    if (!this.services_[name][instanceIdentifier]) {
-      /**
-       * If a custom instance has been defined (i.e. not '[DEFAULT]')
-       * then we will pass that instance on, otherwise we pass `null`
-       */
-      const instanceSpecifier =
-        instanceIdentifier !== DEFAULT_ENTRY_NAME
-          ? instanceIdentifier
-          : undefined;
-      const service = this.firebase_.INTERNAL.factories[name](
-        this,
-        this.extendApp.bind(this),
-        instanceSpecifier
-      );
-      this.services_[name][instanceIdentifier] = service;
-    }
-
-    return this.services_[name][instanceIdentifier];
-  }
-
-  /**
-   * Callback function used to extend an App instance at the time
-   * of service instance creation.
-   */
-  private extendApp(props: { [name: string]: unknown }): void {
-    // Copy the object onto the FirebaseAppImpl prototype
-    deepExtend(this, props);
+    // getImmediate will always succeed because _getService is only called for registered components.
+    return this.container
+      .getProvider(name)
+      .getImmediate(instanceIdentifier) as FirebaseService;
   }
 
   /**

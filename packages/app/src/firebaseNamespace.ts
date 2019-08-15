@@ -28,7 +28,7 @@ import { createFirebaseNamespaceCore } from './firebaseNamespaceCore';
  * assigned to the 'firebase' global.  It may be called multiple times
  * in unit tests.
  */
-export function createFirebaseNamespace(): FirebaseNamespace {
+function createFirebaseNamespace(): FirebaseNamespace {
   const namespace = createFirebaseNamespaceCore(FirebaseAppImpl);
   (namespace as _FirebaseNamespace).INTERNAL = {
     ...(namespace as _FirebaseNamespace).INTERNAL,
@@ -50,3 +50,5 @@ export function createFirebaseNamespace(): FirebaseNamespace {
 
   return namespace;
 }
+
+export const firebase = createFirebaseNamespace();

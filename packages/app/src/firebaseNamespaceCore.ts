@@ -25,9 +25,7 @@ import {
   _FirebaseApp,
   _FirebaseNamespace,
   FirebaseService,
-  FirebaseServiceFactory,
-  FirebaseServiceNamespace,
-  AppHook
+  FirebaseServiceNamespace
 } from '@firebase/app-types/private';
 import { deepExtend, contains } from '@firebase/util';
 import { FirebaseAppImpl } from './firebaseApp';
@@ -36,6 +34,7 @@ import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { version } from '../../firebase/package.json';
 import { logger } from './logger';
+import { Component, ComponentType } from '@firebase/component';
 
 /**
  * Because auth can't share code with other components, we attach the utility functions
@@ -48,8 +47,8 @@ export function createFirebaseNamespaceCore(
   firebaseAppImpl: typeof FirebaseAppImpl | typeof FirebaseAppLiteImpl
 ): FirebaseNamespace {
   const apps: { [name: string]: FirebaseApp } = {};
-  const factories: { [service: string]: FirebaseServiceFactory } = {};
-  const appHooks: { [service: string]: AppHook } = {};
+  //  const factories: { [service: string]: FirebaseServiceFactory } = {};
+  const components = new Map<string, Component>();
 
   // A namespace is a plain JavaScript Object.
   const namespace: FirebaseNamespace = {
@@ -64,9 +63,9 @@ export function createFirebaseNamespaceCore(
     apps: null,
     SDK_VERSION: version,
     INTERNAL: {
-      registerService,
+      registerComponent,
       removeApp,
-      factories,
+      components,
       useAsService
     }
   };
@@ -94,8 +93,6 @@ export function createFirebaseNamespaceCore(
    * are deleted.
    */
   function removeApp(name: string): void {
-    const app = apps[name];
-    callAppHooks(app, 'delete');
     delete apps[name];
   }
 
@@ -154,7 +151,6 @@ export function createFirebaseNamespaceCore(
     );
 
     apps[name] = app;
-    callAppHooks(app, 'create');
 
     return app;
   }
@@ -167,93 +163,64 @@ export function createFirebaseNamespaceCore(
     return Object.keys(apps).map(name => apps[name]);
   }
 
-  /*
-   * Register a Firebase Service.
-   *
-   * firebase.INTERNAL.registerService()
-   *
-   * TODO: Implement serviceProperties.
-   */
-  function registerService(
-    name: string,
-    createService: FirebaseServiceFactory,
-    serviceProperties?: { [prop: string]: unknown },
-    appHook?: AppHook,
-    allowMultipleInstances = false
-  ): FirebaseServiceNamespace<FirebaseService> {
-    // If re-registering a service that already exists, return existing service
-    if (factories[name]) {
-      logger.debug(`There were multiple attempts to register service ${name}.`);
+  function registerComponent(
+    component: Component
+  ): FirebaseServiceNamespace<FirebaseService> | null {
+    const componentName = component.name;
+    if (components.has(componentName)) {
+      console.debug(
+        `There were multiple attempts to register component ${componentName}.`
+      );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (namespace as any)[name] as FirebaseServiceNamespace<
-        FirebaseService
-      >;
+      return component.type === ComponentType.PUBLIC ? (namespace as any)[componentName] : null;
     }
 
-    // Capture the service factory for later service instantiation
-    factories[name] = createService;
+    components.set(componentName, component);
 
-    // Capture the appHook, if passed
-    if (appHook) {
-      appHooks[name] = appHook;
+    // create service namespace for public components
+    if (component.type === ComponentType.PUBLIC) {
+      // The Service namespace is an accessor function ...
+      const serviceNamespace = (appArg: FirebaseApp = app()): FirebaseService => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (typeof (appArg as any)[componentName] !== 'function') {
+          // Invalid argument.
+          // This happens in the following case: firebase.storage('gs:/')
+          throw ERROR_FACTORY.create(AppError.INVALID_APP_ARGUMENT, {
+            appName: componentName
+          });
+        }
 
-      // Run the **new** app hook on all existing apps
-      getApps().forEach(app => {
-        appHook('create', app);
-      });
-    }
-
-    // The Service namespace is an accessor function ...
-    function serviceNamespace(appArg: FirebaseApp = app()): FirebaseService {
-      // @ts-ignore
-      if (typeof appArg[name] !== 'function') {
-        // Invalid argument.
-        // This happens in the following case: firebase.storage('gs:/')
-        throw ERROR_FACTORY.create(AppError.INVALID_APP_ARGUMENT, {
-          appName: name
-        });
+        // Forward service instance lookup to the FirebaseApp.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (appArg as any)[componentName]();
       }
 
-      // Forward service instance lookup to the FirebaseApp.
-      // @ts-ignore
-      return appArg[name]();
-    }
+      // ... and a container for service-level properties.
+      if (component.serviceProps !== undefined) {
+        deepExtend(serviceNamespace, component.serviceProps);
+      }
 
-    // ... and a container for service-level properties.
-    if (serviceProperties !== undefined) {
-      deepExtend(serviceNamespace, serviceProperties);
-    }
-
-    // Monkey-patch the serviceNamespace onto the firebase namespace
-    // @ts-ignore
-    namespace[name] = serviceNamespace;
-
-    // Patch the FirebaseAppImpl prototype
-    // @ts-ignore
-    firebaseAppImpl.prototype[name] =
-      // TODO: The eslint disable can be removed and the 'ignoreRestArgs'
-      // option added to the no-explicit-any rule when ESlint releases it.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      function(...args: any) {
-        const serviceFxn = this._getService.bind(this, name);
-        return serviceFxn.apply(this, allowMultipleInstances ? args : []);
-      };
+      (namespace as any)[componentName] = serviceNamespace;
 
-    return serviceNamespace;
-  }
-
-  function callAppHooks(app: FirebaseApp, eventName: string): void {
-    for (const serviceName of Object.keys(factories)) {
-      // Ignore virtual services
-      const factoryName = useAsService(app, serviceName);
-      if (factoryName === null) {
-        return;
-      }
-
-      if (appHooks[factoryName]) {
-        appHooks[factoryName](eventName, app);
-      }
+      // Patch the FirebaseAppImpl prototype
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (firebaseAppImpl.prototype as any)[componentName] =
+        // TODO: The eslint disable can be removed and the 'ignoreRestArgs'
+        // option added to the no-explicit-any rule when ESlint releases it.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        function (...args: any) {
+          const serviceFxn = this._getService.bind(this, componentName);
+          return serviceFxn.apply(this, component.multipleInstances ? args : []);
+        };
     }
+
+    // add the component to existing app instances
+    for (const appName of Object.keys(apps)) {
+      (apps[appName] as _FirebaseApp)._addComponent(component);
+    }
+
+    return component.type === ComponentType.PUBLIC ? (namespace as any)[componentName] : null;
   }
 
   // Map the requested service to a registered service name

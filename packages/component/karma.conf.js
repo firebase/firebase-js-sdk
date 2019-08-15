@@ -19,19 +19,19 @@ const karma = require('karma');
 const path = require('path');
 const karmaBase = require('../../config/karma.base');
 
-const files = ['test/**/*', 'src/**/*.test.ts'];
+const files = ['src/**/*.test.ts'];
 
-module.exports = function(config) {
-  const karmaConfig = Object.assign({}, karmaBase, {
+module.exports = function (config) {
+  config.set({
+    ...karmaBase,
     // files to load into karma
     files: files,
+    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
     // frameworks to use
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
-    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
     frameworks: ['mocha']
   });
 
-  config.set(karmaConfig);
 };
 
 module.exports.files = files;
