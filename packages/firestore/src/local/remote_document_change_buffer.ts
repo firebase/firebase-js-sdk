@@ -100,7 +100,7 @@ export abstract class RemoteDocumentChangeBuffer {
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
     this.assertNotApplied();
-    const bufferedEntry = this.changes!.get(documentKey);
+    const bufferedEntry = this.changes.get(documentKey);
     if (bufferedEntry !== undefined) {
       return PersistencePromise.resolve<MaybeDocument | null>(bufferedEntry);
     } else {

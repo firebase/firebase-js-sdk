@@ -23,10 +23,7 @@ import {
   clearTestPersistence,
   testIndexedDbPersistence
 } from './persistence_test_helpers';
-import {
-  TestIndexedDbRemoteDocumentCache,
-  TestRemoteDocumentCache
-} from './test_remote_document_cache';
+import { TestRemoteDocumentCache } from './test_remote_document_cache';
 import { TestRemoteDocumentChangeBuffer } from './test_remote_document_change_buffer';
 
 let persistence: IndexedDbPersistence;
@@ -42,7 +39,7 @@ describe('RemoteDocumentChangeBuffer', () => {
   beforeEach(() => {
     return testIndexedDbPersistence().then(p => {
       persistence = p;
-      cache = new TestIndexedDbRemoteDocumentCache(persistence);
+      cache = new TestRemoteDocumentCache(persistence);
       buffer = new TestRemoteDocumentChangeBuffer(
         persistence,
         cache.newChangeBuffer()

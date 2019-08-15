@@ -42,11 +42,7 @@ import {
 } from '../../../src/model/collections';
 import { fail } from '../../../src/util/assert';
 import * as persistenceHelpers from './persistence_test_helpers';
-import {
-  TestIndexedDbRemoteDocumentCache,
-  TestMemoryRemoteDocumentCache,
-  TestRemoteDocumentCache
-} from './test_remote_document_cache';
+import { TestRemoteDocumentCache } from './test_remote_document_cache';
 
 // Helpers for use throughout tests.
 const DOC_PATH = 'a/b';
@@ -55,12 +51,12 @@ const DOC_DATA = { a: 1, b: 2 };
 const VERSION = 42;
 
 describe('MemoryRemoteDocumentCache', () => {
-  let cache: Promise<TestMemoryRemoteDocumentCache>;
+  let cache: Promise<TestRemoteDocumentCache>;
 
   beforeEach(() => {
     cache = persistenceHelpers
       .testMemoryEagerPersistence()
-      .then(persistence => new TestMemoryRemoteDocumentCache(persistence));
+      .then(persistence => new TestRemoteDocumentCache(persistence));
   });
 
   genericRemoteDocumentCacheTests(() => cache);
@@ -69,12 +65,12 @@ describe('MemoryRemoteDocumentCache', () => {
 });
 
 describe('LRU MemoryRemoteDocumentCache', () => {
-  let cache: Promise<TestMemoryRemoteDocumentCache>;
+  let cache: Promise<TestRemoteDocumentCache>;
 
   beforeEach(async () => {
     cache = persistenceHelpers
       .testMemoryLruPersistence()
-      .then(persistence => new TestMemoryRemoteDocumentCache(persistence));
+      .then(persistence => new TestRemoteDocumentCache(persistence));
   });
 
   genericRemoteDocumentCacheTests(() => cache);
@@ -88,13 +84,13 @@ describe('IndexedDbRemoteDocumentCache', () => {
     return;
   }
 
-  let cache: TestIndexedDbRemoteDocumentCache;
+  let cache: TestRemoteDocumentCache;
   let persistence: IndexedDbPersistence;
   beforeEach(async () => {
     persistence = await persistenceHelpers.testIndexedDbPersistence({
       synchronizeTabs: true
     });
-    cache = new TestIndexedDbRemoteDocumentCache(persistence);
+    cache = new TestRemoteDocumentCache(persistence);
   });
 
   afterEach(async () => {
@@ -158,7 +154,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
       synchronizeTabs: true,
       dontPurgeData: true
     });
-    cache = new TestIndexedDbRemoteDocumentCache(persistence);
+    cache = new TestRemoteDocumentCache(persistence);
     const changedDocs = await cache.getNewDocumentChanges();
     assertMatches([], changedDocs);
   });
@@ -172,8 +168,8 @@ describe('IndexedDbRemoteDocumentCache', () => {
     // is missing. The test then uses `resetLastProcessedDocumentChange` to
     // simulate a successful recovery.
 
-    const writerCache = new TestIndexedDbRemoteDocumentCache(persistence);
-    const readerCache = new TestIndexedDbRemoteDocumentCache(persistence);
+    const writerCache = new TestRemoteDocumentCache(persistence);
+    const readerCache = new TestRemoteDocumentCache(persistence);
 
     await writerCache.addEntries([doc('a/1', 1, DOC_DATA)]);
     let changedDocs = await readerCache.getNewDocumentChanges();

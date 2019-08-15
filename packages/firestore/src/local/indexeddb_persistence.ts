@@ -70,7 +70,6 @@ import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
-import { documentKeySet } from '../model/collections';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -1237,11 +1236,10 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     upperBound: ListenSequenceNumber
   ): PersistencePromise<number> {
     const documentCache = this.db.getRemoteDocumentCache();
-    const promises: Array<PersistencePromise<void>> = [];
+    const changeBuffer = documentCache.newChangeBuffer();
 
-    let changedKeys = documentKeySet();
+    const promises: Array<PersistencePromise<void>> = [];
     let documentCount = 0;
-    let bytesRemoved = 0;
 
     const iteration = this.forEachOrphanedDocument(
       txn,
@@ -1250,12 +1248,11 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
           const p = this.isPinned(txn, docKey).next(isPinned => {
             if (!isPinned) {
               documentCount++;
-              changedKeys = changedKeys.add(docKey);
-              return documentCache.getSizedEntry(txn, docKey).next(entry => {
-                if (entry) {
-                  bytesRemoved += entry.size;
-                  return this.removeOrphanedDocument(txn, docKey);
-                }
+              // Our size accounting requires us to read all documents before
+              // removing them.
+              return changeBuffer.getEntry(txn, docKey).next(() => {
+                changeBuffer.removeEntry(docKey);
+                return documentTargetStore(txn).delete(sentinelKey(docKey));
               });
             }
           });
@@ -1263,32 +1260,11 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
         }
       }
     );
-    // Wait for iteration first to make sure we have a chance to add all of the
-    // removal promises to the array.
+
     return iteration
       .next(() => PersistencePromise.waitFor(promises))
-      .next(() =>
-        this.db
-          .getRemoteDocumentCache()
-          .updateMetadata(txn, changedKeys, -bytesRemoved)
-      )
+      .next(() => changeBuffer.apply(txn))
       .next(() => documentCount);
-  }
-
-  /**
-   * Clears a document from the cache. The document is assumed to be orphaned, so target-document
-   * associations are not queried. We remove it from the remote document cache, as well as remove
-   * its sentinel row.
-   */
-  private removeOrphanedDocument(
-    txn: PersistenceTransaction,
-    docKey: DocumentKey
-  ): PersistencePromise<void> {
-    const documentCache = this.db.getRemoteDocumentCache();
-    return PersistencePromise.waitFor([
-      documentTargetStore(txn).delete(sentinelKey(docKey)),
-      documentCache.removeEntry(txn, docKey)
-    ]);
   }
 
   removeTarget(
