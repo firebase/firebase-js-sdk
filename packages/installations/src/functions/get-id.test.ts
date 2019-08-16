@@ -25,7 +25,7 @@ import { getFakeApp } from '../testing/get-fake-app';
 import '../testing/setup';
 import { getId } from './get-id';
 
-const FID = 'children-of-the-damned';
+const FID = 'disciples-of-the-watch';
 
 describe('getId', () => {
   let getInstallationEntrySpy: SinonStub<

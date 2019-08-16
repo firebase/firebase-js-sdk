@@ -32,7 +32,7 @@ import { sleep } from '../util/sleep';
 import { get, set } from './idb-manager';
 import { refreshAuthToken } from './refresh-auth-token';
 
-const FID = 'dont-talk-to-strangers';
+const FID = 'carry-the-blessed-home';
 const AUTH_TOKEN = 'authTokenFromServer';
 const DB_AUTH_TOKEN = 'authTokenFromDB';
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
