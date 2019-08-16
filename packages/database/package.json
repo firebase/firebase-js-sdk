@@ -22,8 +22,6 @@
   },
   "license": "Apache-2.0",
   "peerDependencies": {
-    "@firebase/app": "0.x",
-    "@firebase/app-types": "0.x"
   },
   "dependencies": {
     "@firebase/database-types": "0.4.2",
@@ -33,6 +31,8 @@
     "tslib": "1.10.0"
   },
   "devDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x",
     "@types/chai": "4.2.0",
     "@types/mocha": "5.2.7",
     "@types/node": "11.13.19",
