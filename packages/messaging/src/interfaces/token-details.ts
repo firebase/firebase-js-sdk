@@ -20,7 +20,6 @@ export interface TokenDetails {
   swScope: string;
   vapidKey: Uint8Array;
   fcmSenderId: string;
-  fcmPushSet: string;
   endpoint: string;
   auth: ArrayBufferLike;
   p256dh: ArrayBufferLike;

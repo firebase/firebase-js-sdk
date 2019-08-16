@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,14 @@
  * limitations under the License.
  */
 
-/* eslint-disable camelcase */
+import { use } from 'chai';
+import * as chaiAsPromised from 'chai-as-promised';
+import { restore } from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
-export interface NotificationDetails extends NotificationOptions {
-  title: string;
-  click_action?: string;
-}
+use(chaiAsPromised);
+use(sinonChai);
 
-export interface FcmOptions {
-  link?: string;
-}
-
-export interface MessagePayload {
-  fcmOptions?: FcmOptions;
-  notification?: NotificationDetails;
-  data?: { [key: string]: unknown };
-}
+afterEach(() => {
+  restore();
+});

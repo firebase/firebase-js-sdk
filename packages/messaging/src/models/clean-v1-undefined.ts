@@ -27,12 +27,13 @@
  * underlying tokens.
  */
 
-import { IidModel } from '../models/iid-model';
+import { SubscriptionManager } from './subscription-manager';
+import { FirebaseApp } from '@firebase/app-types';
 
 const OLD_DB_NAME = 'undefined';
 const OLD_OBJECT_STORE_NAME = 'fcm_token_object_Store';
 
-function handleDb(db: IDBDatabase): void {
+function handleDb(db: IDBDatabase, app: FirebaseApp): void {
   if (!db.objectStoreNames.contains(OLD_OBJECT_STORE_NAME)) {
     // We found a database with the name 'undefined', but our expected object
     // store isn't defined.
@@ -42,7 +43,7 @@ function handleDb(db: IDBDatabase): void {
   const transaction = db.transaction(OLD_OBJECT_STORE_NAME);
   const objectStore = transaction.objectStore(OLD_OBJECT_STORE_NAME);
 
-  const iidModel = new IidModel();
+  const subscriptionManager = new SubscriptionManager();
 
   const openCursorRequest: IDBRequest = objectStore.openCursor();
   openCursorRequest.onerror = event => {
@@ -58,11 +59,7 @@ function handleDb(db: IDBDatabase): void {
       const tokenDetails = cursor.value;
 
       // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      iidModel.deleteToken(
-        tokenDetails.fcmSenderId,
-        tokenDetails.fcmToken,
-        tokenDetails.fcmPushSet
-      );
+      subscriptionManager.deleteToken(app, tokenDetails);
 
       cursor.continue();
     } else {
@@ -72,13 +69,13 @@ function handleDb(db: IDBDatabase): void {
   };
 }
 
-export function cleanV1(): void {
+export function cleanV1(app: FirebaseApp): void {
   const request: IDBOpenDBRequest = indexedDB.open(OLD_DB_NAME);
   request.onerror = _event => {
     // NOOP - Nothing we can do.
   };
   request.onsuccess = _event => {
     const db = request.result;
-    handleDb(db);
+    handleDb(db, app);
   };
 }

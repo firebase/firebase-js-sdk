@@ -24,12 +24,11 @@ import {
   NotificationDetails
 } from '../interfaces/message-payload';
 import { ErrorCode, errorFactory } from '../models/errors';
-import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import {
-  InternalMessage,
-  MessageParameter,
-  MessageType
-} from '../models/worker-page-message';
+  DEFAULT_PUBLIC_VAPID_KEY,
+  FN_CAMPAIGN_ID
+} from '../models/fcm-details';
+import { InternalMessage, MessageType } from '../models/worker-page-message';
 import { BaseController, BgMessageHandler } from './base-controller';
 
 // Let TS know that this is a service worker
@@ -110,7 +109,6 @@ export class SwController extends BaseController {
 
       const { actions } = notificationDetails;
       const { maxActions } = Notification;
-      // tslint:enable no-any
       if (actions && maxActions && actions.length > maxActions) {
         console.warn(
           `This browser only supports ${maxActions} actions.` +
@@ -184,18 +182,25 @@ export class SwController extends BaseController {
       return;
     }
 
-    const link =
+    let link =
       (msgPayload.fcmOptions && msgPayload.fcmOptions.link) ||
       msgPayload.notification.click_action;
     if (!link) {
-      // Nothing to do.
-      return;
+      if (msgPayload.data && FN_CAMPAIGN_ID in msgPayload.data) {
+        link = self.location.origin;
+      } else {
+        // Nothing to do.
+        return;
+      }
     }
 
     let windowClient = await this.getWindowClient_(link);
     if (!windowClient) {
       // Unable to find window client so need to open one.
       windowClient = await self.clients.openWindow(link);
+      // Wait three seconds for the client to initialize and set up the message
+      // handler so that it can receive the message.
+      await sleep(3000);
     } else {
       windowClient = await windowClient.focus();
     }
@@ -400,7 +405,13 @@ function createNewMsg(
   msgData: MessagePayload
 ): InternalMessage {
   return {
-    [MessageParameter.TYPE_OF_MSG]: msgType,
-    [MessageParameter.DATA]: msgData
+    firebaseMessagingType: msgType,
+    firebaseMessagingData: msgData
   };
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise<void>(resolve => {
+    setTimeout(resolve, ms);
+  });
 }
