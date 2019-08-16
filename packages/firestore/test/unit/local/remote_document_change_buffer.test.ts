@@ -23,10 +23,7 @@ import {
   clearTestPersistence,
   testIndexedDbPersistence
 } from './persistence_test_helpers';
-import {
-  TestIndexedDbRemoteDocumentCache,
-  TestRemoteDocumentCache
-} from './test_remote_document_cache';
+import { TestRemoteDocumentCache } from './test_remote_document_cache';
 import { TestRemoteDocumentChangeBuffer } from './test_remote_document_change_buffer';
 
 let persistence: IndexedDbPersistence;
@@ -42,7 +39,7 @@ describe('RemoteDocumentChangeBuffer', () => {
   beforeEach(() => {
     return testIndexedDbPersistence().then(p => {
       persistence = p;
-      cache = new TestIndexedDbRemoteDocumentCache(persistence);
+      cache = new TestRemoteDocumentCache(persistence);
       buffer = new TestRemoteDocumentChangeBuffer(
         persistence,
         cache.newChangeBuffer()
@@ -69,6 +66,14 @@ describe('RemoteDocumentChangeBuffer', () => {
     expectEqual(await buffer.getEntry(key('coll/a')), newADoc);
   });
 
+  it('can remove entry', async () => {
+    const newADoc = doc('coll/a', 43, { new: 'data' });
+    buffer.addEntry(newADoc);
+    expect(await buffer.getEntry(key('coll/a'))).to.not.be.null;
+    buffer.removeEntry(newADoc.key);
+    expect(await buffer.getEntry(key('coll/a'))).to.be.null;
+  });
+
   it('can apply changes', async () => {
     const newADoc = doc('coll/a', 43, { new: 'data' });
     // need to read first
@@ -82,6 +87,17 @@ describe('RemoteDocumentChangeBuffer', () => {
     await buffer.apply();
     // Reading against the cache should now yield the new result.
     expectEqual(await cache.getEntry(key('coll/a')), newADoc);
+  });
+
+  it('can apply changes with removal', async () => {
+    expectEqual(await buffer.getEntry(key('coll/a')), INITIAL_DOC);
+    buffer.removeEntry(INITIAL_DOC.key);
+    // Reading directly against the cache should still yield the old result.
+    expectEqual(await cache.getEntry(key('coll/a')), INITIAL_DOC);
+
+    await buffer.apply();
+
+    expect(await cache.getEntry(key('coll/a'))).to.be.null;
   });
 
   it('methods fail after apply.', async () => {

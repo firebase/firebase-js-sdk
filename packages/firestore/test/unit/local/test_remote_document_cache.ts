@@ -16,14 +16,8 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
-import { MemoryPersistence } from '../../../src/local/memory_persistence';
-import { MemoryRemoteDocumentCache } from '../../../src/local/memory_remote_document_cache';
-import {
-  Persistence,
-  PersistenceTransaction
-} from '../../../src/local/persistence';
+import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
@@ -40,11 +34,12 @@ import { DocumentKey } from '../../../src/model/document_key';
  * A wrapper around a RemoteDocumentCache that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
-export abstract class TestRemoteDocumentCache {
-  protected constructor(
-    private readonly persistence: Persistence,
-    protected cache: RemoteDocumentCache
-  ) {}
+export class TestRemoteDocumentCache {
+  private readonly cache: RemoteDocumentCache;
+
+  constructor(private readonly persistence: Persistence) {
+    this.cache = persistence.getRemoteDocumentCache();
+  }
 
   /**
    * Reads all of the documents first so we can safely add them and keep the size calculation in
@@ -70,20 +65,19 @@ export abstract class TestRemoteDocumentCache {
     );
   }
 
-  removeEntry(documentKey: DocumentKey): Promise<number> {
+  removeEntry(documentKey: DocumentKey): Promise<void> {
     return this.persistence.runTransaction(
       'removeEntry',
       'readwrite-primary',
       txn => {
-        return this.removeInternal(txn, documentKey);
+        const changeBuffer = this.newChangeBuffer();
+        return changeBuffer.getEntry(txn, documentKey).next(() => {
+          changeBuffer.removeEntry(documentKey);
+          return changeBuffer.apply(txn);
+        });
       }
     );
   }
-
-  protected abstract removeInternal(
-    txn: PersistenceTransaction,
-    documentKey: DocumentKey
-  ): PersistencePromise<number>;
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
     return this.persistence.runTransaction('getEntry', 'readonly', txn => {
@@ -140,51 +134,5 @@ export abstract class TestRemoteDocumentCache {
 
   newChangeBuffer(): RemoteDocumentChangeBuffer {
     return this.cache.newChangeBuffer();
-  }
-}
-
-export class TestMemoryRemoteDocumentCache extends TestRemoteDocumentCache {
-  // Keep a strongly typed reference
-  private memoryCache: MemoryRemoteDocumentCache;
-
-  constructor(persistence: MemoryPersistence) {
-    const memoryCache = persistence.getRemoteDocumentCache();
-    super(persistence, memoryCache);
-    this.memoryCache = memoryCache;
-  }
-
-  protected removeInternal(
-    txn: PersistenceTransaction,
-    documentKey: DocumentKey
-  ): PersistencePromise<number> {
-    return this.memoryCache.removeEntry(txn, documentKey);
-  }
-}
-
-export class TestIndexedDbRemoteDocumentCache extends TestRemoteDocumentCache {
-  // Keep a strongly typed reference
-  private indexedDbCache: IndexedDbRemoteDocumentCache;
-
-  constructor(persistence: IndexedDbPersistence) {
-    const indexedDbCache = persistence.getRemoteDocumentCache();
-    super(persistence, indexedDbCache);
-    this.indexedDbCache = indexedDbCache;
-  }
-
-  /**
-   * In contrast with the memory implementation, the IndexedDb implementation expects the remove
-   * caller to call update size after removing a series of documents. Mimic that for the tests.
-   */
-  protected removeInternal(
-    txn: PersistenceTransaction,
-    documentKey: DocumentKey
-  ): PersistencePromise<number> {
-    return this.indexedDbCache
-      .removeEntry(txn, documentKey)
-      .next(bytesRemoved => {
-        return this.indexedDbCache
-          .updateSize(txn, -bytesRemoved)
-          .next(() => bytesRemoved);
-      });
   }
 }

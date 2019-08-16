@@ -269,21 +269,19 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const cache = this.persistence.getRemoteDocumentCache();
+    const changeBuffer = cache.newChangeBuffer();
     return PersistencePromise.forEach(
       this.orphanedDocuments,
       (key: DocumentKey) => {
         return this.isReferenced(txn, key).next(isReferenced => {
           if (!isReferenced) {
-            // Since this is the eager delegate and memory persistence,
-            // we don't care about the size of documents. We don't track
-            // the size of the cache for eager GC.
-            return cache.removeEntry(txn, key).next(() => {});
+            changeBuffer.removeEntry(key);
           }
-          return PersistencePromise.resolve();
         });
       }
     ).next(() => {
       this._orphanedDocuments = null;
+      return changeBuffer.apply(txn);
     });
   }
 
@@ -412,20 +410,16 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<number> {
     let count = 0;
     const cache = this.persistence.getRemoteDocumentCache();
+    const changeBuffer = cache.newChangeBuffer();
     const p = cache.forEachDocumentKey(txn, key => {
       return this.isPinned(txn, key, upperBound).next(isPinned => {
-        if (isPinned) {
-          return PersistencePromise.resolve();
-        } else {
+        if (!isPinned) {
           count++;
-          // The memory remote document cache does its own byte
-          // accounting on removal. This is ok because updating the size
-          // for memory persistence does not incur IO.
-          return cache.removeEntry(txn, key).next();
+          changeBuffer.removeEntry(key);
         }
       });
     });
-    return p.next(() => count);
+    return p.next(() => changeBuffer.apply(txn)).next(() => count);
   }
 
   removeMutationReference(
