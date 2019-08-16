@@ -746,7 +746,7 @@ apiDescribe('Database', (persistence: boolean) => {
           });
         });
       });
-      return Promise.all([deferred1.promise, deferred2.promise]).then(() => { });
+      return Promise.all([deferred1.promise, deferred2.promise]).then(() => {});
     });
   });
 
@@ -785,7 +785,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('will reject listens', () => {
       const deferred = new Deferred();
       queryForRejection.onSnapshot(
-        () => { },
+        () => {},
         (err: Error) => {
           expect(err.name).to.exist;
           expect(err.message).to.exist;
@@ -798,12 +798,12 @@ apiDescribe('Database', (persistence: boolean) => {
     it('will reject same listens twice in a row', () => {
       const deferred = new Deferred();
       queryForRejection.onSnapshot(
-        () => { },
+        () => {},
         (err: Error) => {
           expect(err.name).to.exist;
           expect(err.message).to.exist;
           queryForRejection.onSnapshot(
-            () => { },
+            () => {},
             (err2: Error) => {
               expect(err2.name).to.exist;
               expect(err2.message).to.exist;
@@ -1124,6 +1124,21 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  it('can unlisten queries after shutdown', async () => {
+    return withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
+      const unsubscribe = docRef.onSnapshot(accumulator.storeEvent);
+      await accumulator.awaitEvent();
+      await shutdownDb(firestore);
+
+      // This should proceed without error.
+      unsubscribe();
+      // Multiple calls should proceed as well.
+      unsubscribe();
+    });
+  });
+
   it('can wait for pending writes', async () => {
     await withTestDoc(persistence, async docRef => {
       const firestore = docRef.firestore;
@@ -1141,30 +1156,32 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   it('waiting for pending writes should fail when user changes', async () => {
-    await withMockCredentialProviderTestDb(persistence, async (db, mockCredentialsProvider) => {
-      // Prevent pending writes receiving acknowledgement.
-      await db.disableNetwork();
-      db.doc('abc/123').set({ foo: 'bar' });
-      const awaitPendingWrite = waitForPendingWrites(db);
+    await withMockCredentialProviderTestDb(
+      persistence,
+      async (db, mockCredentialsProvider) => {
+        // Prevent pending writes receiving acknowledgement.
+        await db.disableNetwork();
+        db.doc('abc/123').set({ foo: 'bar' });
+        const awaitPendingWrite = waitForPendingWrites(db);
 
-      mockCredentialsProvider.triggerUserChange(new User('user_1'));
+        mockCredentialsProvider.triggerUserChange(new User('user_1'));
 
-      await expect(awaitPendingWrite).to.be.eventually.rejectedWith(
-        "'waitForPendingWrites' promise is rejected due to a user change."
-      );
-    });
+        await expect(awaitPendingWrite).to.be.eventually.rejectedWith(
+          "'waitForPendingWrites' promise is rejected due to a user change."
+        );
+      }
+    );
   });
 
-  it('waiting for pending writes resolves immediately when offline and no pending writes',
-    async () => {
-      await withTestDoc(persistence, async docRef => {
-        const firestore = docRef.firestore;
-        // Prevent pending writes receiving acknowledgement.
-        await firestore.disableNetwork();
+  it('waiting for pending writes resolves immediately when offline and no pending writes', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      // Prevent pending writes receiving acknowledgement.
+      await firestore.disableNetwork();
 
-        // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
-        // immediately even if we are offline.
-        await waitForPendingWrites(firestore);
-      });
+      // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
+      // immediately even if we are offline.
+      await waitForPendingWrites(firestore);
     });
+  });
 });
