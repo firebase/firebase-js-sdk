@@ -20,10 +20,7 @@ import * as sinon from 'sinon';
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
-import {
-  manifestCheck,
-  WindowController
-} from '../src/controllers/window-controller';
+import { WindowController } from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 
@@ -46,112 +43,6 @@ describe('Firebase Messaging > *WindowController', () => {
 
   after(() => {
     return cleanup();
-  });
-
-  describe('manifestCheck()', () => {
-    it("should resolve when the tag isn't defined", () => {
-      sandbox
-        .stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]')
-        .returns(null);
-
-      return manifestCheck();
-    });
-
-    it('should fetch the manifest if defined and resolve when no gcm_sender_id', () => {
-      sandbox
-        .stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]')
-        .returns({
-          href: 'https://firebase.io/messaging/example'
-        } as any);
-
-      sandbox
-        .stub(window, 'fetch')
-        .withArgs('https://firebase.io/messaging/example')
-        .returns(
-          Promise.resolve({
-            json: () => {
-              return {};
-            }
-          } as any)
-        );
-
-      return manifestCheck();
-    });
-
-    it('should fetch the manifest if defined and resolve with expected gcm_sender_id', () => {
-      sandbox
-        .stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]')
-        .returns({
-          href: 'https://firebase.io/messaging/example'
-        } as any);
-
-      sandbox
-        .stub(window, 'fetch')
-        .withArgs('https://firebase.io/messaging/example')
-        .returns(
-          Promise.resolve({
-            json: () => {
-              return {
-                // eslint-disable-next-line camelcase
-                gcm_sender_id: '103953800507'
-              };
-            }
-          } as any)
-        );
-
-      return manifestCheck();
-    });
-
-    it('should fetch the manifest if defined and reject when using wrong gcm_sender_id', () => {
-      sandbox
-        .stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]')
-        .returns({
-          href: 'https://firebase.io/messaging/example'
-        } as any);
-
-      sandbox
-        .stub(window, 'fetch')
-        .withArgs('https://firebase.io/messaging/example')
-        .returns(
-          Promise.resolve({
-            json: () => {
-              return {
-                // eslint-disable-next-line camelcase
-                gcm_sender_id: 'incorrect-sender-id'
-              };
-            }
-          } as any)
-        );
-
-      return manifestCheck().then(
-        () => {
-          throw new Error('Expected error to be thrown.');
-        },
-        err => {
-          expect(err.code).to.equal('messaging/incorrect-gcm-sender-id');
-        }
-      );
-    });
-
-    it('should fetch the manifest and resolve if the request fails', () => {
-      sandbox
-        .stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]')
-        .returns({
-          href: 'https://firebase.io/messaging/example'
-        } as any);
-
-      sandbox
-        .stub(window, 'fetch')
-        .withArgs('https://firebase.io/messaging/example')
-        .returns(Promise.reject(new Error('Injected Failure.')));
-
-      return manifestCheck();
-    });
   });
 
   describe('requestPermission', () => {

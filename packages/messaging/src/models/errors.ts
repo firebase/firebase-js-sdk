@@ -22,7 +22,6 @@ export const enum ErrorCode {
   AVAILABLE_IN_SW = 'only-available-in-sw',
   SHOULD_BE_INHERITED = 'should-be-overriden',
   BAD_SENDER_ID = 'bad-sender-id',
-  INCORRECT_GCM_SENDER_ID = 'incorrect-gcm-sender-id',
   PERMISSION_DEFAULT = 'permission-default',
   PERMISSION_BLOCKED = 'permission-blocked',
   UNSUPPORTED_BROWSER = 'unsupported-browser',
@@ -131,9 +130,6 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.NO_SW_IN_REG]:
     'Even though the service worker registration was ' +
     'successful, there was a problem accessing the service worker itself.',
-  [ErrorCode.INCORRECT_GCM_SENDER_ID]:
-    "Please change your web app manifest's " +
-    "'gcm_sender_id' value to '103953800507' to use Firebase messaging.",
   [ErrorCode.BAD_SCOPE]:
     'The service worker scope must be a string with at ' +
     'least one character.',
