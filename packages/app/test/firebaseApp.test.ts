@@ -89,33 +89,24 @@ function executeFirebaseTests(): void {
     });
 
     it('Will do nothing if registerService is called again with the same name', () => {
-      let registrations = 0;
       const registerStub = stub(
         (firebase as _FirebaseNamespace).INTERNAL,
         'registerService'
       ).callThrough();
       (firebase as _FirebaseNamespace).INTERNAL.registerService(
         'test',
-        (app: FirebaseApp) => {
-          registrations += 1;
-          return new TestService(app);
-        }
+        (app: FirebaseApp) => new TestService(app)
       );
       firebase.initializeApp({});
-      assert.equal(registrations, 0);
-      const service = (firebase as any).test();
-      assert.equal(registrations, 1);
+      const serviceNamespace = (firebase as any).test;
 
       (firebase as _FirebaseNamespace).INTERNAL.registerService(
         'test',
-        (app: FirebaseApp) => {
-          registrations += 1;
-          return new TestService(app);
-        }
+        (app: FirebaseApp) => new TestService(app)
       );
 
-      const service2 = (firebase as any).test();
-      assert.strictEqual(service, service2);
+      const serviceNamespace2 = (firebase as any).test;
+      assert.strictEqual(serviceNamespace, serviceNamespace2);
       assert.doesNotThrow(registerStub);
     });
 
