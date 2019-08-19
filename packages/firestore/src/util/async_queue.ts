@@ -328,8 +328,8 @@ export class AsyncQueue {
       `Attempted to schedule an operation with a negative delay of ${delayMs}`
     );
 
-     // Fast-forward delays for timerIds that have been overriden.
-     if (this.timerIdsToSkip.indexOf(timerId) > -1) {
+    // Fast-forward delays for timerIds that have been overriden.
+    if (this.timerIdsToSkip.indexOf(timerId) > -1) {
       delayMs = 0;
     }
 
