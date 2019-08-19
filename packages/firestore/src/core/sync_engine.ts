@@ -635,11 +635,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private rejectOutstandingPendingWritesCallbacks(errorMessage: string): void {
     this.pendingWritesCallbacks.forEach(callbacks => {
       callbacks.forEach(callback => {
-        callback.reject(
-          new FirestoreError(
-            Code.CANCELLED, errorMessage
-          )
-        );
+        callback.reject(new FirestoreError(Code.CANCELLED, errorMessage));
       });
     });
 
@@ -845,7 +841,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     if (userChanged) {
       // Fails tasks waiting for pending writes requested by previous user.
       this.rejectOutstandingPendingWritesCallbacks(
-            "'waitForPendingWrites' promise is rejected due to a user change."
+        "'waitForPendingWrites' promise is rejected due to a user change."
       );
 
       const result = await this.localStore.handleUserChange(user);
