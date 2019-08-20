@@ -449,68 +449,53 @@ export class LocalStore {
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
     const documentBuffer = this.remoteDocuments.newChangeBuffer();
+    const snapshotVersion = remoteEvent.snapshotVersion;
     return this.persistence.runTransaction(
       'Apply remote event',
       'readwrite-primary',
       txn => {
         const promises = [] as Array<PersistencePromise<void>>;
-        let authoritativeUpdates = documentKeySet();
         objUtils.forEachNumber(
           remoteEvent.targetChanges,
           (targetId: TargetId, change: TargetChange) => {
-            // Do not ref/unref unassigned targetIds - it may lead to leaks.
-            let queryData = this.queryDataByTarget[targetId];
-            if (!queryData) {
-              return;
-            }
+            let oldQueryData = this.queryDataByTarget[targetId];
+            if (oldQueryData) {
+              // Only update the remote keys if the query is still active. This
+              // ensures that we can persist the updated query data along with
+              // the updated assignment.
+              promises.push(
+                this.queryCache
+                  .removeMatchingKeys(txn, change.removedDocuments, targetId)
+                  .next(() => {
+                    return this.queryCache.addMatchingKeys(
+                      txn,
+                      change.addedDocuments,
+                      targetId
+                    );
+                  })
+              );
 
-            // When a global snapshot contains updates (either add or modify) we
-            // can completely trust these updates as authoritative and blindly
-            // apply them to our cache (as a defensive measure to promote
-            // self-healing in the unfortunate case that our cache is ever somehow
-            // corrupted / out-of-sync).
-            //
-            // If the document is only updated while removing it from a target
-            // then watch isn't obligated to send the absolute latest version: it
-            // can send the first version that caused the document not to match.
-            change.addedDocuments.forEach(key => {
-              authoritativeUpdates = authoritativeUpdates.add(key);
-            });
-            change.modifiedDocuments.forEach(key => {
-              authoritativeUpdates = authoritativeUpdates.add(key);
-            });
+              const resumeToken = change.resumeToken;
+              if (resumeToken.length > 0) {
+                const newQueryData = oldQueryData.copy({
+                  resumeToken,
+                  snapshotVersion
+                });
+                this.queryDataByTarget[targetId] = newQueryData;
 
-            promises.push(
-              this.queryCache
-                .removeMatchingKeys(txn, change.removedDocuments, targetId)
-                .next(() => {
-                  return this.queryCache.addMatchingKeys(
-                    txn,
-                    change.addedDocuments,
-                    targetId
+                // Update the query data if there are target changes (or if
+                // sufficient time has passed since the last update).
+                if (
+                  LocalStore.shouldPersistQueryData(
+                    oldQueryData,
+                    newQueryData,
+                    change
+                  )
+                ) {
+                  promises.push(
+                    this.queryCache.updateQueryData(txn, newQueryData)
                   );
-                })
-            );
-
-            // Update the resume token if the change includes one. Don't clear
-            // any preexisting value.
-            const resumeToken = change.resumeToken;
-            if (resumeToken.length > 0) {
-              const oldQueryData = queryData;
-              queryData = queryData.copy({
-                resumeToken,
-                snapshotVersion: remoteEvent.snapshotVersion
-              });
-              this.queryDataByTarget[targetId] = queryData;
-
-              if (
-                LocalStore.shouldPersistQueryData(
-                  oldQueryData,
-                  queryData,
-                  change
-                )
-              ) {
-                promises.push(this.queryCache.updateQueryData(txn, queryData));
+                }
               }
             }
           }
@@ -528,19 +513,12 @@ export class LocalStore {
           documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
             remoteEvent.documentUpdates.forEach((key, doc) => {
               const existingDoc = existingDocs.get(key);
-              // If a document update isn't authoritative, make sure we don't
-              // apply an old document version to the remote cache. We make an
-              // exception for SnapshotVersion.MIN which can happen for
-              // manufactured events (e.g. in the case of a limbo document
-              // resolution failing).
               if (
                 existingDoc == null ||
-                (authoritativeUpdates.has(doc.key) &&
-                  !existingDoc.hasPendingWrites) ||
-                doc.version.compareTo(existingDoc.version) >= 0
+                doc.version.compareTo(existingDoc.version) > 0 ||
+                (doc.version.compareTo(existingDoc.version) == 0 &&
+                  existingDoc.hasPendingWrites)
               ) {
-                // If a document update isn't authoritative, make sure we don't apply an old document
-                // version to the remote cache.
                 documentBuffer.addEntry(doc);
                 changedDocs = changedDocs.insert(key, doc);
               } else if (
@@ -580,22 +558,21 @@ export class LocalStore {
         // can synthesize remote events when we get permission denied errors while
         // trying to resolve the state of a locally cached document that is in
         // limbo.
-        const remoteVersion = remoteEvent.snapshotVersion;
-        if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
+        if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
           const updateRemoteVersion = this.queryCache
             .getLastRemoteSnapshotVersion(txn)
-            .next(lastRemoteVersion => {
+            .next(lastRemoteSnapshotVersion => {
               assert(
-                remoteVersion.compareTo(lastRemoteVersion) >= 0,
+                snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0,
                 'Watch stream reverted to previous snapshot?? ' +
-                  remoteVersion +
+                  snapshotVersion +
                   ' < ' +
-                  lastRemoteVersion
+                  lastRemoteSnapshotVersion
               );
               return this.queryCache.setTargetsMetadata(
                 txn,
                 txn.currentSequenceNumber,
-                remoteVersion
+                snapshotVersion
               );
             });
           promises.push(updateRemoteVersion);
@@ -629,12 +606,12 @@ export class LocalStore {
     newQueryData: QueryData,
     change: TargetChange
   ): boolean {
-    // Avoid clearing any existing value
-    if (newQueryData.resumeToken.length === 0) {
-      return false;
-    }
+    assert(
+      newQueryData.resumeToken.length > 0,
+      'Attempted to persist query data with no resume token'
+    );
 
-    // Any resume token is interesting if there isn't one already.
+    // Always persist query data if we don't already have a resume token.
     if (oldQueryData.resumeToken.length === 0) {
       return true;
     }
