@@ -39,7 +39,8 @@ import {
   withTestDocAndInitialData,
   DEFAULT_SETTINGS,
   waitForPendingWrites,
-  withMockCredentialProviderTestDb
+  withMockCredentialProviderTestDb,
+  onSnapshotsInSync
 } from '../util/helpers';
 import { User } from '../../../src/auth/user';
 
@@ -539,6 +540,364 @@ apiDescribe('Database', (persistence: boolean) => {
         .then(docSnap => {
           expect(docSnap.data()).to.deep.equal({ foo: 1 });
         });
+    });
+  });
+
+  apiDescribe('onSnapshotsInSync listener', () => {
+    function createDocumentListener(
+      deferred: Deferred<void>,
+      target: firestore.DocumentReference,
+      callback: (snapshot: firestore.DocumentSnapshot) => void
+    ): void {
+      target.onSnapshot(snap => {
+        callback(snap);
+        deferred.resolve();
+      });
+    }
+
+    function createQueryListener(
+      deferred: Deferred<void>,
+      target: firestore.Query,
+      callback: (snapshot: firestore.QuerySnapshot) => void
+    ): void {
+      target.onSnapshot(snap => {
+        callback(snap);
+        deferred.resolve();
+      });
+    }
+
+    it('fires even if there are no local listeners', () => {
+      const d1 = new Deferred<void>();
+      return withTestDb(persistence, async db => {
+        onSnapshotsInSync(db, () => {
+          d1.resolve();
+        });
+        await d1.promise;
+      });
+    });
+
+    it('fires after local listeners fire', () => {
+      const testDocs = {
+        a: { foo: 1 }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        const firedValues: number[] = [];
+        const d1 = new Deferred<void>();
+        const d2 = new Deferred<void>();
+        const d3 = new Deferred<void>();
+        const d4 = new Deferred<void>();
+        const doc = coll.doc('a');
+
+        createDocumentListener(d1, doc, snapshot => {
+          firedValues.push(1);
+        });
+        createDocumentListener(d2, doc, snapshot => {
+          firedValues.push(2);
+        });
+        createDocumentListener(d3, doc, snapshot => {
+          firedValues.push(3);
+        });
+        onSnapshotsInSync(doc.firestore, () => {
+          firedValues.push(4);
+          d4.resolve();
+        });
+
+        await Promise.all([d1.promise, d2.promise, d3.promise, d4.promise]);
+        expect(firedValues).to.deep.equal([1, 2, 3, 4]);
+      });
+    });
+
+    it('fires for duplicate query listeners', () => {
+      const testDocs = {
+        a: { foo: 1 }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        let pending: Map<firestore.Query, firestore.QuerySnapshot> = new Map();
+        let firedValues: number[] = [];
+        let onSyncDeferred = new Deferred<void>();
+        const onSyncDeferred2 = new Deferred<void>();
+        const d1 = new Deferred<void>();
+        const d2 = new Deferred<void>();
+        const d3 = new Deferred<void>();
+        const query1 = coll.where('foo', '>', 0);
+        const query2 = coll.where('foo', '>', 0);
+        const query3 = coll.where('foo', '>', 0);
+
+        createQueryListener(d1, query1, snapshot => {
+          firedValues.push(1);
+          pending.set(query1, snapshot);
+        });
+        onSnapshotsInSync(coll.doc().firestore, async () => {
+          if (pending.has(query2) && pending.has(query3)) {
+            firedValues.push(4);
+            onSyncDeferred2.resolve();
+          } else if (pending.has(query2)) {
+            firedValues.push(5);
+          }
+          onSyncDeferred.resolve();
+        });
+
+        // Wait for listeners to fire and reset values.
+        await Promise.all([d1.promise, onSyncDeferred]);
+        firedValues = [];
+        pending = new Map();
+        onSyncDeferred = new Deferred<void>();
+
+        // Add duplicate queries and ensure that the onSnapshotsInSync callback
+        // was fired for each duplicate.
+        createQueryListener(d2, query2, snapshot => {
+          firedValues.push(2);
+          pending.set(query2, snapshot);
+        });
+        createQueryListener(d3, query3, snapshot => {
+          firedValues.push(3);
+          pending.set(query3, snapshot);
+        });
+
+        await Promise.all([d2.promise, d3.promise, onSyncDeferred2.promise]);
+        expect(firedValues).to.deep.equal([2, 5, 3, 4]);
+      });
+    });
+
+    it('queues and fires multiple global listeners', () => {
+      const testDocs = {
+        a: { foo: 1 }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        let firedValues: number[] = [];
+        const d1 = new Deferred<void>();
+        let d2 = new Deferred<void>();
+        let d3 = new Deferred<void>();
+        const doc = coll.doc('a');
+
+        createDocumentListener(d1, doc, snapshot => {
+          firedValues.push(1);
+        });
+        onSnapshotsInSync(doc.firestore, () => {
+          firedValues.push(2);
+          d2.resolve();
+        });
+        onSnapshotsInSync(doc.firestore, () => {
+          firedValues.push(3);
+          d3.resolve();
+        });
+
+        await Promise.all([d1.promise, d2.promise, d3.promise]);
+        expect(firedValues).to.deep.equal([1, 2, 3]);
+        firedValues = [];
+
+        // Set the doc and verify the global listeners fired last.
+        d2 = new Deferred<void>();
+        d3 = new Deferred<void>();
+        await doc.set({ foo: 3 });
+        await Promise.all([d2.promise, d3.promise]);
+        expect(firedValues).to.deep.equal([1, 2, 3]);
+      });
+    });
+
+    it('fires global snapshot events for document snapshots', () => {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { foo: 2 }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        let pending: Map<
+          firestore.DocumentReference,
+          firestore.DocumentSnapshot
+        > = new Map();
+        let firedValues: number[] = [];
+        let onSyncDeferred = new Deferred<void>();
+        const d1 = new Deferred<void>();
+        const d2 = new Deferred<void>();
+        const docA = coll.doc('a');
+        const docB = coll.doc('b');
+
+        createDocumentListener(d1, docA, snapshot => {
+          firedValues.push(1);
+          pending.set(docA, snapshot);
+        });
+        createDocumentListener(d2, docB, snapshot => {
+          firedValues.push(2);
+          pending.set(docB, snapshot);
+        });
+        onSnapshotsInSync(docA.firestore, async () => {
+          // Ensure that all other listeners have fired first.
+          if (pending.has(docA)) {
+            firedValues.push(3);
+          } else if (pending.has(docB)) {
+            firedValues.push(4);
+          }
+          onSyncDeferred.resolve();
+        });
+
+        // Wait for listeners to fire and reset values before adding onSnapshotsInSync.
+        await Promise.all([d1.promise, d2.promise, onSyncDeferred]);
+        firedValues = [];
+        pending = new Map();
+        onSyncDeferred = new Deferred<void>();
+
+        // Set docA and check for the global listener.
+        await docA.set({ foo: 3 });
+        await onSyncDeferred.promise;
+        expect(firedValues).to.deep.equal([1, 3]);
+        pending = new Map();
+        firedValues = [];
+        onSyncDeferred = new Deferred<void>();
+
+        // Set docB and check for the global listener.
+        await docB.set({ foo: 3 });
+        await onSyncDeferred.promise;
+        expect(firedValues).to.deep.equal([2, 4]);
+      });
+    });
+
+    it('fires global snapshot events for query snapshots', () => {
+      const testDocs = {
+        a: { foo: 1 },
+        b: { foo: 2 }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        let pending: Map<firestore.Query, firestore.QuerySnapshot> = new Map();
+        let firedValues: number[] = [];
+        let onSyncDeferred = new Deferred<void>();
+        const d1 = new Deferred<void>();
+        const d2 = new Deferred<void>();
+        const query1 = coll.where('foo', '>', 0);
+        const query2 = coll.where('foo', '==', 3);
+
+        createQueryListener(d1, query1, snapshot => {
+          firedValues.push(1);
+          pending.set(query1, snapshot);
+        });
+        createQueryListener(d2, query2, snapshot => {
+          firedValues.push(2);
+          pending.set(query2, snapshot);
+        });
+        onSnapshotsInSync(coll.doc().firestore, async () => {
+          // Ensure that all other listeners have fired first.
+          if (pending.has(query1) && pending.has(query2)) {
+            firedValues.push(3);
+          } else if (pending.has(query1)) {
+            firedValues.push(4);
+          } else if (pending.has(query2)) {
+            firedValues.push(5);
+          }
+          onSyncDeferred.resolve();
+        });
+
+        // Wait for listeners to fire and reset values.
+        await Promise.all([d1.promise, d2.promise, onSyncDeferred]);
+        firedValues = [];
+        pending = new Map();
+        onSyncDeferred = new Deferred<void>();
+
+        // Verify that query2 should not receive a snapshot.
+        await coll.doc('a').set({ foo: 2 });
+        await onSyncDeferred.promise;
+        expect(firedValues).to.deep.equal([1, 4]);
+        pending = new Map();
+        firedValues = [];
+        onSyncDeferred = new Deferred<void>();
+
+        // Verify that query1 and query2 each receive a snapshot.
+        await coll.doc('b').set({ foo: 3 });
+        await onSyncDeferred.promise;
+        expect(firedValues).to.deep.equal([1, 2, 3]);
+      });
+    });
+
+    it('fires global snapshot events for combinbations of queries and docs', () => {
+      const testDocs = {
+        a: { foo: 1 }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        let pending: Map<
+          firestore.DocumentReference | firestore.Query,
+          firestore.DocumentSnapshot | firestore.QuerySnapshot
+        > = new Map();
+        let firedValues: number[] = [];
+        const onSyncDeferred = new Deferred<void>();
+        const d1 = new Deferred<void>();
+        const d2 = new Deferred<void>();
+        const d3 = new Deferred<void>();
+
+        const doc = coll.doc('a');
+        const query1 = coll.where('foo', '>', 0);
+        const query2 = coll.where('foo', '>', 1);
+
+        createDocumentListener(d1, doc, snapshot => {
+          firedValues.push(1);
+          pending.set(doc, snapshot);
+        });
+        createQueryListener(d2, query1, snapshot => {
+          firedValues.push(2);
+          pending.set(query1, snapshot);
+        });
+        createQueryListener(d3, query2, snapshot => {
+          firedValues.push(3);
+          pending.set(query2, snapshot);
+        });
+
+        // Wait for listeners to fire and reset values before adding onSnapshotsInSync.
+        await Promise.all([d1.promise, d2.promise, d3.promise]);
+        firedValues = [];
+        pending = new Map();
+        onSnapshotsInSync(doc.firestore, async () => {
+          // Ensure that all other listeners have fired first.
+          if (pending.has(doc) && pending.has(query1) && pending.has(query2)) {
+            firedValues.push(4);
+            onSyncDeferred.resolve();
+          }
+        });
+
+        // Set the doc and verify the global listener fired last.
+        await doc.set({ foo: 3 });
+        await onSyncDeferred.promise;
+        expect(firedValues.length).to.equal(4);
+        expect(firedValues[3]).to.equal(4);
+      });
+    });
+
+    it('does not fire if the user unregisters a listener', () => {
+      const testDocs = {
+        a: { foo: 1 }
+      };
+      return withTestCollection(persistence, testDocs, async coll => {
+        let pending: Map<
+          firestore.DocumentReference,
+          firestore.DocumentSnapshot
+        > = new Map();
+        let firedValues: number[] = [];
+        const d1 = new Deferred<void>();
+        const d2 = new Deferred<void>();
+        let d3 = new Deferred<void>();
+        const doc = coll.doc('a');
+
+        createDocumentListener(d1, doc, snapshot => {
+          firedValues.push(1);
+          pending.set(doc, snapshot);
+        });
+        const unsubscribeFn = onSnapshotsInSync(doc.firestore, () => {
+          firedValues.push(2);
+          d2.resolve();
+        });
+        onSnapshotsInSync(doc.firestore, () => {
+          firedValues.push(3);
+          d3.resolve();
+        });
+
+        // Wait for listeners to fire and reset values.
+        await Promise.all([d1.promise, d2.promise, d3.promise]);
+        firedValues = [];
+        pending = new Map();
+        d3 = new Deferred<void>();
+
+        // Remove a listener and make sure it does not fire.
+        unsubscribeFn();
+        await doc.set({ foo: 3 });
+        await d3.promise;
+        expect(firedValues).to.deep.equal([1, 3]);
+      });
     });
   });
 

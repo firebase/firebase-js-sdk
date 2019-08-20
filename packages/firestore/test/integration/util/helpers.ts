@@ -370,6 +370,14 @@ export function waitForPendingWrites(
   return (db as any)._waitForPendingWrites();
 }
 
+export function onSnapshotsInSync(
+  db: firestore.FirebaseFirestore,
+  onSync: () => void
+): () => void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (db as any)._onSnapshotsInSync(onSync);
+}
+
 // TODO(in-queries): This exists just so we don't have to do the cast
 // repeatedly. Once we expose 'array-contains-any' publicly we can remove it and
 // just use 'array-contains-any' in all the tests.
