@@ -458,7 +458,7 @@ export class LocalStore {
         objUtils.forEachNumber(
           remoteEvent.targetChanges,
           (targetId: TargetId, change: TargetChange) => {
-            let oldQueryData = this.queryDataByTarget[targetId];
+            const oldQueryData = this.queryDataByTarget[targetId];
             if (oldQueryData) {
               // Only update the remote keys if the query is still active. This
               // ensures that we can persist the updated query data along with
@@ -516,7 +516,7 @@ export class LocalStore {
               if (
                 existingDoc == null ||
                 doc.version.compareTo(existingDoc.version) > 0 ||
-                (doc.version.compareTo(existingDoc.version) == 0 &&
+                (doc.version.compareTo(existingDoc.version) === 0 &&
                   existingDoc.hasPendingWrites)
               ) {
                 documentBuffer.addEntry(doc);
