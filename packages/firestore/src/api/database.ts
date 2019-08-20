@@ -18,7 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseService } from '@firebase/app-types/private';
+import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
@@ -280,15 +280,6 @@ class FirestoreSettings {
   }
 }
 
-class FirestoreConfig {
-  databaseId: DatabaseId;
-  persistenceKey: string;
-  credentials: CredentialsProvider;
-  firebaseApp: FirebaseApp;
-  settings: FirestoreSettings;
-  persistence: boolean;
-}
-
 /**
  * The root reference to the database.
  */
@@ -296,8 +287,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // The objects that are a part of this API are exposed to third-parties as
   // compiled javascript so we want to flag our private members with a leading
   // underscore to discourage their use.
-  private readonly _config: FirestoreConfig;
   readonly _databaseId: DatabaseId;
+  private readonly _persistenceKey: string;
+  private _credentials: CredentialsProvider;
+  private readonly _firebaseApp: FirebaseApp | null = null;
+  private _settings: FirestoreSettings;
 
   // The firestore client instance. This will be available as soon as
   // configureClient is called, but any calls against it will block until
@@ -311,18 +305,17 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // TODO(mikelehen): Use modularized initialization instead.
   readonly _queue = new AsyncQueue();
 
-  _dataConverter: UserDataConverter;
+  readonly _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
-    const config = new FirestoreConfig();
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
       // TODO(b/34177605): Can we somehow use instanceof?
       const app = databaseIdOrApp as FirebaseApp;
-      config.firebaseApp = app;
-      config.databaseId = Firestore.databaseIdFromApp(app);
-      config.persistenceKey = config.firebaseApp.name;
-      config.credentials = new FirebaseCredentialsProvider(app);
+      this._firebaseApp = app;
+      this._databaseId = Firestore.databaseIdFromApp(app);
+      this._persistenceKey = app.name;
+      this._credentials = new FirebaseCredentialsProvider(app);
     } else {
       const external = databaseIdOrApp as FirestoreDatabase;
       if (!external.projectId) {
@@ -332,15 +325,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         );
       }
 
-      config.databaseId = new DatabaseId(external.projectId, external.database);
+      this._databaseId = new DatabaseId(external.projectId, external.database);
       // Use a default persistenceKey that lines up with FirebaseApp.
-      config.persistenceKey = '[DEFAULT]';
-      config.credentials = new EmptyCredentialsProvider();
+      this._persistenceKey = '[DEFAULT]';
+      this._credentials = new EmptyCredentialsProvider();
     }
 
-    config.settings = new FirestoreSettings({});
-    this._config = config;
-    this._databaseId = config.databaseId;
+    this._settings = new FirestoreSettings({});
+    this._dataConverter = this.createDataConverter(this._databaseId);
   }
 
   settings(settingsLiteral: firestore.Settings): void {
@@ -358,7 +350,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     const newSettings = new FirestoreSettings(settingsLiteral);
-    if (this._firestoreClient && !this._config.settings.isEqual(newSettings)) {
+    if (this._firestoreClient && !this._settings.isEqual(newSettings)) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
@@ -367,11 +359,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       );
     }
 
-    this._config.settings = newSettings;
+    this._settings = newSettings;
     if (newSettings.credentials !== undefined) {
-      this._config.credentials = makeCredentialsProvider(
-        newSettings.credentials
-      );
+      this._credentials = makeCredentialsProvider(newSettings.credentials);
     }
   }
 
@@ -416,7 +406,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     return this.configureClient(
       new IndexedDbPersistenceSettings(
-        this._config.settings.cacheSizeBytes,
+        this._settings.cacheSizeBytes,
         synchronizeTabs
       )
     );
@@ -427,7 +417,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this.makeDatabaseInfo()
     );
     const deferred = new Deferred<void>();
-    this._queue.enqueueAndForget(async () => {
+    this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
       try {
         if (
           this._firestoreClient !== undefined &&
@@ -447,6 +437,56 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return deferred.promise;
   }
 
+  /**
+   * Shuts down this Firestore instance.
+   *
+   * After shutdown only the `clearPersistence()` method may be used. Any other method
+   * will throw a `FirestoreError`.
+   *
+   * To restart after shutdown, simply create a new instance of FirebaseFirestore with
+   * `firebase.firestore()`.
+   *
+   * Shutdown does not cancel any pending writes and any promises that are awaiting a response
+   * from the server will not be resolved. If you have persistence enabled, the next time you
+   * start this instance, it will resume attempting to send these writes to the server.
+   *
+   * Note: Under normal circumstances, calling `shutdown()` is not required. This
+   * method is useful only when you want to force this instance to release all of its resources or
+   * in combination with `clearPersistence()` to ensure that all local state is destroyed
+   * between test runs.
+   *
+   * @return A promise that is resolved when the instance has been successfully shut down.
+   */
+  // TODO(b/135755126): make this public.
+  _shutdown(): Promise<void> {
+    (this.app as _FirebaseApp)._removeServiceInstance('firestore');
+    return this.INTERNAL.delete();
+  }
+
+  get _isShutdown(): boolean {
+    this.ensureClientConfigured();
+    return this._firestoreClient!.clientShutdown;
+  }
+
+  /**
+   * Waits until all currently pending writes for the active user have been acknowledged by the
+   * backend.
+   *
+   * The returned Promise resolves immediately if there are no outstanding writes. Otherwise, the
+   * Promise waits for all previously issued writes (including those written in a previous app
+   * session), but it does not wait for writes that were added after the method is called. If you
+   * wish to wait for additional writes, you have to call `waitForPendingWrites()` again.
+   *
+   * Any outstanding `waitForPendingWrites()` Promises are rejected during user changes.
+   *
+   * @return A Promise which resolves when all currently pending writes have been
+   * acknowledged by the backend.
+   */
+  _waitForPendingWrites(): Promise<void> {
+    this.ensureClientConfigured();
+    return this._firestoreClient!.waitForPendingWrites();
+  }
+
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
@@ -458,30 +498,38 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   private makeDatabaseInfo(): DatabaseInfo {
     return new DatabaseInfo(
-      this._config.databaseId,
-      this._config.persistenceKey,
-      this._config.settings.host,
-      this._config.settings.ssl,
-      this._config.settings.forceLongPolling
+      this._databaseId,
+      this._persistenceKey,
+      this._settings.host,
+      this._settings.ssl,
+      this._settings.forceLongPolling
     );
   }
 
   private configureClient(
     persistenceSettings: InternalPersistenceSettings
   ): Promise<void> {
-    assert(
-      !!this._config.settings.host,
-      'FirestoreSettings.host cannot be falsey'
-    );
+    assert(!!this._settings.host, 'FirestoreSettings.host is not set');
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
     const databaseInfo = this.makeDatabaseInfo();
 
+    this._firestoreClient = new FirestoreClient(
+      PlatformSupport.getPlatform(),
+      databaseInfo,
+      this._credentials,
+      this._queue
+    );
+
+    return this._firestoreClient.start(persistenceSettings);
+  }
+
+  private createDataConverter(databaseId: DatabaseId): UserDataConverter {
     const preConverter = (value: unknown): unknown => {
       if (value instanceof DocumentReference) {
-        const thisDb = this._config.databaseId;
-        const otherDb = value.firestore._config.databaseId;
+        const thisDb = databaseId;
+        const otherDb = value.firestore._databaseId;
         if (!otherDb.isEqual(thisDb)) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
@@ -490,21 +538,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
               `for database ${thisDb.projectId}/${thisDb.database}`
           );
         }
-        return new DocumentKeyReference(this._config.databaseId, value._key);
+        return new DocumentKeyReference(databaseId, value._key);
       } else {
         return value;
       }
     };
-    this._dataConverter = new UserDataConverter(preConverter);
-
-    this._firestoreClient = new FirestoreClient(
-      PlatformSupport.getPlatform(),
-      databaseInfo,
-      this._config.credentials,
-      this._queue
-    );
-
-    return this._firestoreClient.start(persistenceSettings);
+    return new UserDataConverter(preConverter);
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -527,14 +566,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   get app(): FirebaseApp {
-    if (!this._config.firebaseApp) {
+    if (!this._firebaseApp) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         "Firestore was not initialized using the Firebase SDK. 'app' is " +
           'not available'
       );
     }
-    return this._config.firebaseApp;
+    return this._firebaseApp;
   }
 
   INTERNAL = {
@@ -637,7 +676,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // Note: this is not a property because the minifier can't work correctly with
   // the way TypeScript compiler outputs properties.
   _areTimestampsInSnapshotsEnabled(): boolean {
-    return this._config.settings.timestampsInSnapshots;
+    return this._settings.timestampsInSnapshots;
   }
 }
 

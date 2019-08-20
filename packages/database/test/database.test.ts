@@ -81,11 +81,20 @@ describe('Database Tests', function() {
     expect(db.ref().toString()).to.equal('http://localhost:80/');
   });
 
-  it('Only reads ns query param when subdomain not set', function() {
+  it('Reads ns query param even when subdomain is set', function() {
     var db = defaultApp.database('http://bar.firebaseio.com?ns=foo');
     expect(db).to.be.ok;
-    expect(db.repo_.repoInfo_.namespace).to.equal('bar');
+    expect(db.repo_.repoInfo_.namespace).to.equal('foo');
     expect(db.ref().toString()).to.equal('https://bar.firebaseio.com/');
+  });
+
+  it('Interprets FIREBASE_DATABASE_EMULATOR_HOST var correctly', function() {
+    process.env['FIREBASE_DATABASE_EMULATOR_HOST'] = 'localhost:9000';
+    var db = defaultApp.database('https://bar.firebaseio.com');
+    expect(db).to.be.ok;
+    expect(db.repo_.repoInfo_.namespace).to.equal('bar');
+    expect(db.repo_.repoInfo_.host).to.equal('localhost:9000');
+    delete process.env['FIREBASE_DATABASE_EMULATOR_HOST'];
   });
 
   it('Different instances for different URLs', function() {

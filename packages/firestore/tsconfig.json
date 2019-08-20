@@ -1,14 +1,7 @@
 {
   "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "strictFunctionTypes": true,
-    "strictNullChecks": true,
-    "noImplicitAny": true,
-    "alwaysStrict": false,
-    "noImplicitThis": false,
-    "strictBindCallApply": false,
-    "strictPropertyInitialization": false
+    "outDir": "dist"
   },
   "exclude": [
     "dist/**/*"

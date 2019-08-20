@@ -59,7 +59,13 @@ export enum TimerId {
   ClientMetadataRefresh = 'client_metadata_refresh',
 
   /** A timer used to periodically attempt LRU Garbage collection */
-  LruGarbageCollection = 'lru_garbage_collection'
+  LruGarbageCollection = 'lru_garbage_collection',
+
+  /**
+   * A timer used to retry transactions. Since there can be multiple concurrent
+   * transactions, multiple of these may be in the queue at a given time.
+   */
+  RetryTransaction = 'retry_transaction'
 }
 
 /**
@@ -188,16 +194,29 @@ export class AsyncQueue {
   // The last promise in the queue.
   private tail: Promise<unknown> = Promise.resolve();
 
+  // Is this AsyncQueue being shut down? Once it is set to true, it will not
+  // be changed again.
+  private _isShuttingDown: boolean = false;
+
   // Operations scheduled to be queued in the future. Operations are
   // automatically removed after they are run or canceled.
   private delayedOperations: Array<DelayedOperation<unknown>> = [];
 
   // visible for testing
-  failure: Error;
+  failure: Error | null = null;
 
   // Flag set while there's an outstanding AsyncQueue operation, used for
   // assertion sanity-checks.
   private operationInProgress = false;
+
+  // List of TimerIds to fast-forward delays for.
+  private timerIdsToSkip: TimerId[] = [];
+
+  // Is this AsyncQueue being shut down? If true, this instance will not enqueue
+  // any new operations, Promises from enqueue requests will not resolve.
+  get isShuttingDown(): boolean {
+    return this._isShuttingDown;
+  }
 
   /**
    * Adds a new operation to the queue without waiting for it to complete (i.e.
@@ -209,11 +228,57 @@ export class AsyncQueue {
   }
 
   /**
+   * Regardless if the queue has initialized shutdown, adds a new operation to the
+   * queue without waiting for it to complete (i.e. we ignore the Promise result).
+   */
+  enqueueAndForgetEvenAfterShutdown<T extends unknown>(
+    op: () => Promise<T>
+  ): void {
+    this.verifyNotFailed();
+    // tslint:disable-next-line:no-floating-promises
+    this.enqueueInternal(op);
+  }
+
+  /**
+   * Regardless if the queue has initialized shutdown, adds a new operation to the
+   * queue.
+   */
+  private enqueueEvenAfterShutdown<T extends unknown>(
+    op: () => Promise<T>
+  ): Promise<T> {
+    this.verifyNotFailed();
+    return this.enqueueInternal(op);
+  }
+
+  /**
+   * Adds a new operation to the queue and initialize the shut down of this queue.
+   * Returns a promise that will be resolved when the promise returned by the new
+   * operation is (with its value).
+   * Once this method is called, the only possible way to request running an operation
+   * is through `enqueueAndForgetEvenAfterShutdown`.
+   */
+  async enqueueAndInitiateShutdown(op: () => Promise<void>): Promise<void> {
+    this.verifyNotFailed();
+    if (!this._isShuttingDown) {
+      this._isShuttingDown = true;
+      await this.enqueueEvenAfterShutdown(op);
+    }
+  }
+
+  /**
    * Adds a new operation to the queue. Returns a promise that will be resolved
    * when the promise returned by the new operation is (with its value).
    */
   enqueue<T extends unknown>(op: () => Promise<T>): Promise<T> {
     this.verifyNotFailed();
+    if (this._isShuttingDown) {
+      // Return a Promise which never resolves.
+      return new Promise<T>(resolve => {});
+    }
+    return this.enqueueInternal(op);
+  }
+
+  private enqueueInternal<T extends unknown>(op: () => Promise<T>): Promise<T> {
     const newTail = this.tail.then(() => {
       this.operationInProgress = true;
       return op()
@@ -263,22 +328,20 @@ export class AsyncQueue {
       `Attempted to schedule an operation with a negative delay of ${delayMs}`
     );
 
-    // While not necessarily harmful, we currently don't expect to have multiple
-    // ops with the same timer id in the queue, so defensively reject them.
-    assert(
-      !this.containsDelayedOperation(timerId),
-      `Attempted to schedule multiple operations with timer id ${timerId}.`
-    );
+    // Fast-forward delays for timerIds that have been overriden.
+    if (this.timerIdsToSkip.indexOf(timerId) > -1) {
+      delayMs = 0;
+    }
 
-    const delayedOp = DelayedOperation.createAndSchedule<unknown>(
+    const delayedOp = DelayedOperation.createAndSchedule<T>(
       this,
       timerId,
       delayMs,
       op,
-      op => this.removeDelayedOperation(op)
+      removedOp =>
+        this.removeDelayedOperation(removedOp as DelayedOperation<unknown>)
     );
-    this.delayedOperations.push(delayedOp);
-
+    this.delayedOperations.push(delayedOp as DelayedOperation<unknown>);
     return delayedOp;
   }
 
@@ -309,7 +372,8 @@ export class AsyncQueue {
    * operations are not run.
    */
   drain(): Promise<void> {
-    return this.enqueue(() => Promise.resolve());
+    // It should still be possible to drain the queue after it is shutting down.
+    return this.enqueueEvenAfterShutdown(() => Promise.resolve());
   }
 
   /**
@@ -354,6 +418,13 @@ export class AsyncQueue {
 
       return this.drain();
     });
+  }
+
+  /**
+   * For Tests: Skip all subsequent delays for a timer id.
+   */
+  skipDelaysForTimerId(timerId: TimerId): void {
+    this.timerIdsToSkip.push(timerId);
   }
 
   /** Called once a DelayedOperation is run or canceled. */

@@ -37,15 +37,9 @@ import {
 } from '../models/worker-page-message';
 import { BaseController } from './base-controller';
 
-interface ManifestContent {
-  // eslint-disable-next-line camelcase
-  gcm_sender_id: string;
-}
-
 export class WindowController extends BaseController {
   private registrationToUse: ServiceWorkerRegistration | null = null;
   private publicVapidKeyToUse: Uint8Array | null = null;
-  private manifestCheckPromise: Promise<void> | null = null;
 
   private messageObserver: Observer<object> | null = null;
   // @ts-ignore: Unused variable error, this is not implemented yet.
@@ -70,23 +64,6 @@ export class WindowController extends BaseController {
     super(app);
 
     this.setupSWMessageListener_();
-  }
-
-  /**
-   * This method returns an FCM token if it can be generated.
-   * The return promise will reject if the browser doesn't support
-   * FCM, if permission is denied for notifications or it's not
-   * possible to generate a token.
-   *
-   * @return Returns a promise that resolves to an FCM token or null if
-   * permission isn't granted.
-   */
-  async getToken(): Promise<string | null> {
-    if (!this.manifestCheckPromise) {
-      this.manifestCheckPromise = manifestCheck();
-    }
-    await this.manifestCheckPromise;
-    return super.getToken();
   }
 
   /**
@@ -322,40 +299,5 @@ export class WindowController extends BaseController {
       },
       false
     );
-  }
-}
-
-/**
- * The method checks that a manifest is defined and has the correct GCM
- * sender ID.
- * @return Returns a promise that resolves if the manifest matches
- * our required sender ID
- */
-// Exported for testing
-export async function manifestCheck(): Promise<void> {
-  const manifestTag = document.querySelector<HTMLAnchorElement>(
-    'link[rel="manifest"]'
-  );
-
-  if (!manifestTag) {
-    return;
-  }
-
-  let manifestContent: ManifestContent;
-  try {
-    const response = await fetch(manifestTag.href);
-    manifestContent = await response.json();
-  } catch (e) {
-    // If the download or parsing fails allow check.
-    // We only want to error if we KNOW that the gcm_sender_id is incorrect.
-    return;
-  }
-
-  if (!manifestContent || !manifestContent.gcm_sender_id) {
-    return;
-  }
-
-  if (manifestContent.gcm_sender_id !== '103953800507') {
-    throw errorFactory.create(ErrorCode.INCORRECT_GCM_SENDER_ID);
   }
 }

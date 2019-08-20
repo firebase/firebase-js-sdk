@@ -233,9 +233,9 @@ export class Precondition {
  * to some source document.
  */
 export abstract class Mutation {
-  readonly type: MutationType;
-  readonly key: DocumentKey;
-  readonly precondition: Precondition;
+  abstract readonly type: MutationType;
+  abstract readonly key: DocumentKey;
+  abstract readonly precondition: Precondition;
 
   /**
    * Applies this mutation to the given MaybeDocument or null for the purposes

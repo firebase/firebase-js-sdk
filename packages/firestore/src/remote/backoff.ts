@@ -21,6 +21,17 @@ import { CancelablePromise } from '../util/promise';
 const LOG_TAG = 'ExponentialBackoff';
 
 /**
+ * Initial backoff time in milliseconds after an error.
+ * Set to 1s according to https://cloud.google.com/apis/design/errors.
+ */
+const DEFAULT_BACKOFF_INITIAL_DELAY_MS = 1000;
+
+const DEFAULT_BACKOFF_FACTOR = 1.5;
+
+/** Maximum backoff time in milliseconds */
+const DEFAULT_BACKOFF_MAX_DELAY_MS = 60 * 1000;
+
+/**
  * A helper for running delayed tasks following an exponential backoff curve
  * between attempts.
  *
@@ -30,7 +41,7 @@ const LOG_TAG = 'ExponentialBackoff';
  * delays causing spikes of load to the backend.
  */
 export class ExponentialBackoff {
-  private currentBaseMs: number;
+  private currentBaseMs: number = 0;
   private timerPromise: CancelablePromise<void> | null = null;
   /** The last backoff attempt, as epoch milliseconds. */
   private lastAttemptTime = Date.now();
@@ -49,18 +60,18 @@ export class ExponentialBackoff {
      * Note that jitter will still be applied, so the actual delay could be as
      * little as 0.5*initialDelayMs.
      */
-    private readonly initialDelayMs: number,
+    private readonly initialDelayMs: number = DEFAULT_BACKOFF_INITIAL_DELAY_MS,
     /**
      * The multiplier to use to determine the extended base delay after each
      * attempt.
      */
-    private readonly backoffFactor: number,
+    private readonly backoffFactor: number = DEFAULT_BACKOFF_FACTOR,
     /**
      * The maximum base delay after which no further backoff is performed.
      * Note that jitter will still be applied, so the actual delay could be as
      * much as 1.5*maxDelayMs.
      */
-    private readonly maxDelayMs: number
+    private readonly maxDelayMs: number = DEFAULT_BACKOFF_MAX_DELAY_MS
   ) {
     this.reset();
   }

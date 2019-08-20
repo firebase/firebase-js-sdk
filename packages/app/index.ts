@@ -18,9 +18,7 @@
 import { FirebaseNamespace } from '@firebase/app-types';
 import { createFirebaseNamespace } from './src/firebaseNamespace';
 import { isNode, isBrowser } from '@firebase/util';
-import { Logger } from '@firebase/logger';
-
-const logger = new Logger('@firebase/app');
+import { logger } from './src/logger';
 
 // Firebase Lite detection
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

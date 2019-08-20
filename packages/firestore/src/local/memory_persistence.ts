@@ -207,10 +207,18 @@ export class MemoryTransaction implements PersistenceTransaction {
 }
 
 export class MemoryEagerDelegate implements ReferenceDelegate {
-  private inMemoryPins: ReferenceSet | null;
-  private orphanedDocuments: Set<DocumentKey>;
+  private inMemoryPins: ReferenceSet | null = null;
+  private _orphanedDocuments: Set<DocumentKey> | null = null;
 
   constructor(private readonly persistence: MemoryPersistence) {}
+
+  private get orphanedDocuments(): Set<DocumentKey> {
+    if (!this._orphanedDocuments) {
+      throw fail('orphanedDocuments is only valid during a transaction.');
+    } else {
+      return this._orphanedDocuments;
+    }
+  }
 
   setInMemoryPins(inMemoryPins: ReferenceSet): void {
     this.inMemoryPins = inMemoryPins;
@@ -254,27 +262,27 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
   }
 
   onTransactionStarted(): void {
-    this.orphanedDocuments = new Set<DocumentKey>();
+    this._orphanedDocuments = new Set<DocumentKey>();
   }
 
   onTransactionCommitted(
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
     const cache = this.persistence.getRemoteDocumentCache();
+    const changeBuffer = cache.newChangeBuffer();
     return PersistencePromise.forEach(
       this.orphanedDocuments,
       (key: DocumentKey) => {
         return this.isReferenced(txn, key).next(isReferenced => {
           if (!isReferenced) {
-            // Since this is the eager delegate and memory persistence,
-            // we don't care about the size of documents. We don't track
-            // the size of the cache for eager GC.
-            return cache.removeEntry(txn, key).next(() => {});
+            changeBuffer.removeEntry(key);
           }
-          return PersistencePromise.resolve();
         });
       }
-    );
+    ).next(() => {
+      this._orphanedDocuments = null;
+      return changeBuffer.apply(txn);
+    });
   }
 
   updateLimboDocument(
@@ -308,7 +316,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
 }
 
 export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
-  private inMemoryPins: ReferenceSet | null;
+  private inMemoryPins: ReferenceSet | null = null;
   private orphanedSequenceNumbers: ObjectMap<
     DocumentKey,
     ListenSequenceNumber
@@ -402,20 +410,16 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<number> {
     let count = 0;
     const cache = this.persistence.getRemoteDocumentCache();
+    const changeBuffer = cache.newChangeBuffer();
     const p = cache.forEachDocumentKey(txn, key => {
       return this.isPinned(txn, key, upperBound).next(isPinned => {
-        if (isPinned) {
-          return PersistencePromise.resolve();
-        } else {
+        if (!isPinned) {
           count++;
-          // The memory remote document cache does its own byte
-          // accounting on removal. This is ok because updating the size
-          // for memory persistence does not incur IO.
-          return cache.removeEntry(txn, key).next();
+          changeBuffer.removeEntry(key);
         }
       });
     });
-    return p.next(() => count);
+    return p.next(() => changeBuffer.apply(txn)).next(() => count);
   }
 
   removeMutationReference(

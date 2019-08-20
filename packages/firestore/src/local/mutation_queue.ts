@@ -103,6 +103,16 @@ export interface MutationQueue {
     batchId: BatchId
   ): PersistencePromise<MutationBatch | null>;
 
+  /**
+   * Gets the largest (latest) batch id in mutation queue for the current user that is pending
+   * server response, returns `BATCHID_UNKNOWN` if the queue is empty.
+   *
+   * @return the largest batch id in the mutation queue that is not acknowledged.
+   */
+  getHighestUnacknowledgedBatchId(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<BatchId>;
+
   /** Gets all mutation batches in the mutation queue. */
   // TODO(mikelehen): PERF: Current consumer only needs mutated keys; if we can
   // provide that cheaply, we should replace this.

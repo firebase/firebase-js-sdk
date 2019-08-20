@@ -20,7 +20,7 @@ import { PublicFieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
-import { TargetId } from '../../../src/core/types';
+import { TargetId, BatchId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore, LocalWriteResult } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
@@ -38,7 +38,8 @@ import {
 } from '../../../src/model/mutation';
 import {
   MutationBatch,
-  MutationBatchResult
+  MutationBatchResult,
+  BATCHID_UNKNOWN
 } from '../../../src/model/mutation_batch';
 import { emptyByteString } from '../../../src/platform/platform';
 import { RemoteEvent } from '../../../src/remote/remote_event';
@@ -259,6 +260,15 @@ class LocalStoreTester {
     } else {
       return this.toContain(doc);
     }
+  }
+
+  toReturnHighestUnacknowledgeBatchId(expectedId: BatchId): LocalStoreTester {
+    this.promiseChain = this.promiseChain.then(() => {
+      return this.localStore.getHighestUnacknowledgedBatchId().then(actual => {
+        expect(actual).to.equal(expectedId);
+      });
+    });
+    return this;
   }
 
   finish(): Promise<void> {
@@ -1235,6 +1245,20 @@ function genericLocalStoreTests(
         doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 1, { sum: 1 }, { hasLocalMutations: true }))
+      .finish();
+  });
+
+  it('computes highest unacknowledged batch id correctly', () => {
+    return expectLocalStore()
+      .toReturnHighestUnacknowledgeBatchId(BATCHID_UNKNOWN)
+      .afterMutations([setMutation('foo/bar', {})])
+      .toReturnHighestUnacknowledgeBatchId(1)
+      .afterMutations([patchMutation('foo/bar', { abc: 123 })])
+      .toReturnHighestUnacknowledgeBatchId(2)
+      .afterAcknowledgingMutation({ documentVersion: 1 })
+      .toReturnHighestUnacknowledgeBatchId(2)
+      .afterRejectingMutation()
+      .toReturnHighestUnacknowledgeBatchId(BATCHID_UNKNOWN)
       .finish();
   });
 }

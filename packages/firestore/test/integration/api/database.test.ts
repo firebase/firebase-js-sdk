@@ -31,12 +31,17 @@ import {
   apiDescribe,
   arrayContainsAnyOp,
   inOp,
+  shutdownDb,
   withTestCollection,
   withTestDb,
   withTestDbs,
   withTestDoc,
-  withTestDocAndInitialData
+  withTestDocAndInitialData,
+  DEFAULT_SETTINGS,
+  waitForPendingWrites,
+  withMockCredentialProviderTestDb
 } from '../util/helpers';
+import { User } from '../../../src/auth/user';
 
 // tslint:disable:no-floating-promises
 
@@ -1066,6 +1071,117 @@ apiDescribe('Database', (persistence: boolean) => {
       await db.disableNetwork();
       await db.disableNetwork();
       await db.enableNetwork();
+    });
+  });
+
+  it('can start a new instance after shut down', async () => {
+    return withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await shutdownDb(firestore);
+
+      const newFirestore = firebase.firestore!(firestore.app);
+      expect(newFirestore).to.not.equal(firestore);
+
+      // New instance functions.
+      newFirestore.settings(DEFAULT_SETTINGS);
+      await newFirestore.doc(docRef.path).set({ foo: 'bar' });
+      const doc = await newFirestore.doc(docRef.path).get();
+      expect(doc.data()).to.deep.equal({ foo: 'bar' });
+    });
+  });
+
+  it('app delete leads to instance shutdown', async () => {
+    await withTestDoc(persistence, async docRef => {
+      await docRef.set({ foo: 'bar' });
+      const app = docRef.firestore.app;
+      await app.delete();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((docRef.firestore as any)._isShutdown).to.be.true;
+    });
+  });
+
+  it('new operation after shutdown should throw', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await shutdownDb(firestore);
+
+      expect(() => {
+        firestore.doc(docRef.path).set({ foo: 'bar' });
+      }).to.throw();
+    });
+  });
+
+  it('calling shutdown mutiple times should proceed', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await shutdownDb(firestore);
+      await shutdownDb(firestore);
+
+      expect(() => {
+        firestore.doc(docRef.path).set({ foo: 'bar' });
+      }).to.throw();
+    });
+  });
+
+  it('can unlisten queries after shutdown', async () => {
+    return withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
+      const unsubscribe = docRef.onSnapshot(accumulator.storeEvent);
+      await accumulator.awaitEvent();
+      await shutdownDb(firestore);
+
+      // This should proceed without error.
+      unsubscribe();
+      // Multiple calls should proceed as well.
+      unsubscribe();
+    });
+  });
+
+  it('can wait for pending writes', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      // Prevent pending writes receiving acknowledgement.
+      await firestore.disableNetwork();
+
+      const pendingWrites = docRef.set({ foo: 'bar' });
+      const awaitPendingWrites = waitForPendingWrites(firestore);
+
+      // pending writes can receive acknowledgements now.
+      await firestore.enableNetwork();
+      await pendingWrites;
+      await awaitPendingWrites;
+    });
+  });
+
+  it('waiting for pending writes should fail when user changes', async () => {
+    await withMockCredentialProviderTestDb(
+      persistence,
+      async (db, mockCredentialsProvider) => {
+        // Prevent pending writes receiving acknowledgement.
+        await db.disableNetwork();
+        db.doc('abc/123').set({ foo: 'bar' });
+        const awaitPendingWrite = waitForPendingWrites(db);
+
+        mockCredentialsProvider.triggerUserChange(new User('user_1'));
+
+        await expect(awaitPendingWrite).to.be.eventually.rejectedWith(
+          "'waitForPendingWrites' promise is rejected due to a user change."
+        );
+      }
+    );
+  });
+
+  it('waiting for pending writes resolves immediately when offline and no pending writes', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      // Prevent pending writes receiving acknowledgement.
+      await firestore.disableNetwork();
+
+      // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
+      // immediately even if we are offline.
+      await waitForPendingWrites(firestore);
     });
   });
 });

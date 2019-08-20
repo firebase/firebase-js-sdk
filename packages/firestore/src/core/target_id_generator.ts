@@ -42,7 +42,8 @@ enum GeneratorIds {
 // TODO(mrschmidt): Explore removing this class in favor of generating these IDs
 // directly in SyncEngine and LocalStore.
 export class TargetIdGenerator {
-  private nextId: TargetId;
+  // Initialized in the constructor via call to seek().
+  private nextId!: TargetId;
 
   /**
    * Instantiates a new TargetIdGenerator. If a seed is provided, the generator

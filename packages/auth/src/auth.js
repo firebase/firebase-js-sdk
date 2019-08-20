@@ -155,6 +155,10 @@ fireauth.Auth = function(app) {
   this.userDeleteListener_ = goog.bind(this.handleUserDelete_, this);
   /** @private {!function(!Object)} The handler for user invalidation. */
   this.userInvalidatedListener_ = goog.bind(this.handleUserInvalidated_, this);
+  /**
+   * @private {?fireauth.AuthEventManager} The Auth event manager instance.
+   */
+  this.authEventManager_ = null;
   // TODO: find better way to enable or disable auth event manager.
   if (fireauth.AuthEventManager.ENABLED) {
     // Initialize Auth event manager to handle popup and redirect operations.
@@ -766,8 +770,9 @@ fireauth.Auth.prototype.signInWithRedirect = function(provider) {
  * redirect sign, will reject with the proper error. If no redirect operation
  * called, resolves with null.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ * @private
  */
-fireauth.Auth.prototype.getRedirectResult = function() {
+fireauth.Auth.prototype.getRedirectResultWithoutClearing_ = function() {
   // Check if popup and redirect are supported in this environment.
   if (!fireauth.util.isPopupRedirectSupported()) {
     return goog.Promise.reject(new fireauth.AuthError(
@@ -787,6 +792,29 @@ fireauth.Auth.prototype.getRedirectResult = function() {
   });
   return /** @type {!goog.Promise<!fireauth.AuthEventManager.Result>} */ (
       this.registerPendingPromise_(p));
+};
+
+
+/**
+ * In addition to returning the redirect result as in
+ * `getRedirectResultWithoutClearing_`, this will also clear the cached
+ * redirect result for security reasons.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.getRedirectResult = function() {
+  return this.getRedirectResultWithoutClearing_()
+        .then((result) => {
+          if (this.authEventManager_) {
+            this.authEventManager_.clearRedirectResult();
+          }
+          return result;
+        })
+        .thenCatch((error) => {
+          if (this.authEventManager_) {
+            this.authEventManager_.clearRedirectResult();
+          }
+          throw error;
+        });
 };
 
 
@@ -923,6 +951,17 @@ fireauth.Auth.prototype.signOut = function() {
   // Wait for final state to be ready first, otherwise a signed out user could
   // come back to life.
   var p = this.redirectStateIsReady_.then(function() {
+    // Clear any cached redirect result on sign out, even if user is already
+    // signed out. For example, sign in could fail due to account conflict
+    // error, the error in redirect result should still be cleared. There is
+    // also the use case where you keep a reference to a signed out user and
+    // call signedOutUser.linkWithRedirect(provider). Even though the user is
+    // signed out, getRedirectResult() will resolve with the modified signed
+    // out user. This could also throw an error
+    // (provider already linked, etc).
+    if (self.authEventManager_) {
+      self.authEventManager_.clearRedirectResult();
+    }
     // Ignore if already signed out.
     if (!self.currentUser_()) {
       return goog.Promise.resolve();
@@ -1056,7 +1095,7 @@ fireauth.Auth.prototype.initAuthRedirectState_ = function() {
   // Wait first for state to be loaded from storage.
   return this.authStateLoaded_.then(function() {
     // Resolve any pending redirect result.
-    return self.getRedirectResult();
+    return self.getRedirectResultWithoutClearing_();
   }).thenCatch(function(error) {
     // Ignore any error in the process. Redirect could be not supported.
     return;

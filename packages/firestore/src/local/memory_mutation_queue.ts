@@ -21,7 +21,7 @@ import { BatchId, ProtoByteString } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
-import { MutationBatch } from '../model/mutation_batch';
+import { MutationBatch, BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { emptyByteString } from '../platform/platform';
 import { assert } from '../util/assert';
 import { primitiveComparator } from '../util/misc';
@@ -174,6 +174,12 @@ export class MemoryMutationQueue implements MutationQueue {
     const index = rawIndex < 0 ? 0 : rawIndex;
     return PersistencePromise.resolve(
       this.mutationQueue.length > index ? this.mutationQueue[index] : null
+    );
+  }
+
+  getHighestUnacknowledgedBatchId(): PersistencePromise<BatchId> {
+    return PersistencePromise.resolve(
+      this.mutationQueue.length === 0 ? BATCHID_UNKNOWN : this.nextBatchId - 1
     );
   }
 

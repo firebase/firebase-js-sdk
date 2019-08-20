@@ -99,18 +99,17 @@ export class FirestoreClient {
   // initialization completes before any other work is queued, we're cheating
   // with the types rather than littering the code with '!' or unnecessary
   // undefined checks.
-  private eventMgr: EventManager;
-  private persistence: Persistence;
-  private localStore: LocalStore;
-  private remoteStore: RemoteStore;
-  private syncEngine: SyncEngine;
+  private eventMgr!: EventManager;
+  private persistence!: Persistence;
+  private localStore!: LocalStore;
+  private remoteStore!: RemoteStore;
+  private syncEngine!: SyncEngine;
+  // PORTING NOTE: SharedClientState is only used for multi-tab web.
+  private sharedClientState!: SharedClientState;
+
   private lruScheduler?: LruScheduler;
 
   private readonly clientId = AutoId.newId();
-  private _clientShutdown = false;
-
-  // PORTING NOTE: SharedClientState is only used for multi-tab web.
-  private sharedClientState: SharedClientState;
 
   constructor(
     private platform: Platform,
@@ -310,7 +309,7 @@ export class FirestoreClient {
    * this class cannot be called after the client is shutdown.
    */
   private verifyNotShutdown(): void {
-    if (this._clientShutdown) {
+    if (this.asyncQueue.isShuttingDown) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'The client has already been shutdown.'
@@ -507,23 +506,35 @@ export class FirestoreClient {
   }
 
   shutdown(): Promise<void> {
-    return this.asyncQueue.enqueue(async () => {
-      if (!this._clientShutdown) {
-        // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-        if (this.lruScheduler) {
-          this.lruScheduler.stop();
-        }
-        await this.remoteStore.shutdown();
-        await this.sharedClientState.shutdown();
-        await this.persistence.shutdown();
-
-        // `removeChangeListener` must be called after shutting down the
-        // RemoteStore as it will prevent the RemoteStore from retrieving
-        // auth tokens.
-        this.credentials.removeChangeListener();
-        this._clientShutdown = true;
+    return this.asyncQueue.enqueueAndInitiateShutdown(async () => {
+      // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
+      if (this.lruScheduler) {
+        this.lruScheduler.stop();
       }
+      await this.remoteStore.shutdown();
+      await this.sharedClientState.shutdown();
+      await this.persistence.shutdown();
+
+      // `removeChangeListener` must be called after shutting down the
+      // RemoteStore as it will prevent the RemoteStore from retrieving
+      // auth tokens.
+      this.credentials.removeChangeListener();
     });
+  }
+
+  /**
+   * Returns a Promise that resolves when all writes that were pending at the time this
+   * method was called received server acknowledgement. An acknowledgement can be either acceptance
+   * or rejection.
+   */
+  waitForPendingWrites(): Promise<void> {
+    this.verifyNotShutdown();
+
+    const deferred = new Deferred<void>();
+    this.asyncQueue.enqueueAndForget(() => {
+      return this.syncEngine.registerPendingWritesCallback(deferred);
+    });
+    return deferred.promise;
   }
 
   listen(
@@ -540,7 +551,11 @@ export class FirestoreClient {
   }
 
   unlisten(listener: QueryListener): void {
-    this.verifyNotShutdown();
+    // Checks for shutdown but does not raise error, allowing unlisten after
+    // shutdown to be a no-op.
+    if (this.clientShutdown) {
+      return;
+    }
     this.asyncQueue.enqueueAndForget(() => {
       return this.eventMgr.unlisten(listener);
     });
@@ -603,16 +618,21 @@ export class FirestoreClient {
   }
 
   get clientShutdown(): boolean {
-    return this._clientShutdown;
+    // Technically, the asyncQueue is still running, but only accepting operations
+    // related to shutdown or supposed to be run after shutdown. It is effectively
+    // shut down to the eyes of users.
+    return this.asyncQueue.isShuttingDown;
   }
 
   transaction<T>(
     updateFunction: (transaction: Transaction) => Promise<T>
   ): Promise<T> {
     this.verifyNotShutdown();
-    // We have to wait for the async queue to be sure syncEngine is initialized.
-    return this.asyncQueue
-      .enqueue(async () => {})
-      .then(() => this.syncEngine.runTransaction(updateFunction));
+    const deferred = new Deferred<T>();
+    this.asyncQueue.enqueueAndForget(() => {
+      this.syncEngine.runTransaction(this.asyncQueue, updateFunction, deferred);
+      return Promise.resolve();
+    });
+    return deferred.promise;
   }
 }

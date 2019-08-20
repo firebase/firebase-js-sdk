@@ -42,7 +42,8 @@ export class RepoInfo {
     public secure: boolean,
     public namespace: string,
     public webSocketOnly: boolean,
-    public persistenceKey: string = ''
+    public persistenceKey: string = '',
+    public includeNamespaceInQueryParams: boolean = false
   ) {
     this.host = host.toLowerCase();
     this.domain = this.host.substr(this.host.indexOf('.') + 1);
@@ -50,7 +51,11 @@ export class RepoInfo {
   }
 
   needsQueryParam(): boolean {
-    return this.host !== this.internalHost || this.isCustomHost();
+    return (
+      this.host !== this.internalHost ||
+      this.isCustomHost() ||
+      this.includeNamespaceInQueryParams
+    );
   }
 
   isCacheableHost(): boolean {

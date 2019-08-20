@@ -90,7 +90,7 @@ describeSpec('Limbo Documents:', [], () => {
       filter('key', '==', 'a')
     );
     const doc1a = doc('collection/a', 1000, { key: 'a' });
-    const doc1b = doc('collection/a', 1000, { key: 'b' });
+    const doc1b = doc('collection/a', 1002, { key: 'b' });
     const limboQuery = Query.atPath(doc1a.key.path);
     return (
       spec()
@@ -128,7 +128,7 @@ describeSpec('Limbo Documents:', [], () => {
         filter('key', '==', 'b')
       );
       const doc1a = doc('collection/a', 1000, { key: 'a' });
-      const doc1b = doc('collection/a', 1000, { key: 'b' });
+      const doc1b = doc('collection/a', 1002, { key: 'b' });
       const limboQuery = Query.atPath(doc1a.key.path);
       return (
         spec()

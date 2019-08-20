@@ -168,8 +168,11 @@ export class RemoteStore implements TargetMetadataProvider {
     });
   }
 
-  /** SyncEngine to notify of watch and write events. */
-  syncEngine: RemoteSyncer;
+  /**
+   * SyncEngine to notify of watch and write events. This must be set
+   * immediately after construction.
+   */
+  syncEngine!: RemoteSyncer;
 
   /**
    * Starts up the remote store, creating streams, restoring state from
@@ -327,7 +330,7 @@ export class RemoteStore implements TargetMetadataProvider {
     );
   }
 
-  private canUseNetwork(): boolean {
+  canUseNetwork(): boolean {
     return this.isPrimary && this.networkEnabled;
   }
 
