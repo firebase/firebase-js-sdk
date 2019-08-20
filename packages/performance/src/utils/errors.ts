@@ -27,7 +27,10 @@ export const enum ErrorCode {
   NO_API_KEY = 'no api key',
   INVALID_CC_LOG = 'invalid cc log',
   FB_NOT_DEFAULT = 'FB not default',
-  RC_NOT_OK = 'RC response not ok'
+  RC_NOT_OK = 'RC response not ok',
+  INVALID_ATTRIBUTE_NAME = 'invalid attribute name',
+  INVALID_ATTRIBUTE_VALUE = 'invalid attribute value',
+  INVALID_CUSTOM_METRIC_NAME = 'invalide custom metric name'
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
@@ -40,12 +43,21 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
   [ErrorCode.INVALID_CC_LOG]: 'Attempted to queue invalid cc event',
   [ErrorCode.FB_NOT_DEFAULT]:
     'Performance can only start when Firebase app instance is the default one.',
-  [ErrorCode.RC_NOT_OK]: 'RC response is not ok'
+  [ErrorCode.RC_NOT_OK]: 'RC response is not ok',
+  [ErrorCode.INVALID_ATTRIBUTE_NAME]:
+    'Attribute name {$attributeName} is invalid.',
+  [ErrorCode.INVALID_ATTRIBUTE_VALUE]:
+    'Attribute value {$attributeValue} is invalid.',
+  [ErrorCode.INVALID_CUSTOM_METRIC_NAME]:
+    'Custom metric name {$customMetricName} is invalid'
 };
 
 interface ErrorParams {
   [ErrorCode.TRACE_STARTED_BEFORE]: { traceName: string };
   [ErrorCode.TRACE_STOPPED_BEFORE]: { traceName: string };
+  [ErrorCode.INVALID_ATTRIBUTE_NAME]: { attributeName: string };
+  [ErrorCode.INVALID_ATTRIBUTE_VALUE]: { attributeValue: string };
+  [ErrorCode.INVALID_CUSTOM_METRIC_NAME]: { customMetricName: string };
 }
 
 export const ERROR_FACTORY = new ErrorFactory<ErrorCode, ErrorParams>(
