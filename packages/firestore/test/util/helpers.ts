@@ -287,22 +287,28 @@ export function docAddedRemoteEvent(
   docOrDocs: MaybeDocument | MaybeDocument[],
   updatedInTargets?: TargetId[],
   removedFromTargets?: TargetId[],
-  limboTargets?: TargetId[]
+  activeTargets?: TargetId[]
 ): RemoteEvent {
   const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
-
   assert(docs.length !== 0, 'Cannot pass empty docs array');
-  const collectionPath = docs[0].key.path.popLast();
-  const version = docs[0].version;
+
+  const allTargets = activeTargets
+    ? activeTargets
+    : (updatedInTargets || []).concat(removedFromTargets || []);
 
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
     getQueryDataForTarget: targetId => {
-      const purpose =
-        limboTargets && limboTargets.indexOf(targetId) !== -1
-          ? QueryPurpose.LimboResolution
-          : QueryPurpose.Listen;
-      return queryData(targetId, purpose, collectionPath.toString());
+      if (allTargets.indexOf(targetId) != -1) {
+        const collectionPath = docs[0].key.path.popLast();
+        return queryData(
+          targetId,
+          QueryPurpose.Listen,
+          collectionPath.toString()
+        );
+      } else {
+        return null;
+      }
     }
   });
 
@@ -319,6 +325,8 @@ export function docAddedRemoteEvent(
     );
     aggregator.handleDocumentChange(docChange);
   }
+
+  const version = docs[0].version;
   return aggregator.createRemoteEvent(version);
 }
 

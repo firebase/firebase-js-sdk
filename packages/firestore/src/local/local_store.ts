@@ -459,43 +459,46 @@ export class LocalStore {
           remoteEvent.targetChanges,
           (targetId: TargetId, change: TargetChange) => {
             const oldQueryData = this.queryDataByTarget[targetId];
-            if (oldQueryData) {
-              // Only update the remote keys if the query is still active. This
-              // ensures that we can persist the updated query data along with
-              // the updated assignment.
-              promises.push(
-                this.queryCache
-                  .removeMatchingKeys(txn, change.removedDocuments, targetId)
-                  .next(() => {
-                    return this.queryCache.addMatchingKeys(
-                      txn,
-                      change.addedDocuments,
-                      targetId
-                    );
-                  })
-              );
+            if (!oldQueryData) {
+              return;
+            }
 
-              const resumeToken = change.resumeToken;
-              if (resumeToken.length > 0) {
-                const newQueryData = oldQueryData.copy({
-                  resumeToken,
-                  snapshotVersion
-                });
-                this.queryDataByTarget[targetId] = newQueryData;
-
-                // Update the query data if there are target changes (or if
-                // sufficient time has passed since the last update).
-                if (
-                  LocalStore.shouldPersistQueryData(
-                    oldQueryData,
-                    newQueryData,
-                    change
-                  )
-                ) {
-                  promises.push(
-                    this.queryCache.updateQueryData(txn, newQueryData)
+            // Only update the remote keys if the query is still active. This
+            // ensures that we can persist the updated query data along with
+            // the updated assignment.
+            promises.push(
+              this.queryCache
+                .removeMatchingKeys(txn, change.removedDocuments, targetId)
+                .next(() => {
+                  return this.queryCache.addMatchingKeys(
+                    txn,
+                    change.addedDocuments,
+                    targetId
                   );
-                }
+                })
+            );
+
+            const resumeToken = change.resumeToken;
+            // Update the resume token if the change includes one.
+            if (resumeToken.length > 0) {
+              const newQueryData = oldQueryData.copy({
+                resumeToken,
+                snapshotVersion
+              });
+              this.queryDataByTarget[targetId] = newQueryData;
+
+              // Update the query data if there are target changes (or if
+              // sufficient time has passed since the last update).
+              if (
+                LocalStore.shouldPersistQueryData(
+                  oldQueryData,
+                  newQueryData,
+                  change
+                )
+              ) {
+                promises.push(
+                  this.queryCache.updateQueryData(txn, newQueryData)
+                );
               }
             }
           }
