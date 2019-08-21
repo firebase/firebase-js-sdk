@@ -569,8 +569,6 @@ abstract class TestRunner {
       return this.doRestart();
     } else if ('shutdown' in step) {
       return this.doShutdown();
-    } else if ('expectIsShutdown' in step) {
-      return this.doExpectIsShutdown();
     } else if ('applyClientState' in step) {
       // PORTING NOTE: Only used by web multi-tab tests.
       return this.doApplyClientState(step.applyClientState!);
@@ -885,11 +883,6 @@ abstract class TestRunner {
     this.started = false;
   }
 
-  /** Asserts that the client is shutdown by  */
-  private async doExpectIsShutdown(): Promise<void> {
-    expect(this.started).to.equal(false);
-  }
-
   private async doClearPersistence(): Promise<void> {
     await clearTestPersistence();
   }
@@ -984,6 +977,9 @@ abstract class TestRunner {
       }
       if ('isPrimary' in expectation) {
         expect(this.isPrimaryClient).to.eq(expectation.isPrimary!, 'isPrimary');
+      }
+      if ('isShutdown' in expectation) {
+        expect(this.started).to.equal(!expectation.isShutdown);
       }
     }
 
@@ -1396,9 +1392,6 @@ export interface SpecStep {
   /** Shut down the client and close it network connection. */
   shutdown?: true;
 
-  /** Assert that the firestore client is shutdown. */
-  expectIsShutdown?: true;
-
   /**
    * Optional list of expected events.
    * If not provided, the test will fail if the step causes events to be raised.
@@ -1577,6 +1570,8 @@ export interface StateExpectation {
    * Whether the instance holds the primary lease. Used in multi-client tests.
    */
   isPrimary?: boolean;
+  /** Whether the client is shutdown. */
+  isShutdown?: boolean;
   /**
    * Current expected active targets. Verified in each step until overwritten.
    */
