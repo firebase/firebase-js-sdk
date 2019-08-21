@@ -18,28 +18,35 @@
 import { firestore } from 'firebase/app';
 import { Observable } from 'rxjs';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function _fromRef(ref: any): Observable<any> {
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function _fromRef(
+  ref: any,
+  options: firestore.SnapshotListenOptions | undefined
+): Observable<any> {
+  /* eslint-enable @typescript-eslint/no-explicit-any */
   return new Observable(subscriber => {
-    const unsubscribe = ref.onSnapshot(subscriber);
+    const unsubscribe = ref.onSnapshot(options || {}, subscriber);
     return { unsubscribe };
   });
 }
 
 export function fromRef(
-  ref: firestore.DocumentReference | firestore.Query
+  ref: firestore.DocumentReference | firestore.Query,
+  options?: firestore.SnapshotListenOptions
 ): Observable<{}> {
-  return _fromRef(ref);
+  return _fromRef(ref, options);
 }
 
 export function fromDocRef(
-  ref: firestore.DocumentReference
+  ref: firestore.DocumentReference,
+  options?: firestore.SnapshotListenOptions
 ): Observable<firestore.DocumentSnapshot> {
-  return fromRef(ref) as Observable<firestore.DocumentSnapshot>;
+  return fromRef(ref, options) as Observable<firestore.DocumentSnapshot>;
 }
 
 export function fromCollectionRef(
-  ref: firestore.Query
+  ref: firestore.Query,
+  options?: firestore.SnapshotListenOptions
 ): Observable<firestore.QuerySnapshot> {
-  return fromRef(ref) as Observable<firestore.QuerySnapshot>;
+  return fromRef(ref, options) as Observable<firestore.QuerySnapshot>;
 }
