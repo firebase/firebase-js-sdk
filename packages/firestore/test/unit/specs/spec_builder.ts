@@ -397,7 +397,9 @@ export class SpecBuilder {
   expectIsShutdown(): this {
     this.nextStep();
     this.currentStep = {
-      expectIsShutdown: true
+      stateExpect: {
+        isShutdown: true
+      }
     };
     return this;
   }
