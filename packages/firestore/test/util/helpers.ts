@@ -299,7 +299,7 @@ export function docAddedRemoteEvent(
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
     getQueryDataForTarget: targetId => {
-      if (allTargets.indexOf(targetId) != -1) {
+      if (allTargets.indexOf(targetId) !== -1) {
         const collectionPath = docs[0].key.path.popLast();
         return queryData(
           targetId,
