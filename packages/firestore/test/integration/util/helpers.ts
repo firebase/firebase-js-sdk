@@ -370,6 +370,7 @@ export function waitForPendingWrites(
   return (db as any)._waitForPendingWrites();
 }
 
+// TODO(b/139890752): Remove helper and use public API once this is launched.
 export function onSnapshotsInSync(
   db: firestore.FirebaseFirestore,
   onSync: () => void

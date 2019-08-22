@@ -62,7 +62,6 @@ import { Query } from './query';
 import { Transaction } from './transaction';
 import { OnlineState, OnlineStateSource } from './types';
 import { ViewSnapshot } from './view_snapshot';
-import { AsyncObserver } from '../util/async_observer';
 
 const LOG_TAG = 'FirestoreClient';
 
@@ -618,26 +617,21 @@ export class FirestoreClient {
     return this.databaseInfo.databaseId;
   }
 
-  addSnapshotsInSyncListener(asyncObserver: AsyncObserver<void>): void {
+  addSnapshotsInSyncListener(observer: Observer<void>): void {
     this.verifyNotShutdown();
     this.asyncQueue.enqueueAndForget(() => {
-      // If there are no active query listeners, run the callback immediately.
-      if (!this.eventMgr.hasQueries()) {
-        asyncObserver.next();
-      }
-      this.eventMgr.addSnapshotsInSyncListener(asyncObserver);
+      this.eventMgr.addSnapshotsInSyncListener(observer);
       return Promise.resolve();
     });
   }
 
-  removeSnapshotsInSyncListener(asyncObserver: AsyncObserver<void>): void {
+  removeSnapshotsInSyncListener(observer: Observer<void>): void {
     // Checks for shutdown but does not raise error, allowing remove after
     // shutdown to be a no-op.
     if (this.clientShutdown) {
       return;
     }
-    this.eventMgr.removeSnapshotsInSyncListener(asyncObserver);
-    return;
+    this.eventMgr.removeSnapshotsInSyncListener(observer);
   }
 
   get clientShutdown(): boolean {

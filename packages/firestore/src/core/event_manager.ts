@@ -22,7 +22,6 @@ import { Query } from './query';
 import { SyncEngine, SyncEngineListener } from './sync_engine';
 import { OnlineState, TargetId } from './types';
 import { DocumentViewChange, ChangeType, ViewSnapshot } from './view_snapshot';
-import { AsyncObserver } from '../util/async_observer';
 
 /**
  * Holds the listeners and the last received ViewSnapshot for a query being
@@ -54,7 +53,7 @@ export class EventManager implements SyncEngineListener {
 
   private onlineState: OnlineState = OnlineState.Unknown;
 
-  private snapshotsInSyncListeners: Set<AsyncObserver<void>> = new Set();
+  private snapshotsInSyncListeners: Set<Observer<void>> = new Set();
 
   constructor(private syncEngine: SyncEngine) {
     this.syncEngine.subscribe(this);
@@ -73,12 +72,17 @@ export class EventManager implements SyncEngineListener {
     queryInfo.listeners.push(listener);
 
     // Run global snapshot listeners if a consistent snapshot has been emitted.
-    if (listener.applyOnlineStateChange(this.onlineState)) {
-      this.runSnapshotsInSyncListeners();
-    }
+    const raisedEvent = listener.applyOnlineStateChange(this.onlineState);
+    assert(
+      !raisedEvent,
+      "applyOnlineStateChange() shouldn't raise an event for brand-new listeners."
+    );
 
-    if (queryInfo.viewSnap && listener.onViewSnapshot(queryInfo.viewSnap)) {
-      this.runSnapshotsInSyncListeners();
+    if (queryInfo.viewSnap) {
+      const raisedEvent = listener.onViewSnapshot(queryInfo.viewSnap);
+      if (raisedEvent) {
+        this.raiseSnapshotsInSyncEvent();
+      }
     }
 
     if (firstListen) {
@@ -111,22 +115,21 @@ export class EventManager implements SyncEngineListener {
   }
 
   onWatchChange(viewSnaps: ViewSnapshot[]): void {
-    let shouldRunInSyncListeners = false;
+    let raisedEvent = false;
     for (const viewSnap of viewSnaps) {
       const query = viewSnap.query;
       const queryInfo = this.queries.get(query);
       if (queryInfo) {
         for (const listener of queryInfo.listeners) {
           if (listener.onViewSnapshot(viewSnap)) {
-            shouldRunInSyncListeners = true;
+            raisedEvent = true;
           }
         }
         queryInfo.viewSnap = viewSnap;
       }
     }
-    if (shouldRunInSyncListeners) {
-      // Run global snapshot listeners if a consistent snapshot has been emitted.
-      this.runSnapshotsInSyncListeners();
+    if (raisedEvent) {
+      this.raiseSnapshotsInSyncEvent();
     }
   }
 
@@ -145,34 +148,34 @@ export class EventManager implements SyncEngineListener {
 
   onOnlineStateChange(onlineState: OnlineState): void {
     this.onlineState = onlineState;
-    let shouldRunInSyncListeners = false;
+    let raisedEvent = false;
     this.queries.forEach((_, queryInfo) => {
       for (const listener of queryInfo.listeners) {
         // Run global snapshot listeners if a consistent snapshot has been emitted.
         if (listener.applyOnlineStateChange(onlineState)) {
-          shouldRunInSyncListeners = true;
+          raisedEvent = true;
         }
       }
     });
-    if (shouldRunInSyncListeners) {
-      this.runSnapshotsInSyncListeners();
+    if (raisedEvent) {
+      this.raiseSnapshotsInSyncEvent();
     }
   }
 
-  hasQueries(): boolean {
-    return !this.queries.isEmpty();
+  addSnapshotsInSyncListener(observer: Observer<void>): void {
+    // If there are no active query listeners, run the callback immediately.
+    if (this.queries.isEmpty()) {
+      observer.next();
+    }
+    this.snapshotsInSyncListeners.add(observer);
   }
 
-  addSnapshotsInSyncListener(asyncObserver: AsyncObserver<void>): void {
-    this.snapshotsInSyncListeners.add(asyncObserver);
-  }
-
-  removeSnapshotsInSyncListener(asyncObserver: AsyncObserver<void>): void {
-    this.snapshotsInSyncListeners.delete(asyncObserver);
+  removeSnapshotsInSyncListener(observer: Observer<void>): void {
+    this.snapshotsInSyncListeners.delete(observer);
   }
 
   // Call all global snapshot listeners that have been set.
-  private runSnapshotsInSyncListeners(): void {
+  private raiseSnapshotsInSyncEvent(): void {
     this.snapshotsInSyncListeners.forEach(observer => {
       observer.next();
     });
@@ -217,7 +220,12 @@ export class QueryListener {
     this.options = options || {};
   }
 
-  /** Processes the ViewSnapshots and returns whether a snapshot was raised. */
+  /**
+   * Applies the new ViewSnapshot to this listener, raising a user-facing event
+   * if applicable (depending on what changed, whether the user has opted into
+   * metadata-only changes, etc.). Returns true if a user-facing event was
+   * indeed raised.
+   */
   onViewSnapshot(snap: ViewSnapshot): boolean {
     assert(
       snap.docChanges.length > 0 || snap.syncStateChanged,
@@ -243,19 +251,19 @@ export class QueryListener {
         /* excludesMetadataChanges= */ true
       );
     }
-    let didRaiseSnapshot = false;
+    let raisedEvent = false;
     if (!this.raisedInitialEvent) {
       if (this.shouldRaiseInitialEvent(snap, this.onlineState)) {
         this.raiseInitialEvent(snap);
-        didRaiseSnapshot = true;
+        raisedEvent = true;
       }
     } else if (this.shouldRaiseEvent(snap)) {
       this.queryObserver.next(snap);
-      didRaiseSnapshot = true;
+      raisedEvent = true;
     }
 
     this.snap = snap;
-    return didRaiseSnapshot;
+    return raisedEvent;
   }
 
   onError(error: Error): void {
@@ -265,16 +273,16 @@ export class QueryListener {
   /** Returns whether a snapshot was raised. */
   applyOnlineStateChange(onlineState: OnlineState): boolean {
     this.onlineState = onlineState;
-    let didRaiseSnapshot = false;
+    let raisedEvent = false;
     if (
       this.snap &&
       !this.raisedInitialEvent &&
       this.shouldRaiseInitialEvent(this.snap, onlineState)
     ) {
       this.raiseInitialEvent(this.snap);
-      didRaiseSnapshot = true;
+      raisedEvent = true;
     }
-    return didRaiseSnapshot;
+    return raisedEvent;
   }
 
   private shouldRaiseInitialEvent(

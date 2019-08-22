@@ -511,7 +511,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       next: onSync
     };
     const errHandler = (err: Error): void => {
-      console.error('Uncaught Error in onSnapshotsInSync:', err);
+      throw fail('Uncaught Error in onSnapshotsInSync');
     };
     const asyncObserver = new AsyncObserver<void>({
       next: () => {
