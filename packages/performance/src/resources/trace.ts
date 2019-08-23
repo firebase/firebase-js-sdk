@@ -31,7 +31,7 @@ import {
   isValidCustomAttributeName,
   isValidCustomAttributeValue
 } from '../utils/attributes_utils';
-import { isValidCustomMetricName } from '../utils/metric_utils';
+import { isValidMetricName } from '../utils/metric_utils';
 import { PerformanceTrace } from '@firebase/performance-types';
 
 const enum TraceState {
@@ -163,7 +163,7 @@ export class Trace implements PerformanceTrace {
    * @param num Set custom metric to this value
    */
   putMetric(counter: string, num: number): void {
-    if (isValidCustomMetricName(counter)) {
+    if (isValidMetricName(counter, this.name)) {
       this.counters[counter] = num;
     } else {
       throw ERROR_FACTORY.create(ErrorCode.INVALID_CUSTOM_METRIC_NAME, {
@@ -270,15 +270,15 @@ export class Trace implements PerformanceTrace {
     // navigationTimings includes only one element.
     if (navigationTimings && navigationTimings[0]) {
       trace.setDuration(Math.floor(navigationTimings[0].duration * 1000));
-      trace.incrementMetric(
+      trace.putMetric(
         'domInteractive',
         Math.floor(navigationTimings[0].domInteractive * 1000)
       );
-      trace.incrementMetric(
+      trace.putMetric(
         'domContentLoadedEventEnd',
         Math.floor(navigationTimings[0].domContentLoadedEventEnd * 1000)
       );
-      trace.incrementMetric(
+      trace.putMetric(
         'loadEventEnd',
         Math.floor(navigationTimings[0].loadEventEnd * 1000)
       );
@@ -291,7 +291,7 @@ export class Trace implements PerformanceTrace {
         paintObject => paintObject.name === FIRST_PAINT
       );
       if (firstPaint && firstPaint.startTime) {
-        trace.incrementMetric(
+        trace.putMetric(
           FIRST_PAINT_COUNTER_NAME,
           Math.floor(firstPaint.startTime * 1000)
         );
@@ -300,14 +300,14 @@ export class Trace implements PerformanceTrace {
         paintObject => paintObject.name === FIRST_CONTENTFUL_PAINT
       );
       if (firstContentfulPaint && firstContentfulPaint.startTime) {
-        trace.incrementMetric(
+        trace.putMetric(
           FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
           Math.floor(firstContentfulPaint.startTime * 1000)
         );
       }
 
       if (firstInputDelay) {
-        trace.incrementMetric(
+        trace.putMetric(
           FIRST_INPUT_DELAY_COUNTER_NAME,
           Math.floor(firstInputDelay * 1000)
         );
