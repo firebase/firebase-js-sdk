@@ -15,15 +15,25 @@
  * limitations under the License.
  */
 
-import { FIRST_PAINT_COUNTER_NAME, FIRST_CONTENTFUL_PAINT_COUNTER_NAME, FIRST_INPUT_DELAY_COUNTER_NAME } from '../constants';
+import {
+  FIRST_PAINT_COUNTER_NAME,
+  FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
+  FIRST_INPUT_DELAY_COUNTER_NAME
+} from '../constants';
 
 const MAX_METRIC_NAME_LENGTH = 100;
 const RESERVED_AUTO_PREFIX = '_';
-const oobMetrics = [FIRST_PAINT_COUNTER_NAME, FIRST_CONTENTFUL_PAINT_COUNTER_NAME, FIRST_INPUT_DELAY_COUNTER_NAME];
+const oobMetrics = [
+  FIRST_PAINT_COUNTER_NAME,
+  FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
+  FIRST_INPUT_DELAY_COUNTER_NAME
+];
 
 export function isValidCustomMetricName(name: string): boolean {
   if (name.length === 0 || name.length > MAX_METRIC_NAME_LENGTH) {
     return false;
   }
-  return oobMetrics.indexOf(name) > -1 || !name.startsWith(RESERVED_AUTO_PREFIX);
+  return (
+    oobMetrics.indexOf(name) > -1 || !name.startsWith(RESERVED_AUTO_PREFIX)
+  );
 }

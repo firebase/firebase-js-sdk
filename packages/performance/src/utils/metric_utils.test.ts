@@ -18,7 +18,11 @@
 import { expect } from 'chai';
 
 import { isValidCustomMetricName } from './metric_utils';
-import { FIRST_PAINT_COUNTER_NAME, FIRST_CONTENTFUL_PAINT_COUNTER_NAME, FIRST_INPUT_DELAY_COUNTER_NAME} from '../constants';
+import {
+  FIRST_PAINT_COUNTER_NAME,
+  FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
+  FIRST_INPUT_DELAY_COUNTER_NAME
+} from '../constants';
 import '../../test/setup';
 
 describe('Firebase Performance > metric_utils', () => {
@@ -47,11 +51,13 @@ describe('Firebase Performance > metric_utils', () => {
     });
 
     it('returns true for first contentful paint metric', () => {
-      expect(isValidCustomMetricName(FIRST_CONTENTFUL_PAINT_COUNTER_NAME)).to.be.true;
+      expect(isValidCustomMetricName(FIRST_CONTENTFUL_PAINT_COUNTER_NAME)).to.be
+        .true;
     });
 
     it('returns true for first input delay metric', () => {
-      expect(isValidCustomMetricName(FIRST_INPUT_DELAY_COUNTER_NAME)).to.be.true;
+      expect(isValidCustomMetricName(FIRST_INPUT_DELAY_COUNTER_NAME)).to.be
+        .true;
     });
   });
 });
