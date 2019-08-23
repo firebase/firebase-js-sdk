@@ -18,6 +18,9 @@
 - [changed] Transactions now perform exponential backoff before retrying.
   This means transactions on highly contended documents are more likely to
   succeed.
+- [feature] Added a `waitForPendingWrites` method to `Firestore` class which
+  allows users to wait on a promise that resolves when all pending writes
+  are acknowledged by the Firestore backend.
 
 # 1.3.3
 - [changed] Firestore now recovers more quickly after network connectivity
@@ -29,7 +32,7 @@
   that you update your call to `enablePersistence()`. Firestore logs an error
   if you continue to use `experimentalTabSynchronization`.
 - [feature] You can now query across all collections in your database with a
-  given collection ID using the `FirebaseFirestore.collectionGroup()` method.
+  given collection ID using the `FirebaseFirestore.collis:openectionGroup()` method.
 
 # 1.1.4
 - [feature] Added an `experimentalForceLongPolling` setting that that can be
