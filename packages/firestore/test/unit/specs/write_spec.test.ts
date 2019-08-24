@@ -1588,34 +1588,32 @@ describeSpec('Writes:', [], () => {
       { hasLocalMutations: true }
     );
 
-    return (
-      spec()
-        .userListens(query)
-        .watchAcksFull(query, 1000, docAv1)
-        .expectEvents(query, { added: [docAv1] })
-        .addSnapshotsInSyncListener()
-        .userSets('collection/a', { v: 2 })
-        .expectEvents(query, {
-          hasPendingWrites: true,
-          modified: [docAv2Local]
-        })
-        .expectSnapshotsInSyncEventsCount(2)
-        .addSnapshotsInSyncListener()
-        .addSnapshotsInSyncListener()
-        .expectSnapshotsInSyncEventsCount(2)
-        .userSets('collection/a', { v: 3 })
-        .expectEvents(query, {
-          hasPendingWrites: true,
-          modified: [docAv3Local]
-        })
-        .expectSnapshotsInSyncEventsCount(3)
-        .removeSnapshotsInSyncListener()
-        .userSets('collection/a', { v: 4 })
-        .expectEvents(query, {
-          hasPendingWrites: true,
-          modified: [docAv4Local]
-        })
-        .expectSnapshotsInSyncEventsCount(2)
-    );
+    return spec()
+      .userListens(query)
+      .watchAcksFull(query, 1000, docAv1)
+      .expectEvents(query, { added: [docAv1] })
+      .addSnapshotsInSyncListener()
+      .userSets('collection/a', { v: 2 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        modified: [docAv2Local]
+      })
+      .expectSnapshotsInSyncEventsCount(2)
+      .addSnapshotsInSyncListener()
+      .addSnapshotsInSyncListener()
+      .expectSnapshotsInSyncEventsCount(2)
+      .userSets('collection/a', { v: 3 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        modified: [docAv3Local]
+      })
+      .expectSnapshotsInSyncEventsCount(3)
+      .removeSnapshotsInSyncListener()
+      .userSets('collection/a', { v: 4 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        modified: [docAv4Local]
+      })
+      .expectSnapshotsInSyncEventsCount(2);
   });
 });
