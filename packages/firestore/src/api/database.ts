@@ -504,12 +504,30 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
    * @return An unsubscribe function that can be called to cancel the
    * snapshot listener.
    */
-  _onSnapshotsInSync(onSync: () => void): Unsubscribe {
+  _onSnapshotsInSync(observer: PartialObserver<void>): Unsubscribe;
+  _onSnapshotsInSync(onSync: () => void): Unsubscribe;
+  _onSnapshotsInSync(arg: unknown): Unsubscribe {
     this.ensureClientConfigured();
 
-    const observer: PartialObserver<void> = {
-      next: onSync
-    };
+    if (isPartialObserver(arg)) {
+      return this.onSnapshotsInSyncInternal(arg as PartialObserver<void>);
+    } else {
+      validateArgType(
+        'DocumentReference.onSnapshotsInSync',
+        'function',
+        0,
+        arg
+      );
+      const observer: PartialObserver<void> = {
+        next: arg as () => void
+      };
+      return this.onSnapshotsInSyncInternal(observer);
+    }
+  }
+
+  private onSnapshotsInSyncInternal(
+    observer: PartialObserver<void>
+  ): Unsubscribe {
     const errHandler = (err: Error): void => {
       throw fail('Uncaught Error in onSnapshotsInSync');
     };
@@ -521,7 +539,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       },
       error: errHandler
     });
-
     this._firestoreClient!.addSnapshotsInSyncListener(asyncObserver);
     return () => {
       asyncObserver.mute();

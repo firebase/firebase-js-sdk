@@ -163,11 +163,8 @@ export class EventManager implements SyncEngineListener {
   }
 
   addSnapshotsInSyncListener(observer: Observer<void>): void {
-    // If there are no active query listeners, run the callback immediately.
-    if (this.queries.isEmpty()) {
-      observer.next();
-    }
     this.snapshotsInSyncListeners.add(observer);
+    observer.next();
   }
 
   removeSnapshotsInSyncListener(observer: Observer<void>): void {

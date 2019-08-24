@@ -498,53 +498,6 @@ describeSpec('Writes:', [], () => {
     );
   });
 
-  specTest('Writes are not re-sent.', [], () => {
-    const query = Query.atPath(path('collection'));
-    const docALocal = doc(
-      'collection/a',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
-    const docA = doc('collection/a', 1000, { v: 1 });
-
-    const docBLocal = doc(
-      'collection/b',
-      0,
-      { v: 1 },
-      { hasLocalMutations: true }
-    );
-    const docB = doc('collection/b', 2000, { v: 1 });
-
-    return (
-      spec()
-        .userListens(query)
-        .watchAcksFull(query, 500)
-        .expectEvents(query, {})
-        .userSets('collection/a', { v: 1 })
-        .expectEvents(query, {
-          hasPendingWrites: true,
-          added: [docALocal]
-        })
-        // ack write but without a watch event.
-        .writeAcks('collection/a', 1000)
-        // Do another write.
-        .userSets('collection/b', { v: 1 })
-        .expectEvents(query, {
-          hasPendingWrites: true,
-          added: [docBLocal]
-        })
-        // ack second write
-        .writeAcks('collection/b', 2000)
-        // Finally watcher catches up.
-        .watchSends({ affects: [query] }, docA, docB)
-        .watchSnapshots(2000)
-        .expectEvents(query, {
-          metadata: [docA, docB]
-        })
-    );
-  });
-
   specTest('Writes are not re-sent after disable/enable network.', [], () => {
     const query = Query.atPath(path('collection'));
     const docALocal = doc(
@@ -1487,4 +1440,182 @@ describeSpec('Writes:', [], () => {
         .expectEvents(query, { added: [docA, docB], fromCache: true });
     }
   );
+
+  specTest('onSnapshotInSync should not fire if not set first', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docAv1 = doc('collection/a', 1000, { v: 1 });
+    const docAv2Local = doc(
+      'collection/a',
+      1000,
+      { v: 2 },
+      { hasLocalMutations: true }
+    );
+    return spec()
+      .userListens(query)
+      .watchAcksFull(query, 1000, docAv1)
+      .expectEvents(query, { added: [docAv1] })
+      .userSets('collection/a', { v: 2 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        modified: [docAv2Local]
+      })
+      .expectSnapshotsInSyncEventsCount(0);
+  });
+
+  specTest(
+    'onSnapshotInSync should not fire for doc changes if there are no listeners',
+    [],
+    () => {
+      return spec()
+        .addSnapshotsInSyncListener()
+        .expectSnapshotsInSyncEventsCount(1)
+        .userSets('collection/a', { v: 2 })
+        .expectSnapshotsInSyncEventsCount(0);
+    }
+  );
+
+  specTest(
+    'onSnapshotInSync fires when called even if there are no local listeners',
+    [],
+    () => {
+      return spec()
+        .addSnapshotsInSyncListener()
+        .expectSnapshotsInSyncEventsCount(1)
+        .addSnapshotsInSyncListener()
+        .expectSnapshotsInSyncEventsCount(1);
+    }
+  );
+
+  specTest('onSnapshotInSync fires for metadata changes', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docAv1 = doc('collection/a', 1000, { v: 1 });
+    const docAv2Local = doc(
+      'collection/a',
+      1000,
+      { v: 2 },
+      { hasLocalMutations: true }
+    );
+    const docAv2 = doc('collection/a', 2000, { v: 2 });
+
+    return spec()
+      .userListens(query)
+      .watchAcksFull(query, 1000, docAv1)
+      .expectEvents(query, { added: [docAv1] })
+      .addSnapshotsInSyncListener()
+      .expectSnapshotsInSyncEventsCount(1)
+      .userSets('collection/a', { v: 2 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        modified: [docAv2Local]
+      })
+      .expectSnapshotsInSyncEventsCount(1)
+      .watchSends({ affects: [query] }, docAv2)
+      .watchSnapshots(2000)
+      .writeAcks('collection/a', 2000)
+      .expectEvents(query, {
+        metadata: [docAv2]
+      })
+      .expectSnapshotsInSyncEventsCount(1);
+  });
+
+  specTest(
+    'onSnapshotInSync fires once for multiple event snapshots',
+    [],
+    () => {
+      const query1 = Query.atPath(path('collection'));
+      const query2 = Query.atPath(path('collection/a'));
+      const docAv1 = doc('collection/a', 1000, { v: 1 });
+      const docAv2Local = doc(
+        'collection/a',
+        1000,
+        { v: 2 },
+        { hasLocalMutations: true }
+      );
+      const docAv2 = doc('collection/a', 2000, { v: 2 });
+
+      return spec()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docAv1)
+        .expectEvents(query1, { added: [docAv1] })
+        .userListens(query2)
+        .expectEvents(query2, { fromCache: true, added: [docAv1] })
+        .watchAcksFull(query2, 1000, docAv1)
+        .expectEvents(query2, { fromCache: false })
+        .addSnapshotsInSyncListener()
+        .expectSnapshotsInSyncEventsCount(1)
+        .userSets('collection/a', { v: 2 })
+        .expectEvents(query1, {
+          hasPendingWrites: true,
+          modified: [docAv2Local]
+        })
+        .expectEvents(query2, {
+          hasPendingWrites: true,
+          modified: [docAv2Local]
+        })
+        .expectSnapshotsInSyncEventsCount(1)
+        .watchSends({ affects: [query1, query2] }, docAv2)
+        .watchSnapshots(2000)
+        .writeAcks('collection/a', 2000)
+        .expectEvents(query1, {
+          metadata: [docAv2]
+        })
+        .expectEvents(query2, {
+          metadata: [docAv2]
+        })
+        .expectSnapshotsInSyncEventsCount(1);
+    }
+  );
+
+  specTest('onSnapshotInSync fires for multiple listeners', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docAv1 = doc('collection/a', 1000, { v: 1 });
+    const docAv2Local = doc(
+      'collection/a',
+      1000,
+      { v: 2 },
+      { hasLocalMutations: true }
+    );
+    const docAv3Local = doc(
+      'collection/a',
+      1000,
+      { v: 3 },
+      { hasLocalMutations: true }
+    );
+    const docAv4Local = doc(
+      'collection/a',
+      1000,
+      { v: 4 },
+      { hasLocalMutations: true }
+    );
+
+    return (
+      spec()
+        .userListens(query)
+        .watchAcksFull(query, 1000, docAv1)
+        .expectEvents(query, { added: [docAv1] })
+        .addSnapshotsInSyncListener()
+        .userSets('collection/a', { v: 2 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          modified: [docAv2Local]
+        })
+        .expectSnapshotsInSyncEventsCount(2)
+        .addSnapshotsInSyncListener()
+        .addSnapshotsInSyncListener()
+        .expectSnapshotsInSyncEventsCount(2)
+        .userSets('collection/a', { v: 3 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          modified: [docAv3Local]
+        })
+        .expectSnapshotsInSyncEventsCount(3)
+        .removeSnapshotsInSyncListener()
+        .userSets('collection/a', { v: 4 })
+        .expectEvents(query, {
+          hasPendingWrites: true,
+          modified: [docAv4Local]
+        })
+        .expectSnapshotsInSyncEventsCount(2)
+    );
+  });
 });

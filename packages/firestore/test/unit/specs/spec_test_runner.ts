@@ -366,6 +366,8 @@ abstract class TestRunner {
   private eventList: QueryEvent[] = [];
   private acknowledgedDocs: string[];
   private rejectedDocs: string[];
+  private snapshotsInSyncListeners: Array<Observer<void>>;
+  private snapshotsInSyncEvents = 0;
 
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
@@ -425,6 +427,7 @@ abstract class TestRunner {
     this.expectedActiveTargets = {};
     this.acknowledgedDocs = [];
     this.rejectedDocs = [];
+    this.snapshotsInSyncListeners = [];
   }
 
   async start(): Promise<void> {
@@ -535,6 +538,10 @@ abstract class TestRunner {
       return this.doPatch(step.userPatch!);
     } else if ('userDelete' in step) {
       return this.doDelete(step.userDelete!);
+    } else if ('addSnapshotsInSyncListener' in step) {
+      return this.doAddSnapshotsInSyncListener();
+    } else if ('removeSnapshotsInSyncListener' in step) {
+      return this.doRemoveSnapshotsInSyncListener();
     } else if ('watchAck' in step) {
       return this.doWatchAck(step.watchAck!);
     } else if ('watchCurrent' in step) {
@@ -640,6 +647,28 @@ abstract class TestRunner {
   private doDelete(deleteSpec: SpecUserDelete): Promise<void> {
     const key: string = deleteSpec;
     return this.doMutations([deleteMutation(key)]);
+  }
+
+  private doAddSnapshotsInSyncListener(): Promise<void> {
+    const obs = {
+      next: () => {
+        this.incrementSnapshotsInSync();
+      },
+      error: () => {}
+    };
+    this.snapshotsInSyncListeners.push(obs);
+    this.eventManager.addSnapshotsInSyncListener(obs);
+    return Promise.resolve();
+  }
+
+  private doRemoveSnapshotsInSyncListener(): Promise<void> {
+    const removeObs = this.snapshotsInSyncListeners.pop();
+    if (removeObs) {
+      this.eventManager.removeSnapshotsInSyncListener(removeObs);
+    } else {
+      throw new Error('There must be a listener to unlisten to');
+    }
+    return Promise.resolve();
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {
@@ -985,6 +1014,13 @@ abstract class TestRunner {
       if ('isPrimary' in expectation) {
         expect(this.isPrimaryClient).to.eq(expectation.isPrimary!, 'isPrimary');
       }
+      if ('numSnapshotsInSyncEvents' in expectation) {
+        expect(this.snapshotsInSyncEvents).to.eq(
+          expectation.numSnapshotsInSyncEvents
+        );
+        // Reset count after checking so tests don't have to track state.
+        this.snapshotsInSyncEvents = 0;
+      }
     }
 
     if (expectation && expectation.userCallbacks) {
@@ -1139,6 +1175,10 @@ abstract class TestRunner {
 
   private pushEvent(e: QueryEvent): void {
     this.eventList.push(e);
+  }
+
+  private incrementSnapshotsInSync(): void {
+    this.snapshotsInSyncEvents += 1;
   }
 
   private parseQuery(querySpec: string | SpecQuery): Query {
@@ -1340,6 +1380,10 @@ export interface SpecStep {
   userPatch?: SpecUserPatch;
   /** Perform a user initiated delete */
   userDelete?: SpecUserDelete;
+  /** Listens to a SnapshotsInSync event. */
+  addSnapshotsInSyncListener?: true;
+  /** Unlistens to a SnapshotsInSync event. */
+  removeSnapshotsInSyncListener?: true;
 
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;
@@ -1590,6 +1634,8 @@ export interface StateExpectation {
     acknowledgedDocs: string[];
     rejectedDocs: string[];
   };
+  /** Number of onSnapshotsInSync callbacks called. */
+  numSnapshotsInSyncEvents?: number;
 }
 
 async function clearCurrentPrimaryLease(): Promise<void> {
