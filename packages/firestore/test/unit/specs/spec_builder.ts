@@ -411,10 +411,10 @@ export class SpecBuilder {
   }
 
   expectIsShutdown(): this {
-    this.nextStep();
-    this.currentStep = {
-      expectIsShutdown: true
-    };
+    this.assertStep('Active target expectation requires previous step');
+    const currentStep = this.currentStep!;
+    currentStep.stateExpect = currentStep.stateExpect || {};
+    currentStep.stateExpect.isShutdown = true;
     return this;
   }
 

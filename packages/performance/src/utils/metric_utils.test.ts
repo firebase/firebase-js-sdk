@@ -17,29 +17,77 @@
 
 import { expect } from 'chai';
 
-import { isValidCustomMetricName } from './metric_utils';
-
+import { isValidMetricName } from './metric_utils';
+import {
+  FIRST_PAINT_COUNTER_NAME,
+  FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
+  FIRST_INPUT_DELAY_COUNTER_NAME
+} from '../constants';
 import '../../test/setup';
 
 describe('Firebase Performance > metric_utils', () => {
-  describe('#isValidCustomMetricName', () => {
+  describe('#isValidMetricName', () => {
     it('returns true when name is valid', () => {
-      expect(isValidCustomMetricName('validCustom_Metric_Name')).to.be.true;
+      expect(isValidMetricName('validCustom_Metric_Name')).to.be.true;
     });
 
     it('returns false when name is blank', () => {
-      expect(isValidCustomMetricName('')).to.be.false;
+      expect(isValidMetricName('')).to.be.false;
     });
 
     it('returns false when name is too long', () => {
       const longMetricName =
         'too_long_metric_name_over_one_hundred_characters_too_long_metric_name_over_one_' +
         'hundred_characters_too';
-      expect(isValidCustomMetricName(longMetricName)).to.be.false;
+      expect(isValidMetricName(longMetricName)).to.be.false;
     });
 
     it('returns false when name starts with a reserved prefix', () => {
-      expect(isValidCustomMetricName('_invalidMetricName')).to.be.false;
+      expect(isValidMetricName('_invalidMetricName')).to.be.false;
+    });
+
+    it('returns true for first paint metric', () => {
+      expect(
+        isValidMetricName(FIRST_PAINT_COUNTER_NAME, '_wt_http://example.com')
+      ).to.be.true;
+    });
+
+    it('returns true for first contentful paint metric', () => {
+      expect(
+        isValidMetricName(
+          FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
+          '_wt_http://example.com'
+        )
+      ).to.be.true;
+    });
+
+    it('returns true for first input delay metric', () => {
+      expect(
+        isValidMetricName(
+          FIRST_INPUT_DELAY_COUNTER_NAME,
+          '_wt_http://example.com'
+        )
+      ).to.be.true;
+    });
+
+    it('returns false if first paint metric name is used outside of page load traces', () => {
+      expect(isValidMetricName(FIRST_PAINT_COUNTER_NAME, 'some_randome_trace'))
+        .to.be.false;
+    });
+
+    it('returns false if first contentful paint metric name is used outside of page load traces', () => {
+      expect(
+        isValidMetricName(
+          FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
+          'some_randome_trace'
+        )
+      ).to.be.false;
+    });
+
+    it('returns false if first input delay metric name is used outside of page load traces', () => {
+      expect(
+        isValidMetricName(FIRST_INPUT_DELAY_COUNTER_NAME, 'some_randome_trace')
+      ).to.be.false;
     });
   });
 });

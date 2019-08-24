@@ -1261,4 +1261,32 @@ function genericLocalStoreTests(
       .toReturnHighestUnacknowledgeBatchId(BATCHID_UNKNOWN)
       .finish();
   });
+
+  it('only persists updates for focuments when version changes', () => {
+    const query = Query.atPath(path('foo'));
+    return (
+      expectLocalStore()
+        .afterAllocatingQuery(query)
+        .toReturnTargetId(2)
+        .afterRemoteEvent(
+          docAddedRemoteEvent(doc('foo/bar', 1, { val: 'old' }), [2])
+        )
+        .toReturnChanged(doc('foo/bar', 1, { val: 'old' }))
+        .toContain(doc('foo/bar', 1, { val: 'old' }))
+        .afterRemoteEvent(
+          docAddedRemoteEvent(
+            [
+              doc('foo/bar', 1, { val: 'new' }),
+              doc('foo/baz', 2, { val: 'new' })
+            ],
+            [2]
+          )
+        )
+        .toReturnChanged(doc('foo/baz', 2, { val: 'new' }))
+        // The update to foo/bar is ignored.
+        .toContain(doc('foo/bar', 1, { val: 'old' }))
+        .toContain(doc('foo/baz', 2, { val: 'new' }))
+        .finish()
+    );
+  });
 }
