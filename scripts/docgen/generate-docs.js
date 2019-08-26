@@ -62,6 +62,7 @@ function stripPath(path) {
 function runTypedoc() {
   const typeSource = apiType === 'node' ? tempNodeSourcePath : sourceFile;
   const command = `${repoPath}/node_modules/.bin/typedoc ${typeSource} \
+  --tsconfig ${repoPath}/scripts/docgen/tsconfig.json \
   --out ${docPath} \
   --readme ${tempHomePath} \
   --options ${__dirname}/typedoc.js \
@@ -331,7 +332,9 @@ Promise.all([
       fs.unlink(tempNodeSourcePath);
     }
     // Devsite doesn't like css.map files.
-    return fs.unlink(`${docPath}/assets/css/main.css.map`);
+    if (await fs.exists(`${docPath}/assets/css/main.css.map`)) {
+      fs.unlink(`${docPath}/assets/css/main.css.map`);
+    }
   })
   // Write out TOC file.  Do this after Typedoc step to prevent Typedoc
   // erroring when it finds an unexpected file in the target dir.
