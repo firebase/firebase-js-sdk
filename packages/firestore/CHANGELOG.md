@@ -1,26 +1,41 @@
 
 # Unreleased
+- [feature] Added a `waitForPendingWrites` method to `Firestore` class which
+  allows users to wait on a promise that resolves when all pending writes
+  are acknowledged by the Firestore backend.
+
+# 1.4.10
+- [changed] Transactions now perform exponential backoff before retrying.
+  This means transactions on highly contended documents are more likely to
+  succeed.
+
+# 1.4.6
+- [changed] Transactions are now more flexible. Some sequences of operations
+  that were previously incorrectly disallowed are now allowed. For example,
+  after reading a document that doesn't exist, you can now set it multiple
+  times successfully in a transaction.
+
+# 1.4.5
+- [fixed] Fixed an issue where query results were temporarily missing
+  documents that previously had not matched but had been updated to now
+  match the query (https://github.com/firebase/firebase-android-sdk/issues/155).
+
+# 1.4.4
 - [fixed] Fixed an internal assertion that was triggered when an update
    with a `FieldValue.serverTimestamp()` and an update with a
   `FieldValue.increment()` were pending for the same document.
-- [feature] Added `clearPersistence()`, which clears the persistent storage
-  including pending writes and cached documents. This is intended to help
-  write reliable tests (#449).
+
+# 1.4.0
 - [changed] Added logging and a custom error message to help users hitting
   https://bugs.webkit.org/show_bug.cgi?id=197050 (a bug in iOS 12.2 causing
   the SDK to potentially crash when persistence is enabled).
 - [fixed] Fixed an issue for environments missing `window.addEventListener`, 
   such as in React Native with Expo (#1824).
-- [changed] Transactions are now more flexible. Some sequences of operations
-  that were previously incorrectly disallowed are now allowed. For example,
-  after reading a document that doesn't exist, you can now set it multiple
-  times successfully in a transaction.
-- [changed] Transactions now perform exponential backoff before retrying.
-  This means transactions on highly contended documents are more likely to
-  succeed.
-- [feature] Added a `waitForPendingWrites` method to `Firestore` class which
-  allows users to wait on a promise that resolves when all pending writes
-  are acknowledged by the Firestore backend.
+
+# 1.3.5
+- [feature] Added `clearPersistence()`, which clears the persistent storage
+  including pending writes and cached documents. This is intended to help
+  write reliable tests (#449).
 
 # 1.3.3
 - [changed] Firestore now recovers more quickly after network connectivity
