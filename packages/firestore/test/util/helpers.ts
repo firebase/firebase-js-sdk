@@ -122,7 +122,7 @@ export function doc(
   json: JsonObject<unknown>,
   options: DocumentOptions = {}
 ): Document {
-  return new Document(key(keyStr), version(ver), wrapObject(json), options);
+  return new Document(key(keyStr), version(ver), options, wrapObject(json));
 }
 
 export function deletedDoc(

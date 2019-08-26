@@ -675,7 +675,7 @@ describe('Serializer', () => {
     const d = doc('foo/bar', 42, { a: 5, b: 'b' });
     const proto = {
       name: s.toName(d.key),
-      fields: s.toFields(d.data),
+      fields: s.toFields(d.data()),
       updateTime: s.toVersion(d.version)
     };
     const serialized = s.toDocument(d);

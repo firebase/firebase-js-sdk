@@ -1,5 +1,6 @@
-
 # Unreleased
+- [changed] Improved performance for queries with filters that only return a
+  small subset of the documents in a collection.
 - [fixed] Fixed an internal assertion that was triggered when an update
    with a `FieldValue.serverTimestamp()` and an update with a
   `FieldValue.increment()` were pending for the same document.

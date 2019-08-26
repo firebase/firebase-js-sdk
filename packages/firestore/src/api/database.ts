@@ -1311,7 +1311,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     return !this._document
       ? undefined
       : this.convertObject(
-          this._document.data,
+          this._document.data(),
           FieldValueOptions.fromSnapshotOptions(
             options,
             this._firestore._areTimestampsInSnapshotsEnabled()
@@ -1326,9 +1326,9 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
     options = validateSnapshotOptions('DocumentSnapshot.get', options);
     if (this._document) {
-      const value = this._document.data.field(
-        fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
-      );
+      const value = this._document
+        .data()
+        .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
       if (value !== null) {
         return this.convertValue(
           value,
