@@ -1,6 +1,8 @@
 
 # Unreleased
-- [feature] Added a `waitForPendingWrites` method to `Firestore` class which
+
+# 1.5.0
+- [feature] Added a `Firestore.waitForPendingWrites()` method which
   allows users to wait on a promise that resolves when all pending writes
   are acknowledged by the Firestore backend.
 
@@ -47,7 +49,7 @@
   that you update your call to `enablePersistence()`. Firestore logs an error
   if you continue to use `experimentalTabSynchronization`.
 - [feature] You can now query across all collections in your database with a
-  given collection ID using the `FirebaseFirestore.collis:openectionGroup()` method.
+  given collection ID using the `FirebaseFirestore.collectionGroup()` method.
 
 # 1.1.4
 - [feature] Added an `experimentalForceLongPolling` setting that that can be
