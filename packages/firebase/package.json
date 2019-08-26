@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "6.4.0",
+  "version": "6.4.2",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -37,18 +37,18 @@
   "module": "dist/index.esm.js",
   "react-native": "dist/index.rn.cjs.js",
   "dependencies": {
-    "@firebase/app": "0.4.14",
+    "@firebase/app": "0.4.15",
     "@firebase/app-types": "0.4.3",
     "@firebase/auth": "0.11.8",
-    "@firebase/database": "0.5.0",
-    "@firebase/firestore": "1.4.10",
-    "@firebase/functions": "0.4.15",
-    "@firebase/installations": "0.2.4",
-    "@firebase/messaging": "0.4.8",
-    "@firebase/polyfill": "0.3.19",
-    "@firebase/storage": "0.3.9",
-    "@firebase/performance": "0.2.15",
-    "@firebase/util": "0.2.25"
+    "@firebase/database": "0.5.1",
+    "@firebase/firestore": "1.4.12",
+    "@firebase/functions": "0.4.16",
+    "@firebase/installations": "0.2.5",
+    "@firebase/messaging": "0.4.9",
+    "@firebase/polyfill": "0.3.20",
+    "@firebase/storage": "0.3.10",
+    "@firebase/performance": "0.2.17",
+    "@firebase/util": "0.2.26"
   },
   "devDependencies": {
     "git-rev-sync": "1.12.0",
