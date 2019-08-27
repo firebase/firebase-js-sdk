@@ -1,10 +1,8 @@
 
-# Unreleased
-
-# 1.5.0
+# Unreleased (1.5.0)
 - [feature] Added a `Firestore.waitForPendingWrites()` method which
-  allows users to wait on a promise that resolves when all pending writes
-  are acknowledged by the Firestore backend.
+  allows users to wait until all pending writes are acknowledged by the
+  Firestore backend.
 
 # 1.4.10
 - [changed] Transactions now perform exponential backoff before retrying.
