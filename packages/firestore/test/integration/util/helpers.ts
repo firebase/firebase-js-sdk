@@ -358,18 +358,6 @@ function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
   return Promise.resolve(undefined);
 }
 
-export function shutdownDb(db: firestore.FirebaseFirestore): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (db as any)._shutdown();
-}
-
-export function waitForPendingWrites(
-  db: firestore.FirebaseFirestore
-): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (db as any)._waitForPendingWrites();
-}
-
 // TODO(b/139890752): Remove helper and use public API once this is launched.
 export function onSnapshotsInSync(
   db: firestore.FirebaseFirestore,

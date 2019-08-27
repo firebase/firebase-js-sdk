@@ -162,7 +162,7 @@ export class FirestoreClient {
    *     unconditionally resolved.
    */
   start(persistenceSettings: InternalPersistenceSettings): Promise<void> {
-    this.verifyNotShutdown();
+    this.verifyNotTerminated();
     // We defer our initialization until we get the current user from
     // setChangeListener(). We block the async queue until we got the initial
     // user and the initialization is completed. This will prevent any scheduled
@@ -208,7 +208,7 @@ export class FirestoreClient {
 
   /** Enables the network connection and requeues all pending operations. */
   enableNetwork(): Promise<void> {
-    this.verifyNotShutdown();
+    this.verifyNotTerminated();
     return this.asyncQueue.enqueue(() => {
       return this.syncEngine.enableNetwork();
     });
@@ -305,14 +305,14 @@ export class FirestoreClient {
   }
 
   /**
-   * Checks that the client has not been shutdown. Ensures that other methods on
-   * this class cannot be called after the client is shutdown.
+   * Checks that the client has not been terminated. Ensures that other methods on
+   * this class cannot be called after the client is terminated.
    */
-  private verifyNotShutdown(): void {
+  private verifyNotTerminated(): void {
     if (this.asyncQueue.isShuttingDown) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
-        'The client has already been shutdown.'
+        'The client has already been terminated.'
       );
     }
   }
@@ -482,10 +482,10 @@ export class FirestoreClient {
           }
         });
 
-        // When a user calls clearPersistence() in one client, all other clientfs
-        // need to shut down to allow the delete to succeed.
+        // When a user calls clearPersistence() in one client, all other clients
+        // need to be terminated to allow the delete to succeed.
         await this.persistence.setDatabaseDeletedListener(async () => {
-          await this.shutdown();
+          await this.terminate();
         });
       });
   }
@@ -499,13 +499,13 @@ export class FirestoreClient {
 
   /** Disables the network connection. Pending operations will not complete. */
   disableNetwork(): Promise<void> {
-    this.verifyNotShutdown();
+    this.verifyNotTerminated();
     return this.asyncQueue.enqueue(() => {
       return this.syncEngine.disableNetwork();
     });
   }
 
-  shutdown(): Promise<void> {
+  terminate(): Promise<void> {
     return this.asyncQueue.enqueueAndInitiateShutdown(async () => {
       // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
       if (this.lruScheduler) {
@@ -528,7 +528,7 @@ export class FirestoreClient {
    * or rejection.
    */
   waitForPendingWrites(): Promise<void> {
-    this.verifyNotShutdown();
+    this.verifyNotTerminated();
 
     const deferred = new Deferred<void>();
     this.asyncQueue.enqueueAndForget(() => {
@@ -542,7 +542,7 @@ export class FirestoreClient {
     observer: Observer<ViewSnapshot>,
     options: ListenOptions
   ): QueryListener {
-    this.verifyNotShutdown();
+    this.verifyNotTerminated();
     const listener = new QueryListener(query, observer, options);
     this.asyncQueue.enqueueAndForget(() => {
       return this.eventMgr.listen(listener);
@@ -551,9 +551,9 @@ export class FirestoreClient {
   }
 
   unlisten(listener: QueryListener): void {
-    // Checks for shutdown but does not raise error, allowing unlisten after
-    // shutdown to be a no-op.
-    if (this.clientShutdown) {
+    // Checks for termination but does not raise error, allowing unlisten after
+    // termination to be a no-op.
+    if (this.clientTerminated) {
       return;
     }
     this.asyncQueue.enqueueAndForget(() => {
@@ -562,7 +562,7 @@ export class FirestoreClient {
   }
 
   getDocumentFromLocalCache(docKey: DocumentKey): Promise<Document | null> {
-    this.verifyNotShutdown();
+    this.verifyNotTerminated();
     return this.asyncQueue
       .enqueue(() => {
         return this.localStore.readDocument(docKey);
@@ -585,7 +585,7 @@ export class FirestoreClient {
   }
 
   getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
-    this.verifyNotShutdown();
+    this.verifyNotTerminated();
     return this.asyncQueue
       .enqueue(() => {
         return this.localStore.executeQuery(query);
@@ -605,7 +605,7 @@ export class FirestoreClient {
   }
 
   write(mutations: Mutation[]): Promise<void> {
-    this.verifyNotShutdown();
+    this.verifyNotTerminated();
     const deferred = new Deferred<void>();
     this.asyncQueue.enqueueAndForget(() =>
       this.syncEngine.write(mutations, deferred)
@@ -618,7 +618,7 @@ export class FirestoreClient {
   }
 
   addSnapshotsInSyncListener(observer: Observer<void>): void {
-    this.verifyNotShutdown();
+    this.verifyNotTerminated();
     this.asyncQueue.enqueueAndForget(() => {
       this.eventMgr.addSnapshotsInSyncListener(observer);
       return Promise.resolve();
@@ -628,23 +628,23 @@ export class FirestoreClient {
   removeSnapshotsInSyncListener(observer: Observer<void>): void {
     // Checks for shutdown but does not raise error, allowing remove after
     // shutdown to be a no-op.
-    if (this.clientShutdown) {
+    if (this.clientTerminated) {
       return;
     }
     this.eventMgr.removeSnapshotsInSyncListener(observer);
   }
 
-  get clientShutdown(): boolean {
+  get clientTerminated(): boolean {
     // Technically, the asyncQueue is still running, but only accepting operations
-    // related to shutdown or supposed to be run after shutdown. It is effectively
-    // shut down to the eyes of users.
+    // related to termination or supposed to be run after termination. It is effectively
+    // terminated to the eyes of users.
     return this.asyncQueue.isShuttingDown;
   }
 
   transaction<T>(
     updateFunction: (transaction: Transaction) => Promise<T>
   ): Promise<T> {
-    this.verifyNotShutdown();
+    this.verifyNotTerminated();
     const deferred = new Deferred<T>();
     this.asyncQueue.enqueueAndForget(() => {
       this.syncEngine.runTransaction(this.asyncQueue, updateFunction, deferred);
