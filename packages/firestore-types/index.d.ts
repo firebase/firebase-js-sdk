@@ -298,12 +298,12 @@ export class FirebaseFirestore {
    * After calling `terminate()` only the `clearPersistence()` method may be used. Any other method
    * will throw a `FirestoreError`.
    *
-   * To restart after termination, simply create a new instance of FirebaseFirestore with
+   * To restart after termination, create a new instance of FirebaseFirestore with
    * `firebase.firestore()`.
    *
-   * Termination does not cancel any pending writes and any promises that are awaiting a response
+   * Termination does not cancel any pending writes, and any promises that are awaiting a response
    * from the server will not be resolved. If you have persistence enabled, the next time you
-   * start this instance, it will resume attempting to send these writes to the server.
+   * start this instance, it will resume sending these writes to the server.
    *
    * Note: Under normal circumstances, calling `terminate()` is not required. This
    * method is useful only when you want to force this instance to release all of its resources or
