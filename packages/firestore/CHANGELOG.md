@@ -3,6 +3,10 @@
 - [feature] Added a `Firestore.waitForPendingWrites()` method that
   allows users to wait until all pending writes are acknowledged by the
   Firestore backend.
+- [feature] Added a `Firestore.terminate()` method which terminates
+  the instance, releasing any held resources. Once it completes, you can
+  optionally call `Firestore.clearPersistence()` to wipe persisted Firestore
+  data from disk.
 
 # 1.4.10
 - [changed] Transactions now perform exponential backoff before retrying.
