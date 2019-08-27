@@ -363,13 +363,6 @@ export function shutdownDb(db: firestore.FirebaseFirestore): Promise<void> {
   return (db as any)._shutdown();
 }
 
-export function waitForPendingWrites(
-  db: firestore.FirebaseFirestore
-): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (db as any)._waitForPendingWrites();
-}
-
 // TODO(in-queries): This exists just so we don't have to do the cast
 // repeatedly. Once we expose 'array-contains-any' publicly we can remove it and
 // just use 'array-contains-any' in all the tests.

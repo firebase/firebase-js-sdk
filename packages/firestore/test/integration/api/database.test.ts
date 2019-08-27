@@ -38,7 +38,6 @@ import {
   withTestDoc,
   withTestDocAndInitialData,
   DEFAULT_SETTINGS,
-  waitForPendingWrites,
   withMockCredentialProviderTestDb
 } from '../util/helpers';
 import { User } from '../../../src/auth/user';
@@ -1146,7 +1145,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await firestore.disableNetwork();
 
       const pendingWrites = docRef.set({ foo: 'bar' });
-      const awaitPendingWrites = waitForPendingWrites(firestore);
+      const awaitPendingWrites = firestore.waitForPendingWrites();
 
       // pending writes can receive acknowledgements now.
       await firestore.enableNetwork();
@@ -1162,7 +1161,7 @@ apiDescribe('Database', (persistence: boolean) => {
         // Prevent pending writes receiving acknowledgement.
         await db.disableNetwork();
         db.doc('abc/123').set({ foo: 'bar' });
-        const awaitPendingWrite = waitForPendingWrites(db);
+        const awaitPendingWrite = db.waitForPendingWrites();
 
         mockCredentialsProvider.triggerUserChange(new User('user_1'));
 
@@ -1181,7 +1180,7 @@ apiDescribe('Database', (persistence: boolean) => {
 
       // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
       // immediately even if we are offline.
-      await waitForPendingWrites(firestore);
+      await firestore.waitForPendingWrites();
     });
   });
 });
