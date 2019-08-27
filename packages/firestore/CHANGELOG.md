@@ -1,6 +1,6 @@
 
 # Unreleased (1.5.0)
-- [feature] Added a `Firestore.waitForPendingWrites()` method which
+- [feature] Added a `Firestore.waitForPendingWrites()` method that
   allows users to wait until all pending writes are acknowledged by the
   Firestore backend.
 - [feature] Added a `Firestore.terminate()` method which terminates
