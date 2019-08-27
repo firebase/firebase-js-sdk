@@ -567,75 +567,34 @@ apiDescribe('Database', (persistence: boolean) => {
         a: { foo: 1 }
       };
       return withTestCollection(persistence, testDocs, async coll => {
-        const firedValues: number[] = [];
+        const events: string[] = [];
         const done = new Deferred<void>();
         const doc = coll.doc('a');
 
         createDocumentListener(doc, snapshot => {
-          firedValues.push(1);
+          events.push('doc1');
+        });
+        createQueryListener(coll.where('foo', '>', 0), snapshot => {
+          events.push('query');
         });
         createDocumentListener(doc, snapshot => {
-          firedValues.push(2);
-        });
-        createDocumentListener(doc, snapshot => {
-          firedValues.push(3);
+          events.push('doc2');
         });
         onSnapshotsInSync(doc.firestore, () => {
-          firedValues.push(4);
-          if (firedValues.length === 5) {
-            expect(firedValues).to.deep.equal([4, 1, 2, 3, 4]);
+          events.push('snapshots-in-sync');
+          if (events.length === 5) {
+            expect(events).to.deep.equal([
+              'snapshots-in-sync',
+              'doc1',
+              'doc2',
+              'query',
+              'snapshots-in-sync'
+            ]);
             done.resolve();
           }
         });
 
-        await done;
-      });
-    });
-
-    it('fires for duplicate query listeners', () => {
-      const testDocs = {
-        a: { foo: 1 }
-      };
-      return withTestCollection(persistence, testDocs, async coll => {
-        const pending: Map<
-          firestore.Query,
-          firestore.QuerySnapshot
-        > = new Map();
-        const firedValues: number[] = [];
-        const setup = new Deferred<void>();
-        const done = new Deferred<void>();
-        const query1 = coll.where('foo', '>', 0);
-        const query2 = coll.where('foo', '>', 0);
-        const query3 = coll.where('foo', '>', 0);
-
-        createQueryListener(query1, snapshot => {
-          // No-op.
-        });
-        onSnapshotsInSync(coll.doc().firestore, async () => {
-          if (pending.has(query2) && pending.has(query3)) {
-            expect(firedValues).to.deep.equal([2, 5, 3]);
-            done.resolve();
-          } else if (pending.has(query2)) {
-            firedValues.push(5);
-          }
-          setup.resolve();
-        });
-
-        // Wait for listeners to fire and reset values.
-        await setup.promise;
-
-        // Add duplicate queries and ensure that the onSnapshotsInSync callback
-        // was fired for each duplicate.
-        createQueryListener(query2, snapshot => {
-          firedValues.push(2);
-          pending.set(query2, snapshot);
-        });
-        createQueryListener(query3, snapshot => {
-          firedValues.push(3);
-          pending.set(query3, snapshot);
-        });
-
-        await done;
+        await done.promise;
       });
     });
   });

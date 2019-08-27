@@ -373,7 +373,6 @@ export function waitForPendingWrites(
 // TODO(b/139890752): Remove helper and use public API once this is launched.
 export function onSnapshotsInSync(
   db: firestore.FirebaseFirestore,
-  //
   onSync: unknown
 ): () => void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

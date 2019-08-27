@@ -338,7 +338,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
     );
 
     expect(() => onSnapshotsInSync(db, 'bad')).to.throw(
-      `Function DocumentReference.onSnapshotsInSync() requires its first ` +
+      `Function Firestore.onSnapshotsInSync() requires its first ` +
         `argument to be of type function, but it was: "bad"`
     );
   });

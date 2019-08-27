@@ -510,12 +510,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     if (isPartialObserver(arg)) {
       return this.onSnapshotsInSyncInternal(arg as PartialObserver<void>);
     } else {
-      validateArgType(
-        'DocumentReference.onSnapshotsInSync',
-        'function',
-        1,
-        arg
-      );
+      validateArgType('Firestore.onSnapshotsInSync', 'function', 1, arg);
       const observer: PartialObserver<void> = {
         next: arg as () => void
       };
