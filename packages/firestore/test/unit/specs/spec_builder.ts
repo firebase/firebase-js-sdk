@@ -306,7 +306,7 @@ export class SpecBuilder {
     return this;
   }
 
-  addSnapshotsInSyncListener(): this {
+  userAddsSnapshotsInSyncListener(): this {
     this.nextStep();
     this.currentStep = {
       addSnapshotsInSyncListener: true
@@ -314,7 +314,7 @@ export class SpecBuilder {
     return this;
   }
 
-  removeSnapshotsInSyncListener(): this {
+  userRemovesSnapshotsInSyncListener(): this {
     this.nextStep();
     this.currentStep = {
       removeSnapshotsInSyncListener: true
@@ -859,11 +859,11 @@ export class SpecBuilder {
     return this;
   }
 
-  expectSnapshotsInSyncEventsCount(num: number): this {
+  expectSnapshotsInSyncEvent(count = 1): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.numSnapshotsInSyncEvents = num;
+    currentStep.stateExpect.numSnapshotsInSyncEvents = count;
     return this;
   }
 

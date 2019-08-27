@@ -164,6 +164,8 @@ export class EventManager implements SyncEngineListener {
 
   addSnapshotsInSyncListener(observer: Observer<void>): void {
     this.snapshotsInSyncListeners.add(observer);
+    // Immediately fire an initial event, indicating all existing listeners
+    // are in-sync.
     observer.next();
   }
 

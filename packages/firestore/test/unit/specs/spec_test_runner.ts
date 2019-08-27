@@ -648,14 +648,14 @@ abstract class TestRunner {
   }
 
   private doAddSnapshotsInSyncListener(): Promise<void> {
-    const obs = {
+    const observer = {
       next: () => {
-        this.incrementSnapshotsInSync();
+        this.snapshotsInSyncEvents += 1;
       },
       error: () => {}
     };
-    this.snapshotsInSyncListeners.push(obs);
-    this.eventManager.addSnapshotsInSyncListener(obs);
+    this.snapshotsInSyncListeners.push(observer);
+    this.eventManager.addSnapshotsInSyncListener(observer);
     return Promise.resolve();
   }
 
@@ -1173,10 +1173,6 @@ abstract class TestRunner {
     this.eventList.push(e);
   }
 
-  private incrementSnapshotsInSync(): void {
-    this.snapshotsInSyncEvents += 1;
-  }
-
   private parseQuery(querySpec: string | SpecQuery): Query {
     if (typeof querySpec === 'string') {
       return Query.atPath(path(querySpec));
@@ -1378,7 +1374,7 @@ export interface SpecStep {
   userDelete?: SpecUserDelete;
   /** Listens to a SnapshotsInSync event. */
   addSnapshotsInSyncListener?: true;
-  /** Unlistens to a SnapshotsInSync event. */
+  /** Unlistens from a SnapshotsInSync event. */
   removeSnapshotsInSyncListener?: true;
 
   /** Ack for a query in the watch stream */
