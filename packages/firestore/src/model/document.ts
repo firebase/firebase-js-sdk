@@ -167,7 +167,7 @@ export class Document extends MaybeDocument {
   private getProtoField(path: FieldPath): api.Value | undefined {
     assert(
       this.proto !== undefined,
-      "Can only call getProtoField() when proto is defined"
+      'Can only call getProtoField() when proto is defined'
     );
     let protoValue: api.Value | undefined = this.proto!.fields[
       path.firstSegment()
