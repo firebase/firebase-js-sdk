@@ -75,6 +75,12 @@ export class Document extends MaybeDocument {
     private readonly converter?: (value: api.Value) => FieldValue
   ) {
     super(key, version);
+    assert(
+      this.objectValue !== undefined ||
+        (this.proto !== undefined && this.converter !== undefined),
+      'If objectValue is not defined, proto and converter need to be set.'
+    );
+
     this.hasLocalMutations = !!options.hasLocalMutations;
     this.hasCommittedMutations = !!options.hasCommittedMutations;
   }
@@ -83,11 +89,6 @@ export class Document extends MaybeDocument {
     if (this.objectValue) {
       return this.objectValue.field(path);
     } else {
-      assert(
-        this.proto !== undefined && this.converter !== undefined,
-        'Expected proto and converter to be defined.'
-      );
-
       if (!this.fieldValueCache) {
         // TODO(b/136090445): Remove the cache when `getField` is no longer
         // called during Query ordering.
@@ -103,23 +104,12 @@ export class Document extends MaybeDocument {
         // deserialize the value at the requested field path. This speeds up
         // Query execution as query filters can discard documents based on a
         // single field.
-        let protoValue: api.Value | undefined = this.proto!.fields[
-          path.firstSegment()
-        ];
-        for (let i = 1; protoValue !== undefined && i < path.length; ++i) {
-          if (protoValue.mapValue) {
-            protoValue = protoValue.mapValue.fields[path.get(i)];
-          } else {
-            protoValue = undefined;
-          }
-        }
-
+        const protoValue = this.getProtoField(path);
         if (protoValue === undefined) {
           fieldValue = null;
         } else {
           fieldValue = this.converter!(protoValue);
         }
-
         this.fieldValueCache.set(canonicalPath, fieldValue);
       }
 
@@ -127,18 +117,8 @@ export class Document extends MaybeDocument {
     }
   }
 
-  fieldValue(path: FieldPath): unknown {
-    const field = this.field(path);
-    return field ? field.value() : undefined;
-  }
-
   data(): ObjectValue {
     if (!this.objectValue) {
-      assert(
-        this.proto !== undefined && this.converter !== undefined,
-        'Expected proto and converter to be defined.'
-      );
-
       let result = ObjectValue.EMPTY;
       obj.forEach(this.proto!.fields, (key: string, value: api.Value) => {
         result = result.set(new FieldPath([key]), this.converter!(value));
@@ -178,6 +158,27 @@ export class Document extends MaybeDocument {
 
   get hasPendingWrites(): boolean {
     return this.hasLocalMutations || this.hasCommittedMutations;
+  }
+
+  /**
+   * Returns a the nested Protobuf value for 'path`. Can only be called if
+   * `proto` was provided at construction time.
+   */
+  private getProtoField(path: FieldPath): api.Value | undefined {
+    assert(
+      this.proto !== undefined,
+      "Can only call getProtoField() when proto is defined"
+    );
+    let protoValue: api.Value | undefined = this.proto!.fields[
+      path.firstSegment()
+    ];
+    for (let i = 1; i < path.length; ++i) {
+      if (!protoValue || !protoValue.mapValue) {
+        return undefined;
+      }
+      protoValue = protoValue.mapValue.fields[path.get(i)];
+    }
+    return protoValue;
   }
 
   static compareByField(field: FieldPath, d1: Document, d2: Document): number {
