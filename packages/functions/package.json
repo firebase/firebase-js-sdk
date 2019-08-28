@@ -54,7 +54,7 @@
     "tslint": "5.19.0",
     "typescript": "3.5.3",
     "webpack": "4.39.3",
-    "yargs": "13.3.0",
+    "yargs": "14.0.0",
     "eslint": "5.16.0",
     "@typescript-eslint/parser": "1.13.0",
     "@typescript-eslint/eslint-plugin": "1.13.0",
