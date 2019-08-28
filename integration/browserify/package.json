@@ -14,7 +14,7 @@
     "@babel/preset-env": "7.5.5",
     "browserify": "16.5.0",
     "chai": "4.2.0",
-    "karma": "4.2.0",
+    "karma": "4.3.0",
     "karma-babel-preprocessor": "8.0.1",
     "karma-chrome-launcher": "3.1.0",
     "karma-firefox-launcher": "1.2.0",
