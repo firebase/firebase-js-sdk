@@ -15,12 +15,33 @@
  * limitations under the License.
  */
 
+import {
+  FIRST_PAINT_COUNTER_NAME,
+  FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
+  FIRST_INPUT_DELAY_COUNTER_NAME,
+  OOB_TRACE_PAGE_LOAD_PREFIX
+} from '../constants';
+
 const MAX_METRIC_NAME_LENGTH = 100;
 const RESERVED_AUTO_PREFIX = '_';
+const oobMetrics = [
+  FIRST_PAINT_COUNTER_NAME,
+  FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
+  FIRST_INPUT_DELAY_COUNTER_NAME
+];
 
-export function isValidCustomMetricName(name: string): boolean {
+/**
+ * Returns true if the metric is custom and does not start with reserved prefix, or if
+ * the metric is one of out of the box page load trace metrics.
+ */
+export function isValidMetricName(name: string, traceName?: string): boolean {
   if (name.length === 0 || name.length > MAX_METRIC_NAME_LENGTH) {
     return false;
   }
-  return !name.startsWith(RESERVED_AUTO_PREFIX);
+  return (
+    (traceName &&
+      traceName.startsWith(OOB_TRACE_PAGE_LOAD_PREFIX) &&
+      oobMetrics.indexOf(name) > -1) ||
+    !name.startsWith(RESERVED_AUTO_PREFIX)
+  );
 }

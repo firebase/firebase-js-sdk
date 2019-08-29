@@ -284,33 +284,50 @@ export function queryData(
 }
 
 export function docAddedRemoteEvent(
-  doc: MaybeDocument,
+  docOrDocs: MaybeDocument | MaybeDocument[],
   updatedInTargets?: TargetId[],
   removedFromTargets?: TargetId[],
-  limboTargets?: TargetId[]
+  activeTargets?: TargetId[]
 ): RemoteEvent {
-  assert(
-    !(doc instanceof Document) || !doc.hasLocalMutations,
-    "Docs from remote updates shouldn't have local changes."
-  );
-  const docChange = new DocumentWatchChange(
-    updatedInTargets || [],
-    removedFromTargets || [],
-    doc.key,
-    doc
-  );
+  const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
+  assert(docs.length !== 0, 'Cannot pass empty docs array');
+
+  const allTargets = activeTargets
+    ? activeTargets
+    : (updatedInTargets || []).concat(removedFromTargets || []);
+
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
     getQueryDataForTarget: targetId => {
-      const purpose =
-        limboTargets && limboTargets.indexOf(targetId) !== -1
-          ? QueryPurpose.LimboResolution
-          : QueryPurpose.Listen;
-      return queryData(targetId, purpose, doc.key.toString());
+      if (allTargets.indexOf(targetId) !== -1) {
+        const collectionPath = docs[0].key.path.popLast();
+        return queryData(
+          targetId,
+          QueryPurpose.Listen,
+          collectionPath.toString()
+        );
+      } else {
+        return null;
+      }
     }
   });
-  aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.version);
+
+  for (const doc of docs) {
+    assert(
+      !(doc instanceof Document) || !doc.hasLocalMutations,
+      "Docs from remote updates shouldn't have local changes."
+    );
+    const docChange = new DocumentWatchChange(
+      updatedInTargets || [],
+      removedFromTargets || [],
+      doc.key,
+      doc
+    );
+    aggregator.handleDocumentChange(docChange);
+  }
+
+  const version = docs[0].version;
+  return aggregator.createRemoteEvent(version);
 }
 
 export function docUpdateRemoteEvent(
