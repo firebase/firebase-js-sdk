@@ -161,7 +161,7 @@ export class Document extends MaybeDocument {
   }
 
   /**
-   * Returns a the nested Protobuf value for 'path`. Can only be called if
+   * Returns the nested Protobuf value for 'path`. Can only be called if
    * `proto` was provided at construction time.
    */
   private getProtoField(path: FieldPath): api.Value | undefined {
@@ -169,6 +169,7 @@ export class Document extends MaybeDocument {
       this.proto !== undefined,
       'Can only call getProtoField() when proto is defined'
     );
+
     let protoValue: api.Value | undefined = this.proto!.fields[
       path.firstSegment()
     ];
@@ -178,6 +179,7 @@ export class Document extends MaybeDocument {
       }
       protoValue = protoValue.mapValue.fields[path.get(i)];
     }
+    
     return protoValue;
   }
 
