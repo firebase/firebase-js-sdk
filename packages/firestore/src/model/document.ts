@@ -179,7 +179,7 @@ export class Document extends MaybeDocument {
       }
       protoValue = protoValue.mapValue.fields[path.get(i)];
     }
-    
+
     return protoValue;
   }
 
