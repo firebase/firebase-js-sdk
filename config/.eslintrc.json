@@ -97,7 +97,9 @@
         ],
         "@typescript-eslint/array-type": [
             "error",
-            "array-simple"
+            {
+                "default": "array-simple"
+            }
         ],
         "@typescript-eslint/ban-types": [
             "error",
@@ -115,7 +117,7 @@
             "error",
             "never"
         ],
-        "@typescript-eslint/prefer-interface": "error",
+        "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
         "@typescript-eslint/explicit-member-accessibility": [
             "error",
             {
@@ -125,7 +127,12 @@
                 }
             }
         ],
-        "@typescript-eslint/no-angle-bracket-type-assertion": "error",
+        "@typescript-eslint/consistent-type-assertions": [
+            "error",
+            {
+                "assertionStyle": "as"
+            }
+        ],
         "@typescript-eslint/no-explicit-any": "error",
         "@typescript-eslint/no-namespace": [
             "error",
@@ -133,7 +140,14 @@
                 "allowDeclarations": true
             }
         ],
-        "@typescript-eslint/no-triple-slash-reference": "error",
+        "@typescript-eslint/triple-slash-reference": [
+            "error",
+            {
+                "path": "never",
+                "types": "never",
+                "lib": "never"
+            }
+        ],
         "@typescript-eslint/no-require-imports": "error",
         "@typescript-eslint/no-useless-constructor": "error",
         "@typescript-eslint/semi": "error",
