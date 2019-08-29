@@ -759,7 +759,7 @@ export class Bound {
       } else {
         const docValue = doc.field(orderByComponent.field);
         assert(
-          docValue !== undefined,
+          docValue !== null,
           'Field should exist since document matched the orderBy already.'
         );
         comparison = component.compareTo(docValue!);

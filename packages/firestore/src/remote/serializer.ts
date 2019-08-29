@@ -519,7 +519,7 @@ export class JsonProtoSerializer {
     );
     return {
       name: this.toName(document.key),
-      fields: this.toFields(document.data),
+      fields: this.toFields(document.data()),
       updateTime: this.toTimestamp(document.version.toTimestamp())
     };
   }
@@ -528,11 +528,15 @@ export class JsonProtoSerializer {
     document: api.Document,
     hasCommittedMutations?: boolean
   ): Document {
+    const key = this.fromName(document.name!);
+    const version = this.fromVersion(document.updateTime!);
     return new Document(
-      this.fromName(document.name!),
-      this.fromVersion(document.updateTime!),
-      this.fromFields(document.fields || {}),
-      { hasCommittedMutations: !!hasCommittedMutations }
+      key,
+      version,
+      { hasCommittedMutations: !!hasCommittedMutations },
+      undefined,
+      document,
+      v => this.fromValue(v)
     );
   }
 
@@ -577,8 +581,9 @@ export class JsonProtoSerializer {
     assertPresent(doc.found!.updateTime, 'doc.found.updateTime');
     const key = this.fromName(doc.found!.name!);
     const version = this.fromVersion(doc.found!.updateTime!);
-    const fields = this.fromFields(doc.found!.fields || {});
-    return new Document(key, version, fields, {}, doc.found!);
+    return new Document(key, version, {}, undefined, doc.found!, v =>
+      this.fromValue(v)
+    );
   }
 
   private fromMissing(result: api.BatchGetDocumentsResponse): NoDocument {
@@ -639,7 +644,7 @@ export class JsonProtoSerializer {
           documentChange: {
             document: {
               name: this.toName(doc.key),
-              fields: this.toFields(doc.data),
+              fields: this.toFields(doc.data()),
               updateTime: this.toVersion(doc.version)
             },
             targetIds: watchChange.updatedTargetIds,
@@ -718,15 +723,13 @@ export class JsonProtoSerializer {
       const entityChange = change.documentChange!;
       const key = this.fromName(entityChange.document!.name!);
       const version = this.fromVersion(entityChange.document!.updateTime!);
-      const fields = this.fromFields(entityChange.document!.fields || {});
-      // The document may soon be re-serialized back to protos in order to store it in local
-      // persistence. Memoize the encoded form to avoid encoding it again.
       const doc = new Document(
         key,
         version,
-        fields,
         {},
-        entityChange.document!
+        undefined,
+        entityChange.document!,
+        v => this.fromValue(v)
       );
       const updatedTargetIds = entityChange.targetIds || [];
       const removedTargetIds = entityChange.removedTargetIds || [];

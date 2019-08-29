@@ -82,9 +82,9 @@ describeSpec('Queries:', [], () => {
     );
 
     return specWithCachedDocs(...cachedDocs)
-      .userSets(toWrite1.key.toString(), toWrite1.data.value())
-      .userSets(toWrite2.key.toString(), toWrite2.data.value())
-      .userSets(toWrite3.key.toString(), toWrite3.data.value())
+      .userSets(toWrite1.key.toString(), toWrite1.data().value())
+      .userSets(toWrite2.key.toString(), toWrite2.data().value())
+      .userSets(toWrite3.key.toString(), toWrite3.data().value())
       .userListens(cgQuery)
       .expectEvents(cgQuery, {
         added: [cachedDocs[0], toWrite1, toWrite2],
