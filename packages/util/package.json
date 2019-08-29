@@ -48,9 +48,9 @@
     "typescript": "3.5.3",
     "webpack": "4.39.3",
     "eslint": "5.16.0",
-    "@typescript-eslint/parser": "1.13.0",
-    "@typescript-eslint/eslint-plugin": "1.13.0",
-    "@typescript-eslint/eslint-plugin-tslint": "1.13.0",
+    "@typescript-eslint/parser": "2.0.0",
+    "@typescript-eslint/eslint-plugin": "2.0.0",
+    "@typescript-eslint/eslint-plugin-tslint": "2.0.0",
     "eslint-plugin-import": "2.18.2"
   },
   "repository": {
