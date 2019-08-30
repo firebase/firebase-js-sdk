@@ -376,8 +376,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   /**
-   * Decodes `remoteDoc` and returns the document (or null, if the
-   * document corresponds to the format used for sentinel deletes).
+   * Decodes `remoteDoc` and returns the document (or null, if the document
+   * corresponds to the format used for sentinel deletes).
    */
   private maybeDecodeDocument(
     dbRemoteDoc: DbRemoteDocument | null
@@ -388,8 +388,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         doc instanceof NoDocument &&
         doc.version.isEqual(SnapshotVersion.forDeletedDoc())
       ) {
-        // The document is a sentinel delete and should only be used
-        // in the change log.
+        // The document is a sentinel delete and should only be used in the
+        // change log.
         return null;
       }
 
