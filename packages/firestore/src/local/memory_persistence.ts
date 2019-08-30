@@ -271,7 +271,9 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
   ): PersistencePromise<void> {
     // Remove newly orphaned documents.
     const cache = this.persistence.getRemoteDocumentCache();
-    const changeBuffer = cache.newChangeBuffer();
+    const changeBuffer = cache.newChangeBuffer({
+      createSentinelDocumentsToTrackDeletes: false
+    });
     return PersistencePromise.forEach(
       this.orphanedDocuments,
       (key: DocumentKey) => {
@@ -412,7 +414,9 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<number> {
     let count = 0;
     const cache = this.persistence.getRemoteDocumentCache();
-    const changeBuffer = cache.newChangeBuffer();
+    const changeBuffer = cache.newChangeBuffer({
+      createSentinelDocumentsToTrackDeletes: false
+    });
     const p = cache.forEachDocumentKey(txn, key => {
       return this.isPinned(txn, key, upperBound).next(isPinned => {
         if (!isPinned) {

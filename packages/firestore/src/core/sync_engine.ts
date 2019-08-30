@@ -41,7 +41,6 @@ import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 
 import { ignoreIfPrimaryLeaseLoss } from '../local/indexeddb_persistence';
-import { isDocumentChangeMissingError } from '../local/indexeddb_remote_document_cache';
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import {
   QueryTargetState,
@@ -983,29 +982,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       switch (state) {
         case 'current':
         case 'not-current': {
-          try {
-            const changes = await this.localStore.getNewDocumentChanges();
-            const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
-              targetId,
-              state === 'current'
-            );
-            await this.emitNewSnapsAndNotifyLocalStore(
-              changes,
-              synthesizedRemoteEvent
-            );
-            break;
-            // Catch errors thrown by getNewDocumentchanges().
-          } catch (error) {
-            if (isDocumentChangeMissingError(error)) {
-              const activeTargets: TargetId[] = [];
-              objUtils.forEachNumber(this.queryViewsByTarget, target =>
-                activeTargets.push(target)
-              );
-              await this.synchronizeQueryViewsAndRaiseSnapshots(activeTargets);
-            } else {
-              throw error;
-            }
-          }
+          const changes = await this.localStore.getNewDocumentChanges();
+          const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
+            targetId,
+            state === 'current'
+          );
+          await this.emitNewSnapsAndNotifyLocalStore(
+            changes,
+            synthesizedRemoteEvent
+          );
+          break;
         }
         case 'rejected': {
           const queryView = this.queryViewsByTarget[targetId];

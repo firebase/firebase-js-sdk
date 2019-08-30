@@ -29,7 +29,6 @@ import {
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a
@@ -118,21 +117,6 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  removeDocumentChangesThroughChangeId(changeId: number): Promise<void> {
-    return this.persistence.runTransaction(
-      'removeDocumentChangesThroughChangeId',
-      'readwrite-primary',
-      txn => {
-        if (!(this.cache instanceof IndexedDbRemoteDocumentCache)) {
-          throw new Error(
-            'Can only removeDocumentChangesThroughChangeId() in IndexedDb'
-          );
-        }
-        return this.cache.removeDocumentChangesThroughChangeId(txn, changeId);
-      }
-    );
-  }
-
   getSize(): Promise<number> {
     return this.persistence.runTransaction('get size', 'readonly', txn =>
       this.cache.getSize(txn)
@@ -140,6 +124,8 @@ export class TestRemoteDocumentCache {
   }
 
   newChangeBuffer(): RemoteDocumentChangeBuffer {
-    return this.cache.newChangeBuffer();
+    return this.cache.newChangeBuffer({
+      createSentinelDocumentsToTrackDeletes: true
+    });
   }
 }

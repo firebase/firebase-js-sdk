@@ -252,7 +252,9 @@ function genericLruGarbageCollectorTests(
     txn: PersistenceTransaction,
     doc: MaybeDocument
   ): PersistencePromise<void> {
-    const changeBuffer = documentCache.newChangeBuffer();
+    const changeBuffer = documentCache.newChangeBuffer({
+      createSentinelDocumentsToTrackDeletes: false
+    });
     return changeBuffer.getEntry(txn, doc.key).next(() => {
       changeBuffer.addEntry(doc);
       return changeBuffer.apply(txn, doc.version);

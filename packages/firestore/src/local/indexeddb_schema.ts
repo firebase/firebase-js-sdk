@@ -112,7 +112,6 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
       p = p.next(() => {
         createClientMetadataStore(db);
-        createRemoteDocumentChangesStore(db);
       });
     }
 
@@ -139,6 +138,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 9 && toVersion >= 9) {
       p = p.next(() => {
+        // Multi-Tab used to manage its own changelog, but this has been moved
+        // to the DbRemoteDocument object store itself. Since the previous change
+        // log only contained transient data, we can drop its object store.
+        dropRemoteDocumentChangesStore(db);
         createRemoteDocumentReadTimeIndex(txn);
       });
     }
@@ -607,6 +610,16 @@ export class DbRemoteDocument {
   static store = 'remoteDocuments';
 
   /**
+   * An index that provides access to all entries sorted by read time (which
+   * corresponds to the last modification time of each row).
+   *
+   * This index is used to provide a changelog for Multi-Tab.
+   */
+  static readTimeIndex = 'readTimeIndex';
+
+  static readTimeIndexPath = 'readTime';
+
+  /**
    * An index that provides access to documents in a collection sorted by read
    * time.
    *
@@ -934,6 +947,12 @@ function dropQueryCache(db: IDBDatabase): void {
   db.deleteObjectStore(DbTargetGlobal.store);
 }
 
+function dropRemoteDocumentChangesStore(db: IDBDatabase): void {
+  if (db.objectStoreNames.contains('remoteDocumentChanges')) {
+    db.deleteObjectStore('remoteDocumentChanges');
+  }
+}
+
 /**
  * Creates the target global singleton row.
  *
@@ -955,47 +974,16 @@ function writeEmptyTargetGlobalEntry(
 }
 
 /**
- * An object store to store the keys of changed documents. This is used to
- * facilitate storing document changelogs in the Remote Document Cache.
- *
- * PORTING NOTE: This is used for change propagation during multi-tab syncing
- * and not needed on iOS and Android.
- */
-export class DbRemoteDocumentChanges {
-  /** Name of the IndexedDb object store.  */
-  static store = 'remoteDocumentChanges';
-
-  /** Keys are auto-generated via the `id` property. */
-  static keyPath = 'id';
-
-  /** The auto-generated key of this entry. */
-  id?: number;
-
-  constructor(
-    /** The keys of the changed documents. */
-    public changes: EncodedResourcePath[]
-  ) {}
-}
-
-/*
- * The key for DbRemoteDocumentChanges, consisting of an auto-incrementing
- * number.
- */
-export type DbRemoteDocumentChangesKey = number;
-
-function createRemoteDocumentChangesStore(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocumentChanges.store, {
-    keyPath: 'id',
-    autoIncrement: true
-  });
-}
-
-/**
  * Creates indices on the RemoteDocuments store used for both multi-tab
  * and Index-Free queries.
  */
 function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
   const remoteDocumentStore = txn.objectStore(DbRemoteDocument.store);
+  remoteDocumentStore.createIndex(
+    DbRemoteDocument.readTimeIndex,
+    DbRemoteDocument.readTimeIndexPath,
+    { unique: false }
+  );
   remoteDocumentStore.createIndex(
     DbRemoteDocument.collectionReadTimeIndex,
     DbRemoteDocument.collectionReadTimeIndexPath,
@@ -1017,6 +1005,9 @@ export class DbClientMetadata {
   static keyPath = 'clientId';
 
   constructor(
+    // Note: Previous schema versions included a field
+    // "lastProcessedDocumentChangeId". Don't use anymore.
+
     /** The auto-generated client id assigned at client startup. */
     public clientId: string,
     /** The last time this state was updated. */
@@ -1024,12 +1015,7 @@ export class DbClientMetadata {
     /** Whether the client's network connection is enabled. */
     public networkEnabled: boolean,
     /** Whether this client is running in a foreground tab. */
-    public inForeground: boolean,
-    /**
-     * The last change read from the DbRemoteDocumentChanges store.
-     * Can be undefined for backwards compatibility.
-     */
-    public lastProcessedDocumentChangeId: number | undefined
+    public inForeground: boolean
   ) {}
 }
 
@@ -1060,11 +1046,7 @@ export const V1_STORES = [
 export const V3_STORES = V1_STORES;
 
 // Visible for testing
-export const V4_STORES = [
-  ...V3_STORES,
-  DbClientMetadata.store,
-  DbRemoteDocumentChanges.store
-];
+export const V4_STORES = [...V3_STORES, DbClientMetadata.store];
 
 // V5 does not change the set of stores.
 

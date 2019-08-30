@@ -792,6 +792,24 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
             });
           })
           .next(() => {
+            // Verify that we can get recent document changes filtered by read time.
+            const docsRead: string[] = [];
+            const lastReadTime = TEST_SERIALIZER.toDbTimestampKey(version(1));
+            const range = IDBKeyRange.lowerBound(lastReadTime);
+            return remoteDocumentStore
+              .iterate(
+                { index: DbRemoteDocument.readTimeIndex, range },
+                (_, dbRemoteDoc) => {
+                  const doc = TEST_SERIALIZER.fromDbRemoteDocument(dbRemoteDoc);
+                  docsRead.push(doc.key.path.toString());
+                }
+              )
+              .next(() => {
+                // The old documents are not included since readTime was not populated
+                expect(docsRead).to.have.members(newDocPaths);
+              });
+          })
+          .next(() => {
             // Verify that we can get recent changes in a collection filtered by read time.
             const docsRead: string[] = [];
             const lastReadTime = TEST_SERIALIZER.toDbTimestampKey(version(0));

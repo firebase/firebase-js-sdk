@@ -123,6 +123,11 @@ export class LocalSerializer {
     return [timestamp.seconds, timestamp.nanoseconds];
   }
 
+  fromDbTimestampKey(dbTimestampKey: DbTimestampKey): SnapshotVersion {
+    const timestamp = new Timestamp(dbTimestampKey[0], dbTimestampKey[1]);
+    return SnapshotVersion.fromTimestamp(timestamp);
+  }
+
   private toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
     const timestamp = snapshotVersion.toTimestamp();
     return new DbTimestamp(timestamp.seconds, timestamp.nanoseconds);

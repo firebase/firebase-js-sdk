@@ -98,6 +98,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private removeEntry(documentKey: DocumentKey): void {
     const entry = this.docs.get(documentKey);
     if (entry) {
+      this.newDocumentChanges = this.newDocumentChanges.add(documentKey);
       this.docs = this.docs.remove(documentKey);
       this.size -= entry.size;
     }
@@ -177,7 +178,9 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     return PersistencePromise.resolve(changedDocs);
   }
 
-  newChangeBuffer(): RemoteDocumentChangeBuffer {
+  newChangeBuffer(options: {
+    createSentinelDocumentsToTrackDeletes: boolean;
+  }): RemoteDocumentChangeBuffer {
     return new MemoryRemoteDocumentCache.RemoteDocumentChangeBuffer(this);
   }
 

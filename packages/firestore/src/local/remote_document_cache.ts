@@ -97,8 +97,14 @@ export interface RemoteDocumentCache {
    * handles proper size accounting for the change.
    *
    * Multi-Tab Note: This should only be called by the primary client.
+   *
+   * @param options.createSentinelDocumentsToTrackDeletes Whether to create
+   * sentinel entries for deleted documents, which allow deletes to be tracked
+   * by `getNewDocumentChanges()`.
    */
-  newChangeBuffer(): RemoteDocumentChangeBuffer;
+  newChangeBuffer(options: {
+    createSentinelDocumentsToTrackDeletes?: boolean;
+  }): RemoteDocumentChangeBuffer;
 
   /**
    * Get an estimate of the size of the document cache. Note that for eager

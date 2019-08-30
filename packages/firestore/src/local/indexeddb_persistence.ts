@@ -305,8 +305,7 @@ export class IndexedDbPersistence implements Persistence {
     this.indexManager = new IndexedDbIndexManager();
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
-      this.indexManager,
-      /*keepDocumentChangeLog=*/ this.allowTabSynchronization
+      this.indexManager
     );
     if (platform.window && platform.window.localStorage) {
       this.window = platform.window;
@@ -431,8 +430,7 @@ export class IndexedDbPersistence implements Persistence {
             this.clientId,
             Date.now(),
             this.networkEnabled,
-            this.inForeground,
-            this.remoteDocumentCache.lastProcessedDocumentChangeId
+            this.inForeground
           )
         )
         .next(() => {
@@ -507,46 +505,22 @@ export class IndexedDbPersistence implements Persistence {
             DbClientMetadata
           >(txn, DbClientMetadata.store);
 
-          return metadataStore
-            .loadAll()
-            .next(existingClients => {
-              activeClients = this.filterActiveClients(
-                existingClients,
-                MAX_CLIENT_AGE_MS
-              );
-              inactiveClients = existingClients.filter(
-                client => activeClients.indexOf(client) === -1
-              );
-            })
-            .next(() =>
-              // Delete metadata for clients that are no longer considered active.
-              PersistencePromise.forEach(
-                inactiveClients,
-                (inactiveClient: DbClientMetadata) =>
-                  metadataStore.delete(inactiveClient.clientId)
-              )
-            )
-            .next(() => {
-              // Retrieve the minimum change ID from the set of active clients.
+          return metadataStore.loadAll().next(existingClients => {
+            activeClients = this.filterActiveClients(
+              existingClients,
+              MAX_CLIENT_AGE_MS
+            );
+            inactiveClients = existingClients.filter(
+              client => activeClients.indexOf(client) === -1
+            );
 
-              // The primary client doesn't read from the document change log,
-              // and hence we exclude it when we determine the minimum
-              // `lastProcessedDocumentChangeId`.
-              activeClients = activeClients.filter(
-                client => client.clientId !== this.clientId
-              );
-
-              if (activeClients.length > 0) {
-                const processedChangeIds = activeClients.map(
-                  client => client.lastProcessedDocumentChangeId || 0
-                );
-                const oldestChangeId = Math.min(...processedChangeIds);
-                return this.remoteDocumentCache.removeDocumentChangesThroughChangeId(
-                  txn,
-                  oldestChangeId
-                );
-              }
-            });
+            // Delete metadata for clients that are no longer considered active.
+            return PersistencePromise.forEach(
+              inactiveClients,
+              (inactiveClient: DbClientMetadata) =>
+                metadataStore.delete(inactiveClient.clientId)
+            );
+          });
         }
       );
 
@@ -1237,7 +1211,9 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     upperBound: ListenSequenceNumber
   ): PersistencePromise<number> {
     const documentCache = this.db.getRemoteDocumentCache();
-    const changeBuffer = documentCache.newChangeBuffer();
+    const changeBuffer = documentCache.newChangeBuffer({
+      createSentinelDocumentsToTrackDeletes: false
+    });
 
     const promises: Array<PersistencePromise<void>> = [];
     let documentCount = 0;
