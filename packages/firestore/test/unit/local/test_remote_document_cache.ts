@@ -16,7 +16,6 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
@@ -29,6 +28,8 @@ import {
 } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a
@@ -45,12 +46,15 @@ export class TestRemoteDocumentCache {
    * Reads all of the documents first so we can safely add them and keep the size calculation in
    * sync.
    */
-  addEntries(maybeDocuments: MaybeDocument[]): Promise<void> {
+  addEntries(
+    maybeDocuments: MaybeDocument[],
+    readTime: SnapshotVersion
+  ): Promise<void> {
     return this.persistence.runTransaction(
       'addEntry',
       'readwrite-primary',
       txn => {
-        const changeBuffer = this.cache.newChangeBuffer();
+        const changeBuffer = this.newChangeBuffer();
         return PersistencePromise.forEach(
           maybeDocuments,
           (maybeDocument: MaybeDocument) =>
@@ -59,13 +63,16 @@ export class TestRemoteDocumentCache {
           for (const maybeDocument of maybeDocuments) {
             changeBuffer.addEntry(maybeDocument);
           }
-          return changeBuffer.apply(txn);
+          return changeBuffer.apply(txn, readTime);
         });
       }
     );
   }
 
-  removeEntry(documentKey: DocumentKey): Promise<void> {
+  removeEntry(
+    documentKey: DocumentKey,
+    readTime: SnapshotVersion
+  ): Promise<void> {
     return this.persistence.runTransaction(
       'removeEntry',
       'readwrite-primary',
@@ -73,7 +80,7 @@ export class TestRemoteDocumentCache {
         const changeBuffer = this.newChangeBuffer();
         return changeBuffer.getEntry(txn, documentKey).next(() => {
           changeBuffer.removeEntry(documentKey);
-          return changeBuffer.apply(txn);
+          return changeBuffer.apply(txn, readTime);
         });
       }
     );

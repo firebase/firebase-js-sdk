@@ -17,7 +17,7 @@
 
 import { expect } from 'chai';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
-import { deletedDoc, doc, expectEqual, key } from '../../util/helpers';
+import { deletedDoc, doc, expectEqual, key, version } from '../../util/helpers';
 
 import {
   clearTestPersistence,
@@ -46,7 +46,10 @@ describe('RemoteDocumentChangeBuffer', () => {
       );
 
       // Add a couple initial items to the cache.
-      return cache.addEntries([INITIAL_DOC, deletedDoc('coll/b', 314)]);
+      return cache.addEntries(
+        [INITIAL_DOC, deletedDoc('coll/b', 314)],
+        version(314)
+      );
     });
   });
 

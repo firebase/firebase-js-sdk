@@ -39,6 +39,7 @@ import {
   DbRemoteDocument,
   DbTarget,
   DbTimestamp,
+  DbTimestampKey,
   DbUnknownDocument
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
@@ -70,7 +71,12 @@ export class LocalSerializer {
   }
 
   /** Encodes a document for storage locally. */
-  toDbRemoteDocument(maybeDoc: MaybeDocument): DbRemoteDocument {
+  toDbRemoteDocument(
+    maybeDoc: MaybeDocument,
+    readTime: SnapshotVersion
+  ): DbRemoteDocument {
+    const dbReadTime = this.toDbTimestampKey(readTime);
+    const parentPath = maybeDoc.key.path.popLast().canonicalString();
     if (maybeDoc instanceof Document) {
       const doc = maybeDoc.proto
         ? maybeDoc.proto
@@ -80,7 +86,9 @@ export class LocalSerializer {
         /* unknownDocument= */ null,
         /* noDocument= */ null,
         doc,
-        hasCommittedMutations
+        hasCommittedMutations,
+        dbReadTime,
+        parentPath
       );
     } else if (maybeDoc instanceof NoDocument) {
       const path = maybeDoc.key.path.toArray();
@@ -90,7 +98,9 @@ export class LocalSerializer {
         /* unknownDocument= */ null,
         new DbNoDocument(path, readTime),
         /* document= */ null,
-        hasCommittedMutations
+        hasCommittedMutations,
+        dbReadTime,
+        parentPath
       );
     } else if (maybeDoc instanceof UnknownDocument) {
       const path = maybeDoc.key.path.toArray();
@@ -99,11 +109,18 @@ export class LocalSerializer {
         new DbUnknownDocument(path, readTime),
         /* noDocument= */ null,
         /* document= */ null,
-        /* hasCommittedMutations= */ true
+        /* hasCommittedMutations= */ true,
+        dbReadTime,
+        parentPath
       );
     } else {
       return fail('Unexpected MaybeDocumment');
     }
+  }
+
+  toDbTimestampKey(snapshotVersion: SnapshotVersion): DbTimestampKey {
+    const timestamp = snapshotVersion.toTimestamp();
+    return [timestamp.seconds, timestamp.nanoseconds];
   }
 
   private toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {

@@ -70,6 +70,7 @@ import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -1263,7 +1264,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
     return iteration
       .next(() => PersistencePromise.waitFor(promises))
-      .next(() => changeBuffer.apply(txn))
+      .next(() => changeBuffer.apply(txn, SnapshotVersion.forDeletedDoc()))
       .next(() => documentCount);
   }
 

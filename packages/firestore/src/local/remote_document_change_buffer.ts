@@ -23,6 +23,7 @@ import { ObjectMap } from '../util/obj_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
  * An in-memory buffer of entries to be written to a RemoteDocumentCache.
@@ -59,7 +60,8 @@ export abstract class RemoteDocumentChangeBuffer {
   ): PersistencePromise<NullableMaybeDocumentMap>;
 
   protected abstract applyChanges(
-    transaction: PersistenceTransaction
+    transaction: PersistenceTransaction,
+    readTime: SnapshotVersion
   ): PersistencePromise<void>;
 
   /**
@@ -130,10 +132,13 @@ export abstract class RemoteDocumentChangeBuffer {
    * Applies buffered changes to the underlying RemoteDocumentCache, using
    * the provided transaction.
    */
-  apply(transaction: PersistenceTransaction): PersistencePromise<void> {
+  apply(
+    transaction: PersistenceTransaction,
+    readTime: SnapshotVersion
+  ): PersistencePromise<void> {
     this.assertNotApplied();
     this.changesApplied = true;
-    return this.applyChanges(transaction);
+    return this.applyChanges(transaction, readTime);
   }
 
   /** Helper to assert this.changes is not null  */

@@ -351,7 +351,7 @@ export class LocalStore {
           .next(() =>
             this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
           )
-          .next(() => documentBuffer.apply(txn))
+          .next(() => documentBuffer.apply(txn, batchResult.commitVersion))
           .next(() => this.mutationQueue.performConsistencyCheck(txn))
           .next(() => this.localDocuments.getDocuments(txn, affected));
       }
@@ -449,7 +449,7 @@ export class LocalStore {
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
     const documentBuffer = this.remoteDocuments.newChangeBuffer();
-    const snapshotVersion = remoteEvent.snapshotVersion;
+    const remoteVersion = remoteEvent.snapshotVersion;
     return this.persistence.runTransaction(
       'Apply remote event',
       'readwrite-primary',
@@ -483,7 +483,7 @@ export class LocalStore {
             if (resumeToken.length > 0) {
               const newQueryData = oldQueryData.copy({
                 resumeToken,
-                snapshotVersion
+                snapshotVersion: remoteVersion
               });
               this.queryDataByTarget[targetId] = newQueryData;
 
@@ -561,28 +561,28 @@ export class LocalStore {
         // can synthesize remote events when we get permission denied errors while
         // trying to resolve the state of a locally cached document that is in
         // limbo.
-        if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+        if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
           const updateRemoteVersion = this.queryCache
             .getLastRemoteSnapshotVersion(txn)
             .next(lastRemoteSnapshotVersion => {
               assert(
-                snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0,
+                remoteVersion.compareTo(lastRemoteSnapshotVersion) >= 0,
                 'Watch stream reverted to previous snapshot?? ' +
-                  snapshotVersion +
+                  remoteVersion +
                   ' < ' +
                   lastRemoteSnapshotVersion
               );
               return this.queryCache.setTargetsMetadata(
                 txn,
                 txn.currentSequenceNumber,
-                snapshotVersion
+                remoteVersion
               );
             });
           promises.push(updateRemoteVersion);
         }
 
         return PersistencePromise.waitFor(promises)
-          .next(() => documentBuffer.apply(txn))
+          .next(() => documentBuffer.apply(txn, remoteVersion))
           .next(() => {
             return this.localDocuments.getLocalViewOfDocuments(
               txn,

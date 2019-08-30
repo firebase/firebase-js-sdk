@@ -255,7 +255,7 @@ function genericLruGarbageCollectorTests(
     const changeBuffer = documentCache.newChangeBuffer();
     return changeBuffer.getEntry(txn, doc.key).next(() => {
       changeBuffer.addEntry(doc);
-      return changeBuffer.apply(txn);
+      return changeBuffer.apply(txn, doc.version);
     });
   }
 
