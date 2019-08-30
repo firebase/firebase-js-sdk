@@ -132,12 +132,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     return remoteDocumentsStore(transaction)
       .get(dbKey(documentKey))
       .next(dbRemoteDoc => {
-        if (dbRemoteDoc) {
-          const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
-          return isSentinelDelete(doc) ? null : doc;
-        } else {
-          return null;
-        }
+        return this.maybeDecodeDocument(dbRemoteDoc);
       });
   }
 
@@ -154,10 +149,11 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     return remoteDocumentsStore(transaction)
       .get(dbKey(documentKey))
       .next(dbRemoteDoc => {
-        return dbRemoteDoc
+        const doc = this.maybeDecodeDocument(dbRemoteDoc);
+        return doc
           ? {
-              maybeDocument: this.serializer.fromDbRemoteDocument(dbRemoteDoc),
-              size: dbDocumentSize(dbRemoteDoc)
+              maybeDocument: doc,
+              size: dbDocumentSize(dbRemoteDoc!)
             }
           : null;
       });
@@ -172,14 +168,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       transaction,
       documentKeys,
       (key, dbRemoteDoc) => {
-        if (dbRemoteDoc) {
-          results = results.insert(
-            key,
-            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
-          );
-        } else {
-          results = results.insert(key, null);
-        }
+        const doc = this.maybeDecodeDocument(dbRemoteDoc);
+        results = results.insert(key, doc);
       }
     ).next(() => results);
   }
@@ -202,12 +192,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       transaction,
       documentKeys,
       (key, dbRemoteDoc) => {
-        if (dbRemoteDoc) {
-          results = results.insert(
-            key,
-            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
-          );
-          sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc));
+        const doc = this.maybeDecodeDocument(dbRemoteDoc);
+        if (doc) {
+          results = results.insert(key, doc);
+          sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc!));
         } else {
           results = results.insert(key, null);
           sizeMap = sizeMap.insert(key, 0);
@@ -388,6 +376,29 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   /**
+   * Decodes `remoteDoc` and returns the document (or null, if the
+   * document corresponds to the format used for sentinel deletes).
+   */
+  private maybeDecodeDocument(
+    dbRemoteDoc: DbRemoteDocument | null
+  ): MaybeDocument | null {
+    if (dbRemoteDoc) {
+      const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
+      if (
+        doc instanceof NoDocument &&
+        doc.version.isEqual(SnapshotVersion.forDeletedDoc())
+      ) {
+        // The document is a sentinel delete and should only be used
+        // in the change log.
+        return null;
+      }
+
+      return doc;
+    }
+    return null;
+  }
+
+  /**
    * Handles the details of adding and updating documents in the IndexedDbRemoteDocumentCache.
    *
    * Unlike the MemoryRemoteDocumentChangeBuffer, the IndexedDb implementation computes the size
@@ -535,15 +546,4 @@ export function dbDocumentSize(doc: DbRemoteDocument): number {
     throw fail('Unknown remote document type');
   }
   return JSON.stringify(value).length;
-}
-
-/**
- * Returns true if the entry corresponds to the sentinel format used
- * to track deletes.
- */
-function isSentinelDelete(doc: MaybeDocument): boolean {
-  return (
-    doc instanceof NoDocument &&
-    doc.version.isEqual(SnapshotVersion.forDeletedDoc())
-  );
 }
