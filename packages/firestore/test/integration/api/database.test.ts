@@ -541,59 +541,29 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  apiDescribe('onSnapshotsInSync listener', () => {
-    function createDocumentListener(
-      target: firestore.DocumentReference,
-      callback: (snapshot: firestore.DocumentSnapshot) => void
-    ): void {
-      target.onSnapshot(snap => {
-        callback(snap);
+  it('onSnapshotsInSync fires after listeners are in sync', () => {
+    const testDocs = {
+      a: { foo: 1 }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      let events: string[] = [];
+      let done = new Deferred<void>();
+      const doc = coll.doc('a');
+
+      doc.onSnapshot(snap => {
+        events.push('doc');
       });
-    }
-
-    function createQueryListener(
-      target: firestore.Query,
-      callback: (snapshot: firestore.QuerySnapshot) => void
-    ): void {
-      target.onSnapshot(snap => {
-        callback(snap);
+      onSnapshotsInSync(doc.firestore, () => {
+        events.push('snapshots-in-sync');
+        done.resolve();
       });
-    }
+      await done.promise;
+      done = new Deferred<void>();
+      events = [];
 
-    it('fires after local listeners fire', () => {
-      const testDocs = {
-        a: { foo: 1 }
-      };
-      return withTestCollection(persistence, testDocs, async coll => {
-        const events: string[] = [];
-        const done = new Deferred<void>();
-        const doc = coll.doc('a');
-
-        createDocumentListener(doc, snapshot => {
-          events.push('doc1');
-        });
-        createQueryListener(coll.where('foo', '>', 0), snapshot => {
-          events.push('query');
-        });
-        createDocumentListener(doc, snapshot => {
-          events.push('doc2');
-        });
-        onSnapshotsInSync(doc.firestore, () => {
-          events.push('snapshots-in-sync');
-          if (events.length === 5) {
-            expect(events).to.deep.equal([
-              'snapshots-in-sync',
-              'doc1',
-              'doc2',
-              'query',
-              'snapshots-in-sync'
-            ]);
-            done.resolve();
-          }
-        });
-
-        await done.promise;
-      });
+      await doc.set({ foo: 3 });
+      await done.promise;
+      expect(events).to.deep.equal(['doc', 'snapshots-in-sync']);
     });
   });
 

@@ -522,6 +522,7 @@ abstract class TestRunner {
     await this.queue.drain();
     this.validateStepExpectations(step.expect!);
     await this.validateStateExpectations(step.stateExpect!);
+    this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents!);
     this.eventList = [];
     this.rejectedDocs = [];
     this.acknowledgedDocs = [];
@@ -1007,13 +1008,6 @@ abstract class TestRunner {
       if ('isPrimary' in expectation) {
         expect(this.isPrimaryClient).to.eq(expectation.isPrimary!, 'isPrimary');
       }
-      if ('numSnapshotsInSyncEvents' in expectation) {
-        expect(this.snapshotsInSyncEvents).to.eq(
-          expectation.numSnapshotsInSyncEvents
-        );
-        // Reset count after checking so tests don't have to track state.
-        this.snapshotsInSyncEvents = 0;
-      }
       if ('isShutdown' in expectation) {
         expect(this.started).to.equal(!expectation.isShutdown);
       }
@@ -1045,6 +1039,11 @@ abstract class TestRunner {
       // active targets
       await this.validateActiveTargets();
     }
+  }
+
+  private validateSnapshotsInSyncEvents(count: number): void {
+    expect(this.snapshotsInSyncEvents).to.eq(count || 0);
+    this.snapshotsInSyncEvents = 0;
   }
 
   private validateLimboDocs(): void {
@@ -1442,6 +1441,12 @@ export interface SpecStep {
    * Optional dictionary of expected states.
    */
   stateExpect?: StateExpectation;
+
+  /**
+   * Optional expected number of onSnapshotsInSync callbacks to be called.
+   * If not provided, the test will fail if the step causes events to be raised.
+   */
+  expectedSnapshotsInSyncEvents?: number;
 }
 
 /** [<target-id>, <query-path>] */
@@ -1625,8 +1630,6 @@ export interface StateExpectation {
     acknowledgedDocs: string[];
     rejectedDocs: string[];
   };
-  /** Number of onSnapshotsInSync callbacks called. */
-  numSnapshotsInSyncEvents?: number;
 }
 
 async function clearCurrentPrimaryLease(): Promise<void> {
