@@ -135,7 +135,6 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
 
   /** Tracks the current User. */
   private currentUser: User = User.UNAUTHENTICATED;
-  private receivedInitialUser: boolean = false;
 
   /**
    * Counter used to detect if the token changed while a getToken request was
@@ -152,12 +151,12 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.tokenListener = () => {
       this.tokenCounter++;
       this.currentUser = this.getUser();
-      this.receivedInitialUser = true;
       if (this.changeListener) {
         this.changeListener(this.currentUser);
       }
     };
 
+    this.currentUser = this.getUser();
     this.tokenCounter = 0;
 
     // Will fire at least once where we set this.currentUser
@@ -211,10 +210,8 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     assert(!this.changeListener, 'Can only call setChangeListener() once.');
     this.changeListener = changeListener;
 
-    // Fire the initial event, but only if we received the initial user
-    if (this.receivedInitialUser) {
-      changeListener(this.currentUser);
-    }
+    // Fire the initial event
+    changeListener(this.currentUser);
   }
 
   removeChangeListener(): void {
