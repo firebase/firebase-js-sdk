@@ -55,15 +55,17 @@ fireauth.OAuthSignInHandler.prototype.initializeAndWait = function() {};
  * @param {?Window} popupWin The popup window reference.
  * @param {!fireauth.AuthEvent.Type} mode The Auth event type.
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
- * @param {!function()} onInitialize The function to call on initialization.
- * @param {!function(*)} onError The function to call on error.
+ * @param {function()} onInitialize The function to call on initialization.
+ * @param {function(*)} onError The function to call on error.
  * @param {string=} opt_eventId The optional event ID.
  * @param {boolean=} opt_alreadyRedirected Whether popup is already redirected
  *     to final destination.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @return {!goog.Promise} The popup window promise.
  */
-fireauth.OAuthSignInHandler.prototype.processPopup = function(popupWin, mode,
-    provider, onInitialize, onError, opt_eventId, opt_alreadyRedirected) {};
+fireauth.OAuthSignInHandler.prototype.processPopup =
+    function(popupWin, mode, provider, onInitialize, onError, opt_eventId,
+             opt_alreadyRedirected, opt_tenantId) {};
 
 
 /**
@@ -71,10 +73,11 @@ fireauth.OAuthSignInHandler.prototype.processPopup = function(popupWin, mode,
  * @param {!fireauth.AuthEvent.Type} mode The Auth event type.
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
  * @param {?string=} opt_eventId The optional event ID.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @return {!goog.Promise}
  */
 fireauth.OAuthSignInHandler.prototype.processRedirect =
-    function(mode, provider, opt_eventId) {};
+    function(mode, provider, opt_eventId, opt_tenantId) {};
 
 
 /**
