@@ -76,17 +76,14 @@ export class TestRemoteDocumentCache {
     return this.addEntries([maybeDocument], maybeDocument.version);
   }
 
-  removeEntry(
-    documentKey: DocumentKey,
-    readTime: SnapshotVersion
-  ): Promise<void> {
+  removeEntry(documentKey: DocumentKey): Promise<void> {
     return this.persistence.runTransaction(
       'removeEntry',
       'readwrite-primary',
       txn => {
-        const changeBuffer = this.newChangeBuffer({ trackRemovals: true });
+        const changeBuffer = this.newChangeBuffer();
         return changeBuffer.getEntry(txn, documentKey).next(() => {
-          changeBuffer.removeEntry(documentKey, readTime);
+          changeBuffer.removeEntry(documentKey);
           return changeBuffer.apply(txn);
         });
       }
@@ -131,9 +128,7 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  newChangeBuffer(options?: {
-    trackRemovals: boolean;
-  }): RemoteDocumentChangeBuffer {
-    return this.cache.newChangeBuffer(options);
+  newChangeBuffer(): RemoteDocumentChangeBuffer {
+    return this.cache.newChangeBuffer();
   }
 }
