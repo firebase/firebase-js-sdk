@@ -84,6 +84,7 @@ export abstract class RemoteDocumentChangeBuffer {
     );
     return this._readTime!;
   }
+  
   /**
    * Buffers a `RemoteDocumentCache.addEntry()` call.
    *
