@@ -167,6 +167,7 @@ class DelayedOperation<T extends unknown> implements CancelablePromise<T> {
   readonly [Symbol.toStringTag]: 'Promise';
   then = this.deferred.promise.then.bind(this.deferred.promise);
   catch = this.deferred.promise.catch.bind(this.deferred.promise);
+  finally = this.deferred.promise.finally.bind(this.deferred.promise);
 
   private handleDelayElapsed(): void {
     this.asyncQueue.enqueueAndForget(() => {
