@@ -488,10 +488,12 @@ fireauth.AuthEventManager.prototype.getRedirectResult = function() {
  * @param {string=} opt_eventId The optional event ID.
  * @param {boolean=} opt_alreadyRedirected Whether popup is already redirected
  *     to final destination.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @return {!goog.Promise} The popup window promise.
  */
 fireauth.AuthEventManager.prototype.processPopup =
-    function(popupWin, mode, provider, opt_eventId, opt_alreadyRedirected) {
+    function(popupWin, mode, provider, opt_eventId, opt_alreadyRedirected,
+             opt_tenantId) {
   var self = this;
   return this.oauthSignInHandler_.processPopup(
       popupWin,
@@ -510,7 +512,8 @@ fireauth.AuthEventManager.prototype.processPopup =
         self.reset();
       },
       opt_eventId,
-      opt_alreadyRedirected);
+      opt_alreadyRedirected,
+      opt_tenantId);
 };
 
 
@@ -534,10 +537,11 @@ fireauth.AuthEventManager.isCordovaFalsePositive_ = function(error) {
  * @param {!fireauth.AuthEvent.Type} mode The Auth event type.
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
  * @param {string=} opt_eventId The optional event ID.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @return {!goog.Promise}
  */
 fireauth.AuthEventManager.prototype.processRedirect =
-    function(mode, provider, opt_eventId) {
+    function(mode, provider, opt_eventId, opt_tenantId) {
   var self = this;
   var error;
   // Save pending status first.
@@ -545,7 +549,7 @@ fireauth.AuthEventManager.prototype.processRedirect =
     .then(function() {
       // Try to redirect.
       return self.oauthSignInHandler_.processRedirect(
-          mode, provider, opt_eventId)
+          mode, provider, opt_eventId, opt_tenantId)
         .thenCatch(function(e) {
           if (fireauth.AuthEventManager.isCordovaFalsePositive_(
               /** @type {?fireauth.AuthError} */ (e))) {
@@ -879,10 +883,11 @@ fireauth.RedirectAuthEventProcessor.prototype.processSuccessEvent_ =
   var requestUri = /** @type {string} */ (authEvent.getUrlResponse());
   var sessionId = /** @type {string} */ (authEvent.getSessionId());
   var postBody = /** @type {?string} */ (authEvent.getPostBody());
+  var tenantId = /** @type {?string} */ (authEvent.getTenantId());
   var isRedirect = fireauth.AuthEvent.isRedirect(authEvent);
   // Complete sign in or link account operation and then pass result to
   // relevant pending popup promise.
-  return handler(requestUri, sessionId, postBody)
+  return handler(requestUri, sessionId, tenantId, postBody)
       .then(function(popupRedirectResponse) {
     // Flow completed.
     // For a redirect operation resolve with the popupRedirectResponse,
@@ -1119,9 +1124,10 @@ fireauth.PopupAuthEventProcessor.prototype.processSuccessEvent_ =
   var requestUri = /** @type {string} */ (authEvent.getUrlResponse());
   var sessionId = /** @type {string} */ (authEvent.getSessionId());
   var postBody = /** @type {?string} */ (authEvent.getPostBody());
+  var tenantId = /** @type {?string} */ (authEvent.getTenantId());
   // Complete sign in or link account operation and then pass result to
   // relevant pending popup promise.
-  return handler(requestUri, sessionId, postBody)
+  return handler(requestUri, sessionId, tenantId, postBody)
       .then(function(popupRedirectResponse) {
     // Flow completed.
     // Resolve pending popup promise if it exists.
@@ -1176,8 +1182,8 @@ fireauth.AuthEventHandler.prototype.resolvePendingPopupEvent =
  * finisher.
  * @param {!fireauth.AuthEvent.Type} mode The Auth type mode.
  * @param {?string=} opt_eventId The optional event ID.
- * @return {?function(string,
- *     string, ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
+ * @return {?function(string, string, ?string,
+ *     ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.AuthEventHandler.prototype.getAuthEventHandlerFinisher =
     function(mode, opt_eventId) {};

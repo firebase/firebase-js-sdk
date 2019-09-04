@@ -8,6 +8,8 @@
   data from disk.
 - [changed] Improved performance for queries with filters that only return a
   small subset of the documents in a collection.
+- [fixed] Fixed a race condition between authenticating and initializing
+  Firestore that could result in initial writes to the database being dropped.
 
 # 1.4.10
 - [changed] Transactions now perform exponential backoff before retrying.

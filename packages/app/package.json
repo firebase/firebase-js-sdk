@@ -53,7 +53,7 @@
     "nyc": "14.1.1",
     "rollup": "1.20.3",
     "rollup-plugin-replace": "2.2.0",
-    "rollup-plugin-typescript2": "0.23.0",
+    "rollup-plugin-typescript2": "0.24.0",
     "rollup-plugin-json": "4.0.0",
     "sinon": "7.4.1",
     "source-map-loader": "0.2.4",

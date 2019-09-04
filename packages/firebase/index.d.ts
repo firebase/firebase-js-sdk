@@ -708,6 +708,26 @@ declare namespace firebase {
       actionCodeSettings?: firebase.auth.ActionCodeSettings | null
     ): Promise<void>;
     /**
+     * The current user's tenant ID. This is a read-only property, which indicates
+     * the tenant ID used to sign in the current user. This is null if the user is
+     * signed in from the parent project.
+     *
+     * @example
+     * ```javascript
+     * // Set the tenant ID on Auth instance.
+     * firebase.auth().tenantId = ‘TENANT_PROJECT_ID’;
+     *
+     * // All future sign-in request now include tenant ID.
+     * firebase.auth().signInWithEmailAndPassword(email, password)
+     *   .then(function(result) {
+     *     // result.user.tenantId should be ‘TENANT_PROJECT_ID’.
+     *   }).catch(function(error) {
+     *     // Handle error.
+     *   });
+     * ```
+     */
+    tenantId: string | null;
+    /**
      * Returns a JSON-serializable representation of this object.
      *
      * @return A JSON-serializable representation of this object.
@@ -1496,6 +1516,46 @@ declare namespace firebase.functions {
 }
 
 declare namespace firebase.auth {
+  /**
+   * A utility class to parse email action URLs.
+   */
+  class ActionCodeURL {
+    private constructor();
+    /**
+     * The API key of the email action link.
+     */
+    apiKey: string;
+    /**
+     * The action code of the email action link.
+     */
+    code: string;
+    /**
+     * The continue URL of the email action link. Null if not provided.
+     */
+    continueUrl: string | null;
+    /**
+     * The language code of the email action link. Null if not provided.
+     */
+    languageCode: string | null;
+    /**
+     * The action performed by the email action link. It returns from one
+     * of the types from {@link firebase.auth.ActionCodeInfo}.
+     */
+    operation: firebase.auth.ActionCodeInfo.Operation;
+    /**
+     * Parses the email action link string and returns an ActionCodeURL object
+     * if the link is valid, otherwise returns null.
+     *
+     * @param link The email action link string.
+     * @return The ActionCodeURL object, or null if the link is invalid.
+     */
+    static parseLink(link: string): firebase.auth.ActionCodeURL | null;
+    /**
+     * The tenant ID of the email action link. Null if the email action
+     * is from the parent project.
+     */
+    tenantId: string | null;
+  }
   /**
    * A response from {@link firebase.auth.Auth.checkActionCode}.
    */
@@ -2611,6 +2671,29 @@ declare namespace firebase.auth {
      */
     signOut(): Promise<void>;
     /**
+     * The current Auth instance's tenant ID. This is a readable/writable
+     * property. When you set the tenant ID of an Auth instance, all future
+     * sign-in/sign-up operations will pass this tenant ID and sign in or
+     * sign up users to the specified tenant project.
+     * When set to null, users are signed in to the parent project. By default,
+     * this is set to null.
+     *
+     * @example
+     * ```javascript
+     * // Set the tenant ID on Auth instance.
+     * firebase.auth().tenantId = ‘TENANT_PROJECT_ID’;
+     *
+     * // All future sign-in request now include tenant ID.
+     * firebase.auth().signInWithEmailAndPassword(email, password)
+     *   .then(function(result) {
+     *     // result.user.tenantId should be ‘TENANT_PROJECT_ID’.
+     *   }).catch(function(error) {
+     *     // Handle error.
+     *   });
+     * ```
+     */
+    tenantId: string | null;
+    /**
      * Asynchronously sets the provided user as `currentUser` on the current Auth
      * instance. A new instance copy of the user provided will be made and set as
      * `currentUser`.
@@ -2631,6 +2714,9 @@ declare namespace firebase.auth {
      * <dd>Thrown if the token of the user to be updated is expired.</dd>
      * <dt>auth/null-user</dt>
      * <dd>Thrown if the user to be updated is null.</dd>
+     * <dt>auth/tenant-id-mismatch</dt>
+     * <dd>Thrown if the provided user's tenant ID does not match the
+     *     underlying Auth instance's configured tenant ID</dd>
      * </dl>
      */
     updateCurrentUser(user: firebase.User | null): Promise<void>;
@@ -2847,6 +2933,8 @@ declare namespace firebase.auth {
    * <dt>auth/invalid-user-token</dt>
    * <dd>Thrown if the user's credential is no longer valid. The user must sign in
    *     again.</dd>
+   * <dt>auth/invalid-tenant-id</dt>
+   * <dd>Thrown if the tenant ID provided is invalid.</dd>
    * <dt>auth/network-request-failed</dt>
    * <dd>Thrown if a network error (such as timeout, interrupted connection or
    *     unreachable host) has occurred.</dd>
@@ -2887,6 +2975,73 @@ declare namespace firebase.auth {
      * Complete error message.
      */
     message: string;
+  }
+
+  /**
+   * The account conflict error.
+   * Refer to {@link firebase.auth.Auth.signInWithPopup} for more information.
+   *
+   * <h4>Common Error Codes</h4>
+   * <dl>
+   * <dt>auth/account-exists-with-different-credential</dt>
+   * <dd>Thrown if there already exists an account with the email address
+   *     asserted by the credential. Resolve this by calling
+   *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail} with the error.email
+   *     and then asking the user to sign in using one of the returned providers.
+   *     Once the user is signed in, the original credential retrieved from the
+   *     error.credential can be linked to the user with
+   *     {@link firebase.User.linkWithCredential} to prevent the user from signing
+   *     in again to the original provider via popup or redirect. If you are using
+   *     redirects for sign in, save the credential in session storage and then
+   *     retrieve on redirect and repopulate the credential using for example
+   *     {@link firebase.auth.GoogleAuthProvider.credential} depending on the
+   *     credential provider id and complete the link.</dd>
+   * <dt>auth/credential-already-in-use</dt>
+   * <dd>Thrown if the account corresponding to the credential already exists
+   *     among your users, or is already linked to a Firebase User.
+   *     For example, this error could be thrown if you are upgrading an anonymous
+   *     user to a Google user by linking a Google credential to it and the Google
+   *     credential used is already associated with an existing Firebase Google
+   *     user.
+   *     The fields <code>error.email</code>, <code>error.phoneNumber</code>, and
+   *     <code>error.credential</code> ({@link firebase.auth.AuthCredential})
+   *     may be provided, depending on the type of credential. You can recover
+   *     from this error by signing in with <code>error.credential</code> directly
+   *     via {@link firebase.auth.Auth.signInWithCredential}.</dd>
+   * <dt>auth/email-already-in-use</dt>
+   * <dd>Thrown if the email corresponding to the credential already exists
+   *     among your users. When thrown while linking a credential to an existing
+   *     user, an <code>error.email</code> and <code>error.credential</code>
+   *     ({@link firebase.auth.AuthCredential}) fields are also provided.
+   *     You have to link the credential to the existing user with that email if
+   *     you wish to continue signing in with that credential. To do so, call
+   *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail}, sign in to
+   *     <code>error.email</code> via one of the providers returned and then
+   *     {@link firebase.User.linkWithCredential} the original credential to that
+   *     newly signed in user.</dd>
+   * </dl>
+   */
+  interface AuthError extends firebase.auth.Error {
+    /**
+     * The {@link firebase.auth.AuthCredential} that can be used to resolve the
+     * error.
+     */
+    credential?: firebase.auth.AuthCredential;
+    /**
+     * The email of the user's account used for sign-in/linking.
+     */
+    email?: string;
+    /**
+     * The phone number of the user's account used for sign-in/linking.
+     */
+    phoneNumber?: string;
+    /**
+     * The tenant ID being used for sign-in/linking. If you use
+     * {@link firebase.auth.signInWithRedirect} to sign in, you have to
+     * set the tenant ID on Auth instanace again as the tenant ID is not
+     * persisted after redirection.
+     */
+    tenantId?: string;
   }
 
   /**
@@ -3574,6 +3729,31 @@ declare namespace firebase.auth.Auth {
      * to web only, and will be cleared when the tab is closed.
      */
     SESSION: Persistence;
+  };
+}
+
+declare namespace firebase.auth.ActionCodeInfo {
+  type Operation = string;
+  /**
+   * An enumeration of the possible email action types.
+   */
+  var Operation: {
+    /**
+     * The email link sign-in action.
+     */
+    EMAIL_SIGNIN: Operation;
+    /**
+     * The password reset action.
+     */
+    PASSWORD_RESET: Operation;
+    /**
+     * The email revocation action.
+     */
+    RECOVER_EMAIL: Operation;
+    /**
+     * The email verification action.
+     */
+    VERIFY_EMAIL: Operation;
   };
 }
 

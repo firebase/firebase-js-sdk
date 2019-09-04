@@ -30,35 +30,38 @@ goog.require('goog.crypt.base64');
  * @constructor
  */
 fireauth.IdToken = function(token) {
-  /** @private {string} The issuer of the token. */
+  /** @const @private {string} The issuer of the token. */
   this.iss_ = token['iss'];
-  /** @private {string} The audience of the token. */
+  /** @const @private {string} The audience of the token. */
   this.aud_ = token['aud'];
-  /** @private {number} The expire time in seconds of the token. */
+  /** @const @private {number} The expire time in seconds of the token. */
   this.exp_ = token['exp'];
-  /** @private {string} The local user ID of the token. */
+  /** @const @private {string} The local user ID of the token. */
   this.localId_ = token['sub'];
   var now = goog.now() / 1000;
-  /** @private {number} The issue time in seconds of the token. */
+  /** @const @private {number} The issue time in seconds of the token. */
   this.iat_ = token['iat'] || (now > this.exp_ ? this.exp_ : now);
-  /** @private {?string} The email address of the token. */
+  /** @const @private {?string} The email address of the token. */
   this.email_ = token['email'] || null;
-  /** @private {boolean} Whether the user is verified. */
+  /** @const @private {boolean} Whether the user is verified. */
   this.verified_ = !!token['verified'];
-  /** @private {?string} The provider ID of the token. */
+  /** @const @private {?string} The provider ID of the token. */
   this.providerId_ = token['provider_id'] ||
       (token['firebase'] && token['firebase']['sign_in_provider']) ||
       null;
-  /** @private {boolean} Whether the user is anonymous. */
+  /** @const @private {?string} The tenant ID of the token. */
+  this.tenantId_ = (token['firebase'] && token['firebase']['tenant']) || null;
+  /** @const @private {boolean} Whether the user is anonymous. */
   this.anonymous_ = !!token['is_anonymous'] || this.providerId_ == 'anonymous';
-  /** @private {?string} The federated ID of the token. */
+  /** @const @private {?string} The federated ID of the token. */
   this.federatedId_ = token['federated_id'] || null;
-  /** @private {?string} The display name of the token. */
+  /** @const @private {?string} The display name of the token. */
   this.displayName_ = token['display_name'] || null;
-  /** @private {?string} The photo URL of the token. */
+  /** @const @private {?string} The photo URL of the token. */
   this.photoURL_ = token['photo_url'] || null;
   /**
-   * @private {?string} The phone number of the user identified by the token.
+   * @const @private {?string} The phone number of the user identified by the
+   *     token.
    */
   this.phoneNumber_ = token['phone_number'] || null;
 };
@@ -67,7 +70,8 @@ fireauth.IdToken = function(token) {
 /**
  * @typedef {{
  *   identities: (?Object|undefined),
- *   sign_in_provider: (?string|undefined)
+ *   sign_in_provider: (?string|undefined),
+ *   tenant: (string|undefined)
  * }}
  */
 fireauth.IdToken.Firebase;
@@ -109,6 +113,12 @@ fireauth.IdToken.prototype.getExp = function() {
 /** @return {?string} The ID of the identity provider. */
 fireauth.IdToken.prototype.getProviderId = function() {
   return this.providerId_;
+};
+
+
+/** @return {?string} The tenant ID. */
+fireauth.IdToken.prototype.getTenantId = function() {
+  return this.tenantId_;
 };
 
 

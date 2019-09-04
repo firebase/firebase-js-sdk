@@ -34,12 +34,14 @@ var state3;
 var state4;
 var state5;
 var state6;
+var state7;
 var stateObject;
 var stateObject2;
 var stateObject3;
 var stateObject4;
 var stateObject5;
 var stateObject6;
+var stateObject7;
 
 
 function setUp() {
@@ -107,6 +109,22 @@ function setUp() {
       null,
       null,
       'SHA_1_ANDROID_CERT');
+  // State with tenant ID.
+  state7 = new fireauth.OAuthHelperState(
+      'API_KEY',
+      'APP_NAME',
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
+      null,
+      'http://www.example.com/redirect',
+      '3.0.0',
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      'TENANT_ID');
   stateObject = {
     'apiKey': 'API_KEY',
     'appName': 'APP_NAME',
@@ -120,7 +138,8 @@ function setUp() {
     'eid': null,
     'fw': [],
     'clientId': null,
-    'sha1Cert': null
+    'sha1Cert': null,
+    'tenantId': null
   };
   stateObject2 = {
     'apiKey': 'API_KEY',
@@ -135,7 +154,8 @@ function setUp() {
     'eid': null,
     'fw': [],
     'clientId': null,
-    'sha1Cert': null
+    'sha1Cert': null,
+    'tenantId': null
   };
   stateObject3 = {
     'apiKey': 'API_KEY',
@@ -150,7 +170,8 @@ function setUp() {
     'eid': 't',
     'fw': ['firebaseui', 'angularfire'],
     'clientId': null,
-    'sha1Cert': null
+    'sha1Cert': null,
+    'tenantId': null
   };
   stateObject4 = {
     'apiKey': 'API_KEY',
@@ -165,7 +186,8 @@ function setUp() {
     'eid': 's',
     'fw': [],
     'clientId': null,
-    'sha1Cert': null
+    'sha1Cert': null,
+    'tenantId': null
   };
   stateObject5 = {
     'apiKey': 'API_KEY',
@@ -180,7 +202,8 @@ function setUp() {
     'eid': null,
     'fw': [],
     'clientId': '123456.apps.googleusercontent.com',
-    'sha1Cert': null
+    'sha1Cert': null,
+    'tenantId': null
   };
   stateObject6 = {
     'apiKey': 'API_KEY',
@@ -195,7 +218,24 @@ function setUp() {
     'eid': null,
     'fw': [],
     'clientId': null,
-    'sha1Cert': 'SHA_1_ANDROID_CERT'
+    'sha1Cert': 'SHA_1_ANDROID_CERT',
+    'tenantId': null
+  };
+  stateObject7 = {
+    'apiKey': 'API_KEY',
+    'appName': 'APP_NAME',
+    'type': fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
+    'redirectUrl': 'http://www.example.com/redirect',
+    'eventId': null,
+    'clientVersion': '3.0.0',
+    'displayName': null,
+    'apn': null,
+    'ibi': null,
+    'eid': null,
+    'fw': [],
+    'clientId': null,
+    'sha1Cert': null,
+    'tenantId': 'TENANT_ID'
   };
 }
 
@@ -207,12 +247,14 @@ function tearDown() {
   state4 = null;
   state5 = null;
   state6 = null;
+  state7 = null;
   stateObject = null;
   stateObject2 = null;
   stateObject3 = null;
   stateObject4 = null;
   stateObject5 = null;
   stateObject6 = null;
+  stateObject7 = null;
 }
 
 
@@ -272,6 +314,21 @@ function testOAuthHelperState() {
   assertArrayEquals([], state4.getFrameworks());
   assertNull(state6.getClientId());
   assertEquals('SHA_1_ANDROID_CERT', state6.getSha1Cert());
+  // Check state7.
+  assertEquals('API_KEY', state7.getApiKey());
+  assertEquals('APP_NAME', state7.getAppName());
+  assertEquals(fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT, state7.getType());
+  assertEquals('http://www.example.com/redirect', state7.getRedirectUrl());
+  assertEquals('3.0.0', state7.getClientVersion());
+  assertNull(state7.getEventId());
+  assertNull(state7.getDisplayName());
+  assertNull(state7.getApn());
+  assertNull(state7.getIbi());
+  assertNull(state7.getEndpointId());
+  assertArrayEquals([], state7.getFrameworks());
+  assertNull(state7.getClientId());
+  assertNull(state7.getSha1Cert());
+  assertEquals('TENANT_ID', state7.getTenantId());
 }
 
 
@@ -294,6 +351,9 @@ function testOAuthHelperState_toPlainObject() {
   assertObjectEquals(
       stateObject6,
       state6.toPlainObject());
+  assertObjectEquals(
+      stateObject7,
+      state7.toPlainObject());
 }
 
 
@@ -316,5 +376,8 @@ function testOAuthHelperState_fromPlainObject() {
   assertObjectEquals(
       state6,
       fireauth.OAuthHelperState.fromPlainObject(stateObject6));
+  assertObjectEquals(
+      state7,
+      fireauth.OAuthHelperState.fromPlainObject(stateObject7));
   assertNull(fireauth.OAuthHelperState.fromPlainObject({}));
 }

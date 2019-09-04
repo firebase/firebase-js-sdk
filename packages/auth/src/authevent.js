@@ -34,11 +34,12 @@ goog.require('fireauth.authenum.Error');
  *     fixation attacks.
  * @param {?fireauth.AuthError=} opt_error The optional error encountered.
  * @param {?string=} opt_postBody The optional POST body.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @constructor
  */
 fireauth.AuthEvent = function(
     type, opt_eventId, opt_urlResponse, opt_sessionId, opt_error,
-    opt_postBody) {
+    opt_postBody, opt_tenantId) {
   /** @const @private {!fireauth.AuthEvent.Type} The Auth event type. */
   this.type_ = type;
   /** @const @private {?string} The Auth event ID. */
@@ -49,6 +50,8 @@ fireauth.AuthEvent = function(
   this.sessionId_ = opt_sessionId || null;
   /** @const @private {?string} The POST body string if available. */
   this.postBody_ = opt_postBody || null;
+  /** @const @private {?string} The tenant ID if available. */
+  this.tenantId_ = opt_tenantId || null;
   /**
    * @const @private {?fireauth.AuthError} The Auth event error if available.
    */
@@ -153,6 +156,12 @@ fireauth.AuthEvent.prototype.getPostBody = function() {
 };
 
 
+/** @return {?string} The tenant ID of the Auth event, if available. */
+fireauth.AuthEvent.prototype.getTenantId = function() {
+  return this.tenantId_;
+};
+
+
 /** @return {?fireauth.AuthError} The error of Auth event. */
 fireauth.AuthEvent.prototype.getError = function() {
   return this.error_;
@@ -173,6 +182,7 @@ fireauth.AuthEvent.prototype.toPlainObject = function() {
     'urlResponse': this.urlResponse_,
     'sessionId': this.sessionId_,
     'postBody': this.postBody_,
+    'tenantId': this.tenantId_,
     'error': this.error_ && this.error_.toPlainObject()
   };
 };
@@ -192,7 +202,8 @@ fireauth.AuthEvent.fromPlainObject = function(rawResponse) {
         response['sessionId'],
         response['error'] &&
             fireauth.AuthError.fromPlainObject(response['error']),
-        response['postBody']
+        response['postBody'],
+        response['tenantId']
         );
   }
   return null;

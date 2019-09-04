@@ -154,6 +154,7 @@ fireauth.authenum.Error = {
   INVALID_RECIPIENT_EMAIL: 'invalid-recipient-email',
   INVALID_SENDER: 'invalid-sender',
   INVALID_SESSION_INFO: 'invalid-verification-id',
+  INVALID_TENANT_ID: 'invalid-tenant-id',
   MISSING_ANDROID_PACKAGE_NAME: 'missing-android-pkg-name',
   MISSING_APP_CREDENTIAL: 'missing-app-credential',
   MISSING_AUTH_DOMAIN: 'auth-domain-config-required',
@@ -179,11 +180,13 @@ fireauth.authenum.Error = {
   REDIRECT_CANCELLED_BY_USER: 'redirect-cancelled-by-user',
   REDIRECT_OPERATION_PENDING: 'redirect-operation-pending',
   REJECTED_CREDENTIAL: 'rejected-credential',
+  TENANT_ID_MISMATCH: 'tenant-id-mismatch',
   TIMEOUT: 'timeout',
   TOKEN_EXPIRED: 'user-token-expired',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'too-many-requests',
   UNAUTHORIZED_DOMAIN: 'unauthorized-continue-uri',
   UNSUPPORTED_PERSISTENCE: 'unsupported-persistence-type',
+  UNSUPPORTED_TENANT_OPERATION: 'unsupported-tenant-operation',
   USER_CANCELLED: 'user-cancelled',
   USER_DELETED: 'user-not-found',
   USER_DISABLED: 'user-disabled',
@@ -317,6 +320,8 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_SENDER] =
     'ion in the Firebase Console.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_SESSION_INFO] =
     'The verification ID used to create the phone auth credential is invalid.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_TENANT_ID] =
+    'The Auth instance\'s tenant ID is invalid.';
 fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.MISSING_ANDROID_PACKAGE_NAME] = 'An Android ' +
     'Package Name must be provided if the Android App is required to be ' +
@@ -383,6 +388,8 @@ fireauth.AuthError.MESSAGES_[
     'A redirect sign-in operation is already pending.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.REJECTED_CREDENTIAL] =
     'The request contains malformed or mismatching credentials.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TENANT_ID_MISMATCH] =
+    'The provided tenant ID does not match the Auth instance\'s tenant ID';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TIMEOUT] =
     'The operation has timed out.';
 fireauth.AuthError.MESSAGES_[
@@ -397,6 +404,9 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNAUTHORIZED_DOMAIN] =
     'the domain in the Firebase console.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNSUPPORTED_PERSISTENCE] =
     'The current environment does not support the specified persistence type.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION] =
+    'This operation is not supported in a multi-tenant context.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_CANCELLED] =
     'User did not grant your application the permissions it requested.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_DELETED] =
