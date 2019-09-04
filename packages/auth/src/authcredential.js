@@ -36,7 +36,8 @@ goog.provide('fireauth.SAMLAuthCredential');
 goog.provide('fireauth.SAMLAuthProvider');
 goog.provide('fireauth.TwitterAuthProvider');
 
-goog.require('fireauth.ActionCodeUrl');
+goog.require('fireauth.ActionCodeInfo');
+goog.require('fireauth.ActionCodeURL');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.DynamicLink');
 goog.require('fireauth.IdToken');
@@ -987,28 +988,29 @@ fireauth.EmailAuthProvider.credential = function(email, password) {
  * @return {!fireauth.EmailAuthCredential} The Auth credential object.
  */
 fireauth.EmailAuthProvider.credentialWithLink = function(email, emailLink) {
-  var code = fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink);
-  if (!code) {
+  var actionCodeUrl = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink);
+  if (!actionCodeUrl) {
     throw new fireauth.AuthError(
         fireauth.authenum.Error.ARGUMENT_ERROR, 'Invalid email link!');
   }
-  return new fireauth.EmailAuthCredential(email, code,
+  return new fireauth.EmailAuthCredential(email, actionCodeUrl['code'],
       fireauth.EmailAuthProvider['EMAIL_LINK_SIGN_IN_METHOD']);
 };
 
 
 /**
  * @param {string} emailLink The sign in email link to be validated.
- * @return {?string} Action code if the email link is valid, otherwise null.
+ * @return {?fireauth.ActionCodeURL} The sign in email link action code URL.
+ *     Returns null if the email link is invalid.
  */
-fireauth.EmailAuthProvider.getActionCodeFromSignInEmailLink =
+fireauth.EmailAuthProvider.getActionCodeUrlFromSignInEmailLink =
     function(emailLink) {
   emailLink = fireauth.DynamicLink.parseDeepLink(emailLink);
-  var actionCodeUrl = new fireauth.ActionCodeUrl(emailLink);
-  var code = actionCodeUrl.getCode();
-  if (actionCodeUrl.getMode() === fireauth.ActionCodeUrl.Mode.SIGN_IN && code) {
-    return code;
+  var actionCodeUrl = fireauth.ActionCodeURL.parseLink(emailLink);
+  if (actionCodeUrl && actionCodeUrl['operation'] ===
+      fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN) {
+    return actionCodeUrl;
   }
   return null;
 };

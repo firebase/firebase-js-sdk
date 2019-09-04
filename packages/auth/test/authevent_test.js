@@ -59,13 +59,30 @@ function setUp() {
       null,
       null,
       new fireauth.AuthError(fireauth.authenum.Error.INTERNAL_ERROR));
+  authEvent3 = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
+      null,
+      'http://www.example.com/#oauthResponse',
+      'SESSION_ID',
+      null,
+      null,
+      'TENANT_ID');
+  authEvent4 = new fireauth.AuthEvent(
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP,
+      '12345678',
+      'http://www.example.com/#oauthResponse',
+      'SESSION_ID',
+      null,
+      null,
+      'TENANT_ID');
   authEventObject = {
     'type': 'signInViaPopup',
     'eventId': null,
     'urlResponse': 'http://www.example.com/#oauthResponse',
     'sessionId': 'SESSION_ID',
     'error': null,
-    'postBody': 'POST_BODY'
+    'postBody': 'POST_BODY',
+    'tenantId': null
   };
   authEventObject2 = {
     'type': 'signInViaRedirect',
@@ -77,7 +94,26 @@ function setUp() {
           fireauth.authenum.Error.INTERNAL_ERROR,
       'message': 'An internal error has occurred.'
     },
-    'postBody': null
+    'postBody': null,
+    'tenantId': null
+  };
+  authEventObject3 = {
+    'type': 'signInViaRedirect',
+    'eventId': null,
+    'urlResponse': 'http://www.example.com/#oauthResponse',
+    'sessionId': 'SESSION_ID',
+    'error': null,
+    'postBody': null,
+    'tenantId': 'TENANT_ID'
+  };
+  authEventObject4 = {
+    'type': 'signInViaPopup',
+    'eventId': '12345678',
+    'urlResponse': 'http://www.example.com/#oauthResponse',
+    'sessionId': 'SESSION_ID',
+    'error': null,
+    'postBody': null,
+    'tenantId': 'TENANT_ID'
   };
 }
 
@@ -245,6 +281,24 @@ function testAuthEvent() {
   assertTrue(authEvent2.hasError());
   assertNull(authEvent2.getPostBody());
   assertEquals('signInViaRedirect-12345678', authEvent2.getUid());
+
+  assertEquals(
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_REDIRECT,
+      authEvent3.getType());
+  assertNull(authEvent3.getEventId());
+  assertNull(authEvent3.getError());
+  assertFalse(authEvent3.hasError());
+  assertNull(authEvent3.getPostBody());
+  assertEquals('TENANT_ID', authEvent3.getTenantId());
+
+  assertEquals(
+      fireauth.AuthEvent.Type.SIGN_IN_VIA_POPUP,
+      authEvent4.getType());
+  assertEquals('12345678', authEvent4.getEventId());
+  assertNull(authEvent4.getError());
+  assertFalse(authEvent4.hasError());
+  assertNull(authEvent4.getPostBody());
+  assertEquals('TENANT_ID', authEvent4.getTenantId());
 }
 
 
@@ -255,6 +309,12 @@ function testAuthEvent_toPlainObject() {
   assertObjectEquals(
       authEventObject2,
       authEvent2.toPlainObject());
+  assertObjectEquals(
+      authEventObject3,
+      authEvent3.toPlainObject());
+  assertObjectEquals(
+      authEventObject4,
+      authEvent4.toPlainObject());
 }
 
 
@@ -265,5 +325,11 @@ function testAuthEvent_fromPlainObject() {
   assertObjectEquals(
       authEvent2,
       fireauth.AuthEvent.fromPlainObject(authEventObject2));
+  assertObjectEquals(
+      authEvent3,
+      fireauth.AuthEvent.fromPlainObject(authEventObject3));
+  assertObjectEquals(
+      authEvent4,
+      fireauth.AuthEvent.fromPlainObject(authEventObject4));
   assertNull(fireauth.AuthEvent.fromPlainObject({}));
 }

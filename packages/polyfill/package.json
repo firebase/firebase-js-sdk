@@ -22,7 +22,7 @@
   },
   "devDependencies": {
     "rollup": "1.20.3",
-    "rollup-plugin-typescript2": "0.23.0"
+    "rollup-plugin-typescript2": "0.24.0"
   },
   "repository": {
     "directory": "packages/polyfill",

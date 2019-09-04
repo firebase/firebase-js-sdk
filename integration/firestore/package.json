@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@types/mocha": "5.2.7",
-    "@types/node": "11.13.19",
+    "@types/node": "11.13.20",
     "gulp": "4.0.2",
     "gulp-filter": "5.1.0",
     "gulp-replace": "1.0.0",

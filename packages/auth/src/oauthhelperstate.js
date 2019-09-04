@@ -40,38 +40,41 @@ goog.require('fireauth.AuthEvent');
  * @param {?Array<string>=} opt_frameworks The optional list of framework IDs.
  * @param {?string=} opt_clientId The optional OAuth client ID.
  * @param {?string=} opt_sha1Cert The optional SHA-1 hash of Android cert.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @constructor
  */
 fireauth.OAuthHelperState = function(
     apiKey, appName, type, opt_eventId, opt_redirectUrl, opt_clientVersion,
     opt_displayName, opt_apn, opt_ibi, opt_eid, opt_frameworks, opt_clientId,
-    opt_sha1Cert) {
-  /** @private {string} The API key. */
+    opt_sha1Cert, opt_tenantId) {
+  /** @const @private {string} The API key. */
   this.apiKey_ = apiKey;
-  /** @private {string} The App name. */
+  /** @const @private {string} The App name. */
   this.appName_ = appName;
-  /** @private {!fireauth.AuthEvent.Type} The OAuth helper mode. */
+  /** @const @private {!fireauth.AuthEvent.Type} The OAuth helper mode. */
   this.type_ = type;
-  /** @private {?string} The event identifier. */
+  /** @const @private {?string} The event identifier. */
   this.eventId_ = opt_eventId || null;
-  /** @private {?string} The redirect URL for redirect mode. */
+  /** @const @private {?string} The redirect URL for redirect mode. */
   this.redirectUrl_ = opt_redirectUrl || null;
-  /** @private {?string} The client version. */
+  /** @const @private {?string} The client version. */
   this.clientVersion_ = opt_clientVersion || null;
-  /** @private {?string} The application display name. */
+  /** @const @private {?string} The application display name. */
   this.displayName_ = opt_displayName || null;
-  /** @private {?string} The Android package name. */
+  /** @const @private {?string} The Android package name. */
   this.apn_ = opt_apn || null;
-  /** @private {?string} The iOS bundle ID. */
+  /** @const @private {?string} The iOS bundle ID. */
   this.ibi_ = opt_ibi || null;
-  /** @private {?string} The endpoint ID. */
+  /** @const @private {?string} The endpoint ID. */
   this.eid_ = opt_eid || null;
-  /** @private {!Array<string>} The list of framework IDs. */
+  /** @const @private {!Array<string>} The list of framework IDs. */
   this.frameworks_ = opt_frameworks || [];
-  /** @private {?string} The OAuth client ID. */
+  /** @const @private {?string} The OAuth client ID. */
   this.clientId_ = opt_clientId || null;
-  /** @private {?string} The SHA-1 hash of Android cert. */
+  /** @const @private {?string} The SHA-1 hash of Android cert. */
   this.sha1Cert_ = opt_sha1Cert || null;
+  /** @const @private {?string} The tenant ID. */
+  this.tenantId_ = opt_tenantId || null;
 };
 
 
@@ -147,6 +150,12 @@ fireauth.OAuthHelperState.prototype.getEndpointId = function() {
 };
 
 
+/** @return {?string} The tenant ID. */
+fireauth.OAuthHelperState.prototype.getTenantId = function() {
+  return this.tenantId_;
+};
+
+
 /** @return {!Array<string>} The list of framework IDs. */
 fireauth.OAuthHelperState.prototype.getFrameworks = function() {
   return this.frameworks_;
@@ -168,7 +177,8 @@ fireauth.OAuthHelperState.prototype.toPlainObject = function() {
     'eid': this.eid_,
     'fw': this.frameworks_,
     'clientId': this.clientId_,
-    'sha1Cert': this.sha1Cert_
+    'sha1Cert': this.sha1Cert_,
+    'tenantId': this.tenantId_
   };
 };
 
@@ -195,7 +205,8 @@ fireauth.OAuthHelperState.fromPlainObject = function(rawResponse) {
         response['eid'],
         response['fw'],
         response['clientId'],
-        response['sha1Cert']);
+        response['sha1Cert'],
+        response['tenantId']);
   }
   return null;
 };

@@ -839,6 +839,103 @@ function testCordovaHandler_processRedirect_success_android() {
 }
 
 
+function testCordovaHandler_processRedirect_success_android_tenantId() {
+  return installAndRunTest(
+      'processRedirect_success_android_tenantId', function() {
+    var tenantId = '123456789012';
+    var provider = new fireauth.GoogleAuthProvider();
+    // Construct OAuth handler URL.
+    var expectedUrl =
+        fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+            authDomain,
+            apiKey,
+            appName,
+            'linkViaRedirect',
+            provider,
+            null,
+            '1234',
+            version,
+            {
+              apn: 'com.example.app',
+              appDisplayName: 'Test App',
+              sessionId: sha256('11111111111111111111')
+            },
+            // Confirm expected endpoint ID passed.
+            fireauth.constants.Endpoint.STAGING.id,
+            tenantId);
+    // Stub this so the session ID generated can be predictable.
+    stubs.replace(
+        Math,
+        'random',
+        function() {
+          return 0;
+        });
+    // Simulate Android environment.
+    stubs.replace(
+        fireauth.util,
+        'getUserAgentString',
+        function() {
+          return androidUA;
+        });
+    var incomingUrl =
+        'http://example.firebaseapp.com/__/auth/callback#oauthResponse';
+    // Completed event.
+    var completeEvent = new fireauth.AuthEvent(
+        'linkViaRedirect',
+        '1234',
+        'http://example.firebaseapp.com/__/auth/callback#oauthResponse',
+        '11111111111111111111',
+        null,
+        null,
+        tenantId);
+    // Initial unknown event.
+    var noEvent = new fireauth.AuthEvent(
+        fireauth.AuthEvent.Type.UNKNOWN,
+        null,
+        null,
+        null,
+        new fireauth.AuthError(fireauth.authenum.Error.NO_AUTH_EVENT));
+    var savedCb = null;
+    // Save the universal link callback on subscription.
+    universalLinks.subscribe = function(eventType, cb) {
+      savedCb = cb;
+    };
+    cordova.plugins.browsertab.openUrl = function(url) {
+      // Confirm expected URL.
+      assertEquals(expectedUrl, url);
+      // On openUrl, simulate completion by triggering the universal link
+      // callback with the OAuth response.
+      savedCb({url: incomingUrl});
+    };
+    var handler = goog.testing.recordFunction();
+    cordovaHandler = new fireauth.CordovaHandler(
+        authDomain, apiKey, appName, version, 10, undefined,
+        fireauth.constants.Endpoint.STAGING.id);
+    cordovaHandler.addAuthEventListener(handler);
+    return cordovaHandler.processRedirect(
+        'linkViaRedirect', provider, '1234', tenantId)
+        .then(function() {
+          // Confirm browsertab close called.
+          assertEquals(1, cordova.plugins.browsertab.close.getCallCount());
+          // Handler triggered twice.
+          assertEquals(2, handler.getCallCount());
+          // First with no event.
+          assertAuthEventEquals(
+              noEvent,
+              handler.getCalls()[0].getArgument(0));
+          // Then with resolved event.
+          assertAuthEventEquals(
+              completeEvent,
+              handler.getLastCall().getArgument(0));
+          // Confirm event deleted from storage.
+          return getAndDeletePartialEventManager.getAuthEvent();
+        }).then(function(event) {
+          assertNull(event);
+        });
+  });
+}
+
+
 function testCordovaHandler_processRedirect_success_parallelCalls() {
   return installAndRunTest('processRedirect_success_parallelCalls', function() {
     var provider = new fireauth.GoogleAuthProvider();
@@ -988,6 +1085,169 @@ function testCordovaHandler_processRedirect_success_parallelCalls() {
 }
 
 
+function testCordovaHandler_processRedirect_success_parallelCalls_tenantId() {
+  return installAndRunTest(
+      'processRedirect_success_parallelCalls_tenantId', function() {
+    var tenantId1 = '123456789012';
+    var tenantId2 = '987654321098';
+    var provider = new fireauth.GoogleAuthProvider();
+    // Construct OAuth handler URL for first operation.
+    var expectedUrl =
+        fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+            authDomain,
+            apiKey,
+            appName,
+            'linkViaRedirect',
+            provider,
+            null,
+            '1234',
+            version,
+            {
+              apn: 'com.example.app',
+              appDisplayName: 'Test App',
+              sessionId: sha256('11111111111111111111')
+            },
+            null,
+            tenantId1);
+    // Construct OAuth handler URL for second operation.
+    var expectedUrl2 =
+        fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+            authDomain,
+            apiKey,
+            appName,
+            'linkViaRedirect',
+            provider,
+            null,
+            '5678',
+            version,
+            {
+              apn: 'com.example.app',
+              appDisplayName: 'Test App',
+              sessionId: sha256('11111111111111111111')
+            },
+            null,
+            tenantId2);
+    // Stub this so the session ID generated can be predictable.
+    stubs.replace(
+        Math,
+        'random',
+        function() {
+          return 0;
+        });
+    // Simulate Android environment.
+    stubs.replace(
+        fireauth.util,
+        'getUserAgentString',
+        function() {
+          return androidUA;
+        });
+    var expectedError = new fireauth.AuthError(
+        fireauth.authenum.Error.REDIRECT_OPERATION_PENDING);
+    var incomingUrl =
+        'http://example.firebaseapp.com/__/auth/callback#oauthResponse';
+    // Completed event for first completed call.
+    var completeEvent = new fireauth.AuthEvent(
+        'linkViaRedirect',
+        '1234',
+        'http://example.firebaseapp.com/__/auth/callback#oauthResponse',
+        '11111111111111111111',
+        null,
+        null,
+        tenantId1);
+    // Completed event for second completed call.
+    var completeEvent2 = new fireauth.AuthEvent(
+        'linkViaRedirect',
+        '5678',
+        'http://example.firebaseapp.com/__/auth/callback#oauthResponse',
+        '11111111111111111111',
+        null,
+        null,
+        tenantId2);
+    // Initial unknown event.
+    var noEvent = new fireauth.AuthEvent(
+        fireauth.AuthEvent.Type.UNKNOWN,
+        null,
+        null,
+        null,
+        new fireauth.AuthError(fireauth.authenum.Error.NO_AUTH_EVENT));
+    var savedCb = null;
+    // Save the universal link callback on subscription.
+    universalLinks.subscribe = function(eventType, cb) {
+      savedCb = cb;
+    };
+    var openUrlCalls = 0;
+    cordova.plugins.browsertab.openUrl = function(url) {
+      openUrlCalls++;
+      // Confirm expected URL on each completed call.
+      if (openUrlCalls == 1) {
+        // First operation expected URL.
+        assertEquals(expectedUrl, url);
+      } else {
+        // Second operation expected URL.
+        assertEquals(expectedUrl2, url);
+      }
+      // On openUrl, simulate completion by triggering the universal link
+      // callback with the OAuth response.
+      savedCb({url: incomingUrl});
+    };
+    var handler = goog.testing.recordFunction();
+    cordovaHandler = new fireauth.CordovaHandler(
+        authDomain, apiKey, appName, version, 10);
+    cordovaHandler.addAuthEventListener(handler);
+    var successiveCallResult = null;
+    var p = cordovaHandler.processRedirect(
+        'linkViaRedirect', provider, '1234', tenantId1)
+        .then(function() {
+          // Confirm browsertab close called.
+          assertEquals(1, cordova.plugins.browsertab.close.getCallCount());
+          // The other parallel operation should have failed with the expected
+          // error.
+          assertErrorEquals(expectedError, successiveCallResult);
+          // Handler triggered twice.
+          assertEquals(2, handler.getCallCount());
+          // First with no event.
+          assertAuthEventEquals(
+              noEvent,
+              handler.getCalls()[0].getArgument(0));
+          // Then with resolved event.
+          assertAuthEventEquals(
+              completeEvent,
+              handler.getLastCall().getArgument(0));
+          // Confirm event deleted from storage.
+          return getAndDeletePartialEventManager.getAuthEvent();
+        }).then(function(event) {
+          assertNull(event);
+          // Trigger again. As the operation already completed, this should
+          // eventually succeed too.
+          return cordovaHandler.processRedirect(
+              'linkViaRedirect', provider, '5678', tenantId2);
+        }).then(function() {
+          // Confirm browsertab close called again.
+          assertEquals(2, cordova.plugins.browsertab.close.getCallCount());
+          // Handler triggered thrice.
+          assertEquals(3, handler.getCallCount());
+          // Last call should have resolved event with the second event.
+          assertAuthEventEquals(
+              completeEvent2,
+              handler.getLastCall().getArgument(0));
+          // Confirm event deleted from storage.
+          return getAndDeletePartialEventManager.getAuthEvent();
+        }).then(function(event) {
+          assertNull(event);
+        });
+    // This should fail as there is a pending operation already.
+    cordovaHandler.processRedirect('linkViaRedirect', provider, '5678')
+        .thenCatch(function(error) {
+          // Confirm browsertab close not called.
+          assertEquals(0, cordova.plugins.browsertab.close.getCallCount());
+          // Save the pending redirect error.
+          successiveCallResult = error;
+        });
+    return p;
+  });
+}
+
+
 function testCordovaHandler_processRedirect_success_ios() {
   return installAndRunTest('processRedirect_success_ios', function() {
     var provider = new fireauth.GoogleAuthProvider();
@@ -1055,6 +1315,103 @@ function testCordovaHandler_processRedirect_success_ios() {
         authDomain, apiKey, appName, version, 10);
     cordovaHandler.addAuthEventListener(handler);
     return cordovaHandler.processRedirect('linkViaRedirect', provider, '1234')
+        .then(function() {
+          // Confirm browsertab close called.
+          assertEquals(1, cordova.plugins.browsertab.close.getCallCount());
+          // Handler triggered twice.
+          assertEquals(2, handler.getCallCount());
+          // First with no event.
+          assertAuthEventEquals(
+              noEvent,
+              handler.getCalls()[0].getArgument(0));
+          // Then with resolved event.
+          assertAuthEventEquals(
+              completeEvent,
+              handler.getLastCall().getArgument(0));
+          // Confirm event deleted from storage.
+          return getAndDeletePartialEventManager.getAuthEvent();
+        }).then(function(event) {
+          assertNull(event);
+        });
+  });
+}
+
+
+function testCordovaHandler_processRedirect_success_ios_tenantId() {
+  return installAndRunTest(
+      'processRedirect_success_ios_tenantId', function() {
+    var tenantId = '123456789012';
+    var provider = new fireauth.GoogleAuthProvider();
+    // Construct OAuth handler URL.
+    var expectedUrl =
+        fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+            authDomain,
+            apiKey,
+            appName,
+            'linkViaRedirect',
+            provider,
+            null,
+            '1234',
+            version,
+            {
+              ibi: 'com.example.app',
+              appDisplayName: 'Test App',
+              sessionId: sha256('11111111111111111111')
+            },
+            null,
+            tenantId);
+    // Stub this so the session ID generated can be predictable.
+    stubs.replace(
+        Math,
+        'random',
+        function() {
+          return 0;
+        });
+    // Simulate iOS environment.
+    stubs.replace(
+        fireauth.util,
+        'getUserAgentString',
+        function() {
+          return iOS9iPhoneUA;
+        });
+    var incomingUrl =
+        'http://example.firebaseapp.com/__/auth/callback#oauthResponse';
+    // Completed event.
+    var completeEvent = new fireauth.AuthEvent(
+        'linkViaRedirect',
+        '1234',
+        'http://example.firebaseapp.com/__/auth/callback#oauthResponse',
+        '11111111111111111111',
+        null,
+        null,
+        tenantId);
+    // Initial no event.
+    var noEvent = new fireauth.AuthEvent(
+        fireauth.AuthEvent.Type.UNKNOWN,
+        null,
+        null,
+        null,
+        new fireauth.AuthError(fireauth.authenum.Error.NO_AUTH_EVENT));
+    var savedCb = null;
+    // Save the universal link callback on subscription.
+    universalLinks.subscribe = function(eventType, cb) {
+      savedCb = cb;
+    };
+    cordova.plugins.browsertab.openUrl = function(url) {
+      // Confirm expected URL.
+      assertEquals(expectedUrl, url);
+      // On openUrl, simulate completion by triggering the universal link
+      // callback with the OAuth response.
+      // This is currently not the default behavior but will be supported in the
+      // future.
+      savedCb({url: incomingUrl});
+    };
+    var handler = goog.testing.recordFunction();
+    cordovaHandler = new fireauth.CordovaHandler(
+        authDomain, apiKey, appName, version, 10);
+    cordovaHandler.addAuthEventListener(handler);
+    return cordovaHandler.processRedirect(
+        'linkViaRedirect', provider, '1234', tenantId)
         .then(function() {
           // Confirm browsertab close called.
           assertEquals(1, cordova.plugins.browsertab.close.getCallCount());
@@ -1146,6 +1503,105 @@ function testCordovaHandler_processRedirect_success_ios_custom() {
         authDomain, apiKey, appName, version, 10);
     cordovaHandler.addAuthEventListener(handler);
     return cordovaHandler.processRedirect('linkViaRedirect', provider, '1234')
+        .then(function() {
+          // Confirm browsertab close called.
+          assertEquals(1, cordova.plugins.browsertab.close.getCallCount());
+          // Handler triggered twice.
+          assertEquals(2, handler.getCallCount());
+          // First with no event.
+          assertAuthEventEquals(
+              noEvent,
+              handler.getCalls()[0].getArgument(0));
+          // Then with resolved event.
+          assertAuthEventEquals(
+              completeEvent,
+              handler.getLastCall().getArgument(0));
+          // Confirm event deleted from storage.
+          return getAndDeletePartialEventManager.getAuthEvent();
+        }).then(function(event) {
+          assertNull(event);
+        });
+  });
+}
+
+
+function testCordovaHandler_processRedirect_success_ios_custom_tenantId() {
+  return installAndRunTest(
+      'processRedirect_success_ios_custom_tenantId', function() {
+    var tenantId = '123456789012';
+    var provider = new fireauth.GoogleAuthProvider();
+    // Construct OAuth handler URL.
+    var expectedUrl =
+        fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+            authDomain,
+            apiKey,
+            appName,
+            'linkViaRedirect',
+            provider,
+            null,
+            '1234',
+            version,
+            {
+              ibi: 'com.example.app',
+              appDisplayName: 'Test App',
+              sessionId: sha256('11111111111111111111')
+            },
+            null,
+            tenantId);
+    // Stub this so the session ID generated can be predictable.
+    stubs.replace(
+        Math,
+        'random',
+        function() {
+          return 0;
+        });
+    // Simulate iOS environment.
+    stubs.replace(
+        fireauth.util,
+        'getUserAgentString',
+        function() {
+          // Even though this is iOS9, custom scheme redirects can still be
+          // used.
+          return iOS9iPhoneUA;
+        });
+    // Valid custom scheme URL.
+    var incomingUrl = 'com.example.app://google/link?deep_link_id=' +
+        encodeURIComponent(
+            'http://example.firebaseapp.com/__/auth/callback#oauthResponse');
+    // Completed event.
+    var completeEvent = new fireauth.AuthEvent(
+        'linkViaRedirect',
+        '1234',
+        'http://example.firebaseapp.com/__/auth/callback#oauthResponse',
+        '11111111111111111111',
+        null,
+        null,
+        tenantId);
+    // Initial no event.
+    var noEvent = new fireauth.AuthEvent(
+        fireauth.AuthEvent.Type.UNKNOWN,
+        null,
+        null,
+        null,
+        new fireauth.AuthError(fireauth.authenum.Error.NO_AUTH_EVENT));
+    // Save the universal link callback on subscription.
+    universalLinks.subscribe = function(eventType, cb) {
+      // Not used.
+    };
+    cordova.plugins.browsertab.openUrl = function(url) {
+      // browsertab available in iOS 9+.
+      // Confirm expected URL.
+      assertEquals(expectedUrl, url);
+      // On openUrl, simulate completion by triggering the custom scheme
+      // redirect callback with the OAuth response.
+      goog.global['handleOpenURL'](incomingUrl);
+    };
+    var handler = goog.testing.recordFunction();
+    cordovaHandler = new fireauth.CordovaHandler(
+        authDomain, apiKey, appName, version, 10);
+    cordovaHandler.addAuthEventListener(handler);
+    return cordovaHandler.processRedirect(
+        'linkViaRedirect', provider, '1234', tenantId)
         .then(function() {
           // Confirm browsertab close called.
           assertEquals(1, cordova.plugins.browsertab.close.getCallCount());
@@ -1347,6 +1803,117 @@ function testCordovaHandler_processRedirect_browserTabUnavailable() {
         authDomain, apiKey, appName, version, 10);
     cordovaHandler.addAuthEventListener(handler);
     return cordovaHandler.processRedirect('linkViaRedirect', provider, '1234')
+        .then(function() {
+          // Handler triggered twice.
+          assertEquals(2, handler.getCallCount());
+          // First with no event.
+          assertAuthEventEquals(
+              noEvent,
+              handler.getCalls()[0].getArgument(0));
+          // Then with resolved event.
+          assertAuthEventEquals(
+              completeEvent,
+              handler.getLastCall().getArgument(0));
+          // Confirm event deleted from storage.
+          return getAndDeletePartialEventManager.getAuthEvent();
+        }).then(function(event) {
+          assertNull(event);
+        });
+  });
+}
+
+
+function testCordovaHandler_processRedirect_browserTabUnavailable_tenantId() {
+  return installAndRunTest('processRedirect_browserTabUnavailable', function() {
+    // Test when browser tab is not available, inappbrowser should be used and
+    // a system browser opened.
+    var tenantId = '123456789012';
+    var provider = new fireauth.GoogleAuthProvider();
+    // Construct OAuth handler URL.
+    var expectedUrl =
+        fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+            authDomain,
+            apiKey,
+            appName,
+            'linkViaRedirect',
+            provider,
+            null,
+            '1234',
+            version,
+            {
+              apn: 'com.example.app',
+              appDisplayName: 'Test App',
+              sessionId: sha256('11111111111111111111')
+            },
+            null,
+            tenantId);
+    // Stub this so the session ID generated can be predictable.
+    stubs.replace(
+        Math,
+        'random',
+        function() {
+          return 0;
+        });
+    // Simulate Android environment.
+    stubs.replace(
+        fireauth.util,
+        'getUserAgentString',
+        function() {
+          return androidUA;
+        });
+    var incomingUrl =
+        'http://example.firebaseapp.com/__/auth/callback#oauthResponse';
+    // Completed event.
+    var completeEvent = new fireauth.AuthEvent(
+        'linkViaRedirect',
+        '1234',
+        'http://example.firebaseapp.com/__/auth/callback#oauthResponse',
+        '11111111111111111111',
+        null,
+        null,
+        tenantId);
+    // Initial unknown event.
+    var noEvent = new fireauth.AuthEvent(
+        fireauth.AuthEvent.Type.UNKNOWN,
+        null,
+        null,
+        null,
+        new fireauth.AuthError(fireauth.authenum.Error.NO_AUTH_EVENT));
+    var savedCb = null;
+    var expectedInAppBrowserType = '_system';
+    var expectedInAppBrowserOptions = 'location=yes';
+    // Save the universal link callback on subscription.
+    universalLinks.subscribe = function(eventType, cb) {
+      savedCb = cb;
+    };
+    // Simulate browser tab not available.
+    cordova.plugins.browsertab.isAvailable = function(cb) {
+      cb(false);
+    };
+    // Should not be called.
+    cordova.plugins.browsertab.openUrl = function(url) {
+      fail('browsertab.openUrl should not call!');
+    };
+    // InAppBrowser opener should be called as browsertab is unavailable.
+    cordova.InAppBrowser.open = function(url, type, options) {
+      // Confirm expected URL.
+      assertEquals(expectedUrl, url);
+      // Confirm system browser used as this is Android.
+      assertEquals(expectedInAppBrowserType, type);
+      // Confirm expected options.
+      assertEquals(expectedInAppBrowserOptions, options);
+      // On openUrl, simulate completion by triggering the universal link
+      // callback with the OAuth response.
+      savedCb({url: incomingUrl});
+      // Cannot close a system browser.
+      return null;
+    };
+    var handler = goog.testing.recordFunction();
+    cordovaHandler = new fireauth.CordovaHandler(
+        authDomain, apiKey, appName, version, 10);
+    cordovaHandler.addAuthEventListener(handler);
+    return cordovaHandler.processRedirect(
+        'linkViaRedirect', provider, '1234', tenantId)
         .then(function() {
           // Handler triggered twice.
           assertEquals(2, handler.getCallCount());
