@@ -821,8 +821,8 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
   });
 
   it('can get recent document changes in a collection', async () => {
-    const oldDocPaths = ['coll/doc1', 'coll/doc2', 'ignored/doc1'];
-    const newDocPaths = ['coll/doc3', 'coll/doc4', 'ignored/doc2'];
+    const oldDocPaths = ['coll/doc1', 'coll/doc2', 'abc/doc1'];
+    const newDocPaths = ['coll/doc3', 'coll/doc4', 'abc/doc2'];
 
     await withDb(9, db => {
       const sdb = new SimpleDb(db);

@@ -49,6 +49,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -276,7 +277,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
       (key: DocumentKey) => {
         return this.isReferenced(txn, key).next(isReferenced => {
           if (!isReferenced) {
-            changeBuffer.removeEntry(key);
+            changeBuffer.removeEntry(key, SnapshotVersion.forDeletedDoc());
           }
         });
       }
@@ -416,7 +417,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
       return this.isPinned(txn, key, upperBound).next(isPinned => {
         if (!isPinned) {
           count++;
-          changeBuffer.removeEntry(key);
+          changeBuffer.removeEntry(key, SnapshotVersion.forDeletedDoc());
         }
       });
     });

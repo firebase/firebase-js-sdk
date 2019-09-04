@@ -535,7 +535,7 @@ export class LocalStore {
                 // NoDocuments with SnapshotVersion.MIN are used in manufactured events (e.g. in the
                 // case of a limbo document resolution failing). We remove these documents from cache
                 // since we lost access.
-                documentBuffer.removeEntry(key);
+                documentBuffer.removeEntry(key, remoteVersion);
                 changedDocs = changedDocs.insert(key, doc);
               } else {
                 log.debug(

@@ -442,7 +442,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         if (maybeDocument) {
           const doc = this.documentCache.serializer.toDbRemoteDocument(
             maybeDocument,
-            this.readTime!
+            this.readTime
           );
           const size = dbDocumentSize(doc);
           sizeDelta += size - previousSize!;
@@ -456,7 +456,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             // preserved in `getNewDocumentChanges()`.
             const deletedDoc = this.documentCache.serializer.toDbRemoteDocument(
               new NoDocument(key, SnapshotVersion.forDeletedDoc()),
-              this.readTime!
+              this.readTime
             );
             promises.push(
               this.documentCache.addEntry(transaction, key, deletedDoc)

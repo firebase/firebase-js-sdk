@@ -48,7 +48,7 @@ export abstract class RemoteDocumentChangeBuffer {
   > = new ObjectMap(key => key.toString());
 
   // The read time to use for all added documents in this change buffer.
-  protected readTime: SnapshotVersion | undefined;
+  private _readTime: SnapshotVersion | undefined;
 
   private changesApplied = false;
 
@@ -66,6 +66,24 @@ export abstract class RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction
   ): PersistencePromise<void>;
 
+  protected set readTime(value: SnapshotVersion) {
+    // Right now (for simplicity) we just track a single readTime for all the
+    // added entries since we expect them to all be the same, but we could
+    // rework to store per-entry readTimes if necessary.
+    assert(
+      this._readTime === undefined || this._readTime.isEqual(value),
+      'All changes in a RemoteDocumentChangeBuffer must have the same read time'
+    );
+    this._readTime = value;
+  }
+
+  protected get readTime(): SnapshotVersion {
+    assert(
+      this._readTime !== undefined,
+      'Read time is not set. Did you call addEntry/removeEntry?'
+    );
+    return this._readTime!;
+  }
   /**
    * Buffers a `RemoteDocumentCache.addEntry()` call.
    *
@@ -74,15 +92,6 @@ export abstract class RemoteDocumentChangeBuffer {
    */
   addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
     this.assertNotApplied();
-
-    // Right now (for simplicity) we just track a single readTime for all the
-    // added entries since we expect them to all be the same, but we could
-    // rework to store per-entry readTimes if necessary.
-    assert(
-      this.readTime === undefined || this.readTime.isEqual(readTime),
-      'All changes in a RemoteDocumentChangeBuffer must have the same read time'
-    );
-
     this.readTime = readTime;
     this.changes.set(maybeDocument.key, maybeDocument);
   }
@@ -93,8 +102,9 @@ export abstract class RemoteDocumentChangeBuffer {
    * You can only remove documents that have already been retrieved via
    * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
    */
-  removeEntry(key: DocumentKey): void {
+  removeEntry(key: DocumentKey, readTime: SnapshotVersion): void {
     this.assertNotApplied();
+    this.readTime = readTime;
     this.changes.set(key, null);
   }
 
