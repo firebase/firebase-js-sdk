@@ -308,7 +308,7 @@ export class DbTimestamp {
 }
 
 /** A timestamp type that can be used in IndexedDb keys. */
-export type DbTimestampKey = number[];
+export type DbTimestampKey = [/* seconds */ number, /* nanos */ number];
 
 // The key for the singleton object in the DbPrimaryClient is a single string.
 export type DbPrimaryClientKey = typeof DbPrimaryClient.key;
@@ -610,7 +610,7 @@ export class DbRemoteDocument {
    * An index that provides access to documents in a collection sorted by read
    * time.
    *
-   * This index is used to allow Index-Free queries to fetch newly changed
+   * This index is used to allow the RemoteDocumentCache to fetch newly changed
    * documents in a collection.
    */
   static collectionReadTimeIndex = 'collectionReadTimeIndex';
@@ -642,11 +642,17 @@ export class DbRemoteDocument {
      */
     public hasCommittedMutations: boolean | undefined,
 
-    /** When the document was read from the backend. */
+    /**
+     * When the document was read from the backend. Undefined for data written
+     * prior to schema version 9.
+     */
     public readTime: DbTimestampKey | undefined,
 
-    /** The path of the collection this document is part of. */
-    public parentPath: string | undefined
+    /**
+     * The path of the collection this document is part of. Undefined for data
+     * written prior to schema version 9.
+     */
+    public parentPath: string[] | undefined
   ) {}
 }
 

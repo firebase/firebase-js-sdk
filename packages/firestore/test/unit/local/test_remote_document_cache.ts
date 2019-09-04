@@ -61,18 +61,23 @@ export class TestRemoteDocumentCache {
             changeBuffer.getEntry(txn, maybeDocument.key).next(() => {})
         ).next(() => {
           for (const maybeDocument of maybeDocuments) {
-            changeBuffer.addEntry(maybeDocument);
+            changeBuffer.addEntry(maybeDocument, readTime);
           }
-          return changeBuffer.apply(txn, readTime);
+          return changeBuffer.apply(txn);
         });
       }
     );
   }
 
-  removeEntry(
-    documentKey: DocumentKey,
-    readTime: SnapshotVersion
-  ): Promise<void> {
+  /**
+   * Adds a single document using the document's version as its read time.
+   * Reads the document first to track the document size internally.
+   */
+  addEntry(maybeDocument: MaybeDocument): Promise<void> {
+    return this.addEntries([maybeDocument], maybeDocument.version);
+  }
+
+  removeEntry(documentKey: DocumentKey): Promise<void> {
     return this.persistence.runTransaction(
       'removeEntry',
       'readwrite-primary',
@@ -80,7 +85,7 @@ export class TestRemoteDocumentCache {
         const changeBuffer = this.newChangeBuffer();
         return changeBuffer.getEntry(txn, documentKey).next(() => {
           changeBuffer.removeEntry(documentKey);
-          return changeBuffer.apply(txn, readTime);
+          return changeBuffer.apply(txn);
         });
       }
     );

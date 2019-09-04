@@ -254,8 +254,8 @@ function genericLruGarbageCollectorTests(
   ): PersistencePromise<void> {
     const changeBuffer = documentCache.newChangeBuffer();
     return changeBuffer.getEntry(txn, doc.key).next(() => {
-      changeBuffer.addEntry(doc);
-      return changeBuffer.apply(txn, doc.version);
+      changeBuffer.addEntry(doc, doc.version);
+      return changeBuffer.apply(txn);
     });
   }
 

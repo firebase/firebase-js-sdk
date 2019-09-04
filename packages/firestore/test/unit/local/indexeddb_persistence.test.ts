@@ -52,7 +52,7 @@ import {
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { ClientId } from '../../../src/local/shared_client_state';
-import { SimpleDb } from '../../../src/local/simple_db';
+import { SimpleDb, SimpleDbTransaction } from '../../../src/local/simple_db';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { firestoreV1ApiClientInterfaces } from '../../../src/protos/firestore_proto_api';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
@@ -173,6 +173,24 @@ function getAllObjectStores(db: IDBDatabase): string[] {
   }
   objectStores.sort();
   return objectStores;
+}
+
+function addDocs(
+  txn: SimpleDbTransaction,
+  keys: string[],
+  version: number
+): PersistencePromise<void> {
+  const remoteDocumentStore = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
+    DbRemoteDocument.store
+  );
+  return PersistencePromise.forEach(keys, (key: string) => {
+    const remoteDoc = doc(key, version, { data: 'foo' });
+    const dbRemoteDoc = TEST_SERIALIZER.toDbRemoteDocument(
+      remoteDoc,
+      remoteDoc.version
+    );
+    return remoteDocumentStore.put(remoteDoc.key.path.toArray(), dbRemoteDoc);
+  });
 }
 
 describe('IndexedDbSchema: createOrUpgradeDb', () => {
@@ -758,59 +776,70 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       });
     });
 
-    // Migrate to v8 and verify that new documents are indexed.
+    // Migrate to v9 and verify that new documents are indexed.
     await withDb(9, db => {
       const sdb = new SimpleDb(db);
       return sdb.runTransaction('readwrite', V8_STORES, txn => {
-        const remoteDocumentStore = txn.store<
-          DbRemoteDocumentKey,
-          DbRemoteDocument
-        >(DbRemoteDocument.store);
-
         // Verify the existing remote document entries.
-        return PersistencePromise.forEach(existingDocPaths, (path: string) => {
-          const remoteDoc = doc(path, /*version=*/ 1, { data: 1 });
+        return addDocs(txn, existingDocPaths, /* version= */ 1).next(() =>
+          addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
+            const remoteDocumentStore = txn.store<
+              DbRemoteDocumentKey,
+              DbRemoteDocument
+            >(DbRemoteDocument.store);
 
-          return remoteDocumentStore
-            .get(remoteDoc.key.path.toArray())
-            .next(value => {
-              expect(value).to.be.not.null;
-            });
-        })
-          .next(() => {
-            // Add new entries, which will be added to the index.
-            return PersistencePromise.forEach(newDocPaths, (path: string) => {
-              const remoteDoc = doc(path, /*version=*/ 2, { data: 1 });
-              const dbRemoteDoc = TEST_SERIALIZER.toDbRemoteDocument(
-                remoteDoc,
-                remoteDoc.version
-              );
-              return remoteDocumentStore.put(
-                remoteDoc.key.path.toArray(),
-                dbRemoteDoc
-              );
-            });
-          })
-          .next(() => {
-            // Verify that we can get recent changes in a collection filtered by read time.
-            const docsRead: string[] = [];
-            const lastReadTime = TEST_SERIALIZER.toDbTimestampKey(version(0));
+            // Verify that we can get recent changes in a collection filtered by
+            // read time.
+            const lastReadTime = TEST_SERIALIZER.toDbTimestampKey(version(1));
             const range = IDBKeyRange.lowerBound(
-              ['coll2', ...lastReadTime],
+              [['coll2'], lastReadTime],
               true
             );
             return remoteDocumentStore
-              .iterate(
-                { index: DbRemoteDocument.collectionReadTimeIndex, range },
-                (_, dbRemoteDoc) => {
-                  const doc = TEST_SERIALIZER.fromDbRemoteDocument(dbRemoteDoc);
-                  docsRead.push(doc.key.path.toString());
-                }
-              )
-              .next(() => {
-                expect(docsRead).to.have.members(['coll2/doc3', 'coll2/doc4']);
+              .loadAll(DbRemoteDocument.collectionReadTimeIndex, range)
+              .next(docsRead => {
+                const keys = docsRead.map(dbDoc => dbDoc.document!.name);
+                expect(keys).to.have.members([
+                  'projects/test-project/databases/(default)/documents/coll2/doc3',
+                  'projects/test-project/databases/(default)/documents/coll2/doc4'
+                ]);
               });
-          });
+          })
+        );
+      });
+    });
+  });
+
+  it('RemoteDocumentCache can filter documents by read time', async () => {
+    const oldDocPaths = ['coll/doc1', 'coll/doc2'];
+    const newDocPaths = ['coll/doc3', 'coll/doc4'];
+
+    await withDb(9, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
+        return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
+          addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
+            const remoteDocumentStore = txn.store<
+              DbRemoteDocumentKey,
+              DbRemoteDocument
+            >(DbRemoteDocument.store);
+
+            const lastReadTime = TEST_SERIALIZER.toDbTimestampKey(version(1));
+            const range = IDBKeyRange.lowerBound(
+              [['coll'], lastReadTime],
+              true
+            );
+            return remoteDocumentStore
+              .loadAll(DbRemoteDocument.collectionReadTimeIndex, range)
+              .next(docsRead => {
+                const keys = docsRead.map(dbDoc => dbDoc.document!.name);
+                expect(keys).to.have.members([
+                  'projects/test-project/databases/(default)/documents/coll/doc3',
+                  'projects/test-project/databases/(default)/documents/coll/doc4'
+                ]);
+              });
+          })
+        );
       });
     });
   });

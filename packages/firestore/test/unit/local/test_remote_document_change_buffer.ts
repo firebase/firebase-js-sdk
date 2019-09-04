@@ -31,8 +31,8 @@ export class TestRemoteDocumentChangeBuffer {
     public buffer: RemoteDocumentChangeBuffer
   ) {}
 
-  addEntry(maybeDocument: MaybeDocument): void {
-    this.buffer.addEntry(maybeDocument);
+  addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
+    this.buffer.addEntry(maybeDocument, readTime);
   }
 
   removeEntry(key: DocumentKey): void {
@@ -50,7 +50,7 @@ export class TestRemoteDocumentChangeBuffer {
       'apply',
       'readwrite-primary',
       txn => {
-        return this.buffer.apply(txn, SnapshotVersion.forDeletedDoc());
+        return this.buffer.apply(txn);
       }
     );
   }
