@@ -138,10 +138,13 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 9 && toVersion >= 9) {
       p = p.next(() => {
+<<<<<<< HEAD
         // Multi-Tab used to manage its own changelog, but this has been moved
         // to the DbRemoteDocument object store itself. Since the previous change
         // log only contained transient data, we can drop its object store.
         dropRemoteDocumentChangesStore(db);
+=======
+>>>>>>> b4d70ace... Index-Free: Track readTime in the RemoteDocument store (#2125)
         createRemoteDocumentReadTimeIndex(txn);
       });
     }
@@ -610,6 +613,7 @@ export class DbRemoteDocument {
   static store = 'remoteDocuments';
 
   /**
+<<<<<<< HEAD
    * An index that provides access to all entries sorted by read time (which
    * corresponds to the last modification time of each row).
    *
@@ -620,6 +624,8 @@ export class DbRemoteDocument {
   static readTimeIndexPath = 'readTime';
 
   /**
+=======
+>>>>>>> b4d70ace... Index-Free: Track readTime in the RemoteDocument store (#2125)
    * An index that provides access to documents in a collection sorted by read
    * time.
    *
@@ -990,6 +996,19 @@ function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
     DbRemoteDocument.readTimeIndexPath,
     { unique: false }
   );
+  remoteDocumentStore.createIndex(
+    DbRemoteDocument.collectionReadTimeIndex,
+    DbRemoteDocument.collectionReadTimeIndexPath,
+    { unique: false }
+  );
+}
+
+/**
+ * Creates indices on the RemoteDocuments store used for both multi-tab
+ * and Index-Free queries.
+ */
+function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
+  const remoteDocumentStore = txn.objectStore(DbRemoteDocument.store);
   remoteDocumentStore.createIndex(
     DbRemoteDocument.collectionReadTimeIndex,
     DbRemoteDocument.collectionReadTimeIndexPath,

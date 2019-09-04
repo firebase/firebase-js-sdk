@@ -450,9 +450,13 @@ export class LocalStore {
    * queue.
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
+<<<<<<< HEAD
     const documentBuffer = this.remoteDocuments.newChangeBuffer({
       createSentinelDocumentsToTrackDeletes: true
     });
+=======
+    const documentBuffer = this.remoteDocuments.newChangeBuffer();
+>>>>>>> b4d70ace... Index-Free: Track readTime in the RemoteDocument store (#2125)
     const remoteVersion = remoteEvent.snapshotVersion;
     return this.persistence.runTransaction(
       'Apply remote event',
