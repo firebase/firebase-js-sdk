@@ -23,7 +23,8 @@ export interface Rejecter {
   (reason?: Error): void;
 }
 
-export interface CancelablePromise<T> extends Pick<Promise<T>, Exclude<keyof Promise<T>, 'finally'>> {
+export interface CancelablePromise<T>
+  extends Pick<Promise<T>, Exclude<keyof Promise<T>, 'finally'>> {
   cancel(): void;
 }
 
