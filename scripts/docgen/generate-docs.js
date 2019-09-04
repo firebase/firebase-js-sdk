@@ -138,12 +138,25 @@ function checkForMissingFilesAndFixFilenameCase() {
   const filenames = tocText
     .split('\n')
     .filter(line => line.includes('path:'))
-    .map(line => line.split(devsitePath)[1]);
+    .map(line => {
+      const parts = line.split(devsitePath);
+      if (parts[1]) {
+        return parts[1];
+      }
+      return { line };
+    });
   // Logs warning to console if a file from TOC is not found.
   const fileCheckPromises = filenames.map(filename => {
     // Warns if file does not exist, fixes filename case if it does.
     // Preferred filename for devsite should be capitalized and taken from
     // toc.yaml.
+    if (!filename) {
+      return Promise.resolve();
+    } else if (filename && filename.line) {
+      console.warn(`Unable to parse filename from toc.yaml line:\n${filename.line}`
+      + `\nPath may be incorrect.\n`);
+      return Promise.resolve();
+    }
     const tocFilePath = `${docPath}/${filename}.html`;
     // Generated filename from Typedoc will be lowercase.
     const generatedFilePath = `${docPath}/${filename.toLowerCase()}.html`;
