@@ -16,6 +16,8 @@
  */
 
 import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
@@ -28,7 +30,10 @@ import {
 } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+<<<<<<< HEAD
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+=======
+>>>>>>> ea391a2d... Sort some imports
 
 /**
  * A wrapper around a RemoteDocumentCache that automatically creates a
