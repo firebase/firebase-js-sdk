@@ -353,7 +353,7 @@ export class LocalStore {
           .next(() =>
             this.applyWriteToRemoteDocuments(txn, batchResult, documentBuffer)
           )
-          .next(() => documentBuffer.apply(txn, batchResult.commitVersion))
+          .next(() => documentBuffer.apply(txn))
           .next(() => this.mutationQueue.performConsistencyCheck(txn))
           .next(() => this.localDocuments.getDocuments(txn, affected));
       }
@@ -526,7 +526,7 @@ export class LocalStore {
                 (doc.version.compareTo(existingDoc.version) === 0 &&
                   existingDoc.hasPendingWrites)
               ) {
-                documentBuffer.addEntry(doc);
+                documentBuffer.addEntry(doc, remoteVersion);
                 changedDocs = changedDocs.insert(key, doc);
               } else if (
                 doc instanceof NoDocument &&
@@ -586,7 +586,7 @@ export class LocalStore {
         }
 
         return PersistencePromise.waitFor(promises)
-          .next(() => documentBuffer.apply(txn, remoteVersion))
+          .next(() => documentBuffer.apply(txn))
           .next(() => {
             return this.localDocuments.getLocalViewOfDocuments(
               txn,
@@ -867,7 +867,10 @@ export class LocalStore {
                   ' resulted in null'
               );
             } else {
-              documentBuffer.addEntry(doc);
+              // We use the commitVersion as the readTime rather than the
+              // document's updateTime since the updateTime is not advanced
+              // for updates that do not modify the underlying document.
+              documentBuffer.addEntry(doc, batchResult.commitVersion);
             }
           }
         });

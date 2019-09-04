@@ -424,8 +424,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     }
 
     protected applyChanges(
-      transaction: PersistenceTransaction,
-      readTime: SnapshotVersion
+      transaction: PersistenceTransaction
     ): PersistencePromise<void> {
       const promises: Array<PersistencePromise<void>> = [];
 
@@ -440,7 +439,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         if (maybeDocument) {
           const doc = this.documentCache.serializer.toDbRemoteDocument(
             maybeDocument,
-            readTime
+            this.readTime!
           );
           const size = dbDocumentSize(doc);
           sizeDelta += size - previousSize!;

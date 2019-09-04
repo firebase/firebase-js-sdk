@@ -76,7 +76,7 @@ export class LocalSerializer {
     readTime: SnapshotVersion
   ): DbRemoteDocument {
     const dbReadTime = this.toDbTimestampKey(readTime);
-    const parentPath = maybeDoc.key.path.popLast().canonicalString();
+    const parentPath = maybeDoc.key.path.popLast().toArray();
     if (maybeDoc instanceof Document) {
       const doc = maybeDoc.proto
         ? maybeDoc.proto
@@ -114,7 +114,7 @@ export class LocalSerializer {
         parentPath
       );
     } else {
-      return fail('Unexpected MaybeDocumment');
+      return fail('Unexpected MaybeDocument');
     }
   }
 

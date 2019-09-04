@@ -47,6 +47,8 @@ export abstract class RemoteDocumentChangeBuffer {
     MaybeDocument | null
   > = new ObjectMap(key => key.toString());
 
+  protected readTime: SnapshotVersion | undefined;
+
   private changesApplied = false;
 
   protected abstract getFromCache(
@@ -60,8 +62,7 @@ export abstract class RemoteDocumentChangeBuffer {
   ): PersistencePromise<NullableMaybeDocumentMap>;
 
   protected abstract applyChanges(
-    transaction: PersistenceTransaction,
-    readTime: SnapshotVersion
+    transaction: PersistenceTransaction
   ): PersistencePromise<void>;
 
   /**
@@ -70,8 +71,17 @@ export abstract class RemoteDocumentChangeBuffer {
    * You can only modify documents that have already been retrieved via
    * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
    */
-  addEntry(maybeDocument: MaybeDocument): void {
+  addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
     this.assertNotApplied();
+
+    // Assert that every read time matches since we only track a single read
+    // time per document change set.
+    assert(
+      this.readTime === undefined || this.readTime.isEqual(readTime),
+      'All changes in a RemoteDocumentChangeBuffer must have the same read time'
+    );
+
+    this.readTime = readTime;
     this.changes.set(maybeDocument.key, maybeDocument);
   }
 
@@ -132,13 +142,10 @@ export abstract class RemoteDocumentChangeBuffer {
    * Applies buffered changes to the underlying RemoteDocumentCache, using
    * the provided transaction.
    */
-  apply(
-    transaction: PersistenceTransaction,
-    readTime: SnapshotVersion
-  ): PersistencePromise<void> {
+  apply(transaction: PersistenceTransaction): PersistencePromise<void> {
     this.assertNotApplied();
     this.changesApplied = true;
-    return this.applyChanges(transaction, readTime);
+    return this.applyChanges(transaction);
   }
 
   /** Helper to assert this.changes is not null  */

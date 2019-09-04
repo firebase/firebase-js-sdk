@@ -49,7 +49,6 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
-import { SnapshotVersion } from '../core/snapshot_version';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -285,7 +284,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
       }
     ).next(() => {
       this._orphanedDocuments = null;
-      return changeBuffer.apply(txn, SnapshotVersion.forDeletedDoc());
+      return changeBuffer.apply(txn);
     });
   }
 
@@ -425,9 +424,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
         }
       });
     });
-    return p
-      .next(() => changeBuffer.apply(txn, SnapshotVersion.forDeletedDoc()))
-      .next(() => count);
+    return p.next(() => changeBuffer.apply(txn)).next(() => count);
   }
 
   removeMutationReference(
@@ -475,7 +472,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   documentSize(maybeDoc: MaybeDocument): number {
     const remoteDocument = this.serializer.toDbRemoteDocument(
       maybeDoc,
-      SnapshotVersion.forDeletedDoc()
+      maybeDoc.version
     );
     let value: unknown;
     if (remoteDocument.document) {

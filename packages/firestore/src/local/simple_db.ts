@@ -108,9 +108,6 @@ export class SimpleDb {
           event.oldVersion
         );
         const db = (event.target as IDBOpenDBRequest).result;
-        // We are provided a version upgrade transaction from the request, so
-        // we wrap that in a SimpleDbTransaction to allow use of our friendlier
-        // API for schema migration operations.
         schemaConverter
           .createOrUpgrade(
             db,

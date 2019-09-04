@@ -65,13 +65,13 @@ describe('RemoteDocumentChangeBuffer', () => {
 
   it('can add entry and read it back', async () => {
     const newADoc = doc('coll/a', 43, { new: 'data' });
-    buffer.addEntry(newADoc);
+    buffer.addEntry(newADoc, newADoc.version);
     expectEqual(await buffer.getEntry(key('coll/a')), newADoc);
   });
 
   it('can remove entry', async () => {
     const newADoc = doc('coll/a', 43, { new: 'data' });
-    buffer.addEntry(newADoc);
+    buffer.addEntry(newADoc, newADoc.version);
     expect(await buffer.getEntry(key('coll/a'))).to.not.be.null;
     buffer.removeEntry(newADoc.key);
     expect(await buffer.getEntry(key('coll/a'))).to.be.null;
@@ -81,7 +81,7 @@ describe('RemoteDocumentChangeBuffer', () => {
     const newADoc = doc('coll/a', 43, { new: 'data' });
     // need to read first
     await buffer.getEntry(newADoc.key);
-    buffer.addEntry(newADoc);
+    buffer.addEntry(newADoc, newADoc.version);
     expectEqual(await buffer.getEntry(key('coll/a')), newADoc);
 
     // Reading directly against the cache should still yield the old result.
@@ -106,7 +106,7 @@ describe('RemoteDocumentChangeBuffer', () => {
   it('methods fail after apply.', async () => {
     await buffer.apply();
 
-    expect(() => buffer.addEntry(INITIAL_DOC)).to.throw();
+    expect(() => buffer.addEntry(INITIAL_DOC, INITIAL_DOC.version)).to.throw();
 
     let errors = 0;
     return buffer
@@ -115,5 +115,14 @@ describe('RemoteDocumentChangeBuffer', () => {
       .then(() => buffer.apply())
       .catch(() => errors++)
       .then(() => expect(errors).to.equal(2));
+  });
+
+  it('cannot add documents with different read times', async () => {
+    // This test merely validates an assert that was added to the
+    // RemoteDocumentChangeBuffer to simplify our tracking of document
+    // read times. If we do need to track documents with different read
+    // times, this test should simply be removed.
+    buffer.addEntry(INITIAL_DOC, version(1));
+    expect(() => buffer.addEntry(INITIAL_DOC, version(2))).to.throw();
   });
 });
