@@ -47,6 +47,7 @@ export abstract class RemoteDocumentChangeBuffer {
     MaybeDocument | null
   > = new ObjectMap(key => key.toString());
 
+  // The read time to use for all added documents in this change buffer.
   protected readTime: SnapshotVersion | undefined;
 
   private changesApplied = false;
@@ -74,8 +75,9 @@ export abstract class RemoteDocumentChangeBuffer {
   addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
     this.assertNotApplied();
 
-    // Assert that every read time matches since we only track a single read
-    // time per document change set.
+    // Right now (for simplicity) we just track a single readTime for all the
+    // added entries since we expect them to all be the same, but we could
+    // rework to store per-entry readTimes if necessary.
     assert(
       this.readTime === undefined || this.readTime.isEqual(readTime),
       'All changes in a RemoteDocumentChangeBuffer must have the same read time'
