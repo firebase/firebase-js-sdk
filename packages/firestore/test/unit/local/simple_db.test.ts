@@ -62,7 +62,7 @@ function isIndexedDbMock(): boolean {
 class TestSchemaConverter implements SimpleDbSchemaConverter {
   createOrUpgrade(
     db: IDBDatabase,
-    txn: SimpleDbTransaction,
+    txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {

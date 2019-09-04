@@ -16,6 +16,7 @@
  */
 
 import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -45,24 +46,35 @@ export class TestRemoteDocumentCache {
    * Reads all of the documents first so we can safely add them and keep the size calculation in
    * sync.
    */
-  addEntries(maybeDocuments: MaybeDocument[]): Promise<void> {
+  addEntries(
+    maybeDocuments: MaybeDocument[],
+    readTime: SnapshotVersion
+  ): Promise<void> {
     return this.persistence.runTransaction(
       'addEntry',
       'readwrite-primary',
       txn => {
-        const changeBuffer = this.cache.newChangeBuffer();
+        const changeBuffer = this.newChangeBuffer();
         return PersistencePromise.forEach(
           maybeDocuments,
           (maybeDocument: MaybeDocument) =>
             changeBuffer.getEntry(txn, maybeDocument.key).next(() => {})
         ).next(() => {
           for (const maybeDocument of maybeDocuments) {
-            changeBuffer.addEntry(maybeDocument);
+            changeBuffer.addEntry(maybeDocument, readTime);
           }
           return changeBuffer.apply(txn);
         });
       }
     );
+  }
+
+  /**
+   * Adds a single document using the document's version as its read time.
+   * Reads the document first to track the document size internally.
+   */
+  addEntry(maybeDocument: MaybeDocument): Promise<void> {
+    return this.addEntries([maybeDocument], maybeDocument.version);
   }
 
   removeEntry(documentKey: DocumentKey): Promise<void> {

@@ -449,7 +449,7 @@ export class LocalStore {
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
     const documentBuffer = this.remoteDocuments.newChangeBuffer();
-    const snapshotVersion = remoteEvent.snapshotVersion;
+    const remoteVersion = remoteEvent.snapshotVersion;
     return this.persistence.runTransaction(
       'Apply remote event',
       'readwrite-primary',
@@ -483,7 +483,7 @@ export class LocalStore {
             if (resumeToken.length > 0) {
               const newQueryData = oldQueryData.copy({
                 resumeToken,
-                snapshotVersion
+                snapshotVersion: remoteVersion
               });
               this.queryDataByTarget[targetId] = newQueryData;
 
@@ -522,7 +522,7 @@ export class LocalStore {
                 (doc.version.compareTo(existingDoc.version) === 0 &&
                   existingDoc.hasPendingWrites)
               ) {
-                documentBuffer.addEntry(doc);
+                documentBuffer.addEntry(doc, remoteVersion);
                 changedDocs = changedDocs.insert(key, doc);
               } else if (
                 doc instanceof NoDocument &&
@@ -561,21 +561,21 @@ export class LocalStore {
         // can synthesize remote events when we get permission denied errors while
         // trying to resolve the state of a locally cached document that is in
         // limbo.
-        if (!snapshotVersion.isEqual(SnapshotVersion.MIN)) {
+        if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
           const updateRemoteVersion = this.queryCache
             .getLastRemoteSnapshotVersion(txn)
             .next(lastRemoteSnapshotVersion => {
               assert(
-                snapshotVersion.compareTo(lastRemoteSnapshotVersion) >= 0,
+                remoteVersion.compareTo(lastRemoteSnapshotVersion) >= 0,
                 'Watch stream reverted to previous snapshot?? ' +
-                  snapshotVersion +
+                  remoteVersion +
                   ' < ' +
                   lastRemoteSnapshotVersion
               );
               return this.queryCache.setTargetsMetadata(
                 txn,
                 txn.currentSequenceNumber,
-                snapshotVersion
+                remoteVersion
               );
             });
           promises.push(updateRemoteVersion);
@@ -863,7 +863,10 @@ export class LocalStore {
                   ' resulted in null'
               );
             } else {
-              documentBuffer.addEntry(doc);
+              // We use the commitVersion as the readTime rather than the
+              // document's updateTime since the updateTime is not advanced
+              // for updates that do not modify the underlying document.
+              documentBuffer.addEntry(doc, batchResult.commitVersion);
             }
           }
         });

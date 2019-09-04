@@ -28,7 +28,7 @@ const LOG_TAG = 'SimpleDb';
 export interface SimpleDbSchemaConverter {
   createOrUpgrade(
     db: IDBDatabase,
-    txn: SimpleDbTransaction,
+    txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void>;
@@ -108,12 +108,13 @@ export class SimpleDb {
           event.oldVersion
         );
         const db = (event.target as IDBOpenDBRequest).result;
-        // We are provided a version upgrade transaction from the request, so
-        // we wrap that in a SimpleDbTransaction to allow use of our friendlier
-        // API for schema migration operations.
-        const txn = new SimpleDbTransaction(request.transaction!);
         schemaConverter
-          .createOrUpgrade(db, txn, event.oldVersion, SCHEMA_VERSION)
+          .createOrUpgrade(
+            db,
+            request.transaction!,
+            event.oldVersion,
+            SCHEMA_VERSION
+          )
           .next(() => {
             debug(
               LOG_TAG,

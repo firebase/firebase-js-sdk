@@ -477,7 +477,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         );
         if (maybeDocument) {
           const doc = this.documentCache.serializer.toDbRemoteDocument(
-            maybeDocument
+            maybeDocument,
+            this.readTime!
           );
           const size = dbDocumentSize(doc);
           sizeDelta += size - previousSize!;

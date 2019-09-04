@@ -33,7 +33,7 @@ const sep = '\u0001\u0001';
 class EncodedResourcePathSchemaConverter implements SimpleDbSchemaConverter {
   createOrUpgrade(
     db: IDBDatabase,
-    txn: SimpleDbTransaction,
+    txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {

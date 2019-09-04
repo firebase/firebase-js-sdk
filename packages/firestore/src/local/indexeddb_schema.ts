@@ -45,8 +45,10 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 6. Create document global for tracking document cache size.
  * 7. Ensure every cached document has a sentinel row with a sequence number.
  * 8. Add collection-parent index for Collection Group queries.
+ * 9. Change RemoteDocumentChanges store to be keyed by readTime rather than
+ *    an auto-incrementing ID. This is required for Index-Free queries.
  */
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -61,7 +63,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
    */
   createOrUpgrade(
     db: IDBDatabase,
-    txn: SimpleDbTransaction,
+    txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
@@ -71,6 +73,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         toVersion <= SCHEMA_VERSION,
       `Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
     );
+
+    const simpleDbTransaction = new SimpleDbTransaction(txn);
 
     if (fromVersion < 1 && toVersion >= 1) {
       createPrimaryClientStore(db);
@@ -90,7 +94,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         dropQueryCache(db);
         createQueryCache(db);
       }
-      p = p.next(() => writeEmptyTargetGlobalEntry(txn));
+      p = p.next(() => writeEmptyTargetGlobalEntry(simpleDbTransaction));
     }
 
     if (fromVersion < 4 && toVersion >= 4) {
@@ -101,7 +105,9 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         // and write them back out. We preserve the existing batch IDs to guarantee
         // consistency with other object stores. Any further mutation batch IDs will
         // be auto-generated.
-        p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
+        p = p.next(() =>
+          upgradeMutationBatchSchemaAndMigrateData(db, simpleDbTransaction)
+        );
       }
 
       p = p.next(() => {
@@ -111,24 +117,31 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
     }
 
     if (fromVersion < 5 && toVersion >= 5) {
-      p = p.next(() => this.removeAcknowledgedMutations(txn));
+      p = p.next(() => this.removeAcknowledgedMutations(simpleDbTransaction));
     }
 
     if (fromVersion < 6 && toVersion >= 6) {
       p = p.next(() => {
         createDocumentGlobalStore(db);
-        return this.addDocumentGlobal(txn);
+        return this.addDocumentGlobal(simpleDbTransaction);
       });
     }
 
     if (fromVersion < 7 && toVersion >= 7) {
-      p = p.next(() => this.ensureSequenceNumbers(txn));
+      p = p.next(() => this.ensureSequenceNumbers(simpleDbTransaction));
     }
 
     if (fromVersion < 8 && toVersion >= 8) {
-      p = p.next(() => this.createCollectionParentIndex(db, txn));
+      p = p.next(() =>
+        this.createCollectionParentIndex(db, simpleDbTransaction)
+      );
     }
 
+    if (fromVersion < 9 && toVersion >= 9) {
+      p = p.next(() => {
+        createRemoteDocumentReadTimeIndex(txn);
+      });
+    }
     return p;
   }
 
@@ -293,6 +306,9 @@ function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
 export class DbTimestamp {
   constructor(public seconds: number, public nanoseconds: number) {}
 }
+
+/** A timestamp type that can be used in IndexedDb keys. */
+export type DbTimestampKey = [/* seconds */ number, /* nanos */ number];
 
 // The key for the singleton object in the DbPrimaryClient is a single string.
 export type DbPrimaryClientKey = typeof DbPrimaryClient.key;
@@ -590,6 +606,17 @@ export class DbUnknownDocument {
 export class DbRemoteDocument {
   static store = 'remoteDocuments';
 
+  /**
+   * An index that provides access to documents in a collection sorted by read
+   * time.
+   *
+   * This index is used to allow the RemoteDocumentCache to fetch newly changed
+   * documents in a collection.
+   */
+  static collectionReadTimeIndex = 'collectionReadTimeIndex';
+
+  static collectionReadTimeIndexPath = ['parentPath', 'readTime'];
+
   constructor(
     /**
      * Set to an instance of DbUnknownDocument if the data for a document is
@@ -613,7 +640,19 @@ export class DbRemoteDocument {
      * documents are potentially inconsistent with the backend's copy and use
      * the write's commit version as their document version.
      */
-    public hasCommittedMutations: boolean | undefined
+    public hasCommittedMutations: boolean | undefined,
+
+    /**
+     * When the document was read from the backend. Undefined for data written
+     * prior to schema version 9.
+     */
+    public readTime: DbTimestampKey | undefined,
+
+    /**
+     * The path of the collection this document is part of. Undefined for data
+     * written prior to schema version 9.
+     */
+    public parentPath: string[] | undefined
   ) {}
 }
 
@@ -958,6 +997,19 @@ function createRemoteDocumentChangesStore(db: IDBDatabase): void {
 }
 
 /**
+ * Creates indices on the RemoteDocuments store used for both multi-tab
+ * and Index-Free queries.
+ */
+function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
+  const remoteDocumentStore = txn.objectStore(DbRemoteDocument.store);
+  remoteDocumentStore.createIndex(
+    DbRemoteDocument.collectionReadTimeIndex,
+    DbRemoteDocument.collectionReadTimeIndexPath,
+    { unique: false }
+  );
+}
+
+/**
  * A record of the metadata state of each client.
  *
  * PORTING NOTE: This is used to synchronize multi-tab state and does not need
@@ -1027,6 +1079,8 @@ export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
 // V7 does not change the set of stores.
 
 export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
+
+// V9 does not change the set of stores.
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is
