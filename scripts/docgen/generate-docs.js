@@ -153,8 +153,10 @@ function checkForMissingFilesAndFixFilenameCase() {
     if (!filename) {
       return Promise.resolve();
     } else if (filename && filename.line) {
-      console.warn(`Unable to parse filename from toc.yaml line:\n${filename.line}`
-      + `\nPath may be incorrect.\n`);
+      console.warn(
+        `Unable to parse filename from toc.yaml line:\n${filename.line}` +
+          `\nPath may be incorrect.\n`
+      );
       return Promise.resolve();
     }
     const tocFilePath = `${docPath}/${filename}.html`;
