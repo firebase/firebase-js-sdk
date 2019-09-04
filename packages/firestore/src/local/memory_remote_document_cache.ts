@@ -178,9 +178,11 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     return PersistencePromise.resolve(changedDocs);
   }
 
-  newChangeBuffer(options: {
-    createSentinelDocumentsToTrackDeletes: boolean;
+  newChangeBuffer(options?: {
+    trackRemovals: boolean;
   }): RemoteDocumentChangeBuffer {
+    // `trackRemovals` is ignores since the MemoryRemoteDocumentCache keeps
+    // a separate changelog and does not need special handling for removals.
     return new MemoryRemoteDocumentCache.RemoteDocumentChangeBuffer(this);
   }
 

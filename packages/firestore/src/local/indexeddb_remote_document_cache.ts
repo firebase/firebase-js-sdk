@@ -48,7 +48,6 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import { ObjectMap } from '../util/obj_map';
-import { Timestamp } from '../api/timestamp';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   /** The read time of the last entry consumed by `getNewDocumentChanges()`. */
@@ -111,7 +110,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   /**
-   * Updates the document change log and adds the given delta to the cached current size.
+   * Updates the current size.
+   *
    * Callers to `addEntry()` and `removeEntry()` *must* call this afterwards to update the
    * cache's metadata.
    */
@@ -307,6 +307,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .iterate(
         { index: DbRemoteDocument.readTimeIndex, range },
         (_, dbRemoteDoc) => {
+          // Unlike `getEntry()` and others, `getNewDocumentChanges()` parses
+          // the documents directly since we want to keep sentinel deletes.
           const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
           changedDocs = changedDocs.insert(doc.key, doc);
           this.lastProcessedReadTime = this.serializer.fromDbTimestampKey(
@@ -318,8 +320,9 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   /**
-   * Sets the last processed read time to the maximum read time from cache,
-   * allowing calls to getNewDocumentChanges() to return subsequent changes.
+   * Sets the last processed read time to the maximum read time of the backing
+   * object store, allowing calls to getNewDocumentChanges() to return subsequent
+   * changes.
    */
   private synchronizeLastProcessedReadTime(
     transaction: SimpleDbTransaction
@@ -335,8 +338,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       { index: DbRemoteDocument.readTimeIndex, reverse: true },
       (key, value, control) => {
         if (value.readTime) {
-          this.lastProcessedReadTime = SnapshotVersion.fromTimestamp(
-            new Timestamp(value.readTime![0], value.readTime![1])
+          this.lastProcessedReadTime = this.serializer.fromDbTimestampKey(
+            value.readTime
           );
         }
         control.done();
@@ -344,12 +347,12 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     );
   }
 
-  newChangeBuffer(options: {
-    createSentinelDocumentsToTrackDeletes: boolean;
+  newChangeBuffer(options?: {
+    trackRemovals: boolean;
   }): RemoteDocumentChangeBuffer {
     return new IndexedDbRemoteDocumentCache.RemoteDocumentChangeBuffer(
       this,
-      options.createSentinelDocumentsToTrackDeletes
+      !!options && options.trackRemovals
     );
   }
 
@@ -388,8 +391,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         doc instanceof NoDocument &&
         doc.version.isEqual(SnapshotVersion.forDeletedDoc())
       ) {
-        // The document is a sentinel delete and should only be used in the
-        // change log.
+        // The document is a sentinel removal and should only be used in the
+        // `getNewDocumentChanges()`.
         return null;
       }
 
@@ -413,12 +416,12 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
     /**
      * @param documentCache The IndexedDbRemoteDocumentCache to apply the changes to.
-     * @param trackDeletes Whether to create sentinel deletes that can be tracked by
+     * @param trackRemovals Whether to create sentinel deletes that can be tracked by
      * `getNewDocumentChanges()`.
      */
     constructor(
       private readonly documentCache: IndexedDbRemoteDocumentCache,
-      private readonly trackDeletes: boolean
+      private readonly trackRemovals: boolean
     ) {
       super();
     }
@@ -446,11 +449,14 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           promises.push(this.documentCache.addEntry(transaction, key, doc));
         } else {
           sizeDelta -= previousSize!;
-          if (this.trackDeletes) {
-            // A sentinel delete is symbolized by a NoDocument with a version of 0.
+          if (this.trackRemovals) {
+            // In order to track removals, we store a "sentinel delete" in the
+            // RemoteDocumentCache. This entry is represented by a NoDocument
+            // with a version of 0 and ignored by `maybeDecodeDocument()` but
+            // preserved in `getNewDocumentChanges()`.
             const deletedDoc = this.documentCache.serializer.toDbRemoteDocument(
               new NoDocument(key, SnapshotVersion.forDeletedDoc()),
-              readTime
+              this.readTime!
             );
             promises.push(
               this.documentCache.addEntry(transaction, key, deletedDoc)

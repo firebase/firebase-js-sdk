@@ -346,7 +346,7 @@ export class LocalStore {
       txn => {
         const affected = batchResult.batch.keys();
         const documentBuffer = this.remoteDocuments.newChangeBuffer({
-          createSentinelDocumentsToTrackDeletes: true
+          trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
         });
         return this.mutationQueue
           .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
@@ -450,13 +450,9 @@ export class LocalStore {
    * queue.
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
-<<<<<<< HEAD
     const documentBuffer = this.remoteDocuments.newChangeBuffer({
-      createSentinelDocumentsToTrackDeletes: true
+      trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
     });
-=======
-    const documentBuffer = this.remoteDocuments.newChangeBuffer();
->>>>>>> b4d70ace... Index-Free: Track readTime in the RemoteDocument store (#2125)
     const remoteVersion = remoteEvent.snapshotVersion;
     return this.persistence.runTransaction(
       'Apply remote event',

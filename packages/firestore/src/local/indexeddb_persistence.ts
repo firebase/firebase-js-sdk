@@ -75,8 +75,7 @@ const LOG_TAG = 'IndexedDbPersistence';
 
 /**
  * Oldest acceptable age in milliseconds for client metadata before the client
- * is considered inactive and its associated data (such as the remote document
- * cache changelog) is garbage collected.
+ * is considered inactive and its associated data is garbage collected.
  */
 const MAX_CLIENT_AGE_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -259,7 +258,7 @@ export class IndexedDbPersistence implements Persistence {
   /** The client metadata refresh task. */
   private clientMetadataRefresher: CancelablePromise<void> | null = null;
 
-  /** The last time we garbage collected the Remote Document Changelog. */
+  /** The last time we garbage collected the client metadata object store. */
   private lastGarbageCollectionTime = Number.NEGATIVE_INFINITY;
 
   /** Whether to allow shared multi-tab access to the persistence layer. */
@@ -1210,9 +1209,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     upperBound: ListenSequenceNumber
   ): PersistencePromise<number> {
     const documentCache = this.db.getRemoteDocumentCache();
-    const changeBuffer = documentCache.newChangeBuffer({
-      createSentinelDocumentsToTrackDeletes: false
-    });
+    const changeBuffer = documentCache.newChangeBuffer();
 
     const promises: Array<PersistencePromise<void>> = [];
     let documentCount = 0;

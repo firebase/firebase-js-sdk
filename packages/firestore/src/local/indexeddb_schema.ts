@@ -138,13 +138,10 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
 
     if (fromVersion < 9 && toVersion >= 9) {
       p = p.next(() => {
-<<<<<<< HEAD
         // Multi-Tab used to manage its own changelog, but this has been moved
         // to the DbRemoteDocument object store itself. Since the previous change
         // log only contained transient data, we can drop its object store.
         dropRemoteDocumentChangesStore(db);
-=======
->>>>>>> b4d70ace... Index-Free: Track readTime in the RemoteDocument store (#2125)
         createRemoteDocumentReadTimeIndex(txn);
       });
     }
@@ -613,7 +610,6 @@ export class DbRemoteDocument {
   static store = 'remoteDocuments';
 
   /**
-<<<<<<< HEAD
    * An index that provides access to all entries sorted by read time (which
    * corresponds to the last modification time of each row).
    *
@@ -624,8 +620,6 @@ export class DbRemoteDocument {
   static readTimeIndexPath = 'readTime';
 
   /**
-=======
->>>>>>> b4d70ace... Index-Free: Track readTime in the RemoteDocument store (#2125)
    * An index that provides access to documents in a collection sorted by read
    * time.
    *
@@ -635,6 +629,12 @@ export class DbRemoteDocument {
   static collectionReadTimeIndex = 'collectionReadTimeIndex';
 
   static collectionReadTimeIndexPath = ['parentPath', 'readTime'];
+
+  // TODO: We are currently storing full document keys almost three times
+  // (once as part of the primary key, once - partly - as `parentPath` and once
+  // inside the encoded documents). During our next migration, we should
+  // rewrite the primary key as parentPath + document ID which would allow us
+  // to drop one value.
 
   constructor(
     /**
@@ -1004,19 +1004,6 @@ function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
 }
 
 /**
- * Creates indices on the RemoteDocuments store used for both multi-tab
- * and Index-Free queries.
- */
-function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
-  const remoteDocumentStore = txn.objectStore(DbRemoteDocument.store);
-  remoteDocumentStore.createIndex(
-    DbRemoteDocument.collectionReadTimeIndex,
-    DbRemoteDocument.collectionReadTimeIndexPath,
-    { unique: false }
-  );
-}
-
-/**
  * A record of the metadata state of each client.
  *
  * PORTING NOTE: This is used to synchronize multi-tab state and does not need
@@ -1071,6 +1058,7 @@ export const V1_STORES = [
 export const V3_STORES = V1_STORES;
 
 // Visible for testing
+// Note: DbRemoteDocumentChanges is no longer used and dropped with v9.
 export const V4_STORES = [...V3_STORES, DbClientMetadata.store];
 
 // V5 does not change the set of stores.

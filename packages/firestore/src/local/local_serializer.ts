@@ -123,14 +123,11 @@ export class LocalSerializer {
     return [timestamp.seconds, timestamp.nanoseconds];
   }
 
-<<<<<<< HEAD
   fromDbTimestampKey(dbTimestampKey: DbTimestampKey): SnapshotVersion {
     const timestamp = new Timestamp(dbTimestampKey[0], dbTimestampKey[1]);
     return SnapshotVersion.fromTimestamp(timestamp);
   }
 
-=======
->>>>>>> b4d70ace... Index-Free: Track readTime in the RemoteDocument store (#2125)
   private toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
     const timestamp = snapshotVersion.toTimestamp();
     return new DbTimestamp(timestamp.seconds, timestamp.nanoseconds);
