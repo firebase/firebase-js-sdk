@@ -780,14 +780,25 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     await withDb(9, db => {
       const sdb = new SimpleDb(db);
       return sdb.runTransaction('readwrite', V8_STORES, txn => {
-        // Verify the existing remote document entries.
-        return addDocs(txn, existingDocPaths, /* version= */ 1).next(() =>
-          addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
-            const remoteDocumentStore = txn.store<
-              DbRemoteDocumentKey,
-              DbRemoteDocument
-            >(DbRemoteDocument.store);
+        const remoteDocumentStore = txn.store<
+          DbRemoteDocumentKey,
+          DbRemoteDocument
+        >(DbRemoteDocument.store);
 
+        // Verify the existing remote document entries.
+        return remoteDocumentStore
+          .loadAll()
+          .next(docsRead => {
+            const keys = docsRead.map(dbDoc => dbDoc.document!.name);
+            expect(keys).to.have.members([
+              'projects/test-project/databases/(default)/documents/coll1/doc1',
+              'projects/test-project/databases/(default)/documents/coll1/doc2',
+              'projects/test-project/databases/(default)/documents/coll2/doc1',
+              'projects/test-project/databases/(default)/documents/coll2/doc2'
+            ]);
+          })
+          .next(() => addDocs(txn, newDocPaths, /* version= */ 2))
+          .next(() => {
             // Verify that we can get recent changes in a collection filtered by
             // read time.
             const lastReadTime = TEST_SERIALIZER.toDbTimestampKey(version(1));
@@ -804,8 +815,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                   'projects/test-project/databases/(default)/documents/coll2/doc4'
                 ]);
               });
-          })
-        );
+          });
       });
     });
   });
