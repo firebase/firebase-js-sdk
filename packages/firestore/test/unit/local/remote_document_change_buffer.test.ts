@@ -73,7 +73,7 @@ describe('RemoteDocumentChangeBuffer', () => {
     const newADoc = doc('coll/a', 43, { new: 'data' });
     buffer.addEntry(newADoc, newADoc.version);
     expect(await buffer.getEntry(key('coll/a'))).to.not.be.null;
-    buffer.removeEntry(newADoc.key, newADoc.version);
+    buffer.removeEntry(newADoc.key);
     expect(await buffer.getEntry(key('coll/a'))).to.be.null;
   });
 
@@ -94,7 +94,7 @@ describe('RemoteDocumentChangeBuffer', () => {
 
   it('can apply changes with removal', async () => {
     expectEqual(await buffer.getEntry(key('coll/a')), INITIAL_DOC);
-    buffer.removeEntry(INITIAL_DOC.key, INITIAL_DOC.version);
+    buffer.removeEntry(INITIAL_DOC.key);
     // Reading directly against the cache should still yield the old result.
     expectEqual(await cache.getEntry(key('coll/a')), INITIAL_DOC);
 

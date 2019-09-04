@@ -35,8 +35,8 @@ export class TestRemoteDocumentChangeBuffer {
     this.buffer.addEntry(maybeDocument, readTime);
   }
 
-  removeEntry(key: DocumentKey, readTime: SnapshotVersion): void {
-    this.buffer.removeEntry(key, readTime);
+  removeEntry(key: DocumentKey): void {
+    this.buffer.removeEntry(key);
   }
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {

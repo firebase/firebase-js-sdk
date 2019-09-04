@@ -1225,10 +1225,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
               // Our size accounting requires us to read all documents before
               // removing them.
               return changeBuffer.getEntry(txn, docKey).next(() => {
-                changeBuffer.removeEntry(
-                  docKey,
-                  SnapshotVersion.forDeletedDoc()
-                );
+                changeBuffer.removeEntry(docKey);
                 return documentTargetStore(txn).delete(sentinelKey(docKey));
               });
             }

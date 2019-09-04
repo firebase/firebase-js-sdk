@@ -80,7 +80,7 @@ export abstract class RemoteDocumentChangeBuffer {
   protected get readTime(): SnapshotVersion {
     assert(
       this._readTime !== undefined,
-      'Read time is not set. Did you call addEntry/removeEntry?'
+      'Read time is not set. All removeEntry() calls must include a readTime if `trackRemovals` is used.'
     );
     return this._readTime!;
   }
@@ -103,9 +103,11 @@ export abstract class RemoteDocumentChangeBuffer {
    * You can only remove documents that have already been retrieved via
    * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
    */
-  removeEntry(key: DocumentKey, readTime: SnapshotVersion): void {
+  removeEntry(key: DocumentKey, readTime?: SnapshotVersion): void {
     this.assertNotApplied();
-    this.readTime = readTime;
+    if (readTime) {
+      this.readTime = readTime;
+    }
     this.changes.set(key, null);
   }
 

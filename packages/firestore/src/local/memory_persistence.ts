@@ -277,7 +277,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
       (key: DocumentKey) => {
         return this.isReferenced(txn, key).next(isReferenced => {
           if (!isReferenced) {
-            changeBuffer.removeEntry(key, SnapshotVersion.forDeletedDoc());
+            changeBuffer.removeEntry(key);
           }
         });
       }
@@ -417,7 +417,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
       return this.isPinned(txn, key, upperBound).next(isPinned => {
         if (!isPinned) {
           count++;
-          changeBuffer.removeEntry(key, SnapshotVersion.forDeletedDoc());
+          changeBuffer.removeEntry(key);
         }
       });
     });
