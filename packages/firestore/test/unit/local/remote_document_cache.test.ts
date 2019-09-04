@@ -133,12 +133,12 @@ function eagerRemoteDocumentCacheTests(
     const totalSize = await cache.getSize();
     expect(totalSize).to.equal(0);
 
-    await cache.removeEntry(doc2.key, version(3));
+    await cache.removeEntry(doc2.key);
 
     const currentSize = await cache.getSize();
     expect(currentSize).to.equal(0);
 
-    await cache.removeEntry(doc1.key, version(4));
+    await cache.removeEntry(doc1.key);
 
     const finalSize = await cache.getSize();
     expect(finalSize).to.equal(0);
@@ -171,12 +171,12 @@ function lruRemoteDocumentCacheTests(
     const totalSize = await cache.getSize();
     expect(totalSize).to.be.greaterThan(doc1Size);
 
-    await cache.removeEntry(doc2.key, version(3));
+    await cache.removeEntry(doc2.key);
 
     const currentSize = await cache.getSize();
     expect(currentSize).to.equal(doc1Size);
 
-    await cache.removeEntry(doc1.key, version(4));
+    await cache.removeEntry(doc1.key);
 
     const finalSize = await cache.getSize();
     expect(finalSize).to.equal(0);
@@ -282,7 +282,7 @@ function genericRemoteDocumentCacheTests(
     return cache
       .addEntry(doc(DOC_PATH, VERSION, DOC_DATA))
       .then(() => {
-        return cache.removeEntry(key(DOC_PATH), version(VERSION));
+        return cache.removeEntry(key(DOC_PATH));
       })
       .then(() => {
         return cache.getEntry(key(DOC_PATH));
@@ -294,7 +294,7 @@ function genericRemoteDocumentCacheTests(
 
   it('can remove nonexistent document', () => {
     // no-op, but make sure it doesn't fail.
-    return cache.removeEntry(key(DOC_PATH), version(1));
+    return cache.removeEntry(key(DOC_PATH));
   });
 
   it('can get documents matching query', async () => {
@@ -360,7 +360,7 @@ function genericRemoteDocumentCacheTests(
       ],
       version(3)
     );
-    await cache.removeEntry(key('a/2'), version(4));
+    await cache.removeEntry(key('a/2'));
 
     const changedDocs = await cache.getNewDocumentChanges();
     assertMatches(

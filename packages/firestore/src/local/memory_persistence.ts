@@ -49,7 +49,6 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
-import { SnapshotVersion } from '../core/snapshot_version';
 
 const LOG_TAG = 'MemoryPersistence';
 
