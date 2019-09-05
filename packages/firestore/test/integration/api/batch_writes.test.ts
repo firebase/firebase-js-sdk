@@ -125,6 +125,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
   });
 
   it('can delete documents', () => {
+    // TODO(#1865): This test fails with node:persistence against Prod
     return integrationHelpers.withTestDoc(persistence, doc => {
       return doc
         .set({ foo: 'bar' })
