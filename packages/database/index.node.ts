@@ -25,10 +25,13 @@ import { enableLogging } from './src/core/util/util';
 import { RepoManager } from './src/core/RepoManager';
 import * as INTERNAL from './src/api/internal';
 import * as TEST_ACCESS from './src/api/test_access';
-import './src/nodePatches';
 import * as types from '@firebase/database-types';
 import { setSDKVersion } from './src/core/version';
 import { CONSTANTS, isNodeSdk } from '@firebase/util';
+import { setWebSocketImpl } from './src/realtime/WebSocketConnection';
+import { Client } from 'faye-websocket';
+
+setWebSocketImpl(Client);
 
 const ServerValue = Database.ServerValue;
 

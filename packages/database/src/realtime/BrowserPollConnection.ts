@@ -209,7 +209,6 @@ export class BrowserPollConnection implements Transport {
         urlParams[LAST_SESSION_PARAM] = this.lastSessionId;
       }
       if (
-        !isNodeSdk() &&
         typeof location !== 'undefined' &&
         location.href &&
         location.href.indexOf(FORGE_DOMAIN) !== -1
@@ -252,17 +251,21 @@ export class BrowserPollConnection implements Transport {
 
   // Static method, use string literal so it can be accessed in a generic way
   static isAvailable() {
-    // NOTE: In React-Native there's normally no 'document', but if you debug a React-Native app in
-    // the Chrome debugger, 'document' is defined, but document.createElement is null (2015/06/08).
-    return (
-      BrowserPollConnection.forceAllow_ ||
-      (!BrowserPollConnection.forceDisallow_ &&
+    if (isNodeSdk()) {
+      return false;
+    } else if (BrowserPollConnection.forceAllow_) {
+      return true;
+    } else {
+      // NOTE: In React-Native there's normally no 'document', but if you debug a React-Native app in
+      // the Chrome debugger, 'document' is defined, but document.createElement is null (2015/06/08).
+      return (
+        !BrowserPollConnection.forceDisallow_ &&
         typeof document !== 'undefined' &&
         document.createElement != null &&
         !isChromeExtensionContentScript() &&
-        !isWindowsStoreApp() &&
-        !isNodeSdk())
-    );
+        !isWindowsStoreApp()
+      );
+    }
   }
 
   /**
@@ -540,15 +543,6 @@ export class FirebaseIFrameScriptHolder {
           this.myIFrame = null;
         }
       }, Math.floor(0));
-    }
-
-    if (isNodeSdk() && this.myID) {
-      const urlParams: { [k: string]: string } = {};
-      urlParams[FIREBASE_LONGPOLL_DISCONN_FRAME_PARAM] = 't';
-      urlParams[FIREBASE_LONGPOLL_ID_PARAM] = this.myID;
-      urlParams[FIREBASE_LONGPOLL_PW_PARAM] = this.myPW;
-      const theURL = this.urlFn(urlParams);
-      (FirebaseIFrameScriptHolder as any).nodeRestRequest(theURL);
     }
 
     // Protect from being called recursively.
