@@ -17,7 +17,6 @@
 
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
-import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
@@ -77,14 +76,19 @@ export class TestRemoteDocumentCache {
     return this.addEntries([maybeDocument], maybeDocument.version);
   }
 
-  removeEntry(documentKey: DocumentKey): Promise<void> {
+  removeEntry(
+    documentKey: DocumentKey,
+    version?: SnapshotVersion
+  ): Promise<void> {
     return this.persistence.runTransaction(
       'removeEntry',
       'readwrite-primary',
       txn => {
-        const changeBuffer = this.newChangeBuffer();
+        const changeBuffer = this.newChangeBuffer(
+          version ? { trackRemovals: true } : undefined
+        );
         return changeBuffer.getEntry(txn, documentKey).next(() => {
-          changeBuffer.removeEntry(documentKey);
+          changeBuffer.removeEntry(documentKey, version);
           return changeBuffer.apply(txn);
         });
       }
@@ -123,28 +127,15 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  removeDocumentChangesThroughChangeId(changeId: number): Promise<void> {
-    return this.persistence.runTransaction(
-      'removeDocumentChangesThroughChangeId',
-      'readwrite-primary',
-      txn => {
-        if (!(this.cache instanceof IndexedDbRemoteDocumentCache)) {
-          throw new Error(
-            'Can only removeDocumentChangesThroughChangeId() in IndexedDb'
-          );
-        }
-        return this.cache.removeDocumentChangesThroughChangeId(txn, changeId);
-      }
-    );
-  }
-
   getSize(): Promise<number> {
     return this.persistence.runTransaction('get size', 'readonly', txn =>
       this.cache.getSize(txn)
     );
   }
 
-  newChangeBuffer(): RemoteDocumentChangeBuffer {
-    return this.cache.newChangeBuffer();
+  newChangeBuffer(options?: {
+    trackRemovals: boolean;
+  }): RemoteDocumentChangeBuffer {
+    return this.cache.newChangeBuffer(options);
   }
 }

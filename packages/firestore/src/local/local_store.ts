@@ -345,7 +345,9 @@ export class LocalStore {
       'readwrite-primary',
       txn => {
         const affected = batchResult.batch.keys();
-        const documentBuffer = this.remoteDocuments.newChangeBuffer();
+        const documentBuffer = this.remoteDocuments.newChangeBuffer({
+          trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
+        });
         return this.mutationQueue
           .acknowledgeBatch(txn, batchResult.batch, batchResult.streamToken)
           .next(() =>
@@ -448,7 +450,9 @@ export class LocalStore {
    * queue.
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
-    const documentBuffer = this.remoteDocuments.newChangeBuffer();
+    const documentBuffer = this.remoteDocuments.newChangeBuffer({
+      trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
+    });
     const remoteVersion = remoteEvent.snapshotVersion;
     return this.persistence.runTransaction(
       'Apply remote event',
@@ -531,7 +535,7 @@ export class LocalStore {
                 // NoDocuments with SnapshotVersion.MIN are used in manufactured events (e.g. in the
                 // case of a limbo document resolution failing). We remove these documents from cache
                 // since we lost access.
-                documentBuffer.removeEntry(key);
+                documentBuffer.removeEntry(key, remoteVersion);
                 changedDocs = changedDocs.insert(key, doc);
               } else {
                 log.debug(

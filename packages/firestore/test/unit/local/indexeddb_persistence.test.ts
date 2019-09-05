@@ -820,9 +820,9 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
   });
 
-  it('RemoteDocumentCache can filter documents by read time', async () => {
-    const oldDocPaths = ['coll/doc1', 'coll/doc2'];
-    const newDocPaths = ['coll/doc3', 'coll/doc4'];
+  it('can get recent document changes in a collection', async () => {
+    const oldDocPaths = ['coll/doc1', 'coll/doc2', 'abc/doc1'];
+    const newDocPaths = ['coll/doc3', 'coll/doc4', 'abc/doc2'];
 
     await withDb(9, db => {
       const sdb = new SimpleDb(db);
@@ -846,6 +846,37 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
                 expect(keys).to.have.members([
                   'projects/test-project/databases/(default)/documents/coll/doc3',
                   'projects/test-project/databases/(default)/documents/coll/doc4'
+                ]);
+              });
+          })
+        );
+      });
+    });
+  });
+
+  it('can get recent document changes', async () => {
+    const oldDocPaths = ['coll1/old', 'coll2/old'];
+    const newDocPaths = ['coll1/new', 'coll2/new'];
+
+    await withDb(9, db => {
+      const sdb = new SimpleDb(db);
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
+        return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
+          addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
+            const remoteDocumentStore = txn.store<
+              DbRemoteDocumentKey,
+              DbRemoteDocument
+            >(DbRemoteDocument.store);
+
+            const lastReadTime = TEST_SERIALIZER.toDbTimestampKey(version(1));
+            const range = IDBKeyRange.lowerBound(lastReadTime, true);
+            return remoteDocumentStore
+              .loadAll(DbRemoteDocument.readTimeIndex, range)
+              .next(docsRead => {
+                const keys = docsRead.map(dbDoc => dbDoc.document!.name);
+                expect(keys).to.have.members([
+                  'projects/test-project/databases/(default)/documents/coll1/new',
+                  'projects/test-project/databases/(default)/documents/coll2/new'
                 ]);
               });
           })
