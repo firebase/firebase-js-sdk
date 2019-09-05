@@ -61,28 +61,33 @@ export class QueryData {
     readonly resumeToken: ProtoByteString = emptyByteString()
   ) {}
 
-  /**
-   * Creates a new query data instance with an updated snapshot version and
-   * resume token.
-   */
-  copy(overwrite: {
-    resumeToken?: ProtoByteString;
-    snapshotVersion?: SnapshotVersion;
-    sequenceNumber?: ListenSequenceNumber;
-  }): QueryData {
+  /** Creates a new query data instance with an updated sequence number. */
+  withSequenceNumber(sequenceNumber: number): QueryData {
     return new QueryData(
       this.query,
       this.targetId,
       this.purpose,
-      overwrite.sequenceNumber === undefined
-        ? this.sequenceNumber
-        : overwrite.sequenceNumber,
-      overwrite.snapshotVersion === undefined
-        ? this.snapshotVersion
-        : overwrite.snapshotVersion,
-      overwrite.resumeToken === undefined
-        ? this.resumeToken
-        : overwrite.resumeToken
+      sequenceNumber,
+      this.snapshotVersion,
+      this.resumeToken
+    );
+  }
+
+  /**
+   * Creates a new query data instance with an updated resume token and
+   * snapshot version.
+   */
+  withResumeToken(
+    resumeToken: ProtoByteString,
+    snapshotVersion: SnapshotVersion
+  ): QueryData {
+    return new QueryData(
+      this.query,
+      this.targetId,
+      this.purpose,
+      this.sequenceNumber,
+      snapshotVersion,
+      resumeToken
     );
   }
 
