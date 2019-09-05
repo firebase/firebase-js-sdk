@@ -360,7 +360,7 @@ function genericRemoteDocumentCacheTests(
       ],
       version(3)
     );
-    await cache.removeEntry(key('a/2'));
+    await cache.removeEntry(key('a/2'), version(4));
 
     const changedDocs = await cache.getNewDocumentChanges();
     assertMatches(
