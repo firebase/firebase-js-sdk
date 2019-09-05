@@ -1,4 +1,7 @@
 # Unreleased
+- [changed] Internal cleanup to Node.JS support.
+
+# 6.4.0
 - [fixed] Fixed an issue that caused `.info/serverTimeOffset` events not to fire (#2043).
 - [changed] Treat `ns` url query parameter as the default Realtime Database
   namespace name.

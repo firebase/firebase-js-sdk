@@ -481,10 +481,10 @@ export class LocalStore {
             const resumeToken = change.resumeToken;
             // Update the resume token if the change includes one.
             if (resumeToken.length > 0) {
-              const newQueryData = oldQueryData.copy({
+              const newQueryData = oldQueryData.withResumeToken(
                 resumeToken,
-                snapshotVersion: remoteVersion
-              });
+                remoteVersion
+              );
               this.queryDataByTarget[targetId] = newQueryData;
 
               // Update the query data if there are target changes (or if

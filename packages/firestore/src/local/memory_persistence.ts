@@ -435,9 +435,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    const updated = queryData.copy({
-      sequenceNumber: txn.currentSequenceNumber
-    });
+    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
     return this.persistence.getQueryCache().updateQueryData(txn, updated);
   }
 

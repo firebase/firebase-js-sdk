@@ -158,9 +158,7 @@ function genericLruGarbageCollectorTests(
     txn: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    const updated = queryData.copy({
-      sequenceNumber: txn.currentSequenceNumber
-    });
+    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
     return queryCache
       .updateQueryData(txn, updated)
       .next(() =>
