@@ -19,13 +19,13 @@ toc:
   - title: "ActionCodeInfo"
     path: /docs/reference/node/firebase.auth.ActionCodeInfo
   - title: "ActionCodeURL"
-    path: /docs/reference/js/firebase.auth.ActionCodeURL
+    path: /docs/reference/node/firebase.auth.ActionCodeURL
   - title: "ApplicationVerifier"
     path: /docs/reference/node/firebase.auth.ApplicationVerifier
   - title: "AuthCredential"
     path: /docs/reference/node/firebase.auth.AuthCredential
   - title: "AuthError"
-    path: /docs/reference/js/firebase.auth.AuthError
+    path: /docs/reference/node/firebase.auth.AuthError
   - title: "AuthSettings"
     path: /docs/reference/node/firebase.auth.AuthSettings
   - title: "OAuthCredential"
