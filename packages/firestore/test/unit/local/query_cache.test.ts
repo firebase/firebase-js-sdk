@@ -62,16 +62,20 @@ describe('IndexedDbQueryCache', () => {
     const originalSequenceNumber = 1234;
     const targetId = 5;
     const snapshotVersion = SnapshotVersion.fromTimestamp(new Timestamp(1, 2));
-    const query = Query.atPath(path('rooms'));
-    await queryCache1.addQueryData(
-      new QueryData(
-        query,
-        targetId,
-        QueryPurpose.Listen,
-        originalSequenceNumber,
-        snapshotVersion
-      )
+    const lastLimboFreeSnapshotVersion = SnapshotVersion.fromTimestamp(
+      new Timestamp(3, 4)
     );
+    const query = Query.atPath(path('rooms'));
+    const queryData = new QueryData(
+      query,
+      targetId,
+      QueryPurpose.Listen,
+      originalSequenceNumber,
+      snapshotVersion,
+      lastLimboFreeSnapshotVersion
+    );
+
+    await queryCache1.addQueryData(queryData);
     // Snapshot version needs to be set separately
     await queryCache1.setTargetsMetadata(
       originalSequenceNumber,
@@ -86,6 +90,14 @@ describe('IndexedDbQueryCache', () => {
     expect(await queryCache2.getHighestSequenceNumber()).to.equal(
       originalSequenceNumber
     );
+    const actualQueryData = await queryCache2.getQueryData(query);
+
+    if (process.env.USE_MOCK_PERSISTENCE !== 'YES') {
+      // TODO(b/140573486): This fails on Node with persistence since the
+      // resume token is read back as a string.
+      expect(queryData.isEqual(actualQueryData!)).to.be.true;
+    }
+
     const actualSnapshotVersion = await queryCache2.getLastRemoteSnapshotVersion();
     expect(snapshotVersion.isEqual(actualSnapshotVersion)).to.be.true;
     await db2.shutdown();
@@ -127,6 +139,7 @@ function genericQueryCacheTests(
       QueryPurpose.Listen,
       ++previousSequenceNumber,
       snapshotVersion,
+      /* lastLimboFreeSnapshotVersion= */ SnapshotVersion.MIN,
       resumeToken
     );
   }

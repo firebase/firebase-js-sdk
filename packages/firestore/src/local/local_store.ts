@@ -658,6 +658,8 @@ export class LocalStore {
         return PersistencePromise.forEach(
           viewChanges,
           (viewChange: LocalViewChanges) => {
+            const targetId = viewChange.targetId;
+
             this.localViewReferences.addReferences(
               viewChange.addedKeys,
               viewChange.targetId
@@ -666,6 +668,21 @@ export class LocalStore {
               viewChange.removedKeys,
               viewChange.targetId
             );
+
+            if (viewChange.fromCache) {
+              const queryData = this.queryDataByTarget[targetId];
+              assert(
+                queryData !== undefined,
+                `Can't set limbo-free snapshot version for unknown target: ${targetId}`
+              );
+
+              // Advance the last limbo free snapshot version
+              const lastLimboFreeSnapshotVersion = queryData.snapshotVersion;
+              const updatedQueryData = queryData.withLastLimboFreeSnapshotVersion(
+                lastLimboFreeSnapshotVersion
+              );
+              this.queryDataByTarget[targetId] = updatedQueryData;
+            }
             return PersistencePromise.forEach(
               viewChange.removedKeys,
               (key: DocumentKey) =>

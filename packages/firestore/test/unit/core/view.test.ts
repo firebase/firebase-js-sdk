@@ -290,6 +290,44 @@ describe('View', () => {
     );
   });
 
+  it('is marked from cache with limbo documents', () => {
+    const query = Query.atPath(path('rooms/eros/msgs'));
+    const view = new View(query, documentKeySet());
+    const doc1 = doc('rooms/eros/msgs/0', 0, {});
+    const doc2 = doc('rooms/eros/msgs/1', 0, {});
+
+    // Doc1 is contained in the local view, but we are not yet CURRENT so we
+    // are getting a snapshot from cache.
+    let changes = view.computeDocChanges(documentUpdates(doc1));
+    let viewChange = view.applyChanges(
+      changes,
+      /* updateLimboDocuments= */ true
+    );
+    expect(viewChange.snapshot!.fromCache).to.be.true;
+
+    // Add doc2 to generate a snapshot. Doc1 is still missing.
+    changes = view.computeDocChanges(documentUpdates(doc2));
+    viewChange = view.applyChanges(changes, /* updateLimboDocuments= */ true);
+    expect(viewChange.snapshot!.fromCache).to.be.true;
+
+    // Add doc2 to the backend's result set.
+    viewChange = view.applyChanges(
+      changes,
+      /* updateLimboDocuments= */ true,
+      updateMapping(version(0), [doc2], [], [], /* current= */ true)
+    );
+    // We are CURRENT but doc1 is in limbo.
+    expect(viewChange.snapshot!.fromCache).to.be.true;
+
+    // Add doc1 to the backend's result set.
+    viewChange = view.applyChanges(
+      changes,
+      /* updateLimboDocuments= */ true,
+      updateMapping(version(0), [doc1], [], [], /* current= */ true)
+    );
+    expect(viewChange.snapshot!.fromCache).to.be.false;
+  });
+
   it('resumes queries without creating limbo documents', () => {
     const query = Query.atPath(path('rooms/eros/msgs'));
     const doc1 = doc('rooms/eros/msgs/0', 0, {});

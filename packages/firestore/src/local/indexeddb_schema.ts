@@ -787,6 +787,12 @@ export class DbTarget {
      */
     public lastListenSequenceNumber: number,
     /**
+     * Denotes the maximum snapshot version at which the associated query view
+     * contained no limbo documents.  Undefined for data written prior to
+     * schema version 9.
+     */
+    public lastLimboFreeSnapshotVersion: DbTimestamp | undefined,
+    /**
      * The query for this target.
      *
      * Because canonical ids are not unique we must store the actual query. We

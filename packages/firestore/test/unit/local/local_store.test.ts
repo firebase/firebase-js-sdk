@@ -844,13 +844,21 @@ function genericLocalStoreTests(
       .after(setMutation('foo/baz', { foo: 'baz' }))
       .toContain(doc('foo/bar', 1, { foo: 'bar' }))
       .toContain(doc('foo/baz', 0, { foo: 'baz' }, { hasLocalMutations: true }))
-      .after(localViewChanges(2, { added: ['foo/bar', 'foo/baz'] }))
+      .after(
+        localViewChanges(2, /* fromCache= */ false, {
+          added: ['foo/bar', 'foo/baz']
+        })
+      )
       .after(docUpdateRemoteEvent(doc('foo/bar', 1, { foo: 'bar' }), [], [2]))
       .after(docUpdateRemoteEvent(doc('foo/baz', 2, { foo: 'baz' }), [2]))
       .afterAcknowledgingMutation({ documentVersion: 2 })
       .toContain(doc('foo/bar', 1, { foo: 'bar' }))
       .toContain(doc('foo/baz', 2, { foo: 'baz' }))
-      .after(localViewChanges(2, { removed: ['foo/bar', 'foo/baz'] }))
+      .after(
+        localViewChanges(2, /* fromCache= */ false, {
+          removed: ['foo/bar', 'foo/baz']
+        })
+      )
       .afterReleasingQuery(query)
       .toNotContain('foo/bar')
       .toNotContain('foo/baz')
