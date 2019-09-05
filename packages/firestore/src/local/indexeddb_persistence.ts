@@ -75,8 +75,7 @@ const LOG_TAG = 'IndexedDbPersistence';
 
 /**
  * Oldest acceptable age in milliseconds for client metadata before the client
- * is considered inactive and its associated data (such as the remote document
- * cache changelog) is garbage collected.
+ * is considered inactive and its associated data is garbage collected.
  */
 const MAX_CLIENT_AGE_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -259,7 +258,7 @@ export class IndexedDbPersistence implements Persistence {
   /** The client metadata refresh task. */
   private clientMetadataRefresher: CancelablePromise<void> | null = null;
 
-  /** The last time we garbage collected the Remote Document Changelog. */
+  /** The last time we garbage collected the client metadata object store. */
   private lastGarbageCollectionTime = Number.NEGATIVE_INFINITY;
 
   /** Whether to allow shared multi-tab access to the persistence layer. */
@@ -304,8 +303,7 @@ export class IndexedDbPersistence implements Persistence {
     this.indexManager = new IndexedDbIndexManager();
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
-      this.indexManager,
-      /*keepDocumentChangeLog=*/ this.allowTabSynchronization
+      this.indexManager
     );
     if (platform.window && platform.window.localStorage) {
       this.window = platform.window;
@@ -430,8 +428,7 @@ export class IndexedDbPersistence implements Persistence {
             this.clientId,
             Date.now(),
             this.networkEnabled,
-            this.inForeground,
-            this.remoteDocumentCache.lastProcessedDocumentChangeId
+            this.inForeground
           )
         )
         .next(() => {
@@ -506,46 +503,22 @@ export class IndexedDbPersistence implements Persistence {
             DbClientMetadata
           >(txn, DbClientMetadata.store);
 
-          return metadataStore
-            .loadAll()
-            .next(existingClients => {
-              activeClients = this.filterActiveClients(
-                existingClients,
-                MAX_CLIENT_AGE_MS
-              );
-              inactiveClients = existingClients.filter(
-                client => activeClients.indexOf(client) === -1
-              );
-            })
-            .next(() =>
-              // Delete metadata for clients that are no longer considered active.
-              PersistencePromise.forEach(
-                inactiveClients,
-                (inactiveClient: DbClientMetadata) =>
-                  metadataStore.delete(inactiveClient.clientId)
-              )
-            )
-            .next(() => {
-              // Retrieve the minimum change ID from the set of active clients.
+          return metadataStore.loadAll().next(existingClients => {
+            activeClients = this.filterActiveClients(
+              existingClients,
+              MAX_CLIENT_AGE_MS
+            );
+            inactiveClients = existingClients.filter(
+              client => activeClients.indexOf(client) === -1
+            );
 
-              // The primary client doesn't read from the document change log,
-              // and hence we exclude it when we determine the minimum
-              // `lastProcessedDocumentChangeId`.
-              activeClients = activeClients.filter(
-                client => client.clientId !== this.clientId
-              );
-
-              if (activeClients.length > 0) {
-                const processedChangeIds = activeClients.map(
-                  client => client.lastProcessedDocumentChangeId || 0
-                );
-                const oldestChangeId = Math.min(...processedChangeIds);
-                return this.remoteDocumentCache.removeDocumentChangesThroughChangeId(
-                  txn,
-                  oldestChangeId
-                );
-              }
-            });
+            // Delete metadata for clients that are no longer considered active.
+            return PersistencePromise.forEach(
+              inactiveClients,
+              (inactiveClient: DbClientMetadata) =>
+                metadataStore.delete(inactiveClient.clientId)
+            );
+          });
         }
       );
 

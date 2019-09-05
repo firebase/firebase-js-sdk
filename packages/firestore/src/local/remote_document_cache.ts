@@ -81,11 +81,8 @@ export interface RemoteDocumentCache {
   /**
    * Returns the set of documents that have been updated since the last call.
    * If this is the first call, returns the set of changes since client
-   * initialization.
-   *
-   * If the changelog was garbage collected and can no longer be replayed,
-   * `getNewDocumentChanges` will reject the returned Promise. Further
-   * invocations will return document changes since the point of rejection.
+   * initialization. Further invocations will return document changes since
+   * the point of rejection.
    */
   // PORTING NOTE: This is only used for multi-tab synchronization.
   getNewDocumentChanges(
@@ -97,8 +94,14 @@ export interface RemoteDocumentCache {
    * handles proper size accounting for the change.
    *
    * Multi-Tab Note: This should only be called by the primary client.
+   *
+   * @param options.trackRemovals Whether to create sentinel entries for
+   * removed documents, which allows removals to be tracked by
+   * `getNewDocumentChanges()`.
    */
-  newChangeBuffer(): RemoteDocumentChangeBuffer;
+  newChangeBuffer(options?: {
+    trackRemovals: boolean;
+  }): RemoteDocumentChangeBuffer;
 
   /**
    * Get an estimate of the size of the document cache. Note that for eager

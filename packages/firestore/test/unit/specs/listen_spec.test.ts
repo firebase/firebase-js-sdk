@@ -1144,7 +1144,7 @@ describeSpec('Listens:', [], () => {
       .client(1)
       .stealPrimaryLease()
       .expectListen(query, 'resume-token-2000')
-      .watchAcksFull(query, 2000, docC)
+      .watchAcksFull(query, 3000, docC)
       .client(0)
       .expectEvents(query, { added: [docC] });
   });
