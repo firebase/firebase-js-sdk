@@ -48,6 +48,7 @@ import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData, QueryPurpose } from './query_data';
+import { QueryEngine } from './query_engine';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
@@ -158,6 +159,7 @@ export class LocalStore {
   constructor(
     /** Manages our in-memory or durable persistence. */
     private persistence: Persistence,
+    private queryEngine: QueryEngine,
     initialUser: User
   ) {
     assert(
@@ -175,6 +177,7 @@ export class LocalStore {
       this.mutationQueue,
       this.persistence.getIndexManager()
     );
+    this.queryEngine.setLocalDocumentsView(this.localDocuments);
   }
 
   /**
@@ -819,7 +822,7 @@ export class LocalStore {
    */
   executeQuery(query: Query): Promise<DocumentMap> {
     return this.persistence.runTransaction('Execute query', 'readonly', txn => {
-      return this.localDocuments.getDocumentsMatchingQuery(
+      return this.queryEngine.getDocumentsMatchingQuery(
         txn,
         query,
         SnapshotVersion.MIN
