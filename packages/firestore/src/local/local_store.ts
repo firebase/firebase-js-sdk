@@ -662,14 +662,14 @@ export class LocalStore {
 
             this.localViewReferences.addReferences(
               viewChange.addedKeys,
-              viewChange.targetId
+              targetId
             );
             this.localViewReferences.removeReferences(
               viewChange.removedKeys,
-              viewChange.targetId
+              targetId
             );
 
-            if (viewChange.fromCache) {
+            if (!viewChange.fromCache) {
               const queryData = this.queryDataByTarget[targetId];
               assert(
                 queryData !== undefined,
