@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-import { LocalDocumentsView } from './local_documents_view';
-import { PersistenceTransaction } from './persistence';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { PersistencePromise } from './persistence_promise';
 import { DocumentMap } from '../model/collections';
+import { LocalDocumentsView } from './local_documents_view';
+import { PersistenceTransaction } from './persistence';
+import { PersistencePromise } from './persistence_promise';
 
 /**
  * Represents a query engine capable of performing queries over the local

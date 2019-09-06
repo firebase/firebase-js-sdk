@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 
-import { LocalDocumentsView } from './local_documents_view';
-import { PersistenceTransaction } from './persistence';
-import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { PersistencePromise } from './persistence_promise';
+import { Query } from '../core/query';
 import { DocumentMap } from '../model/collections';
-import { QueryEngine } from './query_engine';
 import { assert } from '../util/assert';
+import { LocalDocumentsView } from './local_documents_view';
+import { QueryEngine } from './query_engine';
+import { PersistenceTransaction } from './persistence';
+import { PersistencePromise } from './persistence_promise';
 
 /**
  * A naive implementation of QueryEngine that just loads all the documents in
