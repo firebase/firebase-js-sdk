@@ -210,6 +210,7 @@ export class LocalStore {
               this.mutationQueue,
               this.persistence.getIndexManager()
             );
+            this.queryEngine.setLocalDocumentsView(this.localDocuments);
             return this.mutationQueue.getAllMutationBatches(txn);
           })
           .next(newBatches => {
