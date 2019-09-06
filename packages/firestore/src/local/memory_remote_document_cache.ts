@@ -83,6 +83,11 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     doc: MaybeDocument,
     readTime: SnapshotVersion
   ): PersistencePromise<void> {
+    assert(
+      !readTime.isEqual(SnapshotVersion.MIN),
+      'Cannot add a document with a read time of zero'
+    );
+
     const key = doc.key;
     const entry = this.docs.get(key);
     const previousSize = entry ? entry.size : 0;
@@ -140,7 +145,8 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
 
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
     assert(
       !query.isCollectionGroupQuery(),
@@ -155,10 +161,13 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     while (iterator.hasNext()) {
       const {
         key,
-        value: { maybeDocument }
+        value: { maybeDocument, readTime }
       } = iterator.getNext();
       if (!query.path.isPrefixOf(key.path)) {
         break;
+      }
+      if (readTime.compareTo(sinceReadTime) <= 0) {
+        continue;
       }
       if (maybeDocument instanceof Document && query.matches(maybeDocument)) {
         results = results.insert(maybeDocument.key, maybeDocument);

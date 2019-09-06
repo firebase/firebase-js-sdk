@@ -819,7 +819,11 @@ export class LocalStore {
    */
   executeQuery(query: Query): Promise<DocumentMap> {
     return this.persistence.runTransaction('Execute query', 'readonly', txn => {
-      return this.localDocuments.getDocumentsMatchingQuery(txn, query);
+      return this.localDocuments.getDocumentsMatchingQuery(
+        txn,
+        query,
+        SnapshotVersion.MIN
+      );
     });
   }
 
