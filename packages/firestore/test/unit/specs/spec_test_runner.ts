@@ -1072,6 +1072,7 @@ abstract class TestRunner {
           QueryPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,
           SnapshotVersion.MIN,
+          SnapshotVersion.MIN,
           expected.resumeToken
         )
       );

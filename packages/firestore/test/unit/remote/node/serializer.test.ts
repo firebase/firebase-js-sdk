@@ -88,7 +88,6 @@ describe('Serializer', () => {
   const proto3JsonSerializer = new JsonProtoSerializer(partition, {
     useProto3Json: true
   });
-  const emptyResumeToken = new Uint8Array(0);
   const protos = loadRawProtos();
 
   // tslint:disable:variable-name
@@ -105,14 +104,7 @@ describe('Serializer', () => {
    * variations on Query.
    */
   function wrapQueryData(query: Query): QueryData {
-    return new QueryData(
-      query,
-      1,
-      QueryPurpose.Listen,
-      2,
-      SnapshotVersion.MIN,
-      emptyResumeToken
-    );
+    return new QueryData(query, 1, QueryPurpose.Listen, 2);
   }
 
   describe('converts value', () => {
@@ -1195,6 +1187,7 @@ describe('Serializer', () => {
           1,
           QueryPurpose.Listen,
           4,
+          SnapshotVersion.MIN,
           SnapshotVersion.MIN,
           new Uint8Array([1, 2, 3])
         )

@@ -202,6 +202,13 @@ export class LocalSerializer {
   /** Decodes a DbTarget into QueryData */
   fromDbTarget(dbTarget: DbTarget): QueryData {
     const version = this.fromDbTimestamp(dbTarget.readTime);
+    const lastLimboFreeSnapshotVersion =
+      dbTarget.lastLimboFreeSnapshotVersion !== undefined
+        ? this.fromDbTimestamp(dbTarget.lastLimboFreeSnapshotVersion)
+        : SnapshotVersion.MIN;
+    // TODO(b/140573486): Convert to platform representation
+    const resumeToken = dbTarget.resumeToken;
+
     let query: Query;
     if (isDocumentQuery(dbTarget.query)) {
       query = this.remoteSerializer.fromDocumentsTarget(dbTarget.query);
@@ -214,7 +221,8 @@ export class LocalSerializer {
       QueryPurpose.Listen,
       dbTarget.lastListenSequenceNumber,
       version,
-      dbTarget.resumeToken
+      lastLimboFreeSnapshotVersion,
+      resumeToken
     );
   }
 
@@ -228,6 +236,9 @@ export class LocalSerializer {
         queryData.purpose
     );
     const dbTimestamp = this.toDbTimestamp(queryData.snapshotVersion);
+    const dbLastLimboFreeTimestamp = this.toDbTimestamp(
+      queryData.lastLimboFreeSnapshotVersion
+    );
     let queryProto: DbQuery;
     if (queryData.query.isDocumentQuery()) {
       queryProto = this.remoteSerializer.toDocumentsTarget(queryData.query);
@@ -255,6 +266,7 @@ export class LocalSerializer {
       dbTimestamp,
       resumeToken,
       queryData.sequenceNumber,
+      dbLastLimboFreeTimestamp,
       queryProto
     );
   }

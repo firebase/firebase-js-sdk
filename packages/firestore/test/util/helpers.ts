@@ -435,6 +435,7 @@ export function limboChanges(changes: {
 
 export function localViewChanges(
   targetId: TargetId,
+  fromCache: boolean,
   changes: { added?: string[]; removed?: string[] }
 ): LocalViewChanges {
   if (!changes.added) {
@@ -453,7 +454,7 @@ export function localViewChanges(
     keyStr => (removedKeys = removedKeys.add(key(keyStr)))
   );
 
-  return new LocalViewChanges(targetId, addedKeys, removedKeys);
+  return new LocalViewChanges(targetId, fromCache, addedKeys, removedKeys);
 }
 
 /** Creates a resume token to match the given snapshot version. */

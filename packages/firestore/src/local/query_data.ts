@@ -48,10 +48,18 @@ export class QueryData {
     readonly targetId: TargetId,
     /** The purpose of the query. */
     readonly purpose: QueryPurpose,
-    /** The sequence number of the last transaction during which this query data was modified */
+    /**
+     * The sequence number of the last transaction during which this query data
+     * was modified.
+     */
     readonly sequenceNumber: ListenSequenceNumber,
     /** The latest snapshot version seen for this target. */
     readonly snapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
+    /**
+     * The maximum snapshot version at which the associated query view
+     * contained no limbo documents.
+     */
+    readonly lastLimboFreeSnapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
     /**
      * An opaque, server-assigned token that allows watching a query to be
      * resumed after disconnecting without retransmitting all the data that
@@ -69,6 +77,7 @@ export class QueryData {
       this.purpose,
       sequenceNumber,
       this.snapshotVersion,
+      this.lastLimboFreeSnapshotVersion,
       this.resumeToken
     );
   }
@@ -87,7 +96,26 @@ export class QueryData {
       this.purpose,
       this.sequenceNumber,
       snapshotVersion,
+      this.lastLimboFreeSnapshotVersion,
       resumeToken
+    );
+  }
+
+  /**
+   * Creates a new query data instance with an updated last limbo free
+   * snapshot version number.
+   */
+  withLastLimboFreeSnapshotVersion(
+    lastLimboFreeSnapshotVersion: SnapshotVersion
+  ): QueryData {
+    return new QueryData(
+      this.query,
+      this.targetId,
+      this.purpose,
+      this.sequenceNumber,
+      this.snapshotVersion,
+      lastLimboFreeSnapshotVersion,
+      this.resumeToken
     );
   }
 
@@ -97,6 +125,9 @@ export class QueryData {
       this.purpose === other.purpose &&
       this.sequenceNumber === other.sequenceNumber &&
       this.snapshotVersion.isEqual(other.snapshotVersion) &&
+      this.lastLimboFreeSnapshotVersion.isEqual(
+        other.lastLimboFreeSnapshotVersion
+      ) &&
       this.resumeToken === other.resumeToken &&
       this.query.isEqual(other.query)
     );
