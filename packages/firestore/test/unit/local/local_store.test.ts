@@ -25,6 +25,8 @@ import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { LocalStore, LocalWriteResult } from '../../../src/local/local_store';
 import { LocalViewChanges } from '../../../src/local/local_view_changes';
 import { Persistence } from '../../../src/local/persistence';
+import { QueryEngine } from '../../../src/local/query_engine';
+import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
 import {
   documentKeySet,
   DocumentMap,
@@ -280,6 +282,7 @@ describe('LocalStore w/ Memory Persistence', () => {
   addEqualityMatcher();
   genericLocalStoreTests(
     persistenceHelpers.testMemoryEagerPersistence,
+    new SimpleQueryEngine(),
     /* gcIsEager= */ true
   );
 });
@@ -295,12 +298,14 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
   addEqualityMatcher();
   genericLocalStoreTests(
     persistenceHelpers.testIndexedDbPersistence,
+    new SimpleQueryEngine(),
     /* gcIsEager= */ false
   );
 });
 
 function genericLocalStoreTests(
   getPersistence: () => Promise<Persistence>,
+  queryEngine: QueryEngine,
   gcIsEager: boolean
 ): void {
   let persistence: Persistence;
@@ -308,7 +313,7 @@ function genericLocalStoreTests(
 
   beforeEach(async () => {
     persistence = await getPersistence();
-    localStore = new LocalStore(persistence, User.UNAUTHENTICATED);
+    localStore = new LocalStore(persistence, queryEngine, User.UNAUTHENTICATED);
   });
 
   afterEach(async () => {

@@ -21,6 +21,7 @@ import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
 import { Persistence } from '../local/persistence';
+import { SimpleQueryEngine } from '../local/simple_query_engine';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -406,7 +407,9 @@ export class FirestoreClient {
     return this.platform
       .loadConnection(this.databaseInfo)
       .then(async connection => {
-        this.localStore = new LocalStore(this.persistence, user);
+        // TODO(index-free): Use IndexFreeQueryEngine/IndexedQueryEngine as appropriate.
+        const queryEngine = new SimpleQueryEngine();
+        this.localStore = new LocalStore(this.persistence, queryEngine, user);
         if (maybeLruGc) {
           // We're running LRU Garbage collection. Set up the scheduler.
           this.lruScheduler = new LruScheduler(
