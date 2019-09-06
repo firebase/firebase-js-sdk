@@ -107,12 +107,15 @@ export class TestRemoteDocumentCache {
     });
   }
 
-  getDocumentsMatchingQuery(query: Query): Promise<DocumentMap> {
+  getDocumentsMatchingQuery(
+    query: Query,
+    sinceReadTime: SnapshotVersion
+  ): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'getDocumentsMatchingQuery',
       'readonly',
       txn => {
-        return this.cache.getDocumentsMatchingQuery(txn, query);
+        return this.cache.getDocumentsMatchingQuery(txn, query, sinceReadTime);
       }
     );
   }

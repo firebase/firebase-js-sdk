@@ -143,17 +143,33 @@ export class LocalDocumentsView {
       });
   }
 
-  /** Performs a query against the local view of all documents. */
+  /**
+   * Performs a query against the local view of all documents.
+   *
+   * @param transaction The persistence transaction.
+   * @param query The query to match documents against.
+   * @param sinceReadTime If not set to SnapshotVersion.MIN, return only
+   *     documents that have been read since this snapshot version (exclusive).
+   */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
     if (query.isDocumentQuery()) {
       return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
     } else if (query.isCollectionGroupQuery()) {
-      return this.getDocumentsMatchingCollectionGroupQuery(transaction, query);
+      return this.getDocumentsMatchingCollectionGroupQuery(
+        transaction,
+        query,
+        sinceReadTime
+      );
     } else {
-      return this.getDocumentsMatchingCollectionQuery(transaction, query);
+      return this.getDocumentsMatchingCollectionQuery(
+        transaction,
+        query,
+        sinceReadTime
+      );
     }
   }
 
@@ -175,7 +191,8 @@ export class LocalDocumentsView {
 
   private getDocumentsMatchingCollectionGroupQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
     assert(
       query.path.isEmpty(),
@@ -194,7 +211,8 @@ export class LocalDocumentsView {
           );
           return this.getDocumentsMatchingCollectionQuery(
             transaction,
-            collectionQuery
+            collectionQuery,
+            sinceReadTime
           ).next(r => {
             r.forEach((key, doc) => {
               results = results.insert(key, doc);
@@ -206,13 +224,14 @@ export class LocalDocumentsView {
 
   private getDocumentsMatchingCollectionQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let results: DocumentMap;
     let mutationBatches: MutationBatch[];
     return this.remoteDocumentCache
-      .getDocumentsMatchingQuery(transaction, query)
+      .getDocumentsMatchingQuery(transaction, query, sinceReadTime)
       .next(queryResults => {
         results = queryResults;
         return this.mutationQueue.getAllMutationBatchesAffectingQuery(

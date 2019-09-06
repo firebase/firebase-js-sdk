@@ -46,7 +46,12 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import {
+  IterateOptions,
+  SimpleDb,
+  SimpleDbStore,
+  SimpleDbTransaction
+} from './simple_db';
 import { ObjectMap } from '../util/obj_map';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
@@ -257,7 +262,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
     assert(
       !query.isCollectionGroupQuery(),
@@ -267,12 +273,27 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
     const immediateChildrenPathLength = query.path.length + 1;
 
-    // Documents are ordered by key, so we can use a prefix scan to narrow down
-    // the documents we need to match the query against.
-    const startKey = query.path.toArray();
-    const range = IDBKeyRange.lowerBound(startKey);
+    const iterationOptions: IterateOptions = {};
+    if (sinceReadTime.isEqual(SnapshotVersion.MIN)) {
+      // Documents are ordered by key, so we can use a prefix scan to narrow
+      // down the documents we need to match the query against.
+      const startKey = query.path.toArray();
+      iterationOptions.range = IDBKeyRange.lowerBound(startKey);
+    } else {
+      // Execute an index-free query and filter by read time. This is safe
+      // since all document changes to queries that have a
+      // lastLimboFreeSnapshotVersion (`sinceReadTime`) have a read time set.
+      const collectionKey = query.path.toArray();
+      const readTimeKey = this.serializer.toDbTimestampKey(sinceReadTime);
+      iterationOptions.range = IDBKeyRange.lowerBound(
+        [collectionKey, readTimeKey],
+        /* open= */ true
+      );
+      iterationOptions.index = DbRemoteDocument.collectionReadTimeIndex;
+    }
+
     return remoteDocumentsStore(transaction)
-      .iterate({ range }, (key, dbRemoteDoc, control) => {
+      .iterate(iterationOptions, (key, dbRemoteDoc, control) => {
         // The query is actually returning any path that starts with the query
         // path prefix which may include documents in subcollections. For
         // example, a query on 'rooms' will return rooms/abc/messages/xyx but we
@@ -440,6 +461,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           `Cannot modify a document that wasn't read (for ${key})`
         );
         if (maybeDocument) {
+          assert(
+            !this.readTime.isEqual(SnapshotVersion.MIN),
+            'Cannot add a document with a read time of zero'
+          );
           const doc = this.documentCache.serializer.toDbRemoteDocument(
             maybeDocument,
             this.readTime

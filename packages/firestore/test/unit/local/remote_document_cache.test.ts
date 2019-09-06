@@ -17,6 +17,7 @@
 
 import { expect } from 'chai';
 import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { MaybeDocument } from '../../../src/model/document';
 import {
@@ -312,12 +313,55 @@ function genericRemoteDocumentCacheTests(
     );
 
     const query = new Query(path('b'));
-    const matchingDocs = await cache.getDocumentsMatchingQuery(query);
+    const matchingDocs = await cache.getDocumentsMatchingQuery(
+      query,
+      SnapshotVersion.MIN
+    );
 
     assertMatches(
       [doc('b/1', VERSION, DOC_DATA), doc('b/2', VERSION, DOC_DATA)],
       matchingDocs
     );
+  });
+
+  it('can get documents matching query by read time', async () => {
+    await cache.addEntries(
+      [doc('b/old', 1, DOC_DATA)],
+      /* readTime= */ version(11)
+    );
+    await cache.addEntries(
+      [doc('b/current', 2, DOC_DATA)],
+      /* readTime= */ version(12)
+    );
+    await cache.addEntries(
+      [doc('b/new', 3, DOC_DATA)],
+      /* readTime= */ version(13)
+    );
+
+    const query = new Query(path('b'));
+    const matchingDocs = await cache.getDocumentsMatchingQuery(
+      query,
+      /* sinceReadTime= */ version(12)
+    );
+    assertMatches([doc('b/new', 3, DOC_DATA)], matchingDocs);
+  });
+
+  it('query matching uses read time rather than update time', async () => {
+    await cache.addEntries(
+      [doc('b/old', 1, DOC_DATA)],
+      /* readTime= */ version(2)
+    );
+    await cache.addEntries(
+      [doc('b/new', 2, DOC_DATA)],
+      /* readTime= */ version(1)
+    );
+
+    const query = new Query(path('b'));
+    const matchingDocs = await cache.getDocumentsMatchingQuery(
+      query,
+      /* sinceReadTime= */ version(1)
+    );
+    assertMatches([doc('b/old', 1, DOC_DATA)], matchingDocs);
   });
 
   it('can get changes', async () => {

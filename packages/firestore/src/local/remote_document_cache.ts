@@ -28,6 +28,7 @@ import { DocumentKey } from '../model/document_key';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
  * Represents cached documents received from the remote backend.
@@ -71,11 +72,14 @@ export interface RemoteDocumentCache {
    * Cached NoDocument entries have no bearing on query results.
    *
    * @param query The query to match documents against.
+   * @param sinceReadTime If not set to SnapshotVersion.MIN, return only
+   *     documents that have been read since this snapshot version (exclusive).
    * @return The set of matching documents.
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap>;
 
   /**
