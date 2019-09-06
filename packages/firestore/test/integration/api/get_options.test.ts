@@ -88,9 +88,11 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .then(ignored => colRef.firestore.disableNetwork())
         .then(() => {
           // NB: since we're offline, the returned promises won't complete
+          /* eslint-disable @typescript-eslint/no-floating-promises */
           colRef.doc('doc2').set({ key2b: 'value2b' }, { merge: true });
           colRef.doc('doc3').set({ key3b: 'value3b' });
           colRef.doc('doc4').set({ key4: 'value4' });
+          /* eslint-enable @typescript-eslint/no-floating-promises */
           return colRef.get();
         })
         .then(qrySnap => {
@@ -183,9 +185,12 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .then(ignored => colRef.firestore.disableNetwork())
         .then(() => {
           // NB: since we're offline, the returned promises won't complete
+          /* eslint-disable @typescript-eslint/no-floating-promises */
           colRef.doc('doc2').set({ key2b: 'value2b' }, { merge: true });
           colRef.doc('doc3').set({ key3b: 'value3b' });
           colRef.doc('doc4').set({ key4: 'value4' });
+          /* eslint-enable @typescript-eslint/no-floating-promises */
+
           return colRef.get({ source: 'cache' });
         })
         .then(qrySnap => {
@@ -342,9 +347,11 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           .then(ignored => colRef.firestore.disableNetwork())
           .then(() => {
             // NB: since we're offline, the returned promises won't complete
+            /* eslint-disable @typescript-eslint/no-floating-promises */
             colRef.doc('doc2').set({ key2b: 'value2b' }, { merge: true });
             colRef.doc('doc3').set({ key3b: 'value3b' });
             colRef.doc('doc4').set({ key4: 'value4' });
+            /* eslint-enable @typescript-eslint/no-floating-promises */
 
             // Create an initial listener for this query (to attempt to disrupt the
             // gets below) and wait for the listener to deliver its initial

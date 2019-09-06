@@ -22,7 +22,7 @@
  */
 export function async(f: Function): Function {
   return (...argsToForward: unknown[]) => {
-    // tslint:disable-next-line:no-floating-promises
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     Promise.resolve().then(() => f(...argsToForward));
   };
 }

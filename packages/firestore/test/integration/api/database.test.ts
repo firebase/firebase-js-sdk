@@ -346,6 +346,7 @@ apiDescribe('Database', (persistence: boolean) => {
   it("can't specify a field mask for a missing field using set", () => {
     return withTestDoc(persistence, async docRef => {
       expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         docRef.set(
           { desc: 'NewDescription' },
           { mergeFields: ['desc', 'owner'] }
@@ -775,6 +776,7 @@ apiDescribe('Database', (persistence: boolean) => {
       const doc = coll.doc();
       const deferred1 = new Deferred<void>();
       const deferred2 = new Deferred<void>();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       doc.set({ foo: 'bar' }).then(() => {
         doc.onSnapshot(snap => {
           deferred1.resolve();
@@ -802,8 +804,9 @@ apiDescribe('Database', (persistence: boolean) => {
           }
         }
       });
-
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       docRef.set({ a: 1 }).then(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         docRef.set({ b: 1 });
       });
       return secondUpdateFound.promise.then(() => {
@@ -998,6 +1001,7 @@ apiDescribe('Database', (persistence: boolean) => {
     return withTestDb(persistence, db => {
       return db.INTERNAL.delete().then(() => {
         expect(() => {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           db.disableNetwork();
         }).to.throw('The client has already been terminated.');
       });
@@ -1144,6 +1148,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await firestore.terminate();
 
       expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         firestore.doc(docRef.path).set({ foo: 'bar' });
       }).to.throw('The client has already been terminated.');
     });
@@ -1156,6 +1161,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await firestore.terminate();
 
       expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         firestore.doc(docRef.path).set({ foo: 'bar' });
       }).to.throw();
     });
@@ -1198,6 +1204,7 @@ apiDescribe('Database', (persistence: boolean) => {
       async (db, mockCredentialsProvider) => {
         // Prevent pending writes receiving acknowledgement.
         await db.disableNetwork();
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         db.doc('abc/123').set({ foo: 'bar' });
         const awaitPendingWrite = db.waitForPendingWrites();
 

@@ -166,6 +166,7 @@
                 "argsIgnorePattern": "^_"
             }
         ],
+        "@typescript-eslint/no-floating-promises": "error",
         "@typescript-eslint/tslint/config": [
             "error",
             {
@@ -182,7 +183,6 @@
                         {"name": "Array", "message": "tsstyle#array-constructor"}
                     ],
                     "jsdoc-format": true,
-                    "no-floating-promises": true,
                     "arrow-return-shorthand": true
                 }
             }

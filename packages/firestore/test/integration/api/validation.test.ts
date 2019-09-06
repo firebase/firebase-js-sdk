@@ -917,6 +917,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
             });
 
             const doc: firestore.DocumentReference = collection.doc();
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             doc.set({ timestamp: FieldValue.serverTimestamp() });
             await offlineDeferred.promise;
 

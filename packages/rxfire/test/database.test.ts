@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-// tslint:disable:no-floating-promises
+ /* eslint-disable @typescript-eslint/no-floating-promises */
 
 import { expect } from 'chai';
 // app/database is used as namespaces to access types

@@ -386,7 +386,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         const results1 = events[0];
         expect(toDataArray(results1)).to.deep.equal([initialDoc['foo']]);
       });
-
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       coll.doc('foo').set(modifiedDoc['foo']);
 
       await accum.awaitEvents(2).then(events => {
@@ -494,9 +494,11 @@ apiDescribe('Queries', (persistence: boolean) => {
           }
         }
       );
-
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       coll.firestore.disableNetwork().then(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         coll.doc().set({ a: 1 });
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         coll.firestore.enableNetwork();
       });
 

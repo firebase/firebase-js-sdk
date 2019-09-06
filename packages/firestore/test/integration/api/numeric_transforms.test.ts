@@ -146,9 +146,11 @@ apiDescribe('Numeric Transforms:', (persistence: boolean) => {
 
       await docRef.firestore.disableNetwork();
 
+      /* eslint-disable @typescript-eslint/no-floating-promises */
       docRef.update('sum', FieldValue.increment(0.1));
       docRef.update('sum', FieldValue.increment(0.01));
       docRef.update('sum', FieldValue.increment(0.001));
+      /* eslint-enable @typescript-eslint/no-floating-promises */
 
       let snap = await accumulator.awaitLocalEvent();
       expect(snap.get('sum')).to.be.closeTo(0.1, DOUBLE_EPSILON);
@@ -199,11 +201,11 @@ apiDescribe('Numeric Transforms:', (persistence: boolean) => {
     // ServerTimestamp as part of a PatchMutation, which triggered an assertion failure.
     await withTestSetup(async () => {
       await docRef.firestore.disableNetwork();
-
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       docRef.set({ val: FieldValue.serverTimestamp() });
       let snap = await accumulator.awaitLocalEvent();
       expect(snap.get('val', { serverTimestamps: 'estimate' })).to.not.be.null;
-
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       docRef.set({ val: FieldValue.increment(1) });
       snap = await accumulator.awaitLocalEvent();
       expect(snap.get('val')).to.equal(1);
