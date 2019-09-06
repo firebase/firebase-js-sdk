@@ -41,14 +41,26 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
 export type DocumentSizer = (doc: MaybeDocument) => number;
 
-type DocumentSizeMap = SortedMap<DocumentKey, DocumentSizeEntry>;
-function documentSizeMap(): DocumentSizeMap {
-  return new SortedMap<DocumentKey, DocumentSizeEntry>(DocumentKey.comparator);
+/** Miscellaneous collection types / constants. */
+interface MemoryRemoteDocumentCacheEntry extends DocumentSizeEntry {
+  readTime: SnapshotVersion;
+}
+
+type DocumentEntryMap = SortedMap<DocumentKey, MemoryRemoteDocumentCacheEntry>;
+function documentEntryMap(): DocumentEntryMap {
+  return new SortedMap<DocumentKey, MemoryRemoteDocumentCacheEntry>(
+    DocumentKey.comparator
+  );
 }
 
 export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
-  private docs = documentSizeMap();
+  /** Underlying cache of documents and their read times. */
+  private docs = documentEntryMap();
+
+  /** Set of documents changed since last call to `getNewDocumentChanges()`. */
   private newDocumentChanges = documentKeySet();
+
+  /** Size of all cached documents. */
   private size = 0;
 
   /**
@@ -68,7 +80,8 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
    */
   private addEntry(
     transaction: PersistenceTransaction,
-    doc: MaybeDocument
+    doc: MaybeDocument,
+    readTime: SnapshotVersion
   ): PersistencePromise<void> {
     const key = doc.key;
     const entry = this.docs.get(key);
@@ -77,7 +90,8 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
 
     this.docs = this.docs.insert(key, {
       maybeDocument: doc,
-      size: currentSize
+      size: currentSize,
+      readTime
     });
 
     this.newDocumentChanges = this.newDocumentChanges.add(key);
@@ -204,7 +218,9 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       const promises: Array<PersistencePromise<void>> = [];
       this.changes.forEach((key, doc) => {
         if (doc) {
-          promises.push(this.documentCache.addEntry(transaction, doc));
+          promises.push(
+            this.documentCache.addEntry(transaction, doc, this.readTime)
+          );
         } else {
           this.documentCache.removeEntry(key);
         }
