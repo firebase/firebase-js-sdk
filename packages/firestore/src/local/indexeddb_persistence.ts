@@ -257,9 +257,6 @@ export class IndexedDbPersistence implements Persistence {
   private readonly webStorage: Storage;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
-  // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
-  // is still experimental. When multi-client is switched to always on, `multiClientParams` will
-  // no longer be optional.
   private constructor(
     private readonly allowTabSynchronization: boolean,
     private readonly persistenceKey: string,
@@ -268,7 +265,7 @@ export class IndexedDbPersistence implements Persistence {
     lruParams: LruParams,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    private readonly sequenceNumberSyncer?: SequenceNumberSyncer
+    private readonly sequenceNumberSyncer: SequenceNumberSyncer
   ) {
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;

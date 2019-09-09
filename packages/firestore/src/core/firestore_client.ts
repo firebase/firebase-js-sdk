@@ -359,16 +359,18 @@ export class FirestoreClient {
           )
         : new MemorySharedClientState();
 
-      const persistence = await IndexedDbPersistence.createIndexedDbPersistence({
-        allowTabSynchronization: settings.synchronizeTabs,
-        persistenceKey,
-        clientId: this.clientId,
-        platform: this.platform,
-        queue: this.asyncQueue,
-        serializer,
-        lruParams,
-        sequenceNumberSyncer: this.sharedClientState
-      });
+      const persistence = await IndexedDbPersistence.createIndexedDbPersistence(
+        {
+          allowTabSynchronization: settings.synchronizeTabs,
+          persistenceKey,
+          clientId: this.clientId,
+          platform: this.platform,
+          queue: this.asyncQueue,
+          serializer,
+          lruParams,
+          sequenceNumberSyncer: this.sharedClientState
+        }
+      );
 
       this.persistence = persistence;
       return persistence.referenceDelegate.garbageCollector;
