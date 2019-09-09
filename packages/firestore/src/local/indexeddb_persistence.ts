@@ -167,9 +167,6 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * TODO(b/114226234): Remove `synchronizeTabs` section when multi-tab is no
  * longer optional.
  */
-export interface MultiClientParams {
-  sequenceNumberSyncer: SequenceNumberSyncer;
-}
 export class IndexedDbPersistence implements Persistence {
   static getStore<Key extends IDBValidKey, Value>(
     txn: PersistenceTransaction,
@@ -190,43 +187,32 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
-  static async createIndexedDbPersistence(
-    persistenceKey: string,
-    clientId: ClientId,
-    platform: Platform,
-    queue: AsyncQueue,
-    serializer: JsonProtoSerializer,
-    lruParams: LruParams
-  ): Promise<IndexedDbPersistence> {
-    const persistence = new IndexedDbPersistence(
-      persistenceKey,
-      clientId,
-      platform,
-      queue,
-      serializer,
-      lruParams
-    );
-    await persistence.start();
-    return persistence;
-  }
+  static async createIndexedDbPersistence(options: {
+    allowTabSynchronization: boolean;
+    persistenceKey: string;
+    clientId: ClientId;
+    platform: Platform;
+    lruParams: LruParams;
+    queue: AsyncQueue;
+    serializer: JsonProtoSerializer;
+    sequenceNumberSyncer: SequenceNumberSyncer;
+  }): Promise<IndexedDbPersistence> {
+    if (!IndexedDbPersistence.isAvailable()) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        UNSUPPORTED_PLATFORM_ERROR_MSG
+      );
+    }
 
-  static async createMultiClientIndexedDbPersistence(
-    persistenceKey: string,
-    clientId: ClientId,
-    platform: Platform,
-    queue: AsyncQueue,
-    serializer: JsonProtoSerializer,
-    lruParams: LruParams,
-    multiClientParams: MultiClientParams
-  ): Promise<IndexedDbPersistence> {
     const persistence = new IndexedDbPersistence(
-      persistenceKey,
-      clientId,
-      platform,
-      queue,
-      serializer,
-      lruParams,
-      multiClientParams
+      options.allowTabSynchronization,
+      options.persistenceKey,
+      options.clientId,
+      options.platform,
+      options.lruParams,
+      options.queue,
+      options.serializer,
+      options.sequenceNumberSyncer
     );
     await persistence.start();
     return persistence;
@@ -261,9 +247,6 @@ export class IndexedDbPersistence implements Persistence {
   /** The last time we garbage collected the client metadata object store. */
   private lastGarbageCollectionTime = Number.NEGATIVE_INFINITY;
 
-  /** Whether to allow shared multi-tab access to the persistence layer. */
-  private allowTabSynchronization: boolean;
-
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
@@ -273,29 +256,20 @@ export class IndexedDbPersistence implements Persistence {
   private readonly webStorage: Storage;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
-  // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
-  // is still experimental. When multi-client is switched to always on, `multiClientParams` will
-  // no longer be optional.
   private constructor(
+    private readonly allowTabSynchronization: boolean,
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
     platform: Platform,
+    lruParams: LruParams,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    lruParams: LruParams,
-    private readonly multiClientParams?: MultiClientParams
+    private readonly sequenceNumberSyncer: SequenceNumberSyncer
   ) {
-    if (!IndexedDbPersistence.isAvailable()) {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        UNSUPPORTED_PLATFORM_ERROR_MSG
-      );
-    }
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
-    this.allowTabSynchronization = multiClientParams !== undefined;
     this.queryCache = new IndexedDbQueryCache(
       this.referenceDelegate,
       this.serializer
@@ -351,12 +325,9 @@ export class IndexedDbPersistence implements Persistence {
           txn => {
             return getHighestListenSequenceNumber(txn).next(
               highestListenSequenceNumber => {
-                const sequenceNumberSyncer = this.multiClientParams
-                  ? this.multiClientParams.sequenceNumberSyncer
-                  : undefined;
                 this.listenSequence = new ListenSequence(
                   highestListenSequenceNumber,
-                  sequenceNumberSyncer
+                  this.sequenceNumberSyncer
                 );
               }
             );
