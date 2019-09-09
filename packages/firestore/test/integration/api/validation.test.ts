@@ -29,7 +29,8 @@ import {
   inOp,
   withAlternateTestDb,
   withTestCollection,
-  withTestDb
+  withTestDb,
+  onSnapshotsInSync
 } from '../util/helpers';
 
 // tslint:disable:no-floating-promises
@@ -334,6 +335,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
     expect(() => collection.onSnapshot({ bad: true } as any, fn)).to.throw(
       `Unknown option 'bad' passed to function ` +
         `Query.onSnapshot(). Available options: includeMetadataChanges`
+    );
+
+    expect(() => onSnapshotsInSync(db, 'bad')).to.throw(
+      `Function Firestore.onSnapshotsInSync() requires its first ` +
+        `argument to be of type function, but it was: "bad"`
     );
   });
 

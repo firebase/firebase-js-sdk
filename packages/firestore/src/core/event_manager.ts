@@ -53,6 +53,8 @@ export class EventManager implements SyncEngineListener {
 
   private onlineState: OnlineState = OnlineState.Unknown;
 
+  private snapshotsInSyncListeners: Set<Observer<void>> = new Set();
+
   constructor(private syncEngine: SyncEngine) {
     this.syncEngine.subscribe(this);
   }
@@ -69,10 +71,18 @@ export class EventManager implements SyncEngineListener {
     }
     queryInfo.listeners.push(listener);
 
-    listener.applyOnlineStateChange(this.onlineState);
+    // Run global snapshot listeners if a consistent snapshot has been emitted.
+    const raisedEvent = listener.applyOnlineStateChange(this.onlineState);
+    assert(
+      !raisedEvent,
+      "applyOnlineStateChange() shouldn't raise an event for brand-new listeners."
+    );
 
     if (queryInfo.viewSnap) {
-      listener.onViewSnapshot(queryInfo.viewSnap);
+      const raisedEvent = listener.onViewSnapshot(queryInfo.viewSnap);
+      if (raisedEvent) {
+        this.raiseSnapshotsInSyncEvent();
+      }
     }
 
     if (firstListen) {
@@ -105,15 +115,21 @@ export class EventManager implements SyncEngineListener {
   }
 
   onWatchChange(viewSnaps: ViewSnapshot[]): void {
+    let raisedEvent = false;
     for (const viewSnap of viewSnaps) {
       const query = viewSnap.query;
       const queryInfo = this.queries.get(query);
       if (queryInfo) {
         for (const listener of queryInfo.listeners) {
-          listener.onViewSnapshot(viewSnap);
+          if (listener.onViewSnapshot(viewSnap)) {
+            raisedEvent = true;
+          }
         }
         queryInfo.viewSnap = viewSnap;
       }
+    }
+    if (raisedEvent) {
+      this.raiseSnapshotsInSyncEvent();
     }
   }
 
@@ -132,10 +148,35 @@ export class EventManager implements SyncEngineListener {
 
   onOnlineStateChange(onlineState: OnlineState): void {
     this.onlineState = onlineState;
+    let raisedEvent = false;
     this.queries.forEach((_, queryInfo) => {
       for (const listener of queryInfo.listeners) {
-        listener.applyOnlineStateChange(onlineState);
+        // Run global snapshot listeners if a consistent snapshot has been emitted.
+        if (listener.applyOnlineStateChange(onlineState)) {
+          raisedEvent = true;
+        }
       }
+    });
+    if (raisedEvent) {
+      this.raiseSnapshotsInSyncEvent();
+    }
+  }
+
+  addSnapshotsInSyncListener(observer: Observer<void>): void {
+    this.snapshotsInSyncListeners.add(observer);
+    // Immediately fire an initial event, indicating all existing listeners
+    // are in-sync.
+    observer.next();
+  }
+
+  removeSnapshotsInSyncListener(observer: Observer<void>): void {
+    this.snapshotsInSyncListeners.delete(observer);
+  }
+
+  // Call all global snapshot listeners that have been set.
+  private raiseSnapshotsInSyncEvent(): void {
+    this.snapshotsInSyncListeners.forEach(observer => {
+      observer.next();
     });
   }
 }
@@ -178,7 +219,13 @@ export class QueryListener {
     this.options = options || {};
   }
 
-  onViewSnapshot(snap: ViewSnapshot): void {
+  /**
+   * Applies the new ViewSnapshot to this listener, raising a user-facing event
+   * if applicable (depending on what changed, whether the user has opted into
+   * metadata-only changes, etc.). Returns true if a user-facing event was
+   * indeed raised.
+   */
+  onViewSnapshot(snap: ViewSnapshot): boolean {
     assert(
       snap.docChanges.length > 0 || snap.syncStateChanged,
       'We got a new snapshot with no changes?'
@@ -203,31 +250,38 @@ export class QueryListener {
         /* excludesMetadataChanges= */ true
       );
     }
-
+    let raisedEvent = false;
     if (!this.raisedInitialEvent) {
       if (this.shouldRaiseInitialEvent(snap, this.onlineState)) {
         this.raiseInitialEvent(snap);
+        raisedEvent = true;
       }
     } else if (this.shouldRaiseEvent(snap)) {
       this.queryObserver.next(snap);
+      raisedEvent = true;
     }
 
     this.snap = snap;
+    return raisedEvent;
   }
 
   onError(error: Error): void {
     this.queryObserver.error(error);
   }
 
-  applyOnlineStateChange(onlineState: OnlineState): void {
+  /** Returns whether a snapshot was raised. */
+  applyOnlineStateChange(onlineState: OnlineState): boolean {
     this.onlineState = onlineState;
+    let raisedEvent = false;
     if (
       this.snap &&
       !this.raisedInitialEvent &&
       this.shouldRaiseInitialEvent(this.snap, onlineState)
     ) {
       this.raiseInitialEvent(this.snap);
+      raisedEvent = true;
     }
+    return raisedEvent;
   }
 
   private shouldRaiseInitialEvent(

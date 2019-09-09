@@ -612,6 +612,23 @@ export class FirestoreClient {
     return this.databaseInfo.databaseId;
   }
 
+  addSnapshotsInSyncListener(observer: Observer<void>): void {
+    this.verifyNotTerminated();
+    this.asyncQueue.enqueueAndForget(() => {
+      this.eventMgr.addSnapshotsInSyncListener(observer);
+      return Promise.resolve();
+    });
+  }
+
+  removeSnapshotsInSyncListener(observer: Observer<void>): void {
+    // Checks for shutdown but does not raise error, allowing remove after
+    // shutdown to be a no-op.
+    if (this.clientTerminated) {
+      return;
+    }
+    this.eventMgr.removeSnapshotsInSyncListener(observer);
+  }
+
   get clientTerminated(): boolean {
     // Technically, the asyncQueue is still running, but only accepting operations
     // related to termination or supposed to be run after termination. It is effectively
