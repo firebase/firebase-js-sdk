@@ -384,7 +384,9 @@ export class FirestoreClient {
    * @returns A promise that will successfully resolve.
    */
   private startMemoryPersistence(): Promise<LruGarbageCollector | null> {
-    this.persistence = MemoryPersistence.createEagerPersistence(this.clientId);
+    this.persistence = MemoryPersistence.createEagerPersistence({
+      clientId: this.clientId
+    });
     this.sharedClientState = new MemorySharedClientState();
     return Promise.resolve(null);
   }

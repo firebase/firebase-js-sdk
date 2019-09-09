@@ -28,6 +28,12 @@ import { Persistence } from '../../../src/local/persistence';
 import { QueryEngine } from '../../../src/local/query_engine';
 import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
 import {
+  AccumulatingStatsCollector,
+  StatsCollector
+} from '../../../src/local/stats_collector';
+import { MUTATION_QUEUE_STATS_TAG } from '../../../src/local/mutation_queue';
+import { REMOTE_DOCUMENT_CACHE_STATS_TAG } from '../../../src/local/remote_document_cache';
+import {
   documentKeySet,
   DocumentMap,
   MaybeDocumentMap
@@ -59,6 +65,7 @@ import {
   docAddedRemoteEvent,
   docUpdateRemoteEvent,
   expectEqual,
+  filter,
   key,
   localViewChanges,
   mapAsArray,
@@ -79,7 +86,20 @@ class LocalStoreTester {
   private lastChanges: MaybeDocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
-  constructor(public localStore: LocalStore, readonly gcIsEager: boolean) {}
+
+  constructor(
+    public localStore: LocalStore,
+    private statsCollector: AccumulatingStatsCollector,
+    readonly gcIsEager: boolean
+  ) {}
+
+  prepareNextStep(): void {
+    this.promiseChain = this.promiseChain.then(() => {
+      this.lastChanges = null;
+      this.lastTargetId = null;
+      this.statsCollector.reset();
+    });
+  }
 
   after(
     op: Mutation | Mutation[] | RemoteEvent | LocalViewChanges
@@ -96,6 +116,8 @@ class LocalStoreTester {
   }
 
   afterMutations(mutations: Mutation[]): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain
       .then(() => {
         return this.localStore.localWrite(mutations);
@@ -110,6 +132,8 @@ class LocalStoreTester {
   }
 
   afterRemoteEvent(remoteEvent: RemoteEvent): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain
       .then(() => {
         return this.localStore.applyRemoteEvent(remoteEvent);
@@ -121,6 +145,8 @@ class LocalStoreTester {
   }
 
   afterViewChanges(viewChanges: LocalViewChanges): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain.then(() =>
       this.localStore.notifyLocalViewChanges([viewChanges])
     );
@@ -131,6 +157,8 @@ class LocalStoreTester {
     documentVersion: TestSnapshotVersion;
     transformResult?: FieldValue;
   }): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain
       .then(() => {
         const batch = this.batches.shift()!;
@@ -161,6 +189,8 @@ class LocalStoreTester {
   }
 
   afterRejectingMutation(): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain
       .then(() => {
         return this.localStore.rejectBatch(this.batches.shift()!.batchId);
@@ -172,6 +202,8 @@ class LocalStoreTester {
   }
 
   afterAllocatingQuery(query: Query): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain.then(() => {
       return this.localStore.allocateQuery(query).then(result => {
         this.lastTargetId = result.targetId;
@@ -181,11 +213,47 @@ class LocalStoreTester {
   }
 
   afterReleasingQuery(query: Query): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain.then(() => {
       return this.localStore.releaseQuery(
         query,
         /*keepPersistedQueryData=*/ false
       );
+    });
+    return this;
+  }
+
+  afterExecutingQuery(query: Query): LocalStoreTester {
+    this.prepareNextStep();
+
+    this.promiseChain = this.promiseChain.then(() => {
+      return this.localStore.executeQuery(query).then(results => {
+        this.lastChanges = results;
+      });
+    });
+    return this;
+  }
+
+  /**
+   * Asserts the expected numbers of mutation rows read by both the MutationQueue
+   * and the RemoteDocumentCache.
+   */
+  toHaveRead(expectedCount: {
+    mutations?: number;
+    remoteDocuments?: number;
+  }): LocalStoreTester {
+    this.promiseChain = this.promiseChain.then(() => {
+      if (expectedCount.mutations !== undefined) {
+        expect(
+          this.statsCollector.getRowsRead(MUTATION_QUEUE_STATS_TAG)
+        ).to.be.eq(expectedCount.mutations, 'Mutations read');
+      }
+      if (expectedCount.remoteDocuments !== undefined) {
+        expect(
+          this.statsCollector.getRowsRead(REMOTE_DOCUMENT_CACHE_STATS_TAG)
+        ).to.be.eq(expectedCount.remoteDocuments, 'Remote documents read');
+      }
     });
     return this;
   }
@@ -297,22 +365,25 @@ describe('LocalStore w/ IndexedDB Persistence', () => {
 
   addEqualityMatcher();
   genericLocalStoreTests(
-    persistenceHelpers.testIndexedDbPersistence,
+    statsCollector =>
+      persistenceHelpers.testIndexedDbPersistence({ statsCollector }),
     new SimpleQueryEngine(),
     /* gcIsEager= */ false
   );
 });
 
 function genericLocalStoreTests(
-  getPersistence: () => Promise<Persistence>,
+  getPersistence: (statsCollector: StatsCollector) => Promise<Persistence>,
   queryEngine: QueryEngine,
   gcIsEager: boolean
 ): void {
   let persistence: Persistence;
   let localStore: LocalStore;
+  let statsCollector: AccumulatingStatsCollector;
 
   beforeEach(async () => {
-    persistence = await getPersistence();
+    statsCollector = new AccumulatingStatsCollector();
+    persistence = await getPersistence(statsCollector);
     localStore = new LocalStore(persistence, queryEngine, User.UNAUTHENTICATED);
   });
 
@@ -322,7 +393,7 @@ function genericLocalStoreTests(
   });
 
   function expectLocalStore(): LocalStoreTester {
-    return new LocalStoreTester(localStore, gcIsEager);
+    return new LocalStoreTester(localStore, statsCollector, gcIsEager);
   }
 
   it('handles SetMutation', () => {
@@ -938,6 +1009,44 @@ function genericLocalStoreTests(
         value: doc('foo/bonk', 0, { a: 'b' }, { hasLocalMutations: true })
       }
     ]);
+  });
+
+  it('reads all documents for initial collection queries', () => {
+    const firstQuery = Query.atPath(path('foo'));
+    const secondQuery = Query.atPath(path('foo')).addFilter(
+      filter('matches', '==', true)
+    );
+
+    return expectLocalStore()
+      .afterAllocatingQuery(firstQuery)
+      .toReturnTargetId(2)
+      .after(
+        docAddedRemoteEvent(
+          [
+            doc('foo/bar', 10, { matches: true }),
+            doc('foo/baz', 20, { matches: true })
+          ],
+          [2]
+        )
+      )
+      .toReturnChanged(
+        doc('foo/bar', 10, { matches: true }),
+        doc('foo/baz', 20, { matches: true })
+      )
+      .after(setMutation('foo/bonk', { matches: true }))
+      .toReturnChanged(
+        doc('foo/bonk', 0, { matches: true }, { hasLocalMutations: true })
+      )
+      .afterAllocatingQuery(secondQuery)
+      .toReturnTargetId(4)
+      .afterExecutingQuery(secondQuery)
+      .toReturnChanged(
+        doc('foo/bar', 10, { matches: true }),
+        doc('foo/baz', 20, { matches: true }),
+        doc('foo/bonk', 0, { matches: true }, { hasLocalMutations: true })
+      )
+      .toHaveRead({ remoteDocuments: 2, mutations: 1 })
+      .finish();
   });
 
   it('persists resume tokens', async () => {

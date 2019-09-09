@@ -113,3 +113,6 @@ export interface RemoteDocumentCache {
    */
   getSize(transaction: PersistenceTransaction): PersistencePromise<number>;
 }
+
+/** The tag used by the StatsCollector. */
+export const REMOTE_DOCUMENT_CACHE_STATS_TAG = 'documents';

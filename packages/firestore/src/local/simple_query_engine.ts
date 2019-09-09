@@ -46,8 +46,6 @@ export class SimpleQueryEngine implements QueryEngine {
       'setLocalDocumentsView() not called'
     );
 
-    // TODO: Once LocalDocumentsView provides a getCollectionDocuments()
-    // method, we should call that here and then filter the results.
     return this.localDocumentsView!.getDocumentsMatchingQuery(
       transaction,
       query,

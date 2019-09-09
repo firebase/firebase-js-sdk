@@ -29,10 +29,11 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import { IndexManager } from './index_manager';
-import { MutationQueue } from './mutation_queue';
+import { MUTATION_QUEUE_STATS_TAG, MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { DocReference } from './reference_set';
+import { StatsCollector } from './stats_collector';
 
 export class MemoryMutationQueue implements MutationQueue {
   /**
@@ -55,7 +56,8 @@ export class MemoryMutationQueue implements MutationQueue {
 
   constructor(
     private readonly indexManager: IndexManager,
-    private readonly referenceDelegate: ReferenceDelegate
+    private readonly referenceDelegate: ReferenceDelegate,
+    private readonly statsCollector: StatsCollector
   ) {}
 
   checkEmpty(transaction: PersistenceTransaction): PersistencePromise<boolean> {
@@ -141,6 +143,8 @@ export class MemoryMutationQueue implements MutationQueue {
       );
     }
 
+    this.statsCollector.recordRowsWritten(MUTATION_QUEUE_STATS_TAG, 1);
+
     return PersistencePromise.resolve(batch);
   }
 
@@ -186,6 +190,10 @@ export class MemoryMutationQueue implements MutationQueue {
   getAllMutationBatches(
     transaction: PersistenceTransaction
   ): PersistencePromise<MutationBatch[]> {
+    this.statsCollector.recordRowsRead(
+      MUTATION_QUEUE_STATS_TAG,
+      this.mutationQueue.length
+    );
     return PersistencePromise.resolve(this.mutationQueue.slice());
   }
 
@@ -317,6 +325,7 @@ export class MemoryMutationQueue implements MutationQueue {
         mutation.key
       );
     }).next(() => {
+      this.statsCollector.recordRowsDeleted(MUTATION_QUEUE_STATS_TAG, 1);
       this.batchesByDocumentKey = references;
     });
   }
@@ -398,6 +407,7 @@ export class MemoryMutationQueue implements MutationQueue {
 
     const batch = this.mutationQueue[index];
     assert(batch.batchId === batchId, 'If found batch must match');
+    this.statsCollector.recordRowsRead(MUTATION_QUEUE_STATS_TAG, 1);
     return batch;
   }
 }

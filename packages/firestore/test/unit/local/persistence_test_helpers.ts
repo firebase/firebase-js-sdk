@@ -39,6 +39,7 @@ import {
   SharedClientStateSyncer
 } from '../../../src/local/shared_client_state_syncer';
 import { SimpleDb } from '../../../src/local/simple_db';
+import { StatsCollector } from '../../../src/local/stats_collector';
 import { PlatformSupport } from '../../../src/platform/platform';
 import { JsonProtoSerializer } from '../../../src/remote/serializer';
 import { AsyncQueue } from '../../../src/util/async_queue';
@@ -97,9 +98,10 @@ export async function testIndexedDbPersistence(
   options: {
     dontPurgeData?: boolean;
     synchronizeTabs?: boolean;
+    statsCollector?: StatsCollector;
     queue?: AsyncQueue;
   } = {},
-  lruParams: LruParams = LruParams.DEFAULT
+  lruParams?: LruParams
 ): Promise<IndexedDbPersistence> {
   const queue = options.queue || new AsyncQueue();
   const clientId = AutoId.newId();
@@ -116,23 +118,29 @@ export async function testIndexedDbPersistence(
     queue,
     serializer: JSON_SERIALIZER,
     lruParams,
-    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
+    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER,
+    statsCollector: options.statsCollector
   });
 }
 
 /** Creates and starts a MemoryPersistence instance for testing. */
-export async function testMemoryEagerPersistence(): Promise<MemoryPersistence> {
-  return MemoryPersistence.createEagerPersistence(AutoId.newId());
+export async function testMemoryEagerPersistence(
+  statsCollector?: StatsCollector
+): Promise<MemoryPersistence> {
+  return MemoryPersistence.createEagerPersistence({
+    clientId: AutoId.newId(),
+    statsCollector
+  });
 }
 
 export async function testMemoryLruPersistence(
-  params: LruParams = LruParams.DEFAULT
+  lruParams?: LruParams
 ): Promise<MemoryPersistence> {
-  return MemoryPersistence.createLruPersistence(
-    AutoId.newId(),
-    JSON_SERIALIZER,
-    params
-  );
+  return MemoryPersistence.createLruPersistence({
+    clientId: AutoId.newId(),
+    serializer: JSON_SERIALIZER,
+    lruParams
+  });
 }
 
 /** Clears the persistence in tests */

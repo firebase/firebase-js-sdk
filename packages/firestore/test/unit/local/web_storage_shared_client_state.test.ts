@@ -44,9 +44,9 @@ import { AutoId } from '../../../src/util/misc';
 import * as objUtils from '../../../src/util/obj';
 import { SortedSet } from '../../../src/util/sorted_set';
 import {
-  clearWebStorage,
   TEST_PERSISTENCE_PREFIX,
-  populateWebStorage
+  populateWebStorage,
+  clearWebStorage
 } from './persistence_test_helpers';
 
 const AUTHENTICATED_USER = new User('test');

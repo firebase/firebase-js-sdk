@@ -49,6 +49,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
+import { StatsCollector } from './stats_collector';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -74,20 +75,33 @@ export class MemoryPersistence implements Persistence {
 
   readonly referenceDelegate: MemoryLruDelegate | MemoryEagerDelegate;
 
-  static createLruPersistence(
-    clientId: ClientId,
-    serializer: JsonProtoSerializer,
-    params: LruParams
-  ): MemoryPersistence {
+  static createLruPersistence(options: {
+    clientId: ClientId;
+    serializer: JsonProtoSerializer;
+    lruParams?: LruParams;
+    statsCollector?: StatsCollector;
+  }): MemoryPersistence {
+    const lruParams = options.lruParams || LruParams.DEFAULT;
+    const statsCollector =
+      options.statsCollector || StatsCollector.newNoOpStatsCollector();
     const factory = (p: MemoryPersistence): MemoryLruDelegate =>
-      new MemoryLruDelegate(p, new LocalSerializer(serializer), params);
-    return new MemoryPersistence(clientId, factory);
+      new MemoryLruDelegate(
+        p,
+        new LocalSerializer(options.serializer),
+        lruParams
+      );
+    return new MemoryPersistence(options.clientId, statsCollector, factory);
   }
 
-  static createEagerPersistence(clientId: ClientId): MemoryPersistence {
+  static createEagerPersistence(options: {
+    clientId: ClientId;
+    statsCollector?: StatsCollector;
+  }): MemoryPersistence {
+    const statsCollector =
+      options.statsCollector || StatsCollector.newNoOpStatsCollector();
     const factory = (p: MemoryPersistence): MemoryEagerDelegate =>
       new MemoryEagerDelegate(p);
-    return new MemoryPersistence(clientId, factory);
+    return new MemoryPersistence(options.clientId, statsCollector, factory);
   }
 
   /**
@@ -98,6 +112,7 @@ export class MemoryPersistence implements Persistence {
    */
   private constructor(
     private readonly clientId: ClientId,
+    private readonly statsCollector: StatsCollector,
     referenceDelegateFactory: (
       p: MemoryPersistence
     ) => MemoryLruDelegate | MemoryEagerDelegate
@@ -110,6 +125,7 @@ export class MemoryPersistence implements Persistence {
     this.indexManager = new MemoryIndexManager();
     this.remoteDocumentCache = new MemoryRemoteDocumentCache(
       this.indexManager,
+      this.statsCollector,
       sizer
     );
   }
@@ -152,7 +168,8 @@ export class MemoryPersistence implements Persistence {
     if (!queue) {
       queue = new MemoryMutationQueue(
         this.indexManager,
-        this.referenceDelegate
+        this.referenceDelegate,
+        this.statsCollector
       );
       this.mutationQueues[user.toKey()] = queue;
     }

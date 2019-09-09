@@ -211,3 +211,6 @@ export interface MutationQueue {
     transaction: PersistenceTransaction
   ): PersistencePromise<void>;
 }
+
+/** The tag used by the StatsCollector. */
+export const MUTATION_QUEUE_STATS_TAG = 'mutations';

@@ -36,8 +36,12 @@ import { SortedMap } from '../util/sorted_map';
 import { IndexManager } from './index_manager';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { RemoteDocumentCache } from './remote_document_cache';
+import {
+  REMOTE_DOCUMENT_CACHE_STATS_TAG,
+  RemoteDocumentCache
+} from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { StatsCollector } from './stats_collector';
 
 export type DocumentSizer = (doc: MaybeDocument) => number;
 
@@ -69,6 +73,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
    */
   constructor(
     private readonly indexManager: IndexManager,
+    private readonly statsCollector: StatsCollector,
     private readonly sizer: DocumentSizer
   ) {}
 
@@ -102,6 +107,8 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     this.newDocumentChanges = this.newDocumentChanges.add(key);
     this.size += currentSize - previousSize;
 
+    this.statsCollector.recordRowsWritten(REMOTE_DOCUMENT_CACHE_STATS_TAG, 1);
+
     return this.indexManager.addToCollectionParentIndex(
       transaction,
       key.path.popLast()
@@ -117,6 +124,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private removeEntry(documentKey: DocumentKey): void {
     const entry = this.docs.get(documentKey);
     if (entry) {
+      this.statsCollector.recordRowsDeleted(REMOTE_DOCUMENT_CACHE_STATS_TAG, 1);
       this.newDocumentChanges = this.newDocumentChanges.add(documentKey);
       this.docs = this.docs.remove(documentKey);
       this.size -= entry.size;
@@ -128,6 +136,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
     const entry = this.docs.get(documentKey);
+    this.statsCollector.recordRowsRead(REMOTE_DOCUMENT_CACHE_STATS_TAG, 1);
     return PersistencePromise.resolve(entry ? entry.maybeDocument : null);
   }
 
@@ -140,6 +149,10 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       const entry = this.docs.get(documentKey);
       results = results.insert(documentKey, entry ? entry.maybeDocument : null);
     });
+    this.statsCollector.recordRowsRead(
+      REMOTE_DOCUMENT_CACHE_STATS_TAG,
+      results.size
+    );
     return PersistencePromise.resolve(results);
   }
 
@@ -153,7 +166,7 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
     let results = documentMap();
-
+    let rowsRead = 0;
     // Documents are ordered by key, so we can use a prefix scan to narrow down
     // the documents we need to match the query against.
     const prefix = new DocumentKey(query.path.child(''));
@@ -169,10 +182,19 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       if (readTime.compareTo(sinceReadTime) <= 0) {
         continue;
       }
+
+      ++rowsRead;
+
       if (maybeDocument instanceof Document && query.matches(maybeDocument)) {
         results = results.insert(maybeDocument.key, maybeDocument);
       }
     }
+
+    this.statsCollector.recordRowsRead(
+      REMOTE_DOCUMENT_CACHE_STATS_TAG,
+      rowsRead
+    );
+
     return PersistencePromise.resolve(results);
   }
 
@@ -195,6 +217,11 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
         : new NoDocument(key, SnapshotVersion.forDeletedDoc());
       changedDocs = changedDocs.insert(key, changedDoc);
     });
+
+    this.statsCollector.recordRowsRead(
+      REMOTE_DOCUMENT_CACHE_STATS_TAG,
+      changedDocs.size
+    );
 
     this.newDocumentChanges = documentKeySet();
 

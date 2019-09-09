@@ -70,6 +70,7 @@ import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { StatsCollector } from './stats_collector';
 
 const LOG_TAG = 'IndexedDbPersistence';
 
@@ -192,10 +193,11 @@ export class IndexedDbPersistence implements Persistence {
     persistenceKey: string;
     clientId: ClientId;
     platform: Platform;
-    lruParams: LruParams;
     queue: AsyncQueue;
     serializer: JsonProtoSerializer;
     sequenceNumberSyncer: SequenceNumberSyncer;
+    lruParams?: LruParams;
+    statsCollector?: StatsCollector;
   }): Promise<IndexedDbPersistence> {
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(
@@ -204,15 +206,20 @@ export class IndexedDbPersistence implements Persistence {
       );
     }
 
+    const lruParams = options.lruParams || LruParams.DEFAULT;
+    const statsCollector =
+      options.statsCollector || StatsCollector.newNoOpStatsCollector();
+
     const persistence = new IndexedDbPersistence(
       options.allowTabSynchronization,
       options.persistenceKey,
       options.clientId,
       options.platform,
-      options.lruParams,
+      lruParams,
       options.queue,
       options.serializer,
-      options.sequenceNumberSyncer
+      options.sequenceNumberSyncer,
+      statsCollector
     );
     await persistence.start();
     return persistence;
@@ -264,7 +271,8 @@ export class IndexedDbPersistence implements Persistence {
     lruParams: LruParams,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    private readonly sequenceNumberSyncer: SequenceNumberSyncer
+    private readonly sequenceNumberSyncer: SequenceNumberSyncer,
+    private readonly statsCollector: StatsCollector
   ) {
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
@@ -277,7 +285,8 @@ export class IndexedDbPersistence implements Persistence {
     this.indexManager = new IndexedDbIndexManager();
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
-      this.indexManager
+      this.indexManager,
+      this.statsCollector
     );
     if (platform.window && platform.window.localStorage) {
       this.window = platform.window;
@@ -712,7 +721,8 @@ export class IndexedDbPersistence implements Persistence {
       user,
       this.serializer,
       this.indexManager,
-      this.referenceDelegate
+      this.referenceDelegate,
+      this.statsCollector
     );
   }
 

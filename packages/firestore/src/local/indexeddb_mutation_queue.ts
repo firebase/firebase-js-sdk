@@ -44,10 +44,11 @@ import {
   DbMutationQueueKey
 } from './indexeddb_schema';
 import { LocalSerializer } from './local_serializer';
-import { MutationQueue } from './mutation_queue';
+import { MUTATION_QUEUE_STATS_TAG, MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { StatsCollector } from './stats_collector';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -73,7 +74,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
     private userId: string,
     private readonly serializer: LocalSerializer,
     private readonly indexManager: IndexManager,
-    private readonly referenceDelegate: ReferenceDelegate
+    private readonly referenceDelegate: ReferenceDelegate,
+    private readonly statsCollector: StatsCollector
   ) {}
 
   /**
@@ -85,7 +87,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
     user: User,
     serializer: LocalSerializer,
     indexManager: IndexManager,
-    referenceDelegate: ReferenceDelegate
+    referenceDelegate: ReferenceDelegate,
+    statsCollector: StatsCollector
   ): IndexedDbMutationQueue {
     // TODO(mcg): Figure out what constraints there are on userIDs
     // In particular, are there any reserved characters? are empty ids allowed?
@@ -97,7 +100,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
       userId,
       serializer,
       indexManager,
-      referenceDelegate
+      referenceDelegate,
+      statsCollector
     );
   }
 
@@ -197,6 +201,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
           )
         );
       }
+      this.statsCollector.recordRowsWritten(MUTATION_QUEUE_STATS_TAG, 1);
       return PersistencePromise.waitFor(promises).next(() => batch);
     });
   }
@@ -258,6 +263,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
               'Should have found mutation after ' + nextBatchId
             );
             foundBatch = this.serializer.fromDbMutationBatch(dbBatch);
+            this.statsCollector.recordRowsRead(MUTATION_QUEUE_STATS_TAG, 1);
           }
           control.done();
         }
@@ -296,7 +302,14 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .loadAll(DbMutationBatch.userMutationsIndex, range)
       .next(dbBatches =>
         dbBatches.map(dbBatch => this.serializer.fromDbMutationBatch(dbBatch))
-      );
+      )
+      .next(batches => {
+        this.statsCollector.recordRowsRead(
+          MUTATION_QUEUE_STATS_TAG,
+          batches.length
+        );
+        return batches;
+      });
   }
 
   getAllMutationBatchesAffectingDocumentKey(
@@ -347,7 +360,13 @@ export class IndexedDbMutationQueue implements MutationQueue {
             results.push(this.serializer.fromDbMutationBatch(mutation!));
           });
       })
-      .next(() => results);
+      .next(() => {
+        this.statsCollector.recordRowsRead(
+          MUTATION_QUEUE_STATS_TAG,
+          results.length
+        );
+        return results;
+      });
   }
 
   getAllMutationBatchesAffectingDocumentKeys(
@@ -479,7 +498,13 @@ export class IndexedDbMutationQueue implements MutationQueue {
           })
       );
     });
-    return PersistencePromise.waitFor(promises).next(() => results);
+    return PersistencePromise.waitFor(promises).next(() => {
+      this.statsCollector.recordRowsRead(
+        MUTATION_QUEUE_STATS_TAG,
+        results.length
+      );
+      return results;
+    });
   }
 
   removeMutationBatch(
@@ -491,6 +516,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
       this.userId,
       batch
     ).next(removedDocuments => {
+      this.statsCollector.recordRowsDeleted(MUTATION_QUEUE_STATS_TAG, 1);
       this.removeCachedMutationKeys(batch.batchId);
       return PersistencePromise.forEach(
         removedDocuments,

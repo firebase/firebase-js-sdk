@@ -44,7 +44,10 @@ import {
 import { LocalSerializer } from './local_serializer';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { RemoteDocumentCache } from './remote_document_cache';
+import {
+  REMOTE_DOCUMENT_CACHE_STATS_TAG,
+  RemoteDocumentCache
+} from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import {
   IterateOptions,
@@ -52,6 +55,7 @@ import {
   SimpleDbStore,
   SimpleDbTransaction
 } from './simple_db';
+import { StatsCollector } from './stats_collector';
 import { ObjectMap } from '../util/obj_map';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
@@ -64,7 +68,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    */
   constructor(
     readonly serializer: LocalSerializer,
-    private readonly indexManager: IndexManager
+    private readonly indexManager: IndexManager,
+    private readonly statsCollector: StatsCollector
   ) {}
 
   /**
@@ -92,6 +97,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   ): PersistencePromise<void> {
     const documentStore = remoteDocumentsStore(transaction);
     return documentStore.put(dbKey(key), doc).next(() => {
+      this.statsCollector.recordRowsWritten(REMOTE_DOCUMENT_CACHE_STATS_TAG, 1);
       this.indexManager.addToCollectionParentIndex(
         transaction,
         key.path.popLast()
@@ -109,6 +115,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<void> {
+    this.statsCollector.recordRowsDeleted(REMOTE_DOCUMENT_CACHE_STATS_TAG, 1);
     const store = remoteDocumentsStore(transaction);
     const key = dbKey(documentKey);
     return store.delete(key);
@@ -292,6 +299,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       iterationOptions.index = DbRemoteDocument.collectionReadTimeIndex;
     }
 
+    let rowsRead = 0;
+
     return remoteDocumentsStore(transaction)
       .iterate(iterationOptions, (key, dbRemoteDoc, control) => {
         // The query is actually returning any path that starts with the query
@@ -303,6 +312,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           return;
         }
 
+        ++rowsRead;
+
         const maybeDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
         if (!query.path.isPrefixOf(maybeDoc.key.path)) {
           control.done();
@@ -310,7 +321,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           results = results.insert(maybeDoc.key, maybeDoc);
         }
       })
-      .next(() => results);
+      .next(() => {
+        this.statsCollector.recordRowsRead(
+          REMOTE_DOCUMENT_CACHE_STATS_TAG,
+          rowsRead
+        );
+        return results;
+      });
   }
 
   getNewDocumentChanges(
@@ -337,7 +354,13 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           );
         }
       )
-      .next(() => changedDocs);
+      .next(() => {
+        this.statsCollector.recordRowsRead(
+          REMOTE_DOCUMENT_CACHE_STATS_TAG,
+          changedDocs.size
+        );
+        return changedDocs;
+      });
   }
 
   /**
@@ -417,6 +440,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         return null;
       }
 
+      this.statsCollector.recordRowsRead(REMOTE_DOCUMENT_CACHE_STATS_TAG, 1);
       return doc;
     }
     return null;
