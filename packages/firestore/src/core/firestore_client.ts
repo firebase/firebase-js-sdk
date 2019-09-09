@@ -328,7 +328,7 @@ export class FirestoreClient {
   ): Promise<LruGarbageCollector> {
     // TODO(http://b/33384523): For now we just disable garbage collection
     // when persistence is enabled.
-    const storagePrefix = IndexedDbPersistence.buildStoragePrefix(
+    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
       this.databaseInfo
     );
     // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
@@ -347,36 +347,31 @@ export class FirestoreClient {
         );
       }
 
-      let persistence: IndexedDbPersistence;
       const lruParams = settings.lruParams();
-      if (settings.synchronizeTabs) {
-        this.sharedClientState = new WebStorageSharedClientState(
-          this.asyncQueue,
-          this.platform,
-          storagePrefix,
-          this.clientId,
-          user
-        );
-        persistence = await IndexedDbPersistence.createMultiClientIndexedDbPersistence(
-          storagePrefix,
-          this.clientId,
-          this.platform,
-          this.asyncQueue,
+
+      this.sharedClientState = settings.synchronizeTabs
+        ? new WebStorageSharedClientState(
+            this.asyncQueue,
+            this.platform,
+            persistenceKey,
+            this.clientId,
+            user
+          )
+        : new MemorySharedClientState();
+
+      const persistence = await IndexedDbPersistence.createIndexedDbPersistence(
+        {
+          allowTabSynchronization: settings.synchronizeTabs,
+          persistenceKey,
+          clientId: this.clientId,
+          platform: this.platform,
+          queue: this.asyncQueue,
           serializer,
           lruParams,
-          { sequenceNumberSyncer: this.sharedClientState }
-        );
-      } else {
-        this.sharedClientState = new MemorySharedClientState();
-        persistence = await IndexedDbPersistence.createIndexedDbPersistence(
-          storagePrefix,
-          this.clientId,
-          this.platform,
-          this.asyncQueue,
-          serializer,
-          lruParams
-        );
-      }
+          sequenceNumberSyncer: this.sharedClientState
+        }
+      );
+
       this.persistence = persistence;
       return persistence.referenceDelegate.garbageCollector;
     });

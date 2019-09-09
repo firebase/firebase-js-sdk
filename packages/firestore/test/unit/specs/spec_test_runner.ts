@@ -1216,15 +1216,16 @@ class IndexedDbTestRunner extends TestRunner {
     gcEnabled: boolean
   ): Promise<Persistence> {
     // TODO(gsoltis): can we or should we disable this test if gc is enabled?
-    return IndexedDbPersistence.createMultiClientIndexedDbPersistence(
-      TEST_PERSISTENCE_PREFIX,
-      this.clientId,
-      this.platform,
-      this.queue,
+    return IndexedDbPersistence.createIndexedDbPersistence({
+      allowTabSynchronization: true,
+      persistenceKey: TEST_PERSISTENCE_PREFIX,
+      clientId: this.clientId,
+      platform: this.platform,
+      queue: this.queue,
       serializer,
-      LruParams.DEFAULT,
-      { sequenceNumberSyncer: this.sharedClientState }
-    );
+      lruParams: LruParams.DEFAULT,
+      sequenceNumberSyncer: this.sharedClientState
+    });
   }
 
   static destroyPersistence(): Promise<void> {
