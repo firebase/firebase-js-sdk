@@ -548,23 +548,34 @@ apiDescribe('Database', (persistence: boolean) => {
     };
     return withTestCollection(persistence, testDocs, async coll => {
       let events: string[] = [];
-      let done = new Deferred<void>();
+      const gotInitialSnapshot = new Deferred<void>();
       const doc = coll.doc('a');
 
       doc.onSnapshot(snap => {
         events.push('doc');
+        gotInitialSnapshot.resolve();
       });
+      await gotInitialSnapshot.promise;
+      events = [];
+
+      const done = new Deferred<void>();
       onSnapshotsInSync(doc.firestore, () => {
         events.push('snapshots-in-sync');
-        done.resolve();
+        if (events.length === 3) {
+          // We should have an initial snapshots-in-sync event, then a snapshot
+          // event for set(), then another event to indicate we're in sync
+          // again.
+          expect(events).to.deep.equal([
+            'snapshots-in-sync',
+            'doc',
+            'snapshots-in-sync'
+          ]);
+          done.resolve();
+        }
       });
-      await done.promise;
-      done = new Deferred<void>();
-      events = [];
 
       await doc.set({ foo: 3 });
       await done.promise;
-      expect(events).to.deep.equal(['doc', 'snapshots-in-sync']);
     });
   });
 

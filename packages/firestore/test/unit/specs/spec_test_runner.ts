@@ -522,7 +522,7 @@ abstract class TestRunner {
     await this.queue.drain();
     this.validateStepExpectations(step.expect!);
     await this.validateStateExpectations(step.stateExpect!);
-    this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents!);
+    this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents);
     this.eventList = [];
     this.rejectedDocs = [];
     this.acknowledgedDocs = [];
@@ -1041,8 +1041,10 @@ abstract class TestRunner {
     }
   }
 
-  private validateSnapshotsInSyncEvents(count: number): void {
-    expect(this.snapshotsInSyncEvents).to.eq(count || 0);
+  private validateSnapshotsInSyncEvents(
+    expectedCount: number | undefined
+  ): void {
+    expect(this.snapshotsInSyncEvents).to.eq(expectedCount || 0);
     this.snapshotsInSyncEvents = 0;
   }
 

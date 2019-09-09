@@ -862,9 +862,7 @@ export class SpecBuilder {
   expectSnapshotsInSyncEvent(count = 1): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
-    if (!currentStep.expectedSnapshotsInSyncEvents) {
-      currentStep.expectedSnapshotsInSyncEvents = count;
-    }
+    currentStep.expectedSnapshotsInSyncEvents = count;
     return this;
   }
 
