@@ -169,7 +169,7 @@ export class View {
 
         // Calculate change
         if (oldDoc && newDoc) {
-          const docsEqual = oldDoc.data.isEqual(newDoc.data);
+          const docsEqual = oldDoc.data().isEqual(newDoc.data());
           if (!docsEqual) {
             if (!this.shouldWaitForSyncedDocument(oldDoc, newDoc)) {
               changeSet.track({

@@ -21,47 +21,79 @@
 
 goog.provide('fireauth.ActionCodeUrlTest');
 
-goog.require('fireauth.ActionCodeUrl');
+goog.require('fireauth.ActionCodeInfo');
+goog.require('fireauth.ActionCodeURL');
 goog.require('goog.testing.jsunit');
 
 goog.setTestOnly();
 
 
-function testActionCodeUrl_success() {
-  var url = 'https://www.example.com/finishSignIn?' +
-            'oobCode=CODE&mode=signIn&apiKey=API_KEY&state=bla';
-  var actionCodeUrl = new fireauth.ActionCodeUrl(url);
-  assertEquals('signIn', actionCodeUrl.getMode());
-  assertEquals('CODE', actionCodeUrl.getCode());
-  assertEquals('API_KEY', actionCodeUrl.getApiKey());
+function testActionCodeURL_success() {
+  var continueUrl = 'https://www.example.com/path/to/file?a=1&b=2#c=3';
+  var actionLink = 'https://www.example.com/finishSignIn?' +
+      'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
+      'continueUrl=' + encodeURIComponent(continueUrl) +
+      '&languageCode=en&tenantId=TENANT_ID&state=bla';
+  var actionCodeUrl = fireauth.ActionCodeURL.parseLink(actionLink);
+  assertEquals(fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN,
+               actionCodeUrl['operation']);
+  assertEquals('CODE', actionCodeUrl['code']);
+  assertEquals('API_KEY', actionCodeUrl['apiKey']);
+  // ContinueUrl should be decoded.
+  assertEquals(continueUrl, actionCodeUrl['continueUrl']);
+  assertEquals('TENANT_ID', actionCodeUrl['tenantId']);
+  assertEquals('en', actionCodeUrl['languageCode']);
+  console.log(actionLink);
 }
 
 
-function testActionCodeUrl_success_portNumberInUrl() {
-  var url = 'https://www.example.com:8080/finishSignIn?' +
-            'oobCode=CODE&mode=signIn&apiKey=API_KEY&state=bla';
-  var actionCodeUrl = new fireauth.ActionCodeUrl(url);
-  assertEquals('signIn', actionCodeUrl.getMode());
-  assertEquals('CODE', actionCodeUrl.getCode());
-  assertEquals('API_KEY', actionCodeUrl.getApiKey());
+function testActionCodeURL_success_portNumberInUrl() {
+  var actionLink = 'https://www.example.com:8080/finishSignIn?' +
+      'oobCode=CODE&mode=signIn&apiKey=API_KEY&state=bla';
+  var actionCodeUrl = fireauth.ActionCodeURL.parseLink(actionLink);
+  assertEquals(fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN,
+               actionCodeUrl['operation']);
+  assertEquals('CODE', actionCodeUrl['code']);
+  assertEquals('API_KEY', actionCodeUrl['apiKey']);
+  assertNull(actionCodeUrl['continueUrl']);
+  assertNull(actionCodeUrl['tenantId']);
+  assertNull(actionCodeUrl['languageCode']);
 }
 
 
-function testActionCodeUrl_success_hashParameters() {
-  var url = 'https://www.example.com/finishSignIn?' +
+function testActionCodeURL_success_hashParameters() {
+  var actionLink = 'https://www.example.com/finishSignIn?' +
             'oobCode=CODE1&mode=signIn&apiKey=API_KEY1&state=bla' +
             '#oobCode=CODE2&mode=signIn&apiKey=API_KEY2&state=bla';
-  var actionCodeUrl = new fireauth.ActionCodeUrl(url);
-  assertEquals('signIn', actionCodeUrl.getMode());
-  assertEquals('CODE1', actionCodeUrl.getCode());
-  assertEquals('API_KEY1', actionCodeUrl.getApiKey());
+  var actionCodeUrl = fireauth.ActionCodeURL.parseLink(actionLink);
+  assertEquals(fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN,
+               actionCodeUrl['operation']);
+  assertEquals('CODE1', actionCodeUrl['code']);
+  assertEquals('API_KEY1', actionCodeUrl['apiKey']);
+  assertNull(actionCodeUrl['continueUrl']);
+  assertNull(actionCodeUrl['tenantId']);
+  assertNull(actionCodeUrl['languageCode']);
 }
 
 
-function testActionCodeUrl_emptyParameter() {
-  var url = 'https://www.example.com/finishSignIn';
-  var actionCodeUrl = new fireauth.ActionCodeUrl(url);
-  assertNull(actionCodeUrl.getMode());
-  assertNull(actionCodeUrl.getCode());
-  assertNull(actionCodeUrl.getApiKey());
+function testActionCodeURL_invalidLink() {
+  // Missing API key, oob code and mode.
+  var invalidLink1 = 'https://www.example.com/finishSignIn';
+  // Invalid mode.
+  var invalidLink2 = 'https://www.example.com/finishSignIn?' +
+      'oobCode=CODE&mode=INVALID_MODE&apiKey=API_KEY';
+  // Missing oob code.
+  var invalidLink3 = 'https://www.example.com/finishSignIn?' +
+      'mode=signIn&apiKey=API_KEY';
+  // Missing API key.
+  var invalidLink4 = 'https://www.example.com/finishSignIn?' +
+      'oobCode=CODE&mode=signIn';
+  // Missing mode.
+  var invalidLink5 = 'https://www.example.com/finishSignIn' +
+      'oobCode=CODE&apiKey=API_KEY';
+  assertNull(fireauth.ActionCodeURL.parseLink(invalidLink1));
+  assertNull(fireauth.ActionCodeURL.parseLink(invalidLink2));
+  assertNull(fireauth.ActionCodeURL.parseLink(invalidLink3));
+  assertNull(fireauth.ActionCodeURL.parseLink(invalidLink4));
+  assertNull(fireauth.ActionCodeURL.parseLink(invalidLink5));
 }

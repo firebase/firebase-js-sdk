@@ -71,6 +71,7 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   it('can delete a document', () => {
+    // TODO(#1865): This test fails with node:persistence against Prod
     return withTestDoc(persistence, docRef => {
       return docRef
         .set({ foo: 'bar' })

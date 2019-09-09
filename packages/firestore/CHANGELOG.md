@@ -1,4 +1,3 @@
-
 # Unreleased (1.5.0)
 - [feature] Added a `Firestore.waitForPendingWrites()` method that
   allows users to wait until all pending writes are acknowledged by the
@@ -7,6 +6,10 @@
   the instance, releasing any held resources. Once it completes, you can
   optionally call `Firestore.clearPersistence()` to wipe persisted Firestore
   data from disk.
+- [changed] Improved performance for queries with filters that only return a
+  small subset of the documents in a collection.
+- [fixed] Fixed a race condition between authenticating and initializing
+  Firestore that could result in initial writes to the database being dropped.
 
 # 1.4.10
 - [changed] Transactions now perform exponential backoff before retrying.
@@ -25,6 +28,7 @@
   match the query (https://github.com/firebase/firebase-android-sdk/issues/155).
 
 # 1.4.4
+>>>>>>> master
 - [fixed] Fixed an internal assertion that was triggered when an update
    with a `FieldValue.serverTimestamp()` and an update with a
   `FieldValue.increment()` were pending for the same document.

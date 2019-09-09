@@ -199,9 +199,14 @@ describe('Mutation', () => {
       foo: { bar: '<server-timestamp>' },
       baz: 'baz-value'
     }).set(field('foo.bar'), new ServerTimestampValue(timestamp, null));
-    const expectedDoc = new Document(key('collection/key'), version(0), data, {
-      hasLocalMutations: true
-    });
+    const expectedDoc = new Document(
+      key('collection/key'),
+      version(0),
+      {
+        hasLocalMutations: true
+      },
+      data
+    );
 
     expect(transformedDoc).to.deep.equal(expectedDoc);
   });

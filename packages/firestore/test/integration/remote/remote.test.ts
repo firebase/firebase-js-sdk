@@ -59,7 +59,7 @@ describe('Remote Storage', () => {
           const doc = docs[0];
           expect(doc).to.be.an.instanceof(Document);
           if (doc instanceof Document) {
-            expect(doc.data).to.deep.equal(mutation.value);
+            expect(doc.data()).to.deep.equal(mutation.value);
             expect(doc.key).to.deep.equal(k);
             expect(SnapshotVersion.MIN.compareTo(doc.version)).to.be.lessThan(
               0

@@ -158,9 +158,7 @@ function genericLruGarbageCollectorTests(
     txn: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    const updated = queryData.copy({
-      sequenceNumber: txn.currentSequenceNumber
-    });
+    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
     return queryCache
       .updateQueryData(txn, updated)
       .next(() =>
@@ -243,8 +241,8 @@ function genericLruGarbageCollectorTests(
     return new Document(
       key,
       SnapshotVersion.fromMicroseconds(1000),
-      wrapObject({ foo: 3, bar: false }),
-      {}
+      {},
+      wrapObject({ foo: 3, bar: false })
     );
   }
 
@@ -774,8 +772,8 @@ function genericLruGarbageCollectorTests(
         const doc = new Document(
           middleDocToUpdate,
           SnapshotVersion.fromMicroseconds(2000),
-          wrapObject({ foo: 4, bar: true }),
-          {}
+          {},
+          wrapObject({ foo: 4, bar: true })
         );
         return saveDocument(txn, doc).next(() => {
           return updateTargetInTransaction(txn, middleTarget);

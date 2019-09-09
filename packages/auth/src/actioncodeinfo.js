@@ -44,7 +44,7 @@ fireauth.ActionCodeInfo = function(response) {
       response[fireauth.ActionCodeInfo.ServerFieldName.REQUEST_TYPE];
   // Email could be empty only if the request type is EMAIL_SIGNIN.
   if (!operation ||
-      (operation != fireauth.ActionCodeInfo.RequestType.EMAIL_SIGNIN &&
+      (operation != fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN &&
       !email)) {
     // This is internal only.
     throw new Error('Invalid provider user info!');
@@ -63,10 +63,10 @@ fireauth.ActionCodeInfo = function(response) {
 
 
 /**
- * Firebase Auth Action Code Info requestType possible values.
+ * Firebase Auth Action Code Info operation possible values.
  * @enum {string}
  */
-fireauth.ActionCodeInfo.RequestType = {
+fireauth.ActionCodeInfo.Operation = {
   PASSWORD_RESET: 'PASSWORD_RESET',
   RECOVER_EMAIL: 'RECOVER_EMAIL',
   EMAIL_SIGNIN: 'EMAIL_SIGNIN',
