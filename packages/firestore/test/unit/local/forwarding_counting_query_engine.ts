@@ -29,7 +29,7 @@ import { MutationQueue } from '../../../src/local/mutation_queue';
  * A test-only query engine that forwards all API calls and exposes the number
  * of documents and mutations read.
  */
-export class ForwardingCountingQueryEngine implements QueryEngine {
+export class CountingQueryEngine implements QueryEngine {
   /**
    * The number of mutations returned by the MutationQueue (since the last call
    * to `resetCounts()`)
@@ -72,11 +72,11 @@ export class ForwardingCountingQueryEngine implements QueryEngine {
   }
 
   private wrapRemoteDocumentCache(
-    target: RemoteDocumentCache
+    subject: RemoteDocumentCache
   ): RemoteDocumentCache {
     return {
       getDocumentsMatchingQuery: (transaction, query, sinceReadTime) => {
-        return target
+        return subject
           .getDocumentsMatchingQuery(transaction, query, sinceReadTime)
           .next(result => {
             this.documentsRead += result.size;
@@ -84,36 +84,36 @@ export class ForwardingCountingQueryEngine implements QueryEngine {
           });
       },
       getEntries: (transaction, documentKeys) => {
-        return target.getEntries(transaction, documentKeys).next(result => {
+        return subject.getEntries(transaction, documentKeys).next(result => {
           this.documentsRead += result.size;
           return result;
         });
       },
       getEntry: (transaction, documentKey) => {
-        return target.getEntry(transaction, documentKey).next(result => {
+        return subject.getEntry(transaction, documentKey).next(result => {
           this.documentsRead += result ? 1 : 0;
           return result;
         });
       },
-      getNewDocumentChanges: target.getNewDocumentChanges,
-      getSize: target.getSize,
-      newChangeBuffer: target.newChangeBuffer
+      getNewDocumentChanges: subject.getNewDocumentChanges,
+      getSize: subject.getSize,
+      newChangeBuffer: subject.newChangeBuffer
     };
   }
 
-  private wrapMutationQueue(target: MutationQueue): MutationQueue {
+  private wrapMutationQueue(subject: MutationQueue): MutationQueue {
     return {
-      acknowledgeBatch: target.acknowledgeBatch,
-      addMutationBatch: target.addMutationBatch,
-      checkEmpty: target.checkEmpty,
+      acknowledgeBatch: subject.acknowledgeBatch,
+      addMutationBatch: subject.addMutationBatch,
+      checkEmpty: subject.checkEmpty,
       getAllMutationBatches: transaction => {
-        return target.getAllMutationBatches(transaction).next(result => {
+        return subject.getAllMutationBatches(transaction).next(result => {
           this.mutationsRead += result.length;
           return result;
         });
       },
       getAllMutationBatchesAffectingDocumentKey: (transaction, documentKey) => {
-        return target
+        return subject
           .getAllMutationBatchesAffectingDocumentKey(transaction, documentKey)
           .next(result => {
             this.mutationsRead += result.length;
@@ -124,7 +124,7 @@ export class ForwardingCountingQueryEngine implements QueryEngine {
         transaction,
         documentKeys
       ) => {
-        return target
+        return subject
           .getAllMutationBatchesAffectingDocumentKeys(transaction, documentKeys)
           .next(result => {
             this.mutationsRead += result.length;
@@ -132,22 +132,22 @@ export class ForwardingCountingQueryEngine implements QueryEngine {
           });
       },
       getAllMutationBatchesAffectingQuery: (transaction, query) => {
-        return target
+        return subject
           .getAllMutationBatchesAffectingQuery(transaction, query)
           .next(result => {
             this.mutationsRead += result.length;
             return result;
           });
       },
-      getHighestUnacknowledgedBatchId: target.getHighestUnacknowledgedBatchId,
-      getLastStreamToken: target.getLastStreamToken,
-      getNextMutationBatchAfterBatchId: target.getNextMutationBatchAfterBatchId,
-      lookupMutationBatch: target.lookupMutationBatch,
-      lookupMutationKeys: target.lookupMutationKeys,
-      performConsistencyCheck: target.performConsistencyCheck,
-      removeCachedMutationKeys: target.removeCachedMutationKeys,
-      removeMutationBatch: target.removeMutationBatch,
-      setLastStreamToken: target.setLastStreamToken
+      getHighestUnacknowledgedBatchId: subject.getHighestUnacknowledgedBatchId,
+      getLastStreamToken: subject.getLastStreamToken,
+      getNextMutationBatchAfterBatchId: subject.getNextMutationBatchAfterBatchId,
+      lookupMutationBatch: subject.lookupMutationBatch,
+      lookupMutationKeys: subject.lookupMutationKeys,
+      performConsistencyCheck: subject.performConsistencyCheck,
+      removeCachedMutationKeys: subject.removeCachedMutationKeys,
+      removeMutationBatch: subject.removeMutationBatch,
+      setLastStreamToken: subject.setLastStreamToken
     };
   }
 }

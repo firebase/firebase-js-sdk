@@ -73,7 +73,7 @@ import {
 } from '../../util/helpers';
 
 import { FieldValue, IntegerValue } from '../../../src/model/field_value';
-import { ForwardingCountingQueryEngine } from './forwarding_counting_query_engine';
+import { CountingQueryEngine } from './forwarding_counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 
 class LocalStoreTester {
@@ -84,7 +84,7 @@ class LocalStoreTester {
 
   constructor(
     public localStore: LocalStore,
-    private readonly queryEngine: ForwardingCountingQueryEngine,
+    private readonly queryEngine: CountingQueryEngine,
     readonly gcIsEager: boolean
   ) {}
 
@@ -375,11 +375,11 @@ function genericLocalStoreTests(
 ): void {
   let persistence: Persistence;
   let localStore: LocalStore;
-  let countingQueryEngine: ForwardingCountingQueryEngine;
+  let countingQueryEngine: CountingQueryEngine;
 
   beforeEach(async () => {
     persistence = await getPersistence();
-    countingQueryEngine = new ForwardingCountingQueryEngine(queryEngine);
+    countingQueryEngine = new CountingQueryEngine(queryEngine);
     localStore = new LocalStore(
       persistence,
       countingQueryEngine,
