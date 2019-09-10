@@ -48,9 +48,9 @@ import { RemoteDocumentCache } from './remote_document_cache';
  */
 export class LocalDocumentsView {
   constructor(
-    private remoteDocumentCache: RemoteDocumentCache,
-    private mutationQueue: MutationQueue,
-    private indexManager: IndexManager
+    readonly remoteDocumentCache: RemoteDocumentCache,
+    readonly mutationQueue: MutationQueue,
+    readonly indexManager: IndexManager
   ) {}
 
   /**
