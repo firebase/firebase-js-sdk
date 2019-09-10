@@ -211,7 +211,7 @@ export class Query {
       this.endAt == null &&
       (this.explicitOrderBy.length === 0 ||
         (this.explicitOrderBy.length === 1 &&
-          this.getFirstOrderByField()!.isKeyField()))
+          this.explicitOrderBy[0].field.isKeyField()))
     );
   }
 
