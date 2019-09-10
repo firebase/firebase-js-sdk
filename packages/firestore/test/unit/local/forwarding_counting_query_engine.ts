@@ -27,8 +27,8 @@ import { MutationQueue } from '../../../src/local/mutation_queue';
 
 /**
  * A test-only query engine that forwards all calls to the query engine
- * provided at construction time, but provides access to the number of
- * documents and mutations read.
+ * provided at construction time, while exposing to the number of documents and
+ * mutations read.
  */
 export class ForwardingCountingQueryEngine implements QueryEngine {
   /**
@@ -45,7 +45,7 @@ export class ForwardingCountingQueryEngine implements QueryEngine {
 
   constructor(private readonly queryEngine: QueryEngine) {}
 
-  resetCounts() : void {
+  resetCounts(): void {
     this.mutationsRead = 0;
     this.documentsRead = 0;
   }
@@ -64,9 +64,9 @@ export class ForwardingCountingQueryEngine implements QueryEngine {
 
   setLocalDocumentsView(localDocuments: LocalDocumentsView): void {
     const view = new LocalDocumentsView(
-        this.wrapRemoteDocumentCache(localDocuments.remoteDocumentCache),
-        this.wrapMutationQueue(localDocuments.mutationQueue),
-        localDocuments.indexManager
+      this.wrapRemoteDocumentCache(localDocuments.remoteDocumentCache),
+      this.wrapMutationQueue(localDocuments.mutationQueue),
+      localDocuments.indexManager
     );
 
     return this.queryEngine.setLocalDocumentsView(view);

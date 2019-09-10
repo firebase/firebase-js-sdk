@@ -73,8 +73,8 @@ import {
 } from '../../util/helpers';
 
 import { FieldValue, IntegerValue } from '../../../src/model/field_value';
-import * as persistenceHelpers from './persistence_test_helpers';
 import { ForwardingCountingQueryEngine } from './forwarding_counting_query_engine';
+import * as persistenceHelpers from './persistence_test_helpers';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
