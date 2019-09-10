@@ -26,9 +26,8 @@ import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 
 /**
- * A test-only query engine that forwards all calls to the query engine
- * provided at construction time, while exposing to the number of documents and
- * mutations read.
+ * A test-only query engine that forwards all API calls and exposes the number
+ * of documents and mutations read.
  */
 export class ForwardingCountingQueryEngine implements QueryEngine {
   /**
