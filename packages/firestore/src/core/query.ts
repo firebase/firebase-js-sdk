@@ -199,6 +199,22 @@ export class Query {
     );
   }
 
+  /**
+   * Returns true if this query does not specify any query constraints that
+   * could remove results.
+   */
+  matchesAllDocuments(): boolean {
+    return (
+      this.filters.length === 0 &&
+      this.limit === null &&
+      this.startAt == null &&
+      this.endAt == null &&
+      (this.explicitOrderBy.length === 0 ||
+        (this.explicitOrderBy.length === 1 &&
+          this.getFirstOrderByField()!.isKeyField()))
+    );
+  }
+
   // TODO(b/29183165): This is used to get a unique string from a query to, for
   // example, use as a dictionary key, but the implementation is subject to
   // collisions. Make it collision-free.
