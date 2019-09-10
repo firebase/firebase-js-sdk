@@ -666,6 +666,7 @@ describe('RxFire Database', () => {
       const obs = listVal<any>(itemRef, 'KEY').pipe(take(1));
 
       obs.subscribe(val => {
+        // eslint-disable-next-line no-restricted-globals
         expect(val).to.be.instanceOf(Array);
         expect(val[0].KEY).to.equal('testKey');
         expect(val[0].hello).to.equal('world');
