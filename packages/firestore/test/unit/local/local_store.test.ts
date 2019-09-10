@@ -59,6 +59,7 @@ import {
   docAddedRemoteEvent,
   docUpdateRemoteEvent,
   expectEqual,
+  filter,
   key,
   localViewChanges,
   mapAsArray,
@@ -73,13 +74,27 @@ import {
 
 import { FieldValue, IntegerValue } from '../../../src/model/field_value';
 import * as persistenceHelpers from './persistence_test_helpers';
+import { ForwardingCountingQueryEngine } from './forwarding_counting_query_engine';
 
 class LocalStoreTester {
   private promiseChain: Promise<void> = Promise.resolve();
   private lastChanges: MaybeDocumentMap | null = null;
   private lastTargetId: TargetId | null = null;
   private batches: MutationBatch[] = [];
-  constructor(public localStore: LocalStore, readonly gcIsEager: boolean) {}
+
+  constructor(
+    public localStore: LocalStore,
+    private readonly queryEngine: ForwardingCountingQueryEngine,
+    readonly gcIsEager: boolean
+  ) {}
+
+  private prepareNextStep(): void {
+    this.promiseChain = this.promiseChain.then(() => {
+      this.lastChanges = null;
+      this.lastTargetId = null;
+      this.queryEngine.resetCounts();
+    });
+  }
 
   after(
     op: Mutation | Mutation[] | RemoteEvent | LocalViewChanges
@@ -96,6 +111,8 @@ class LocalStoreTester {
   }
 
   afterMutations(mutations: Mutation[]): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain
       .then(() => {
         return this.localStore.localWrite(mutations);
@@ -110,6 +127,8 @@ class LocalStoreTester {
   }
 
   afterRemoteEvent(remoteEvent: RemoteEvent): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain
       .then(() => {
         return this.localStore.applyRemoteEvent(remoteEvent);
@@ -121,6 +140,8 @@ class LocalStoreTester {
   }
 
   afterViewChanges(viewChanges: LocalViewChanges): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain.then(() =>
       this.localStore.notifyLocalViewChanges([viewChanges])
     );
@@ -131,6 +152,8 @@ class LocalStoreTester {
     documentVersion: TestSnapshotVersion;
     transformResult?: FieldValue;
   }): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain
       .then(() => {
         const batch = this.batches.shift()!;
@@ -161,6 +184,8 @@ class LocalStoreTester {
   }
 
   afterRejectingMutation(): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain
       .then(() => {
         return this.localStore.rejectBatch(this.batches.shift()!.batchId);
@@ -172,6 +197,8 @@ class LocalStoreTester {
   }
 
   afterAllocatingQuery(query: Query): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain.then(() => {
       return this.localStore.allocateQuery(query).then(result => {
         this.lastTargetId = result.targetId;
@@ -181,11 +208,49 @@ class LocalStoreTester {
   }
 
   afterReleasingQuery(query: Query): LocalStoreTester {
+    this.prepareNextStep();
+
     this.promiseChain = this.promiseChain.then(() => {
       return this.localStore.releaseQuery(
         query,
         /*keepPersistedQueryData=*/ false
       );
+    });
+    return this;
+  }
+
+  afterExecutingQuery(query: Query): LocalStoreTester {
+    this.prepareNextStep();
+
+    this.promiseChain = this.promiseChain.then(() => {
+      return this.localStore.executeQuery(query).then(results => {
+        this.lastChanges = results;
+      });
+    });
+    return this;
+  }
+
+  /**
+   * Asserts the expected number of mutations and documents read by
+   * the MutationQueue and the RemoteDocumentCache.
+   */
+  toHaveRead(expectedCount: {
+    mutations?: number;
+    remoteDocuments?: number;
+  }): LocalStoreTester {
+    this.promiseChain = this.promiseChain.then(() => {
+      if (expectedCount.mutations !== undefined) {
+        expect(this.queryEngine.mutationsRead).to.be.eq(
+          expectedCount.mutations,
+          'Mutations read'
+        );
+      }
+      if (expectedCount.remoteDocuments !== undefined) {
+        expect(this.queryEngine.documentsRead).to.be.eq(
+          expectedCount.remoteDocuments,
+          'Remote documents read'
+        );
+      }
     });
     return this;
   }
@@ -310,10 +375,16 @@ function genericLocalStoreTests(
 ): void {
   let persistence: Persistence;
   let localStore: LocalStore;
+  let countingQueryEngine: ForwardingCountingQueryEngine;
 
   beforeEach(async () => {
     persistence = await getPersistence();
-    localStore = new LocalStore(persistence, queryEngine, User.UNAUTHENTICATED);
+    countingQueryEngine = new ForwardingCountingQueryEngine(queryEngine);
+    localStore = new LocalStore(
+      persistence,
+      countingQueryEngine,
+      User.UNAUTHENTICATED
+    );
   });
 
   afterEach(async () => {
@@ -322,7 +393,7 @@ function genericLocalStoreTests(
   });
 
   function expectLocalStore(): LocalStoreTester {
-    return new LocalStoreTester(localStore, gcIsEager);
+    return new LocalStoreTester(localStore, countingQueryEngine, gcIsEager);
   }
 
   it('handles SetMutation', () => {
@@ -938,6 +1009,44 @@ function genericLocalStoreTests(
         value: doc('foo/bonk', 0, { a: 'b' }, { hasLocalMutations: true })
       }
     ]);
+  });
+
+  it('reads all documents for initial collection queries', () => {
+    const firstQuery = Query.atPath(path('foo'));
+    const secondQuery = Query.atPath(path('foo')).addFilter(
+      filter('matches', '==', true)
+    );
+
+    return expectLocalStore()
+      .afterAllocatingQuery(firstQuery)
+      .toReturnTargetId(2)
+      .after(
+        docAddedRemoteEvent(
+          [
+            doc('foo/bar', 10, { matches: true }),
+            doc('foo/baz', 20, { matches: true })
+          ],
+          [2]
+        )
+      )
+      .toReturnChanged(
+        doc('foo/bar', 10, { matches: true }),
+        doc('foo/baz', 20, { matches: true })
+      )
+      .after(setMutation('foo/bonk', { matches: true }))
+      .toReturnChanged(
+        doc('foo/bonk', 0, { matches: true }, { hasLocalMutations: true })
+      )
+      .afterAllocatingQuery(secondQuery)
+      .toReturnTargetId(4)
+      .afterExecutingQuery(secondQuery)
+      .toReturnChanged(
+        doc('foo/bar', 10, { matches: true }),
+        doc('foo/baz', 20, { matches: true }),
+        doc('foo/bonk', 0, { matches: true }, { hasLocalMutations: true })
+      )
+      .toHaveRead({ remoteDocuments: 2, mutations: 1 })
+      .finish();
   });
 
   it('persists resume tokens', async () => {
