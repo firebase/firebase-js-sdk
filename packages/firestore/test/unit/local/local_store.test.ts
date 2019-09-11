@@ -73,7 +73,7 @@ import {
 } from '../../util/helpers';
 
 import { FieldValue, IntegerValue } from '../../../src/model/field_value';
-import { CountingQueryEngine } from './forwarding_counting_query_engine';
+import { CountingQueryEngine } from './counting_query_engine';
 import * as persistenceHelpers from './persistence_test_helpers';
 
 class LocalStoreTester {

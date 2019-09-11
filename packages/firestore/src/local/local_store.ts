@@ -775,6 +775,23 @@ export class LocalStore {
   }
 
   /**
+   * Returns the QueryData as seen by the LocalStore, including updates that may have not yet been
+   * persisted to the QueryCache.
+   */
+  getQueryData(
+    transaction: PersistenceTransaction,
+    query: Query
+  ): PersistencePromise<QueryData | null> {
+    return this.queryCache.getQueryData(transaction, query).next(queryData => {
+      if (queryData == null) {
+        return null;
+      }
+      const cachedQueryData = this.queryDataByTarget[queryData!.targetId];
+      return cachedQueryData || queryData;
+    });
+  }
+
+  /**
    * Unpin all the documents associated with the given query. If
    * `keepPersistedQueryData` is set to false and Eager GC enabled, the method
    * directly removes the associated query data from the query cache.
@@ -783,37 +800,31 @@ export class LocalStore {
   releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
     const mode = keepPersistedQueryData ? 'readwrite' : 'readwrite-primary';
     return this.persistence.runTransaction('Release query', mode, txn => {
-      return this.queryCache
-        .getQueryData(txn, query)
-        .next((queryData: QueryData | null) => {
-          assert(
-            queryData != null,
-            'Tried to release nonexistent query: ' + query
-          );
-          const targetId = queryData!.targetId;
-          const cachedQueryData = this.queryDataByTarget[targetId];
+      return this.getQueryData(txn, query).next(queryData => {
+        assert(
+          queryData != null,
+          'Tried to release nonexistent query: ' + query
+        );
+        const targetId = queryData!.targetId;
 
-          // References for documents sent via Watch are automatically removed when we delete a
-          // query's target data from the reference delegate. Since this does not remove references
-          // for locally mutated documents, we have to remove the target associations for these
-          // documents manually.
-          const removed = this.localViewReferences.removeReferencesForId(
-            targetId
+        // References for documents sent via Watch are automatically removed when we delete a
+        // query's target data from the reference delegate. Since this does not remove references
+        // for locally mutated documents, we have to remove the target associations for these
+        // documents manually.
+        const removed = this.localViewReferences.removeReferencesForId(
+          targetId
+        );
+        delete this.queryDataByTarget[targetId];
+        if (!keepPersistedQueryData) {
+          return PersistencePromise.forEach(removed, (key: DocumentKey) =>
+            this.persistence.referenceDelegate.removeReference(txn, key)
+          ).next(() =>
+            this.persistence.referenceDelegate.removeTarget(txn, queryData!)
           );
-          delete this.queryDataByTarget[targetId];
-          if (!keepPersistedQueryData) {
-            return PersistencePromise.forEach(removed, (key: DocumentKey) =>
-              this.persistence.referenceDelegate.removeReference(txn, key)
-            ).next(() =>
-              this.persistence.referenceDelegate.removeTarget(
-                txn,
-                cachedQueryData
-              )
-            );
-          } else {
-            return PersistencePromise.resolve();
-          }
-        });
+        } else {
+          return PersistencePromise.resolve();
+        }
+      });
     });
   }
 
@@ -821,13 +832,51 @@ export class LocalStore {
    * Runs the specified query against all the documents in the local store and
    * returns the results.
    */
-  executeQuery(query: Query): Promise<DocumentMap> {
+  executeQuery(query: Query): Promise<DocumentMap>;
+  /**
+   * Runs the specified query against the local store and returns the results,
+   * potentially taking advantage of the provided query data and the set of
+   * remote document keys.
+   */
+  executeQuery(
+    query: Query,
+    queryData: QueryData | null,
+    remoteKeys: DocumentKeySet
+  ): Promise<DocumentMap>;
+  executeQuery(
+    query: Query,
+    queryData?: QueryData | null,
+    remoteKeys?: DocumentKeySet
+  ): Promise<DocumentMap> {
+    let cachedQueryData = queryData;
+    let cachedRemoteKeys = remoteKeys;
+
     return this.persistence.runTransaction('Execute query', 'readonly', txn => {
-      return this.queryEngine.getDocumentsMatchingQuery(
-        txn,
-        query,
-        SnapshotVersion.MIN
-      );
+      return PersistencePromise.resolve()
+        .next(() => {
+          // If QueryData is not provided (and not explicitly set to `null`), we
+          // retrieve the query data and the remote keys from cache.
+          if (cachedQueryData === undefined) {
+            return this.getQueryData(txn, query).next(queryData => {
+              if (queryData) {
+                return this.queryCache
+                  .getMatchingKeysForTargetId(txn, queryData.targetId)
+                  .next(remoteKeys => {
+                    cachedQueryData = queryData;
+                    cachedRemoteKeys = remoteKeys;
+                  });
+              }
+            });
+          }
+        })
+        .next(() =>
+          this.queryEngine.getDocumentsMatchingQuery(
+            txn,
+            query,
+            cachedQueryData || null,
+            cachedRemoteKeys || documentKeySet()
+          )
+        );
     });
   }
 
