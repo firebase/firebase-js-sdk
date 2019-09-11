@@ -18,15 +18,15 @@
 import { QueryEngine } from './query_engine';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
+import { PersistencePromise } from './persistence_promise';
+import { QueryData } from './query_data';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { PersistencePromise } from './persistence_promise';
 import { DocumentKeySet, DocumentMap } from '../model/collections';
-import { assert } from '../util/assert';
-import { QueryData } from './query_data';
-import { SortedSet } from '../util/sorted_set';
 import { Document } from '../model/document';
+import { assert } from '../util/assert';
 import { debug, getLogLevel, LogLevel } from '../util/log';
+import { SortedSet } from '../util/sorted_set';
 
 /**
  * A query engine that takes advantage of the target document mapping in the

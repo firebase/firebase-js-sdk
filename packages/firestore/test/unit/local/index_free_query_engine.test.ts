@@ -16,29 +16,29 @@
  */
 
 import { expect } from 'chai';
+import { User } from '../../../src/auth/user';
+import { ListenSequence } from '../../../src/core/listen_sequence';
+import { Query } from '../../../src/core/query';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { View } from '../../../src/core/view';
 import {
   Persistence,
   PersistenceTransaction
 } from '../../../src/local/persistence';
 import { QueryCache } from '../../../src/local/query_cache';
 import { QueryEngine } from '../../../src/local/query_engine';
-import { testMemoryEagerPersistence } from './persistence_test_helpers';
 import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
-import { User } from '../../../src/auth/user';
 import { MemoryIndexManager } from '../../../src/local/memory_index_manager';
-import { Query } from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
+import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import { documentKeySet, DocumentMap } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
-import { QueryData, QueryPurpose } from '../../../src/local/query_data';
-import { ListenSequence } from '../../../src/core/listen_sequence';
-import { assert } from '../../../src/util/assert';
-import { View } from '../../../src/core/view';
 import { DocumentSet } from '../../../src/model/document_set';
+import { assert } from '../../../src/util/assert';
+import { testMemoryEagerPersistence } from './persistence_test_helpers';
 import { doc, filter, key, orderBy, path, version } from '../../util/helpers';
 
 const TEST_TARGET_ID = 1;
