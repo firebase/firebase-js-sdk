@@ -775,8 +775,8 @@ export class LocalStore {
   }
 
   /**
-   * Returns the QueryData as seen by the LocalStore, including updates that may have not yet been
-   * persisted to the QueryCache.
+   * Returns the QueryData as seen by the LocalStore, including updates that may
+   * have not yet been persisted to the QueryCache.
    */
   getQueryData(
     transaction: PersistenceTransaction,
@@ -807,10 +807,11 @@ export class LocalStore {
         );
         const targetId = queryData!.targetId;
 
-        // References for documents sent via Watch are automatically removed when we delete a
-        // query's target data from the reference delegate. Since this does not remove references
-        // for locally mutated documents, we have to remove the target associations for these
-        // documents manually.
+        // References for documents sent via Watch are automatically removed
+        // when we delete a query's target data from the reference delegate.
+        // Since this does not remove references for locally mutated documents,
+        // we have to remove the target associations for these documents
+        // manually.
         const removed = this.localViewReferences.removeReferencesForId(
           targetId
         );
