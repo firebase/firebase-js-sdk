@@ -778,6 +778,7 @@ export class LocalStore {
    * Returns the QueryData as seen by the LocalStore, including updates that may
    * have not yet been persisted to the QueryCache.
    */
+  // Visible for testing.
   getQueryData(
     transaction: PersistenceTransaction,
     query: Query

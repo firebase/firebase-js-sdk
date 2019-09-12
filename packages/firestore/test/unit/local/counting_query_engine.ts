@@ -31,22 +31,39 @@ import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
  */
 export class CountingQueryEngine implements QueryEngine {
   /**
-   * The number of mutations returned by the MutationQueue (since the last call
-   * to `resetCounts()`)
+   * The number of mutations returned by the MutationQueue's
+   * `getAllMutationBatchesAffectingQuery()` API (since the last call to
+   * `resetCounts()`)
    */
-  mutationsRead = 0;
+  mutationsReadByQuery = 0;
 
   /**
-   * The number of documents returned by the RemoteDocumentCache (since the
-   * last call to `resetCounts()`)
+   * The number of mutations returned by the MutationQueue's
+   * `getAllMutationBatchesAffectingDocumentKey()` and
+   * `getAllMutationBatchesAffectingDocumentKeys()` APIs (since the last call
+   * to `resetCounts()`)
    */
-  documentsRead = 0;
+  mutationsReadByKey = 0;
+
+  /**
+   * The number of documents returned by the RemoteDocumentCache's
+   * `getDocumentsMatchingQuery()` API (since the last call to `resetCounts()`)
+   */
+  documentsReadByQuery = 0;
+
+  /**
+   * The number of documents returned by the RemoteDocumentCache's `getEntry()`
+   * and `getEntries()` APIs (since the last call to `resetCounts()`)
+   */
+  documentsReadByKey = 0;
 
   constructor(private readonly queryEngine: QueryEngine) {}
 
   resetCounts(): void {
-    this.mutationsRead = 0;
-    this.documentsRead = 0;
+    this.mutationsReadByQuery = 0;
+    this.mutationsReadByKey = 0;
+    this.documentsReadByQuery = 0;
+    this.documentsReadByKey = 0;
   }
 
   getDocumentsMatchingQuery(
@@ -81,19 +98,19 @@ export class CountingQueryEngine implements QueryEngine {
         return subject
           .getDocumentsMatchingQuery(transaction, query, sinceReadTime)
           .next(result => {
-            this.documentsRead += result.size;
+            this.documentsReadByQuery += result.size;
             return result;
           });
       },
       getEntries: (transaction, documentKeys) => {
         return subject.getEntries(transaction, documentKeys).next(result => {
-          this.documentsRead += result.size;
+          this.documentsReadByKey += result.size;
           return result;
         });
       },
       getEntry: (transaction, documentKey) => {
         return subject.getEntry(transaction, documentKey).next(result => {
-          this.documentsRead += result ? 1 : 0;
+          this.documentsReadByKey += result ? 1 : 0;
           return result;
         });
       },
@@ -110,7 +127,7 @@ export class CountingQueryEngine implements QueryEngine {
       checkEmpty: subject.checkEmpty,
       getAllMutationBatches: transaction => {
         return subject.getAllMutationBatches(transaction).next(result => {
-          this.mutationsRead += result.length;
+          this.mutationsReadByKey += result.length;
           return result;
         });
       },
@@ -118,7 +135,7 @@ export class CountingQueryEngine implements QueryEngine {
         return subject
           .getAllMutationBatchesAffectingDocumentKey(transaction, documentKey)
           .next(result => {
-            this.mutationsRead += result.length;
+            this.mutationsReadByKey += result.length;
             return result;
           });
       },
@@ -129,7 +146,7 @@ export class CountingQueryEngine implements QueryEngine {
         return subject
           .getAllMutationBatchesAffectingDocumentKeys(transaction, documentKeys)
           .next(result => {
-            this.mutationsRead += result.length;
+            this.mutationsReadByKey += result.length;
             return result;
           });
       },
@@ -137,7 +154,7 @@ export class CountingQueryEngine implements QueryEngine {
         return subject
           .getAllMutationBatchesAffectingQuery(transaction, query)
           .next(result => {
-            this.mutationsRead += result.length;
+            this.mutationsReadByQuery += result.length;
             return result;
           });
       },
