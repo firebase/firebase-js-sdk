@@ -348,7 +348,7 @@ export function docAddedRemoteEvent(
       doc
     );
     aggregator.handleDocumentChange(docChange);
-    version = doc.version.compareTo(version) ? doc.version : version;
+    version = doc.version.compareTo(version) > 0 ? doc.version : version;
   }
 
   return aggregator.createRemoteEvent(version);

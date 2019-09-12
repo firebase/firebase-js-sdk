@@ -240,11 +240,11 @@ class LocalStoreTester {
    * @param expectedCount.mutationsByQuery The number of mutations read by
    * executing a query against the MutationQueue.
    * @param expectedCount.mutationsByKey The number of mutations read by
-   * single-key lookups.
+   * document key lookups.
    * @param expectedCount.documentsByQuery The number of mutations read by
    * executing a query against the RemoteDocumentCache.
    * @param expectedCount.documentsByKey The number of documents read by
-   * single-key lookups.
+   * document key lookups.
    */
   toHaveRead(expectedCount: {
     mutationsByQuery?: number;
