@@ -306,6 +306,22 @@ export class SpecBuilder {
     return this;
   }
 
+  userAddsSnapshotsInSyncListener(): this {
+    this.nextStep();
+    this.currentStep = {
+      addSnapshotsInSyncListener: true
+    };
+    return this;
+  }
+
+  userRemovesSnapshotsInSyncListener(): this {
+    this.nextStep();
+    this.currentStep = {
+      removeSnapshotsInSyncListener: true
+    };
+    return this;
+  }
+
   // PORTING NOTE: Only used by web multi-tab tests.
   becomeHidden(): this {
     this.nextStep();
@@ -836,10 +852,17 @@ export class SpecBuilder {
   }
 
   expectPrimaryState(isPrimary: boolean): this {
-    this.assertStep('Expectations requires previous step');
+    this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
     currentStep.stateExpect = currentStep.stateExpect || {};
     currentStep.stateExpect.isPrimary = isPrimary;
+    return this;
+  }
+
+  expectSnapshotsInSyncEvent(count = 1): this {
+    this.assertStep('Expectations require previous step');
+    const currentStep = this.currentStep!;
+    currentStep.expectedSnapshotsInSyncEvents = count;
     return this;
   }
 

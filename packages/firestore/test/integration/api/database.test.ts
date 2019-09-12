@@ -37,6 +37,7 @@ import {
   withTestDoc,
   withTestDocAndInitialData,
   DEFAULT_SETTINGS,
+  onSnapshotsInSync,
   withMockCredentialProviderTestDb
 } from '../util/helpers';
 import { User } from '../../../src/auth/user';
@@ -538,6 +539,43 @@ apiDescribe('Database', (persistence: boolean) => {
         .then(docSnap => {
           expect(docSnap.data()).to.deep.equal({ foo: 1 });
         });
+    });
+  });
+
+  it('onSnapshotsInSync fires after listeners are in sync', () => {
+    const testDocs = {
+      a: { foo: 1 }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      let events: string[] = [];
+      const gotInitialSnapshot = new Deferred<void>();
+      const doc = coll.doc('a');
+
+      doc.onSnapshot(snap => {
+        events.push('doc');
+        gotInitialSnapshot.resolve();
+      });
+      await gotInitialSnapshot.promise;
+      events = [];
+
+      const done = new Deferred<void>();
+      onSnapshotsInSync(doc.firestore, () => {
+        events.push('snapshots-in-sync');
+        if (events.length === 3) {
+          // We should have an initial snapshots-in-sync event, then a snapshot
+          // event for set(), then another event to indicate we're in sync
+          // again.
+          expect(events).to.deep.equal([
+            'snapshots-in-sync',
+            'doc',
+            'snapshots-in-sync'
+          ]);
+          done.resolve();
+        }
+      });
+
+      await doc.set({ foo: 3 });
+      await done.promise;
     });
   });
 
