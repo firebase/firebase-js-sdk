@@ -152,7 +152,10 @@
         "@typescript-eslint/explicit-member-accessibility": [
             "error",
             {
-                "accessibility": "no-public"
+                "accessibility": "no-public",
+                "overrides": {
+                    "parameterProperties": "explicit"
+                }
             }
         ],
         "@typescript-eslint/consistent-type-assertions": [
