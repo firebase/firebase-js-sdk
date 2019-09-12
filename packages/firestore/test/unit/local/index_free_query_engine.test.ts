@@ -17,7 +17,6 @@
 
 import { expect } from 'chai';
 import { User } from '../../../src/auth/user';
-import { ListenSequence } from '../../../src/core/listen_sequence';
 import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
@@ -39,7 +38,14 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
 import { assert } from '../../../src/util/assert';
 import { testMemoryEagerPersistence } from './persistence_test_helpers';
-import { doc, filter, key, orderBy, path, version } from '../../util/helpers';
+import {
+  doc,
+  filter,
+  key,
+  orderBy,
+  path,
+  queryData as testQueryData
+} from '../../util/helpers';
 
 const TEST_TARGET_ID = 1;
 
@@ -62,7 +68,7 @@ const MATCHING_DOC_B = doc('coll/b', 1, { matches: true, order: 2 });
 const UPDATED_MATCHING_DOC_B = doc('coll/b', 11, { matches: true, order: 2 });
 
 /**
- * A LocalDocumentsView that inspects the arguments to
+ * A LocalDocumentsView wrapper that inspects the arguments to
  * `getDocumentsMatchingQuery()` to detect index-free execution.
  */
 class TestLocalDocumentsView extends LocalDocumentsView {
@@ -73,10 +79,13 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    expect(!SnapshotVersion.MIN.isEqual(sinceReadTime)).to.eq(
+    let indexFreeExecution = !SnapshotVersion.MIN.isEqual(sinceReadTime);
+
+    expect(indexFreeExecution).to.eq(
       this.expectIndexFreeExecution,
       'Observed query execution mode did not match expectation'
     );
+
     return super.getDocumentsMatchingQuery(transaction, query, sinceReadTime);
   }
 }
@@ -174,7 +183,13 @@ describe('IndexFreeQueryEngine', () => {
     const query = Query.atPath(path('coll')).addFilter(
       filter('matches', '==', true)
     );
-    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
+    const queryData = testQueryData(
+      2,
+      QueryPurpose.Listen,
+      'coll',
+      10,
+      /* hasLimboFreeSnapshot= */ true
+    );
 
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
@@ -184,11 +199,17 @@ describe('IndexFreeQueryEngine', () => {
     verifyResult(docs, [MATCHING_DOC_A, MATCHING_DOC_B]);
   });
 
-  it('filters non-matching initial results', async () => {
+  it('filters non-matching changes since initial results', async () => {
     const query = Query.atPath(path('coll')).addFilter(
       filter('matches', '==', true)
     );
-    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
+    const queryData = testQueryData(
+      2,
+      QueryPurpose.Listen,
+      'coll',
+      10,
+      /* hasLimboFreeSnapshot= */ true
+    );
 
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
@@ -205,7 +226,13 @@ describe('IndexFreeQueryEngine', () => {
     const query = Query.atPath(path('coll')).addFilter(
       filter('matches', '==', true)
     );
-    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
+    const queryData = testQueryData(
+      2,
+      QueryPurpose.Listen,
+      'coll',
+      10,
+      /* hasLimboFreeSnapshot= */ true
+    );
 
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
@@ -224,7 +251,13 @@ describe('IndexFreeQueryEngine', () => {
     const query = Query.atPath(path('coll')).addFilter(
       filter('matches', '==', true)
     );
-    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ false);
+    const queryData = testQueryData(
+      2,
+      QueryPurpose.Listen,
+      'coll',
+      10,
+      /* hasLimboFreeSnapshot= */ false
+    );
 
     const docs = await expectFullCollectionQuery(() =>
       runQuery(query, queryData)
@@ -234,7 +267,13 @@ describe('IndexFreeQueryEngine', () => {
 
   it('does not use initial results for unfiltered collection query', async () => {
     const query = Query.atPath(path('coll'));
-    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
+    const queryData = testQueryData(
+      2,
+      QueryPurpose.Listen,
+      'coll',
+      10,
+      /* hasLimboFreeSnapshot= */ true
+    );
 
     const docs = await expectFullCollectionQuery(() =>
       runQuery(query, queryData)
@@ -255,7 +294,13 @@ describe('IndexFreeQueryEngine', () => {
 
     await addDocument(MATCHING_DOC_B);
 
-    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
+    const queryData = testQueryData(
+      2,
+      QueryPurpose.Listen,
+      'coll',
+      10,
+      /* hasLimboFreeSnapshot= */ true
+    );
     const docs = await expectFullCollectionQuery(() =>
       runQuery(query, queryData)
     );
@@ -274,7 +319,13 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(PENDING_MATCHING_DOC_A);
     await persistQueryMapping(PENDING_MATCHING_DOC_A.key);
 
-    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
+    const queryData = testQueryData(
+      2,
+      QueryPurpose.Listen,
+      'coll',
+      10,
+      /* hasLimboFreeSnapshot= */ true
+    );
 
     await addDocument(MATCHING_DOC_B);
 
@@ -291,12 +342,18 @@ describe('IndexFreeQueryEngine', () => {
       .withLimit(1);
 
     // Add a query mapping for a document that matches, but that sorts below
-    // another document based due to an update that the SDK received after the
+    // another document based on an update that the SDK received after the
     // query's snapshot was persisted.
     await addDocument(UPDATED_DOC_A);
     await persistQueryMapping(UPDATED_DOC_A.key);
 
-    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
+    const queryData = testQueryData(
+      2,
+      QueryPurpose.Listen,
+      'coll',
+      10,
+      /* hasLimboFreeSnapshot= */ true
+    );
 
     await addDocument(MATCHING_DOC_B);
 
@@ -315,7 +372,13 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(doc('coll/b', 1, { order: 3 }));
     await persistQueryMapping(key('coll/a'), key('coll/b'));
 
-    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
+    const queryData = testQueryData(
+      2,
+      QueryPurpose.Listen,
+      'coll',
+      10,
+      /* hasLimboFreeSnapshot= */ true
+    );
 
     // Update "coll/a" but make sure it still sorts before "coll/b"
     await addDocument(
@@ -347,16 +410,5 @@ function verifyResult(
   expect(actualDocs.size).to.equal(
     expectedDocs.length,
     'Result count does not match'
-  );
-}
-
-function testQueryData(query: Query, hasLimboFreeSnapshot: boolean): QueryData {
-  return new QueryData(
-    query,
-    TEST_TARGET_ID,
-    QueryPurpose.Listen,
-    ListenSequence.INVALID,
-    version(10),
-    hasLimboFreeSnapshot ? version(10) : SnapshotVersion.MIN
   );
 }

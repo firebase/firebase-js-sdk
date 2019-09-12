@@ -271,7 +271,9 @@ export function bound(
 export function queryData(
   targetId: TargetId,
   queryPurpose: QueryPurpose,
-  path: string
+  path: string,
+  snapshotVersion: number = 0,
+  hasLimboFreeSnapshot: boolean = false
 ): QueryData {
   // Arbitrary value.
   const sequenceNumber = 0;
@@ -279,7 +281,9 @@ export function queryData(
     query(path)._query,
     targetId,
     queryPurpose,
-    sequenceNumber
+    sequenceNumber,
+    version(snapshotVersion),
+    hasLimboFreeSnapshot ? version(snapshotVersion) : SnapshotVersion.MIN
   );
 }
 

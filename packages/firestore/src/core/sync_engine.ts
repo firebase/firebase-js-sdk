@@ -246,11 +246,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const remoteKeys = await this.localStore.remoteDocumentKeys(
       queryData.targetId
     );
-    const docs = await this.localStore.executeQuery(
-      query,
+    const docs = await this.localStore.executeQuery(query, {
       queryData,
       remoteKeys
-    );
+    });
 
     const view = new View(query, remoteKeys);
     const viewDocChanges = view.computeDocChanges(docs);
@@ -290,11 +289,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const remoteKeys = await this.localStore.remoteDocumentKeys(
       queryData.targetId
     );
-    const docs = await this.localStore.executeQuery(
-      queryData.query,
+    const docs = await this.localStore.executeQuery(queryData.query, {
       queryData,
       remoteKeys
-    );
+    });
     const viewSnapshot = view.synchronizeWithPersistedState(docs, remoteKeys);
     if (this.isPrimary) {
       this.updateTrackedLimbos(queryData.targetId, viewSnapshot.limboChanges);
@@ -793,7 +791,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             // to re-run the query against the local store to make sure we
             // didn't lose any good docs that had been past the limit.
             return this.localStore
-              .executeQuery(queryView.query, null, documentKeySet())
+              .executeQuery(queryView.query, { needsRefill: true })
               .then(docs => {
                 return queryView.view.computeDocChanges(docs, viewDocChanges);
               });

@@ -830,10 +830,19 @@ export class LocalStore {
   }
 
   /**
-   * Runs the specified query against all the documents in the local store and
-   * returns the results.
+   * Runs the specified query against the local store and returns the results,
+   * potentially taking advantage of query data from previous executions (such
+   * as the set of remote keys).
    */
   executeQuery(query: Query): Promise<DocumentMap>;
+  /**
+   * Performs a full collection scan for the provided query and returns the
+   * results. Does not take into account metadata from prior executions.
+   */
+  executeQuery(
+    query: Query,
+    options: { needsRefill: true }
+  ): Promise<DocumentMap>;
   /**
    * Runs the specified query against the local store and returns the results,
    * potentially taking advantage of the provided query data and the set of
@@ -841,43 +850,47 @@ export class LocalStore {
    */
   executeQuery(
     query: Query,
-    queryData: QueryData | null,
-    remoteKeys: DocumentKeySet
+    options: { queryData: QueryData; remoteKeys: DocumentKeySet }
   ): Promise<DocumentMap>;
   executeQuery(
     query: Query,
-    queryData?: QueryData | null,
-    remoteKeys?: DocumentKeySet
+    options: {
+      needsRefill?: boolean;
+      queryData?: QueryData;
+      remoteKeys?: DocumentKeySet;
+    } = {}
   ): Promise<DocumentMap> {
-    let cachedQueryData = queryData;
-    let cachedRemoteKeys = remoteKeys;
+    const allowLookup = options.needsRefill !== false;
+
+    let queryData = options.queryData;
+    let remoteKeys = options.remoteKeys;
 
     return this.persistence.runTransaction('Execute query', 'readonly', txn => {
       return PersistencePromise.resolve()
         .next(() => {
-          // If QueryData is not provided (and not explicitly set to `null`), we
-          // retrieve the query data and the remote keys from cache.
-          if (cachedQueryData === undefined) {
-            return this.getQueryData(txn, query).next(queryData => {
-              if (queryData) {
-                return this.queryCache
-                  .getMatchingKeysForTargetId(txn, queryData.targetId)
-                  .next(remoteKeys => {
-                    cachedQueryData = queryData;
-                    cachedRemoteKeys = remoteKeys;
-                  });
-              }
+          if (allowLookup && !queryData) {
+            return this.getQueryData(txn, query).next(result => {
+              queryData = result || undefined;
             });
           }
         })
-        .next(() =>
-          this.queryEngine.getDocumentsMatchingQuery(
+        .next(() => {
+          if (allowLookup && queryData && !remoteKeys) {
+            return this.queryCache
+              .getMatchingKeysForTargetId(txn, queryData.targetId)
+              .next(result => {
+                remoteKeys = result;
+              });
+          }
+        })
+        .next(() => {
+          return this.queryEngine.getDocumentsMatchingQuery(
             txn,
             query,
-            cachedQueryData || null,
-            cachedRemoteKeys || documentKeySet()
-          )
-        );
+            queryData || null,
+            remoteKeys || documentKeySet()
+          );
+        });
     });
   }
 
