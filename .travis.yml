@@ -24,7 +24,7 @@ before_script:
   - yarn build
 
 # Misc Addons/Configs
-dist: trusty
+dist: xenial
 sudo: required
 addons:
   firefox: "66.0"
