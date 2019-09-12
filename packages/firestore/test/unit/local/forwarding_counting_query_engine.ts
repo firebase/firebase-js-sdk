@@ -141,7 +141,8 @@ export class CountingQueryEngine implements QueryEngine {
       },
       getHighestUnacknowledgedBatchId: subject.getHighestUnacknowledgedBatchId,
       getLastStreamToken: subject.getLastStreamToken,
-      getNextMutationBatchAfterBatchId: subject.getNextMutationBatchAfterBatchId,
+      getNextMutationBatchAfterBatchId:
+        subject.getNextMutationBatchAfterBatchId,
       lookupMutationBatch: subject.lookupMutationBatch,
       lookupMutationKeys: subject.lookupMutationKeys,
       performConsistencyCheck: subject.performConsistencyCheck,
