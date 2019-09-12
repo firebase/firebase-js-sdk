@@ -446,7 +446,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
   // TODO(b/112267729): We should raise a fromCache=true event with a
   // nonexistent snapshot, but because the default source goes through a normal
   // listener, we do not.
-  // tslint:disable-next-line:ban
+  // eslint-disable-next-line no-restricted-properties
   it.skip('get deleted doc while offline with default get options', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       return docRef
@@ -517,7 +517,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
   });
 
   // We need the deleted doc to stay in cache, so only run this with persistence.
-  // tslint:disable-next-line:ban
+  // eslint-disable-next-line no-restricted-properties,
   (persistence ? it : it.skip)(
     'get deleted doc while offline with source=cache',
     () => {

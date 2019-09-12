@@ -126,7 +126,9 @@ export const apiDescribe = apiDescribeInternal.bind(
   null,
   describe
 ) as ApiDescribe;
+// eslint-disable-next-line no-restricted-properties
 apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
+// eslint-disable-next-line no-restricted-properties
 apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
 
 export class MockCredentialsProvider extends EmptyCredentialsProvider {

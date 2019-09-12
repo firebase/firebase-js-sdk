@@ -27,6 +27,7 @@ import { getDefaultDatabaseInfo } from '../util/internal_helpers';
 const describeFn =
   typeof window === 'object' && typeof window.navigator === 'object'
     ? describe
+    // eslint-disable-next-line no-restricted-globals,
     : xdescribe;
 
 describeFn('WebChannel', () => {

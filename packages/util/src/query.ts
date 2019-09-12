@@ -25,7 +25,6 @@ export function querystring(querystringParams: {
 }): string {
   const params = [];
   for (const [key, value] of Object.entries(querystringParams)) {
-    // eslint-disable-next-line no-restricted-globals
     if (Array.isArray(value)) {
       value.forEach(arrayVal => {
         params.push(

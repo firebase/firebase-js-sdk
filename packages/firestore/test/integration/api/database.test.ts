@@ -126,6 +126,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)('can update an unknown document', () => {
     return withTestDbs(persistence, 2, async ([reader, writer]) => {
       const writerRef = writer.collection('collection').doc();
@@ -818,7 +819,7 @@ apiDescribe('Database', (persistence: boolean) => {
   // TODO(mikelehen): We need a way to create a query that will pass
   // client-side validation but fail remotely.  May need to wait until we
   // have security rules support or something?
-  // tslint:disable-next-line:ban
+  // eslint-disable-next-line no-restricted-properties
   describe.skip('Listens are rejected remotely:', () => {
     const queryForRejection = query('foo');
 
@@ -1008,6 +1009,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'maintains persistence after restarting app',
     async () => {
@@ -1028,6 +1030,7 @@ apiDescribe('Database', (persistence: boolean) => {
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'can clear persistence if the client has not been initialized',
     async () => {
@@ -1051,6 +1054,7 @@ apiDescribe('Database', (persistence: boolean) => {
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'will reject the promise if clear persistence fails',
     async () => {

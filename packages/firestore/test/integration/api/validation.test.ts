@@ -82,7 +82,7 @@ const validationIt: ValidationIt = Object.assign(
       message: string,
       _: (db: firestore.FirebaseFirestore) => void | Promise<any>
     ): void {
-      // tslint:disable-next-line:ban
+      // eslint-disable-next-line no-restricted-properties
       it.skip(message, () => {});
     },
     only(
@@ -90,7 +90,7 @@ const validationIt: ValidationIt = Object.assign(
       message: string,
       testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
     ): void {
-      // tslint:disable-next-line:ban
+      // eslint-disable-next-line no-restricted-properties
       it.only(message, () => {
         return withTestDb(persistence, async db => {
           const maybePromise = testFunction(db);

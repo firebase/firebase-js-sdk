@@ -110,9 +110,9 @@
             {"name": "xit"},
             {"name": "xdescribe"},
             {"name": "parseInt", "message": "tsstyle#type-coercion"},
-            {"name": "parseFloat", "message": "tsstyle#type-coercion"},
-            {"name": "Array", "message": "tsstyle#array-constructor"}
+            {"name": "parseFloat", "message": "tsstyle#type-coercion"}
         ],
+        "no-array-constructor": "error",
         "import/no-default-export": "error",
         "import/no-duplicates": "error",
         "import/no-extraneous-dependencies": [

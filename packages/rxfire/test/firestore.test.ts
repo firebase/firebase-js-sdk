@@ -334,7 +334,6 @@ describe('RxFire Firestore', () => {
           name: 'David',
           userId: 'david'
         };
-        // eslint-disable-next-line no-restricted-globals
         expect(val).to.be.instanceof(Array);
         expect(val[0]).to.eql(expectedDoc);
         done();

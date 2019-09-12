@@ -563,6 +563,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   });
 
   // TODO(in-queries): Enable browser tests once backend support is ready.
+  // eslint-disable-next-line no-restricted-properties
   (isRunningAgainstEmulator() ? it : it.skip)(
     'can use IN filters',
     async () => {
@@ -588,7 +589,8 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     }
   );
-
+  
+  // eslint-disable-next-line no-restricted-properties,
   (isRunningAgainstEmulator() ? it : it.skip)(
     'can use IN filters by document ID',
     async () => {
@@ -610,8 +612,9 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     }
   );
-
+  
   // TODO(in-queries): Enable browser tests once backend support is ready.
+  // eslint-disable-next-line no-restricted-properties
   (isRunningAgainstEmulator() ? it : it.skip)(
     'can use array-contains-any filters',
     async () => {
