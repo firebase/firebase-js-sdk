@@ -79,7 +79,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
-    let indexFreeExecution = !SnapshotVersion.MIN.isEqual(sinceReadTime);
+    const indexFreeExecution = !SnapshotVersion.MIN.isEqual(sinceReadTime);
 
     expect(indexFreeExecution).to.eq(
       this.expectIndexFreeExecution,
