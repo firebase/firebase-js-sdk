@@ -51,7 +51,7 @@ export function deepExtend(target: unknown, source: unknown): unknown {
         target = {};
       }
       break;
-
+    // eslint-disable-next-line no-restricted-globals
     case Array:
       // Always copy the array source and overwrite the target.
       target = [];

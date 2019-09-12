@@ -167,6 +167,7 @@ export const base64: Base64 = {
    * @return The base64 encoded string.
    */
   encodeByteArray(input: number[] | Uint8Array, webSafe?: boolean): string {
+    // eslint-disable-next-line no-restricted-globals
     if (!Array.isArray(input)) {
       throw Error('encodeByteArray takes an array as a parameter');
     }
