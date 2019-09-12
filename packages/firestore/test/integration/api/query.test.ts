@@ -589,7 +589,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     }
   );
-  
+
   // eslint-disable-next-line no-restricted-properties,
   (isRunningAgainstEmulator() ? it : it.skip)(
     'can use IN filters by document ID',
@@ -612,7 +612,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       });
     }
   );
-  
+
   // TODO(in-queries): Enable browser tests once backend support is ready.
   // eslint-disable-next-line no-restricted-properties
   (isRunningAgainstEmulator() ? it : it.skip)(
