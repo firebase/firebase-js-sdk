@@ -258,9 +258,9 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
       return writeInitialData()
         .then(() => docRef.firestore.disableNetwork())
         .then(() => {
-          // We set up two consecutive writes with server timestamps.
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises, We set up two consecutive writes with server timestamps.
           docRef.update('a', FieldValue.serverTimestamp());
-          // include b=1 to ensure there's a change resulting in a new snapshot.
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises, include b=1 to ensure there's a change resulting in a new snapshot.
           docRef.update('a', FieldValue.serverTimestamp(), 'b', 1);
           return accumulator.awaitLocalEvents(2);
         })
@@ -287,8 +287,11 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
         .then(() => docRef.firestore.disableNetwork())
         .then(() => {
           // We set up three consecutive writes.
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           docRef.update('a', FieldValue.serverTimestamp());
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           docRef.update('a', 1337);
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           docRef.update('a', FieldValue.serverTimestamp());
           return accumulator.awaitLocalEvents(3);
         })

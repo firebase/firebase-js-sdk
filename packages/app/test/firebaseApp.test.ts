@@ -58,7 +58,7 @@ function executeFirebaseTests(): void {
       const app = firebase.initializeApp({});
       // Ensure the hook is called synchronously
       assert.equal(hookEvents, 1);
-      // tslint:disable-next-line:no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       app.delete();
     });
 
@@ -173,7 +173,7 @@ function executeFirebaseTests(): void {
       );
       // Ensure the hook is called synchronously
       assert.equal(hookEvents, 1);
-      // tslint:disable-next-line:no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       app.delete();
     });
 

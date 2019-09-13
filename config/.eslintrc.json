@@ -82,6 +82,37 @@
             "boolean"
         ],
         "constructor-super": "error",
+        "no-restricted-properties": [
+            "error",
+            { 
+                "object": "it",
+                "property": "skip"
+            }
+            ,
+            { 
+                "object": "it",
+                "property": "only"
+            },
+            { 
+                "object": "describe",
+                "property": "skip"
+            },
+            { 
+                "object": "describe",
+                "property": "only"
+            },
+            { 
+                "object": "xit"
+            }
+        ],
+        "no-restricted-globals": [
+            "error",
+            {"name": "xit"},
+            {"name": "xdescribe"},
+            {"name": "parseInt", "message": "tsstyle#type-coercion"},
+            {"name": "parseFloat", "message": "tsstyle#type-coercion"}
+        ],
+        "no-array-constructor": "error",
         "import/no-default-export": "error",
         "import/no-duplicates": "error",
         "import/no-extraneous-dependencies": [
@@ -166,23 +197,12 @@
                 "argsIgnorePattern": "^_"
             }
         ],
+        "@typescript-eslint/no-floating-promises": "error",
         "@typescript-eslint/tslint/config": [
             "error",
             {
-                "rules": {    
-                    "ban": [true,
-                        {"name": ["it", "skip"]},
-                        {"name": ["it", "only"]},
-                        {"name": ["describe", "skip"]},
-                        {"name": ["describe", "only"]},
-                        {"name": ["xit"]},
-                        {"name": ["xdescribe"]},
-                        {"name": "parseInt", "message": "tsstyle#type-coercion"},
-                        {"name": "parseFloat", "message": "tsstyle#type-coercion"},
-                        {"name": "Array", "message": "tsstyle#array-constructor"}
-                    ],
+                "rules": {
                     "jsdoc-format": true,
-                    "no-floating-promises": true,
                     "arrow-return-shorthand": true
                 }
             }

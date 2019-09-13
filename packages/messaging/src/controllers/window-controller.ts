@@ -247,7 +247,7 @@ export class WindowController extends BaseController {
           // We update after activation due to an issue with Firefox v49 where
           // a race condition occassionally causes the service worker to not
           // install
-          // tslint:disable-next-line:no-floating-promises
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           registration.update();
 
           return registration;

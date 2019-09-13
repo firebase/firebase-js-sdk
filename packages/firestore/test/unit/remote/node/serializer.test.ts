@@ -508,7 +508,7 @@ describe('Serializer', () => {
   describe('toDocumentMask', () => {
     addEqualityMatcher();
 
-    // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
+    // eslint-disable-next-line no-restricted-properties, TODO(b/34988481): Implement correct escaping
     it.skip('converts a weird path', () => {
       const expected: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
       const mask = FieldMask.fromArray([
@@ -522,7 +522,7 @@ describe('Serializer', () => {
   describe('fromDocumentMask', () => {
     addEqualityMatcher();
 
-    // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
+    // eslint-disable-next-line no-restricted-properties, TODO(b/34988481): Implement correct escaping
     it.skip('converts a weird path', () => {
       const expected = FieldMask.fromArray([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')

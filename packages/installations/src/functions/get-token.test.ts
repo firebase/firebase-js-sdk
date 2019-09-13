@@ -99,7 +99,7 @@ const setupInstallationEntryMap: Map<
       await set(appConfig, entry);
 
       // Finish pending request after 500 ms
-      // tslint:disable-next-line:no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       sleep(500).then(async () => {
         const updatedEntry: RegisteredInstallationEntry = {
           ...entry,
@@ -140,7 +140,7 @@ const setupInstallationEntryMap: Map<
       await set(appConfig, entry);
 
       // Finish pending request after 500 ms
-      // tslint:disable-next-line:no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       sleep(500).then(async () => {
         const updatedEntry: RegisteredInstallationEntry = {
           fid: FID,

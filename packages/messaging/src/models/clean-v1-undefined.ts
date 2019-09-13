@@ -57,7 +57,7 @@ function handleDb(db: IDBDatabase): void {
       // this is where you'd do something with the result
       const tokenDetails = cursor.value;
 
-      // tslint:disable-next-line:no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       iidModel.deleteToken(
         tokenDetails.fcmSenderId,
         tokenDetails.fcmToken,
