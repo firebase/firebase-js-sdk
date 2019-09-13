@@ -26,7 +26,7 @@
     "express": "4.17.1",
     "firebase-functions": "3.2.0",
     "firebase-tools": "7.3.0",
-    "google-closure-compiler": "20190709.0.0",
+    "google-closure-compiler": "20190909.0.0",
     "google-closure-library": "20190709.0.0",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5",
