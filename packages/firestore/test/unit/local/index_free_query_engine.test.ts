@@ -38,14 +38,8 @@ import { DocumentKey } from '../../../src/model/document_key';
 import { DocumentSet } from '../../../src/model/document_set';
 import { assert } from '../../../src/util/assert';
 import { testMemoryEagerPersistence } from './persistence_test_helpers';
-import {
-  doc,
-  filter,
-  key,
-  orderBy,
-  path,
-  queryData as testQueryData
-} from '../../util/helpers';
+import { doc, filter, key, orderBy, path, version } from '../../util/helpers';
+import { ListenSequence } from '../../../src/core/listen_sequence';
 
 const TEST_TARGET_ID = 1;
 
@@ -183,13 +177,7 @@ describe('IndexFreeQueryEngine', () => {
     const query = Query.atPath(path('coll')).addFilter(
       filter('matches', '==', true)
     );
-    const queryData = testQueryData(
-      2,
-      QueryPurpose.Listen,
-      'coll',
-      10,
-      /* hasLimboFreeSnapshot= */ true
-    );
+    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
 
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
@@ -203,13 +191,7 @@ describe('IndexFreeQueryEngine', () => {
     const query = Query.atPath(path('coll')).addFilter(
       filter('matches', '==', true)
     );
-    const queryData = testQueryData(
-      2,
-      QueryPurpose.Listen,
-      'coll',
-      10,
-      /* hasLimboFreeSnapshot= */ true
-    );
+    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
 
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
@@ -226,13 +208,7 @@ describe('IndexFreeQueryEngine', () => {
     const query = Query.atPath(path('coll')).addFilter(
       filter('matches', '==', true)
     );
-    const queryData = testQueryData(
-      2,
-      QueryPurpose.Listen,
-      'coll',
-      10,
-      /* hasLimboFreeSnapshot= */ true
-    );
+    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
 
     await addDocument(MATCHING_DOC_A, MATCHING_DOC_B);
     await persistQueryMapping(MATCHING_DOC_A.key, MATCHING_DOC_B.key);
@@ -251,13 +227,7 @@ describe('IndexFreeQueryEngine', () => {
     const query = Query.atPath(path('coll')).addFilter(
       filter('matches', '==', true)
     );
-    const queryData = testQueryData(
-      2,
-      QueryPurpose.Listen,
-      'coll',
-      10,
-      /* hasLimboFreeSnapshot= */ false
-    );
+    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ false);
 
     const docs = await expectFullCollectionQuery(() =>
       runQuery(query, queryData)
@@ -267,13 +237,7 @@ describe('IndexFreeQueryEngine', () => {
 
   it('does not use initial results for unfiltered collection query', async () => {
     const query = Query.atPath(path('coll'));
-    const queryData = testQueryData(
-      2,
-      QueryPurpose.Listen,
-      'coll',
-      10,
-      /* hasLimboFreeSnapshot= */ true
-    );
+    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
 
     const docs = await expectFullCollectionQuery(() =>
       runQuery(query, queryData)
@@ -294,13 +258,7 @@ describe('IndexFreeQueryEngine', () => {
 
     await addDocument(MATCHING_DOC_B);
 
-    const queryData = testQueryData(
-      2,
-      QueryPurpose.Listen,
-      'coll',
-      10,
-      /* hasLimboFreeSnapshot= */ true
-    );
+    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
     const docs = await expectFullCollectionQuery(() =>
       runQuery(query, queryData)
     );
@@ -319,13 +277,7 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(PENDING_MATCHING_DOC_A);
     await persistQueryMapping(PENDING_MATCHING_DOC_A.key);
 
-    const queryData = testQueryData(
-      2,
-      QueryPurpose.Listen,
-      'coll',
-      10,
-      /* hasLimboFreeSnapshot= */ true
-    );
+    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
 
     await addDocument(MATCHING_DOC_B);
 
@@ -347,13 +299,7 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(UPDATED_DOC_A);
     await persistQueryMapping(UPDATED_DOC_A.key);
 
-    const queryData = testQueryData(
-      2,
-      QueryPurpose.Listen,
-      'coll',
-      10,
-      /* hasLimboFreeSnapshot= */ true
-    );
+    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
 
     await addDocument(MATCHING_DOC_B);
 
@@ -372,13 +318,7 @@ describe('IndexFreeQueryEngine', () => {
     await addDocument(doc('coll/b', 1, { order: 3 }));
     await persistQueryMapping(key('coll/a'), key('coll/b'));
 
-    const queryData = testQueryData(
-      2,
-      QueryPurpose.Listen,
-      'coll',
-      10,
-      /* hasLimboFreeSnapshot= */ true
-    );
+    const queryData = testQueryData(query, /* hasLimboFreeSnapshot= */ true);
 
     // Update "coll/a" but make sure it still sorts before "coll/b"
     await addDocument(
@@ -410,5 +350,16 @@ function verifyResult(
   expect(actualDocs.size).to.equal(
     expectedDocs.length,
     'Result count does not match'
+  );
+}
+
+function testQueryData(query: Query, hasLimboFreeSnapshot: boolean): QueryData {
+  return new QueryData(
+    query,
+    TEST_TARGET_ID,
+    QueryPurpose.Listen,
+    ListenSequence.INVALID,
+    version(10),
+    hasLimboFreeSnapshot ? version(10) : SnapshotVersion.MIN
   );
 }

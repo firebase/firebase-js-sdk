@@ -22,7 +22,11 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { DocumentKeySet, DocumentMap } from '../model/collections';
+import {
+  DocumentKeySet,
+  DocumentMap,
+  MaybeDocumentMap
+} from '../model/collections';
 import { Document } from '../model/document';
 import { assert } from '../util/assert';
 import { debug, getLogLevel, LogLevel } from '../util/log';
@@ -82,8 +86,10 @@ export class IndexFreeQueryEngine implements QueryEngine {
       return this.executeFullCollectionScan(transaction, query);
     }
 
-    return this.getSortedDocuments(transaction, query, remoteKeys).next(
-      previousResults => {
+    return this.localDocumentsView!.getDocuments(transaction, remoteKeys).next(
+      documents => {
+        const previousResults = this.applyQuery(query, documents);
+
         if (
           query.hasLimit() &&
           this.needsRefill(
@@ -111,6 +117,9 @@ export class IndexFreeQueryEngine implements QueryEngine {
           query,
           queryData.lastLimboFreeSnapshotVersion
         ).next(updatedResults => {
+          // We merge `previousResults` into `updateResults`, since
+          // `updateResults` is already a DocumentMap. If a document is
+          // contained in both lists, then its contents are the same.
           previousResults.forEach(doc => {
             updatedResults = updatedResults.insert(doc.key, doc);
           });
@@ -120,31 +129,22 @@ export class IndexFreeQueryEngine implements QueryEngine {
     );
   }
 
-  /**
-   * Returns the documents for the specified remote keys if they still match the
-   * query, sorted by the query's comparator.
-   */
-  private getSortedDocuments(
-    transaction: PersistenceTransaction,
-    sortByQuery: Query,
-    remoteKeys: DocumentKeySet
-  ): PersistencePromise<SortedSet<Document>> {
-    return this.localDocumentsView!.getDocuments(transaction, remoteKeys).next(
-      previousResults => {
-        // Sort the documents and re-apply the query filter since previously
-        // matching documents do not necessarily still match the query.
-        let results = new SortedSet<Document>((d1, d2) =>
-          sortByQuery.docComparator(d1, d2)
-        );
-        previousResults.forEach((_, maybeDoc) => {
-          if (maybeDoc instanceof Document && sortByQuery.matches(maybeDoc)) {
-            results = results.add(maybeDoc);
-          }
-        });
-
-        return results;
-      }
+  /** Applies the query filter and sorting to the provided documents.  */
+  private applyQuery(
+    query: Query,
+    documents: MaybeDocumentMap
+  ): SortedSet<Document> {
+    // Sort the documents and re-apply the query filter since previously
+    // matching documents do not necessarily still match the query.
+    let queyrResults = new SortedSet<Document>((d1, d2) =>
+      query.docComparator(d1, d2)
     );
+    documents.forEach((_, maybeDoc) => {
+      if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
+        queyrResults = queyrResults.add(maybeDoc);
+      }
+    });
+    return queyrResults;
   }
 
   /**
