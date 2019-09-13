@@ -528,7 +528,7 @@ export class LocalStore {
                 // NoDocuments with SnapshotVersion.MIN are used in manufactured
                 // events. We remove these documents from cache since we lost
                 // access.
-                documentBuffer.addEntry(doc);
+                documentBuffer.removeEntry(key);
                 changedDocs = changedDocs.insert(key, doc);
               } else if (
                 existingDoc == null ||
@@ -542,7 +542,7 @@ export class LocalStore {
                 //  !SnapshotVersion.MIN.isEqual(remoteEvent.snapshotVersion),
                 //  'Cannot add a document when the remote version is zero'
                 // );
-                documentBuffer.removeEntry(key);
+                documentBuffer.addEntry(doc);
                 changedDocs = changedDocs.insert(key, doc);
               } else {
                 log.debug(

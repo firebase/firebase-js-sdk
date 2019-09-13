@@ -239,7 +239,7 @@ class LocalStoreTester {
   toContain(doc: MaybeDocument): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       return this.localStore.readDocument(doc.key).then(result => {
-        expectEqual(result, doc);
+        expectEqual(result, doc, `Expected ${result ? result.toString() : null} to match ${doc.toString()}.`);
       });
     });
     return this;
