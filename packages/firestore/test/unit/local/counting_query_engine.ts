@@ -15,15 +15,15 @@
  * limitations under the License.
  */
 
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { QueryEngine } from '../../../src/local/query_engine';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { PersistenceTransaction } from '../../../src/local/persistence';
 import { Query } from '../../../src/core/query';
-import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { DocumentMap } from '../../../src/model/collections';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { MutationQueue } from '../../../src/local/mutation_queue';
+import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
 
 /**
  * A test-only query engine that forwards all API calls and exposes the number
@@ -52,12 +52,14 @@ export class CountingQueryEngine implements QueryEngine {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    sinceReadTime: SnapshotVersion
+    lastLimboFreeSnapshotVersion: SnapshotVersion,
+    remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
     return this.queryEngine.getDocumentsMatchingQuery(
       transaction,
       query,
-      sinceReadTime
+      lastLimboFreeSnapshotVersion,
+      remoteKeys
     );
   }
 
