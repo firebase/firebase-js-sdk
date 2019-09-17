@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { DocumentMap } from '../model/collections';
+import { Query } from '../core/query';
+import { DocumentKeySet, DocumentMap } from '../model/collections';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -34,6 +34,7 @@ export interface QueryEngine {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    sinceReadTime: SnapshotVersion
+    lastLimboFreeSnapshotVersion: SnapshotVersion,
+    remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap>;
 }
