@@ -516,22 +516,35 @@ export class LocalStore {
           documentBuffer.getEntries(txn, updatedKeys).next(existingDocs => {
             remoteEvent.documentUpdates.forEach((key, doc) => {
               const existingDoc = existingDocs.get(key);
+
+              // Note: The order of the steps below is important, since we want
+              // to ensure that rejected limbo resolutions (which fabricate
+              // NoDocuments with SnapshotVersion.MIN) never add documents to
+              // cache.
               if (
+                doc instanceof NoDocument &&
+                doc.version.isEqual(SnapshotVersion.MIN)
+              ) {
+                // NoDocuments with SnapshotVersion.MIN are used in manufactured
+                // events. We remove these documents from cache since we lost
+                // access.
+                documentBuffer.removeEntry(key);
+                changedDocs = changedDocs.insert(key, doc);
+              } else if (
                 existingDoc == null ||
                 doc.version.compareTo(existingDoc.version) > 0 ||
                 (doc.version.compareTo(existingDoc.version) === 0 &&
                   existingDoc.hasPendingWrites)
               ) {
+                // TODO(index-free): Make this an assert when we enable
+                // Index-Free queries
+                if (SnapshotVersion.MIN.isEqual(remoteEvent.snapshotVersion)) {
+                  log.error(
+                    LOG_TAG,
+                    'Cannot add a document when the remote version is zero'
+                  );
+                }
                 documentBuffer.addEntry(doc);
-                changedDocs = changedDocs.insert(key, doc);
-              } else if (
-                doc instanceof NoDocument &&
-                doc.version.isEqual(SnapshotVersion.MIN)
-              ) {
-                // NoDocuments with SnapshotVersion.MIN are used in manufactured events (e.g. in the
-                // case of a limbo document resolution failing). We remove these documents from cache
-                // since we lost access.
-                documentBuffer.removeEntry(key);
                 changedDocs = changedDocs.insert(key, doc);
               } else {
                 log.debug(

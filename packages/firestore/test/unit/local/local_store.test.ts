@@ -239,7 +239,13 @@ class LocalStoreTester {
   toContain(doc: MaybeDocument): LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       return this.localStore.readDocument(doc.key).then(result => {
-        expectEqual(result, doc);
+        expectEqual(
+          result,
+          doc,
+          `Expected ${
+            result ? result.toString() : null
+          } to match ${doc.toString()}.`
+        );
       });
     });
     return this;
@@ -759,7 +765,7 @@ function genericLocalStoreTests(
       expectLocalStore()
         .afterAllocatingQuery(query)
         .toReturnTargetId(2)
-        .after(docAddedRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
+        .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
         // Release the query so that our target count goes back to 0 and we are considered
         // up-to-date.
@@ -767,7 +773,7 @@ function genericLocalStoreTests(
         .after(setMutation('foo/bah', { foo: 'bah' }))
         .after(deleteMutation('foo/baz'))
         .toContain(
-          doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
+          doc('foo/bar', 1, { foo: 'bar' }, { hasLocalMutations: true })
         )
         .toContain(
           doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true })
@@ -800,7 +806,7 @@ function genericLocalStoreTests(
       expectLocalStore()
         .afterAllocatingQuery(query)
         .toReturnTargetId(2)
-        .after(docAddedRemoteEvent(doc('foo/bar', 0, { foo: 'old' }), [2]))
+        .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
         // Release the query so that our target count goes back to 0 and we are considered
         // up-to-date.
@@ -808,7 +814,7 @@ function genericLocalStoreTests(
         .after(setMutation('foo/bah', { foo: 'bah' }))
         .after(deleteMutation('foo/baz'))
         .toContain(
-          doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
+          doc('foo/bar', 1, { foo: 'bar' }, { hasLocalMutations: true })
         )
         .toContain(
           doc('foo/bah', 0, { foo: 'bah' }, { hasLocalMutations: true })
