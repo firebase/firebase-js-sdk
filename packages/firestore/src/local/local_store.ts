@@ -69,6 +69,12 @@ export interface UserChangeResult {
   readonly addedBatchIds: BatchId[];
 }
 
+/** The result of executing a query against the local store. */
+export interface QueryResult {
+  readonly documents: DocumentMap;
+  readonly remoteKeys: DocumentKeySet;
+}
+
 /**
  * Local storage in the Firestore client. Coordinates persistence components
  * like the mutation queue and remote document cache to present a
@@ -783,13 +789,22 @@ export class LocalStore {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<QueryData | null> {
-    return this.queryCache.getQueryData(transaction, query).next(queryData => {
-      if (queryData == null) {
-        return null;
+    let queryData: QueryData | null = null;
+
+    // Look up the query data in our local map first, as this avoids a potential
+    // lookup in IndexedDb.
+    objUtils.forEachNumber(
+      this.queryDataByTarget,
+      (targetId, cachedQueryData) => {
+        if (cachedQueryData.query.isEqual(query)) {
+          queryData = cachedQueryData;
+        }
       }
-      const cachedQueryData = this.queryDataByTarget[queryData!.targetId];
-      return cachedQueryData || queryData;
-    });
+    );
+
+    return queryData
+      ? PersistencePromise.resolve<QueryData | null>(queryData)
+      : this.queryCache.getQueryData(transaction, query);
   }
 
   /**
@@ -831,54 +846,46 @@ export class LocalStore {
   }
 
   /**
-   * Runs the specified query against all the documents in the local store and
-   * returns the results.
-   */
-  executeQuery(query: Query): Promise<DocumentMap>;
-  /**
    * Runs the specified query against the local store and returns the results,
-   * potentially taking advantage of the provided query data and the set of
-   * remote document keys.
+   * potentially taking advantage of query data from previous executions (such
+   * as the set of remote keys).
+   *
+   * @param usePreviousResults Whether results from previous executions can
+   * be used to optimize this query execution.
    */
   executeQuery(
     query: Query,
-    queryData: QueryData | null,
-    remoteKeys: DocumentKeySet
-  ): Promise<DocumentMap>;
-  executeQuery(
-    query: Query,
-    queryData?: QueryData | null,
-    remoteKeys?: DocumentKeySet
-  ): Promise<DocumentMap> {
-    let cachedQueryData = queryData;
-    let cachedRemoteKeys = remoteKeys;
+    usePreviousResults: boolean
+  ): Promise<QueryResult> {
+    let lastLimboFreeSnapshotVersion = SnapshotVersion.MIN;
+    let remoteKeys = documentKeySet();
 
     return this.persistence.runTransaction('Execute query', 'readonly', txn => {
-      return PersistencePromise.resolve()
-        .next(() => {
-          // If QueryData is not provided (and not explicitly set to `null`), we
-          // retrieve the query data and the remote keys from cache.
-          if (cachedQueryData === undefined) {
-            return this.getQueryData(txn, query).next(queryData => {
-              if (queryData) {
-                return this.queryCache
-                  .getMatchingKeysForTargetId(txn, queryData.targetId)
-                  .next(remoteKeys => {
-                    cachedQueryData = queryData;
-                    cachedRemoteKeys = remoteKeys;
-                  });
-              }
-            });
+      return this.getQueryData(txn, query)
+        .next(queryData => {
+          if (queryData) {
+            lastLimboFreeSnapshotVersion =
+              queryData.lastLimboFreeSnapshotVersion;
+            return this.queryCache
+              .getMatchingKeysForTargetId(txn, queryData.targetId)
+              .next(result => {
+                remoteKeys = result;
+              });
           }
         })
         .next(() =>
           this.queryEngine.getDocumentsMatchingQuery(
             txn,
             query,
-            cachedQueryData || null,
-            cachedRemoteKeys || documentKeySet()
+            usePreviousResults
+              ? lastLimboFreeSnapshotVersion
+              : SnapshotVersion.MIN,
+            usePreviousResults ? remoteKeys : documentKeySet()
           )
-        );
+        )
+        .next(documents => {
+          return { documents, remoteKeys };
+        });
     });
   }
 

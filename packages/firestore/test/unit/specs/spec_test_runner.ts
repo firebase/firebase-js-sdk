@@ -367,6 +367,8 @@ abstract class TestRunner {
   private eventList: QueryEvent[] = [];
   private acknowledgedDocs: string[];
   private rejectedDocs: string[];
+  private snapshotsInSyncListeners: Array<Observer<void>>;
+  private snapshotsInSyncEvents = 0;
 
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
@@ -426,6 +428,7 @@ abstract class TestRunner {
     this.expectedActiveTargets = {};
     this.acknowledgedDocs = [];
     this.rejectedDocs = [];
+    this.snapshotsInSyncListeners = [];
   }
 
   async start(): Promise<void> {
@@ -522,6 +525,7 @@ abstract class TestRunner {
     await this.queue.drain();
     this.validateStepExpectations(step.expect!);
     await this.validateStateExpectations(step.stateExpect!);
+    this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents);
     this.eventList = [];
     this.rejectedDocs = [];
     this.acknowledgedDocs = [];
@@ -538,6 +542,10 @@ abstract class TestRunner {
       return this.doPatch(step.userPatch!);
     } else if ('userDelete' in step) {
       return this.doDelete(step.userDelete!);
+    } else if ('addSnapshotsInSyncListener' in step) {
+      return this.doAddSnapshotsInSyncListener();
+    } else if ('removeSnapshotsInSyncListener' in step) {
+      return this.doRemoveSnapshotsInSyncListener();
     } else if ('watchAck' in step) {
       return this.doWatchAck(step.watchAck!);
     } else if ('watchCurrent' in step) {
@@ -641,6 +649,28 @@ abstract class TestRunner {
   private doDelete(deleteSpec: SpecUserDelete): Promise<void> {
     const key: string = deleteSpec;
     return this.doMutations([deleteMutation(key)]);
+  }
+
+  private doAddSnapshotsInSyncListener(): Promise<void> {
+    const observer = {
+      next: () => {
+        this.snapshotsInSyncEvents += 1;
+      },
+      error: () => {}
+    };
+    this.snapshotsInSyncListeners.push(observer);
+    this.eventManager.addSnapshotsInSyncListener(observer);
+    return Promise.resolve();
+  }
+
+  private doRemoveSnapshotsInSyncListener(): Promise<void> {
+    const removeObs = this.snapshotsInSyncListeners.pop();
+    if (removeObs) {
+      this.eventManager.removeSnapshotsInSyncListener(removeObs);
+    } else {
+      throw new Error('There must be a listener to unlisten to');
+    }
+    return Promise.resolve();
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {
@@ -1014,6 +1044,13 @@ abstract class TestRunner {
     }
   }
 
+  private validateSnapshotsInSyncEvents(
+    expectedCount: number | undefined
+  ): void {
+    expect(this.snapshotsInSyncEvents).to.eq(expectedCount || 0);
+    this.snapshotsInSyncEvents = 0;
+  }
+
   private validateLimboDocs(): void {
     let actualLimboDocs = this.syncEngine.currentLimboDocs();
     // Validate that each limbo doc has an expected active target
@@ -1341,6 +1378,10 @@ export interface SpecStep {
   userPatch?: SpecUserPatch;
   /** Perform a user initiated delete */
   userDelete?: SpecUserDelete;
+  /** Listens to a SnapshotsInSync event. */
+  addSnapshotsInSyncListener?: true;
+  /** Unlistens from a SnapshotsInSync event. */
+  removeSnapshotsInSyncListener?: true;
 
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;
@@ -1407,6 +1448,12 @@ export interface SpecStep {
    * Optional dictionary of expected states.
    */
   stateExpect?: StateExpectation;
+
+  /**
+   * Optional expected number of onSnapshotsInSync callbacks to be called.
+   * If not provided, the test will fail if the step causes events to be raised.
+   */
+  expectedSnapshotsInSyncEvents?: number;
 }
 
 /** [<target-id>, <query-path>] */

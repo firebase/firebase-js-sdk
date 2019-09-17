@@ -243,17 +243,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     current: boolean
   ): Promise<ViewSnapshot> {
     const query = queryData.query;
-    const remoteKeys = await this.localStore.remoteDocumentKeys(
-      queryData.targetId
-    );
-    const docs = await this.localStore.executeQuery(
+    const queryResult = await this.localStore.executeQuery(
       query,
-      queryData,
-      remoteKeys
+      /* usePreviousResults= */ true
     );
-
-    const view = new View(query, remoteKeys);
-    const viewDocChanges = view.computeDocChanges(docs);
+    const view = new View(query, queryResult.remoteKeys);
+    const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
       queryData.targetId,
       current && this.onlineState !== OnlineState.Offline
@@ -284,20 +279,17 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   // PORTING NOTE: Multi-tab only.
   private async synchronizeViewAndComputeSnapshot(
-    queryData: QueryData,
-    view: View
+    queryView: QueryView
   ): Promise<ViewChange> {
-    const remoteKeys = await this.localStore.remoteDocumentKeys(
-      queryData.targetId
+    const queryResult = await this.localStore.executeQuery(
+      queryView.query,
+      /* usePreviousResults= */ true
     );
-    const docs = await this.localStore.executeQuery(
-      queryData.query,
-      queryData,
-      remoteKeys
+    const viewSnapshot = queryView.view.synchronizeWithPersistedState(
+      queryResult
     );
-    const viewSnapshot = view.synchronizeWithPersistedState(docs, remoteKeys);
     if (this.isPrimary) {
-      this.updateTrackedLimbos(queryData.targetId, viewSnapshot.limboChanges);
+      this.updateTrackedLimbos(queryView.targetId, viewSnapshot.limboChanges);
     }
     return viewSnapshot;
   }
@@ -793,9 +785,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             // to re-run the query against the local store to make sure we
             // didn't lose any good docs that had been past the limit.
             return this.localStore
-              .executeQuery(queryView.query, null, documentKeySet())
-              .then(docs => {
-                return queryView.view.computeDocChanges(docs, viewDocChanges);
+              .executeQuery(queryView.query, /* usePreviousResults= */ false)
+              .then(({ documents }) => {
+                return queryView.view.computeDocChanges(
+                  documents,
+                  viewDocChanges
+                );
               });
           })
           .then((viewDocChanges: ViewDocumentChanges) => {
@@ -942,8 +937,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         );
         queryData = await this.localStore.allocateQuery(queryView.query);
         const viewChange = await this.synchronizeViewAndComputeSnapshot(
-          queryData,
-          queryView.view
+          queryView
         );
         if (viewChange.snapshot) {
           newViewSnapshots.push(viewChange.snapshot);

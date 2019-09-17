@@ -22,11 +22,6 @@ import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
 import { Persistence } from '../local/persistence';
 import { SimpleQueryEngine } from '../local/simple_query_engine';
-import {
-  DocumentKeySet,
-  documentKeySet,
-  DocumentMap
-} from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -45,7 +40,7 @@ import {
   QueryListener
 } from './event_manager';
 import { SyncEngine } from './sync_engine';
-import { View, ViewDocumentChanges } from './view';
+import { View } from './view';
 
 import {
   LruGarbageCollector,
@@ -584,22 +579,18 @@ export class FirestoreClient {
 
   getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
     this.verifyNotTerminated();
-    return this.asyncQueue
-      .enqueue(() => {
-        return this.localStore.executeQuery(query);
-      })
-      .then((docs: DocumentMap) => {
-        const remoteKeys: DocumentKeySet = documentKeySet();
-
-        const view = new View(query, remoteKeys);
-        const viewDocChanges: ViewDocumentChanges = view.computeDocChanges(
-          docs
-        );
-        return view.applyChanges(
-          viewDocChanges,
-          /* updateLimboDocuments= */ false
-        ).snapshot!;
-      });
+    return this.asyncQueue.enqueue(async () => {
+      const queryResult = await this.localStore.executeQuery(
+        query,
+        /* usePreviousResults= */ true
+      );
+      const view = new View(query, queryResult.remoteKeys);
+      const viewDocChanges = view.computeDocChanges(queryResult.documents);
+      return view.applyChanges(
+        viewDocChanges,
+        /* updateLimboDocuments= */ false
+      ).snapshot!;
+    });
   }
 
   write(mutations: Mutation[]): Promise<void> {
@@ -613,6 +604,23 @@ export class FirestoreClient {
 
   databaseId(): DatabaseId {
     return this.databaseInfo.databaseId;
+  }
+
+  addSnapshotsInSyncListener(observer: Observer<void>): void {
+    this.verifyNotTerminated();
+    this.asyncQueue.enqueueAndForget(() => {
+      this.eventMgr.addSnapshotsInSyncListener(observer);
+      return Promise.resolve();
+    });
+  }
+
+  removeSnapshotsInSyncListener(observer: Observer<void>): void {
+    // Checks for shutdown but does not raise error, allowing remove after
+    // shutdown to be a no-op.
+    if (this.clientTerminated) {
+      return;
+    }
+    this.eventMgr.removeSnapshotsInSyncListener(observer);
   }
 
   get clientTerminated(): boolean {

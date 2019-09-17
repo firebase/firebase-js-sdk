@@ -19,41 +19,37 @@ import { QueryEngine } from './query_engine';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { DocumentKeySet, DocumentMap } from '../model/collections';
+import {
+  DocumentKeySet,
+  DocumentMap,
+  MaybeDocumentMap
+} from '../model/collections';
 import { Document } from '../model/document';
 import { assert } from '../util/assert';
 import { debug, getLogLevel, LogLevel } from '../util/log';
 import { SortedSet } from '../util/sorted_set';
 
+// TOOD(b/140938512): Drop SimpleQueryEngine and rename IndexFreeQueryEngine.
+
 /**
  * A query engine that takes advantage of the target document mapping in the
  * QueryCache. The IndexFreeQueryEngine optimizes query execution by only
- * reading the documents previously matched a query plus any documents that were
+ * reading the documents that previously matched a query plus any documents that were
  * edited after the query was last listened to.
  *
  * There are some cases where Index-Free queries are not guaranteed to produce
- * to the same results as full collection scans. In these case, the
- * IndexFreeQueryEngine falls back to a full query processing. These cases are:
+ * the same results as full collection scans. In these cases, the
+ * IndexFreeQueryEngine falls back to full query processing. These cases are:
  *
  * - Limit queries where a document that matched the query previously no longer
- * matches the query. In this case, we have to scan all local documents since a
- * document that was sent to us as part of a different query result may now fall
- * into the limit.
+ *   matches the query.
  *
- * - Limit queries that include edits that occurred after the last remote
- * snapshot (both latency-compensated or committed). Even if an edited document
- * continues to match the query, an edit may cause a document to sort below
- * another document that is in the local cache.
+ * - Limit queries where a document edit may cause the document to sort below
+ *   another document that is in the local cache.
  *
- * - Queries where the last snapshot contained Limbo documents. Even though a
- * Limbo document is not part of the backend result set, we need to include
- * Limbo documents in local views to ensure consistency between different Query
- * views. If there exists a previous query snapshot that contained no limbo
- * documents, we can instead use the older snapshot version for Index-Free
- * processing.
+ * - Queries that have never been CURRENT or free of Limbo documents.
  */
 export class IndexFreeQueryEngine implements QueryEngine {
   private localDocumentsView: LocalDocumentsView | undefined;
@@ -65,7 +61,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    queryData: QueryData | null,
+    lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
     assert(
@@ -82,21 +78,20 @@ export class IndexFreeQueryEngine implements QueryEngine {
 
     // Queries that have never seen a snapshot without limbo free documents
     // should also be run as a full collection scan.
-    if (
-      queryData === null ||
-      queryData.lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.MIN)
-    ) {
+    if (lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.MIN)) {
       return this.executeFullCollectionScan(transaction, query);
     }
 
-    return this.getSortedPreviousResults(transaction, query, remoteKeys).next(
-      previousResults => {
+    return this.localDocumentsView!.getDocuments(transaction, remoteKeys).next(
+      documents => {
+        const previousResults = this.applyQuery(query, documents);
+
         if (
           query.hasLimit() &&
           this.needsRefill(
             previousResults,
             remoteKeys,
-            queryData.lastLimboFreeSnapshotVersion
+            lastLimboFreeSnapshotVersion
           )
         ) {
           return this.executeFullCollectionScan(transaction, query);
@@ -106,7 +101,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
           debug(
             'IndexFreeQueryEngine',
             'Re-using previous result from %s to execute query: %s',
-            queryData.lastLimboFreeSnapshotVersion.toString(),
+            lastLimboFreeSnapshotVersion.toString(),
             query.toString()
           );
         }
@@ -116,8 +111,11 @@ export class IndexFreeQueryEngine implements QueryEngine {
         return this.localDocumentsView!.getDocumentsMatchingQuery(
           transaction,
           query,
-          queryData.lastLimboFreeSnapshotVersion
+          lastLimboFreeSnapshotVersion
         ).next(updatedResults => {
+          // We merge `previousResults` into `updateResults`, since
+          // `updateResults` is already a DocumentMap. If a document is
+          // contained in both lists, then its contents are the same.
           previousResults.forEach(doc => {
             updatedResults = updatedResults.insert(doc.key, doc);
           });
@@ -127,32 +125,22 @@ export class IndexFreeQueryEngine implements QueryEngine {
     );
   }
 
-  /**
-   * Returns the documents for the specified remote keys if they still match the
-   * query, sorted by the query's comparator.
-   */
-  getSortedPreviousResults(
-    transaction: PersistenceTransaction,
+  /** Applies the query filter and sorting to the provided documents.  */
+  private applyQuery(
     query: Query,
-    remoteKeys: DocumentKeySet
-  ): PersistencePromise<SortedSet<Document>> {
-    // Fetch the documents that matched the query at the last snapshot.
-    return this.localDocumentsView!.getDocuments(transaction, remoteKeys).next(
-      previousResults => {
-        // Sort the documents and re-apply the query filter since previously
-        // matching documents do not necessarily still match the query.
-        let results = new SortedSet<Document>((d1, d2) =>
-          query.docComparator(d1, d2)
-        );
-        previousResults.forEach((_, maybeDoc) => {
-          if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
-            results = results.add(maybeDoc);
-          }
-        });
-
-        return results;
-      }
+    documents: MaybeDocumentMap
+  ): SortedSet<Document> {
+    // Sort the documents and re-apply the query filter since previously
+    // matching documents do not necessarily still match the query.
+    let queyrResults = new SortedSet<Document>((d1, d2) =>
+      query.docComparator(d1, d2)
     );
+    documents.forEach((_, maybeDoc) => {
+      if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
+        queyrResults = queyrResults.add(maybeDoc);
+      }
+    });
+    return queyrResults;
   }
 
   /**
@@ -166,7 +154,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
    * @param limboFreeSnapshotVersion The version of the snapshot when the query
    * was last synchronized.
    */
-  needsRefill(
+  private needsRefill(
     sortedPreviousResults: SortedSet<Document>,
     remoteKeys: DocumentKeySet,
     limboFreeSnapshotVersion: SnapshotVersion
@@ -175,12 +163,6 @@ export class IndexFreeQueryEngine implements QueryEngine {
     // longer matches.
     if (remoteKeys.size !== sortedPreviousResults.size) {
       return true;
-    }
-
-    // We don't need to find a better match from cache if no documents matched
-    // the query.
-    if (sortedPreviousResults.isEmpty()) {
-      return false;
     }
 
     // Limit queries are not eligible for index-free query execution if there is
@@ -192,14 +174,18 @@ export class IndexFreeQueryEngine implements QueryEngine {
     // documents from cache will continue to be "rejected" by this boundary.
     // Therefore, we can ignore any modifications that don't affect the last
     // document.
-    const lastDocumentInLimit = sortedPreviousResults.last()!;
+    const lastDocumentInLimit = sortedPreviousResults.last();
+    if (!lastDocumentInLimit) {
+      // We don't need to refill the query if there were already no documents.
+      return false;
+    }
     return (
       lastDocumentInLimit.hasPendingWrites ||
       lastDocumentInLimit.version.compareTo(limboFreeSnapshotVersion) > 0
     );
   }
 
-  executeFullCollectionScan(
+  private executeFullCollectionScan(
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<DocumentMap> {

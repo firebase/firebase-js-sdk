@@ -23,7 +23,6 @@ import { LocalDocumentsView } from './local_documents_view';
 import { QueryEngine } from './query_engine';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
 
 /**
  * A naive implementation of QueryEngine that just loads all the documents in
@@ -40,7 +39,7 @@ export class SimpleQueryEngine implements QueryEngine {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    queryData: QueryData | null,
+    lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
     assert(
