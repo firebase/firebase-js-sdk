@@ -87,21 +87,27 @@ function getTestRunner(
   persistenceEnabled: boolean
 ): ExclusiveTestFunction | PendingTestFunction {
   if (tags.indexOf(NO_WEB_TAG) >= 0) {
+    // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (
     !persistenceEnabled &&
     tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1
   ) {
     // Test requires actual persistence, but it's not enabled. Skip it.
+    // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (persistenceEnabled && tags.indexOf(EAGER_GC_TAG) !== -1) {
     // spec should have a comment explaining why it is being skipped.
+    // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (!persistenceEnabled && tags.indexOf(MULTI_CLIENT_TAG) !== -1) {
+    // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
+    // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
+    // eslint-disable-next-line no-restricted-properties
     return it.only;
   } else {
     return it;

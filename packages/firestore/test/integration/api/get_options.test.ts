@@ -88,9 +88,11 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .then(ignored => colRef.firestore.disableNetwork())
         .then(() => {
           // NB: since we're offline, the returned promises won't complete
+          /* eslint-disable @typescript-eslint/no-floating-promises */
           colRef.doc('doc2').set({ key2b: 'value2b' }, { merge: true });
           colRef.doc('doc3').set({ key3b: 'value3b' });
           colRef.doc('doc4').set({ key4: 'value4' });
+          /* eslint-enable @typescript-eslint/no-floating-promises */
           return colRef.get();
         })
         .then(qrySnap => {
@@ -183,9 +185,12 @@ apiDescribe('GetOptions', (persistence: boolean) => {
         .then(ignored => colRef.firestore.disableNetwork())
         .then(() => {
           // NB: since we're offline, the returned promises won't complete
+          /* eslint-disable @typescript-eslint/no-floating-promises */
           colRef.doc('doc2').set({ key2b: 'value2b' }, { merge: true });
           colRef.doc('doc3').set({ key3b: 'value3b' });
           colRef.doc('doc4').set({ key4: 'value4' });
+          /* eslint-enable @typescript-eslint/no-floating-promises */
+
           return colRef.get({ source: 'cache' });
         })
         .then(qrySnap => {
@@ -342,9 +347,11 @@ apiDescribe('GetOptions', (persistence: boolean) => {
           .then(ignored => colRef.firestore.disableNetwork())
           .then(() => {
             // NB: since we're offline, the returned promises won't complete
+            /* eslint-disable @typescript-eslint/no-floating-promises */
             colRef.doc('doc2').set({ key2b: 'value2b' }, { merge: true });
             colRef.doc('doc3').set({ key3b: 'value3b' });
             colRef.doc('doc4').set({ key4: 'value4' });
+            /* eslint-enable @typescript-eslint/no-floating-promises */
 
             // Create an initial listener for this query (to attempt to disrupt the
             // gets below) and wait for the listener to deliver its initial
@@ -439,7 +446,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
   // TODO(b/112267729): We should raise a fromCache=true event with a
   // nonexistent snapshot, but because the default source goes through a normal
   // listener, we do not.
-  // tslint:disable-next-line:ban
+  // eslint-disable-next-line no-restricted-properties
   it.skip('get deleted doc while offline with default get options', () => {
     return withTestDocAndInitialData(persistence, null, docRef => {
       return docRef
@@ -510,7 +517,7 @@ apiDescribe('GetOptions', (persistence: boolean) => {
   });
 
   // We need the deleted doc to stay in cache, so only run this with persistence.
-  // tslint:disable-next-line:ban
+  // eslint-disable-next-line no-restricted-properties,
   (persistence ? it : it.skip)(
     'get deleted doc while offline with source=cache',
     () => {

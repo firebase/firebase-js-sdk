@@ -288,7 +288,7 @@ describe('SortedMap Tests', () => {
     expect(map.size).to.equal(0);
   });
 
-  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  // eslint-disable-next-line no-restricted-properties, A little perf test for convenient benchmarking
   it.skip('Perf', () => {
     for (let j = 0; j < 5; j++) {
       let map = new SortedMap(primitiveComparator);
@@ -306,7 +306,7 @@ describe('SortedMap Tests', () => {
     }
   });
 
-  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  // eslint-disable-next-line no-restricted-properties, A little perf test for convenient benchmarking
   it.skip('Perf: Insertion and removal with various # of items.', () => {
     const verifyTraversal = (
       map: SortedMap<number, number>,
@@ -353,7 +353,7 @@ describe('SortedMap Tests', () => {
     }
   });
 
-  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  // eslint-disable-next-line no-restricted-properties, A little perf test for convenient benchmarking
   it.skip('Perf: Comparison with {}: Insertion and removal with various # of items.', () => {
     const verifyTraversal = (
       tree: { [key: number]: number },

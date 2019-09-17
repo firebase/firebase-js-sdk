@@ -163,7 +163,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
           .then(initialSnap => {
             expect(initialSnap.docs.length).to.equal(0);
 
-            // Atomically write two documents.
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises, Atomically write two documents.
             collection.firestore
               .batch()
               .set(docA, { a: 1 })
@@ -275,7 +275,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
           .then(initialSnap => {
             expect(initialSnap.docs.length).to.equal(0);
 
-            // Atomically write 2 documents with server timestamps.
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises, Atomically write 2 documents with server timestamps.
             collection.firestore
               .batch()
               .set(docA, {
@@ -325,7 +325,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         .awaitEvent()
         .then(initialSnap => {
           expect(initialSnap.exists).to.equal(false);
-
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           doc.firestore
             .batch()
             .delete(doc)

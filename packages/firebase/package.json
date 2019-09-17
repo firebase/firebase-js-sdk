@@ -1,6 +1,6 @@
 {
   "name": "firebase",
-  "version": "6.6.0",
+  "version": "6.6.1",
   "description": "Firebase JavaScript library for web and Node.js",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -40,8 +40,8 @@
     "@firebase/app": "0.4.16",
     "@firebase/app-types": "0.4.3",
     "@firebase/auth": "0.12.0",
-    "@firebase/database": "0.5.2",
-    "@firebase/firestore": "1.5.1",
+    "@firebase/database": "0.5.3",
+    "@firebase/firestore": "1.5.2",
     "@firebase/functions": "0.4.17",
     "@firebase/installations": "0.2.6",
     "@firebase/messaging": "0.4.10",

@@ -170,7 +170,7 @@ export class UploadTask {
   }
 
   private resolveToken_(callback: (p1: string | null) => void): void {
-    // tslint:disable-next-line:no-floating-promises
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.authWrapper_.getAuthToken().then(authToken => {
       switch (this.state_) {
         case InternalTaskState.RUNNING:

@@ -126,6 +126,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)('can update an unknown document', () => {
     return withTestDbs(persistence, 2, async ([reader, writer]) => {
       const writerRef = writer.collection('collection').doc();
@@ -346,6 +347,7 @@ apiDescribe('Database', (persistence: boolean) => {
   it("can't specify a field mask for a missing field using set", () => {
     return withTestDoc(persistence, async docRef => {
       expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         docRef.set(
           { desc: 'NewDescription' },
           { mergeFields: ['desc', 'owner'] }
@@ -775,6 +777,7 @@ apiDescribe('Database', (persistence: boolean) => {
       const doc = coll.doc();
       const deferred1 = new Deferred<void>();
       const deferred2 = new Deferred<void>();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       doc.set({ foo: 'bar' }).then(() => {
         doc.onSnapshot(snap => {
           deferred1.resolve();
@@ -802,8 +805,9 @@ apiDescribe('Database', (persistence: boolean) => {
           }
         }
       });
-
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       docRef.set({ a: 1 }).then(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         docRef.set({ b: 1 });
       });
       return secondUpdateFound.promise.then(() => {
@@ -815,7 +819,7 @@ apiDescribe('Database', (persistence: boolean) => {
   // TODO(mikelehen): We need a way to create a query that will pass
   // client-side validation but fail remotely.  May need to wait until we
   // have security rules support or something?
-  // tslint:disable-next-line:ban
+  // eslint-disable-next-line no-restricted-properties
   describe.skip('Listens are rejected remotely:', () => {
     const queryForRejection = query('foo');
 
@@ -998,12 +1002,14 @@ apiDescribe('Database', (persistence: boolean) => {
     return withTestDb(persistence, db => {
       return db.INTERNAL.delete().then(() => {
         expect(() => {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           db.disableNetwork();
         }).to.throw('The client has already been terminated.');
       });
     });
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'maintains persistence after restarting app',
     async () => {
@@ -1024,6 +1030,7 @@ apiDescribe('Database', (persistence: boolean) => {
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'can clear persistence if the client has not been initialized',
     async () => {
@@ -1047,6 +1054,7 @@ apiDescribe('Database', (persistence: boolean) => {
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'will reject the promise if clear persistence fails',
     async () => {
@@ -1144,6 +1152,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await firestore.terminate();
 
       expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         firestore.doc(docRef.path).set({ foo: 'bar' });
       }).to.throw('The client has already been terminated.');
     });
@@ -1156,6 +1165,7 @@ apiDescribe('Database', (persistence: boolean) => {
       await firestore.terminate();
 
       expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         firestore.doc(docRef.path).set({ foo: 'bar' });
       }).to.throw();
     });
@@ -1198,6 +1208,7 @@ apiDescribe('Database', (persistence: boolean) => {
       async (db, mockCredentialsProvider) => {
         // Prevent pending writes receiving acknowledgement.
         await db.disableNetwork();
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         db.doc('abc/123').set({ foo: 'bar' });
         const awaitPendingWrite = db.waitForPendingWrites();
 

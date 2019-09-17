@@ -235,7 +235,7 @@ export class SpecBuilder {
     };
     this.currentStep = {
       userListen: [targetId, SpecBuilder.queryToSpec(query)],
-      stateExpect: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
     };
     return this;
   }
@@ -257,8 +257,8 @@ export class SpecBuilder {
     };
 
     const currentStep = this.currentStep!;
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.activeTargets = objUtils.shallowCopy(
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
       this.activeTargets
     );
     return this;
@@ -277,7 +277,7 @@ export class SpecBuilder {
     delete this.activeTargets[targetId];
     this.currentStep = {
       userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
-      stateExpect: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
+      expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
     };
     return this;
   }
@@ -356,7 +356,7 @@ export class SpecBuilder {
     this.nextStep();
     this.currentStep = {
       enableNetwork: false,
-      stateExpect: {
+      expectedState: {
         activeTargets: {},
         limboDocs: []
       }
@@ -384,7 +384,7 @@ export class SpecBuilder {
     this.nextStep();
     this.currentStep = {
       restart: true,
-      stateExpect: {
+      expectedState: {
         activeTargets: {},
         limboDocs: []
       }
@@ -399,7 +399,7 @@ export class SpecBuilder {
     this.nextStep();
     this.currentStep = {
       shutdown: true,
-      stateExpect: {
+      expectedState: {
         activeTargets: {},
         limboDocs: []
       }
@@ -413,8 +413,8 @@ export class SpecBuilder {
   expectIsShutdown(): this {
     this.assertStep('Active target expectation requires previous step');
     const currentStep = this.currentStep!;
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.isShutdown = true;
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.isShutdown = true;
     return this;
   }
 
@@ -431,8 +431,8 @@ export class SpecBuilder {
         resumeToken
       };
     });
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.activeTargets = objUtils.shallowCopy(
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
       this.activeTargets
     );
     return this;
@@ -465,9 +465,11 @@ export class SpecBuilder {
       };
     });
 
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.limboDocs = keys.map(k => SpecBuilder.keyToSpec(k));
-    currentStep.stateExpect.activeTargets = objUtils.shallowCopy(
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.limboDocs = keys.map(k =>
+      SpecBuilder.keyToSpec(k)
+    );
+    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
       this.activeTargets
     );
     return this;
@@ -593,7 +595,7 @@ export class SpecBuilder {
     };
     if (cause) {
       delete this.activeTargets[this.getTargetId(query)];
-      this.currentStep.stateExpect = {
+      this.currentStep.expectedState = {
         activeTargets: objUtils.shallowCopy(this.activeTargets)
       };
     }
@@ -718,18 +720,20 @@ export class SpecBuilder {
   }): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.userCallbacks = currentStep.stateExpect
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.userCallbacks = currentStep.expectedState
       .userCallbacks || { acknowledgedDocs: [], rejectedDocs: [] };
 
     if (docs.acknowledged) {
-      currentStep.stateExpect.userCallbacks.acknowledgedDocs.push(
+      currentStep.expectedState.userCallbacks.acknowledgedDocs.push(
         ...docs.acknowledged
       );
     }
 
     if (docs.rejected) {
-      currentStep.stateExpect.userCallbacks.rejectedDocs.push(...docs.rejected);
+      currentStep.expectedState.userCallbacks.rejectedDocs.push(
+        ...docs.rejected
+      );
     }
 
     return this;
@@ -749,15 +753,15 @@ export class SpecBuilder {
   ): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
-    if (!currentStep.expect) {
-      currentStep.expect = [];
+    if (!currentStep.expectedSnapshotEvents) {
+      currentStep.expectedSnapshotEvents = [];
     }
     assert(
       !events.errorCode ||
         !(events.added || events.modified || events.removed || events.metadata),
       "Can't provide both error and events"
     );
-    currentStep.expect.push({
+    currentStep.expectedSnapshotEvents.push({
       query: SpecBuilder.queryToSpec(query),
       added: events.added && events.added.map(SpecBuilder.docToSpec),
       modified: events.modified && events.modified.map(SpecBuilder.docToSpec),
@@ -783,8 +787,8 @@ export class SpecBuilder {
     };
 
     const currentStep = this.currentStep!;
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.activeTargets = objUtils.shallowCopy(
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
       this.activeTargets
     );
     return this;
@@ -804,8 +808,8 @@ export class SpecBuilder {
     delete this.activeTargets[targetId];
 
     const currentStep = this.currentStep!;
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.activeTargets = objUtils.shallowCopy(
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.activeTargets = objUtils.shallowCopy(
       this.activeTargets
     );
     return this;
@@ -818,8 +822,8 @@ export class SpecBuilder {
   expectWriteStreamRequestCount(num: number): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.writeStreamRequestCount = num;
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.writeStreamRequestCount = num;
     return this;
   }
 
@@ -830,32 +834,32 @@ export class SpecBuilder {
   expectWatchStreamRequestCount(num: number): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.watchStreamRequestCount = num;
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.watchStreamRequestCount = num;
     return this;
   }
 
   expectNumOutstandingWrites(num: number): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.numOutstandingWrites = num;
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.numOutstandingWrites = num;
     return this;
   }
 
   expectNumActiveClients(num: number): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.numActiveClients = num;
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.numActiveClients = num;
     return this;
   }
 
   expectPrimaryState(isPrimary: boolean): this {
     this.assertStep('Expectations require previous step');
     const currentStep = this.currentStep!;
-    currentStep.stateExpect = currentStep.stateExpect || {};
-    currentStep.stateExpect.isPrimary = isPrimary;
+    currentStep.expectedState = currentStep.expectedState || {};
+    currentStep.expectedState.isPrimary = isPrimary;
     return this;
   }
 
@@ -999,7 +1003,7 @@ export class MultiClientSpecBuilder extends SpecBuilder {
       applyClientState: {
         primary: true
       },
-      stateExpect: {
+      expectedState: {
         isPrimary: true
       }
     };

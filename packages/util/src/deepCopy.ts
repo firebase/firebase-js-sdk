@@ -51,7 +51,6 @@ export function deepExtend(target: unknown, source: unknown): unknown {
         target = {};
       }
       break;
-
     case Array:
       // Always copy the array source and overwrite the target.
       target = [];

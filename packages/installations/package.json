@@ -8,8 +8,8 @@
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
   "scripts": {
-    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
-    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts'",
+    "lint": "eslint -c .eslintrc.js '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.js '**/*.ts'",
     "build": "rollup -c",
     "test": "yarn type-check && yarn test:karma && yarn lint",
     "test:karma": "karma start --single-run",

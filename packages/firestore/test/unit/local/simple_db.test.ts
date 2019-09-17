@@ -364,7 +364,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  // Note: This tests is failing under `IndexedDBShim`.
+  // eslint-disable-next-line no-restricted-properties, Note: This tests is failing under `IndexedDBShim`.
   (isIndexedDbMock() ? it.skip : it)(
     'can iterate and skip keys in reverse',
     async () => {
@@ -499,7 +499,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  // tslint:disable-next-line:ban A little perf test for convenient benchmarking
+  // eslint-disable-next-line no-restricted-properties, A little perf test for convenient benchmarking
   it.skip('Perf', () => {
     return runTransaction(store => {
       const start = new Date().getTime();

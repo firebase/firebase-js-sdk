@@ -223,7 +223,7 @@ export class AsyncQueue {
    * we ignore the Promise result).
    */
   enqueueAndForget<T extends unknown>(op: () => Promise<T>): void {
-    // tslint:disable-next-line:no-floating-promises
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.enqueue(op);
   }
 
@@ -235,7 +235,7 @@ export class AsyncQueue {
     op: () => Promise<T>
   ): void {
     this.verifyNotFailed();
-    // tslint:disable-next-line:no-floating-promises
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     this.enqueueInternal(op);
   }
 

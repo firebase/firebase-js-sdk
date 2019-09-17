@@ -523,8 +523,8 @@ abstract class TestRunner {
   async run(step: SpecStep): Promise<void> {
     await this.doStep(step);
     await this.queue.drain();
-    this.validateStepExpectations(step.expect!);
-    await this.validateStateExpectations(step.stateExpect!);
+    this.validateStepExpectations(step.expectedSnapshotEvents!);
+    await this.validateStateExpectations(step.expectedState!);
     this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents);
     this.eventList = [];
     this.rejectedDocs = [];
@@ -951,7 +951,7 @@ abstract class TestRunner {
     );
   }
 
-  private validateStepExpectations(stepExpectations: SpecExpectation[]): void {
+  private validateStepExpectations(stepExpectations: SnapshotEvent[]): void {
     if (stepExpectations) {
       expect(this.eventList.length).to.equal(
         stepExpectations.length,
@@ -1129,7 +1129,7 @@ abstract class TestRunner {
   }
 
   private validateWatchExpectation(
-    expected: SpecExpectation,
+    expected: SnapshotEvent,
     actual: QueryEvent
   ): void {
     const expectedQuery = this.parseQuery(expected.query);
@@ -1442,12 +1442,12 @@ export interface SpecStep {
    * Optional list of expected events.
    * If not provided, the test will fail if the step causes events to be raised.
    */
-  expect?: SpecExpectation[];
+  expectedSnapshotEvents?: SnapshotEvent[];
 
   /**
    * Optional dictionary of expected states.
    */
-  stateExpect?: StateExpectation;
+  expectedState?: StateExpectation;
 
   /**
    * Optional expected number of onSnapshotsInSync callbacks to be called.
@@ -1596,7 +1596,7 @@ export interface SpecDocument {
   options?: DocumentOptions;
 }
 
-export interface SpecExpectation {
+export interface SnapshotEvent {
   query: SpecQuery;
   errorCode?: number;
   fromCache?: boolean;
