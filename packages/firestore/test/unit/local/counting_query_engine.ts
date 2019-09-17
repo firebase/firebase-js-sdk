@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { QueryEngine } from '../../../src/local/query_engine';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
 import { PersistenceTransaction } from '../../../src/local/persistence';
@@ -22,7 +23,6 @@ import { Query } from '../../../src/core/query';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
 import { MutationQueue } from '../../../src/local/mutation_queue';
-import { QueryData } from '../../../src/local/query_data';
 import { DocumentKeySet, DocumentMap } from '../../../src/model/collections';
 
 /**
@@ -52,13 +52,13 @@ export class CountingQueryEngine implements QueryEngine {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    queryData: QueryData | null,
+    lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
     return this.queryEngine.getDocumentsMatchingQuery(
       transaction,
       query,
-      queryData,
+      lastLimboFreeSnapshotVersion,
       remoteKeys
     );
   }

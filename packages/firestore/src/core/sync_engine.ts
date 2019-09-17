@@ -243,16 +243,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     current: boolean
   ): Promise<ViewSnapshot> {
     const query = queryData.query;
-    const remoteKeys = await this.localStore.remoteDocumentKeys(
-      queryData.targetId
+    const queryResult = await this.localStore.executeQuery(
+      query,
+      /* usePreviousResults= */ true
     );
-    const docs = await this.localStore.executeQuery(query, {
-      queryData,
-      remoteKeys
-    });
-
-    const view = new View(query, remoteKeys);
-    const viewDocChanges = view.computeDocChanges(docs);
+    const view = new View(query, queryResult.remoteKeys);
+    const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
       queryData.targetId,
       current && this.onlineState !== OnlineState.Offline
@@ -286,14 +282,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     queryData: QueryData,
     view: View
   ): Promise<ViewChange> {
-    const remoteKeys = await this.localStore.remoteDocumentKeys(
-      queryData.targetId
+    const queryResult = await this.localStore.executeQuery(
+      queryData.query,
+      /* usePreviousResults= */ true
     );
-    const docs = await this.localStore.executeQuery(queryData.query, {
-      queryData,
-      remoteKeys
-    });
-    const viewSnapshot = view.synchronizeWithPersistedState(docs, remoteKeys);
+    const viewSnapshot = view.synchronizeWithPersistedState(queryResult);
     if (this.isPrimary) {
       this.updateTrackedLimbos(queryData.targetId, viewSnapshot.limboChanges);
     }
@@ -791,9 +784,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             // to re-run the query against the local store to make sure we
             // didn't lose any good docs that had been past the limit.
             return this.localStore
-              .executeQuery(queryView.query, { needsRefill: true })
-              .then(docs => {
-                return queryView.view.computeDocChanges(docs, viewDocChanges);
+              .executeQuery(queryView.query, /* usePreviousResults= */ false)
+              .then(({ documents }) => {
+                return queryView.view.computeDocChanges(
+                  documents,
+                  viewDocChanges
+                );
               });
           })
           .then((viewDocChanges: ViewDocumentChanges) => {

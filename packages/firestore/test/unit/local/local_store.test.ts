@@ -29,7 +29,6 @@ import { QueryEngine } from '../../../src/local/query_engine';
 import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
 import {
   documentKeySet,
-  DocumentMap,
   MaybeDocumentMap
 } from '../../../src/model/collections';
 import { MaybeDocument, NoDocument } from '../../../src/model/document';
@@ -223,9 +222,11 @@ class LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.executeQuery(query).then(results => {
-        this.lastChanges = results;
-      });
+      return this.localStore
+        .executeQuery(query, /* usePreviousResults= */ true)
+        .then(({ documents }) => {
+          this.lastChanges = documents;
+        });
     });
     return this;
   }
@@ -961,11 +962,14 @@ function genericLocalStoreTests(
         setMutation('foo/bar/Foo/Bar', { Foo: 'Bar' })
       ])
       .then(() => {
-        return localStore.executeQuery(Query.atPath(path('foo/bar')));
+        return localStore.executeQuery(
+          Query.atPath(path('foo/bar')),
+          /* usePreviousResults= */ true
+        );
       })
-      .then((docs: DocumentMap) => {
-        expect(docs.size).to.equal(1);
-        expectEqual(docs.minKey(), key('foo/bar'));
+      .then(({ documents }) => {
+        expect(documents.size).to.equal(1);
+        expectEqual(documents.minKey(), key('foo/bar'));
       });
   });
 
@@ -980,12 +984,15 @@ function genericLocalStoreTests(
         setMutation('fooo/blah', { fooo: 'blah' })
       ])
       .then(() => {
-        return localStore.executeQuery(Query.atPath(path('foo')));
+        return localStore.executeQuery(
+          Query.atPath(path('foo')),
+          /* usePreviousResults= */ true
+        );
       })
-      .then((docs: DocumentMap) => {
-        expect(docs.size).to.equal(2);
-        expectEqual(docs.minKey(), key('foo/bar'));
-        expectEqual(docs.maxKey(), key('foo/baz'));
+      .then(({ documents }) => {
+        expect(documents.size).to.equal(2);
+        expectEqual(documents.minKey(), key('foo/bar'));
+        expectEqual(documents.maxKey(), key('foo/baz'));
       });
   });
 
@@ -1000,8 +1007,11 @@ function genericLocalStoreTests(
       docUpdateRemoteEvent(doc('foo/bar', 20, { a: 'b' }), [2], [])
     );
     await localStore.localWrite([setMutation('foo/bonk', { a: 'b' })]);
-    const docs = await localStore.executeQuery(query);
-    expect(mapAsArray(docs)).to.deep.equal([
+    const { documents } = await localStore.executeQuery(
+      query,
+      /* usePreviousResults= */ true
+    );
+    expect(mapAsArray(documents)).to.deep.equal([
       { key: key('foo/bar'), value: doc('foo/bar', 20, { a: 'b' }) },
       { key: key('foo/baz'), value: doc('foo/baz', 10, { a: 'b' }) },
       {

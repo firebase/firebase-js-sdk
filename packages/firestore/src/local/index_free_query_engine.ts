@@ -19,7 +19,6 @@ import { QueryEngine } from './query_engine';
 import { LocalDocumentsView } from './local_documents_view';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
@@ -62,7 +61,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
     query: Query,
-    queryData: QueryData | null,
+    lastLimboFreeSnapshotVersion: SnapshotVersion,
     remoteKeys: DocumentKeySet
   ): PersistencePromise<DocumentMap> {
     assert(
@@ -79,10 +78,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
 
     // Queries that have never seen a snapshot without limbo free documents
     // should also be run as a full collection scan.
-    if (
-      queryData === null ||
-      queryData.lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.MIN)
-    ) {
+    if (lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.MIN)) {
       return this.executeFullCollectionScan(transaction, query);
     }
 
@@ -95,7 +91,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
           this.needsRefill(
             previousResults,
             remoteKeys,
-            queryData.lastLimboFreeSnapshotVersion
+            lastLimboFreeSnapshotVersion
           )
         ) {
           return this.executeFullCollectionScan(transaction, query);
@@ -105,7 +101,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
           debug(
             'IndexFreeQueryEngine',
             'Re-using previous result from %s to execute query: %s',
-            queryData.lastLimboFreeSnapshotVersion.toString(),
+            lastLimboFreeSnapshotVersion.toString(),
             query.toString()
           );
         }
@@ -115,7 +111,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
         return this.localDocumentsView!.getDocumentsMatchingQuery(
           transaction,
           query,
-          queryData.lastLimboFreeSnapshotVersion
+          lastLimboFreeSnapshotVersion
         ).next(updatedResults => {
           // We merge `previousResults` into `updateResults`, since
           // `updateResults` is already a DocumentMap. If a document is

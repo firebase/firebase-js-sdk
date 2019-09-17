@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
+import { QueryResult } from '../local/local_store';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -433,21 +434,18 @@ export class View {
    *   of `syncedDocuments` since secondary clients update their query views
    *   based purely on synthesized RemoteEvents.
    *
-   * @param localDocs - The documents that match the query according to the
-   * LocalStore.
-   * @param remoteKeys - The keys of the documents that match the query
-   * according to the backend.
+   * @param queryResult.documents - The documents that match the query according
+   * to the LocalStore.
+   * @param queryResult.remoteKeys - The keys of the documents that match the
+   * query according to the backend.
    *
    * @return The ViewChange that resulted from this synchronization.
    */
   // PORTING NOTE: Multi-tab only.
-  synchronizeWithPersistedState(
-    localDocs: MaybeDocumentMap,
-    remoteKeys: DocumentKeySet
-  ): ViewChange {
-    this._syncedDocuments = remoteKeys;
+  synchronizeWithPersistedState(queryResult: QueryResult): ViewChange {
+    this._syncedDocuments = queryResult.remoteKeys;
     this.limboDocuments = documentKeySet();
-    const docChanges = this.computeDocChanges(localDocs);
+    const docChanges = this.computeDocChanges(queryResult.documents);
     return this.applyChanges(docChanges, /*updateLimboDocuments=*/ true);
   }
 
