@@ -790,7 +790,7 @@ export class LocalStore {
   ): PersistencePromise<QueryData | null> {
     let queryData: QueryData | null = null;
 
-    // Look up the query data in our local map first, as this avoid a potential
+    // Look up the query data in our local map first, as this avoids a potential
     // lookup in IndexedDb.
     objUtils.forEachNumber(
       this.queryDataByTarget,
