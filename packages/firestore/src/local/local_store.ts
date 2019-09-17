@@ -39,6 +39,7 @@ import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { assert } from '../util/assert';
 import * as log from '../util/log';
 import * as objUtils from '../util/obj';
+import { ObjectMap } from '../util/obj_map';
 
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
@@ -161,6 +162,11 @@ export class LocalStore {
 
   /** Maps a targetID to data about its query. */
   private queryDataByTarget = {} as { [targetId: number]: QueryData };
+
+  /** Maps a query to its targetID. */
+  private targetIdByQuery = new ObjectMap<Query, TargetId>(q =>
+    q.canonicalId()
+  );
 
   constructor(
     /** Manages our in-memory or durable persistence. */
@@ -774,6 +780,7 @@ export class LocalStore {
               'Tried to allocate an already allocated query: ' + query
             );
             this.queryDataByTarget[queryData.targetId] = queryData;
+            this.targetIdByQuery.set(query, queryData.targetId);
             return queryData;
           });
       }
@@ -789,22 +796,14 @@ export class LocalStore {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<QueryData | null> {
-    let queryData: QueryData | null = null;
-
-    // Look up the query data in our local map first, as this avoids a potential
-    // lookup in IndexedDb.
-    objUtils.forEachNumber(
-      this.queryDataByTarget,
-      (targetId, cachedQueryData) => {
-        if (cachedQueryData.query.isEqual(query)) {
-          queryData = cachedQueryData;
-        }
-      }
-    );
-
-    return queryData
-      ? PersistencePromise.resolve<QueryData | null>(queryData)
-      : this.queryCache.getQueryData(transaction, query);
+    const targetId = this.targetIdByQuery.get(query);
+    if (targetId !== undefined) {
+      return PersistencePromise.resolve<QueryData | null>(
+        this.queryDataByTarget[targetId]
+      );
+    } else {
+      return this.queryCache.getQueryData(transaction, query);
+    }
   }
 
   /**
@@ -816,32 +815,31 @@ export class LocalStore {
   releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
     const mode = keepPersistedQueryData ? 'readwrite' : 'readwrite-primary';
     return this.persistence.runTransaction('Release query', mode, txn => {
-      return this.getQueryData(txn, query).next(queryData => {
-        assert(
-          queryData != null,
-          'Tried to release nonexistent query: ' + query
-        );
-        const targetId = queryData!.targetId;
+      const targetId = this.targetIdByQuery.get(query);
+      assert(
+        targetId !== undefined,
+        'Tried to release nonexistent query: ' + query
+      );
+      const queryData = this.queryDataByTarget[targetId!]!;
 
-        // References for documents sent via Watch are automatically removed
-        // when we delete a query's target data from the reference delegate.
-        // Since this does not remove references for locally mutated documents,
-        // we have to remove the target associations for these documents
-        // manually.
-        const removed = this.localViewReferences.removeReferencesForId(
-          targetId
-        );
-        delete this.queryDataByTarget[targetId];
-        if (!keepPersistedQueryData) {
-          return PersistencePromise.forEach(removed, (key: DocumentKey) =>
-            this.persistence.referenceDelegate.removeReference(txn, key)
-          ).next(() =>
-            this.persistence.referenceDelegate.removeTarget(txn, queryData!)
-          );
-        } else {
-          return PersistencePromise.resolve();
-        }
-      });
+      // References for documents sent via Watch are automatically removed
+      // when we delete a query's target data from the reference delegate.
+      // Since this does not remove references for locally mutated documents,
+      // we have to remove the target associations for these documents
+      // manually.
+      const removed = this.localViewReferences.removeReferencesForId(targetId!);
+      delete this.queryDataByTarget[targetId!];
+      this.targetIdByQuery.delete(query);
+
+      if (!keepPersistedQueryData) {
+        return PersistencePromise.forEach(removed, (key: DocumentKey) =>
+          this.persistence.referenceDelegate.removeReference(txn, key)
+        ).next(() => {
+          this.persistence.referenceDelegate.removeTarget(txn, queryData);
+        });
+      } else {
+        return PersistencePromise.resolve();
+      }
     });
   }
 
