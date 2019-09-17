@@ -872,16 +872,16 @@ export class LocalStore {
               });
           }
         })
-        .next(() => {
-          return this.queryEngine.getDocumentsMatchingQuery(
+        .next(() =>
+          this.queryEngine.getDocumentsMatchingQuery(
             txn,
             query,
             usePreviousResults
               ? lastLimboFreeSnapshotVersion
               : SnapshotVersion.MIN,
             usePreviousResults ? remoteKeys : documentKeySet()
-          );
-        })
+          )
+        )
         .next(documents => {
           return { documents, remoteKeys };
         });

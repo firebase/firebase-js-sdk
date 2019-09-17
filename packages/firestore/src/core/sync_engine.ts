@@ -279,16 +279,17 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    */
   // PORTING NOTE: Multi-tab only.
   private async synchronizeViewAndComputeSnapshot(
-    queryData: QueryData,
-    view: View
+    queryView: QueryView
   ): Promise<ViewChange> {
     const queryResult = await this.localStore.executeQuery(
-      queryData.query,
+      queryView.query,
       /* usePreviousResults= */ true
     );
-    const viewSnapshot = view.synchronizeWithPersistedState(queryResult);
+    const viewSnapshot = queryView.view.synchronizeWithPersistedState(
+      queryResult
+    );
     if (this.isPrimary) {
-      this.updateTrackedLimbos(queryData.targetId, viewSnapshot.limboChanges);
+      this.updateTrackedLimbos(queryView.targetId, viewSnapshot.limboChanges);
     }
     return viewSnapshot;
   }
@@ -936,8 +937,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         );
         queryData = await this.localStore.allocateQuery(queryView.query);
         const viewChange = await this.synchronizeViewAndComputeSnapshot(
-          queryData,
-          queryView.view
+          queryView
         );
         if (viewChange.snapshot) {
           newViewSnapshots.push(viewChange.snapshot);
