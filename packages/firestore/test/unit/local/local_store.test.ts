@@ -801,6 +801,7 @@ function genericLocalStoreTests(
       .finish();
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it : it.skip)(
     'handles SetMutation -> Ack -> PatchMutation -> Reject',
     () => {
@@ -854,6 +855,7 @@ function genericLocalStoreTests(
       .finish();
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it : it.skip)(
     'collects garbage after ChangeBatch with no target ids',
     () => {
@@ -868,6 +870,7 @@ function genericLocalStoreTests(
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it : it.skip)('collects garbage after ChangeBatch', () => {
     const query = Query.atPath(path('foo'));
     return expectLocalStore()
@@ -880,6 +883,7 @@ function genericLocalStoreTests(
       .finish();
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it : it.skip)(
     'collects garbage after acknowledged mutation',
     () => {
@@ -921,6 +925,7 @@ function genericLocalStoreTests(
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it : it.skip)('collects garbage after rejected mutation', () => {
     const query = Query.atPath(path('foo'));
     return (
@@ -959,6 +964,7 @@ function genericLocalStoreTests(
     );
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it : it.skip)('pins documents in the local view', () => {
     const query = Query.atPath(path('foo'));
     return expectLocalStore()
@@ -989,6 +995,7 @@ function genericLocalStoreTests(
       .finish();
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it : it.skip)(
     'throws away documents with unknown target-ids immediately',
     () => {
@@ -1106,6 +1113,7 @@ function genericLocalStoreTests(
       .finish();
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)('persists resume tokens', async () => {
     const query = Query.atPath(path('foo/bar'));
     const queryData = await localStore.allocateQuery(query);
@@ -1132,6 +1140,7 @@ function genericLocalStoreTests(
     expect(queryData2.resumeToken).to.deep.equal(resumeToken);
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)(
     'does not replace resume token with empty resume token',
     async () => {
@@ -1203,6 +1212,7 @@ function genericLocalStoreTests(
       .finish();
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)(
     'handles SetMutation -> Ack -> TransformMutation -> Ack -> TransformMutation',
     () => {
@@ -1469,6 +1479,7 @@ function genericLocalStoreTests(
     );
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (queryEngine instanceof IndexFreeQueryEngine && !gcIsEager ? it : it.skip)(
     'uses target mapping to execute queries',
     () => {
@@ -1569,6 +1580,7 @@ function genericLocalStoreTests(
     }
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)(
     'queries include locally modified documents',
     () => {
@@ -1612,6 +1624,7 @@ function genericLocalStoreTests(
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)(
     'queries include documents from other queries',
     () => {
@@ -1666,6 +1679,7 @@ function genericLocalStoreTests(
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)(
     'queries filter documents that no longer match',
     () => {
