@@ -132,15 +132,15 @@ export class IndexFreeQueryEngine implements QueryEngine {
   ): SortedSet<Document> {
     // Sort the documents and re-apply the query filter since previously
     // matching documents do not necessarily still match the query.
-    let queyrResults = new SortedSet<Document>((d1, d2) =>
+    let queryResults = new SortedSet<Document>((d1, d2) =>
       query.docComparator(d1, d2)
     );
     documents.forEach((_, maybeDoc) => {
       if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
-        queyrResults = queyrResults.add(maybeDoc);
+        queryResults = queryResults.add(maybeDoc);
       }
     });
-    return queyrResults;
+    return queryResults;
   }
 
   /**
