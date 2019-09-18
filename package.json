@@ -70,6 +70,7 @@
     "typedoc": "0.15.0",
     "ts-node": "8.3.0",
     "typescript": "3.5.3",
-    "yargs": "14.0.0"
+    "yargs": "14.0.0",
+    "babel-loader": "8.0.6"
   }
 }

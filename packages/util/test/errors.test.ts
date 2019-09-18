@@ -105,9 +105,16 @@ describe('FirebaseError', () => {
 
   it('has stack', () => {
     const e = ERROR_FACTORY.create('generic-error');
-    assert.isDefined(e.stack);
-    // Multi-line match trick - .* does not match \n
-    assert.match(e.stack!, /FirebaseError[\s\S]/);
+
+    // In case of IE11, stack will be set only after error is raised, so we throw the error then test.
+    // https://docs.microsoft.com/en-us/scripting/javascript/reference/stack-property-error-javascript
+    try {
+      throw e;
+    } catch (error) {
+      assert.isDefined(error.stack);
+      // Multi-line match trick - .* does not match \n
+      assert.match(error.stack, /FirebaseError[\s\S]/);
+    }
   });
 
   it('has function names in stack trace in correct order', () => {

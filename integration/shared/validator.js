@@ -106,3 +106,4 @@ function validateNamespace(definition, candidate) {
 }
 
 module.exports = validateNamespace;
+module.exports.default = validateNamespace;

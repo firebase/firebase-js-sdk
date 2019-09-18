@@ -19,8 +19,13 @@ import { expect } from 'chai';
 import '../testing/setup';
 import { bufferToBase64UrlSafe } from './buffer-to-base64-url-safe';
 
-const TYPED_ARRAY_REPRESENTATION = new TextEncoder().encode('hello world');
-const BASE_64_REPRESENTATION = btoa('hello world');
+const str = 'hello world';
+const TYPED_ARRAY_REPRESENTATION = new Uint8Array(str.length);
+for (let i = 0; i < str.length; i++) {
+  TYPED_ARRAY_REPRESENTATION[i] = str.charCodeAt(i);
+}
+
+const BASE_64_REPRESENTATION = btoa(str);
 
 describe('bufferToBase64', () => {
   it('returns a base64 representation of a Uint8Array', () => {

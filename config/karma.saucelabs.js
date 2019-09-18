@@ -169,6 +169,7 @@ module.exports = function(config) {
     preprocessors: {
       'packages/polyfill/index.ts': ['webpack', 'sourcemap'],
       '**/test/**/*.ts': ['webpack', 'sourcemap'],
+      '**/*.test.ts': ['webpack', 'sourcemap'],
       'packages/firestore/test/**/bootstrap.ts': ['webpack', 'babel'],
       'integration/**/namespace.*': ['webpack', 'babel', 'sourcemap']
     },

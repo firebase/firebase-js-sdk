@@ -31,7 +31,9 @@ module.exports = {
           options: {
             compilerOptions: {
               module: 'commonjs',
-              downlevelIteration: true
+              target: 'es5',
+              downlevelIteration: true,
+              resolveJsonModule: true
             }
           }
         }
@@ -49,11 +51,29 @@ module.exports = {
         },
         enforce: 'post',
         include: path.resolve(process.cwd(), 'src')
+      },
+      {
+        test: /\.js$/,
+        include: [/node_modules\/chai-as-promised/],
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: [
+              [
+                '@babel/preset-env',
+                {
+                  targets: ['ie 11']
+                }
+              ]
+            ]
+          }
+        }
       }
     ]
   },
   resolve: {
     modules: ['node_modules', path.resolve(__dirname, '../../node_modules')],
+    mainFields: ['browser', 'main', 'module'],
     extensions: ['.js', '.ts']
   },
   plugins: [
