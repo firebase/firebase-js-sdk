@@ -26,12 +26,10 @@ toc:
     path: /docs/reference/node/firebase.auth.AuthCredential
   - title: "AuthError"
     path: /docs/reference/node/firebase.auth.AuthError
-  - title: "AuthSettings"
-    path: /docs/reference/node/firebase.auth.AuthSettings
-  - title: "OAuthCredential"
-    path: /docs/reference/node/firebase.auth.OAuthCredential
   - title: "AuthProvider"
     path: /docs/reference/node/firebase.auth.AuthProvider
+  - title: "AuthSettings"
+    path: /docs/reference/node/firebase.auth.AuthSettings
   - title: "ConfirmationResult"
     path: /docs/reference/node/firebase.auth.ConfirmationResult
   - title: "EmailAuthProvider"
@@ -46,38 +44,40 @@ toc:
     path: /docs/reference/node/firebase.auth.GoogleAuthProvider
   - title: "IdTokenResult"
     path: /docs/reference/node/firebase.auth.IDTokenResult
-  - title: "TwitterAuthProvider"
-    path: /docs/reference/node/firebase.auth.TwitterAuthProvider
+  - title: "OAuthCredential"
+    path: /docs/reference/node/firebase.auth.OAuthCredential
   - title: "OAuthProvider"
     path: /docs/reference/node/firebase.auth.OAuthProvider
   - title: "PhoneAuthProvider"
     path: /docs/reference/node/firebase.auth.PhoneAuthProvider
   - title: "SAMLAuthProvider"
     path: /docs/reference/node/firebase.auth.SAMLAuthProvider
-  - title: "UserMetadata"
-    path: /docs/reference/node/firebase.auth.UserMetadata
+  - title: "TwitterAuthProvider"
+    path: /docs/reference/node/firebase.auth.TwitterAuthProvider
   - title: "User"
     path: /docs/reference/node/firebase.User
   - title: "UserInfo"
     path: /docs/reference/node/firebase.UserInfo
+  - title: "UserMetadata"
+    path: /docs/reference/node/firebase.auth.UserMetadata
 
 - title: "firebase.database"
   path: /docs/reference/node/firebase.database
   section:
-  - title: "Database"
-    path: /docs/reference/node/firebase.database.Database
   - title: "DataSnapshot"
     path: /docs/reference/node/firebase.database.DataSnapshot
+  - title: "Database"
+    path: /docs/reference/node/firebase.database.Database
   - title: "OnDisconnect"
     path: /docs/reference/node/firebase.database.OnDisconnect
+  - title: "Query"
+    path: /docs/reference/node/firebase.database.Query
   - title: "Reference"
     path: /docs/reference/node/firebase.database.Reference
   - title: "ServerValue"
     path: /docs/reference/node/firebase.database.ServerValue
   - title: "ThenableReference"
     path: /docs/reference/node/firebase.database.ThenableReference
-  - title: "Query"
-    path: /docs/reference/node/firebase.database.Query
 
 - title: "firebase.firestore"
   path: /docs/reference/node/firebase.firestore
