@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -24,13 +24,13 @@
   "peerDependencies": {},
   "dependencies": {
     "@firebase/database-types": "0.4.3",
-    "@firebase/logger": "0.1.24",
-    "@firebase/util": "0.2.27",
+    "@firebase/logger": "0.1.25",
+    "@firebase/util": "0.2.28",
     "faye-websocket": "0.11.3",
     "tslib": "1.10.0"
   },
   "devDependencies": {
-    "@firebase/app": "0.4.16",
+    "@firebase/app": "0.4.17",
     "@firebase/app-types": "0.x",
     "@types/chai": "4.2.0",
     "@types/mocha": "5.2.7",
