@@ -520,8 +520,8 @@ abstract class TestRunner {
   async run(step: SpecStep): Promise<void> {
     await this.doStep(step);
     await this.queue.drain();
-    this.validateStepExpectations(step.expectedSnapshotEvents!);
-    await this.validateStateExpectations(step.expectedState!);
+    this.validateExpectedSnapshotEvents(step.expectedSnapshotEvents!);
+    await this.validateExpectedState(step.expectedState!);
     this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents);
     this.eventList = [];
     this.rejectedDocs = [];
@@ -948,16 +948,18 @@ abstract class TestRunner {
     );
   }
 
-  private validateStepExpectations(stepExpectations: SnapshotEvent[]): void {
-    if (stepExpectations) {
+  private validateExpectedSnapshotEvents(
+    expectedEvents: SnapshotEvent[]
+  ): void {
+    if (expectedEvents) {
       expect(this.eventList.length).to.equal(
-        stepExpectations.length,
+        expectedEvents.length,
         'Number of expected and actual events mismatch'
       );
       const actualEventsSorted = this.eventList.sort((a, b) =>
         primitiveComparator(a.query.canonicalId(), b.query.canonicalId())
       );
-      const expectedEventsSorted = stepExpectations.sort((a, b) =>
+      const expectedEventsSorted = expectedEvents.sort((a, b) =>
         primitiveComparator(
           this.parseQuery(a.query).canonicalId(),
           this.parseQuery(b.query).canonicalId()
@@ -976,49 +978,52 @@ abstract class TestRunner {
     }
   }
 
-  private async validateStateExpectations(
-    expectation: StateExpectation
+  private async validateExpectedState(
+    expectedState: StateExpectation
   ): Promise<void> {
-    if (expectation) {
-      if ('numOutstandingWrites' in expectation) {
+    if (expectedState) {
+      if ('numOutstandingWrites' in expectedState) {
         expect(this.remoteStore.outstandingWrites()).to.equal(
-          expectation.numOutstandingWrites
+          expectedState.numOutstandingWrites
         );
       }
-      if ('numActiveClients' in expectation) {
+      if ('numActiveClients' in expectedState) {
         const activeClients = await this.persistence.getActiveClients();
-        expect(activeClients.length).to.equal(expectation.numActiveClients);
+        expect(activeClients.length).to.equal(expectedState.numActiveClients);
       }
-      if ('writeStreamRequestCount' in expectation) {
+      if ('writeStreamRequestCount' in expectedState) {
         expect(this.connection.writeStreamRequestCount).to.equal(
-          expectation.writeStreamRequestCount
+          expectedState.writeStreamRequestCount
         );
       }
-      if ('watchStreamRequestCount' in expectation) {
+      if ('watchStreamRequestCount' in expectedState) {
         expect(this.connection.watchStreamRequestCount).to.equal(
-          expectation.watchStreamRequestCount
+          expectedState.watchStreamRequestCount
         );
       }
-      if ('limboDocs' in expectation) {
-        this.expectedLimboDocs = expectation.limboDocs!.map(key);
+      if ('limboDocs' in expectedState) {
+        this.expectedLimboDocs = expectedState.limboDocs!.map(key);
       }
-      if ('activeTargets' in expectation) {
-        this.expectedActiveTargets = expectation.activeTargets!;
+      if ('activeTargets' in expectedState) {
+        this.expectedActiveTargets = expectedState.activeTargets!;
       }
-      if ('isPrimary' in expectation) {
-        expect(this.isPrimaryClient).to.eq(expectation.isPrimary!, 'isPrimary');
+      if ('isPrimary' in expectedState) {
+        expect(this.isPrimaryClient).to.eq(
+          expectedState.isPrimary!,
+          'isPrimary'
+        );
       }
-      if ('isShutdown' in expectation) {
-        expect(this.started).to.equal(!expectation.isShutdown);
+      if ('isShutdown' in expectedState) {
+        expect(this.started).to.equal(!expectedState.isShutdown);
       }
     }
 
-    if (expectation && expectation.userCallbacks) {
+    if (expectedState && expectedState.userCallbacks) {
       expect(this.acknowledgedDocs).to.have.members(
-        expectation.userCallbacks.acknowledgedDocs
+        expectedState.userCallbacks.acknowledgedDocs
       );
       expect(this.rejectedDocs).to.have.members(
-        expectation.userCallbacks.rejectedDocs
+        expectedState.userCallbacks.rejectedDocs
       );
     } else {
       expect(this.acknowledgedDocs).to.be.empty;
