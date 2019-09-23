@@ -470,7 +470,8 @@ describe('Query', () => {
       .addFilter(filter('bar', '>', 2))
       .addOrderBy(orderBy('bar'));
 
-    const q7a = Query.atPath(path('foo')).withLimit(10);
+    const q7a = Query.atPath(path('foo')).withLimitToFirst(10);
+    const q8a = Query.atPath(path('foo')).withLimitToLast(10);
 
     const lip1a = bound([[DOCUMENT_KEY_NAME, 'coll/foo', 'asc']], true);
     const lip1b = bound([[DOCUMENT_KEY_NAME, 'coll/foo', 'asc']], false);
@@ -478,18 +479,18 @@ describe('Query', () => {
     // TODO(b/35851862): descending key ordering not supported yet
     // const lip3 = bound([[DOCUMENT_KEY_NAME, 'coll/bar', 'desc']]);
 
-    const q8a = Query.atPath(path('foo')).withStartAt(lip1a);
-    const q9a = Query.atPath(path('foo')).withStartAt(lip1b);
-    const q10a = Query.atPath(path('foo')).withStartAt(lip2);
-    const q11a = Query.atPath(path('foo')).withEndAt(lip1a);
-    const q12a = Query.atPath(path('foo')).withEndAt(lip1b);
-    const q13a = Query.atPath(path('foo')).withEndAt(lip2);
+    const q9a = Query.atPath(path('foo')).withStartAt(lip1a);
+    const q10a = Query.atPath(path('foo')).withStartAt(lip1b);
+    const q11a = Query.atPath(path('foo')).withStartAt(lip2);
+    const q12a = Query.atPath(path('foo')).withEndAt(lip1a);
+    const q13a = Query.atPath(path('foo')).withEndAt(lip1b);
+    const q14a = Query.atPath(path('foo')).withEndAt(lip2);
 
     // TODO(b/35851862): descending key ordering not supported yet
-    // const q14a = Query.atPath(path('foo'))
+    // const q15a = Query.atPath(path('foo'))
     // .addOrderBy(orderBy(DOCUMENT_KEY_NAME, 'desc'))
     // .withUpperBound(lip3, 'inclusive');
-    // const q15a = Query.atPath(path('foo'))
+    // const q16a = Query.atPath(path('foo'))
     // .addOrderBy(orderBy(DOCUMENT_KEY_NAME, 'desc'))
     // .withUpperBound(lip3, 'exclusive');
 
@@ -500,17 +501,17 @@ describe('Query', () => {
       5
     );
 
-    const q16a = Query.atPath(path('foo')).addFilter(
+    const q17a = Query.atPath(path('foo')).addFilter(
       filter('object', '==', { ref: relativeReference })
     );
-    const q16b = Query.atPath(path('foo')).addFilter(
+    const q17b = Query.atPath(path('foo')).addFilter(
       filter('object', '==', { ref: absoluteReference })
     );
 
-    const q17a = Query.atPath(path('foo')).addFilter(
+    const q18a = Query.atPath(path('foo')).addFilter(
       filter('array', '==', [relativeReference])
     );
-    const q17b = Query.atPath(path('foo')).addFilter(
+    const q18b = Query.atPath(path('foo')).addFilter(
       filter('array', '==', [absoluteReference])
     );
 
@@ -528,10 +529,11 @@ describe('Query', () => {
       [q11a],
       [q12a],
       [q13a],
-      //[q14a],
+      [q14a],
       //[q15a],
-      [q16a, q16b],
-      [q17a, q17b]
+      //[q16a],
+      [q17a, q17b],
+      [q18a, q18b]
     ];
 
     expectEqualitySets(queries, (q1, q2) => {

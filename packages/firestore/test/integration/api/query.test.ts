@@ -61,6 +61,22 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  it('can issue limitToLast queries', () => {
+    const testDocs = {
+      a: { k: 'a' },
+      b: { k: 'b' },
+      c: { k: 'c' }
+    };
+    return withTestCollection(persistence, testDocs, collection => {
+      return collection
+        .limitToLast(2)
+        .get()
+        .then(docs => {
+          expect(toDataArray(docs)).to.deep.equal([{ k: 'b' }, { k: 'c' }]);
+        });
+    });
+  });
+
   it('can issue limit queries using descending sort order', () => {
     const testDocs = {
       a: { k: 'a', sort: 0 },
@@ -78,6 +94,56 @@ apiDescribe('Queries', (persistence: boolean) => {
             { k: 'd', sort: 2 },
             { k: 'c', sort: 1 }
           ]);
+        });
+    });
+  });
+
+  it('can issue limitToLast queries using descending sort order', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, collection => {
+      return collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .get()
+        .then(docs => {
+          expect(toDataArray(docs)).to.deep.equal([
+            { k: 'b', sort: 1 },
+            { k: 'a', sort: 0 }
+          ]);
+        });
+    });
+  });
+
+  it.only('queries map to same server query not implemented', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, collection => {
+      const q1 = collection.orderBy('sort', 'asc').limitToFirst(2);
+      const q2 = collection.orderBy('sort', 'desc').limitToLast(2);
+
+      const storeEvent1 = new EventsAccumulator<firestore.QuerySnapshot>();
+      const storeEvent2 = new EventsAccumulator<firestore.QuerySnapshot>();
+
+      q1.onSnapshot(storeEvent1.storeEvent);
+      const expectedError =
+        'QuerySnapshot.docChanges has been changed from a property into a method';
+
+      return storeEvent1
+        .awaitEvent()
+        .then(() => {
+          q2.onSnapshot(storeEvent2.storeEvent);
+        })
+        .catch(err => {
+          expect(err).to.equal(expectedError);
         });
     });
   });

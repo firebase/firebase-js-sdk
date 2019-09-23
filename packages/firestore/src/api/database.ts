@@ -1554,14 +1554,30 @@ export class Query implements firestore.Query {
   limit(n: number): firestore.Query {
     validateExactNumberOfArgs('Query.limit', arguments, 1);
     validateArgType('Query.limit', 'number', 1, n);
+    return this.limitToFirst(n);
+  }
+
+  limitToFirst(n: number): firestore.Query {
+    validateExactNumberOfArgs('Query.limitToFirst', arguments, 1);
+    validateArgType('Query.limitToFirst', 'number', 1, n);
+    this.verifyPositiveLimit(n);
+    return new Query(this._query.withLimitToFirst(n), this.firestore);
+  }
+
+  limitToLast(n: number): firestore.Query {
+    validateExactNumberOfArgs('Query.limitToLast', arguments, 1);
+    validateArgType('Query.limitToLast', 'number', 1, n);
+    this.verifyPositiveLimit(n);
+    return new Query(this._query.withLimitToLast(n), this.firestore);
+  }
+
+  private verifyPositiveLimit(n: number): void {
     if (n <= 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        `Invalid Query. Query limit (${n}) is invalid. Limit must be ` +
-          'positive.'
+        `Invalid Query. Query limit (${n}) is invalid. Limit must be positive.`
       );
     }
-    return new Query(this._query.withLimit(n), this.firestore);
   }
 
   startAt(

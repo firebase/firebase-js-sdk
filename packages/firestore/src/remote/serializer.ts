@@ -24,6 +24,7 @@ import {
   Direction,
   FieldFilter,
   Filter,
+  LimitType,
   Operator,
   OrderBy,
   Query
@@ -1008,6 +1009,14 @@ export class JsonProtoSerializer {
   }
 
   toQueryTarget(query: Query): api.QueryTarget {
+    // limitToLast is implemented client-side and must be "normalized" before
+    // sending to the backend.
+    query = query.convertLimitToFirstIfNecessary();
+    assert(
+      query.hasLimitToLast() === false,
+      `Serializer doesn't support limitToLast queries.`
+    );
+
     // Dissect the path into parent, collectionId, and optional key filter.
     const result: api.QueryTarget = { structuredQuery: {} };
     const path = query.path;
@@ -1101,12 +1110,14 @@ export class JsonProtoSerializer {
       endAt = this.fromCursor(query.endAt);
     }
 
+    // TODO(limitToLast): Persist limitType somehow? :-/
     return new Query(
       path,
       collectionGroup,
       orderBy,
       filterBy,
       limit,
+      LimitType.First,
       startAt,
       endAt
     );

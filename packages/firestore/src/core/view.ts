@@ -136,8 +136,12 @@ export class View {
     // Note that this should never get used in a refill (when previousChanges is
     // set), because there will only be adds -- no deletes or updates.
     const lastDocInLimit =
-      this.query.hasLimit() && oldDocumentSet.size === this.query.limit
+      this.query.hasLimitToFirst() && oldDocumentSet.size === this.query.limit
         ? oldDocumentSet.last()
+        : null;
+    const firstDocInLimit =
+      this.query.hasLimitToLast() && oldDocumentSet.size === this.query.limit
+        ? oldDocumentSet.first()
         : null;
 
     docChanges.inorderTraversal(
@@ -179,12 +183,14 @@ export class View {
               changeApplied = true;
 
               if (
-                lastDocInLimit &&
-                this.query.docComparator(newDoc, lastDocInLimit) > 0
+                (lastDocInLimit &&
+                  this.query.docComparator(newDoc, lastDocInLimit) > 0) ||
+                (firstDocInLimit &&
+                  this.query.docComparator(newDoc, firstDocInLimit) < 0)
               ) {
-                // This doc moved from inside the limit to after the limit.
-                // That means there may be some doc in the local cache that's
-                // actually less than this one.
+                // This doc moved from inside the limit to outside the limit.
+                // That means there may be some other doc in the local cache
+                // that should be included instead.
                 needsRefill = true;
               }
             }
@@ -199,7 +205,7 @@ export class View {
           changeSet.track({ type: ChangeType.Removed, doc: oldDoc });
           changeApplied = true;
 
-          if (lastDocInLimit) {
+          if (lastDocInLimit || firstDocInLimit) {
             // A doc was removed from a full limit query. We'll need to
             // requery from the local cache to see if we know about some other
             // doc that should be in the results.
@@ -222,14 +228,19 @@ export class View {
         }
       }
     );
-    if (this.query.hasLimit()) {
+
+    // Drop documents out to meet limit/limitToLast requirement.
+    if (this.query.hasLimitToFirst() || this.query.hasLimitToLast()) {
       while (newDocumentSet.size > this.query.limit!) {
-        const oldDoc = newDocumentSet.last();
+        const oldDoc = this.query.hasLimitToFirst()
+          ? newDocumentSet.last()
+          : newDocumentSet.first();
         newDocumentSet = newDocumentSet.delete(oldDoc!.key);
         newMutatedKeys = newMutatedKeys.delete(oldDoc!.key);
         changeSet.track({ type: ChangeType.Removed, doc: oldDoc! });
       }
     }
+
     assert(
       !needsRefill || !previousChanges,
       'View was refilled using docs that themselves needed refilling.'

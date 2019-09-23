@@ -1049,10 +1049,16 @@ export class Query {
    * Creates and returns a new Query that's additionally limited to only
    * return up to the specified number of documents.
    *
+   * DEPRECATED.
+   *
    * @param limit The maximum number of items to return.
    * @return The created Query.
    */
   limit(limit: number): Query;
+
+  limitToFirst(limit: number): Query;
+
+  limitToLast(limit: number): Query;
 
   /**
    * Creates and returns a new Query that starts at the provided document

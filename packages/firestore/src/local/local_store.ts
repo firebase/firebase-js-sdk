@@ -716,10 +716,19 @@ export class LocalStore {
       'readwrite',
       txn => {
         let queryData: QueryData;
+        console.log(`Allocating for query ${query.canonicalId()}`);
         return this.queryCache
           .getQueryData(txn, query)
           .next((cached: QueryData | null) => {
             if (cached) {
+              console.log(`cached: ${cached.query.toString()}\n`);
+              console.log(`query : ${query.toString()}\n`);
+              // Make sure target is not allocated to a mirror query already.
+              assert(
+                cached.query.isEqual(query),
+                'Not Implemented: Mapping multiple distinct client queries to one backend query.'
+              );
+
               // This query has been listened to previously, so reuse the
               // previous targetID.
               // TODO(mcg): freshen last accessed date?

@@ -29,6 +29,11 @@ import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 
+export enum LimitType {
+  First,
+  Last
+}
+
 export class Query {
   static atPath(path: ResourcePath): Query {
     return new Query(path);
@@ -47,6 +52,7 @@ export class Query {
     readonly explicitOrderBy: OrderBy[] = [],
     readonly filters: Filter[] = [],
     readonly limit: number | null = null,
+    readonly limitType: LimitType = LimitType.First,
     readonly startAt: Bound | null = null,
     readonly endAt: Bound | null = null
   ) {
@@ -125,6 +131,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       newFilters,
       this.limit,
+      this.limitType,
       this.startAt,
       this.endAt
     );
@@ -140,21 +147,38 @@ export class Query {
       newOrderBy,
       this.filters.slice(),
       this.limit,
+      this.limitType,
       this.startAt,
       this.endAt
     );
   }
 
-  withLimit(limit: number | null): Query {
+  withLimitToFirst(limit: number | null): Query {
     return new Query(
       this.path,
       this.collectionGroup,
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       limit,
+      LimitType.First,
       this.startAt,
       this.endAt
     );
+  }
+
+  withLimitToLast(limit: number | null): Query {
+    const q = new Query(
+      this.path,
+      this.collectionGroup,
+      this.explicitOrderBy.slice(),
+      this.filters.slice(),
+      limit,
+      LimitType.Last,
+      this.startAt,
+      this.endAt
+    );
+    console.log(`query is ${q}`);
+    return q;
   }
 
   withStartAt(bound: Bound): Query {
@@ -164,6 +188,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
+      this.limitType,
       bound,
       this.endAt
     );
@@ -176,6 +201,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
+      this.limitType,
       this.startAt,
       bound
     );
@@ -194,6 +220,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
+      this.limitType,
       this.startAt,
       this.endAt
     );
@@ -203,33 +230,34 @@ export class Query {
   // example, use as a dictionary key, but the implementation is subject to
   // collisions. Make it collision-free.
   canonicalId(): string {
+    const query = this.convertLimitToFirstIfNecessary();
     if (this.memoizedCanonicalId === null) {
-      let canonicalId = this.path.canonicalString();
-      if (this.isCollectionGroupQuery()) {
-        canonicalId += '|cg:' + this.collectionGroup;
+      let canonicalId = query.path.canonicalString();
+      if (query.isCollectionGroupQuery()) {
+        canonicalId += '|cg:' + query.collectionGroup;
       }
       canonicalId += '|f:';
-      for (const filter of this.filters) {
+      for (const filter of query.filters) {
         canonicalId += filter.canonicalId();
         canonicalId += ',';
       }
       canonicalId += '|ob:';
       // TODO(dimond): make this collision resistant
-      for (const orderBy of this.orderBy) {
+      for (const orderBy of query.orderBy) {
         canonicalId += orderBy.canonicalId();
         canonicalId += ',';
       }
-      if (!isNullOrUndefined(this.limit)) {
+      if (!isNullOrUndefined(query.limit)) {
         canonicalId += '|l:';
-        canonicalId += this.limit!;
+        canonicalId += query.limit!;
       }
-      if (this.startAt) {
+      if (query.startAt) {
         canonicalId += '|lb:';
-        canonicalId += this.startAt.canonicalId();
+        canonicalId += query.startAt.canonicalId();
       }
-      if (this.endAt) {
+      if (query.endAt) {
         canonicalId += '|ub:';
-        canonicalId += this.endAt.canonicalId();
+        canonicalId += query.endAt.canonicalId();
       }
       this.memoizedCanonicalId = canonicalId;
     }
@@ -245,7 +273,9 @@ export class Query {
       str += `, filters: [${this.filters.join(', ')}]`;
     }
     if (!isNullOrUndefined(this.limit)) {
-      str += ', limit: ' + this.limit;
+      const fn =
+        this.limitType === LimitType.First ? 'limitToFirst' : 'limitToLast';
+      str += `, ${fn}: ${this.limit}`;
     }
     if (this.explicitOrderBy.length > 0) {
       str += `, orderBy: [${this.explicitOrderBy.join(', ')}]`;
@@ -262,6 +292,10 @@ export class Query {
 
   isEqual(other: Query): boolean {
     if (this.limit !== other.limit) {
+      return false;
+    }
+
+    if (this.limitType !== other.limitType) {
       return false;
     }
 
@@ -332,8 +366,12 @@ export class Query {
     );
   }
 
-  hasLimit(): boolean {
-    return !isNullOrUndefined(this.limit);
+  hasLimitToFirst(): boolean {
+    return !isNullOrUndefined(this.limit) && this.limitType === LimitType.First;
+  }
+
+  hasLimitToLast(): boolean {
+    return !isNullOrUndefined(this.limit) && this.limitType === LimitType.Last;
   }
 
   getFirstOrderByField(): FieldPath | null {
@@ -374,6 +412,46 @@ export class Query {
 
   isCollectionGroupQuery(): boolean {
     return this.collectionGroup !== null;
+  }
+
+  /**
+   * Converts limitToLast queries to limitToFirst queries since the serializer
+   * doesn't support them.
+   */
+  convertLimitToFirstIfNecessary(): Query {
+    if (this.limitType === LimitType.First) {
+      return this;
+    } else {
+      // Flip the orderBy directions since we want the last results
+      const orderBys = [] as OrderBy[];
+      for (const orderBy of this.orderBy) {
+        const dir =
+          orderBy.dir === Direction.DESCENDING
+            ? Direction.ASCENDING
+            : Direction.DESCENDING;
+        orderBys.push(new OrderBy(orderBy.field, dir));
+      }
+
+      // We need to swap the cursors to match the now-flipped query ordering.
+      const startAt = this.endAt
+        ? new Bound(this.endAt.position, !this.endAt.before)
+        : null;
+      const endAt = this.startAt
+        ? new Bound(this.startAt.position, !this.startAt.before)
+        : null;
+
+      // Now return as a LimitType.First query.
+      return new Query(
+        this.path,
+        this.collectionGroup,
+        orderBys,
+        this.filters,
+        this.limit,
+        LimitType.First,
+        startAt,
+        endAt
+      );
+    }
   }
 
   private matchesPathAndCollectionGroup(doc: Document): boolean {

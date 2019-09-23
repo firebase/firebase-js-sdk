@@ -54,8 +54,17 @@ export class ObjectMap<KeyType extends Equatable<KeyType>, ValueType> {
     return undefined;
   }
 
+  getWithoutValueEqualityCheck(key: KeyType): ValueType | undefined {
+    const id = this.mapKeyFn(key);
+    const matches = this.inner[id];
+    if (matches === undefined) {
+      return undefined;
+    }
+    return matches.length == 0 ? undefined : matches[0][1];
+  }
+
   has(key: KeyType): boolean {
-    return this.get(key) !== undefined;
+    return this.getWithoutValueEqualityCheck(key) !== undefined;
   }
 
   /** Put this key and value in the map. */
