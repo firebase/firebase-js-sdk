@@ -176,7 +176,7 @@ export class WebChannelConnection implements Connection {
       // The database field is already encoded in URL. Specifying it again in
       // the body is not necessary in production, and will cause duplicate field
       // errors in the Firestore Emulator. Let's remove it.
-      const jsonObj = { ...request } as unknown as Indexable;
+      const jsonObj = ({ ...request } as unknown) as Indexable;
       delete jsonObj.database;
 
       const requestString = JSON.stringify(jsonObj);
