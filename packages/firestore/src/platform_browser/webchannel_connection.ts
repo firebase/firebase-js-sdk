@@ -172,7 +172,9 @@ export class WebChannelConnection implements Connection {
         }
       });
 
-      const requestString = JSON.stringify(request);
+      const jsonObj = {...request} as any;
+      delete jsonObj.database; // The database field is already encoded in URL.
+      const requestString = JSON.stringify(jsonObj);
       log.debug(LOG_TAG, 'XHR sending: ', url + ' ' + requestString);
       // Content-Type: text/plain will avoid preflight requests which might
       // mess with CORS and redirects by proxies. If we add custom headers
