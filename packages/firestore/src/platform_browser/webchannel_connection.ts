@@ -38,6 +38,7 @@ import { StreamBridge } from '../remote/stream_bridge';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
+import { Indexable } from '../util/misc';
 import { Rejecter, Resolver } from '../util/promise';
 import { StringMap } from '../util/types';
 
@@ -172,8 +173,12 @@ export class WebChannelConnection implements Connection {
         }
       });
 
-      const jsonObj = { ...request } as any;
-      delete jsonObj.database; // The database field is already encoded in URL.
+      // The database field is already encoded in URL. Specifying it again in
+      // the body is not necessary in production, and will cause duplicate field
+      // errors in the Firestore Emulator. Let's remove it.
+      const jsonObj = { ...request } as unknown as Indexable;
+      delete jsonObj.database;
+
       const requestString = JSON.stringify(jsonObj);
       log.debug(LOG_TAG, 'XHR sending: ', url + ' ' + requestString);
       // Content-Type: text/plain will avoid preflight requests which might
