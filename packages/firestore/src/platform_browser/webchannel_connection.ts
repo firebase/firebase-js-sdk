@@ -172,7 +172,7 @@ export class WebChannelConnection implements Connection {
         }
       });
 
-      const jsonObj = {...request} as any;
+      const jsonObj = { ...request } as any;
       delete jsonObj.database; // The database field is already encoded in URL.
       const requestString = JSON.stringify(jsonObj);
       log.debug(LOG_TAG, 'XHR sending: ', url + ' ' + requestString);
