@@ -470,8 +470,12 @@ describe('Query', () => {
       .addFilter(filter('bar', '>', 2))
       .addOrderBy(orderBy('bar'));
 
-    const q7a = Query.atPath(path('foo')).withLimitToFirst(10);
-    const q8a = Query.atPath(path('foo')).withLimitToLast(10);
+    const q7a = Query.atPath(path('foo'))
+      .withLimitToFirst(10)
+      .toTargetQuery();
+    const q8a = Query.atPath(path('foo'))
+      .withLimitToLast(10)
+      .toTargetQuery();
 
     const lip1a = bound([[DOCUMENT_KEY_NAME, 'coll/foo', 'asc']], true);
     const lip1b = bound([[DOCUMENT_KEY_NAME, 'coll/foo', 'asc']], false);

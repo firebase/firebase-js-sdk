@@ -226,38 +226,41 @@ export class Query {
     );
   }
 
-  // TODO(b/29183165): This is used to get a unique string from a query to, for
-  // example, use as a dictionary key, but the implementation is subject to
-  // collisions. Make it collision-free.
+  /**
+   * Returns a "canonical ID" for the query which is a stable string representation
+   * of the query that can be stored as a key in dictionaries or persistence tables.
+   * It is similar to a hash code (and like a hash code it need not be collision-free),
+   * but since it is persisted to disk, we must be careful any future changes are
+   * backwards-compatible.
+   */
   canonicalId(): string {
-    const query = this.convertLimitToFirstIfNecessary();
     if (this.memoizedCanonicalId === null) {
-      let canonicalId = query.path.canonicalString();
-      if (query.isCollectionGroupQuery()) {
-        canonicalId += '|cg:' + query.collectionGroup;
+      let canonicalId = this.path.canonicalString();
+      if (this.isCollectionGroupQuery()) {
+        canonicalId += '|cg:' + this.collectionGroup;
       }
       canonicalId += '|f:';
-      for (const filter of query.filters) {
+      for (const filter of this.filters) {
         canonicalId += filter.canonicalId();
         canonicalId += ',';
       }
       canonicalId += '|ob:';
       // TODO(dimond): make this collision resistant
-      for (const orderBy of query.orderBy) {
+      for (const orderBy of this.orderBy) {
         canonicalId += orderBy.canonicalId();
         canonicalId += ',';
       }
-      if (!isNullOrUndefined(query.limit)) {
+      if (!isNullOrUndefined(this.limit)) {
         canonicalId += '|l:';
-        canonicalId += query.limit!;
+        canonicalId += this.limit!;
       }
-      if (query.startAt) {
+      if (this.startAt) {
         canonicalId += '|lb:';
-        canonicalId += query.startAt.canonicalId();
+        canonicalId += this.startAt.canonicalId();
       }
-      if (query.endAt) {
+      if (this.endAt) {
         canonicalId += '|ub:';
-        canonicalId += query.endAt.canonicalId();
+        canonicalId += this.endAt.canonicalId();
       }
       this.memoizedCanonicalId = canonicalId;
     }
@@ -419,7 +422,7 @@ export class Query {
    * Converts limitToLast queries to limitToFirst queries since the serializer
    * doesn't support them.
    */
-  convertLimitToFirstIfNecessary(): Query {
+  private convertLimitToFirstIfNecessary(): Query {
     if (this.limitType === LimitType.First) {
       return this;
     } else {

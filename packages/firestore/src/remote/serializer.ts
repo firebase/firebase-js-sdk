@@ -1107,7 +1107,6 @@ export class JsonProtoSerializer {
       endAt = this.fromCursor(query.endAt);
     }
 
-    // TODO(limitToLast): Persist limitType somehow? :-/
     return new Query(
       path,
       collectionGroup,
