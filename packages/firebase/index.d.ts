@@ -1098,6 +1098,26 @@ declare namespace firebase {
   function performance(
     app?: firebase.app.App
   ): firebase.performance.Performance;
+
+  /**
+   * Gets the {@link firebase.analytics.Analytics `Analytics`} service.
+   *
+   * `firebase.analytics()` can be called with no arguments to access the default
+   * app's {@link firebase.analytics.Analytics `Analytics`} service.
+   *
+   * @webonly
+   *
+   * @example
+   * ```javascript
+   * // Get the Analytics service for the default app
+   * const defaultAnalytics = firebase.analytics();
+   * ```
+   *
+   * @param app The app to create an analytics service for.
+   * If not passed, uses the default app.
+   */
+
+  function analytics(app?: firebase.app.App): firebase.analytics.Analytics;
 }
 
 declare namespace firebase.app {
@@ -1250,6 +1270,20 @@ declare namespace firebase.app {
      * ```
      */
     performance(): firebase.performance.Performance;
+    /**
+     * Gets the {@link firebase.analytics.Analytics `Analytics`} service for the
+     * current app. If the current app is not the default one, throws an error.
+     *
+     * @webonly
+     *
+     * @example
+     * ```javascript
+     * const analytics = app.analytics();
+     * // The above is shorthand for:
+     * // const analytics = firebase.analytics(app);
+     * ```
+     */
+    analytics(): firebase.analytics.Analytics;
   }
 }
 
@@ -3705,6 +3739,565 @@ declare namespace firebase.auth {
   interface UserMetadata {
     creationTime?: string;
     lastSignInTime?: string;
+  }
+}
+
+/**
+ * @webonly
+ */
+declare namespace firebase.analytics {
+  /**
+   * The Firebase Analytics service interface.
+   *
+   * Do not call this constructor directly. Instead, use
+   * {@link firebase.analytics `firebase.analytics()`}.
+   */
+  export interface Analytics {
+    /**
+     * The {@link firebase.app.App app} associated with the `Analytics` service
+     * instance.
+     *
+     * @example
+     * ```javascript
+     * var app = analytics.app;
+     * ```
+     */
+    app: firebase.app.App;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart',
+      eventParams: {
+        currency?: EventParams['currency'];
+        value?: EventParams['value'];
+        items?: EventParams['items'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'begin_checkout',
+      eventParams: {
+        currency?: EventParams['currency'];
+        coupon?: EventParams['coupon'];
+        value?: EventParams['value'];
+        items?: EventParams['items'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'checkout_progress',
+      eventParams: {
+        currency?: EventParams['currency'];
+        coupon?: EventParams['coupon'];
+        value?: EventParams['value'];
+        items?: EventParams['items'];
+        checkout_step?: EventParams['checkout_step'];
+        checkout_option?: EventParams['checkout_option'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'exception',
+      eventParams: {
+        description?: EventParams['description'];
+        fatal?: EventParams['fatal'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'generate_lead',
+      eventParams: {
+        value?: EventParams['value'];
+        currency?: EventParams['currency'];
+        transaction_id?: EventParams['transaction_id'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'login',
+      eventParams: {
+        method?: EventParams['method'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'purchase',
+      eventParams: {
+        value?: EventParams['value'];
+        currency?: EventParams['currency'];
+        transaction_id: EventParams['transaction_id'];
+        tax?: EventParams['tax'];
+        shipping?: EventParams['shipping'];
+        items?: EventParams['items'];
+        coupon?: EventParams['coupon'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'refund',
+      eventParams: {
+        value?: EventParams['value'];
+        currency?: EventParams['currency'];
+        transaction_id: EventParams['transaction_id'];
+        tax?: EventParams['tax'];
+        shipping?: EventParams['shipping'];
+        items?: EventParams['items'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'screen_view',
+      eventParams: {
+        app_name: string;
+        screen_name: EventParams['screen_name'];
+        app_id?: string;
+        app_version?: string;
+        app_installer_id?: string;
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'search' | 'view_search_results',
+      eventParams: {
+        search_term?: EventParams['search_term'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'select_content',
+      eventParams: {
+        items?: EventParams['items'];
+        promotions?: EventParams['promotions'];
+        content_type?: EventParams['content_type'];
+        content_id?: EventParams['content_id'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'set_checkout_option',
+      eventParams: {
+        checkout_step?: EventParams['checkout_step'];
+        checkout_option?: EventParams['checkout_option'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'share',
+      eventParams: {
+        method?: EventParams['method'];
+        content_type?: EventParams['content_type'];
+        content_id?: EventParams['content_id'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'sign_up',
+      eventParams: {
+        method?: EventParams['method'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'timing_complete',
+      eventParams: {
+        name: string;
+        value: number;
+        event_category?: string;
+        event_label?: string;
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'view_item' | 'view_item_list',
+      eventParams: {
+        items?: EventParams['items'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'view_promotion',
+      eventParams: {
+        promotions?: EventParams['promotions'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent<T extends string>(
+      eventName: CustomEventName<T>,
+      eventParams: { [key: string]: any },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Use gtag 'config' command to set 'screen_name'.
+     */
+    setCurrentScreen(
+      screenName: string,
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Use gtag 'config' command to set 'user_id'.
+     */
+    setUserId(
+      id: string,
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Use gtag 'config' command to set all params specified.
+     */
+    setUserProperties(
+      properties: firebase.analytics.CustomParams,
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sets whether analytics collection is enabled for this app on this device.
+     * window['ga-disable-analyticsId'] = true;
+     */
+    setAnalyticsCollectionEnabled(enabled: boolean): void;
+  }
+
+  export type CustomEventName<T> = T extends EventNameString ? never : T;
+
+  /**
+   * Additional options that can be passed to Firebase Analytics method
+   * calls such as `logEvent`, `setCurrentScreen`, etc.
+   */
+  export interface AnalyticsCallOptions {
+    /**
+     * If true, this config or event call applies globally to all
+     * analytics properties on the page.
+     */
+    global: boolean;
+  }
+
+  /**
+   * Specifies custom options for your Firebase Analytics instance.
+   * You must set these before initializing `firebase.analytics()`.
+   */
+  export interface SettingsOptions {
+    /** Sets custom name for `gtag` function. */
+    gtagName?: string;
+    /** Sets custom name for `dataLayer` array used by gtag. */
+    dataLayerName?: string;
+  }
+
+  /**
+   * Configures Firebase Analytics to use custom `gtag` or `dataLayer` names.
+   * Intended to be used if `gtag.js` script has been installed on
+   * this page independently of Firebase Analytics, and is using non-default
+   * names for either the `gtag` function or for `dataLayer`.
+   * Must be called before calling `firebase.analytics()` or it won't
+   * have any effect.
+   */
+  export function settings(settings: firebase.analytics.SettingsOptions): void;
+
+  /**
+   * Standard gtag.js control parameters.
+   * For more information, see
+   * {@link https://developers.google.com/gtagjs/reference/parameter
+   * the gtag.js documentation on parameters}.
+   */
+  export interface ControlParams {
+    groups?: string | string[];
+    send_to?: string | string[];
+    event_callback?: () => void;
+    event_timeout?: number;
+  }
+
+  /**
+   * Standard gtag.js event parameters.
+   * For more information, see
+   * {@link https://developers.google.com/gtagjs/reference/parameter
+   * the gtag.js documentation on parameters}.
+   */
+  export interface EventParams {
+    checkout_option?: string;
+    checkout_step?: number;
+    content_id?: string;
+    content_type?: string;
+    coupon?: string;
+    currency?: string;
+    description?: string;
+    fatal?: boolean;
+    items?: Item[];
+    method?: string;
+    number?: string;
+    promotions?: Promotion[];
+    screen_name?: string;
+    search_term?: string;
+    shipping?: Currency;
+    tax?: Currency;
+    transaction_id?: string;
+    value?: number;
+    event_label?: string;
+    event_category: string;
+  }
+
+  /**
+   * Any custom params the user may pass to gtag.js.
+   */
+  export interface CustomParams {
+    [key: string]: any;
+  }
+
+  /**
+   * Type for standard gtag.js event names. `logEvent` also accepts any
+   * custom string and interprets it as a custom event name.
+   */
+  export type EventNameString =
+    | 'add_payment_info'
+    | 'add_to_cart'
+    | 'add_to_wishlist'
+    | 'begin_checkout'
+    | 'checkout_progress'
+    | 'exception'
+    | 'generate_lead'
+    | 'login'
+    | 'page_view'
+    | 'purchase'
+    | 'refund'
+    | 'remove_from_cart'
+    | 'screen_view'
+    | 'search'
+    | 'select_content'
+    | 'set_checkout_option'
+    | 'share'
+    | 'sign_up'
+    | 'timing_complete'
+    | 'view_item'
+    | 'view_item_list'
+    | 'view_promotion'
+    | 'view_search_results';
+
+  /**
+   * Enum of standard gtag.js event names provided for convenient
+   * developer usage. `logEvent` will also accept any custom string
+   * and interpret it as a custom event name.
+   */
+  export enum EventName {
+    ADD_PAYMENT_INFO = 'add_payment_info',
+    ADD_TO_CART = 'add_to_cart',
+    ADD_TO_WISHLIST = 'add_to_wishlist',
+    BEGIN_CHECKOUT = 'begin_checkout',
+    CHECKOUT_PROGRESS = 'checkout_progress',
+    EXCEPTION = 'exception',
+    GENERATE_LEAD = 'generate_lead',
+    LOGIN = 'login',
+    PAGE_VIEW = 'page_view',
+    PURCHASE = 'purchase',
+    REFUND = 'refund',
+    REMOVE_FROM_CART = 'remove_from_cart',
+    SCREEN_VIEW = 'screen_view',
+    SEARCH = 'search',
+    SELECT_CONTENT = 'select_content',
+    SET_CHECKOUT_OPTION = 'set_checkout_option',
+    SHARE = 'share',
+    SIGN_UP = 'sign_up',
+    TIMING_COMPLETE = 'timing_complete',
+    VIEW_ITEM = 'view_item',
+    VIEW_ITEM_LIST = 'view_item_list',
+    VIEW_PROMOTION = 'view_promotion',
+    VIEW_SEARCH_RESULTS = 'view_search_results'
+  }
+
+  export type Currency = string | number;
+
+  export interface Item {
+    brand?: string;
+    category?: string;
+    creative_name?: string;
+    creative_slot?: string;
+    id?: string;
+    location_id?: string;
+    name?: string;
+    price?: Currency;
+    quantity?: number;
+  }
+
+  export interface Promotion {
+    creative_name?: string;
+    creative_slot?: string;
+    id?: string;
+    name?: string;
   }
 }
 

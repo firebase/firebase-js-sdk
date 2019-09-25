@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,18 @@
  * limitations under the License.
  */
 
-/* eslint-disable camelcase */
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const karmaBase = require('../../config/karma.base');
 
-export interface NotificationDetails extends NotificationOptions {
-  title: string;
-  click_action?: string;
-}
+const files = [`**/*.test.ts`];
 
-export interface FcmOptions {
-  link?: string;
-}
+module.exports = function(config) {
+  config.set({
+    ...karmaBase,
+    files,
+    preprocessors: { '**/*.ts': ['webpack', 'sourcemap'] },
+    frameworks: ['mocha']
+  });
+};
 
-export interface MessagePayload {
-  fcmOptions?: FcmOptions;
-  notification?: NotificationDetails;
-  data?: { [key: string]: unknown };
-}
+module.exports.files = files;

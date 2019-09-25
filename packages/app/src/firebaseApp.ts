@@ -36,10 +36,6 @@ interface ServicesCache {
   };
 }
 
-// An array to capture listeners before the true auth functions
-// exist
-let tokenListeners: Array<(token: string | null) => void> = [];
-
 /**
  * Global context object for a collection of services using
  * a shared authentication state.
@@ -50,6 +46,12 @@ export class FirebaseAppImpl implements FirebaseApp {
   private isDeleted_ = false;
   private services_: ServicesCache = {};
   private automaticDataCollectionEnabled_: boolean;
+  // An array to capture listeners before the true auth functions
+  // exist
+  private tokenListeners_: Array<(token: string | null) => void> = [];
+  // An array to capture requests to send events before analytics component loads.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any, use any here to make using function.apply easier
+  private analyticsEventRequests_: any[] = [];
 
   INTERNAL: FirebaseAppInternals;
 
@@ -62,18 +64,24 @@ export class FirebaseAppImpl implements FirebaseApp {
     this.automaticDataCollectionEnabled_ =
       config.automaticDataCollectionEnabled || false;
     this.options_ = deepCopy<FirebaseOptions>(options);
+    const self = this;
     this.INTERNAL = {
       getUid: () => null,
       getToken: () => Promise.resolve(null),
       addAuthTokenListener: (callback: (token: string | null) => void) => {
-        tokenListeners.push(callback);
+        this.tokenListeners_.push(callback);
         // Make sure callback is called, asynchronously, in the absence of the auth module
         setTimeout(() => callback(null), 0);
       },
       removeAuthTokenListener: callback => {
-        tokenListeners = tokenListeners.filter(
+        this.tokenListeners_ = this.tokenListeners_.filter(
           listener => listener !== callback
         );
+      },
+      analytics: {
+        logEvent() {
+          self.analyticsEventRequests_.push(arguments);
+        }
       }
     };
   }
@@ -196,20 +204,31 @@ export class FirebaseAppImpl implements FirebaseApp {
     // Copy the object onto the FirebaseAppImpl prototype
     deepExtend(this, props);
 
-    /**
-     * If the app has overwritten the addAuthTokenListener stub, forward
-     * the active token listeners on to the true fxn.
-     *
-     * TODO: This function is required due to our current module
-     * structure. Once we are able to rely strictly upon a single module
-     * implementation, this code should be refactored and Auth should
-     * provide these stubs and the upgrade logic
-     */
-    if (props.INTERNAL && props.INTERNAL.addAuthTokenListener) {
-      tokenListeners.forEach(listener => {
-        this.INTERNAL.addAuthTokenListener(listener);
-      });
-      tokenListeners = [];
+    if (props.INTERNAL) {
+      /**
+       * If the app has overwritten the addAuthTokenListener stub, forward
+       * the active token listeners on to the true fxn.
+       *
+       * TODO: This function is required due to our current module
+       * structure. Once we are able to rely strictly upon a single module
+       * implementation, this code should be refactored and Auth should
+       * provide these stubs and the upgrade logic
+       */
+      if (props.INTERNAL.addAuthTokenListener) {
+        for (const listener of this.tokenListeners_) {
+          this.INTERNAL.addAuthTokenListener(listener);
+        }
+        this.tokenListeners_ = [];
+      }
+
+      if (props.INTERNAL.analytics) {
+        for (const request of this.analyticsEventRequests_) {
+          // logEvent is the actual implementation at this point.
+          // We forward the queued events to it.
+          this.INTERNAL.analytics.logEvent.apply(undefined, request);
+        }
+        this.analyticsEventRequests_ = [];
+      }
     }
   }
 

@@ -17,17 +17,12 @@
 
 import { MessagePayload } from '../interfaces/message-payload';
 
-export enum MessageParameter {
-  TYPE_OF_MSG = 'firebase-messaging-msg-type',
-  DATA = 'firebase-messaging-msg-data'
-}
-
 export enum MessageType {
   PUSH_MSG_RECEIVED = 'push-msg-received',
   NOTIFICATION_CLICKED = 'notification-clicked'
 }
 
 export interface InternalMessage {
-  [MessageParameter.TYPE_OF_MSG]: MessageType;
-  [MessageParameter.DATA]: MessagePayload;
+  firebaseMessagingType: MessageType;
+  firebaseMessagingData: MessagePayload;
 }

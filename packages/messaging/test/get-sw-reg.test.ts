@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import * as sinon from 'sinon';
+import { stub, restore } from 'sinon';
 
 import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
@@ -31,18 +31,16 @@ const app = makeFakeApp({
 });
 
 describe('Firebase Messaging > *Controller.getSWReg_()', () => {
-  const sandbox = sinon.sandbox.create();
-
   const mockWindowRegistration = (
     registration: ServiceWorkerRegistration
   ): void => {
-    sandbox
-      .stub(navigator.serviceWorker, 'register')
-      .callsFake(async () => registration);
+    stub(navigator.serviceWorker, 'register').callsFake(
+      async () => registration
+    );
   };
 
   const cleanUp = (): void => {
-    sandbox.restore();
+    restore();
   };
 
   beforeEach(() => {
@@ -116,10 +114,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
 
   it('should make registration error available to developer', () => {
     const errorMsg = 'test-reg-error-1234567890';
-    const mockRegisterMethod = sandbox.stub(
-      navigator.serviceWorker,
-      'register'
-    );
+    const mockRegisterMethod = stub(navigator.serviceWorker, 'register');
     mockRegisterMethod.callsFake(async () => {
       throw new Error(errorMsg);
     });

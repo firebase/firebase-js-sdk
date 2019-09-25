@@ -15,19 +15,19 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { stub, restore } from 'sinon';
 
 import { ERROR_MAP, ErrorCode } from '../src/models/errors';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
-import { IidModel } from '../src/models/iid-model';
+import { SubscriptionManager } from '../src/models/subscription-manager';
 
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { fetchMock } from './testing-utils/mock-fetch';
+import { FirebaseApp } from '@firebase/app-types';
+import { makeFakeApp } from './testing-utils/make-fake-app';
+import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
+import { TokenDetails } from '../src/interfaces/token-details';
 
-const fcmSenderId = '1234567';
-const fcmToken = 'qwerty';
-const fcmPushSet = '7654321';
-let subscription: PushSubscription;
 // prettier-ignore
 const appPubKey = new Uint8Array([
   255, 237, 107, 177, 171, 78, 84, 131, 221, 231, 87, 188, 22, 232, 71, 15
@@ -38,63 +38,75 @@ function getDefaultPublicKey(): Uint8Array {
   return new Uint8Array(DEFAULT_PUBLIC_VAPID_KEY);
 }
 
-describe('Firebase Messaging > IidModel', () => {
-  let sandbox: sinon.SinonSandbox;
-  let iidModel: IidModel;
-
-  before(() => {
-    subscription = makeFakeSubscription();
-  });
+describe('Firebase Messaging > SubscriptionManager', () => {
+  let app: FirebaseApp;
+  let subscription: PushSubscription;
+  let tokenDetails: TokenDetails;
+  let subscriptionManager: SubscriptionManager;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
-    iidModel = new IidModel();
+    app = makeFakeApp();
+    subscription = makeFakeSubscription();
+    tokenDetails = {
+      swScope: '/example-scope',
+      vapidKey: base64ToArrayBuffer(
+        'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
+          '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+      ),
+      fcmSenderId: app.options.messagingSenderId!,
+      fcmToken: 'qwerty',
+      endpoint: subscription.endpoint,
+      auth: subscription.getKey('auth')!,
+      p256dh: subscription.getKey('p256dh')!,
+      createTime: Date.now()
+    };
+    subscriptionManager = new SubscriptionManager();
   });
 
   afterEach(() => {
-    sandbox.restore();
+    restore();
   });
 
   describe('getToken', () => {
     it('gets token on valid request with custom VAPID key', async () => {
       const mockResponse = {
-        token: fcmToken,
-        pushSet: fcmPushSet
+        token: tokenDetails.fcmToken
       };
-      const fetchStub = sandbox
-        .stub(window, 'fetch')
-        .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      const res = await iidModel.getToken(fcmSenderId, subscription, appPubKey);
-      expect(res).to.deep.equal(mockResponse);
-      expect(fetchStub.lastCall.args[1]!.body).to.include(
-        'application_pub_key'
+      const fetchStub = stub(window, 'fetch').returns(
+        fetchMock.jsonOk(JSON.stringify(mockResponse))
       );
+      const token = await subscriptionManager.getToken(
+        app,
+        subscription,
+        appPubKey
+      );
+      expect(token).to.equal(tokenDetails.fcmToken);
+      expect(fetchStub.lastCall.args[1]!.body).to.include('applicationPubKey');
     });
 
     it('gets token on valid request with default VAPID key', async () => {
       const mockResponse = {
-        token: fcmToken,
-        pushSet: fcmPushSet
+        token: tokenDetails.fcmToken
       };
-      const fetchStub = sandbox
-        .stub(window, 'fetch')
-        .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      const res = await iidModel.getToken(
-        fcmSenderId,
+      const fetchStub = stub(window, 'fetch').returns(
+        fetchMock.jsonOk(JSON.stringify(mockResponse))
+      );
+      const token = await subscriptionManager.getToken(
+        app,
         subscription,
         getDefaultPublicKey()
       );
-      expect(res).to.deep.equal(mockResponse);
+      expect(token).to.equal(tokenDetails.fcmToken);
       expect(fetchStub.lastCall.args[1]!.body).not.to.include(
-        'application_pub_key'
+        'applicationPubKey'
       );
     });
 
     it('handles fetch errors', async () => {
       const errorMsg = 'invalid token';
-      sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
+      stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
       try {
-        await iidModel.getToken(fcmSenderId, subscription, appPubKey);
+        await subscriptionManager.getToken(app, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.message).to.include(errorMsg);
@@ -102,11 +114,9 @@ describe('Firebase Messaging > IidModel', () => {
     });
 
     it('handles fetch errors, HTML response returned', async () => {
-      sandbox
-        .stub(window, 'fetch')
-        .returns(fetchMock.htmlError(400, 'html-response'));
+      stub(window, 'fetch').returns(fetchMock.htmlError(400, 'html-response'));
       try {
-        await iidModel.getToken(fcmSenderId, subscription, appPubKey);
+        await subscriptionManager.getToken(app, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ErrorCode.TOKEN_SUBSCRIBE_FAILED);
@@ -114,14 +124,12 @@ describe('Firebase Messaging > IidModel', () => {
     });
 
     it('handles invalid fetch response, no FCM token returned', async () => {
-      const mockInvalidResponse = {
-        pushSet: fcmPushSet
-      };
-      sandbox
-        .stub(window, 'fetch')
-        .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
+      const mockInvalidResponse = {};
+      stub(window, 'fetch').returns(
+        fetchMock.jsonOk(JSON.stringify(mockInvalidResponse))
+      );
       try {
-        await iidModel.getToken(fcmSenderId, subscription, appPubKey);
+        await subscriptionManager.getToken(app, subscription, appPubKey);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.message).to.include(
@@ -129,72 +137,50 @@ describe('Firebase Messaging > IidModel', () => {
         );
       }
     });
-
-    it('handles invalid fetch response, no push set token returned', async () => {
-      const mockInvalidResponse = {
-        token: fcmToken
-      };
-      sandbox
-        .stub(window, 'fetch')
-        .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
-      try {
-        await iidModel.getToken(fcmSenderId, subscription, appPubKey);
-        throw new Error('Expected error to be thrown.');
-      } catch (e) {
-        expect(e.code).to.include(ErrorCode.TOKEN_SUBSCRIBE_NO_PUSH_SET);
-      }
-    });
   });
 
   describe('updateToken', () => {
     it('updates on valid request with custom VAPID key', async () => {
-      const mockResponse = { token: fcmToken };
-      const fetchStub = sandbox
-        .stub(window, 'fetch')
-        .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      const res = await iidModel.updateToken(
-        fcmSenderId,
-        fcmToken,
-        fcmPushSet,
+      const mockResponse = { token: tokenDetails.fcmToken };
+      const fetchStub = stub(window, 'fetch').returns(
+        fetchMock.jsonOk(JSON.stringify(mockResponse))
+      );
+      const res = await subscriptionManager.updateToken(
+        tokenDetails,
+        app,
         subscription,
         appPubKey
       );
-      expect(res).to.equal(fcmToken);
-      expect(fetchStub.lastCall.args[1]!.body).to.include(
-        'application_pub_key'
-      );
+      expect(res).to.equal(tokenDetails.fcmToken);
+      expect(fetchStub.lastCall.args[1]!.body).to.include('applicationPubKey');
     });
 
     it('updates on valid request with default VAPID key', async () => {
-      const mockResponse = { token: fcmToken };
-      const fetchStub = sandbox
-        .stub(window, 'fetch')
-        .returns(fetchMock.jsonOk(JSON.stringify(mockResponse)));
-      const res = await iidModel.updateToken(
-        fcmSenderId,
-        fcmToken,
-        fcmPushSet,
+      const mockResponse = { token: tokenDetails.fcmToken };
+      const fetchStub = stub(window, 'fetch').returns(
+        fetchMock.jsonOk(JSON.stringify(mockResponse))
+      );
+      const res = await subscriptionManager.updateToken(
+        tokenDetails,
+        app,
         subscription,
         getDefaultPublicKey()
       );
-      expect(res).to.equal(fcmToken);
+      expect(res).to.equal(tokenDetails.fcmToken);
       expect(fetchStub.lastCall.args[1]!.body).not.to.include(
-        'application_pub_key'
+        'applicationPubKey'
       );
     });
 
     it('handles invalid fetch response, no FCM token returned', async () => {
-      const mockInvalidResponse = {
-        pushSet: fcmPushSet
-      };
-      sandbox
-        .stub(window, 'fetch')
-        .returns(fetchMock.jsonOk(JSON.stringify(mockInvalidResponse)));
+      const mockInvalidResponse = {};
+      stub(window, 'fetch').returns(
+        fetchMock.jsonOk(JSON.stringify(mockInvalidResponse))
+      );
       try {
-        await iidModel.updateToken(
-          fcmSenderId,
-          fcmToken,
-          fcmPushSet,
+        await subscriptionManager.updateToken(
+          tokenDetails,
+          app,
           subscription,
           appPubKey
         );
@@ -205,14 +191,11 @@ describe('Firebase Messaging > IidModel', () => {
     });
 
     it('handles invalid fetch response, HTML reponse returned', async () => {
-      sandbox
-        .stub(window, 'fetch')
-        .returns(fetchMock.htmlError(404, 'html-response'));
+      stub(window, 'fetch').returns(fetchMock.htmlError(404, 'html-response'));
       try {
-        await iidModel.updateToken(
-          fcmSenderId,
-          fcmToken,
-          fcmPushSet,
+        await subscriptionManager.updateToken(
+          tokenDetails,
+          app,
           subscription,
           appPubKey
         );
@@ -224,12 +207,11 @@ describe('Firebase Messaging > IidModel', () => {
 
     it('handles fetch errors', async () => {
       const errorMsg = 'invalid token';
-      sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
+      stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
       try {
-        await iidModel.updateToken(
-          fcmSenderId,
-          fcmToken,
-          fcmPushSet,
+        await subscriptionManager.updateToken(
+          tokenDetails,
+          app,
           subscription,
           appPubKey
         );
@@ -242,17 +224,17 @@ describe('Firebase Messaging > IidModel', () => {
 
   describe('deleteToken', () => {
     it('deletes on valid request', async () => {
-      sandbox.stub(window, 'fetch').returns(fetchMock.jsonOk('{}'));
-      await iidModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
+      stub(window, 'fetch').returns(fetchMock.jsonOk('{}'));
+      await subscriptionManager.deleteToken(app, tokenDetails);
     });
 
     it('handles fetch errors', async () => {
       const errorMsg = 'invalid token';
 
-      sandbox.stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
+      stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
 
       try {
-        await iidModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
+        await subscriptionManager.deleteToken(app, tokenDetails);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED);
@@ -260,10 +242,10 @@ describe('Firebase Messaging > IidModel', () => {
     });
 
     it('handles fetch errors, HTML response returned', async () => {
-      const stubbedFetch = sandbox.stub(window, 'fetch');
+      const stubbedFetch = stub(window, 'fetch');
       stubbedFetch.returns(fetchMock.htmlError(404, 'html-response'));
       try {
-        await iidModel.deleteToken(fcmSenderId, fcmToken, fcmPushSet);
+        await subscriptionManager.deleteToken(app, tokenDetails);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED);

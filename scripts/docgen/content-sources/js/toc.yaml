@@ -11,6 +11,28 @@ toc:
   - title: "App"
     path: /docs/reference/js/firebase.app.App
 
+- title: "firebase.analytics"
+  path: /docs/reference/js/firebase.analytics
+  section:
+  - title: "Analytics"
+    path: /docs/reference/js/firebase.analytics.Analytics
+  - title: "AnalyticsCallOptions"
+    path: /docs/reference/js/firebase.analytics.AnalyticsCallOptions
+  - title: "SettingsOptions"
+    path: /docs/reference/js/firebase.analytics.SettingsOptions
+  - title: "EventName"
+    path: /docs/reference/js/firebase.analytics.EventName
+  - title: "ControlParams"
+    path: /docs/reference/js/firebase.analytics.ControlParams
+  - title: "CustomParams"
+    path: /docs/reference/js/firebase.analytics.CustomParams
+  - title: "EventParams"
+    path: /docs/reference/js/firebase.analytics.EventParams
+  - title: "Item"
+    path: /docs/reference/js/firebase.analytics.Item
+  - title: "Promotion"
+    path: /docs/reference/js/firebase.analytics.Promotion
+
 - title: "firebase.auth"
   path: /docs/reference/js/firebase.auth
   section:

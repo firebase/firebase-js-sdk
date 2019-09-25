@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { _FirebaseApp } from '@firebase/app-types/private';
 import {
   CompleteFn,
   createSubscribe,
@@ -29,12 +30,14 @@ import {
 import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
 import { ErrorCode, errorFactory } from '../models/errors';
-import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import {
-  InternalMessage,
-  MessageParameter,
-  MessageType
-} from '../models/worker-page-message';
+  DEFAULT_PUBLIC_VAPID_KEY,
+  FN_CAMPAIGN_ID,
+  FN_CAMPAIGN_NAME,
+  FN_CAMPAIGN_TIME,
+  FN_CAMPAIGN_ANALYTICS_ENABLED
+} from '../models/fcm-details';
+import { InternalMessage, MessageType } from '../models/worker-page-message';
 import { BaseController } from './base-controller';
 
 export class WindowController extends BaseController {
@@ -256,8 +259,8 @@ export class WindowController extends BaseController {
   }
 
   /**
-   * This will return the default VAPID key or the uint8array version of the public VAPID key
-   * provided by the developer.
+   * This will return the default VAPID key or the uint8array version of the
+   * public VAPID key provided by the developer.
    */
   async getPublicVapidKey_(): Promise<Uint8Array> {
     if (this.publicVapidKeyToUse) {
@@ -278,26 +281,58 @@ export class WindowController extends BaseController {
     navigator.serviceWorker.addEventListener(
       'message',
       event => {
-        if (!event.data || !event.data[MessageParameter.TYPE_OF_MSG]) {
+        if (
+          !event.data ||
+          !event.data.firebaseMessagingType ||
+          !event.data.firebaseMessagingData
+        ) {
           // Not a message from FCM
           return;
         }
 
-        const workerPageMessage: InternalMessage = event.data;
-        switch (workerPageMessage[MessageParameter.TYPE_OF_MSG]) {
-          case MessageType.PUSH_MSG_RECEIVED:
-          case MessageType.NOTIFICATION_CLICKED:
-            const pushMessage = workerPageMessage[MessageParameter.DATA];
-            if (this.messageObserver) {
-              this.messageObserver.next(pushMessage);
+        const {
+          firebaseMessagingType,
+          firebaseMessagingData
+        }: InternalMessage = event.data;
+
+        if (this.messageObserver) {
+          this.messageObserver.next(firebaseMessagingData);
+        }
+
+        const { data } = firebaseMessagingData;
+        if (
+          data &&
+          FN_CAMPAIGN_ID in data &&
+          data[FN_CAMPAIGN_ANALYTICS_ENABLED] === '1'
+        ) {
+          // This message has a campaign id, meaning it was sent using the FN Console.
+          // Analytics is enabled on this message, so we should log it.
+          const eventType = getEventType(firebaseMessagingType);
+          (this.app as _FirebaseApp).INTERNAL.analytics.logEvent(
+            eventType,
+            /* eslint-disable camelcase */
+            {
+              message_name: data[FN_CAMPAIGN_NAME],
+              message_id: data[FN_CAMPAIGN_ID],
+              message_time: data[FN_CAMPAIGN_TIME],
+              message_device_time: Math.floor(Date.now() / 1000)
             }
-            break;
-          default:
-            // Noop.
-            break;
+            /* eslint-enable camelcase */
+          );
         }
       },
       false
     );
+  }
+}
+
+function getEventType(messageType: MessageType): string {
+  switch (messageType) {
+    case MessageType.NOTIFICATION_CLICKED:
+      return 'notification_open';
+    case MessageType.PUSH_MSG_RECEIVED:
+      return 'notification_foreground';
+    default:
+      throw new Error();
   }
 }

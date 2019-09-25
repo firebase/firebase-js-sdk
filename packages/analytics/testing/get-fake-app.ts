@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,31 +15,29 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
+import { FirebaseApp } from '@firebase/app-types';
+import { stub } from 'sinon';
 
-export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
-  options = {
-    apiKey: 'apiKey',
-    projectId: 'projectId',
-    authDomain: 'authDomain',
-    messagingSenderId: '1234567890',
-    databaseURL: 'databaseUrl',
-    storageBucket: 'storageBucket',
-    appId: '1:777777777777:web:d93b5ca1475efe57',
-    ...options
-  };
+export function getFakeApp(
+  measurementId?: string,
+  fid: string = 'fid-1234'
+): FirebaseApp {
   return {
     name: 'appName',
-    options,
+    options: {
+      apiKey: 'apiKey',
+      projectId: 'projectId',
+      authDomain: 'authDomain',
+      messagingSenderId: 'messagingSenderId',
+      databaseURL: 'databaseUrl',
+      storageBucket: 'storageBucket',
+      appId: '1:777777777777:web:d93b5ca1475efe57',
+      measurementId
+    },
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    messaging: null as any,
-    installations() {
-      return {
-        getId: () => Promise.resolve('FID'),
-        getToken: () => Promise.resolve('authToken'),
-        delete: () => Promise.resolve()
-      };
-    }
+    installations: stub().returns({ getId: () => Promise.resolve(fid) }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    analytics: null as any
   };
 }
