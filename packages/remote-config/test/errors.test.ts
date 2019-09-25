@@ -15,6 +15,17 @@
  * limitations under the License.
  */
 
-export interface TestType {
-  prop?: string;
-}
+import { expect } from 'chai';
+import { hasErrorCode, ERROR_FACTORY, ErrorCode } from '../src/errors';
+import './setup';
+
+describe('hasErrorCode', () => {
+  it('defaults false', () => {
+    const error = new Error();
+    expect(hasErrorCode(error, ErrorCode.REGISTRATION_PROJECT_ID)).to.be.false;
+  });
+  it('returns true for FirebaseError with given code', () => {
+    const error = ERROR_FACTORY.create(ErrorCode.REGISTRATION_PROJECT_ID);
+    expect(hasErrorCode(error, ErrorCode.REGISTRATION_PROJECT_ID)).to.be.true;
+  });
+});
