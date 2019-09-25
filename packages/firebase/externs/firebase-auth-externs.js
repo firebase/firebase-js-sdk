@@ -900,7 +900,6 @@ firebase.auth.ActionCodeInfo.Operation = {
   VERIFY_EMAIL: 'VERIFY_EMAIL'
 };
 
-
 /**
  * A utility class to parse email action URLs.
  *
