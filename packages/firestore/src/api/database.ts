@@ -1864,6 +1864,7 @@ export class Query implements firestore.Query {
     options: ListenOptions,
     observer: PartialObserver<firestore.QuerySnapshot>
   ): Unsubscribe {
+    this.validateHasExplicitOrderByForLimitToLast(this._query);
     let errHandler = (err: Error): void => {
       console.error('Uncaught Error in onSnapshot:', err);
     };
@@ -1890,6 +1891,15 @@ export class Query implements firestore.Query {
       asyncObserver.mute();
       firestoreClient.unlisten(internalListener);
     };
+  }
+
+  private validateHasExplicitOrderByForLimitToLast(query: InternalQuery): void {
+    if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        'limitToLast() Query without explicit orderBy() is not supported yet.'
+      );
+    }
   }
 
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot> {

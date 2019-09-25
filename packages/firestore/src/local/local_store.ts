@@ -716,13 +716,11 @@ export class LocalStore {
       'readwrite',
       txn => {
         let queryData: QueryData;
-        console.log(`Allocating for query ${query.canonicalId()}`);
+        const targetQuery = query.toTargetQuery();
         return this.queryCache
-          .getQueryData(txn, query)
+          .getQueryData(txn, targetQuery)
           .next((cached: QueryData | null) => {
             if (cached) {
-              console.log(`cached: ${cached.query.toString()}\n`);
-              console.log(`query : ${query.toString()}\n`);
               // Make sure target is not allocated to a mirror query already.
               assert(
                 cached.query.isEqual(query),
@@ -737,7 +735,7 @@ export class LocalStore {
             } else {
               return this.queryCache.allocateTargetId(txn).next(targetId => {
                 queryData = new QueryData(
-                  query,
+                  targetQuery,
                   targetId,
                   QueryPurpose.Listen,
                   txn.currentSequenceNumber
@@ -749,7 +747,7 @@ export class LocalStore {
           .next(() => {
             assert(
               !this.queryDataByTarget[queryData.targetId],
-              'Tried to allocate an already allocated query: ' + query
+              'Tried to allocate an already allocated query: ' + targetQuery
             );
             this.queryDataByTarget[queryData.targetId] = queryData;
             return queryData;
@@ -766,13 +764,14 @@ export class LocalStore {
   // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
   releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
     const mode = keepPersistedQueryData ? 'readwrite' : 'readwrite-primary';
+    const targetQuery = query.toTargetQuery();
     return this.persistence.runTransaction('Release query', mode, txn => {
       return this.queryCache
-        .getQueryData(txn, query)
+        .getQueryData(txn, targetQuery)
         .next((queryData: QueryData | null) => {
           assert(
             queryData != null,
-            'Tried to release nonexistent query: ' + query
+            'Tried to release nonexistent query: ' + targetQuery
           );
           const targetId = queryData!.targetId;
           const cachedQueryData = this.queryDataByTarget[targetId];

@@ -65,7 +65,7 @@ describe('IndexedDbQueryCache', () => {
     const query = Query.atPath(path('rooms'));
     await queryCache1.addQueryData(
       new QueryData(
-        query,
+        query.toTargetQuery(),
         targetId,
         QueryPurpose.Listen,
         originalSequenceNumber,
@@ -122,7 +122,7 @@ function genericQueryCacheTests(
     const snapshotVersion = SnapshotVersion.fromMicroseconds(version);
     const resumeToken = resumeTokenForSnapshot(snapshotVersion);
     return new QueryData(
-      query,
+      query.toTargetQuery(),
       targetId,
       QueryPurpose.Listen,
       ++previousSequenceNumber,
@@ -146,7 +146,7 @@ function genericQueryCacheTests(
   });
 
   it('returns null for query not in cache', () => {
-    return cache.getQueryData(QUERY_ROOMS).then(queryData => {
+    return cache.getQueryData(QUERY_ROOMS.toTargetQuery()).then(queryData => {
       expect(queryData).to.equal(null);
     });
   });
@@ -161,8 +161,12 @@ function genericQueryCacheTests(
   it('handles canonical ID collisions', async () => {
     // Type information is currently lost in our canonicalID implementations so
     // this currently an easy way to force colliding canonicalIDs
-    const q1 = Query.atPath(path('a')).addFilter(filter('foo', '==', 1));
-    const q2 = Query.atPath(path('a')).addFilter(filter('foo', '==', '1'));
+    const q1 = Query.atPath(path('a'))
+      .addFilter(filter('foo', '==', 1))
+      .toTargetQuery();
+    const q2 = Query.atPath(path('a'))
+      .addFilter(filter('foo', '==', '1'))
+      .toTargetQuery();
     expect(q1.canonicalId()).to.equal(q2.canonicalId());
 
     const data1 = testQueryData(q1, 1, 1);
@@ -204,7 +208,7 @@ function genericQueryCacheTests(
     const queryData = testQueryData(QUERY_ROOMS, 1, 1);
     await cache.addQueryData(queryData);
     await cache.removeQueryData(queryData);
-    const read = await cache.getQueryData(QUERY_ROOMS);
+    const read = await cache.getQueryData(QUERY_ROOMS.toTargetQuery());
     expect(read).to.equal(null);
   });
 
@@ -360,9 +364,19 @@ function genericQueryCacheTests(
   });
 
   it('sets the highest sequence number', async () => {
-    const query1 = new QueryData(QUERY_ROOMS, 1, QueryPurpose.Listen, 10);
+    const query1 = new QueryData(
+      QUERY_ROOMS.toTargetQuery(),
+      1,
+      QueryPurpose.Listen,
+      10
+    );
     await cache.addQueryData(query1);
-    const query2 = new QueryData(QUERY_HALLS, 2, QueryPurpose.Listen, 20);
+    const query2 = new QueryData(
+      QUERY_HALLS.toTargetQuery(),
+      2,
+      QueryPurpose.Listen,
+      20
+    );
     await cache.addQueryData(query2);
     expect(await cache.getHighestSequenceNumber()).to.equal(20);
 
@@ -370,7 +384,12 @@ function genericQueryCacheTests(
     await cache.removeQueryData(query2);
     expect(await cache.getHighestSequenceNumber()).to.equal(20);
 
-    const query3 = new QueryData(QUERY_GARAGES, 3, QueryPurpose.Listen, 100);
+    const query3 = new QueryData(
+      QUERY_GARAGES.toTargetQuery(),
+      3,
+      QueryPurpose.Listen,
+      100
+    );
     await cache.addQueryData(query3);
     expect(await cache.getHighestSequenceNumber()).to.equal(100);
 

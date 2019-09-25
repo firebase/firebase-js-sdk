@@ -1005,16 +1005,13 @@ export class JsonProtoSerializer {
       'DocumentsTarget contained other than 1 document: ' + count
     );
     const name = documentsTarget.documents![0];
-    return Query.atPath(this.fromQueryPath(name));
+    return Query.atPath(this.fromQueryPath(name)).toTargetQuery();
   }
 
   toQueryTarget(query: Query): api.QueryTarget {
-    // limitToLast is implemented client-side and must be "normalized" before
-    // sending to the backend.
-    query = query.convertLimitToFirstIfNecessary();
     assert(
-      query.hasLimitToLast() === false,
-      `Serializer doesn't support limitToLast queries.`
+      query.isTargetQuery,
+      `Serializer doesn't support non-target queries.`
     );
 
     // Dissect the path into parent, collectionId, and optional key filter.
@@ -1120,7 +1117,7 @@ export class JsonProtoSerializer {
       LimitType.First,
       startAt,
       endAt
-    );
+    ).toTargetQuery();
   }
 
   toListenRequestLabels(

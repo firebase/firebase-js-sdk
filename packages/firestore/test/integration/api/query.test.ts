@@ -61,19 +61,18 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  it('can issue limitToLast queries', () => {
+  it('cannot issue limitToLast queries without explicit order-by', () => {
     const testDocs = {
       a: { k: 'a' },
       b: { k: 'b' },
       c: { k: 'c' }
     };
-    return withTestCollection(persistence, testDocs, collection => {
-      return collection
-        .limitToLast(2)
-        .get()
-        .then(docs => {
-          expect(toDataArray(docs)).to.deep.equal([{ k: 'b' }, { k: 'c' }]);
-        });
+    return withTestCollection(persistence, testDocs, async collection => {
+      await expect(
+        collection.limitToLast(2).get()
+      ).to.be.eventually.rejectedWith(
+        'limitToLast() Query without explicit orderBy() is not supported yet.'
+      );
     });
   });
 
@@ -119,32 +118,32 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  it.only('queries map to same server query not implemented', () => {
+  it('can listen to limitToLast queries', () => {
     const testDocs = {
       a: { k: 'a', sort: 0 },
       b: { k: 'b', sort: 1 },
       c: { k: 'c', sort: 1 },
       d: { k: 'd', sort: 2 }
     };
-    return withTestCollection(persistence, testDocs, collection => {
-      const q1 = collection.orderBy('sort', 'asc').limitToFirst(2);
-      const q2 = collection.orderBy('sort', 'desc').limitToLast(2);
+    return withTestCollection(persistence, testDocs, async collection => {
+      const storeEvent = new EventsAccumulator<firestore.QuerySnapshot>();
+      collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeEvent.storeEvent);
 
-      const storeEvent1 = new EventsAccumulator<firestore.QuerySnapshot>();
-      const storeEvent2 = new EventsAccumulator<firestore.QuerySnapshot>();
+      let snapshot = await storeEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'a', sort: 0 }
+      ]);
 
-      q1.onSnapshot(storeEvent1.storeEvent);
-      const expectedError =
-        'QuerySnapshot.docChanges has been changed from a property into a method';
-
-      return storeEvent1
-        .awaitEvent()
-        .then(() => {
-          q2.onSnapshot(storeEvent2.storeEvent);
-        })
-        .catch(err => {
-          expect(err).to.equal(expectedError);
-        });
+      await collection.add({ k: 'e', sort: -1 });
+      snapshot = await storeEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'e', sort: -1 }
+      ]);
     });
   });
 

@@ -243,6 +243,10 @@ export class IndexedDbQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<QueryData | null> {
+    assert(
+      query.isTargetQuery,
+      'Must read QueryData via a TargetQuery from Indexdb query cache.'
+    );
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
     // depends on the queryTargets index to be efficient.

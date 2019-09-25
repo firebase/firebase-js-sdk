@@ -54,7 +54,8 @@ export class Query {
     readonly limit: number | null = null,
     readonly limitType: LimitType = LimitType.First,
     readonly startAt: Bound | null = null,
-    readonly endAt: Bound | null = null
+    readonly endAt: Bound | null = null,
+    readonly isTargetQuery: boolean = false
   ) {
     if (this.startAt) {
       this.assertValidBound(this.startAt);
@@ -177,7 +178,6 @@ export class Query {
       this.startAt,
       this.endAt
     );
-    console.log(`query is ${q}`);
     return q;
   }
 
@@ -266,8 +266,9 @@ export class Query {
 
   toString(): string {
     let str = 'Query(' + this.path.canonicalString();
+    str += ` isTargetQuery: ${this.isTargetQuery}`;
     if (this.isCollectionGroupQuery()) {
-      str += ' collectionGroup=' + this.collectionGroup;
+      str += ', collectionGroup=' + this.collectionGroup;
     }
     if (this.filters.length > 0) {
       str += `, filters: [${this.filters.join(', ')}]`;
@@ -452,6 +453,25 @@ export class Query {
         endAt
       );
     }
+  }
+
+  /**
+   * Returns a new query that is ready to be serialized and sent to backend, by translating
+   * client-only features (limitToLast, for example) to features backend supports.
+   */
+  toTargetQuery(): Query {
+    const query = this.convertLimitToFirstIfNecessary();
+    return new Query(
+      query.path,
+      query.collectionGroup,
+      query.orderBy,
+      query.filters,
+      query.limit,
+      query.limitType,
+      query.startAt,
+      query.endAt,
+      /* isTargetQuery */ true
+    );
   }
 
   private matchesPathAndCollectionGroup(doc: Document): boolean {

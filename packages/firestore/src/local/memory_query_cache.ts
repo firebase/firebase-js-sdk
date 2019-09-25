@@ -182,7 +182,11 @@ export class MemoryQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     query: Query
   ): PersistencePromise<QueryData | null> {
-    const queryData = this.queries.getWithoutValueEqualityCheck(query) || null;
+    assert(
+      query.isTargetQuery,
+      'Must read QueryData via a TargetQuery from Memory query cache.'
+    );
+    const queryData = this.queries.get(query) || null;
     return PersistencePromise.resolve(queryData);
   }
 

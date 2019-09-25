@@ -19,6 +19,7 @@ import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
 import { emptyByteString } from '../platform/platform';
+import { assert } from '../util/assert';
 
 /** An enumeration of the different purposes we have for queries. */
 export enum QueryPurpose {
@@ -59,7 +60,9 @@ export class QueryData {
      * time from which the server should resume sending results.
      */
     readonly resumeToken: ProtoByteString = emptyByteString()
-  ) {}
+  ) {
+    assert(query.isTargetQuery, 'QueryData must take a TargetQuery.');
+  }
 
   /** Creates a new query data instance with an updated sequence number. */
   withSequenceNumber(sequenceNumber: number): QueryData {
