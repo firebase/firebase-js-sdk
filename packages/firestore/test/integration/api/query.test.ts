@@ -71,7 +71,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       await expect(
         collection.limitToLast(2).get()
       ).to.be.eventually.rejectedWith(
-        'limitToLast() Query without explicit orderBy() is not supported yet.'
+        'limitToLast() queries require specifying an orderBy() on at least on document field.'
       );
     });
   });

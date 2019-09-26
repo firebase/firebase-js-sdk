@@ -38,6 +38,7 @@ export enum QueryPurpose {
 /**
  * An immutable set of metadata that the local store tracks for each query.
  */
+// TODO(wuandy): Rename this to TargetData?
 export class QueryData {
   constructor(
     /** The query being listened to. */

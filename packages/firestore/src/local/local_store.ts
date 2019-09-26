@@ -721,12 +721,6 @@ export class LocalStore {
           .getQueryData(txn, targetQuery)
           .next((cached: QueryData | null) => {
             if (cached) {
-              // Make sure target is not allocated to a mirror query already.
-              assert(
-                cached.query.isEqual(query),
-                'Not Implemented: Mapping multiple distinct client queries to one backend query.'
-              );
-
               // This query has been listened to previously, so reuse the
               // previous targetID.
               // TODO(mcg): freshen last accessed date?

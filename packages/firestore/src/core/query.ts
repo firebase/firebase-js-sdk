@@ -168,7 +168,7 @@ export class Query {
   }
 
   withLimitToLast(limit: number | null): Query {
-    const q = new Query(
+    return new Query(
       this.path,
       this.collectionGroup,
       this.explicitOrderBy.slice(),
@@ -178,7 +178,6 @@ export class Query {
       this.startAt,
       this.endAt
     );
-    return q;
   }
 
   withStartAt(bound: Bound): Query {

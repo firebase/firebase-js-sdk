@@ -218,6 +218,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       viewSnapshot = queryView.view.computeInitialSnapshot();
     } else {
       const queryData = await this.localStore.allocateQuery(query);
+      // Make sure no query view is mapped yet. This happens when a 'mirror' query
+      // is already being listened to.
+      assert(
+        !this.queryViewsByTarget[queryData.targetId],
+        'Not Implemented: Mapping multiple distinct client queries to one backend query.'
+      );
       const status = this.sharedClientState.addLocalQueryTarget(
         queryData.targetId
       );

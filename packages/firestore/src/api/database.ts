@@ -1554,12 +1554,6 @@ export class Query implements firestore.Query {
   limit(n: number): firestore.Query {
     validateExactNumberOfArgs('Query.limit', arguments, 1);
     validateArgType('Query.limit', 'number', 1, n);
-    return this.limitToFirst(n);
-  }
-
-  limitToFirst(n: number): firestore.Query {
-    validateExactNumberOfArgs('Query.limitToFirst', arguments, 1);
-    validateArgType('Query.limitToFirst', 'number', 1, n);
     this.verifyPositiveLimit(n);
     return new Query(this._query.withLimitToFirst(n), this.firestore);
   }
@@ -1857,6 +1851,7 @@ export class Query implements firestore.Query {
         complete: args[currArg + 2] as CompleteFn
       };
     }
+    this.validateHasExplicitOrderByForLimitToLast(this._query);
     return this.onSnapshotInternal(options, observer);
   }
 
@@ -1864,7 +1859,6 @@ export class Query implements firestore.Query {
     options: ListenOptions,
     observer: PartialObserver<firestore.QuerySnapshot>
   ): Unsubscribe {
-    this.validateHasExplicitOrderByForLimitToLast(this._query);
     let errHandler = (err: Error): void => {
       console.error('Uncaught Error in onSnapshot:', err);
     };
@@ -1897,7 +1891,7 @@ export class Query implements firestore.Query {
     if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
-        'limitToLast() Query without explicit orderBy() is not supported yet.'
+        'limitToLast() queries require specifying an orderBy() on at least on document field.'
       );
     }
   }
@@ -1907,6 +1901,7 @@ export class Query implements firestore.Query {
     validateGetOptions('Query.get', options);
     return new Promise(
       (resolve: Resolver<firestore.QuerySnapshot>, reject: Rejecter) => {
+        this.validateHasExplicitOrderByForLimitToLast(this._query);
         if (options && options.source === 'cache') {
           this.firestore
             .ensureClientConfigured()
