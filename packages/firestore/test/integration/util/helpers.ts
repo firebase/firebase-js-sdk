@@ -360,15 +360,6 @@ function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
   return Promise.resolve(undefined);
 }
 
-// TODO(b/139890752): Remove helper and use public API once this is launched.
-export function onSnapshotsInSync(
-  db: firestore.FirebaseFirestore,
-  onSync: unknown
-): () => void {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return (db as any)._onSnapshotsInSync(onSync);
-}
-
 // TODO(in-queries): This exists just so we don't have to do the cast
 // repeatedly. Once we expose 'array-contains-any' publicly we can remove it and
 // just use 'array-contains-any' in all the tests.

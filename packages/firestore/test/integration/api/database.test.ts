@@ -37,7 +37,6 @@ import {
   withTestDoc,
   withTestDocAndInitialData,
   DEFAULT_SETTINGS,
-  onSnapshotsInSync,
   withMockCredentialProviderTestDb
 } from '../util/helpers';
 import { User } from '../../../src/auth/user';
@@ -561,7 +560,7 @@ apiDescribe('Database', (persistence: boolean) => {
       events = [];
 
       const done = new Deferred<void>();
-      onSnapshotsInSync(doc.firestore, () => {
+      doc.firestore.onSnapshotsInSync(() => {
         events.push('snapshots-in-sync');
         if (events.length === 3) {
           // We should have an initial snapshots-in-sync event, then a snapshot

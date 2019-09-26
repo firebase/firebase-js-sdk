@@ -452,24 +452,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return this._firestoreClient!.waitForPendingWrites();
   }
 
-  /**
-   * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
-   * event indicates that all listeners affected by a given change have fired,
-   * even if a single server-generated change affects multiple listeners.
-   *
-   * NOTE: The snapshots-in-sync event only indicates that listeners are in sync
-   * with each other, but does not relate to whether those snapshots are in sync
-   * with the server. Use SnapshotMetadata in the individual listeners to
-   * determine if a snapshot is from the cache or the server.
-   *
-   * @param onSync A callback to be called every time all snapshot listeners are
-   * in sync with each other.
-   * @return An unsubscribe function that can be called to cancel the snapshot
-   * listener.
-   */
-  _onSnapshotsInSync(observer: PartialObserver<void>): Unsubscribe;
-  _onSnapshotsInSync(onSync: () => void): Unsubscribe;
-  _onSnapshotsInSync(arg: unknown): Unsubscribe {
+  onSnapshotsInSync(observer: PartialObserver<void>): Unsubscribe;
+  onSnapshotsInSync(onSync: () => void): Unsubscribe;
+  onSnapshotsInSync(arg: unknown): Unsubscribe {
     this.ensureClientConfigured();
 
     if (isPartialObserver(arg)) {
