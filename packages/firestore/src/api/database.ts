@@ -386,6 +386,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     let synchronizeTabs = false;
+    let experimentalForce = false;
 
     if (settings) {
       if (settings.experimentalTabSynchronization !== undefined) {
@@ -402,12 +403,16 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           : settings.experimentalTabSynchronization,
         DEFAULT_SYNCHRONIZE_TABS
       );
+      experimentalForce = settings.experimentalForce
+        ? settings.experimentalForce
+        : false;
     }
 
     return this.configureClient(
       new IndexedDbPersistenceSettings(
         this._settings.cacheSizeBytes,
-        synchronizeTabs
+        synchronizeTabs,
+        experimentalForce
       )
     );
   }

@@ -66,7 +66,14 @@ export class SimpleDb {
       // suggests IE9 and older WebKit browsers handle upgrade
       // differently. They expect setVersion, as described here:
       // https://developer.mozilla.org/en-US/docs/Web/API/IDBVersionChangeRequest/setVersion
-      const request = window.indexedDB.open(name, version);
+
+      let request: IDBOpenDBRequest;
+      // Support Web Workers, which don't have `window` global variable.
+      if (indexedDB !== undefined) {
+        request = indexedDB.open(name, version);
+      } else {
+        request = window.indexedDB.open(name, version);
+      }
 
       request.onsuccess = (event: Event) => {
         const db = (event.target as IDBOpenDBRequest).result;
@@ -132,6 +139,10 @@ export class SimpleDb {
 
   /** Returns true if IndexedDB is available in the current environment. */
   static isAvailable(): boolean {
+    // If IndexedDb is available directly (ex: in case of web workers).
+    if (typeof indexedDB !== 'undefined') {
+      return true;
+    }
     if (typeof window === 'undefined' || window.indexedDB == null) {
       return false;
     }

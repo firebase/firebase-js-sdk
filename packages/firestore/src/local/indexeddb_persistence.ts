@@ -197,6 +197,7 @@ export class IndexedDbPersistence implements Persistence {
     queue: AsyncQueue;
     serializer: JsonProtoSerializer;
     sequenceNumberSyncer: SequenceNumberSyncer;
+    force: boolean;
   }): Promise<IndexedDbPersistence> {
     if (!IndexedDbPersistence.isAvailable()) {
       throw new FirestoreError(
@@ -213,14 +214,15 @@ export class IndexedDbPersistence implements Persistence {
       options.lruParams,
       options.queue,
       options.serializer,
-      options.sequenceNumberSyncer
+      options.sequenceNumberSyncer,
+      options.force
     );
     await persistence.start();
     return persistence;
   }
 
   private readonly document: Document | null;
-  private readonly window: Window;
+  private readonly window: Window | null;
 
   // Technically these types should be `| undefined` because they are
   // initialized asynchronously by start(), but that would be more misleading
@@ -254,7 +256,7 @@ export class IndexedDbPersistence implements Persistence {
   private readonly queryCache: IndexedDbQueryCache;
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
-  private readonly webStorage: Storage;
+  private readonly webStorage: Storage | null;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
   private constructor(
@@ -265,7 +267,8 @@ export class IndexedDbPersistence implements Persistence {
     lruParams: LruParams,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    private readonly sequenceNumberSyncer: SequenceNumberSyncer
+    private readonly sequenceNumberSyncer: SequenceNumberSyncer,
+    private readonly force: boolean
   ) {
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
@@ -281,13 +284,14 @@ export class IndexedDbPersistence implements Persistence {
       this.indexManager,
       /*keepDocumentChangeLog=*/ this.allowTabSynchronization
     );
+    this.window = platform.window;
     if (platform.window && platform.window.localStorage) {
-      this.window = platform.window;
-      this.webStorage = this.window.localStorage;
+      this.webStorage = platform.window.localStorage;
     } else {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        'IndexedDB persistence is only available on platforms that support LocalStorage.'
+      this.webStorage = null;
+      log.error(
+        LOG_TAG,
+        'LocalStorage is unavailable. Multi-tab functionality may not be supported.'
       );
     }
   }
@@ -299,7 +303,6 @@ export class IndexedDbPersistence implements Persistence {
    */
   private start(): Promise<void> {
     assert(!this.started, 'IndexedDbPersistence double-started!');
-    assert(this.window !== null, "Expected 'window' to be defined");
 
     return SimpleDb.openOrCreate(
       this.dbName,
@@ -526,9 +529,11 @@ export class IndexedDbPersistence implements Persistence {
       // the client atomically, but we can't. So we opt to delete the IndexedDb
       // entries first to avoid potentially reviving a zombied client.
       inactiveClients.forEach(inactiveClient => {
-        this.window.localStorage.removeItem(
-          this.zombiedClientLocalStorageKey(inactiveClient.clientId)
-        );
+        if (this.webStorage) {
+          this.webStorage.removeItem(
+            this.zombiedClientLocalStorageKey(inactiveClient.clientId)
+          );
+        }
       });
     }
   }
@@ -551,6 +556,10 @@ export class IndexedDbPersistence implements Persistence {
 
   /** Checks whether `client` is the local client. */
   private isLocalClient(client: DbPrimaryClient | null): boolean {
+    console.error('this id', this.clientId);
+    if (client) {
+      console.error('client id', client.ownerId);
+    }
     return client ? client.ownerId === this.clientId : false;
   }
 
@@ -590,6 +599,9 @@ export class IndexedDbPersistence implements Persistence {
           }
 
           if (!this.isLocalClient(currentPrimary)) {
+            if (this.force) {
+              return true;
+            }
             if (!currentPrimary!.allowTabSynchronization) {
               // Fail the `canActAsPrimary` check if the current leaseholder has
               // not opted into multi-tab synchronization. If this happens at
@@ -974,6 +986,9 @@ export class IndexedDbPersistence implements Persistence {
    * handler.
    */
   private attachWindowUnloadHook(): void {
+    if (!this.window) {
+      return;
+    }
     if (typeof this.window.addEventListener === 'function') {
       this.windowUnloadHandler = () => {
         // Note: In theory, this should be scheduled on the AsyncQueue since it
@@ -992,6 +1007,9 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   private detachWindowUnloadHook(): void {
+    if (!this.window) {
+      return;
+    }
     if (this.windowUnloadHandler) {
       assert(
         typeof this.window.removeEventListener === 'function',
@@ -1008,6 +1026,9 @@ export class IndexedDbPersistence implements Persistence {
    * cleanup logic in `shutdown()`.
    */
   private isClientZombied(clientId: ClientId): boolean {
+    if (!this.webStorage) {
+      return false;
+    }
     try {
       const isZombied =
         this.webStorage.getItem(this.zombiedClientLocalStorageKey(clientId)) !==
@@ -1031,6 +1052,9 @@ export class IndexedDbPersistence implements Persistence {
    * clients are ignored during primary tab selection.
    */
   private markClientZombied(): void {
+    if (!this.webStorage) {
+      return;
+    }
     try {
       this.webStorage.setItem(
         this.zombiedClientLocalStorageKey(this.clientId),
@@ -1044,6 +1068,9 @@ export class IndexedDbPersistence implements Persistence {
 
   /** Removes the zombied client entry if it exists. */
   private removeClientZombiedEntry(): void {
+    if (!this.webStorage) {
+      return;
+    }
     try {
       this.webStorage.removeItem(
         this.zombiedClientLocalStorageKey(this.clientId)

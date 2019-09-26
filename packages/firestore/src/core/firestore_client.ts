@@ -73,7 +73,8 @@ const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 export class IndexedDbPersistenceSettings {
   constructor(
     readonly cacheSizeBytes: number,
-    readonly synchronizeTabs: boolean
+    readonly synchronizeTabs: boolean,
+    readonly force: boolean
   ) {}
 
   lruParams(): LruParams {
@@ -343,7 +344,8 @@ export class FirestoreClient {
       ) {
         throw new FirestoreError(
           Code.UNIMPLEMENTED,
-          'IndexedDB persistence is only available on platforms that support LocalStorage.'
+          'IndexedDB persistence with synchronizedTabs is only available on ' +
+            'platforms that support LocalStorage.'
         );
       }
 
@@ -358,7 +360,6 @@ export class FirestoreClient {
             user
           )
         : new MemorySharedClientState();
-
       const persistence = await IndexedDbPersistence.createIndexedDbPersistence(
         {
           allowTabSynchronization: settings.synchronizeTabs,
@@ -368,7 +369,8 @@ export class FirestoreClient {
           queue: this.asyncQueue,
           serializer,
           lruParams,
-          sequenceNumberSyncer: this.sharedClientState
+          sequenceNumberSyncer: this.sharedClientState,
+          force: settings.force
         }
       );
 
