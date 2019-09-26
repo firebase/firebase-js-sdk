@@ -75,3 +75,11 @@ packages/installations-types @mmermerkaya @dwoffinden @andirayo @firebase/jssdk-
 # Performance Code
 packages/performance  @alikn @zijianjoy @firebase/jssdk-global-approvers
 packages/performance-types  @alikn @zijianjoy @firebase/jssdk-global-approvers
+
+# Analytics Code
+packages/analytics @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
+packages/analytics-types @hsubox76 @Feiyang1 @firebase/jssdk-global-approvers
+
+# Remote Config Code
+packages/remote-config @erikeldridge @firebase/jssdk-global-approvers
+packages/remote-config-types @erikeldridge @firebase/jssdk-global-approvers
