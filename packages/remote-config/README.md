@@ -1,4 +1,4 @@
-# @firebase/remoteconfig
+# @firebase/remote-config
 
 This is the [Remote Config](https://firebase.google.com/docs/remote-config/) component of the
 [Firebase JS SDK](https://www.npmjs.com/package/firebase).
