@@ -556,10 +556,6 @@ export class IndexedDbPersistence implements Persistence {
 
   /** Checks whether `client` is the local client. */
   private isLocalClient(client: DbPrimaryClient | null): boolean {
-    console.error('this id', this.clientId);
-    if (client) {
-      console.error('client id', client.ownerId);
-    }
     return client ? client.ownerId === this.clientId : false;
   }
 
