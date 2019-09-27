@@ -127,7 +127,8 @@ async function withCustomPersistence(
     queue,
     serializer,
     lruParams: LruParams.DEFAULT,
-    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
+    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER,
+    force: false
   });
 
   await fn(persistence, platform, queue);

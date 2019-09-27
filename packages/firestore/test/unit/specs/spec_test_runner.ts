@@ -1266,7 +1266,8 @@ class IndexedDbTestRunner extends TestRunner {
       queue: this.queue,
       serializer,
       lruParams: LruParams.DEFAULT,
-      sequenceNumberSyncer: this.sharedClientState
+      sequenceNumberSyncer: this.sharedClientState,
+      force: false
     });
   }
 

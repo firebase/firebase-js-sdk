@@ -116,7 +116,8 @@ export async function testIndexedDbPersistence(
     queue,
     serializer: JSON_SERIALIZER,
     lruParams,
-    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER
+    sequenceNumberSyncer: MOCK_SEQUENCE_NUMBER_SYNCER,
+    force: false
   });
 }
 
