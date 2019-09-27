@@ -10,8 +10,8 @@
   small subset of the documents in a collection.
 - [fixed] Fixed a race condition between authenticating and initializing
   Firestore that could result in initial writes to the database being dropped.
-- [feature] Added a `Firestore.onSnapshotsInSync()` method that notifies users
-  when all their snapshot listeners are in sync with each other.
+- [feature] Added a `Firestore.onSnapshotsInSync()` method that notifies you
+  when all your snapshot listeners are in sync with each other.
 
 # 1.4.10
 - [changed] Transactions now perform exponential backoff before retrying.
