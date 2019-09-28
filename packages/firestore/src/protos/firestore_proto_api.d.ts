@@ -22,7 +22,7 @@
    @typescript-eslint/interface-name-prefix,  @typescript-eslint/class-name-casing 
 */
 export declare type ApiClientHookFactory = any;
-export declare type ApiClientObjectMap<T> = any;
+export declare type ApiClientObjectMap<T> = { [k: string]: T };
 export declare type PromiseRequestService = any;
 
 export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND';
