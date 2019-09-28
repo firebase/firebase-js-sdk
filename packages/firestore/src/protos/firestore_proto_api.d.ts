@@ -23,8 +23,8 @@
 */
 export declare type ApiClientHookFactory = any;
 export declare type PromiseRequestService = any;
-export interface ApiClientObjectMap<T>  {
-  [k: string]: T
+export interface ApiClientObjectMap<T> {
+  [k: string]: T;
 }
 
 export declare type CompositeFilterOp = 'OPERATOR_UNSPECIFIED' | 'AND';
