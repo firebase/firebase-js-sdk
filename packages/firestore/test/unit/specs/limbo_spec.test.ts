@@ -19,8 +19,10 @@ import { Query } from '../../../src/core/query';
 import { deletedDoc, doc, filter, path } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
+import { Code } from '../../../src/util/error';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
+import { RpcError } from './spec_rpc_error';
 
 describeSpec('Limbo Documents:', [], () => {
   specTest(
@@ -321,6 +323,67 @@ describeSpec('Limbo Documents:', [], () => {
       );
     }
   );
+
+  specTest('Failed limbo resolution removes document from view', [], () => {
+    // This test reproduces a customer issue where a failed limbo resolution
+    // triggered an assert because we added a document to the cache with a
+    // read time of zero.
+    const filteredQuery = Query.atPath(path('collection')).addFilter(
+      filter('matches', '==', true)
+    );
+    const fullQuery = Query.atPath(path('collection'));
+    const remoteDoc = doc('collection/a', 1000, { matches: true });
+    const localDoc = doc(
+      'collection/a',
+      1000,
+      { matches: true, modified: true },
+      { hasLocalMutations: true }
+    );
+    return (
+      spec()
+        .userListens(filteredQuery)
+        .watchAcksFull(filteredQuery, 1000, remoteDoc)
+        .expectEvents(filteredQuery, { added: [remoteDoc] })
+        // We add a local mutation to prevent the document from getting garbage
+        // collected when we unlisten from the current query.
+        .userPatches('collection/a', { modified: true })
+        .expectEvents(filteredQuery, {
+          modified: [localDoc],
+          hasPendingWrites: true
+        })
+        .userUnlistens(filteredQuery)
+        // Start a new query, but don't include the document in the backend
+        // results (it might have been removed by another client).
+        .userListens(fullQuery)
+        .expectEvents(fullQuery, {
+          added: [localDoc],
+          hasPendingWrites: true,
+          fromCache: true
+        })
+        .watchAcksFull(fullQuery, 1001)
+        .expectEvents(fullQuery, { hasPendingWrites: true })
+        // Fail the write and remove the pending mutation. The document should
+        // now be in Limbo.
+        .failWrite(
+          'collection/a',
+          new RpcError(
+            Code.FAILED_PRECONDITION,
+            'Document to update does not exist'
+          )
+        )
+        .expectEvents(fullQuery, { modified: [remoteDoc], fromCache: true })
+        .expectLimboDocs(remoteDoc.key)
+        // Fail the Limbo resolution which removes the document from the view.
+        // This is internally propagated as a NoDocument with
+        // SnapshotVersion.MIN and a read time of zero.
+        .watchRemoves(
+          Query.atPath(path('collection/a')),
+          new RpcError(Code.PERMISSION_DENIED, 'Permission denied')
+        )
+        .expectEvents(fullQuery, { removed: [remoteDoc] })
+        .expectLimboDocs()
+    );
+  });
 
   specTest(
     'Limbo docs are resolved by primary client',
