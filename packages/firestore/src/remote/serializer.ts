@@ -30,7 +30,7 @@ import {
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
 import { ProtoByteString, TargetId } from '../core/types';
-import { QueryData, QueryPurpose } from '../local/query_data';
+import { TargetData, QueryPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import * as fieldValue from '../model/field_value';
@@ -1113,9 +1113,9 @@ export class JsonProtoSerializer {
   }
 
   toListenRequestLabels(
-    queryData: QueryData
+    targetData: TargetData
   ): api.ApiClientObjectMap<string> | null {
-    const value = this.toLabel(queryData.purpose);
+    const value = this.toLabel(targetData.purpose);
     if (value == null) {
       return null;
     } else {
@@ -1138,9 +1138,9 @@ export class JsonProtoSerializer {
     }
   }
 
-  toTarget(queryData: QueryData): api.Target {
+  toTarget(targetData: TargetData): api.Target {
     let result: api.Target;
-    const target = queryData.target;
+    const target = targetData.target;
 
     if (target.isDocumentQuery()) {
       result = { documents: this.toDocumentsTarget(target) };
@@ -1148,11 +1148,11 @@ export class JsonProtoSerializer {
       result = { query: this.toQueryTarget(target) };
     }
 
-    result.targetId = queryData.targetId;
+    result.targetId = targetData.targetId;
 
-    if (queryData.resumeToken.length > 0) {
+    if (targetData.resumeToken.length > 0) {
       result.resumeToken = this.unsafeCastProtoByteString(
-        queryData.resumeToken
+        targetData.resumeToken
       );
     }
 

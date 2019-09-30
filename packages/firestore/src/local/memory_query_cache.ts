@@ -29,14 +29,14 @@ import { MemoryPersistence } from './memory_persistence';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
-import { QueryData } from './query_data';
+import { TargetData } from './target_data';
 import { ReferenceSet } from './reference_set';
 
 export class MemoryQueryCache implements QueryCache {
   /**
    * Maps a target to the data about that target.
    */
-  private targets = new ObjectMap<Target, QueryData>(t => t.canonicalId());
+  private targets = new ObjectMap<Target, TargetData>(t => t.canonicalId());
 
   /** The last received snapshot version. */
   private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
@@ -62,9 +62,9 @@ export class MemoryQueryCache implements QueryCache {
 
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void> {
-    this.targets.forEach((_, queryData) => f(queryData));
+    this.targets.forEach((_, targetData) => f(targetData));
     return PersistencePromise.resolve();
   }
 
@@ -102,50 +102,50 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
-  private saveQueryData(queryData: QueryData): void {
-    this.targets.set(queryData.target, queryData);
-    const targetId = queryData.targetId;
+  private saveQueryData(targetData: TargetData): void {
+    this.targets.set(targetData.target, targetData);
+    const targetId = targetData.targetId;
     if (targetId > this.highestTargetId) {
       this.highestTargetId = targetId;
     }
-    if (queryData.sequenceNumber > this.highestSequenceNumber) {
-      this.highestSequenceNumber = queryData.sequenceNumber;
+    if (targetData.sequenceNumber > this.highestSequenceNumber) {
+      this.highestSequenceNumber = targetData.sequenceNumber;
     }
   }
 
   addQueryData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
     assert(
-      !this.targets.has(queryData.target),
+      !this.targets.has(targetData.target),
       'Adding a query that already exists'
     );
-    this.saveQueryData(queryData);
+    this.saveQueryData(targetData);
     this.targetCount += 1;
     return PersistencePromise.resolve();
   }
 
   updateQueryData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    assert(this.targets.has(queryData.target), 'Updating a non-existent query');
-    this.saveQueryData(queryData);
+    assert(this.targets.has(targetData.target), 'Updating a non-existent query');
+    this.saveQueryData(targetData);
     return PersistencePromise.resolve();
   }
 
   removeQueryData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
     assert(this.targetCount > 0, 'Removing a target from an empty cache');
     assert(
-      this.targets.has(queryData.target),
+      this.targets.has(targetData.target),
       'Removing a non-existent target from the cache'
     );
-    this.targets.delete(queryData.target);
-    this.references.removeReferencesForId(queryData.targetId);
+    this.targets.delete(targetData.target);
+    this.references.removeReferencesForId(targetData.targetId);
     this.targetCount -= 1;
     return PersistencePromise.resolve();
   }
@@ -157,14 +157,14 @@ export class MemoryQueryCache implements QueryCache {
   ): PersistencePromise<number> {
     let count = 0;
     const removals: Array<PersistencePromise<void>> = [];
-    this.targets.forEach((key, queryData) => {
+    this.targets.forEach((key, targetData) => {
       if (
-        queryData.sequenceNumber <= upperBound &&
-        !activeTargetIds[queryData.targetId]
+        targetData.sequenceNumber <= upperBound &&
+        !activeTargetIds[targetData.targetId]
       ) {
         this.targets.delete(key);
         removals.push(
-          this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
+          this.removeMatchingKeysForTargetId(transaction, targetData.targetId)
         );
         count++;
       }
@@ -181,9 +181,9 @@ export class MemoryQueryCache implements QueryCache {
   getQueryData(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<QueryData | null> {
-    const queryData = this.targets.get(target) || null;
-    return PersistencePromise.resolve(queryData);
+  ): PersistencePromise<TargetData | null> {
+    const targetData = this.targets.get(target) || null;
+    return PersistencePromise.resolve(targetData);
   }
 
   getQueryDataForTarget(

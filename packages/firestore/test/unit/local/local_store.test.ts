@@ -913,8 +913,8 @@ function genericLocalStoreTests(
 
   it('can execute mixed collection queries', async () => {
     const target = Target.atPath(path('foo'));
-    const queryData = await localStore.allocateTarget(target);
-    expect(queryData.targetId).to.equal(2);
+    const targetData = await localStore.allocateTarget(target);
+    expect(targetData.targetId).to.equal(2);
     await localStore.applyRemoteEvent(
       docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
     );
@@ -938,8 +938,8 @@ function genericLocalStoreTests(
       return;
     }
     const target = Target.atPath(path('foo/bar'));
-    const queryData = await localStore.allocateTarget(target);
-    const targetId = queryData.targetId;
+    const targetData = await localStore.allocateTarget(target);
+    const targetId = targetData.targetId;
     const resumeToken = 'abc';
     const watchChange = new WatchTargetChange(
       WatchTargetChangeState.Current,
@@ -948,7 +948,7 @@ function genericLocalStoreTests(
     );
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => documentKeySet(),
-      getQueryDataForTarget: () => queryData
+      getQueryDataForTarget: () => targetData
     });
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
@@ -967,8 +967,8 @@ function genericLocalStoreTests(
       return;
     }
     const target = Target.atPath(path('foo/bar'));
-    const queryData = await localStore.allocateTarget(target);
-    const targetId = queryData.targetId;
+    const targetData = await localStore.allocateTarget(target);
+    const targetId = targetData.targetId;
     const resumeToken = 'abc';
 
     const watchChange1 = new WatchTargetChange(
@@ -978,7 +978,7 @@ function genericLocalStoreTests(
     );
     const aggregator1 = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => documentKeySet(),
-      getQueryDataForTarget: () => queryData
+      getQueryDataForTarget: () => targetData
     });
     aggregator1.handleTargetChange(watchChange1);
     const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
@@ -991,7 +991,7 @@ function genericLocalStoreTests(
     );
     const aggregator2 = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => documentKeySet(),
-      getQueryDataForTarget: () => queryData
+      getQueryDataForTarget: () => targetData
     });
     aggregator2.handleTargetChange(watchChange2);
     const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));

@@ -21,7 +21,7 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
-import { QueryData, QueryPurpose } from '../../../src/local/query_data';
+import { TargetData, QueryPurpose } from '../../../src/local/target_data';
 import { ReferenceSet } from '../../../src/local/reference_set';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
@@ -64,7 +64,7 @@ describe('IndexedDbQueryCache', () => {
     const snapshotVersion = SnapshotVersion.fromTimestamp(new Timestamp(1, 2));
     const target = Target.atPath(path('rooms'));
     await queryCache1.addQueryData(
-      new QueryData(
+      new TargetData(
         target,
         targetId,
         QueryPurpose.Listen,
@@ -107,7 +107,7 @@ function genericQueryCacheTests(
   const QUERY_GARAGES = Target.atPath(path('garages'));
 
   /**
-   * Creates a new QueryData object from the the given parameters, synthesizing
+   * Creates a new TargetData object from the the given parameters, synthesizing
    * a resume token from the snapshot version.
    */
   let previousSequenceNumber = 0;
@@ -115,13 +115,13 @@ function genericQueryCacheTests(
     target: Target,
     targetId: TargetId,
     version?: number
-  ): QueryData {
+  ): TargetData {
     if (version === undefined) {
       version = 0;
     }
     const snapshotVersion = SnapshotVersion.fromMicroseconds(version);
     const resumeToken = resumeTokenForSnapshot(snapshotVersion);
-    return new QueryData(
+    return new TargetData(
       target,
       targetId,
       QueryPurpose.Listen,
@@ -146,16 +146,16 @@ function genericQueryCacheTests(
   });
 
   it('returns null for query not in cache', () => {
-    return cache.getQueryData(QUERY_ROOMS).then(queryData => {
-      expect(queryData).to.equal(null);
+    return cache.getQueryData(QUERY_ROOMS).then(targetData => {
+      expect(targetData).to.equal(null);
     });
   });
 
   it('can set and read a query', async () => {
-    const queryData = testQueryData(QUERY_ROOMS, 1, 1);
-    await cache.addQueryData(queryData);
-    const read = await cache.getQueryData(queryData.target);
-    expect(read).to.deep.equal(queryData);
+    const targetData = testQueryData(QUERY_ROOMS, 1, 1);
+    await cache.addQueryData(targetData);
+    const read = await cache.getQueryData(targetData.target);
+    expect(read).to.deep.equal(targetData);
   });
 
   it('handles canonical ID collisions', async () => {
@@ -201,9 +201,9 @@ function genericQueryCacheTests(
   });
 
   it('can remove a query', async () => {
-    const queryData = testQueryData(QUERY_ROOMS, 1, 1);
-    await cache.addQueryData(queryData);
-    await cache.removeQueryData(queryData);
+    const targetData = testQueryData(QUERY_ROOMS, 1, 1);
+    await cache.addQueryData(targetData);
+    await cache.removeQueryData(targetData);
     const read = await cache.getQueryData(QUERY_ROOMS);
     expect(read).to.equal(null);
   });
@@ -360,9 +360,9 @@ function genericQueryCacheTests(
   });
 
   it('sets the highest sequence number', async () => {
-    const query1 = new QueryData(QUERY_ROOMS, 1, QueryPurpose.Listen, 10);
+    const query1 = new TargetData(QUERY_ROOMS, 1, QueryPurpose.Listen, 10);
     await cache.addQueryData(query1);
-    const query2 = new QueryData(QUERY_HALLS, 2, QueryPurpose.Listen, 20);
+    const query2 = new TargetData(QUERY_HALLS, 2, QueryPurpose.Listen, 20);
     await cache.addQueryData(query2);
     expect(await cache.getHighestSequenceNumber()).to.equal(20);
 
@@ -370,7 +370,7 @@ function genericQueryCacheTests(
     await cache.removeQueryData(query2);
     expect(await cache.getHighestSequenceNumber()).to.equal(20);
 
-    const query3 = new QueryData(QUERY_GARAGES, 3, QueryPurpose.Listen, 100);
+    const query3 = new TargetData(QUERY_GARAGES, 3, QueryPurpose.Listen, 100);
     await cache.addQueryData(query3);
     expect(await cache.getHighestSequenceNumber()).to.equal(100);
 

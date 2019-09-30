@@ -44,7 +44,7 @@ import { ActiveTargets } from './lru_garbage_collector';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
-import { QueryData } from './query_data';
+import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 export class IndexedDbQueryCache implements QueryCache {
@@ -115,12 +115,12 @@ export class IndexedDbQueryCache implements QueryCache {
 
   addQueryData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    return this.saveQueryData(transaction, queryData).next(() => {
+    return this.saveQueryData(transaction, targetData).next(() => {
       return this.retrieveMetadata(transaction).next(metadata => {
         metadata.targetCount += 1;
-        this.updateMetadataFromQueryData(queryData, metadata);
+        this.updateMetadataFromQueryData(targetData, metadata);
         return this.saveMetadata(transaction, metadata);
       });
     });
@@ -128,17 +128,17 @@ export class IndexedDbQueryCache implements QueryCache {
 
   updateQueryData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    return this.saveQueryData(transaction, queryData);
+    return this.saveQueryData(transaction, targetData);
   }
 
   removeQueryData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    return this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
-      .next(() => targetsStore(transaction).delete(queryData.targetId))
+    return this.removeMatchingKeysForTargetId(transaction, targetData.targetId)
+      .next(() => targetsStore(transaction).delete(targetData.targetId))
       .next(() => this.retrieveMetadata(transaction))
       .next(metadata => {
         assert(metadata.targetCount > 0, 'Removing from an empty query cache');
@@ -161,13 +161,13 @@ export class IndexedDbQueryCache implements QueryCache {
     const promises: Array<PersistencePromise<void>> = [];
     return targetsStore(txn)
       .iterate((key, value) => {
-        const queryData = this.serializer.fromDbTarget(value);
+        const targetData = this.serializer.fromDbTarget(value);
         if (
-          queryData.sequenceNumber <= upperBound &&
-          activeTargetIds[queryData.targetId] === undefined
+          targetData.sequenceNumber <= upperBound &&
+          activeTargetIds[targetData.targetId] === undefined
         ) {
           count++;
-          promises.push(this.removeQueryData(txn, queryData));
+          promises.push(this.removeQueryData(txn, targetData));
         }
       })
       .next(() => PersistencePromise.waitFor(promises))
@@ -175,15 +175,15 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   /**
-   * Call provided function with each `QueryData` that we have cached.
+   * Call provided function with each `TargetData` that we have cached.
    */
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void> {
     return targetsStore(txn).iterate((key, value) => {
-      const queryData = this.serializer.fromDbTarget(value);
-      f(queryData);
+      const targetData = this.serializer.fromDbTarget(value);
+      f(targetData);
     });
   }
 
@@ -204,28 +204,28 @@ export class IndexedDbQueryCache implements QueryCache {
 
   private saveQueryData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    return targetsStore(transaction).put(this.serializer.toDbTarget(queryData));
+    return targetsStore(transaction).put(this.serializer.toDbTarget(targetData));
   }
 
   /**
    * In-place updates the provided metadata to account for values in the given
-   * QueryData. Saving is done separately. Returns true if there were any
+   * TargetData. Saving is done separately. Returns true if there were any
    * changes to the metadata.
    */
   private updateMetadataFromQueryData(
-    queryData: QueryData,
+    targetData: TargetData,
     metadata: DbTargetGlobal
   ): boolean {
     let updated = false;
-    if (queryData.targetId > metadata.highestTargetId) {
-      metadata.highestTargetId = queryData.targetId;
+    if (targetData.targetId > metadata.highestTargetId) {
+      metadata.highestTargetId = targetData.targetId;
       updated = true;
     }
 
-    if (queryData.sequenceNumber > metadata.highestListenSequenceNumber) {
-      metadata.highestListenSequenceNumber = queryData.sequenceNumber;
+    if (targetData.sequenceNumber > metadata.highestListenSequenceNumber) {
+      metadata.highestListenSequenceNumber = targetData.sequenceNumber;
       updated = true;
     }
     return updated;
@@ -242,7 +242,7 @@ export class IndexedDbQueryCache implements QueryCache {
   getQueryData(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<QueryData | null> {
+  ): PersistencePromise<TargetData | null> {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
     // depends on the queryTargets index to be efficient.
@@ -251,7 +251,7 @@ export class IndexedDbQueryCache implements QueryCache {
       [canonicalId, Number.NEGATIVE_INFINITY],
       [canonicalId, Number.POSITIVE_INFINITY]
     );
-    let result: QueryData | null = null;
+    let result: TargetData | null = null;
     return targetsStore(transaction)
       .iterate(
         { range, index: DbTarget.queryTargetsIndexName },
@@ -373,7 +373,7 @@ export class IndexedDbQueryCache implements QueryCache {
   getQueryDataForTarget(
     transaction: PersistenceTransaction,
     targetId: TargetId
-  ): PersistencePromise<QueryData | null> {
+  ): PersistencePromise<TargetData | null> {
     return targetsStore(transaction)
       .get(targetId)
       .next(found => {

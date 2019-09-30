@@ -47,7 +47,7 @@ import { MutationQueue } from './mutation_queue';
 import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
-import { QueryData, QueryPurpose } from './query_data';
+import { TargetData, QueryPurpose } from './target_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
@@ -153,7 +153,7 @@ export class LocalStore {
   private queryCache: QueryCache;
 
   /** Maps a targetID to data about its query. */
-  private queryDataByTarget = {} as { [targetId: number]: QueryData };
+  private queryDataByTarget = {} as { [targetId: number]: TargetData };
 
   constructor(
     /** Manages our in-memory or durable persistence. */
@@ -608,18 +608,18 @@ export class LocalStore {
 
   /**
    * Returns true if the newQueryData should be persisted during an update of
-   * an active target. QueryData should always be persisted when a target is
+   * an active target. TargetData should always be persisted when a target is
    * being released and should not call this function.
    *
-   * While the target is active, QueryData updates can be omitted when nothing
+   * While the target is active, TargetData updates can be omitted when nothing
    * about the target has changed except metadata like the resume token or
    * snapshot version. Occasionally it's worth the extra write to prevent these
    * values from getting too stale after a crash, but this doesn't have to be
    * too frequent.
    */
   private static shouldPersistQueryData(
-    oldQueryData: QueryData,
-    newQueryData: QueryData,
+    oldQueryData: TargetData,
+    newQueryData: TargetData,
     change: TargetChange
   ): boolean {
     assert(
@@ -723,40 +723,40 @@ export class LocalStore {
    * they don't get GC'd. A query must be allocated in the local store before
    * the store can be used to manage its view.
    */
-  allocateTarget(target: Target): Promise<QueryData> {
+  allocateTarget(target: Target): Promise<TargetData> {
     return this.persistence.runTransaction(
       'Allocate query',
       'readwrite',
       txn => {
-        let queryData: QueryData;
+        let targetData: TargetData;
         return this.queryCache
           .getQueryData(txn, target)
-          .next((cached: QueryData | null) => {
+          .next((cached: TargetData | null) => {
             if (cached) {
               // This query has been listened to previously, so reuse the
               // previous targetID.
               // TODO(mcg): freshen last accessed date?
-              queryData = cached;
+              targetData = cached;
               return PersistencePromise.resolve();
             } else {
               return this.queryCache.allocateTargetId(txn).next(targetId => {
-                queryData = new QueryData(
+                targetData = new TargetData(
                   target,
                   targetId,
                   QueryPurpose.Listen,
                   txn.currentSequenceNumber
                 );
-                return this.queryCache.addQueryData(txn, queryData);
+                return this.queryCache.addQueryData(txn, targetData);
               });
             }
           })
           .next(() => {
             assert(
-              !this.queryDataByTarget[queryData.targetId],
+              !this.queryDataByTarget[targetData.targetId],
               'Tried to allocate an already allocated query: ' + target
             );
-            this.queryDataByTarget[queryData.targetId] = queryData;
-            return queryData;
+            this.queryDataByTarget[targetData.targetId] = targetData;
+            return targetData;
           });
       }
     );
@@ -776,12 +776,12 @@ export class LocalStore {
     return this.persistence.runTransaction('Release query', mode, txn => {
       return this.queryCache
         .getQueryData(txn, target)
-        .next((queryData: QueryData | null) => {
+        .next((targetData: TargetData | null) => {
           assert(
-            queryData != null,
+            targetData != null,
             'Tried to release nonexistent query target: ' + target
           );
-          const targetId = queryData!.targetId;
+          const targetId = targetData!.targetId;
           const cachedQueryData = this.queryDataByTarget[targetId];
 
           // References for documents sent via Watch are automatically removed when we delete a
@@ -908,7 +908,7 @@ export class LocalStore {
         txn => {
           return this.queryCache
             .getQueryDataForTarget(txn, targetId)
-            .next(queryData => (queryData ? queryData.target : null));
+            .next(targetData => (targetData ? targetData.target : null));
         }
       );
     }

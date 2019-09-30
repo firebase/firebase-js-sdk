@@ -18,7 +18,7 @@
 import { CredentialsProvider, Token } from '../api/credentials';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
-import { QueryData } from '../local/query_data';
+import { TargetData } from '../local/target_data';
 import { Mutation, MutationResult } from '../model/mutation';
 import * as api from '../protos/firestore_proto_api';
 import { assert } from '../util/assert';
@@ -569,12 +569,12 @@ export class PersistentListenStream extends PersistentStream<
    * affect the query will be streamed back as WatchChange messages that
    * reference the targetId.
    */
-  watch(queryData: QueryData): void {
+  watch(targetData: TargetData): void {
     const request: ListenRequest = {};
     request.database = this.serializer.encodedDatabaseId;
-    request.addTarget = this.serializer.toTarget(queryData);
+    request.addTarget = this.serializer.toTarget(targetData);
 
-    const labels = this.serializer.toListenRequestLabels(queryData);
+    const labels = this.serializer.toListenRequestLabels(targetData);
     if (labels) {
       request.labels = labels;
     }

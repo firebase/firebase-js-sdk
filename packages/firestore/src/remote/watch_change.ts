@@ -18,7 +18,7 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
 import { ChangeType } from '../core/view_snapshot';
-import { QueryData, QueryPurpose } from '../local/query_data';
+import { TargetData, QueryPurpose } from '../local/target_data';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -248,10 +248,10 @@ export interface TargetMetadataProvider {
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet;
 
   /**
-   * Returns the QueryData for an active target ID or 'null' if this query
+   * Returns the TargetData for an active target ID or 'null' if this query
    * has become inactive
    */
-  getQueryDataForTarget(targetId: TargetId): QueryData | null;
+  getQueryDataForTarget(targetId: TargetId): TargetData | null;
 }
 
 const LOG_TAG = 'WatchChangeAggregator';
@@ -381,9 +381,9 @@ export class WatchChangeAggregator {
     const targetId = watchChange.targetId;
     const expectedCount = watchChange.existenceFilter.count;
 
-    const queryData = this.queryDataForActiveTarget(targetId);
-    if (queryData) {
-      const target = queryData.target;
+    const targetData = this.queryDataForActiveTarget(targetId);
+    if (targetData) {
+      const target = targetData.target;
       if (target.isDocumentQuery()) {
         if (expectedCount === 0) {
           // The existence filter told us the document does not exist. We deduce
@@ -424,9 +424,9 @@ export class WatchChangeAggregator {
     const targetChanges: { [targetId: number]: TargetChange } = {};
 
     objUtils.forEachNumber(this.targetStates, (targetId, targetState) => {
-      const queryData = this.queryDataForActiveTarget(targetId);
-      if (queryData) {
-        if (targetState.current && queryData.target.isDocumentQuery()) {
+      const targetData = this.queryDataForActiveTarget(targetId);
+      if (targetData) {
+        if (targetState.current && targetData.target.isDocumentQuery()) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
           // delete if we have not previously received the document. This
@@ -436,7 +436,7 @@ export class WatchChangeAggregator {
           // TODO(dimond): Ideally we would have an explicit lookup query
           // instead resulting in an explicit delete message and we could
           // remove this special logic.
-          const key = new DocumentKey(queryData.target.path);
+          const key = new DocumentKey(targetData.target.path);
           if (
             this.pendingDocumentUpdates.get(key) === null &&
             !this.targetContainsDocument(targetId, key)
@@ -467,8 +467,8 @@ export class WatchChangeAggregator {
       let isOnlyLimboTarget = true;
 
       targets.forEachWhile(targetId => {
-        const queryData = this.queryDataForActiveTarget(targetId);
-        if (queryData && queryData.purpose !== QueryPurpose.LimboResolution) {
+        const targetData = this.queryDataForActiveTarget(targetId);
+        if (targetData && targetData.purpose !== QueryPurpose.LimboResolution) {
           isOnlyLimboTarget = false;
           return false;
         }
@@ -628,10 +628,10 @@ export class WatchChangeAggregator {
   }
 
   /**
-   * Returns the QueryData for an active target (i.e. a target that the user
+   * Returns the TargetData for an active target (i.e. a target that the user
    * is still interested in that has no outstanding target change requests).
    */
-  protected queryDataForActiveTarget(targetId: TargetId): QueryData | null {
+  protected queryDataForActiveTarget(targetId: TargetId): TargetData | null {
     const targetState = this.targetStates[targetId];
     return targetState && targetState.isPending
       ? null

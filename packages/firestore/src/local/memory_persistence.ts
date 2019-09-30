@@ -46,7 +46,7 @@ import {
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
+import { TargetData } from './target_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 
@@ -250,15 +250,15 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
 
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
     const cache = this.persistence.getQueryCache();
     return cache
-      .getMatchingKeysForTargetId(txn, queryData.targetId)
+      .getMatchingKeysForTargetId(txn, targetData.targetId)
       .next(keys => {
         keys.forEach(key => this.orphanedDocuments.add(key));
       })
-      .next(() => cache.removeQueryData(txn, queryData));
+      .next(() => cache.removeQueryData(txn, targetData));
   }
 
   onTransactionStarted(): void {
@@ -344,7 +344,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void> {
     return this.persistence.getQueryCache().forEachTarget(txn, f);
   }
@@ -432,9 +432,9 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
+    const updated = targetData.withSequenceNumber(txn.currentSequenceNumber);
     return this.persistence.getQueryCache().updateQueryData(txn, updated);
   }
 

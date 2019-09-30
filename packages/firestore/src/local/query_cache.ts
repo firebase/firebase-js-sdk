@@ -23,12 +23,12 @@ import { DocumentKey } from '../model/document_key';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
+import { TargetData } from './target_data';
 
 /**
  * Represents cached queries received from the remote backend.
  *
- * The cache is keyed by Query and entries in the cache are QueryData instances.
+ * The cache is keyed by Query and entries in the cache are TargetData instances.
  */
 export interface QueryCache {
   /**
@@ -55,11 +55,11 @@ export interface QueryCache {
   ): PersistencePromise<ListenSequenceNumber>;
 
   /**
-   * Call provided function with each `QueryData` that we have cached.
+   * Call provided function with each `TargetData` that we have cached.
    */
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void>;
 
   /**
@@ -79,26 +79,26 @@ export interface QueryCache {
   /**
    * Adds an entry in the cache.
    *
-   * The cache key is extracted from `queryData.query`. The key must not already
+   * The cache key is extracted from `targetData.query`. The key must not already
    * exist in the cache.
    *
-   * @param queryData A QueryData instance to put in the cache.
+   * @param targetData A TargetData instance to put in the cache.
    */
   addQueryData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void>;
 
   /**
    * Updates an entry in the cache.
    *
-   * The cache key is extracted from `queryData.query`. The entry must already
+   * The cache key is extracted from `targetData.query`. The entry must already
    * exist in the cache, and it will be replaced.
-   * @param {QueryData} queryData The QueryData to be replaced into the cache.
+   * @param {TargetData} targetData The TargetData to be replaced into the cache.
    */
   updateQueryData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void>;
 
   /**
@@ -109,7 +109,7 @@ export interface QueryCache {
    */
   removeQueryData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void>;
 
   /**
@@ -121,29 +121,29 @@ export interface QueryCache {
   ): PersistencePromise<number>;
 
   /**
-   * Looks up a QueryData entry by target.
+   * Looks up a TargetData entry by target.
    *
    * @param target The target query corresponding to the entry to look up.
-   * @return The cached QueryData entry, or null if the cache has no entry for
+   * @return The cached TargetData entry, or null if the cache has no entry for
    * the target query.
    */
   getQueryData(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<QueryData | null>;
+  ): PersistencePromise<TargetData | null>;
 
   /**
-   * Looks up a QueryData entry by target ID.
+   * Looks up a TargetData entry by target ID.
    *
-   * @param targetId The target ID of the QueryData entry to look up.
-   * @return The cached QueryData entry, or null if the cache has no entry for
+   * @param targetId The target ID of the TargetData entry to look up.
+   * @return The cached TargetData entry, or null if the cache has no entry for
    * the query.
    */
   // PORTING NOTE: Multi-tab only.
   getQueryDataForTarget(
     txn: PersistenceTransaction,
     targetId: TargetId
-  ): PersistencePromise<QueryData | null>;
+  ): PersistencePromise<TargetData | null>;
 
   /**
    * Adds the given document keys to cached query results of the given target

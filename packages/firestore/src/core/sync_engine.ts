@@ -18,7 +18,7 @@
 import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
-import { QueryData, QueryPurpose } from '../local/query_data';
+import { TargetData, QueryPurpose } from '../local/target_data';
 import { ReferenceSet } from '../local/reference_set';
 import {
   documentKeySet,
@@ -217,17 +217,17 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.sharedClientState.addLocalQueryTarget(targetId);
       viewSnapshot = queryView.view.computeInitialSnapshot();
     } else {
-      const queryData = await this.localStore.allocateTarget(query.toTarget());
+      const targetData = await this.localStore.allocateTarget(query.toTarget());
       const status = this.sharedClientState.addLocalQueryTarget(
-        queryData.targetId
+        targetData.targetId
       );
-      targetId = queryData.targetId;
+      targetId = targetData.targetId;
       viewSnapshot = await this.initializeViewAndComputeSnapshot(
-        queryData,
+        targetData,
         status === 'current'
       );
       if (this.isPrimary) {
-        this.remoteStore.listen(queryData);
+        this.remoteStore.listen(targetData);
       }
     }
 
@@ -240,19 +240,19 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * snapshot.
    */
   private async initializeViewAndComputeSnapshot(
-    queryData: QueryData,
+    targetData: TargetData,
     current: boolean
   ): Promise<ViewSnapshot> {
-    const target = queryData.target;
+    const target = targetData.target;
     const docs = await this.localStore.executeTargetQuery(target);
     const remoteKeys = await this.localStore.remoteDocumentKeys(
-      queryData.targetId
+      targetData.targetId
     );
 
     const view = new View(target.toQuery(), remoteKeys);
     const viewDocChanges = view.computeDocChanges(docs);
     const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
-      queryData.targetId,
+      targetData.targetId,
       current && this.onlineState !== OnlineState.Offline
     );
     const viewChange = view.applyChanges(
@@ -269,9 +269,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       'applyChanges for new view should always return a snapshot'
     );
 
-    const data = new QueryView(target.toQuery(), queryData.targetId, view);
+    const data = new QueryView(target.toQuery(), targetData.targetId, view);
     this.queryViewsByQuery.set(target.toQuery(), data);
-    this.queryViewsByTarget[queryData.targetId] = data;
+    this.queryViewsByTarget[targetData.targetId] = data;
     return viewChange.snapshot!;
   }
 
@@ -754,7 +754,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const query = Query.atPath(key.path);
       this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
       this.remoteStore.listen(
-        new QueryData(
+        new TargetData(
           query.toTarget(),
           limboTargetId,
           QueryPurpose.LimboResolution,
@@ -880,8 +880,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const activeQueries = await this.synchronizeQueryViewsAndRaiseSnapshots(
         activeTargets.toArray()
       );
-      for (const queryData of activeQueries) {
-        this.remoteStore.listen(queryData);
+      for (const targetData of activeQueries) {
+        this.remoteStore.listen(targetData);
       }
     } else if (isPrimary === false && this.isPrimary !== false) {
       this.isPrimary = false;
@@ -925,11 +925,11 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   // PORTING NOTE: Multi-tab only.
   private async synchronizeQueryViewsAndRaiseSnapshots(
     targets: TargetId[]
-  ): Promise<QueryData[]> {
-    const activeQueries: QueryData[] = [];
+  ): Promise<TargetData[]> {
+    const activeQueries: TargetData[] = [];
     const newViewSnapshots: ViewSnapshot[] = [];
     for (const targetId of targets) {
-      let queryData: QueryData;
+      let targetData: TargetData;
       const queryView = this.queryViewsByTarget[targetId];
       if (queryView) {
         // For queries that have a local View, we need to update their state
@@ -941,7 +941,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           target,
           /*keepPersistedQueryData=*/ true
         );
-        queryData = await this.localStore.allocateTarget(target);
+        targetData = await this.localStore.allocateTarget(target);
         const viewChange = await this.synchronizeViewAndComputeSnapshot(
           queryView
         );
@@ -957,13 +957,13 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         // allocate the query in LocalStore and initialize a new View.
         const query = await this.localStore.getQueryForTarget(targetId);
         assert(!!query, `Query data for target ${targetId} not found`);
-        queryData = await this.localStore.allocateTarget(query!);
+        targetData = await this.localStore.allocateTarget(query!);
         await this.initializeViewAndComputeSnapshot(
-          queryData,
+          targetData,
           /*current=*/ false
         );
       }
-      activeQueries.push(queryData);
+      activeQueries.push(targetData);
     }
     this.syncEngineListener!.onWatchChange(newViewSnapshots);
     return activeQueries;
@@ -1047,12 +1047,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       const query = await this.localStore.getQueryForTarget(targetId);
       assert(!!query, `Query data for active target ${targetId} not found`);
-      const queryData = await this.localStore.allocateTarget(query!);
+      const targetData = await this.localStore.allocateTarget(query!);
       await this.initializeViewAndComputeSnapshot(
-        queryData,
+        targetData,
         /*current=*/ false
       );
-      this.remoteStore.listen(queryData);
+      this.remoteStore.listen(targetData);
     }
 
     for (const targetId of removed) {

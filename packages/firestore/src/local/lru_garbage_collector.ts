@@ -27,7 +27,7 @@ import { ignoreIfPrimaryLeaseLoss } from './indexeddb_persistence';
 import { LocalStore } from './local_store';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
+import { TargetData } from './target_data';
 
 /**
  * Persistence layers intending to use LRU Garbage collection should have reference delegates that
@@ -40,7 +40,7 @@ export interface LruDelegate {
   /** Enumerates all the targets in the QueryCache. */
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (target: QueryData) => void
+    f: (target: TargetData) => void
   ): PersistencePromise<void>;
 
   getSequenceNumberCount(

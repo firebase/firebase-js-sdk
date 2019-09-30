@@ -20,7 +20,7 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryCache } from '../../../src/local/query_cache';
-import { QueryData } from '../../../src/local/query_data';
+import { TargetData } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 
@@ -31,18 +31,18 @@ import { DocumentKey } from '../../../src/model/document_key';
 export class TestQueryCache {
   constructor(public persistence: Persistence, public cache: QueryCache) {}
 
-  addQueryData(queryData: QueryData): Promise<void> {
+  addQueryData(targetData: TargetData): Promise<void> {
     return this.persistence.runTransaction('addQueryData', 'readwrite', txn => {
-      return this.cache.addQueryData(txn, queryData);
+      return this.cache.addQueryData(txn, targetData);
     });
   }
 
-  updateQueryData(queryData: QueryData): Promise<void> {
+  updateQueryData(targetData: TargetData): Promise<void> {
     return this.persistence.runTransaction(
       'updateQueryData',
       'readwrite-primary',
       txn => {
-        return this.cache.updateQueryData(txn, queryData);
+        return this.cache.updateQueryData(txn, targetData);
       }
     );
   }
@@ -53,17 +53,17 @@ export class TestQueryCache {
     });
   }
 
-  removeQueryData(queryData: QueryData): Promise<void> {
+  removeQueryData(targetData: TargetData): Promise<void> {
     return this.persistence.runTransaction(
       'addQueryData',
       'readwrite-primary',
       txn => {
-        return this.cache.removeQueryData(txn, queryData);
+        return this.cache.removeQueryData(txn, targetData);
       }
     );
   }
 
-  getQueryData(target: Target): Promise<QueryData | null> {
+  getQueryData(target: Target): Promise<TargetData | null> {
     return this.persistence.runTransaction('getQueryData', 'readonly', txn => {
       return this.cache.getQueryData(txn, target);
     });

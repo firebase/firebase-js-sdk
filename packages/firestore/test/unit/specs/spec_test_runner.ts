@@ -49,7 +49,7 @@ import { LocalStore } from '../../../src/local/local_store';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { Persistence } from '../../../src/local/persistence';
-import { QueryData, QueryPurpose } from '../../../src/local/query_data';
+import { TargetData, QueryPurpose } from '../../../src/local/target_data';
 import {
   ClientId,
   MemorySharedClientState,
@@ -1108,7 +1108,7 @@ abstract class TestRunner {
       // encode that in the spec tests. For now, hard-code that it's a listen
       // despite the fact that it's not always the right value.
       const expectedTarget = this.serializer.toTarget(
-        new QueryData(
+        new TargetData(
           this.parseQuery(expected.query).toTarget(),
           targetId,
           QueryPurpose.Listen,

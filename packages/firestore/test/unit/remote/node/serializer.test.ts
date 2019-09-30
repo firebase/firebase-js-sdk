@@ -36,7 +36,7 @@ import {
 } from '../../../../src/core/query';
 import { Target } from '../../../../src/core/target';
 import { SnapshotVersion } from '../../../../src/core/snapshot_version';
-import { QueryData, QueryPurpose } from '../../../../src/local/query_data';
+import { TargetData, QueryPurpose } from '../../../../src/local/target_data';
 import * as fieldValue from '../../../../src/model/field_value';
 import {
   DeleteMutation,
@@ -100,12 +100,12 @@ describe('Serializer', () => {
   // tslint:enable:variable-name
 
   /**
-   * Wraps the given query in QueryData. This is useful because the APIs we're
-   * testing accept QueryData, but for the most part we're just testing
+   * Wraps the given query in TargetData. This is useful because the APIs we're
+   * testing accept TargetData, but for the most part we're just testing
    * variations on Target.
    */
-  function wrapQueryData(target: Target): QueryData {
-    return new QueryData(
+  function wrapQueryData(target: Target): TargetData {
+    return new TargetData(
       target,
       1,
       QueryPurpose.Listen,
@@ -876,22 +876,22 @@ describe('Serializer', () => {
 
   it('encodes listen request labels', () => {
     const query = Target.atPath(path('collection/key'));
-    let queryData = new QueryData(query, 2, QueryPurpose.Listen, 3);
+    let targetData = new TargetData(query, 2, QueryPurpose.Listen, 3);
 
-    let result = s.toListenRequestLabels(queryData);
+    let result = s.toListenRequestLabels(targetData);
     expect(result).to.be.null;
 
-    queryData = new QueryData(query, 2, QueryPurpose.LimboResolution, 3);
-    result = s.toListenRequestLabels(queryData);
+    targetData = new TargetData(query, 2, QueryPurpose.LimboResolution, 3);
+    result = s.toListenRequestLabels(targetData);
     expect(result).to.deep.equal({ 'goog-listen-tags': 'limbo-document' });
 
-    queryData = new QueryData(
+    targetData = new TargetData(
       query,
       2,
       QueryPurpose.ExistenceFilterMismatch,
       3
     );
-    result = s.toListenRequestLabels(queryData);
+    result = s.toListenRequestLabels(targetData);
     expect(result).to.deep.equal({
       'goog-listen-tags': 'existence-filter-mismatch'
     });
@@ -1190,7 +1190,7 @@ describe('Serializer', () => {
     it('converts resume tokens', () => {
       const q = Target.atPath(path('docs'));
       const result = s.toTarget(
-        new QueryData(
+        new TargetData(
           q,
           1,
           QueryPurpose.Listen,

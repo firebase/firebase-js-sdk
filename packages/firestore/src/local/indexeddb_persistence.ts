@@ -66,7 +66,7 @@ import {
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
+import { TargetData } from './target_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
@@ -1136,7 +1136,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void> {
     return this.db.getQueryCache().forEachTarget(txn, f);
   }
@@ -1240,9 +1240,9 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
+    const updated = targetData.withSequenceNumber(txn.currentSequenceNumber);
     return this.db.getQueryCache().updateQueryData(txn, updated);
   }
 

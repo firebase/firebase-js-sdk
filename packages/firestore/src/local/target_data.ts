@@ -35,9 +35,9 @@ export enum QueryPurpose {
 }
 
 /**
- * An immutable set of metadata that the local store tracks for each query.
+ * An immutable set of metadata that the local store tracks for each target query.
  */
-export class QueryData {
+export class TargetData {
   constructor(
     /** The target query being listened to. */
     readonly target: Target,
@@ -62,8 +62,8 @@ export class QueryData {
   ) {}
 
   /** Creates a new target data instance with an updated sequence number. */
-  withSequenceNumber(sequenceNumber: number): QueryData {
-    return new QueryData(
+  withSequenceNumber(sequenceNumber: number): TargetData {
+    return new TargetData(
       this.target,
       this.targetId,
       this.purpose,
@@ -80,8 +80,8 @@ export class QueryData {
   withResumeToken(
     resumeToken: ProtoByteString,
     snapshotVersion: SnapshotVersion
-  ): QueryData {
-    return new QueryData(
+  ): TargetData {
+    return new TargetData(
       this.target,
       this.targetId,
       this.purpose,
@@ -91,7 +91,7 @@ export class QueryData {
     );
   }
 
-  isEqual(other: QueryData): boolean {
+  isEqual(other: TargetData): boolean {
     return (
       this.targetId === other.targetId &&
       this.purpose === other.purpose &&
