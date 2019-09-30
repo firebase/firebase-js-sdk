@@ -20,8 +20,8 @@ import { Path } from '../src/core/util/Path';
 
 describe('Path Tests', function() {
   const expectGreater = function(left, right) {
-    expect(Path.comparePaths(new Path(left), new Path(right))).to.equal(1);
-    expect(Path.comparePaths(new Path(right), new Path(left))).to.equal(-1);
+    expect(Path.comparePaths(new Path(left), new Path(right))).to.be.greaterThan(0)
+    expect(Path.comparePaths(new Path(right), new Path(left))).to.be.lessThan(0);
   };
 
   const expectEqual = function(left, right) {
@@ -117,5 +117,6 @@ describe('Path Tests', function() {
     expectGreater('/ab', '/a');
     expectGreater('/a/b', '/a');
     expectGreater('/a/b', '/a//');
+    expectGreater('/a/0971500000', '/a/00403311635');
   });
 });

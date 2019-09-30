@@ -1,4 +1,7 @@
 # Unreleased
+- [fixed] Fixed an issue that caused large numeric values with leading zeros to
+  not always be sorted correctly.
+
 - [changed] Internal cleanup to Node.JS support.
 
 # 6.4.0
