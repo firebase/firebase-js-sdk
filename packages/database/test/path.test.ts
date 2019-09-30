@@ -122,5 +122,6 @@ describe('Path Tests', function() {
     expectGreater('/a/b', '/a');
     expectGreater('/a/b', '/a//');
     expectGreater('/a/0971500000', '/a/00403311635');
+    expectGreater('/a/0971500000', '/a/971500000');
   });
 });
