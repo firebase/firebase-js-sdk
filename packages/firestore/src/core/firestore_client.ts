@@ -344,7 +344,7 @@ export class FirestoreClient {
       ) {
         throw new FirestoreError(
           Code.UNIMPLEMENTED,
-          'IndexedDB persistence with synchronizedTabs is only available on ' +
+          'IndexedDB persistence with synchronizeTabs is only available on ' +
             'platforms that support LocalStorage.'
         );
       }

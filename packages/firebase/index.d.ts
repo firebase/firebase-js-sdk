@@ -6228,7 +6228,8 @@ declare namespace firebase.firestore {
     experimentalTabSynchronization?: boolean;
 
     /**
-     * Whether to force enable persistence for the client. This cannot be used
+     * Whether to force enabling persistence for the client even if another
+     * client is already running with persistence enabled. This cannot be used
      * with `synchronizeTabs:true` and is primarily intended for use with Web
      * Workers. Setting this to 'true' will enable persistence, but cause other
      * tabs using persistence to fail.

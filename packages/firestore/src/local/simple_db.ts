@@ -69,7 +69,7 @@ export class SimpleDb {
 
       let request: IDBOpenDBRequest;
       // Support Web Workers, which don't have `window` global variable.
-      if (indexedDB !== undefined) {
+      if (typeof indexedDB !== 'undefined') {
         request = indexedDB.open(name, version);
       } else {
         request = window.indexedDB.open(name, version);

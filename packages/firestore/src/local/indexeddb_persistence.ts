@@ -289,10 +289,14 @@ export class IndexedDbPersistence implements Persistence {
       this.webStorage = platform.window.localStorage;
     } else {
       this.webStorage = null;
-      log.error(
-        LOG_TAG,
-        'LocalStorage is unavailable. Multi-tab functionality may not be supported.'
-      );
+      if (force === false) {
+        log.error(
+          LOG_TAG,
+          'LocalStorage is unavailable. As a result, persistence may not work ' +
+            'reliably. In particular enablePersistence() could fail immediately ' +
+            'after refreshing the page.'
+        );
+      }
     }
   }
 
@@ -313,7 +317,7 @@ export class IndexedDbPersistence implements Persistence {
         this.simpleDb = db;
         // NOTE: This is expected to fail sometimes (in the case of another tab already
         // having the persistence lock), so it's the first thing we should do.
-        return this.updateClientMetadataAndTryBecomePrimary();
+        return this.updateClientMetadataAndTryBecomePrimary(this.force);
       })
       .then(() => {
         this.attachVisibilityHandler();
@@ -395,7 +399,9 @@ export class IndexedDbPersistence implements Persistence {
    * primary state listener if the client either newly obtained or released its
    * primary lease.
    */
-  private updateClientMetadataAndTryBecomePrimary(): Promise<void> {
+  private updateClientMetadataAndTryBecomePrimary(
+    force = false
+  ): Promise<void> {
     return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
       const metadataStore = clientMetadataStore(txn);
       return metadataStore
@@ -420,7 +426,7 @@ export class IndexedDbPersistence implements Persistence {
             });
           }
         })
-        .next(() => this.canActAsPrimary(txn))
+        .next(() => (force ? true : this.canActAsPrimary(txn)))
         .next(canActAsPrimary => {
           const wasPrimary = this.isPrimary;
           this.isPrimary = canActAsPrimary;
@@ -528,13 +534,13 @@ export class IndexedDbPersistence implements Persistence {
       // Ideally we'd delete the IndexedDb and LocalStorage zombie entries for
       // the client atomically, but we can't. So we opt to delete the IndexedDb
       // entries first to avoid potentially reviving a zombied client.
-      inactiveClients.forEach(inactiveClient => {
-        if (this.webStorage) {
-          this.webStorage.removeItem(
+      if (this.webStorage) {
+        inactiveClients.forEach(inactiveClient => {
+          this.webStorage!.removeItem(
             this.zombiedClientLocalStorageKey(inactiveClient.clientId)
           );
-        }
-      });
+        });
+      }
     }
   }
 
