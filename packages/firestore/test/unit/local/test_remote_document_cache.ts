@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
+import { Target } from '../../../src/core/target';
 import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -91,12 +91,12 @@ export class TestRemoteDocumentCache {
     });
   }
 
-  getDocumentsMatchingQuery(query: Query): Promise<DocumentMap> {
+  getDocumentsMatchingQuery(target: Target): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'getDocumentsMatchingQuery',
       'readonly',
       txn => {
-        return this.cache.getDocumentsMatchingQuery(txn, query);
+        return this.cache.getDocumentsMatchingTarget(txn, target);
       }
     );
   }

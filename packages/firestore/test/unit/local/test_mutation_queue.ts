@@ -16,7 +16,7 @@
  */
 
 import { Timestamp } from '../../../src/api/timestamp';
-import { Query } from '../../../src/core/query';
+import { Target } from '../../../src/core/target';
 import { BatchId, ProtoByteString } from '../../../src/core/types';
 import { MutationQueue } from '../../../src/local/mutation_queue';
 import { Persistence } from '../../../src/local/persistence';
@@ -168,12 +168,14 @@ export class TestMutationQueue {
     );
   }
 
-  getAllMutationBatchesAffectingQuery(query: Query): Promise<MutationBatch[]> {
+  getAllMutationBatchesAffectingQuery(
+    target: Target
+  ): Promise<MutationBatch[]> {
     return this.persistence.runTransaction(
       'getAllMutationBatchesAffectingQuery',
       'readonly',
       txn => {
-        return this.queue.getAllMutationBatchesAffectingQuery(txn, query);
+        return this.queue.getAllMutationBatchesAffectingTarget(txn, target);
       }
     );
   }

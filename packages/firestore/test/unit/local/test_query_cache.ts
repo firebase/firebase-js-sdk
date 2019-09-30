@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
+import { Target } from '../../../src/core/target';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { Persistence } from '../../../src/local/persistence';
@@ -63,9 +63,9 @@ export class TestQueryCache {
     );
   }
 
-  getQueryData(query: Query): Promise<QueryData | null> {
+  getQueryData(target: Target): Promise<QueryData | null> {
     return this.persistence.runTransaction('getQueryData', 'readonly', txn => {
-      return this.cache.getQueryData(txn, query);
+      return this.cache.getQueryData(txn, target);
     });
   }
 

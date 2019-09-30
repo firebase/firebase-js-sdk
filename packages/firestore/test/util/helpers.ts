@@ -276,7 +276,7 @@ export function queryData(
   // Arbitrary value.
   const sequenceNumber = 0;
   return new QueryData(
-    query(path)._query,
+    query(path)._query.toTarget(),
     targetId,
     queryPurpose,
     sequenceNumber

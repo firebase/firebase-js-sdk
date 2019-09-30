@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../src/core/query';
+import { Target } from '../../../src/core/target';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -62,10 +62,10 @@ describe('IndexedDbQueryCache', () => {
     const originalSequenceNumber = 1234;
     const targetId = 5;
     const snapshotVersion = SnapshotVersion.fromTimestamp(new Timestamp(1, 2));
-    const query = Query.atPath(path('rooms'));
+    const target = Target.atPath(path('rooms'));
     await queryCache1.addQueryData(
       new QueryData(
-        query,
+        target,
         targetId,
         QueryPurpose.Listen,
         originalSequenceNumber,
@@ -102,9 +102,9 @@ function genericQueryCacheTests(
   addEqualityMatcher();
   let cache: TestQueryCache;
 
-  const QUERY_ROOMS = Query.atPath(path('rooms'));
-  const QUERY_HALLS = Query.atPath(path('halls'));
-  const QUERY_GARAGES = Query.atPath(path('garages'));
+  const QUERY_ROOMS = Target.atPath(path('rooms'));
+  const QUERY_HALLS = Target.atPath(path('halls'));
+  const QUERY_GARAGES = Target.atPath(path('garages'));
 
   /**
    * Creates a new QueryData object from the the given parameters, synthesizing
@@ -112,7 +112,7 @@ function genericQueryCacheTests(
    */
   let previousSequenceNumber = 0;
   function testQueryData(
-    query: Query,
+    target: Target,
     targetId: TargetId,
     version?: number
   ): QueryData {
@@ -122,7 +122,7 @@ function genericQueryCacheTests(
     const snapshotVersion = SnapshotVersion.fromMicroseconds(version);
     const resumeToken = resumeTokenForSnapshot(snapshotVersion);
     return new QueryData(
-      query,
+      target,
       targetId,
       QueryPurpose.Listen,
       ++previousSequenceNumber,
@@ -154,15 +154,15 @@ function genericQueryCacheTests(
   it('can set and read a query', async () => {
     const queryData = testQueryData(QUERY_ROOMS, 1, 1);
     await cache.addQueryData(queryData);
-    const read = await cache.getQueryData(queryData.query);
+    const read = await cache.getQueryData(queryData.target);
     expect(read).to.deep.equal(queryData);
   });
 
   it('handles canonical ID collisions', async () => {
     // Type information is currently lost in our canonicalID implementations so
     // this currently an easy way to force colliding canonicalIDs
-    const q1 = Query.atPath(path('a')).addFilter(filter('foo', '==', 1));
-    const q2 = Query.atPath(path('a')).addFilter(filter('foo', '==', '1'));
+    const q1 = Target.atPath(path('a')).addFilter(filter('foo', '==', 1));
+    const q2 = Target.atPath(path('a')).addFilter(filter('foo', '==', '1'));
     expect(q1.canonicalId()).to.equal(q2.canonicalId());
 
     const data1 = testQueryData(q1, 1, 1);
@@ -196,7 +196,7 @@ function genericQueryCacheTests(
     await cache.addQueryData(testQueryData(QUERY_ROOMS, 1, 1));
     const updated = testQueryData(QUERY_ROOMS, 1, 2);
     await cache.updateQueryData(updated);
-    const retrieved = await cache.getQueryData(updated.query);
+    const retrieved = await cache.getQueryData(updated.target);
     expect(retrieved).to.deep.equal(updated);
   });
 

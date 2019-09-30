@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { ListenSequence } from '../../../src/core/listen_sequence';
-import { Query } from '../../../src/core/query';
+import { Target } from '../../../src/core/target';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
@@ -130,7 +130,7 @@ function genericLruGarbageCollectorTests(
   function nextQueryData(sequenceNumber: ListenSequenceNumber): QueryData {
     const targetId = ++previousTargetId;
     return new QueryData(
-      Query.atPath(path('path' + targetId)),
+      Target.atPath(path('path' + targetId)),
       targetId,
       QueryPurpose.Listen,
       sequenceNumber

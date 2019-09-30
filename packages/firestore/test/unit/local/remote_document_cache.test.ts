@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { Query } from '../../../src/core/query';
+import { Target } from '../../../src/core/target';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { PersistenceTransaction } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
@@ -398,8 +398,8 @@ function genericRemoteDocumentCacheTests(
       doc('c/1', VERSION, DOC_DATA)
     ]);
 
-    const query = new Query(path('b'));
-    const matchingDocs = await cache.getDocumentsMatchingQuery(query);
+    const target = new Target(path('b'));
+    const matchingDocs = await cache.getDocumentsMatchingQuery(target);
 
     assertMatches(
       [doc('b/1', VERSION, DOC_DATA), doc('b/2', VERSION, DOC_DATA)],

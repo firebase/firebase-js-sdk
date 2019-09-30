@@ -1109,7 +1109,7 @@ abstract class TestRunner {
       // despite the fact that it's not always the right value.
       const expectedTarget = this.serializer.toTarget(
         new QueryData(
-          this.parseQuery(expected.query),
+          this.parseQuery(expected.query).toTarget(),
           targetId,
           QueryPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,
@@ -1183,7 +1183,10 @@ abstract class TestRunner {
     if (typeof querySpec === 'string') {
       return Query.atPath(path(querySpec));
     } else {
-      let query = new Query(path(querySpec.path), querySpec.collectionGroup);
+      let query = Query.newQuery(
+        path(querySpec.path),
+        querySpec.collectionGroup
+      );
       if (querySpec.limit) {
         query = query.withLimit(querySpec.limit);
       }

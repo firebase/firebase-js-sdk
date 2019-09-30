@@ -32,9 +32,9 @@ import {
   InFilter,
   KeyFieldFilter,
   Operator,
-  OrderBy,
-  Query
+  OrderBy
 } from '../../../../src/core/query';
+import { Target } from '../../../../src/core/target';
 import { SnapshotVersion } from '../../../../src/core/snapshot_version';
 import { QueryData, QueryPurpose } from '../../../../src/local/query_data';
 import * as fieldValue from '../../../../src/model/field_value';
@@ -102,11 +102,11 @@ describe('Serializer', () => {
   /**
    * Wraps the given query in QueryData. This is useful because the APIs we're
    * testing accept QueryData, but for the most part we're just testing
-   * variations on Query.
+   * variations on Target.
    */
-  function wrapQueryData(query: Query): QueryData {
+  function wrapQueryData(target: Target): QueryData {
     return new QueryData(
-      query,
+      target,
       1,
       QueryPurpose.Listen,
       2,
@@ -875,7 +875,7 @@ describe('Serializer', () => {
   });
 
   it('encodes listen request labels', () => {
-    const query = Query.atPath(path('collection/key'));
+    const query = Target.atPath(path('collection/key'));
     let queryData = new QueryData(query, 2, QueryPurpose.Listen, 3);
 
     let result = s.toListenRequestLabels(queryData);
@@ -901,7 +901,7 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('converts first-level key queries', () => {
-      const q = Query.atPath(path('docs/1'));
+      const q = Target.atPath(path('docs/1'));
       const result = s.toTarget(wrapQueryData(q));
       expect(result).to.deep.equal({
         documents: { documents: ['projects/p/databases/d/documents/docs/1'] },
@@ -911,7 +911,7 @@ describe('Serializer', () => {
     });
 
     it('converts first-level ancestor queries', () => {
-      const q = Query.atPath(path('messages'));
+      const q = Target.atPath(path('messages'));
       const result = s.toTarget(wrapQueryData(q));
       expect(result).to.deep.equal({
         query: {
@@ -932,7 +932,7 @@ describe('Serializer', () => {
     });
 
     it('converts nested ancestor queries', () => {
-      const q = Query.atPath(path('rooms/1/messages/10/attachments'));
+      const q = Target.atPath(path('rooms/1/messages/10/attachments'));
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -954,7 +954,7 @@ describe('Serializer', () => {
     });
 
     it('converts single filters at first-level collections', () => {
-      const q = Query.atPath(path('docs')).addFilter(filter('prop', '<', 42));
+      const q = Target.atPath(path('docs')).addFilter(filter('prop', '<', 42));
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -987,7 +987,7 @@ describe('Serializer', () => {
     });
 
     it('converts multiple filters at first-level collections', () => {
-      const q = Query.atPath(path('docs'))
+      const q = Target.atPath(path('docs'))
         .addFilter(filter('prop', '<', 42))
         .addFilter(filter('name', '==', 'dimond'))
         .addFilter(filter('nan', '==', NaN))
@@ -1058,9 +1058,9 @@ describe('Serializer', () => {
     });
 
     it('converts single filters on deeper collections', () => {
-      const q = Query.atPath(path('rooms/1/messages/10/attachments')).addFilter(
-        filter('prop', '<', 42)
-      );
+      const q = Target.atPath(
+        path('rooms/1/messages/10/attachments')
+      ).addFilter(filter('prop', '<', 42));
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -1093,7 +1093,7 @@ describe('Serializer', () => {
     });
 
     it('converts order bys', () => {
-      const q = Query.atPath(path('docs')).addOrderBy(orderBy('prop', 'asc'));
+      const q = Target.atPath(path('docs')).addOrderBy(orderBy('prop', 'asc'));
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -1119,7 +1119,7 @@ describe('Serializer', () => {
     });
 
     it('converts limits', () => {
-      const q = Query.atPath(path('docs')).withLimit(26);
+      const q = Target.atPath(path('docs')).withLimit(26);
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -1142,7 +1142,7 @@ describe('Serializer', () => {
     });
 
     it('converts startAt/endAt', () => {
-      const q = Query.atPath(path('docs'))
+      const q = Target.atPath(path('docs'))
         .withStartAt(
           bound(
             [[DOCUMENT_KEY_NAME, ref('p/d', 'foo/bar'), 'asc']],
@@ -1188,7 +1188,7 @@ describe('Serializer', () => {
     });
 
     it('converts resume tokens', () => {
-      const q = Query.atPath(path('docs'));
+      const q = Target.atPath(path('docs'));
       const result = s.toTarget(
         new QueryData(
           q,
