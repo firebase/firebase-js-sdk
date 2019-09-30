@@ -359,13 +359,3 @@ function wipeDb(db: firestore.FirebaseFirestore): Promise<void> {
   // off. We probably need deep queries for this.
   return Promise.resolve(undefined);
 }
-
-// TODO(in-queries): This exists just so we don't have to do the cast
-// repeatedly. Once we expose 'array-contains-any' publicly we can remove it and
-// just use 'array-contains-any' in all the tests.
-export const arrayContainsAnyOp = 'array-contains-any' as firestore.WhereFilterOp;
-
-// TODO(in-queries): This exists just so we don't have to do the cast
-// repeatedly. Once we expose 'in' publicly we can remove it and just use 'in'
-// in all the tests.
-export const inOp = 'in' as firestore.WhereFilterOp;
