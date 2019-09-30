@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { BatchId, ProtoByteString, TargetId } from '../core/types';
 import {
@@ -719,18 +719,18 @@ export class LocalStore {
   }
 
   /**
-   * Assigns the given query an internal ID so that its results can be pinned so
+   * Assigns the given target query an internal ID so that its results can be pinned so
    * they don't get GC'd. A query must be allocated in the local store before
    * the store can be used to manage its view.
    */
-  allocateQuery(query: Query): Promise<QueryData> {
+  allocateTarget(target: Target): Promise<QueryData> {
     return this.persistence.runTransaction(
       'Allocate query',
       'readwrite',
       txn => {
         let queryData: QueryData;
         return this.queryCache
-          .getQueryData(txn, query)
+          .getQueryData(txn, target)
           .next((cached: QueryData | null) => {
             if (cached) {
               // This query has been listened to previously, so reuse the
@@ -741,7 +741,7 @@ export class LocalStore {
             } else {
               return this.queryCache.allocateTargetId(txn).next(targetId => {
                 queryData = new QueryData(
-                  query,
+                  target,
                   targetId,
                   QueryPurpose.Listen,
                   txn.currentSequenceNumber
@@ -753,7 +753,7 @@ export class LocalStore {
           .next(() => {
             assert(
               !this.queryDataByTarget[queryData.targetId],
-              'Tried to allocate an already allocated query: ' + query
+              'Tried to allocate an already allocated query: ' + target
             );
             this.queryDataByTarget[queryData.targetId] = queryData;
             return queryData;
@@ -763,20 +763,23 @@ export class LocalStore {
   }
 
   /**
-   * Unpin all the documents associated with the given query. If
+   * Unpin all the documents associated with the given target query. If
    * `keepPersistedQueryData` is set to false and Eager GC enabled, the method
-   * directly removes the associated query data from the query cache.
+   * directly removes the associated target query data from the query cache.
    */
   // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
-  releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
+  releaseTarget(
+    target: Target,
+    keepPersistedQueryData: boolean
+  ): Promise<void> {
     const mode = keepPersistedQueryData ? 'readwrite' : 'readwrite-primary';
     return this.persistence.runTransaction('Release query', mode, txn => {
       return this.queryCache
-        .getQueryData(txn, query)
+        .getQueryData(txn, target)
         .next((queryData: QueryData | null) => {
           assert(
             queryData != null,
-            'Tried to release nonexistent query: ' + query
+            'Tried to release nonexistent query target: ' + target
           );
           const targetId = queryData!.targetId;
           const cachedQueryData = this.queryDataByTarget[targetId];
@@ -806,12 +809,12 @@ export class LocalStore {
   }
 
   /**
-   * Runs the specified query against all the documents in the local store and
+   * Runs the specified target query against all the documents in the local store and
    * returns the results.
    */
-  executeQuery(query: Query): Promise<DocumentMap> {
+  executeTargetQuery(target: Target): Promise<DocumentMap> {
     return this.persistence.runTransaction('Execute query', 'readonly', txn => {
-      return this.localDocuments.getDocumentsMatchingQuery(txn, query);
+      return this.localDocuments.getDocumentsMatchingTarget(txn, target);
     });
   }
 
@@ -895,9 +898,9 @@ export class LocalStore {
   }
 
   // PORTING NOTE: Multi-tab only.
-  getQueryForTarget(targetId: TargetId): Promise<Query | null> {
+  getQueryForTarget(targetId: TargetId): Promise<Target | null> {
     if (this.queryDataByTarget[targetId]) {
-      return Promise.resolve(this.queryDataByTarget[targetId].query);
+      return Promise.resolve(this.queryDataByTarget[targetId].target);
     } else {
       return this.persistence.runTransaction(
         'Get query data',
@@ -905,7 +908,7 @@ export class LocalStore {
         txn => {
           return this.queryCache
             .getQueryDataForTarget(txn, targetId)
-            .next(queryData => (queryData ? queryData.query : null));
+            .next(queryData => (queryData ? queryData.target : null));
         }
       );
     }

@@ -27,158 +27,103 @@ import {
 import { FieldPath, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { isNullOrUndefined } from '../util/types';
+import { Target } from './target';
 
+/**
+ * Represents a local query: queries with features implemented by the SDK on top
+ * of server implemented features.
+ */
 export class Query {
   static atPath(path: ResourcePath): Query {
-    return new Query(path);
+    return new Query(new Target(path));
   }
-
-  private memoizedCanonicalId: string | null = null;
-  private memoizedOrderBy: OrderBy[] | null = null;
 
   /**
    * Initializes a Query with a path and optional additional query constraints.
    * Path must currently be empty if this is a collection group query.
    */
-  constructor(
-    readonly path: ResourcePath,
-    readonly collectionGroup: string | null = null,
-    readonly explicitOrderBy: OrderBy[] = [],
-    readonly filters: Filter[] = [],
-    readonly limit: number | null = null,
-    readonly startAt: Bound | null = null,
-    readonly endAt: Bound | null = null
-  ) {
-    if (this.startAt) {
-      this.assertValidBound(this.startAt);
-    }
-    if (this.endAt) {
-      this.assertValidBound(this.endAt);
-    }
+  static newQuery(
+    path: ResourcePath,
+    collectionGroup: string | null = null,
+    explicitOrderBy: OrderBy[] = [],
+    filters: Filter[] = [],
+    limit: number | null = null,
+    startAt: Bound | null = null,
+    endAt: Bound | null = null
+  ): Query {
+    return new Query(
+      new Target(
+        path,
+        collectionGroup,
+        explicitOrderBy,
+        filters,
+        limit,
+        startAt,
+        endAt
+      )
+    );
+  }
+
+  private memoizedCanonicalId: string | null = null;
+  private memoizedOrderBy: OrderBy[] | null = null;
+
+  // Constructs a new `Query` from a `Target` query. All non-local features
+  // are delegated to this target instance.
+  constructor(private readonly target: Target) {}
+
+  get path(): ResourcePath {
+    return this.target.path;
+  }
+
+  get collectionGroup(): string | null {
+    return this.target.collectionGroup;
   }
 
   get orderBy(): OrderBy[] {
     if (this.memoizedOrderBy === null) {
-      const inequalityField = this.getInequalityFilterField();
-      const firstOrderByField = this.getFirstOrderByField();
-      if (inequalityField !== null && firstOrderByField === null) {
-        // In order to implicitly add key ordering, we must also add the
-        // inequality filter field for it to be a valid query.
-        // Note that the default inequality field and key ordering is ascending.
-        if (inequalityField.isKeyField()) {
-          this.memoizedOrderBy = [KEY_ORDERING_ASC];
-        } else {
-          this.memoizedOrderBy = [
-            new OrderBy(inequalityField),
-            KEY_ORDERING_ASC
-          ];
-        }
-      } else {
-        assert(
-          inequalityField === null ||
-            (firstOrderByField !== null &&
-              inequalityField.isEqual(firstOrderByField)),
-          'First orderBy should match inequality field.'
-        );
-        this.memoizedOrderBy = [];
-        let foundKeyOrdering = false;
-        for (const orderBy of this.explicitOrderBy) {
-          this.memoizedOrderBy.push(orderBy);
-          if (orderBy.field.isKeyField()) {
-            foundKeyOrdering = true;
-          }
-        }
-        if (!foundKeyOrdering) {
-          // The order of the implicit key ordering always matches the last
-          // explicit order by
-          const lastDirection =
-            this.explicitOrderBy.length > 0
-              ? this.explicitOrderBy[this.explicitOrderBy.length - 1].dir
-              : Direction.ASCENDING;
-          this.memoizedOrderBy.push(
-            lastDirection === Direction.ASCENDING
-              ? KEY_ORDERING_ASC
-              : KEY_ORDERING_DESC
-          );
-        }
-      }
+      this.memoizedOrderBy = this.target.orderBy;
     }
     return this.memoizedOrderBy;
   }
 
+  get explicitOrderBy(): OrderBy[] {
+    return this.target.explicitOrderBy;
+  }
+
+  get filters(): Filter[] {
+    return this.target.filters;
+  }
+
+  get limit(): number | null {
+    return this.target.limit;
+  }
+
+  get startAt(): Bound | null {
+    return this.target.startAt;
+  }
+
+  get endAt(): Bound | null {
+    return this.target.endAt;
+  }
+
   addFilter(filter: Filter): Query {
-    assert(
-      this.getInequalityFilterField() == null ||
-        !(filter instanceof FieldFilter) ||
-        !filter.isInequality() ||
-        filter.field.isEqual(this.getInequalityFilterField()!),
-      'Query must only have one inequality field.'
-    );
-
-    assert(!this.isDocumentQuery(), 'No filtering allowed for document query');
-
-    const newFilters = this.filters.concat([filter]);
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.explicitOrderBy.slice(),
-      newFilters,
-      this.limit,
-      this.startAt,
-      this.endAt
-    );
+    return new Query(this.target.addFilter(filter));
   }
 
   addOrderBy(orderBy: OrderBy): Query {
-    assert(!this.startAt && !this.endAt, 'Bounds must be set after orderBy');
-    // TODO(dimond): validate that orderBy does not list the same key twice.
-    const newOrderBy = this.explicitOrderBy.concat([orderBy]);
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      newOrderBy,
-      this.filters.slice(),
-      this.limit,
-      this.startAt,
-      this.endAt
-    );
+    return new Query(this.target.addOrderBy(orderBy));
   }
 
   withLimit(limit: number | null): Query {
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.explicitOrderBy.slice(),
-      this.filters.slice(),
-      limit,
-      this.startAt,
-      this.endAt
-    );
+    return new Query(this.target.withLimit(limit));
   }
 
   withStartAt(bound: Bound): Query {
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.explicitOrderBy.slice(),
-      this.filters.slice(),
-      this.limit,
-      bound,
-      this.endAt
-    );
+    return new Query(this.target.withStartAt(bound));
   }
 
   withEndAt(bound: Bound): Query {
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.explicitOrderBy.slice(),
-      this.filters.slice(),
-      this.limit,
-      this.startAt,
-      bound
-    );
+    return new Query(this.target.withEndAt(bound));
   }
 
   /**
@@ -188,253 +133,60 @@ export class Query {
    * paths.
    */
   asCollectionQueryAtPath(path: ResourcePath): Query {
-    return new Query(
-      path,
-      /*collectionGroup=*/ null,
-      this.explicitOrderBy.slice(),
-      this.filters.slice(),
-      this.limit,
-      this.startAt,
-      this.endAt
-    );
+    return new Query(this.target.asCollectionQueryAtPath(path));
   }
 
-  // TODO(b/29183165): This is used to get a unique string from a query to, for
-  // example, use as a dictionary key, but the implementation is subject to
-  // collisions. Make it collision-free.
   canonicalId(): string {
     if (this.memoizedCanonicalId === null) {
-      let canonicalId = this.path.canonicalString();
-      if (this.isCollectionGroupQuery()) {
-        canonicalId += '|cg:' + this.collectionGroup;
-      }
-      canonicalId += '|f:';
-      for (const filter of this.filters) {
-        canonicalId += filter.canonicalId();
-        canonicalId += ',';
-      }
-      canonicalId += '|ob:';
-      // TODO(dimond): make this collision resistant
-      for (const orderBy of this.orderBy) {
-        canonicalId += orderBy.canonicalId();
-        canonicalId += ',';
-      }
-      if (!isNullOrUndefined(this.limit)) {
-        canonicalId += '|l:';
-        canonicalId += this.limit!;
-      }
-      if (this.startAt) {
-        canonicalId += '|lb:';
-        canonicalId += this.startAt.canonicalId();
-      }
-      if (this.endAt) {
-        canonicalId += '|ub:';
-        canonicalId += this.endAt.canonicalId();
-      }
-      this.memoizedCanonicalId = canonicalId;
+      this.memoizedCanonicalId = this.target.canonicalId();
     }
     return this.memoizedCanonicalId;
   }
 
   toString(): string {
-    let str = 'Query(' + this.path.canonicalString();
-    if (this.isCollectionGroupQuery()) {
-      str += ' collectionGroup=' + this.collectionGroup;
-    }
-    if (this.filters.length > 0) {
-      str += `, filters: [${this.filters.join(', ')}]`;
-    }
-    if (!isNullOrUndefined(this.limit)) {
-      str += ', limit: ' + this.limit;
-    }
-    if (this.explicitOrderBy.length > 0) {
-      str += `, orderBy: [${this.explicitOrderBy.join(', ')}]`;
-    }
-    if (this.startAt) {
-      str += ', startAt: ' + this.startAt.canonicalId();
-    }
-    if (this.endAt) {
-      str += ', endAt: ' + this.endAt.canonicalId();
-    }
+    return `Query(${this.target.toString()})`;
+  }
 
-    return str + ')';
+  toTarget(): Target {
+    return this.target;
   }
 
   isEqual(other: Query): boolean {
-    if (this.limit !== other.limit) {
-      return false;
-    }
-
-    if (this.orderBy.length !== other.orderBy.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.orderBy.length; i++) {
-      if (!this.orderBy[i].isEqual(other.orderBy[i])) {
-        return false;
-      }
-    }
-
-    if (this.filters.length !== other.filters.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.filters.length; i++) {
-      if (!this.filters[i].isEqual(other.filters[i])) {
-        return false;
-      }
-    }
-
-    if (this.collectionGroup !== other.collectionGroup) {
-      return false;
-    }
-
-    if (!this.path.isEqual(other.path)) {
-      return false;
-    }
-
-    if (
-      this.startAt !== null
-        ? !this.startAt.isEqual(other.startAt)
-        : other.startAt !== null
-    ) {
-      return false;
-    }
-
-    return this.endAt !== null
-      ? this.endAt.isEqual(other.endAt)
-      : other.endAt === null;
+    return this.target.isEqual(other.target);
   }
 
   docComparator(d1: Document, d2: Document): number {
-    let comparedOnKeyField = false;
-    for (const orderBy of this.orderBy) {
-      const comp = orderBy.compare(d1, d2);
-      if (comp !== 0) {
-        return comp;
-      }
-      comparedOnKeyField = comparedOnKeyField || orderBy.field.isKeyField();
-    }
-    // Assert that we actually compared by key
-    assert(
-      comparedOnKeyField,
-      "orderBy used that doesn't compare on key field"
-    );
-    return 0;
+    return this.target.docComparator(d1, d2);
   }
 
   matches(doc: Document): boolean {
-    return (
-      this.matchesPathAndCollectionGroup(doc) &&
-      this.matchesOrderBy(doc) &&
-      this.matchesFilters(doc) &&
-      this.matchesBounds(doc)
-    );
+    return this.target.matches(doc);
   }
 
   hasLimit(): boolean {
-    return !isNullOrUndefined(this.limit);
+    return this.target.hasLimit();
   }
 
   getFirstOrderByField(): FieldPath | null {
-    return this.explicitOrderBy.length > 0
-      ? this.explicitOrderBy[0].field
-      : null;
+    return this.target.getFirstOrderByField();
   }
 
   getInequalityFilterField(): FieldPath | null {
-    for (const filter of this.filters) {
-      if (filter instanceof FieldFilter && filter.isInequality()) {
-        return filter.field;
-      }
-    }
-    return null;
+    return this.target.getInequalityFilterField();
   }
 
   // Checks if any of the provided Operators are included in the query and
   // returns the first one that is, or null if none are.
   findFilterOperator(operators: Operator[]): Operator | null {
-    for (const filter of this.filters) {
-      if (filter instanceof FieldFilter) {
-        if (operators.indexOf(filter.op) >= 0) {
-          return filter.op;
-        }
-      }
-    }
-    return null;
+    return this.target.findFilterOperator(operators);
   }
 
   isDocumentQuery(): boolean {
-    return (
-      DocumentKey.isDocumentKey(this.path) &&
-      this.collectionGroup === null &&
-      this.filters.length === 0
-    );
+    return this.target.isDocumentQuery();
   }
 
   isCollectionGroupQuery(): boolean {
-    return this.collectionGroup !== null;
-  }
-
-  private matchesPathAndCollectionGroup(doc: Document): boolean {
-    const docPath = doc.key.path;
-    if (this.collectionGroup !== null) {
-      // NOTE: this.path is currently always empty since we don't expose Collection
-      // Group queries rooted at a document path yet.
-      return (
-        doc.key.hasCollectionId(this.collectionGroup) &&
-        this.path.isPrefixOf(docPath)
-      );
-    } else if (DocumentKey.isDocumentKey(this.path)) {
-      // exact match for document queries
-      return this.path.isEqual(docPath);
-    } else {
-      // shallow ancestor queries by default
-      return this.path.isImmediateParentOf(docPath);
-    }
-  }
-
-  /**
-   * A document must have a value for every ordering clause in order to show up
-   * in the results.
-   */
-  private matchesOrderBy(doc: Document): boolean {
-    for (const orderBy of this.explicitOrderBy) {
-      // order by key always matches
-      if (!orderBy.field.isKeyField() && doc.field(orderBy.field) === null) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  private matchesFilters(doc: Document): boolean {
-    for (const filter of this.filters) {
-      if (!filter.matches(doc)) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Makes sure a document is within the bounds, if provided.
-   */
-  private matchesBounds(doc: Document): boolean {
-    if (this.startAt && !this.startAt.sortsBeforeDocument(this.orderBy, doc)) {
-      return false;
-    }
-    if (this.endAt && this.endAt.sortsBeforeDocument(this.orderBy, doc)) {
-      return false;
-    }
-    return true;
-  }
-
-  private assertValidBound(bound: Bound): void {
-    assert(
-      bound.position.length <= this.orderBy.length,
-      'Bound is longer than orderBy'
-    );
+    return this.target.isCollectionGroupQuery();
   }
 }
 
@@ -838,8 +590,11 @@ export class OrderBy {
   }
 }
 
-const KEY_ORDERING_ASC = new OrderBy(FieldPath.keyField(), Direction.ASCENDING);
-const KEY_ORDERING_DESC = new OrderBy(
+export const KEY_ORDERING_ASC = new OrderBy(
+  FieldPath.keyField(),
+  Direction.ASCENDING
+);
+export const KEY_ORDERING_DESC = new OrderBy(
   FieldPath.keyField(),
   Direction.DESCENDING
 );
