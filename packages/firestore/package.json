@@ -30,7 +30,7 @@
     "dist"
   ],
   "dependencies": {
-    "@firebase/firestore-types": "1.5.0",
+    "@firebase/firestore-types": "file:../firestore-types/",
     "@firebase/logger": "0.1.25",
     "@firebase/webchannel-wrapper": "0.2.26",
     "@grpc/proto-loader": "^0.5.0",
