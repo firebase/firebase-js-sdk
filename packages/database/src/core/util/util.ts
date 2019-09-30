@@ -546,7 +546,7 @@ export const errorForServerCode = function(code: string, query: Query): Error {
  * @type {RegExp}
  * @private
  */
-export const INTEGER_REGEXP_ = new RegExp('^-?\\d{1,10}$');
+export const INTEGER_REGEXP_ = new RegExp('^-?(0*)\\d{1,10}$');
 
 /**
  * If the string contains a 32-bit integer, return it.  Else return null.
