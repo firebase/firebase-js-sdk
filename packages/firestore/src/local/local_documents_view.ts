@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   DocumentKeySet,
@@ -144,16 +144,16 @@ export class LocalDocumentsView {
   }
 
   /** Performs a query against the local view of all documents. */
-  getDocumentsMatchingQuery(
+  getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<DocumentMap> {
-    if (query.isDocumentQuery()) {
-      return this.getDocumentsMatchingDocumentQuery(transaction, query.path);
-    } else if (query.isCollectionGroupQuery()) {
-      return this.getDocumentsMatchingCollectionGroupQuery(transaction, query);
+    if (target.isDocumentQuery()) {
+      return this.getDocumentsMatchingDocumentQuery(transaction, target.path);
+    } else if (target.isCollectionGroupQuery()) {
+      return this.getDocumentsMatchingCollectionGroupQuery(transaction, target);
     } else {
-      return this.getDocumentsMatchingCollectionQuery(transaction, query);
+      return this.getDocumentsMatchingCollectionQuery(transaction, target);
     }
   }
 
@@ -175,13 +175,13 @@ export class LocalDocumentsView {
 
   private getDocumentsMatchingCollectionGroupQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<DocumentMap> {
     assert(
-      query.path.isEmpty(),
+      target.path.isEmpty(),
       'Currently we only support collection group queries at the root.'
     );
-    const collectionId = query.collectionGroup!;
+    const collectionId = target.collectionGroup!;
     let results = documentMap();
     return this.indexManager
       .getCollectionParents(transaction, collectionId)
@@ -189,7 +189,7 @@ export class LocalDocumentsView {
         // Perform a collection query against each parent that contains the
         // collectionId and aggregate the results.
         return PersistencePromise.forEach(parents, (parent: ResourcePath) => {
-          const collectionQuery = query.asCollectionQueryAtPath(
+          const collectionQuery = target.asCollectionQueryAtPath(
             parent.child(collectionId)
           );
           return this.getDocumentsMatchingCollectionQuery(
@@ -206,18 +206,18 @@ export class LocalDocumentsView {
 
   private getDocumentsMatchingCollectionQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<DocumentMap> {
     // Query the remote documents and overlay mutations.
     let results: DocumentMap;
     let mutationBatches: MutationBatch[];
     return this.remoteDocumentCache
-      .getDocumentsMatchingQuery(transaction, query)
+      .getDocumentsMatchingTarget(transaction, target)
       .next(queryResults => {
         results = queryResults;
-        return this.mutationQueue.getAllMutationBatchesAffectingQuery(
+        return this.mutationQueue.getAllMutationBatchesAffectingTarget(
           transaction,
-          query
+          target
         );
       })
       .next(matchingMutationBatches => {
@@ -257,7 +257,7 @@ export class LocalDocumentsView {
         // Finally, filter out any documents that don't actually match
         // the query.
         results.forEach((key, doc) => {
-          if (!query.matches(doc)) {
+          if (!target.matches(doc)) {
             results = results.remove(key);
           }
         });

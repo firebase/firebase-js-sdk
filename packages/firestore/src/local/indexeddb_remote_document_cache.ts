@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -291,37 +291,37 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       });
   }
 
-  getDocumentsMatchingQuery(
+  getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<DocumentMap> {
     assert(
-      !query.isCollectionGroupQuery(),
+      !target.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
     let results = documentMap();
 
-    const immediateChildrenPathLength = query.path.length + 1;
+    const immediateChildrenPathLength = target.path.length + 1;
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
-    // the documents we need to match the query against.
-    const startKey = query.path.toArray();
+    // the documents we need to match the target against.
+    const startKey = target.path.toArray();
     const range = IDBKeyRange.lowerBound(startKey);
     return remoteDocumentsStore(transaction)
       .iterate({ range }, (key, dbRemoteDoc, control) => {
-        // The query is actually returning any path that starts with the query
+        // The query is actually returning any path that starts with the target
         // path prefix which may include documents in subcollections. For
         // example, a query on 'rooms' will return rooms/abc/messages/xyx but we
         // shouldn't match it. Fix this by discarding rows with document keys
-        // more than one segment longer than the query path.
+        // more than one segment longer than the target path.
         if (key.length !== immediateChildrenPathLength) {
           return;
         }
 
         const maybeDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
-        if (!query.path.isPrefixOf(maybeDoc.key.path)) {
+        if (!target.path.isPrefixOf(maybeDoc.key.path)) {
           control.done();
-        } else if (maybeDoc instanceof Document && query.matches(maybeDoc)) {
+        } else if (maybeDoc instanceof Document && target.matches(maybeDoc)) {
           results = results.insert(maybeDoc.key, maybeDoc);
         }
       })

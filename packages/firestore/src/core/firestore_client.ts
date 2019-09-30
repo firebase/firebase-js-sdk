@@ -583,7 +583,7 @@ export class FirestoreClient {
     this.verifyNotTerminated();
     return this.asyncQueue
       .enqueue(() => {
-        return this.localStore.executeQuery(query);
+        return this.localStore.executeTargetQuery(query.toTarget());
       })
       .then((docs: DocumentMap) => {
         const remoteKeys: DocumentKeySet = documentKeySet();

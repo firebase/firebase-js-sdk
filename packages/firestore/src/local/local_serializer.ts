@@ -16,7 +16,7 @@
  */
 
 import { Timestamp } from '../api/timestamp';
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import { SnapshotVersion } from '../core/snapshot_version';
 import {
   Document,
@@ -180,14 +180,14 @@ export class LocalSerializer {
   /** Decodes a DbTarget into QueryData */
   fromDbTarget(dbTarget: DbTarget): QueryData {
     const version = this.fromDbTimestamp(dbTarget.readTime);
-    let query: Query;
+    let target: Target;
     if (isDocumentQuery(dbTarget.query)) {
-      query = this.remoteSerializer.fromDocumentsTarget(dbTarget.query);
+      target = this.remoteSerializer.fromDocumentsTarget(dbTarget.query);
     } else {
-      query = this.remoteSerializer.fromQueryTarget(dbTarget.query);
+      target = this.remoteSerializer.fromQueryTarget(dbTarget.query);
     }
     return new QueryData(
-      query,
+      target,
       dbTarget.targetId,
       QueryPurpose.Listen,
       dbTarget.lastListenSequenceNumber,
@@ -207,10 +207,10 @@ export class LocalSerializer {
     );
     const dbTimestamp = this.toDbTimestamp(queryData.snapshotVersion);
     let queryProto: DbQuery;
-    if (queryData.query.isDocumentQuery()) {
-      queryProto = this.remoteSerializer.toDocumentsTarget(queryData.query);
+    if (queryData.target.isDocumentQuery()) {
+      queryProto = this.remoteSerializer.toDocumentsTarget(queryData.target);
     } else {
-      queryProto = this.remoteSerializer.toQueryTarget(queryData.query);
+      queryProto = this.remoteSerializer.toQueryTarget(queryData.target);
     }
 
     let resumeToken: string;
@@ -229,7 +229,7 @@ export class LocalSerializer {
     // lastListenSequenceNumber is always 0 until we do real GC.
     return new DbTarget(
       queryData.targetId,
-      queryData.query.canonicalId(),
+      queryData.target.canonicalId(),
       dbTimestamp,
       resumeToken,
       queryData.sequenceNumber,

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
 import { emptyByteString } from '../platform/platform';
@@ -39,32 +39,32 @@ export enum QueryPurpose {
  */
 export class QueryData {
   constructor(
-    /** The query being listened to. */
-    readonly query: Query,
+    /** The target query being listened to. */
+    readonly target: Target,
     /**
      * The target ID to which the query corresponds; Assigned by the
      * LocalStore for user listens and by the SyncEngine for limbo watches.
      */
     readonly targetId: TargetId,
-    /** The purpose of the query. */
+    /** The purpose of the target query. */
     readonly purpose: QueryPurpose,
-    /** The sequence number of the last transaction during which this query data was modified */
+    /** The sequence number of the last transaction during which this target data was modified */
     readonly sequenceNumber: ListenSequenceNumber,
     /** The latest snapshot version seen for this target. */
     readonly snapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
     /**
-     * An opaque, server-assigned token that allows watching a query to be
+     * An opaque, server-assigned token that allows watching a target to be
      * resumed after disconnecting without retransmitting all the data that
-     * matches the query. The resume token essentially identifies a point in
+     * matches the target. The resume token essentially identifies a point in
      * time from which the server should resume sending results.
      */
     readonly resumeToken: ProtoByteString = emptyByteString()
   ) {}
 
-  /** Creates a new query data instance with an updated sequence number. */
+  /** Creates a new target data instance with an updated sequence number. */
   withSequenceNumber(sequenceNumber: number): QueryData {
     return new QueryData(
-      this.query,
+      this.target,
       this.targetId,
       this.purpose,
       sequenceNumber,
@@ -74,7 +74,7 @@ export class QueryData {
   }
 
   /**
-   * Creates a new query data instance with an updated resume token and
+   * Creates a new target data instance with an updated resume token and
    * snapshot version.
    */
   withResumeToken(
@@ -82,7 +82,7 @@ export class QueryData {
     snapshotVersion: SnapshotVersion
   ): QueryData {
     return new QueryData(
-      this.query,
+      this.target,
       this.targetId,
       this.purpose,
       this.sequenceNumber,
@@ -98,7 +98,7 @@ export class QueryData {
       this.sequenceNumber === other.sequenceNumber &&
       this.snapshotVersion.isEqual(other.snapshotVersion) &&
       this.resumeToken === other.resumeToken &&
-      this.query.isEqual(other.query)
+      this.target.isEqual(other.target)
     );
   }
 }

@@ -17,7 +17,7 @@
 
 import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import { BatchId, ProtoByteString } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -394,20 +394,20 @@ export class IndexedDbMutationQueue implements MutationQueue {
     );
   }
 
-  getAllMutationBatchesAffectingQuery(
+  getAllMutationBatchesAffectingTarget(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<MutationBatch[]> {
     assert(
-      !query.isDocumentQuery(),
+      !target.isDocumentQuery(),
       "Document queries shouldn't go down this path"
     );
     assert(
-      !query.isCollectionGroupQuery(),
+      !target.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
 
-    const queryPath = query.path;
+    const queryPath = target.path;
     const immediateChildrenLength = queryPath.length + 1;
 
     // TODO(mcg): Actually implement a single-collection query

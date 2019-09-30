@@ -633,7 +633,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
     this.ensureClientConfigured();
     return new Query(
-      new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
+      InternalQuery.newQuery(ResourcePath.EMPTY_PATH, collectionId),
       this
     );
   }

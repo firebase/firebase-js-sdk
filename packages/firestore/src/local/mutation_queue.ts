@@ -16,7 +16,7 @@
  */
 
 import { Timestamp } from '../api/timestamp';
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import { BatchId, ProtoByteString } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -158,24 +158,24 @@ export interface MutationQueue {
 
   /**
    * Finds all mutation batches that could affect the results for the given
-   * query. Not all mutations in a batch will necessarily affect the query, so
+   * target. Not all mutations in a batch will necessarily affect the target, so
    * when looping through the batch you'll need to check that the mutation
-   * itself matches the query.
+   * itself matches the target.
    *
    * Batches are guaranteed to be in sorted order.
    *
    * Note that because of this requirement implementations are free to return
    * mutation batches that don't match the query at all if it's convenient.
    *
-   * NOTE: A PatchMutation does not need to include all fields in the query
+   * NOTE: A PatchMutation does not need to include all fields in the target
    * filter criteria in order to be a match (but any fields it does contain do
    * need to match).
    */
   // TODO(mikelehen): This should perhaps return an enumerator, though I'm not
   // sure we can avoid loading them all in memory.
-  getAllMutationBatchesAffectingQuery(
+  getAllMutationBatchesAffectingTarget(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<MutationBatch[]>;
 
   /**

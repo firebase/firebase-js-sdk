@@ -16,7 +16,7 @@
  */
 
 import { Timestamp } from '../api/timestamp';
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import { BatchId, ProtoByteString } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
@@ -234,22 +234,22 @@ export class MemoryMutationQueue implements MutationQueue {
     return PersistencePromise.resolve(this.findMutationBatches(uniqueBatchIDs));
   }
 
-  getAllMutationBatchesAffectingQuery(
+  getAllMutationBatchesAffectingTarget(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<MutationBatch[]> {
     assert(
-      !query.isCollectionGroupQuery(),
+      !target.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
-    // Use the query path as a prefix for testing if a document matches the
-    // query.
-    const prefix = query.path;
+    // Use the target path as a prefix for testing if a document matches the
+    // target.
+    const prefix = target.path;
     const immediateChildrenPathLength = prefix.length + 1;
 
     // Construct a document reference for actually scanning the index. Unlike
     // the prefix the document key in this reference must have an even number of
-    // segments. The empty segment can be used a suffix of the query path
+    // segments. The empty segment can be used a suffix of the target path
     // because it precedes all other segments in an ordered traversal.
     let startPath = prefix;
     if (!DocumentKey.isDocumentKey(startPath)) {
@@ -259,7 +259,7 @@ export class MemoryMutationQueue implements MutationQueue {
     const start = new DocReference(new DocumentKey(startPath), 0);
 
     // Find unique batchIDs referenced by all documents potentially matching the
-    // query.
+    // target.
     let uniqueBatchIDs = new SortedSet<number>(primitiveComparator);
 
     this.batchesByDocumentKey.forEachWhile(ref => {
@@ -267,8 +267,8 @@ export class MemoryMutationQueue implements MutationQueue {
       if (!prefix.isPrefixOf(rowKeyPath)) {
         return false;
       } else {
-        // Rows with document keys more than one segment longer than the query
-        // path can't be matches. For example, a query on 'rooms' can't match
+        // Rows with document keys more than one segment longer than the target
+        // path can't be matches. For example, a target query on 'rooms' can't match
         // the document /rooms/abc/messages/xyx.
         // TODO(mcg): we'll need a different scanner when we implement
         // ancestor queries.

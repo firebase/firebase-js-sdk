@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -123,29 +123,29 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
-  getDocumentsMatchingQuery(
+  getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<DocumentMap> {
     assert(
-      !query.isCollectionGroupQuery(),
+      !target.isCollectionGroupQuery(),
       'CollectionGroup queries should be handled in LocalDocumentsView'
     );
     let results = documentMap();
 
     // Documents are ordered by key, so we can use a prefix scan to narrow down
-    // the documents we need to match the query against.
-    const prefix = new DocumentKey(query.path.child(''));
+    // the documents we need to match the target against.
+    const prefix = new DocumentKey(target.path.child(''));
     const iterator = this.docs.getIteratorFrom(prefix);
     while (iterator.hasNext()) {
       const {
         key,
         value: { maybeDocument }
       } = iterator.getNext();
-      if (!query.path.isPrefixOf(key.path)) {
+      if (!target.path.isPrefixOf(key.path)) {
         break;
       }
-      if (maybeDocument instanceof Document && query.matches(maybeDocument)) {
+      if (maybeDocument instanceof Document && target.matches(maybeDocument)) {
         results = results.insert(maybeDocument.key, maybeDocument);
       }
     }

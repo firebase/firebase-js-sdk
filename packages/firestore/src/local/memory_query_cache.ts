@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
@@ -34,9 +34,9 @@ import { ReferenceSet } from './reference_set';
 
 export class MemoryQueryCache implements QueryCache {
   /**
-   * Maps a query to the data about that query
+   * Maps a target to the data about that target.
    */
-  private queries = new ObjectMap<Query, QueryData>(q => q.canonicalId());
+  private targets = new ObjectMap<Target, QueryData>(t => t.canonicalId());
 
   /** The last received snapshot version. */
   private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
@@ -64,7 +64,7 @@ export class MemoryQueryCache implements QueryCache {
     txn: PersistenceTransaction,
     f: (q: QueryData) => void
   ): PersistencePromise<void> {
-    this.queries.forEach((_, queryData) => f(queryData));
+    this.targets.forEach((_, queryData) => f(queryData));
     return PersistencePromise.resolve();
   }
 
@@ -103,7 +103,7 @@ export class MemoryQueryCache implements QueryCache {
   }
 
   private saveQueryData(queryData: QueryData): void {
-    this.queries.set(queryData.query, queryData);
+    this.targets.set(queryData.target, queryData);
     const targetId = queryData.targetId;
     if (targetId > this.highestTargetId) {
       this.highestTargetId = targetId;
@@ -118,7 +118,7 @@ export class MemoryQueryCache implements QueryCache {
     queryData: QueryData
   ): PersistencePromise<void> {
     assert(
-      !this.queries.has(queryData.query),
+      !this.targets.has(queryData.target),
       'Adding a query that already exists'
     );
     this.saveQueryData(queryData);
@@ -130,7 +130,7 @@ export class MemoryQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    assert(this.queries.has(queryData.query), 'Updating a non-existent query');
+    assert(this.targets.has(queryData.target), 'Updating a non-existent query');
     this.saveQueryData(queryData);
     return PersistencePromise.resolve();
   }
@@ -141,10 +141,10 @@ export class MemoryQueryCache implements QueryCache {
   ): PersistencePromise<void> {
     assert(this.targetCount > 0, 'Removing a target from an empty cache');
     assert(
-      this.queries.has(queryData.query),
+      this.targets.has(queryData.target),
       'Removing a non-existent target from the cache'
     );
-    this.queries.delete(queryData.query);
+    this.targets.delete(queryData.target);
     this.references.removeReferencesForId(queryData.targetId);
     this.targetCount -= 1;
     return PersistencePromise.resolve();
@@ -157,12 +157,12 @@ export class MemoryQueryCache implements QueryCache {
   ): PersistencePromise<number> {
     let count = 0;
     const removals: Array<PersistencePromise<void>> = [];
-    this.queries.forEach((key, queryData) => {
+    this.targets.forEach((key, queryData) => {
       if (
         queryData.sequenceNumber <= upperBound &&
         !activeTargetIds[queryData.targetId]
       ) {
-        this.queries.delete(key);
+        this.targets.delete(key);
         removals.push(
           this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
         );
@@ -180,9 +180,9 @@ export class MemoryQueryCache implements QueryCache {
 
   getQueryData(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<QueryData | null> {
-    const queryData = this.queries.get(query) || null;
+    const queryData = this.targets.get(target) || null;
     return PersistencePromise.resolve(queryData);
   }
 

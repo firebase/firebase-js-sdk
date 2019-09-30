@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import {
   DocumentKeySet,
   DocumentMap,
@@ -63,19 +63,19 @@ export interface RemoteDocumentCache {
   ): PersistencePromise<NullableMaybeDocumentMap>;
 
   /**
-   * Executes a query against the cached Document entries.
+   * Executes a target query against the cached Document entries.
    *
    * Implementations may return extra documents if convenient. The results
    * should be re-filtered by the consumer before presenting them to the user.
    *
    * Cached NoDocument entries have no bearing on query results.
    *
-   * @param query The query to match documents against.
+   * @param target The target query to match documents against.
    * @return The set of matching documents.
    */
-  getDocumentsMatchingQuery(
+  getDocumentsMatchingTarget(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Target
   ): PersistencePromise<DocumentMap>;
 
   /**

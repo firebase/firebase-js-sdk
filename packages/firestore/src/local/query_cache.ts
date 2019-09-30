@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
+import { Target } from '../core/target';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
@@ -121,15 +121,15 @@ export interface QueryCache {
   ): PersistencePromise<number>;
 
   /**
-   * Looks up a QueryData entry by query.
+   * Looks up a QueryData entry by target.
    *
-   * @param query The query corresponding to the entry to look up.
+   * @param target The target query corresponding to the entry to look up.
    * @return The cached QueryData entry, or null if the cache has no entry for
-   * the query.
+   * the target query.
    */
   getQueryData(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<QueryData | null>;
 
   /**
