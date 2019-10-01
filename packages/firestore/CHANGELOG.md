@@ -1,4 +1,9 @@
-# Unreleased (1.5.0)
+# Unreleased
+- [fixed] Fixed a regression that caused queries with nested field filters to
+  crash the client if the field was not present in the local copy of the
+  document. 
+
+# 1.5.0
 - [feature] Added a `Firestore.waitForPendingWrites()` method that
   allows users to wait until all pending writes are acknowledged by the
   Firestore backend.
