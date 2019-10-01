@@ -84,13 +84,9 @@ describe('FirebaseAnalytics methods', () => {
   });
 
   it('logEvent() with no event params globally calls gtag function correctly', () => {
-    logEvent(
-      gtagStub,
-      analyticsId,
-      EventName.ADD_TO_CART,
-      undefined,
-      { global: true }
-    );
+    logEvent(gtagStub, analyticsId, EventName.ADD_TO_CART, undefined, {
+      global: true
+    });
 
     expect(gtagStub).to.have.been.calledWith(
       GtagCommand.EVENT,
