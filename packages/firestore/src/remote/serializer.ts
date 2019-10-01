@@ -160,7 +160,7 @@ export class JsonProtoSerializer {
   }
 
   /**
-   * Returns a value for a number (or undefined) that's appropriate to put into
+   * Returns a value for a number (or null) that's appropriate to put into
    * a google.protobuf.Int32Value proto.
    * DO NOT USE THIS FOR ANYTHING ELSE.
    * This method cheats. It's typed as returning "number" because that's what
