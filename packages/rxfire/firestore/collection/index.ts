@@ -88,7 +88,7 @@ function processIndividualChange(
           combined.splice(change.oldIndex, 1);
           combined.splice(change.newIndex, 0, change);
         } else {
-          combined[change.newIndex] = change;
+          combined.splice(change.newIndex, 1, change);
         }
       }
       break;
