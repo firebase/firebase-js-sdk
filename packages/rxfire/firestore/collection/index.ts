@@ -69,7 +69,7 @@ function processIndividualChange(
     case 'added':
       if (
         combined[change.newIndex] &&
-        combined[change.newIndex].doc.id === change.doc.id
+        combined[change.newIndex].doc.ref.isEqual(change.doc.ref)
       ) {
         // Skip duplicate emissions. This is rare.
         // TODO: Investigate possible bug in SDK.
@@ -80,7 +80,7 @@ function processIndividualChange(
     case 'modified':
       if (
         combined[change.oldIndex] == null ||
-        combined[change.oldIndex].doc.id === change.doc.id
+        combined[change.oldIndex].doc.ref.isEqual(change.doc.ref)
       ) {
         // When an item changes position we first remove it
         // and then add it's new position
@@ -95,7 +95,7 @@ function processIndividualChange(
     case 'removed':
       if (
         combined[change.oldIndex] &&
-        combined[change.oldIndex].doc.id === change.doc.id
+        combined[change.oldIndex].doc.ref.isEqual(change.doc.ref)
       ) {
         combined.splice(change.oldIndex, 1);
       }
