@@ -63,7 +63,9 @@ async function build() {
   const bundle = await rollup.rollup(inputOptions);
 
   // generate code
-  const { output: [{ code }] } = await bundle.generate(outputOptions);
+  const {
+    output: [{ code }]
+  } = await bundle.generate(outputOptions);
 
   const output = `${PREFIX}${JSON.stringify(String(code))}${POSTFIX}`;
 
