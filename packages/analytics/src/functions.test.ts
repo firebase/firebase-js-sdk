@@ -51,6 +51,18 @@ describe('FirebaseAnalytics methods', () => {
     );
   });
 
+  it('logEvent() with no event params calls gtag function correctly', () => {
+    logEvent(gtagStub, analyticsId, EventName.VIEW_ITEM);
+
+    expect(gtagStub).to.have.been.calledWith(
+      GtagCommand.EVENT,
+      EventName.VIEW_ITEM,
+      {
+        'send_to': analyticsId
+      }
+    );
+  });
+
   it('logEvent() globally calls gtag function correctly', () => {
     logEvent(
       gtagStub,
@@ -68,6 +80,22 @@ describe('FirebaseAnalytics methods', () => {
       {
         currency: 'USD'
       }
+    );
+  });
+
+  it('logEvent() with no event params globally calls gtag function correctly', () => {
+    logEvent(
+      gtagStub,
+      analyticsId,
+      EventName.ADD_TO_CART,
+      undefined,
+      { global: true }
+    );
+
+    expect(gtagStub).to.have.been.calledWith(
+      GtagCommand.EVENT,
+      EventName.ADD_TO_CART,
+      {}
     );
   });
 

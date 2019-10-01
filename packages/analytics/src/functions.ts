@@ -34,10 +34,10 @@ export function logEvent(
   gtagFunction: Gtag,
   analyticsId: string,
   eventName: string,
-  eventParams: EventParams,
+  eventParams?: EventParams,
   options?: AnalyticsCallOptions
 ): void {
-  let params: EventParams | ControlParams = eventParams;
+  let params: EventParams | ControlParams = eventParams || {};
   if (!options || !options.global) {
     params = { ...eventParams, 'send_to': analyticsId };
   }
