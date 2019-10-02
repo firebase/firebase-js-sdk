@@ -808,7 +808,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
       const collection = db.collection('test') as any;
       expect(() => collection.where('a', 'foo' as any, 'b')).to.throw(
         'Invalid value "foo" provided to function Query.where() for its second argument. ' +
-          'Acceptable values: <, <=, ==, >=, >, array-contains'
+          'Acceptable values: <, <=, ==, >=, >, array-contains, in, array-contains-any'
       );
     });
 

@@ -8029,7 +8029,7 @@ declare namespace firebase.firestore {
 
   /**
    * Filter conditions in a `Query.where()` clause are specified using the
-   * strings '<', '<=', '==', '>=', '>', and 'array-contains'.
+   * strings '<', '<=', '==', '>=', '>', 'array-contains', 'in', and 'array-contains-any'.
    */
   export type WhereFilterOp =
     | '<'
