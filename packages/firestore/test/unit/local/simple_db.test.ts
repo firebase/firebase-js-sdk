@@ -499,7 +499,7 @@ describe('SimpleDb', () => {
       });
     });
   });
-  
+
   // A little perf test for convenient benchmarking
   // eslint-disable-next-line no-restricted-properties
   it.skip('Perf', () => {
