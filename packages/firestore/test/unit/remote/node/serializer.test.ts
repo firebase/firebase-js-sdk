@@ -500,7 +500,8 @@ describe('Serializer', () => {
   describe('toDocumentMask', () => {
     addEqualityMatcher();
 
-    // eslint-disable-next-line no-restricted-properties, TODO(b/34988481): Implement correct escaping
+    //TODO(b/34988481): Implement correct escaping
+    // eslint-disable-next-line no-restricted-properties
     it.skip('converts a weird path', () => {
       const expected: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
       const mask = FieldMask.fromArray([
@@ -514,7 +515,8 @@ describe('Serializer', () => {
   describe('fromDocumentMask', () => {
     addEqualityMatcher();
 
-    // eslint-disable-next-line no-restricted-properties, TODO(b/34988481): Implement correct escaping
+    // TODO(b/34988481): Implement correct escaping
+    // eslint-disable-next-line no-restricted-properties
     it.skip('converts a weird path', () => {
       const expected = FieldMask.fromArray([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
@@ -1216,7 +1218,8 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('contains all Operators', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, giant hack
+      // giant hack
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       obj.forEach(Operator as any, (name, op) => {
         if (op instanceof Operator) {
           expect(s.toOperatorName(op), 'for name').to.exist;
@@ -1230,7 +1233,8 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('contains all Directions', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, giant hack
+      // giant hack
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       obj.forEach(Direction as any, (name, dir) => {
         if (dir instanceof Direction) {
           expect(s.toDirection(dir), 'for ' + name).to.exist;
