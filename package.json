@@ -34,7 +34,8 @@
     "docgen:js": "node scripts/docgen/generate-docs.js --api js",
     "docgen:node": "node scripts/docgen/generate-docs.js --api node",
     "docgen": "yarn docgen:js; yarn docgen:node",
-    "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'"
+    "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'",
+    "lint": "lerna run --scope @firebase/* --scope rxfire lint"
   },
   "repository": {
     "type": "git",

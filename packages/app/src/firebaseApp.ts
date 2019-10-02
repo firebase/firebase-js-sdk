@@ -46,11 +46,10 @@ export class FirebaseAppImpl implements FirebaseApp {
   private isDeleted_ = false;
   private services_: ServicesCache = {};
   private automaticDataCollectionEnabled_: boolean;
-  // An array to capture listeners before the true auth functions
-  // exist
+  // An array to capture listeners before the true auth functions exist
   private tokenListeners_: Array<(token: string | null) => void> = [];
-  // An array to capture requests to send events before analytics component loads.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, use any here to make using function.apply easier
+  // An array to capture requests to send events before analytics component loads. Use type any to make using function.apply easier
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private analyticsEventRequests_: any[] = [];
 
   INTERNAL: FirebaseAppInternals;

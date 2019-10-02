@@ -172,7 +172,8 @@ export class JsonProtoSerializer {
       return val;
     } else {
       // ProtobufJS requires that we wrap Int32Values.
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, We need to match generated Proto types.
+      // Use any because we need to match generated Proto types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return { value: val } as any;
     }
   }
@@ -187,7 +188,8 @@ export class JsonProtoSerializer {
   private fromInt32Value(val: number | undefined): number | null {
     let result;
     if (typeof val === 'object') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, We need to match generated Proto types.
+      // Use any because we need to match generated Proto types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       result = (val as any).value;
     } else {
       // We accept raw numbers (without the {value: ... } wrapper) for

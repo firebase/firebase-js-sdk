@@ -58,7 +58,8 @@ describe('Blob', () => {
   });
 
   it('Blob throws on using the public constructor', () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, allow using constructor with any
+    // allow using constructor with any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     expect(() => new (PublicBlob as any)('')).to.throw(
       'This constructor is private. Use Blob.fromUint8Array() or ' +
         'Blob.fromBase64String() instead.'

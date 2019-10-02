@@ -42,7 +42,7 @@
     "@typescript-eslint/parser": "2.3.2",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
-    "eslint": "5.16.0",
+    "eslint": "6.5.1",
     "eslint-plugin-import": "2.18.2",
     "mocha": "6.2.1",
     "rollup": "1.22.0",
