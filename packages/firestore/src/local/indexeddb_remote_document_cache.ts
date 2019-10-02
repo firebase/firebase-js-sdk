@@ -18,7 +18,6 @@
 import { Query } from '../core/query';
 import {
   DocumentKeySet,
-  documentKeySet,
   DocumentMap,
   documentMap,
   DocumentSizeEntries,
@@ -34,13 +33,10 @@ import { SortedMap } from '../util/sorted_map';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
-import { Code, FirestoreError } from '../util/error';
 import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
   DbRemoteDocument,
-  DbRemoteDocumentChanges,
-  DbRemoteDocumentChangesKey,
   DbRemoteDocumentGlobal,
   DbRemoteDocumentGlobalKey,
   DbRemoteDocumentKey
@@ -50,34 +46,26 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import {
+  IterateOptions,
+  SimpleDb,
+  SimpleDbStore,
+  SimpleDbTransaction
+} from './simple_db';
 import { ObjectMap } from '../util/obj_map';
 
-const REMOTE_DOCUMENT_CHANGE_MISSING_ERR_MSG =
-  'The remote document changelog no longer contains all changes for all ' +
-  'local query views. It may be necessary to rebuild these views.';
-
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
-  /** The last id read by `getNewDocumentChanges()`. */
-  private _lastProcessedDocumentChangeId = 0;
+  /** The read time of the last entry consumed by `getNewDocumentChanges()`. */
+  private lastProcessedReadTime = SnapshotVersion.MIN;
 
   /**
    * @param {LocalSerializer} serializer The document serializer.
    * @param {IndexManager} indexManager The query indexes that need to be maintained.
-   * @param keepDocumentChangeLog Whether to keep a document change log in
-   * IndexedDb. This change log is required for Multi-Tab synchronization, but
-   * not needed in clients that don't share access to their remote document
-   * cache.
    */
   constructor(
     readonly serializer: LocalSerializer,
-    private readonly indexManager: IndexManager,
-    private readonly keepDocumentChangeLog: boolean
+    private readonly indexManager: IndexManager
   ) {}
-
-  get lastProcessedDocumentChangeId(): number {
-    return this._lastProcessedDocumentChangeId;
-  }
 
   /**
    * Starts up the remote document cache.
@@ -88,11 +76,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    */
   // PORTING NOTE: This is only used for multi-tab synchronization.
   start(transaction: SimpleDbTransaction): PersistencePromise<void> {
-    const store = SimpleDb.getStore<
-      DbRemoteDocumentChangesKey,
-      DbRemoteDocumentChanges
-    >(transaction, DbRemoteDocumentChanges.store);
-    return this.synchronizeLastDocumentChangeId(store);
+    return this.synchronizeLastProcessedReadTime(transaction);
   }
 
   /**
@@ -131,24 +115,18 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   /**
-   * Updates the document change log and adds the given delta to the cached current size.
+   * Updates the current cache size.
+   *
    * Callers to `addEntry()` and `removeEntry()` *must* call this afterwards to update the
    * cache's metadata.
    */
   private updateMetadata(
     transaction: PersistenceTransaction,
-    changedKeys: DocumentKeySet,
     sizeDelta: number
   ): PersistencePromise<void> {
     return this.getMetadata(transaction).next(metadata => {
       metadata.byteSize += sizeDelta;
-      return this.setMetadata(transaction, metadata).next(() => {
-        if (this.keepDocumentChangeLog) {
-          return documentChangesStore(transaction).put({
-            changes: this.serializer.toDbResourcePaths(changedKeys)
-          });
-        }
-      });
+      return this.setMetadata(transaction, metadata);
     });
   }
 
@@ -159,9 +137,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     return remoteDocumentsStore(transaction)
       .get(dbKey(documentKey))
       .next(dbRemoteDoc => {
-        return dbRemoteDoc
-          ? this.serializer.fromDbRemoteDocument(dbRemoteDoc)
-          : null;
+        return this.maybeDecodeDocument(dbRemoteDoc);
       });
   }
 
@@ -178,10 +154,11 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     return remoteDocumentsStore(transaction)
       .get(dbKey(documentKey))
       .next(dbRemoteDoc => {
-        return dbRemoteDoc
+        const doc = this.maybeDecodeDocument(dbRemoteDoc);
+        return doc
           ? {
-              maybeDocument: this.serializer.fromDbRemoteDocument(dbRemoteDoc),
-              size: dbDocumentSize(dbRemoteDoc)
+              maybeDocument: doc,
+              size: dbDocumentSize(dbRemoteDoc!)
             }
           : null;
       });
@@ -196,14 +173,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       transaction,
       documentKeys,
       (key, dbRemoteDoc) => {
-        if (dbRemoteDoc) {
-          results = results.insert(
-            key,
-            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
-          );
-        } else {
-          results = results.insert(key, null);
-        }
+        const doc = this.maybeDecodeDocument(dbRemoteDoc);
+        results = results.insert(key, doc);
       }
     ).next(() => results);
   }
@@ -226,12 +197,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       transaction,
       documentKeys,
       (key, dbRemoteDoc) => {
-        if (dbRemoteDoc) {
-          results = results.insert(
-            key,
-            this.serializer.fromDbRemoteDocument(dbRemoteDoc)
-          );
-          sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc));
+        const doc = this.maybeDecodeDocument(dbRemoteDoc);
+        if (doc) {
+          results = results.insert(key, doc);
+          sizeMap = sizeMap.insert(key, dbDocumentSize(dbRemoteDoc!));
         } else {
           results = results.insert(key, null);
           sizeMap = sizeMap.insert(key, 0);
@@ -293,7 +262,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
     assert(
       !query.isCollectionGroupQuery(),
@@ -303,12 +273,27 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
     const immediateChildrenPathLength = query.path.length + 1;
 
-    // Documents are ordered by key, so we can use a prefix scan to narrow down
-    // the documents we need to match the query against.
-    const startKey = query.path.toArray();
-    const range = IDBKeyRange.lowerBound(startKey);
+    const iterationOptions: IterateOptions = {};
+    if (sinceReadTime.isEqual(SnapshotVersion.MIN)) {
+      // Documents are ordered by key, so we can use a prefix scan to narrow
+      // down the documents we need to match the query against.
+      const startKey = query.path.toArray();
+      iterationOptions.range = IDBKeyRange.lowerBound(startKey);
+    } else {
+      // Execute an index-free query and filter by read time. This is safe
+      // since all document changes to queries that have a
+      // lastLimboFreeSnapshotVersion (`sinceReadTime`) have a read time set.
+      const collectionKey = query.path.toArray();
+      const readTimeKey = this.serializer.toDbTimestampKey(sinceReadTime);
+      iterationOptions.range = IDBKeyRange.lowerBound(
+        [collectionKey, readTimeKey],
+        /* open= */ true
+      );
+      iterationOptions.index = DbRemoteDocument.collectionReadTimeIndex;
+    }
+
     return remoteDocumentsStore(transaction)
-      .iterate({ range }, (key, dbRemoteDoc, control) => {
+      .iterate(iterationOptions, (key, dbRemoteDoc, control) => {
         // The query is actually returning any path that starts with the query
         // path prefix which may include documents in subcollections. For
         // example, a query on 'rooms' will return rooms/abc/messages/xyx but we
@@ -331,95 +316,65 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   getNewDocumentChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<MaybeDocumentMap> {
-    assert(
-      this.keepDocumentChangeLog,
-      'Can only call getNewDocumentChanges() when document change log is enabled'
-    );
-    let changedKeys = documentKeySet();
     let changedDocs = maybeDocumentMap();
 
-    const range = IDBKeyRange.lowerBound(
-      this._lastProcessedDocumentChangeId + 1
+    const lastReadTime = this.serializer.toDbTimestampKey(
+      this.lastProcessedReadTime
     );
-    let firstIteration = true;
 
-    const changesStore = documentChangesStore(transaction);
-    return changesStore
-      .iterate({ range }, (_, documentChange) => {
-        if (firstIteration) {
-          firstIteration = false;
-
-          // If our client was throttled for more than 30 minutes, another
-          // client may have garbage collected the remote document changelog.
-          if (this._lastProcessedDocumentChangeId + 1 !== documentChange.id) {
-            // Reset the `lastProcessedDocumentChangeId` to allow further
-            // invocations to successfully return the changes after this
-            // rejection.
-            return this.synchronizeLastDocumentChangeId(changesStore).next(() =>
-              PersistencePromise.reject(
-                new FirestoreError(
-                  Code.DATA_LOSS,
-                  REMOTE_DOCUMENT_CHANGE_MISSING_ERR_MSG
-                )
-              )
-            );
-          }
-        }
-
-        changedKeys = changedKeys.unionWith(
-          this.serializer.fromDbResourcePaths(documentChange.changes)
-        );
-        this._lastProcessedDocumentChangeId = documentChange.id!;
-      })
-      .next(() => {
-        const documentPromises: Array<PersistencePromise<void>> = [];
-        changedKeys.forEach(key => {
-          documentPromises.push(
-            this.getEntry(transaction, key).next(maybeDocument => {
-              const doc =
-                maybeDocument ||
-                new NoDocument(key, SnapshotVersion.forDeletedDoc());
-              changedDocs = changedDocs.insert(key, doc);
-            })
+    const documentsStore = remoteDocumentsStore(transaction);
+    const range = IDBKeyRange.lowerBound(lastReadTime, true);
+    return documentsStore
+      .iterate(
+        { index: DbRemoteDocument.readTimeIndex, range },
+        (_, dbRemoteDoc) => {
+          // Unlike `getEntry()` and others, `getNewDocumentChanges()` parses
+          // the documents directly since we want to keep sentinel deletes.
+          const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
+          changedDocs = changedDocs.insert(doc.key, doc);
+          this.lastProcessedReadTime = this.serializer.fromDbTimestampKey(
+            dbRemoteDoc.readTime!
           );
-        });
-        return PersistencePromise.waitFor(documentPromises);
-      })
+        }
+      )
       .next(() => changedDocs);
   }
 
   /**
-   * Removes all changes in the remote document changelog through `changeId`
-   * (inclusive).
+   * Sets the last processed read time to the maximum read time of the backing
+   * object store, allowing calls to getNewDocumentChanges() to return subsequent
+   * changes.
    */
-  removeDocumentChangesThroughChangeId(
-    transaction: PersistenceTransaction,
-    changeId: number
+  private synchronizeLastProcessedReadTime(
+    transaction: SimpleDbTransaction
   ): PersistencePromise<void> {
-    const range = IDBKeyRange.upperBound(changeId);
-    return documentChangesStore(transaction).delete(range);
-  }
+    const documentsStore = SimpleDb.getStore<
+      DbRemoteDocumentKey,
+      DbRemoteDocument
+    >(transaction, DbRemoteDocument.store);
 
-  private synchronizeLastDocumentChangeId(
-    documentChangesStore: SimpleDbStore<
-      DbRemoteDocumentChangesKey,
-      DbRemoteDocumentChanges
-    >
-  ): PersistencePromise<void> {
-    // If there are no existing changes, we set `lastProcessedDocumentChangeId`
-    // to 0 since IndexedDb's auto-generated keys start at 1.
-    this._lastProcessedDocumentChangeId = 0;
-    return documentChangesStore.iterate(
-      { keysOnly: true, reverse: true },
+    // If there are no existing entries, we set `lastProcessedReadTime` to 0.
+    this.lastProcessedReadTime = SnapshotVersion.forDeletedDoc();
+    return documentsStore.iterate(
+      { index: DbRemoteDocument.readTimeIndex, reverse: true },
       (key, value, control) => {
-        this._lastProcessedDocumentChangeId = key;
+        if (value.readTime) {
+          this.lastProcessedReadTime = this.serializer.fromDbTimestampKey(
+            value.readTime
+          );
+        }
         control.done();
       }
     );
   }
 
-  newChangeBuffer(): RemoteDocumentChangeBuffer {
-    return new IndexedDbRemoteDocumentCache.RemoteDocumentChangeBuffer(this);
+  newChangeBuffer(options?: {
+    trackRemovals: boolean;
+  }): RemoteDocumentChangeBuffer {
+    return new IndexedDbRemoteDocumentCache.RemoteDocumentChangeBuffer(
+      this,
+      !!options && options.trackRemovals
+    );
   }
 
   getSize(txn: PersistenceTransaction): PersistencePromise<number> {
@@ -445,6 +400,29 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   /**
+   * Decodes `remoteDoc` and returns the document (or null, if the document
+   * corresponds to the format used for sentinel deletes).
+   */
+  private maybeDecodeDocument(
+    dbRemoteDoc: DbRemoteDocument | null
+  ): MaybeDocument | null {
+    if (dbRemoteDoc) {
+      const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
+      if (
+        doc instanceof NoDocument &&
+        doc.version.isEqual(SnapshotVersion.forDeletedDoc())
+      ) {
+        // The document is a sentinel removal and should only be used in the
+        // `getNewDocumentChanges()`.
+        return null;
+      }
+
+      return doc;
+    }
+    return null;
+  }
+
+  /**
    * Handles the details of adding and updating documents in the IndexedDbRemoteDocumentCache.
    *
    * Unlike the MemoryRemoteDocumentChangeBuffer, the IndexedDb implementation computes the size
@@ -457,7 +435,15 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       key => key.toString()
     );
 
-    constructor(private readonly documentCache: IndexedDbRemoteDocumentCache) {
+    /**
+     * @param documentCache The IndexedDbRemoteDocumentCache to apply the changes to.
+     * @param trackRemovals Whether to create sentinel deletes that can be tracked by
+     * `getNewDocumentChanges()`.
+     */
+    constructor(
+      private readonly documentCache: IndexedDbRemoteDocumentCache,
+      private readonly trackRemovals: boolean
+    ) {
       super();
     }
 
@@ -467,7 +453,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       const promises: Array<PersistencePromise<void>> = [];
 
       let sizeDelta = 0;
-      let changedKeys = documentKeySet();
 
       this.changes.forEach((key, maybeDocument) => {
         const previousSize = this.documentSizes.get(key);
@@ -476,23 +461,38 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
           `Cannot modify a document that wasn't read (for ${key})`
         );
         if (maybeDocument) {
+          assert(
+            !this.readTime.isEqual(SnapshotVersion.MIN),
+            'Cannot add a document with a read time of zero'
+          );
           const doc = this.documentCache.serializer.toDbRemoteDocument(
-            maybeDocument
+            maybeDocument,
+            this.readTime
           );
           const size = dbDocumentSize(doc);
           sizeDelta += size - previousSize!;
           promises.push(this.documentCache.addEntry(transaction, key, doc));
         } else {
           sizeDelta -= previousSize!;
-          promises.push(this.documentCache.removeEntry(transaction, key));
+          if (this.trackRemovals) {
+            // In order to track removals, we store a "sentinel delete" in the
+            // RemoteDocumentCache. This entry is represented by a NoDocument
+            // with a version of 0 and ignored by `maybeDecodeDocument()` but
+            // preserved in `getNewDocumentChanges()`.
+            const deletedDoc = this.documentCache.serializer.toDbRemoteDocument(
+              new NoDocument(key, SnapshotVersion.forDeletedDoc()),
+              this.readTime
+            );
+            promises.push(
+              this.documentCache.addEntry(transaction, key, deletedDoc)
+            );
+          } else {
+            promises.push(this.documentCache.removeEntry(transaction, key));
+          }
         }
-
-        changedKeys = changedKeys.add(key);
       });
 
-      promises.push(
-        this.documentCache.updateMetadata(transaction, changedKeys, sizeDelta)
-      );
+      promises.push(this.documentCache.updateMetadata(transaction, sizeDelta));
 
       return PersistencePromise.waitFor(promises);
     }
@@ -545,13 +545,6 @@ function documentGlobalStore(
   >(txn, DbRemoteDocumentGlobal.store);
 }
 
-export function isDocumentChangeMissingError(err: FirestoreError): boolean {
-  return (
-    err.code === Code.DATA_LOSS &&
-    err.message === REMOTE_DOCUMENT_CHANGE_MISSING_ERR_MSG
-  );
-}
-
 /**
  * Helper to get a typed SimpleDbStore for the remoteDocuments object store.
  */
@@ -562,19 +555,6 @@ function remoteDocumentsStore(
     txn,
     DbRemoteDocument.store
   );
-}
-
-/**
- * Helper to get a typed SimpleDbStore for the remoteDocumentChanges object
- * store.
- */
-function documentChangesStore(
-  txn: PersistenceTransaction
-): SimpleDbStore<DbRemoteDocumentChangesKey, DbRemoteDocumentChanges> {
-  return IndexedDbPersistence.getStore<
-    DbRemoteDocumentChangesKey,
-    DbRemoteDocumentChanges
-  >(txn, DbRemoteDocumentChanges.store);
 }
 
 function dbKey(docKey: DocumentKey): DbRemoteDocumentKey {

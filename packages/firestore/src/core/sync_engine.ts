@@ -41,7 +41,6 @@ import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 
 import { ignoreIfPrimaryLeaseLoss } from '../local/indexeddb_persistence';
-import { isDocumentChangeMissingError } from '../local/indexeddb_remote_document_cache';
 import { ClientId, SharedClientState } from '../local/shared_client_state';
 import {
   QueryTargetState,
@@ -244,13 +243,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     current: boolean
   ): Promise<ViewSnapshot> {
     const query = queryData.query;
-    const docs = await this.localStore.executeQuery(query);
-    const remoteKeys = await this.localStore.remoteDocumentKeys(
-      queryData.targetId
+    const queryResult = await this.localStore.executeQuery(
+      query,
+      /* usePreviousResults= */ true
     );
-
-    const view = new View(query, remoteKeys);
-    const viewDocChanges = view.computeDocChanges(docs);
+    const view = new View(query, queryResult.remoteKeys);
+    const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
       queryData.targetId,
       current && this.onlineState !== OnlineState.Offline
@@ -283,13 +281,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private async synchronizeViewAndComputeSnapshot(
     queryView: QueryView
   ): Promise<ViewChange> {
-    const docs = await this.localStore.executeQuery(queryView.query);
-    const remoteKeys = await this.localStore.remoteDocumentKeys(
-      queryView.targetId
+    const queryResult = await this.localStore.executeQuery(
+      queryView.query,
+      /* usePreviousResults= */ true
     );
     const viewSnapshot = queryView.view.synchronizeWithPersistedState(
-      docs,
-      remoteKeys
+      queryResult
     );
     if (this.isPrimary) {
       this.updateTrackedLimbos(queryView.targetId, viewSnapshot.limboChanges);
@@ -787,9 +784,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
             // The query has a limit and some docs were removed, so we need
             // to re-run the query against the local store to make sure we
             // didn't lose any good docs that had been past the limit.
-            return this.localStore.executeQuery(queryView.query).then(docs => {
-              return queryView.view.computeDocChanges(docs, viewDocChanges);
-            });
+            return this.localStore
+              .executeQuery(queryView.query, /* usePreviousResults= */ false)
+              .then(({ documents }) => {
+                return queryView.view.computeDocChanges(
+                  documents,
+                  viewDocChanges
+                );
+              });
           })
           .then((viewDocChanges: ViewDocumentChanges) => {
             const targetChange =
@@ -983,29 +985,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       switch (state) {
         case 'current':
         case 'not-current': {
-          try {
-            const changes = await this.localStore.getNewDocumentChanges();
-            const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
-              targetId,
-              state === 'current'
-            );
-            await this.emitNewSnapsAndNotifyLocalStore(
-              changes,
-              synthesizedRemoteEvent
-            );
-            break;
-            // Catch errors thrown by getNewDocumentchanges().
-          } catch (error) {
-            if (isDocumentChangeMissingError(error)) {
-              const activeTargets: TargetId[] = [];
-              objUtils.forEachNumber(this.queryViewsByTarget, target =>
-                activeTargets.push(target)
-              );
-              await this.synchronizeQueryViewsAndRaiseSnapshots(activeTargets);
-            } else {
-              throw error;
-            }
-          }
+          const changes = await this.localStore.getNewDocumentChanges();
+          const synthesizedRemoteEvent = RemoteEvent.createSynthesizedRemoteEventForCurrentChange(
+            targetId,
+            state === 'current'
+          );
+          await this.emitNewSnapsAndNotifyLocalStore(
+            changes,
+            synthesizedRemoteEvent
+          );
+          break;
         }
         case 'rejected': {
           const queryView = this.queryViewsByTarget[targetId];

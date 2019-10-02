@@ -21,11 +21,7 @@ import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
 import { Persistence } from '../local/persistence';
-import {
-  DocumentKeySet,
-  documentKeySet,
-  DocumentMap
-} from '../model/collections';
+import { SimpleQueryEngine } from '../local/simple_query_engine';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { Mutation } from '../model/mutation';
@@ -44,7 +40,7 @@ import {
   QueryListener
 } from './event_manager';
 import { SyncEngine } from './sync_engine';
-import { View, ViewDocumentChanges } from './view';
+import { View } from './view';
 
 import {
   LruGarbageCollector,
@@ -401,7 +397,9 @@ export class FirestoreClient {
     return this.platform
       .loadConnection(this.databaseInfo)
       .then(async connection => {
-        this.localStore = new LocalStore(this.persistence, user);
+        // TODO(index-free): Use IndexFreeQueryEngine/IndexedQueryEngine as appropriate.
+        const queryEngine = new SimpleQueryEngine();
+        this.localStore = new LocalStore(this.persistence, queryEngine, user);
         if (maybeLruGc) {
           // We're running LRU Garbage collection. Set up the scheduler.
           this.lruScheduler = new LruScheduler(
@@ -581,22 +579,18 @@ export class FirestoreClient {
 
   getDocumentsFromLocalCache(query: Query): Promise<ViewSnapshot> {
     this.verifyNotTerminated();
-    return this.asyncQueue
-      .enqueue(() => {
-        return this.localStore.executeQuery(query);
-      })
-      .then((docs: DocumentMap) => {
-        const remoteKeys: DocumentKeySet = documentKeySet();
-
-        const view = new View(query, remoteKeys);
-        const viewDocChanges: ViewDocumentChanges = view.computeDocChanges(
-          docs
-        );
-        return view.applyChanges(
-          viewDocChanges,
-          /* updateLimboDocuments= */ false
-        ).snapshot!;
-      });
+    return this.asyncQueue.enqueue(async () => {
+      const queryResult = await this.localStore.executeQuery(
+        query,
+        /* usePreviousResults= */ true
+      );
+      const view = new View(query, queryResult.remoteKeys);
+      const viewDocChanges = view.computeDocChanges(queryResult.documents);
+      return view.applyChanges(
+        viewDocChanges,
+        /* updateLimboDocuments= */ false
+      ).snapshot!;
+    });
   }
 
   write(mutations: Mutation[]): Promise<void> {

@@ -16,7 +16,7 @@
  */
 
 import { Query } from '../../../src/core/query';
-import { IndexedDbRemoteDocumentCache } from '../../../src/local/indexeddb_remote_document_cache';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Persistence } from '../../../src/local/persistence';
 import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
@@ -45,19 +45,22 @@ export class TestRemoteDocumentCache {
    * Reads all of the documents first so we can safely add them and keep the size calculation in
    * sync.
    */
-  addEntries(maybeDocuments: MaybeDocument[]): Promise<void> {
+  addEntries(
+    maybeDocuments: MaybeDocument[],
+    readTime: SnapshotVersion
+  ): Promise<void> {
     return this.persistence.runTransaction(
       'addEntry',
       'readwrite-primary',
       txn => {
-        const changeBuffer = this.cache.newChangeBuffer();
+        const changeBuffer = this.newChangeBuffer();
         return PersistencePromise.forEach(
           maybeDocuments,
           (maybeDocument: MaybeDocument) =>
             changeBuffer.getEntry(txn, maybeDocument.key).next(() => {})
         ).next(() => {
           for (const maybeDocument of maybeDocuments) {
-            changeBuffer.addEntry(maybeDocument);
+            changeBuffer.addEntry(maybeDocument, readTime);
           }
           return changeBuffer.apply(txn);
         });
@@ -65,14 +68,27 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  removeEntry(documentKey: DocumentKey): Promise<void> {
+  /**
+   * Adds a single document using the document's version as its read time.
+   * Reads the document first to track the document size internally.
+   */
+  addEntry(maybeDocument: MaybeDocument): Promise<void> {
+    return this.addEntries([maybeDocument], maybeDocument.version);
+  }
+
+  removeEntry(
+    documentKey: DocumentKey,
+    version?: SnapshotVersion
+  ): Promise<void> {
     return this.persistence.runTransaction(
       'removeEntry',
       'readwrite-primary',
       txn => {
-        const changeBuffer = this.newChangeBuffer();
+        const changeBuffer = this.newChangeBuffer(
+          version ? { trackRemovals: true } : undefined
+        );
         return changeBuffer.getEntry(txn, documentKey).next(() => {
-          changeBuffer.removeEntry(documentKey);
+          changeBuffer.removeEntry(documentKey, version);
           return changeBuffer.apply(txn);
         });
       }
@@ -91,12 +107,15 @@ export class TestRemoteDocumentCache {
     });
   }
 
-  getDocumentsMatchingQuery(query: Query): Promise<DocumentMap> {
+  getDocumentsMatchingQuery(
+    query: Query,
+    sinceReadTime: SnapshotVersion
+  ): Promise<DocumentMap> {
     return this.persistence.runTransaction(
       'getDocumentsMatchingQuery',
       'readonly',
       txn => {
-        return this.cache.getDocumentsMatchingQuery(txn, query);
+        return this.cache.getDocumentsMatchingQuery(txn, query, sinceReadTime);
       }
     );
   }
@@ -111,28 +130,15 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  removeDocumentChangesThroughChangeId(changeId: number): Promise<void> {
-    return this.persistence.runTransaction(
-      'removeDocumentChangesThroughChangeId',
-      'readwrite-primary',
-      txn => {
-        if (!(this.cache instanceof IndexedDbRemoteDocumentCache)) {
-          throw new Error(
-            'Can only removeDocumentChangesThroughChangeId() in IndexedDb'
-          );
-        }
-        return this.cache.removeDocumentChangesThroughChangeId(txn, changeId);
-      }
-    );
-  }
-
   getSize(): Promise<number> {
     return this.persistence.runTransaction('get size', 'readonly', txn =>
       this.cache.getSize(txn)
     );
   }
 
-  newChangeBuffer(): RemoteDocumentChangeBuffer {
-    return this.cache.newChangeBuffer();
+  newChangeBuffer(options?: {
+    trackRemovals: boolean;
+  }): RemoteDocumentChangeBuffer {
+    return this.cache.newChangeBuffer(options);
   }
 }

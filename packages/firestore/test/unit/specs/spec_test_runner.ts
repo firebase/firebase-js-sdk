@@ -57,6 +57,7 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
+import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
@@ -437,7 +438,9 @@ abstract class TestRunner {
       this.useGarbageCollection
     );
 
-    this.localStore = new LocalStore(this.persistence, this.user);
+    // TODO(index-free): Update to index-free query engine when it becomes default.
+    const queryEngine = new SimpleQueryEngine();
+    this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
 
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
@@ -1113,6 +1116,7 @@ abstract class TestRunner {
           targetId,
           QueryPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,
+          SnapshotVersion.MIN,
           SnapshotVersion.MIN,
           expected.resumeToken
         )

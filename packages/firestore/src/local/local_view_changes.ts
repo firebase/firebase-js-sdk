@@ -27,6 +27,7 @@ import { documentKeySet, DocumentKeySet } from '../model/collections';
 export class LocalViewChanges {
   constructor(
     readonly targetId: TargetId,
+    readonly fromCache: boolean,
     readonly addedKeys: DocumentKeySet,
     readonly removedKeys: DocumentKeySet
   ) {}
@@ -51,6 +52,11 @@ export class LocalViewChanges {
       }
     }
 
-    return new LocalViewChanges(targetId, addedKeys, removedKeys);
+    return new LocalViewChanges(
+      targetId,
+      viewSnapshot.fromCache,
+      addedKeys,
+      removedKeys
+    );
   }
 }

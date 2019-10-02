@@ -902,9 +902,19 @@ export class JsonProtoSerializer {
     commitTime: string
   ): MutationResult {
     // NOTE: Deletes don't have an updateTime.
-    const version = proto.updateTime
+    let version = proto.updateTime
       ? this.fromVersion(proto.updateTime)
       : this.fromVersion(commitTime);
+
+    if (version.isEqual(SnapshotVersion.MIN)) {
+      // The Firestore Emulator currently returns an update time of 0 for
+      // deletes of non-existing documents (rather than null). This breaks the
+      // test "get deleted doc while offline with source=cache" as NoDocuments
+      // with version 0 are filtered by IndexedDb's RemoteDocumentCache.
+      // TODO(#2149): Remove this when Emulator is fixed
+      version = this.fromVersion(commitTime);
+    }
+
     let transformResults: fieldValue.FieldValue[] | null = null;
     if (proto.transformResults && proto.transformResults.length > 0) {
       transformResults = proto.transformResults.map(result =>

@@ -39,6 +39,7 @@ import {
   DbRemoteDocument,
   DbTarget,
   DbTimestamp,
+  DbTimestampKey,
   DbUnknownDocument
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
@@ -70,7 +71,12 @@ export class LocalSerializer {
   }
 
   /** Encodes a document for storage locally. */
-  toDbRemoteDocument(maybeDoc: MaybeDocument): DbRemoteDocument {
+  toDbRemoteDocument(
+    maybeDoc: MaybeDocument,
+    readTime: SnapshotVersion
+  ): DbRemoteDocument {
+    const dbReadTime = this.toDbTimestampKey(readTime);
+    const parentPath = maybeDoc.key.path.popLast().toArray();
     if (maybeDoc instanceof Document) {
       const doc = maybeDoc.proto
         ? maybeDoc.proto
@@ -80,7 +86,9 @@ export class LocalSerializer {
         /* unknownDocument= */ null,
         /* noDocument= */ null,
         doc,
-        hasCommittedMutations
+        hasCommittedMutations,
+        dbReadTime,
+        parentPath
       );
     } else if (maybeDoc instanceof NoDocument) {
       const path = maybeDoc.key.path.toArray();
@@ -90,7 +98,9 @@ export class LocalSerializer {
         /* unknownDocument= */ null,
         new DbNoDocument(path, readTime),
         /* document= */ null,
-        hasCommittedMutations
+        hasCommittedMutations,
+        dbReadTime,
+        parentPath
       );
     } else if (maybeDoc instanceof UnknownDocument) {
       const path = maybeDoc.key.path.toArray();
@@ -99,11 +109,23 @@ export class LocalSerializer {
         new DbUnknownDocument(path, readTime),
         /* noDocument= */ null,
         /* document= */ null,
-        /* hasCommittedMutations= */ true
+        /* hasCommittedMutations= */ true,
+        dbReadTime,
+        parentPath
       );
     } else {
-      return fail('Unexpected MaybeDocumment');
+      return fail('Unexpected MaybeDocument');
     }
+  }
+
+  toDbTimestampKey(snapshotVersion: SnapshotVersion): DbTimestampKey {
+    const timestamp = snapshotVersion.toTimestamp();
+    return [timestamp.seconds, timestamp.nanoseconds];
+  }
+
+  fromDbTimestampKey(dbTimestampKey: DbTimestampKey): SnapshotVersion {
+    const timestamp = new Timestamp(dbTimestampKey[0], dbTimestampKey[1]);
+    return SnapshotVersion.fromTimestamp(timestamp);
   }
 
   private toDbTimestamp(snapshotVersion: SnapshotVersion): DbTimestamp {
@@ -180,6 +202,13 @@ export class LocalSerializer {
   /** Decodes a DbTarget into QueryData */
   fromDbTarget(dbTarget: DbTarget): QueryData {
     const version = this.fromDbTimestamp(dbTarget.readTime);
+    const lastLimboFreeSnapshotVersion =
+      dbTarget.lastLimboFreeSnapshotVersion !== undefined
+        ? this.fromDbTimestamp(dbTarget.lastLimboFreeSnapshotVersion)
+        : SnapshotVersion.MIN;
+    // TODO(b/140573486): Convert to platform representation
+    const resumeToken = dbTarget.resumeToken;
+
     let query: Query;
     if (isDocumentQuery(dbTarget.query)) {
       query = this.remoteSerializer.fromDocumentsTarget(dbTarget.query);
@@ -192,7 +221,8 @@ export class LocalSerializer {
       QueryPurpose.Listen,
       dbTarget.lastListenSequenceNumber,
       version,
-      dbTarget.resumeToken
+      lastLimboFreeSnapshotVersion,
+      resumeToken
     );
   }
 
@@ -206,6 +236,9 @@ export class LocalSerializer {
         queryData.purpose
     );
     const dbTimestamp = this.toDbTimestamp(queryData.snapshotVersion);
+    const dbLastLimboFreeTimestamp = this.toDbTimestamp(
+      queryData.lastLimboFreeSnapshotVersion
+    );
     let queryProto: DbQuery;
     if (queryData.query.isDocumentQuery()) {
       queryProto = this.remoteSerializer.toDocumentsTarget(queryData.query);
@@ -233,6 +266,7 @@ export class LocalSerializer {
       dbTimestamp,
       resumeToken,
       queryData.sequenceNumber,
+      dbLastLimboFreeTimestamp,
       queryProto
     );
   }
