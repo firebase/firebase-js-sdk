@@ -160,19 +160,20 @@ export class JsonProtoSerializer {
   }
 
   /**
-   * Returns a value for a number (or undefined) that's appropriate to put into
+   * Returns a value for a number (or null) that's appropriate to put into
    * a google.protobuf.Int32Value proto.
    * DO NOT USE THIS FOR ANYTHING ELSE.
    * This method cheats. It's typed as returning "number" because that's what
    * our generated proto interfaces say Int32Value must be. But GRPC actually
    * expects a { value: <number> } struct.
    */
-  private toInt32Value(val: number | null): number | undefined {
-    if (!typeUtils.isNullOrUndefined(val)) {
+  private toInt32Value(val: number | null): number | null {
+    if (this.options.useProto3Json || typeUtils.isNullOrUndefined(val)) {
+      return val;
+    } else {
+      // ProtobufJS requires that we wrap Int32Values.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any, We need to match generated Proto types.
       return { value: val } as any;
-    } else {
-      return undefined;
     }
   }
 
@@ -1043,7 +1044,7 @@ export class JsonProtoSerializer {
     }
 
     const limit = this.toInt32Value(query.limit);
-    if (limit !== undefined) {
+    if (limit !== null) {
       result.structuredQuery!.limit = limit;
     }
 
