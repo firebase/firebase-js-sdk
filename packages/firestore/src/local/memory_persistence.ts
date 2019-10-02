@@ -268,6 +268,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
   onTransactionCommitted(
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
+    // Remove newly orphaned documents.
     const cache = this.persistence.getRemoteDocumentCache();
     const changeBuffer = cache.newChangeBuffer();
     return PersistencePromise.forEach(
@@ -463,7 +464,10 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   }
 
   documentSize(maybeDoc: MaybeDocument): number {
-    const remoteDocument = this.serializer.toDbRemoteDocument(maybeDoc);
+    const remoteDocument = this.serializer.toDbRemoteDocument(
+      maybeDoc,
+      maybeDoc.version
+    );
     let value: unknown;
     if (remoteDocument.document) {
       value = remoteDocument.document;

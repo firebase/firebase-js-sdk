@@ -4298,7 +4298,7 @@ declare namespace firebase.analytics {
      */
     logEvent<T extends string>(
       eventName: CustomEventName<T>,
-      eventParams: { [key: string]: any },
+      eventParams?: { [key: string]: any },
       options?: firebase.analytics.AnalyticsCallOptions
     ): void;
 

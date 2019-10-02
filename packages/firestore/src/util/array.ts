@@ -40,23 +40,6 @@ export function some<T>(array: T[], predicate: (t: T) => boolean): boolean {
 }
 
 /**
- * Calls a fn for each element in an array that is an instance of a provided
- * class/function.
- */
-export function forEachType<A, B>(
-  array: A[],
-  type: Function,
-  fn: (value: B) => void,
-  thisArg?: {}
-): void {
-  array.forEach(value => {
-    if (value instanceof type) {
-      fn.call(thisArg, value);
-    }
-  });
-}
-
-/**
  * Calls predicate function for each item in the array until the predicate
  * returns true, at which point the index of that item is returned.  If the
  * predicate does not return true for any item, null is returned.

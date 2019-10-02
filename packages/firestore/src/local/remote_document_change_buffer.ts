@@ -23,6 +23,7 @@ import { ObjectMap } from '../util/obj_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
  * An in-memory buffer of entries to be written to a RemoteDocumentCache.
@@ -46,6 +47,9 @@ export abstract class RemoteDocumentChangeBuffer {
     MaybeDocument | null
   > = new ObjectMap(key => key.toString());
 
+  // The read time to use for all added documents in this change buffer.
+  private _readTime: SnapshotVersion | undefined;
+
   private changesApplied = false;
 
   protected abstract getFromCache(
@@ -62,14 +66,34 @@ export abstract class RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction
   ): PersistencePromise<void>;
 
+  protected set readTime(value: SnapshotVersion) {
+    // Right now (for simplicity) we just track a single readTime for all the
+    // added entries since we expect them to all be the same, but we could
+    // rework to store per-entry readTimes if necessary.
+    assert(
+      this._readTime === undefined || this._readTime.isEqual(value),
+      'All changes in a RemoteDocumentChangeBuffer must have the same read time'
+    );
+    this._readTime = value;
+  }
+
+  protected get readTime(): SnapshotVersion {
+    assert(
+      this._readTime !== undefined,
+      'Read time is not set. All removeEntry() calls must include a readTime if `trackRemovals` is used.'
+    );
+    return this._readTime!;
+  }
+
   /**
    * Buffers a `RemoteDocumentCache.addEntry()` call.
    *
    * You can only modify documents that have already been retrieved via
    * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
    */
-  addEntry(maybeDocument: MaybeDocument): void {
+  addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
     this.assertNotApplied();
+    this.readTime = readTime;
     this.changes.set(maybeDocument.key, maybeDocument);
   }
 
@@ -79,8 +103,11 @@ export abstract class RemoteDocumentChangeBuffer {
    * You can only remove documents that have already been retrieved via
    * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
    */
-  removeEntry(key: DocumentKey): void {
+  removeEntry(key: DocumentKey, readTime?: SnapshotVersion): void {
     this.assertNotApplied();
+    if (readTime) {
+      this.readTime = readTime;
+    }
     this.changes.set(key, null);
   }
 

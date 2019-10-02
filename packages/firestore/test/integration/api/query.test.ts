@@ -807,4 +807,20 @@ apiDescribe('Queries', (persistence: boolean) => {
       }
     });
   });
+
+  it('can use filter with nested field', () => {
+    // Reproduces https://github.com/firebase/firebase-js-sdk/issues/2204
+    const testDocs = {
+      a: {},
+      b: { map: {} },
+      c: { map: { nested: {} } },
+      d: { map: { nested: 'foo' } }
+    };
+
+    return withTestCollection(persistence, testDocs, async coll => {
+      await coll.get(); // Populate the cache
+      const snapshot = await coll.where('map.nested', '==', 'foo').get();
+      expect(toDataArray(snapshot)).to.deep.equal([{ map: { nested: 'foo' } }]);
+    });
+  });
 });

@@ -23,7 +23,7 @@ const rollup = require('rollup');
 const typescriptPlugin = require('rollup-plugin-typescript2');
 const typescript = require('typescript');
 const resolve = require('rollup-plugin-node-resolve');
-const uglify = require('rollup-plugin-uglify');
+const { uglify } = require('rollup-plugin-uglify');
 const fs = require('fs');
 const util = require('util');
 const fs_writeFile = util.promisify(fs.writeFile);
@@ -63,7 +63,9 @@ async function build() {
   const bundle = await rollup.rollup(inputOptions);
 
   // generate code
-  const { code } = await bundle.generate(outputOptions);
+  const {
+    output: [{ code }]
+  } = await bundle.generate(outputOptions);
 
   const output = `${PREFIX}${JSON.stringify(String(code))}${POSTFIX}`;
 

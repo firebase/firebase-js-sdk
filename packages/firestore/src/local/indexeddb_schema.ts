@@ -45,8 +45,10 @@ import { SimpleDbSchemaConverter, SimpleDbTransaction } from './simple_db';
  * 6. Create document global for tracking document cache size.
  * 7. Ensure every cached document has a sentinel row with a sequence number.
  * 8. Add collection-parent index for Collection Group queries.
+ * 9. Change RemoteDocumentChanges store to be keyed by readTime rather than
+ *    an auto-incrementing ID. This is required for Index-Free queries.
  */
-export const SCHEMA_VERSION = 8;
+export const SCHEMA_VERSION = 9;
 
 /** Performs database creation and schema upgrades. */
 export class SchemaConverter implements SimpleDbSchemaConverter {
@@ -61,7 +63,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
    */
   createOrUpgrade(
     db: IDBDatabase,
-    txn: SimpleDbTransaction,
+    txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
@@ -71,6 +73,8 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         toVersion <= SCHEMA_VERSION,
       `Unexpected schema upgrade from v${fromVersion} to v{toVersion}.`
     );
+
+    const simpleDbTransaction = new SimpleDbTransaction(txn);
 
     if (fromVersion < 1 && toVersion >= 1) {
       createPrimaryClientStore(db);
@@ -90,7 +94,7 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         dropQueryCache(db);
         createQueryCache(db);
       }
-      p = p.next(() => writeEmptyTargetGlobalEntry(txn));
+      p = p.next(() => writeEmptyTargetGlobalEntry(simpleDbTransaction));
     }
 
     if (fromVersion < 4 && toVersion >= 4) {
@@ -101,34 +105,46 @@ export class SchemaConverter implements SimpleDbSchemaConverter {
         // and write them back out. We preserve the existing batch IDs to guarantee
         // consistency with other object stores. Any further mutation batch IDs will
         // be auto-generated.
-        p = p.next(() => upgradeMutationBatchSchemaAndMigrateData(db, txn));
+        p = p.next(() =>
+          upgradeMutationBatchSchemaAndMigrateData(db, simpleDbTransaction)
+        );
       }
 
       p = p.next(() => {
         createClientMetadataStore(db);
-        createRemoteDocumentChangesStore(db);
       });
     }
 
     if (fromVersion < 5 && toVersion >= 5) {
-      p = p.next(() => this.removeAcknowledgedMutations(txn));
+      p = p.next(() => this.removeAcknowledgedMutations(simpleDbTransaction));
     }
 
     if (fromVersion < 6 && toVersion >= 6) {
       p = p.next(() => {
         createDocumentGlobalStore(db);
-        return this.addDocumentGlobal(txn);
+        return this.addDocumentGlobal(simpleDbTransaction);
       });
     }
 
     if (fromVersion < 7 && toVersion >= 7) {
-      p = p.next(() => this.ensureSequenceNumbers(txn));
+      p = p.next(() => this.ensureSequenceNumbers(simpleDbTransaction));
     }
 
     if (fromVersion < 8 && toVersion >= 8) {
-      p = p.next(() => this.createCollectionParentIndex(db, txn));
+      p = p.next(() =>
+        this.createCollectionParentIndex(db, simpleDbTransaction)
+      );
     }
 
+    if (fromVersion < 9 && toVersion >= 9) {
+      p = p.next(() => {
+        // Multi-Tab used to manage its own changelog, but this has been moved
+        // to the DbRemoteDocument object store itself. Since the previous change
+        // log only contained transient data, we can drop its object store.
+        dropRemoteDocumentChangesStore(db);
+        createRemoteDocumentReadTimeIndex(txn);
+      });
+    }
     return p;
   }
 
@@ -293,6 +309,9 @@ function sentinelKey(path: ResourcePath): DbTargetDocumentKey {
 export class DbTimestamp {
   constructor(public seconds: number, public nanoseconds: number) {}
 }
+
+/** A timestamp type that can be used in IndexedDb keys. */
+export type DbTimestampKey = [/* seconds */ number, /* nanos */ number];
 
 // The key for the singleton object in the DbPrimaryClient is a single string.
 export type DbPrimaryClientKey = typeof DbPrimaryClient.key;
@@ -590,6 +609,33 @@ export class DbUnknownDocument {
 export class DbRemoteDocument {
   static store = 'remoteDocuments';
 
+  /**
+   * An index that provides access to all entries sorted by read time (which
+   * corresponds to the last modification time of each row).
+   *
+   * This index is used to provide a changelog for Multi-Tab.
+   */
+  static readTimeIndex = 'readTimeIndex';
+
+  static readTimeIndexPath = 'readTime';
+
+  /**
+   * An index that provides access to documents in a collection sorted by read
+   * time.
+   *
+   * This index is used to allow the RemoteDocumentCache to fetch newly changed
+   * documents in a collection.
+   */
+  static collectionReadTimeIndex = 'collectionReadTimeIndex';
+
+  static collectionReadTimeIndexPath = ['parentPath', 'readTime'];
+
+  // TODO: We are currently storing full document keys almost three times
+  // (once as part of the primary key, once - partly - as `parentPath` and once
+  // inside the encoded documents). During our next migration, we should
+  // rewrite the primary key as parentPath + document ID which would allow us
+  // to drop one value.
+
   constructor(
     /**
      * Set to an instance of DbUnknownDocument if the data for a document is
@@ -613,7 +659,19 @@ export class DbRemoteDocument {
      * documents are potentially inconsistent with the backend's copy and use
      * the write's commit version as their document version.
      */
-    public hasCommittedMutations: boolean | undefined
+    public hasCommittedMutations: boolean | undefined,
+
+    /**
+     * When the document was read from the backend. Undefined for data written
+     * prior to schema version 9.
+     */
+    public readTime: DbTimestampKey | undefined,
+
+    /**
+     * The path of the collection this document is part of. Undefined for data
+     * written prior to schema version 9.
+     */
+    public parentPath: string[] | undefined
   ) {}
 }
 
@@ -728,6 +786,12 @@ export class DbTarget {
      * listened to.
      */
     public lastListenSequenceNumber: number,
+    /**
+     * Denotes the maximum snapshot version at which the associated query view
+     * contained no limbo documents.  Undefined for data written prior to
+     * schema version 9.
+     */
+    public lastLimboFreeSnapshotVersion: DbTimestamp | undefined,
     /**
      * The query for this target.
      *
@@ -901,6 +965,12 @@ function dropQueryCache(db: IDBDatabase): void {
   db.deleteObjectStore(DbTargetGlobal.store);
 }
 
+function dropRemoteDocumentChangesStore(db: IDBDatabase): void {
+  if (db.objectStoreNames.contains('remoteDocumentChanges')) {
+    db.deleteObjectStore('remoteDocumentChanges');
+  }
+}
+
 /**
  * Creates the target global singleton row.
  *
@@ -922,39 +992,21 @@ function writeEmptyTargetGlobalEntry(
 }
 
 /**
- * An object store to store the keys of changed documents. This is used to
- * facilitate storing document changelogs in the Remote Document Cache.
- *
- * PORTING NOTE: This is used for change propagation during multi-tab syncing
- * and not needed on iOS and Android.
+ * Creates indices on the RemoteDocuments store used for both multi-tab
+ * and Index-Free queries.
  */
-export class DbRemoteDocumentChanges {
-  /** Name of the IndexedDb object store.  */
-  static store = 'remoteDocumentChanges';
-
-  /** Keys are auto-generated via the `id` property. */
-  static keyPath = 'id';
-
-  /** The auto-generated key of this entry. */
-  id?: number;
-
-  constructor(
-    /** The keys of the changed documents. */
-    public changes: EncodedResourcePath[]
-  ) {}
-}
-
-/*
- * The key for DbRemoteDocumentChanges, consisting of an auto-incrementing
- * number.
- */
-export type DbRemoteDocumentChangesKey = number;
-
-function createRemoteDocumentChangesStore(db: IDBDatabase): void {
-  db.createObjectStore(DbRemoteDocumentChanges.store, {
-    keyPath: 'id',
-    autoIncrement: true
-  });
+function createRemoteDocumentReadTimeIndex(txn: IDBTransaction): void {
+  const remoteDocumentStore = txn.objectStore(DbRemoteDocument.store);
+  remoteDocumentStore.createIndex(
+    DbRemoteDocument.readTimeIndex,
+    DbRemoteDocument.readTimeIndexPath,
+    { unique: false }
+  );
+  remoteDocumentStore.createIndex(
+    DbRemoteDocument.collectionReadTimeIndex,
+    DbRemoteDocument.collectionReadTimeIndexPath,
+    { unique: false }
+  );
 }
 
 /**
@@ -971,6 +1023,9 @@ export class DbClientMetadata {
   static keyPath = 'clientId';
 
   constructor(
+    // Note: Previous schema versions included a field
+    // "lastProcessedDocumentChangeId". Don't use anymore.
+
     /** The auto-generated client id assigned at client startup. */
     public clientId: string,
     /** The last time this state was updated. */
@@ -978,12 +1033,7 @@ export class DbClientMetadata {
     /** Whether the client's network connection is enabled. */
     public networkEnabled: boolean,
     /** Whether this client is running in a foreground tab. */
-    public inForeground: boolean,
-    /**
-     * The last change read from the DbRemoteDocumentChanges store.
-     * Can be undefined for backwards compatibility.
-     */
-    public lastProcessedDocumentChangeId: number | undefined
+    public inForeground: boolean
   ) {}
 }
 
@@ -1014,11 +1064,8 @@ export const V1_STORES = [
 export const V3_STORES = V1_STORES;
 
 // Visible for testing
-export const V4_STORES = [
-  ...V3_STORES,
-  DbClientMetadata.store,
-  DbRemoteDocumentChanges.store
-];
+// Note: DbRemoteDocumentChanges is no longer used and dropped with v9.
+export const V4_STORES = [...V3_STORES, DbClientMetadata.store];
 
 // V5 does not change the set of stores.
 
@@ -1027,6 +1074,8 @@ export const V6_STORES = [...V4_STORES, DbRemoteDocumentGlobal.store];
 // V7 does not change the set of stores.
 
 export const V8_STORES = [...V6_STORES, DbCollectionParent.store];
+
+// V9 does not change the set of stores.
 
 /**
  * The list of all default IndexedDB stores used throughout the SDK. This is

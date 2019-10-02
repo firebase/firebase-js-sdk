@@ -46,7 +46,7 @@ export interface FirebaseAnalytics {
    */
   logEvent(
     eventName: EventNameString,
-    eventParams: EventParams,
+    eventParams?: EventParams,
     options?: AnalyticsCallOptions
   ): void;
 

@@ -154,7 +154,7 @@
             {
                 "accessibility": "no-public",
                 "overrides": {
-                    "parameterProperties": "explicit"
+                    "parameterProperties": "off"
                 }
             }
         ],
