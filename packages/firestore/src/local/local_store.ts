@@ -43,7 +43,6 @@ import { ObjectMap } from '../util/obj_map';
 
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
-import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
 import { MutationQueue } from './mutation_queue';
 import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -53,7 +52,6 @@ import { QueryEngine } from './query_engine';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import { ClientId } from './shared_client_state';
 
 const LOG_TAG = 'LocalStore';
 
@@ -607,7 +605,6 @@ export class LocalStore {
               );
               return this.queryCache.setTargetsMetadata(
                 txn,
-                txn.currentSequenceNumber,
                 remoteVersion
               );
             });
@@ -780,8 +777,7 @@ export class LocalStore {
                 queryData = new QueryData(
                   query,
                   targetId,
-                  QueryPurpose.Listen,
-                  txn.currentSequenceNumber
+                  QueryPurpose.Listen
                 );
                 return this.queryCache.addQueryData(txn, queryData);
               });
@@ -915,11 +911,6 @@ export class LocalStore {
   }
 
   // PORTING NOTE: Multi-tab only.
-  getActiveClients(): Promise<ClientId[]> {
-    return this.persistence.getActiveClients();
-  }
-
-  // PORTING NOTE: Multi-tab only.
   removeCachedMutationBatchMetadata(batchId: BatchId): void {
     this.mutationQueue.removeCachedMutationKeys(batchId);
   }
@@ -971,14 +962,6 @@ export class LocalStore {
     });
     return promiseChain.next(() =>
       this.mutationQueue.removeMutationBatch(txn, batch)
-    );
-  }
-
-  collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
-    return this.persistence.runTransaction(
-      'Collect garbage',
-      'readwrite-primary',
-      txn => garbageCollector.collect(txn, this.queryDataByTarget)
     );
   }
 

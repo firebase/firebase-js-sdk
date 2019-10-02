@@ -18,13 +18,12 @@
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetIdGenerator } from '../core/target_id_generator';
-import { ListenSequenceNumber, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 import { assert, fail } from '../util/assert';
 import { ObjectMap } from '../util/obj_map';
 
-import { ActiveTargets } from './lru_garbage_collector';
 import { MemoryPersistence } from './memory_persistence';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -42,8 +41,6 @@ export class MemoryQueryCache implements QueryCache {
   private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
   /** The highest numbered target ID encountered. */
   private highestTargetId: TargetId = 0;
-  /** The highest sequence number encountered. */
-  private highestSequenceNumber: ListenSequenceNumber = 0;
   /**
    * A ordered bidirectional mapping between documents and the remote target
    * IDs.
@@ -74,12 +71,6 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve(this.lastRemoteSnapshotVersion);
   }
 
-  getHighestSequenceNumber(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<ListenSequenceNumber> {
-    return PersistencePromise.resolve(this.highestSequenceNumber);
-  }
-
   allocateTargetId(
     transaction: PersistenceTransaction
   ): PersistencePromise<TargetId> {
@@ -90,14 +81,10 @@ export class MemoryQueryCache implements QueryCache {
 
   setTargetsMetadata(
     transaction: PersistenceTransaction,
-    highestListenSequenceNumber: number,
     lastRemoteSnapshotVersion?: SnapshotVersion
   ): PersistencePromise<void> {
     if (lastRemoteSnapshotVersion) {
       this.lastRemoteSnapshotVersion = lastRemoteSnapshotVersion;
-    }
-    if (highestListenSequenceNumber > this.highestSequenceNumber) {
-      this.highestSequenceNumber = highestListenSequenceNumber;
     }
     return PersistencePromise.resolve();
   }
@@ -107,9 +94,6 @@ export class MemoryQueryCache implements QueryCache {
     const targetId = queryData.targetId;
     if (targetId > this.highestTargetId) {
       this.highestTargetId = targetId;
-    }
-    if (queryData.sequenceNumber > this.highestSequenceNumber) {
-      this.highestSequenceNumber = queryData.sequenceNumber;
     }
   }
 
@@ -148,28 +132,6 @@ export class MemoryQueryCache implements QueryCache {
     this.references.removeReferencesForId(queryData.targetId);
     this.targetCount -= 1;
     return PersistencePromise.resolve();
-  }
-
-  removeTargets(
-    transaction: PersistenceTransaction,
-    upperBound: ListenSequenceNumber,
-    activeTargetIds: ActiveTargets
-  ): PersistencePromise<number> {
-    let count = 0;
-    const removals: Array<PersistencePromise<void>> = [];
-    this.queries.forEach((key, queryData) => {
-      if (
-        queryData.sequenceNumber <= upperBound &&
-        !activeTargetIds[queryData.targetId]
-      ) {
-        this.queries.delete(key);
-        removals.push(
-          this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
-        );
-        count++;
-      }
-    });
-    return PersistencePromise.waitFor(removals).next(() => count);
   }
 
   getQueryCount(

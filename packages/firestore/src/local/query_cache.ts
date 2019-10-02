@@ -17,7 +17,7 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ListenSequenceNumber, TargetId } from '../core/types';
+import { TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
 import { DocumentKey } from '../model/document_key';
 
@@ -47,14 +47,6 @@ export interface QueryCache {
   ): PersistencePromise<SnapshotVersion>;
 
   /**
-   * @return The highest sequence number observed, including any that might be
-   *         persisted on-disk.
-   */
-  getHighestSequenceNumber(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<ListenSequenceNumber>;
-
-  /**
    * Call provided function with each `QueryData` that we have cached.
    */
   forEachTarget(
@@ -72,7 +64,6 @@ export interface QueryCache {
    */
   setTargetsMetadata(
     transaction: PersistenceTransaction,
-    highestListenSequenceNumber: number,
     lastRemoteSnapshotVersion?: SnapshotVersion
   ): PersistencePromise<void>;
 

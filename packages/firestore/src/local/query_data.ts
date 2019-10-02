@@ -17,7 +17,7 @@
 
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
-import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
+import {  ProtoByteString, TargetId } from '../core/types';
 import { emptyByteString } from '../platform/platform';
 
 /** An enumeration of the different purposes we have for queries. */
@@ -48,11 +48,6 @@ export class QueryData {
     readonly targetId: TargetId,
     /** The purpose of the query. */
     readonly purpose: QueryPurpose,
-    /**
-     * The sequence number of the last transaction during which this query data
-     * was modified.
-     */
-    readonly sequenceNumber: ListenSequenceNumber,
     /** The latest snapshot version seen for this target. */
     readonly snapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
     /**
@@ -69,18 +64,6 @@ export class QueryData {
     readonly resumeToken: ProtoByteString = emptyByteString()
   ) {}
 
-  /** Creates a new query data instance with an updated sequence number. */
-  withSequenceNumber(sequenceNumber: number): QueryData {
-    return new QueryData(
-      this.query,
-      this.targetId,
-      this.purpose,
-      sequenceNumber,
-      this.snapshotVersion,
-      this.lastLimboFreeSnapshotVersion,
-      this.resumeToken
-    );
-  }
 
   /**
    * Creates a new query data instance with an updated resume token and
@@ -94,7 +77,6 @@ export class QueryData {
       this.query,
       this.targetId,
       this.purpose,
-      this.sequenceNumber,
       snapshotVersion,
       this.lastLimboFreeSnapshotVersion,
       resumeToken
@@ -112,7 +94,6 @@ export class QueryData {
       this.query,
       this.targetId,
       this.purpose,
-      this.sequenceNumber,
       this.snapshotVersion,
       lastLimboFreeSnapshotVersion,
       this.resumeToken
@@ -123,7 +104,6 @@ export class QueryData {
     return (
       this.targetId === other.targetId &&
       this.purpose === other.purpose &&
-      this.sequenceNumber === other.sequenceNumber &&
       this.snapshotVersion.isEqual(other.snapshotVersion) &&
       this.lastLimboFreeSnapshotVersion.isEqual(
         other.lastLimboFreeSnapshotVersion

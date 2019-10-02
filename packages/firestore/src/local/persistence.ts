@@ -17,7 +17,6 @@
 
 import { User } from '../auth/user';
 
-import { ListenSequenceNumber } from '../core/types';
 import { DocumentKey } from '../model/document_key';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
@@ -26,7 +25,6 @@ import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
-import { ClientId } from './shared_client_state';
 
 /**
  * Opaque interface representing a persistence transaction.
@@ -36,7 +34,6 @@ import { ClientId } from './shared_client_state';
  * on persistence.
  */
 export abstract class PersistenceTransaction {
-  abstract readonly currentSequenceNumber: ListenSequenceNumber;
 }
 
 /**
@@ -155,17 +152,6 @@ export interface Persistence {
   shutdown(): Promise<void>;
 
   /**
-   * Registers a listener that gets called when the primary state of the
-   * instance changes. Upon registering, this listener is invoked immediately
-   * with the current primary state.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  setPrimaryStateListener(
-    primaryStateListener: PrimaryStateListener
-  ): Promise<void>;
-
-  /**
    * Registers a listener that gets called when the database receives a
    * version change event indicating that it has deleted.
    *
@@ -182,15 +168,6 @@ export interface Persistence {
    * PORTING NOTE: This is only used for Web multi-tab.
    */
   setNetworkEnabled(networkEnabled: boolean): void;
-
-  /**
-   * Returns the IDs of the clients that are currently active. If multi-tab
-   * is not supported, returns an array that only contains the local client's
-   * ID.
-   *
-   * PORTING NOTE: This is only used for Web multi-tab.
-   */
-  getActiveClients(): Promise<ClientId[]>;
 
   /**
    * Returns a MutationQueue representing the persisted mutations for the

@@ -17,7 +17,6 @@
 
 import { CredentialsProvider } from '../api/credentials';
 import { User } from '../auth/user';
-import { IndexedDbPersistence } from '../local/indexeddb_persistence';
 import { LocalStore } from '../local/local_store';
 import { MemoryPersistence } from '../local/memory_persistence';
 import { Persistence } from '../local/persistence';
@@ -28,7 +27,6 @@ import { Mutation } from '../model/mutation';
 import { Platform } from '../platform/platform';
 import { Datastore } from '../remote/datastore';
 import { RemoteStore } from '../remote/remote_store';
-import { JsonProtoSerializer } from '../remote/serializer';
 import { AsyncQueue } from '../util/async_queue';
 import { Code, FirestoreError } from '../util/error';
 import { debug } from '../util/log';
@@ -42,16 +40,6 @@ import {
 import { SyncEngine } from './sync_engine';
 import { View } from './view';
 
-import {
-  LruGarbageCollector,
-  LruParams,
-  LruScheduler
-} from '../local/lru_garbage_collector';
-import {
-  MemorySharedClientState,
-  SharedClientState,
-  WebStorageSharedClientState
-} from '../local/shared_client_state';
 import { AutoId } from '../util/misc';
 import { DatabaseId, DatabaseInfo } from './database_info';
 import { Query } from './query';
@@ -66,21 +54,11 @@ const DOM_EXCEPTION_INVALID_STATE = 11;
 const DOM_EXCEPTION_ABORTED = 20;
 const DOM_EXCEPTION_QUOTA_EXCEEDED = 22;
 
-export class IndexedDbPersistenceSettings {
-  constructor(
-    readonly cacheSizeBytes: number,
-    readonly synchronizeTabs: boolean
-  ) {}
-
-  lruParams(): LruParams {
-    return LruParams.withCacheSize(this.cacheSizeBytes);
-  }
-}
 
 export class MemoryPersistenceSettings {}
 
 export type InternalPersistenceSettings =
-  | IndexedDbPersistenceSettings
+
   | MemoryPersistenceSettings;
 
 /**
@@ -100,10 +78,6 @@ export class FirestoreClient {
   private localStore!: LocalStore;
   private remoteStore!: RemoteStore;
   private syncEngine!: SyncEngine;
-  // PORTING NOTE: SharedClientState is only used for multi-tab web.
-  private sharedClientState!: SharedClientState;
-
-  private lruScheduler?: LruScheduler;
 
   private readonly clientId = AutoId.newId();
 
@@ -182,7 +156,7 @@ export class FirestoreClient {
         initialized = true;
 
         this.initializePersistence(persistenceSettings, persistenceResult, user)
-          .then(maybeLruGc => this.initializeRest(user, maybeLruGc))
+          .then(maybeLruGc => this.initializeRest(user))
           .then(initializationDone.resolve, initializationDone.reject);
       } else {
         this.asyncQueue.enqueueAndForget(() => {
@@ -231,37 +205,13 @@ export class FirestoreClient {
     persistenceSettings: InternalPersistenceSettings,
     persistenceResult: Deferred<void>,
     user: User
-  ): Promise<LruGarbageCollector | null> {
-    if (persistenceSettings instanceof IndexedDbPersistenceSettings) {
-      return this.startIndexedDbPersistence(user, persistenceSettings)
-        .then(maybeLruGc => {
-          persistenceResult.resolve();
-          return maybeLruGc;
-        })
-        .catch(error => {
-          // Regardless of whether or not the retry succeeds, from an user
-          // perspective, offline persistence has failed.
-          persistenceResult.reject(error);
-
-          // An unknown failure on the first stage shuts everything down.
-          if (!this.canFallback(error)) {
-            throw error;
-          }
-          console.warn(
-            'Error enabling offline persistence. Falling back to' +
-              ' persistence disabled: ' +
-              error
-          );
-          return this.startMemoryPersistence();
-        });
-    } else {
+  ): Promise<null> {
       // When usePersistence == false, enabling offline persistence is defined
       // to unconditionally succeed. This allows start() to have the same
       // signature for both cases, despite the fact that the returned promise
       // is only used in the enablePersistence call.
       persistenceResult.resolve();
       return this.startMemoryPersistence();
-    }
   }
 
   /**
@@ -314,73 +264,12 @@ export class FirestoreClient {
   }
 
   /**
-   * Starts IndexedDB-based persistence.
-   *
-   * @returns A promise indicating success or failure.
-   */
-  private startIndexedDbPersistence(
-    user: User,
-    settings: IndexedDbPersistenceSettings
-  ): Promise<LruGarbageCollector> {
-    // TODO(http://b/33384523): For now we just disable garbage collection
-    // when persistence is enabled.
-    const persistenceKey = IndexedDbPersistence.buildStoragePrefix(
-      this.databaseInfo
-    );
-    // Opt to use proto3 JSON in case the platform doesn't support Uint8Array.
-    const serializer = new JsonProtoSerializer(this.databaseInfo.databaseId, {
-      useProto3Json: true
-    });
-
-    return Promise.resolve().then(async () => {
-      if (
-        settings.synchronizeTabs &&
-        !WebStorageSharedClientState.isAvailable(this.platform)
-      ) {
-        throw new FirestoreError(
-          Code.UNIMPLEMENTED,
-          'IndexedDB persistence is only available on platforms that support LocalStorage.'
-        );
-      }
-
-      const lruParams = settings.lruParams();
-
-      this.sharedClientState = settings.synchronizeTabs
-        ? new WebStorageSharedClientState(
-            this.asyncQueue,
-            this.platform,
-            persistenceKey,
-            this.clientId,
-            user
-          )
-        : new MemorySharedClientState();
-
-      const persistence = await IndexedDbPersistence.createIndexedDbPersistence(
-        {
-          allowTabSynchronization: settings.synchronizeTabs,
-          persistenceKey,
-          clientId: this.clientId,
-          platform: this.platform,
-          queue: this.asyncQueue,
-          serializer,
-          lruParams,
-          sequenceNumberSyncer: this.sharedClientState
-        }
-      );
-
-      this.persistence = persistence;
-      return persistence.referenceDelegate.garbageCollector;
-    });
-  }
-
-  /**
    * Starts Memory-backed persistence. In practice this cannot fail.
    *
    * @returns A promise that will successfully resolve.
    */
-  private startMemoryPersistence(): Promise<LruGarbageCollector | null> {
-    this.persistence = MemoryPersistence.createEagerPersistence(this.clientId);
-    this.sharedClientState = new MemorySharedClientState();
+  private startMemoryPersistence(): Promise<null> {
+    this.persistence = MemoryPersistence.createEagerPersistence();
     return Promise.resolve(null);
   }
 
@@ -390,8 +279,7 @@ export class FirestoreClient {
    * implementation is available in this.persistence.
    */
   private initializeRest(
-    user: User,
-    maybeLruGc: LruGarbageCollector | null
+    user: User
   ): Promise<void> {
     debug(LOG_TAG, 'Initializing. user=', user.uid);
     return this.platform
@@ -400,14 +288,6 @@ export class FirestoreClient {
         // TODO(index-free): Use IndexFreeQueryEngine/IndexedQueryEngine as appropriate.
         const queryEngine = new SimpleQueryEngine();
         this.localStore = new LocalStore(this.persistence, queryEngine, user);
-        if (maybeLruGc) {
-          // We're running LRU Garbage collection. Set up the scheduler.
-          this.lruScheduler = new LruScheduler(
-            maybeLruGc,
-            this.asyncQueue,
-            this.localStore
-          );
-        }
 
         const connectivityMonitor = this.platform.newConnectivityMonitor();
         const serializer = this.platform.newSerializer(
@@ -446,34 +326,17 @@ export class FirestoreClient {
         this.syncEngine = new SyncEngine(
           this.localStore,
           this.remoteStore,
-          this.sharedClientState,
           user
         );
 
-        this.sharedClientState.onlineStateHandler = sharedClientStateOnlineStateChangedHandler;
 
         // Set up wiring between sync engine and other components
         this.remoteStore.syncEngine = this.syncEngine;
-        this.sharedClientState.syncEngine = this.syncEngine;
 
         this.eventMgr = new EventManager(this.syncEngine);
 
         // PORTING NOTE: LocalStore doesn't need an explicit start() on the Web.
-        await this.sharedClientState.start();
         await this.remoteStore.start();
-
-        // NOTE: This will immediately call the listener, so we make sure to
-        // set it after localStore / remoteStore are started.
-        await this.persistence.setPrimaryStateListener(async isPrimary => {
-          await this.syncEngine.applyPrimaryState(isPrimary);
-          if (this.lruScheduler) {
-            if (isPrimary && !this.lruScheduler.started) {
-              this.lruScheduler.start();
-            } else if (!isPrimary) {
-              this.lruScheduler.stop();
-            }
-          }
-        });
 
         // When a user calls clearPersistence() in one client, all other clients
         // need to be terminated to allow the delete to succeed.
@@ -500,12 +363,8 @@ export class FirestoreClient {
 
   terminate(): Promise<void> {
     return this.asyncQueue.enqueueAndInitiateShutdown(async () => {
-      // PORTING NOTE: LocalStore does not need an explicit shutdown on web.
-      if (this.lruScheduler) {
-        this.lruScheduler.stop();
-      }
+
       await this.remoteStore.shutdown();
-      await this.sharedClientState.shutdown();
       await this.persistence.shutdown();
 
       // `removeChangeListener` must be called after shutting down the

@@ -19,7 +19,6 @@ import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { PublicBlob } from '../api/blob';
 import {
-  CACHE_SIZE_UNLIMITED,
   Firestore,
   PublicCollectionReference,
   PublicDocumentReference,
@@ -53,7 +52,6 @@ const firestoreNamespace = {
   FieldPath,
   FieldValue: PublicFieldValue,
   setLogLevel: Firestore.setLogLevel,
-  CACHE_SIZE_UNLIMITED
 };
 
 /**
