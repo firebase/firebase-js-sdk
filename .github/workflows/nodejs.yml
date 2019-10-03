@@ -9,7 +9,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [8.x, 10.x]
+        node-version: [8.x]
 
     steps:
     - uses: actions/checkout@v1
@@ -17,11 +17,19 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - name: npm install, build, and test
+    - name: setup and yarn install
       run: |
         cp config/ci.config.json config/project.json
         yarn
+      env:
+        CI: true
+    - name: yarn build
+      run: |
         yarn build
+      env:
+        CI: true
+    - name: yarn test
+      run: |
         xvfb-run yarn test
       env:
         CI: true
