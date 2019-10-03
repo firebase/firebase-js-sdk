@@ -34,6 +34,10 @@ const mockAnalyticsId = 'abcd-efgh-ijkl';
 const mockFid = 'fid-1234-zyxw';
 
 describe('FirebaseAnalytics methods', () => {
+  before(() => {
+    delete window['dataLayer'];
+    delete window['gtag'];
+  });
   it('initializeGAId gets FID from installations and calls gtag config with it', async () => {
     const gtagStub: SinonStub = stub();
     const app = getFakeApp(mockAnalyticsId, mockFid);
