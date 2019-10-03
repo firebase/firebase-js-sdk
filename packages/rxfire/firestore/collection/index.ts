@@ -18,7 +18,7 @@
 import { firestore } from 'firebase/app';
 import { fromCollectionRef } from '../fromRef';
 import { Observable, MonoTypeOperatorFunction } from 'rxjs';
-import { map, filter, scan } from 'rxjs/operators';
+import { map, filter, scan, distinctUntilChanged } from 'rxjs/operators';
 import { snapToData } from '../document';
 
 const ALL_EVENTS: firestore.DocumentChangeType[] = [
@@ -57,6 +57,16 @@ const filterEmpty = filter(
 );
 
 /**
+ * Splice arguments on top of a sliced array, to break top-level ===
+ * this is useful for change-detection
+ */
+function sliceAndSplice<T=any>(original: T[], start: number, ...args: any[]): T[] {
+  const returnArray = original.slice();
+  returnArray.splice(start, ...args);
+  return returnArray;
+}
+
+/**
  * Creates a new sorted array from a new change.
  * @param combined
  * @param change
@@ -74,7 +84,7 @@ function processIndividualChange(
         // Skip duplicate emissions. This is rare.
         // TODO: Investigate possible bug in SDK.
       } else {
-        combined.splice(change.newIndex, 0, change);
+        return sliceAndSplice(combined, change.newIndex, 0, change);
       }
       break;
     case 'modified':
@@ -85,10 +95,12 @@ function processIndividualChange(
         // When an item changes position we first remove it
         // and then add it's new position
         if (change.oldIndex !== change.newIndex) {
-          combined.splice(change.oldIndex, 1);
-          combined.splice(change.newIndex, 0, change);
+          const copiedArray = combined.slice();
+          copiedArray.splice(change.oldIndex, 1);
+          copiedArray.splice(change.newIndex, 0, change);
+          return copiedArray;
         } else {
-          combined.splice(change.newIndex, 1, change);
+          return sliceAndSplice(combined, change.newIndex, 1, change);
         }
       }
       break;
@@ -97,7 +109,7 @@ function processIndividualChange(
         combined[change.oldIndex] &&
         combined[change.oldIndex].doc.ref.isEqual(change.doc.ref)
       ) {
-        combined.splice(change.oldIndex, 1);
+        return sliceAndSplice(combined, change.oldIndex, 1);
       }
       break;
     default: // ignore
@@ -167,7 +179,8 @@ export function sortedChanges(
         changes: firestore.DocumentChange[]
       ) => processDocumentChanges(current, changes, events),
       []
-    )
+    ),
+    distinctUntilChanged()
   );
 }
 
