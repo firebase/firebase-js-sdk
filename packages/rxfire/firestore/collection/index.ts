@@ -60,9 +60,9 @@ const filterEmpty = filter(
  * Splice arguments on top of a sliced array, to break top-level ===
  * this is useful for change-detection
  */
-function sliceAndSplice<T=any>(original: T[], start: number, ...args: any[]): T[] {
+function sliceAndSplice<T>(original: T[], start: number, deleteCount: number, ...args: T[]): T[] {
   const returnArray = original.slice();
-  returnArray.splice(start, ...args);
+  returnArray.splice(start, deleteCount, ...args);
   return returnArray;
 }
 
