@@ -770,7 +770,7 @@ export class DocumentReference<T = DocumentData> {
    * to the root of the database).
    */
   readonly path: string;
-  
+
   /**
    * Firestore Converter to make the generic golem happy.
    */
