@@ -13,7 +13,7 @@
     "@babel/preset-env": "7.6.2",
     "@types/chai": "4.2.3",
     "@types/mocha": "5.2.7",
-    "@types/node": "11.13.21",
+    "@types/node": "11.13.22",
     "chai": "4.2.0",
     "karma": "4.3.0",
     "karma-babel-preprocessor": "8.0.1",
