@@ -61,6 +61,36 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  it('can set and get a document with generics', () => {
+    interface Person {
+      desc: string;
+      owner: {
+        name: string;
+        title: string;
+      };
+    }
+    const person1: Person = {
+      desc: 'Stuff related to Firestore project...',
+      owner: {
+        name: 'Jonny',
+        title: 'scallywag'
+      }
+    };
+    return withTestDb(persistence, async db => {
+      const docRef = db
+        .collection<Person>('foo', {
+          toFirestore: person => person,
+          fromFirestore: data => data as Person
+        })
+        .doc();
+      await docRef.set(person1);
+      const personData = await docRef.get();
+      const person = personData.data();
+      expect(person).to.not.equal(undefined);
+      expect((person as Person).owner.name).to.equal('Jonny');
+    });
+  });
+
   it('doc() will auto generate an ID', () => {
     return withTestDb(persistence, async db => {
       const ref = db.collection('foo').doc();
@@ -860,7 +890,7 @@ apiDescribe('Database', (persistence: boolean) => {
         () => {
           throw new Error('Promise resolved even though error was expected.');
         },
-        err => {
+        (err: firestore.FirestoreError) => {
           expect(err.name).to.exist;
           expect(err.message).to.exist;
         }
@@ -874,7 +904,7 @@ apiDescribe('Database', (persistence: boolean) => {
           () => {
             throw new Error('Promise resolved even though error was expected.');
           },
-          err => {
+          (err: firestore.FirestoreError) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
           }
@@ -884,7 +914,7 @@ apiDescribe('Database', (persistence: boolean) => {
           () => {
             throw new Error('Promise resolved even though error was expected.');
           },
-          err => {
+          (err: firestore.FirestoreError) => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
           }
