@@ -657,14 +657,6 @@
     "@babel/helper-regex" "^7.4.4"
     regexpu-core "^4.6.0"
 
-"@babel/polyfill@^7.0.0":
-  version "7.2.5"
-  resolved "https://registry.npmjs.org/@babel/polyfill/-/polyfill-7.2.5.tgz#6c54b964f71ad27edddc567d065e57e87ed7fa7d"
-  integrity sha512-8Y/t3MWThtMLYr0YNC/Q76tqN1w30+b0uQMeFUYauG2UGTR19zyUtFrAzT23zNtBxPp+LbE5E/nwV/q/r3y6ug==
-  dependencies:
-    core-js "^2.5.7"
-    regenerator-runtime "^0.12.0"
-
 "@babel/preset-env@7.6.2":
   version "7.6.2"
   resolved "https://registry.npmjs.org/@babel/preset-env/-/preset-env-7.6.2.tgz#abbb3ed785c7fe4220d4c82a53621d71fc0c75d3"
@@ -3235,10 +3227,10 @@ balanced-match@^1.0.0:
   resolved "https://registry.npmjs.org/balanced-match/-/balanced-match-1.0.0.tgz#89b4d199ab2bee49de164ea02b89ce462d71b767"
   integrity sha1-ibTRmasr7kneFk6gK4nORi1xt2c=
 
-base64-arraybuffer-es6@0.4.2:
-  version "0.4.2"
-  resolved "https://registry.npmjs.org/base64-arraybuffer-es6/-/base64-arraybuffer-es6-0.4.2.tgz#b567d364065843113589b6c1436bd9492701c7fe"
-  integrity sha512-HaJx92u12By863ZXVHZs4Bp1nkKaLpbs3Ec9SI1OKzq60Hz+Ks6z7UvdD8pIx61Ck3e8F9MH/IPEu5T0xKSbkQ==
+base64-arraybuffer-es6@0.5.0:
+  version "0.5.0"
+  resolved "https://registry.npmjs.org/base64-arraybuffer-es6/-/base64-arraybuffer-es6-0.5.0.tgz#27877d01148bcfb3919c17ecf64ea163d9bdba62"
+  integrity sha512-UCIPaDJrNNj5jG2ZL+nzJ7czvZV/ZYX6LaIRgfVU1k1edJOQg7dkbiSKzwHkNp6aHEHER/PhlFBrMYnlvJJQEw==
 
 base64-arraybuffer@0.1.5:
   version "0.1.5"
@@ -4821,6 +4813,11 @@ copy-props@^2.0.1:
     each-props "^1.3.0"
     is-plain-object "^2.0.1"
 
+core-js-bundle@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.npmjs.org/core-js-bundle/-/core-js-bundle-3.2.1.tgz#264f563b51583179ebc8f180d7741c31b2e055e5"
+  integrity sha512-VbfmL66EqXkVDImfpK+kdxtvvb/IosyOmF18bOD1WHnOTPOBtS6VYV/Tgh3C2pIATTrEfM8UA3rsGIHiUUQV3A==
+
 core-js-compat@^3.1.1:
   version "3.1.4"
   resolved "https://registry.npmjs.org/core-js-compat/-/core-js-compat-3.1.4.tgz#e4d0c40fbd01e65b1d457980fe4112d4358a7408"
@@ -4844,11 +4841,6 @@ core-js@^2.4.0:
   version "2.5.5"
   resolved "https://registry.npmjs.org/core-js/-/core-js-2.5.5.tgz#b14dde936c640c0579a6b50cabcc132dd6127e3b"
   integrity sha1-sU3ek2xkDAV5prUMq8wTLdYSfjs=
-
-core-js@^2.5.7:
-  version "2.6.5"
-  resolved "https://registry.npmjs.org/core-js/-/core-js-2.6.5.tgz#44bc8d249e7fb2ff5d00e0341a7ffb94fbf67895"
-  integrity sha512-klh/kDpwX8hryYL14M9w/xei6vrv6sE8gTHDG7/T/+SEovB/G4ejwcfE/CBzO6Edsu+OETZMZ3wcX/EjUkrl5A==
 
 core-js@^3.1.3:
   version "3.1.4"
@@ -6135,12 +6127,10 @@ events@^3.0.0:
   resolved "https://registry.npmjs.org/events/-/events-3.0.0.tgz#9a0a0dfaf62893d92b875b8f2698ca4114973e88"
   integrity sha512-Dc381HFWJzEOhQ+d8pkNon++bk9h6cdAoAj4iE6Q4y6xgTzySWXlKn05/TVNpjnfRqi/X0EpJEJohPjNI3zpVA==
 
-eventtargeter@0.5.0:
-  version "0.5.0"
-  resolved "https://registry.npmjs.org/eventtargeter/-/eventtargeter-0.5.0.tgz#ab5e05cc7d96bef6a05a0a4a7053bf8fb7621ba7"
-  integrity sha512-FQbP+ToTYLKEF3VpyaciNbaexbvIOrXW1V1Hg7kKCT+AiX6sq8rUn1NIQiYEpA04eWzHpopH/QRHqm3K2KnLtQ==
-  dependencies:
-    "@babel/polyfill" "^7.0.0"
+eventtargeter@0.7.0:
+  version "0.7.0"
+  resolved "https://registry.npmjs.org/eventtargeter/-/eventtargeter-0.7.0.tgz#3d6a8cea2ebea1ddf47023a171e9a2b4a8cc7f60"
+  integrity sha512-Zq9ugV4CWWsh/+cfE2m9IUNcE5N//6hxrbWlzg42iE75z4/LXfE21Wv+yaf0mM24ncEM69GWDzTr9aDlcrA8og==
 
 evp_bytestokey@^1.0.0, evp_bytestokey@^1.0.3:
   version "1.0.3"
@@ -8094,16 +8084,17 @@ indent-string@^3.0.0, indent-string@^3.2.0:
   resolved "https://registry.npmjs.org/indent-string/-/indent-string-3.2.0.tgz#4a5fd6d27cc332f37e5419a504dbb837105c9289"
   integrity sha1-Sl/W0nzDMvN+VBmlBNu4NxBckok=
 
-indexeddbshim@4.1.0:
-  version "4.1.0"
-  resolved "https://registry.npmjs.org/indexeddbshim/-/indexeddbshim-4.1.0.tgz#6fffc99a2e302445c9df7b3366ef072c9925225a"
-  integrity sha512-gnhy0Fz1fWU9pnIo16uKC9dGimsv/vKlXzZ9zasN2EUkx/KxtHkCIfR8I1XRqujsuTelQmn1/34RpDFycNVxtw==
+indexeddbshim@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.npmjs.org/indexeddbshim/-/indexeddbshim-5.0.0.tgz#9cab3925abaf2795ebb889585cb23637c17a4c0d"
+  integrity sha512-jZz6HDO/zf9jMTnJ+wSsGI1n3G2K1/s0BuOA6aINAmk6ktoigPqTIwrHOrUvdxgjSCw/AeLO7vub8Q40YDgQtg==
   dependencies:
-    "@babel/polyfill" "^7.0.0"
-    eventtargeter "0.5.0"
+    core-js-bundle "^3.2.1"
+    eventtargeter "0.7.0"
+    regenerator-runtime "^0.13.3"
     sync-promise "git+https://github.com/brettz9/sync-promise.git#full-sync-missing-promise-features"
-    typeson "5.11.0"
-    typeson-registry "1.0.0-alpha.26"
+    typeson "5.13.0"
+    typeson-registry "1.0.0-alpha.28"
     websql "git+https://github.com/brettz9/node-websql.git#configurable-secure2"
 
 indexof@0.0.1:
@@ -12496,10 +12487,10 @@ regenerator-runtime@^0.11.0:
   resolved "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.11.1.tgz#be05ad7f9bf7d22e056f9726cee5017fbf19e2e9"
   integrity sha512-MguG95oij0fC3QV3URf4V2SDYGJhJnJGqvIIgdECeODCT98wSWDAJ94SSuVpYQUoTcGUIL6L4yNB7j1DFFHSBg==
 
-regenerator-runtime@^0.12.0:
-  version "0.12.1"
-  resolved "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.12.1.tgz#fa1a71544764c036f8c49b13a08b2594c9f8a0de"
-  integrity sha512-odxIc1/vDlo4iZcfXqRYFj0vpXFNoGdKMAUieAlFYO6m/nl5e9KR/beGf41z4a1FI+aQgtjhuaSlDxQ0hmkrHg==
+regenerator-runtime@^0.13.3:
+  version "0.13.3"
+  resolved "https://registry.npmjs.org/regenerator-runtime/-/regenerator-runtime-0.13.3.tgz#7cf6a77d8f5c6f60eb73c5fc1955b2ceb01e6bf5"
+  integrity sha512-naKIZz2GQ8JWh///G7L3X6LaQUAMp2lvb1rvwwsURe/VXwD6VMfr+/1NuNw3ag8v2kY1aQ/go5SNn79O9JU7yw==
 
 regenerator-transform@^0.14.0:
   version "0.14.0"
@@ -14744,20 +14735,19 @@ typescript@3.5.3, typescript@3.5.x:
   resolved "https://registry.npmjs.org/typescript/-/typescript-3.5.3.tgz#c830f657f93f1ea846819e929092f5fe5983e977"
   integrity sha512-ACzBtm/PhXBDId6a6sDJfroT2pOWt/oOnk4/dElG5G33ZL776N3Y6/6bKZJBFpd+b05F3Ct9qDjMeJmRWtE2/g==
 
-typeson-registry@1.0.0-alpha.26:
-  version "1.0.0-alpha.26"
-  resolved "https://registry.npmjs.org/typeson-registry/-/typeson-registry-1.0.0-alpha.26.tgz#d1f337584196c5d5d112ad981e0dbbd2ced30c30"
-  integrity sha512-R0wwXIYSiJMh+1XfvyUsCnEGVERoJcNrMl9e/ka30dJ+gQyh4/0NU9WHaqUm8oHtZzZYCz+A5fDRCiXYIq7H1Q==
+typeson-registry@1.0.0-alpha.28:
+  version "1.0.0-alpha.28"
+  resolved "https://registry.npmjs.org/typeson-registry/-/typeson-registry-1.0.0-alpha.28.tgz#cc76b71cdafa7f39c0d39fba9573114675ff098b"
+  integrity sha512-WQD4dPXak+20mUiFFeaI0xh+dqiMQs2fmPFzX6akg1+WN74ocVFjYFwRbWNdtLuCUomxXrxAMP9dxjCakZQHvQ==
   dependencies:
-    base64-arraybuffer-es6 "0.4.2"
-    typeson "5.11.0"
-    uuid "3.3.2"
+    base64-arraybuffer-es6 "0.5.0"
+    typeson "5.13.0"
     whatwg-url "7.0.0"
 
-typeson@5.11.0:
-  version "5.11.0"
-  resolved "https://registry.npmjs.org/typeson/-/typeson-5.11.0.tgz#a8273f00050be9eeef974aaa04a0c95a394f821a"
-  integrity sha512-S5KtLzcU4dr4BXh8VuJDYugsRGsDQYlumCbrmwuAX1a1GNpbVYK4p9wluCIfTVPFvVyV6wRfExXX6Q1+YDItEQ==
+typeson@5.13.0:
+  version "5.13.0"
+  resolved "https://registry.npmjs.org/typeson/-/typeson-5.13.0.tgz#dc65b23ea1978a315ed4c95e58a5b6936bcc3591"
+  integrity sha512-xcSaSt+hY/VcRYcqZuVkJwMjDXXJb4CZd51qDocpYw8waA314ygyOPlKhsGsw4qKuJ0tfLLUrxccrm+xvyS0AQ==
 
 uglify-js@^2.6:
   version "2.8.29"
@@ -15089,15 +15079,15 @@ utils-merge@1.0.1:
   resolved "https://registry.npmjs.org/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
 
-uuid@3.3.2, uuid@^3.0.0, uuid@^3.0.1, uuid@^3.3.2:
-  version "3.3.2"
-  resolved "https://registry.npmjs.org/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
-  integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
-
 uuid@^2.0.1:
   version "2.0.3"
   resolved "https://registry.npmjs.org/uuid/-/uuid-2.0.3.tgz#67e2e863797215530dff318e5bf9dcebfd47b21a"
   integrity sha1-Z+LoY3lyFVMN/zGOW/nc6/1Hsho=
+
+uuid@^3.0.0, uuid@^3.0.1, uuid@^3.3.2:
+  version "3.3.2"
+  resolved "https://registry.npmjs.org/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
+  integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
 
 v8-compile-cache@2.0.3:
   version "2.0.3"
