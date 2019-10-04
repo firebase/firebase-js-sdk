@@ -48,7 +48,7 @@
     "sinon": "7.5.0",
     "source-map-loader": "0.2.4",
     "ts-loader": "6.2.0",
-    "typescript": "3.5.3",
+    "typescript": "3.6.3",
     "webpack": "4.41.0",
     "eslint": "6.5.1",
     "@typescript-eslint/parser": "2.3.2",
