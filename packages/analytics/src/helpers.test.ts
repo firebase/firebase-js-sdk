@@ -34,7 +34,7 @@ const mockAnalyticsId = 'abcd-efgh-ijkl';
 const mockFid = 'fid-1234-zyxw';
 
 describe('FirebaseAnalytics methods', () => {
-  before(() => {
+  beforeEach(() => {
     delete window['dataLayer'];
     delete window['gtag'];
   });
