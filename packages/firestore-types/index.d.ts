@@ -561,7 +561,7 @@ export class Transaction {
    * within the document.
    * @return This `Transaction` instance. Used for chaining method calls.
    */
-  update(documentRef: DocumentReference<any>, data: UpdateData): Transaction;
+  update(documentRef: DocumentReference<unknown>, data: UpdateData): Transaction;
 
   /**
    * Updates fields in the document referred to by the provided
@@ -579,7 +579,7 @@ export class Transaction {
    * to the backend (Note that it won't resolve while you're offline).
    */
   update(
-    documentRef: DocumentReference<any>,
+    documentRef: DocumentReference<unknown>,
     field: string | FieldPath,
     value: any,
     ...moreFieldsAndValues: any[]
@@ -591,7 +591,7 @@ export class Transaction {
    * @param documentRef A reference to the document to be deleted.
    * @return This `Transaction` instance. Used for chaining method calls.
    */
-  delete(documentRef: DocumentReference<any>): Transaction;
+  delete(documentRef: DocumentReference<unknown>): Transaction;
 }
 
 /**
@@ -635,7 +635,7 @@ export class WriteBatch {
    * within the document.
    * @return This `WriteBatch` instance. Used for chaining method calls.
    */
-  update(documentRef: DocumentReference<any>, data: UpdateData): WriteBatch;
+  update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
 
   /**
    * Updates fields in the document referred to by this `DocumentReference`.
@@ -652,7 +652,7 @@ export class WriteBatch {
    * to the backend (Note that it won't resolve while you're offline).
    */
   update(
-    documentRef: DocumentReference<any>,
+    documentRef: DocumentReference<unknown>,
     field: string | FieldPath,
     value: any,
     ...moreFieldsAndValues: any[]
@@ -664,7 +664,7 @@ export class WriteBatch {
    * @param documentRef A reference to the document to be deleted.
    * @return This `WriteBatch` instance. Used for chaining method calls.
    */
-  delete(documentRef: DocumentReference<any>): WriteBatch;
+  delete(documentRef: DocumentReference<unknown>): WriteBatch;
 
   /**
    * Commits all of the writes in this write batch as a single atomic unit.
@@ -784,10 +784,10 @@ export class DocumentReference<T = DocumentData> {
    * @return The `CollectionReference` instance.
    */
   collection(collectionPath: string): CollectionReference<DocumentData>;
-  collection<C>(
+  collection<R>(
     collectionPath: string,
-    converter: FirestoreConverter<C>
-  ): CollectionReference<C>;
+    converter: FirestoreConverter<R>
+  ): CollectionReference<R>;
 
   /**
    * Returns true if this `DocumentReference` is equal to the provided one.
@@ -999,7 +999,6 @@ export class DocumentSnapshot<T = DocumentData> {
    * @return An Object containing all fields in the document or 'undefined' if
    * the document doesn't exist.
    */
-  // data(options?: SnapshotOptions): DocumentData | undefined;
   data(options?: SnapshotOptions): T | undefined;
 
   /**
