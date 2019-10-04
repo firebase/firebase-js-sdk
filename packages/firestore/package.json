@@ -49,7 +49,7 @@
     "@types/sinon": "7.5.0",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
-    "indexeddbshim": "4.1.0",
+    "indexeddbshim": "5.0.0",
     "find-free-port": "2.0.0",
     "karma": "4.3.0",
     "karma-chrome-launcher": "3.1.0",
