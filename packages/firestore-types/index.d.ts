@@ -561,7 +561,10 @@ export class Transaction {
    * within the document.
    * @return This `Transaction` instance. Used for chaining method calls.
    */
-  update(documentRef: DocumentReference<unknown>, data: UpdateData): Transaction;
+  update(
+    documentRef: DocumentReference<unknown>,
+    data: UpdateData
+  ): Transaction;
 
   /**
    * Updates fields in the document referred to by the provided
