@@ -33,6 +33,9 @@
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "dependencies": {
+    "tslib": "1.10.0"
+  },
   "peerDependencies": {
     "firebase": ">= 5.0.0 <8",
     "rxjs": "6.x.x"
@@ -45,7 +48,7 @@
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-typescript2": "0.24.3",
     "rollup-plugin-uglify": "6.0.3",
-    "typescript": "3.5.3",
+    "typescript": "3.6.3",
     "@types/chai": "4.2.3",
     "@types/chai-as-promised": "7.1.2",
     "@types/mocha": "5.2.7",

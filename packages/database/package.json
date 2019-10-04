@@ -34,7 +34,7 @@
     "@firebase/app-types": "0.4.4",
     "@types/chai": "4.2.3",
     "@types/mocha": "5.2.7",
-    "@types/node": "11.13.22",
+    "@types/node": "8.10.54",
     "@types/sinon": "7.5.0",
     "chai": "4.2.0",
     "karma": "4.3.0",
@@ -55,7 +55,7 @@
     "source-map-loader": "0.2.4",
     "ts-loader": "6.2.0",
     "ts-node": "8.4.1",
-    "typescript": "3.5.3",
+    "typescript": "3.6.3",
     "webpack": "4.41.0"
   },
   "repository": {

@@ -70,7 +70,7 @@
     "simple-git": "1.126.0",
     "typedoc": "0.15.0",
     "ts-node": "8.4.1",
-    "typescript": "3.5.3",
+    "typescript": "3.6.3",
     "yargs": "14.0.0",
     "babel-loader": "8.0.6"
   }
