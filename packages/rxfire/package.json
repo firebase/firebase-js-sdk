@@ -33,6 +33,9 @@
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "dependencies": {
+    "tslib": "1.10.0"
+  },
   "peerDependencies": {
     "firebase": ">= 5.0.0 <8",
     "rxjs": "6.x.x"

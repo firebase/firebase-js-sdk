@@ -39,7 +39,7 @@ const pkgsByName = {
 
 const plugins = [resolveModule(), commonjs()];
 
-const external = [...Object.keys(pkg.peerDependencies || {}), 'rxjs/operators'];
+const external = [...Object.keys({...pkg.peerDependencies, ...pkg.dependencies}), 'rxjs/operators'];
 
 /**
  * Global UMD Build

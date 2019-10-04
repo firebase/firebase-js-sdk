@@ -34,7 +34,7 @@
     "@firebase/app-types": "0.4.4",
     "@types/chai": "4.2.3",
     "@types/mocha": "5.2.7",
-    "@types/node": "11.13.22",
+    "@types/node": "8.10.54",
     "@types/sinon": "7.5.0",
     "chai": "4.2.0",
     "karma": "4.3.0",
