@@ -7458,10 +7458,10 @@ google-closure-compiler@^20190415.0.0:
     google-closure-compiler-linux "^20190415.0.0"
     google-closure-compiler-osx "^20190415.0.0"
 
-google-closure-library@20190709.0.0:
-  version "20190709.0.0"
-  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20190709.0.0.tgz#e2d10d1b05bc09b8b9fe9f924ba0c5ed49a143b5"
-  integrity sha512-AjctPpV+o+NbQ/o6ovRExj7ZCTpffpjFfOimwY1fAexmCiyZ6JFpFKOchibTZWTJY7GCRuJRg9KU8O2fTD8MlA==
+google-closure-library@20190929.0.0:
+  version "20190929.0.0"
+  resolved "https://registry.npmjs.org/google-closure-library/-/google-closure-library-20190929.0.0.tgz#a323319d87ec10ebdef8135a0ef539eb07602c5d"
+  integrity sha512-ChL2te1OLBqI7z2FYohjapHxoo2Jd7KsFTBKoNv9TiOlWR+7zcS4z1RxeUgczWAW9sji3q5OhbbtG/fJlbs1lw==
 
 google-p12-pem@^0.1.0:
   version "0.1.2"
