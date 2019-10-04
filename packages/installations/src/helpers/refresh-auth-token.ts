@@ -36,7 +36,10 @@ import { remove, set, update } from './idb-manager';
  *
  * Should only be called if the Firebase Installation is registered.
  */
-export async function refreshAuthToken(appConfig: AppConfig): Promise<string> {
+export async function refreshAuthToken(
+  appConfig: AppConfig,
+  forceRefresh = false
+): Promise<string> {
   let tokenPromise: Promise<CompletedAuthToken> | undefined;
   const entry = await update(
     appConfig,
@@ -46,7 +49,7 @@ export async function refreshAuthToken(appConfig: AppConfig): Promise<string> {
       }
 
       const oldAuthToken = oldEntry.authToken;
-      if (isAuthTokenValid(oldAuthToken)) {
+      if (!forceRefresh && isAuthTokenValid(oldAuthToken)) {
         // There is a valid token in the DB.
         return oldEntry;
       } else if (oldAuthToken.requestStatus === RequestStatus.IN_PROGRESS) {

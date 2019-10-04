@@ -38,7 +38,8 @@ import { sleep } from '../util/sleep';
 import { getToken } from './get-token';
 
 const FID = 'dont-talk-to-strangers';
-const AUTH_TOKEN = 'authTokenFromServer';
+const AUTH_TOKEN = 'authToken';
+const NEW_AUTH_TOKEN = 'newAuthToken';
 const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
@@ -104,7 +105,7 @@ const setupInstallationEntryMap: Map<
         const updatedEntry: RegisteredInstallationEntry = {
           ...entry,
           authToken: {
-            token: AUTH_TOKEN,
+            token: NEW_AUTH_TOKEN,
             expiresIn: ONE_WEEK_MS,
             requestStatus: RequestStatus.COMPLETED,
             creationTime: Date.now()
@@ -196,7 +197,7 @@ describe('getToken', () => {
         registrationStatus: RequestStatus.COMPLETED,
         refreshToken: 'refreshToken',
         authToken: {
-          token: AUTH_TOKEN,
+          token: NEW_AUTH_TOKEN,
           expiresIn: ONE_WEEK_MS,
           requestStatus: RequestStatus.COMPLETED,
           creationTime: Date.now()
@@ -210,7 +211,7 @@ describe('getToken', () => {
     ).callsFake(async () => {
       await sleep(100); // Request would take some time
       const result: CompletedAuthToken = {
-        token: AUTH_TOKEN,
+        token: NEW_AUTH_TOKEN,
         expiresIn: ONE_WEEK_MS,
         requestStatus: RequestStatus.COMPLETED,
         creationTime: Date.now()
@@ -226,7 +227,7 @@ describe('getToken', () => {
 
         it('resolves with an auth token', async () => {
           const token = await getToken(app);
-          expect(token).to.equal(AUTH_TOKEN);
+          expect(token).to.be.oneOf([AUTH_TOKEN, NEW_AUTH_TOKEN]);
         });
 
         it('saves the token in the DB', async () => {
@@ -382,16 +383,27 @@ describe('getToken', () => {
       expect(generateAuthTokenSpy).not.to.be.called;
     });
 
+    it('refreshes the token if forceRefresh is true', async () => {
+      const token = await getToken(app, true);
+      expect(token).to.equal(NEW_AUTH_TOKEN);
+      expect(generateAuthTokenSpy).to.be.called;
+    });
+
     it('works even if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
       const token = await getToken(app);
       expect(token).to.equal(AUTH_TOKEN);
     });
+
+    it('throws if the app is offline and forceRefresh is true', async () => {
+      stub(navigator, 'onLine').value(false);
+
+      await expect(getToken(app, true)).to.be.rejected;
+    });
   });
 
   describe('when there is an auth token that is about to expire in the DB', () => {
-    const DB_AUTH_TOKEN = 'authTokenFromDB';
     let clock: SinonFakeTimers;
 
     beforeEach(async () => {
@@ -401,7 +413,7 @@ describe('getToken', () => {
         registrationStatus: RequestStatus.COMPLETED,
         refreshToken: 'refreshToken',
         authToken: {
-          token: DB_AUTH_TOKEN,
+          token: AUTH_TOKEN,
           expiresIn: ONE_WEEK_MS,
           requestStatus: RequestStatus.COMPLETED,
           creationTime:
@@ -414,13 +426,13 @@ describe('getToken', () => {
 
     it('returns a different token after expiration', async () => {
       const token1 = await getToken(app);
-      expect(token1).to.equal(DB_AUTH_TOKEN);
+      expect(token1).to.equal(AUTH_TOKEN);
 
       // Wait 30 minutes.
       clock.tick('30:00');
 
       const token2 = await getToken(app);
-      await expect(token2).to.equal(AUTH_TOKEN);
+      await expect(token2).to.equal(NEW_AUTH_TOKEN);
       await expect(token2).not.to.equal(token1);
     });
   });
@@ -439,6 +451,12 @@ describe('getToken', () => {
         }
       };
       await set(appConfig, installationEntry);
+    });
+
+    it('returns a different token', async () => {
+      const token = await getToken(app);
+      expect(token).to.equal(NEW_AUTH_TOKEN);
+      expect(generateAuthTokenSpy).to.be.called;
     });
 
     it('throws if the app is offline', async () => {
