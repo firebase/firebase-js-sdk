@@ -87,7 +87,7 @@ apiDescribe('Database', (persistence: boolean) => {
       const personData = await docRef.get();
       const person = personData.data();
       expect(person).to.not.equal(undefined);
-      expect((person as Person).owner.name).to.equal('Jonny');
+      expect(person!.owner.name).to.equal('Jonny');
     });
   });
 

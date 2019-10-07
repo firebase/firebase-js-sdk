@@ -772,9 +772,9 @@ export function expectFirestoreError(err: Error): void {
   expect(err.name).to.equal('FirebaseError');
 }
 
-export function defaultFirestoreConverter<T>(): firestore.FirestoreConverter<
+export function defaultDocumentDataConverter<
   T
-> {
+>(): firestore.DocumentDataConverter<T> {
   return {
     toFirestore: value => value,
     fromFirestore: data => data as T

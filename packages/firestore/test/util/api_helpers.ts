@@ -37,7 +37,7 @@ import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/field_value';
 import {
-  defaultFirestoreConverter,
+  defaultDocumentDataConverter,
   doc,
   key,
   path as pathFrom
@@ -59,7 +59,7 @@ export function collectionReference(path: string): CollectionReference {
   return new CollectionReference(
     pathFrom(path),
     firestore(),
-    defaultFirestoreConverter()
+    defaultDocumentDataConverter()
   );
 }
 
@@ -67,7 +67,7 @@ export function documentReference(path: string): DocumentReference {
   return new DocumentReference(
     key(path),
     firestore(),
-    defaultFirestoreConverter()
+    defaultDocumentDataConverter()
   );
 }
 
@@ -83,7 +83,7 @@ export function documentSnapshot(
       doc(path, 1, data),
       fromCache,
       /* hasPendingWrites= */ false,
-      defaultFirestoreConverter()
+      defaultDocumentDataConverter()
     );
   } else {
     return new DocumentSnapshot(
@@ -92,7 +92,7 @@ export function documentSnapshot(
       null,
       fromCache,
       /* hasPendingWrites= */ false,
-      defaultFirestoreConverter()
+      defaultDocumentDataConverter()
     );
   }
 }
@@ -101,7 +101,7 @@ export function query(path: string): Query {
   return new Query(
     InternalQuery.atPath(pathFrom(path)),
     firestore(),
-    defaultFirestoreConverter()
+    defaultDocumentDataConverter()
   );
 }
 
@@ -152,6 +152,6 @@ export function querySnapshot(
     firestore(),
     query,
     viewSnapshot,
-    defaultFirestoreConverter()
+    defaultDocumentDataConverter()
   );
 }

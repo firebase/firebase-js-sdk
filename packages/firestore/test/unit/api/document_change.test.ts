@@ -28,7 +28,7 @@ import { Document } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import {
   applyDocChanges,
-  defaultFirestoreConverter,
+  defaultDocumentDataConverter,
   doc,
   documentSetAsArray,
   key,
@@ -58,7 +58,7 @@ describe('DocumentChange:', () => {
       {} as Firestore,
       true,
       updatedSnapshot,
-      defaultFirestoreConverter()
+      defaultDocumentDataConverter()
     );
 
     for (const change of changes) {

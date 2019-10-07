@@ -128,7 +128,7 @@ export type LogLevel = 'debug' | 'error' | 'silent';
 
 export function setLogLevel(logLevel: LogLevel): void;
 
-export interface FirestoreConverter<T> {
+export interface DocumentDataConverter<T> {
   // Converts a model object of type T into plain Firestore DocumentData.
   toFirestore(modelObject: T): DocumentData;
   // Converts firestore data into a model object of type T.
@@ -182,7 +182,7 @@ export class FirebaseFirestore {
   collection(collectionPath: string): CollectionReference<DocumentData>;
   collection<T>(
     collectionPath: string,
-    converter: FirestoreConverter<T>
+    converter: DocumentDataConverter<T>
   ): CollectionReference<T>;
 
   /**
@@ -195,7 +195,7 @@ export class FirebaseFirestore {
   doc(documentPath: string): DocumentReference<DocumentData>;
   doc<T>(
     documentPath: string,
-    converter: FirestoreConverter<T>
+    converter: DocumentDataConverter<T>
   ): DocumentReference<T>;
 
   /**
@@ -211,7 +211,7 @@ export class FirebaseFirestore {
   collectionGroup(collectionId: string): Query<DocumentData>;
   collectionGroup<T>(
     collectionId: string,
-    converter: FirestoreConverter<T>
+    converter: DocumentDataConverter<T>
   ): Query<T>;
 
   /**
@@ -775,11 +775,6 @@ export class DocumentReference<T = DocumentData> {
   readonly path: string;
 
   /**
-   * Firestore Converter to make the generic golem happy.
-   */
-  readonly converter: FirestoreConverter<T>;
-
-  /**
    * Gets a `CollectionReference` instance that refers to the collection at
    * the specified path.
    *
@@ -789,7 +784,7 @@ export class DocumentReference<T = DocumentData> {
   collection(collectionPath: string): CollectionReference<DocumentData>;
   collection<R>(
     collectionPath: string,
-    converter: FirestoreConverter<R>
+    converter: DocumentDataConverter<R>
   ): CollectionReference<R>;
 
   /**

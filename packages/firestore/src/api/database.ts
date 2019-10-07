@@ -46,7 +46,6 @@ import {
   ArrayValue,
   FieldValue,
   FieldValueOptions,
-  JsonObject,
   ObjectValue,
   RefValue,
   ServerTimestampValue
@@ -83,6 +82,7 @@ import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
 import { Deferred } from './../util/promise';
+import { isDocumentDataConverter } from '../util/types';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
@@ -589,21 +589,30 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   };
 
   /**
-   * Returns true if obj is an object and contains all the specified
-   * methods.
+   * Returns the converter located at the argument index, or the default
+   * converter.
    */
-  private implementsAllMethods(obj: unknown, methods: string[]): boolean {
-    if (typeof obj !== 'object' || obj === null) {
-      return false;
-    }
-
-    const object = obj as JsonObject<unknown>;
-    for (const method of methods) {
-      if (!(method in object) || !(typeof object[method] === 'function')) {
-        return false;
+  private converterFromArgs<T>(
+    functionName: string,
+    index: number,
+    ...args: unknown[]
+  ): firestore.DocumentDataConverter<T> {
+    if (args.length === index + 1) {
+      if (!isDocumentDataConverter(args[index])) {
+        throw new FirestoreError(
+          Code.INVALID_ARGUMENT,
+          `Function ${functionName}() requires type ` +
+            `'Firestore.DocumentDataConverter' at index ${index}.`
+        );
+      } else {
+        return args[index] as firestore.DocumentDataConverter<T>;
       }
+    } else {
+      return {
+        toFirestore: value => value,
+        fromFirestore: data => data as T
+      };
     }
-    return true;
   }
 
   collection(
@@ -611,25 +620,17 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   ): firestore.CollectionReference<firestore.DocumentData>;
   collection<T>(
     pathString: string,
-    converter: firestore.FirestoreConverter<T>
+    converter: firestore.DocumentDataConverter<T>
   ): firestore.CollectionReference<T>;
   collection<T>(...args: unknown[]): firestore.CollectionReference<T> {
     validateBetweenNumberOfArgs('Firestore.collection', arguments, 1, 2);
     validateArgType('Firestore.collection', 'non-empty string', 1, args[0]);
     const pathString: string = args[0] as string;
-    let converter: firestore.FirestoreConverter<T>;
-    if (
-      args.length === 2 &&
-      this.implementsAllMethods(args[1], ['fromFirestore', 'toFirestore'])
-    ) {
-      converter = args[1] as firestore.FirestoreConverter<T>;
-    } else {
-      validateExactNumberOfArgs('Firestore.collection', arguments, 1);
-      converter = {
-        toFirestore: value => value,
-        fromFirestore: data => data as T
-      };
-    }
+    const converter = this.converterFromArgs<T>(
+      'Firestore.collection',
+      1,
+      args
+    );
     this.ensureClientConfigured();
     return new CollectionReference<T>(
       ResourcePath.fromString(pathString),
@@ -641,25 +642,13 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   doc(pathString: string): firestore.DocumentReference<firestore.DocumentData>;
   doc<T>(
     pathString: string,
-    converter: firestore.FirestoreConverter<T>
+    converter: firestore.DocumentDataConverter<T>
   ): firestore.DocumentReference<T>;
   doc<T>(...args: unknown[]): firestore.DocumentReference<T> {
     validateBetweenNumberOfArgs('Firestore.doc', arguments, 1, 2);
     validateArgType('Firestore.doc', 'non-empty string', 1, args[0]);
     const pathString: string = args[0] as string;
-    let converter: firestore.FirestoreConverter<T>;
-    if (
-      args.length === 2 &&
-      this.implementsAllMethods(args[1], ['fromFirestore', 'toFirestore'])
-    ) {
-      converter = args[1] as firestore.FirestoreConverter<T>;
-    } else {
-      validateExactNumberOfArgs('Firestore.doc', arguments, 1);
-      converter = {
-        toFirestore: value => value,
-        fromFirestore: data => data as T
-      };
-    }
+    const converter = this.converterFromArgs<T>('Firestore.doc', 1, args);
     this.ensureClientConfigured();
     return DocumentReference.forPath<T>(
       ResourcePath.fromString(pathString),
@@ -673,7 +662,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   ): firestore.Query<firestore.DocumentData>;
   collectionGroup<T>(
     collectionId: string,
-    converter: firestore.FirestoreConverter<T>
+    converter: firestore.DocumentDataConverter<T>
   ): firestore.Query<T>;
   collectionGroup<T>(...args: unknown[]): firestore.Query<T> {
     validateBetweenNumberOfArgs('Firestore.collectionGroup', arguments, 1, 2);
@@ -684,7 +673,6 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       args[0]
     );
     const collectionId: string = args[0] as string;
-
     if (collectionId.indexOf('/') >= 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
@@ -692,21 +680,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
           `Firestore.collectionGroup(). Collection IDs must not contain '/'.`
       );
     }
-
-    let converter: firestore.FirestoreConverter<T>;
-    if (
-      args.length === 2 &&
-      this.implementsAllMethods(args[1], ['fromFirestore', 'toFirestore'])
-    ) {
-      converter = args[1] as firestore.FirestoreConverter<T>;
-    } else {
-      validateExactNumberOfArgs('Firestore.collectionGroup', arguments, 1);
-      converter = {
-        toFirestore: value => value,
-        fromFirestore: data => data as T
-      };
-    }
-
+    const converter = this.converterFromArgs<T>(
+      'Firestore.collectionGroup',
+      1,
+      args
+    );
     this.ensureClientConfigured();
     return new Query(
       new InternalQuery(ResourcePath.EMPTY_PATH, collectionId),
@@ -806,7 +784,7 @@ export class Transaction implements firestore.Transaction {
             null,
             /* fromCache= */ false,
             /* hasPendingWrites= */ false,
-            documentRef.converter
+            (documentRef as DocumentReference<T>)._converter
           );
         } else if (doc instanceof Document) {
           return new DocumentSnapshot<T>(
@@ -815,7 +793,7 @@ export class Transaction implements firestore.Transaction {
             doc,
             /* fromCache= */ false,
             /* hasPendingWrites= */ false,
-            documentRef.converter
+            (documentRef as DocumentReference<T>)._converter
           );
         } else {
           throw fail(
@@ -1045,7 +1023,7 @@ export class DocumentReference<T = firestore.DocumentData>
   constructor(
     public _key: DocumentKey,
     readonly firestore: Firestore,
-    private readonly _converter: firestore.FirestoreConverter<T>
+    readonly _converter: firestore.DocumentDataConverter<T>
   ) {
     this._firestoreClient = this.firestore.ensureClientConfigured();
   }
@@ -1053,7 +1031,7 @@ export class DocumentReference<T = firestore.DocumentData>
   static forPath<U>(
     path: ResourcePath,
     firestore: Firestore,
-    converter: firestore.FirestoreConverter<U>
+    converter: firestore.DocumentDataConverter<U>
   ): DocumentReference<U> {
     if (path.length % 2 !== 0) {
       throw new FirestoreError(
@@ -1074,16 +1052,12 @@ export class DocumentReference<T = firestore.DocumentData>
     return new CollectionReference(
       this._key.path.popLast(),
       this.firestore,
-      this.converter
+      this._converter
     );
   }
 
   get path(): string {
     return this._key.path.canonicalString();
-  }
-
-  get converter(): firestore.FirestoreConverter<T> {
-    return this._converter;
   }
 
   collection(pathString: string): firestore.CollectionReference<T> {
@@ -1104,7 +1078,7 @@ export class DocumentReference<T = firestore.DocumentData>
     return new CollectionReference(
       this._key.path.child(path),
       this.firestore,
-      this.converter
+      this._converter
     );
   }
   // TODO(chenbrian): Add collection<R>
@@ -1424,7 +1398,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
     public _document: Document | null,
     private _fromCache: boolean,
     private _hasPendingWrites: boolean,
-    private readonly _converter: firestore.FirestoreConverter<T>
+    private readonly _converter: firestore.DocumentDataConverter<T>
   ) {}
 
   data(options?: firestore.SnapshotOptions): T | undefined {
@@ -1563,7 +1537,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   constructor(
     public _query: InternalQuery,
     readonly firestore: Firestore,
-    readonly converter: firestore.FirestoreConverter<T>
+    readonly converter: firestore.DocumentDataConverter<T>
   ) {}
 
   where(
@@ -2272,7 +2246,7 @@ export class QuerySnapshot<T = firestore.DocumentData>
     private _firestore: Firestore,
     private _originalQuery: InternalQuery,
     private _snapshot: ViewSnapshot,
-    private _converter: firestore.FirestoreConverter<T>
+    private _converter: firestore.DocumentDataConverter<T>
   ) {
     this.metadata = new SnapshotMetadata(
       _snapshot.hasPendingWrites,
@@ -2418,7 +2392,7 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   constructor(
     path: ResourcePath,
     firestore: Firestore,
-    converter: firestore.FirestoreConverter<T>
+    converter: firestore.DocumentDataConverter<T>
   ) {
     super(InternalQuery.atPath(path), firestore, converter);
     if (path.length % 2 !== 1) {
@@ -2581,7 +2555,7 @@ export function changesFromSnapshot<T>(
   firestore: Firestore,
   includeMetadataChanges: boolean,
   snapshot: ViewSnapshot,
-  converter: firestore.FirestoreConverter<T>
+  converter: firestore.DocumentDataConverter<T>
 ): Array<firestore.DocumentChange<T>> {
   if (snapshot.oldDocs.isEmpty()) {
     // Special case the first snapshot because index calculation is easy and
