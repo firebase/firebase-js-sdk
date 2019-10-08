@@ -28,7 +28,12 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
+import { Target } from './target';
 
+/**
+ * Represents a local query, it can be run against local storage, as well as be converted
+ * to a `Target` to query the backend results.
+ */
 export class Query {
   static atPath(path: ResourcePath): Query {
     return new Query(path);
@@ -390,6 +395,18 @@ export class Query {
 
   isCollectionGroupQuery(): boolean {
     return this.collectionGroup !== null;
+  }
+
+  toTarget(): Target {
+    return new Target(
+      this.path,
+      this.collectionGroup,
+      this.orderBy,
+      this.filters,
+      this.limit,
+      this.startAt,
+      this.endAt
+    );
   }
 
   private matchesPathAndCollectionGroup(doc: Document): boolean {
