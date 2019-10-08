@@ -25,7 +25,7 @@ import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
 export async function getToken(
   app: FirebaseApp,
-  forceRefresh?: boolean
+  forceRefresh = false
 ): Promise<string> {
   const appConfig = extractAppConfig(app);
 
