@@ -23,14 +23,17 @@ import { AppConfig } from '../interfaces/app-config';
 import { RequestStatus } from '../interfaces/installation-entry';
 import { ERROR_FACTORY, ErrorCode } from '../util/errors';
 
-export async function getToken(app: FirebaseApp): Promise<string> {
+export async function getToken(
+  app: FirebaseApp,
+  forceRefresh = false
+): Promise<string> {
   const appConfig = extractAppConfig(app);
 
   await completeInstallationRegistration(appConfig);
 
   // At this point we either have a Registered Installation in the DB, or we've
   // already thrown an error.
-  return refreshAuthToken(appConfig);
+  return refreshAuthToken(appConfig, forceRefresh);
 }
 
 async function completeInstallationRegistration(

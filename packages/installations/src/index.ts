@@ -35,7 +35,7 @@ export function registerInstallations(instance: _FirebaseNamespace): void {
     return {
       app,
       getId: () => getId(app),
-      getToken: () => getToken(app),
+      getToken: (forceRefresh?: boolean) => getToken(app, forceRefresh),
       delete: () => deleteInstallation(app)
     };
   };
