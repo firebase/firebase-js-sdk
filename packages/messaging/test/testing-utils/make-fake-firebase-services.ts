@@ -56,7 +56,8 @@ export function makeFakeInstallations(): FirebaseInstallations {
   return {
     getId: async () => 'FID',
     getToken: async () => 'authToken',
-    delete: async () => undefined
+    delete: async () => undefined,
+    onIdChange: () => () => {}
   };
 }
 

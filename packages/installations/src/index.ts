@@ -16,10 +16,20 @@
  */
 
 import firebase from '@firebase/app';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
+import {
+  _FirebaseNamespace,
+  FirebaseService
+} from '@firebase/app-types/private';
 import { Component, ComponentType } from '@firebase/component';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import { deleteInstallation, getId, getToken } from './functions';
+import {
+  deleteInstallation,
+  getId,
+  getToken,
+  IdChangeCallbackFn,
+  IdChangeUnsubscribeFn,
+  onIdChange
+} from './functions';
 import { extractAppConfig } from './helpers/extract-app-config';
 import { FirebaseDependencies } from './interfaces/firebase-dependencies';
 
@@ -42,13 +52,16 @@ export function registerInstallations(instance: _FirebaseNamespace): void {
           platformLoggerProvider
         };
 
-        return {
+        const installations: FirebaseInstallations & FirebaseService = {
           app,
           getId: () => getId(dependencies),
           getToken: (forceRefresh?: boolean) =>
             getToken(dependencies, forceRefresh),
-          delete: () => deleteInstallation(dependencies)
+          delete: () => deleteInstallation(dependencies),
+          onIdChange: (callback: IdChangeCallbackFn): IdChangeUnsubscribeFn =>
+            onIdChange(dependencies, callback)
         };
+        return installations;
       },
       ComponentType.PUBLIC
     )
