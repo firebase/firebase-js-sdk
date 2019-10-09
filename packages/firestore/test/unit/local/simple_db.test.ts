@@ -93,9 +93,14 @@ describe('SimpleDb', () => {
       transaction: SimpleDbTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    return db.runTransaction<T>('readwrite', ['users'], txn => {
-      return fn(txn.store<number, User>('users'), txn);
-    });
+    return db.runTransaction<T>(
+      'readwrite',
+      /* idempotent= */ false,
+      ['users'],
+      txn => {
+        return fn(txn.store<number, User>('users'), txn);
+      }
+    );
   }
 
   function writeTestData(): Promise<void> {
@@ -481,23 +486,33 @@ describe('SimpleDb', () => {
       ['foo', 'd'],
       ['foob']
     ];
-    await db.runTransaction('readwrite', ['users', 'docs'], txn => {
-      const docsStore = txn.store<string[], string>('docs');
-      return PersistencePromise.waitFor(
-        keys.map(key => {
-          const value = 'doc ' + key.join('/');
-          return docsStore.put(key, value);
-        })
-      );
-    });
+    await db.runTransaction(
+      'readwrite',
+      /* idempotent= */ false,
+      ['users', 'docs'],
+      txn => {
+        const docsStore = txn.store<string[], string>('docs');
+        return PersistencePromise.waitFor(
+          keys.map(key => {
+            const value = 'doc ' + key.join('/');
+            return docsStore.put(key, value);
+          })
+        );
+      }
+    );
 
-    await db.runTransaction('readonly', ['docs'], txn => {
-      const store = txn.store<string[], string>('docs');
-      const range = IDBKeyRange.bound(['foo'], ['foo', 'c']);
-      return store.loadAll(range).next(results => {
-        expect(results).to.deep.equal(['doc foo', 'doc foo/bar/baz']);
-      });
-    });
+    await db.runTransaction(
+      'readonly',
+      /* idempotent= */ false,
+      ['docs'],
+      txn => {
+        const store = txn.store<string[], string>('docs');
+        const range = IDBKeyRange.bound(['foo'], ['foo', 'c']);
+        return store.loadAll(range).next(results => {
+          expect(results).to.deep.equal(['doc foo', 'doc foo/bar/baz']);
+        });
+      }
+    );
   });
 
   // A little perf test for convenient benchmarking
