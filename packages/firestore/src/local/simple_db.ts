@@ -260,8 +260,8 @@ export class SimpleDb {
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
-    let readonly = mode.startsWith('idempotent');
-    let idempotent = mode.endsWith('idempotent');
+    const readonly = mode.startsWith('readonly');
+    const idempotent = mode.endsWith('idempotent');
     let attemptNumber = 0;
 
     while (true) {
