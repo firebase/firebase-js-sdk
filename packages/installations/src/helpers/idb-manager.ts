@@ -17,6 +17,7 @@
 
 import { DB, openDb } from 'idb';
 import { AppConfig } from '../interfaces/app-config';
+import { InstallationEntry } from '../interfaces/installation-entry';
 
 const DATABASE_NAME = 'firebase-installations-database';
 const DATABASE_VERSION = 1;
@@ -41,7 +42,9 @@ function getDbPromise(): Promise<DB> {
 }
 
 /** Gets record(s) from the objectStore that match the given key. */
-export async function get(appConfig: AppConfig): Promise<unknown> {
+export async function get(
+  appConfig: AppConfig
+): Promise<InstallationEntry | undefined> {
   const key = getKey(appConfig);
   const db = await getDbPromise();
   return db
@@ -51,7 +54,7 @@ export async function get(appConfig: AppConfig): Promise<unknown> {
 }
 
 /** Assigns or overwrites the record for the given key with the given value. */
-export async function set<ValueType>(
+export async function set<ValueType extends InstallationEntry>(
   appConfig: AppConfig,
   value: ValueType
 ): Promise<ValueType> {
@@ -78,20 +81,16 @@ export async function remove(appConfig: AppConfig): Promise<void> {
  * deleted instead.
  * @return Updated value
  */
-export async function update<OldType, NewType>(
+export async function update<ValueType extends InstallationEntry | undefined>(
   appConfig: AppConfig,
-  updateFn: (previousValue: OldType | undefined) => NewType
-): Promise<NewType> {
+  updateFn: (previousValue: InstallationEntry | undefined) => ValueType
+): Promise<ValueType> {
   const key = getKey(appConfig);
   const db = await getDbPromise();
   const tx = db.transaction(OBJECT_STORE_NAME, 'readwrite');
   const store = tx.objectStore(OBJECT_STORE_NAME);
-  const oldValue = await store.get(key);
+  const oldValue: InstallationEntry | undefined = await store.get(key);
   const newValue = updateFn(oldValue);
-
-  if (newValue === oldValue) {
-    return newValue;
-  }
 
   if (newValue === undefined) {
     await store.delete(key);
