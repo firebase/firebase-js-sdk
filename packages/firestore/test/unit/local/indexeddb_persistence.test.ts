@@ -317,39 +317,47 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     return withDb(3, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', [DbMutationBatch.store], txn => {
-        const store = txn.store(DbMutationBatch.store);
-        return PersistencePromise.forEach(
-          testMutations,
-          (testMutation: DbMutationBatch) => store.put(testMutation)
-        );
-      });
+      return sdb.runTransaction(
+        'readwrite-idempotent',
+        [DbMutationBatch.store],
+        txn => {
+          const store = txn.store(DbMutationBatch.store);
+          return PersistencePromise.forEach(
+            testMutations,
+            (testMutation: DbMutationBatch) => store.put(testMutation)
+          );
+        }
+      );
     }).then(() =>
       withDb(4, db => {
         expect(db.version).to.be.equal(4);
         expect(getAllObjectStores(db)).to.have.members(V4_STORES);
 
         const sdb = new SimpleDb(db);
-        return sdb.runTransaction('readwrite-idempotent', [DbMutationBatch.store], txn => {
-          const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
-            DbMutationBatch.store
-          );
-          let p = PersistencePromise.forEach(
-            testMutations,
-            (testMutation: DbMutationBatch) =>
-              store.get(testMutation.batchId).next(mutationBatch => {
-                expect(mutationBatch).to.deep.equal(testMutation);
-              })
-          );
-          p = p.next(() => {
-            store
-              .add({} as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-              .next(batchId => {
-                expect(batchId).to.equal(43);
-              });
-          });
-          return p;
-        });
+        return sdb.runTransaction(
+          'readwrite-idempotent',
+          [DbMutationBatch.store],
+          txn => {
+            const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
+              DbMutationBatch.store
+            );
+            let p = PersistencePromise.forEach(
+              testMutations,
+              (testMutation: DbMutationBatch) =>
+                store.get(testMutation.batchId).next(mutationBatch => {
+                  expect(mutationBatch).to.deep.equal(testMutation);
+                })
+            );
+            p = p.next(() => {
+              store
+                .add({} as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+                .next(batchId => {
+                  expect(batchId).to.equal(43);
+                });
+            });
+            return p;
+          }
+        );
       })
     );
   });
@@ -912,12 +920,16 @@ describe('IndexedDb: canActAsPrimary', () => {
       SCHEMA_VERSION,
       new SchemaConverter(TEST_SERIALIZER)
     );
-    await simpleDb.runTransaction('readwrite-idempotent', [DbPrimaryClient.store], txn => {
-      const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-        DbPrimaryClient.store
-      );
-      return primaryStore.delete(DbPrimaryClient.key);
-    });
+    await simpleDb.runTransaction(
+      'readwrite-idempotent',
+      [DbPrimaryClient.store],
+      txn => {
+        const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+          DbPrimaryClient.store
+        );
+        return primaryStore.delete(DbPrimaryClient.key);
+      }
+    );
     simpleDb.close();
   }
 

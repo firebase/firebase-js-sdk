@@ -217,12 +217,7 @@ function runTransaction<T>(
     transaction: SimpleDbTransaction
   ) => PersistencePromise<T>
 ): Promise<T> {
-  return db.runTransaction<T>(
-    'readwrite-idempotent',
-    ['test'],
-    txn => {
-      return fn(txn.store<string, boolean>('test'), txn);
-    }
-  );
-
+  return db.runTransaction<T>('readwrite-idempotent', ['test'], txn => {
+    return fn(txn.store<string, boolean>('test'), txn);
+  });
 }
