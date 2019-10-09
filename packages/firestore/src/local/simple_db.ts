@@ -25,6 +25,12 @@ import { PersistencePromise } from './persistence_promise';
 
 const LOG_TAG = 'SimpleDb';
 
+/**
+ * The maximum number of retry attempts for an IndexedDb transaction that fails
+ * with a DOMException.
+ */
+const TRANSACTION_RETRY_COUNT = 3;
+
 export interface SimpleDbSchemaConverter {
   createOrUpgrade(
     db: IDBDatabase,
@@ -242,32 +248,58 @@ export class SimpleDb {
     };
   }
 
-  runTransaction<T>(
+  async runTransaction<T>(
     mode: 'readonly' | 'readwrite',
+    idempotent: boolean,
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
-    const transaction = SimpleDbTransaction.open(this.db, mode, objectStores);
-    const transactionFnResult = transactionFn(transaction)
-      .catch(error => {
-        // Abort the transaction if there was an error.
-        transaction.abort(error);
-        // We cannot actually recover, and calling `abort()` will cause the transaction's
-        // completion promise to be rejected. This in turn means that we won't use
-        // `transactionFnResult` below. We return a rejection here so that we don't add the
-        // possibility of returning `void` to the type of `transactionFnResult`.
-        return PersistencePromise.reject<T>(error);
-      })
-      .toPromise();
+    let attemptNumber = 0;
 
-    // As noted above, errors are propagated by aborting the transaction. So
-    // we swallow any error here to avoid the browser logging it as unhandled.
-    transactionFnResult.catch(() => {});
+    while (true) {
+      ++attemptNumber;
 
-    // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
-    // fire), but still return the original transactionFnResult back to the
-    // caller.
-    return transaction.completionPromise.then(() => transactionFnResult);
+      const transaction = SimpleDbTransaction.open(this.db, mode, objectStores);
+      try {
+        const transactionFnResult = transactionFn(transaction)
+          .catch(error => {
+            // Abort the transaction if there was an error.
+            transaction.abort(error);
+            // We cannot actually recover, and calling `abort()` will cause the transaction's
+            // completion promise to be rejected. This in turn means that we won't use
+            // `transactionFnResult` below. We return a rejection here so that we don't add the
+            // possibility of returning `void` to the type of `transactionFnResult`.
+            return PersistencePromise.reject<T>(error);
+          })
+          .toPromise();
+
+        // As noted above, errors are propagated by aborting the transaction. So
+        // we swallow any error here to avoid the browser logging it as unhandled.
+        transactionFnResult.catch(() => {});
+
+        // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
+        // fire), but still return the original transactionFnResult back to the
+        // caller.
+        await transaction.completionPromise;
+        return transactionFnResult;
+      } catch (e) {
+        // TODO: We could probably be smarter about this an not retry exceptions
+        // that are likely unrecoverable (such as quota exceeded errors).
+        const retryable =
+          idempotent &&
+          isDomException(e) &&
+          attemptNumber < TRANSACTION_RETRY_COUNT;
+        debug(
+          'Transaction failed with error: %s. Retrying: %s.',
+          e.message,
+          retryable
+        );
+
+        if (!retryable) {
+          return Promise.reject(e);
+        }
+      }
+    }
   }
 
   close(): void {
@@ -754,4 +786,16 @@ function checkForAndReportiOSError(error: DOMException): Error {
     }
   }
   return error;
+}
+
+/**
+ * Checks whether an error is a DOMException (e.g. as thrown by IndexedDb).
+ *
+ * Supports both browsers and Node with persistence.
+ */
+function isDomException(e: Error): boolean {
+  return (
+    (typeof DOMException !== 'undefined' && e instanceof DOMException) ||
+    e.constructor.name === 'DOMException'
+  );
 }

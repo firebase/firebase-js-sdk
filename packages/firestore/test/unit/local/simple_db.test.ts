@@ -515,6 +515,86 @@ describe('SimpleDb', () => {
     );
   });
 
+  it('retries idempotent transactions', async () => {
+    let attemptCount = 0;
+
+    const result = await db.runTransaction(
+      'readwrite',
+      /* idempotent= */ true,
+      ['users'],
+      txn => {
+        ++attemptCount;
+        if (attemptCount === 1) {
+          const store = txn.store<string[], typeof dummyUser>('users');
+          return store
+            .add(dummyUser)
+            .next(() => {
+              return store.add(dummyUser);
+            })
+            .next(() => 'Uncaught unique key violation');
+        } else {
+          console.log('retry');
+          return PersistencePromise.resolve('success');
+        }
+      }
+    );
+
+    expect(result).to.equal('success');
+    expect(attemptCount).to.equal(2);
+  });
+
+  it('retries transaction only three times', async () => {
+    let attemptCount = 0;
+
+    await expect(
+      db.runTransaction('readwrite', /* idempotent= */ true, ['users'], txn => {
+        ++attemptCount;
+        const store = txn.store<string[], typeof dummyUser>('users');
+        return store
+          .add(dummyUser)
+          .next(() => {
+            return store.add(dummyUser);
+          })
+          .next(() => 'Uncaught unique key violation');
+      })
+    ).to.eventually.be.rejected;
+
+    expect(attemptCount).to.equal(3);
+  });
+
+  it('does not retry explicitly aborted transactions', async () => {
+    let attemptCount = 0;
+
+    await expect(
+      db.runTransaction('readonly', /* idempotent= */ true, ['users'], txn => {
+        ++attemptCount;
+        txn.abort();
+        return PersistencePromise.reject(new Error('Aborted'));
+      })
+    ).to.eventually.be.rejected;
+
+    expect(attemptCount).to.equal(1);
+  });
+
+  it('does not retry non-idempotent transactions', async () => {
+    let attemptCount = 0;
+
+    await expect(
+      db.runTransaction('readonly', /* idempotent= */ false, ['users'], txn => {
+        ++attemptCount;
+        const store = txn.store<string[], typeof dummyUser>('users');
+        return store
+          .add(dummyUser)
+          .next(() => {
+            return store.add(dummyUser);
+          })
+          .next(() => 'Uncaught unique key violation');
+      })
+    ).to.eventually.be.rejectedWith('Uncaught unique key violation');
+
+    expect(attemptCount).to.equal(1);
+  });
+
   // A little perf test for convenient benchmarking
   // eslint-disable-next-line no-restricted-properties
   it.skip('Perf', () => {
