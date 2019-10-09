@@ -223,7 +223,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return withDb(2, db => {
       const sdb = new SimpleDb(db);
       return sdb.runTransaction(
-        'readwrite',
+        'readwrite-idempotent',
         [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
         txn => {
           const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
@@ -252,7 +252,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
         const sdb = new SimpleDb(db);
         return sdb.runTransaction(
-          'readwrite',
+          'readwrite-idempotent',
           [DbTarget.store, DbTargetGlobal.store, DbMutationBatch.store],
           txn => {
             const targets = txn.store<DbTargetKey, DbTarget>(DbTarget.store);
@@ -317,7 +317,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     return withDb(3, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', [DbMutationBatch.store], txn => {
+      return sdb.runTransaction('readwrite-idempotent', [DbMutationBatch.store], txn => {
         const store = txn.store(DbMutationBatch.store);
         return PersistencePromise.forEach(
           testMutations,
@@ -330,7 +330,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
         expect(getAllObjectStores(db)).to.have.members(V4_STORES);
 
         const sdb = new SimpleDb(db);
-        return sdb.runTransaction('readwrite', [DbMutationBatch.store], txn => {
+        return sdb.runTransaction('readwrite-idempotent', [DbMutationBatch.store], txn => {
           const store = txn.store<DbMutationBatchKey, DbMutationBatch>(
             DbMutationBatch.store
           );
@@ -422,7 +422,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     return withDb(4, db => {
       const sdb = new SimpleDb(db);
       // We can only use the V4 stores here, since that's as far as we've upgraded.
-      return sdb.runTransaction('readwrite', V4_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V4_STORES, txn => {
         const mutationBatchStore = txn.store<
           DbMutationBatchKey,
           DbMutationBatch
@@ -471,7 +471,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
         const sdb = new SimpleDb(db);
         // There is no V5_STORES, continue using V4.
-        return sdb.runTransaction('readwrite', V4_STORES, txn => {
+        return sdb.runTransaction('readwrite-idempotent', V4_STORES, txn => {
           const mutationBatchStore = txn.store<
             DbMutationBatchKey,
             DbMutationBatch
@@ -523,7 +523,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       }));
       // V5 stores doesn't exist
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', V4_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V4_STORES, txn => {
         const store = txn.store<DbRemoteDocumentKey, DbRemoteDocument>(
           DbRemoteDocument.store
         );
@@ -536,7 +536,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     });
     await withDb(6, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readonly', V6_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V6_STORES, txn => {
         const store = txn.store<
           DbRemoteDocumentGlobalKey,
           DbRemoteDocumentGlobal
@@ -559,7 +559,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
       const serializer = TEST_SERIALIZER;
 
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', V6_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V6_STORES, txn => {
         const targetGlobalStore = txn.store<DbTargetGlobalKey, DbTargetGlobal>(
           DbTargetGlobal.store
         );
@@ -610,7 +610,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     // Now run the migration and verify
     await withDb(7, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readonly', V6_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V6_STORES, txn => {
         const targetDocumentStore = txn.store<
           DbTargetDocumentKey,
           DbTargetDocument
@@ -661,7 +661,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     await withDb(7, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', V6_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V6_STORES, txn => {
         const remoteDocumentStore = txn.store<
           DbRemoteDocumentKey,
           DbRemoteDocument
@@ -698,7 +698,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     // Migrate to v8 and verify index entries.
     await withDb(8, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
         const collectionParentsStore = txn.store<
           DbCollectionParentKey,
           DbCollectionParent
@@ -740,7 +740,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     await withDb(8, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
         const remoteDocumentStore = txn.store<
           DbRemoteDocumentKey,
           DbRemoteDocument
@@ -769,7 +769,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     // Migrate to v9 and verify that new documents are indexed.
     await withDb(9, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
         const remoteDocumentStore = txn.store<
           DbRemoteDocumentKey,
           DbRemoteDocument
@@ -816,7 +816,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     await withDb(9, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
         return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
           addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
             const remoteDocumentStore = txn.store<
@@ -850,7 +850,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
 
     await withDb(9, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
         return addDocs(txn, oldDocPaths, /* version= */ 1).next(() =>
           addDocs(txn, newDocPaths, /* version= */ 2).next(() => {
             const remoteDocumentStore = txn.store<
@@ -912,7 +912,7 @@ describe('IndexedDb: canActAsPrimary', () => {
       SCHEMA_VERSION,
       new SchemaConverter(TEST_SERIALIZER)
     );
-    await simpleDb.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
+    await simpleDb.runTransaction('readwrite-idempotent', [DbPrimaryClient.store], txn => {
       const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
         DbPrimaryClient.store
       );
