@@ -39,6 +39,15 @@ export abstract class PersistenceTransaction {
   abstract readonly currentSequenceNumber: ListenSequenceNumber;
 }
 
+/** The different modes supported by `IndexedDbPersistence.runTransaction()`. */
+export type PersistenceTransactionMode =
+  | 'readonly'
+  | 'readwrite'
+  | 'readwrite-primary'
+  | 'readonly-idempotent'
+  | 'readwrite-idempotent'
+  | 'readwrite-primary-idempotent';
+
 /**
  * Callback type for primary state notifications. This callback can be
  * registered with the persistence layer to get notified when we transition from
@@ -255,7 +264,7 @@ export interface Persistence {
    */
   runTransaction<T>(
     action: string,
-    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
+    mode: PersistenceTransactionMode,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>

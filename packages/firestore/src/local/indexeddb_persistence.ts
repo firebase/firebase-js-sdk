@@ -62,6 +62,7 @@ import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
+  PersistenceTransactionMode,
   PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
@@ -120,15 +121,6 @@ export class IndexedDbTransaction extends PersistenceTransaction {
     super();
   }
 }
-
-// The different modes supported by `IndexedDbPersistence.runTransaction()`
-type IndexedDbTransactionMode =
-  | 'readonly'
-  | 'readwrite'
-  | 'readwrite-primary'
-  | 'readonly-idempotent'
-  | 'readwrite-idempotent'
-  | 'readwrite-primary-idempotent';
 
 /**
  * An IndexedDB-backed instance of Persistence. Data is stored persistently
@@ -751,7 +743,7 @@ export class IndexedDbPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    mode: IndexedDbTransactionMode,
+    mode: PersistenceTransactionMode,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
