@@ -566,7 +566,7 @@ describe('SimpleDb', () => {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction('readonly', /* idempotent= */ true, ['users'], txn => {
+      db.runTransaction('readwrite', /* idempotent= */ true, ['users'], txn => {
         ++attemptCount;
         txn.abort();
         return PersistencePromise.reject(new Error('Aborted'));
@@ -580,7 +580,7 @@ describe('SimpleDb', () => {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction('readonly', /* idempotent= */ false, ['users'], txn => {
+      db.runTransaction('readwrite', /* idempotent= */ false, ['users'], txn => {
         ++attemptCount;
         const store = txn.store<string[], typeof dummyUser>('users');
         return store
