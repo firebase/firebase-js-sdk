@@ -629,7 +629,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const converter = this.converterFromArgs<T>(
       'Firestore.collection',
       1,
-      args
+      ...args
     );
     this.ensureClientConfigured();
     return new CollectionReference<T>(
@@ -648,7 +648,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     validateBetweenNumberOfArgs('Firestore.doc', arguments, 1, 2);
     validateArgType('Firestore.doc', 'non-empty string', 1, args[0]);
     const pathString: string = args[0] as string;
-    const converter = this.converterFromArgs<T>('Firestore.doc', 1, args);
+    const converter = this.converterFromArgs<T>('Firestore.doc', 1, ...args);
     this.ensureClientConfigured();
     return DocumentReference.forPath<T>(
       ResourcePath.fromString(pathString),
@@ -683,7 +683,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const converter = this.converterFromArgs<T>(
       'Firestore.collectionGroup',
       1,
-      args
+      ...args
     );
     this.ensureClientConfigured();
     return new Query(
@@ -1093,20 +1093,21 @@ export class DocumentReference<T = firestore.DocumentData>
   set(
     value: firestore.DocumentData,
     options?: firestore.SetOptions
-  ): Promise<void> {
+  ): Promise<void>;
+  set(value: T, options?: firestore.SetOptions): Promise<void> {
     validateBetweenNumberOfArgs('DocumentReference.set', arguments, 1, 2);
     options = validateSetOptions('DocumentReference.set', options);
-
+    const convertedValue = this._converter.toFirestore(value);
     const parsed =
       options.merge || options.mergeFields
         ? this.firestore._dataConverter.parseMergeData(
             'DocumentReference.set',
-            value,
+            convertedValue,
             options.mergeFields
           )
         : this.firestore._dataConverter.parseSetData(
             'DocumentReference.set',
-            value
+            convertedValue
           );
     return this._firestoreClient.write(
       parsed.toMutations(this._key, Precondition.NONE)
@@ -1367,6 +1368,12 @@ export class DocumentReference<T = firestore.DocumentData>
         error: reject
       }
     );
+  }
+
+  withConverter<U>(
+    converter: firestore.DocumentDataConverter<U>
+  ): firestore.DocumentReference<U> {
+    return new DocumentReference<U>(this._key, this.firestore, converter);
   }
 }
 
@@ -1741,6 +1748,12 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     return (
       this.firestore === other.firestore && this._query.isEqual(other._query)
     );
+  }
+
+  withConverter<U>(
+    converter: firestore.DocumentDataConverter<U>
+  ): firestore.Query<U> {
+    return new Query<U>(this._query, this.firestore, converter);
   }
 
   /** Helper function to create a bound from a document or fields */
@@ -2390,17 +2403,17 @@ docChangesPropertiesToOverride.forEach(property => {
 export class CollectionReference<T = firestore.DocumentData> extends Query<T>
   implements firestore.CollectionReference<T> {
   constructor(
-    path: ResourcePath,
+    readonly _path: ResourcePath,
     firestore: Firestore,
     converter: firestore.DocumentDataConverter<T>
   ) {
-    super(InternalQuery.atPath(path), firestore, converter);
-    if (path.length % 2 !== 1) {
+    super(InternalQuery.atPath(_path), firestore, converter);
+    if (_path.length % 2 !== 1) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
         'Invalid collection reference. Collection ' +
           'references must have an odd number of segments, but ' +
-          `${path.canonicalString()} has ${path.length}`
+          `${_path.canonicalString()} has ${_path.length}`
       );
     }
   }
@@ -2458,6 +2471,12 @@ export class CollectionReference<T = firestore.DocumentData> extends Query<T>
     validateArgType('CollectionReference.add', 'object', 1, value);
     const docRef = this.doc();
     return docRef.set(value).then(() => docRef);
+  }
+
+  withConverter<U>(
+    converter: firestore.DocumentDataConverter<U>
+  ): firestore.CollectionReference<U> {
+    return new CollectionReference<U>(this._path, this.firestore, converter);
   }
 }
 

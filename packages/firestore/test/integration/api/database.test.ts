@@ -62,32 +62,29 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   it('can set and get a document with generics', () => {
-    interface Person {
-      desc: string;
-      owner: {
-        name: string;
-        title: string;
-      };
-    }
-    const person1: Person = {
-      desc: 'Stuff related to Firestore project...',
-      owner: {
-        name: 'Jonny',
-        title: 'scallywag'
+    class Post {
+      constructor(readonly title: string, readonly author: string) {}
+      byline(): string {
+        return this.title + ', by ' + this.author;
       }
-    };
+    }
+
     return withTestDb(persistence, async db => {
       const docRef = db
-        .collection<Person>('foo', {
-          toFirestore: person => person,
-          fromFirestore: data => data as Person
+        .collection<Post>('posts', {
+          toFirestore(post: Post): firestore.DocumentData {
+            return { title: post.title, author: post.author };
+          },
+          fromFirestore(data: firestore.DocumentData): Post {
+            return new Post(data.title, data.author);
+          }
         })
         .doc();
-      await docRef.set(person1);
-      const personData = await docRef.get();
-      const person = personData.data();
-      expect(person).to.not.equal(undefined);
-      expect(person!.owner.name).to.equal('Jonny');
+      await docRef.set(new Post('happy', 'author'));
+      const postData = await docRef.get();
+      const post = postData.data();
+      expect(post).to.not.equal(undefined);
+      expect(post!.byline()).to.equal('happy, by author');
     });
   });
 
