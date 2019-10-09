@@ -31,6 +31,13 @@ const LOG_TAG = 'SimpleDb';
  */
 const TRANSACTION_RETRY_COUNT = 3;
 
+// The different modes supported by `SimpleDb.runTransaction()`
+type SimpleDbTransactionMode =
+  | 'readonly'
+  | 'readwrite'
+  | 'readonly-idempotent'
+  | 'readwrite-idempotent';
+
 export interface SimpleDbSchemaConverter {
   createOrUpgrade(
     db: IDBDatabase,
@@ -249,17 +256,22 @@ export class SimpleDb {
   }
 
   async runTransaction<T>(
-    mode: 'readonly' | 'readwrite',
-    idempotent: boolean,
+    mode: SimpleDbTransactionMode,
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
+    let readonly = mode.startsWith('idempotent');
+    let idempotent = mode.endsWith('idempotent');
     let attemptNumber = 0;
 
     while (true) {
       ++attemptNumber;
 
-      const transaction = SimpleDbTransaction.open(this.db, mode, objectStores);
+      const transaction = SimpleDbTransaction.open(
+        this.db,
+        readonly ? 'readonly' : 'readwrite',
+        objectStores
+      );
       try {
         const transactionFnResult = transactionFn(transaction)
           .catch(error => {
@@ -283,8 +295,9 @@ export class SimpleDb {
         await transaction.completionPromise;
         return transactionFnResult;
       } catch (e) {
-        // TODO: We could probably be smarter about this an not retry exceptions
-        // that are likely unrecoverable (such as quota exceeded errors).
+        // TODO(schmidt-sebastian): We could probably be smarter about this and
+        // not retry exceptions that are likely unrecoverable (such as quota
+        // exceeded errors).
         const retryable =
           idempotent &&
           isDomException(e) &&
@@ -788,14 +801,12 @@ function checkForAndReportiOSError(error: DOMException): Error {
   return error;
 }
 
-/**
- * Checks whether an error is a DOMException (e.g. as thrown by IndexedDb).
- *
- * Supports both browsers and Node with persistence.
- */
-function isDomException(e: Error): boolean {
+/** Checks whether an error is a DOMException (e.g. as thrown by IndexedDb). */
+function isDomException(error: Error): boolean {
+  // DOMException is not a global type in Node with persistence, and hence we
+  // check the constructor name if the type in unknown.
   return (
-    (typeof DOMException !== 'undefined' && e instanceof DOMException) ||
-    e.constructor.name === 'DOMException'
+    (typeof DOMException !== 'undefined' && error instanceof DOMException) ||
+    error.constructor.name === 'DOMException'
   );
 }

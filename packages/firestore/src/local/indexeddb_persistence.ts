@@ -122,7 +122,7 @@ export class IndexedDbTransaction extends PersistenceTransaction {
 }
 
 // The different modes supported by `IndexedDbPersistence.runTransaction()`
-type TransactionMode =
+type IndexedDbTransactionMode =
   | 'readonly'
   | 'readwrite'
   | 'readwrite-primary'
@@ -330,7 +330,6 @@ export class IndexedDbPersistence implements Persistence {
       .then(() => {
         return this.simpleDb.runTransaction(
           'readonly',
-          /* idempotent= */ false,
           [DbTargetGlobal.store],
           txn => {
             return getHighestListenSequenceNumber(txn).next(
@@ -354,11 +353,8 @@ export class IndexedDbPersistence implements Persistence {
   }
 
   private startRemoteDocumentCache(): Promise<void> {
-    return this.simpleDb.runTransaction(
-      'readonly',
-      /* idempotent= */ false,
-      ALL_STORES,
-      txn => this.remoteDocumentCache.start(txn)
+    return this.simpleDb.runTransaction('readonly', ALL_STORES, txn =>
+      this.remoteDocumentCache.start(txn)
     );
   }
 
@@ -404,52 +400,47 @@ export class IndexedDbPersistence implements Persistence {
    * primary lease.
    */
   private updateClientMetadataAndTryBecomePrimary(): Promise<void> {
-    return this.simpleDb.runTransaction(
-      'readwrite',
-      /* idempotent= */ false,
-      ALL_STORES,
-      txn => {
-        const metadataStore = clientMetadataStore(txn);
-        return metadataStore
-          .put(
-            new DbClientMetadata(
-              this.clientId,
-              Date.now(),
-              this.networkEnabled,
-              this.inForeground
-            )
+    return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
+      const metadataStore = clientMetadataStore(txn);
+      return metadataStore
+        .put(
+          new DbClientMetadata(
+            this.clientId,
+            Date.now(),
+            this.networkEnabled,
+            this.inForeground
           )
-          .next(() => {
-            if (this.isPrimary) {
-              return this.verifyPrimaryLease(txn).next(success => {
-                if (!success) {
-                  this.isPrimary = false;
-                  this.queue.enqueueAndForget(() =>
-                    this.primaryStateListener(false)
-                  );
-                }
-              });
-            }
-          })
-          .next(() => this.canActAsPrimary(txn))
-          .next(canActAsPrimary => {
-            const wasPrimary = this.isPrimary;
-            this.isPrimary = canActAsPrimary;
+        )
+        .next(() => {
+          if (this.isPrimary) {
+            return this.verifyPrimaryLease(txn).next(success => {
+              if (!success) {
+                this.isPrimary = false;
+                this.queue.enqueueAndForget(() =>
+                  this.primaryStateListener(false)
+                );
+              }
+            });
+          }
+        })
+        .next(() => this.canActAsPrimary(txn))
+        .next(canActAsPrimary => {
+          const wasPrimary = this.isPrimary;
+          this.isPrimary = canActAsPrimary;
 
-            if (wasPrimary !== this.isPrimary) {
-              this.queue.enqueueAndForget(() =>
-                this.primaryStateListener(this.isPrimary)
-              );
-            }
+          if (wasPrimary !== this.isPrimary) {
+            this.queue.enqueueAndForget(() =>
+              this.primaryStateListener(this.isPrimary)
+            );
+          }
 
-            if (wasPrimary && !this.isPrimary) {
-              return this.releasePrimaryLeaseIfHeld(txn);
-            } else if (this.isPrimary) {
-              return this.acquireOrExtendPrimaryLease(txn);
-            }
-          });
-      }
-    );
+          if (wasPrimary && !this.isPrimary) {
+            return this.releasePrimaryLeaseIfHeld(txn);
+          } else if (this.isPrimary) {
+            return this.acquireOrExtendPrimaryLease(txn);
+          }
+        });
+    });
   }
 
   private verifyPrimaryLease(
@@ -664,7 +655,6 @@ export class IndexedDbPersistence implements Persistence {
     this.detachWindowUnloadHook();
     await this.simpleDb.runTransaction(
       'readwrite',
-      /* idempotent= */ false,
       [DbPrimaryClient.store, DbClientMetadata.store],
       txn => {
         return this.releasePrimaryLeaseIfHeld(txn).next(() =>
@@ -697,7 +687,6 @@ export class IndexedDbPersistence implements Persistence {
   getActiveClients(): Promise<ClientId[]> {
     return this.simpleDb.runTransaction(
       'readonly',
-      /* idempotent= */ false,
       [DbClientMetadata.store],
       txn => {
         return clientMetadataStore(txn)
@@ -762,26 +751,28 @@ export class IndexedDbPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    mode: TransactionMode,
+    mode: IndexedDbTransactionMode,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
     log.debug(LOG_TAG, 'Starting transaction:', action);
 
-    const idempotent =
-      [
-        'readonly-idempotent',
-        'readwrite-idempotent',
-        'readwrite-primary-idempotent'
-      ].indexOf(mode) !== -1;
-    const readonly = ['readonly', 'readonly-idempotent'].indexOf(mode) !== -1;
+    // TODO(schmidt-sebastian): Simplify once all transactions are idempotent.
+    const idempotent = mode.endsWith('idempotent');
+    const readonly = mode.startsWith('readonly');
+    const simpleDbMode = readonly
+      ? idempotent
+        ? 'readonly-idempotent'
+        : 'readonly'
+      : idempotent
+      ? 'readwrite-idempotent'
+      : 'readwrite';
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
     return this.simpleDb.runTransaction(
-      readonly ? 'readonly' : 'readwrite',
-      idempotent,
+      simpleDbMode,
       ALL_STORES,
       simpleDbTxn => {
         if (mode === 'readwrite-primary') {
