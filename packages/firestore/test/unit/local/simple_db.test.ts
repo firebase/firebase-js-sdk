@@ -580,16 +580,21 @@ describe('SimpleDb', () => {
     let attemptCount = 0;
 
     await expect(
-      db.runTransaction('readwrite', /* idempotent= */ false, ['users'], txn => {
-        ++attemptCount;
-        const store = txn.store<string[], typeof dummyUser>('users');
-        return store
-          .add(dummyUser)
-          .next(() => {
-            return store.add(dummyUser);
-          })
-          .next(() => 'Uncaught unique key violation');
-      })
+      db.runTransaction(
+        'readwrite',
+        /* idempotent= */ false,
+        ['users'],
+        txn => {
+          ++attemptCount;
+          const store = txn.store<string[], typeof dummyUser>('users');
+          return store
+            .add(dummyUser)
+            .next(() => {
+              return store.add(dummyUser);
+            })
+            .next(() => 'Uncaught unique key violation');
+        }
+      )
     ).to.eventually.be.rejectedWith('Uncaught unique key violation');
 
     expect(attemptCount).to.equal(1);
