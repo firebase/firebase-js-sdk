@@ -500,6 +500,84 @@ describe('SimpleDb', () => {
     });
   });
 
+  it('retries transactions marked as idempotent', async () => {
+    let attemptCount = 0;
+
+    const result = await db.runTransaction(
+      'readwrite-idempotent',
+      ['users'],
+      txn => {
+        ++attemptCount;
+        if (attemptCount === 1) {
+          const store = txn.store<string[], typeof dummyUser>('users');
+          return store
+            .add(dummyUser)
+            .next(() => {
+              return store.add(dummyUser); // Fails with a unique key violation
+            })
+            .next(() => 'Aborted');
+        } else {
+          return PersistencePromise.resolve('success');
+        }
+      }
+    );
+
+    expect(result).to.equal('success');
+    expect(attemptCount).to.equal(2);
+  });
+
+  it('retries transactions only three times', async () => {
+    let attemptCount = 0;
+
+    await expect(
+      db.runTransaction('readwrite-idempotent', ['users'], txn => {
+        ++attemptCount;
+        const store = txn.store<string[], typeof dummyUser>('users');
+        return store
+          .add(dummyUser)
+          .next(() => {
+            return store.add(dummyUser); // Fails with a unique key violation
+          })
+          .next(() => 'Aborted');
+      })
+    ).to.eventually.be.rejected;
+
+    expect(attemptCount).to.equal(3);
+  });
+
+  it('does not retry explicitly aborted transactions', async () => {
+    let attemptCount = 0;
+
+    await expect(
+      db.runTransaction('readwrite-idempotent', ['users'], txn => {
+        ++attemptCount;
+        txn.abort();
+        return PersistencePromise.reject(new Error('Aborted'));
+      })
+    ).to.eventually.be.rejected;
+
+    expect(attemptCount).to.equal(1);
+  });
+
+  it('does not retry non-idempotent transactions', async () => {
+    let attemptCount = 0;
+
+    await expect(
+      db.runTransaction('readwrite', ['users'], txn => {
+        ++attemptCount;
+        const store = txn.store<string[], typeof dummyUser>('users');
+        return store
+          .add(dummyUser)
+          .next(() => {
+            return store.add(dummyUser); // Fails with a unique key violation
+          })
+          .next(() => 'Aborted');
+      })
+    ).to.eventually.be.rejected;
+
+    expect(attemptCount).to.equal(1);
+  });
+
   // A little perf test for convenient benchmarking
   // eslint-disable-next-line no-restricted-properties
   it.skip('Perf', () => {

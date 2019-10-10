@@ -121,6 +121,15 @@ export class IndexedDbTransaction extends PersistenceTransaction {
   }
 }
 
+// The different modes supported by `IndexedDbPersistence.runTransaction()`
+type IndexedDbTransactionMode =
+  | 'readonly'
+  | 'readwrite'
+  | 'readwrite-primary'
+  | 'readonly-idempotent'
+  | 'readwrite-idempotent'
+  | 'readwrite-primary-idempotent';
+
 /**
  * An IndexedDB-backed instance of Persistence. Data is stored persistently
  * across sessions.
@@ -742,17 +751,28 @@ export class IndexedDbPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
+    mode: IndexedDbTransactionMode,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
     log.debug(LOG_TAG, 'Starting transaction:', action);
 
+    // TODO(schmidt-sebastian): Simplify once all transactions are idempotent.
+    const idempotent = mode.endsWith('idempotent');
+    const readonly = mode.startsWith('readonly');
+    const simpleDbMode = readonly
+      ? idempotent
+        ? 'readonly-idempotent'
+        : 'readonly'
+      : idempotent
+      ? 'readwrite-idempotent'
+      : 'readwrite';
+
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
     return this.simpleDb.runTransaction(
-      mode === 'readonly' ? 'readonly' : 'readwrite',
+      simpleDbMode,
       ALL_STORES,
       simpleDbTxn => {
         if (mode === 'readwrite-primary') {
