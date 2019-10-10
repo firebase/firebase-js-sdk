@@ -182,12 +182,13 @@ async function assertOrdered(paths: ResourcePath[]): Promise<void> {
   });
   paths.reverse();
 
-  const selected: string[] = [];
-  await runTransaction(simpleStore => {
-    selected.splice(0); // The function might get re-run.
-    return simpleStore.iterate({ keysOnly: true }, key => {
-      selected.push(key);
-    });
+  const selected = await runTransaction(simpleStore => {
+    const allKeys: string[] = [];
+    return simpleStore
+      .iterate({ keysOnly: true }, key => {
+        allKeys.push(key);
+      })
+      .next(() => allKeys);
   });
 
   // Finally, verify all the orderings.

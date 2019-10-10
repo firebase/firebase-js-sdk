@@ -327,20 +327,17 @@ export class IndexedDbPersistence implements Persistence {
 
         return this.startRemoteDocumentCache();
       })
-      .then(() => {
-        return this.simpleDb.runTransaction(
+      .then(() =>
+        this.simpleDb.runTransaction(
           'readonly-idempotent',
           [DbTargetGlobal.store],
-          txn => {
-            return getHighestListenSequenceNumber(txn).next(
-              highestListenSequenceNumber => {
-                this.listenSequence = new ListenSequence(
-                  highestListenSequenceNumber,
-                  this.sequenceNumberSyncer
-                );
-              }
-            );
-          }
+          txn => getHighestListenSequenceNumber(txn)
+        )
+      )
+      .then(highestListenSequenceNumber => {
+        this.listenSequence = new ListenSequence(
+          highestListenSequenceNumber,
+          this.sequenceNumberSyncer
         );
       })
       .then(() => {
