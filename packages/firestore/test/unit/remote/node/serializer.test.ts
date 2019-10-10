@@ -321,6 +321,12 @@ describe('Serializer', () => {
 
       expect(
         proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 916000))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916000Z' });
+
+      expect(
+        proto3JsonSerializer.toValue(
           new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
         )
       ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000000000Z' });
