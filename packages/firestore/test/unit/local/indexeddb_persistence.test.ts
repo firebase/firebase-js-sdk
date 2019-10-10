@@ -777,7 +777,7 @@ describe('IndexedDbSchema: createOrUpgradeDb', () => {
     // Migrate to v9 and verify that new documents are indexed.
     await withDb(9, db => {
       const sdb = new SimpleDb(db);
-      return sdb.runTransaction('readwrite-idempotent', V8_STORES, txn => {
+      return sdb.runTransaction('readwrite', V8_STORES, txn => {
         const remoteDocumentStore = txn.store<
           DbRemoteDocumentKey,
           DbRemoteDocument
