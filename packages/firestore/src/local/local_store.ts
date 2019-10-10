@@ -200,10 +200,13 @@ export class LocalStore {
    */
   // PORTING NOTE: Android and iOS only return the documents affected by the
   // change.
-  handleUserChange(user: User): Promise<UserChangeResult> {
-    return this.persistence.runTransaction(
+  async handleUserChange(user: User): Promise<UserChangeResult> {
+    let newMutationQueue = this.mutationQueue;
+    let newLocalDocuments = this.localDocuments;
+
+    const result = await this.persistence.runTransaction(
       'Handle user change',
-      'readonly',
+      'readonly-idempotent',
       txn => {
         // Swap out the mutation queue, grabbing the pending mutation batches
         // before and after.
@@ -213,17 +216,16 @@ export class LocalStore {
           .next(promisedOldBatches => {
             oldBatches = promisedOldBatches;
 
-            this.mutationQueue = this.persistence.getMutationQueue(user);
+            newMutationQueue = this.persistence.getMutationQueue(user);
 
             // Recreate our LocalDocumentsView using the new
             // MutationQueue.
-            this.localDocuments = new LocalDocumentsView(
+            newLocalDocuments = new LocalDocumentsView(
               this.remoteDocuments,
-              this.mutationQueue,
+              newMutationQueue,
               this.persistence.getIndexManager()
             );
-            this.queryEngine.setLocalDocumentsView(this.localDocuments);
-            return this.mutationQueue.getAllMutationBatches(txn);
+            return newMutationQueue.getAllMutationBatches(txn);
           })
           .next(newBatches => {
             const removedBatchIds: BatchId[] = [];
@@ -248,7 +250,7 @@ export class LocalStore {
 
             // Return the set of all (potentially) changed documents and the list
             // of mutation batch IDs that were affected by change.
-            return this.localDocuments
+            return newLocalDocuments
               .getDocuments(txn, changedKeys)
               .next(affectedDocuments => {
                 return {
@@ -260,7 +262,14 @@ export class LocalStore {
           });
       }
     );
+
+    this.mutationQueue = newMutationQueue;
+    this.localDocuments = newLocalDocuments;
+    this.queryEngine.setLocalDocumentsView(this.localDocuments);
+
+    return result;
   }
+
   /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
     const localWriteTime = Timestamp.now();
