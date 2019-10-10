@@ -169,23 +169,23 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     return PersistencePromise.resolve(results);
   }
 
-  getNewDocumentChanges(
-    transaction: PersistenceTransaction,
-    sinceReadTime: SnapshotVersion
-  ): PersistencePromise<{
-    changedDocs: MaybeDocumentMap;
-    readTime: SnapshotVersion;
-  }> {
-    throw new Error(
-      'getNewDocumentChanges() is not supported with MemoryPersistence'
-    );
-  }
-
   forEachDocumentKey(
     transaction: PersistenceTransaction,
     f: (key: DocumentKey) => PersistencePromise<void>
   ): PersistencePromise<void> {
     return PersistencePromise.forEach(this.docs, (key: DocumentKey) => f(key));
+  }
+
+  getNewDocumentChanges(
+      transaction: PersistenceTransaction,
+      sinceReadTime: SnapshotVersion
+  ): PersistencePromise<{
+    changedDocs: MaybeDocumentMap;
+    readTime: SnapshotVersion;
+  }> {
+    throw new Error(
+        'getNewDocumentChanges() is not supported with MemoryPersistence'
+    );
   }
 
   newChangeBuffer(options?: {
