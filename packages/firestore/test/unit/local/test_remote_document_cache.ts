@@ -128,16 +128,6 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  getNewDocumentChanges(): Promise<MaybeDocumentMap> {
-    return this.persistence.runTransaction(
-      'getNewDocumentChanges',
-      'readonly',
-      txn => {
-        return this.cache.getNewDocumentChanges(txn);
-      }
-    );
-  }
-
   getSize(): Promise<number> {
     return this.persistence.runTransaction(
       'get size',

@@ -44,6 +44,7 @@ import { ObjectMap } from '../util/obj_map';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
+import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import { MutationQueue } from './mutation_queue';
 import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -168,6 +169,13 @@ export class LocalStore {
     q.canonicalId()
   );
 
+  /**
+   * The read time of the last entry processed by `getNewDocumentChanges()`.
+   *
+   * PORTING NOTE: This is only used for multi-tab synchronization.
+   */
+  private lastDocumentChangeReadTime = SnapshotVersion.MIN;
+
   constructor(
     /** Manages our in-memory or durable persistence. */
     private persistence: Persistence,
@@ -190,6 +198,11 @@ export class LocalStore {
       this.persistence.getIndexManager()
     );
     this.queryEngine.setLocalDocumentsView(this.localDocuments);
+  }
+
+  /** Starts the LocalStore. */
+  start(): Promise<void> {
+    return this.synchronizeLastDocumentChangeReadTime();
   }
 
   /**
@@ -1006,14 +1019,52 @@ export class LocalStore {
     }
   }
 
+  /**
+   * Returns the set of documents that have been updated since the last call.
+   * If this is the first call, returns the set of changes since client
+   * initialization. Further invocations will return document changes since
+   * the point of rejection.
+   */
   // PORTING NOTE: Multi-tab only.
   getNewDocumentChanges(): Promise<MaybeDocumentMap> {
-    return this.persistence.runTransaction(
-      'Get new document changes',
-      'readonly',
-      txn => {
-        return this.remoteDocuments.getNewDocumentChanges(txn);
-      }
+    assert(
+      this.remoteDocuments instanceof IndexedDbRemoteDocumentCache,
+      'getNewDocumentChanges() is only supported with IndexedDb persistence.'
     );
+    const remoteDocumentCache = this
+      .remoteDocuments as IndexedDbRemoteDocumentCache;
+
+    return this.persistence
+      .runTransaction('Get new document changes', 'readonly-idempotent', txn =>
+        remoteDocumentCache.getDocumentChanges(
+          txn,
+          this.lastDocumentChangeReadTime
+        )
+      )
+      .then(({ changedDocs, readTime }) => {
+        this.lastDocumentChangeReadTime = readTime;
+        return changedDocs;
+      });
+  }
+
+  /**
+   * Reads the newest document change from persistence and forwards the internal
+   * synchronization marker so that calls to `getNewDocumentChanges()`
+   * only return changes that happened after client initialization.
+   */
+  // PORTING NOTE: Multi-tab only.
+  async synchronizeLastDocumentChangeReadTime(): Promise<void> {
+    if (this.remoteDocuments instanceof IndexedDbRemoteDocumentCache) {
+      const remoteDocumentCache = this.remoteDocuments;
+      return this.persistence
+        .runTransaction(
+          'Synchronize last document change read time',
+          'readonly-idempotent',
+          txn => remoteDocumentCache.getLastDocumentChange(txn)
+        )
+        .then(({ readTime }) => {
+          this.lastDocumentChangeReadTime = readTime;
+        });
+    }
   }
 }

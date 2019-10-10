@@ -400,6 +400,8 @@ export class FirestoreClient {
         // TODO(index-free): Use IndexFreeQueryEngine/IndexedQueryEngine as appropriate.
         const queryEngine = new SimpleQueryEngine();
         this.localStore = new LocalStore(this.persistence, queryEngine, user);
+        await this.localStore.start();
+
         if (maybeLruGc) {
           // We're running LRU Garbage collection. Set up the scheduler.
           this.lruScheduler = new LruScheduler(

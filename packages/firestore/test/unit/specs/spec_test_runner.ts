@@ -441,6 +441,7 @@ abstract class TestRunner {
     // TODO(index-free): Update to index-free query engine when it becomes default.
     const queryEngine = new SimpleQueryEngine();
     this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
+    await this.localStore.start();
 
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(

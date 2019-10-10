@@ -57,9 +57,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   /** Underlying cache of documents and their read times. */
   private docs = documentEntryMap();
 
-  /** Set of documents changed since last call to `getNewDocumentChanges()`. */
-  private newDocumentChanges = documentKeySet();
-
   /** Size of all cached documents. */
   private size = 0;
 
@@ -99,7 +96,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       readTime
     });
 
-    this.newDocumentChanges = this.newDocumentChanges.add(key);
     this.size += currentSize - previousSize;
 
     return this.indexManager.addToCollectionParentIndex(
@@ -117,7 +113,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   private removeEntry(documentKey: DocumentKey): void {
     const entry = this.docs.get(documentKey);
     if (entry) {
-      this.newDocumentChanges = this.newDocumentChanges.add(documentKey);
       this.docs = this.docs.remove(documentKey);
       this.size -= entry.size;
     }
@@ -181,24 +176,6 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     f: (key: DocumentKey) => PersistencePromise<void>
   ): PersistencePromise<void> {
     return PersistencePromise.forEach(this.docs, (key: DocumentKey) => f(key));
-  }
-
-  getNewDocumentChanges(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<MaybeDocumentMap> {
-    let changedDocs = maybeDocumentMap();
-
-    this.newDocumentChanges.forEach(key => {
-      const entry = this.docs.get(key);
-      const changedDoc = entry
-        ? entry.maybeDocument
-        : new NoDocument(key, SnapshotVersion.forDeletedDoc());
-      changedDocs = changedDocs.insert(key, changedDoc);
-    });
-
-    this.newDocumentChanges = documentKeySet();
-
-    return PersistencePromise.resolve(changedDocs);
   }
 
   newChangeBuffer(options?: {

@@ -83,17 +83,6 @@ export interface RemoteDocumentCache {
   ): PersistencePromise<DocumentMap>;
 
   /**
-   * Returns the set of documents that have been updated since the last call.
-   * If this is the first call, returns the set of changes since client
-   * initialization. Further invocations will return document changes since
-   * the point of rejection.
-   */
-  // PORTING NOTE: This is only used for multi-tab synchronization.
-  getNewDocumentChanges(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<MaybeDocumentMap>;
-
-  /**
    * Provides access to add or update the contents of the cache. The buffer
    * handles proper size accounting for the change.
    *

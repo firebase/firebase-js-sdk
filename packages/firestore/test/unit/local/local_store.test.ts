@@ -443,6 +443,7 @@ function genericLocalStoreTests(
       countingQueryEngine,
       User.UNAUTHENTICATED
     );
+    await localStore.start();
   });
 
   afterEach(async () => {

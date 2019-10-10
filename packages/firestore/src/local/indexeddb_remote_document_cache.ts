@@ -55,9 +55,6 @@ import {
 import { ObjectMap } from '../util/obj_map';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
-  /** The read time of the last entry consumed by `getNewDocumentChanges()`. */
-  private lastProcessedReadTime = SnapshotVersion.MIN;
-
   /**
    * @param {LocalSerializer} serializer The document serializer.
    * @param {IndexManager} indexManager The query indexes that need to be maintained.
@@ -66,18 +63,6 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     readonly serializer: LocalSerializer,
     private readonly indexManager: IndexManager
   ) {}
-
-  /**
-   * Starts up the remote document cache.
-   *
-   * Reads the ID of the last  document change from the documentChanges store.
-   * Existing changes will not be returned as part of
-   * `getNewDocumentChanges()`.
-   */
-  // PORTING NOTE: This is only used for multi-tab synchronization.
-  start(transaction: SimpleDbTransaction): PersistencePromise<void> {
-    return this.synchronizeLastProcessedReadTime(transaction);
-  }
 
   /**
    * Adds the supplied entries to the cache.
@@ -313,14 +298,21 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .next(() => results);
   }
 
-  getNewDocumentChanges(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<MaybeDocumentMap> {
+  /**
+   * Returns the set of documents that have been updated since the specified read
+   * time.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
+  getDocumentChanges(
+    transaction: PersistenceTransaction,
+    sinceReadTime: SnapshotVersion
+  ): PersistencePromise<{
+    changedDocs: MaybeDocumentMap;
+    readTime: SnapshotVersion;
+  }> {
     let changedDocs = maybeDocumentMap();
 
-    const lastReadTime = this.serializer.toDbTimestampKey(
-      this.lastProcessedReadTime
-    );
+    let lastReadTime = this.serializer.toDbTimestampKey(sinceReadTime);
 
     const documentsStore = remoteDocumentsStore(transaction);
     const range = IDBKeyRange.lowerBound(lastReadTime, true);
@@ -328,44 +320,52 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .iterate(
         { index: DbRemoteDocument.readTimeIndex, range },
         (_, dbRemoteDoc) => {
-          // Unlike `getEntry()` and others, `getNewDocumentChanges()` parses
+          // Unlike `getEntry()` and others, `getDocumentChanges()` parses
           // the documents directly since we want to keep sentinel deletes.
           const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
           changedDocs = changedDocs.insert(doc.key, doc);
-          this.lastProcessedReadTime = this.serializer.fromDbTimestampKey(
-            dbRemoteDoc.readTime!
-          );
+          lastReadTime = dbRemoteDoc.readTime!;
         }
       )
-      .next(() => changedDocs);
+      .next(() => {
+        return {
+          changedDocs,
+          readTime: this.serializer.fromDbTimestampKey(lastReadTime)
+        };
+      });
   }
 
   /**
-   * Sets the last processed read time to the maximum read time of the backing
-   * object store, allowing calls to getNewDocumentChanges() to return subsequent
-   * changes.
+   * Returns the last document that has changed, as well as the read time of the
+   * last change. If no document has changed, returns SnapshotVersion.MIN.
    */
-  private synchronizeLastProcessedReadTime(
-    transaction: SimpleDbTransaction
-  ): PersistencePromise<void> {
-    const documentsStore = SimpleDb.getStore<
-      DbRemoteDocumentKey,
-      DbRemoteDocument
-    >(transaction, DbRemoteDocument.store);
+  // PORTING NOTE: This is only used for multi-tab synchronization.
+  getLastDocumentChange(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<{
+    changedDoc: MaybeDocument | undefined;
+    readTime: SnapshotVersion;
+  }> {
+    const documentsStore = remoteDocumentsStore(transaction);
 
-    // If there are no existing entries, we set `lastProcessedReadTime` to 0.
-    this.lastProcessedReadTime = SnapshotVersion.forDeletedDoc();
-    return documentsStore.iterate(
-      { index: DbRemoteDocument.readTimeIndex, reverse: true },
-      (key, value, control) => {
-        if (value.readTime) {
-          this.lastProcessedReadTime = this.serializer.fromDbTimestampKey(
-            value.readTime
-          );
+    // If there are no existing entries, we return SnapshotVersion.MIN.
+    let readTime = SnapshotVersion.MIN;
+    let changedDoc: MaybeDocument | undefined;
+
+    return documentsStore
+      .iterate(
+        { index: DbRemoteDocument.readTimeIndex, reverse: true },
+        (key, dbRemoteDoc, control) => {
+          changedDoc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
+          if (dbRemoteDoc.readTime) {
+            readTime = this.serializer.fromDbTimestampKey(dbRemoteDoc.readTime);
+          }
+          control.done();
         }
-        control.done();
-      }
-    );
+      )
+      .next(() => {
+        return { changedDoc, readTime };
+      });
   }
 
   newChangeBuffer(options?: {
@@ -413,7 +413,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         doc.version.isEqual(SnapshotVersion.forDeletedDoc())
       ) {
         // The document is a sentinel removal and should only be used in the
-        // `getNewDocumentChanges()`.
+        // `getDocumentChanges()`.
         return null;
       }
 
@@ -438,7 +438,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     /**
      * @param documentCache The IndexedDbRemoteDocumentCache to apply the changes to.
      * @param trackRemovals Whether to create sentinel deletes that can be tracked by
-     * `getNewDocumentChanges()`.
+     * `getDocumentChanges()`.
      */
     constructor(
       private readonly documentCache: IndexedDbRemoteDocumentCache,
@@ -478,7 +478,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             // In order to track removals, we store a "sentinel delete" in the
             // RemoteDocumentCache. This entry is represented by a NoDocument
             // with a version of 0 and ignored by `maybeDecodeDocument()` but
-            // preserved in `getNewDocumentChanges()`.
+            // preserved in `getDocumentChanges()`.
             const deletedDoc = this.documentCache.serializer.toDbRemoteDocument(
               new NoDocument(key, SnapshotVersion.forDeletedDoc()),
               this.readTime
