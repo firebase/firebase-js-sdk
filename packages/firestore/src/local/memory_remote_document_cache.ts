@@ -18,12 +18,9 @@
 import { Query } from '../core/query';
 import {
   DocumentKeySet,
-  documentKeySet,
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
-  MaybeDocumentMap,
-  maybeDocumentMap,
   NullableMaybeDocumentMap,
   nullableMaybeDocumentMap
 } from '../model/collections';

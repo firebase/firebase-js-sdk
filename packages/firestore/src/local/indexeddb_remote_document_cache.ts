@@ -46,12 +46,7 @@ import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
-import {
-  IterateOptions,
-  SimpleDb,
-  SimpleDbStore,
-  SimpleDbTransaction
-} from './simple_db';
+import { IterateOptions, SimpleDbStore } from './simple_db';
 import { ObjectMap } from '../util/obj_map';
 
 export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {

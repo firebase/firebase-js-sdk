@@ -24,7 +24,6 @@ import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_c
 import {
   DocumentKeySet,
   DocumentMap,
-  MaybeDocumentMap,
   NullableMaybeDocumentMap
 } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
