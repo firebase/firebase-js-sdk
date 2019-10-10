@@ -500,7 +500,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  it('retries idempotent transactions', async () => {
+  it('retries transactions marked as idempotent', async () => {
     let attemptCount = 0;
 
     const result = await db.runTransaction(
