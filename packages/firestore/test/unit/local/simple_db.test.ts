@@ -93,7 +93,7 @@ describe('SimpleDb', () => {
       transaction: SimpleDbTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    return db.runTransaction<T>('readwrite', ['users'], txn => {
+    return db.runTransaction<T>('readwrite-idempotent', ['users'], txn => {
       return fn(txn.store<number, User>('users'), txn);
     });
   }
@@ -481,7 +481,7 @@ describe('SimpleDb', () => {
       ['foo', 'd'],
       ['foob']
     ];
-    await db.runTransaction('readwrite', ['users', 'docs'], txn => {
+    await db.runTransaction('readwrite-idempotent', ['users', 'docs'], txn => {
       const docsStore = txn.store<string[], string>('docs');
       return PersistencePromise.waitFor(
         keys.map(key => {
@@ -491,7 +491,7 @@ describe('SimpleDb', () => {
       );
     });
 
-    await db.runTransaction('readonly', ['docs'], txn => {
+    await db.runTransaction('readonly-idempotent', ['docs'], txn => {
       const store = txn.store<string[], string>('docs');
       const range = IDBKeyRange.bound(['foo'], ['foo', 'c']);
       return store.loadAll(range).next(results => {
@@ -500,7 +500,7 @@ describe('SimpleDb', () => {
     });
   });
 
-  it('retries idempotent transactions', async () => {
+  it('retries transactions marked as idempotent', async () => {
     let attemptCount = 0;
 
     const result = await db.runTransaction(
