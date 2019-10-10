@@ -321,7 +321,7 @@ export class LocalStore {
   lookupMutationDocuments(batchId: BatchId): Promise<MaybeDocumentMap | null> {
     return this.persistence.runTransaction(
       'Lookup mutation documents',
-      'readonly',
+      'readonly-idempotent',
       txn => {
         return this.mutationQueue
           .lookupMutationKeys(txn, batchId)
@@ -412,7 +412,7 @@ export class LocalStore {
   getHighestUnacknowledgedBatchId(): Promise<BatchId> {
     return this.persistence.runTransaction(
       'Get highest unacknowledged batch id',
-      'readonly',
+      'readonly-idempotent',
       txn => {
         return this.mutationQueue.getHighestUnacknowledgedBatchId(txn);
       }
@@ -423,7 +423,7 @@ export class LocalStore {
   getLastStreamToken(): Promise<ProtoByteString> {
     return this.persistence.runTransaction(
       'Get last stream token',
-      'readonly',
+      'readonly-idempotent',
       txn => {
         return this.mutationQueue.getLastStreamToken(txn);
       }
@@ -438,7 +438,7 @@ export class LocalStore {
   setLastStreamToken(streamToken: ProtoByteString): Promise<void> {
     return this.persistence.runTransaction(
       'Set last stream token',
-      'readwrite-primary',
+      'readwrite-primary-idempotent',
       txn => {
         return this.mutationQueue.setLastStreamToken(txn, streamToken);
       }
@@ -452,7 +452,7 @@ export class LocalStore {
   getLastRemoteSnapshotVersion(): Promise<SnapshotVersion> {
     return this.persistence.runTransaction(
       'Get last remote snapshot version',
-      'readonly',
+      'readonly-idempotent',
       txn => this.queryCache.getLastRemoteSnapshotVersion(txn)
     );
   }
@@ -731,7 +731,7 @@ export class LocalStore {
   nextMutationBatch(afterBatchId?: BatchId): Promise<MutationBatch | null> {
     return this.persistence.runTransaction(
       'Get next mutation batch',
-      'readonly',
+      'readonly-idempotent',
       txn => {
         if (afterBatchId === undefined) {
           afterBatchId = BATCHID_UNKNOWN;
@@ -749,9 +749,13 @@ export class LocalStore {
    * found - used for testing.
    */
   readDocument(key: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('read document', 'readonly', txn => {
-      return this.localDocuments.getDocument(txn, key);
-    });
+    return this.persistence.runTransaction(
+      'read document',
+      'readonly-idempotent',
+      txn => {
+        return this.localDocuments.getDocument(txn, key);
+      }
+    );
   }
 
   /**
@@ -870,33 +874,37 @@ export class LocalStore {
     let lastLimboFreeSnapshotVersion = SnapshotVersion.MIN;
     let remoteKeys = documentKeySet();
 
-    return this.persistence.runTransaction('Execute query', 'readonly', txn => {
-      return this.getQueryData(txn, query)
-        .next(queryData => {
-          if (queryData) {
-            lastLimboFreeSnapshotVersion =
-              queryData.lastLimboFreeSnapshotVersion;
-            return this.queryCache
-              .getMatchingKeysForTargetId(txn, queryData.targetId)
-              .next(result => {
-                remoteKeys = result;
-              });
-          }
-        })
-        .next(() =>
-          this.queryEngine.getDocumentsMatchingQuery(
-            txn,
-            query,
-            usePreviousResults
-              ? lastLimboFreeSnapshotVersion
-              : SnapshotVersion.MIN,
-            usePreviousResults ? remoteKeys : documentKeySet()
+    return this.persistence.runTransaction(
+      'Execute query',
+      'readonly-idempotent',
+      txn => {
+        return this.getQueryData(txn, query)
+          .next(queryData => {
+            if (queryData) {
+              lastLimboFreeSnapshotVersion =
+                queryData.lastLimboFreeSnapshotVersion;
+              return this.queryCache
+                .getMatchingKeysForTargetId(txn, queryData.targetId)
+                .next(result => {
+                  remoteKeys = result;
+                });
+            }
+          })
+          .next(() =>
+            this.queryEngine.getDocumentsMatchingQuery(
+              txn,
+              query,
+              usePreviousResults
+                ? lastLimboFreeSnapshotVersion
+                : SnapshotVersion.MIN,
+              usePreviousResults ? remoteKeys : documentKeySet()
+            )
           )
-        )
-        .next(documents => {
-          return { documents, remoteKeys };
-        });
-    });
+          .next(documents => {
+            return { documents, remoteKeys };
+          });
+      }
+    );
   }
 
   /**
@@ -906,7 +914,7 @@ export class LocalStore {
   remoteDocumentKeys(targetId: TargetId): Promise<DocumentKeySet> {
     return this.persistence.runTransaction(
       'Remote document keys',
-      'readonly',
+      'readonly-idempotent',
       txn => {
         return this.queryCache.getMatchingKeysForTargetId(txn, targetId);
       }
@@ -988,7 +996,7 @@ export class LocalStore {
     } else {
       return this.persistence.runTransaction(
         'Get query data',
-        'readonly',
+        'readonly-idempotent',
         txn => {
           return this.queryCache
             .getQueryDataForTarget(txn, targetId)

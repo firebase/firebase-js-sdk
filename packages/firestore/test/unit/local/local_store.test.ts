@@ -1546,7 +1546,7 @@ function genericLocalStoreTests(
     // At this point, we have not yet confirmed that the query is limbo free.
     let cachedQueryData = await persistence.runTransaction(
       'getQueryData',
-      'readonly',
+      'readonly-idempotent',
       txn => localStore.getQueryData(txn, query)
     );
     expect(
@@ -1559,7 +1559,7 @@ function genericLocalStoreTests(
     ]);
     cachedQueryData = await persistence.runTransaction(
       'getQueryData',
-      'readonly',
+      'readonly-idempotent',
       txn => localStore.getQueryData(txn, query)
     );
     expect(cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
@@ -1572,7 +1572,7 @@ function genericLocalStoreTests(
     if (!gcIsEager) {
       cachedQueryData = await persistence.runTransaction(
         'getQueryData',
-        'readonly',
+        'readonly-idempotent',
         txn => localStore.getQueryData(txn, query)
       );
       expect(cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
