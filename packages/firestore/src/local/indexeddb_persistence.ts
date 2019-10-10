@@ -327,20 +327,17 @@ export class IndexedDbPersistence implements Persistence {
 
         return this.startRemoteDocumentCache();
       })
-      .then(() => {
-        return this.simpleDb.runTransaction(
-          'readonly',
+      .then(() =>
+        this.simpleDb.runTransaction(
+          'readonly-idempotent',
           [DbTargetGlobal.store],
-          txn => {
-            return getHighestListenSequenceNumber(txn).next(
-              highestListenSequenceNumber => {
-                this.listenSequence = new ListenSequence(
-                  highestListenSequenceNumber,
-                  this.sequenceNumberSyncer
-                );
-              }
-            );
-          }
+          txn => getHighestListenSequenceNumber(txn)
+        )
+      )
+      .then(highestListenSequenceNumber => {
+        this.listenSequence = new ListenSequence(
+          highestListenSequenceNumber,
+          this.sequenceNumberSyncer
         );
       })
       .then(() => {
@@ -654,7 +651,7 @@ export class IndexedDbPersistence implements Persistence {
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
     await this.simpleDb.runTransaction(
-      'readwrite',
+      'readwrite-idempotent',
       [DbPrimaryClient.store, DbClientMetadata.store],
       txn => {
         return this.releasePrimaryLeaseIfHeld(txn).next(() =>
@@ -686,7 +683,7 @@ export class IndexedDbPersistence implements Persistence {
 
   getActiveClients(): Promise<ClientId[]> {
     return this.simpleDb.runTransaction(
-      'readonly',
+      'readonly-idempotent',
       [DbClientMetadata.store],
       txn => {
         return clientMetadataStore(txn)
