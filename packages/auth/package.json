@@ -1,6 +1,6 @@
 {
   "name": "@firebase/auth",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "main": "dist/auth.js",
   "module": "dist/auth.esm.js",
   "description": "Javascript library for Firebase Auth SDK",
@@ -19,7 +19,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/auth-types": "0.8.0"
+    "@firebase/auth-types": "0.8.1"
   },
   "devDependencies": {
     "del": "5.1.0",
