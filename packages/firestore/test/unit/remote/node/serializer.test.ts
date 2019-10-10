@@ -300,6 +300,38 @@ describe('Serializer', () => {
       );
     });
 
+    it('converts TimestampValue to string (useProto3Json=true)', () => {
+      expect(
+        proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123456Z' });
+
+      expect(
+        proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123000Z' });
+
+      expect(
+        proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916000000Z' });
+
+      expect(
+        proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 916000))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916000Z' });
+
+      expect(
+        proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000000000Z' });
+    });
+
     it('converts GeoPointValue', () => {
       const example = new GeoPoint(1.23, 4.56);
       const expected = {
