@@ -282,7 +282,6 @@ export class SimpleDb {
         //   : PersistencePromise.resolve({} as T)
         // ).next(() => transactionFn(transaction))
         const transactionFnResult = transactionFn(transaction)
-          .next(() => transactionFn(transaction))
           .catch(error => {
             // Abort the transaction if there was an error.
             transaction.abort(error);
