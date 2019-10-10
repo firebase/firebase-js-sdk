@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet } from '../model/collections';
@@ -24,6 +23,7 @@ import { DocumentKey } from '../model/document_key';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { QueryData } from './query_data';
+import { Target } from '../core/target';
 
 /**
  * Represents cached queries received from the remote backend.
@@ -123,13 +123,13 @@ export interface QueryCache {
   /**
    * Looks up a QueryData entry by query.
    *
-   * @param query The query corresponding to the entry to look up.
+   * @param target The query target corresponding to the entry to look up.
    * @return The cached QueryData entry, or null if the cache has no entry for
    * the query.
    */
   getQueryData(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<QueryData | null>;
 
   /**

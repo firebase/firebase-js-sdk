@@ -222,7 +222,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       targetId = queryData.targetId;
       viewSnapshot = await this.initializeViewAndComputeSnapshot(
-        queryData,
+        query,
+        queryData.targetId,
         status === 'current'
       );
       if (this.isPrimary) {
@@ -239,10 +240,10 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    * snapshot.
    */
   private async initializeViewAndComputeSnapshot(
-    queryData: QueryData,
+    query: Query,
+    targetId: TargetId,
     current: boolean
   ): Promise<ViewSnapshot> {
-    const query = queryData.query;
     const queryResult = await this.localStore.executeQuery(
       query,
       /* usePreviousResults= */ true
@@ -250,7 +251,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const view = new View(query, queryResult.remoteKeys);
     const viewDocChanges = view.computeDocChanges(queryResult.documents);
     const synthesizedTargetChange = TargetChange.createSynthesizedTargetChangeForCurrentChange(
-      queryData.targetId,
+      targetId,
       current && this.onlineState !== OnlineState.Offline
     );
     const viewChange = view.applyChanges(
@@ -267,9 +268,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       'applyChanges for new view should always return a snapshot'
     );
 
-    const data = new QueryView(query, queryData.targetId, view);
+    const data = new QueryView(query, targetId, view);
     this.queryViewsByQuery.set(query, data);
-    this.queryViewsByTarget[queryData.targetId] = data;
+    this.queryViewsByTarget[targetId] = data;
     return viewChange.snapshot!;
   }
 
@@ -747,7 +748,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.limboResolutionsByTarget[limboTargetId] = new LimboResolution(key);
       this.remoteStore.listen(
         new QueryData(
-          query,
+          query.toTarget(),
           limboTargetId,
           QueryPurpose.LimboResolution,
           ListenSequence.INVALID
@@ -949,11 +950,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         );
         // For queries that never executed on this client, we need to
         // allocate the query in LocalStore and initialize a new View.
-        const query = await this.localStore.getQueryForTarget(targetId);
-        assert(!!query, `Query data for target ${targetId} not found`);
-        queryData = await this.localStore.allocateQuery(query!);
+        const target = await this.localStore.getTarget(targetId);
+        assert(!!target, `Target for id ${targetId} not found`);
+        queryData = await this.localStore.allocateTarget(target!);
         await this.initializeViewAndComputeSnapshot(
-          queryData,
+          target!.toQuery(),
+          targetId,
           /*current=*/ false
         );
       }
@@ -1026,11 +1028,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         !this.queryViewsByTarget[targetId],
         'Trying to add an already active target'
       );
-      const query = await this.localStore.getQueryForTarget(targetId);
-      assert(!!query, `Query data for active target ${targetId} not found`);
-      const queryData = await this.localStore.allocateQuery(query!);
+      const target = await this.localStore.getTarget(targetId);
+      assert(!!target, `Query data for active target ${targetId} not found`);
+      const queryData = await this.localStore.allocateTarget(target!);
       await this.initializeViewAndComputeSnapshot(
-        queryData,
+        target!.toQuery(),
+        queryData.targetId,
         /*current=*/ false
       );
       this.remoteStore.listen(queryData);

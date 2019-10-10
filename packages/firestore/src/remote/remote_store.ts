@@ -462,7 +462,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // that we flag the first re-listen this way without impacting future
       // listens of this target (that might happen e.g. on reconnect).
       const requestQueryData = new QueryData(
-        queryData.query,
+        queryData.target,
         targetId,
         QueryPurpose.ExistenceFilterMismatch,
         queryData.sequenceNumber

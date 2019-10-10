@@ -1112,7 +1112,7 @@ abstract class TestRunner {
       // despite the fact that it's not always the right value.
       const expectedTarget = this.serializer.toTarget(
         new QueryData(
-          this.parseQuery(expected.query),
+          this.parseQuery(expected.query).toTarget(),
           targetId,
           QueryPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,

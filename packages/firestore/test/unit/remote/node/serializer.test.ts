@@ -81,6 +81,7 @@ import {
   wrap,
   wrapObject
 } from '../../../util/helpers';
+import { Target } from '../../../../src/core/target';
 
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
@@ -103,8 +104,8 @@ describe('Serializer', () => {
    * testing accept QueryData, but for the most part we're just testing
    * variations on Query.
    */
-  function wrapQueryData(query: Query): QueryData {
-    return new QueryData(query, 1, QueryPurpose.Listen, 2);
+  function wrapQueryData(target: Target): QueryData {
+    return new QueryData(target, 1, QueryPurpose.Listen, 2);
   }
 
   describe('converts value', () => {
@@ -869,18 +870,18 @@ describe('Serializer', () => {
   });
 
   it('encodes listen request labels', () => {
-    const query = Query.atPath(path('collection/key'));
-    let queryData = new QueryData(query, 2, QueryPurpose.Listen, 3);
+    const target = Query.atPath(path('collection/key')).toTarget();
+    let queryData = new QueryData(target, 2, QueryPurpose.Listen, 3);
 
     let result = s.toListenRequestLabels(queryData);
     expect(result).to.be.null;
 
-    queryData = new QueryData(query, 2, QueryPurpose.LimboResolution, 3);
+    queryData = new QueryData(target, 2, QueryPurpose.LimboResolution, 3);
     result = s.toListenRequestLabels(queryData);
     expect(result).to.deep.equal({ 'goog-listen-tags': 'limbo-document' });
 
     queryData = new QueryData(
-      query,
+      target,
       2,
       QueryPurpose.ExistenceFilterMismatch,
       3
@@ -895,7 +896,7 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('converts first-level key queries', () => {
-      const q = Query.atPath(path('docs/1'));
+      const q = Query.atPath(path('docs/1')).toTarget();
       const result = s.toTarget(wrapQueryData(q));
       expect(result).to.deep.equal({
         documents: { documents: ['projects/p/databases/d/documents/docs/1'] },
@@ -905,7 +906,7 @@ describe('Serializer', () => {
     });
 
     it('converts first-level ancestor queries', () => {
-      const q = Query.atPath(path('messages'));
+      const q = Query.atPath(path('messages')).toTarget();
       const result = s.toTarget(wrapQueryData(q));
       expect(result).to.deep.equal({
         query: {
@@ -926,7 +927,9 @@ describe('Serializer', () => {
     });
 
     it('converts nested ancestor queries', () => {
-      const q = Query.atPath(path('rooms/1/messages/10/attachments'));
+      const q = Query.atPath(
+        path('rooms/1/messages/10/attachments')
+      ).toTarget();
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -948,7 +951,9 @@ describe('Serializer', () => {
     });
 
     it('converts single filters at first-level collections', () => {
-      const q = Query.atPath(path('docs')).addFilter(filter('prop', '<', 42));
+      const q = Query.atPath(path('docs'))
+        .addFilter(filter('prop', '<', 42))
+        .toTarget();
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -986,7 +991,8 @@ describe('Serializer', () => {
         .addFilter(filter('name', '==', 'dimond'))
         .addFilter(filter('nan', '==', NaN))
         .addFilter(filter('null', '==', null))
-        .addFilter(filter('tags', 'array-contains', 'pending'));
+        .addFilter(filter('tags', 'array-contains', 'pending'))
+        .toTarget();
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -1052,9 +1058,9 @@ describe('Serializer', () => {
     });
 
     it('converts single filters on deeper collections', () => {
-      const q = Query.atPath(path('rooms/1/messages/10/attachments')).addFilter(
-        filter('prop', '<', 42)
-      );
+      const q = Query.atPath(path('rooms/1/messages/10/attachments'))
+        .addFilter(filter('prop', '<', 42))
+        .toTarget();
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -1087,7 +1093,9 @@ describe('Serializer', () => {
     });
 
     it('converts order bys', () => {
-      const q = Query.atPath(path('docs')).addOrderBy(orderBy('prop', 'asc'));
+      const q = Query.atPath(path('docs'))
+        .addOrderBy(orderBy('prop', 'asc'))
+        .toTarget();
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -1113,7 +1121,9 @@ describe('Serializer', () => {
     });
 
     it('converts limits', () => {
-      const q = Query.atPath(path('docs')).withLimit(26);
+      const q = Query.atPath(path('docs'))
+        .withLimit(26)
+        .toTarget();
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -1148,7 +1158,8 @@ describe('Serializer', () => {
             [[DOCUMENT_KEY_NAME, ref('p/d', 'foo/bar'), 'asc']],
             /*before=*/ false
           )
-        );
+        )
+        .toTarget();
       const result = s.toTarget(wrapQueryData(q));
       const expected = {
         query: {
@@ -1182,7 +1193,7 @@ describe('Serializer', () => {
     });
 
     it('converts resume tokens', () => {
-      const q = Query.atPath(path('docs'));
+      const q = Query.atPath(path('docs')).toTarget();
       const result = s.toTarget(
         new QueryData(
           q,

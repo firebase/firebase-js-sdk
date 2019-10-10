@@ -17,7 +17,8 @@
 
 import { ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
-import { Bound, Filter, OrderBy } from './query';
+import { Bound, Filter, OrderBy, Query } from './query';
+import { DocumentKey } from '../model/document_key';
 
 /**
  * Represents a backend query: the query protos SDK sent to backend and persisted
@@ -29,6 +30,10 @@ export class Target {
   /**
    * Initializes a Target with a path and optional additional query constraints.
    * Path must currently be empty if this is a collection group query.
+   *
+   * NOTE: you should always construct `Target` from `Query.toTarget` instead of
+   * using this constructor, because `Query` provides sensible default `orderBy`
+   * property.
    */
   constructor(
     readonly path: ResourcePath,
@@ -145,5 +150,25 @@ export class Target {
     return this.endAt !== null
       ? this.endAt.isEqual(other.endAt)
       : other.endAt === null;
+  }
+
+  isDocumentQuery(): boolean {
+    return (
+      DocumentKey.isDocumentKey(this.path) &&
+      this.collectionGroup === null &&
+      this.filters.length === 0
+    );
+  }
+
+  toQuery(): Query {
+    return new Query(
+      this.path,
+      this.collectionGroup,
+      this.orderBy,
+      this.filters,
+      this.limit,
+      this.startAt,
+      this.endAt
+    );
   }
 }
