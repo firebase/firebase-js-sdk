@@ -19,6 +19,7 @@ import { Query } from '../core/query';
 import {
   DocumentKeySet,
   DocumentMap,
+  MaybeDocumentMap,
   NullableMaybeDocumentMap
 } from '../model/collections';
 import { MaybeDocument } from '../model/document';
@@ -80,6 +81,19 @@ export interface RemoteDocumentCache {
     query: Query,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap>;
+
+  /**
+   * Returns the set of documents that have changed since the specified read
+   * time.
+   */
+  // PORTING NOTE: This is only used for multi-tab synchronization.
+  getNewDocumentChanges(
+    transaction: PersistenceTransaction,
+    sinceReadTime: SnapshotVersion
+  ): PersistencePromise<{
+    changedDocs: MaybeDocumentMap;
+    readTime: SnapshotVersion;
+  }>;
 
   /**
    * Provides access to add or update the contents of the cache. The buffer

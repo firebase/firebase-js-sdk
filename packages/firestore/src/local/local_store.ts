@@ -1027,16 +1027,9 @@ export class LocalStore {
    */
   // PORTING NOTE: Multi-tab only.
   getNewDocumentChanges(): Promise<MaybeDocumentMap> {
-    assert(
-      this.remoteDocuments instanceof IndexedDbRemoteDocumentCache,
-      'getNewDocumentChanges() is only supported with IndexedDb persistence.'
-    );
-    const remoteDocumentCache = this
-      .remoteDocuments as IndexedDbRemoteDocumentCache;
-
     return this.persistence
       .runTransaction('Get new document changes', 'readonly-idempotent', txn =>
-        remoteDocumentCache.getDocumentChanges(
+        this.remoteDocuments.getNewDocumentChanges(
           txn,
           this.lastDocumentChangeReadTime
         )

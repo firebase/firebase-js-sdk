@@ -24,6 +24,7 @@ import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_c
 import {
   DocumentKeySet,
   DocumentMap,
+  MaybeDocumentMap,
   NullableMaybeDocumentMap
 } from '../../../src/model/collections';
 import { MaybeDocument } from '../../../src/model/document';
@@ -123,6 +124,21 @@ export class TestRemoteDocumentCache {
       'readonly-idempotent',
       txn => {
         return this.cache.getDocumentsMatchingQuery(txn, query, sinceReadTime);
+      }
+    );
+  }
+
+  getNewDocumentChanges(
+    sinceReadTime: SnapshotVersion
+  ): Promise<{
+    changedDocs: MaybeDocumentMap;
+    readTime: SnapshotVersion;
+  }> {
+    return this.persistence.runTransaction(
+      'getNewDocumentChanges',
+      'readonly',
+      txn => {
+        return this.cache.getNewDocumentChanges(txn, sinceReadTime);
       }
     );
   }

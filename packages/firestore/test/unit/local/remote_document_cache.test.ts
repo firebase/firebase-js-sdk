@@ -90,22 +90,6 @@ describe('IndexedDbRemoteDocumentCache', () => {
     await persistenceHelpers.clearTestPersistence();
   });
 
-  function getDocumentChanges(
-    sinceReadTime: SnapshotVersion
-  ): Promise<{
-    changedDocs: MaybeDocumentMap;
-    readTime: SnapshotVersion;
-  }> {
-    return persistence.runTransaction(
-      'getDocumentChanges',
-      'readonly-idempotent',
-      txn => {
-        const remoteDocuments = persistence.getRemoteDocumentCache();
-        return remoteDocuments.getDocumentChanges(txn, sinceReadTime);
-      }
-    );
-  }
-
   function getLastDocumentChange(): Promise<{
     changedDoc: MaybeDocument | undefined;
     readTime: SnapshotVersion;
@@ -132,7 +116,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
     });
     cache = new TestRemoteDocumentCache(persistence);
     const { readTime } = await getLastDocumentChange();
-    const { changedDocs } = await getDocumentChanges(readTime);
+    const { changedDocs } = await cache.getNewDocumentChanges(readTime);
     assertMatches([], changedDocs);
   });
 
@@ -147,7 +131,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
       version(3)
     );
 
-    let { changedDocs, readTime } = await getDocumentChanges(
+    let { changedDocs, readTime } = await cache.getNewDocumentChanges(
       SnapshotVersion.MIN
     );
     assertMatches(
@@ -160,12 +144,14 @@ describe('IndexedDbRemoteDocumentCache', () => {
     );
 
     await cache.addEntry(doc('c/1', 4, DOC_DATA));
-    changedDocs = (await getDocumentChanges(readTime)).changedDocs;
+    changedDocs = (await cache.getNewDocumentChanges(readTime)).changedDocs;
     assertMatches([doc('c/1', 4, DOC_DATA)], changedDocs);
   });
 
   it('can get empty changes', async () => {
-    const { changedDocs } = await getDocumentChanges(SnapshotVersion.MIN);
+    const { changedDocs } = await cache.getNewDocumentChanges(
+      SnapshotVersion.MIN
+    );
     assertMatches([], changedDocs);
   });
 
@@ -180,7 +166,9 @@ describe('IndexedDbRemoteDocumentCache', () => {
     );
     await cache.removeEntry(key('a/2'), version(4));
 
-    const { changedDocs } = await getDocumentChanges(SnapshotVersion.MIN);
+    const { changedDocs } = await cache.getNewDocumentChanges(
+      SnapshotVersion.MIN
+    );
     assertMatches(
       [doc('a/1', 1, DOC_DATA), removedDoc('a/2'), doc('a/3', 3, DOC_DATA)],
       changedDocs

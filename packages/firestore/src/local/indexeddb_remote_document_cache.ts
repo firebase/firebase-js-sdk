@@ -298,7 +298,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
    * time.
    */
   // PORTING NOTE: This is only used for multi-tab synchronization.
-  getDocumentChanges(
+  getNewDocumentChanges(
     transaction: PersistenceTransaction,
     sinceReadTime: SnapshotVersion
   ): PersistencePromise<{
@@ -315,7 +315,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
       .iterate(
         { index: DbRemoteDocument.readTimeIndex, range },
         (_, dbRemoteDoc) => {
-          // Unlike `getEntry()` and others, `getDocumentChanges()` parses
+          // Unlike `getEntry()` and others, `getNewDocumentChanges()` parses
           // the documents directly since we want to keep sentinel deletes.
           const doc = this.serializer.fromDbRemoteDocument(dbRemoteDoc);
           changedDocs = changedDocs.insert(doc.key, doc);
@@ -408,7 +408,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
         doc.version.isEqual(SnapshotVersion.forDeletedDoc())
       ) {
         // The document is a sentinel removal and should only be used in the
-        // `getDocumentChanges()`.
+        // `getNewDocumentChanges()`.
         return null;
       }
 
@@ -433,7 +433,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     /**
      * @param documentCache The IndexedDbRemoteDocumentCache to apply the changes to.
      * @param trackRemovals Whether to create sentinel deletes that can be tracked by
-     * `getDocumentChanges()`.
+     * `getNewDocumentChanges()`.
      */
     constructor(
       private readonly documentCache: IndexedDbRemoteDocumentCache,
@@ -473,7 +473,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             // In order to track removals, we store a "sentinel delete" in the
             // RemoteDocumentCache. This entry is represented by a NoDocument
             // with a version of 0 and ignored by `maybeDecodeDocument()` but
-            // preserved in `getDocumentChanges()`.
+            // preserved in `getNewDocumentChanges()`.
             const deletedDoc = this.documentCache.serializer.toDbRemoteDocument(
               new NoDocument(key, SnapshotVersion.forDeletedDoc()),
               this.readTime
