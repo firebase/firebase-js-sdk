@@ -29,14 +29,25 @@ import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
 
 /**
- * Opaque interface representing a persistence transaction.
+ * A base class representing a persistence transaction, encapsulating both the
+ * transaction's sequence numbers as well as a list of onCommitted listeners.
  *
  * When you call Persistence.runTransaction(), it will create a transaction and
  * pass it to your callback. You then pass it to any method that operates
  * on persistence.
  */
 export abstract class PersistenceTransaction {
+  private readonly onCommittedListeners: Array<() => {}> = [];
+
   abstract readonly currentSequenceNumber: ListenSequenceNumber;
+
+  addOnCommittedListener(listener: () => {}): void {
+    this.onCommittedListeners.push(listener);
+  }
+
+  raiseOnCommittedEvent(): void {
+    this.onCommittedListeners.forEach(listener => listener());
+  }
 }
 
 /** The different modes supported by `IndexedDbPersistence.runTransaction()`. */

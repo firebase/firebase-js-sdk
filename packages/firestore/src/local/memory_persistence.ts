@@ -180,6 +180,7 @@ export class MemoryPersistence implements Persistence {
     this.referenceDelegate.onTransactionStarted();
     return transactionOperation(txn)
       .next(result => {
+        txn.raiseOnCommittedEvent();
         return this.referenceDelegate
           .onTransactionCommitted(txn)
           .next(() => result);
@@ -203,8 +204,10 @@ export class MemoryPersistence implements Persistence {
  * Memory persistence is not actually transactional, but future implementations
  * may have transaction-scoped state.
  */
-export class MemoryTransaction implements PersistenceTransaction {
-  constructor(readonly currentSequenceNumber: ListenSequenceNumber) {}
+export class MemoryTransaction extends PersistenceTransaction {
+  constructor(readonly currentSequenceNumber: ListenSequenceNumber) {
+    super();
+  }
 }
 
 export class MemoryEagerDelegate implements ReferenceDelegate {
