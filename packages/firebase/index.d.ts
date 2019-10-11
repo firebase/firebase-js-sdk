@@ -3640,7 +3640,7 @@ declare namespace firebase.auth {
      * @param accessToken The OAuth access token.
      */
     credential(
-      optionsOrIdToken: Object | string | null,
+      optionsOrIdToken: firebase.auth.OAuthCredentialOptions | string | null,
       accessToken?: string
     ): firebase.auth.OAuthCredential;
     /**
@@ -3701,6 +3701,28 @@ declare namespace firebase.auth {
     claims: {
       [key: string]: any;
     };
+  }
+
+  /**
+   * Defines the options for initializing an
+   * {@link firebase.auth.OAuthCredential}. For ID tokens with nonce claim,
+   * the raw nonce has to also be provided.
+   */
+  interface OAuthCredentialOptions {
+    /**
+     * The OAuth ID token used to initialize the OAuthCredential.
+     */
+    idToken?: string;
+    /**
+     * The OAuth access token used to initialize the OAuthCredential.
+     */
+    accessToken?: string;
+    /**
+     * The raw nonce associated with the ID token. It is required when an ID token
+     * with a nonce field is provided. The SHA-256 hash of the raw nonce must match
+     * the nonce field in the ID token.
+     */
+    rawNonce?: string;
   }
 
   /**

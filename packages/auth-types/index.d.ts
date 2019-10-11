@@ -216,7 +216,7 @@ export class OAuthProvider implements AuthProvider {
   providerId: string;
   addScope(scope: string): AuthProvider;
   credential(
-    optionsOrIdToken: Object | string | null,
+    optionsOrIdToken: OAuthCredentialOptions | string | null,
     accessToken?: string
   ): OAuthCredential;
   setCustomParameters(customOAuthParameters: Object): AuthProvider;
@@ -288,6 +288,12 @@ export class OAuthCredential extends AuthCredential {
   accessToken?: string;
   secret?: string;
   nonce?: string;
+}
+
+export interface OAuthCredentialOptions {
+  idToken?: string;
+  accessToken?: string;
+  rawNonce?: string;
 }
 
 export interface AuthSettings {

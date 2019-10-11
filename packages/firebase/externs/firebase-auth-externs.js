@@ -89,6 +89,38 @@ firebase.auth.AuthCredential.fromJSON = function(json) {};
 firebase.auth.AuthCredential.prototype.toJSON = function() {};
 
 /**
+ * Defines the options for initializing an
+ * {@link firebase.auth.OAuthCredential}. For ID tokens with nonce claim,
+ * the raw nonce has to also be provided.
+ *
+ * @interface
+ */
+firebase.auth.OAuthCredentialOptions = function() {};
+
+/**
+ * The OAuth ID token used to initialize the OAuthCredential.
+ *
+ * @type {string|undefined}
+ */
+firebase.auth.OAuthCredentialOptions.prototype.idToken;
+
+/**
+ * The OAuth access token used to initialize the OAuthCredential.
+ *
+ * @type {string|undefined}
+ */
+firebase.auth.OAuthCredentialOptions.prototype.accessToken;
+
+/**
+ * The raw nonce associated with the ID token. It is required when an ID token
+ * with a nonce field is provided. The SHA-256 hash of the raw nonce must match
+ * the nonce field in the ID token.
+ *
+ * @type {string|undefined}
+ */
+firebase.auth.OAuthCredentialOptions.prototype.rawNonce;
+
+/**
  * Interface that represents the OAuth credentials returned by an OAuth
  * provider. Implementations specify the details about each auth provider's
  * credential requirements.
@@ -2239,8 +2271,9 @@ firebase.auth.OAuthProvider = function(providerId) {};
  * });
  * firebase.auth().signInWithCredential(credential)
  *
- * @param {?Object|string} optionsOrIdToken Either the options object containing
- *     the ID token, access token and raw nonce or the ID token string.
+ * @param {?firebase.auth.OAuthCredentialOptions|string} optionsOrIdToken Either
+ *     the options object containing the ID token, access token and raw nonce or
+ *     the ID token string.
  * @param {?string=} accessToken The OAuth access token.
  * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
