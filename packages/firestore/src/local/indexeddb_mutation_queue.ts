@@ -178,8 +178,6 @@ export class IndexedDbMutationQueue implements MutationQueue {
       );
       const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
 
-      this.documentKeysByBatchId[batchId] = batch.keys();
-
       const promises: Array<PersistencePromise<void>> = [];
       let collectionParents = new SortedSet<ResourcePath>((l, r) =>
         primitiveComparator(l.canonicalString(), r.canonicalString())
@@ -201,6 +199,10 @@ export class IndexedDbMutationQueue implements MutationQueue {
         promises.push(
           this.indexManager.addToCollectionParentIndex(transaction, parent)
         );
+      });
+
+      transaction.addOnCommittedListener(() => {
+        this.documentKeysByBatchId[batchId] = batch.keys();
       });
 
       return PersistencePromise.waitFor(promises).next(() => batch);
