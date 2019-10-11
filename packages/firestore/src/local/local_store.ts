@@ -702,6 +702,33 @@ export class LocalStore {
    * Notify local store of the changed views to locally pin documents.
    */
   notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
+    for (const viewChange of viewChanges) {
+      const targetId = viewChange.targetId;
+
+      this.localViewReferences.addReferences(viewChange.addedKeys, targetId);
+      this.localViewReferences.removeReferences(
+        viewChange.removedKeys,
+        targetId
+      );
+
+      if (!viewChange.fromCache) {
+        const queryData = this.queryDataByTarget.get(targetId);
+        assert(
+          queryData !== null,
+          `Can't set limbo-free snapshot version for unknown target: ${targetId}`
+        );
+
+        // Advance the last limbo free snapshot version
+        const lastLimboFreeSnapshotVersion = queryData!.snapshotVersion;
+        const updatedQueryData = queryData!.withLastLimboFreeSnapshotVersion(
+          lastLimboFreeSnapshotVersion
+        );
+        this.queryDataByTarget = this.queryDataByTarget.insert(
+          targetId,
+          updatedQueryData
+        );
+      }
+    }
     return this.persistence.runTransaction(
       'notifyLocalViewChanges',
       'readwrite',
@@ -709,34 +736,6 @@ export class LocalStore {
         return PersistencePromise.forEach(
           viewChanges,
           (viewChange: LocalViewChanges) => {
-            const targetId = viewChange.targetId;
-
-            this.localViewReferences.addReferences(
-              viewChange.addedKeys,
-              targetId
-            );
-            this.localViewReferences.removeReferences(
-              viewChange.removedKeys,
-              targetId
-            );
-
-            if (!viewChange.fromCache) {
-              const queryData = this.queryDataByTarget.get(targetId);
-              assert(
-                queryData !== null,
-                `Can't set limbo-free snapshot version for unknown target: ${targetId}`
-              );
-
-              // Advance the last limbo free snapshot version
-              const lastLimboFreeSnapshotVersion = queryData!.snapshotVersion;
-              const updatedQueryData = queryData!.withLastLimboFreeSnapshotVersion(
-                lastLimboFreeSnapshotVersion
-              );
-              this.queryDataByTarget = this.queryDataByTarget.insert(
-                targetId,
-                updatedQueryData
-              );
-            }
             return PersistencePromise.forEach(
               viewChange.removedKeys,
               (key: DocumentKey) =>
