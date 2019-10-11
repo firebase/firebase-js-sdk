@@ -880,34 +880,49 @@ export class LocalStore {
    */
   // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
   releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
-    const mode = keepPersistedQueryData ? 'readwrite' : 'readwrite-primary';
-    return this.persistence.runTransaction('Release query', mode, txn => {
-      const targetId = this.targetIdByQuery.get(query);
-      assert(
-        targetId !== undefined,
-        'Tried to release nonexistent query: ' + query
-      );
-      const queryData = this.queryDataByTarget.get(targetId!)!;
+    let targetId: number;
 
-      // References for documents sent via Watch are automatically removed
-      // when we delete a query's target data from the reference delegate.
-      // Since this does not remove references for locally mutated documents,
-      // we have to remove the target associations for these documents
-      // manually.
-      const removed = this.localViewReferences.removeReferencesForId(targetId!);
-      this.queryDataByTarget = this.queryDataByTarget.remove(targetId!);
-      this.targetIdByQuery.delete(query);
+    const mode = keepPersistedQueryData
+      ? 'readwrite-idempotent'
+      : 'readwrite-primary-idempotent';
+    return this.persistence
+      .runTransaction('Release query', mode, txn => {
+        const cachedTargetId = this.targetIdByQuery.get(query);
+        assert(
+          cachedTargetId !== undefined,
+          'Tried to release nonexistent query: ' + query
+        );
+        targetId = cachedTargetId!;
+        const queryData = this.queryDataByTarget.get(targetId)!;
 
-      if (!keepPersistedQueryData) {
-        return PersistencePromise.forEach(removed, (key: DocumentKey) =>
-          this.persistence.referenceDelegate.removeReference(txn, key)
-        ).next(() => {
-          this.persistence.referenceDelegate.removeTarget(txn, queryData);
-        });
-      } else {
-        return PersistencePromise.resolve();
-      }
-    });
+        // References for documents sent via Watch are automatically removed
+        // when we delete a query's target data from the reference delegate.
+        // Since this does not remove references for locally mutated documents,
+        // we have to remove the target associations for these documents
+        // manually.
+        // This operation needs to be run inside the transaction since EagerGC
+        // uses the local view references during the transaction's commit.
+        // Fortunately, the operation is safe to be re-run in case the
+        // transaction fails since there are no side effects if the target has
+        // already been removed.
+        const removed = this.localViewReferences.removeReferencesForId(
+          targetId
+        );
+
+        if (!keepPersistedQueryData) {
+          return PersistencePromise.forEach(removed, (key: DocumentKey) =>
+            this.persistence.referenceDelegate.removeReference(txn, key)
+          ).next(() => {
+            this.persistence.referenceDelegate.removeTarget(txn, queryData);
+          });
+        } else {
+          return PersistencePromise.resolve();
+        }
+      })
+      .then(() => {
+        this.queryDataByTarget = this.queryDataByTarget.remove(targetId);
+        this.targetIdByQuery.delete(query);
+      });
   }
 
   /**
