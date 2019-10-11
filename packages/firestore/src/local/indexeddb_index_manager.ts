@@ -22,6 +22,7 @@ import { decode, encode } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { DbCollectionParent, DbCollectionParentKey } from './indexeddb_schema';
+import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore } from './simple_db';
@@ -30,17 +31,43 @@ import { SimpleDbStore } from './simple_db';
  * A persisted implementation of IndexManager.
  */
 export class IndexedDbIndexManager implements IndexManager {
+  /**
+   * An in-memory copy of the index entries we've already written since the SDK
+   * launched. Used to avoid re-writing the same entry repeatedly.
+   *
+   * This is *NOT* a complete cache of what's in persistence and so can never be used to
+   * satisfy reads.
+   */
+  private collectionParentsCache = new MemoryCollectionParentIndex();
+
+  /**
+   * Adds a new entry to the collection parent index.
+   *
+   * Repeated calls for the same collectionPath should be avoided within a
+   * transaction as IndexedDbIndexManager only caches writes once a transaction
+   * has been committed.
+   */
   addToCollectionParentIndex(
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {
     assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
-    const collectionId = collectionPath.lastSegment();
-    const parentPath = collectionPath.popLast();
-    return collectionParentsStore(transaction).put({
-      collectionId,
-      parent: encode(parentPath)
-    });
+    if (!this.collectionParentsCache.has(collectionPath)) {
+      const collectionId = collectionPath.lastSegment();
+      const parentPath = collectionPath.popLast();
+
+      transaction.addOnCommittedListener(() => {
+        // Add the collection to the in memory cache only if the transaction was
+        // successfully committed.
+        this.collectionParentsCache.add(collectionPath);
+      });
+
+      return collectionParentsStore(transaction).put({
+        collectionId,
+        parent: encode(parentPath)
+      });
+    }
+    return PersistencePromise.resolve();
   }
 
   getCollectionParents(

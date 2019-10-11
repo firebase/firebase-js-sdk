@@ -769,8 +769,10 @@ export class IndexedDbPersistence implements Persistence {
           this.listenSequence.next()
         );
 
-        if (mode === 'readwrite-primary'||
-            mode === 'readwrite-primary-idempotent') {
+        if (
+          mode === 'readwrite-primary' ||
+          mode === 'readwrite-primary-idempotent'
+        ) {
           // While we merely verify that we have (or can acquire) the lease
           // immediately, we wait to extend the primary lease until after
           // executing transactionOperation(). This ensures that even if the
