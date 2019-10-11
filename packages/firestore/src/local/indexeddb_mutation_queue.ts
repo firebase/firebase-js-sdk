@@ -181,23 +181,28 @@ export class IndexedDbMutationQueue implements MutationQueue {
       this.documentKeysByBatchId[batchId] = batch.keys();
 
       const promises: Array<PersistencePromise<void>> = [];
+      let collectionParents = new SortedSet<ResourcePath>((l, r) =>
+        primitiveComparator(l.canonicalString(), r.canonicalString())
+      );
       for (const mutation of mutations) {
         const indexKey = DbDocumentMutation.key(
           this.userId,
           mutation.key.path,
           batchId
         );
+        collectionParents = collectionParents.add(mutation.key.path.popLast());
         promises.push(mutationStore.put(dbBatch));
         promises.push(
           documentStore.put(indexKey, DbDocumentMutation.PLACEHOLDER)
         );
-        promises.push(
-          this.indexManager.addToCollectionParentIndex(
-            transaction,
-            mutation.key.path.popLast()
-          )
-        );
       }
+
+      collectionParents.forEach(parent => {
+        promises.push(
+          this.indexManager.addToCollectionParentIndex(transaction, parent)
+        );
+      });
+
       return PersistencePromise.waitFor(promises).next(() => batch);
     });
   }

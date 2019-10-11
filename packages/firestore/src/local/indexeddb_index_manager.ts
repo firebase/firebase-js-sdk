@@ -22,7 +22,6 @@ import { decode, encode } from './encoded_resource_path';
 import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import { DbCollectionParent, DbCollectionParentKey } from './indexeddb_schema';
-import { MemoryCollectionParentIndex } from './memory_index_manager';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { SimpleDbStore } from './simple_db';
@@ -31,30 +30,17 @@ import { SimpleDbStore } from './simple_db';
  * A persisted implementation of IndexManager.
  */
 export class IndexedDbIndexManager implements IndexManager {
-  /**
-   * An in-memory copy of the index entries we've already written since the SDK
-   * launched. Used to avoid re-writing the same entry repeatedly.
-   *
-   * This is *NOT* a complete cache of what's in persistence and so can never be used to
-   * satisfy reads.
-   */
-  private collectionParentsCache = new MemoryCollectionParentIndex();
-
   addToCollectionParentIndex(
     transaction: PersistenceTransaction,
     collectionPath: ResourcePath
   ): PersistencePromise<void> {
     assert(collectionPath.length % 2 === 1, 'Expected a collection path.');
-    if (this.collectionParentsCache.add(collectionPath)) {
-      assert(collectionPath.length >= 1, 'Invalid collection path.');
-      const collectionId = collectionPath.lastSegment();
-      const parentPath = collectionPath.popLast();
-      return collectionParentsStore(transaction).put({
-        collectionId,
-        parent: encode(parentPath)
-      });
-    }
-    return PersistencePromise.resolve();
+    const collectionId = collectionPath.lastSegment();
+    const parentPath = collectionPath.popLast();
+    return collectionParentsStore(transaction).put({
+      collectionId,
+      parent: encode(parentPath)
+    });
   }
 
   getCollectionParents(
