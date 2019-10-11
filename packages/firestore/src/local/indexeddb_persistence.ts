@@ -758,12 +758,17 @@ export class IndexedDbPersistence implements Persistence {
       ? 'readwrite-idempotent'
       : 'readwrite';
 
+    let persistenceTransaction: PersistenceTransaction;
+
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-    return this.simpleDb.runTransaction(
-      simpleDbMode,
-      ALL_STORES,
-      simpleDbTxn => {
+    return this.simpleDb
+      .runTransaction(simpleDbMode, ALL_STORES, simpleDbTxn => {
+        persistenceTransaction = new IndexedDbTransaction(
+          simpleDbTxn,
+          this.listenSequence.next()
+        );
+
         if (mode === 'readwrite-primary') {
           // While we merely verify that we have (or can acquire) the lease
           // immediately, we wait to extend the primary lease until after
@@ -785,12 +790,7 @@ export class IndexedDbPersistence implements Persistence {
                   PRIMARY_LEASE_LOST_ERROR_MSG
                 );
               }
-              return transactionOperation(
-                new IndexedDbTransaction(
-                  simpleDbTxn,
-                  this.listenSequence.next()
-                )
-              );
+              return transactionOperation(persistenceTransaction);
             })
             .next(result => {
               return this.acquireOrExtendPrimaryLease(simpleDbTxn).next(
@@ -799,13 +799,14 @@ export class IndexedDbPersistence implements Persistence {
             });
         } else {
           return this.verifyAllowTabSynchronization(simpleDbTxn).next(() =>
-            transactionOperation(
-              new IndexedDbTransaction(simpleDbTxn, this.listenSequence.next())
-            )
+            transactionOperation(persistenceTransaction)
           );
         }
-      }
-    );
+      })
+      .then(result => {
+        persistenceTransaction.raiseOnCommittedEvent();
+        return result;
+      });
   }
 
   /**
