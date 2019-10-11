@@ -184,7 +184,11 @@ export class MemoryPersistence implements Persistence {
           .onTransactionCommitted(txn)
           .next(() => result);
       })
-      .toPromise();
+      .toPromise()
+      .then(result => {
+        txn.raiseOnCommittedEvent();
+        return result;
+      });
   }
 
   mutationQueuesContainKey(
@@ -203,8 +207,10 @@ export class MemoryPersistence implements Persistence {
  * Memory persistence is not actually transactional, but future implementations
  * may have transaction-scoped state.
  */
-export class MemoryTransaction implements PersistenceTransaction {
-  constructor(readonly currentSequenceNumber: ListenSequenceNumber) {}
+export class MemoryTransaction extends PersistenceTransaction {
+  constructor(readonly currentSequenceNumber: ListenSequenceNumber) {
+    super();
+  }
 }
 
 export class MemoryEagerDelegate implements ReferenceDelegate {
