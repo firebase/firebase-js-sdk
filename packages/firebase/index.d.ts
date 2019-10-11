@@ -3046,7 +3046,6 @@ declare namespace firebase.auth {
      * a nonce.
      */
     nonce?: string;
-
   }
 
   /**

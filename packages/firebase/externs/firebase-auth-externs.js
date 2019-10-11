@@ -2244,8 +2244,10 @@ firebase.auth.OAuthProvider = function(providerId) {};
  * @param {?string=} accessToken The OAuth access token.
  * @return {!firebase.auth.OAuthCredential} The auth provider credential.
  */
-firebase.auth.OAuthProvider.prototype.credential =
-    function(optionsOrIdToken, accessToken) {};
+firebase.auth.OAuthProvider.prototype.credential = function(
+  optionsOrIdToken,
+  accessToken
+) {};
 
 /** @type {string} */
 firebase.auth.OAuthProvider.prototype.providerId;
