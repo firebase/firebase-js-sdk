@@ -70,7 +70,7 @@ describe('IndexedDbTransaction', () => {
         expect(commitCount).to.equal(0);
 
         ++runCount;
-        if (runCount == 1) {
+        if (runCount === 1) {
           // Trigger a unique key violation
           return targetsStore
             .add({ targetId: 1 })
