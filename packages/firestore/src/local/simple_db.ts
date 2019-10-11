@@ -279,7 +279,7 @@ export class SimpleDb {
           // Horrible hack to verify that idempotent functions can be run more
           // than once.
           .next(result => {
-            if (idempotent && attemptNumber == 1) {
+            if (idempotent && attemptNumber === 1) {
               class DOMException {}
               throw new DOMException();
             }
