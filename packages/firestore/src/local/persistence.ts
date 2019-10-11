@@ -37,11 +37,11 @@ import { ClientId } from './shared_client_state';
  * on persistence.
  */
 export abstract class PersistenceTransaction {
-  private readonly onCommittedListeners: Array<() => {}> = [];
+  private readonly onCommittedListeners: Array<() => void> = [];
 
   abstract readonly currentSequenceNumber: ListenSequenceNumber;
 
-  addOnCommittedListener(listener: () => {}): void {
+  addOnCommittedListener(listener: () => void): void {
     this.onCommittedListeners.push(listener);
   }
 
