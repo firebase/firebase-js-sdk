@@ -155,14 +155,6 @@ firebase.auth.OAuthCredential.prototype.accessToken;
 firebase.auth.OAuthCredential.prototype.secret;
 
 /**
- * The raw nonce associated with the ID token if the ID token is created with
- * a nonce.
- *
- * @type {?string|undefined}
- */
-firebase.auth.OAuthCredential.prototype.nonce;
-
-/**
  * Gets the {@link firebase.auth.Auth `Auth`} service for the current app.
  *
  * @example

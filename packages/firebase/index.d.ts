@@ -3041,11 +3041,6 @@ declare namespace firebase.auth {
      * belongs to an OAuth 1.0 provider, such as `twitter.com`.
      */
     secret?: string;
-    /**
-     * The raw nonce associated with the ID token if the ID token is created with
-     * a nonce.
-     */
-    nonce?: string;
   }
 
   /**

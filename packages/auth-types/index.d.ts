@@ -287,7 +287,6 @@ export class OAuthCredential extends AuthCredential {
   idToken?: string;
   accessToken?: string;
   secret?: string;
-  nonce?: string;
 }
 
 export interface OAuthCredentialOptions {
