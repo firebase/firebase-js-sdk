@@ -342,7 +342,9 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_IFRAME_START] =
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_IOS_BUNDLE_ID] =
     'An iOS Bundle ID must be provided if an App Store ID is provided.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_OR_INVALID_NONCE] =
-    'The OIDC ID token requires a valid unhashed nonce.';
+    'The request does not contain a valid nonce. This can occur if the ' +
+    'SHA-256 hash of the provided raw nonce does not match the hashed nonce ' +
+    'in the ID token payload.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_PHONE_NUMBER] =
     'To send verification codes, provide a phone number for the recipient.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.MISSING_SESSION_INFO] =

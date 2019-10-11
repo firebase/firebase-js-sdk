@@ -3041,6 +3041,12 @@ declare namespace firebase.auth {
      * belongs to an OAuth 1.0 provider, such as `twitter.com`.
      */
     secret?: string;
+    /**
+     * The raw nonce associated with the ID token if the ID token is created with
+     * a nonce.
+     */
+    nonce?: string;
+
   }
 
   /**
@@ -3615,23 +3621,27 @@ declare namespace firebase.auth {
     addScope(scope: string): firebase.auth.AuthProvider;
     /**
      * Creates a Firebase credential from a generic OAuth provider's access token or
-     * ID token.
+     * ID token. The raw nonce is required when an ID token with a nonce field is
+     * provided. The SHA-256 hash of the raw nonce must match the nonce field in
+     * the ID token.
      *
      * @example
      * ```javascript
      * // `googleUser` from the onsuccess Google Sign In callback.
      * // Initialize a generate OAuth provider with a `google.com` providerId.
      * var provider = new firebase.auth.OAuthProvider('google.com');
-     * var credential = provider.credential(
-     *     googleUser.getAuthResponse().id_token);
+     * var credential = provider.credential({
+     *   idToken: googleUser.getAuthResponse().id_token,
+     * });
      * firebase.auth().signInWithCredential(credential)
      * ```
      *
-     * @param idToken The OAuth ID token if OIDC compliant.
+     * @param optionsOrIdToken Either the options object containing
+     *     the ID token, access token and raw nonce or the ID token string.
      * @param accessToken The OAuth access token.
      */
     credential(
-      idToken?: string,
+      optionsOrIdToken: Object | string | null,
       accessToken?: string
     ): firebase.auth.OAuthCredential;
     /**
