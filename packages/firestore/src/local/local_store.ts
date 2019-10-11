@@ -790,10 +790,8 @@ export class LocalStore {
    * the store can be used to manage its view.
    */
   allocateQuery(query: Query): Promise<QueryData> {
-    return this.persistence.runTransaction(
-      'Allocate query',
-      'readwrite',
-      txn => {
+    return this.persistence
+      .runTransaction('Allocate query', 'readwrite', txn => {
         let queryData: QueryData;
         return this.queryCache
           .getQueryData(txn, query)
@@ -803,7 +801,7 @@ export class LocalStore {
               // previous targetID.
               // TODO(mcg): freshen last accessed date?
               queryData = cached;
-              return PersistencePromise.resolve();
+              return PersistencePromise.resolve(queryData);
             } else {
               return this.queryCache.allocateTargetId(txn).next(targetId => {
                 queryData = new QueryData(
@@ -812,24 +810,25 @@ export class LocalStore {
                   QueryPurpose.Listen,
                   txn.currentSequenceNumber
                 );
-                return this.queryCache.addQueryData(txn, queryData);
+                return this.queryCache.addQueryData(txn, queryData).next(() => {
+                  return PersistencePromise.resolve(queryData);
+                });
               });
             }
-          })
-          .next(() => {
-            assert(
-              this.queryDataByTarget.get(queryData.targetId) === null,
-              'Tried to allocate an already allocated query: ' + query
-            );
-            this.queryDataByTarget = this.queryDataByTarget.insert(
-              queryData.targetId,
-              queryData
-            );
-            this.targetIdByQuery.set(query, queryData.targetId);
-            return queryData;
           });
-      }
-    );
+      })
+      .then(queryData => {
+        assert(
+          this.queryDataByTarget.get(queryData.targetId) === null,
+          'Tried to allocate an already allocated query: ' + query
+        );
+        this.queryDataByTarget = this.queryDataByTarget.insert(
+          queryData.targetId,
+          queryData
+        );
+        this.targetIdByQuery.set(query, queryData.targetId);
+        return queryData;
+      });
   }
 
   /**
