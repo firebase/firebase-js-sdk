@@ -317,15 +317,12 @@ export class IndexedDbPersistence implements Persistence {
 
         this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
-        return this.startRemoteDocumentCache();
-      })
-      .then(() =>
-        this.simpleDb.runTransaction(
+        return this.simpleDb.runTransaction(
           'readonly-idempotent',
           [DbTargetGlobal.store],
           txn => getHighestListenSequenceNumber(txn)
-        )
-      )
+        );
+      })
       .then(highestListenSequenceNumber => {
         this.listenSequence = new ListenSequence(
           highestListenSequenceNumber,
@@ -339,12 +336,6 @@ export class IndexedDbPersistence implements Persistence {
         this.simpleDb && this.simpleDb.close();
         return Promise.reject(reason);
       });
-  }
-
-  private startRemoteDocumentCache(): Promise<void> {
-    return this.simpleDb.runTransaction('readonly', ALL_STORES, txn =>
-      this.remoteDocumentCache.start(txn)
-    );
   }
 
   setPrimaryStateListener(
@@ -769,10 +760,14 @@ export class IndexedDbPersistence implements Persistence {
           this.listenSequence.next()
         );
 
+<<<<<<< HEAD
         if (
           mode === 'readwrite-primary' ||
           mode === 'readwrite-primary-idempotent'
         ) {
+=======
+        if (mode === 'readwrite-primary') {
+>>>>>>> mrschmidt/idempotent
           // While we merely verify that we have (or can acquire) the lease
           // immediately, we wait to extend the primary lease until after
           // executing transactionOperation(). This ensures that even if the

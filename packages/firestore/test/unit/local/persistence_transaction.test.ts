@@ -66,7 +66,7 @@ describe('IndexedDbTransaction', () => {
         txn.addOnCommittedListener(() => {
           ++commitCount;
         });
-        
+
         expect(commitCount).to.equal(0);
 
         ++runCount;

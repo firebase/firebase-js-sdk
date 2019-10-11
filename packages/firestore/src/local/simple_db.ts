@@ -273,15 +273,18 @@ export class SimpleDb {
         objectStores
       );
       try {
-        // TODO(schmidt-sebastian): Remove this code/comment or find a way to
-        // make this a test-only setting.
-        // // Horrible hack to verify that idempotent functions can be run more
-        // // than once.
-        // const transactionFnResult = (idempotent && attemptNumber === 1
-        //   ? transactionFn(transaction)
-        //   : PersistencePromise.resolve({} as T)
-        // ).next(() => transactionFn(transaction))
         const transactionFnResult = transactionFn(transaction)
+          // TODO(schmidt-sebastian): Remove this code/comment or find a way to
+          // make this a test-only setting.
+          // Horrible hack to verify that idempotent functions can be run more
+          // than once.
+          .next(result => {
+            if (idempotent && attemptNumber == 1) {
+              class DOMException {}
+              throw new DOMException();
+            }
+            return result;
+          })
           .catch(error => {
             // Abort the transaction if there was an error.
             transaction.abort(error);
