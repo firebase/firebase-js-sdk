@@ -67,6 +67,8 @@ describe('IndexedDbTransaction', () => {
           ++commitCount;
         });
 
+        expect(commitCount).to.equal(0);
+
         ++runCount;
         if (runCount == 1) {
           // Trigger a unique key violation
