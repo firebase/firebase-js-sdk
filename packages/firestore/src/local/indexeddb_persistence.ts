@@ -317,15 +317,12 @@ export class IndexedDbPersistence implements Persistence {
 
         this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
-        return this.startRemoteDocumentCache();
-      })
-      .then(() =>
-        this.simpleDb.runTransaction(
+        return this.simpleDb.runTransaction(
           'readonly-idempotent',
           [DbTargetGlobal.store],
           txn => getHighestListenSequenceNumber(txn)
-        )
-      )
+        );
+      })
       .then(highestListenSequenceNumber => {
         this.listenSequence = new ListenSequence(
           highestListenSequenceNumber,
@@ -339,12 +336,6 @@ export class IndexedDbPersistence implements Persistence {
         this.simpleDb && this.simpleDb.close();
         return Promise.reject(reason);
       });
-  }
-
-  private startRemoteDocumentCache(): Promise<void> {
-    return this.simpleDb.runTransaction('readonly', ALL_STORES, txn =>
-      this.remoteDocumentCache.start(txn)
-    );
   }
 
   setPrimaryStateListener(
