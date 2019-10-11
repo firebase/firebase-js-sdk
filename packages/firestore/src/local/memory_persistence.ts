@@ -180,12 +180,15 @@ export class MemoryPersistence implements Persistence {
     this.referenceDelegate.onTransactionStarted();
     return transactionOperation(txn)
       .next(result => {
-        txn.raiseOnCommittedEvent();
         return this.referenceDelegate
           .onTransactionCommitted(txn)
           .next(() => result);
       })
-      .toPromise();
+      .toPromise()
+      .then(result => {
+        txn.raiseOnCommittedEvent();
+        return result;
+      });
   }
 
   mutationQueuesContainKey(
