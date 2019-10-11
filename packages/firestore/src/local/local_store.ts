@@ -1035,7 +1035,7 @@ export class LocalStore {
   collectGarbage(garbageCollector: LruGarbageCollector): Promise<LruResults> {
     return this.persistence.runTransaction(
       'Collect garbage',
-      'readwrite-primary',
+      'readwrite-primary-idempotent',
       txn => garbageCollector.collect(txn, this.queryDataByTarget)
     );
   }
