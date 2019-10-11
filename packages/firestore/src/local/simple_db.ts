@@ -257,7 +257,7 @@ export class SimpleDb {
 
   async runTransaction<T>(
     mode: SimpleDbTransactionMode,
-    objectStores: string[],x
+    objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
     const readonly = mode.startsWith('readonly');

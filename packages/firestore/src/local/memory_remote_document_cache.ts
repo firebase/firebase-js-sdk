@@ -177,14 +177,14 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   getNewDocumentChanges(
-      transaction: PersistenceTransaction,
-      sinceReadTime: SnapshotVersion
+    transaction: PersistenceTransaction,
+    sinceReadTime: SnapshotVersion
   ): PersistencePromise<{
     changedDocs: MaybeDocumentMap;
     readTime: SnapshotVersion;
   }> {
     throw new Error(
-        'getNewDocumentChanges() is not supported with MemoryPersistence'
+      'getNewDocumentChanges() is not supported with MemoryPersistence'
     );
   }
 
