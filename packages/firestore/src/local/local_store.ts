@@ -731,7 +731,7 @@ export class LocalStore {
     }
     return this.persistence.runTransaction(
       'notifyLocalViewChanges',
-      'readwrite',
+      'readwrite-idempotent',
       txn => {
         return PersistencePromise.forEach(
           viewChanges,
@@ -790,7 +790,7 @@ export class LocalStore {
    */
   allocateQuery(query: Query): Promise<QueryData> {
     return this.persistence
-      .runTransaction('Allocate query', 'readwrite', txn => {
+      .runTransaction('Allocate query', 'readwrite-idempotent', txn => {
         let queryData: QueryData;
         return this.queryCache
           .getQueryData(txn, query)
@@ -809,9 +809,9 @@ export class LocalStore {
                   QueryPurpose.Listen,
                   txn.currentSequenceNumber
                 );
-                return this.queryCache.addQueryData(txn, queryData).next(() => {
-                  return PersistencePromise.resolve(queryData);
-                });
+                return this.queryCache
+                  .addQueryData(txn, queryData)
+                  .next(() => queryData);
               });
             }
           });
