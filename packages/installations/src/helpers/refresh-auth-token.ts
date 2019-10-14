@@ -36,35 +36,35 @@ import { remove, set, update } from './idb-manager';
  *
  * Should only be called if the Firebase Installation is registered.
  */
-export async function refreshAuthToken(appConfig: AppConfig): Promise<string> {
+export async function refreshAuthToken(
+  appConfig: AppConfig,
+  forceRefresh = false
+): Promise<string> {
   let tokenPromise: Promise<CompletedAuthToken> | undefined;
-  const entry = await update(
-    appConfig,
-    (oldEntry?: InstallationEntry): RegisteredInstallationEntry => {
-      if (!isEntryRegistered(oldEntry)) {
-        throw ERROR_FACTORY.create(ErrorCode.NOT_REGISTERED);
-      }
-
-      const oldAuthToken = oldEntry.authToken;
-      if (isAuthTokenValid(oldAuthToken)) {
-        // There is a valid token in the DB.
-        return oldEntry;
-      } else if (oldAuthToken.requestStatus === RequestStatus.IN_PROGRESS) {
-        // There already is a token request in progress.
-        tokenPromise = waitUntilAuthTokenRequest(appConfig);
-        return oldEntry;
-      } else {
-        // No token or token expired.
-        if (!navigator.onLine) {
-          throw ERROR_FACTORY.create(ErrorCode.APP_OFFLINE);
-        }
-
-        const inProgressEntry = makeAuthTokenRequestInProgressEntry(oldEntry);
-        tokenPromise = fetchAuthTokenFromServer(appConfig, inProgressEntry);
-        return inProgressEntry;
-      }
+  const entry = await update(appConfig, oldEntry => {
+    if (!isEntryRegistered(oldEntry)) {
+      throw ERROR_FACTORY.create(ErrorCode.NOT_REGISTERED);
     }
-  );
+
+    const oldAuthToken = oldEntry.authToken;
+    if (!forceRefresh && isAuthTokenValid(oldAuthToken)) {
+      // There is a valid token in the DB.
+      return oldEntry;
+    } else if (oldAuthToken.requestStatus === RequestStatus.IN_PROGRESS) {
+      // There already is a token request in progress.
+      tokenPromise = waitUntilAuthTokenRequest(appConfig);
+      return oldEntry;
+    } else {
+      // No token or token expired.
+      if (!navigator.onLine) {
+        throw ERROR_FACTORY.create(ErrorCode.APP_OFFLINE);
+      }
+
+      const inProgressEntry = makeAuthTokenRequestInProgressEntry(oldEntry);
+      tokenPromise = fetchAuthTokenFromServer(appConfig, inProgressEntry);
+      return inProgressEntry;
+    }
+  });
 
   const authToken: CompletedAuthToken = tokenPromise
     ? await tokenPromise
@@ -109,24 +109,21 @@ async function waitUntilAuthTokenRequest(
 function updateAuthTokenRequest(
   appConfig: AppConfig
 ): Promise<RegisteredInstallationEntry> {
-  return update(
-    appConfig,
-    (oldEntry?: InstallationEntry): RegisteredInstallationEntry => {
-      if (!isEntryRegistered(oldEntry)) {
-        throw ERROR_FACTORY.create(ErrorCode.NOT_REGISTERED);
-      }
-
-      const oldAuthToken = oldEntry.authToken;
-      if (hasAuthTokenRequestTimedOut(oldAuthToken)) {
-        return {
-          ...oldEntry,
-          authToken: { requestStatus: RequestStatus.NOT_STARTED }
-        };
-      }
-
-      return oldEntry;
+  return update(appConfig, oldEntry => {
+    if (!isEntryRegistered(oldEntry)) {
+      throw ERROR_FACTORY.create(ErrorCode.NOT_REGISTERED);
     }
-  );
+
+    const oldAuthToken = oldEntry.authToken;
+    if (hasAuthTokenRequestTimedOut(oldAuthToken)) {
+      return {
+        ...oldEntry,
+        authToken: { requestStatus: RequestStatus.NOT_STARTED }
+      };
+    }
+
+    return oldEntry;
+  });
 }
 
 async function fetchAuthTokenFromServer(

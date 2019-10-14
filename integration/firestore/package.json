@@ -12,7 +12,6 @@
   },
   "devDependencies": {
     "@types/mocha": "5.2.7",
-    "@types/node": "11.13.21",
     "gulp": "4.0.2",
     "gulp-filter": "5.1.0",
     "gulp-replace": "1.0.0",
@@ -23,7 +22,7 @@
     "karma-spec-reporter": "0.0.32",
     "mocha": "6.2.1",
     "ts-loader": "6.2.0",
-    "typescript": "3.5.3",
+    "typescript": "3.6.3",
     "webpack": "4.41.0",
     "webpack-stream": "5.2.1"
   }

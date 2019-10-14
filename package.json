@@ -34,7 +34,8 @@
     "docgen:js": "node scripts/docgen/generate-docs.js --api js",
     "docgen:node": "node scripts/docgen/generate-docs.js --api node",
     "docgen": "yarn docgen:js; yarn docgen:node",
-    "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'"
+    "prettier": "prettier --config .prettierrc --write '**/*.{ts,js}'",
+    "lint": "lerna run --scope @firebase/* --scope rxfire lint"
   },
   "repository": {
     "type": "git",
@@ -52,8 +53,8 @@
     "dependency-graph": "0.8.0",
     "firebase-tools": "7.4.0",
     "glob": "7.1.4",
-    "husky": "3.0.7",
-    "inquirer": "6.5.2",
+    "husky": "3.0.8",
+    "inquirer": "7.0.0",
     "istanbul-instrumenter-loader": "3.0.1",
     "js-yaml": "3.13.1",
     "lcov-result-merger": "3.1.0",
@@ -69,7 +70,7 @@
     "simple-git": "1.126.0",
     "typedoc": "0.15.0",
     "ts-node": "8.4.1",
-    "typescript": "3.5.3",
+    "typescript": "3.6.3",
     "yargs": "14.0.0",
     "babel-loader": "8.0.6"
   }

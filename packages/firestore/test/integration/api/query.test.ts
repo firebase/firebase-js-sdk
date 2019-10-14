@@ -641,8 +641,8 @@ apiDescribe('Queries', (persistence: boolean) => {
 
     const expectedError =
       'QuerySnapshot.docChanges has been changed from a property into a method';
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, We are testing invalid API usage.
+    // We are testing invalid API usage.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const docChange = querySnap.docChanges as any;
     expect(() => docChange.length).to.throw(expectedError);
     expect(() => {

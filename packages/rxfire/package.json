@@ -1,6 +1,6 @@
 {
   "name": "rxfire",
-  "version": "3.8.3",
+  "version": "3.8.4",
   "private": false,
   "description": "Firebase JavaScript library RxJS",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
@@ -33,19 +33,22 @@
   "main": "dist/index.node.cjs.js",
   "browser": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "dependencies": {
+    "tslib": "1.10.0"
+  },
   "peerDependencies": {
     "firebase": ">= 5.0.0 <8",
     "rxjs": "6.x.x"
   },
   "devDependencies": {
-    "firebase": "7.0.0",
+    "firebase": "7.1.0",
     "rxjs": "6.5.3",
-    "rollup": "1.22.0",
+    "rollup": "1.23.0",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-typescript2": "0.24.3",
     "rollup-plugin-uglify": "6.0.3",
-    "typescript": "3.5.3",
+    "typescript": "3.6.3",
     "@types/chai": "4.2.3",
     "@types/chai-as-promised": "7.1.2",
     "@types/mocha": "5.2.7",
@@ -70,7 +73,7 @@
     "tslint": "5.20.0",
     "webpack": "4.41.0",
     "yargs": "14.0.0",
-    "eslint": "5.16.0",
+    "eslint": "6.5.1",
     "@typescript-eslint/parser": "2.3.2",
     "@typescript-eslint/eslint-plugin": "2.3.2",
     "@typescript-eslint/eslint-plugin-tslint": "2.3.2",

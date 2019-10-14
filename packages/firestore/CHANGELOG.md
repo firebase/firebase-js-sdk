@@ -2,6 +2,8 @@
 - [fixed] Fixed a regression that caused queries with nested field filters to
   crash the client if the field was not present in the local copy of the
   document. 
+- [fixed] Fixed an issue that caused requests with timestamps to Firestore
+  Emulator to fail.
 
 # 1.5.0
 - [feature] Added a `Firestore.waitForPendingWrites()` method that

@@ -18,7 +18,8 @@
 import * as protoLoader from '@grpc/proto-loader';
 import * as grpc from 'grpc';
 import * as path from 'path';
-// eslint-disable-next-line import/no-extraneous-dependencies, only used in tests
+// only used in tests
+// eslint-disable-next-line import/no-extraneous-dependencies
 import * as ProtobufJS from 'protobufjs';
 
 /** Used by tests so we can match @grpc/proto-loader behavior. */

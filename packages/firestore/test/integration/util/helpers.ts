@@ -28,8 +28,8 @@ import { User } from '../../../src/auth/user';
  * NOTE: These helpers are used by api/ tests and therefore may not have any
  * dependencies on src/ files.
  */
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, __karma__ is an untyped global
+// __karma__ is an untyped global
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const __karma__: any;
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports

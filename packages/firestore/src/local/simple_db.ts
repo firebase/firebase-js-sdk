@@ -486,7 +486,8 @@ export class SimpleDbStore<
    */
   get(key: KeyType): PersistencePromise<ValueType | null> {
     const request = this.store.get(key);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, We're doing an unsafe cast to ValueType.
+    // We're doing an unsafe cast to ValueType.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return wrapRequest<any>(request).next(result => {
       // Normalize nonexistence to null.
       if (result === undefined) {
