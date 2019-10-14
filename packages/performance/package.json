@@ -1,6 +1,6 @@
 {
   "name": "@firebase/performance",
-  "version": "0.2.19",
+  "version": "0.2.20",
   "description": "Firebase performance for web",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -26,10 +26,10 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/logger": "0.1.25",
-    "@firebase/installations": "0.2.7",
-    "@firebase/util": "0.2.28",
-    "@firebase/performance-types": "0.0.3",
+    "@firebase/logger": "0.1.26",
+    "@firebase/installations": "0.3.0",
+    "@firebase/util": "0.2.29",
+    "@firebase/performance-types": "0.0.4",
     "tslib": "1.10.0"
   },
   "license": "Apache-2.0",
