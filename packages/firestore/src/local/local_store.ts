@@ -396,7 +396,7 @@ export class LocalStore {
   ): Promise<MaybeDocumentMap> {
     return this.persistence.runTransaction(
       'Acknowledge batch',
-      'readwrite-primary',
+      'readwrite-primary-idempotent',
       txn => {
         const affected = batchResult.batch.keys();
         const documentBuffer = this.remoteDocuments.newChangeBuffer({
@@ -423,7 +423,7 @@ export class LocalStore {
   rejectBatch(batchId: BatchId): Promise<MaybeDocumentMap> {
     return this.persistence.runTransaction(
       'Reject batch',
-      'readwrite-primary',
+      'readwrite-primary-idempotent',
       txn => {
         let affectedKeys: DocumentKeySet;
         return this.mutationQueue

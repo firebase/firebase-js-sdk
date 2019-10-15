@@ -499,7 +499,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
       this.userId,
       batch
     ).next(removedDocuments => {
-      this.removeCachedMutationKeys(batch.batchId);
+      transaction.addOnCommittedListener(() => {
+        this.removeCachedMutationKeys(batch.batchId);
+      });
       return PersistencePromise.forEach(
         removedDocuments,
         (key: DocumentKey) => {
