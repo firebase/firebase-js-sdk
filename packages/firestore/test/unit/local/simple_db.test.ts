@@ -93,7 +93,7 @@ describe('SimpleDb', () => {
       transaction: SimpleDbTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
-    return db.runTransaction<T>('readwrite', ['users'], txn => {
+    return db.runTransaction<T>('readwrite-idempotent', ['users'], txn => {
       return fn(txn.store<number, User>('users'), txn);
     });
   }
@@ -481,7 +481,7 @@ describe('SimpleDb', () => {
       ['foo', 'd'],
       ['foob']
     ];
-    await db.runTransaction('readwrite', ['users', 'docs'], txn => {
+    await db.runTransaction('readwrite-idempotent', ['users', 'docs'], txn => {
       const docsStore = txn.store<string[], string>('docs');
       return PersistencePromise.waitFor(
         keys.map(key => {
@@ -491,13 +491,91 @@ describe('SimpleDb', () => {
       );
     });
 
-    await db.runTransaction('readonly', ['docs'], txn => {
+    await db.runTransaction('readonly-idempotent', ['docs'], txn => {
       const store = txn.store<string[], string>('docs');
       const range = IDBKeyRange.bound(['foo'], ['foo', 'c']);
       return store.loadAll(range).next(results => {
         expect(results).to.deep.equal(['doc foo', 'doc foo/bar/baz']);
       });
     });
+  });
+
+  it('retries transactions marked as idempotent', async () => {
+    let attemptCount = 0;
+
+    const result = await db.runTransaction(
+      'readwrite-idempotent',
+      ['users'],
+      txn => {
+        ++attemptCount;
+        if (attemptCount === 1) {
+          const store = txn.store<string[], typeof dummyUser>('users');
+          return store
+            .add(dummyUser)
+            .next(() => {
+              return store.add(dummyUser); // Fails with a unique key violation
+            })
+            .next(() => 'Aborted');
+        } else {
+          return PersistencePromise.resolve('success');
+        }
+      }
+    );
+
+    expect(result).to.equal('success');
+    expect(attemptCount).to.equal(2);
+  });
+
+  it('retries transactions only three times', async () => {
+    let attemptCount = 0;
+
+    await expect(
+      db.runTransaction('readwrite-idempotent', ['users'], txn => {
+        ++attemptCount;
+        const store = txn.store<string[], typeof dummyUser>('users');
+        return store
+          .add(dummyUser)
+          .next(() => {
+            return store.add(dummyUser); // Fails with a unique key violation
+          })
+          .next(() => 'Aborted');
+      })
+    ).to.eventually.be.rejected;
+
+    expect(attemptCount).to.equal(3);
+  });
+
+  it('does not retry explicitly aborted transactions', async () => {
+    let attemptCount = 0;
+
+    await expect(
+      db.runTransaction('readwrite-idempotent', ['users'], txn => {
+        ++attemptCount;
+        txn.abort();
+        return PersistencePromise.reject(new Error('Aborted'));
+      })
+    ).to.eventually.be.rejected;
+
+    expect(attemptCount).to.equal(1);
+  });
+
+  it('does not retry non-idempotent transactions', async () => {
+    let attemptCount = 0;
+
+    await expect(
+      db.runTransaction('readwrite', ['users'], txn => {
+        ++attemptCount;
+        const store = txn.store<string[], typeof dummyUser>('users');
+        return store
+          .add(dummyUser)
+          .next(() => {
+            return store.add(dummyUser); // Fails with a unique key violation
+          })
+          .next(() => 'Aborted');
+      })
+    ).to.eventually.be.rejected;
+
+    expect(attemptCount).to.equal(1);
   });
 
   // A little perf test for convenient benchmarking
