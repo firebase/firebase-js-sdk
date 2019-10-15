@@ -731,41 +731,40 @@ export class LocalStore {
    * Notify local store of the changed views to locally pin documents.
    */
   notifyLocalViewChanges(viewChanges: LocalViewChanges[]): Promise<void> {
+    for (const viewChange of viewChanges) {
+      const targetId = viewChange.targetId;
+
+      this.localViewReferences.addReferences(viewChange.addedKeys, targetId);
+      this.localViewReferences.removeReferences(
+        viewChange.removedKeys,
+        targetId
+      );
+
+      if (!viewChange.fromCache) {
+        const queryData = this.queryDataByTarget.get(targetId);
+        assert(
+          queryData !== null,
+          `Can't set limbo-free snapshot version for unknown target: ${targetId}`
+        );
+
+        // Advance the last limbo free snapshot version
+        const lastLimboFreeSnapshotVersion = queryData!.snapshotVersion;
+        const updatedQueryData = queryData!.withLastLimboFreeSnapshotVersion(
+          lastLimboFreeSnapshotVersion
+        );
+        this.queryDataByTarget = this.queryDataByTarget.insert(
+          targetId,
+          updatedQueryData
+        );
+      }
+    }
     return this.persistence.runTransaction(
       'notifyLocalViewChanges',
-      'readwrite',
+      'readwrite-idempotent',
       txn => {
         return PersistencePromise.forEach(
           viewChanges,
           (viewChange: LocalViewChanges) => {
-            const targetId = viewChange.targetId;
-
-            this.localViewReferences.addReferences(
-              viewChange.addedKeys,
-              targetId
-            );
-            this.localViewReferences.removeReferences(
-              viewChange.removedKeys,
-              targetId
-            );
-
-            if (!viewChange.fromCache) {
-              const queryData = this.queryDataByTarget.get(targetId);
-              assert(
-                queryData !== null,
-                `Can't set limbo-free snapshot version for unknown target: ${targetId}`
-              );
-
-              // Advance the last limbo free snapshot version
-              const lastLimboFreeSnapshotVersion = queryData!.snapshotVersion;
-              const updatedQueryData = queryData!.withLastLimboFreeSnapshotVersion(
-                lastLimboFreeSnapshotVersion
-              );
-              this.queryDataByTarget = this.queryDataByTarget.insert(
-                targetId,
-                updatedQueryData
-              );
-            }
             return PersistencePromise.forEach(
               viewChange.removedKeys,
               (key: DocumentKey) =>
@@ -819,10 +818,8 @@ export class LocalStore {
    * the store can be used to manage its view.
    */
   allocateQuery(query: Query): Promise<QueryData> {
-    return this.persistence.runTransaction(
-      'Allocate query',
-      'readwrite',
-      txn => {
+    return this.persistence
+      .runTransaction('Allocate query', 'readwrite-idempotent', txn => {
         let queryData: QueryData;
         return this.queryCache
           .getQueryData(txn, query)
@@ -832,7 +829,7 @@ export class LocalStore {
               // previous targetID.
               // TODO(mcg): freshen last accessed date?
               queryData = cached;
-              return PersistencePromise.resolve();
+              return PersistencePromise.resolve(queryData);
             } else {
               return this.queryCache.allocateTargetId(txn).next(targetId => {
                 queryData = new QueryData(
@@ -841,24 +838,25 @@ export class LocalStore {
                   QueryPurpose.Listen,
                   txn.currentSequenceNumber
                 );
-                return this.queryCache.addQueryData(txn, queryData);
+                return this.queryCache
+                  .addQueryData(txn, queryData)
+                  .next(() => queryData);
               });
             }
-          })
-          .next(() => {
-            assert(
-              this.queryDataByTarget.get(queryData.targetId) === null,
-              'Tried to allocate an already allocated query: ' + query
-            );
-            this.queryDataByTarget = this.queryDataByTarget.insert(
-              queryData.targetId,
-              queryData
-            );
-            this.targetIdByQuery.set(query, queryData.targetId);
-            return queryData;
           });
-      }
-    );
+      })
+      .then(queryData => {
+        assert(
+          this.queryDataByTarget.get(queryData.targetId) === null,
+          'Tried to allocate an already allocated query: ' + query
+        );
+        this.queryDataByTarget = this.queryDataByTarget.insert(
+          queryData.targetId,
+          queryData
+        );
+        this.targetIdByQuery.set(query, queryData.targetId);
+        return queryData;
+      });
   }
 
   /**
