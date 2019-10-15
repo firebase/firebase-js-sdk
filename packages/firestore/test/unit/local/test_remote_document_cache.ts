@@ -128,12 +128,17 @@ export class TestRemoteDocumentCache {
     );
   }
 
-  getNewDocumentChanges(): Promise<MaybeDocumentMap> {
+  getNewDocumentChanges(
+    sinceReadTime: SnapshotVersion
+  ): Promise<{
+    changedDocs: MaybeDocumentMap;
+    readTime: SnapshotVersion;
+  }> {
     return this.persistence.runTransaction(
       'getNewDocumentChanges',
       'readonly',
       txn => {
-        return this.cache.getNewDocumentChanges(txn);
+        return this.cache.getNewDocumentChanges(txn, sinceReadTime);
       }
     );
   }

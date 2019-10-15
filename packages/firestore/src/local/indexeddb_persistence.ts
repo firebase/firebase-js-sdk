@@ -317,15 +317,12 @@ export class IndexedDbPersistence implements Persistence {
 
         this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
-        return this.startRemoteDocumentCache();
-      })
-      .then(() =>
-        this.simpleDb.runTransaction(
+        return this.simpleDb.runTransaction(
           'readonly-idempotent',
           [DbTargetGlobal.store],
           txn => getHighestListenSequenceNumber(txn)
-        )
-      )
+        );
+      })
       .then(highestListenSequenceNumber => {
         this.listenSequence = new ListenSequence(
           highestListenSequenceNumber,
@@ -339,12 +336,6 @@ export class IndexedDbPersistence implements Persistence {
         this.simpleDb && this.simpleDb.close();
         return Promise.reject(reason);
       });
-  }
-
-  private startRemoteDocumentCache(): Promise<void> {
-    return this.simpleDb.runTransaction('readonly', ALL_STORES, txn =>
-      this.remoteDocumentCache.start(txn)
-    );
   }
 
   setPrimaryStateListener(
@@ -758,12 +749,17 @@ export class IndexedDbPersistence implements Persistence {
       ? 'readwrite-idempotent'
       : 'readwrite';
 
+    let persistenceTransaction: PersistenceTransaction;
+
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-    return this.simpleDb.runTransaction(
-      simpleDbMode,
-      ALL_STORES,
-      simpleDbTxn => {
+    return this.simpleDb
+      .runTransaction(simpleDbMode, ALL_STORES, simpleDbTxn => {
+        persistenceTransaction = new IndexedDbTransaction(
+          simpleDbTxn,
+          this.listenSequence.next()
+        );
+
         if (
           mode === 'readwrite-primary' ||
           mode === 'readwrite-primary-idempotent'
@@ -788,12 +784,7 @@ export class IndexedDbPersistence implements Persistence {
                   PRIMARY_LEASE_LOST_ERROR_MSG
                 );
               }
-              return transactionOperation(
-                new IndexedDbTransaction(
-                  simpleDbTxn,
-                  this.listenSequence.next()
-                )
-              );
+              return transactionOperation(persistenceTransaction);
             })
             .next(result => {
               return this.acquireOrExtendPrimaryLease(simpleDbTxn).next(
@@ -802,13 +793,14 @@ export class IndexedDbPersistence implements Persistence {
             });
         } else {
           return this.verifyAllowTabSynchronization(simpleDbTxn).next(() =>
-            transactionOperation(
-              new IndexedDbTransaction(simpleDbTxn, this.listenSequence.next())
-            )
+            transactionOperation(persistenceTransaction)
           );
         }
-      }
-    );
+      })
+      .then(result => {
+        persistenceTransaction.raiseOnCommittedEvent();
+        return result;
+      });
   }
 
   /**

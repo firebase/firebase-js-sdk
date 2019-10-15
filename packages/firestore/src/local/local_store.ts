@@ -46,6 +46,7 @@ import { SortedMap } from '../util/sorted_map';
 import { LocalDocumentsView } from './local_documents_view';
 import { LocalViewChanges } from './local_view_changes';
 import { LruGarbageCollector, LruResults } from './lru_garbage_collector';
+import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import { MutationQueue } from './mutation_queue';
 import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
@@ -177,6 +178,13 @@ export class LocalStore {
     q.canonicalId()
   );
 
+  /**
+   * The read time of the last entry processed by `getNewDocumentChanges()`.
+   *
+   * PORTING NOTE: This is only used for multi-tab synchronization.
+   */
+  private lastDocumentChangeReadTime = SnapshotVersion.MIN;
+
   constructor(
     /** Manages our in-memory or durable persistence. */
     private persistence: Persistence,
@@ -201,6 +209,11 @@ export class LocalStore {
     this.queryEngine.setLocalDocumentsView(this.localDocuments);
   }
 
+  /** Starts the LocalStore. */
+  start(): Promise<void> {
+    return this.synchronizeLastDocumentChangeReadTime();
+  }
+
   /**
    * Tells the LocalStore that the currently authenticated user has changed.
    *
@@ -209,10 +222,13 @@ export class LocalStore {
    */
   // PORTING NOTE: Android and iOS only return the documents affected by the
   // change.
-  handleUserChange(user: User): Promise<UserChangeResult> {
-    return this.persistence.runTransaction(
+  async handleUserChange(user: User): Promise<UserChangeResult> {
+    let newMutationQueue = this.mutationQueue;
+    let newLocalDocuments = this.localDocuments;
+
+    const result = await this.persistence.runTransaction(
       'Handle user change',
-      'readonly',
+      'readonly-idempotent',
       txn => {
         // Swap out the mutation queue, grabbing the pending mutation batches
         // before and after.
@@ -222,17 +238,16 @@ export class LocalStore {
           .next(promisedOldBatches => {
             oldBatches = promisedOldBatches;
 
-            this.mutationQueue = this.persistence.getMutationQueue(user);
+            newMutationQueue = this.persistence.getMutationQueue(user);
 
             // Recreate our LocalDocumentsView using the new
             // MutationQueue.
-            this.localDocuments = new LocalDocumentsView(
+            newLocalDocuments = new LocalDocumentsView(
               this.remoteDocuments,
-              this.mutationQueue,
+              newMutationQueue,
               this.persistence.getIndexManager()
             );
-            this.queryEngine.setLocalDocumentsView(this.localDocuments);
-            return this.mutationQueue.getAllMutationBatches(txn);
+            return newMutationQueue.getAllMutationBatches(txn);
           })
           .next(newBatches => {
             const removedBatchIds: BatchId[] = [];
@@ -257,7 +272,7 @@ export class LocalStore {
 
             // Return the set of all (potentially) changed documents and the list
             // of mutation batch IDs that were affected by change.
-            return this.localDocuments
+            return newLocalDocuments
               .getDocuments(txn, changedKeys)
               .next(affectedDocuments => {
                 return {
@@ -269,7 +284,14 @@ export class LocalStore {
           });
       }
     );
+
+    this.mutationQueue = newMutationQueue;
+    this.localDocuments = newLocalDocuments;
+    this.queryEngine.setLocalDocumentsView(this.localDocuments);
+
+    return result;
   }
+
   /* Accept locally generated Mutations and commit them to storage. */
   localWrite(mutations: Mutation[]): Promise<LocalWriteResult> {
     const localWriteTime = Timestamp.now();
@@ -1035,14 +1057,45 @@ export class LocalStore {
     }
   }
 
+  /**
+   * Returns the set of documents that have been updated since the last call.
+   * If this is the first call, returns the set of changes since client
+   * initialization. Further invocations will return document changes since
+   * the point of rejection.
+   */
   // PORTING NOTE: Multi-tab only.
   getNewDocumentChanges(): Promise<MaybeDocumentMap> {
-    return this.persistence.runTransaction(
-      'Get new document changes',
-      'readonly',
-      txn => {
-        return this.remoteDocuments.getNewDocumentChanges(txn);
-      }
-    );
+    return this.persistence
+      .runTransaction('Get new document changes', 'readonly-idempotent', txn =>
+        this.remoteDocuments.getNewDocumentChanges(
+          txn,
+          this.lastDocumentChangeReadTime
+        )
+      )
+      .then(({ changedDocs, readTime }) => {
+        this.lastDocumentChangeReadTime = readTime;
+        return changedDocs;
+      });
+  }
+
+  /**
+   * Reads the newest document change from persistence and forwards the internal
+   * synchronization marker so that calls to `getNewDocumentChanges()`
+   * only return changes that happened after client initialization.
+   */
+  // PORTING NOTE: Multi-tab only.
+  async synchronizeLastDocumentChangeReadTime(): Promise<void> {
+    if (this.remoteDocuments instanceof IndexedDbRemoteDocumentCache) {
+      const remoteDocumentCache = this.remoteDocuments;
+      return this.persistence
+        .runTransaction(
+          'Synchronize last document change read time',
+          'readonly-idempotent',
+          txn => remoteDocumentCache.getLastDocumentChange(txn)
+        )
+        .then(({ readTime }) => {
+          this.lastDocumentChangeReadTime = readTime;
+        });
+    }
   }
 }
