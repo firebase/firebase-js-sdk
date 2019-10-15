@@ -207,11 +207,24 @@ export class JsonProtoSerializer {
    * to actually return a Timestamp proto.
    */
   private toTimestamp(timestamp: Timestamp): string {
-    return {
-      seconds: '' + timestamp.seconds,
-      nanos: timestamp.nanoseconds
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    if (this.options.useProto3Json) {
+      // Serialize to ISO-8601 date format, but with full nano resolution.
+      // Since JS Date has only millis, let's only use it for the seconds and
+      // then manually add the fractions to the end.
+      const jsDateStr = new Date(timestamp.seconds * 1000).toISOString();
+      // Remove .xxx frac part and Z in the end.
+      const strUntilSeconds = jsDateStr.replace(/\.\d*/, '').replace('Z', '');
+      // Pad the fraction out to 9 digits (nanos).
+      const nanoStr = ('000000000' + timestamp.nanoseconds).slice(-9);
+
+      return `${strUntilSeconds}.${nanoStr}Z`;
+    } else {
+      return {
+        seconds: '' + timestamp.seconds,
+        nanos: timestamp.nanoseconds
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+    }
   }
 
   private fromTimestamp(date: string | TimestampProto): Timestamp {

@@ -1,6 +1,6 @@
 {
   "name": "@firebase/analytics",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A analytics package for new firebase packages",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -23,9 +23,9 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/analytics-types": "0.2.0",
-    "@firebase/installations": "0.2.7",
-    "@firebase/util": "0.2.28",
+    "@firebase/analytics-types": "0.2.1",
+    "@firebase/installations": "0.3.0",
+    "@firebase/util": "0.2.29",
     "tslib": "1.10.0"
   },
   "license": "Apache-2.0",
@@ -33,9 +33,9 @@
     "@types/chai": "4.2.3",
     "@types/mocha": "5.2.7",
     "@types/sinon": "7.5.0",
-    "@typescript-eslint/parser": "2.3.2",
-    "@typescript-eslint/eslint-plugin": "2.3.2",
-    "@typescript-eslint/eslint-plugin-tslint": "2.3.2",
+    "@typescript-eslint/parser": "2.4.0",
+    "@typescript-eslint/eslint-plugin": "2.4.0",
+    "@typescript-eslint/eslint-plugin-tslint": "2.4.0",
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "eslint": "6.5.1",
@@ -49,10 +49,10 @@
     "sinon-chai": "3.3.0",
     "npm-run-all": "4.1.5",
     "nyc": "14.1.1",
-    "rollup": "1.23.0",
+    "rollup": "1.23.1",
     "ts-loader": "6.2.0",
-    "typescript": "3.6.3",
-    "webpack": "4.41.0"
+    "typescript": "3.6.4",
+    "webpack": "4.41.1"
   },
   "repository": {
     "directory": "packages/analytics",
