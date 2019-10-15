@@ -1076,10 +1076,7 @@ function genericLocalStoreTests(
     ]);
   });
 
-  // TODO(schmidt-sebastian): This test makes idempotency testing harder.
-  // Comment back in when done with the idempotent migration.
-  // eslint-disable-next-line no-restricted-properties
-  it.skip('reads all documents for initial collection queries', () => {
+  it('reads all documents for initial collection queries', () => {
     const firstQuery = Query.atPath(path('foo'));
     const secondQuery = Query.atPath(path('foo')).addFilter(
       filter('matches', '==', true)
@@ -1483,55 +1480,55 @@ function genericLocalStoreTests(
     );
   });
 
-  // TODO(schmidt-sebastian): This test makes idempotency testing harder.
-  // Comment back in when done with the idempotent migration.
-  // (queryEngine instanceof IndexFreeQueryEngine && !gcIsEager ? it : it.skip)(
   // eslint-disable-next-line no-restricted-properties
-  it.skip('uses target mapping to execute queries', () => {
-    // This test verifies that once a target mapping has been written, only
-    // documents that match the query are read from the RemoteDocumentCache.
+  (queryEngine instanceof IndexFreeQueryEngine && !gcIsEager ? it : it.skip)(
+    'uses target mapping to execute queries',
+    () => {
+      // This test verifies that once a target mapping has been written, only
+      // documents that match the query are read from the RemoteDocumentCache.
 
-    const query = Query.atPath(path('foo')).addFilter(
-      filter('matches', '==', true)
-    );
-    return (
-      expectLocalStore()
-        .afterAllocatingQuery(query)
-        .toReturnTargetId(2)
-        .after(setMutation('foo/a', { matches: true }))
-        .after(setMutation('foo/b', { matches: true }))
-        .after(setMutation('foo/ignored', { matches: false }))
-        .afterAcknowledgingMutation({ documentVersion: 10 })
-        .afterAcknowledgingMutation({ documentVersion: 10 })
-        .afterAcknowledgingMutation({ documentVersion: 10 })
-        .afterExecutingQuery(query)
-        // Execute the query, but note that we read all existing documents
-        // from the RemoteDocumentCache since we do not yet have target
-        // mapping.
-        .toHaveRead({ documentsByQuery: 2 })
-        .after(
-          docAddedRemoteEvent(
-            [
-              doc('foo/a', 10, { matches: true }),
-              doc('foo/b', 10, { matches: true })
-            ],
-            [2],
-            []
+      const query = Query.atPath(path('foo')).addFilter(
+        filter('matches', '==', true)
+      );
+      return (
+        expectLocalStore()
+          .afterAllocatingQuery(query)
+          .toReturnTargetId(2)
+          .after(setMutation('foo/a', { matches: true }))
+          .after(setMutation('foo/b', { matches: true }))
+          .after(setMutation('foo/ignored', { matches: false }))
+          .afterAcknowledgingMutation({ documentVersion: 10 })
+          .afterAcknowledgingMutation({ documentVersion: 10 })
+          .afterAcknowledgingMutation({ documentVersion: 10 })
+          .afterExecutingQuery(query)
+          // Execute the query, but note that we read all existing documents
+          // from the RemoteDocumentCache since we do not yet have target
+          // mapping.
+          .toHaveRead({ documentsByQuery: 2 })
+          .after(
+            docAddedRemoteEvent(
+              [
+                doc('foo/a', 10, { matches: true }),
+                doc('foo/b', 10, { matches: true })
+              ],
+              [2],
+              []
+            )
           )
-        )
-        .after(
-          noChangeEvent(/* targetId= */ 2, /* snapshotVersion= */ 10, 'foo')
-        )
-        .after(localViewChanges(2, /* fromCache= */ false, {}))
-        .afterExecutingQuery(query)
-        .toHaveRead({ documentsByKey: 2, documentsByQuery: 0 })
-        .toReturnChanged(
-          doc('foo/a', 10, { matches: true }),
-          doc('foo/b', 10, { matches: true })
-        )
-        .finish()
-    );
-  });
+          .after(
+            noChangeEvent(/* targetId= */ 2, /* snapshotVersion= */ 10, 'foo')
+          )
+          .after(localViewChanges(2, /* fromCache= */ false, {}))
+          .afterExecutingQuery(query)
+          .toHaveRead({ documentsByKey: 2, documentsByQuery: 0 })
+          .toReturnChanged(
+            doc('foo/a', 10, { matches: true }),
+            doc('foo/b', 10, { matches: true })
+          )
+          .finish()
+      );
+    }
+  );
 
   it('last limbo free snapshot is advanced during view processing', async () => {
     // This test verifies that the `lastLimboFreeSnapshot` version for QueryData

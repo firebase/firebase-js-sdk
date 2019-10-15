@@ -1,8 +1,15 @@
 # Unreleased
+- [changed] Improved iOS 13 support by addressing a change in Mobile Safari
+  that broke IndexedDB persistence if the Firestore SDK was used in a 
+  background tab.
+
+# 1.6.0
 - [fixed] Fixed a regression that caused queries with nested field filters to
   crash the client if the field was not present in the local copy of the
   document. 
-
+- [feature] Added a `Firestore.onSnapshotsInSync()` method that notifies you
+  when all your snapshot listeners are in sync with each other.
+  
 # 1.5.0
 - [feature] Added a `Firestore.waitForPendingWrites()` method that
   allows users to wait until all pending writes are acknowledged by the
@@ -15,8 +22,6 @@
   small subset of the documents in a collection.
 - [fixed] Fixed a race condition between authenticating and initializing
   Firestore that could result in initial writes to the database being dropped.
-- [feature] Added a `Firestore.onSnapshotsInSync()` method that notifies you
-  when all your snapshot listeners are in sync with each other.
 
 # 1.4.10
 - [changed] Transactions now perform exponential backoff before retrying.
@@ -35,7 +40,6 @@
   match the query (https://github.com/firebase/firebase-android-sdk/issues/155).
 
 # 1.4.4
->>>>>>> master
 - [fixed] Fixed an internal assertion that was triggered when an update
    with a `FieldValue.serverTimestamp()` and an update with a
   `FieldValue.increment()` were pending for the same document.
