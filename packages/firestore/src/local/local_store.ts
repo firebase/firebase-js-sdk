@@ -300,16 +300,19 @@ export class LocalStore {
       documentKeySet()
     );
 
-    return this.persistence.runTransaction(
-      'Locally write mutations',
-      'readwrite',
-      txn => {
-        // Load and apply all existing mutations. This lets us compute the
-        // current base state for all non-idempotent transforms before applying
-        // any additional user-provided writes.
-        return this.localDocuments
-          .getDocuments(txn, keys)
-          .next(existingDocs => {
+    let existingDocs: MaybeDocumentMap;
+
+    return this.persistence
+      .runTransaction(
+        'Locally write mutations',
+        'readwrite-idempotent',
+        txn => {
+          // Load and apply all existing mutations. This lets us compute the
+          // current base state for all non-idempotent transforms before applying
+          // any additional user-provided writes.
+          return this.localDocuments.getDocuments(txn, keys).next(docs => {
+            existingDocs = docs;
+
             // For non-idempotent mutations (such as `FieldValue.increment()`),
             // we record the base state in a separate patch mutation. This is
             // later used to guarantee consistent values and prevents flicker
@@ -336,15 +339,19 @@ export class LocalStore {
               }
             }
 
-            return this.mutationQueue
-              .addMutationBatch(txn, localWriteTime, baseMutations, mutations)
-              .next(batch => {
-                const changes = batch.applyToLocalDocumentSet(existingDocs);
-                return { batchId: batch.batchId, changes };
-              });
+            return this.mutationQueue.addMutationBatch(
+              txn,
+              localWriteTime,
+              baseMutations,
+              mutations
+            );
           });
-      }
-    );
+        }
+      )
+      .then(batch => {
+        const changes = batch.applyToLocalDocumentSet(existingDocs);
+        return { batchId: batch.batchId, changes };
+      });
   }
 
   /** Returns the local view of the documents affected by a mutation batch. */
