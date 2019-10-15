@@ -29,7 +29,10 @@ import {
 } from '../model/collections';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
+import { ResourcePath } from '../model/path';
+import { primitiveComparator } from '../util/misc';
 import { SortedMap } from '../util/sorted_map';
+import { SortedSet } from '../util/sorted_set';
 
 import { SnapshotVersion } from '../core/snapshot_version';
 import { assert, fail } from '../util/assert';
@@ -71,12 +74,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
     doc: DbRemoteDocument
   ): PersistencePromise<void> {
     const documentStore = remoteDocumentsStore(transaction);
-    return documentStore.put(dbKey(key), doc).next(() => {
-      this.indexManager.addToCollectionParentIndex(
-        transaction,
-        key.path.popLast()
-      );
-    });
+    return documentStore.put(dbKey(key), doc);
   }
 
   /**
@@ -449,6 +447,10 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
 
       let sizeDelta = 0;
 
+      let collectionParents = new SortedSet<ResourcePath>((l, r) =>
+        primitiveComparator(l.canonicalString(), r.canonicalString())
+      );
+
       this.changes.forEach((key, maybeDocument) => {
         const previousSize = this.documentSizes.get(key);
         assert(
@@ -464,6 +466,8 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             maybeDocument,
             this.readTime
           );
+          collectionParents = collectionParents.add(key.path.popLast());
+
           const size = dbDocumentSize(doc);
           sizeDelta += size - previousSize!;
           promises.push(this.documentCache.addEntry(transaction, key, doc));
@@ -485,6 +489,15 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
             promises.push(this.documentCache.removeEntry(transaction, key));
           }
         }
+      });
+
+      collectionParents.forEach(parent => {
+        promises.push(
+          this.documentCache.indexManager.addToCollectionParentIndex(
+            transaction,
+            parent
+          )
+        );
       });
 
       promises.push(this.documentCache.updateMetadata(transaction, sizeDelta));
