@@ -1,7 +1,6 @@
 # Unreleased
-- [changed] Improved iOS 13 support by addressing a change in Mobile Safari
-  that disabled IndexedDB persistence if the Firestore SDK was used in a 
-  background tab.
+- [changed] Fixed a crash on iOS 13 that occurred when persistence was enabled
+  in a background tab (#2232).
 
 # 1.6.0
 - [fixed] Fixed a regression that caused queries with nested field filters to
