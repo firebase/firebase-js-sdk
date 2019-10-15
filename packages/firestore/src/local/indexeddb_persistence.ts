@@ -318,7 +318,7 @@ export class IndexedDbPersistence implements Persistence {
         this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
         return this.simpleDb.runTransaction(
-          'readonly-idempotent',
+          'readonly',
           [DbTargetGlobal.store],
           txn => getHighestListenSequenceNumber(txn)
         );
@@ -634,7 +634,7 @@ export class IndexedDbPersistence implements Persistence {
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
     await this.simpleDb.runTransaction(
-      'readwrite-idempotent',
+      'readwrite',
       [DbPrimaryClient.store, DbClientMetadata.store],
       txn => {
         return this.releasePrimaryLeaseIfHeld(txn).next(() =>
@@ -666,7 +666,7 @@ export class IndexedDbPersistence implements Persistence {
 
   getActiveClients(): Promise<ClientId[]> {
     return this.simpleDb.runTransaction(
-      'readonly-idempotent',
+      'readonly',
       [DbClientMetadata.store],
       txn => {
         return clientMetadataStore(txn)
@@ -729,7 +729,7 @@ export class IndexedDbPersistence implements Persistence {
     return this.indexManager;
   }
 
-  runTransaction<T>(
+  async runTransaction<T>(
     action: string,
     mode: PersistenceTransactionMode,
     transactionOperation: (
@@ -738,32 +738,20 @@ export class IndexedDbPersistence implements Persistence {
   ): Promise<T> {
     log.debug(LOG_TAG, 'Starting transaction:', action);
 
-    // TODO(schmidt-sebastian): Simplify once all transactions are idempotent.
-    const idempotent = mode.endsWith('idempotent');
-    const readonly = mode.startsWith('readonly');
-    const simpleDbMode = readonly
-      ? idempotent
-        ? 'readonly-idempotent'
-        : 'readonly'
-      : idempotent
-      ? 'readwrite-idempotent'
-      : 'readwrite';
-
     let persistenceTransaction: PersistenceTransaction;
 
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-    return this.simpleDb
-      .runTransaction(simpleDbMode, ALL_STORES, simpleDbTxn => {
+    const result = await this.simpleDb.runTransaction(
+      mode === 'readonly' ? 'readonly' : 'readwrite',
+      ALL_STORES,
+      simpleDbTxn => {
         persistenceTransaction = new IndexedDbTransaction(
           simpleDbTxn,
           this.listenSequence.next()
         );
 
-        if (
-          mode === 'readwrite-primary' ||
-          mode === 'readwrite-primary-idempotent'
-        ) {
+        if (mode === 'readwrite-primary') {
           // While we merely verify that we have (or can acquire) the lease
           // immediately, we wait to extend the primary lease until after
           // executing transactionOperation(). This ensures that even if the
@@ -796,11 +784,11 @@ export class IndexedDbPersistence implements Persistence {
             transactionOperation(persistenceTransaction)
           );
         }
-      })
-      .then(result => {
-        persistenceTransaction.raiseOnCommittedEvent();
-        return result;
-      });
+      }
+    );
+
+    persistenceTransaction!.raiseOnCommittedEvent();
+    return result;
   }
 
   /**

@@ -96,7 +96,7 @@ describe('IndexedDbRemoteDocumentCache', () => {
   }> {
     return persistence.runTransaction(
       'getLastDocumentChange',
-      'readonly-idempotent',
+      'readonly',
       txn => {
         const remoteDocuments = persistence.getRemoteDocumentCache();
         return remoteDocuments.getLastDocumentChange(txn);

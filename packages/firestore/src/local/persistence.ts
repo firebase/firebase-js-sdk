@@ -54,10 +54,7 @@ export abstract class PersistenceTransaction {
 export type PersistenceTransactionMode =
   | 'readonly'
   | 'readwrite'
-  | 'readwrite-primary'
-  | 'readonly-idempotent'
-  | 'readwrite-idempotent'
-  | 'readwrite-primary-idempotent';
+  | 'readwrite-primary';
 
 /**
  * Callback type for primary state notifications. This callback can be

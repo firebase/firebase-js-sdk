@@ -32,11 +32,7 @@ const LOG_TAG = 'SimpleDb';
 const TRANSACTION_RETRY_COUNT = 3;
 
 // The different modes supported by `SimpleDb.runTransaction()`
-type SimpleDbTransactionMode =
-  | 'readonly'
-  | 'readwrite'
-  | 'readonly-idempotent'
-  | 'readwrite-idempotent';
+type SimpleDbTransactionMode = 'readonly' | 'readwrite';
 
 export interface SimpleDbSchemaConverter {
   createOrUpgrade(
@@ -260,18 +256,12 @@ export class SimpleDb {
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
-    const readonly = mode.startsWith('readonly');
-    const idempotent = mode.endsWith('idempotent');
     let attemptNumber = 0;
 
     while (true) {
       ++attemptNumber;
 
-      const transaction = SimpleDbTransaction.open(
-        this.db,
-        readonly ? 'readonly' : 'readwrite',
-        objectStores
-      );
+      const transaction = SimpleDbTransaction.open(this.db, mode, objectStores);
       try {
         const transactionFnResult = transactionFn(transaction)
           .catch(error => {
@@ -299,9 +289,7 @@ export class SimpleDb {
         // not retry exceptions that are likely unrecoverable (such as quota
         // exceeded errors).
         const retryable =
-          idempotent &&
-          isDomException(e) &&
-          attemptNumber < TRANSACTION_RETRY_COUNT;
+          isDomException(e) && attemptNumber < TRANSACTION_RETRY_COUNT;
         debug(
           'Transaction failed with error: %s. Retrying: %s.',
           e.message,
