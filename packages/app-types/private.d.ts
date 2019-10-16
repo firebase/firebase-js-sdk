@@ -26,15 +26,6 @@ import { FirebaseError, ErrorFactory } from '@firebase/util';
 import { Deferred } from '../firestore/test/util/promise';
 import { Component } from '@firebase/component';
 
-/**
- * Factory responsible for creating a component of type T, given a ComponentContainer.
- * ComponentContainer is the IOC container that provides PROVIDERS
- * for dependencies.
- *
- * NOTE: The container only provides PROVIDERS instead of the actual instances of dependencies
- * to account for lazily loaded or optional dependencies
- */
-
 export interface FirebaseServiceInternals {
   /**
    * Delete the service and free it's resources - called from
