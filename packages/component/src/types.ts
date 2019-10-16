@@ -1,8 +1,8 @@
 import { ComponentContainer } from './component_container';
 
 export const enum InstantiationMode {
-    LAZY, // Currently all components are LAZY in JS SDK
-    EAGER
+  LAZY, // Currently all components are LAZY in JS SDK
+  EAGER
 }
 
 /**
@@ -14,6 +14,6 @@ export const enum InstantiationMode {
  * It is useful for lazily loaded dependencies and optional dependencies.
  */
 export type ServiceFactory<T = unknown> = (
-    container: ComponentContainer,
-    instanceIdentifier?: string
+  container: ComponentContainer,
+  instanceIdentifier?: string
 ) => T;

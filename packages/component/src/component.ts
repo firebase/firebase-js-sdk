@@ -16,9 +16,7 @@
  */
 import { InstantiationMode, ServiceFactory } from './types';
 
-
 export class Component<T = unknown> {
-
   multipleInstances: boolean = false;
   /**
    * Properties to be added to the service namespace
@@ -28,7 +26,7 @@ export class Component<T = unknown> {
   instantiationMode: InstantiationMode = InstantiationMode.LAZY;
 
   /**
-   * 
+   *
    * @param name The public service name, e.g. app, auth, firestore, database
    * @param serviceFactory Service factory responsible for creating the public interface
    * @param type whehter the service provided by the component is public or private
@@ -39,7 +37,7 @@ export class Component<T = unknown> {
     public readonly type = ComponentType.PRIVATE
   ) {}
 
-  setInstantiationMode(mode: InstantiationMode, ): this {
+  setInstantiationMode(mode: InstantiationMode): this {
     this.instantiationMode = mode;
     return this;
   }
@@ -53,7 +51,6 @@ export class Component<T = unknown> {
     this.serviceProps = props;
     return this;
   }
-
 }
 
 export enum ComponentType {

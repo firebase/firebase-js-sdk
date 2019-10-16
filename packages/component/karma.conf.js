@@ -21,7 +21,7 @@ const karmaBase = require('../../config/karma.base');
 
 const files = ['src/**/*.test.ts'];
 
-module.exports = function (config) {
+module.exports = function(config) {
   config.set({
     ...karmaBase,
     // files to load into karma
@@ -31,7 +31,6 @@ module.exports = function (config) {
     // available frameworks: https://npmjs.org/browse/keyword/karma-adapter
     frameworks: ['mocha']
   });
-
 };
 
 module.exports.files = files;

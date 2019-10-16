@@ -29,10 +29,7 @@ export class Provider<T = unknown> {
   private serviceInstances: Map<string, T> = new Map();
   private serviceInstancesDeferred: Map<string, Deferred<T>> = new Map();
 
-  constructor(
-    private name: string,
-    private container: ComponentContainer
-  ) {}
+  constructor(private name: string, private container: ComponentContainer) {}
 
   get(identifier: string = DEFAULT_ENTRY_NAME): Promise<T> {
     // if multipleInstances is not supported, use the default name

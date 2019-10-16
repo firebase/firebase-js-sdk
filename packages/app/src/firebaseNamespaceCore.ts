@@ -172,7 +172,9 @@ export function createFirebaseNamespaceCore(
         `There were multiple attempts to register component ${componentName}.`
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return component.type === ComponentType.PUBLIC ? (namespace as any)[componentName] : null;
+      return component.type === ComponentType.PUBLIC
+        ? (namespace as any)[componentName]
+        : null;
     }
 
     components.set(componentName, component);
@@ -180,7 +182,9 @@ export function createFirebaseNamespaceCore(
     // create service namespace for public components
     if (component.type === ComponentType.PUBLIC) {
       // The Service namespace is an accessor function ...
-      const serviceNamespace = (appArg: FirebaseApp = app()): FirebaseService => {
+      const serviceNamespace = (
+        appArg: FirebaseApp = app()
+      ): FirebaseService => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         if (typeof (appArg as any)[componentName] !== 'function') {
           // Invalid argument.
@@ -193,7 +197,7 @@ export function createFirebaseNamespaceCore(
         // Forward service instance lookup to the FirebaseApp.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return (appArg as any)[componentName]();
-      }
+      };
 
       // ... and a container for service-level properties.
       if (component.serviceProps !== undefined) {
@@ -209,9 +213,12 @@ export function createFirebaseNamespaceCore(
         // TODO: The eslint disable can be removed and the 'ignoreRestArgs'
         // option added to the no-explicit-any rule when ESlint releases it.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        function (...args: any) {
+        function(...args: any) {
           const serviceFxn = this._getService.bind(this, componentName);
-          return serviceFxn.apply(this, component.multipleInstances ? args : []);
+          return serviceFxn.apply(
+            this,
+            component.multipleInstances ? args : []
+          );
         };
     }
 
@@ -220,7 +227,9 @@ export function createFirebaseNamespaceCore(
       (apps[appName] as _FirebaseApp)._addComponent(component);
     }
 
-    return component.type === ComponentType.PUBLIC ? (namespace as any)[componentName] : null;
+    return component.type === ComponentType.PUBLIC
+      ? (namespace as any)[componentName]
+      : null;
   }
 
   // Map the requested service to a registered service name

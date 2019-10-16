@@ -30,6 +30,6 @@ export function getFakeApp(appName: string = DEFAULT_ENTRY_NAME): FirebaseApp {
       appId: '1:777777777777:web:d93b5ca1475efe57'
     },
     automaticDataCollectionEnabled: true,
-    delete: async () => { }
+    delete: async () => {}
   };
 }

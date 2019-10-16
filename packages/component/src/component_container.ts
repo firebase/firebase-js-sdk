@@ -36,9 +36,7 @@ export class ComponentContainer {
 
     this.components.set(component.name, component);
 
-    const serviceProvider = this.getProvider(
-      component.name
-    );
+    const serviceProvider = this.getProvider(component.name);
 
     // NOTE: currently InstantiationMode is only for the public service, all private services are LAZY.
     // It is because currently all private services delegate tasks to the public service. There is no point to instantiate private services eagerly.

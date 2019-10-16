@@ -17,9 +17,7 @@
 
 import { expect } from 'chai';
 import { stub } from 'sinon';
-import {
-  ComponentContainer  
-} from './component_container';
+import { ComponentContainer } from './component_container';
 import '../test/setup';
 import { Component } from './component';
 import { Provider } from './provider';
@@ -82,7 +80,11 @@ describe('Component Container', () => {
   it('injects service factory into the Provider with the correct multipleInstances flag', () => {
     const provider = container.getProvider('multiple');
     const provideFactoryStub = stub(provider, 'provideFactory').callThrough();
-    const component = getFakeComponent('multiple', InstantiationMode.LAZY, true);
+    const component = getFakeComponent(
+      'multiple',
+      InstantiationMode.LAZY,
+      true
+    );
     container.addComponent(component);
 
     expect(provideFactoryStub).has.been.calledWith(

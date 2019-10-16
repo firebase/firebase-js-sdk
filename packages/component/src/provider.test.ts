@@ -23,15 +23,11 @@ import { Provider } from './provider';
 import { getFakeApp } from '../test/util';
 import '../test/setup';
 
-
 describe('Provider', () => {
   let provider: Provider<unknown>;
 
   beforeEach(() => {
-    provider = new Provider(
-      'spider-queen',
-      new ComponentContainer('test')
-    );
+    provider = new Provider('spider-queen', new ComponentContainer('test'));
   });
 
   describe('Provider (multipleInstances = false)', () => {
