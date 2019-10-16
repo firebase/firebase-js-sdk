@@ -49,7 +49,7 @@ describe('Provider', () => {
         expect(provider.getImmediate()).to.deep.equal({ test: true });
       });
 
-      it('returns cached service instance', () => {
+      it('returns the cached service instance', () => {
         provider.provideFactory(() => ({ test: true }));
         const service1 = provider.getImmediate();
         const service2 = provider.getImmediate();
@@ -153,7 +153,7 @@ describe('Provider', () => {
         const instance = provider.getImmediate();
         expect((provider as any).instances.size).to.equal(1);
 
-        provider.clearCache();
+        provider.clearInstance();
         expect((provider as any).instances.size).to.equal(0);
 
         // get a new instance after cache has been cleared
@@ -277,14 +277,14 @@ describe('Provider', () => {
         expect((provider as any).instances.size).to.equal(2);
 
         // remove the default instance from cache and create a new default instance
-        provider.clearCache();
+        provider.clearInstance();
         expect((provider as any).instances.size).to.equal(1);
         const newDefaultInstance = provider.getImmediate();
         expect(newDefaultInstance).to.not.eq(defaultInstance);
         expect((provider as any).instances.size).to.equal(2);
 
         // remove the named instance from cache and create a new instance with the same identifier
-        provider.clearCache('instance1');
+        provider.clearInstance('instance1');
         expect((provider as any).instances.size).to.equal(1);
         const newInstance1 = provider.getImmediate('instance1');
         expect(newInstance1).to.not.eq(instance1);
@@ -301,7 +301,7 @@ describe('Provider', () => {
         expect((provider as any).instancesDeferred.size).to.equal(2);
 
         // remove the default instance from cache and create a new default instance
-        provider.clearCache();
+        provider.clearInstance();
         expect((provider as any).instances.size).to.equal(1);
         expect((provider as any).instancesDeferred.size).to.equal(1);
 
@@ -311,7 +311,7 @@ describe('Provider', () => {
         expect((provider as any).instancesDeferred.size).to.equal(2);
 
         // remove the named instance from cache and create a new instance with the same identifier
-        provider.clearCache('instance1');
+        provider.clearInstance('instance1');
         expect((provider as any).instances.size).to.equal(1);
         expect((provider as any).instancesDeferred.size).to.equal(1);
         const newInstance1 = await provider.get('instance1');

@@ -102,7 +102,7 @@ export class Provider<T = unknown> {
     }
   }
 
-  clearCache(identifier: string = DEFAULT_ENTRY_NAME): void {
+  clearInstance(identifier: string = DEFAULT_ENTRY_NAME): void {
     this.instancesDeferred.delete(identifier);
     this.instances.delete(identifier);
   }
