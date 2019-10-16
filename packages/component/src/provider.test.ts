@@ -85,30 +85,30 @@ describe('Provider', () => {
     describe('provideFactory()', () => {
       it('instantiates the service if there is a pending promise and the service is eager', () => {
         // create a pending promise
-        // tslint:disable-next-line:no-floating-promises
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.get();
 
         provider.provideFactory(() => ({}), false, true);
-        expect((provider as any).serviceInstances.size).to.equal(1);
+        expect((provider as any).instances.size).to.equal(1);
       });
 
       it('instantiates the service if there is a pending promise and the service is NOT eager', () => {
         // create a pending promise
-        // tslint:disable-next-line:no-floating-promises
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.get();
 
         provider.provideFactory(() => ({}));
-        expect((provider as any).serviceInstances.size).to.equal(1);
+        expect((provider as any).instances.size).to.equal(1);
       });
 
       it('instantiates the service if there is no pending promise and the service is eager', () => {
         provider.provideFactory(() => ({}), false, true);
-        expect((provider as any).serviceInstances.size).to.equal(1);
+        expect((provider as any).instances.size).to.equal(1);
       });
 
       it('does NOT instantiate the service if there is no pending promise and the service is not eager', () => {
         provider.provideFactory(() => ({}));
-        expect((provider as any).serviceInstances.size).to.equal(0);
+        expect((provider as any).instances.size).to.equal(0);
       });
 
       it('instantiates only the default service even if there are pending promises with identifiers', async () => {
@@ -117,7 +117,7 @@ describe('Provider', () => {
         const promise2 = provider.get('name2');
 
         provider.provideFactory(() => ({}));
-        expect((provider as any).serviceInstances.size).to.equal(1);
+        expect((provider as any).instances.size).to.equal(1);
 
         const defaultService = provider.getImmediate();
 
@@ -139,7 +139,7 @@ describe('Provider', () => {
         // provide factory and create a service instance
         provider.provideFactory(() => myService, false, true);
 
-        // tslint:disable-next-line:no-floating-promises
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.delete();
 
         expect(deleteFake).to.have.been.called;
@@ -151,10 +151,10 @@ describe('Provider', () => {
         provider.provideFactory(() => ({}));
         // create serviec instance
         const instance = provider.getImmediate();
-        expect((provider as any).serviceInstances.size).to.equal(1);
+        expect((provider as any).instances.size).to.equal(1);
 
         provider.clearCache();
-        expect((provider as any).serviceInstances.size).to.equal(0);
+        expect((provider as any).instances.size).to.equal(0);
 
         // get a new instance after cache has been cleared
         const newInstance = provider.getImmediate();
@@ -209,29 +209,30 @@ describe('Provider', () => {
 
     describe('provideFactory()', () => {
       it('instantiates services for the pending promises for all instance identifiers', async () => {
-        /* tslint:disable:no-floating-promises */
+        /* eslint-disable @typescript-eslint/no-floating-promises */
         // create 3 promises for 3 different identifiers
         provider.get();
         provider.get('name1');
         provider.get('name2');
-        /* tslint:enable::no-floating-promises */
+        /* eslint-enable @typescript-eslint/no-floating-promises */
 
         provider.provideFactory(() => ({ test: true }), true);
 
-        expect((provider as any).serviceInstances.size).to.equal(3);
+        expect((provider as any).instances.size).to.equal(3);
       });
 
       it('instantiates the default service if there is no pending promise and the service is eager', () => {
         provider.provideFactory(() => ({ test: true }), true, true);
-        expect((provider as any).serviceInstances.size).to.equal(1);
+        expect((provider as any).instances.size).to.equal(1);
       });
 
       it(`instantiates the default serviec if there are pending promises for other identifiers 
             but not for the default identifer and the service is eager`, () => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises        
         provider.get('name1');
         provider.provideFactory(() => ({ test: true }), true, true);
 
-        expect((provider as any).serviceInstances.size).to.equal(2);
+        expect((provider as any).instances.size).to.equal(2);
       });
     });
 
@@ -257,6 +258,7 @@ describe('Provider', () => {
         provider.getImmediate('instance1');
         provider.getImmediate('instance2');
 
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.delete();
 
         expect(deleteFakes.length).to.eq(2);
@@ -272,21 +274,21 @@ describe('Provider', () => {
         const defaultInstance = provider.getImmediate();
         const instance1 = provider.getImmediate('instance1');
 
-        expect((provider as any).serviceInstances.size).to.equal(2);
+        expect((provider as any).instances.size).to.equal(2);
 
         // remove the default instance from cache and create a new default instance
         provider.clearCache();
-        expect((provider as any).serviceInstances.size).to.equal(1);
+        expect((provider as any).instances.size).to.equal(1);
         const newDefaultInstance = provider.getImmediate();
         expect(newDefaultInstance).to.not.eq(defaultInstance);
-        expect((provider as any).serviceInstances.size).to.equal(2);
+        expect((provider as any).instances.size).to.equal(2);
 
         // remove the named instance from cache and create a new instance with the same identifier
         provider.clearCache('instance1');
-        expect((provider as any).serviceInstances.size).to.equal(1);
+        expect((provider as any).instances.size).to.equal(1);
         const newInstance1 = provider.getImmediate('instance1');
         expect(newInstance1).to.not.eq(instance1);
-        expect((provider as any).serviceInstances.size).to.equal(2);
+        expect((provider as any).instances.size).to.equal(2);
       });
 
       it('returns new services asynchronously after cache is cleared', async () => {
@@ -295,27 +297,27 @@ describe('Provider', () => {
         const defaultInstance = await provider.get();
         const instance1 = await provider.get('instance1');
 
-        expect((provider as any).serviceInstances.size).to.equal(2);
-        expect((provider as any).serviceInstancesDeferred.size).to.equal(2);
+        expect((provider as any).instances.size).to.equal(2);
+        expect((provider as any).instancesDeferred.size).to.equal(2);
 
         // remove the default instance from cache and create a new default instance
         provider.clearCache();
-        expect((provider as any).serviceInstances.size).to.equal(1);
-        expect((provider as any).serviceInstancesDeferred.size).to.equal(1);
+        expect((provider as any).instances.size).to.equal(1);
+        expect((provider as any).instancesDeferred.size).to.equal(1);
 
         const newDefaultInstance = await provider.get();
         expect(newDefaultInstance).to.not.eq(defaultInstance);
-        expect((provider as any).serviceInstances.size).to.equal(2);
-        expect((provider as any).serviceInstancesDeferred.size).to.equal(2);
+        expect((provider as any).instances.size).to.equal(2);
+        expect((provider as any).instancesDeferred.size).to.equal(2);
 
         // remove the named instance from cache and create a new instance with the same identifier
         provider.clearCache('instance1');
-        expect((provider as any).serviceInstances.size).to.equal(1);
-        expect((provider as any).serviceInstancesDeferred.size).to.equal(1);
+        expect((provider as any).instances.size).to.equal(1);
+        expect((provider as any).instancesDeferred.size).to.equal(1);
         const newInstance1 = await provider.get('instance1');
         expect(newInstance1).to.not.eq(instance1);
-        expect((provider as any).serviceInstances.size).to.equal(2);
-        expect((provider as any).serviceInstancesDeferred.size).to.equal(2);
+        expect((provider as any).instances.size).to.equal(2);
+        expect((provider as any).instancesDeferred.size).to.equal(2);
       });
     });
   });

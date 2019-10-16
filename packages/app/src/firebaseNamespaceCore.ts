@@ -168,7 +168,7 @@ export function createFirebaseNamespaceCore(
   ): FirebaseServiceNamespace<FirebaseService> | null {
     const componentName = component.name;
     if (components.has(componentName)) {
-      console.debug(
+      logger.debug(
         `There were multiple attempts to register component ${componentName}.`
       );
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

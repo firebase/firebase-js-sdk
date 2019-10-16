@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InstantiationMode, ServiceFactory } from './types';
+import { InstantiationMode, InstanceFactory } from './types';
 
 export class Component<T = unknown> {
   multipleInstances: boolean = false;
@@ -28,21 +28,21 @@ export class Component<T = unknown> {
   /**
    *
    * @param name The public service name, e.g. app, auth, firestore, database
-   * @param serviceFactory Service factory responsible for creating the public interface
+   * @param instanceFactory Service factory responsible for creating the public interface
    * @param type whehter the service provided by the component is public or private
    */
   constructor(
     public readonly name: string,
-    public readonly serviceFactory: ServiceFactory<T>,
-    public readonly type = ComponentType.PRIVATE
-  ) {}
+    public readonly instanceFactory: InstanceFactory<T>,
+    public readonly type: ComponentType
+  ) { }
 
   setInstantiationMode(mode: InstantiationMode): this {
     this.instantiationMode = mode;
     return this;
   }
 
-  setMultipleInstance(multipleInstances: boolean): this {
+  setMultipleInstances(multipleInstances: boolean): this {
     this.multipleInstances = multipleInstances;
     return this;
   }

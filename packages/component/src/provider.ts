@@ -18,16 +18,16 @@
 import { Deferred } from '@firebase/util';
 import { ComponentContainer } from './component_container';
 import { DEFAULT_ENTRY_NAME } from './contants';
-import { ServiceFactory } from './types';
+import { InstanceFactory } from './types';
 
 /**
  * Provider for interface of type T, e.g. Auth, RC
  */
 export class Provider<T = unknown> {
-  private factory: ServiceFactory<T> | null = null;
+  private factory: InstanceFactory<T> | null = null;
   private multipleInstances: boolean = true; // we assume multiple instances are supported by default
-  private serviceInstances: Map<string, T> = new Map();
-  private serviceInstancesDeferred: Map<string, Deferred<T>> = new Map();
+  private instances: Map<string, T> = new Map();
+  private instancesDeferred: Map<string, Deferred<T>> = new Map();
 
   constructor(private name: string, private container: ComponentContainer) {}
 
@@ -35,9 +35,9 @@ export class Provider<T = unknown> {
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
 
-    if (!this.serviceInstancesDeferred.has(normalizedIdentifier)) {
+    if (!this.instancesDeferred.has(normalizedIdentifier)) {
       const deferred = new Deferred<T>();
-      this.serviceInstancesDeferred.set(normalizedIdentifier, deferred);
+      this.instancesDeferred.set(normalizedIdentifier, deferred);
       // If the service instance is available, resolve the promise with it immediately
       const instance = this.getOrInitializeService(normalizedIdentifier);
       if (instance) {
@@ -45,7 +45,7 @@ export class Provider<T = unknown> {
       }
     }
 
-    return this.serviceInstancesDeferred.get(normalizedIdentifier)!.promise;
+    return this.instancesDeferred.get(normalizedIdentifier)!.promise;
   }
 
   getImmediate(
@@ -68,7 +68,7 @@ export class Provider<T = unknown> {
   }
 
   provideFactory(
-    factory: ServiceFactory<T>,
+    factory: InstanceFactory<T>,
     multipleInstances: boolean = false,
     eager: boolean = false
   ): void {
@@ -90,7 +90,7 @@ export class Provider<T = unknown> {
     for (const [
       instanceIdentifier,
       instanceDeferred
-    ] of this.serviceInstancesDeferred.entries()) {
+    ] of this.instancesDeferred.entries()) {
       const normalizedIdentifier = this.normalizeInstanceIdentifier(
         instanceIdentifier
       );
@@ -103,14 +103,14 @@ export class Provider<T = unknown> {
   }
 
   clearCache(identifier: string = DEFAULT_ENTRY_NAME): void {
-    this.serviceInstancesDeferred.delete(identifier);
-    this.serviceInstances.delete(identifier);
+    this.instancesDeferred.delete(identifier);
+    this.instances.delete(identifier);
   }
 
   // app.delete() will call this method on every provider to delete the services
   // TODO: should we mark the provider as deleted?
   delete(): Promise<unknown[]> {
-    const services = Array.from(this.serviceInstances.values());
+    const services = Array.from(this.instances.values());
 
     return Promise.all(
       services
@@ -121,13 +121,13 @@ export class Provider<T = unknown> {
   }
 
   private getOrInitializeService(identifier: string): T | null {
-    let instance = this.serviceInstances.get(identifier);
+    let instance = this.instances.get(identifier);
     if (!instance && this.factory) {
       instance = this.factory(
         this.container,
         normalizeIdentifierForFactory(identifier)
       );
-      this.serviceInstances.set(identifier, instance);
+      this.instances.set(identifier, instance);
     }
 
     return instance || null;

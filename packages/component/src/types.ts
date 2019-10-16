@@ -30,7 +30,7 @@ export const enum InstantiationMode {
  * NOTE: The container only provides PROVIDERS rather than the actual instances of dependencies.
  * It is useful for lazily loaded dependencies and optional dependencies.
  */
-export type ServiceFactory<T = unknown> = (
+export type InstanceFactory<T = unknown> = (
   container: ComponentContainer,
   instanceIdentifier?: string
 ) => T;

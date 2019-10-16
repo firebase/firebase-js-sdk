@@ -19,7 +19,7 @@ import { expect } from 'chai';
 import { stub } from 'sinon';
 import { ComponentContainer } from './component_container';
 import '../test/setup';
-import { Component } from './component';
+import { Component, ComponentType } from './component';
 import { Provider } from './provider';
 import { InstantiationMode } from './types';
 import { DEFAULT_ENTRY_NAME } from './contants';
@@ -29,9 +29,9 @@ function getFakeComponent(
   instantiationMode: InstantiationMode,
   multipleInstances: boolean = false
 ): Component {
-  return new Component(name, () => ({ fire: true }))
+  return new Component(name, () => ({ fire: true }), ComponentType.PRIVATE)
     .setInstantiationMode(instantiationMode)
-    .setMultipleInstance(multipleInstances);
+    .setMultipleInstances(multipleInstances);
 }
 
 describe('Component Container', () => {
@@ -58,7 +58,7 @@ describe('Component Container', () => {
     container.addComponent(component);
 
     expect(provideFactoryStub).has.been.calledWith(
-      component.serviceFactory,
+      component.instanceFactory,
       false,
       true
     );
@@ -71,7 +71,7 @@ describe('Component Container', () => {
     container.addComponent(component);
 
     expect(provideFactoryStub).has.been.calledWith(
-      component.serviceFactory,
+      component.instanceFactory,
       false,
       false
     );
@@ -88,7 +88,7 @@ describe('Component Container', () => {
     container.addComponent(component);
 
     expect(provideFactoryStub).has.been.calledWith(
-      component.serviceFactory,
+      component.instanceFactory,
       true,
       false
     );
