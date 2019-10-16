@@ -28,7 +28,11 @@ import {
 import { deepCopy } from '@firebase/util';
 import { ERROR_FACTORY, AppError } from '../errors';
 import { DEFAULT_ENTRY_NAME } from '../constants';
-import { ComponentContainer, Component, ComponentType } from '@firebase/component';
+import {
+  ComponentContainer,
+  Component,
+  ComponentType
+} from '@firebase/component';
 
 interface ServicesCache {
   [name: string]: {
@@ -62,7 +66,9 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
     this.container = new ComponentContainer(config.name!);
 
     // add itself to container
-    this.container.addComponent(new Component('app', () => this, ComponentType.PUBLIC));
+    this.container.addComponent(
+      new Component('app', () => this, ComponentType.PUBLIC)
+    );
     // populate ComponentContainer with existing components
     for (const component of this.firebase_.INTERNAL.components.values()) {
       this.container.addComponent(component);
