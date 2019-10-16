@@ -27,7 +27,9 @@ export class ComponentContainer {
 
   addComponent(component: Component): void {
     if (this.components.has(component.name)) {
-      throw new Error(`Component ${component.name} has already been registered with ${this.name}`);
+      throw new Error(
+        `Component ${component.name} has already been registered with ${this.name}`
+      );
     }
 
     this.components.set(component.name, component);

@@ -26,7 +26,11 @@ import {
   FirebaseService
 } from '@firebase/app-types/private';
 import { deepCopy } from '@firebase/util';
-import { ComponentContainer, Component, ComponentType } from '@firebase/component';
+import {
+  ComponentContainer,
+  Component,
+  ComponentType
+} from '@firebase/component';
 import { AppError, ERROR_FACTORY } from './errors';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { logger } from './logger';
@@ -144,7 +148,10 @@ export class FirebaseAppImpl implements FirebaseApp {
     try {
       this.container.addComponent(component);
     } catch (e) {
-      logger.debug(`Component ${component.name} failed to register with FirebaseApp ${this.name}`, e);
+      logger.debug(
+        `Component ${component.name} failed to register with FirebaseApp ${this.name}`,
+        e
+      );
     }
   }
 

@@ -228,7 +228,7 @@ describe('Provider', () => {
 
       it(`instantiates the default serviec if there are pending promises for other identifiers 
             but not for the default identifer and the service is eager`, () => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises        
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.get('name1');
         provider.provideFactory(() => ({ test: true }), true, true);
 

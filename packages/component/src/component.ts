@@ -35,7 +35,7 @@ export class Component<T = unknown> {
     public readonly name: string,
     public readonly instanceFactory: InstanceFactory<T>,
     public readonly type: ComponentType
-  ) { }
+  ) {}
 
   setInstantiationMode(mode: InstantiationMode): this {
     this.instantiationMode = mode;
