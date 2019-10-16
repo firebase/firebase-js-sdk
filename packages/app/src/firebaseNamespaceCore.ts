@@ -47,7 +47,6 @@ export function createFirebaseNamespaceCore(
   firebaseAppImpl: typeof FirebaseAppImpl | typeof FirebaseAppLiteImpl
 ): FirebaseNamespace {
   const apps: { [name: string]: FirebaseApp } = {};
-  //  const factories: { [service: string]: FirebaseServiceFactory } = {};
   const components = new Map<string, Component>();
 
   // A namespace is a plain JavaScript Object.

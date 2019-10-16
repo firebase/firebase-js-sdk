@@ -26,9 +26,10 @@ import {
   FirebaseService
 } from '@firebase/app-types/private';
 import { deepCopy } from '@firebase/util';
-import { ComponentContainer, Component } from '@firebase/component';
+import { ComponentContainer, Component, ComponentType } from '@firebase/component';
 import { AppError, ERROR_FACTORY } from './errors';
 import { DEFAULT_ENTRY_NAME } from './constants';
+import { logger } from './logger';
 
 /**
  * Global context object for a collection of services using
@@ -53,10 +54,10 @@ export class FirebaseAppImpl implements FirebaseApp {
     this.container = new ComponentContainer(config.name!);
 
     // add itself to container
-    this.container.addComponent(new Component('app', () => this));
+    this._addComponent(new Component('app', () => this, ComponentType.PUBLIC));
     // populate ComponentContainer with existing components
     for (const component of this.firebase_.INTERNAL.components.values()) {
-      this.container.addComponent(component);
+      this._addComponent(component);
     }
   }
 
@@ -140,7 +141,11 @@ export class FirebaseAppImpl implements FirebaseApp {
   }
 
   _addComponent(component: Component): void {
-    this.container.addComponent(component);
+    try {
+      this.container.addComponent(component);
+    } catch (e) {
+      logger.debug(`Component ${component.name} failed to register with FirebaseApp ${this.name}`, e);
+    }
   }
 
   /**

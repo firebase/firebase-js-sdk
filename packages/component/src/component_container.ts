@@ -26,12 +26,8 @@ export class ComponentContainer {
   constructor(private name: string) {}
 
   addComponent(component: Component): void {
-    // noop if a component with the same name has been registered.
     if (this.components.has(component.name)) {
-      console.warn(
-        `Component ${component.name} has already been registered with ${this.name}`
-      );
-      return;
+      throw new Error(`Component ${component.name} has already been registered with ${this.name}`);
     }
 
     this.components.set(component.name, component);
