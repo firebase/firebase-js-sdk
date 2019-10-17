@@ -33,6 +33,7 @@ import { ErrorCode, errorFactory } from '../models/errors';
 import { SubscriptionManager } from '../models/subscription-manager';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 export type BgMessageHandler = (
   payload: MessagePayload
@@ -47,7 +48,10 @@ export abstract class BaseController implements FirebaseMessaging {
   private readonly vapidDetailsModel = new VapidDetailsModel();
   private readonly subscriptionManager = new SubscriptionManager();
 
-  constructor(readonly app: FirebaseApp) {
+  constructor(
+    readonly app: FirebaseApp,
+    private readonly installations: FirebaseInstallations
+  ) {
     if (
       !app.options.messagingSenderId ||
       typeof app.options.messagingSenderId !== 'string'
@@ -59,7 +63,7 @@ export abstract class BaseController implements FirebaseMessaging {
       delete: () => this.delete()
     };
 
-    this.tokenDetailsModel = new TokenDetailsModel(app);
+    this.tokenDetailsModel = new TokenDetailsModel(app, installations);
   }
 
   async getToken(): Promise<string | null> {
@@ -148,6 +152,7 @@ export abstract class BaseController implements FirebaseMessaging {
       const updatedToken = await this.subscriptionManager.updateToken(
         tokenDetails,
         this.app,
+        this.installations,
         pushSubscription,
         publicVapidKey
       );
@@ -182,6 +187,7 @@ export abstract class BaseController implements FirebaseMessaging {
   ): Promise<string> {
     const newToken = await this.subscriptionManager.getToken(
       this.app,
+      this.installations,
       pushSubscription,
       publicVapidKey
     );
@@ -228,7 +234,11 @@ export abstract class BaseController implements FirebaseMessaging {
    */
   private async deleteTokenFromDB(token: string): Promise<void> {
     const tokenDetails = await this.tokenDetailsModel.deleteToken(token);
-    await this.subscriptionManager.deleteToken(this.app, tokenDetails);
+    await this.subscriptionManager.deleteToken(
+      this.app,
+      this.installations,
+      tokenDetails
+    );
   }
 
   // Visible for testing

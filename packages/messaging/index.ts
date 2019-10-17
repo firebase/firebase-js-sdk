@@ -16,30 +16,40 @@
  */
 
 import firebase from '@firebase/app';
+import '@firebase/installations';
 import {
   _FirebaseNamespace,
-  FirebaseServiceFactory
+  FirebaseService
 } from '@firebase/app-types/private';
 import { FirebaseMessaging } from '@firebase/messaging-types';
-
 import { SwController } from './src/controllers/sw-controller';
 import { WindowController } from './src/controllers/window-controller';
 import { ErrorCode, errorFactory } from './src/models/errors';
+import {
+  Component,
+  ComponentType,
+  ComponentContainer
+} from '@firebase/component';
 
 export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
 
-  const factoryMethod: FirebaseServiceFactory = app => {
+  const factoryMethod = (container: ComponentContainer): FirebaseService => {
+    /* Dependencies */
+    const app = container.getProvider('app').getImmediate();
+    const installations = container.getProvider('installations').getImmediate();
+    const analyticsProvider = container.getProvider('analytics-internal');
+
     if (!isSupported()) {
       throw errorFactory.create(ErrorCode.UNSUPPORTED_BROWSER);
     }
 
     if (self && 'ServiceWorkerGlobalScope' in self) {
       // Running in ServiceWorker context
-      return new SwController(app);
+      return new SwController(app, installations);
     } else {
       // Assume we are in the window context.
-      return new WindowController(app);
+      return new WindowController(app, installations, analyticsProvider);
     }
   };
 
@@ -47,10 +57,12 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
     isSupported
   };
 
-  instance.INTERNAL.registerService(
-    messagingName,
-    factoryMethod,
-    namespaceExports
+  instance.INTERNAL.registerComponent(
+    new Component(
+      messagingName,
+      factoryMethod,
+      ComponentType.PUBLIC
+    ).setServiceProps(namespaceExports)
   );
 }
 

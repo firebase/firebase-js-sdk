@@ -26,16 +26,25 @@ import { SubscriptionManager } from '../src/models/subscription-manager';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 
 import { deleteDatabase } from './testing-utils/db-helper';
-import { makeFakeApp } from './testing-utils/make-fake-app';
+import {
+  makeFakeApp,
+  makeFakeInstallations
+} from './testing-utils/make-fake-app';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 import { TokenDetails } from '../src/interfaces/token-details';
+import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
+import { Provider } from '@firebase/component';
+import { makeFakeAnalyticsProvider } from './testing-utils/make-fake-providers';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 let FAKE_SUBSCRIPTION: PushSubscription;
 let EXAMPLE_TOKEN_SAVE: TokenDetails;
 
 describe('Firebase Messaging > *Controller.deleteToken()', () => {
   let app: FirebaseApp;
+  let installations: FirebaseInstallations;
+  let analyticsProvider: Provider<FirebaseAnalyticsInternal>;
   let messagingService: WindowController | SwController;
 
   function configureRegistrationMocks(
@@ -80,6 +89,8 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
     app = makeFakeApp({
       messagingSenderId: EXAMPLE_TOKEN_SAVE.fcmSenderId
     });
+    installations = makeFakeInstallations();
+    analyticsProvider = makeFakeAnalyticsProvider();
   });
 
   afterEach(async () => {
@@ -93,7 +104,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
   });
 
   it('should handle no token to delete', () => {
-    messagingService = new WindowController(app);
+    messagingService = new WindowController(
+      app,
+      installations,
+      analyticsProvider
+    );
     return messagingService.deleteToken(undefined as any).then(
       () => {
         throw new Error('Expected error to be thrown.');
@@ -116,7 +131,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       async () => {}
     );
 
-    messagingService = new WindowController(app);
+    messagingService = new WindowController(
+      app,
+      installations,
+      analyticsProvider
+    );
     return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
   });
 
@@ -137,7 +156,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       async () => {}
     );
 
-    messagingService = new WindowController(app);
+    messagingService = new WindowController(
+      app,
+      installations,
+      analyticsProvider
+    );
     return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
       () => {
         throw new Error('Expected this to reject');
@@ -166,7 +189,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         async () => {}
       );
 
-      messagingService = new serviceClass(app);
+      messagingService = new serviceClass(
+        app,
+        installations,
+        analyticsProvider
+      );
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
     });
 
@@ -195,7 +222,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         async () => {}
       );
 
-      messagingService = new serviceClass(app);
+      messagingService = new serviceClass(
+        app,
+        installations,
+        analyticsProvider
+      );
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
         () => {
           throw new Error('Expected this to reject');
@@ -229,7 +260,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         throw new Error(errorMsg);
       });
 
-      messagingService = new serviceClass(app);
+      messagingService = new serviceClass(
+        app,
+        installations,
+        analyticsProvider
+      );
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
         () => {
           throw new Error('Expected this to reject');
@@ -262,7 +297,11 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         async () => {}
       );
 
-      messagingService = new serviceClass(app);
+      messagingService = new serviceClass(
+        app,
+        installations,
+        analyticsProvider
+      );
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
     });
   });

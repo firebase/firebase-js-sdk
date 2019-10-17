@@ -39,6 +39,9 @@ import {
 } from '../models/fcm-details';
 import { InternalMessage, MessageType } from '../models/worker-page-message';
 import { BaseController } from './base-controller';
+import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
+import { Provider } from '@firebase/component';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 export class WindowController extends BaseController {
   private registrationToUse: ServiceWorkerRegistration | null = null;
@@ -63,8 +66,12 @@ export class WindowController extends BaseController {
   /**
    * A service that provides a MessagingService instance.
    */
-  constructor(app: FirebaseApp) {
-    super(app);
+  constructor(
+    app: FirebaseApp,
+    installations: FirebaseInstallations,
+    readonly analyticsProvider: Provider<FirebaseAnalyticsInternal>
+  ) {
+    super(app, installations);
 
     this.setupSWMessageListener_();
   }
@@ -308,16 +315,23 @@ export class WindowController extends BaseController {
           // This message has a campaign id, meaning it was sent using the FN Console.
           // Analytics is enabled on this message, so we should log it.
           const eventType = getEventType(firebaseMessagingType);
-          (this.app as _FirebaseApp).INTERNAL.analytics.logEvent(
-            eventType,
-            /* eslint-disable camelcase */
-            {
-              message_name: data[FN_CAMPAIGN_NAME],
-              message_id: data[FN_CAMPAIGN_ID],
-              message_time: data[FN_CAMPAIGN_TIME],
-              message_device_time: Math.floor(Date.now() / 1000)
+          this.analyticsProvider.get().then(
+            analytics => {
+              analytics.logEvent(
+                eventType,
+                /* eslint-disable camelcase */
+                {
+                  message_name: data[FN_CAMPAIGN_NAME],
+                  message_id: data[FN_CAMPAIGN_ID],
+                  message_time: data[FN_CAMPAIGN_TIME],
+                  message_device_time: Math.floor(Date.now() / 1000)
+                }
+                /* eslint-enable camelcase */
+              );
+            },
+            () => {
+              /* it will never reject */
             }
-            /* eslint-enable camelcase */
           );
         }
       },

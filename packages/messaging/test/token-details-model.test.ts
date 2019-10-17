@@ -28,13 +28,18 @@ import { deleteDatabase } from './testing-utils/db-helper';
 import { compareDetails } from './testing-utils/detail-comparator';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { FirebaseApp } from '@firebase/app-types';
-import { makeFakeApp } from './testing-utils/make-fake-app';
+import {
+  makeFakeApp,
+  makeFakeInstallations
+} from './testing-utils/make-fake-app';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 const BAD_INPUTS: any[] = ['', [], {}, true, null, 123];
 
 describe('Firebase Messaging > TokenDetailsModel', () => {
   let clock: sinon.SinonFakeTimers;
   let app: FirebaseApp;
+  let installations: FirebaseInstallations;
   let tokenDetailsModel: TokenDetailsModel;
   let exampleInput: TokenDetails;
   let fakeSubscription: PushSubscription;
@@ -43,7 +48,8 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     clock = useFakeTimers();
 
     app = makeFakeApp();
-    tokenDetailsModel = new TokenDetailsModel(app);
+    installations = makeFakeInstallations();
+    tokenDetailsModel = new TokenDetailsModel(app, installations);
 
     fakeSubscription = makeFakeSubscription();
     exampleInput = {
@@ -74,7 +80,10 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
         protected readonly dbVersion = 2;
       }
 
-      const oldDBTokenDetailsModel = new OldDBTokenDetailsModel(app);
+      const oldDBTokenDetailsModel = new OldDBTokenDetailsModel(
+        app,
+        installations
+      );
 
       // Old (v2) version of exampleInput
       // vapidKey, auth and p256dh are strings,
@@ -109,7 +118,10 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
         protected readonly dbVersion = 3;
       }
 
-      const oldDBTokenDetailsModel = new OldDBTokenDetailsModel(app);
+      const oldDBTokenDetailsModel = new OldDBTokenDetailsModel(
+        app,
+        installations
+      );
 
       // Old (v3) version of exampleInput
       // fcmPushSet exists
@@ -142,7 +154,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
   describe('saveToken', () => {
     it('should throw on bad input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        tokenDetailsModel = new TokenDetailsModel(app);
+        tokenDetailsModel = new TokenDetailsModel(app, installations);
         exampleInput.swScope = badInput;
         return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
@@ -159,7 +171,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad vapid key input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        tokenDetailsModel = new TokenDetailsModel(app);
+        tokenDetailsModel = new TokenDetailsModel(app, installations);
         exampleInput.vapidKey = badInput;
         return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
@@ -176,7 +188,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad endpoint input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        tokenDetailsModel = new TokenDetailsModel(app);
+        tokenDetailsModel = new TokenDetailsModel(app, installations);
         exampleInput.endpoint = badInput;
         return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
@@ -193,7 +205,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad auth input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        tokenDetailsModel = new TokenDetailsModel(app);
+        tokenDetailsModel = new TokenDetailsModel(app, installations);
         exampleInput.auth = badInput;
         return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
@@ -210,7 +222,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad p256dh input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        tokenDetailsModel = new TokenDetailsModel(app);
+        tokenDetailsModel = new TokenDetailsModel(app, installations);
         exampleInput.p256dh = badInput;
         return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
@@ -227,7 +239,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad send id input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        tokenDetailsModel = new TokenDetailsModel(app);
+        tokenDetailsModel = new TokenDetailsModel(app, installations);
         exampleInput.fcmSenderId = badInput;
         return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
@@ -244,7 +256,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
     it('should throw on bad token input', () => {
       const promises = BAD_INPUTS.map(badInput => {
-        tokenDetailsModel = new TokenDetailsModel(app);
+        tokenDetailsModel = new TokenDetailsModel(app, installations);
         exampleInput.fcmToken = badInput;
         return tokenDetailsModel.saveTokenDetails(exampleInput).then(
           () => {
@@ -260,7 +272,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     });
 
     it('should save valid details', () => {
-      tokenDetailsModel = new TokenDetailsModel(app);
+      tokenDetailsModel = new TokenDetailsModel(app, installations);
       return tokenDetailsModel.saveTokenDetails(exampleInput);
     });
   });
@@ -331,7 +343,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
 
   describe('deleteToken', () => {
     it('should handle no input', () => {
-      tokenDetailsModel = new TokenDetailsModel(app);
+      tokenDetailsModel = new TokenDetailsModel(app, installations);
       return tokenDetailsModel.deleteToken(undefined as any).then(
         () => {
           throw new Error('Expected this to throw an error due to no token');
@@ -343,7 +355,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     });
 
     it('should handle empty string', () => {
-      tokenDetailsModel = new TokenDetailsModel(app);
+      tokenDetailsModel = new TokenDetailsModel(app, installations);
       return tokenDetailsModel.deleteToken('').then(
         () => {
           throw new Error('Expected this to throw an error due to no token');
@@ -355,7 +367,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     });
 
     it('should delete current token', () => {
-      tokenDetailsModel = new TokenDetailsModel(app);
+      tokenDetailsModel = new TokenDetailsModel(app, installations);
       return tokenDetailsModel
         .saveTokenDetails(exampleInput)
         .then(() => {
@@ -373,7 +385,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
     });
 
     it('should handle deleting a non-existant token', () => {
-      tokenDetailsModel = new TokenDetailsModel(app);
+      tokenDetailsModel = new TokenDetailsModel(app, installations);
       return tokenDetailsModel.deleteToken('bad-token').then(
         () => {
           throw new Error('Expected this delete to throw and error.');

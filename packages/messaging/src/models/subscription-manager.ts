@@ -20,8 +20,8 @@ import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { ErrorCode, errorFactory } from './errors';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 import { FirebaseApp } from '@firebase/app-types';
-import '@firebase/installations';
 import { TokenDetails } from '../interfaces/token-details';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 interface ApiResponse {
   token?: string;
@@ -40,10 +40,11 @@ interface TokenRequestBody {
 export class SubscriptionManager {
   async getToken(
     app: FirebaseApp,
+    installations: FirebaseInstallations,
     subscription: PushSubscription,
     vapidKey: Uint8Array
   ): Promise<string> {
-    const headers = await getHeaders(app);
+    const headers = await getHeaders(app, installations);
     const body = getBody(subscription, vapidKey);
 
     const subscribeOptions = {
@@ -82,10 +83,11 @@ export class SubscriptionManager {
   async updateToken(
     tokenDetails: TokenDetails,
     app: FirebaseApp,
+    installations: FirebaseInstallations,
     subscription: PushSubscription,
     vapidKey: Uint8Array
   ): Promise<string> {
-    const headers = await getHeaders(app);
+    const headers = await getHeaders(app, installations);
     const body = getBody(subscription, vapidKey);
 
     const updateOptions = {
@@ -123,10 +125,11 @@ export class SubscriptionManager {
 
   async deleteToken(
     app: FirebaseApp,
+    installations: FirebaseInstallations,
     tokenDetails: TokenDetails
   ): Promise<void> {
     // TODO: Add FIS header
-    const headers = await getHeaders(app);
+    const headers = await getHeaders(app, installations);
 
     const unsubscribeOptions = {
       method: 'DELETE',
@@ -157,8 +160,10 @@ function getEndpoint(app: FirebaseApp): string {
   return `${ENDPOINT}/projects/${app.options.projectId!}/registrations`;
 }
 
-async function getHeaders(app: FirebaseApp): Promise<Headers> {
-  const installations = app.installations();
+async function getHeaders(
+  app: FirebaseApp,
+  installations: FirebaseInstallations
+): Promise<Headers> {
   const authToken = await installations.getToken();
 
   return new Headers({
