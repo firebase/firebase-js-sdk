@@ -40,9 +40,13 @@ export class TestRemoteDocumentChangeBuffer {
   }
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('getEntry', 'readonly', txn => {
-      return this.buffer.getEntry(txn, documentKey);
-    });
+    return this.persistence.runTransaction(
+      'getEntry',
+      'readonly-idempotent',
+      txn => {
+        return this.buffer.getEntry(txn, documentKey);
+      }
+    );
   }
 
   apply(): Promise<void> {

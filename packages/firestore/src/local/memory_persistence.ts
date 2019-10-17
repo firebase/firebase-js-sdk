@@ -42,6 +42,7 @@ import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
+  PersistenceTransactionMode,
   PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
@@ -169,7 +170,7 @@ export class MemoryPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
+    mode: PersistenceTransactionMode,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
@@ -183,7 +184,11 @@ export class MemoryPersistence implements Persistence {
           .onTransactionCommitted(txn)
           .next(() => result);
       })
-      .toPromise();
+      .toPromise()
+      .then(result => {
+        txn.raiseOnCommittedEvent();
+        return result;
+      });
   }
 
   mutationQueuesContainKey(
@@ -202,8 +207,10 @@ export class MemoryPersistence implements Persistence {
  * Memory persistence is not actually transactional, but future implementations
  * may have transaction-scoped state.
  */
-export class MemoryTransaction implements PersistenceTransaction {
-  constructor(readonly currentSequenceNumber: ListenSequenceNumber) {}
+export class MemoryTransaction extends PersistenceTransaction {
+  constructor(readonly currentSequenceNumber: ListenSequenceNumber) {
+    super();
+  }
 }
 
 export class MemoryEagerDelegate implements ReferenceDelegate {

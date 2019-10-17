@@ -164,7 +164,7 @@ export class IndexedDbQueryCache implements QueryCache {
         const queryData = this.serializer.fromDbTarget(value);
         if (
           queryData.sequenceNumber <= upperBound &&
-          activeTargetIds[queryData.targetId] === undefined
+          activeTargetIds.get(queryData.targetId) === null
         ) {
           count++;
           promises.push(this.removeQueryData(txn, queryData));

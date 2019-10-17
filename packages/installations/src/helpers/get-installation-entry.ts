@@ -43,18 +43,15 @@ export async function getInstallationEntry(
 ): Promise<InstallationEntryWithRegistrationPromise> {
   let registrationPromise: Promise<RegisteredInstallationEntry> | undefined;
 
-  const installationEntry = await update(
-    appConfig,
-    (oldEntry?: InstallationEntry): InstallationEntry => {
-      const installationEntry = updateOrCreateInstallationEntry(oldEntry);
-      const entryWithPromise = triggerRegistrationIfNecessary(
-        appConfig,
-        installationEntry
-      );
-      registrationPromise = entryWithPromise.registrationPromise;
-      return entryWithPromise.installationEntry;
-    }
-  );
+  const installationEntry = await update(appConfig, oldEntry => {
+    const installationEntry = updateOrCreateInstallationEntry(oldEntry);
+    const entryWithPromise = triggerRegistrationIfNecessary(
+      appConfig,
+      installationEntry
+    );
+    registrationPromise = entryWithPromise.registrationPromise;
+    return entryWithPromise.installationEntry;
+  });
 
   if (installationEntry.fid === INVALID_FID) {
     // FID generation failed. Waiting for the FID from the server.
@@ -67,6 +64,10 @@ export async function getInstallationEntry(
   };
 }
 
+/**
+ * Creates a new Installation Entry if one does not exist.
+ * Also clears timed out pending requests.
+ */
 function updateOrCreateInstallationEntry(
   oldEntry: InstallationEntry | undefined
 ): InstallationEntry {
@@ -75,19 +76,12 @@ function updateOrCreateInstallationEntry(
     registrationStatus: RequestStatus.NOT_STARTED
   };
 
-  if (hasInstallationRequestTimedOut(entry)) {
-    return {
-      fid: entry.fid,
-      registrationStatus: RequestStatus.NOT_STARTED
-    };
-  }
-
-  return entry;
+  return clearTimedOutRequest(entry);
 }
 
 /**
- * If the Firebase Installation is not registered yet, this will trigger the registration
- * and return an InProgressInstallationEntry.
+ * If the Firebase Installation is not registered yet, this will trigger the
+ * registration and return an InProgressInstallationEntry.
  */
 function triggerRegistrationIfNecessary(
   appConfig: AppConfig,
@@ -189,23 +183,23 @@ async function waitUntilFidRegistration(
 function updateInstallationRequest(
   appConfig: AppConfig
 ): Promise<InstallationEntry> {
-  return update(
-    appConfig,
-    (oldEntry?: InstallationEntry): InstallationEntry => {
-      if (!oldEntry) {
-        throw ERROR_FACTORY.create(ErrorCode.INSTALLATION_NOT_FOUND);
-      }
-
-      if (hasInstallationRequestTimedOut(oldEntry)) {
-        return {
-          fid: oldEntry.fid,
-          registrationStatus: RequestStatus.NOT_STARTED
-        };
-      }
-
-      return oldEntry;
+  return update(appConfig, oldEntry => {
+    if (!oldEntry) {
+      throw ERROR_FACTORY.create(ErrorCode.INSTALLATION_NOT_FOUND);
     }
-  );
+    return clearTimedOutRequest(oldEntry);
+  });
+}
+
+function clearTimedOutRequest(entry: InstallationEntry): InstallationEntry {
+  if (hasInstallationRequestTimedOut(entry)) {
+    return {
+      fid: entry.fid,
+      registrationStatus: RequestStatus.NOT_STARTED
+    };
+  }
+
+  return entry;
 }
 
 function hasInstallationRequestTimedOut(

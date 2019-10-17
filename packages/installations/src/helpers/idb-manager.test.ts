@@ -20,6 +20,19 @@ import { AppConfig } from '../interfaces/app-config';
 import { getFakeAppConfig } from '../testing/get-fake-app';
 import '../testing/setup';
 import { clear, get, remove, set, update } from './idb-manager';
+import {
+  InstallationEntry,
+  RequestStatus
+} from '../interfaces/installation-entry';
+
+const VALUE_A: InstallationEntry = {
+  fid: 'VALUE_A',
+  registrationStatus: RequestStatus.NOT_STARTED
+};
+const VALUE_B: InstallationEntry = {
+  fid: 'VALUE_B',
+  registrationStatus: RequestStatus.NOT_STARTED
+};
 
 describe('idb manager', () => {
   let appConfig1: AppConfig;
@@ -32,9 +45,9 @@ describe('idb manager', () => {
 
   describe('get / set', () => {
     it('sets a value and then gets the same value back', async () => {
-      await set(appConfig1, 'value');
+      await set(appConfig1, VALUE_A);
       const value = await get(appConfig1);
-      expect(value).to.equal('value');
+      expect(value).to.deep.equal(VALUE_A);
     });
 
     it('gets undefined for a key that does not exist', async () => {
@@ -43,22 +56,22 @@ describe('idb manager', () => {
     });
 
     it('sets and gets multiple values with different keys', async () => {
-      await set(appConfig1, 'value');
-      await set(appConfig2, 'value2');
-      expect(await get(appConfig1)).to.equal('value');
-      expect(await get(appConfig2)).to.equal('value2');
+      await set(appConfig1, VALUE_A);
+      await set(appConfig2, VALUE_B);
+      expect(await get(appConfig1)).to.deep.equal(VALUE_A);
+      expect(await get(appConfig2)).to.deep.equal(VALUE_B);
     });
 
     it('overwrites a value', async () => {
-      await set(appConfig1, 'value');
-      await set(appConfig1, 'newValue');
-      expect(await get(appConfig1)).to.equal('newValue');
+      await set(appConfig1, VALUE_A);
+      await set(appConfig1, VALUE_B);
+      expect(await get(appConfig1)).to.deep.equal(VALUE_B);
     });
   });
 
   describe('remove', () => {
     it('deletes a key', async () => {
-      await set(appConfig1, 'value');
+      await set(appConfig1, VALUE_A);
       await remove(appConfig1);
       expect(await get(appConfig1)).to.be.undefined;
     });
@@ -71,8 +84,8 @@ describe('idb manager', () => {
 
   describe('clear', () => {
     it('deletes all keys', async () => {
-      await set(appConfig1, 'value');
-      await set(appConfig2, 'value2');
+      await set(appConfig1, VALUE_A);
+      await set(appConfig2, VALUE_B);
       await clear();
       expect(await get(appConfig1)).to.be.undefined;
       expect(await get(appConfig2)).to.be.undefined;
@@ -83,16 +96,16 @@ describe('idb manager', () => {
     it('gets and sets a value atomically, returns the new value', async () => {
       let isGetCalled = false;
 
-      await set(appConfig1, 'value');
+      await set(appConfig1, VALUE_A);
 
-      const resultPromise = update<string, string>(appConfig1, oldValue => {
+      const resultPromise = update(appConfig1, oldValue => {
         // get is already called for the same key, but it will only complete
         // after update transaction finishes, at which point it will return the
         // new value.
         expect(isGetCalled).to.be.true;
 
-        expect(oldValue).to.equal('value');
-        return 'newValue';
+        expect(oldValue).to.deep.equal(VALUE_A);
+        return VALUE_B;
       });
 
       // Called immediately after update, but before update completed.
@@ -100,36 +113,10 @@ describe('idb manager', () => {
       isGetCalled = true;
 
       // Update returns the new value
-      expect(await resultPromise).to.equal('newValue');
+      expect(await resultPromise).to.deep.equal(VALUE_B);
 
       // If update weren't atomic, this would return the old value.
-      expect(await getPromise).to.equal('newValue');
-    });
-
-    it('can change the type of the value', async () => {
-      let isGetCalled = false;
-
-      await set(appConfig1, 'value');
-
-      const resultPromise = update<string, number>(appConfig1, oldValue => {
-        // get is already called for the same key, but it will only complete
-        // after update transaction finishes, at which point it will return the
-        // new value.
-        expect(isGetCalled).to.be.true;
-
-        expect(oldValue).to.equal('value');
-        return 123;
-      });
-
-      // Called immediately after update, but before update completed.
-      const getPromise = get(appConfig1);
-      isGetCalled = true;
-
-      // Update returns the new value
-      expect(await resultPromise).to.equal(123);
-
-      // If update weren't atomic, this would return the old value.
-      expect(await getPromise).to.equal(123);
+      expect(await getPromise).to.deep.equal(VALUE_B);
     });
   });
 });

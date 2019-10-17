@@ -1,6 +1,6 @@
 {
   "name": "@firebase/storage",
-  "version": "0.3.13",
+  "version": "0.3.14",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
@@ -20,8 +20,8 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
-    "@firebase/storage-types": "0.3.3",
-    "@firebase/util": "0.2.28",
+    "@firebase/storage-types": "0.3.4",
+    "@firebase/util": "0.2.29",
     "tslib": "1.10.0"
   },
   "peerDependencies": {
@@ -43,17 +43,17 @@
     "karma-spec-reporter": "0.0.32",
     "karma-webpack": "4.0.2",
     "npm-run-all": "4.1.5",
-    "rollup": "1.23.0",
+    "rollup": "1.23.1",
     "rollup-plugin-typescript2": "0.24.3",
     "sinon": "7.5.0",
     "source-map-loader": "0.2.4",
     "ts-loader": "6.2.0",
-    "typescript": "3.6.3",
-    "webpack": "4.41.0",
+    "typescript": "3.6.4",
+    "webpack": "4.41.1",
     "eslint": "6.5.1",
-    "@typescript-eslint/parser": "2.3.2",
-    "@typescript-eslint/eslint-plugin": "2.3.2",
-    "@typescript-eslint/eslint-plugin-tslint": "2.3.2"
+    "@typescript-eslint/parser": "2.4.0",
+    "@typescript-eslint/eslint-plugin": "2.4.0",
+    "@typescript-eslint/eslint-plugin-tslint": "2.4.0"
   },
   "repository": {
     "directory": "packages/storage",
