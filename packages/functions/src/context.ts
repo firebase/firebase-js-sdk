@@ -37,8 +37,8 @@ export class ContextProvider {
     authProvider: Provider<FirebaseAuthInternal>,
     messagingProvider: Provider<FirebaseMessaging>
   ) {
-    this.auth = authProvider.getImmediate(undefined, { optional: true });
-    this.messaging = messagingProvider.getImmediate(undefined, {
+    this.auth = authProvider.getImmediate({ optional: true });
+    this.messaging = messagingProvider.getImmediate({
       optional: true
     });
 
