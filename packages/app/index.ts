@@ -15,10 +15,9 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
+import { FirebaseNamespace } from '@firebase/app-types';
 import { firebase as firebaseNamespace } from './src/firebaseNamespace';
 import { isNode, isBrowser } from '@firebase/util';
-import { Provider } from '@firebase/component';
 import { logger } from './src/logger';
 
 // Firebase Lite detection
@@ -70,9 +69,3 @@ export const firebase = firebaseNamespace;
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;
-
-declare module '@firebase/component' {
-  interface ComponentContainer {
-    getProvider(name: 'app'): Provider<FirebaseApp>;
-  }
-}

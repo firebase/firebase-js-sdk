@@ -1,5 +1,3 @@
-import { Provider } from '@firebase/component';
-
 /**
  * @license
  * Copyright 2017 Google Inc.
@@ -102,4 +100,10 @@ export interface FirebaseNamespace {
 
   // The current SDK version.
   SDK_VERSION: string;
+}
+
+declare module '@firebase/component' {
+  interface ComponentContainer {
+    getProvider(name: 'app'): Provider<FirebaseApp>;
+  }
 }

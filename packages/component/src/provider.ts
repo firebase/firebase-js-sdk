@@ -32,7 +32,7 @@ export class Provider<T = unknown> {
   constructor(
     private readonly name: string,
     private readonly container: ComponentContainer
-  ) {}
+  ) { }
 
   /**
    * @param identifier A provider can provide mulitple instances of a service
@@ -46,9 +46,14 @@ export class Provider<T = unknown> {
       const deferred = new Deferred<T>();
       this.instancesDeferred.set(normalizedIdentifier, deferred);
       // If the service instance is available, resolve the promise with it immediately
-      const instance = this.getOrInitializeService(normalizedIdentifier);
-      if (instance) {
-        deferred.resolve(instance);
+      try {
+        const instance = this.getOrInitializeService(normalizedIdentifier);
+        if (instance) {
+          deferred.resolve(instance);
+        }
+      } catch (e) {
+        // when the instance factory throws an exception during get(), it should not cause
+        // an fatal error. We just return the unresolved promise in this case.
       }
     }
 
@@ -76,17 +81,23 @@ export class Provider<T = unknown> {
     };
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
+    try {
+      const instance = this.getOrInitializeService(normalizedIdentifier);
 
-    const instance = this.getOrInitializeService(normalizedIdentifier);
-
-    if (!instance) {
-      if (optional) {
-        return null;
+      if (!instance) {
+        if (optional) {
+          return null;
+        }
+        throw Error(`Service ${this.name} is not available`);
       }
-      throw Error(`Service ${this.name} is not available`);
+      return instance;
+    } catch (e) {
+      if(optional) {
+        return null;
+      } else {
+        throw e;
+      }
     }
-
-    return instance;
   }
 
   setComponent(component: Component<T>): void {
@@ -103,7 +114,14 @@ export class Provider<T = unknown> {
     this.component = component;
     // if the service is eager, initialize the default instance
     if (isComponentEager(component)) {
-      this.getOrInitializeService(DEFAULT_ENTRY_NAME);
+      try {
+        this.getOrInitializeService(DEFAULT_ENTRY_NAME);
+      } catch (e) {
+        // when the instance factory for an eager Component throws an exception during the eager 
+        // initialization, it should not cause an fatal error.
+        // TODO: Investigate if we need to make it configurable, because some component may want to cause
+        // a fatal error in this case?
+      }
     }
 
     // Create service instances for the pending promises and resolve them
@@ -117,10 +135,15 @@ export class Provider<T = unknown> {
         instanceIdentifier
       );
 
-      // `getOrInitializeService()` should always return a valid instance since a component is guaranteed. use ! to make typescript happy.
-      const instance = this.getOrInitializeService(normalizedIdentifier)!;
+      try {
+        // `getOrInitializeService()` should always return a valid instance since a component is guaranteed. use ! to make typescript happy.
+        const instance = this.getOrInitializeService(normalizedIdentifier)!;
+        instanceDeferred.resolve(instance);
+      } catch (e) {
+        // when the instance factory throws an exception, it should not cause
+        // an fatal error. We just leave the promise unresolved.
+      }
 
-      instanceDeferred.resolve(instance);
     }
   }
 
