@@ -1,12 +1,16 @@
 # Unreleased
+- [changed] Improved iOS 13 support by eliminating an additional crash in our
+  IndexedDB persistence layer.
+
+# 1.6.2
 - [changed] Fixed a crash on iOS 13 that occurred when persistence was enabled
   in a background tab (#2232).
 - [fixed] Fixed an issue in the interaction with the Firestore Emulator that
   caused requests with timestamps to fail.
+  
+# 1.6.0
 - [feature] Added a `Firestore.onSnapshotsInSync()` method that notifies you
   when all your snapshot listeners are in sync with each other.
-
-# 1.6.0
 - [fixed] Fixed a regression that caused queries with nested field filters to
   crash the client if the field was not present in the local copy of the
   document. 
