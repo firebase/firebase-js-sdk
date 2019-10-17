@@ -36,7 +36,7 @@ export class Provider<T extends Name> {
   constructor(
     private readonly name: T,
     private readonly container: ComponentContainer
-  ) {}
+  ) { }
 
   /**
    * @param identifier A provider can provide mulitple instances of a service
