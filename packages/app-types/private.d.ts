@@ -24,7 +24,7 @@ import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
 import { Observer, Subscribe } from '@firebase/util';
 import { FirebaseError, ErrorFactory } from '@firebase/util';
 import { Deferred } from '../firestore/test/util/promise';
-import { Component } from '@firebase/component';
+import { Component, ComponentContainer } from '@firebase/component';
 
 export interface FirebaseServiceInternals {
   /**
@@ -82,7 +82,8 @@ export interface FirebaseAppInternals {
 }
 
 export interface _FirebaseApp extends FirebaseApp {
-  _addComponent(component: Component): void;
+  container: ComponentContainer;
+  _addComponent(component: Component, overwrite?: boolean): void;
   _removeServiceInstance(name: string, instanceIdentifier?: string): void;
 }
 export interface _FirebaseNamespace extends FirebaseNamespace {

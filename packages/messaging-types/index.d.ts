@@ -49,3 +49,11 @@ export class FirebaseMessaging {
   useServiceWorker(registration: ServiceWorkerRegistration): void;
   usePublicVapidKey(b64PublicKey: string): void;
 }
+
+declare module '@firebase/component' {
+  interface ComponentContainer {
+    getProvider(name: 'messaging'): Provider<FirebaseMessaging>;
+  }
+
+  interface Provider { }
+}
