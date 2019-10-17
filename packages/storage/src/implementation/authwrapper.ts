@@ -89,7 +89,7 @@ export class AuthWrapper {
   }
 
   getAuthToken(): Promise<string | null> {
-    const auth = this.authProvider_.getImmediate(undefined, { optional: true });
+    const auth = this.authProvider_.getImmediate({ optional: true });
     if (auth) {
       return auth.getToken().then(
         (response: FirebaseAuthTokenData | null): string | null => {
