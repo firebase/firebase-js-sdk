@@ -17,3 +17,4 @@
 
 export { Component, ComponentType } from './src/component';
 export { ComponentContainer } from './src/component_container';
+export { Provider } from './src/provider';
