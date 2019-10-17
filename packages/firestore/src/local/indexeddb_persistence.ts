@@ -461,20 +461,20 @@ export class IndexedDbPersistence implements Persistence {
           >(txn, DbClientMetadata.store);
 
           return metadataStore.loadAll().next(existingClients => {
-            const activeClients = this.filterActiveClients(
+            const active = this.filterActiveClients(
               existingClients,
               MAX_CLIENT_AGE_MS
             );
-            const inactiveClients = existingClients.filter(
-              client => activeClients.indexOf(client) === -1
+            const inactive = existingClients.filter(
+              client => active.indexOf(client) === -1
             );
 
             // Delete metadata for clients that are no longer considered active.
             return PersistencePromise.forEach(
-              inactiveClients,
+              inactive,
               (inactiveClient: DbClientMetadata) =>
                 metadataStore.delete(inactiveClient.clientId)
-            ).next(() => inactiveClients);
+            ).next(() => inactive);
           });
         }
       );
