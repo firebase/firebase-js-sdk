@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { Service } from '../src/api/service';
+import { createTestService } from './utils';
 
 describe('Firebase Functions > Service', () => {
   describe('simple constructor', () => {
@@ -24,7 +24,7 @@ describe('Firebase Functions > Service', () => {
         projectId: 'my-project'
       }
     };
-    const service = new Service(app);
+    const service = createTestService(app);
 
     it('has valid urls', () => {
       assert.equal(
@@ -48,7 +48,7 @@ describe('Firebase Functions > Service', () => {
         projectId: 'my-project'
       }
     };
-    const service = new Service(app, 'my-region');
+    const service = createTestService(app, 'my-region');
 
     it('has valid urls', () => {
       assert.equal(
