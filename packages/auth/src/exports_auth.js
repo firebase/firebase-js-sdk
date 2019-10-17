@@ -620,7 +620,7 @@ fireauth.exportlib.exportFunction(
   if (typeof firebase === 'undefined' || !firebase.INTERNAL ||
       !firebase.INTERNAL.registerService) {
     throw new Error('Cannot find the firebase namespace; be sure to include ' +
-        'firebase-app.js before this library.');
+      'firebase-app.js before this library.');
   } else {
     /** @type {!firebase.ServiceFactory} */
     var factory = function(app, extendApp) {
@@ -654,36 +654,36 @@ fireauth.exportlib.exportFunction(
       'Error': fireauth.AuthError
     };
     fireauth.exportlib.exportFunction(namespace,
-        'EmailAuthProvider', fireauth.EmailAuthProvider, []);
+      'EmailAuthProvider', fireauth.EmailAuthProvider, []);
     fireauth.exportlib.exportFunction(namespace,
-        'FacebookAuthProvider', fireauth.FacebookAuthProvider, []);
+      'FacebookAuthProvider', fireauth.FacebookAuthProvider, []);
     fireauth.exportlib.exportFunction(namespace,
-        'GithubAuthProvider', fireauth.GithubAuthProvider, []);
+      'GithubAuthProvider', fireauth.GithubAuthProvider, []);
     fireauth.exportlib.exportFunction(namespace,
-        'GoogleAuthProvider', fireauth.GoogleAuthProvider, []);
+      'GoogleAuthProvider', fireauth.GoogleAuthProvider, []);
     fireauth.exportlib.exportFunction(namespace,
-        'TwitterAuthProvider', fireauth.TwitterAuthProvider, []);
+      'TwitterAuthProvider', fireauth.TwitterAuthProvider, []);
     fireauth.exportlib.exportFunction(namespace,
-        'OAuthProvider', fireauth.OAuthProvider, [
-          fireauth.args.string('providerId')
-        ]);
+      'OAuthProvider', fireauth.OAuthProvider, [
+      fireauth.args.string('providerId')
+    ]);
     fireauth.exportlib.exportFunction(namespace,
-        'SAMLAuthProvider', fireauth.SAMLAuthProvider, [
-          fireauth.args.string('providerId')
-        ]);
+      'SAMLAuthProvider', fireauth.SAMLAuthProvider, [
+      fireauth.args.string('providerId')
+    ]);
     fireauth.exportlib.exportFunction(namespace,
-        'PhoneAuthProvider', fireauth.PhoneAuthProvider, [
-          fireauth.args.firebaseAuth(true)
-        ]);
+      'PhoneAuthProvider', fireauth.PhoneAuthProvider, [
+      fireauth.args.firebaseAuth(true)
+    ]);
     fireauth.exportlib.exportFunction(namespace,
-        'RecaptchaVerifier', fireauth.RecaptchaVerifier, [
-          fireauth.args.or(
-              fireauth.args.string(),
-              fireauth.args.element(),
-              'recaptchaContainer'),
-          fireauth.args.object('recaptchaParameters', true),
-          fireauth.args.firebaseApp(true)
-        ]);
+      'RecaptchaVerifier', fireauth.RecaptchaVerifier, [
+      fireauth.args.or(
+        fireauth.args.string(),
+        fireauth.args.element(),
+        'recaptchaContainer'),
+      fireauth.args.object('recaptchaParameters', true),
+      fireauth.args.firebaseApp(true)
+    ]);
     fireauth.exportlib.exportFunction(namespace,
         'ActionCodeURL', fireauth.ActionCodeURL, []);
 
