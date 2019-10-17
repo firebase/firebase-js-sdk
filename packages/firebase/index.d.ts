@@ -3961,7 +3961,21 @@ declare namespace firebase.analytics {
      * ```
      */
     app: firebase.app.App;
-
+              
+     /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'add_payment_info',
+      eventParams?: {},
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+    
     /**
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
@@ -4074,6 +4088,20 @@ declare namespace firebase.analytics {
         method?: EventParams['method'];
         [key: string]: any;
       },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+               
+     /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'page_view',
+      eventParams?: {},
       options?: firebase.analytics.AnalyticsCallOptions
     ): void;
 
