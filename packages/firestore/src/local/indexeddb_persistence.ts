@@ -474,7 +474,7 @@ export class IndexedDbPersistence implements Persistence {
               inactiveClients,
               (inactiveClient: DbClientMetadata) =>
                 metadataStore.delete(inactiveClient.clientId)
-            ).next(() => inactiveClients)
+            ).next(() => inactiveClients);
           });
         }
       );
