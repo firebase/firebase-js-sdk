@@ -16,13 +16,17 @@
  */
 
 import { ResourcePath } from '../model/path';
-import { isNullOrUndefined } from '../util/types';
 import { Bound, Filter, OrderBy, Query } from './query';
-import { DocumentKey } from '../model/document_key';
+import {
+  canonicalId,
+  toString,
+  isEqual,
+  isDocumentQuery
+} from './query_target_common';
 
 /**
  * Represents a backend query: the query protos SDK sent to backend and persisted
- * in local storage are from this class.
+ * in the LocalStore are from this class.
  */
 export class Target {
   private memoizedCanonicalId: string | null = null;
@@ -45,119 +49,23 @@ export class Target {
     readonly endAt: Bound | null = null
   ) {}
 
-  // TODO(b/29183165): This is used to get a unique string from a query to, for
-  // example, use as a dictionary key, but the implementation is subject to
-  // collisions. Make it collision-free.
   canonicalId(): string {
     if (this.memoizedCanonicalId === null) {
-      let canonicalId = this.path.canonicalString();
-      if (this.collectionGroup !== null) {
-        canonicalId += '|cg:' + this.collectionGroup;
-      }
-      canonicalId += '|f:';
-      for (const filter of this.filters) {
-        canonicalId += filter.canonicalId();
-        canonicalId += ',';
-      }
-      canonicalId += '|ob:';
-      // TODO(dimond): make this collision resistant
-      for (const orderBy of this.orderBy) {
-        canonicalId += orderBy.canonicalId();
-        canonicalId += ',';
-      }
-      if (!isNullOrUndefined(this.limit)) {
-        canonicalId += '|l:';
-        canonicalId += this.limit!;
-      }
-      if (this.startAt) {
-        canonicalId += '|lb:';
-        canonicalId += this.startAt.canonicalId();
-      }
-      if (this.endAt) {
-        canonicalId += '|ub:';
-        canonicalId += this.endAt.canonicalId();
-      }
-      this.memoizedCanonicalId = canonicalId;
+      this.memoizedCanonicalId = canonicalId(this);
     }
     return this.memoizedCanonicalId;
   }
 
   toString(): string {
-    let str = 'Target(' + this.path.canonicalString();
-    if (this.collectionGroup !== null) {
-      str += ' collectionGroup=' + this.collectionGroup;
-    }
-    if (this.filters.length > 0) {
-      str += `, filters: [${this.filters.join(', ')}]`;
-    }
-    if (!isNullOrUndefined(this.limit)) {
-      str += ', limit: ' + this.limit;
-    }
-    if (this.orderBy.length > 0) {
-      str += `, orderBy: [${this.orderBy.join(', ')}]`;
-    }
-    if (this.startAt) {
-      str += ', startAt: ' + this.startAt.canonicalId();
-    }
-    if (this.endAt) {
-      str += ', endAt: ' + this.endAt.canonicalId();
-    }
-
-    return str + ')';
+    return toString(this);
   }
 
   isEqual(other: Target): boolean {
-    if (this.limit !== other.limit) {
-      return false;
-    }
-
-    if (this.orderBy.length !== other.orderBy.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.orderBy.length; i++) {
-      if (!this.orderBy[i].isEqual(other.orderBy[i])) {
-        return false;
-      }
-    }
-
-    if (this.filters.length !== other.filters.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.filters.length; i++) {
-      if (!this.filters[i].isEqual(other.filters[i])) {
-        return false;
-      }
-    }
-
-    if (this.collectionGroup !== other.collectionGroup) {
-      return false;
-    }
-
-    if (!this.path.isEqual(other.path)) {
-      return false;
-    }
-
-    if (
-      this.startAt !== null
-        ? !this.startAt.isEqual(other.startAt)
-        : other.startAt !== null
-    ) {
-      return false;
-    }
-
-    return this.endAt !== null
-      ? this.endAt.isEqual(other.endAt)
-      : other.endAt === null;
+    return isEqual(this, other);
   }
 
   isDocumentQuery(): boolean {
-    return (
-      DocumentKey.isDocumentKey(this.path) &&
-      this.collectionGroup === null &&
-      this.filters.length === 0
-    );
+    return isDocumentQuery(this);
   }
 
   toQuery(): Query {

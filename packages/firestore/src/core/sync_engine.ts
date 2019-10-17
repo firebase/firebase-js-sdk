@@ -949,7 +949,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           'A secondary tab should never have an active query without an active view.'
         );
         // For queries that never executed on this client, we need to
-        // allocate the query in LocalStore and initialize a new View.
+        // allocate the target in LocalStore and initialize a new View.
         const target = await this.localStore.getTarget(targetId);
         assert(!!target, `Target for id ${targetId} not found`);
         queryData = await this.localStore.allocateTarget(target!);

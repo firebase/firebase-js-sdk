@@ -19,6 +19,7 @@ import { Timestamp } from '../api/timestamp';
 import { User } from '../auth/user';
 import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
 import { BatchId, ProtoByteString, TargetId } from '../core/types';
 import {
   DocumentKeySet,
@@ -54,7 +55,6 @@ import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
-import { Target } from '../core/target';
 
 const LOG_TAG = 'LocalStore';
 
@@ -165,6 +165,7 @@ export class LocalStore {
   private queryDataByTarget = {} as { [targetId: number]: QueryData };
 
   /** Maps a target to its targetID. */
+  // TODO(wuandy): Evaluate if TargetId can be part of Target.
   private targetIdByTarget = new ObjectMap<Target, TargetId>(t =>
     t.canonicalId()
   );
@@ -755,7 +756,7 @@ export class LocalStore {
     });
   }
 
-  //TODO(wuandy): delete this temp method, it's only for change isolation.
+  // TODO(wuandy): delete this temp method, it's only for change isolation.
   allocateQuery(query: Query): Promise<QueryData> {
     return this.allocateTarget(query.toTarget());
   }
@@ -834,7 +835,7 @@ export class LocalStore {
    * `keepPersistedQueryData` is set to false and Eager GC enabled, the method
    * directly removes the associated query data from the query cache.
    *
-   * Calling `releaseTarget` multiple times with the same target ID is an error.
+   * Calling `releaseTarget` multiple times with the same Target is an error.
    */
   // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
   releaseTarget(

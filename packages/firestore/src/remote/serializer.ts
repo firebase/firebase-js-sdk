@@ -28,8 +28,8 @@ import {
   OrderBy,
   Query
 } from '../core/query';
-import { Target } from '../core/target';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
 import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';

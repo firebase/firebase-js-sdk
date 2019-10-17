@@ -16,13 +16,13 @@
  */
 
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { Target } from '../../../src/core/target';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { Persistence } from '../../../src/local/persistence';
 import { QueryCache } from '../../../src/local/query_cache';
 import { QueryData } from '../../../src/local/query_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
-import { Target } from '../../../src/core/target';
 
 /**
  * A wrapper around a QueryCache that automatically creates a

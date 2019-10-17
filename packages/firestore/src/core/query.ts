@@ -28,11 +28,17 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
+import {
+  canonicalId,
+  isDocumentQuery,
+  isEqual,
+  toString
+} from './query_target_common';
 import { Target } from './target';
 
 /**
- * Represents a local query, it can be run against local storage, as well as be converted
- * to a `Target` to query the backend results.
+ * Represents a local query, which can be run against the LocalStore, as well
+ * as be converted to a `Target` to query the RemoteStore results.
  */
 export class Query {
   static atPath(path: ResourcePath): Query {
@@ -225,106 +231,17 @@ export class Query {
   // collisions. Make it collision-free.
   canonicalId(): string {
     if (this.memoizedCanonicalId === null) {
-      let canonicalId = this.path.canonicalString();
-      if (this.isCollectionGroupQuery()) {
-        canonicalId += '|cg:' + this.collectionGroup;
-      }
-      canonicalId += '|f:';
-      for (const filter of this.filters) {
-        canonicalId += filter.canonicalId();
-        canonicalId += ',';
-      }
-      canonicalId += '|ob:';
-      // TODO(dimond): make this collision resistant
-      for (const orderBy of this.orderBy) {
-        canonicalId += orderBy.canonicalId();
-        canonicalId += ',';
-      }
-      if (!isNullOrUndefined(this.limit)) {
-        canonicalId += '|l:';
-        canonicalId += this.limit!;
-      }
-      if (this.startAt) {
-        canonicalId += '|lb:';
-        canonicalId += this.startAt.canonicalId();
-      }
-      if (this.endAt) {
-        canonicalId += '|ub:';
-        canonicalId += this.endAt.canonicalId();
-      }
-      this.memoizedCanonicalId = canonicalId;
+      this.memoizedCanonicalId = canonicalId(this);
     }
     return this.memoizedCanonicalId;
   }
 
   toString(): string {
-    let str = 'Query(' + this.path.canonicalString();
-    if (this.isCollectionGroupQuery()) {
-      str += ' collectionGroup=' + this.collectionGroup;
-    }
-    if (this.filters.length > 0) {
-      str += `, filters: [${this.filters.join(', ')}]`;
-    }
-    if (!isNullOrUndefined(this.limit)) {
-      str += ', limit: ' + this.limit;
-    }
-    if (this.explicitOrderBy.length > 0) {
-      str += `, orderBy: [${this.explicitOrderBy.join(', ')}]`;
-    }
-    if (this.startAt) {
-      str += ', startAt: ' + this.startAt.canonicalId();
-    }
-    if (this.endAt) {
-      str += ', endAt: ' + this.endAt.canonicalId();
-    }
-
-    return str + ')';
+    return toString(this);
   }
 
   isEqual(other: Query): boolean {
-    if (this.limit !== other.limit) {
-      return false;
-    }
-
-    if (this.orderBy.length !== other.orderBy.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.orderBy.length; i++) {
-      if (!this.orderBy[i].isEqual(other.orderBy[i])) {
-        return false;
-      }
-    }
-
-    if (this.filters.length !== other.filters.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.filters.length; i++) {
-      if (!this.filters[i].isEqual(other.filters[i])) {
-        return false;
-      }
-    }
-
-    if (this.collectionGroup !== other.collectionGroup) {
-      return false;
-    }
-
-    if (!this.path.isEqual(other.path)) {
-      return false;
-    }
-
-    if (
-      this.startAt !== null
-        ? !this.startAt.isEqual(other.startAt)
-        : other.startAt !== null
-    ) {
-      return false;
-    }
-
-    return this.endAt !== null
-      ? this.endAt.isEqual(other.endAt)
-      : other.endAt === null;
+    return isEqual(this, other);
   }
 
   docComparator(d1: Document, d2: Document): number {
@@ -386,11 +303,7 @@ export class Query {
   }
 
   isDocumentQuery(): boolean {
-    return (
-      DocumentKey.isDocumentKey(this.path) &&
-      this.collectionGroup === null &&
-      this.filters.length === 0
-    );
+    return isDocumentQuery(this);
   }
 
   isCollectionGroupQuery(): boolean {
