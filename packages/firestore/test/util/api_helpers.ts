@@ -37,14 +37,18 @@ import { Document } from '../../src/model/document';
 import { DocumentSet } from '../../src/model/document_set';
 import { JsonObject } from '../../src/model/field_value';
 import { doc, key, path as pathFrom } from './helpers';
+import { Provider, ComponentContainer } from '@firebase/component';
 
 /**
  * A mock Firestore. Will not work for integration test.
  */
-export const FIRESTORE = new Firestore({
-  projectId: 'projectid',
-  database: 'database'
-});
+export const FIRESTORE = new Firestore(
+  {
+    projectId: 'projectid',
+    database: 'database'
+  },
+  new Provider('auth-interop', new ComponentContainer('default'))
+);
 
 export function firestore(): Firestore {
   return FIRESTORE;
