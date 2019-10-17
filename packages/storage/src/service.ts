@@ -22,6 +22,8 @@ import { Location } from './implementation/location';
 import * as RequestExports from './implementation/request';
 import { XhrIoPool } from './implementation/xhriopool';
 import { Reference } from './reference';
+import { Provider } from '@firebase/component';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 
 /**
  * A service that provides firebaseStorage.Reference instances.
@@ -35,12 +37,18 @@ export class Service {
   private bucket_: Location | null = null;
   private internals_: ServiceInternals;
 
-  constructor(app: FirebaseApp, pool: XhrIoPool, url?: string) {
+  constructor(
+    app: FirebaseApp,
+    authProvider: Provider<FirebaseAuthInternal>,
+    pool: XhrIoPool,
+    url?: string
+  ) {
     function maker(authWrapper: AuthWrapper, loc: Location): Reference {
       return new Reference(authWrapper, loc);
     }
     this.authWrapper_ = new AuthWrapper(
       app,
+      authProvider,
       maker,
       RequestExports.makeRequest,
       this,

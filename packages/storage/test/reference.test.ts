@@ -26,9 +26,16 @@ import { Service } from '../src/service';
 import * as testShared from './testshared';
 import { SendHook, TestingXhrIo } from './xhrio';
 import { DEFAULT_HOST } from '../src/implementation/constants';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
+
 /* eslint-disable @typescript-eslint/no-floating-promises */
-function makeFakeService(app: FirebaseApp, sendHook: SendHook): Service {
-  return new Service(app, testShared.makePool(sendHook));
+function makeFakeService(
+  app: FirebaseApp,
+  authProvider: Provider<FirebaseAuthInternal>,
+  sendHook: SendHook
+): Service {
+  return new Service(app, authProvider, testShared.makePool(sendHook));
 }
 
 function makeStorage(url: string): Reference {
@@ -38,6 +45,7 @@ function makeStorage(url: string): Reference {
 
   const authWrapper = new AuthWrapper(
     null,
+    testShared.emptyAuthProvider,
     maker,
     makeRequest,
     ({} as any) as Service,
@@ -190,7 +198,11 @@ describe('Firebase Storage > Reference', () => {
       done();
     }
 
-    const service = makeFakeService(testShared.fakeAppNoAuth, newSend);
+    const service = makeFakeService(
+      testShared.fakeApp,
+      testShared.emptyAuthProvider,
+      newSend
+    );
     const ref = service.refFromURL('gs://test-bucket');
     ref.child('foo').getMetadata();
   });
@@ -212,7 +224,11 @@ describe('Firebase Storage > Reference', () => {
       done();
     }
 
-    const service = makeFakeService(testShared.fakeApp, newSend);
+    const service = makeFakeService(
+      testShared.fakeApp,
+      testShared.fakeAuthProvider,
+      newSend
+    );
     const ref = service.refFromURL('gs://test-bucket');
     ref.child('foo').getMetadata();
   });

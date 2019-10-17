@@ -31,6 +31,8 @@ import {
   _FirebaseApp,
   FirebaseAuthTokenData
 } from '@firebase/app-types/private';
+import { Provider } from '@firebase/component';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
 
 /**
  * @param app If null, getAuthToken always resolves with null.
@@ -40,6 +42,7 @@ import {
  */
 export class AuthWrapper {
   private app_: FirebaseApp | null;
+  private authProvider_: Provider<FirebaseAuthInternal>;
   private bucket_: string | null = null;
 
   private storageRefMaker_: (p1: AuthWrapper, p2: Location) => Reference;
@@ -53,6 +56,7 @@ export class AuthWrapper {
 
   constructor(
     app: FirebaseApp | null,
+    authProvider: Provider<FirebaseAuthInternal>,
     maker: (p1: AuthWrapper, p2: Location) => Reference,
     requestMaker: requestMaker,
     service: Service,
@@ -65,6 +69,7 @@ export class AuthWrapper {
         this.bucket_ = AuthWrapper.extractBucket_(options);
       }
     }
+    this.authProvider_ = authProvider;
     this.storageRefMaker_ = maker;
     this.requestMaker_ = requestMaker;
     this.pool_ = pool;
@@ -84,14 +89,9 @@ export class AuthWrapper {
   }
 
   getAuthToken(): Promise<string | null> {
-    // TODO(andysoto): remove ifDef checks after firebase-app implements stubs
-    // (b/28673818).
-    if (
-      this.app_ !== null &&
-      type.isDef((this.app_ as _FirebaseApp).INTERNAL) &&
-      type.isDef((this.app_ as _FirebaseApp).INTERNAL.getToken)
-    ) {
-      return (this.app_ as _FirebaseApp).INTERNAL.getToken().then(
+    const auth = this.authProvider_.getImmediate(undefined, { optional: true });
+    if (auth) {
+      return auth.getToken().then(
         (response: FirebaseAuthTokenData | null): string | null => {
           if (response !== null) {
             return response.accessToken;
