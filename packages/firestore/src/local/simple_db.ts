@@ -302,7 +302,7 @@ export class SimpleDb {
           idempotent &&
           isDomException(e) &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
-        debug(
+        debug(LOG_TAG,
           'Transaction failed with error: %s. Retrying: %s.',
           e.message,
           retryable

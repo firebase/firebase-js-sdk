@@ -451,12 +451,9 @@ export class IndexedDbPersistence implements Persistence {
     ) {
       this.lastGarbageCollectionTime = Date.now();
 
-      let activeClients: DbClientMetadata[];
-      let inactiveClients: DbClientMetadata[] = [];
-
-      await this.runTransaction(
+      const inactiveClients = await this.runTransaction(
         'maybeGarbageCollectMultiClientState',
-        'readwrite-primary',
+        'readwrite-primary-idempotent',
         txn => {
           const metadataStore = IndexedDbPersistence.getStore<
             DbClientMetadataKey,
@@ -464,11 +461,11 @@ export class IndexedDbPersistence implements Persistence {
           >(txn, DbClientMetadata.store);
 
           return metadataStore.loadAll().next(existingClients => {
-            activeClients = this.filterActiveClients(
+            const activeClients = this.filterActiveClients(
               existingClients,
               MAX_CLIENT_AGE_MS
             );
-            inactiveClients = existingClients.filter(
+            const inactiveClients = existingClients.filter(
               client => activeClients.indexOf(client) === -1
             );
 
@@ -477,7 +474,7 @@ export class IndexedDbPersistence implements Persistence {
               inactiveClients,
               (inactiveClient: DbClientMetadata) =>
                 metadataStore.delete(inactiveClient.clientId)
-            );
+            ).next(() => inactiveClients)
           });
         }
       );
