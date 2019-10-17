@@ -92,6 +92,7 @@ describe('RxFire Database', () => {
    */
   beforeEach(() => {
     app = initializeApp({
+      apiKey: TEST_PROJECT.apiKey,
       projectId: TEST_PROJECT.projectId,
       databaseURL: TEST_PROJECT.databaseURL
     });
