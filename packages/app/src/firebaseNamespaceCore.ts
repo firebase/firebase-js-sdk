@@ -170,8 +170,9 @@ export function createFirebaseNamespaceCore(
       logger.debug(
         `There were multiple attempts to register component ${componentName}.`
       );
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
       return component.type === ComponentType.PUBLIC
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ? (namespace as any)[componentName]
         : null;
     }
@@ -212,7 +213,7 @@ export function createFirebaseNamespaceCore(
         // TODO: The eslint disable can be removed and the 'ignoreRestArgs'
         // option added to the no-explicit-any rule when ESlint releases it.
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        function(...args: any) {
+        function (...args: any) {
           const serviceFxn = this._getService.bind(this, componentName);
           return serviceFxn.apply(
             this,
@@ -227,6 +228,7 @@ export function createFirebaseNamespaceCore(
     }
 
     return component.type === ComponentType.PUBLIC
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ? (namespace as any)[componentName]
       : null;
   }

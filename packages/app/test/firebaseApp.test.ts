@@ -31,6 +31,7 @@ import { expect } from 'chai';
 import { stub } from 'sinon';
 import { Component, ComponentType } from '@firebase/component';
 import "./setup";
+
 executeFirebaseTests();
 executeFirebaseLiteTests();
 
@@ -303,7 +304,7 @@ class TestService implements FirebaseService {
   }
 }
 
-function createTestComponent(name: string, multiInstances = false, type = ComponentType.PUBLIC) {
+function createTestComponent(name: string, multiInstances = false, type = ComponentType.PUBLIC): Component {
   const component = new Component(name, container => new TestService(container.getProvider('app').getImmediate()!), type);
   component.setMultipleInstances(multiInstances);
   return component;
