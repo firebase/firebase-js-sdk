@@ -1,4 +1,4 @@
-import { Provider } from "@firebase/component";
+import { Provider } from '@firebase/component';
 
 /**
  * @license

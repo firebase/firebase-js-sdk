@@ -30,7 +30,7 @@ import { createFirebaseNamespaceLite } from '../src/lite/firebaseNamespaceLite';
 import { expect } from 'chai';
 import { stub } from 'sinon';
 import { Component, ComponentType } from '@firebase/component';
-import "./setup";
+import './setup';
 
 executeFirebaseTests();
 executeFirebaseLiteTests();
@@ -53,11 +53,15 @@ function executeFirebaseTests(): void {
 
       const testComponent = createTestComponent('test');
 
-      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(testComponent);
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        testComponent
+      );
       firebase.initializeApp({});
       const serviceNamespace = (firebase as any).test;
 
-      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(testComponent);
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        testComponent
+      );
 
       const serviceNamespace2 = (firebase as any).test;
 
@@ -67,7 +71,9 @@ function executeFirebaseTests(): void {
 
     it('returns cached service instances', () => {
       firebase.initializeApp({});
-      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(createTestComponent('test'));
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('test')
+      );
 
       const service = (firebase as any).test();
 
@@ -76,7 +82,9 @@ function executeFirebaseTests(): void {
 
     it(`creates a new instance of a service after removing the existing instance`, () => {
       const app = firebase.initializeApp({});
-      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(createTestComponent('test'));
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('test')
+      );
 
       const service = (firebase as any).test();
 
@@ -89,7 +97,9 @@ function executeFirebaseTests(): void {
 
     it(`creates a new instance of a service after removing the existing instance - for service that supports multiple instances`, () => {
       const app = firebase.initializeApp({});
-      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(createTestComponent('multiInstance', true));
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('multiInstance', true)
+      );
 
       // default instance
       const instance1 = (firebase.app() as any).multiInstance();
@@ -106,7 +116,9 @@ function executeFirebaseTests(): void {
       // default instance should not be changed
       expect(instance1).to.eq((firebase.app() as any).multiInstance());
 
-      expect(instance2).to.not.eq((firebase.app() as any).multiInstance(serviceIdentifier));
+      expect(instance2).to.not.eq(
+        (firebase.app() as any).multiInstance(serviceIdentifier)
+      );
     });
   });
 }
@@ -122,27 +134,37 @@ function executeFirebaseLiteTests(): void {
     });
 
     it('allows Performance service to register', () => {
-      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(createTestComponent('performance'));
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('performance')
+      );
       const app = firebase.initializeApp({});
       const perf = (app as any).performance();
       expect(perf).to.be.instanceof(TestService);
     });
 
     it('allows Installations service to register', () => {
-      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(createTestComponent('installations'));
+      (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+        createTestComponent('installations')
+      );
       const app = firebase.initializeApp({});
       const perf = (app as any).installations();
       expect(perf).to.be.instanceof(TestService);
     });
 
     it('does NOT allow services other than Performance and installations to register', () => {
-      expect(() => (firebase as _FirebaseNamespace).INTERNAL.registerComponent(createTestComponent('auth'))).to.throw();
+      expect(() =>
+        (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+          createTestComponent('auth')
+        )
+      ).to.throw();
     });
 
     it('allows any private component to register', () => {
-      expect(() => (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
-        createTestComponent('auth-internal', false, ComponentType.PRIVATE)
-      )).to.not.throw();
+      expect(() =>
+        (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+          createTestComponent('auth-internal', false, ComponentType.PRIVATE)
+        )
+      ).to.not.throw();
     });
   });
 }
@@ -272,7 +294,9 @@ function firebaseAppTests(
       const tests = ['', 123, false, null];
       for (const data of tests) {
         it("where name == '" + data + "'", () => {
-          expect(() => firebase.initializeApp({}, data as string)).throws(/Illegal app name/i);
+          expect(() => firebase.initializeApp({}, data as string)).throws(
+            /Illegal app name/i
+          );
         });
       }
     });
@@ -281,7 +305,9 @@ function firebaseAppTests(
       const tests = ['', 123, false, null];
       for (const name of tests) {
         it("where name == '" + name + "'", () => {
-          expect(() => firebase.initializeApp({}, { name: name as string })).throws(/Illegal app name/i);
+          expect(() =>
+            firebase.initializeApp({}, { name: name as string })
+          ).throws(/Illegal app name/i);
         });
       }
     });
@@ -289,7 +315,7 @@ function firebaseAppTests(
 }
 
 class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) { }
+  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
 
   // TODO(koss): Shouldn't this just be an added method on
   // the service instance?
@@ -304,8 +330,16 @@ class TestService implements FirebaseService {
   }
 }
 
-function createTestComponent(name: string, multiInstances = false, type = ComponentType.PUBLIC): Component {
-  const component = new Component(name, container => new TestService(container.getProvider('app').getImmediate()!), type);
+function createTestComponent(
+  name: string,
+  multiInstances = false,
+  type = ComponentType.PUBLIC
+): Component {
+  const component = new Component(
+    name,
+    container => new TestService(container.getProvider('app').getImmediate()!),
+    type
+  );
   component.setMultipleInstances(multiInstances);
   return component;
 }
