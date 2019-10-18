@@ -30,6 +30,7 @@ import { JsonProtoSerializer } from '../remote/serializer';
 import { assert, fail } from '../util/assert';
 
 import { documentKeySet, DocumentKeySet } from '../model/collections';
+import { Target } from '../core/target';
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import {
   DbMutationBatch,
@@ -42,7 +43,6 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
-import { Target } from '../core/target';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {

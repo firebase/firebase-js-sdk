@@ -954,7 +954,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         assert(!!target, `Target for id ${targetId} not found`);
         queryData = await this.localStore.allocateTarget(target!);
         await this.initializeViewAndComputeSnapshot(
-          target!.toQuery(),
+          target!.toTargetQuery(),
           targetId,
           /*current=*/ false
         );
@@ -1032,7 +1032,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       assert(!!target, `Query data for active target ${targetId} not found`);
       const queryData = await this.localStore.allocateTarget(target!);
       await this.initializeViewAndComputeSnapshot(
-        target!.toQuery(),
+        target!.toTargetQuery(),
         queryData.targetId,
         /*current=*/ false
       );

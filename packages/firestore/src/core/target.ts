@@ -68,7 +68,11 @@ export class Target {
     return isDocumentQuery(this);
   }
 
-  toQuery(): Query {
+  /**
+   * Creates a `Query` object from this `Target`. Note the result might be
+   * different from the original `Query` from which we get this instance.
+   */
+  toTargetQuery(): Query {
     return new Query(
       this.path,
       this.collectionGroup,

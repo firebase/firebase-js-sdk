@@ -36,6 +36,7 @@ import {
   Query
 } from '../../../../src/core/query';
 import { SnapshotVersion } from '../../../../src/core/snapshot_version';
+import { Target } from '../../../../src/core/target';
 import { QueryData, QueryPurpose } from '../../../../src/local/query_data';
 import * as fieldValue from '../../../../src/model/field_value';
 import {
@@ -81,7 +82,6 @@ import {
   wrap,
   wrapObject
 } from '../../../util/helpers';
-import { Target } from '../../../../src/core/target';
 
 describe('Serializer', () => {
   const partition = new DatabaseId('p', 'd');
