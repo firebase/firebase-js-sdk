@@ -28,17 +28,12 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
-import {
-  canonicalId,
-  isDocumentQuery,
-  isEqual,
-  toString
-} from './query_target_common';
 import { Target } from './target';
 
 /**
- * Represents a local query, which can be run against the LocalStore, as well
- * as be converted to a `Target` to query the RemoteStore results.
+ * Query encapsulates all the query attributes we support in the SDK. It can
+ * be run against the LocalStore, as well as be converted to a `Target` to
+ * query the RemoteStore results.
  */
 export class Query {
   static atPath(path: ResourcePath): Query {
@@ -47,6 +42,9 @@ export class Query {
 
   private memoizedCanonicalId: string | null = null;
   private memoizedOrderBy: OrderBy[] | null = null;
+
+  // The corresponding `Target` this `Query` instance.
+  private target: Target | null = null;
 
   /**
    * Initializes a Query with a path and optional additional query constraints.
@@ -231,17 +229,17 @@ export class Query {
   // collisions. Make it collision-free.
   canonicalId(): string {
     if (this.memoizedCanonicalId === null) {
-      this.memoizedCanonicalId = canonicalId(this);
+      this.memoizedCanonicalId = this.toTarget().canonicalId();
     }
     return this.memoizedCanonicalId;
   }
 
   toString(): string {
-    return toString(this);
+    return `Query(${this.toTarget().toContentString()})`;
   }
 
   isEqual(other: Query): boolean {
-    return isEqual(this, other);
+    return this.toTarget().isEqual(other.toTarget());
   }
 
   docComparator(d1: Document, d2: Document): number {
@@ -303,7 +301,7 @@ export class Query {
   }
 
   isDocumentQuery(): boolean {
-    return isDocumentQuery(this);
+    return this.toTarget().isDocumentQuery();
   }
 
   isCollectionGroupQuery(): boolean {
@@ -311,7 +309,8 @@ export class Query {
   }
 
   toTarget(): Target {
-    return new Target(
+    if(!this.target){
+      this.target = new Target(
       this.path,
       this.collectionGroup,
       this.orderBy,
@@ -319,7 +318,8 @@ export class Query {
       this.limit,
       this.startAt,
       this.endAt
-    );
+    );}
+    return this.target!;
   }
 
   private matchesPathAndCollectionGroup(doc: Document): boolean {
