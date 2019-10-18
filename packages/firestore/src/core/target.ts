@@ -21,10 +21,11 @@ import { isNullOrUndefined } from '../util/types';
 import { Bound, Filter, OrderBy, Query } from './query';
 
 /**
- * Target is the class we use to convert to query proto, to save in LocalStore
- * and send to backend via RemoteStore. It only has the query attributes backend
- * supports, unlike `Query`, which might have attributes we support locally
- * in the SDK.
+ * A Target represents the WatchTarget representation of a Query, which is used
+ * by the LocalStore and the RemoteStore to keep track of and to execute
+ * backend queries. While a Query can represent multiple Targets, each Targets
+ * maps to a single WatchTarget in RemoteStore and a single TargetData entry
+ * in persistence.
  */
 export class Target {
   private memoizedCanonicalId: string | null = null;
@@ -34,7 +35,7 @@ export class Target {
    * Path must currently be empty if this is a collection group query.
    *
    * NOTE: you should always construct `Target` from `Query.toTarget` instead of
-   * using this constructor, because `Query` provides sensible default `orderBy`
+   * using this constructor, because `Query` provides implicit `orderBy`
    * property.
    */
   constructor(
@@ -82,10 +83,6 @@ export class Target {
   }
 
   toString(): string {
-    return `Target(${this.toContentString()})`;
-  }
-
-  toContentString(): string {
     let str = this.path.canonicalString();
     if (this.collectionGroup !== null) {
       str += ' collectionGroup=' + this.collectionGroup;
@@ -105,8 +102,7 @@ export class Target {
     if (this.endAt) {
       str += ', endAt: ' + this.endAt.canonicalId();
     }
-
-    return str;
+    return `Target(${str})`;
   }
 
   isEqual(other: Target): boolean {
@@ -165,7 +161,7 @@ export class Target {
 
   /**
    * Creates a `Query` object from this `Target`. Note the result might be
-   * different from the original `Query` from which we get this instance.
+   * different from the original `Query` from which we obtained this instance.
    */
   toTargetQuery(): Query {
     return new Query(

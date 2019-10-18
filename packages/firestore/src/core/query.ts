@@ -40,10 +40,9 @@ export class Query {
     return new Query(path);
   }
 
-  private memoizedCanonicalId: string | null = null;
   private memoizedOrderBy: OrderBy[] | null = null;
 
-  // The corresponding `Target` this `Query` instance.
+  // The corresponding `Target` of this `Query` instance.
   private target: Target | null = null;
 
   /**
@@ -228,14 +227,11 @@ export class Query {
   // example, use as a dictionary key, but the implementation is subject to
   // collisions. Make it collision-free.
   canonicalId(): string {
-    if (this.memoizedCanonicalId === null) {
-      this.memoizedCanonicalId = this.toTarget().canonicalId();
-    }
-    return this.memoizedCanonicalId;
+    return this.toTarget().canonicalId();
   }
 
   toString(): string {
-    return `Query(${this.toTarget().toContentString()})`;
+    return `Query(target=${this.toTarget().toString()})`;
   }
 
   isEqual(other: Query): boolean {
