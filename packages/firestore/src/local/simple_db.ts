@@ -159,7 +159,7 @@ export class SimpleDb {
     // If we are running in Node using the IndexedDBShim, `window` is defined,
     // but `window.navigator` is not. In this case, we support IndexedDB and
     // return `true`.
-    if (window.navigator === undefined) {
+    if (window.navigator === undefined && typeof process !== undefined) {
       return process.env.USE_MOCK_PERSISTENCE === 'YES';
     }
 

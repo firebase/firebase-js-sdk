@@ -251,7 +251,8 @@ export class LocalSerializer {
     if (queryData.resumeToken instanceof Uint8Array) {
       // TODO(b/78771403): Convert tokens to strings during deserialization
       assert(
-        process.env.USE_MOCK_PERSISTENCE === 'YES',
+        typeof process !== 'undefined' &&
+          process.env.USE_MOCK_PERSISTENCE === 'YES',
         'Persisting non-string stream tokens is only supported with mock persistence .'
       );
       resumeToken = queryData.resumeToken.toString();

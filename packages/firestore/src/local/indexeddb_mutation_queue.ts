@@ -675,7 +675,8 @@ function convertStreamToken(token: ProtoByteString): string {
   if (token instanceof Uint8Array) {
     // TODO(b/78771403): Convert tokens to strings during deserialization
     assert(
-      process.env.USE_MOCK_PERSISTENCE === 'YES',
+      typeof process !== 'undefined' &&
+        process.env.USE_MOCK_PERSISTENCE === 'YES',
       'Persisting non-string stream tokens is only supported with mock persistence.'
     );
     return token.toString();
