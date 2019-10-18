@@ -45,7 +45,7 @@ export class Target {
     readonly limit: number | null = null,
     readonly startAt: Bound | null = null,
     readonly endAt: Bound | null = null
-  ) { }
+  ) {}
 
   canonicalId(): string {
     if (this.memoizedCanonicalId === null) {
@@ -142,11 +142,17 @@ export class Target {
       return false;
     }
 
-    if (this.startAt !== null ? !this.startAt.isEqual(other.startAt) : other.startAt !== null) {
+    if (
+      this.startAt !== null
+        ? !this.startAt.isEqual(other.startAt)
+        : other.startAt !== null
+    ) {
       return false;
     }
 
-    return this.endAt !== null ? this.endAt.isEqual(other.endAt) : other.endAt === null;
+    return this.endAt !== null
+      ? this.endAt.isEqual(other.endAt)
+      : other.endAt === null;
   }
 
   isDocumentQuery(): boolean {

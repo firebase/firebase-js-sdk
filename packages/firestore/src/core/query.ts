@@ -309,16 +309,17 @@ export class Query {
   }
 
   toTarget(): Target {
-    if(!this.target){
+    if (!this.target) {
       this.target = new Target(
-      this.path,
-      this.collectionGroup,
-      this.orderBy,
-      this.filters,
-      this.limit,
-      this.startAt,
-      this.endAt
-    );}
+        this.path,
+        this.collectionGroup,
+        this.orderBy,
+        this.filters,
+        this.limit,
+        this.startAt,
+        this.endAt
+      );
+    }
     return this.target!;
   }
 
