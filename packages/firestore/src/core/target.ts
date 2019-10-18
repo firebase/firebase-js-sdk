@@ -35,7 +35,7 @@ export class Target {
    * Path must currently be empty if this is a collection group query.
    *
    * NOTE: you should always construct `Target` from `Query.toTarget` instead of
-   * using this constructor, because `Query` provides implicit `orderBy`
+   * using this constructor, because `Query` provides an implicit `orderBy`
    * property.
    */
   constructor(
