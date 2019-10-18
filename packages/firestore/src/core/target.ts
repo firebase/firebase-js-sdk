@@ -90,7 +90,7 @@ export class Target {
     if (this.collectionGroup !== null) {
       str += ' collectionGroup=' + this.collectionGroup;
     }
-    if (q.filters.length > 0) {
+    if (this.filters.length > 0) {
       str += `, filters: [${this.filters.join(', ')}]`;
     }
     if (!isNullOrUndefined(this.limit)) {
