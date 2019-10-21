@@ -294,23 +294,23 @@ export class SimpleDb {
         // caller.
         await transaction.completionPromise;
         return transactionFnResult;
-      } catch (e) {
+      } catch (error) {
         // TODO(schmidt-sebastian): We could probably be smarter about this and
         // not retry exceptions that are likely unrecoverable (such as quota
         // exceeded errors).
         const retryable =
           idempotent &&
-          isDomException(e) &&
+          error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
         debug(
           LOG_TAG,
           'Transaction failed with error: %s. Retrying: %s.',
-          e.message,
+          error.message,
           retryable
         );
 
         if (!retryable) {
-          return Promise.reject(e);
+          return Promise.reject(error);
         }
       }
     }
