@@ -1535,9 +1535,9 @@ function genericLocalStoreTests(
     // is advanced when we compute a limbo-free free view and that the mapping
     // is persisted when we release a query.
 
-    const query = Query.atPath(path('foo'));
+    const target = Query.atPath(path('foo')).toTarget();
 
-    const queryData = await localStore.allocateQuery(query);
+    const queryData = await localStore.allocateTarget(target);
 
     // Advance the query snapshot
     await localStore.applyRemoteEvent(
@@ -1548,7 +1548,7 @@ function genericLocalStoreTests(
     let cachedQueryData = await persistence.runTransaction(
       'getQueryData',
       'readonly-idempotent',
-      txn => localStore.getQueryData(txn, query)
+      txn => localStore.getQueryData(txn, target)
     );
     expect(
       cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.MIN)
@@ -1561,20 +1561,20 @@ function genericLocalStoreTests(
     cachedQueryData = await persistence.runTransaction(
       'getQueryData',
       'readonly-idempotent',
-      txn => localStore.getQueryData(txn, query)
+      txn => localStore.getQueryData(txn, target)
     );
     expect(cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
       .to.be.true;
 
     // The last limbo free snapshot version is persisted even if we release the
     // query.
-    await localStore.releaseQuery(query, /* keepPersistedQueryData= */ false);
+    await localStore.releaseTarget(target, /* keepPersistedQueryData= */ false);
 
     if (!gcIsEager) {
       cachedQueryData = await persistence.runTransaction(
         'getQueryData',
         'readonly-idempotent',
-        txn => localStore.getQueryData(txn, query)
+        txn => localStore.getQueryData(txn, target)
       );
       expect(cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
         .to.be.true;

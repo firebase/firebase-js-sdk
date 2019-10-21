@@ -132,7 +132,7 @@ function genericLruGarbageCollectorTests(
   function nextQueryData(sequenceNumber: ListenSequenceNumber): QueryData {
     const targetId = ++previousTargetId;
     return new QueryData(
-      Query.atPath(path('path' + targetId)),
+      Query.atPath(path('path' + targetId)).toTarget(),
       targetId,
       QueryPurpose.Listen,
       sequenceNumber
