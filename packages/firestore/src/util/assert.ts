@@ -48,3 +48,11 @@ export function assert(assertion: boolean, message: string): void {
     fail(message);
   }
 }
+
+/**
+ * Return the given value if it is neither null nor undefined, otherwise throws.
+ */
+export function assertExists<T>(value: T | undefined | null): T {
+  assert(!!value, 'Expected value not found');
+  return value!;
+}

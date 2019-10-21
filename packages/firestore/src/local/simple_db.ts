@@ -16,7 +16,7 @@
  */
 
 import { getUA } from '@firebase/util';
-import { assert } from '../util/assert';
+import { assert, assertExists } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { debug, error } from '../util/log';
 import { Deferred } from '../util/promise';
@@ -464,8 +464,7 @@ export class SimpleDbTransaction {
   store<KeyType extends IDBValidKey, ValueType extends unknown>(
     storeName: string
   ): SimpleDbStore<KeyType, ValueType> {
-    const store = this.transaction.objectStore(storeName);
-    assert(!!store, 'Object store not part of transaction: ' + storeName);
+    const store = assertExists(this.transaction.objectStore(storeName));
     return new SimpleDbStore<KeyType, ValueType>(store);
   }
 }

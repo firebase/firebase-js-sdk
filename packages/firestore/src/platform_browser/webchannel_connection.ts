@@ -35,7 +35,7 @@ import {
   mapCodeFromHttpResponseErrorStatus
 } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
-import { assert, fail } from '../util/assert';
+import { assert, assertExists, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { Indexable } from '../util/misc';
@@ -364,8 +364,7 @@ export class WebChannelConnection implements Connection {
       WebChannel.EventType.MESSAGE,
       msg => {
         if (!closed) {
-          const msgData = msg!.data[0];
-          assert(!!msgData, 'Got a webchannel message without data.');
+          const msgData = assertExists(msg!.data[0]);
           // TODO(b/35143891): There is a bug in One Platform that caused errors
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter

@@ -35,7 +35,7 @@ import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 
 import { SnapshotVersion } from '../core/snapshot_version';
-import { assert, fail } from '../util/assert';
+import { assert, assertExists, fail } from '../util/assert';
 import { IndexManager } from './index_manager';
 import { IndexedDbPersistence } from './indexeddb_persistence';
 import {
@@ -379,10 +379,7 @@ export class IndexedDbRemoteDocumentCache implements RemoteDocumentCache {
   ): PersistencePromise<DbRemoteDocumentGlobal> {
     return documentGlobalStore(txn)
       .get(DbRemoteDocumentGlobal.key)
-      .next(metadata => {
-        assert(!!metadata, 'Missing document cache metadata');
-        return metadata!;
-      });
+      .next(metadata => assertExists(metadata));
   }
 
   private setMetadata(

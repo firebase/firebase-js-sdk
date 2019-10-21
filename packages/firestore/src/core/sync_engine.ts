@@ -32,7 +32,7 @@ import { MutationBatchResult, BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { RemoteEvent, TargetChange } from '../remote/remote_event';
 import { RemoteStore } from '../remote/remote_store';
 import { RemoteSyncer } from '../remote/remote_syncer';
-import { assert, fail } from '../util/assert';
+import { assert, assertExists, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { primitiveComparator } from '../util/misc';
@@ -298,8 +298,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   async unlisten(query: Query): Promise<void> {
     this.assertSubscribed('unlisten()');
 
-    const queryView = this.queryViewsByQuery.get(query)!;
-    assert(!!queryView, 'Trying to unlisten on query not found:' + query);
+    const queryView = assertExists(this.queryViewsByQuery.get(query));
 
     if (this.isPrimary) {
       // We need to remove the local query target first to allow us to verify
@@ -494,8 +493,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       return this.applyRemoteEvent(event);
     } else {
-      const queryView = this.queryViewsByTarget[targetId];
-      assert(!!queryView, 'Unknown targetId: ' + targetId);
+      const queryView = assertExists(this.queryViewsByTarget[targetId]);
       await this.localStore
         .releaseQuery(queryView.query, /* keepPersistedQueryData */ false)
         .then(() => this.removeAndCleanupQuery(queryView))
@@ -949,8 +947,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         );
         // For queries that never executed on this client, we need to
         // allocate the query in LocalStore and initialize a new View.
-        const query = await this.localStore.getQueryForTarget(targetId);
-        assert(!!query, `Query data for target ${targetId} not found`);
+        const query = assertExists(
+          await this.localStore.getQueryForTarget(targetId)
+        );
         queryData = await this.localStore.allocateQuery(query!);
         await this.initializeViewAndComputeSnapshot(
           queryData,
@@ -1026,8 +1025,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         !this.queryViewsByTarget[targetId],
         'Trying to add an already active target'
       );
-      const query = await this.localStore.getQueryForTarget(targetId);
-      assert(!!query, `Query data for active target ${targetId} not found`);
+      const query = assertExists(
+        await this.localStore.getQueryForTarget(targetId)
+      );
       const queryData = await this.localStore.allocateQuery(query!);
       await this.initializeViewAndComputeSnapshot(
         queryData,

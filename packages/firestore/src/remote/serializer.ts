@@ -47,7 +47,7 @@ import {
 } from '../model/mutation';
 import { FieldPath, ResourcePath } from '../model/path';
 import * as api from '../protos/firestore_proto_api';
-import { assert, fail } from '../util/assert';
+import { assert, assertExists, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as obj from '../util/obj';
 import * as typeUtils from '../util/types';
@@ -253,8 +253,7 @@ export class JsonProtoSerializer {
 
     // Parse the nanos right out of the string.
     let nanos = 0;
-    const fraction = ISO_REG_EXP.exec(utc);
-    assert(!!fraction, 'invalid timestamp: ' + utc);
+    const fraction = assertExists(ISO_REG_EXP.exec(utc));
     if (fraction![1]) {
       // Pad the fraction out to 9 digits (nanos).
       let nanoStr = fraction![1];
