@@ -500,7 +500,6 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       );
       return this.applyRemoteEvent(event);
     } else {
-      assert(!!this.queriesByTarget[targetId], 'Unknown targetId: ' + targetId);
       await this.localStore
         .releaseTarget(targetId, /* keepPersistedQueryData */ false)
         .then(() => this.removeAndCleanupTarget(targetId, err))
