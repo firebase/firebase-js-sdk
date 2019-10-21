@@ -885,11 +885,6 @@ export class LocalStore {
     }
   }
 
-  //TODO(wuandy): Delete this temp mothod, it's for change isolation only.
-  releaseQuery(query: Query, keepPersistedQueryData: boolean): Promise<void> {
-    return this.releaseTarget(query.toTarget(), keepPersistedQueryData);
-  }
-
   /**
    * Unpin all the documents associated with the given query. If
    * `keepPersistedQueryData` is set to false and Eager GC enabled, the method
@@ -899,24 +894,17 @@ export class LocalStore {
    */
   // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
   releaseTarget(
-    target: Target,
+    targetId: number,
     keepPersistedQueryData: boolean
   ): Promise<void> {
-    let targetId: number;
+    const queryData = this.queryDataByTarget.get(targetId)!;
+    assert(!!queryData, 'Tried to release nonexistent target: ' + targetId);
 
     const mode = keepPersistedQueryData
       ? 'readwrite-idempotent'
       : 'readwrite-primary-idempotent';
     return this.persistence
       .runTransaction('Release query', mode, txn => {
-        const cachedTargetId = this.targetIdByTarget.get(target);
-        assert(
-          cachedTargetId !== undefined,
-          'Tried to release nonexistent target: ' + target
-        );
-        targetId = cachedTargetId!;
-        const queryData = this.queryDataByTarget.get(targetId)!;
-
         // References for documents sent via Watch are automatically removed
         // when we delete a query's target data from the reference delegate.
         // Since this does not remove references for locally mutated documents,
@@ -943,7 +931,7 @@ export class LocalStore {
       })
       .then(() => {
         this.queryDataByTarget = this.queryDataByTarget.remove(targetId);
-        this.targetIdByTarget.delete(target);
+        this.targetIdByTarget.delete(queryData.target);
       });
   }
 
