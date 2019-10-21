@@ -17,7 +17,6 @@
 
 import { Provider } from './provider';
 import { Component } from './component';
-import { InstantiationMode } from './types';
 
 export class ComponentContainer {
   private providers = new Map<string, Provider>();

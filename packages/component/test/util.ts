@@ -41,7 +41,7 @@ export function getFakeComponent(
   factory: InstanceFactory,
   multipleInstance: boolean = false,
   instantiationMode = InstantiationMode.LAZY
-) {
+): Component {
   return new Component(name, factory, ComponentType.PUBLIC)
     .setMultipleInstances(multipleInstance)
     .setInstantiationMode(instantiationMode);
