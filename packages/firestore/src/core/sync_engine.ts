@@ -147,7 +147,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
     q.canonicalId()
   );
-  private queriesByTarget: { [targetId: number]: Array<Query> } = {};
+  private queriesByTarget: { [targetId: number]: Query[] } = {};
   private limboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
     DocumentKey.comparator
   );
@@ -271,7 +271,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const data = new QueryView(query, targetId, view);
     this.queryViewsByQuery.set(query, data);
     if (!this.queriesByTarget[targetId]) {
-      this.queriesByTarget[targetId] = new Array<Query>();
+      this.queriesByTarget[targetId] = [];
     }
     this.queriesByTarget[targetId].push(query);
     return viewChange.snapshot!;
