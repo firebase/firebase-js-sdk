@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { DEFAULT_ENTRY_NAME } from '../src/contants';
+import { DEFAULT_ENTRY_NAME } from '../src/constants';
 import { FirebaseApp } from '@firebase/app-types';
 import { InstanceFactory, InstantiationMode } from '../src/types';
 import { Component, ComponentType } from '../src/component';

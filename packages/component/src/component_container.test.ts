@@ -21,7 +21,7 @@ import { ComponentContainer } from './component_container';
 import '../test/setup';
 import { Provider } from './provider';
 import { InstantiationMode } from './types';
-import { DEFAULT_ENTRY_NAME } from './contants';
+import { DEFAULT_ENTRY_NAME } from './constants';
 import { getFakeComponent } from '../test/util';
 
 describe('Component Container', () => {

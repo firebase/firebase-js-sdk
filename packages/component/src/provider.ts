@@ -17,7 +17,7 @@
 
 import { Deferred } from '@firebase/util';
 import { ComponentContainer } from './component_container';
-import { DEFAULT_ENTRY_NAME } from './contants';
+import { DEFAULT_ENTRY_NAME } from './constants';
 import { InstantiationMode } from './types';
 import { Component } from './component';
 
