@@ -37,7 +37,6 @@ import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { ObjectMap } from '../util/obj_map';
-import { ObjectSet } from '../util/obj_set';
 import { Deferred } from '../util/promise';
 import { SortedMap } from '../util/sorted_map';
 
