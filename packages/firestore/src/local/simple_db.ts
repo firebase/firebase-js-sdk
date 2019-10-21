@@ -298,6 +298,9 @@ export class SimpleDb {
         // TODO(schmidt-sebastian): We could probably be smarter about this and
         // not retry exceptions that are likely unrecoverable (such as quota
         // exceeded errors).
+        
+        // Note: We cannot use an instanceof check for FirestoreException, since the
+        // exception is wrapped in a generic error by our async/await handling.
         const retryable =
           idempotent &&
           error.name !== 'FirebaseError' &&
