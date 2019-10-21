@@ -148,7 +148,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
   private queryViewsByQuery = new ObjectMap<Query, QueryView>(q =>
     q.canonicalId()
   );
-  private queriesByTarget: { [targetId: number]: ObjectSet<Query> } = {};
+  private queriesByTarget: { [targetId: number]: Array<Query> } = {};
   private limboTargetsByKey = new SortedMap<DocumentKey, TargetId>(
     DocumentKey.comparator
   );
@@ -272,11 +272,9 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const data = new QueryView(query, targetId, view);
     this.queryViewsByQuery.set(query, data);
     if (!this.queriesByTarget[targetId]) {
-      this.queriesByTarget[targetId] = new ObjectSet<Query>(q =>
-        q.canonicalId()
-      );
+      this.queriesByTarget[targetId] = new Array<Query>();
     }
-    this.queriesByTarget[targetId].add(query);
+    this.queriesByTarget[targetId].push(query);
     return viewChange.snapshot!;
   }
 
@@ -308,6 +306,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const queryView = this.queryViewsByQuery.get(query)!;
     assert(!!queryView, 'Trying to unlisten on query not found:' + query);
 
+    // TODO(wuandy): Note this does not handle the case where multiple queries
+    // map to one target, and user request to unlisten on of the queries.
     if (this.isPrimary) {
       // We need to remove the local query target first to allow us to verify
       // whether any other client is still interested in this target.
@@ -692,14 +692,14 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.sharedClientState.removeLocalQueryTarget(targetId);
 
     assert(
-      !!this.queriesByTarget[targetId] &&
-        !this.queriesByTarget[targetId].isEmpty(),
-      `There is no queries mapped to target id ${targetId}`
+      this.queriesByTarget[targetId] &&
+        this.queriesByTarget[targetId].length !== 0,
+      `There are no queries mapped to target id ${targetId}`
     );
 
-    for (const query of this.queriesByTarget[targetId].toArray()) {
+    for (const query of this.queriesByTarget[targetId]) {
       this.queryViewsByQuery.delete(query);
-      if (!!error) {
+      if (error) {
         this.syncEngineListener!.onWatchError(query, error);
       }
     }
@@ -903,13 +903,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       const activeTargets: TargetId[] = [];
 
       let p = Promise.resolve();
-      objUtils.forEachNumber(this.queriesByTarget, (targetId, queries) => {
+      objUtils.forEachNumber(this.queriesByTarget, (targetId, _) => {
         if (this.sharedClientState.isLocalQueryTarget(targetId)) {
           activeTargets.push(targetId);
         } else {
-          queries.forEach(query => {
-            // TODO(wuandy): This is problematic, `unlisten` does too much here.
-            p = p.then(() => this.unlisten(query));
+          p = p.then(() => {
+            this.removeAndCleanupTarget(targetId);
+            return this.localStore.releaseTarget(
+              targetId,
+              /*keepPersistedQueryData=*/ true
+            );
           });
         }
         this.remoteStore.unlisten(targetId);
@@ -946,10 +949,32 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const activeQueries: QueryData[] = [];
     const newViewSnapshots: ViewSnapshot[] = [];
     for (const targetId of targets) {
-      let queryData: QueryData | undefined = undefined;
+      let queryData: QueryData;
       const queries = this.queriesByTarget[targetId];
 
-      if (!queries || queries.isEmpty()) {
+      if (queries && queries.length !== 0) {
+        // For queries that have a local View, we need to update their state
+        // in LocalStore (as the resume token and the snapshot version
+        // might have changed) and reconcile their views with the persisted
+        // state (the list of syncedDocuments may have gotten out of sync).
+        await this.localStore.releaseTarget(
+          targetId,
+          /*keepPersistedQueryData=*/ true
+        );
+        queryData = await this.localStore.allocateTarget(queries[0].toTarget());
+
+        for (const query of queries) {
+          const queryView = this.queryViewsByQuery.get(query);
+          assert(!!queryView, `No query view found for ${query}`);
+
+          const viewChange = await this.synchronizeViewAndComputeSnapshot(
+            queryView!
+          );
+          if (viewChange.snapshot) {
+            newViewSnapshots.push(viewChange.snapshot);
+          }
+        }
+      } else {
         assert(
           this.isPrimary === true,
           'A secondary tab should never have an active target without an active query.'
@@ -964,39 +989,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
           targetId,
           /*current=*/ false
         );
-      } else {
-        // For queries that have a local View, we need to update their state
-        // in LocalStore (as the resume token and the snapshot version
-        // might have changed) and reconcile their views with the persisted
-        // state (the list of syncedDocuments may have gotten out of sync).
-        await this.localStore.releaseTarget(
-          targetId,
-          /*keepPersistedQueryData=*/ true
-        );
-
-        assert(
-          !!this.queriesByTarget[targetId] &&
-            !this.queriesByTarget[targetId].isEmpty(),
-          `There is no queries mapped to target id ${targetId}`
-        );
-
-        const queries = this.queriesByTarget[targetId].toArray();
-        queryData = await this.localStore.allocateTarget(queries[0].toTarget());
-
-        for (const query of queries) {
-          const queryView = this.queryViewsByQuery.get(query);
-          assert(!!queryView, `No query view found for ${query}`);
-
-          const viewChange = await this.synchronizeViewAndComputeSnapshot(
-            queryView!
-          );
-          if (viewChange.snapshot) {
-            newViewSnapshots.push(viewChange.snapshot);
-          }
-        }
       }
 
-      assert(!!queryData, `Target data for target ${targetId} not found`);
       activeQueries.push(queryData!);
     }
 
@@ -1118,7 +1112,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       if (!queries) {
         return keySet;
       }
-      for (const query of queries.toArray()) {
+      for (const query of queries) {
         const queryView = this.queryViewsByQuery.get(query);
         assert(!!queryView, `No query view found for ${query}`);
         keySet = keySet.unionWith(queryView!.view.syncedDocuments);
