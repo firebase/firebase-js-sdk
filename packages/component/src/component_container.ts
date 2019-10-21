@@ -21,27 +21,18 @@ import { InstantiationMode } from './types';
 
 export class ComponentContainer {
   private providers = new Map<string, Provider>();
-  private components = new Map<string, Component>();
 
   constructor(private name: string) {}
 
   addComponent(component: Component): void {
-    if (this.components.has(component.name)) {
+    const provider = this.getProvider(component.name);
+    if (provider.isComponentSet()) {
       throw new Error(
         `Component ${component.name} has already been registered with ${this.name}`
       );
     }
 
-    this.components.set(component.name, component);
-
-    const provider = this.getProvider(component.name);
-
-    const isEager = this.isComponentEager(component);
-    provider.provideFactory(
-      component.instanceFactory,
-      component.multipleInstances,
-      isEager
-    );
+    provider.setComponent(component);
   }
 
   getProvider<T>(name: string): Provider<T> {
@@ -58,9 +49,5 @@ export class ComponentContainer {
 
   getProviders(): Provider[] {
     return Array.from(this.providers, entry => entry[1]);
-  }
-
-  private isComponentEager(component: Component): boolean {
-    return component.instantiationMode === InstantiationMode.EAGER;
   }
 }

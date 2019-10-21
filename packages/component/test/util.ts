@@ -16,6 +16,8 @@
  */
 import { DEFAULT_ENTRY_NAME } from '../src/contants';
 import { FirebaseApp } from '@firebase/app-types';
+import { InstanceFactory, InstantiationMode } from '../src/types';
+import { Component, ComponentType } from '../src/component';
 
 export function getFakeApp(appName: string = DEFAULT_ENTRY_NAME): FirebaseApp {
   return {
@@ -30,6 +32,17 @@ export function getFakeApp(appName: string = DEFAULT_ENTRY_NAME): FirebaseApp {
       appId: '1:777777777777:web:d93b5ca1475efe57'
     },
     automaticDataCollectionEnabled: true,
-    delete: async () => {}
+    delete: async () => { }
   };
+}
+
+export function getFakeComponent(
+  name: string,
+  factory: InstanceFactory,
+  multipleInstance: boolean = false,
+  instantiationMode = InstantiationMode.LAZY
+) {
+  return new Component(name, factory, ComponentType.PUBLIC)
+    .setMultipleInstances(multipleInstance)
+    .setInstantiationMode(instantiationMode);
 }

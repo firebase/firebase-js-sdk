@@ -18,18 +18,18 @@
 import { Deferred } from '@firebase/util';
 import { ComponentContainer } from './component_container';
 import { DEFAULT_ENTRY_NAME } from './contants';
-import { InstanceFactory } from './types';
+import { InstantiationMode } from './types';
+import { Component } from './component';
 
 /**
- * Provider for interface of type T, e.g. Auth, RC
+ * Provider for instance of type T, e.g. Auth, RC
  */
 export class Provider<T = unknown> {
-  private factory: InstanceFactory<T> | null = null;
-  private multipleInstances: boolean = true; // we assume multiple instances are supported by default
+  private component: Component<T> | null = null;
   private instances: Map<string, T> = new Map();
   private instancesDeferred: Map<string, Deferred<T>> = new Map();
 
-  constructor(private name: string, private container: ComponentContainer) {}
+  constructor(private name: string, private container: ComponentContainer) { }
 
   get(identifier: string = DEFAULT_ENTRY_NAME): Promise<T> {
     // if multipleInstances is not supported, use the default name
@@ -67,20 +67,21 @@ export class Provider<T = unknown> {
     return instance;
   }
 
-  provideFactory(
-    factory: InstanceFactory<T>,
-    multipleInstances: boolean = false,
-    eager: boolean = false
+  setComponent(
+    component: Component<T>
   ): void {
-    if (this.factory) {
-      throw Error(`Service factory for ${this.name} has already been provided`);
+
+    if (component.name !== this.name) {
+      throw Error(`Mismatching Component ${component.name} for Provider ${this.name}.`);
     }
 
-    this.factory = factory;
-    this.multipleInstances = multipleInstances;
+    if (this.component) {
+      throw Error(`Component for ${this.name} has already been provided`);
+    }
 
+    this.component = component;
     // if the service is eager, initialize the default instance
-    if (eager) {
+    if (isComponentEager(component)) {
       this.getOrInitializeService(DEFAULT_ENTRY_NAME);
     }
 
@@ -94,11 +95,11 @@ export class Provider<T = unknown> {
       const normalizedIdentifier = this.normalizeInstanceIdentifier(
         instanceIdentifier
       );
-      const instance = this.getOrInitializeService(normalizedIdentifier);
 
-      if (instance) {
-        instanceDeferred.resolve(instance);
-      }
+      // `getOrInitializeService()` should always return a valid instance since a component is guaranteed. use ! to make typescript happy. 
+      const instance = this.getOrInitializeService(normalizedIdentifier)!;
+
+      instanceDeferred.resolve(instance);
     }
   }
 
@@ -120,10 +121,14 @@ export class Provider<T = unknown> {
     );
   }
 
+  isComponentSet(): boolean {
+    return this.component != null;
+  }
+
   private getOrInitializeService(identifier: string): T | null {
     let instance = this.instances.get(identifier);
-    if (!instance && this.factory) {
-      instance = this.factory(
+    if (!instance && this.component) {
+      instance = this.component.instanceFactory(
         this.container,
         normalizeIdentifierForFactory(identifier)
       );
@@ -134,11 +139,19 @@ export class Provider<T = unknown> {
   }
 
   private normalizeInstanceIdentifier(identifier: string): string {
-    return this.multipleInstances ? identifier : DEFAULT_ENTRY_NAME;
+    if (this.component) {
+      return this.component.multipleInstances ? identifier : DEFAULT_ENTRY_NAME;
+    } else {
+      return identifier; // assume multiple instances are supported before the component is provided.
+    }
   }
 }
 
 // undefined should be passed to the service factory for the default instance
 function normalizeIdentifierForFactory(identifier: string): string | undefined {
   return identifier === DEFAULT_ENTRY_NAME ? undefined : identifier;
+}
+
+function isComponentEager(component: Component): boolean {
+  return component.instantiationMode === InstantiationMode.EAGER;
 }

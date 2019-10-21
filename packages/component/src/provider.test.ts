@@ -20,21 +20,27 @@ import { fake, SinonSpy } from 'sinon';
 import { ComponentContainer } from './component_container';
 import { FirebaseService } from '@firebase/app-types/private';
 import { Provider } from './provider';
-import { getFakeApp } from '../test/util';
+import { getFakeApp, getFakeComponent } from '../test/util';
 import '../test/setup';
+import { InstantiationMode } from './types';
 
 describe('Provider', () => {
   let provider: Provider<unknown>;
 
   beforeEach(() => {
-    provider = new Provider('spider-queen', new ComponentContainer('test'));
+    provider = new Provider('test', new ComponentContainer('test-container'));
+  });
+
+  it('throws if setComponent() is called with a component with a different name than the provider name', () => {
+    expect(() => provider.setComponent(getFakeComponent('not a test', () => ({})))).to.throw(/^Mismatching Component/);
+    expect(() => provider.setComponent(getFakeComponent('test', () =>({})))).to.not.throw();
   });
 
   describe('Provider (multipleInstances = false)', () => {
     describe('getImmediate()', () => {
       it('throws if the service is not available', () => {
         expect(provider.getImmediate.bind(provider)).to.throw(
-          'Service spider-queen is not available'
+          'Service test is not available'
         );
       });
 
@@ -45,19 +51,19 @@ describe('Provider', () => {
       });
 
       it('returns the service instance synchronously', () => {
-        provider.provideFactory(() => ({ test: true }));
+        provider.setComponent(getFakeComponent('test', () => ({ test: true })));
         expect(provider.getImmediate()).to.deep.equal({ test: true });
       });
 
       it('returns the cached service instance', () => {
-        provider.provideFactory(() => ({ test: true }));
+        provider.setComponent(getFakeComponent('test', () => ({ test: true })));
         const service1 = provider.getImmediate();
         const service2 = provider.getImmediate();
         expect(service1).to.equal(service2);
       });
 
       it('ignores parameter identifier and return the default service', () => {
-        provider.provideFactory(() => ({ test: true }));
+        provider.setComponent(getFakeComponent('test', () => ({ test: true })));
         const defaultService = provider.getImmediate();
         expect(provider.getImmediate('spider1')).to.equal(defaultService);
         expect(provider.getImmediate('spider2')).to.equal(defaultService);
@@ -66,12 +72,12 @@ describe('Provider', () => {
 
     describe('get()', () => {
       it('get the service instance asynchronouly', async () => {
-        provider.provideFactory(() => ({ test: true }));
+        provider.setComponent(getFakeComponent('test', () => ({ test: true })));
         await expect(provider.get()).to.eventually.deep.equal({ test: true });
       });
 
       it('ignore parameter identifier and return the default service instance asyn', async () => {
-        provider.provideFactory(() => ({ test: true }));
+        provider.setComponent(getFakeComponent('test', () => ({ test: true })));
         const defaultService = provider.getImmediate();
         await expect(provider.get('spider1')).to.eventually.equal(
           defaultService
@@ -88,7 +94,7 @@ describe('Provider', () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.get();
 
-        provider.provideFactory(() => ({}), false, true);
+        provider.setComponent(getFakeComponent('test', () => ({}), false, InstantiationMode.EAGER));
         expect((provider as any).instances.size).to.equal(1);
       });
 
@@ -97,17 +103,17 @@ describe('Provider', () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.get();
 
-        provider.provideFactory(() => ({}));
+        provider.setComponent(getFakeComponent('test', () => ({})));
         expect((provider as any).instances.size).to.equal(1);
       });
 
       it('instantiates the service if there is no pending promise and the service is eager', () => {
-        provider.provideFactory(() => ({}), false, true);
+        provider.setComponent(getFakeComponent('test', () => ({}), false, InstantiationMode.EAGER));
         expect((provider as any).instances.size).to.equal(1);
       });
 
       it('does NOT instantiate the service if there is no pending promise and the service is not eager', () => {
-        provider.provideFactory(() => ({}));
+        provider.setComponent(getFakeComponent('test', () => ({})));
         expect((provider as any).instances.size).to.equal(0);
       });
 
@@ -116,7 +122,7 @@ describe('Provider', () => {
         const promise1 = provider.get('name1');
         const promise2 = provider.get('name2');
 
-        provider.provideFactory(() => ({}));
+        provider.setComponent(getFakeComponent('test', () => ({})));
         expect((provider as any).instances.size).to.equal(1);
 
         const defaultService = provider.getImmediate();
@@ -137,7 +143,7 @@ describe('Provider', () => {
         };
 
         // provide factory and create a service instance
-        provider.provideFactory(() => myService, false, true);
+        provider.setComponent(getFakeComponent('test', () => myService, false, InstantiationMode.EAGER));
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.delete();
@@ -148,7 +154,7 @@ describe('Provider', () => {
 
     describe('clearCache()', () => {
       it('removes the service instance from cache', () => {
-        provider.provideFactory(() => ({}));
+        provider.setComponent(getFakeComponent('test', () => ({})));
         // create serviec instance
         const instance = provider.getImmediate();
         expect((provider as any).instances.size).to.equal(1);
@@ -176,7 +182,7 @@ describe('Provider', () => {
       });
 
       it('returns different service instances for different identifiers synchronously', () => {
-        provider.provideFactory(() => ({ test: true }), true);
+        provider.setComponent(getFakeComponent('test', () => ({ test: true }), true));
         const defaultService = provider.getImmediate();
         const service1 = provider.getImmediate('guardian');
         const service2 = provider.getImmediate('servant');
@@ -192,7 +198,7 @@ describe('Provider', () => {
 
     describe('get(identifier)', () => {
       it('returns different service instances for different identifiers asynchronouly', async () => {
-        provider.provideFactory(() => ({ test: true }), true);
+        provider.setComponent(getFakeComponent('test', () =>({ test: true }), true));
 
         const defaultService = await provider.get();
         const service1 = await provider.get('name1');
@@ -216,13 +222,13 @@ describe('Provider', () => {
         provider.get('name2');
         /* eslint-enable @typescript-eslint/no-floating-promises */
 
-        provider.provideFactory(() => ({ test: true }), true);
+        provider.setComponent(getFakeComponent('test', () =>({ test: true }), true));
 
         expect((provider as any).instances.size).to.equal(3);
       });
 
       it('instantiates the default service if there is no pending promise and the service is eager', () => {
-        provider.provideFactory(() => ({ test: true }), true, true);
+        provider.setComponent(getFakeComponent('test', () =>({ test: true }), true, InstantiationMode.EAGER));
         expect((provider as any).instances.size).to.equal(1);
       });
 
@@ -230,7 +236,7 @@ describe('Provider', () => {
             but not for the default identifer and the service is eager`, () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.get('name1');
-        provider.provideFactory(() => ({ test: true }), true, true);
+        provider.setComponent(getFakeComponent('test', () =>({ test: true }), true, InstantiationMode.EAGER));
 
         expect((provider as any).instances.size).to.equal(2);
       });
@@ -252,7 +258,7 @@ describe('Provider', () => {
         }
 
         // provide factory that produces mulitpleInstances
-        provider.provideFactory(getService, true);
+        provider.setComponent(getFakeComponent('test', getService, true));
 
         // create 2 service instances with different names
         provider.getImmediate('instance1');
@@ -269,7 +275,7 @@ describe('Provider', () => {
     });
     describe('clearCache()', () => {
       it('returns new service instances sync after cache is cleared', () => {
-        provider.provideFactory(() => ({}), true);
+        provider.setComponent(getFakeComponent('test', () => ({}), true));
         // create serviec instances with different identifiers
         const defaultInstance = provider.getImmediate();
         const instance1 = provider.getImmediate('instance1');
@@ -292,7 +298,7 @@ describe('Provider', () => {
       });
 
       it('returns new services asynchronously after cache is cleared', async () => {
-        provider.provideFactory(() => ({}), true);
+        provider.setComponent(getFakeComponent('test', () => ({}), true));
         // create serviec instances with different identifiers
         const defaultInstance = await provider.get();
         const instance1 = await provider.get('instance1');

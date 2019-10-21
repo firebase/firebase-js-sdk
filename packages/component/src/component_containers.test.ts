@@ -19,20 +19,11 @@ import { expect } from 'chai';
 import { stub } from 'sinon';
 import { ComponentContainer } from './component_container';
 import '../test/setup';
-import { Component, ComponentType } from './component';
 import { Provider } from './provider';
 import { InstantiationMode } from './types';
 import { DEFAULT_ENTRY_NAME } from './contants';
+import { getFakeComponent } from '../test/util';
 
-function getFakeComponent(
-  name: string,
-  instantiationMode: InstantiationMode,
-  multipleInstances: boolean = false
-): Component {
-  return new Component(name, () => ({ fire: true }), ComponentType.PRIVATE)
-    .setInstantiationMode(instantiationMode)
-    .setMultipleInstances(multipleInstances);
-}
 
 describe('Component Container', () => {
   let container: ComponentContainer;
@@ -51,46 +42,21 @@ describe('Component Container', () => {
     expect(provider1).to.eq(provider2);
   });
 
-  it('calls provideFactory with eager flag set to true when registering an EAGER component', () => {
+  it('calls setComponent() on provider with the same name when registering a component', () => {
     const provider = container.getProvider('fireball');
-    const provideFactoryStub = stub(provider, 'provideFactory').callThrough();
-    const component = getFakeComponent('fireball', InstantiationMode.EAGER);
+    const setComponentStub = stub(provider, 'setComponent').callThrough();
+    const component = getFakeComponent('fireball', ()=>({}), true, InstantiationMode.EAGER);
     container.addComponent(component);
 
-    expect(provideFactoryStub).has.been.calledWith(
-      component.instanceFactory,
-      false,
-      true
-    );
+    expect(setComponentStub).has.been.calledWith(component);
   });
 
-  it('calls provideFactory with eager flag set to false when registering a LAZY component', () => {
-    const provider = container.getProvider('fireball');
-    const provideFactoryStub = stub(provider, 'provideFactory').callThrough();
-    const component = getFakeComponent('fireball', InstantiationMode.LAZY);
-    container.addComponent(component);
+  it('throws when registering multiple components with the same name', () => {
+    const component1 = getFakeComponent('fireball', ()=>({}), true, InstantiationMode.EAGER);
+    const component2 = getFakeComponent('fireball', ()=>({ test: true }), false, InstantiationMode.LAZY);
 
-    expect(provideFactoryStub).has.been.calledWith(
-      component.instanceFactory,
-      false,
-      false
-    );
-  });
+    expect(() => container.addComponent(component1)).to.not.throw();
+    expect(() => container.addComponent(component2)).to.throw(/Component fireball has already been registered with/);
 
-  it('injects service factory into the Provider with the correct multipleInstances flag', () => {
-    const provider = container.getProvider('multiple');
-    const provideFactoryStub = stub(provider, 'provideFactory').callThrough();
-    const component = getFakeComponent(
-      'multiple',
-      InstantiationMode.LAZY,
-      true
-    );
-    container.addComponent(component);
-
-    expect(provideFactoryStub).has.been.calledWith(
-      component.instanceFactory,
-      true,
-      false
-    );
   });
 });
