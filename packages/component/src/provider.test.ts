@@ -32,8 +32,12 @@ describe('Provider', () => {
   });
 
   it('throws if setComponent() is called with a component with a different name than the provider name', () => {
-    expect(() => provider.setComponent(getFakeComponent('not a test', () => ({})))).to.throw(/^Mismatching Component/);
-    expect(() => provider.setComponent(getFakeComponent('test', () =>({})))).to.not.throw();
+    expect(() =>
+      provider.setComponent(getFakeComponent('not a test', () => ({})))
+    ).to.throw(/^Mismatching Component/);
+    expect(() =>
+      provider.setComponent(getFakeComponent('test', () => ({})))
+    ).to.not.throw();
   });
 
   describe('Provider (multipleInstances = false)', () => {
@@ -94,7 +98,9 @@ describe('Provider', () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.get();
 
-        provider.setComponent(getFakeComponent('test', () => ({}), false, InstantiationMode.EAGER));
+        provider.setComponent(
+          getFakeComponent('test', () => ({}), false, InstantiationMode.EAGER)
+        );
         expect((provider as any).instances.size).to.equal(1);
       });
 
@@ -108,7 +114,9 @@ describe('Provider', () => {
       });
 
       it('instantiates the service if there is no pending promise and the service is eager', () => {
-        provider.setComponent(getFakeComponent('test', () => ({}), false, InstantiationMode.EAGER));
+        provider.setComponent(
+          getFakeComponent('test', () => ({}), false, InstantiationMode.EAGER)
+        );
         expect((provider as any).instances.size).to.equal(1);
       });
 
@@ -143,7 +151,14 @@ describe('Provider', () => {
         };
 
         // provide factory and create a service instance
-        provider.setComponent(getFakeComponent('test', () => myService, false, InstantiationMode.EAGER));
+        provider.setComponent(
+          getFakeComponent(
+            'test',
+            () => myService,
+            false,
+            InstantiationMode.EAGER
+          )
+        );
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.delete();
@@ -182,7 +197,9 @@ describe('Provider', () => {
       });
 
       it('returns different service instances for different identifiers synchronously', () => {
-        provider.setComponent(getFakeComponent('test', () => ({ test: true }), true));
+        provider.setComponent(
+          getFakeComponent('test', () => ({ test: true }), true)
+        );
         const defaultService = provider.getImmediate();
         const service1 = provider.getImmediate('guardian');
         const service2 = provider.getImmediate('servant');
@@ -198,7 +215,9 @@ describe('Provider', () => {
 
     describe('get(identifier)', () => {
       it('returns different service instances for different identifiers asynchronouly', async () => {
-        provider.setComponent(getFakeComponent('test', () =>({ test: true }), true));
+        provider.setComponent(
+          getFakeComponent('test', () => ({ test: true }), true)
+        );
 
         const defaultService = await provider.get();
         const service1 = await provider.get('name1');
@@ -222,13 +241,22 @@ describe('Provider', () => {
         provider.get('name2');
         /* eslint-enable @typescript-eslint/no-floating-promises */
 
-        provider.setComponent(getFakeComponent('test', () =>({ test: true }), true));
+        provider.setComponent(
+          getFakeComponent('test', () => ({ test: true }), true)
+        );
 
         expect((provider as any).instances.size).to.equal(3);
       });
 
       it('instantiates the default service if there is no pending promise and the service is eager', () => {
-        provider.setComponent(getFakeComponent('test', () =>({ test: true }), true, InstantiationMode.EAGER));
+        provider.setComponent(
+          getFakeComponent(
+            'test',
+            () => ({ test: true }),
+            true,
+            InstantiationMode.EAGER
+          )
+        );
         expect((provider as any).instances.size).to.equal(1);
       });
 
@@ -236,7 +264,14 @@ describe('Provider', () => {
             but not for the default identifer and the service is eager`, () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.get('name1');
-        provider.setComponent(getFakeComponent('test', () =>({ test: true }), true, InstantiationMode.EAGER));
+        provider.setComponent(
+          getFakeComponent(
+            'test',
+            () => ({ test: true }),
+            true,
+            InstantiationMode.EAGER
+          )
+        );
 
         expect((provider as any).instances.size).to.equal(2);
       });

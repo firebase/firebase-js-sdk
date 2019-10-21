@@ -24,7 +24,6 @@ import { InstantiationMode } from './types';
 import { DEFAULT_ENTRY_NAME } from './contants';
 import { getFakeComponent } from '../test/util';
 
-
 describe('Component Container', () => {
   let container: ComponentContainer;
   beforeEach(() => {
@@ -45,18 +44,34 @@ describe('Component Container', () => {
   it('calls setComponent() on provider with the same name when registering a component', () => {
     const provider = container.getProvider('fireball');
     const setComponentStub = stub(provider, 'setComponent').callThrough();
-    const component = getFakeComponent('fireball', ()=>({}), true, InstantiationMode.EAGER);
+    const component = getFakeComponent(
+      'fireball',
+      () => ({}),
+      true,
+      InstantiationMode.EAGER
+    );
     container.addComponent(component);
 
     expect(setComponentStub).has.been.calledWith(component);
   });
 
   it('throws when registering multiple components with the same name', () => {
-    const component1 = getFakeComponent('fireball', ()=>({}), true, InstantiationMode.EAGER);
-    const component2 = getFakeComponent('fireball', ()=>({ test: true }), false, InstantiationMode.LAZY);
+    const component1 = getFakeComponent(
+      'fireball',
+      () => ({}),
+      true,
+      InstantiationMode.EAGER
+    );
+    const component2 = getFakeComponent(
+      'fireball',
+      () => ({ test: true }),
+      false,
+      InstantiationMode.LAZY
+    );
 
     expect(() => container.addComponent(component1)).to.not.throw();
-    expect(() => container.addComponent(component2)).to.throw(/Component fireball has already been registered with/);
-
+    expect(() => container.addComponent(component2)).to.throw(
+      /Component fireball has already been registered with/
+    );
   });
 });

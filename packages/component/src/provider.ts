@@ -29,7 +29,7 @@ export class Provider<T = unknown> {
   private instances: Map<string, T> = new Map();
   private instancesDeferred: Map<string, Deferred<T>> = new Map();
 
-  constructor(private name: string, private container: ComponentContainer) { }
+  constructor(private name: string, private container: ComponentContainer) {}
 
   get(identifier: string = DEFAULT_ENTRY_NAME): Promise<T> {
     // if multipleInstances is not supported, use the default name
@@ -67,12 +67,11 @@ export class Provider<T = unknown> {
     return instance;
   }
 
-  setComponent(
-    component: Component<T>
-  ): void {
-
+  setComponent(component: Component<T>): void {
     if (component.name !== this.name) {
-      throw Error(`Mismatching Component ${component.name} for Provider ${this.name}.`);
+      throw Error(
+        `Mismatching Component ${component.name} for Provider ${this.name}.`
+      );
     }
 
     if (this.component) {
@@ -96,7 +95,7 @@ export class Provider<T = unknown> {
         instanceIdentifier
       );
 
-      // `getOrInitializeService()` should always return a valid instance since a component is guaranteed. use ! to make typescript happy. 
+      // `getOrInitializeService()` should always return a valid instance since a component is guaranteed. use ! to make typescript happy.
       const instance = this.getOrInitializeService(normalizedIdentifier)!;
 
       instanceDeferred.resolve(instance);
