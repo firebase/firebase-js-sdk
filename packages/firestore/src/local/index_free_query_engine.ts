@@ -69,7 +69,7 @@ export class IndexFreeQueryEngine implements QueryEngine {
       'setLocalDocumentsView() not called'
     );
 
-    // Queries that match all document don't benefit from using
+    // Queries that match all documents don't benefit from using
     // IndexFreeQueries. It is more efficient to scan all documents in a
     // collection, rather than to perform individual lookups.
     if (query.matchesAllDocuments()) {
