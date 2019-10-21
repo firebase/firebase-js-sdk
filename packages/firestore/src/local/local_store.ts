@@ -192,15 +192,15 @@ export class LocalStore {
     initialUser: User
   ) {
     assert(
-      persistence.started,
+      this.persistence.started,
       'LocalStore was passed an unstarted persistence implementation'
     );
     this.persistence.referenceDelegate.setInMemoryPins(
       this.localViewReferences
     );
-    this.mutationQueue = persistence.getMutationQueue(initialUser);
-    this.remoteDocuments = persistence.getRemoteDocumentCache();
-    this.queryCache = persistence.getQueryCache();
+    this.mutationQueue = this.persistence.getMutationQueue(initialUser);
+    this.remoteDocuments = this.persistence.getRemoteDocumentCache();
+    this.queryCache = this.persistence.getQueryCache();
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
       this.mutationQueue,

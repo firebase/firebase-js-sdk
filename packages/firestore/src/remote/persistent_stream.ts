@@ -177,7 +177,7 @@ export abstract class PersistentStream<
     private credentialsProvider: CredentialsProvider,
     protected listener: ListenerType
   ) {
-    this.backoff = new ExponentialBackoff(queue, connectionTimerId);
+    this.backoff = new ExponentialBackoff(this.queue, connectionTimerId);
   }
 
   /**

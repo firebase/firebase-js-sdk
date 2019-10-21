@@ -189,7 +189,8 @@ class ParseContext {
     if (fieldTransforms === undefined) {
       this.validatePath();
     }
-    this.arrayElement = arrayElement !== undefined ? arrayElement : false;
+    this.arrayElement =
+      this.arrayElement !== undefined ? this.arrayElement : false;
     this.fieldTransforms = fieldTransforms || [];
     this.fieldMask = fieldMask || [];
   }

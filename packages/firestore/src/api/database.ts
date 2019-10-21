@@ -2102,8 +2102,8 @@ export class QuerySnapshot implements firestore.QuerySnapshot {
     private _snapshot: ViewSnapshot
   ) {
     this.metadata = new SnapshotMetadata(
-      _snapshot.hasPendingWrites,
-      _snapshot.fromCache
+      this._snapshot.hasPendingWrites,
+      this._snapshot.fromCache
     );
   }
 

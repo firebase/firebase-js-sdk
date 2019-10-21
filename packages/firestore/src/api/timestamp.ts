@@ -34,30 +34,30 @@ export class Timestamp {
   }
 
   constructor(readonly seconds: number, readonly nanoseconds: number) {
-    if (nanoseconds < 0) {
+    if (this.nanoseconds < 0) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Timestamp nanoseconds out of range: ' + nanoseconds
+        'Timestamp nanoseconds out of range: ' + this.nanoseconds
       );
     }
-    if (nanoseconds >= 1e9) {
+    if (this.nanoseconds >= 1e9) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Timestamp nanoseconds out of range: ' + nanoseconds
+        'Timestamp nanoseconds out of range: ' + this.nanoseconds
       );
     }
     // Midnight at the beginning of 1/1/1 is the earliest Firestore supports.
-    if (seconds < -62135596800) {
+    if (this.seconds < -62135596800) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Timestamp seconds out of range: ' + seconds
+        'Timestamp seconds out of range: ' + this.seconds
       );
     }
     // This will break in the year 10,000.
-    if (seconds >= 253402300800) {
+    if (this.seconds >= 253402300800) {
       throw new FirestoreError(
         Code.INVALID_ARGUMENT,
-        'Timestamp seconds out of range: ' + seconds
+        'Timestamp seconds out of range: ' + this.seconds
       );
     }
   }

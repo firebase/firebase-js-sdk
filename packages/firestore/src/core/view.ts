@@ -90,7 +90,9 @@ export class View {
     /** Documents included in the remote target */
     private _syncedDocuments: DocumentKeySet
   ) {
-    this.documentSet = new DocumentSet(query.docComparator.bind(query));
+    this.documentSet = new DocumentSet(
+      this.query.docComparator.bind(this.query)
+    );
   }
 
   /**

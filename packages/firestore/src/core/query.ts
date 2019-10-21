@@ -823,7 +823,7 @@ export class OrderBy {
       dir = Direction.ASCENDING;
     }
     this.dir = dir;
-    this.isKeyOrderBy = field.isKeyField();
+    this.isKeyOrderBy = this.field.isKeyField();
   }
 
   compare(d1: Document, d2: Document): number {

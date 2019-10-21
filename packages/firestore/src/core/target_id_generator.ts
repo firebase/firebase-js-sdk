@@ -51,8 +51,8 @@ export class TargetIdGenerator {
    */
   constructor(private generatorId: number, seed?: number) {
     assert(
-      (generatorId & RESERVED_BITS) === generatorId,
-      `Generator ID ${generatorId} contains more than ${RESERVED_BITS} reserved bits`
+      (this.generatorId & RESERVED_BITS) === this.generatorId,
+      `Generator ID ${this.generatorId} contains more than ${RESERVED_BITS} reserved bits`
     );
     this.seek(seed !== undefined ? seed : this.generatorId);
   }
