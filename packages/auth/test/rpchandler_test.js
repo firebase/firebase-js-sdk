@@ -2788,7 +2788,6 @@ function testVerifyCustomToken_success() {
 }
 
 
-<<<<<<< HEAD
 function testVerifyCustomToken_multiFactorRequired() {
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.MFA_REQUIRED, null, pendingCredResponse);
@@ -2812,6 +2811,7 @@ function testVerifyCustomToken_multiFactorRequired() {
             error);
         asyncTestCase.signal();
       });
+}
 
 
 function testVerifyCustomToken_success_tenantId() {
@@ -7707,7 +7707,7 @@ function testInvokeRpc_requireTenantId() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       response);
-  rpcHandler.invokeRpc_(rpcMethod, request).then(function(actualResponse) {
+  rpcHandler.invokeRpc(rpcMethod, request).then(function(actualResponse) {
     assertObjectEquals(response, actualResponse);
     asyncTestCase.signal();
   });
@@ -9368,13 +9368,13 @@ function testVerifyPhoneNumber_success_tenantId() {
       goog.json.serialize(expectedRequest),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
-      expectedStsTokenResponse);
+      tokenResponseWithExpiresIn);
   rpcHandler.updateTenantId('123456789012');
   rpcHandler.verifyPhoneNumber({
     'sessionInfo': 'SESSION_INFO',
     'code': '123456'
   }).then(function(response) {
-    assertEquals(expectedStsTokenResponse, response);
+    assertEquals(tokenResponseWithExpiresIn, response);
     asyncTestCase.signal();
   });
 }
@@ -9799,13 +9799,13 @@ function testVerifyPhoneNumberForExisting_success_tenantId() {
       goog.json.serialize(requestBody),
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
-      expectedStsTokenResponse);
+      tokenResponseWithExpiresIn);
   rpcHandler.updateTenantId('TENANT_ID');
   rpcHandler.verifyPhoneNumberForExisting({
     'sessionInfo': 'SESSION_INFO',
     'code': '123456'
   }).then(function(response) {
-    assertEquals(expectedStsTokenResponse, response);
+    assertEquals(tokenResponseWithExpiresIn, response);
     asyncTestCase.signal();
   });
 }

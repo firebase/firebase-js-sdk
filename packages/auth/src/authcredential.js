@@ -1008,13 +1008,9 @@ fireauth.EmailAuthProvider.getActionCodeUrlFromSignInEmailLink =
     function(emailLink) {
   emailLink = fireauth.DynamicLink.parseDeepLink(emailLink);
   var actionCodeUrl = fireauth.ActionCodeURL.parseLink(emailLink);
-  if (actionCodeUrl && actionCodeUrl['operation'] ===
-      fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN) {
-<<<<<<< HEAD
-    return actionCodeUrl['code'];
-=======
+  if (actionCodeUrl && (actionCodeUrl['operation'] ===
+      fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN)) {
     return actionCodeUrl;
->>>>>>> 4ecd58ece02e08132b80ae5e50cfcd831efee762
   }
   return null;
 };

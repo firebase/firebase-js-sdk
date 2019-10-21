@@ -2076,31 +2076,12 @@ function testEmailAuthCredentialWithLink_invalidLink_error() {
 }
 
 
-<<<<<<< HEAD
-function testEmailAuthProvider_getActionCodeFromSignInEmailLink() {
-=======
 function testEmailAuthProvider_getActionCodeUrlFromSignInEmailLink() {
->>>>>>> 4ecd58ece02e08132b80ae5e50cfcd831efee762
   var emailLink1 = 'https://www.example.com/action?mode=signIn&' +
       'oobCode=oobCode&apiKey=API_KEY';
   var emailLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
       'oobCode=oobCode&apiKey=API_KEY';
   var emailLink3 = 'https://www.example.com/action?mode=signIn';
-<<<<<<< HEAD
-  var oobCode1 = fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink1);
-  assertEquals('oobCode', oobCode1);
-  var oobCode2 = fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink2);
-  assertNull(oobCode2);
-  var oobCode3 = fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink3);
-  assertNull(oobCode3);
-}
-
-
-function testEmailAuthProvider_getActionCodeFromSignInEmailLink_deepLink() {
-=======
   var emailLink4 = 'https://www.example.com/action?mode=signIn&' +
       'oobCode=oobCode&apiKey=API_KEY&tenantId=TENANT_ID';
 
@@ -2122,7 +2103,6 @@ function testEmailAuthProvider_getActionCodeFromSignInEmailLink_deepLink() {
 
 
 function testEmailAuthProvider_getActionCodeUrlFromSignInEmailLink_deepLink() {
->>>>>>> 4ecd58ece02e08132b80ae5e50cfcd831efee762
   var deepLink1 = 'https://www.example.com/action?mode=signIn&' +
       'oobCode=oobCode&apiKey=API_KEY';
   var deepLink2 = 'https://www.example.com/action?mode=verifyEmail&' +

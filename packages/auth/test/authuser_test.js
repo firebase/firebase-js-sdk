@@ -1387,7 +1387,7 @@ function testSetUserAccountInfoFromToken_success_tenantId() {
       fireauth.RpcHandler.prototype,
       'getAccountInfoByIdToken',
       function(data) {
-        assertEquals('accessToken', data);
+        assertEquals(jwt, data);
         return goog.Promise.resolve(response);
       });
   mockControl.$replayAll();
@@ -1629,7 +1629,7 @@ function testUser_reload_success_tenantId() {
       fireauth.RpcHandler.prototype,
       'getAccountInfoByIdToken',
       function(idToken) {
-        assertEquals('accessToken', idToken);
+        assertEquals(jwt, idToken);
         user.copy(updatedUser);
         asyncTestCase.signal();
         return goog.Promise.resolve(myAccountInfo);
@@ -4700,6 +4700,7 @@ function testUser_toPlainObject_enrolledFactors() {
           'expirationTime': now + 3600 * 1000
         },
         'redirectEventId': '5678',
+        'tenantId': null,
         'lastLoginAt': lastLoginAt,
         'createdAt': createdAt,
         'multiFactor': multiFactor
@@ -5219,7 +5220,7 @@ function testUser_initializeFromIdTokenResponse_tenantId() {
       fireauth.RpcHandler.prototype,
       'getAccountInfoByIdToken',
       function(data) {
-        assertEquals('accessToken', data);
+        assertEquals(jwt, data);
         return goog.Promise.resolve(response);
       });
   asyncTestCase.waitForSignals(1);
@@ -5231,11 +5232,9 @@ function testUser_initializeFromIdTokenResponse_tenantId() {
         // Confirm STS token manager instance properly created.
         assertTrue(
             createdUser.stsTokenManager_ instanceof fireauth.StsTokenManager);
-        assertEquals('accessToken', createdUser.stsTokenManager_.accessToken_);
+        assertEquals(jwt, createdUser.stsTokenManager_.accessToken_.toString());
         assertEquals(
             'refreshToken', createdUser.stsTokenManager_.refreshToken_);
-        assertEquals(
-            now + 3600 * 1000, createdUser.stsTokenManager_.expirationTime_);
         assertEquals('TENANT_ID', createdUser['tenantId']);
         asyncTestCase.signal();
       });
@@ -13900,6 +13899,7 @@ function testReauthenticateWithPopup_multiFactor_success() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -13938,7 +13938,8 @@ function testReauthenticateWithPopup_multiFactor_success() {
   verifyAssertionForExisting({
     'requestUri': 'http://www.example.com/#response',
     'sessionId': 'SESSION_ID',
-    'postBody': null
+    'postBody': null,
+    'tenantId': null
   }).$does(function(request) {
     return goog.Promise.reject(serverResponseError);
   });
@@ -14127,6 +14128,7 @@ function testReauthenticateWithPopup_multiFactor_mismatchError() {
       ignoreArgument,
       ignoreArgument,
       ignoreArgument,
+      ignoreArgument,
       ignoreArgument).$does(function(
           actualPopupWin,
           actualMode,
@@ -14163,7 +14165,8 @@ function testReauthenticateWithPopup_multiFactor_mismatchError() {
   verifyAssertionForExisting({
     'requestUri': 'http://www.example.com/#response',
     'sessionId': 'SESSION_ID',
-    'postBody': null
+    'postBody': null,
+    'tenantId': null
   }).$does(function(request) {
     return goog.Promise.reject(serverResponseError);
   });
@@ -14288,7 +14291,8 @@ function testReturnFromReauthenticateWithRedirect_multiFactor_success() {
   verifyAssertionForExisting({
     'requestUri': 'http://www.example.com/#response',
     'sessionId': 'SESSION_ID',
-    'postBody': null
+    'postBody': null,
+    'tenantId': null
   }).$does(function(request) {
     return goog.Promise.reject(serverResponseError);
   });
@@ -14442,7 +14446,8 @@ function testReturnFromReauthenticateWithRedirect_multiFactor_mismatchError() {
   verifyAssertionForExisting({
     'requestUri': 'http://www.example.com/#response',
     'sessionId': 'SESSION_ID',
-    'postBody': null
+    'postBody': null,
+    'tenantId': null
   }).$does(function(request) {
     return goog.Promise.reject(serverResponseError);
   });

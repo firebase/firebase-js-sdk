@@ -4380,11 +4380,7 @@ function testAuth_signInWithEmailLink_success() {
   // Expected email and link.
   var expectedEmail = 'user@example.com';
   var expectedLink = 'https://www.example.com?mode=signIn&oobCode=code' +
-<<<<<<< HEAD
-      '&apiKey=API_KEY' ;
-=======
       '&apiKey=API_KEY';
->>>>>>> 4ecd58ece02e08132b80ae5e50cfcd831efee762
   var expectedOobCode = 'code';
   var expectedIdToken = 'HEAD.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ2' +
       '9vZ2xlLmNvbS8xMjM0NTY3OCIsDQogICJwaWN0dXJlIjogImh0dHBzOi8vcGx1cy5nb29' +
@@ -4534,11 +4530,7 @@ function testAuth_signInWithEmailLink_deepLink_success() {
   fireauth.AuthEventManager.ENABLED = true;
   // Expected email and link.
   var expectedEmail = 'user@example.com';
-<<<<<<< HEAD
-   var deepLink = 'https://www.example.com?mode=signIn&oobCode=code' +
-=======
   var deepLink = 'https://www.example.com?mode=signIn&oobCode=code' +
->>>>>>> 4ecd58ece02e08132b80ae5e50cfcd831efee762
       '&apiKey=API_KEY';
   var expectedLink = 'https://example.app.goo.gl/?link=' +
       encodeURIComponent(deepLink);
@@ -11119,7 +11111,7 @@ function testAuth_signInWithPopup_multiFactor_success() {
         };
       });
 
- // Second factor requirement error returned from first factor sign-in.
+  // Second factor requirement error returned from first factor sign-in.
   var serverResponseError = new fireauth.AuthError(
       fireauth.authenum.Error.MFA_REQUIRED,
       null,
@@ -11130,7 +11122,8 @@ function testAuth_signInWithPopup_multiFactor_success() {
   verifyAssertion({
     'requestUri': 'http://www.example.com/#response',
     'sessionId': 'SESSION_ID',
-    'postBody': null
+    'postBody': null,
+    'tenantId': null
   }).$does(function(request) {
     return goog.Promise.reject(serverResponseError);
   });
@@ -11260,7 +11253,8 @@ function testAuth_returnFromSignInWithRedirect_multiFactor_success() {
   verifyAssertion({
     'requestUri': 'http://www.example.com/#response',
     'sessionId': 'SESSION_ID',
-    'postBody': null
+    'postBody': null,
+    'tenantId': null
   }).$does(function(request) {
     return goog.Promise.reject(serverResponseError);
   });
@@ -11308,6 +11302,7 @@ function testAuth_returnFromSignInWithRedirect_multiFactor_success() {
       });
   mockControl.$replayAll();
 
+  var mfaError;
   var unsubscribe = auth1.onIdTokenChanged(function(currentUser) {
     // Finish signing in with the second factor after the first time the
     // listener is triggered with a null user. Otherwise, since the listener is
@@ -11317,7 +11312,13 @@ function testAuth_returnFromSignInWithRedirect_multiFactor_success() {
       // Error should be intercepted and repackaged.
       assertEquals('auth/multi-factor-auth-required', error['code']);
       assertEquals(auth1, error.resolver.auth);
-      return error.resolver.resolveSignIn(mockAssertion);
+      mfaError = error;
+      // Error in redirect result should be cleared after being returned once.
+      return auth1.getRedirectResult();
+    }).then(function(result) {
+      fireauth.common.testHelper.assertUserCredentialResponse(
+          null, null, null, undefined, result);
+      return mfaError.resolver.resolveSignIn(mockAssertion);
     }).then(function(result) {
       // Expected result returned.
       fireauth.common.testHelper.assertUserCredentialResponse(

@@ -717,7 +717,7 @@ fireauth.AuthUser.prototype.setAccountInfo = function(accountInfo) {
  *   isAnonymous: ?boolean,
  *   createdAt: (?string|undefined),
  *   lastLoginAt: (?string|undefined),
- *   tenantId: (?string|undefined)
+ *   tenantId: (?string|undefined),
  *   multiFactor: ({
  *     enrolledFactors: (?Array<!fireauth.MultiFactorInfo>|undefined)
  *   }|undefined)
