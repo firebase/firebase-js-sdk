@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
 import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
 import { emptyByteString } from '../platform/platform';
 
@@ -37,10 +37,11 @@ export enum QueryPurpose {
 /**
  * An immutable set of metadata that the local store tracks for each query.
  */
+// TODO(wuandy): rename this to TargetData.
 export class QueryData {
   constructor(
     /** The query being listened to. */
-    readonly query: Query,
+    readonly target: Target,
     /**
      * The target ID to which the query corresponds; Assigned by the
      * LocalStore for user listens and by the SyncEngine for limbo watches.
@@ -72,7 +73,7 @@ export class QueryData {
   /** Creates a new query data instance with an updated sequence number. */
   withSequenceNumber(sequenceNumber: number): QueryData {
     return new QueryData(
-      this.query,
+      this.target,
       this.targetId,
       this.purpose,
       sequenceNumber,
@@ -91,7 +92,7 @@ export class QueryData {
     snapshotVersion: SnapshotVersion
   ): QueryData {
     return new QueryData(
-      this.query,
+      this.target,
       this.targetId,
       this.purpose,
       this.sequenceNumber,
@@ -109,7 +110,7 @@ export class QueryData {
     lastLimboFreeSnapshotVersion: SnapshotVersion
   ): QueryData {
     return new QueryData(
-      this.query,
+      this.target,
       this.targetId,
       this.purpose,
       this.sequenceNumber,
@@ -129,7 +130,7 @@ export class QueryData {
         other.lastLimboFreeSnapshotVersion
       ) &&
       this.resumeToken === other.resumeToken &&
-      this.query.isEqual(other.query)
+      this.target.isEqual(other.target)
     );
   }
 }

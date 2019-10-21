@@ -35,6 +35,7 @@ import {
 import { Timestamp } from '../../../src/api/timestamp';
 import * as persistenceHelpers from './persistence_test_helpers';
 import { TestQueryCache } from './test_query_cache';
+import { Target } from '../../../src/core/target';
 
 describe('MemoryQueryCache', () => {
   genericQueryCacheTests(persistenceHelpers.testMemoryEagerPersistence);
@@ -65,9 +66,9 @@ describe('IndexedDbQueryCache', () => {
     const lastLimboFreeSnapshotVersion = SnapshotVersion.fromTimestamp(
       new Timestamp(3, 4)
     );
-    const query = Query.atPath(path('rooms'));
+    const target = Query.atPath(path('rooms')).toTarget();
     const queryData = new QueryData(
-      query,
+      target,
       targetId,
       QueryPurpose.Listen,
       originalSequenceNumber,
@@ -90,7 +91,7 @@ describe('IndexedDbQueryCache', () => {
     expect(await queryCache2.getHighestSequenceNumber()).to.equal(
       originalSequenceNumber
     );
-    const actualQueryData = await queryCache2.getQueryData(query);
+    const actualQueryData = await queryCache2.getQueryData(target);
 
     if (process.env.USE_MOCK_PERSISTENCE !== 'YES') {
       // TODO(b/140573486): This fails on Node with persistence since the
@@ -114,9 +115,9 @@ function genericQueryCacheTests(
   addEqualityMatcher();
   let cache: TestQueryCache;
 
-  const QUERY_ROOMS = Query.atPath(path('rooms'));
-  const QUERY_HALLS = Query.atPath(path('halls'));
-  const QUERY_GARAGES = Query.atPath(path('garages'));
+  const QUERY_ROOMS = Query.atPath(path('rooms')).toTarget();
+  const QUERY_HALLS = Query.atPath(path('halls')).toTarget();
+  const QUERY_GARAGES = Query.atPath(path('garages')).toTarget();
 
   /**
    * Creates a new QueryData object from the the given parameters, synthesizing
@@ -124,7 +125,7 @@ function genericQueryCacheTests(
    */
   let previousSequenceNumber = 0;
   function testQueryData(
-    query: Query,
+    target: Target,
     targetId: TargetId,
     version?: number
   ): QueryData {
@@ -134,7 +135,7 @@ function genericQueryCacheTests(
     const snapshotVersion = SnapshotVersion.fromMicroseconds(version);
     const resumeToken = resumeTokenForSnapshot(snapshotVersion);
     return new QueryData(
-      query,
+      target,
       targetId,
       QueryPurpose.Listen,
       ++previousSequenceNumber,
@@ -167,15 +168,19 @@ function genericQueryCacheTests(
   it('can set and read a query', async () => {
     const queryData = testQueryData(QUERY_ROOMS, 1, 1);
     await cache.addQueryData(queryData);
-    const read = await cache.getQueryData(queryData.query);
+    const read = await cache.getQueryData(queryData.target);
     expect(read).to.deep.equal(queryData);
   });
 
   it('handles canonical ID collisions', async () => {
     // Type information is currently lost in our canonicalID implementations so
     // this currently an easy way to force colliding canonicalIDs
-    const q1 = Query.atPath(path('a')).addFilter(filter('foo', '==', 1));
-    const q2 = Query.atPath(path('a')).addFilter(filter('foo', '==', '1'));
+    const q1 = Query.atPath(path('a'))
+      .addFilter(filter('foo', '==', 1))
+      .toTarget();
+    const q2 = Query.atPath(path('a'))
+      .addFilter(filter('foo', '==', '1'))
+      .toTarget();
     expect(q1.canonicalId()).to.equal(q2.canonicalId());
 
     const data1 = testQueryData(q1, 1, 1);
@@ -209,7 +214,7 @@ function genericQueryCacheTests(
     await cache.addQueryData(testQueryData(QUERY_ROOMS, 1, 1));
     const updated = testQueryData(QUERY_ROOMS, 1, 2);
     await cache.updateQueryData(updated);
-    const retrieved = await cache.getQueryData(updated.query);
+    const retrieved = await cache.getQueryData(updated.target);
     expect(retrieved).to.deep.equal(updated);
   });
 

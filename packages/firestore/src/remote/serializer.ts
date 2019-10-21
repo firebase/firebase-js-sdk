@@ -29,6 +29,7 @@ import {
   Query
 } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
 import { ProtoByteString, TargetId } from '../core/types';
 import { QueryData, QueryPurpose } from '../local/query_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
@@ -1019,25 +1020,25 @@ export class JsonProtoSerializer {
     return new FieldTransform(fieldPath, transform!);
   }
 
-  toDocumentsTarget(query: Query): api.DocumentsTarget {
-    return { documents: [this.toQueryPath(query.path)] };
+  toDocumentsTarget(target: Target): api.DocumentsTarget {
+    return { documents: [this.toQueryPath(target.path)] };
   }
 
-  fromDocumentsTarget(documentsTarget: api.DocumentsTarget): Query {
+  fromDocumentsTarget(documentsTarget: api.DocumentsTarget): Target {
     const count = documentsTarget.documents!.length;
     assert(
       count === 1,
       'DocumentsTarget contained other than 1 document: ' + count
     );
     const name = documentsTarget.documents![0];
-    return Query.atPath(this.fromQueryPath(name));
+    return Query.atPath(this.fromQueryPath(name)).toTarget();
   }
 
-  toQueryTarget(query: Query): api.QueryTarget {
+  toQueryTarget(target: Target): api.QueryTarget {
     // Dissect the path into parent, collectionId, and optional key filter.
     const result: api.QueryTarget = { structuredQuery: {} };
-    const path = query.path;
-    if (query.collectionGroup !== null) {
+    const path = target.path;
+    if (target.collectionGroup !== null) {
       assert(
         path.length % 2 === 0,
         'Collection Group queries should be within a document path or root.'
@@ -1045,7 +1046,7 @@ export class JsonProtoSerializer {
       result.parent = this.toQueryPath(path);
       result.structuredQuery!.from = [
         {
-          collectionId: query.collectionGroup,
+          collectionId: target.collectionGroup,
           allDescendants: true
         }
       ];
@@ -1058,32 +1059,32 @@ export class JsonProtoSerializer {
       result.structuredQuery!.from = [{ collectionId: path.lastSegment() }];
     }
 
-    const where = this.toFilter(query.filters);
+    const where = this.toFilter(target.filters);
     if (where) {
       result.structuredQuery!.where = where;
     }
 
-    const orderBy = this.toOrder(query.orderBy);
+    const orderBy = this.toOrder(target.orderBy);
     if (orderBy) {
       result.structuredQuery!.orderBy = orderBy;
     }
 
-    const limit = this.toInt32Value(query.limit);
+    const limit = this.toInt32Value(target.limit);
     if (limit !== null) {
       result.structuredQuery!.limit = limit;
     }
 
-    if (query.startAt) {
-      result.structuredQuery!.startAt = this.toCursor(query.startAt);
+    if (target.startAt) {
+      result.structuredQuery!.startAt = this.toCursor(target.startAt);
     }
-    if (query.endAt) {
-      result.structuredQuery!.endAt = this.toCursor(query.endAt);
+    if (target.endAt) {
+      result.structuredQuery!.endAt = this.toCursor(target.endAt);
     }
 
     return result;
   }
 
-  fromQueryTarget(target: api.QueryTarget): Query {
+  fromQueryTarget(target: api.QueryTarget): Target {
     let path = this.fromQueryPath(target.parent!);
 
     const query = target.structuredQuery!;
@@ -1135,7 +1136,7 @@ export class JsonProtoSerializer {
       limit,
       startAt,
       endAt
-    );
+    ).toTarget();
   }
 
   toListenRequestLabels(
@@ -1166,12 +1167,12 @@ export class JsonProtoSerializer {
 
   toTarget(queryData: QueryData): api.Target {
     let result: api.Target;
-    const query = queryData.query;
+    const target = queryData.target;
 
-    if (query.isDocumentQuery()) {
-      result = { documents: this.toDocumentsTarget(query) };
+    if (target.isDocumentQuery()) {
+      result = { documents: this.toDocumentsTarget(target) };
     } else {
-      result = { query: this.toQueryTarget(query) };
+      result = { query: this.toQueryTarget(target) };
     }
 
     result.targetId = queryData.targetId;

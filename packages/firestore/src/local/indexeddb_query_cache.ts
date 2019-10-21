@@ -16,7 +16,6 @@
  */
 
 import { Timestamp } from '../api/timestamp';
-import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ListenSequenceNumber, TargetId } from '../core/types';
 import { DocumentKeySet, documentKeySet } from '../model/collections';
@@ -46,6 +45,7 @@ import { PersistencePromise } from './persistence_promise';
 import { QueryCache } from './query_cache';
 import { QueryData } from './query_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { Target } from '../core/target';
 
 export class IndexedDbQueryCache implements QueryCache {
   constructor(
@@ -241,12 +241,12 @@ export class IndexedDbQueryCache implements QueryCache {
 
   getQueryData(
     transaction: PersistenceTransaction,
-    query: Query
+    target: Target
   ): PersistencePromise<QueryData | null> {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
     // depends on the queryTargets index to be efficient.
-    const canonicalId = query.canonicalId();
+    const canonicalId = target.canonicalId();
     const range = IDBKeyRange.bound(
       [canonicalId, Number.NEGATIVE_INFINITY],
       [canonicalId, Number.POSITIVE_INFINITY]
@@ -259,7 +259,7 @@ export class IndexedDbQueryCache implements QueryCache {
           const found = this.serializer.fromDbTarget(value);
           // After finding a potential match, check that the query is
           // actually equal to the requested query.
-          if (query.isEqual(found.query)) {
+          if (target.isEqual(found.target)) {
             result = found;
             control.done();
           }

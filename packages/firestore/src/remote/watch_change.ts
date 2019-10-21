@@ -383,8 +383,8 @@ export class WatchChangeAggregator {
 
     const queryData = this.queryDataForActiveTarget(targetId);
     if (queryData) {
-      const query = queryData.query;
-      if (query.isDocumentQuery()) {
+      const target = queryData.target;
+      if (target.isDocumentQuery()) {
         if (expectedCount === 0) {
           // The existence filter told us the document does not exist. We deduce
           // that this document does not exist and apply a deleted document to
@@ -392,7 +392,7 @@ export class WatchChangeAggregator {
           // another query that will raise this document as part of a snapshot
           // until it is resolved, essentially exposing inconsistency between
           // queries.
-          const key = new DocumentKey(query.path);
+          const key = new DocumentKey(target.path);
           this.removeDocumentFromTarget(
             targetId,
             key,
@@ -426,7 +426,7 @@ export class WatchChangeAggregator {
     objUtils.forEachNumber(this.targetStates, (targetId, targetState) => {
       const queryData = this.queryDataForActiveTarget(targetId);
       if (queryData) {
-        if (targetState.current && queryData.query.isDocumentQuery()) {
+        if (targetState.current && queryData.target.isDocumentQuery()) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
           // delete if we have not previously received the document. This
@@ -436,7 +436,7 @@ export class WatchChangeAggregator {
           // TODO(dimond): Ideally we would have an explicit lookup query
           // instead resulting in an explicit delete message and we could
           // remove this special logic.
-          const key = new DocumentKey(queryData.query.path);
+          const key = new DocumentKey(queryData.target.path);
           if (
             this.pendingDocumentUpdates.get(key) === null &&
             !this.targetContainsDocument(targetId, key)

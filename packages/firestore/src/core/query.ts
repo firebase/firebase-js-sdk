@@ -28,14 +28,22 @@ import { FieldPath, ResourcePath } from '../model/path';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
+import { Target } from './target';
 
+/**
+ * Query encapsulates all the query attributes we support in the SDK. It can
+ * be run against the LocalStore, as well as be converted to a `Target` to
+ * query the RemoteStore results.
+ */
 export class Query {
   static atPath(path: ResourcePath): Query {
     return new Query(path);
   }
 
-  private memoizedCanonicalId: string | null = null;
   private memoizedOrderBy: OrderBy[] | null = null;
+
+  // The corresponding `Target` of this `Query` instance.
+  private target: Target | null = null;
 
   /**
    * Initializes a Query with a path and optional additional query constraints.
@@ -219,107 +227,15 @@ export class Query {
   // example, use as a dictionary key, but the implementation is subject to
   // collisions. Make it collision-free.
   canonicalId(): string {
-    if (this.memoizedCanonicalId === null) {
-      let canonicalId = this.path.canonicalString();
-      if (this.isCollectionGroupQuery()) {
-        canonicalId += '|cg:' + this.collectionGroup;
-      }
-      canonicalId += '|f:';
-      for (const filter of this.filters) {
-        canonicalId += filter.canonicalId();
-        canonicalId += ',';
-      }
-      canonicalId += '|ob:';
-      // TODO(dimond): make this collision resistant
-      for (const orderBy of this.orderBy) {
-        canonicalId += orderBy.canonicalId();
-        canonicalId += ',';
-      }
-      if (!isNullOrUndefined(this.limit)) {
-        canonicalId += '|l:';
-        canonicalId += this.limit!;
-      }
-      if (this.startAt) {
-        canonicalId += '|lb:';
-        canonicalId += this.startAt.canonicalId();
-      }
-      if (this.endAt) {
-        canonicalId += '|ub:';
-        canonicalId += this.endAt.canonicalId();
-      }
-      this.memoizedCanonicalId = canonicalId;
-    }
-    return this.memoizedCanonicalId;
+    return this.toTarget().canonicalId();
   }
 
   toString(): string {
-    let str = 'Query(' + this.path.canonicalString();
-    if (this.isCollectionGroupQuery()) {
-      str += ' collectionGroup=' + this.collectionGroup;
-    }
-    if (this.filters.length > 0) {
-      str += `, filters: [${this.filters.join(', ')}]`;
-    }
-    if (!isNullOrUndefined(this.limit)) {
-      str += ', limit: ' + this.limit;
-    }
-    if (this.explicitOrderBy.length > 0) {
-      str += `, orderBy: [${this.explicitOrderBy.join(', ')}]`;
-    }
-    if (this.startAt) {
-      str += ', startAt: ' + this.startAt.canonicalId();
-    }
-    if (this.endAt) {
-      str += ', endAt: ' + this.endAt.canonicalId();
-    }
-
-    return str + ')';
+    return `Query(target=${this.toTarget().toString()})`;
   }
 
   isEqual(other: Query): boolean {
-    if (this.limit !== other.limit) {
-      return false;
-    }
-
-    if (this.orderBy.length !== other.orderBy.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.orderBy.length; i++) {
-      if (!this.orderBy[i].isEqual(other.orderBy[i])) {
-        return false;
-      }
-    }
-
-    if (this.filters.length !== other.filters.length) {
-      return false;
-    }
-
-    for (let i = 0; i < this.filters.length; i++) {
-      if (!this.filters[i].isEqual(other.filters[i])) {
-        return false;
-      }
-    }
-
-    if (this.collectionGroup !== other.collectionGroup) {
-      return false;
-    }
-
-    if (!this.path.isEqual(other.path)) {
-      return false;
-    }
-
-    if (
-      this.startAt !== null
-        ? !this.startAt.isEqual(other.startAt)
-        : other.startAt !== null
-    ) {
-      return false;
-    }
-
-    return this.endAt !== null
-      ? this.endAt.isEqual(other.endAt)
-      : other.endAt === null;
+    return this.toTarget().isEqual(other.toTarget());
   }
 
   docComparator(d1: Document, d2: Document): number {
@@ -381,15 +297,26 @@ export class Query {
   }
 
   isDocumentQuery(): boolean {
-    return (
-      DocumentKey.isDocumentKey(this.path) &&
-      this.collectionGroup === null &&
-      this.filters.length === 0
-    );
+    return this.toTarget().isDocumentQuery();
   }
 
   isCollectionGroupQuery(): boolean {
     return this.collectionGroup !== null;
+  }
+
+  toTarget(): Target {
+    if (!this.target) {
+      this.target = new Target(
+        this.path,
+        this.collectionGroup,
+        this.orderBy,
+        this.filters,
+        this.limit,
+        this.startAt,
+        this.endAt
+      );
+    }
+    return this.target!;
   }
 
   private matchesPathAndCollectionGroup(doc: Document): boolean {
