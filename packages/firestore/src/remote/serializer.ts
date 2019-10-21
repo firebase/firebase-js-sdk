@@ -160,19 +160,21 @@ export class JsonProtoSerializer {
   }
 
   /**
-   * Returns a value for a number (or undefined) that's appropriate to put into
+   * Returns a value for a number (or null) that's appropriate to put into
    * a google.protobuf.Int32Value proto.
    * DO NOT USE THIS FOR ANYTHING ELSE.
    * This method cheats. It's typed as returning "number" because that's what
    * our generated proto interfaces say Int32Value must be. But GRPC actually
    * expects a { value: <number> } struct.
    */
-  private toInt32Value(val: number | null): number | undefined {
-    if (!typeUtils.isNullOrUndefined(val)) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, We need to match generated Proto types.
-      return { value: val } as any;
+  private toInt32Value(val: number | null): number | null {
+    if (this.options.useProto3Json || typeUtils.isNullOrUndefined(val)) {
+      return val;
     } else {
-      return undefined;
+      // ProtobufJS requires that we wrap Int32Values.
+      // Use any because we need to match generated Proto types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return { value: val } as any;
     }
   }
 
@@ -186,7 +188,8 @@ export class JsonProtoSerializer {
   private fromInt32Value(val: number | undefined): number | null {
     let result;
     if (typeof val === 'object') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, We need to match generated Proto types.
+      // Use any because we need to match generated Proto types.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       result = (val as any).value;
     } else {
       // We accept raw numbers (without the {value: ... } wrapper) for
@@ -204,11 +207,24 @@ export class JsonProtoSerializer {
    * to actually return a Timestamp proto.
    */
   private toTimestamp(timestamp: Timestamp): string {
-    return {
-      seconds: '' + timestamp.seconds,
-      nanos: timestamp.nanoseconds
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
+    if (this.options.useProto3Json) {
+      // Serialize to ISO-8601 date format, but with full nano resolution.
+      // Since JS Date has only millis, let's only use it for the seconds and
+      // then manually add the fractions to the end.
+      const jsDateStr = new Date(timestamp.seconds * 1000).toISOString();
+      // Remove .xxx frac part and Z in the end.
+      const strUntilSeconds = jsDateStr.replace(/\.\d*/, '').replace('Z', '');
+      // Pad the fraction out to 9 digits (nanos).
+      const nanoStr = ('000000000' + timestamp.nanoseconds).slice(-9);
+
+      return `${strUntilSeconds}.${nanoStr}Z`;
+    } else {
+      return {
+        seconds: '' + timestamp.seconds,
+        nanos: timestamp.nanoseconds
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
+    }
   }
 
   private fromTimestamp(date: string | TimestampProto): Timestamp {
@@ -901,9 +917,19 @@ export class JsonProtoSerializer {
     commitTime: string
   ): MutationResult {
     // NOTE: Deletes don't have an updateTime.
-    const version = proto.updateTime
+    let version = proto.updateTime
       ? this.fromVersion(proto.updateTime)
       : this.fromVersion(commitTime);
+
+    if (version.isEqual(SnapshotVersion.MIN)) {
+      // The Firestore Emulator currently returns an update time of 0 for
+      // deletes of non-existing documents (rather than null). This breaks the
+      // test "get deleted doc while offline with source=cache" as NoDocuments
+      // with version 0 are filtered by IndexedDb's RemoteDocumentCache.
+      // TODO(#2149): Remove this when Emulator is fixed
+      version = this.fromVersion(commitTime);
+    }
+
     let transformResults: fieldValue.FieldValue[] | null = null;
     if (proto.transformResults && proto.transformResults.length > 0) {
       transformResults = proto.transformResults.map(result =>
@@ -1043,7 +1069,7 @@ export class JsonProtoSerializer {
     }
 
     const limit = this.toInt32Value(query.limit);
-    if (limit !== undefined) {
+    if (limit !== null) {
       result.structuredQuery!.limit = limit;
     }
 

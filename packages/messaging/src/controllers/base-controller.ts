@@ -30,7 +30,7 @@ import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { MessagePayload } from '../interfaces/message-payload';
 import { TokenDetails } from '../interfaces/token-details';
 import { ErrorCode, errorFactory } from '../models/errors';
-import { IidModel } from '../models/iid-model';
+import { SubscriptionManager } from '../models/subscription-manager';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
 
@@ -38,44 +38,30 @@ export type BgMessageHandler = (
   payload: MessagePayload
 ) => Promise<unknown> | void;
 
-const SENDER_ID_OPTION_NAME = 'messagingSenderId';
-// Database cache should be invalidated once a week.
+// Token should be refreshed once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export abstract class BaseController implements FirebaseMessaging {
-  app: FirebaseApp;
   INTERNAL: FirebaseServiceInternals;
-  private readonly messagingSenderId: string;
   private readonly tokenDetailsModel: TokenDetailsModel;
-  private readonly vapidDetailsModel: VapidDetailsModel;
-  private readonly iidModel: IidModel;
+  private readonly vapidDetailsModel = new VapidDetailsModel();
+  private readonly subscriptionManager = new SubscriptionManager();
 
-  /**
-   * An interface of the Messaging Service API
-   */
-  constructor(app: FirebaseApp) {
+  constructor(readonly app: FirebaseApp) {
     if (
-      !app.options[SENDER_ID_OPTION_NAME] ||
-      typeof app.options[SENDER_ID_OPTION_NAME] !== 'string'
+      !app.options.messagingSenderId ||
+      typeof app.options.messagingSenderId !== 'string'
     ) {
       throw errorFactory.create(ErrorCode.BAD_SENDER_ID);
     }
 
-    this.messagingSenderId = app.options[SENDER_ID_OPTION_NAME]!;
-
-    this.tokenDetailsModel = new TokenDetailsModel();
-    this.vapidDetailsModel = new VapidDetailsModel();
-    this.iidModel = new IidModel();
-
-    this.app = app;
     this.INTERNAL = {
       delete: () => this.delete()
     };
+
+    this.tokenDetailsModel = new TokenDetailsModel(app);
   }
 
-  /**
-   * @export
-   */
   async getToken(): Promise<string | null> {
     // Check with permissions
     const currentPermission = this.getNotificationPermission_();
@@ -129,6 +115,7 @@ export abstract class BaseController implements FirebaseMessaging {
       publicVapidKey,
       tokenDetails
     );
+
     if (isTokenValid) {
       const now = Date.now();
       if (now < tokenDetails.createTime + TOKEN_EXPIRATION_MILLIS) {
@@ -141,14 +128,14 @@ export abstract class BaseController implements FirebaseMessaging {
           tokenDetails
         );
       }
+    } else {
+      // If the token is no longer valid (for example if the VAPID details
+      // have changed), delete the existing token from the FCM client and server
+      // database. No need to unsubscribe from the Service Worker as we have a
+      // good push subscription that we'd like to use in getNewToken.
+      await this.deleteTokenFromDB(tokenDetails.fcmToken);
+      return this.getNewToken(swReg, pushSubscription, publicVapidKey);
     }
-
-    // If the token is no longer valid (for example if the VAPID details
-    // have changed), delete the existing token from the FCM client and server
-    // database. No need to unsubscribe from the Service Worker as we have a
-    // good push subscription that we'd like to use in getNewToken.
-    await this.deleteTokenFromDB(tokenDetails.fcmToken);
-    return this.getNewToken(swReg, pushSubscription, publicVapidKey);
   }
 
   private async updateToken(
@@ -158,10 +145,9 @@ export abstract class BaseController implements FirebaseMessaging {
     tokenDetails: TokenDetails
   ): Promise<string> {
     try {
-      const updatedToken = await this.iidModel.updateToken(
-        this.messagingSenderId,
-        tokenDetails.fcmToken,
-        tokenDetails.fcmPushSet,
+      const updatedToken = await this.subscriptionManager.updateToken(
+        tokenDetails,
+        this.app,
         pushSubscription,
         publicVapidKey
       );
@@ -169,9 +155,8 @@ export abstract class BaseController implements FirebaseMessaging {
       const allDetails: TokenDetails = {
         swScope: swReg.scope,
         vapidKey: publicVapidKey,
-        fcmSenderId: this.messagingSenderId,
+        fcmSenderId: this.app.options.messagingSenderId!,
         fcmToken: updatedToken,
-        fcmPushSet: tokenDetails.fcmPushSet,
         createTime: Date.now(),
         endpoint: pushSubscription.endpoint,
         auth: pushSubscription.getKey('auth')!,
@@ -195,17 +180,16 @@ export abstract class BaseController implements FirebaseMessaging {
     pushSubscription: PushSubscription,
     publicVapidKey: Uint8Array
   ): Promise<string> {
-    const tokenDetails = await this.iidModel.getToken(
-      this.messagingSenderId,
+    const newToken = await this.subscriptionManager.getToken(
+      this.app,
       pushSubscription,
       publicVapidKey
     );
     const allDetails: TokenDetails = {
       swScope: swReg.scope,
       vapidKey: publicVapidKey,
-      fcmSenderId: this.messagingSenderId,
-      fcmToken: tokenDetails.token,
-      fcmPushSet: tokenDetails.pushSet,
+      fcmSenderId: this.app.options.messagingSenderId!,
+      fcmToken: newToken,
       createTime: Date.now(),
       endpoint: pushSubscription.endpoint,
       auth: pushSubscription.getKey('auth')!,
@@ -213,7 +197,7 @@ export abstract class BaseController implements FirebaseMessaging {
     };
     await this.tokenDetailsModel.saveTokenDetails(allDetails);
     await this.vapidDetailsModel.saveVapidDetails(swReg.scope, publicVapidKey);
-    return tokenDetails.token;
+    return newToken;
   }
 
   /**
@@ -243,12 +227,8 @@ export abstract class BaseController implements FirebaseMessaging {
    * push subscription.
    */
   private async deleteTokenFromDB(token: string): Promise<void> {
-    const details = await this.tokenDetailsModel.deleteToken(token);
-    await this.iidModel.deleteToken(
-      details.fcmSenderId,
-      details.fcmToken,
-      details.fcmPushSet
-    );
+    const tokenDetails = await this.tokenDetailsModel.deleteToken(token);
+    await this.subscriptionManager.deleteToken(this.app, tokenDetails);
   }
 
   // Visible for testing
@@ -262,19 +242,17 @@ export abstract class BaseController implements FirebaseMessaging {
   /**
    * Gets a PushSubscription for the current user.
    */
-  getPushSubscription(
+  async getPushSubscription(
     swRegistration: ServiceWorkerRegistration,
     publicVapidKey: Uint8Array
   ): Promise<PushSubscription> {
-    return swRegistration.pushManager.getSubscription().then(subscription => {
-      if (subscription) {
-        return subscription;
-      }
-
-      return swRegistration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: publicVapidKey
-      });
+    const subscription = await swRegistration.pushManager.getSubscription();
+    if (subscription) {
+      return subscription;
+    }
+    return swRegistration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: publicVapidKey
     });
   }
 
@@ -355,8 +333,8 @@ export abstract class BaseController implements FirebaseMessaging {
 
   // Visible for testing
   // TODO: make protected
-  getIidModel(): IidModel {
-    return this.iidModel;
+  getSubscriptionManager(): SubscriptionManager {
+    return this.subscriptionManager;
   }
 }
 

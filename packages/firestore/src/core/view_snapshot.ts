@@ -168,8 +168,8 @@ export class ViewSnapshot {
       changes,
       mutatedKeys,
       fromCache,
-      true,
-      false
+      /* syncStateChanged= */ true,
+      /* excludesMetadataChanges= */ false
     );
   }
 

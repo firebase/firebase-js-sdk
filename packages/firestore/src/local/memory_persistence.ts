@@ -42,6 +42,7 @@ import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
+  PersistenceTransactionMode,
   PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
@@ -169,7 +170,7 @@ export class MemoryPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
+    mode: PersistenceTransactionMode,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
@@ -183,7 +184,11 @@ export class MemoryPersistence implements Persistence {
           .onTransactionCommitted(txn)
           .next(() => result);
       })
-      .toPromise();
+      .toPromise()
+      .then(result => {
+        txn.raiseOnCommittedEvent();
+        return result;
+      });
   }
 
   mutationQueuesContainKey(
@@ -202,8 +207,10 @@ export class MemoryPersistence implements Persistence {
  * Memory persistence is not actually transactional, but future implementations
  * may have transaction-scoped state.
  */
-export class MemoryTransaction implements PersistenceTransaction {
-  constructor(readonly currentSequenceNumber: ListenSequenceNumber) {}
+export class MemoryTransaction extends PersistenceTransaction {
+  constructor(readonly currentSequenceNumber: ListenSequenceNumber) {
+    super();
+  }
 }
 
 export class MemoryEagerDelegate implements ReferenceDelegate {
@@ -268,6 +275,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
   onTransactionCommitted(
     txn: PersistenceTransaction
   ): PersistencePromise<void> {
+    // Remove newly orphaned documents.
     const cache = this.persistence.getRemoteDocumentCache();
     const changeBuffer = cache.newChangeBuffer();
     return PersistencePromise.forEach(
@@ -463,7 +471,10 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   }
 
   documentSize(maybeDoc: MaybeDocument): number {
-    const remoteDocument = this.serializer.toDbRemoteDocument(maybeDoc);
+    const remoteDocument = this.serializer.toDbRemoteDocument(
+      maybeDoc,
+      maybeDoc.version
+    );
     let value: unknown;
     if (remoteDocument.document) {
       value = remoteDocument.document;

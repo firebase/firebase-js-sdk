@@ -107,8 +107,8 @@ describe('getInstallationEntry', () => {
     clock.next(); // Finish registration request.
     await expect(registrationPromise).to.be.fulfilled;
 
-    const newDbEntry = (await get(appConfig)) as RegisteredInstallationEntry;
-    expect(newDbEntry.registrationStatus).to.equal(RequestStatus.COMPLETED);
+    const newDbEntry = await get(appConfig);
+    expect(newDbEntry!.registrationStatus).to.equal(RequestStatus.COMPLETED);
   });
 
   it('saves the InstallationEntry in the database when registration fails', async () => {
@@ -137,8 +137,8 @@ describe('getInstallationEntry', () => {
     clock.next(); // Finish registration request.
     await expect(registrationPromise).to.be.rejected;
 
-    const newDbEntry = (await get(appConfig)) as UnregisteredInstallationEntry;
-    expect(newDbEntry.registrationStatus).to.equal(RequestStatus.NOT_STARTED);
+    const newDbEntry = await get(appConfig);
+    expect(newDbEntry!.registrationStatus).to.equal(RequestStatus.NOT_STARTED);
   });
 
   it('removes the InstallationEntry from the database when registration fails with 409', async () => {

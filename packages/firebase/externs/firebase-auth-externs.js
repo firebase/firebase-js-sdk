@@ -878,6 +878,29 @@ firebase.auth.ActionCodeInfo.prototype.data;
 firebase.auth.ActionCodeInfo.prototype.operation;
 
 /**
+ * @enum {string}
+ * An enumeration of the possible email action types.
+ */
+firebase.auth.ActionCodeInfo.Operation = {
+  /**
+   * The email link sign in email action.
+   */
+  EMAIL_SIGNIN: 'EMAIL_SIGNIN',
+  /**
+   * The reset password email action.
+   */
+  PASSWORD_RESET: 'PASSWORD_RESET',
+  /**
+   * The email revocation action.
+   */
+  RECOVER_EMAIL: 'RECOVER_EMAIL',
+  /**
+   * The email verification action.
+   */
+  VERIFY_EMAIL: 'VERIFY_EMAIL'
+};
+
+/**
  * A utility class to parse email action URLs.
  *
  * @constructor

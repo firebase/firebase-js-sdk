@@ -22,9 +22,8 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 
-// tslint:disable:no-floating-promises
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, Allow custom types for testing.
+// Allow custom types for testing.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTestData = any;
 
 const Timestamp = firebase.firestore!.Timestamp;
@@ -258,9 +257,11 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
       return writeInitialData()
         .then(() => docRef.firestore.disableNetwork())
         .then(() => {
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises, We set up two consecutive writes with server timestamps.
+          // We set up two consecutive writes with server timestamps.
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           docRef.update('a', FieldValue.serverTimestamp());
-          // eslint-disable-next-line @typescript-eslint/no-floating-promises, include b=1 to ensure there's a change resulting in a new snapshot.
+          // include b=1 to ensure there's a change resulting in a new snapshot.
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           docRef.update('a', FieldValue.serverTimestamp(), 'b', 1);
           return accumulator.awaitLocalEvents(2);
         })

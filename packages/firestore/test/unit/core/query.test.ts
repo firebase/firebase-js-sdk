@@ -591,4 +591,27 @@ describe('Query', () => {
       orderBy(DOCUMENT_KEY_NAME, 'asc')
     ]);
   });
+
+  it('matchesAllDocuments() considers filters, orders and bounds', () => {
+    const baseQuery = Query.atPath(ResourcePath.fromString('collection'));
+    expect(baseQuery.matchesAllDocuments()).to.be.true;
+
+    let query = baseQuery.addOrderBy(orderBy('__name__'));
+    expect(query.matchesAllDocuments()).to.be.true;
+
+    query = baseQuery.addOrderBy(orderBy('foo'));
+    expect(query.matchesAllDocuments()).to.be.false;
+
+    query = baseQuery.addFilter(filter('foo', '==', 'bar'));
+    expect(query.matchesAllDocuments()).to.be.false;
+
+    query = baseQuery.withLimit(1);
+    expect(query.matchesAllDocuments()).to.be.false;
+
+    query = baseQuery.withStartAt(bound([], true));
+    expect(query.matchesAllDocuments()).to.be.false;
+
+    query = baseQuery.withEndAt(bound([], true));
+    expect(query.matchesAllDocuments()).to.be.false;
+  });
 });

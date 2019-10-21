@@ -33,6 +33,13 @@ export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
     options,
     automaticDataCollectionEnabled: true,
     delete: async () => {},
-    messaging: null as any
+    messaging: null as any,
+    installations() {
+      return {
+        getId: () => Promise.resolve('FID'),
+        getToken: () => Promise.resolve('authToken'),
+        delete: () => Promise.resolve()
+      };
+    }
   };
 }

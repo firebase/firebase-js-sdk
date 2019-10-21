@@ -110,7 +110,8 @@ export function isPermanentWriteError(code: Code): boolean {
  *     there is no match.
  */
 export function mapCodeFromRpcStatus(status: string): Code | undefined {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, lookup by string
+  // lookup by string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const code: RpcCode = RpcCode[status as any] as any;
   if (code === undefined) {
     return undefined;

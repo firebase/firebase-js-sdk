@@ -1,4 +1,21 @@
-# Unreleased (1.5.0)
+# Unreleased
+- [changed] Improved iOS 13 support by eliminating an additional crash in our
+  IndexedDB persistence layer.
+
+# 1.6.2
+- [changed] Fixed a crash on iOS 13 that occurred when persistence was enabled
+  in a background tab (#2232).
+- [fixed] Fixed an issue in the interaction with the Firestore Emulator that
+  caused requests with timestamps to fail.
+  
+# 1.6.0
+- [feature] Added a `Firestore.onSnapshotsInSync()` method that notifies you
+  when all your snapshot listeners are in sync with each other.
+- [fixed] Fixed a regression that caused queries with nested field filters to
+  crash the client if the field was not present in the local copy of the
+  document. 
+
+# 1.5.0
 - [feature] Added a `Firestore.waitForPendingWrites()` method that
   allows users to wait until all pending writes are acknowledged by the
   Firestore backend.
@@ -28,7 +45,6 @@
   match the query (https://github.com/firebase/firebase-android-sdk/issues/155).
 
 # 1.4.4
->>>>>>> master
 - [fixed] Fixed an internal assertion that was triggered when an update
    with a `FieldValue.serverTimestamp()` and an update with a
   `FieldValue.increment()` were pending for the same document.

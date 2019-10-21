@@ -33,7 +33,7 @@ const sep = '\u0001\u0001';
 class EncodedResourcePathSchemaConverter implements SimpleDbSchemaConverter {
   createOrUpgrade(
     db: IDBDatabase,
-    txn: SimpleDbTransaction,
+    txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void> {
@@ -182,11 +182,13 @@ async function assertOrdered(paths: ResourcePath[]): Promise<void> {
   });
   paths.reverse();
 
-  const selected: string[] = [];
-  await runTransaction(simpleStore => {
-    return simpleStore.iterate({ keysOnly: true }, key => {
-      selected.push(key);
-    });
+  const selected = await runTransaction(simpleStore => {
+    const allKeys: string[] = [];
+    return simpleStore
+      .iterate({ keysOnly: true }, key => {
+        allKeys.push(key);
+      })
+      .next(() => allKeys);
   });
 
   // Finally, verify all the orderings.
@@ -216,7 +218,7 @@ function runTransaction<T>(
     transaction: SimpleDbTransaction
   ) => PersistencePromise<T>
 ): Promise<T> {
-  return db.runTransaction<T>('readwrite', ['test'], txn => {
+  return db.runTransaction<T>('readwrite-idempotent', ['test'], txn => {
     return fn(txn.store<string, boolean>('test'), txn);
   });
 }

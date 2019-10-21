@@ -11,6 +11,28 @@ toc:
   - title: "App"
     path: /docs/reference/js/firebase.app.App
 
+- title: "firebase.analytics"
+  path: /docs/reference/js/firebase.analytics
+  section:
+  - title: "Analytics"
+    path: /docs/reference/js/firebase.analytics.Analytics
+  - title: "AnalyticsCallOptions"
+    path: /docs/reference/js/firebase.analytics.AnalyticsCallOptions
+  - title: "SettingsOptions"
+    path: /docs/reference/js/firebase.analytics.SettingsOptions
+  - title: "EventName"
+    path: /docs/reference/js/firebase.analytics.EventName
+  - title: "ControlParams"
+    path: /docs/reference/js/firebase.analytics.ControlParams
+  - title: "CustomParams"
+    path: /docs/reference/js/firebase.analytics.CustomParams
+  - title: "EventParams"
+    path: /docs/reference/js/firebase.analytics.EventParams
+  - title: "Item"
+    path: /docs/reference/js/firebase.analytics.Item
+  - title: "Promotion"
+    path: /docs/reference/js/firebase.analytics.Promotion
+
 - title: "firebase.auth"
   path: /docs/reference/js/firebase.auth
   section:
@@ -26,12 +48,10 @@ toc:
     path: /docs/reference/js/firebase.auth.AuthCredential
   - title: "AuthError"
     path: /docs/reference/js/firebase.auth.AuthError
-  - title: "AuthSettings"
-    path: /docs/reference/js/firebase.auth.AuthSettings
-  - title: "OAuthCredential"
-    path: /docs/reference/js/firebase.auth.OAuthCredential
   - title: "AuthProvider"
     path: /docs/reference/js/firebase.auth.AuthProvider
+  - title: "AuthSettings"
+    path: /docs/reference/js/firebase.auth.AuthSettings
   - title: "ConfirmationResult"
     path: /docs/reference/js/firebase.auth.ConfirmationResult
   - title: "EmailAuthProvider"
@@ -46,40 +66,43 @@ toc:
     path: /docs/reference/js/firebase.auth.GoogleAuthProvider
   - title: "IdTokenResult"
     path: /docs/reference/js/firebase.auth.IDTokenResult
-  - title: "TwitterAuthProvider"
-    path: /docs/reference/js/firebase.auth.TwitterAuthProvider
+  - title: "OAuthCredential"
+    path: /docs/reference/js/firebase.auth.OAuthCredential
   - title: "OAuthProvider"
     path: /docs/reference/js/firebase.auth.OAuthProvider
   - title: "PhoneAuthProvider"
     path: /docs/reference/js/firebase.auth.PhoneAuthProvider
-  - title: "SAMLAuthProvider"
-    path: /docs/reference/js/firebase.auth.SAMLAuthProvider
   - title: "RecaptchaVerifier"
     path: /docs/reference/js/firebase.auth.RecaptchaVerifier
-  - title: "UserMetadata"
-    path: /docs/reference/js/firebase.auth.UserMetadata
+  - title: "SAMLAuthProvider"
+    path: /docs/reference/js/firebase.auth.SAMLAuthProvider
+  - title: "TwitterAuthProvider"
+    path: /docs/reference/js/firebase.auth.TwitterAuthProvider
   - title: "User"
     path: /docs/reference/js/firebase.User
   - title: "UserInfo"
     path: /docs/reference/js/firebase.UserInfo
+  - title: "UserMetadata"
+    path: /docs/reference/js/firebase.auth.UserMetadata
 
 - title: "firebase.database"
   path: /docs/reference/js/firebase.database
   section:
-  - title: "Database"
-    path: /docs/reference/js/firebase.database.Database
   - title: "DataSnapshot"
     path: /docs/reference/js/firebase.database.DataSnapshot
+  - title: "Database"
+    path: /docs/reference/js/firebase.database.Database
   - title: "OnDisconnect"
     path: /docs/reference/js/firebase.database.OnDisconnect
+  - title: "Query"
+    path: /docs/reference/js/firebase.database.Query
   - title: "Reference"
     path: /docs/reference/js/firebase.database.Reference
   - title: "ServerValue"
     path: /docs/reference/js/firebase.database.ServerValue
   - title: "ThenableReference"
     path: /docs/reference/js/firebase.database.ThenableReference
-  - title: "Query"
-    path: /docs/reference/js/firebase.database.Query
+
 - title: "firebase.firestore"
   path: /docs/reference/js/firebase.firestore
   section:
@@ -164,24 +187,34 @@ toc:
   - title: "Trace"
     path: /docs/reference/js/firebase.performance.Trace
 
+- title: "firebase.remoteconfig"
+  path: /docs/reference/js/firebase.remoteconfig
+  section:
+  - title: "RemoteConfig"
+    path: /docs/reference/js/firebase.remoteconfig.RemoteConfig
+  - title: "Settings"
+    path: /docs/reference/js/firebase.remoteconfig.Settings
+  - title: "Value"
+    path: /docs/reference/js/firebase.remoteconfig.Value
+
 - title: "firebase.storage"
   path: /docs/reference/js/firebase.storage
   section:
-  - title: "Storage"
-    path: /docs/reference/js/firebase.storage.Storage
   - title: "FullMetadata"
     path: /docs/reference/js/firebase.storage.FullMetadata
+  - title: "ListOptions"
+    path: /docs/reference/js/firebase.storage.ListOptions
+  - title: "ListResult"
+    path: /docs/reference/js/firebase.storage.ListResult
   - title: "Reference"
     path: /docs/reference/js/firebase.storage.Reference
   - title: "SettableMetadata"
     path: /docs/reference/js/firebase.storage.SettableMetadata
+  - title: "Storage"
+    path: /docs/reference/js/firebase.storage.Storage
   - title: "UploadMetadata"
     path: /docs/reference/js/firebase.storage.UploadMetadata
   - title: "UploadTask"
     path: /docs/reference/js/firebase.storage.UploadTask
   - title: "UploadTaskSnapshot"
     path: /docs/reference/js/firebase.storage.UploadTaskSnapshot
-  - title: "ListOptions"
-    path: /docs/reference/js/firebase.storage.ListOptions
-  - title: "ListResult"
-    path: /docs/reference/js/firebase.storage.ListResult

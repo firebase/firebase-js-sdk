@@ -70,6 +70,13 @@ export interface FirebaseAppInternals {
   getUid(): string | null;
   addAuthTokenListener(fn: (token: string | null) => void): void;
   removeAuthTokenListener(fn: (token: string | null) => void): void;
+  analytics: {
+    logEvent: (
+      eventName: string,
+      eventParams: { [key: string]: any },
+      options?: { global: boolean }
+    ) => void;
+  };
 }
 
 export interface _FirebaseApp extends FirebaseApp {

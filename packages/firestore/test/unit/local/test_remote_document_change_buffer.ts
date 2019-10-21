@@ -19,6 +19,7 @@ import { Persistence } from '../../../src/local/persistence';
 import { RemoteDocumentChangeBuffer } from '../../../src/local/remote_document_change_buffer';
 import { MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
+import { SnapshotVersion } from '../../../src/core/snapshot_version';
 
 /**
  * A wrapper around a RemoteDocumentChangeBuffer that automatically creates a
@@ -30,8 +31,8 @@ export class TestRemoteDocumentChangeBuffer {
     public buffer: RemoteDocumentChangeBuffer
   ) {}
 
-  addEntry(maybeDocument: MaybeDocument): void {
-    this.buffer.addEntry(maybeDocument);
+  addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
+    this.buffer.addEntry(maybeDocument, readTime);
   }
 
   removeEntry(key: DocumentKey): void {
@@ -39,9 +40,13 @@ export class TestRemoteDocumentChangeBuffer {
   }
 
   getEntry(documentKey: DocumentKey): Promise<MaybeDocument | null> {
-    return this.persistence.runTransaction('getEntry', 'readonly', txn => {
-      return this.buffer.getEntry(txn, documentKey);
-    });
+    return this.persistence.runTransaction(
+      'getEntry',
+      'readonly-idempotent',
+      txn => {
+        return this.buffer.getEntry(txn, documentKey);
+      }
+    );
   }
 
   apply(): Promise<void> {

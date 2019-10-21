@@ -18,16 +18,14 @@
 import { Query } from '../core/query';
 import {
   DocumentKeySet,
-  documentKeySet,
   DocumentMap,
   documentMap,
   DocumentSizeEntry,
   MaybeDocumentMap,
-  maybeDocumentMap,
   NullableMaybeDocumentMap,
   nullableMaybeDocumentMap
 } from '../model/collections';
-import { Document, MaybeDocument, NoDocument } from '../model/document';
+import { Document, MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 
 import { SnapshotVersion } from '../core/snapshot_version';
@@ -41,14 +39,23 @@ import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 
 export type DocumentSizer = (doc: MaybeDocument) => number;
 
-type DocumentSizeMap = SortedMap<DocumentKey, DocumentSizeEntry>;
-function documentSizeMap(): DocumentSizeMap {
-  return new SortedMap<DocumentKey, DocumentSizeEntry>(DocumentKey.comparator);
+/** Miscellaneous collection types / constants. */
+interface MemoryRemoteDocumentCacheEntry extends DocumentSizeEntry {
+  readTime: SnapshotVersion;
+}
+
+type DocumentEntryMap = SortedMap<DocumentKey, MemoryRemoteDocumentCacheEntry>;
+function documentEntryMap(): DocumentEntryMap {
+  return new SortedMap<DocumentKey, MemoryRemoteDocumentCacheEntry>(
+    DocumentKey.comparator
+  );
 }
 
 export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
-  private docs = documentSizeMap();
-  private newDocumentChanges = documentKeySet();
+  /** Underlying cache of documents and their read times. */
+  private docs = documentEntryMap();
+
+  /** Size of all cached documents. */
   private size = 0;
 
   /**
@@ -68,8 +75,14 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
    */
   private addEntry(
     transaction: PersistenceTransaction,
-    doc: MaybeDocument
+    doc: MaybeDocument,
+    readTime: SnapshotVersion
   ): PersistencePromise<void> {
+    assert(
+      !readTime.isEqual(SnapshotVersion.MIN),
+      'Cannot add a document with a read time of zero'
+    );
+
     const key = doc.key;
     const entry = this.docs.get(key);
     const previousSize = entry ? entry.size : 0;
@@ -77,10 +90,10 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
 
     this.docs = this.docs.insert(key, {
       maybeDocument: doc,
-      size: currentSize
+      size: currentSize,
+      readTime
     });
 
-    this.newDocumentChanges = this.newDocumentChanges.add(key);
     this.size += currentSize - previousSize;
 
     return this.indexManager.addToCollectionParentIndex(
@@ -125,7 +138,8 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
 
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap> {
     assert(
       !query.isCollectionGroupQuery(),
@@ -140,10 +154,13 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
     while (iterator.hasNext()) {
       const {
         key,
-        value: { maybeDocument }
+        value: { maybeDocument, readTime }
       } = iterator.getNext();
       if (!query.path.isPrefixOf(key.path)) {
         break;
+      }
+      if (readTime.compareTo(sinceReadTime) <= 0) {
+        continue;
       }
       if (maybeDocument instanceof Document && query.matches(maybeDocument)) {
         results = results.insert(maybeDocument.key, maybeDocument);
@@ -160,24 +177,22 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
   }
 
   getNewDocumentChanges(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<MaybeDocumentMap> {
-    let changedDocs = maybeDocumentMap();
-
-    this.newDocumentChanges.forEach(key => {
-      const entry = this.docs.get(key);
-      const changedDoc = entry
-        ? entry.maybeDocument
-        : new NoDocument(key, SnapshotVersion.forDeletedDoc());
-      changedDocs = changedDocs.insert(key, changedDoc);
-    });
-
-    this.newDocumentChanges = documentKeySet();
-
-    return PersistencePromise.resolve(changedDocs);
+    transaction: PersistenceTransaction,
+    sinceReadTime: SnapshotVersion
+  ): PersistencePromise<{
+    changedDocs: MaybeDocumentMap;
+    readTime: SnapshotVersion;
+  }> {
+    throw new Error(
+      'getNewDocumentChanges() is not supported with MemoryPersistence'
+    );
   }
 
-  newChangeBuffer(): RemoteDocumentChangeBuffer {
+  newChangeBuffer(options?: {
+    trackRemovals: boolean;
+  }): RemoteDocumentChangeBuffer {
+    // `trackRemovals` is ignores since the MemoryRemoteDocumentCache keeps
+    // a separate changelog and does not need special handling for removals.
     return new MemoryRemoteDocumentCache.RemoteDocumentChangeBuffer(this);
   }
 
@@ -199,7 +214,9 @@ export class MemoryRemoteDocumentCache implements RemoteDocumentCache {
       const promises: Array<PersistencePromise<void>> = [];
       this.changes.forEach((key, doc) => {
         if (doc) {
-          promises.push(this.documentCache.addEntry(transaction, doc));
+          promises.push(
+            this.documentCache.addEntry(transaction, doc, this.readTime)
+          );
         } else {
           this.documentCache.removeEntry(key);
         }

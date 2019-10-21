@@ -79,7 +79,9 @@ import { emptyByteString } from '../../src/platform/platform';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   DocumentWatchChange,
-  WatchChangeAggregator
+  WatchChangeAggregator,
+  WatchTargetChange,
+  WatchTargetChangeState
 } from '../../src/remote/watch_change';
 import { assert, fail } from '../../src/util/assert';
 import { primitiveComparator } from '../../src/util/misc';
@@ -283,6 +285,26 @@ export function queryData(
   );
 }
 
+export function noChangeEvent(
+  targetId: number,
+  snapshotVersion: number,
+  resumeToken: ProtoByteString = emptyByteString()
+): RemoteEvent {
+  const aggregator = new WatchChangeAggregator({
+    getRemoteKeysForTarget: () => documentKeySet(),
+    getQueryDataForTarget: targetId =>
+      queryData(targetId, QueryPurpose.Listen, 'foo')
+  });
+  aggregator.handleTargetChange(
+    new WatchTargetChange(
+      WatchTargetChangeState.NoChange,
+      [targetId],
+      resumeToken
+    )
+  );
+  return aggregator.createRemoteEvent(version(snapshotVersion));
+}
+
 export function docAddedRemoteEvent(
   docOrDocs: MaybeDocument | MaybeDocument[],
   updatedInTargets?: TargetId[],
@@ -312,6 +334,8 @@ export function docAddedRemoteEvent(
     }
   });
 
+  let version = SnapshotVersion.MIN;
+
   for (const doc of docs) {
     assert(
       !(doc instanceof Document) || !doc.hasLocalMutations,
@@ -324,9 +348,9 @@ export function docAddedRemoteEvent(
       doc
     );
     aggregator.handleDocumentChange(docChange);
+    version = doc.version.compareTo(version) > 0 ? doc.version : version;
   }
 
-  const version = docs[0].version;
   return aggregator.createRemoteEvent(version);
 }
 
@@ -435,6 +459,7 @@ export function limboChanges(changes: {
 
 export function localViewChanges(
   targetId: TargetId,
+  fromCache: boolean,
   changes: { added?: string[]; removed?: string[] }
 ): LocalViewChanges {
   if (!changes.added) {
@@ -453,7 +478,7 @@ export function localViewChanges(
     keyStr => (removedKeys = removedKeys.add(key(keyStr)))
   );
 
-  return new LocalViewChanges(targetId, addedKeys, removedKeys);
+  return new LocalViewChanges(targetId, fromCache, addedKeys, removedKeys);
 }
 
 /** Creates a resume token to match the given snapshot version. */
@@ -581,7 +606,8 @@ export class DocComparator {
 /**
  * Two helper functions to simplify testing isEqual() method.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, so we can dynamically call .isEqual().
+// Use any, so we can dynamically call .isEqual().
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function expectEqual(left: any, right: any, message?: string): void {
   message = message || '';
   if (typeof left.isEqual !== 'function') {
@@ -598,7 +624,8 @@ export function expectEqual(left: any, right: any, message?: string): void {
   expect(right.isEqual(left)).to.equal(true, message);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, so we can dynamically call .isEqual().
+// Use any, so we can dynamically call .isEqual().
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function expectNotEqual(left: any, right: any, message?: string): void {
   expect(left.isEqual(right)).to.equal(false, message || '');
   expect(right.isEqual(left)).to.equal(false, message || '');

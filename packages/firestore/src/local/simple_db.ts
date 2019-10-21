@@ -25,10 +25,23 @@ import { PersistencePromise } from './persistence_promise';
 
 const LOG_TAG = 'SimpleDb';
 
+/**
+ * The maximum number of retry attempts for an IndexedDb transaction that fails
+ * with a DOMException.
+ */
+const TRANSACTION_RETRY_COUNT = 3;
+
+// The different modes supported by `SimpleDb.runTransaction()`
+type SimpleDbTransactionMode =
+  | 'readonly'
+  | 'readwrite'
+  | 'readonly-idempotent'
+  | 'readwrite-idempotent';
+
 export interface SimpleDbSchemaConverter {
   createOrUpgrade(
     db: IDBDatabase,
-    txn: SimpleDbTransaction,
+    txn: IDBTransaction,
     fromVersion: number,
     toVersion: number
   ): PersistencePromise<void>;
@@ -115,12 +128,13 @@ export class SimpleDb {
           event.oldVersion
         );
         const db = (event.target as IDBOpenDBRequest).result;
-        // We are provided a version upgrade transaction from the request, so
-        // we wrap that in a SimpleDbTransaction to allow use of our friendlier
-        // API for schema migration operations.
-        const txn = new SimpleDbTransaction(request.transaction!);
         schemaConverter
-          .createOrUpgrade(db, txn, event.oldVersion, SCHEMA_VERSION)
+          .createOrUpgrade(
+            db,
+            request.transaction!,
+            event.oldVersion,
+            SCHEMA_VERSION
+          )
           .next(() => {
             debug(
               LOG_TAG,
@@ -252,32 +266,65 @@ export class SimpleDb {
     };
   }
 
-  runTransaction<T>(
-    mode: 'readonly' | 'readwrite',
+  async runTransaction<T>(
+    mode: SimpleDbTransactionMode,
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
-    const transaction = SimpleDbTransaction.open(this.db, mode, objectStores);
-    const transactionFnResult = transactionFn(transaction)
-      .catch(error => {
-        // Abort the transaction if there was an error.
-        transaction.abort(error);
-        // We cannot actually recover, and calling `abort()` will cause the transaction's
-        // completion promise to be rejected. This in turn means that we won't use
-        // `transactionFnResult` below. We return a rejection here so that we don't add the
-        // possibility of returning `void` to the type of `transactionFnResult`.
-        return PersistencePromise.reject<T>(error);
-      })
-      .toPromise();
+    const readonly = mode.startsWith('readonly');
+    const idempotent = mode.endsWith('idempotent');
+    let attemptNumber = 0;
 
-    // As noted above, errors are propagated by aborting the transaction. So
-    // we swallow any error here to avoid the browser logging it as unhandled.
-    transactionFnResult.catch(() => {});
+    while (true) {
+      ++attemptNumber;
 
-    // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
-    // fire), but still return the original transactionFnResult back to the
-    // caller.
-    return transaction.completionPromise.then(() => transactionFnResult);
+      const transaction = SimpleDbTransaction.open(
+        this.db,
+        readonly ? 'readonly' : 'readwrite',
+        objectStores
+      );
+      try {
+        const transactionFnResult = transactionFn(transaction)
+          .catch(error => {
+            // Abort the transaction if there was an error.
+            transaction.abort(error);
+            // We cannot actually recover, and calling `abort()` will cause the transaction's
+            // completion promise to be rejected. This in turn means that we won't use
+            // `transactionFnResult` below. We return a rejection here so that we don't add the
+            // possibility of returning `void` to the type of `transactionFnResult`.
+            return PersistencePromise.reject<T>(error);
+          })
+          .toPromise();
+
+        // As noted above, errors are propagated by aborting the transaction. So
+        // we swallow any error here to avoid the browser logging it as unhandled.
+        transactionFnResult.catch(() => {});
+
+        // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
+        // fire), but still return the original transactionFnResult back to the
+        // caller.
+        await transaction.completionPromise;
+        return transactionFnResult;
+      } catch (e) {
+        // TODO(schmidt-sebastian): We could probably be smarter about this and
+        // not retry exceptions that are likely unrecoverable (such as quota
+        // exceeded errors).
+        const retryable =
+          idempotent &&
+          isDomException(e) &&
+          attemptNumber < TRANSACTION_RETRY_COUNT;
+        debug(
+          LOG_TAG,
+          'Transaction failed with error: %s. Retrying: %s.',
+          e.message,
+          retryable
+        );
+
+        if (!retryable) {
+          return Promise.reject(e);
+        }
+      }
+    }
   }
 
   close(): void {
@@ -496,7 +543,8 @@ export class SimpleDbStore<
    */
   get(key: KeyType): PersistencePromise<ValueType | null> {
     const request = this.store.get(key);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, We're doing an unsafe cast to ValueType.
+    // We're doing an unsafe cast to ValueType.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return wrapRequest<any>(request).next(result => {
       // Normalize nonexistence to null.
       if (result === undefined) {
@@ -763,4 +811,14 @@ function checkForAndReportiOSError(error: DOMException): Error {
     }
   }
   return error;
+}
+
+/** Checks whether an error is a DOMException (e.g. as thrown by IndexedDb). */
+function isDomException(error: Error): boolean {
+  // DOMException is not a global type in Node with persistence, and hence we
+  // check the constructor name if the type in unknown.
+  return (
+    (typeof DOMException !== 'undefined' && error instanceof DOMException) ||
+    error.constructor.name === 'DOMException'
+  );
 }

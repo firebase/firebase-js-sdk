@@ -76,7 +76,7 @@ function getSauceLabsBrowsers(packageName) {
  */
 function getPackageLabels() {
   const match = testConfigFile.match(
-    /([a-zA-Z]+)\/([a-zA-Z]+)\/karma\.conf\.js/
+    /([a-zA-Z]+)\/([a-zA-Z-]+)\/karma\.conf\.js/
   );
   return {
     type: match[1],

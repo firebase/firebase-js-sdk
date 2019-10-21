@@ -1,0 +1,69 @@
+{
+  "name": "@firebase/remote-config",
+  "version": "0.1.1",
+  "description": "The Remote Config package of the Firebase JS SDK",
+  "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
+  "main": "dist/index.cjs.js",
+  "browser": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "esm2017": "dist/index.esm2017.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+    "lint:fix": "eslint --fix -c .eslintrc.json '**/*.ts' --ignore-path '../../.gitignore'",
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "run-p lint test:browser",
+    "test:browser": "karma start --single-run",
+    "test:debug": "karma start --browsers=Chrome --auto-watch",
+    "prettier": "prettier --write '{src,test}/**/*.{js,ts}'",
+    "prepare": "yarn build"
+  },
+  "peerDependencies": {
+    "@firebase/app": "0.x",
+    "@firebase/app-types": "0.x"
+  },
+  "dependencies": {
+    "@firebase/installations": "0.3.0",
+    "@firebase/logger": "0.1.26",
+    "@firebase/remote-config-types": "0.1.1",
+    "@firebase/util": "0.2.29",
+    "tslib": "1.10.0"
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/chai": "4.2.3",
+    "@types/mocha": "5.2.7",
+    "@types/sinon": "7.5.0",
+    "@typescript-eslint/eslint-plugin": "2.4.0",
+    "@typescript-eslint/eslint-plugin-tslint": "2.4.0",
+    "@typescript-eslint/parser": "2.4.0",
+    "chai": "4.2.0",
+    "chai-as-promised": "7.1.1",
+    "eslint": "6.5.1",
+    "eslint-plugin-import": "2.18.2",
+    "mocha": "6.2.1",
+    "rollup": "1.23.1",
+    "rollup-plugin-typescript2": "0.24.3",
+    "sinon": "7.5.0",
+    "sinon-chai": "3.3.0",
+    "typescript": "3.6.4"
+  },
+  "repository": {
+    "directory": "packages/remote-config",
+    "type": "git",
+    "url": "https://github.com/firebase/firebase-js-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/firebase/firebase-js-sdk/issues"
+  },
+  "typings": "dist/index.d.ts",
+  "nyc": {
+    "extension": [
+      ".ts"
+    ],
+    "reportDir": "./coverage/node"
+  }
+}

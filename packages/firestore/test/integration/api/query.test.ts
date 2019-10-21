@@ -653,8 +653,8 @@ apiDescribe('Queries', (persistence: boolean) => {
 
     const expectedError =
       'QuerySnapshot.docChanges has been changed from a property into a method';
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, We are testing invalid API usage.
+    // We are testing invalid API usage.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const docChange = querySnap.docChanges as any;
     expect(() => docChange.length).to.throw(expectedError);
     expect(() => {
@@ -817,6 +817,22 @@ apiDescribe('Queries', (persistence: boolean) => {
         await deferred.promise;
         unsubscribe();
       }
+    });
+  });
+
+  it('can use filter with nested field', () => {
+    // Reproduces https://github.com/firebase/firebase-js-sdk/issues/2204
+    const testDocs = {
+      a: {},
+      b: { map: {} },
+      c: { map: { nested: {} } },
+      d: { map: { nested: 'foo' } }
+    };
+
+    return withTestCollection(persistence, testDocs, async coll => {
+      await coll.get(); // Populate the cache
+      const snapshot = await coll.where('map.nested', '==', 'foo').get();
+      expect(toDataArray(snapshot)).to.deep.equal([{ map: { nested: 'foo' } }]);
     });
   });
 });

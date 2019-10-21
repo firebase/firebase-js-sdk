@@ -37,7 +37,6 @@ import {
   withTestDoc,
   withTestDocAndInitialData,
   DEFAULT_SETTINGS,
-  onSnapshotsInSync,
   withMockCredentialProviderTestDb
 } from '../util/helpers';
 import { User } from '../../../src/auth/user';
@@ -524,9 +523,11 @@ apiDescribe('Database', (persistence: boolean) => {
     for (const val of invalidDocValues) {
       it('set/update should reject: ' + val, () => {
         return withTestDoc(persistence, async doc => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, Intentionally passing bad types.
+          // Intentionally passing bad types.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           expect(() => doc.set(val as any)).to.throw();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, Intentionally passing bad types.
+          // Intentionally passing bad types.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           expect(() => doc.update(val as any)).to.throw();
         });
       });
@@ -561,7 +562,7 @@ apiDescribe('Database', (persistence: boolean) => {
       events = [];
 
       const done = new Deferred<void>();
-      onSnapshotsInSync(doc.firestore, () => {
+      doc.firestore.onSnapshotsInSync(() => {
         events.push('snapshots-in-sync');
         if (events.length === 3) {
           // We should have an initial snapshots-in-sync event, then a snapshot

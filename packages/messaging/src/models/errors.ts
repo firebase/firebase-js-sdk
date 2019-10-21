@@ -33,7 +33,6 @@ export const enum ErrorCode {
   SW_REG_REDUNDANT = 'sw-reg-redundant',
   TOKEN_SUBSCRIBE_FAILED = 'token-subscribe-failed',
   TOKEN_SUBSCRIBE_NO_TOKEN = 'token-subscribe-no-token',
-  TOKEN_SUBSCRIBE_NO_PUSH_SET = 'token-subscribe-no-push-set',
   TOKEN_UNSUBSCRIBE_FAILED = 'token-unsubscribe-failed',
   TOKEN_UPDATE_FAILED = 'token-update-failed',
   TOKEN_UPDATE_NO_TOKEN = 'token-update-no-token',
@@ -51,7 +50,6 @@ export const enum ErrorCode {
   BAD_VAPID_KEY = 'bad-vapid-key',
   BAD_SUBSCRIPTION = 'bad-subscription',
   BAD_TOKEN = 'bad-token',
-  BAD_PUSH_SET = 'bad-push-set',
   FAILED_DELETE_VAPID_KEY = 'failed-delete-vapid-key',
   INVALID_PUBLIC_VAPID_KEY = 'invalid-public-vapid-key',
   USE_PUBLIC_KEY_BEFORE_GET_TOKEN = 'use-public-key-before-get-token',
@@ -92,8 +90,6 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
     'A problem occured while subscribing the user to FCM: {$errorInfo}',
   [ErrorCode.TOKEN_SUBSCRIBE_NO_TOKEN]:
     'FCM returned no token when subscribing the user to push.',
-  [ErrorCode.TOKEN_SUBSCRIBE_NO_PUSH_SET]:
-    'FCM returned an invalid response when getting an FCM token.',
   [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]:
     'A problem occured while unsubscribing the ' +
     'user from FCM: {$errorInfo}',
@@ -140,9 +136,6 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.BAD_TOKEN]:
     'The FCM Token used for storage / lookup was not ' +
     'a valid token string.',
-  [ErrorCode.BAD_PUSH_SET]:
-    'The FCM push set used for storage / lookup was not ' +
-    'not a valid push set string.',
   [ErrorCode.FAILED_DELETE_VAPID_KEY]: 'The VAPID key could not be deleted.',
   [ErrorCode.INVALID_PUBLIC_VAPID_KEY]:
     'The public VAPID key must be a string.',

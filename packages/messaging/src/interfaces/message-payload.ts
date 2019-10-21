@@ -29,5 +29,5 @@ export interface FcmOptions {
 export interface MessagePayload {
   fcmOptions?: FcmOptions;
   notification?: NotificationDetails;
-  data?: object;
+  data?: { [key: string]: unknown };
 }

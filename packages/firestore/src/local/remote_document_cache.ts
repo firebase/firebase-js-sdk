@@ -28,6 +28,7 @@ import { DocumentKey } from '../model/document_key';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
  * Represents cached documents received from the remote backend.
@@ -71,34 +72,42 @@ export interface RemoteDocumentCache {
    * Cached NoDocument entries have no bearing on query results.
    *
    * @param query The query to match documents against.
+   * @param sinceReadTime If not set to SnapshotVersion.MIN, return only
+   *     documents that have been read since this snapshot version (exclusive).
    * @return The set of matching documents.
    */
   getDocumentsMatchingQuery(
     transaction: PersistenceTransaction,
-    query: Query
+    query: Query,
+    sinceReadTime: SnapshotVersion
   ): PersistencePromise<DocumentMap>;
 
   /**
-   * Returns the set of documents that have been updated since the last call.
-   * If this is the first call, returns the set of changes since client
-   * initialization.
-   *
-   * If the changelog was garbage collected and can no longer be replayed,
-   * `getNewDocumentChanges` will reject the returned Promise. Further
-   * invocations will return document changes since the point of rejection.
+   * Returns the set of documents that have changed since the specified read
+   * time.
    */
   // PORTING NOTE: This is only used for multi-tab synchronization.
   getNewDocumentChanges(
-    transaction: PersistenceTransaction
-  ): PersistencePromise<MaybeDocumentMap>;
+    transaction: PersistenceTransaction,
+    sinceReadTime: SnapshotVersion
+  ): PersistencePromise<{
+    changedDocs: MaybeDocumentMap;
+    readTime: SnapshotVersion;
+  }>;
 
   /**
    * Provides access to add or update the contents of the cache. The buffer
    * handles proper size accounting for the change.
    *
    * Multi-Tab Note: This should only be called by the primary client.
+   *
+   * @param options.trackRemovals Whether to create sentinel entries for
+   * removed documents, which allows removals to be tracked by
+   * `getNewDocumentChanges()`.
    */
-  newChangeBuffer(): RemoteDocumentChangeBuffer;
+  newChangeBuffer(options?: {
+    trackRemovals: boolean;
+  }): RemoteDocumentChangeBuffer;
 
   /**
    * Get an estimate of the size of the document cache. Note that for eager

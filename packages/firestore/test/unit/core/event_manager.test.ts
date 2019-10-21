@@ -39,7 +39,8 @@ import {
 } from '../../util/helpers';
 
 describe('EventManager', () => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, mock object.
+  // mock object.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function fakeQueryListener(query: Query): any {
     return {
       query,
@@ -49,7 +50,8 @@ describe('EventManager', () => {
     };
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, mock object.
+  // mock object.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function makeSyncEngineSpy(): any {
     const stub = {
       listen: sinon.stub().returns(Promise.resolve(0)),
@@ -115,9 +117,11 @@ describe('EventManager', () => {
     await eventManager.listen(fakeListener3);
     expect(syncEngineSpy.listen.callCount).to.equal(2);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, mock ViewSnapshot.
+    // mock ViewSnapshot.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const viewSnap1: any = { query: query1 };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, mock ViewSnapshot.
+    // mock ViewSnapshot.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const viewSnap2: any = { query: query2 };
     eventManager.onWatchChange([viewSnap1, viewSnap2]);
 

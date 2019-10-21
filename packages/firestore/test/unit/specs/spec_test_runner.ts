@@ -57,6 +57,7 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
+import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
@@ -259,8 +260,8 @@ class MockConnection implements Connection {
         }
       });
       this.writeStream = writeStream;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, Replace 'any' with conditional types.
-      return writeStream as any;
+      // Replace 'any' with conditional types.
+      return writeStream as any; // eslint-disable-line @typescript-eslint/no-explicit-any
     } else {
       assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
       if (this.watchStream !== null) {
@@ -293,8 +294,8 @@ class MockConnection implements Connection {
         }
       });
       this.watchStream = watchStream;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, Replace 'any' with conditional types.
-      return this.watchStream as any;
+      // Replace 'any' with conditional types.
+      return this.watchStream as any; // eslint-disable-line @typescript-eslint/no-explicit-any
     }
   }
 }
@@ -437,7 +438,10 @@ abstract class TestRunner {
       this.useGarbageCollection
     );
 
-    this.localStore = new LocalStore(this.persistence, this.user);
+    // TODO(index-free): Update to index-free query engine when it becomes default.
+    const queryEngine = new SimpleQueryEngine();
+    this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
+    await this.localStore.start();
 
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
@@ -1114,6 +1118,7 @@ abstract class TestRunner {
           QueryPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,
           SnapshotVersion.MIN,
+          SnapshotVersion.MIN,
           expected.resumeToken
         )
       );
@@ -1647,11 +1652,15 @@ async function clearCurrentPrimaryLease(): Promise<void> {
     SCHEMA_VERSION,
     new SchemaConverter(TEST_SERIALIZER)
   );
-  await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
-    const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-      DbPrimaryClient.store
-    );
-    return primaryClientStore.delete(DbPrimaryClient.key);
-  });
+  await db.runTransaction(
+    'readwrite-idempotent',
+    [DbPrimaryClient.store],
+    txn => {
+      const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+        DbPrimaryClient.store
+      );
+      return primaryClientStore.delete(DbPrimaryClient.key);
+    }
+  );
   db.close();
 }

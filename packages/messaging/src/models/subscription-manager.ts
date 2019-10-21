@@ -19,57 +19,42 @@ import { arrayBufferToBase64 } from '../helpers/array-buffer-to-base64';
 import { isArrayBufferEqual } from '../helpers/is-array-buffer-equal';
 import { ErrorCode, errorFactory } from './errors';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
+import { FirebaseApp } from '@firebase/app-types';
+import '@firebase/installations';
+import { TokenDetails } from '../interfaces/token-details';
 
-export interface IidDetails {
-  token: string;
-  pushSet: string;
-}
-
-interface ApiResponse extends Partial<IidDetails> {
+interface ApiResponse {
+  token?: string;
   error?: { message: string };
 }
 
-export class IidModel {
+interface TokenRequestBody {
+  web: {
+    endpoint: string;
+    p256dh: string;
+    auth: string;
+    applicationPubKey?: string;
+  };
+}
+
+export class SubscriptionManager {
   async getToken(
-    senderId: string,
+    app: FirebaseApp,
     subscription: PushSubscription,
-    publicVapidKey: Uint8Array
-  ): Promise<IidDetails> {
-    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh')!);
-    const auth = arrayBufferToBase64(subscription.getKey('auth')!);
-
-    let fcmSubscribeBody =
-      `authorized_entity=${senderId}&` +
-      `endpoint=${subscription.endpoint}&` +
-      `encryption_key=${p256dh}&` +
-      `encryption_auth=${auth}`;
-
-    if (
-      !isArrayBufferEqual(
-        publicVapidKey.buffer,
-        DEFAULT_PUBLIC_VAPID_KEY.buffer
-      )
-    ) {
-      const applicationPubKey = arrayBufferToBase64(publicVapidKey);
-      fcmSubscribeBody += `&application_pub_key=${applicationPubKey}`;
-    }
-
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/x-www-form-urlencoded');
+    vapidKey: Uint8Array
+  ): Promise<string> {
+    const headers = await getHeaders(app);
+    const body = getBody(subscription, vapidKey);
 
     const subscribeOptions = {
       method: 'POST',
       headers,
-      body: fcmSubscribeBody
+      body: JSON.stringify(body)
     };
 
     let responseData: ApiResponse;
     try {
-      const response = await fetch(
-        ENDPOINT + '/fcm/connect/subscribe',
-        subscribeOptions
-      );
-
+      const response = await fetch(getEndpoint(app), subscribeOptions);
       responseData = await response.json();
     } catch (err) {
       throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_FAILED, {
@@ -88,60 +73,31 @@ export class IidModel {
       throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_NO_TOKEN);
     }
 
-    if (!responseData.pushSet) {
-      throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_NO_PUSH_SET);
-    }
-
-    return {
-      token: responseData.token,
-      pushSet: responseData.pushSet
-    };
+    return responseData.token;
   }
 
   /**
    * Update the underlying token details for fcmToken.
    */
   async updateToken(
-    senderId: string,
-    fcmToken: string,
-    fcmPushSet: string,
+    tokenDetails: TokenDetails,
+    app: FirebaseApp,
     subscription: PushSubscription,
-    publicVapidKey: Uint8Array
+    vapidKey: Uint8Array
   ): Promise<string> {
-    const p256dh = arrayBufferToBase64(subscription.getKey('p256dh')!);
-    const auth = arrayBufferToBase64(subscription.getKey('auth')!);
-
-    let fcmUpdateBody =
-      `push_set=${fcmPushSet}&` +
-      `token=${fcmToken}&` +
-      `authorized_entity=${senderId}&` +
-      `endpoint=${subscription.endpoint}&` +
-      `encryption_key=${p256dh}&` +
-      `encryption_auth=${auth}`;
-
-    if (
-      !isArrayBufferEqual(
-        publicVapidKey.buffer,
-        DEFAULT_PUBLIC_VAPID_KEY.buffer
-      )
-    ) {
-      const applicationPubKey = arrayBufferToBase64(publicVapidKey);
-      fcmUpdateBody += `&application_pub_key=${applicationPubKey}`;
-    }
-
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/x-www-form-urlencoded');
+    const headers = await getHeaders(app);
+    const body = getBody(subscription, vapidKey);
 
     const updateOptions = {
-      method: 'POST',
+      method: 'PATCH',
       headers,
-      body: fcmUpdateBody
+      body: JSON.stringify(body)
     };
 
     let responseData: ApiResponse;
     try {
       const response = await fetch(
-        ENDPOINT + '/fcm/connect/subscribe',
+        `${getEndpoint(app)}/${tokenDetails.fcmToken}`,
         updateOptions
       );
       responseData = await response.json();
@@ -165,31 +121,21 @@ export class IidModel {
     return responseData.token;
   }
 
-  /**
-   * Given a fcmToken, pushSet and messagingSenderId, delete an FCM token.
-   */
   async deleteToken(
-    senderId: string,
-    fcmToken: string,
-    fcmPushSet: string
+    app: FirebaseApp,
+    tokenDetails: TokenDetails
   ): Promise<void> {
-    const fcmUnsubscribeBody =
-      `authorized_entity=${senderId}&` +
-      `token=${fcmToken}&` +
-      `pushSet=${fcmPushSet}`;
-
-    const headers = new Headers();
-    headers.append('Content-Type', 'application/x-www-form-urlencoded');
+    // TODO: Add FIS header
+    const headers = await getHeaders(app);
 
     const unsubscribeOptions = {
-      method: 'POST',
-      headers,
-      body: fcmUnsubscribeBody
+      method: 'DELETE',
+      headers
     };
 
     try {
       const response = await fetch(
-        ENDPOINT + '/fcm/connect/unsubscribe',
+        `${getEndpoint(app)}/${tokenDetails.fcmToken}`,
         unsubscribeOptions
       );
       const responseData: ApiResponse = await response.json();
@@ -205,4 +151,41 @@ export class IidModel {
       });
     }
   }
+}
+
+function getEndpoint(app: FirebaseApp): string {
+  return `${ENDPOINT}/projects/${app.options.projectId!}/registrations`;
+}
+
+async function getHeaders(app: FirebaseApp): Promise<Headers> {
+  const installations = app.installations();
+  const authToken = await installations.getToken();
+
+  return new Headers({
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+    'x-goog-api-key': app.options.apiKey!,
+    'x-goog-firebase-installations-auth': `FIS ${authToken}`
+  });
+}
+
+function getBody(
+  subscription: PushSubscription,
+  vapidKey: Uint8Array
+): TokenRequestBody {
+  const p256dh = arrayBufferToBase64(subscription.getKey('p256dh')!);
+  const auth = arrayBufferToBase64(subscription.getKey('auth')!);
+  const body: TokenRequestBody = {
+    web: {
+      endpoint: subscription.endpoint,
+      p256dh,
+      auth
+    }
+  };
+
+  if (!isArrayBufferEqual(vapidKey.buffer, DEFAULT_PUBLIC_VAPID_KEY.buffer)) {
+    body.web.applicationPubKey = arrayBufferToBase64(vapidKey);
+  }
+
+  return body;
 }

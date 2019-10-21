@@ -16,7 +16,7 @@
  */
 
 import { expect } from 'chai';
-import { sandbox, SinonSandbox, SinonStub } from 'sinon';
+import { stub, restore, SinonStub } from 'sinon';
 
 import { FirebaseApp } from '@firebase/app-types';
 import {
@@ -32,13 +32,11 @@ import { WindowController } from '../src/controllers/window-controller';
 import { makeFakeApp } from './testing-utils/make-fake-app';
 
 describe('Firebase Messaging > registerMessaging', () => {
-  let sinonSandbox: SinonSandbox;
   let registerService: SinonStub;
   let fakeFirebase: _FirebaseNamespace;
 
   beforeEach(() => {
-    sinonSandbox = sandbox.create();
-    registerService = sinonSandbox.stub();
+    registerService = stub();
 
     fakeFirebase = {
       INTERNAL: { registerService }
@@ -46,7 +44,7 @@ describe('Firebase Messaging > registerMessaging', () => {
   });
 
   afterEach(() => {
-    sinonSandbox.restore();
+    restore();
   });
 
   it('calls registerService', () => {
@@ -94,7 +92,7 @@ describe('Firebase Messaging > registerMessaging', () => {
     describe('in Window context', () => {
       it('throws if required globals do not exist', () => {
         // Empty navigator, no navigator.serviceWorker ¯\_(ツ)_/¯
-        sinonSandbox.stub(window, 'navigator').value({});
+        stub(window, 'navigator').value({});
 
         try {
           factoryMethod(fakeApp);

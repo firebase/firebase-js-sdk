@@ -62,6 +62,7 @@ import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
+  PersistenceTransactionMode,
   PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
@@ -75,8 +76,7 @@ const LOG_TAG = 'IndexedDbPersistence';
 
 /**
  * Oldest acceptable age in milliseconds for client metadata before the client
- * is considered inactive and its associated data (such as the remote document
- * cache changelog) is garbage collected.
+ * is considered inactive and its associated data is garbage collected.
  */
 const MAX_CLIENT_AGE_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -247,7 +247,7 @@ export class IndexedDbPersistence implements Persistence {
   /** The client metadata refresh task. */
   private clientMetadataRefresher: CancelablePromise<void> | null = null;
 
-  /** The last time we garbage collected the Remote Document Changelog. */
+  /** The last time we garbage collected the client metadata object store. */
   private lastGarbageCollectionTime = Number.NEGATIVE_INFINITY;
 
   /** A listener to notify on primary state changes. */
@@ -281,8 +281,7 @@ export class IndexedDbPersistence implements Persistence {
     this.indexManager = new IndexedDbIndexManager();
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
-      this.indexManager,
-      /*keepDocumentChangeLog=*/ this.allowTabSynchronization
+      this.indexManager
     );
     this.window = platform.window;
     if (platform.window && platform.window.localStorage) {
@@ -325,22 +324,16 @@ export class IndexedDbPersistence implements Persistence {
 
         this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
-        return this.startRemoteDocumentCache();
-      })
-      .then(() => {
         return this.simpleDb.runTransaction(
-          'readonly',
+          'readonly-idempotent',
           [DbTargetGlobal.store],
-          txn => {
-            return getHighestListenSequenceNumber(txn).next(
-              highestListenSequenceNumber => {
-                this.listenSequence = new ListenSequence(
-                  highestListenSequenceNumber,
-                  this.sequenceNumberSyncer
-                );
-              }
-            );
-          }
+          txn => getHighestListenSequenceNumber(txn)
+        );
+      })
+      .then(highestListenSequenceNumber => {
+        this.listenSequence = new ListenSequence(
+          highestListenSequenceNumber,
+          this.sequenceNumberSyncer
         );
       })
       .then(() => {
@@ -350,12 +343,6 @@ export class IndexedDbPersistence implements Persistence {
         this.simpleDb && this.simpleDb.close();
         return Promise.reject(reason);
       });
-  }
-
-  private startRemoteDocumentCache(): Promise<void> {
-    return this.simpleDb.runTransaction('readonly', ALL_STORES, txn =>
-      this.remoteDocumentCache.start(txn)
-    );
   }
 
   setPrimaryStateListener(
@@ -410,8 +397,7 @@ export class IndexedDbPersistence implements Persistence {
             this.clientId,
             Date.now(),
             this.networkEnabled,
-            this.inForeground,
-            this.remoteDocumentCache.lastProcessedDocumentChangeId
+            this.inForeground
           )
         )
         .next(() => {
@@ -474,58 +460,31 @@ export class IndexedDbPersistence implements Persistence {
     ) {
       this.lastGarbageCollectionTime = Date.now();
 
-      let activeClients: DbClientMetadata[];
-      let inactiveClients: DbClientMetadata[] = [];
-
-      await this.runTransaction(
+      const inactiveClients = await this.runTransaction(
         'maybeGarbageCollectMultiClientState',
-        'readwrite-primary',
+        'readwrite-primary-idempotent',
         txn => {
           const metadataStore = IndexedDbPersistence.getStore<
             DbClientMetadataKey,
             DbClientMetadata
           >(txn, DbClientMetadata.store);
 
-          return metadataStore
-            .loadAll()
-            .next(existingClients => {
-              activeClients = this.filterActiveClients(
-                existingClients,
-                MAX_CLIENT_AGE_MS
-              );
-              inactiveClients = existingClients.filter(
-                client => activeClients.indexOf(client) === -1
-              );
-            })
-            .next(() =>
-              // Delete metadata for clients that are no longer considered active.
-              PersistencePromise.forEach(
-                inactiveClients,
-                (inactiveClient: DbClientMetadata) =>
-                  metadataStore.delete(inactiveClient.clientId)
-              )
-            )
-            .next(() => {
-              // Retrieve the minimum change ID from the set of active clients.
+          return metadataStore.loadAll().next(existingClients => {
+            const active = this.filterActiveClients(
+              existingClients,
+              MAX_CLIENT_AGE_MS
+            );
+            const inactive = existingClients.filter(
+              client => active.indexOf(client) === -1
+            );
 
-              // The primary client doesn't read from the document change log,
-              // and hence we exclude it when we determine the minimum
-              // `lastProcessedDocumentChangeId`.
-              activeClients = activeClients.filter(
-                client => client.clientId !== this.clientId
-              );
-
-              if (activeClients.length > 0) {
-                const processedChangeIds = activeClients.map(
-                  client => client.lastProcessedDocumentChangeId || 0
-                );
-                const oldestChangeId = Math.min(...processedChangeIds);
-                return this.remoteDocumentCache.removeDocumentChangesThroughChangeId(
-                  txn,
-                  oldestChangeId
-                );
-              }
-            });
+            // Delete metadata for clients that are no longer considered active.
+            return PersistencePromise.forEach(
+              inactive,
+              (inactiveClient: DbClientMetadata) =>
+                metadataStore.delete(inactiveClient.clientId)
+            ).next(() => inactive);
+          });
         }
       );
 
@@ -686,7 +645,7 @@ export class IndexedDbPersistence implements Persistence {
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
     await this.simpleDb.runTransaction(
-      'readwrite',
+      'readwrite-idempotent',
       [DbPrimaryClient.store, DbClientMetadata.store],
       txn => {
         return this.releasePrimaryLeaseIfHeld(txn).next(() =>
@@ -718,7 +677,7 @@ export class IndexedDbPersistence implements Persistence {
 
   getActiveClients(): Promise<ClientId[]> {
     return this.simpleDb.runTransaction(
-      'readonly',
+      'readonly-idempotent',
       [DbClientMetadata.store],
       txn => {
         return clientMetadataStore(txn)
@@ -783,20 +742,39 @@ export class IndexedDbPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
+    mode: PersistenceTransactionMode,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
     log.debug(LOG_TAG, 'Starting transaction:', action);
 
+    // TODO(schmidt-sebastian): Simplify once all transactions are idempotent.
+    const idempotent = mode.endsWith('idempotent');
+    const readonly = mode.startsWith('readonly');
+    const simpleDbMode = readonly
+      ? idempotent
+        ? 'readonly-idempotent'
+        : 'readonly'
+      : idempotent
+      ? 'readwrite-idempotent'
+      : 'readwrite';
+
+    let persistenceTransaction: PersistenceTransaction;
+
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-    return this.simpleDb.runTransaction(
-      mode === 'readonly' ? 'readonly' : 'readwrite',
-      ALL_STORES,
-      simpleDbTxn => {
-        if (mode === 'readwrite-primary') {
+    return this.simpleDb
+      .runTransaction(simpleDbMode, ALL_STORES, simpleDbTxn => {
+        persistenceTransaction = new IndexedDbTransaction(
+          simpleDbTxn,
+          this.listenSequence.next()
+        );
+
+        if (
+          mode === 'readwrite-primary' ||
+          mode === 'readwrite-primary-idempotent'
+        ) {
           // While we merely verify that we have (or can acquire) the lease
           // immediately, we wait to extend the primary lease until after
           // executing transactionOperation(). This ensures that even if the
@@ -817,12 +795,7 @@ export class IndexedDbPersistence implements Persistence {
                   PRIMARY_LEASE_LOST_ERROR_MSG
                 );
               }
-              return transactionOperation(
-                new IndexedDbTransaction(
-                  simpleDbTxn,
-                  this.listenSequence.next()
-                )
-              );
+              return transactionOperation(persistenceTransaction);
             })
             .next(result => {
               return this.acquireOrExtendPrimaryLease(simpleDbTxn).next(
@@ -831,13 +804,14 @@ export class IndexedDbPersistence implements Persistence {
             });
         } else {
           return this.verifyAllowTabSynchronization(simpleDbTxn).next(() =>
-            transactionOperation(
-              new IndexedDbTransaction(simpleDbTxn, this.listenSequence.next())
-            )
+            transactionOperation(persistenceTransaction)
           );
         }
-      }
-    );
+      })
+      .then(result => {
+        persistenceTransaction.raiseOnCommittedEvent();
+        return result;
+      });
   }
 
   /**

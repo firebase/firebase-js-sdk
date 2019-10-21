@@ -120,7 +120,7 @@ export class Document extends MaybeDocument {
   data(): ObjectValue {
     if (!this.objectValue) {
       let result = ObjectValue.EMPTY;
-      obj.forEach(this.proto!.fields, (key: string, value: api.Value) => {
+      obj.forEach(this.proto!.fields || {}, (key: string, value: api.Value) => {
         result = result.set(new FieldPath([key]), this.converter!(value));
       });
       this.objectValue = result;
@@ -170,11 +170,11 @@ export class Document extends MaybeDocument {
       'Can only call getProtoField() when proto is defined'
     );
 
-    let protoValue: api.Value | undefined = this.proto!.fields[
-      path.firstSegment()
-    ];
+    let protoValue: api.Value | undefined = this.proto!.fields
+      ? this.proto!.fields[path.firstSegment()]
+      : undefined;
     for (let i = 1; i < path.length; ++i) {
-      if (!protoValue || !protoValue.mapValue) {
+      if (!protoValue || !protoValue.mapValue || !protoValue.mapValue.fields) {
         return undefined;
       }
       protoValue = protoValue.mapValue.fields[path.get(i)];

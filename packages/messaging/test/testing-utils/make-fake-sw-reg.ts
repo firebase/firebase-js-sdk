@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import * as sinon from 'sinon';
+import { stub } from 'sinon';
 
 export function makeFakeSWReg(
   selectedState?: string,
@@ -29,7 +29,7 @@ export function makeFakeSWReg(
   const fakeReg: ServiceWorkerRegistration = new fakeRegistration();
   // No need to use a sandbox to stub this object as it should be a used
   // once per test.
-  sinon.stub(fakeReg, 'scope').value('/injected-scope');
+  stub(fakeReg, 'scope').value('/injected-scope');
   const states = ['installing', 'waiting', 'active'];
   states.forEach(state => {
     let finalValue: object | undefined = undefined;
