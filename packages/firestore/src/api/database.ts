@@ -18,7 +18,7 @@
 import * as firestore from '@firebase/firestore-types';
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseService } from '@firebase/app-types/private';
+import { FirebaseService, _FirebaseApp } from '@firebase/app-types/private';
 import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { ListenOptions } from '../core/event_manager';
 import {
@@ -249,9 +249,7 @@ class FirestoreSettings {
       ) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          `cacheSizeBytes must be at least ${
-            LruParams.MINIMUM_CACHE_SIZE_BYTES
-          }`
+          `cacheSizeBytes must be at least ${LruParams.MINIMUM_CACHE_SIZE_BYTES}`
         );
       } else {
         this.cacheSizeBytes = settings.cacheSizeBytes;
@@ -282,15 +280,6 @@ class FirestoreSettings {
   }
 }
 
-class FirestoreConfig {
-  databaseId: DatabaseId;
-  persistenceKey: string;
-  credentials: CredentialsProvider;
-  firebaseApp: FirebaseApp;
-  settings: FirestoreSettings;
-  persistence: boolean;
-}
-
 /**
  * The root reference to the database.
  */
@@ -298,8 +287,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // The objects that are a part of this API are exposed to third-parties as
   // compiled javascript so we want to flag our private members with a leading
   // underscore to discourage their use.
-  private readonly _config: FirestoreConfig;
   readonly _databaseId: DatabaseId;
+  private readonly _persistenceKey: string;
+  private _credentials: CredentialsProvider;
+  private readonly _firebaseApp: FirebaseApp | null = null;
+  private _settings: FirestoreSettings;
 
   // The firestore client instance. This will be available as soon as
   // configureClient is called, but any calls against it will block until
@@ -313,18 +305,17 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // TODO(mikelehen): Use modularized initialization instead.
   readonly _queue = new AsyncQueue();
 
-  _dataConverter: UserDataConverter;
+  readonly _dataConverter: UserDataConverter;
 
   constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
-    const config = new FirestoreConfig();
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
       // TODO(b/34177605): Can we somehow use instanceof?
       const app = databaseIdOrApp as FirebaseApp;
-      config.firebaseApp = app;
-      config.databaseId = Firestore.databaseIdFromApp(app);
-      config.persistenceKey = config.firebaseApp.name;
-      config.credentials = new FirebaseCredentialsProvider(app);
+      this._firebaseApp = app;
+      this._databaseId = Firestore.databaseIdFromApp(app);
+      this._persistenceKey = app.name;
+      this._credentials = new FirebaseCredentialsProvider(app);
     } else {
       const external = databaseIdOrApp as FirestoreDatabase;
       if (!external.projectId) {
@@ -334,15 +325,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
         );
       }
 
-      config.databaseId = new DatabaseId(external.projectId, external.database);
+      this._databaseId = new DatabaseId(external.projectId, external.database);
       // Use a default persistenceKey that lines up with FirebaseApp.
-      config.persistenceKey = '[DEFAULT]';
-      config.credentials = new EmptyCredentialsProvider();
+      this._persistenceKey = '[DEFAULT]';
+      this._credentials = new EmptyCredentialsProvider();
     }
 
-    config.settings = new FirestoreSettings({});
-    this._config = config;
-    this._databaseId = config.databaseId;
+    this._settings = new FirestoreSettings({});
+    this._dataConverter = this.createDataConverter(this._databaseId);
   }
 
   settings(settingsLiteral: firestore.Settings): void {
@@ -360,7 +350,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
 
     const newSettings = new FirestoreSettings(settingsLiteral);
-    if (this._firestoreClient && !this._config.settings.isEqual(newSettings)) {
+    if (this._firestoreClient && !this._settings.isEqual(newSettings)) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         'Firestore has already been started and its settings can no longer ' +
@@ -369,11 +359,9 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       );
     }
 
-    this._config.settings = newSettings;
+    this._settings = newSettings;
     if (newSettings.credentials !== undefined) {
-      this._config.credentials = makeCredentialsProvider(
-        newSettings.credentials
-      );
+      this._credentials = makeCredentialsProvider(newSettings.credentials);
     }
   }
 
@@ -418,7 +406,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
     return this.configureClient(
       new IndexedDbPersistenceSettings(
-        this._config.settings.cacheSizeBytes,
+        this._settings.cacheSizeBytes,
         synchronizeTabs
       )
     );
@@ -429,11 +417,11 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this.makeDatabaseInfo()
     );
     const deferred = new Deferred<void>();
-    this._queue.enqueueAndForget(async () => {
+    this._queue.enqueueAndForgetEvenAfterShutdown(async () => {
       try {
         if (
           this._firestoreClient !== undefined &&
-          !this._firestoreClient.clientShutdown
+          !this._firestoreClient.clientTerminated
         ) {
           throw new FirestoreError(
             Code.FAILED_PRECONDITION,
@@ -449,10 +437,62 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     return deferred.promise;
   }
 
+  terminate(): Promise<void> {
+    (this.app as _FirebaseApp)._removeServiceInstance('firestore');
+    return this.INTERNAL.delete();
+  }
+
+  get _isTerminated(): boolean {
+    this.ensureClientConfigured();
+    return this._firestoreClient!.clientTerminated;
+  }
+
+  waitForPendingWrites(): Promise<void> {
+    this.ensureClientConfigured();
+    return this._firestoreClient!.waitForPendingWrites();
+  }
+
+  onSnapshotsInSync(observer: PartialObserver<void>): Unsubscribe;
+  onSnapshotsInSync(onSync: () => void): Unsubscribe;
+  onSnapshotsInSync(arg: unknown): Unsubscribe {
+    this.ensureClientConfigured();
+
+    if (isPartialObserver(arg)) {
+      return this.onSnapshotsInSyncInternal(arg as PartialObserver<void>);
+    } else {
+      validateArgType('Firestore.onSnapshotsInSync', 'function', 1, arg);
+      const observer: PartialObserver<void> = {
+        next: arg as () => void
+      };
+      return this.onSnapshotsInSyncInternal(observer);
+    }
+  }
+
+  private onSnapshotsInSyncInternal(
+    observer: PartialObserver<void>
+  ): Unsubscribe {
+    const errHandler = (err: Error): void => {
+      throw fail('Uncaught Error in onSnapshotsInSync');
+    };
+    const asyncObserver = new AsyncObserver<void>({
+      next: () => {
+        if (observer.next) {
+          observer.next();
+        }
+      },
+      error: errHandler
+    });
+    this._firestoreClient!.addSnapshotsInSyncListener(asyncObserver);
+    return () => {
+      asyncObserver.mute();
+      this._firestoreClient!.removeSnapshotsInSyncListener(asyncObserver);
+    };
+  }
+
   ensureClientConfigured(): FirestoreClient {
     if (!this._firestoreClient) {
       // Kick off starting the client but don't actually wait for it.
-      // tslint:disable-next-line:no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       this.configureClient(new MemoryPersistenceSettings());
     }
     return this._firestoreClient as FirestoreClient;
@@ -460,30 +500,38 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   private makeDatabaseInfo(): DatabaseInfo {
     return new DatabaseInfo(
-      this._config.databaseId,
-      this._config.persistenceKey,
-      this._config.settings.host,
-      this._config.settings.ssl,
-      this._config.settings.forceLongPolling
+      this._databaseId,
+      this._persistenceKey,
+      this._settings.host,
+      this._settings.ssl,
+      this._settings.forceLongPolling
     );
   }
 
   private configureClient(
     persistenceSettings: InternalPersistenceSettings
   ): Promise<void> {
-    assert(
-      !!this._config.settings.host,
-      'FirestoreSettings.host cannot be falsey'
-    );
+    assert(!!this._settings.host, 'FirestoreSettings.host is not set');
 
     assert(!this._firestoreClient, 'configureClient() called multiple times');
 
     const databaseInfo = this.makeDatabaseInfo();
 
+    this._firestoreClient = new FirestoreClient(
+      PlatformSupport.getPlatform(),
+      databaseInfo,
+      this._credentials,
+      this._queue
+    );
+
+    return this._firestoreClient.start(persistenceSettings);
+  }
+
+  private createDataConverter(databaseId: DatabaseId): UserDataConverter {
     const preConverter = (value: unknown): unknown => {
       if (value instanceof DocumentReference) {
-        const thisDb = this._config.databaseId;
-        const otherDb = value.firestore._config.databaseId;
+        const thisDb = databaseId;
+        const otherDb = value.firestore._databaseId;
         if (!otherDb.isEqual(thisDb)) {
           throw new FirestoreError(
             Code.INVALID_ARGUMENT,
@@ -492,21 +540,12 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
               `for database ${thisDb.projectId}/${thisDb.database}`
           );
         }
-        return new DocumentKeyReference(this._config.databaseId, value._key);
+        return new DocumentKeyReference(databaseId, value._key);
       } else {
         return value;
       }
     };
-    this._dataConverter = new UserDataConverter(preConverter);
-
-    this._firestoreClient = new FirestoreClient(
-      PlatformSupport.getPlatform(),
-      databaseInfo,
-      this._config.credentials,
-      this._queue
-    );
-
-    return this._firestoreClient.start(persistenceSettings);
+    return new UserDataConverter(preConverter);
   }
 
   private static databaseIdFromApp(app: FirebaseApp): DatabaseId {
@@ -529,14 +568,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   }
 
   get app(): FirebaseApp {
-    if (!this._config.firebaseApp) {
+    if (!this._firebaseApp) {
       throw new FirestoreError(
         Code.FAILED_PRECONDITION,
         "Firestore was not initialized using the Firebase SDK. 'app' is " +
           'not available'
       );
     }
-    return this._config.firebaseApp;
+    return this._firebaseApp;
   }
 
   INTERNAL = {
@@ -544,7 +583,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       // The client must be initalized to ensure that all subsequent API usage
       // throws an exception.
       this.ensureClientConfigured();
-      await this._firestoreClient!.shutdown();
+      await this._firestoreClient!.terminate();
     }
   };
 
@@ -639,7 +678,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
   // Note: this is not a property because the minifier can't work correctly with
   // the way TypeScript compiler outputs properties.
   _areTimestampsInSnapshotsEnabled(): boolean {
-    return this._config.settings.timestampsInSnapshots;
+    return this._settings.timestampsInSnapshots;
   }
 }
 
@@ -686,9 +725,7 @@ export class Transaction implements firestore.Transaction {
           );
         } else {
           throw fail(
-            `BatchGetDocumentsRequest returned unexpected document type: ${
-              doc.constructor.name
-            }`
+            `BatchGetDocumentsRequest returned unexpected document type: ${doc.constructor.name}`
           );
         }
       });
@@ -1276,7 +1313,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     return !this._document
       ? undefined
       : this.convertObject(
-          this._document.data,
+          this._document.data(),
           FieldValueOptions.fromSnapshotOptions(
             options,
             this._firestore._areTimestampsInSnapshotsEnabled()
@@ -1291,10 +1328,10 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
     validateBetweenNumberOfArgs('DocumentSnapshot.get', arguments, 1, 2);
     options = validateSnapshotOptions('DocumentSnapshot.get', options);
     if (this._document) {
-      const value = this._document.data.field(
-        fieldPathFromArgument('DocumentSnapshot.get', fieldPath)
-      );
-      if (value !== undefined) {
+      const value = this._document
+        .data()
+        .field(fieldPathFromArgument('DocumentSnapshot.get', fieldPath));
+      if (value !== null) {
         return this.convertValue(
           value,
           FieldValueOptions.fromSnapshotOptions(
@@ -1361,9 +1398,7 @@ export class DocumentSnapshot implements firestore.DocumentSnapshot {
         log.error(
           `Document ${this._key.path} contains a document ` +
             `reference within a different database (` +
-            `${value.databaseId.projectId}/${
-              value.databaseId.database
-            }) which is not ` +
+            `${value.databaseId.projectId}/${value.databaseId.database}) which is not ` +
             `supported. It will be treated as a reference in the current ` +
             `database (${database.projectId}/${database.database}) ` +
             `instead.`
@@ -1648,7 +1683,7 @@ export class Query implements firestore.Query {
               '" is an uncommitted server timestamp. (Since the value of ' +
               'this field is unknown, you cannot start/end a query with it.)'
           );
-        } else if (value !== undefined) {
+        } else if (value !== null) {
           components.push(value);
         } else {
           const field = orderBy.field.canonicalString();
@@ -1917,9 +1952,7 @@ export class Query implements firestore.Query {
           Code.INVALID_ARGUMENT,
           `Invalid query. When querying a collection group by ` +
             `FieldPath.documentId(), the value provided must result in a valid document path, ` +
-            `but '${path}' is not because it has an odd number of segments (${
-              path.length
-            }).`
+            `but '${path}' is not because it has an odd number of segments (${path.length}).`
         );
       }
       return new RefValue(this.firestore._databaseId, new DocumentKey(path));

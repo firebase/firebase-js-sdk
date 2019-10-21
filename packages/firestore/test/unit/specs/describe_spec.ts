@@ -33,7 +33,7 @@ const NO_ANDROID_TAG = 'no-android';
 const NO_IOS_TAG = 'no-ios';
 // The remaining tags specify features that must be present to run a given test
 // Multi-client related tests (which imply persistence).
-const MULTI_CLIENT_TAG = 'multi-client';
+export const MULTI_CLIENT_TAG = 'multi-client';
 const EAGER_GC_TAG = 'eager-gc';
 const DURABLE_PERSISTENCE_TAG = 'durable-persistence';
 const BENCHMARK_TAG = 'benchmark';
@@ -87,21 +87,27 @@ function getTestRunner(
   persistenceEnabled: boolean
 ): ExclusiveTestFunction | PendingTestFunction {
   if (tags.indexOf(NO_WEB_TAG) >= 0) {
+    // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (
     !persistenceEnabled &&
     tags.indexOf(DURABLE_PERSISTENCE_TAG) !== -1
   ) {
     // Test requires actual persistence, but it's not enabled. Skip it.
+    // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (persistenceEnabled && tags.indexOf(EAGER_GC_TAG) !== -1) {
     // spec should have a comment explaining why it is being skipped.
+    // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (!persistenceEnabled && tags.indexOf(MULTI_CLIENT_TAG) !== -1) {
+    // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (tags.indexOf(BENCHMARK_TAG) >= 0 && !RUN_BENCHMARK_TESTS) {
+    // eslint-disable-next-line no-restricted-properties
     return it.skip;
   } else if (tags.indexOf(EXCLUSIVE_TAG) >= 0) {
+    // eslint-disable-next-line no-restricted-properties
     return it.only;
   } else {
     return it;
@@ -166,14 +172,14 @@ export function specTest(
       ? [true, false]
       : [false];
     for (const usePersistence of persistenceModes) {
-      const spec = builder();
       const runner = getTestRunner(tags, usePersistence);
       const timeout = getTestTimeout(tags);
       const mode = usePersistence ? '(Persistence)' : '(Memory)';
       const fullName = `${mode} ${name}`;
       const queuedTest = runner(fullName, async () => {
+        const spec = builder();
         const start = Date.now();
-        await spec.runAsTest(fullName, usePersistence);
+        await spec.runAsTest(fullName, tags, usePersistence);
         const end = Date.now();
         if (tags.indexOf(BENCHMARK_TAG) >= 0) {
           // eslint-disable-next-line no-console

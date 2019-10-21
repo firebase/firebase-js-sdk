@@ -31,7 +31,7 @@ export interface FirebaseInstallations {
    *
    * @return Firebase Installation Authentication Token
    */
-  getToken(): Promise<string>;
+  getToken(forceRefresh?: boolean): Promise<string>;
 
   /**
    * Deletes the Firebase Installation and all associated data.

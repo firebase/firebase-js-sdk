@@ -283,13 +283,13 @@ describe('Firebase Storage > Service', () => {
           assert.equal(err.code, 'storage/app-deleted');
         }
       );
-      // tslint:disable-next-line:no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       service.INTERNAL.delete();
       return toReturn;
     });
     it('Requests fail when started after the service is deleted', () => {
       const ref = service.refFromURL('gs://mybucket/image.jpg');
-      // tslint:disable-next-line:no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       service.INTERNAL.delete();
       const toReturn = ref.getMetadata().then(
         () => {
@@ -307,15 +307,18 @@ describe('Firebase Storage > Service', () => {
         ref.put(new Blob(['a'])).on(
           TaskEvent.STATE_CHANGED,
           null,
-          (err: FirebaseStorageError) => {
-            assert.equal(err.code, 'storage/app-deleted');
+          (err: FirebaseStorageError | Error) => {
+            assert.equal(
+              (err as FirebaseStorageError).code,
+              'storage/app-deleted'
+            );
             resolve();
           },
           () => {
             assert.fail('Upload completed, should have been canceled');
           }
         );
-        // tslint:disable-next-line:no-floating-promises
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         service.INTERNAL.delete();
       });
       return toReturn;

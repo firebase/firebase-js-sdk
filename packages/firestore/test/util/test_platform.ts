@@ -89,7 +89,7 @@ export class FakeWindow {
  */
 export class FakeDocument {
   private _visibilityState: VisibilityState = 'hidden';
-  private visibilityListener: EventListener | null;
+  private visibilityListener: EventListener | null = null;
 
   get visibilityState(): VisibilityState {
     return this._visibilityState;
@@ -199,7 +199,7 @@ export class SharedFakeWebStorage {
         oldValue,
         newValue,
         storageArea: client.storageArea
-      } as any); // eslint-disable-line @typescript-eslint/no-explicit-any, Not mocking entire Event type.
+      } as any); /* eslint-disable-line @typescript-eslint/no-explicit-any*/ // Not mocking entire Event type.
     });
   }
 }
@@ -220,13 +220,13 @@ export class TestPlatform implements Platform {
   }
 
   get document(): Document | null {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, FakeWindow doesn't support full Document interface.
-    return this.mockDocument as any;
+    // FakeWindow doesn't support full Document interface.
+    return this.mockDocument as any; // eslint-disable-line @typescript-eslint/no-explicit-any
   }
 
   get window(): Window | null {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, FakeWindow doesn't support full Window interface.
-    return this.mockWindow as any;
+    // FakeWindow doesn't support full Window interface.
+    return this.mockWindow as any; //eslint-disable-line @typescript-eslint/no-explicit-any
   }
 
   get base64Available(): boolean {

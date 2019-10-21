@@ -71,7 +71,7 @@ export class Service implements FirebaseFunctions, FirebaseService {
   private readonly serializer = new Serializer();
   private emulatorOrigin: string | null = null;
   private cancelAllRequests: Promise<void>;
-  private deleteService: Function;
+  private deleteService!: Function;
 
   /**
    * Creates a new Functions service for the given app and (optional) region.

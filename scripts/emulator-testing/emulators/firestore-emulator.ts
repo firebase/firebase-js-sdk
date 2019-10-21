@@ -21,13 +21,14 @@ export class FirestoreEmulator extends Emulator {
   projectId: string;
 
   constructor(port: number, projectId = 'test-emulator') {
-    super(port);
+    super(
+      'firestore-emulator.jar',
+      // Use locked version of emulator for test to be deterministic.
+      // The latest version can be found from firestore emulator doc:
+      // https://firebase.google.com/docs/firestore/security/test-rules-emulator
+      'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.8.2.jar',
+      port
+    );
     this.projectId = projectId;
-    this.binaryName = 'firestore-emulator.jar';
-    // Use locked version of emulator for test to be deterministic.
-    // The latest version can be found from firestore emulator doc:
-    // https://firebase.google.com/docs/firestore/security/test-rules-emulator
-    this.binaryUrl =
-      'https://storage.googleapis.com/firebase-preview-drop/emulator/cloud-firestore-emulator-v1.5.0.jar';
   }
 }

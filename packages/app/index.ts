@@ -18,9 +18,7 @@
 import { FirebaseNamespace } from '@firebase/app-types';
 import { createFirebaseNamespace } from './src/firebaseNamespace';
 import { isNode, isBrowser } from '@firebase/util';
-import { Logger } from '@firebase/logger';
-
-const logger = new Logger('@firebase/app');
+import { logger } from './src/logger';
 
 // Firebase Lite detection
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,8 +58,8 @@ firebaseNamespace.initializeApp = function(...args: any) {
       "resolve.mainFields":
       https://webpack.js.org/configuration/resolve/#resolvemainfields
       
-      If using Rollup, use the rollup-plugin-node-resolve plugin and set "module"
-      to false and "main" to true:
+      If using Rollup, use the rollup-plugin-node-resolve plugin and specify "main"
+      as the first item in "mainFields", e.g. ['main', 'module'].
       https://github.com/rollup/rollup-plugin-node-resolve
       `);
   }

@@ -30,7 +30,7 @@ import * as type from './type';
  *     modified after this blob's construction.
  */
 export class FbsBlob {
-  private data_: Blob | Uint8Array;
+  private data_!: Blob | Uint8Array;
   private size_: number;
   private type_: string;
 
@@ -112,11 +112,9 @@ export class FbsBlob {
         }
       );
       let finalLength = 0;
-      uint8Arrays.forEach(
-        (array: Uint8Array): void => {
-          finalLength += array.byteLength;
-        }
-      );
+      uint8Arrays.forEach((array: Uint8Array): void => {
+        finalLength += array.byteLength;
+      });
       const merged = new Uint8Array(finalLength);
       let index = 0;
       uint8Arrays.forEach((array: Uint8Array) => {

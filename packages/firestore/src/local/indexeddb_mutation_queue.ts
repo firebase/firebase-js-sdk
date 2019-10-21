@@ -165,7 +165,8 @@ export class IndexedDbMutationQueue implements MutationQueue {
     // mutation batch.
     // See: https://bugs.chromium.org/p/chromium/issues/detail?id=701972
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, We write an empty object to obtain key
+    // We write an empty object to obtain key
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return mutationStore.add({} as any).next(batchId => {
       assert(typeof batchId === 'number', 'Auto-generated key is not a number');
 
@@ -177,26 +178,33 @@ export class IndexedDbMutationQueue implements MutationQueue {
       );
       const dbBatch = this.serializer.toDbMutationBatch(this.userId, batch);
 
-      this.documentKeysByBatchId[batchId] = batch.keys();
-
       const promises: Array<PersistencePromise<void>> = [];
+      let collectionParents = new SortedSet<ResourcePath>((l, r) =>
+        primitiveComparator(l.canonicalString(), r.canonicalString())
+      );
       for (const mutation of mutations) {
         const indexKey = DbDocumentMutation.key(
           this.userId,
           mutation.key.path,
           batchId
         );
+        collectionParents = collectionParents.add(mutation.key.path.popLast());
         promises.push(mutationStore.put(dbBatch));
         promises.push(
           documentStore.put(indexKey, DbDocumentMutation.PLACEHOLDER)
         );
-        promises.push(
-          this.indexManager.addToCollectionParentIndex(
-            transaction,
-            mutation.key.path.popLast()
-          )
-        );
       }
+
+      collectionParents.forEach(parent => {
+        promises.push(
+          this.indexManager.addToCollectionParentIndex(transaction, parent)
+        );
+      });
+
+      transaction.addOnCommittedListener(() => {
+        this.documentKeysByBatchId[batchId] = batch.keys();
+      });
+
       return PersistencePromise.waitFor(promises).next(() => batch);
     });
   }
@@ -265,6 +273,26 @@ export class IndexedDbMutationQueue implements MutationQueue {
       .next(() => foundBatch);
   }
 
+  getHighestUnacknowledgedBatchId(
+    transaction: PersistenceTransaction
+  ): PersistencePromise<BatchId> {
+    const range = IDBKeyRange.upperBound([
+      this.userId,
+      Number.POSITIVE_INFINITY
+    ]);
+
+    let batchId = BATCHID_UNKNOWN;
+    return mutationsStore(transaction)
+      .iterate(
+        { index: DbMutationBatch.userMutationsIndex, range, reverse: true },
+        (key, dbBatch, control) => {
+          batchId = dbBatch.batchId;
+          control.done();
+        }
+      )
+      .next(() => batchId);
+  }
+
   getAllMutationBatches(
     transaction: PersistenceTransaction
   ): PersistencePromise<MutationBatch[]> {
@@ -322,9 +350,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
             }
             assert(
               mutation.userId === this.userId,
-              `Unexpected user '${
-                mutation.userId
-              }' for mutation batch ${batchId}`
+              `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
             results.push(this.serializer.fromDbMutationBatch(mutation!));
           });
@@ -455,9 +481,7 @@ export class IndexedDbMutationQueue implements MutationQueue {
             }
             assert(
               mutation.userId === this.userId,
-              `Unexpected user '${
-                mutation.userId
-              }' for mutation batch ${batchId}`
+              `Unexpected user '${mutation.userId}' for mutation batch ${batchId}`
             );
             results.push(this.serializer.fromDbMutationBatch(mutation!));
           })
@@ -475,7 +499,9 @@ export class IndexedDbMutationQueue implements MutationQueue {
       this.userId,
       batch
     ).next(removedDocuments => {
-      this.removeCachedMutationKeys(batch.batchId);
+      transaction.addOnCommittedListener(() => {
+        this.removeCachedMutationKeys(batch.batchId);
+      });
       return PersistencePromise.forEach(
         removedDocuments,
         (key: DocumentKey) => {

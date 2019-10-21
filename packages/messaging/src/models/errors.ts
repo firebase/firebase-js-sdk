@@ -22,7 +22,6 @@ export const enum ErrorCode {
   AVAILABLE_IN_SW = 'only-available-in-sw',
   SHOULD_BE_INHERITED = 'should-be-overriden',
   BAD_SENDER_ID = 'bad-sender-id',
-  INCORRECT_GCM_SENDER_ID = 'incorrect-gcm-sender-id',
   PERMISSION_DEFAULT = 'permission-default',
   PERMISSION_BLOCKED = 'permission-blocked',
   UNSUPPORTED_BROWSER = 'unsupported-browser',
@@ -34,7 +33,6 @@ export const enum ErrorCode {
   SW_REG_REDUNDANT = 'sw-reg-redundant',
   TOKEN_SUBSCRIBE_FAILED = 'token-subscribe-failed',
   TOKEN_SUBSCRIBE_NO_TOKEN = 'token-subscribe-no-token',
-  TOKEN_SUBSCRIBE_NO_PUSH_SET = 'token-subscribe-no-push-set',
   TOKEN_UNSUBSCRIBE_FAILED = 'token-unsubscribe-failed',
   TOKEN_UPDATE_FAILED = 'token-update-failed',
   TOKEN_UPDATE_NO_TOKEN = 'token-update-no-token',
@@ -52,7 +50,6 @@ export const enum ErrorCode {
   BAD_VAPID_KEY = 'bad-vapid-key',
   BAD_SUBSCRIPTION = 'bad-subscription',
   BAD_TOKEN = 'bad-token',
-  BAD_PUSH_SET = 'bad-push-set',
   FAILED_DELETE_VAPID_KEY = 'failed-delete-vapid-key',
   INVALID_PUBLIC_VAPID_KEY = 'invalid-public-vapid-key',
   USE_PUBLIC_KEY_BEFORE_GET_TOKEN = 'use-public-key-before-get-token',
@@ -93,8 +90,6 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
     'A problem occured while subscribing the user to FCM: {$errorInfo}',
   [ErrorCode.TOKEN_SUBSCRIBE_NO_TOKEN]:
     'FCM returned no token when subscribing the user to push.',
-  [ErrorCode.TOKEN_SUBSCRIBE_NO_PUSH_SET]:
-    'FCM returned an invalid response when getting an FCM token.',
   [ErrorCode.TOKEN_UNSUBSCRIBE_FAILED]:
     'A problem occured while unsubscribing the ' +
     'user from FCM: {$errorInfo}',
@@ -131,9 +126,6 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.NO_SW_IN_REG]:
     'Even though the service worker registration was ' +
     'successful, there was a problem accessing the service worker itself.',
-  [ErrorCode.INCORRECT_GCM_SENDER_ID]:
-    "Please change your web app manifest's " +
-    "'gcm_sender_id' value to '103953800507' to use Firebase messaging.",
   [ErrorCode.BAD_SCOPE]:
     'The service worker scope must be a string with at ' +
     'least one character.',
@@ -144,9 +136,6 @@ export const ERROR_MAP: ErrorMap<ErrorCode> = {
   [ErrorCode.BAD_TOKEN]:
     'The FCM Token used for storage / lookup was not ' +
     'a valid token string.',
-  [ErrorCode.BAD_PUSH_SET]:
-    'The FCM push set used for storage / lookup was not ' +
-    'not a valid push set string.',
   [ErrorCode.FAILED_DELETE_VAPID_KEY]: 'The VAPID key could not be deleted.',
   [ErrorCode.INVALID_PUBLIC_VAPID_KEY]:
     'The public VAPID key must be a string.',

@@ -17,13 +17,13 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { stub, restore, spy } from 'sinon';
 
 import { BaseController } from '../src/controllers/base-controller';
 import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
-import { IidModel } from '../src/models/iid-model';
+import { SubscriptionManager } from '../src/models/subscription-manager';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
@@ -47,26 +47,24 @@ class MockBaseController extends BaseController {
 }
 
 describe('Firebase Messaging > *BaseController', () => {
-  let sandbox: sinon.SinonSandbox;
   let app: FirebaseApp;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
     app = makeFakeApp({
       messagingSenderId: '12345'
     });
   });
 
   afterEach(() => {
-    sandbox.restore();
+    restore();
   });
 
   describe('INTERNAL.delete()', () => {
     it('should call delete()', async () => {
       const controller = new MockBaseController(app);
-      const spy = sandbox.spy(controller, 'delete');
+      const sinonSpy = spy(controller, 'delete');
       await controller.INTERNAL.delete();
-      expect(spy.callCount).to.equal(1);
+      expect(sinonSpy.callCount).to.equal(1);
     });
   });
 
@@ -89,7 +87,7 @@ describe('Firebase Messaging > *BaseController', () => {
       it(`should return rejection error in ${controllerInTest.name}`, () => {
         const injectedError = new Error('Inject error.');
         const reg = makeFakeSWReg();
-        sandbox.stub(reg, 'pushManager').value({
+        stub(reg, 'pushManager').value({
           getSubscription: async () => {
             throw injectedError;
           }
@@ -111,7 +109,7 @@ describe('Firebase Messaging > *BaseController', () => {
       it(`should return PushSubscription if returned`, () => {
         const exampleSubscription = {};
         const reg = makeFakeSWReg();
-        sandbox.stub(reg, 'pushManager').value({
+        stub(reg, 'pushManager').value({
           getSubscription: async () => exampleSubscription
         });
 
@@ -126,7 +124,7 @@ describe('Firebase Messaging > *BaseController', () => {
       it('should call subscribe() if no subscription', () => {
         const exampleSubscription = {};
         const reg = makeFakeSWReg();
-        sandbox.stub(reg, 'pushManager').value({
+        stub(reg, 'pushManager').value({
           getSubscription: async () => {},
           subscribe: async (options: PushSubscriptionOptions) => {
             expect(options).to.deep.equal({
@@ -220,7 +218,7 @@ describe('Firebase Messaging > *BaseController', () => {
 
   describe('getNotificationPermission_', () => {
     it('should return current permission', () => {
-      sandbox.stub(Notification as any, 'permission').value('test');
+      stub(Notification as any, 'permission').value('test');
       const controller = new MockBaseController(app);
       const result = controller.getNotificationPermission_();
       expect(result).to.equal('test');
@@ -246,8 +244,8 @@ describe('Firebase Messaging > *BaseController', () => {
   describe('getIidModel', () => {
     it('should return an instance of IidModel', () => {
       const controller = new MockBaseController(app);
-      const result = controller.getIidModel();
-      expect(result).to.be.instanceof(IidModel);
+      const result = controller.getSubscriptionManager();
+      expect(result).to.be.instanceof(SubscriptionManager);
     });
   });
 });

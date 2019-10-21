@@ -26,7 +26,7 @@ import { Service } from '../src/service';
 import * as testShared from './testshared';
 import { SendHook, TestingXhrIo } from './xhrio';
 import { DEFAULT_HOST } from '../src/implementation/constants';
-// tslint:disable:no-floating-promises
+/* eslint-disable @typescript-eslint/no-floating-promises */
 function makeFakeService(app: FirebaseApp, sendHook: SendHook): Service {
   return new Service(app, testShared.makePool(sendHook));
 }
@@ -591,7 +591,8 @@ describe('Firebase Storage > Reference', () => {
     });
     it('updateMetadata throws', () => {
       testShared.assertThrows(
-        root.updateMetadata.bind(root, {}),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (root as any).updateMetadata.bind(root, {}),
         'storage/invalid-root-operation'
       );
     });

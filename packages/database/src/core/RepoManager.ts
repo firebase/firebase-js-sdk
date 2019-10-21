@@ -18,8 +18,8 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { safeGet } from '@firebase/util';
 import { Repo } from './Repo';
-import { fatal } from './util/util';
-import { parseRepoInfo } from './util/libs/parser';
+import { fatal, FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './util/util';
+import { parseRepoInfo, parseDatabaseURL } from './util/libs/parser';
 import { validateUrl } from './util/validation';
 import './Repo_transaction';
 import { Database } from '../api/Database';
@@ -80,7 +80,7 @@ export class RepoManager {
    * @return {!Database}
    */
   databaseFromApp(app: FirebaseApp, url?: string): Database {
-    const dbUrl: string = url || app.options[DATABASE_URL_OPTION];
+    let dbUrl: string | undefined = url || app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
       fatal(
         "Can't determine Firebase Database URL.  Be sure to include " +
@@ -89,8 +89,18 @@ export class RepoManager {
       );
     }
 
-    const parsedUrl = parseRepoInfo(dbUrl);
-    const repoInfo = parsedUrl.repoInfo;
+    let parsedUrl = parseRepoInfo(dbUrl);
+    let repoInfo = parsedUrl.repoInfo;
+
+    let dbEmulatorHost: string | undefined = undefined;
+    if (typeof process !== 'undefined') {
+      dbEmulatorHost = process.env[FIREBASE_DATABASE_EMULATOR_HOST_VAR];
+    }
+    if (dbEmulatorHost) {
+      dbUrl = `http://${dbEmulatorHost}?ns=${repoInfo.namespace}`;
+      parsedUrl = parseRepoInfo(dbUrl);
+      repoInfo = parsedUrl.repoInfo;
+    }
 
     validateUrl('Invalid Firebase Database URL', 1, parsedUrl);
     if (!parsedUrl.path.isEmpty()) {

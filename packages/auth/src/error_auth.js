@@ -164,6 +164,7 @@ fireauth.authenum.Error = {
   INVALID_RECIPIENT_EMAIL: 'invalid-recipient-email',
   INVALID_SENDER: 'invalid-sender',
   INVALID_SESSION_INFO: 'invalid-verification-id',
+  INVALID_TENANT_ID: 'invalid-tenant-id',
   MFA_ENROLLMENT_NOT_FOUND: 'multi-factor-info-not-found',
   MFA_REQUIRED: 'multi-factor-auth-required',
   MISSING_ANDROID_PACKAGE_NAME: 'missing-android-pkg-name',
@@ -195,12 +196,14 @@ fireauth.authenum.Error = {
   REJECTED_CREDENTIAL: 'rejected-credential',
   SECOND_FACTOR_EXISTS: 'second-factor-already-in-use',
   SECOND_FACTOR_LIMIT_EXCEEDED: 'maximum-second-factor-count-exceeded',
+  TENANT_ID_MISMATCH: 'tenant-id-mismatch',
   TIMEOUT: 'timeout',
   TOKEN_EXPIRED: 'user-token-expired',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'too-many-requests',
   UNAUTHORIZED_DOMAIN: 'unauthorized-continue-uri',
   UNSUPPORTED_FIRST_FACTOR: 'unsupported-first-factor',
   UNSUPPORTED_PERSISTENCE: 'unsupported-persistence-type',
+  UNSUPPORTED_TENANT_OPERATION: 'unsupported-tenant-operation',
   UNVERIFIED_EMAIL: 'unverified-email',
   USER_CANCELLED: 'user-cancelled',
   USER_DELETED: 'user-not-found',
@@ -342,6 +345,8 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_SENDER] =
     'ion in the Firebase Console.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_SESSION_INFO] =
     'The verification ID used to create the phone auth credential is invalid.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.INVALID_TENANT_ID] =
+    'The Auth instance\'s tenant ID is invalid.';
 fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.MFA_ENROLLMENT_NOT_FOUND] = 'The user does not ' +
     'have a second factor matching the identifier provided.';
@@ -424,6 +429,8 @@ fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.SECOND_FACTOR_EXISTS] =
 fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.SECOND_FACTOR_LIMIT_EXCEEDED] =
     'The maximum allowed number of second factors on a user has been exceeded.';
+fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TENANT_ID_MISMATCH] =
+    'The provided tenant ID does not match the Auth instance\'s tenant ID';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.TIMEOUT] =
     'The operation has timed out.';
 fireauth.AuthError.MESSAGES_[
@@ -442,6 +449,9 @@ fireauth.AuthError.MESSAGES_[
     'a supported first factor.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNSUPPORTED_PERSISTENCE] =
     'The current environment does not support the specified persistence type.';
+fireauth.AuthError.MESSAGES_[
+    fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION] =
+    'This operation is not supported in a multi-tenant context.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.UNVERIFIED_EMAIL] =
     'The operation requires a verified email.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_CANCELLED] =

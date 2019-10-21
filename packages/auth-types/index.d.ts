@@ -55,6 +55,7 @@ export interface User extends UserInfo {
   sendEmailVerification(
     actionCodeSettings?: ActionCodeSettings | null
   ): Promise<void>;
+  readonly tenantId: string | null;
   toJSON(): Object;
   unlink(providerId: string): Promise<User>;
   updateEmail(newEmail: string): Promise<void>;
@@ -89,7 +90,9 @@ export interface MultiFactorUser {
   unenroll(option: MultiFactorInfo | string): Promise<void>;
 }
 
-export interface ActionCodeInfo {
+
+export class ActionCodeInfo {
+  private constructor();
   data: {
     email?: string | null;
     fromEmail?: string | null;
@@ -97,6 +100,25 @@ export interface ActionCodeInfo {
     previousEmail?: string | null;
   };
   operation: string;
+  static Operation: {
+    PASSWORD_RESET: Operation;
+    RECOVER_EMAIL: Operation;
+    EMAIL_SIGNIN: Operation;
+    REVERT_SECOND_FACTOR_ADDITION: Operation;
+    VERIFY_AND_CHANGE_EMAIL: Operation;
+    VERIFY_EMAIL: Operation;
+  };
+}
+
+export class ActionCodeURL {
+  private constructor();
+  apiKey: string;
+  code: string;
+  continueUrl: string | null;
+  languageCode: string | null;
+  operation: Operation;
+  static parseLink(link: string): ActionCodeURL | null;
+  tenantId: string | null;
 }
 
 export type ActionCodeSettings = {
@@ -157,6 +179,9 @@ export interface Error {
 
 export interface AuthError extends Error {
   credential?: AuthCredential;
+  email?: string;
+  phoneNumber?: string;
+  tenantId?: string;
 }
 
 export interface MultiFactorError extends AuthError {
@@ -297,6 +322,8 @@ export interface UserMetadata {
 
 export type Persistence = string;
 
+export type Operation = string;
+
 export class OAuthCredential extends AuthCredential {
   private constructor();
   idToken?: string;
@@ -414,6 +441,7 @@ export class FirebaseAuth {
   signInWithPopup(provider: AuthProvider): Promise<UserCredential>;
   signInWithRedirect(provider: AuthProvider): Promise<void>;
   signOut(): Promise<void>;
+  tenantId: string | null;
   updateCurrentUser(user: User | null): Promise<void>;
   useDeviceLanguage(): void;
   verifyPasswordResetCode(code: string): Promise<string>;

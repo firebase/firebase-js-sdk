@@ -29,9 +29,6 @@ import {
 
 /** Represents a transform within a TransformMutation. */
 export interface TransformOperation {
-  /** Whether this field transform is idempotent. */
-  readonly isIdempotent: boolean;
-
   /**
    * Computes the local transform result against the provided `previousValue`,
    * optionally using the provided localWriteTime.
@@ -50,13 +47,28 @@ export interface TransformOperation {
     transformResult: FieldValue | null
   ): FieldValue;
 
+  /**
+   * If this transform operation is not idempotent, returns the base value to
+   * persist for this transform. If a base value is returned, the transform
+   * operation is always applied to this base value, even if document has
+   * already been updated.
+   *
+   * Base values provide consistent behavior for non-idempotent transforms and
+   * allow us to return the same latency-compensated value even if the backend
+   * has already applied the transform operation. The base value is null for
+   * idempotent transforms, as they can be re-played even if the backend has
+   * already applied them.
+   *
+   * @return a base value to store along with the mutation, or null for
+   * idempotent transforms.
+   */
+  computeBaseValue(previousValue: FieldValue | null): FieldValue | null;
+
   isEqual(other: TransformOperation): boolean;
 }
 
 /** Transforms a value into a server-generated timestamp. */
 export class ServerTimestampTransform implements TransformOperation {
-  readonly isIdempotent = true;
-
   private constructor() {}
   static instance = new ServerTimestampTransform();
 
@@ -74,6 +86,10 @@ export class ServerTimestampTransform implements TransformOperation {
     return transformResult!;
   }
 
+  computeBaseValue(previousValue: FieldValue | null): FieldValue | null {
+    return null; // Server timestamps are idempotent and don't require a base value.
+  }
+
   isEqual(other: TransformOperation): boolean {
     return other instanceof ServerTimestampTransform;
   }
@@ -81,8 +97,6 @@ export class ServerTimestampTransform implements TransformOperation {
 
 /** Transforms an array value via a union operation. */
 export class ArrayUnionTransformOperation implements TransformOperation {
-  readonly isIdempotent = true;
-
   constructor(readonly elements: FieldValue[]) {}
 
   applyToLocalView(
@@ -112,6 +126,10 @@ export class ArrayUnionTransformOperation implements TransformOperation {
     return new ArrayValue(result);
   }
 
+  computeBaseValue(previousValue: FieldValue | null): FieldValue | null {
+    return null; // Array transforms are idempotent and don't require a base value.
+  }
+
   isEqual(other: TransformOperation): boolean {
     return (
       other instanceof ArrayUnionTransformOperation &&
@@ -122,8 +140,6 @@ export class ArrayUnionTransformOperation implements TransformOperation {
 
 /** Transforms an array value via a remove operation. */
 export class ArrayRemoveTransformOperation implements TransformOperation {
-  readonly isIdempotent = true;
-
   constructor(readonly elements: FieldValue[]) {}
 
   applyToLocalView(
@@ -151,6 +167,10 @@ export class ArrayRemoveTransformOperation implements TransformOperation {
     return new ArrayValue(result);
   }
 
+  computeBaseValue(previousValue: FieldValue | null): FieldValue | null {
+    return null; // Array transforms are idempotent and don't require a base value.
+  }
+
   isEqual(other: TransformOperation): boolean {
     return (
       other instanceof ArrayRemoveTransformOperation &&
@@ -166,14 +186,13 @@ export class ArrayRemoveTransformOperation implements TransformOperation {
  * arithmetic is used and precision loss can occur for values greater than 2^53.
  */
 export class NumericIncrementTransformOperation implements TransformOperation {
-  readonly isIdempotent = false;
-
   constructor(readonly operand: NumberValue) {}
 
   applyToLocalView(
     previousValue: FieldValue | null,
     localWriteTime: Timestamp
   ): FieldValue {
+    const baseValue = this.computeBaseValue(previousValue);
     // PORTING NOTE: Since JavaScript's integer arithmetic is limited to 53 bit
     // precision and resolves overflows by reducing precision, we do not
     // manually cap overflows at 2^63.
@@ -181,18 +200,14 @@ export class NumericIncrementTransformOperation implements TransformOperation {
     // Return an integer value iff the previous value and the operand is an
     // integer.
     if (
-      previousValue instanceof IntegerValue &&
+      baseValue instanceof IntegerValue &&
       this.operand instanceof IntegerValue
     ) {
-      const sum = previousValue.internalValue + this.operand.internalValue;
+      const sum = baseValue.internalValue + this.operand.internalValue;
       return new IntegerValue(sum);
-    } else if (previousValue instanceof NumberValue) {
-      const sum = previousValue.internalValue + this.operand.internalValue;
-      return new DoubleValue(sum);
     } else {
-      // If the existing value is not a number, use the value of the transform as
-      // the new base value.
-      return this.operand;
+      const sum = baseValue.internalValue + this.operand.internalValue;
+      return new DoubleValue(sum);
     }
   }
 
@@ -205,6 +220,16 @@ export class NumericIncrementTransformOperation implements TransformOperation {
       "Didn't receive transformResult for NUMERIC_ADD transform"
     );
     return transformResult!;
+  }
+
+  /**
+   * Inspects the provided value, returning the provided value if it is already
+   * a NumberValue, otherwise returning a coerced IntegerValue of 0.
+   */
+  computeBaseValue(previousValue: FieldValue | null): NumberValue {
+    return previousValue instanceof NumberValue
+      ? previousValue
+      : new IntegerValue(0);
   }
 
   isEqual(other: TransformOperation): boolean {

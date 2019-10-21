@@ -62,6 +62,7 @@ function stripPath(path) {
 function runTypedoc() {
   const typeSource = apiType === 'node' ? tempNodeSourcePath : sourceFile;
   const command = `${repoPath}/node_modules/.bin/typedoc ${typeSource} \
+  --tsconfig ${repoPath}/scripts/docgen/tsconfig.json \
   --out ${docPath} \
   --readme ${tempHomePath} \
   --options ${__dirname}/typedoc.js \
@@ -76,9 +77,15 @@ function runTypedoc() {
  * @param {string} subdir Subdir to move files out of.
  */
 function moveFilesToRoot(subdir) {
-  return exec(`mv ${docPath}/${subdir}/* ${docPath}`)
-    .then(() => {
-      exec(`rmdir ${docPath}/${subdir}`);
+  const srcDir = `${docPath}/${subdir}`;
+  return fs
+    .exists(srcDir)
+    .then(exists => {
+      if (exists) {
+        return exec(`mv ${srcDir}/* ${docPath}`).then(() => {
+          exec(`rmdir ${srcDir}`);
+        });
+      }
     })
     .catch(e => console.error(e));
 }
@@ -91,7 +98,7 @@ function fixLinks(file) {
   return fs.readFile(file, 'utf8').then(data => {
     const flattenedLinks = data
       .replace(/\.\.\//g, '')
-      .replace(/(modules|interfaces|classes)\//g, '');
+      .replace(/(modules|interfaces|classes|enums)\//g, '');
     let caseFixedLinks = flattenedLinks;
     for (const lower in lowerToUpperLookup) {
       const re = new RegExp(lower, 'g');
@@ -330,8 +337,6 @@ Promise.all([
     if (await fs.exists(tempNodeSourcePath)) {
       fs.unlink(tempNodeSourcePath);
     }
-    // Devsite doesn't like css.map files.
-    return fs.unlink(`${docPath}/assets/css/main.css.map`);
   })
   // Write out TOC file.  Do this after Typedoc step to prevent Typedoc
   // erroring when it finds an unexpected file in the target dir.
@@ -342,7 +347,8 @@ Promise.all([
     return Promise.all([
       moveFilesToRoot('classes'),
       moveFilesToRoot('modules'),
-      moveFilesToRoot('interfaces')
+      moveFilesToRoot('interfaces'),
+      moveFilesToRoot('enums')
     ]);
   })
   // Check for files listed in TOC that are missing and warn if so.

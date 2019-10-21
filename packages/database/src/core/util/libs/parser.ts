@@ -69,8 +69,8 @@ function decodeQuery(queryString: string): { [key: string]: string } {
 export const parseRepoInfo = function(
   dataURL: string
 ): { repoInfo: RepoInfo; path: Path } {
-  const parsedUrl = parseURL(dataURL),
-    namespace = parsedUrl.subdomain;
+  const parsedUrl = parseDatabaseURL(dataURL),
+    namespace = parsedUrl.namespace;
 
   if (parsedUrl.domain === 'firebase') {
     fatal(
@@ -101,7 +101,9 @@ export const parseRepoInfo = function(
       parsedUrl.host,
       parsedUrl.secure,
       namespace,
-      webSocketOnly
+      webSocketOnly,
+      /*persistenceKey=*/ '',
+      /*includeNamespaceInQueryParams=*/ namespace != parsedUrl.subdomain
     ),
     path: new Path(parsedUrl.pathString)
   };
@@ -110,9 +112,9 @@ export const parseRepoInfo = function(
 /**
  *
  * @param {!string} dataURL
- * @return {{host: string, port: number, domain: string, subdomain: string, secure: boolean, scheme: string, pathString: string}}
+ * @return {{host: string, port: number, domain: string, subdomain: string, secure: boolean, scheme: string, pathString: string, namespace: string}}
  */
-export const parseURL = function(
+export const parseDatabaseURL = function(
   dataURL: string
 ): {
   host: string;
@@ -122,12 +124,14 @@ export const parseURL = function(
   secure: boolean;
   scheme: string;
   pathString: string;
+  namespace: string;
 } {
   // Default to empty strings in the event of a malformed string.
   let host = '',
     domain = '',
     subdomain = '',
-    pathString = '';
+    pathString = '',
+    namespace = '';
 
   // Always default to SSL, unless otherwise specified.
   let secure = true,
@@ -175,14 +179,16 @@ export const parseURL = function(
       // Normalize namespaces to lowercase to share storage / connection.
       domain = parts[1];
       subdomain = parts[0].toLowerCase();
+      // We interpret the subdomain of a 3 component URL as the namespace name.
+      namespace = subdomain;
     } else if (parts.length === 2) {
       domain = parts[0];
     } else if (parts[0].slice(0, colonInd).toLowerCase() === 'localhost') {
       domain = 'localhost';
     }
-    // Support `ns` query param if subdomain not already set
-    if (subdomain === '' && 'ns' in queryParams) {
-      subdomain = queryParams['ns'];
+    // Always treat the value of the `ns` as the namespace name if it is present.
+    if ('ns' in queryParams) {
+      namespace = queryParams['ns'];
     }
   }
 
@@ -193,6 +199,7 @@ export const parseURL = function(
     subdomain,
     secure,
     scheme,
-    pathString
+    pathString,
+    namespace
   };
 };

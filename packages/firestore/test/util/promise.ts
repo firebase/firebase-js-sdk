@@ -25,8 +25,9 @@ export interface Rejecter {
 
 export class Deferred<R> {
   promise: Promise<R>;
-  resolve: Resolver<R>;
-  reject: Rejecter;
+  // Assigned synchronously in constructor by Promise constructor callback.
+  resolve!: Resolver<R>;
+  reject!: Rejecter;
 
   constructor() {
     this.promise = new Promise((resolve: Resolver<R>, reject: Rejecter) => {

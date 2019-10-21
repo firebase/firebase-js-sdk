@@ -152,6 +152,7 @@ apiDescribe('Array Transforms:', (persistence: boolean) => {
    * an updated document via watch). As such they also rely on persistence
    * being enabled so documents remain in the cache after the write.
    */
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? describe : describe.skip)('Server Application: ', () => {
     it('set() with no cached base doc', async () => {
       await withTestDoc(persistence, async docRef => {

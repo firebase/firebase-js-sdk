@@ -82,6 +82,37 @@
             "boolean"
         ],
         "constructor-super": "error",
+        "no-restricted-properties": [
+            "error",
+            { 
+                "object": "it",
+                "property": "skip"
+            }
+            ,
+            { 
+                "object": "it",
+                "property": "only"
+            },
+            { 
+                "object": "describe",
+                "property": "skip"
+            },
+            { 
+                "object": "describe",
+                "property": "only"
+            },
+            { 
+                "object": "xit"
+            }
+        ],
+        "no-restricted-globals": [
+            "error",
+            {"name": "xit"},
+            {"name": "xdescribe"},
+            {"name": "parseInt", "message": "tsstyle#type-coercion"},
+            {"name": "parseFloat", "message": "tsstyle#type-coercion"}
+        ],
+        "no-array-constructor": "error",
         "import/no-default-export": "error",
         "import/no-duplicates": "error",
         "import/no-extraneous-dependencies": [
@@ -97,7 +128,9 @@
         ],
         "@typescript-eslint/array-type": [
             "error",
-            "array-simple"
+            {
+                "default": "array-simple"
+            }
         ],
         "@typescript-eslint/ban-types": [
             "error",
@@ -115,17 +148,22 @@
             "error",
             "never"
         ],
-        "@typescript-eslint/prefer-interface": "error",
+        "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
         "@typescript-eslint/explicit-member-accessibility": [
             "error",
             {
                 "accessibility": "no-public",
                 "overrides": {
-                    "parameterProperties": "explicit"
+                    "parameterProperties": "off"
                 }
             }
         ],
-        "@typescript-eslint/no-angle-bracket-type-assertion": "error",
+        "@typescript-eslint/consistent-type-assertions": [
+            "error",
+            {
+                "assertionStyle": "as"
+            }
+        ],
         "@typescript-eslint/no-explicit-any": "error",
         "@typescript-eslint/no-namespace": [
             "error",
@@ -133,7 +171,14 @@
                 "allowDeclarations": true
             }
         ],
-        "@typescript-eslint/no-triple-slash-reference": "error",
+        "@typescript-eslint/triple-slash-reference": [
+            "error",
+            {
+                "path": "never",
+                "types": "never",
+                "lib": "never"
+            }
+        ],
         "@typescript-eslint/no-require-imports": "error",
         "@typescript-eslint/no-useless-constructor": "error",
         "@typescript-eslint/semi": "error",
@@ -152,23 +197,12 @@
                 "argsIgnorePattern": "^_"
             }
         ],
+        "@typescript-eslint/no-floating-promises": "error",
         "@typescript-eslint/tslint/config": [
             "error",
             {
-                "rules": {    
-                    "ban": [true,
-                        {"name": ["it", "skip"]},
-                        {"name": ["it", "only"]},
-                        {"name": ["describe", "skip"]},
-                        {"name": ["describe", "only"]},
-                        {"name": ["xit"]},
-                        {"name": ["xdescribe"]},
-                        {"name": "parseInt", "message": "tsstyle#type-coercion"},
-                        {"name": "parseFloat", "message": "tsstyle#type-coercion"},
-                        {"name": "Array", "message": "tsstyle#array-constructor"}
-                    ],
+                "rules": {
                     "jsdoc-format": true,
-                    "no-floating-promises": true,
                     "arrow-return-shorthand": true
                 }
             }

@@ -27,7 +27,8 @@ import { getDefaultDatabaseInfo } from '../util/internal_helpers';
 const describeFn =
   typeof window === 'object' && typeof window.navigator === 'object'
     ? describe
-    : xdescribe;
+    : // eslint-disable-next-line no-restricted-globals,
+      xdescribe;
 
 describeFn('WebChannel', () => {
   describe('makeUrl', () => {
@@ -42,7 +43,7 @@ describeFn('WebChannel', () => {
     const makeUrl = conn.makeUrl.bind(conn);
 
     it('includes project ID and database ID', () => {
-      const url = makeUrl('Commit', {});
+      const url = makeUrl('Commit');
       expect(url).to.equal(
         'http://example.com/v1/projects/testproject/' +
           'databases/(default)/documents:commit'

@@ -50,7 +50,9 @@ import {
 } from '../../../src/model/mutation';
 import { AsyncQueue } from '../../../src/util/async_queue';
 import { path, wrapObject } from '../../util/helpers';
+import { SortedMap } from '../../../src/util/sorted_map';
 import * as PersistenceTestHelpers from './persistence_test_helpers';
+import { primitiveComparator } from '../../../src/util/misc';
 
 describe('IndexedDbLruDelegate', () => {
   if (!IndexedDbPersistence.isAvailable()) {
@@ -141,6 +143,10 @@ function genericLruGarbageCollectorTests(
     return DocumentKey.fromPathString('docs/doc_' + ++previousDocNum);
   }
 
+  function emptyQueryDataMap(): SortedMap<TargetId, QueryData> {
+    return new SortedMap<TargetId, QueryData>(primitiveComparator);
+  }
+
   function addNextTargetInTransaction(
     txn: PersistenceTransaction
   ): PersistencePromise<QueryData> {
@@ -158,9 +164,7 @@ function genericLruGarbageCollectorTests(
     txn: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    const updated = queryData.copy({
-      sequenceNumber: txn.currentSequenceNumber
-    });
+    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
     return queryCache
       .updateQueryData(txn, updated)
       .next(() =>
@@ -243,8 +247,8 @@ function genericLruGarbageCollectorTests(
     return new Document(
       key,
       SnapshotVersion.fromMicroseconds(1000),
-      wrapObject({ foo: 3, bar: false }),
-      {}
+      {},
+      wrapObject({ foo: 3, bar: false })
     );
   }
 
@@ -254,7 +258,7 @@ function genericLruGarbageCollectorTests(
   ): PersistencePromise<void> {
     const changeBuffer = documentCache.newChangeBuffer();
     return changeBuffer.getEntry(txn, doc.key).next(() => {
-      changeBuffer.addEntry(doc);
+      changeBuffer.addEntry(doc, doc.version);
       return changeBuffer.apply(txn);
     });
   }
@@ -396,13 +400,13 @@ function genericLruGarbageCollectorTests(
   });
 
   it('removes targets up through sequence number', async () => {
-    const activeTargetIds: ActiveTargets = {};
+    let activeTargetIds: ActiveTargets = emptyQueryDataMap();
     for (let i = 0; i < 100; i++) {
       const queryData = await addNextTarget();
       // Mark odd queries as live so we can test filtering out live queries.
       const targetId = queryData.targetId;
       if (targetId % 2 === 1) {
-        activeTargetIds[targetId] = queryData;
+        activeTargetIds = activeTargetIds.insert(targetId, queryData);
       }
     }
 
@@ -774,8 +778,8 @@ function genericLruGarbageCollectorTests(
         const doc = new Document(
           middleDocToUpdate,
           SnapshotVersion.fromMicroseconds(2000),
-          wrapObject({ foo: 4, bar: true }),
-          {}
+          {},
+          wrapObject({ foo: 4, bar: true })
         );
         return saveDocument(txn, doc).next(() => {
           return updateTargetInTransaction(txn, middleTarget);
@@ -807,8 +811,8 @@ function genericLruGarbageCollectorTests(
     );
 
     // Finally, do the garbage collection, up to but not including the removal of middleTarget
-    const activeTargetIds: ActiveTargets = {};
-    activeTargetIds[oldestTarget.targetId] = {};
+    let activeTargetIds: ActiveTargets = emptyQueryDataMap();
+    activeTargetIds = activeTargetIds.insert(oldestTarget.targetId, {});
 
     const preCollectSize = await persistence.runTransaction(
       'get size',
@@ -900,7 +904,7 @@ function genericLruGarbageCollectorTests(
     const results = await persistence.runTransaction(
       'collect garbage',
       'readwrite-primary',
-      txn => garbageCollector.collect(txn, {})
+      txn => garbageCollector.collect(txn, emptyQueryDataMap())
     );
     expect(results.didRun).to.be.false;
   });
@@ -932,7 +936,7 @@ function genericLruGarbageCollectorTests(
     const results = await persistence.runTransaction(
       'collect garbage',
       'readwrite-primary',
-      txn => garbageCollector.collect(txn, {})
+      txn => garbageCollector.collect(txn, emptyQueryDataMap())
     );
     expect(results.didRun).to.be.false;
   });
@@ -942,8 +946,8 @@ function genericLruGarbageCollectorTests(
     await initializeTestResources(LruParams.withCacheSize(100));
     expect(persistence.started).to.be.true;
 
-    // Add 50 targets and 10 documents to each.
-    for (let i = 0; i < 50; i++) {
+    // Add 20 targets and 5 documents to each.
+    for (let i = 0; i < 20; i++) {
       // Use separate transactions so that each target and associated documents get their own
       // sequence number.
       await persistence.runTransaction(
@@ -953,7 +957,7 @@ function genericLruGarbageCollectorTests(
           return addNextTargetInTransaction(txn).next(queryData => {
             const targetId = queryData.targetId;
             const promises: Array<PersistencePromise<void>> = [];
-            for (let j = 0; j < 10; j++) {
+            for (let j = 0; j < 5; j++) {
               promises.push(
                 cacheADocumentInTransaction(txn).next(docKey =>
                   queryCache.addMatchingKeys(
@@ -983,11 +987,11 @@ function genericLruGarbageCollectorTests(
     const results = await persistence.runTransaction(
       'collect garbage',
       'readwrite-primary',
-      txn => garbageCollector.collect(txn, {})
+      txn => garbageCollector.collect(txn, emptyQueryDataMap())
     );
     expect(results.didRun).to.be.true;
-    expect(results.targetsRemoved).to.equal(5);
-    expect(results.documentsRemoved).to.equal(50);
+    expect(results.targetsRemoved).to.equal(2);
+    expect(results.documentsRemoved).to.equal(10);
 
     // Verify that we updated the cache size by checking that it's smaller now.
     const finalCacheSize = await persistence.runTransaction(
@@ -1004,8 +1008,8 @@ function genericLruGarbageCollectorTests(
     const params = new LruParams(100, 100, 5);
     await initializeTestResources(params);
 
-    // Add 50 targets and 10 documents to each.
-    for (let i = 0; i < 50; i++) {
+    // Add 25 targets and 5 documents to each.
+    for (let i = 0; i < 25; i++) {
       // Use separate transactions so that each target and associated documents get their own
       // sequence number.
       await persistence.runTransaction(
@@ -1015,7 +1019,7 @@ function genericLruGarbageCollectorTests(
           return addNextTargetInTransaction(txn).next(queryData => {
             const targetId = queryData.targetId;
             const promises: Array<PersistencePromise<void>> = [];
-            for (let j = 0; j < 10; j++) {
+            for (let j = 0; j < 5; j++) {
               promises.push(
                 cacheADocumentInTransaction(txn).next(docKey =>
                   queryCache.addMatchingKeys(
@@ -1038,7 +1042,7 @@ function genericLruGarbageCollectorTests(
     const results = await persistence.runTransaction(
       'collect garbage',
       'readwrite-primary',
-      txn => garbageCollector.collect(txn, {})
+      txn => garbageCollector.collect(txn, emptyQueryDataMap())
     );
     expect(results.sequenceNumbersCollected).to.equal(5);
   });

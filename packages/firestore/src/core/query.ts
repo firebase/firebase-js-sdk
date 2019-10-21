@@ -199,6 +199,22 @@ export class Query {
     );
   }
 
+  /**
+   * Returns true if this query does not specify any query constraints that
+   * could remove results.
+   */
+  matchesAllDocuments(): boolean {
+    return (
+      this.filters.length === 0 &&
+      this.limit === null &&
+      this.startAt == null &&
+      this.endAt == null &&
+      (this.explicitOrderBy.length === 0 ||
+        (this.explicitOrderBy.length === 1 &&
+          this.explicitOrderBy[0].field.isKeyField()))
+    );
+  }
+
   // TODO(b/29183165): This is used to get a unique string from a query to, for
   // example, use as a dictionary key, but the implementation is subject to
   // collisions. Make it collision-free.
@@ -401,10 +417,7 @@ export class Query {
   private matchesOrderBy(doc: Document): boolean {
     for (const orderBy of this.explicitOrderBy) {
       // order by key always matches
-      if (
-        !orderBy.field.isKeyField() &&
-        doc.field(orderBy.field) === undefined
-      ) {
+      if (!orderBy.field.isKeyField() && doc.field(orderBy.field) === null) {
         return false;
       }
     }
@@ -536,7 +549,7 @@ export class FieldFilter extends Filter {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. You can only perform equals comparisons on null.'
+          'Invalid query. Null supports only equality comparisons.'
         );
       }
       return new FieldFilter(field, op, value);
@@ -544,7 +557,7 @@ export class FieldFilter extends Filter {
       if (op !== Operator.EQUAL) {
         throw new FirestoreError(
           Code.INVALID_ARGUMENT,
-          'Invalid query. You can only perform equals comparisons on NaN.'
+          'Invalid query. NaN supports only equality comparisons.'
         );
       }
       return new FieldFilter(field, op, value);
@@ -572,7 +585,7 @@ export class FieldFilter extends Filter {
 
     // Only compare types with matching backend order (such as double and int).
     return (
-      other !== undefined &&
+      other !== null &&
       this.value.typeOrder === other.typeOrder &&
       this.matchesComparison(other.compareTo(this.value))
     );
@@ -676,7 +689,7 @@ export class InFilter extends FieldFilter {
   matches(doc: Document): boolean {
     const arrayValue = this.value;
     const other = doc.field(this.field);
-    return other !== undefined && arrayValue.contains(other);
+    return other !== null && arrayValue.contains(other);
   }
 }
 
@@ -762,7 +775,7 @@ export class Bound {
       } else {
         const docValue = doc.field(orderByComponent.field);
         assert(
-          docValue !== undefined,
+          docValue !== null,
           'Field should exist since document matched the orderBy already.'
         );
         comparison = component.compareTo(docValue!);

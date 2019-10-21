@@ -125,6 +125,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
   });
 
   it('can delete documents', () => {
+    // TODO(#1865): This test fails with node:persistence against Prod
     return integrationHelpers.withTestDoc(persistence, doc => {
       return doc
         .set({ foo: 'bar' })
@@ -163,6 +164,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
             expect(initialSnap.docs.length).to.equal(0);
 
             // Atomically write two documents.
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             collection.firestore
               .batch()
               .set(docA, { a: 1 })
@@ -275,6 +277,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
             expect(initialSnap.docs.length).to.equal(0);
 
             // Atomically write 2 documents with server timestamps.
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             collection.firestore
               .batch()
               .set(docA, {
@@ -324,7 +327,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         .awaitEvent()
         .then(initialSnap => {
           expect(initialSnap.exists).to.equal(false);
-
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           doc.firestore
             .batch()
             .delete(doc)

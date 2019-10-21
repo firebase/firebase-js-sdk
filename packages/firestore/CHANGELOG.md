@@ -1,13 +1,65 @@
-
 # Unreleased
-- [feature] Added `clearPersistence()`, which clears the persistent storage
-  including pending writes and cached documents. This is intended to help
-  write reliable tests (#449).
+- [changed] Improved iOS 13 support by eliminating an additional crash in our
+  IndexedDB persistence layer.
+
+# 1.6.2
+- [changed] Fixed a crash on iOS 13 that occurred when persistence was enabled
+  in a background tab (#2232).
+- [fixed] Fixed an issue in the interaction with the Firestore Emulator that
+  caused requests with timestamps to fail.
+  
+# 1.6.0
+- [feature] Added a `Firestore.onSnapshotsInSync()` method that notifies you
+  when all your snapshot listeners are in sync with each other.
+- [fixed] Fixed a regression that caused queries with nested field filters to
+  crash the client if the field was not present in the local copy of the
+  document. 
+
+# 1.5.0
+- [feature] Added a `Firestore.waitForPendingWrites()` method that
+  allows users to wait until all pending writes are acknowledged by the
+  Firestore backend.
+- [feature] Added a `Firestore.terminate()` method which terminates
+  the instance, releasing any held resources. Once it completes, you can
+  optionally call `Firestore.clearPersistence()` to wipe persisted Firestore
+  data from disk.
+- [changed] Improved performance for queries with filters that only return a
+  small subset of the documents in a collection.
+- [fixed] Fixed a race condition between authenticating and initializing
+  Firestore that could result in initial writes to the database being dropped.
+
+# 1.4.10
+- [changed] Transactions now perform exponential backoff before retrying.
+  This means transactions on highly contended documents are more likely to
+  succeed.
+
+# 1.4.6
+- [changed] Transactions are now more flexible. Some sequences of operations
+  that were previously incorrectly disallowed are now allowed. For example,
+  after reading a document that doesn't exist, you can now set it multiple
+  times successfully in a transaction.
+
+# 1.4.5
+- [fixed] Fixed an issue where query results were temporarily missing
+  documents that previously had not matched but had been updated to now
+  match the query (https://github.com/firebase/firebase-android-sdk/issues/155).
+
+# 1.4.4
+- [fixed] Fixed an internal assertion that was triggered when an update
+   with a `FieldValue.serverTimestamp()` and an update with a
+  `FieldValue.increment()` were pending for the same document.
+
+# 1.4.0
 - [changed] Added logging and a custom error message to help users hitting
   https://bugs.webkit.org/show_bug.cgi?id=197050 (a bug in iOS 12.2 causing
   the SDK to potentially crash when persistence is enabled).
 - [fixed] Fixed an issue for environments missing `window.addEventListener`, 
   such as in React Native with Expo (#1824).
+
+# 1.3.5
+- [feature] Added `clearPersistence()`, which clears the persistent storage
+  including pending writes and cached documents. This is intended to help
+  write reliable tests (#449).
 
 # 1.3.3
 - [changed] Firestore now recovers more quickly after network connectivity

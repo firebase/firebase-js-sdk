@@ -16,6 +16,7 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
+import { _FirebaseApp } from '@firebase/app-types/private';
 import {
   CompleteFn,
   createSubscribe,
@@ -29,23 +30,19 @@ import {
 import { base64ToArrayBuffer } from '../helpers/base64-to-array-buffer';
 import { DEFAULT_SW_PATH, DEFAULT_SW_SCOPE } from '../models/default-sw';
 import { ErrorCode, errorFactory } from '../models/errors';
-import { DEFAULT_PUBLIC_VAPID_KEY } from '../models/fcm-details';
 import {
-  InternalMessage,
-  MessageParameter,
-  MessageType
-} from '../models/worker-page-message';
+  DEFAULT_PUBLIC_VAPID_KEY,
+  FN_CAMPAIGN_ID,
+  FN_CAMPAIGN_NAME,
+  FN_CAMPAIGN_TIME,
+  FN_CAMPAIGN_ANALYTICS_ENABLED
+} from '../models/fcm-details';
+import { InternalMessage, MessageType } from '../models/worker-page-message';
 import { BaseController } from './base-controller';
-
-interface ManifestContent {
-  // eslint-disable-next-line camelcase
-  gcm_sender_id: string;
-}
 
 export class WindowController extends BaseController {
   private registrationToUse: ServiceWorkerRegistration | null = null;
   private publicVapidKeyToUse: Uint8Array | null = null;
-  private manifestCheckPromise: Promise<void> | null = null;
 
   private messageObserver: Observer<object> | null = null;
   // @ts-ignore: Unused variable error, this is not implemented yet.
@@ -70,23 +67,6 @@ export class WindowController extends BaseController {
     super(app);
 
     this.setupSWMessageListener_();
-  }
-
-  /**
-   * This method returns an FCM token if it can be generated.
-   * The return promise will reject if the browser doesn't support
-   * FCM, if permission is denied for notifications or it's not
-   * possible to generate a token.
-   *
-   * @return Returns a promise that resolves to an FCM token or null if
-   * permission isn't granted.
-   */
-  async getToken(): Promise<string | null> {
-    if (!this.manifestCheckPromise) {
-      this.manifestCheckPromise = manifestCheck();
-    }
-    await this.manifestCheckPromise;
-    return super.getToken();
   }
 
   /**
@@ -270,7 +250,7 @@ export class WindowController extends BaseController {
           // We update after activation due to an issue with Firefox v49 where
           // a race condition occassionally causes the service worker to not
           // install
-          // tslint:disable-next-line:no-floating-promises
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           registration.update();
 
           return registration;
@@ -279,8 +259,8 @@ export class WindowController extends BaseController {
   }
 
   /**
-   * This will return the default VAPID key or the uint8array version of the public VAPID key
-   * provided by the developer.
+   * This will return the default VAPID key or the uint8array version of the
+   * public VAPID key provided by the developer.
    */
   async getPublicVapidKey_(): Promise<Uint8Array> {
     if (this.publicVapidKeyToUse) {
@@ -301,23 +281,44 @@ export class WindowController extends BaseController {
     navigator.serviceWorker.addEventListener(
       'message',
       event => {
-        if (!event.data || !event.data[MessageParameter.TYPE_OF_MSG]) {
+        if (
+          !event.data ||
+          !event.data.firebaseMessagingType ||
+          !event.data.firebaseMessagingData
+        ) {
           // Not a message from FCM
           return;
         }
 
-        const workerPageMessage: InternalMessage = event.data;
-        switch (workerPageMessage[MessageParameter.TYPE_OF_MSG]) {
-          case MessageType.PUSH_MSG_RECEIVED:
-          case MessageType.NOTIFICATION_CLICKED:
-            const pushMessage = workerPageMessage[MessageParameter.DATA];
-            if (this.messageObserver) {
-              this.messageObserver.next(pushMessage);
+        const {
+          firebaseMessagingType,
+          firebaseMessagingData
+        }: InternalMessage = event.data;
+
+        if (this.messageObserver) {
+          this.messageObserver.next(firebaseMessagingData);
+        }
+
+        const { data } = firebaseMessagingData;
+        if (
+          data &&
+          FN_CAMPAIGN_ID in data &&
+          data[FN_CAMPAIGN_ANALYTICS_ENABLED] === '1'
+        ) {
+          // This message has a campaign id, meaning it was sent using the FN Console.
+          // Analytics is enabled on this message, so we should log it.
+          const eventType = getEventType(firebaseMessagingType);
+          (this.app as _FirebaseApp).INTERNAL.analytics.logEvent(
+            eventType,
+            /* eslint-disable camelcase */
+            {
+              message_name: data[FN_CAMPAIGN_NAME],
+              message_id: data[FN_CAMPAIGN_ID],
+              message_time: data[FN_CAMPAIGN_TIME],
+              message_device_time: Math.floor(Date.now() / 1000)
             }
-            break;
-          default:
-            // Noop.
-            break;
+            /* eslint-enable camelcase */
+          );
         }
       },
       false
@@ -325,37 +326,13 @@ export class WindowController extends BaseController {
   }
 }
 
-/**
- * The method checks that a manifest is defined and has the correct GCM
- * sender ID.
- * @return Returns a promise that resolves if the manifest matches
- * our required sender ID
- */
-// Exported for testing
-export async function manifestCheck(): Promise<void> {
-  const manifestTag = document.querySelector<HTMLAnchorElement>(
-    'link[rel="manifest"]'
-  );
-
-  if (!manifestTag) {
-    return;
-  }
-
-  let manifestContent: ManifestContent;
-  try {
-    const response = await fetch(manifestTag.href);
-    manifestContent = await response.json();
-  } catch (e) {
-    // If the download or parsing fails allow check.
-    // We only want to error if we KNOW that the gcm_sender_id is incorrect.
-    return;
-  }
-
-  if (!manifestContent || !manifestContent.gcm_sender_id) {
-    return;
-  }
-
-  if (manifestContent.gcm_sender_id !== '103953800507') {
-    throw errorFactory.create(ErrorCode.INCORRECT_GCM_SENDER_ID);
+function getEventType(messageType: MessageType): string {
+  switch (messageType) {
+    case MessageType.NOTIFICATION_CLICKED:
+      return 'notification_open';
+    case MessageType.PUSH_MSG_RECEIVED:
+      return 'notification_foreground';
+    default:
+      throw new Error();
   }
 }

@@ -36,7 +36,7 @@ import {
 import { ErrorResponse } from './common';
 import { generateAuthToken } from './generate-auth-token';
 
-const FID = 'defenders-of-the-faith';
+const FID = 'evil-has-no-boundaries';
 
 describe('generateAuthToken', () => {
   let appConfig: AppConfig;

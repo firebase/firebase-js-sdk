@@ -22,9 +22,8 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import { apiDescribe, withTestDoc } from '../util/helpers';
 
-// tslint:disable:no-floating-promises
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, Allow custom types for testing.
+// Allow custom types for testing.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTestData = any;
 
 const Timestamp = firebase.firestore!.Timestamp;
@@ -209,6 +208,14 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
   });
 
   it('can return previous value', () => {
+    // The following test includes an update of the nested map "deep", which
+    // updates it to contain a single ServerTimestamp. This update is split
+    // into two mutations: One that sets "deep" to an empty map and overwrites
+    // the previous ServerTimestamp value and a second transform that writes
+    // the new ServerTimestamp. This step in the test verifies that we can
+    // still access the old ServerTimestamp value (from `previousSnapshot`) even
+    // though it was removed in an intermediate step.
+
     let previousSnapshot: firestore.DocumentSnapshot;
 
     return withTestSetup(() => {
@@ -251,8 +258,10 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
         .then(() => docRef.firestore.disableNetwork())
         .then(() => {
           // We set up two consecutive writes with server timestamps.
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           docRef.update('a', FieldValue.serverTimestamp());
           // include b=1 to ensure there's a change resulting in a new snapshot.
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           docRef.update('a', FieldValue.serverTimestamp(), 'b', 1);
           return accumulator.awaitLocalEvents(2);
         })
@@ -279,8 +288,11 @@ apiDescribe('Server Timestamps', (persistence: boolean) => {
         .then(() => docRef.firestore.disableNetwork())
         .then(() => {
           // We set up three consecutive writes.
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           docRef.update('a', FieldValue.serverTimestamp());
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           docRef.update('a', 1337);
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           docRef.update('a', FieldValue.serverTimestamp());
           return accumulator.awaitLocalEvents(3);
         })

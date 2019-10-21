@@ -156,6 +156,10 @@ fireauth.Auth = function(app) {
   this.userDeleteListener_ = goog.bind(this.handleUserDelete_, this);
   /** @private {!function(!Object)} The handler for user invalidation. */
   this.userInvalidatedListener_ = goog.bind(this.handleUserInvalidated_, this);
+  /**
+   * @private {?fireauth.AuthEventManager} The Auth event manager instance.
+   */
+  this.authEventManager_ = null;
   // TODO: find better way to enable or disable auth event manager.
   if (fireauth.AuthEventManager.ENABLED) {
     // Initialize Auth event manager to handle popup and redirect operations.
@@ -309,6 +313,28 @@ fireauth.Auth.prototype.setUserFramework_ = function(user) {
 
 
 /**
+ * Sets the tenant ID.
+ * @param {?string} tenantId The tenant ID of the tenant project if available.
+ */
+fireauth.Auth.prototype.setTenantId = function(tenantId) {
+  // Don't do anything if no change detected.
+  if (this.tenantId_ !== tenantId && !this.deleted_) {
+    this.tenantId_ = tenantId;
+    this.rpcHandler_.updateTenantId(this.tenantId_);
+  }
+};
+
+
+/**
+ * Returns the current Auth instance's tenant ID.
+ * @return {?string}
+ */
+fireauth.Auth.prototype.getTenantId = function() {
+  return this.tenantId_;
+};
+
+
+/**
  * Initializes readable/writable properties on Auth.
  * @suppress {invalidCasts}
  * @private
@@ -334,6 +360,28 @@ fireauth.Auth.prototype.initializeReadableWritableProps_ = function() {
   // Initialize to null.
   /** @private {?string} The current Auth instance's language code. */
   this.languageCode_ = null;
+
+  // Initialize tenant ID.
+  Object.defineProperty(/** @type {!Object} */ (this), 'ti', {
+    /**
+     * @this {!Object}
+     * @return {?string} The current tenant ID.
+     */
+    get: function() {
+      return this.getTenantId();
+    },
+    /**
+     * @this {!Object}
+     * @param {?string} value The new tenant ID.
+     */
+    set: function(value) {
+      this.setTenantId(value);
+    },
+    enumerable: false
+  });
+  // Initialize to null.
+  /** @private {?string} The current Auth instance's tenant ID. */
+  this.tenantId_ = null;
 };
 
 
@@ -501,8 +549,8 @@ fireauth.Auth.prototype.resolvePendingPopupEvent =
  * finisher.
  * @param {!fireauth.AuthEvent.Type} mode The Auth type mode.
  * @param {?string=} opt_eventId The optional event ID.
- * @return {?function(string,
- *     string, ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
+ * @return {?function(string, string, ?string,
+ *     ?string=):!goog.Promise<!fireauth.AuthEventManager.Result>}
  * @override
  */
 fireauth.Auth.prototype.getAuthEventHandlerFinisher =
@@ -523,17 +571,21 @@ fireauth.Auth.prototype.getAuthEventHandlerFinisher =
  * Finishes the popup and redirect sign in operations.
  * @param {string} requestUri The callback url with the oauth response.
  * @param {string} sessionId The session id used to generate the authUri.
+ * @param {?string} tenantId The tenant ID.
  * @param {?string=} opt_postBody The optional POST body content.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.Auth.prototype.finishPopupAndRedirectSignIn =
-    function(requestUri, sessionId, opt_postBody) {
+    function(requestUri, sessionId, tenantId, opt_postBody) {
   var self = this;
   // Verify assertion request.
   var request = {
     'requestUri': requestUri,
     'postBody': opt_postBody,
-    'sessionId': sessionId
+    'sessionId': sessionId,
+    // Even if tenant ID is null, still pass it to RPC handler explicitly so
+    // that it won't be overridden by RPC handler's tenant ID.
+    'tenantId': tenantId
   };
   // Now that popup has responded, delete popup timeout promise.
   if (this.popupTimeoutPromise_) {
@@ -595,7 +647,10 @@ fireauth.Auth.prototype.signInWithPopup = function(provider) {
             provider,
             null,
             eventId,
-            firebase.SDK_VERSION || null);
+            firebase.SDK_VERSION || null,
+            null,
+            null,
+            this.getTenantId());
   }
   // The popup must have a name, otherwise when successive popups are triggered
   // they will all render in the same instance and none will succeed since the
@@ -610,7 +665,8 @@ fireauth.Auth.prototype.signInWithPopup = function(provider) {
   var p = this.getAuthEventManager_().then(function(manager) {
     // Process popup request tagging it with newly created event ID.
     return manager.processPopup(
-        popupWin, mode, provider, eventId, !!oauthHelperWidgetUrl);
+        popupWin, mode, provider, eventId, !!oauthHelperWidgetUrl,
+        self.getTenantId());
   }).then(function() {
     return new goog.Promise(function(resolve, reject) {
       // Expire other pending promises if still available..
@@ -675,7 +731,8 @@ fireauth.Auth.prototype.signInWithRedirect = function(provider) {
     return self.userStorageManager_.savePersistenceForRedirect();
   }).then(function() {
     // Process redirect operation.
-    return self.authEventManager_.processRedirect(mode, provider);
+    return self.authEventManager_.processRedirect(
+        mode, provider, undefined, self.getTenantId());
   });
   return /** @type {!goog.Promise<void>} */ (this.registerPendingPromise_(p));
 };
@@ -687,8 +744,9 @@ fireauth.Auth.prototype.signInWithRedirect = function(provider) {
  * redirect sign, will reject with the proper error. If no redirect operation
  * called, resolves with null.
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ * @private
  */
-fireauth.Auth.prototype.getRedirectResult = function() {
+fireauth.Auth.prototype.getRedirectResultWithoutClearing_ = function() {
   // Check if popup and redirect are supported in this environment.
   if (!fireauth.util.isPopupRedirectSupported()) {
     return goog.Promise.reject(new fireauth.AuthError(
@@ -712,6 +770,29 @@ fireauth.Auth.prototype.getRedirectResult = function() {
 
 
 /**
+ * In addition to returning the redirect result as in
+ * `getRedirectResultWithoutClearing_`, this will also clear the cached
+ * redirect result for security reasons.
+ * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
+ */
+fireauth.Auth.prototype.getRedirectResult = function() {
+  return this.getRedirectResultWithoutClearing_()
+        .then((result) => {
+          if (this.authEventManager_) {
+            this.authEventManager_.clearRedirectResult();
+          }
+          return result;
+        })
+        .thenCatch((error) => {
+          if (this.authEventManager_) {
+            this.authEventManager_.clearRedirectResult();
+          }
+          throw error;
+        });
+};
+
+
+/**
  * Asynchronously sets the provided user as currentUser on the current Auth
  * instance.
  * @param {?fireauth.AuthUser} user The user to be copied to Auth instance.
@@ -721,6 +802,10 @@ fireauth.Auth.prototype.updateCurrentUser = function(user) {
   if (!user) {
     return goog.Promise.reject(new fireauth.AuthError(
         fireauth.authenum.Error.NULL_USER));
+  }
+  if (this.tenantId_ != user['tenantId']) {
+    return goog.Promise.reject(new fireauth.AuthError(
+        fireauth.authenum.Error.TENANT_ID_MISMATCH));
   }
   var self = this;
   var options = {};
@@ -840,6 +925,17 @@ fireauth.Auth.prototype.signOut = function() {
   // Wait for final state to be ready first, otherwise a signed out user could
   // come back to life.
   var p = this.redirectStateIsReady_.then(function() {
+    // Clear any cached redirect result on sign out, even if user is already
+    // signed out. For example, sign in could fail due to account conflict
+    // error, the error in redirect result should still be cleared. There is
+    // also the use case where you keep a reference to a signed out user and
+    // call signedOutUser.linkWithRedirect(provider). Even though the user is
+    // signed out, getRedirectResult() will resolve with the modified signed
+    // out user. This could also throw an error
+    // (provider already linked, etc).
+    if (self.authEventManager_) {
+      self.authEventManager_.clearRedirectResult();
+    }
     // Ignore if already signed out.
     if (!self.currentUser_()) {
       return goog.Promise.resolve();
@@ -973,7 +1069,7 @@ fireauth.Auth.prototype.initAuthRedirectState_ = function() {
   // Wait first for state to be loaded from storage.
   return this.authStateLoaded_.then(function() {
     // Resolve any pending redirect result.
-    return self.getRedirectResult();
+    return self.getRedirectResultWithoutClearing_();
   }).thenCatch(function(error) {
     // Ignore any error in the process. Redirect could be not supported.
     return;
@@ -1827,7 +1923,7 @@ fireauth.Auth.prototype.fetchSignInMethodsForEmail = function(email) {
  */
 fireauth.Auth.prototype.isSignInWithEmailLink = function(emailLink) {
   return  !!fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink);
+      .getActionCodeUrlFromSignInEmailLink(emailLink);
 };
 
 
@@ -1982,11 +2078,22 @@ fireauth.Auth.prototype.signInWithPhoneNumber =
  * @return {!goog.Promise<!fireauth.AuthEventManager.Result>}
  */
 fireauth.Auth.prototype.signInWithEmailLink = function(email, opt_link) {
-  var self = this;
-  return this.registerPendingPromise_(
-      goog.Promise.resolve().then(function() {
-        var credential = fireauth.EmailAuthProvider.credentialWithLink(
-            email, opt_link || fireauth.util.getCurrentUrl());
-        return self.signInWithCredential(credential);
-      }));
+  return this.registerPendingPromise_(goog.Promise.resolve().then(() => {
+      const link = opt_link || fireauth.util.getCurrentUrl();
+      const credential = fireauth.EmailAuthProvider.credentialWithLink(
+          email, link);
+      // Check if the tenant ID in the email link matches the tenant ID on Auth
+      // instance.
+      const actionCodeUrl =
+          fireauth.EmailAuthProvider.getActionCodeUrlFromSignInEmailLink(link);
+      if (!actionCodeUrl) {
+        throw new fireauth.AuthError(
+            fireauth.authenum.Error.ARGUMENT_ERROR, 'Invalid email link!');
+      }
+      if (actionCodeUrl['tenantId'] !== this.getTenantId()) {
+        throw new fireauth.AuthError(
+            fireauth.authenum.Error.TENANT_ID_MISMATCH);
+      }
+      return this.signInWithCredential(credential);
+  }));
 };

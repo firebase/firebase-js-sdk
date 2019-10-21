@@ -27,6 +27,11 @@ import {
 import { Api } from '../services/api_service';
 import { logTrace } from '../services/perf_logger';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
+import {
+  isValidCustomAttributeName,
+  isValidCustomAttributeValue
+} from '../utils/attributes_utils';
+import { isValidMetricName } from '../utils/metric_utils';
 import { PerformanceTrace } from '@firebase/performance-types';
 
 const enum TraceState {
@@ -60,12 +65,8 @@ export class Trace implements PerformanceTrace {
     traceMeasureName?: string
   ) {
     if (!this.isAuto) {
-      this.traceStartMark = `${TRACE_START_MARK_PREFIX}-${this.randomId}-${
-        this.name
-      }`;
-      this.traceStopMark = `${TRACE_STOP_MARK_PREFIX}-${this.randomId}-${
-        this.name
-      }`;
+      this.traceStartMark = `${TRACE_START_MARK_PREFIX}-${this.randomId}-${this.name}`;
+      this.traceStopMark = `${TRACE_STOP_MARK_PREFIX}-${this.randomId}-${this.name}`;
       this.traceMeasure =
         traceMeasureName ||
         `${TRACE_MEASURE_PREFIX}-${this.randomId}-${this.name}`;
@@ -150,7 +151,7 @@ export class Trace implements PerformanceTrace {
    */
   incrementMetric(counter: string, num = 1): void {
     if (this.counters[counter] === undefined) {
-      this.counters[counter] = 0;
+      this.putMetric(counter, 0);
     }
     this.counters[counter] += num;
   }
@@ -162,7 +163,13 @@ export class Trace implements PerformanceTrace {
    * @param num Set custom metric to this value
    */
   putMetric(counter: string, num: number): void {
-    this.counters[counter] = num;
+    if (isValidMetricName(counter, this.name)) {
+      this.counters[counter] = num;
+    } else {
+      throw ERROR_FACTORY.create(ErrorCode.INVALID_CUSTOM_METRIC_NAME, {
+        customMetricName: counter
+      });
+    }
   }
 
   /**
@@ -180,7 +187,23 @@ export class Trace implements PerformanceTrace {
    * @param value
    */
   putAttribute(attr: string, value: string): void {
-    this.customAttributes[attr] = value;
+    const isValidName = isValidCustomAttributeName(attr);
+    const isValidValue = isValidCustomAttributeValue(value);
+    if (isValidName && isValidValue) {
+      this.customAttributes[attr] = value;
+      return;
+    }
+    // Throw appropriate error when the attribute name or value is invalid.
+    if (!isValidName) {
+      throw ERROR_FACTORY.create(ErrorCode.INVALID_ATTRIBUTE_NAME, {
+        attributeName: attr
+      });
+    }
+    if (!isValidValue) {
+      throw ERROR_FACTORY.create(ErrorCode.INVALID_ATTRIBUTE_VALUE, {
+        attributeValue: value
+      });
+    }
   }
 
   /**
@@ -247,15 +270,15 @@ export class Trace implements PerformanceTrace {
     // navigationTimings includes only one element.
     if (navigationTimings && navigationTimings[0]) {
       trace.setDuration(Math.floor(navigationTimings[0].duration * 1000));
-      trace.incrementMetric(
+      trace.putMetric(
         'domInteractive',
         Math.floor(navigationTimings[0].domInteractive * 1000)
       );
-      trace.incrementMetric(
+      trace.putMetric(
         'domContentLoadedEventEnd',
         Math.floor(navigationTimings[0].domContentLoadedEventEnd * 1000)
       );
-      trace.incrementMetric(
+      trace.putMetric(
         'loadEventEnd',
         Math.floor(navigationTimings[0].loadEventEnd * 1000)
       );
@@ -268,7 +291,7 @@ export class Trace implements PerformanceTrace {
         paintObject => paintObject.name === FIRST_PAINT
       );
       if (firstPaint && firstPaint.startTime) {
-        trace.incrementMetric(
+        trace.putMetric(
           FIRST_PAINT_COUNTER_NAME,
           Math.floor(firstPaint.startTime * 1000)
         );
@@ -277,14 +300,14 @@ export class Trace implements PerformanceTrace {
         paintObject => paintObject.name === FIRST_CONTENTFUL_PAINT
       );
       if (firstContentfulPaint && firstContentfulPaint.startTime) {
-        trace.incrementMetric(
+        trace.putMetric(
           FIRST_CONTENTFUL_PAINT_COUNTER_NAME,
           Math.floor(firstContentfulPaint.startTime * 1000)
         );
       }
 
       if (firstInputDelay) {
-        trace.incrementMetric(
+        trace.putMetric(
           FIRST_INPUT_DELAY_COUNTER_NAME,
           Math.floor(firstInputDelay * 1000)
         );

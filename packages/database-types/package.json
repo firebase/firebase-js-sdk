@@ -1,6 +1,6 @@
 {
   "name": "@firebase/database-types",
-  "version": "0.4.0",
+  "version": "0.4.5",
   "description": "@firebase/database Types",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "license": "Apache-2.0",
@@ -10,8 +10,8 @@
   "files": [
     "index.d.ts"
   ],
-  "peerDependencies": {
-    "@firebase/app-types": "0.x"
+  "dependencies": {
+    "@firebase/app-types": "0.4.5"
   },
   "repository": {
     "directory": "packages/database-types",
@@ -22,6 +22,6 @@
     "url": "https://github.com/firebase/firebase-js-sdk/issues"
   },
   "devDependencies": {
-    "typescript": "3.4.5"
+    "typescript": "3.6.4"
   }
 }

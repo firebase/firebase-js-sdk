@@ -138,7 +138,7 @@ class NetworkRequest<T> implements Request<T> {
         xhr.addUploadProgressListener(progressListener);
       }
 
-      // tslint:disable-next-line:no-floating-promises
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       xhr
         .send(self.url_, self.method_, self.body_, self.headers_)
         .then((xhr: XhrIo) => {

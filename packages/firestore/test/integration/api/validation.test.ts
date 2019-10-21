@@ -81,7 +81,7 @@ const validationIt: ValidationIt = Object.assign(
       message: string,
       _: (db: firestore.FirebaseFirestore) => void | Promise<any>
     ): void {
-      // tslint:disable-next-line:ban
+      // eslint-disable-next-line no-restricted-properties
       it.skip(message, () => {});
     },
     only(
@@ -89,7 +89,7 @@ const validationIt: ValidationIt = Object.assign(
       message: string,
       testFunction: (db: firestore.FirebaseFirestore) => void | Promise<any>
     ): void {
-      // tslint:disable-next-line:ban
+      // eslint-disable-next-line no-restricted-properties
       it.only(message, () => {
         return withTestDb(persistence, async db => {
           const maybePromise = testFunction(db);
@@ -334,6 +334,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
     expect(() => collection.onSnapshot({ bad: true } as any, fn)).to.throw(
       `Unknown option 'bad' passed to function ` +
         `Query.onSnapshot(). Available options: includeMetadataChanges`
+    );
+
+    expect(() => db.onSnapshotsInSync('bad' as any)).to.throw(
+      `Function Firestore.onSnapshotsInSync() requires its first ` +
+        `argument to be of type function, but it was: "bad"`
     );
   });
 
@@ -815,10 +820,10 @@ apiDescribe('Validation:', (persistence: boolean) => {
       db => {
         const collection = db.collection('test');
         expect(() => collection.where('a', '>', null)).to.throw(
-          'Invalid query. You can only perform equals comparisons on null.'
+          'Invalid query. Null supports only equality comparisons.'
         );
         expect(() => collection.where('a', 'array-contains', null)).to.throw(
-          'Invalid query. You can only perform equals comparisons on null.'
+          'Invalid query. Null supports only equality comparisons.'
         );
         expect(() => collection.where('a', inOp, null)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
@@ -828,13 +833,11 @@ apiDescribe('Validation:', (persistence: boolean) => {
         );
 
         expect(() => collection.where('a', '>', Number.NaN)).to.throw(
-          'Invalid query. You can only perform equals comparisons on NaN.'
+          'Invalid query. NaN supports only equality comparisons.'
         );
         expect(() =>
           collection.where('a', 'array-contains', Number.NaN)
-        ).to.throw(
-          'Invalid query. You can only perform equals comparisons on NaN.'
-        );
+        ).to.throw('Invalid query. NaN supports only equality comparisons.');
         expect(() => collection.where('a', inOp, Number.NaN)).to.throw(
           "Invalid Query. A non-empty array is required for 'in' filters."
         );
@@ -913,6 +916,7 @@ apiDescribe('Validation:', (persistence: boolean) => {
             });
 
             const doc: firestore.DocumentReference = collection.doc();
+            // eslint-disable-next-line @typescript-eslint/no-floating-promises
             doc.set({ timestamp: FieldValue.serverTimestamp() });
             await offlineDeferred.promise;
 

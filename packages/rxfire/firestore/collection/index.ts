@@ -17,8 +17,8 @@
 
 import { firestore } from 'firebase/app';
 import { fromCollectionRef } from '../fromRef';
-import { Observable } from 'rxjs';
-import { map, filter, scan } from 'rxjs/operators';
+import { Observable, MonoTypeOperatorFunction } from 'rxjs';
+import { map, filter, scan, distinctUntilChanged } from 'rxjs/operators';
 import { snapToData } from '../document';
 
 const ALL_EVENTS: firestore.DocumentChangeType[] = [
@@ -32,7 +32,9 @@ const ALL_EVENTS: firestore.DocumentChangeType[] = [
  * are specified by the event filter. If the document change type is not
  * in specified events array, it will not be emitted.
  */
-const filterEvents = (events?: firestore.DocumentChangeType[]) =>
+const filterEvents = (
+  events?: firestore.DocumentChangeType[]
+): MonoTypeOperatorFunction<firestore.DocumentChange[]> =>
   filter((changes: firestore.DocumentChange[]) => {
     let hasChange = false;
     for (let i = 0; i < changes.length; i++) {
@@ -55,6 +57,16 @@ const filterEmpty = filter(
 );
 
 /**
+ * Splice arguments on top of a sliced array, to break top-level ===
+ * this is useful for change-detection
+ */
+function sliceAndSplice<T>(original: T[], start: number, deleteCount: number, ...args: T[]): T[] {
+  const returnArray = original.slice();
+  returnArray.splice(start, deleteCount, ...args);
+  return returnArray;
+}
+
+/**
  * Creates a new sorted array from a new change.
  * @param combined
  * @param change
@@ -67,37 +79,40 @@ function processIndividualChange(
     case 'added':
       if (
         combined[change.newIndex] &&
-        combined[change.newIndex].doc.id == change.doc.id
+        combined[change.newIndex].doc.ref.isEqual(change.doc.ref)
       ) {
         // Skip duplicate emissions. This is rare.
         // TODO: Investigate possible bug in SDK.
       } else {
-        combined.splice(change.newIndex, 0, change);
+        return sliceAndSplice(combined, change.newIndex, 0, change);
       }
       break;
     case 'modified':
       if (
         combined[change.oldIndex] == null ||
-        combined[change.oldIndex].doc.id == change.doc.id
+        combined[change.oldIndex].doc.ref.isEqual(change.doc.ref)
       ) {
         // When an item changes position we first remove it
         // and then add it's new position
         if (change.oldIndex !== change.newIndex) {
-          combined.splice(change.oldIndex, 1);
-          combined.splice(change.newIndex, 0, change);
+          const copiedArray = combined.slice();
+          copiedArray.splice(change.oldIndex, 1);
+          copiedArray.splice(change.newIndex, 0, change);
+          return copiedArray;
         } else {
-          combined[change.newIndex] = change;
+          return sliceAndSplice(combined, change.newIndex, 1, change);
         }
       }
       break;
     case 'removed':
       if (
         combined[change.oldIndex] &&
-        combined[change.oldIndex].doc.id == change.doc.id
+        combined[change.oldIndex].doc.ref.isEqual(change.doc.ref)
       ) {
-        combined.splice(change.oldIndex, 1);
+        return sliceAndSplice(combined, change.oldIndex, 1);
       }
       break;
+    default: // ignore
   }
   return combined;
 }
@@ -113,7 +128,7 @@ function processDocumentChanges(
   current: firestore.DocumentChange[],
   changes: firestore.DocumentChange[],
   events: firestore.DocumentChangeType[] = ALL_EVENTS
-) {
+): firestore.DocumentChange[] {
   changes.forEach(change => {
     // skip unwanted change types
     if (events.indexOf(change.type) > -1) {
@@ -131,7 +146,7 @@ function processDocumentChanges(
 export function collectionChanges(
   query: firestore.Query,
   events: firestore.DocumentChangeType[] = ALL_EVENTS
-) {
+): Observable<firestore.DocumentChange[]> {
   return fromCollectionRef(query).pipe(
     map(snapshot => snapshot.docChanges()),
     filterEvents(events),
@@ -143,7 +158,9 @@ export function collectionChanges(
  * Return a stream of document snapshots on a query. These results are in sort order.
  * @param query
  */
-export function collection(query: firestore.Query) {
+export function collection(
+  query: firestore.Query
+): Observable<firestore.QueryDocumentSnapshot[]> {
   return fromCollectionRef(query).pipe(map(changes => changes.docs));
 }
 
@@ -154,7 +171,7 @@ export function collection(query: firestore.Query) {
 export function sortedChanges(
   query: firestore.Query,
   events?: firestore.DocumentChangeType[]
-) {
+): Observable<firestore.DocumentChange[]> {
   return collectionChanges(query, events).pipe(
     scan(
       (
@@ -162,7 +179,8 @@ export function sortedChanges(
         changes: firestore.DocumentChange[]
       ) => processDocumentChanges(current, changes, events),
       []
-    )
+    ),
+    distinctUntilChanged()
   );
 }
 
@@ -175,7 +193,10 @@ export function auditTrail(
   events?: firestore.DocumentChangeType[]
 ): Observable<firestore.DocumentChange[]> {
   return collectionChanges(query, events).pipe(
-    scan((current, action) => [...current, ...action], [])
+    scan(
+      (current, action) => [...current, ...action],
+      [] as firestore.DocumentChange[]
+    )
   );
 }
 

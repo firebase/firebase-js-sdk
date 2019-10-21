@@ -31,13 +31,14 @@ import { DatabaseId, DatabaseInfo } from '../core/database_info';
 import { SDK_VERSION } from '../core/version';
 import { Connection, Stream } from '../remote/connection';
 import {
-  mapCodeFromHttpStatus,
-  mapCodeFromRpcStatus
+  mapCodeFromRpcStatus,
+  mapCodeFromHttpResponseErrorStatus
 } from '../remote/rpc_error';
 import { StreamBridge } from '../remote/stream_bridge';
 import { assert, fail } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
 import * as log from '../util/log';
+import { Indexable } from '../util/misc';
 import { Rejecter, Resolver } from '../util/promise';
 import { StringMap } from '../util/types';
 
@@ -97,7 +98,8 @@ export class WebChannelConnection implements Connection {
     const url = this.makeUrl(rpcName);
 
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, XhrIo doesn't have TS typings.
+      // XhrIo doesn't have TS typings.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const xhr: any = new XhrIo();
       xhr.listenOnce(EventType.COMPLETE, () => {
         try {
@@ -123,12 +125,29 @@ export class WebChannelConnection implements Connection {
                 xhr.getResponseText()
               );
               if (status > 0) {
-                reject(
-                  new FirestoreError(
-                    mapCodeFromHttpStatus(status),
-                    'Server responded with status ' + xhr.getStatusText()
-                  )
-                );
+                const responseError = xhr.getResponseJson().error;
+                if (
+                  !!responseError &&
+                  !!responseError.status &&
+                  !!responseError.message
+                ) {
+                  const firestoreErrorCode = mapCodeFromHttpResponseErrorStatus(
+                    responseError.status
+                  );
+                  reject(
+                    new FirestoreError(
+                      firestoreErrorCode,
+                      responseError.message
+                    )
+                  );
+                } else {
+                  reject(
+                    new FirestoreError(
+                      Code.UNKNOWN,
+                      'Server responded with status ' + xhr.getStatus()
+                    )
+                  );
+                }
               } else {
                 // If we received an HTTP_ERROR but there's no status code,
                 // it's most probably a connection issue
@@ -155,7 +174,13 @@ export class WebChannelConnection implements Connection {
         }
       });
 
-      const requestString = JSON.stringify(request);
+      // The database field is already encoded in URL. Specifying it again in
+      // the body is not necessary in production, and will cause duplicate field
+      // errors in the Firestore Emulator. Let's remove it.
+      const jsonObj = ({ ...request } as unknown) as Indexable;
+      delete jsonObj.database;
+
+      const requestString = JSON.stringify(jsonObj);
       log.debug(LOG_TAG, 'XHR sending: ', url + ' ' + requestString);
       // Content-Type: text/plain will avoid preflight requests which might
       // mess with CORS and redirects by proxies. If we add custom headers
@@ -206,9 +231,7 @@ export class WebChannelConnection implements Connection {
       messageUrlParams: {
         // This param is used to improve routing and project isolation by the
         // backend and must be included in every request.
-        database: `projects/${this.databaseId.projectId}/databases/${
-          this.databaseId.database
-        }`
+        database: `projects/${this.databaseId.projectId}/databases/${this.databaseId.database}`
       },
       sendRawJson: true,
       supportsCrossDomainXhr: true,
@@ -249,7 +272,8 @@ export class WebChannelConnection implements Connection {
 
     const url = urlParts.join('');
     log.debug(LOG_TAG, 'Creating WebChannel: ' + url + ' ' + request);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, Because listen isn't defined on it.
+    // Use any because listen isn't defined on it.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const channel = webchannelTransport.createWebChannel(url, request) as any;
 
     // WebChannel supports sending the first message with the handshake - saving
@@ -346,7 +370,8 @@ export class WebChannelConnection implements Connection {
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter
           // can be removed once the fix has been rolled out.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, msgData.error is not typed.
+          // Use any because msgData.error is not typed.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const msgDataAsAny: any = msgData;
           const error =
             msgDataAsAny.error || (msgDataAsAny[0] && msgDataAsAny[0].error);

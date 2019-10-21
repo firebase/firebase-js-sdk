@@ -4,12 +4,13 @@
 [![Build Status](https://travis-ci.org/firebase/firebase-js-sdk.svg?branch=master)](https://travis-ci.org/firebase/firebase-js-sdk)
 [![Build Status](https://saucelabs.com/buildstatus/firebase-oss)](https://saucelabs.com/u/firebase-oss)
 [![Version](https://img.shields.io/npm/v/firebase.svg?label=version)](https://www.npmjs.com/package/firebase)
+[![Coverage Status](https://coveralls.io/repos/github/firebase/firebase-js-sdk/badge.svg?branch=master)](https://coveralls.io/github/firebase/firebase-js-sdk?branch=master)
 <!-- END BADGES -->
 
 The Firebase JavaScript SDK implements the client-side libraries used by
 applications using Firebase services. This SDK is distributed via:
 
-- CDN (`<script src="https://www.gstatic.com/firebasejs/5.5.3/firebase.js"></script>`)
+- [CDN](https://firebase.google.com/docs/web/setup/#add-sdks-initialize)
 - [npm package](https://www.npmjs.com/package/firebase)
 - [Bower package](https://github.com/firebase/firebase-bower)
 
@@ -28,7 +29,7 @@ Please see [Environment Support](https://firebase.google.com/support/guides/envi
 #### Node.js
 
 Before you can start working on the Firebase JS SDK, you need to have Node.js
-installed on your machine. The currently supported versions are `8.0.0` or greater.
+installed on your machine. The currently supported versions are `10.15.0` or greater.
 
 To download Node.js visit https://nodejs.org/en/download/.
 
@@ -56,7 +57,7 @@ $ yarn -v
 $ java -version
 ```
 
-Your Node.js version should be `8.0.0` or greater, your `yarn` version should
+Your Node.js version should be `10.15.0` or greater, your `yarn` version should
 be `1.0.0` or greater, and your `java` version should be `1.8.0` or greater.
 
 _NOTE: We will update the documentation as new versions are required, however

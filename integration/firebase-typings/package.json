@@ -3,12 +3,12 @@
   "private": true,
   "version": "0.2.1",
   "scripts": {
-    "test": "tsc index.ts --outDir dist"
+    "test": "tsc"
   },
   "dependencies": {
-    "firebase": "6.2.3"
+    "firebase": "7.2.0"
   },
   "devDependencies": {
-    "typescript": "3.4.5"
+    "typescript": "3.6.4"
   }
 }

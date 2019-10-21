@@ -31,7 +31,8 @@ const FieldPath = firebase.firestore!.FieldPath;
 const FieldValue = firebase.firestore!.FieldValue;
 const Timestamp = firebase.firestore!.Timestamp;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, Allow custom types for testing.
+// Allow custom types for testing.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyTestData = any;
 
 apiDescribe('Nested Fields', (persistence: boolean) => {
@@ -346,7 +347,8 @@ apiDescribe('Fields with special characters', (persistence: boolean) => {
 });
 
 apiDescribe('Timestamp Fields in snapshots', (persistence: boolean) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, Figure out how to pass in the Timestamp type
+  // Figure out how to pass in the Timestamp type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const testDataWithTimestamps = (ts: any): AnyTestData => {
     return { timestamp: ts, nested: { timestamp2: ts } };
   };

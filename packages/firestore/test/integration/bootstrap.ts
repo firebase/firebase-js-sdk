@@ -29,5 +29,5 @@ import '../../index';
 const testsContext = (require as any).context('.', true, /.test$/);
 const browserTests = testsContext
   .keys()
-  .filter(file => file.indexOf('/node/') < 0);
+  .filter((file: string) => file.indexOf('/node/') < 0);
 browserTests.forEach(testsContext);

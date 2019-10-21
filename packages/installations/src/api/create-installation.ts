@@ -55,7 +55,7 @@ export async function createInstallation(
   if (response.ok) {
     const responseValue: CreateInstallationResponse = await response.json();
     const registeredInstallationEntry: RegisteredInstallationEntry = {
-      fid,
+      fid: responseValue.fid || fid,
       registrationStatus: RequestStatus.COMPLETED,
       refreshToken: responseValue.refreshToken,
       authToken: extractAuthTokenInfoFromResponse(responseValue.authToken)

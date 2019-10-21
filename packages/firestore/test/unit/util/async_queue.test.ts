@@ -138,6 +138,7 @@ describe('AsyncQueue', () => {
       defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
     const last = queue.enqueueAfterDelay(timerId1, 5, () => doStep(4));
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     queue.enqueueAfterDelay(timerId2, 1, () => doStep(3));
     queue.enqueueAndForget(() => doStep(2));
 
@@ -174,7 +175,9 @@ describe('AsyncQueue', () => {
     const doStep = (n: number): Promise<number> =>
       defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     queue.enqueueAfterDelay(timerId1, 20000, () => doStep(4));
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     queue.enqueueAfterDelay(timerId2, 10000, () => doStep(3));
     queue.enqueueAndForget(() => doStep(2));
 
@@ -188,8 +191,11 @@ describe('AsyncQueue', () => {
     const doStep = (n: number): Promise<number> =>
       defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     queue.enqueueAfterDelay(timerId1, 20000, () => doStep(5));
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     queue.enqueueAfterDelay(timerId2, 10000, () => doStep(3));
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     queue.enqueueAfterDelay(timerId3, 15000, () => doStep(4));
     queue.enqueueAndForget(() => doStep(2));
 
@@ -203,11 +209,33 @@ describe('AsyncQueue', () => {
     const doStep = (n: number): Promise<number> =>
       defer(() => completedSteps.push(n));
     queue.enqueueAndForget(() => doStep(1));
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     queue.enqueueAfterDelay(timerId1, 10000, () => doStep(5));
     queue.enqueueAndForget(() => doStep(2));
 
     await queue.drain();
     expect(completedSteps).to.deep.equal([1, 2]);
+  });
+
+  it('Schedules operaions with respect to shut down', async () => {
+    const queue = new AsyncQueue();
+    const completedSteps: number[] = [];
+    const doStep = (n: number): Promise<void> =>
+      defer(() => {
+        completedSteps.push(n);
+      });
+
+    queue.enqueueAndForget(() => doStep(1));
+
+    // After this call, only operations requested via
+    // `enqueueAndForgetEvenAfterShutdown` gets executed.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    queue.enqueueAndInitiateShutdown(() => doStep(2));
+    queue.enqueueAndForget(() => doStep(3));
+    queue.enqueueAndForgetEvenAfterShutdown(() => doStep(4));
+
+    await queue.drain();
+    expect(completedSteps).to.deep.equal([1, 2, 4]);
   });
 });
 

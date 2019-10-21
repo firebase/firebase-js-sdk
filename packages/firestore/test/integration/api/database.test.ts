@@ -35,8 +35,11 @@ import {
   withTestDb,
   withTestDbs,
   withTestDoc,
-  withTestDocAndInitialData
+  withTestDocAndInitialData,
+  DEFAULT_SETTINGS,
+  withMockCredentialProviderTestDb
 } from '../util/helpers';
+import { User } from '../../../src/auth/user';
 
 // tslint:disable:no-floating-promises
 
@@ -67,6 +70,7 @@ apiDescribe('Database', (persistence: boolean) => {
   });
 
   it('can delete a document', () => {
+    // TODO(#1865): This test fails with node:persistence against Prod
     return withTestDoc(persistence, docRef => {
       return docRef
         .set({ foo: 'bar' })
@@ -121,6 +125,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)('can update an unknown document', () => {
     return withTestDbs(persistence, 2, async ([reader, writer]) => {
       const writerRef = writer.collection('collection').doc();
@@ -341,6 +346,7 @@ apiDescribe('Database', (persistence: boolean) => {
   it("can't specify a field mask for a missing field using set", () => {
     return withTestDoc(persistence, async docRef => {
       expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         docRef.set(
           { desc: 'NewDescription' },
           { mergeFields: ['desc', 'owner'] }
@@ -517,9 +523,11 @@ apiDescribe('Database', (persistence: boolean) => {
     for (const val of invalidDocValues) {
       it('set/update should reject: ' + val, () => {
         return withTestDoc(persistence, async doc => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, Intentionally passing bad types.
+          // Intentionally passing bad types.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           expect(() => doc.set(val as any)).to.throw();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, Intentionally passing bad types.
+          // Intentionally passing bad types.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           expect(() => doc.update(val as any)).to.throw();
         });
       });
@@ -534,6 +542,43 @@ apiDescribe('Database', (persistence: boolean) => {
         .then(docSnap => {
           expect(docSnap.data()).to.deep.equal({ foo: 1 });
         });
+    });
+  });
+
+  it('onSnapshotsInSync fires after listeners are in sync', () => {
+    const testDocs = {
+      a: { foo: 1 }
+    };
+    return withTestCollection(persistence, testDocs, async coll => {
+      let events: string[] = [];
+      const gotInitialSnapshot = new Deferred<void>();
+      const doc = coll.doc('a');
+
+      doc.onSnapshot(snap => {
+        events.push('doc');
+        gotInitialSnapshot.resolve();
+      });
+      await gotInitialSnapshot.promise;
+      events = [];
+
+      const done = new Deferred<void>();
+      doc.firestore.onSnapshotsInSync(() => {
+        events.push('snapshots-in-sync');
+        if (events.length === 3) {
+          // We should have an initial snapshots-in-sync event, then a snapshot
+          // event for set(), then another event to indicate we're in sync
+          // again.
+          expect(events).to.deep.equal([
+            'snapshots-in-sync',
+            'doc',
+            'snapshots-in-sync'
+          ]);
+          done.resolve();
+        }
+      });
+
+      await doc.set({ foo: 3 });
+      await done.promise;
     });
   });
 
@@ -733,6 +778,7 @@ apiDescribe('Database', (persistence: boolean) => {
       const doc = coll.doc();
       const deferred1 = new Deferred<void>();
       const deferred2 = new Deferred<void>();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       doc.set({ foo: 'bar' }).then(() => {
         doc.onSnapshot(snap => {
           deferred1.resolve();
@@ -760,8 +806,9 @@ apiDescribe('Database', (persistence: boolean) => {
           }
         }
       });
-
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       docRef.set({ a: 1 }).then(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         docRef.set({ b: 1 });
       });
       return secondUpdateFound.promise.then(() => {
@@ -773,7 +820,7 @@ apiDescribe('Database', (persistence: boolean) => {
   // TODO(mikelehen): We need a way to create a query that will pass
   // client-side validation but fail remotely.  May need to wait until we
   // have security rules support or something?
-  // tslint:disable-next-line:ban
+  // eslint-disable-next-line no-restricted-properties
   describe.skip('Listens are rejected remotely:', () => {
     const queryForRejection = query('foo');
 
@@ -952,16 +999,18 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('rejects subsequent method calls after shutdown() is called', async () => {
+  it('rejects subsequent method calls after terminate() is called', async () => {
     return withTestDb(persistence, db => {
       return db.INTERNAL.delete().then(() => {
         expect(() => {
+          // eslint-disable-next-line @typescript-eslint/no-floating-promises
           db.disableNetwork();
-        }).to.throw('The client has already been shutdown.');
+        }).to.throw('The client has already been terminated.');
       });
     });
   });
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'maintains persistence after restarting app',
     async () => {
@@ -982,6 +1031,7 @@ apiDescribe('Database', (persistence: boolean) => {
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'can clear persistence if the client has not been initialized',
     async () => {
@@ -1005,6 +1055,7 @@ apiDescribe('Database', (persistence: boolean) => {
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties
   (persistence ? it : it.skip)(
     'will reject the promise if clear persistence fails',
     async () => {
@@ -1066,6 +1117,120 @@ apiDescribe('Database', (persistence: boolean) => {
       await db.disableNetwork();
       await db.disableNetwork();
       await db.enableNetwork();
+    });
+  });
+
+  it('can start a new instance after shut down', async () => {
+    return withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await firestore.terminate();
+
+      const newFirestore = firebase.firestore!(firestore.app);
+      expect(newFirestore).to.not.equal(firestore);
+
+      // New instance functions.
+      newFirestore.settings(DEFAULT_SETTINGS);
+      await newFirestore.doc(docRef.path).set({ foo: 'bar' });
+      const doc = await newFirestore.doc(docRef.path).get();
+      expect(doc.data()).to.deep.equal({ foo: 'bar' });
+    });
+  });
+
+  it('app delete leads to instance termination', async () => {
+    await withTestDoc(persistence, async docRef => {
+      await docRef.set({ foo: 'bar' });
+      const app = docRef.firestore.app;
+      await app.delete();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      expect((docRef.firestore as any)._isTerminated).to.be.true;
+    });
+  });
+
+  it('new operation after termination should throw', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await firestore.terminate();
+
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        firestore.doc(docRef.path).set({ foo: 'bar' });
+      }).to.throw('The client has already been terminated.');
+    });
+  });
+
+  it('calling terminate mutiple times should proceed', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      await firestore.terminate();
+      await firestore.terminate();
+
+      expect(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        firestore.doc(docRef.path).set({ foo: 'bar' });
+      }).to.throw();
+    });
+  });
+
+  it('can unlisten queries after termination', async () => {
+    return withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      const accumulator = new EventsAccumulator<firestore.DocumentSnapshot>();
+      const unsubscribe = docRef.onSnapshot(accumulator.storeEvent);
+      await accumulator.awaitEvent();
+      await firestore.terminate();
+
+      // This should proceed without error.
+      unsubscribe();
+      // Multiple calls should proceed as well.
+      unsubscribe();
+    });
+  });
+
+  it('can wait for pending writes', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      // Prevent pending writes receiving acknowledgement.
+      await firestore.disableNetwork();
+
+      const pendingWrites = docRef.set({ foo: 'bar' });
+      const awaitPendingWrites = firestore.waitForPendingWrites();
+
+      // pending writes can receive acknowledgements now.
+      await firestore.enableNetwork();
+      await pendingWrites;
+      await awaitPendingWrites;
+    });
+  });
+
+  it('waiting for pending writes should fail when user changes', async () => {
+    await withMockCredentialProviderTestDb(
+      persistence,
+      async (db, mockCredentialsProvider) => {
+        // Prevent pending writes receiving acknowledgement.
+        await db.disableNetwork();
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        db.doc('abc/123').set({ foo: 'bar' });
+        const awaitPendingWrite = db.waitForPendingWrites();
+
+        mockCredentialsProvider.triggerUserChange(new User('user_1'));
+
+        await expect(awaitPendingWrite).to.be.eventually.rejectedWith(
+          "'waitForPendingWrites' promise is rejected due to a user change."
+        );
+      }
+    );
+  });
+
+  it('waiting for pending writes resolves immediately when offline and no pending writes', async () => {
+    await withTestDoc(persistence, async docRef => {
+      const firestore = docRef.firestore;
+      // Prevent pending writes receiving acknowledgement.
+      await firestore.disableNetwork();
+
+      // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
+      // immediately even if we are offline.
+      await firestore.waitForPendingWrites();
     });
   });
 });

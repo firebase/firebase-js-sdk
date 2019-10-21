@@ -19,8 +19,10 @@ import { Query } from '../../../src/core/query';
 import { deletedDoc, doc, filter, path } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
+import { Code } from '../../../src/util/error';
 import { describeSpec, specTest } from './describe_spec';
 import { client, spec } from './spec_builder';
+import { RpcError } from './spec_rpc_error';
 
 describeSpec('Limbo Documents:', [], () => {
   specTest(
@@ -90,7 +92,7 @@ describeSpec('Limbo Documents:', [], () => {
       filter('key', '==', 'a')
     );
     const doc1a = doc('collection/a', 1000, { key: 'a' });
-    const doc1b = doc('collection/a', 1000, { key: 'b' });
+    const doc1b = doc('collection/a', 1002, { key: 'b' });
     const limboQuery = Query.atPath(doc1a.key.path);
     return (
       spec()
@@ -128,7 +130,7 @@ describeSpec('Limbo Documents:', [], () => {
         filter('key', '==', 'b')
       );
       const doc1a = doc('collection/a', 1000, { key: 'a' });
-      const doc1b = doc('collection/a', 1000, { key: 'b' });
+      const doc1b = doc('collection/a', 1002, { key: 'b' });
       const limboQuery = Query.atPath(doc1a.key.path);
       return (
         spec()
@@ -322,6 +324,67 @@ describeSpec('Limbo Documents:', [], () => {
     }
   );
 
+  specTest('Failed limbo resolution removes document from view', [], () => {
+    // This test reproduces a customer issue where a failed limbo resolution
+    // triggered an assert because we added a document to the cache with a
+    // read time of zero.
+    const filteredQuery = Query.atPath(path('collection')).addFilter(
+      filter('matches', '==', true)
+    );
+    const fullQuery = Query.atPath(path('collection'));
+    const remoteDoc = doc('collection/a', 1000, { matches: true });
+    const localDoc = doc(
+      'collection/a',
+      1000,
+      { matches: true, modified: true },
+      { hasLocalMutations: true }
+    );
+    return (
+      spec()
+        .userListens(filteredQuery)
+        .watchAcksFull(filteredQuery, 1000, remoteDoc)
+        .expectEvents(filteredQuery, { added: [remoteDoc] })
+        // We add a local mutation to prevent the document from getting garbage
+        // collected when we unlisten from the current query.
+        .userPatches('collection/a', { modified: true })
+        .expectEvents(filteredQuery, {
+          modified: [localDoc],
+          hasPendingWrites: true
+        })
+        .userUnlistens(filteredQuery)
+        // Start a new query, but don't include the document in the backend
+        // results (it might have been removed by another client).
+        .userListens(fullQuery)
+        .expectEvents(fullQuery, {
+          added: [localDoc],
+          hasPendingWrites: true,
+          fromCache: true
+        })
+        .watchAcksFull(fullQuery, 1001)
+        .expectEvents(fullQuery, { hasPendingWrites: true })
+        // Fail the write and remove the pending mutation. The document should
+        // now be in Limbo.
+        .failWrite(
+          'collection/a',
+          new RpcError(
+            Code.FAILED_PRECONDITION,
+            'Document to update does not exist'
+          )
+        )
+        .expectEvents(fullQuery, { modified: [remoteDoc], fromCache: true })
+        .expectLimboDocs(remoteDoc.key)
+        // Fail the Limbo resolution which removes the document from the view.
+        // This is internally propagated as a NoDocument with
+        // SnapshotVersion.MIN and a read time of zero.
+        .watchRemoves(
+          Query.atPath(path('collection/a')),
+          new RpcError(Code.PERMISSION_DENIED, 'Permission denied')
+        )
+        .expectEvents(fullQuery, { removed: [remoteDoc] })
+        .expectLimboDocs()
+    );
+  });
+
   specTest(
     'Limbo docs are resolved by primary client',
     ['multi-client'],
@@ -434,4 +497,61 @@ describeSpec('Limbo Documents:', [], () => {
         .expectEvents(query, { removed: [docC] });
     }
   );
+
+  specTest('Limbo documents stay consistent between views', [], () => {
+    // This tests verifies that a document is consistent between views, even
+    // if the document is only in Limbo in one of them.
+    const originalQuery = Query.atPath(path('collection'));
+    const filteredQuery = Query.atPath(path('collection')).addFilter(
+      filter('matches', '==', true)
+    );
+
+    const docA = doc('collection/a', 1000, { matches: true });
+    const docADirty = doc(
+      'collection/a',
+      1000,
+      { matches: true },
+      { hasCommittedMutations: true }
+    );
+    const docBDirty = doc(
+      'collection/b',
+      1001,
+      { matches: true },
+      { hasCommittedMutations: true }
+    );
+
+    return (
+      spec()
+        .withGCEnabled(false)
+        .userSets('collection/a', { matches: true })
+        .userSets('collection/b', { matches: true })
+        .writeAcks('collection/a', 1000)
+        .writeAcks('collection/b', 1001)
+        .userListens(originalQuery)
+        .expectEvents(originalQuery, {
+          added: [docADirty, docBDirty],
+          fromCache: true
+        })
+        // Watch only includes docA in the result set, indicating that docB was
+        // modified out-of-band.
+        .watchAcksFull(originalQuery, 2000, docA)
+        .expectLimboDocs(docBDirty.key)
+        .userListens(filteredQuery)
+        .expectEvents(filteredQuery, {
+          added: [docA, docBDirty],
+          fromCache: true
+        })
+        .userUnlistens(originalQuery)
+        .expectLimboDocs()
+        // Re-run the query. Note that we still return the unresolved limbo
+        // document `docBCommitted`, since we haven't received the resolved
+        // document from Watch. Until we do, we return the version from cache
+        // even though the backend told it does not match.
+        .userListens(originalQuery, 'resume-token-2000')
+        .expectEvents(originalQuery, {
+          added: [docA, docBDirty],
+          fromCache: true
+        })
+    );
+  });
 });

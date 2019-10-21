@@ -27,6 +27,7 @@ import {
   expectEqualitySets,
   field,
   key,
+  mask,
   ref,
   wrap,
   wrapObject
@@ -193,9 +194,9 @@ describe('FieldValue', () => {
       fieldValue.StringValue
     );
 
-    expect(objValue.field(field('foo.a.b'))).to.equal(undefined);
-    expect(objValue.field(field('bar'))).to.equal(undefined);
-    expect(objValue.field(field('bar.a'))).to.equal(undefined);
+    expect(objValue.field(field('foo.a.b'))).to.be.null;
+    expect(objValue.field(field('bar'))).to.be.null;
+    expect(objValue.field(field('bar.a'))).to.be.null;
 
     expect(objValue.field(field('foo'))!.value()).to.deep.equal({
       a: 1,
@@ -309,6 +310,24 @@ describe('FieldValue', () => {
     expect(objValue2.value()).to.deep.equal(expected);
     expect(objValue3.value()).to.deep.equal(expected);
     expect(objValue4.value()).to.deep.equal(expected);
+  });
+
+  it('provides field mask', () => {
+    const objValue = wrapObject({
+      a: 'b',
+      map: { a: 1, b: true, c: 'string', nested: { d: 'e' } },
+      emptymap: {}
+    });
+    const expectedMask = mask(
+      'a',
+      'map.a',
+      'map.b',
+      'map.c',
+      'map.nested.d',
+      'emptymap'
+    );
+    const actualMask = objValue.fieldMask();
+    expect(actualMask.isEqual(expectedMask)).to.be.true;
   });
 
   it('compares values for equality', () => {

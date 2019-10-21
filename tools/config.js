@@ -51,7 +51,7 @@ Promise.resolve(userToken || cachedToken)
     const project = await (async () => {
       if (projectId) return projectId;
 
-      const projects = await firebaseTools.list({ token });
+      const projects = await firebaseTools.projects.list({ token });
       const response = await inquirer.prompt([
         {
           type: 'list',
@@ -62,17 +62,13 @@ Promise.resolve(userToken || cachedToken)
               project.name.toLowerCase().includes('jscore') ? -1 : 1
             )
             .map(project => ({
-              name: `${project.name} (${project.id})`,
+              name: `${project.displayName} (${project.projectId})`,
               value: project
             }))
         }
       ]);
 
-      const {
-        projectId: { id }
-      } = response;
-
-      return id;
+      return response.projectId.projectId;
     })();
 
     // Write config to top-level config directory

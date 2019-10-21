@@ -76,7 +76,7 @@ function getSauceLabsBrowsers(packageName) {
  */
 function getPackageLabels() {
   const match = testConfigFile.match(
-    /([a-zA-Z]+)\/([a-zA-Z]+)\/karma\.conf\.js/
+    /([a-zA-Z]+)\/([a-zA-Z-]+)\/karma\.conf\.js/
   );
   return {
     type: match[1],
@@ -169,6 +169,7 @@ module.exports = function(config) {
     preprocessors: {
       'packages/polyfill/index.ts': ['webpack', 'sourcemap'],
       '**/test/**/*.ts': ['webpack', 'sourcemap'],
+      '**/*.test.ts': ['webpack', 'sourcemap'],
       'packages/firestore/test/**/bootstrap.ts': ['webpack', 'babel'],
       'integration/**/namespace.*': ['webpack', 'babel', 'sourcemap']
     },

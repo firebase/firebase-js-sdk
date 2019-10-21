@@ -18,6 +18,7 @@
 goog.provide('fireauth.exports');
 
 goog.require('fireauth.ActionCodeInfo');
+goog.require('fireauth.ActionCodeURL');
 goog.require('fireauth.Auth');
 goog.require('fireauth.AuthCredential');
 goog.require('fireauth.AuthError');
@@ -208,6 +209,13 @@ fireauth.exportlib.exportPrototypeProperties(
             fireauth.args.string(),
             fireauth.args.null(),
             'languageCode')
+      },
+      'ti': {
+        name: 'tenantId',
+        arg: fireauth.args.or(
+            fireauth.args.string(),
+            fireauth.args.null(),
+            'tenantId')
       }
     });
 
@@ -662,6 +670,10 @@ fireauth.exportlib.exportPrototypeMethods(
     });
 
 fireauth.exportlib.exportFunction(
+    fireauth.ActionCodeURL, 'parseLink',
+    fireauth.ActionCodeURL.parseLink, [fireauth.args.string('link')]);
+
+fireauth.exportlib.exportFunction(
     fireauth.PhoneMultiFactorGenerator, 'assertion',
     fireauth.PhoneMultiFactorGenerator.assertion,
     [fireauth.args.authCredential(fireauth.idp.ProviderId.PHONE)]);
@@ -739,6 +751,8 @@ fireauth.exportlib.exportFunction(
           fireauth.args.object('recaptchaParameters', true),
           fireauth.args.firebaseApp(true)
         ]);
+    fireauth.exportlib.exportFunction(namespace,
+        'ActionCodeURL', fireauth.ActionCodeURL, []);
     fireauth.exportlib.exportFunction(namespace,
         'PhoneMultiFactorGenerator', fireauth.PhoneMultiFactorGenerator, []);
 

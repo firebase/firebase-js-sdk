@@ -19,30 +19,35 @@ import { storage } from 'firebase/app';
 import { Observable, from } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-export function fromTask(task: storage.UploadTask) {
+export function fromTask(
+  task: storage.UploadTask
+): Observable<storage.UploadTaskSnapshot> {
   return new Observable<storage.UploadTaskSnapshot>(subscriber => {
-    const progress = (snap: storage.UploadTaskSnapshot) =>
+    const progress = (snap: storage.UploadTaskSnapshot): void =>
       subscriber.next(snap);
-    const error = (e: Error) => subscriber.error(e);
-    const complete = () => subscriber.complete();
+    const error = (e: Error): void => subscriber.error(e);
+    const complete = (): void => subscriber.complete();
     task.on('state_changed', progress, error, complete);
     return () => task.cancel();
   });
 }
 
-export function getDownloadURL(ref: storage.Reference) {
+export function getDownloadURL(ref: storage.Reference): Observable<string> {
   return from(ref.getDownloadURL());
 }
 
-export function getMetadata(ref: storage.Reference) {
+// TODO: fix storage typing in firebase, then apply the same fix here
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function getMetadata(ref: storage.Reference): Observable<any> {
   return from(ref.getMetadata());
 }
 
 export function put(
   ref: storage.Reference,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any,
   metadata?: storage.UploadMetadata
-) {
+): Observable<storage.UploadTaskSnapshot> {
   return fromTask(ref.put(data, metadata));
 }
 
@@ -51,11 +56,16 @@ export function putString(
   data: string,
   format?: storage.StringFormat,
   metadata?: storage.UploadMetadata
-) {
+): Observable<storage.UploadTaskSnapshot> {
   return fromTask(ref.putString(data, format, metadata));
 }
 
-export function percentage(task: storage.UploadTask) {
+export function percentage(
+  task: storage.UploadTask
+): Observable<{
+  progress: number;
+  snapshot: storage.UploadTaskSnapshot;
+}> {
   return fromTask(task).pipe(
     map(s => ({
       progress: (s.bytesTransferred / s.totalBytes) * 100,

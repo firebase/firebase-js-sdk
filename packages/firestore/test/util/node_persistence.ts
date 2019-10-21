@@ -16,6 +16,7 @@
  */
 
 import * as fs from 'fs';
+// @ts-ignore: There are no types for indexeddbshim.
 import * as registerIndexedDBShim from 'indexeddbshim';
 import * as os from 'os';
 

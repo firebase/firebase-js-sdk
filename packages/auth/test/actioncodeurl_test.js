@@ -33,7 +33,7 @@ function testActionCodeURL_success() {
   var actionLink = 'https://www.example.com/finishSignIn?' +
       'oobCode=CODE&mode=signIn&apiKey=API_KEY&' +
       'continueUrl=' + encodeURIComponent(continueUrl) +
-      '&languageCode=en&state=bla';
+      '&languageCode=en&tenantId=TENANT_ID&state=bla';
   var actionCodeUrl = fireauth.ActionCodeURL.parseLink(actionLink);
   assertEquals(fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN,
                actionCodeUrl['operation']);
@@ -41,6 +41,7 @@ function testActionCodeURL_success() {
   assertEquals('API_KEY', actionCodeUrl['apiKey']);
   // ContinueUrl should be decoded.
   assertEquals(continueUrl, actionCodeUrl['continueUrl']);
+  assertEquals('TENANT_ID', actionCodeUrl['tenantId']);
   assertEquals('en', actionCodeUrl['languageCode']);
 }
 
@@ -105,6 +106,7 @@ function testActionCodeURL_success_portNumberInUrl() {
   assertEquals('CODE', actionCodeUrl['code']);
   assertEquals('API_KEY', actionCodeUrl['apiKey']);
   assertNull(actionCodeUrl['continueUrl']);
+  assertNull(actionCodeUrl['tenantId']);
   assertNull(actionCodeUrl['languageCode']);
 }
 
@@ -119,6 +121,7 @@ function testActionCodeURL_success_hashParameters() {
   assertEquals('CODE1', actionCodeUrl['code']);
   assertEquals('API_KEY1', actionCodeUrl['apiKey']);
   assertNull(actionCodeUrl['continueUrl']);
+  assertNull(actionCodeUrl['tenantId']);
   assertNull(actionCodeUrl['languageCode']);
 }
 

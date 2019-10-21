@@ -56,6 +56,10 @@ fireauth.AuthErrorWithCredential =
     fireauth.object.setReadonlyProperty(this, 'credential',
         credentialInfo.credential);
   }
+  if (credentialInfo.tenantId) {
+    fireauth.object.setReadonlyProperty(this, 'tenantId',
+        credentialInfo.tenantId);
+  }
 };
 goog.inherits(fireauth.AuthErrorWithCredential, fireauth.AuthError);
 
@@ -67,6 +71,7 @@ goog.inherits(fireauth.AuthErrorWithCredential, fireauth.AuthError);
  *   email: (?string|undefined),
  *   phoneNumber: (?string|undefined),
  *   credential: (?fireauth.AuthCredential|undefined),
+ *   tenantId: (?string|undefined),
  * }}
  */
 fireauth.AuthErrorWithCredential.CredentialInfo;
@@ -86,6 +91,9 @@ fireauth.AuthErrorWithCredential.prototype.toPlainObject = function() {
   }
   if (this['phoneNumber']) {
     obj['phoneNumber'] = this['phoneNumber'];
+  }
+  if (this['tenantId']) {
+    obj['tenantId'] = this['tenantId'];
   }
 
   var credential = this['credential'] && this['credential'].toPlainObject();
@@ -122,9 +130,10 @@ fireauth.AuthErrorWithCredential.fromPlainObject = function(response) {
       code = code.substring(fireauth.AuthError.ERROR_CODE_PREFIX.length);
     }
 
-    // Credentials in response.
+    // Credentials and tenant ID in response.
     var credentialInfo = {
-      credential: fireauth.AuthProvider.getCredentialFromResponse(response)
+      credential: fireauth.AuthProvider.getCredentialFromResponse(response),
+      tenantId: response['tenantId']
     };
     if (response['email']) {
       credentialInfo.email = response['email'];

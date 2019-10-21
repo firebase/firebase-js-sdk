@@ -77,7 +77,8 @@ fireauth.IdToken = function(tokenString) {
 /**
  * @typedef {{
  *   identities: (?Object|undefined),
- *   sign_in_provider: (?string|undefined)
+ *   sign_in_provider: (?string|undefined),
+ *   tenant: (string|undefined)
  * }}
  */
 fireauth.IdToken.Firebase;
@@ -119,6 +120,12 @@ fireauth.IdToken.prototype.getExp = function() {
 /** @return {?string} The ID of the identity provider. */
 fireauth.IdToken.prototype.getProviderId = function() {
   return this.providerId_;
+};
+
+
+/** @return {?string} The tenant ID. */
+fireauth.IdToken.prototype.getTenantId = function() {
+  return this.tenantId_;
 };
 
 

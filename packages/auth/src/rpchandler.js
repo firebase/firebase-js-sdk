@@ -95,6 +95,7 @@ fireauth.XmlHttpFactory.prototype.internalGetOptions = function() {
  * @constructor
  */
 fireauth.RpcHandler = function(apiKey, opt_config, opt_firebaseClientVersion) {
+  /** @private {string} The project API key. */
   this.apiKey_ = apiKey;
   var config = opt_config || {};
   this.secureTokenEndpoint_ = config['secureTokenEndpoint'] ||
@@ -131,7 +132,7 @@ fireauth.RpcHandler = function(apiKey, opt_config, opt_firebaseClientVersion) {
     // Log client version for securetoken server.
     this.secureTokenHeaders_['X-Client-Version'] = opt_firebaseClientVersion;
   }
-  
+
   // Get XMLHttpRequest reference.
   var XMLHttpRequest = fireauth.RpcHandler.getXMLHttpRequest();
   if (!XMLHttpRequest && !fireauth.util.isWorker()) {
@@ -156,6 +157,8 @@ fireauth.RpcHandler = function(apiKey, opt_config, opt_firebaseClientVersion) {
     // CORS Browser environment.
     this.rpcHandlerXhrFactory_ = new goog.net.CorsXmlHttpFactory();
   }
+  /** @private {?string} The tenant ID. */
+  this.tenantId_ = null;
 };
 
 
@@ -223,6 +226,7 @@ fireauth.RpcHandler.ServerError = {
   INVALID_SENDER: 'INVALID_SENDER',
   INVALID_SESSION_INFO: 'INVALID_SESSION_INFO',
   INVALID_TEMPORARY_PROOF: 'INVALID_TEMPORARY_PROOF',
+  INVALID_TENANT_ID: 'INVALID_TENANT_ID',
   MFA_ENROLLMENT_NOT_FOUND: 'MFA_ENROLLMENT_NOT_FOUND',
   MISSING_ANDROID_PACKAGE_NAME: 'MISSING_ANDROID_PACKAGE_NAME',
   MISSING_APP_CREDENTIAL: 'MISSING_APP_CREDENTIAL',
@@ -245,9 +249,11 @@ fireauth.RpcHandler.ServerError = {
   SECOND_FACTOR_EXISTS: 'SECOND_FACTOR_EXISTS',
   SECOND_FACTOR_LIMIT_EXCEEDED: 'SECOND_FACTOR_LIMIT_EXCEEDED',
   SESSION_EXPIRED: 'SESSION_EXPIRED',
+  TENANT_ID_MISMATCH: 'TENANT_ID_MISMATCH',
   TOKEN_EXPIRED: 'TOKEN_EXPIRED',
   TOO_MANY_ATTEMPTS_TRY_LATER: 'TOO_MANY_ATTEMPTS_TRY_LATER',
   UNSUPPORTED_FIRST_FACTOR: 'UNSUPPORTED_FIRST_FACTOR',
+  UNSUPPORTED_TENANT_OPERATION: 'UNSUPPORTED_TENANT_OPERATION',
   UNVERIFIED_EMAIL: 'UNVERIFIED_EMAIL',
   UNAUTHORIZED_DOMAIN: 'UNAUTHORIZED_DOMAIN',
   USER_CANCELLED: 'USER_CANCELLED',
@@ -453,6 +459,24 @@ fireauth.RpcHandler.prototype.updateClientVersion = function(clientVersion) {
     delete this.firebaseHeaders_['X-Client-Version'];
     delete this.secureTokenHeaders_['X-Client-Version'];
   }
+};
+
+
+/**
+ * Updates the tenant ID in the request.
+ * @param {?string} tenantId The new tenant ID.
+ */
+fireauth.RpcHandler.prototype.updateTenantId = function(tenantId) {
+  this.tenantId_ = tenantId;
+};
+
+
+/**
+ * Returns the tenant ID.
+ * @return {?string} The tenant ID.
+ */
+fireauth.RpcHandler.prototype.getTenantId = function() {
+  return this.tenantId_;
 };
 
 
@@ -2122,7 +2146,8 @@ fireauth.RpcHandler.validateVerifyAssertionLinkRequest_ = function(request) {
  *   pendingIdToken: (?string|undefined),
  *   sessionId: (?string|undefined),
  *   idToken: (?string|undefined),
- *   returnIdpCredential: (boolean|undefined)
+ *   returnIdpCredential: (boolean|undefined),
+ *   tenantId: (?string|undefined)
  * }}
  */
 fireauth.RpcHandler.VerifyAssertionData;
@@ -2287,6 +2312,7 @@ fireauth.RpcHandler.prototype.applyActionCode = function(code) {
  *     will be returned.
  * <li>returnSecureToken: Set to true to explicitly request STS tokens instead
  *     of legacy Google Identity Toolkit tokens from the backend.
+ * <li>requireTenantId: Set to true to send tenant ID to backend in the request.
  * <li>useIdentityPlatformEndpoint: Whether to use new identity platform
  *     endpoints. The default is false.
  * </ul>
@@ -2301,6 +2327,7 @@ fireauth.RpcHandler.prototype.applyActionCode = function(code) {
  *   responseValidator: (function(!Object):void|undefined),
  *   responseField: (string|undefined),
  *   returnSecureToken: (boolean|undefined),
+ *   requireTenantId: (boolean|undefined),
  *   useIdentityPlatformEndpoint: (boolean|undefined)
  * }}
  */
@@ -2315,21 +2342,25 @@ fireauth.RpcHandler.ApiMethod = {
   APPLY_OOB_CODE: {
     endpoint: 'setAccountInfo',
     requestValidator: fireauth.RpcHandler.validateApplyActionCodeRequest_,
-    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   CHECK_ACTION_CODE: {
     endpoint: 'resetPassword',
     requestValidator: fireauth.RpcHandler.validateApplyActionCodeRequest_,
-    responseValidator: fireauth.RpcHandler.validateCheckActionCodeResponse_
+    responseValidator: fireauth.RpcHandler.validateCheckActionCodeResponse_,
+    requireTenantId: true
   },
   CREATE_ACCOUNT: {
     endpoint: 'signupNewUser',
     requestValidator: fireauth.RpcHandler.validateCreateAccountRequest_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    requireTenantId: true
   },
   CREATE_AUTH_URI: {
-    endpoint: 'createAuthUri'
+    endpoint: 'createAuthUri',
+    requireTenantId: true
   },
   DELETE_ACCOUNT: {
     endpoint: 'deleteAccount',
@@ -2345,7 +2376,8 @@ fireauth.RpcHandler.ApiMethod = {
     requestRequiredFields: ['email', 'oobCode'],
     requestValidator: fireauth.RpcHandler.validateRequestHasEmail_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    requireTenantId: true
   },
   EMAIL_LINK_SIGNIN_FOR_LINKING: {
     endpoint: 'emailLinkSignin',
@@ -2379,19 +2411,22 @@ fireauth.RpcHandler.ApiMethod = {
   GET_AUTH_URI: {
     endpoint: 'createAuthUri',
     requestValidator: fireauth.RpcHandler.validateGetAuthUriRequest_,
-    responseValidator: fireauth.RpcHandler.validateGetAuthResponse_
+    responseValidator: fireauth.RpcHandler.validateGetAuthResponse_,
+    requireTenantId: true
   },
   GET_EMAIL_SIGNIN_CODE: {
     endpoint: 'getOobConfirmationCode',
     requestRequiredFields: ['requestType'],
     requestValidator: fireauth.RpcHandler.validateEmailSignInCodeRequest_,
-    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   GET_EMAIL_VERIFICATION_CODE: {
     endpoint: 'getOobConfirmationCode',
     requestRequiredFields: ['idToken', 'requestType'],
     requestValidator: fireauth.RpcHandler.validateEmailVerificationCodeRequest_,
-    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   GET_EMAIL_VERIFICATION_CODE_BEFORE_UPDATE: {
     endpoint: 'getOobConfirmationCode',
@@ -2405,7 +2440,8 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'getOobConfirmationCode',
     requestRequiredFields: ['requestType'],
     requestValidator: fireauth.RpcHandler.validateOobCodeRequest_,
-    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   GET_PROJECT_CONFIG: {
     // Microsoft edge caching bug. There are two getProjectConfig API calls,
@@ -2427,7 +2463,8 @@ fireauth.RpcHandler.ApiMethod = {
   RESET_PASSWORD: {
     endpoint: 'resetPassword',
     requestValidator: fireauth.RpcHandler.validateApplyActionCodeRequest_,
-    responseField: fireauth.RpcHandler.AuthServerField.EMAIL
+    responseField: fireauth.RpcHandler.AuthServerField.EMAIL,
+    requireTenantId: true
   },
   RETURN_DYNAMIC_LINK: {
     cachebuster: true,
@@ -2439,7 +2476,8 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'sendVerificationCode',
     // Currently only reCAPTCHA tokens supported.
     requestRequiredFields: ['phoneNumber', 'recaptchaToken'],
-    responseField: fireauth.RpcHandler.AuthServerField.SESSION_INFO
+    responseField: fireauth.RpcHandler.AuthServerField.SESSION_INFO,
+    requireTenantId: true
   },
   SET_ACCOUNT_INFO: {
     endpoint: 'setAccountInfo',
@@ -2458,7 +2496,8 @@ fireauth.RpcHandler.ApiMethod = {
   SIGN_IN_ANONYMOUSLY: {
     endpoint: 'signupNewUser',
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    requireTenantId: true
   },
   START_PHONE_MFA_ENROLLMENT: {
     endpoint: 'accounts/mfaEnrollment:start',
@@ -2486,7 +2525,14 @@ fireauth.RpcHandler.ApiMethod = {
     requestValidator: fireauth.RpcHandler.validateVerifyAssertionRequest_,
     responsePreprocessor: fireauth.RpcHandler.processVerifyAssertionResponse_,
     responseValidator: fireauth.RpcHandler.validateVerifyAssertionResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    // Tenant ID is required for this endpoint. But for
+    // signInWithRedirect/Popup APIs, to make createAuthUri call and
+    // verifyAssertion call atomic, the tenant ID on RPC handler will be
+    // overridden by the tenant ID passed directly from the
+    // request, which is retrieved from Auth event. For signInWithCredential
+    // API, the tenant ID will still be retrieved from the RPC handler.
+    requireTenantId: true
   },
   VERIFY_ASSERTION_FOR_EXISTING: {
     endpoint: 'verifyAssertion',
@@ -2494,7 +2540,15 @@ fireauth.RpcHandler.ApiMethod = {
     responsePreprocessor: fireauth.RpcHandler.processVerifyAssertionResponse_,
     responseValidator:
         fireauth.RpcHandler.validateVerifyAssertionForExistingResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    // Tenant ID is required for this endpoint. But for
+    // reauthenticateWithRedirect/Popup APIs, to make createAuthUri call and
+    // verifyAssertion call atomic, the tenant ID on RPC handler will be
+    // overridden by the tenant ID passed directly from the
+    // request, which is retrieved from Auth event. For
+    // reauthenticateWithCredential API, the tenant ID will still be retrieved
+    // from the RPC handler.
+    requireTenantId: true
   },
   VERIFY_ASSERTION_FOR_LINKING: {
     endpoint: 'verifyAssertion',
@@ -2507,18 +2561,21 @@ fireauth.RpcHandler.ApiMethod = {
     endpoint: 'verifyCustomToken',
     requestValidator: fireauth.RpcHandler.validateVerifyCustomTokenRequest_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    requireTenantId: true
   },
   VERIFY_PASSWORD: {
     endpoint: 'verifyPassword',
     requestValidator: fireauth.RpcHandler.validateVerifyPasswordRequest_,
     responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
-    returnSecureToken: true
+    returnSecureToken: true,
+    requireTenantId: true
   },
   VERIFY_PHONE_NUMBER: {
     endpoint: 'verifyPhoneNumber',
     requestValidator: fireauth.RpcHandler.validateVerifyPhoneNumberRequest_,
-    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_
+    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
+    requireTenantId: true
   },
   VERIFY_PHONE_NUMBER_FOR_LINKING: {
     endpoint: 'verifyPhoneNumber',
@@ -2530,7 +2587,8 @@ fireauth.RpcHandler.ApiMethod = {
     customErrorMap: fireauth.RpcHandler.verifyPhoneNumberForExistingErrorMap_,
     endpoint: 'verifyPhoneNumber',
     requestValidator: fireauth.RpcHandler.validateVerifyPhoneNumberRequest_,
-    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_
+    responseValidator: fireauth.RpcHandler.validateIdTokenResponse_,
+    requireTenantId: true
   },
   WITHDRAW_MFA: {
     endpoint: 'accounts/mfaEnrollment:withdraw',
@@ -2548,6 +2606,14 @@ fireauth.RpcHandler.ApiMethod = {
  * @private
  */
 fireauth.RpcHandler.USE_STS_TOKEN_PARAM_ = 'returnSecureToken';
+
+
+/**
+ * @const {string} The parameter to send to the backend to specify the tenant
+ *     ID.
+ * @private
+ */
+fireauth.RpcHandler.TENANT_ID_PARAM_ = 'tenantId';
 
 
 /**
@@ -2577,6 +2643,13 @@ fireauth.RpcHandler.prototype.invokeRpc = function(method, request) {
           // Signal that the client accepts STS tokens, for the legacy Google
           // Identity Toolkit token to STS token migration.
           request[fireauth.RpcHandler.USE_STS_TOKEN_PARAM_] = true;
+        }
+        // If tenant ID is explicitly passed in the request, it will override
+        // the tenant ID on RPC handler.
+        if (method.requireTenantId && self.tenantId_ &&
+            (typeof request[fireauth.RpcHandler.TENANT_ID_PARAM_] ===
+             'undefined')) {
+          request[fireauth.RpcHandler.TENANT_ID_PARAM_] = self.tenantId_;
         }
         return useIdentityPlatformEndpoint ?
             self.requestIdentityPlatformEndpoint(method.endpoint, httpMethod,
@@ -2718,7 +2791,7 @@ fireauth.RpcHandler.getDeveloperError_ =
   errorMap[fireauth.RpcHandler.ServerError.EMAIL_NOT_FOUND] =
       fireauth.authenum.Error.USER_DELETED;
   errorMap[fireauth.RpcHandler.ServerError.RESET_PASSWORD_EXCEED_LIMIT] =
-      fireauth.authenum.Error.TOO_MANY_ATTEMPTS_TRY_LATER;    
+      fireauth.authenum.Error.TOO_MANY_ATTEMPTS_TRY_LATER;
 
   // Reset password errors:
   errorMap[fireauth.RpcHandler.ServerError.EXPIRED_OOB_CODE] =
@@ -2813,6 +2886,12 @@ fireauth.RpcHandler.getDeveloperError_ =
   // getProjectConfig errors when sha1Cert is passed.
   errorMap[fireauth.RpcHandler.ServerError.INVALID_CERT_HASH] =
       fireauth.authenum.Error.INVALID_CERT_HASH;
+
+  // Multi-tenant related errors.
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   // User actions (sign-up or deletion) disabled errors.
   errorMap[fireauth.RpcHandler.ServerError.ADMIN_ONLY_OPERATION] =

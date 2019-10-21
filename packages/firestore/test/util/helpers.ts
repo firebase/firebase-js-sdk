@@ -67,6 +67,7 @@ import {
 } from '../../src/model/field_value';
 import {
   DeleteMutation,
+  FieldMask,
   MutationResult,
   PatchMutation,
   Precondition,
@@ -78,7 +79,9 @@ import { emptyByteString } from '../../src/platform/platform';
 import { RemoteEvent, TargetChange } from '../../src/remote/remote_event';
 import {
   DocumentWatchChange,
-  WatchChangeAggregator
+  WatchChangeAggregator,
+  WatchTargetChange,
+  WatchTargetChangeState
 } from '../../src/remote/watch_change';
 import { assert, fail } from '../../src/util/assert';
 import { primitiveComparator } from '../../src/util/misc';
@@ -121,7 +124,7 @@ export function doc(
   json: JsonObject<unknown>,
   options: DocumentOptions = {}
 ): Document {
-  return new Document(key(keyStr), version(ver), wrapObject(json), options);
+  return new Document(key(keyStr), version(ver), options, wrapObject(json));
 }
 
 export function deletedDoc(
@@ -179,6 +182,14 @@ export function path(path: string, offset?: number): ResourcePath {
 
 export function field(path: string): FieldPath {
   return fromDotSeparatedString(path)._internalPath;
+}
+
+export function mask(...paths: string[]): FieldMask {
+  let fieldPaths = new SortedSet<FieldPath>(FieldPath.comparator);
+  for (const path of paths) {
+    fieldPaths = fieldPaths.add(field(path));
+  }
+  return FieldMask.fromSet(fieldPaths);
 }
 
 export function blob(...bytes: number[]): Blob {
@@ -274,34 +285,73 @@ export function queryData(
   );
 }
 
+export function noChangeEvent(
+  targetId: number,
+  snapshotVersion: number,
+  resumeToken: ProtoByteString = emptyByteString()
+): RemoteEvent {
+  const aggregator = new WatchChangeAggregator({
+    getRemoteKeysForTarget: () => documentKeySet(),
+    getQueryDataForTarget: targetId =>
+      queryData(targetId, QueryPurpose.Listen, 'foo')
+  });
+  aggregator.handleTargetChange(
+    new WatchTargetChange(
+      WatchTargetChangeState.NoChange,
+      [targetId],
+      resumeToken
+    )
+  );
+  return aggregator.createRemoteEvent(version(snapshotVersion));
+}
+
 export function docAddedRemoteEvent(
-  doc: MaybeDocument,
+  docOrDocs: MaybeDocument | MaybeDocument[],
   updatedInTargets?: TargetId[],
   removedFromTargets?: TargetId[],
-  limboTargets?: TargetId[]
+  activeTargets?: TargetId[]
 ): RemoteEvent {
-  assert(
-    !(doc instanceof Document) || !doc.hasLocalMutations,
-    "Docs from remote updates shouldn't have local changes."
-  );
-  const docChange = new DocumentWatchChange(
-    updatedInTargets || [],
-    removedFromTargets || [],
-    doc.key,
-    doc
-  );
+  const docs = Array.isArray(docOrDocs) ? docOrDocs : [docOrDocs];
+  assert(docs.length !== 0, 'Cannot pass empty docs array');
+
+  const allTargets = activeTargets
+    ? activeTargets
+    : (updatedInTargets || []).concat(removedFromTargets || []);
+
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
     getQueryDataForTarget: targetId => {
-      const purpose =
-        limboTargets && limboTargets.indexOf(targetId) !== -1
-          ? QueryPurpose.LimboResolution
-          : QueryPurpose.Listen;
-      return queryData(targetId, purpose, doc.key.toString());
+      if (allTargets.indexOf(targetId) !== -1) {
+        const collectionPath = docs[0].key.path.popLast();
+        return queryData(
+          targetId,
+          QueryPurpose.Listen,
+          collectionPath.toString()
+        );
+      } else {
+        return null;
+      }
     }
   });
-  aggregator.handleDocumentChange(docChange);
-  return aggregator.createRemoteEvent(doc.version);
+
+  let version = SnapshotVersion.MIN;
+
+  for (const doc of docs) {
+    assert(
+      !(doc instanceof Document) || !doc.hasLocalMutations,
+      "Docs from remote updates shouldn't have local changes."
+    );
+    const docChange = new DocumentWatchChange(
+      updatedInTargets || [],
+      removedFromTargets || [],
+      doc.key,
+      doc
+    );
+    aggregator.handleDocumentChange(docChange);
+    version = doc.version.compareTo(version) > 0 ? doc.version : version;
+  }
+
+  return aggregator.createRemoteEvent(version);
 }
 
 export function docUpdateRemoteEvent(
@@ -409,6 +459,7 @@ export function limboChanges(changes: {
 
 export function localViewChanges(
   targetId: TargetId,
+  fromCache: boolean,
   changes: { added?: string[]; removed?: string[] }
 ): LocalViewChanges {
   if (!changes.added) {
@@ -427,7 +478,7 @@ export function localViewChanges(
     keyStr => (removedKeys = removedKeys.add(key(keyStr)))
   );
 
-  return new LocalViewChanges(targetId, addedKeys, removedKeys);
+  return new LocalViewChanges(targetId, fromCache, addedKeys, removedKeys);
 }
 
 /** Creates a resume token to match the given snapshot version. */
@@ -555,7 +606,8 @@ export class DocComparator {
 /**
  * Two helper functions to simplify testing isEqual() method.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, so we can dynamically call .isEqual().
+// Use any, so we can dynamically call .isEqual().
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function expectEqual(left: any, right: any, message?: string): void {
   message = message || '';
   if (typeof left.isEqual !== 'function') {
@@ -572,7 +624,8 @@ export function expectEqual(left: any, right: any, message?: string): void {
   expect(right.isEqual(left)).to.equal(true, message);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, so we can dynamically call .isEqual().
+// Use any, so we can dynamically call .isEqual().
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function expectNotEqual(left: any, right: any, message?: string): void {
   expect(left.isEqual(right)).to.equal(false, message || '');
   expect(right.isEqual(left)).to.equal(false, message || '');

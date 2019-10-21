@@ -42,10 +42,10 @@ describe('Document', () => {
     };
     const document = doc('rooms/Eros', 1, data, { hasLocalMutations: true });
 
-    expect(document.fieldValue(field('desc'))).to.deep.equal(
+    expect(document.field(field('desc'))!.value()).to.deep.equal(
       'Discuss all the project related stuff'
     );
-    expect(document.fieldValue(field('owner.title'))).to.deep.equal(
+    expect(document.field(field('owner.title'))!.value()).to.deep.equal(
       'scallywag'
     );
     expect(document.hasLocalMutations).to.equal(true);

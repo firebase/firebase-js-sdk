@@ -38,20 +38,20 @@ export function noXform_<T>(metadata: Metadata, value: T): T {
 class Mapping<T> {
   local: string;
   writable: boolean;
-  xform: (p1: Metadata, p2: T | undefined) => T | undefined;
+  xform: (p1: Metadata, p2?: T) => T | undefined;
 
   constructor(
     public server: string,
     local?: string | null,
     writable?: boolean,
-    xform?: ((p1: Metadata, p2: T | undefined) => T | undefined) | null
+    xform?: ((p1: Metadata, p2?: T) => T | undefined) | null
   ) {
     this.local = local || server;
     this.writable = !!writable;
     this.xform = xform || noXform_;
   }
 }
-type Mappings = Array<Mapping<unknown>>;
+type Mappings = Array<Mapping<string> | Mapping<number>>;
 
 export { Mappings };
 
@@ -69,15 +69,15 @@ export function getMappings(): Mappings {
   if (mappings_) {
     return mappings_;
   }
-  const mappings: Array<Mapping<unknown>> = [];
-  mappings.push(new Mapping('bucket'));
-  mappings.push(new Mapping('generation'));
-  mappings.push(new Mapping('metageneration'));
-  mappings.push(new Mapping('name', 'fullPath', true));
+  const mappings: Mappings = [];
+  mappings.push(new Mapping<string>('bucket'));
+  mappings.push(new Mapping<string>('generation'));
+  mappings.push(new Mapping<string>('metageneration'));
+  mappings.push(new Mapping<string>('name', 'fullPath', true));
 
   function mappingsXformPath(
     _metadata: Metadata,
-    fullPath: string
+    fullPath: string | undefined
   ): string | undefined {
     return xformPath(fullPath);
   }
@@ -98,18 +98,18 @@ export function getMappings(): Mappings {
       return size;
     }
   }
-  const sizeMapping = new Mapping('size');
+  const sizeMapping = new Mapping<number>('size');
   sizeMapping.xform = xformSize;
   mappings.push(sizeMapping);
-  mappings.push(new Mapping('timeCreated'));
-  mappings.push(new Mapping('updated'));
-  mappings.push(new Mapping('md5Hash', null, true));
-  mappings.push(new Mapping('cacheControl', null, true));
-  mappings.push(new Mapping('contentDisposition', null, true));
-  mappings.push(new Mapping('contentEncoding', null, true));
-  mappings.push(new Mapping('contentLanguage', null, true));
-  mappings.push(new Mapping('contentType', null, true));
-  mappings.push(new Mapping('metadata', 'customMetadata', true));
+  mappings.push(new Mapping<number>('timeCreated'));
+  mappings.push(new Mapping<string>('updated'));
+  mappings.push(new Mapping<string>('md5Hash', null, true));
+  mappings.push(new Mapping<string>('cacheControl', null, true));
+  mappings.push(new Mapping<string>('contentDisposition', null, true));
+  mappings.push(new Mapping<string>('contentEncoding', null, true));
+  mappings.push(new Mapping<string>('contentLanguage', null, true));
+  mappings.push(new Mapping<string>('contentType', null, true));
+  mappings.push(new Mapping<string>('metadata', 'customMetadata', true));
   mappings_ = mappings;
   return mappings_;
 }
@@ -134,7 +134,10 @@ export function fromResource(
   const len = mappings.length;
   for (let i = 0; i < len; i++) {
     const mapping = mappings[i];
-    metadata[mapping.local] = mapping.xform(metadata, resource[mapping.server]);
+    metadata[mapping.local] = (mapping as Mapping<unknown>).xform(
+      metadata,
+      resource[mapping.server]
+    );
   }
   addRef(metadata, authWrapper);
   return metadata;
@@ -172,19 +175,17 @@ export function downloadUrlFromResourceString(
   }
   const encode = encodeURIComponent;
   const tokensList = tokens.split(',');
-  const urls = tokensList.map(
-    (token: string): string => {
-      const bucket: string = metadata['bucket'] as string;
-      const path: string = metadata['fullPath'] as string;
-      const urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
-      const base = UrlUtils.makeUrl(urlPart);
-      const queryString = UrlUtils.makeQueryString({
-        alt: 'media',
-        token
-      });
-      return base + queryString;
-    }
-  );
+  const urls = tokensList.map((token: string): string => {
+    const bucket: string = metadata['bucket'] as string;
+    const path: string = metadata['fullPath'] as string;
+    const urlPart = '/b/' + encode(bucket) + '/o/' + encode(path);
+    const base = UrlUtils.makeUrl(urlPart);
+    const queryString = UrlUtils.makeQueryString({
+      alt: 'media',
+      token
+    });
+    return base + queryString;
+  });
   return urls[0];
 }
 

@@ -196,6 +196,8 @@ fireauth.iframeclient.OAuthUrlBuilder =
   this.provider_ = provider;
   /** @private {?string|undefined} The endpoint ID. */
   this.endpointId_ = null;
+  /** @private {?string|undefined} The tenant ID. */
+  this.tenantId_ = null;
 };
 
 
@@ -221,6 +223,19 @@ fireauth.iframeclient.OAuthUrlBuilder.prototype.setRedirectUrl =
  */
 fireauth.iframeclient.OAuthUrlBuilder.prototype.setEventId = function(eventId) {
   this.eventId_ = eventId;
+  return this;
+};
+
+
+/**
+ * Sets the tenant ID.
+ * @param {?string|undefined} tenantId The event ID.
+ * @return {!fireauth.iframeclient.OAuthUrlBuilder} The current OAuth URL
+ *     builder instance.
+ */
+fireauth.iframeclient.OAuthUrlBuilder.prototype.setTenantId =
+    function(tenantId) {
+  this.tenantId_ = tenantId;
   return this;
 };
 
@@ -330,6 +345,12 @@ fireauth.iframeclient.OAuthUrlBuilder.prototype.toString = function() {
         uri.setParameterValue(key, this.additionalParams_[key]);
       }
     }
+  }
+  // Pass the tenant ID if available.
+  if (this.tenantId_) {
+    uri.setParameterValue('tid', this.tenantId_);
+  } else {
+    uri.removeParameter('tid');
   }
   // Pass the endpoint ID if available.
   if (this.endpointId_) {
@@ -593,11 +614,12 @@ fireauth.iframeclient.IfcHandler.prototype.hasVolatileStorage = function() {
  * @param {?Window} popupWin The popup window reference.
  * @param {!fireauth.AuthEvent.Type} mode The Auth event type.
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
- * @param {!function()} onInitialize The function to call on initialization.
- * @param {!function(*)} onError The function to call on error.
+ * @param {function()} onInitialize The function to call on initialization.
+ * @param {function(*)} onError The function to call on error.
  * @param {string=} opt_eventId The optional event ID.
  * @param {boolean=} opt_alreadyRedirected Whether popup is already redirected
  *     to final destination.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @return {!goog.Promise} The popup window promise.
  * @override
  */
@@ -608,7 +630,8 @@ fireauth.iframeclient.IfcHandler.prototype.processPopup = function(
     onInitialize,
     onError,
     opt_eventId,
-    opt_alreadyRedirected) {
+    opt_alreadyRedirected,
+    opt_tenantId) {
   // processPopup is failing since it tries to access popup win when tab can
   // not run in background. For now bypass processPopup which runs
   // additional origin check not accounted above. Besides, iframe will never
@@ -669,7 +692,8 @@ fireauth.iframeclient.IfcHandler.prototype.processPopup = function(
             opt_eventId,
             self.clientVersion_,
             undefined,
-            self.endpointId_);
+            self.endpointId_,
+            opt_tenantId);
     // Redirect popup to OAuth helper widget URL.
     fireauth.util.goTo(oauthHelperWidgetUrl, /** @type {!Window} */ (popupWin));
   }).thenCatch(function(e) {
@@ -711,11 +735,12 @@ fireauth.iframeclient.IfcHandler.prototype.getRpcHandler_ = function() {
  * @param {!fireauth.AuthEvent.Type} mode The Auth event type.
  * @param {!fireauth.AuthProvider} provider The Auth provider to sign in with.
  * @param {?string=} opt_eventId The optional event ID.
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @return {!goog.Promise}
  * @override
  */
 fireauth.iframeclient.IfcHandler.prototype.processRedirect =
-    function(mode, provider, opt_eventId) {
+    function(mode, provider, opt_eventId, opt_tenantId) {
   // If origin validator not determined yet.
   if (!this.originValidator_) {
     this.originValidator_ =
@@ -737,7 +762,8 @@ fireauth.iframeclient.IfcHandler.prototype.processRedirect =
             opt_eventId,
             self.clientVersion_,
             undefined,
-            self.endpointId_);
+            self.endpointId_,
+            opt_tenantId);
     // Redirect to OAuth helper widget URL.
     fireauth.util.goTo(oauthHelperWidgetUrl);
   }).thenCatch(function(e) {
@@ -831,6 +857,7 @@ fireauth.iframeclient.IfcHandler.getAuthIframeUrl = function(authDomain, apiKey,
  * @param {?Object<string, string>=} opt_additionalParams The optional
  *     additional parameters.
  * @param {?string=} opt_endpointId The endpoint ID (staging, test Gaia, etc).
+ * @param {?string=} opt_tenantId The optional tenant ID.
  * @return {string} The OAuth helper widget URL.
  */
 fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl = function(
@@ -843,7 +870,8 @@ fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl = function(
     opt_eventId,
     opt_clientVersion,
     opt_additionalParams,
-    opt_endpointId) {
+    opt_endpointId,
+    opt_tenantId) {
   // OAuth helper widget URL.
   var builder = new fireauth.iframeclient.OAuthUrlBuilder(
       authDomain, apiKey, appName, authType, provider);
@@ -853,6 +881,7 @@ fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl = function(
       .setVersion(opt_clientVersion)
       .setAdditionalParameters(opt_additionalParams)
       .setEndpointId(opt_endpointId)
+      .setTenantId(opt_tenantId)
       .toString();
 };
 

@@ -16,12 +16,13 @@
  */
 
 import { ListenSequence } from '../core/listen_sequence';
-import { ListenSequenceNumber } from '../core/types';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import * as log from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { CancelablePromise } from '../util/promise';
+import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ignoreIfPrimaryLeaseLoss } from './indexeddb_persistence';
 import { LocalStore } from './local_store';
@@ -83,12 +84,10 @@ export interface LruDelegate {
 }
 
 /**
- * Describes an object whose keys are active target ids. We do not care about the type of the
+ * Describes a map whose keys are active target ids. We do not care about the type of the
  * values.
  */
-export interface ActiveTargets {
-  [id: number]: unknown;
-}
+export type ActiveTargets = SortedMap<TargetId, unknown>;
 
 // The type and comparator for the items contained in the SortedSet used in
 // place of a priority queue for the RollingSequenceNumberBuffer.
@@ -217,7 +216,7 @@ const REGULAR_GC_DELAY_MS = 5 * 60 * 1000;
  * whether or not GC is enabled, as well as which delay to use before the next run.
  */
 export class LruScheduler {
-  private hasRun: boolean;
+  private hasRun: boolean = false;
   private gcTask: CancelablePromise<void> | null;
 
   constructor(
@@ -351,9 +350,7 @@ export class LruGarbageCollector {
         log.debug(
           'LruGarbageCollector',
           `Garbage collection skipped; Cache size ${cacheSize} ` +
-            `is lower than threshold ${
-              this.params.cacheSizeCollectionThreshold
-            }`
+            `is lower than threshold ${this.params.cacheSizeCollectionThreshold}`
         );
         return GC_DID_NOT_RUN;
       } else {
@@ -385,9 +382,7 @@ export class LruGarbageCollector {
           log.debug(
             'LruGarbageCollector',
             'Capping sequence numbers to collect down ' +
-              `to the maximum of ${
-                this.params.maximumSequenceNumbersToCollect
-              } ` +
+              `to the maximum of ${this.params.maximumSequenceNumbersToCollect} ` +
               `from ${sequenceNumbers}`
           );
           sequenceNumbersToCollect = this.params

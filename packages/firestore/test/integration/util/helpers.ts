@@ -18,13 +18,18 @@
 import * as firestore from '@firebase/firestore-types';
 import { clearTestPersistence } from './../../unit/local/persistence_test_helpers';
 import firebase from './firebase_export';
+import {
+  EmptyCredentialsProvider,
+  CredentialChangeListener
+} from '../../../src/api/credentials';
+import { User } from '../../../src/auth/user';
 
 /**
  * NOTE: These helpers are used by api/ tests and therefore may not have any
  * dependencies on src/ files.
  */
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, __karma__ is an untyped global
+// __karma__ is an untyped global
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare const __karma__: any;
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -89,15 +94,11 @@ export function isRunningAgainstEmulator(): boolean {
 }
 
 /**
- * A wrapper around Jasmine's describe method that allows for it to be run with
+ * A wrapper around Mocha's describe method that allows for it to be run with
  * persistence both disabled and enabled (if the browser is supported).
  */
-export const apiDescribe = apiDescribeInternal.bind(null, describe);
-apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
-apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
-
 function apiDescribeInternal(
-  describeFn: Mocha.IContextDefinition,
+  describeFn: Mocha.PendingSuiteFunction,
   message: string,
   testSuite: (persistence: boolean) => void
 ): void {
@@ -108,6 +109,38 @@ function apiDescribeInternal(
 
   for (const enabled of persistenceModes) {
     describeFn(`(Persistence=${enabled}) ${message}`, () => testSuite(enabled));
+  }
+}
+
+type ApiSuiteFunction = (
+  message: string,
+  testSuite: (persistence: boolean) => void
+) => void;
+interface ApiDescribe {
+  (message: string, testSuite: (persistence: boolean) => void): void;
+  skip: ApiSuiteFunction;
+  only: ApiSuiteFunction;
+}
+
+export const apiDescribe = apiDescribeInternal.bind(
+  null,
+  describe
+) as ApiDescribe;
+// eslint-disable-next-line no-restricted-properties
+apiDescribe.skip = apiDescribeInternal.bind(null, describe.skip);
+// eslint-disable-next-line no-restricted-properties
+apiDescribe.only = apiDescribeInternal.bind(null, describe.only);
+
+export class MockCredentialsProvider extends EmptyCredentialsProvider {
+  private listener: CredentialChangeListener | null = null;
+
+  triggerUserChange(newUser: User): void {
+    this.listener!(newUser);
+  }
+
+  setChangeListener(listener: CredentialChangeListener): void {
+    super.setChangeListener(listener);
+    this.listener = listener;
   }
 }
 
@@ -148,6 +181,30 @@ export function withTestDb(
   return withTestDbs(persistence, 1, ([db]) => {
     return fn(db);
   });
+}
+
+export function withMockCredentialProviderTestDb(
+  persistence: boolean,
+  fn: (
+    db: firestore.FirebaseFirestore,
+    mockCredential: MockCredentialsProvider
+  ) => Promise<void>
+): Promise<void> {
+  const mockCredentialsProvider = new MockCredentialsProvider();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const settings = {
+    ...DEFAULT_SETTINGS,
+    credentials: { client: mockCredentialsProvider, type: 'provider' }
+  };
+  return withTestDbsSettings(
+    persistence,
+    DEFAULT_PROJECT_ID,
+    settings,
+    1,
+    ([db]) => {
+      return fn(db, mockCredentialsProvider);
+    }
+  );
 }
 
 /** Runs provided fn with a db for an alternate project id. */

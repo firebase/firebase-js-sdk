@@ -2076,12 +2076,17 @@ function testEmailAuthCredentialWithLink_invalidLink_error() {
 }
 
 
+<<<<<<< HEAD
 function testEmailAuthProvider_getActionCodeFromSignInEmailLink() {
+=======
+function testEmailAuthProvider_getActionCodeUrlFromSignInEmailLink() {
+>>>>>>> 4ecd58ece02e08132b80ae5e50cfcd831efee762
   var emailLink1 = 'https://www.example.com/action?mode=signIn&' +
       'oobCode=oobCode&apiKey=API_KEY';
   var emailLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
       'oobCode=oobCode&apiKey=API_KEY';
   var emailLink3 = 'https://www.example.com/action?mode=signIn';
+<<<<<<< HEAD
   var oobCode1 = fireauth.EmailAuthProvider
       .getActionCodeFromSignInEmailLink(emailLink1);
   assertEquals('oobCode', oobCode1);
@@ -2095,11 +2100,36 @@ function testEmailAuthProvider_getActionCodeFromSignInEmailLink() {
 
 
 function testEmailAuthProvider_getActionCodeFromSignInEmailLink_deepLink() {
+=======
+  var emailLink4 = 'https://www.example.com/action?mode=signIn&' +
+      'oobCode=oobCode&apiKey=API_KEY&tenantId=TENANT_ID';
+
+  var actionCodeUrl1 = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink1);
+  assertEquals('oobCode', actionCodeUrl1['code']);
+  assertNull(actionCodeUrl1['tenantId']);
+  var actionCodeUrl2 = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink2);
+  assertNull(actionCodeUrl2);
+  var actionCodeUrl3 = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink3);
+  assertNull(actionCodeUrl3);
+  var actionCodeUrl4 = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink4);
+  assertEquals('oobCode', actionCodeUrl4['code']);
+  assertEquals('TENANT_ID', actionCodeUrl4['tenantId']);
+}
+
+
+function testEmailAuthProvider_getActionCodeUrlFromSignInEmailLink_deepLink() {
+>>>>>>> 4ecd58ece02e08132b80ae5e50cfcd831efee762
   var deepLink1 = 'https://www.example.com/action?mode=signIn&' +
       'oobCode=oobCode&apiKey=API_KEY';
   var deepLink2 = 'https://www.example.com/action?mode=verifyEmail&' +
       'oobCode=oobCode&apiKey=API_KEY';
   var deepLink3 = 'https://www.example.com/action?mode=signIn';
+  var deepLink4 = 'https://www.example.com/action?mode=signIn&' +
+      'oobCode=oobCode&apiKey=API_KEY&tenantId=TENANT_ID';
 
   var emailLink1 = 'https://example.app.goo.gl/?link=' +
       encodeURIComponent(deepLink1);
@@ -2107,21 +2137,28 @@ function testEmailAuthProvider_getActionCodeFromSignInEmailLink_deepLink() {
       encodeURIComponent(deepLink2);
   var emailLink3 = 'https://example.app.goo.gl/?link=' +
       encodeURIComponent(deepLink3);
-  var emailLink4 = 'comexampleiosurl://google/link?deep_link_id=' +
+  var emailLink4 = 'https://example.app.goo.gl/?link=' +
+      encodeURIComponent(deepLink4);
+  var emailLink5 = 'comexampleiosurl://google/link?deep_link_id=' +
       encodeURIComponent(deepLink1);
 
-  var oobCode1 = fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink1);
-  assertEquals('oobCode', oobCode1);
-  var oobCode2 = fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink2);
-  assertNull(oobCode2);
-  var oobCode3 = fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink3);
-  assertNull(oobCode3);
-  var oobCode4 = fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink4);
-  assertEquals('oobCode', oobCode4);
+  var actionCodeUrl1 = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink1);
+  assertEquals('oobCode', actionCodeUrl1['code']);
+  assertNull(actionCodeUrl1['tenantId']);
+  var actionCodeUrl2 = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink2);
+  assertNull(actionCodeUrl2);
+  var actionCodeUrl3 = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink3);
+  assertNull(actionCodeUrl3);
+  var actionCodeUrl4 = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink4);
+  assertEquals('oobCode', actionCodeUrl4['code']);
+  assertEquals('TENANT_ID', actionCodeUrl4['tenantId']);
+  var actionCodeUrl5 = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink5);
+  assertEquals('oobCode', actionCodeUrl5['code']);
 }
 
 

@@ -142,7 +142,7 @@ apiDescribe('Smoke Test', (persistence: boolean) => {
 
   // TODO (b/33691136): temporarily disable failed test
   // This broken because it requires a composite index on filter,sort
-  // tslint:disable-next-line:ban
+  // eslint-disable-next-line no-restricted-properties
   it.skip('can query by field and use order by', () => {
     const testDocs = {
       '1': { sort: 1, filter: true, key: '1' },

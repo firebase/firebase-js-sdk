@@ -38,7 +38,7 @@ describe('Firebase Storage > Request', () => {
     const response = 'I am the server response!!!!';
 
     function newSend(xhrio: TestingXhrIo): void {
-      const responseHeaders = {};
+      const responseHeaders: { [key: string]: string } = {};
       responseHeaders[responseHeader] = responseValue;
       xhrio.simulateResponse(status, response, responseHeaders);
     }
@@ -68,7 +68,7 @@ describe('Firebase Storage > Request', () => {
           const args: unknown[] = spiedSend.getCall(0).args;
           assert.equal(args[1], url);
           assert.equal(args[2], method);
-          const expectedHeaders: Headers = {};
+          const expectedHeaders: { [key: string]: string } = {};
           expectedHeaders[requestHeader] = requestValue;
           expectedHeaders[versionHeaderName] = versionHeaderValue;
           assert.deepEqual(args[4], expectedHeaders);
@@ -197,7 +197,9 @@ describe('Firebase Storage > Request', () => {
       () => {
         assert.isTrue(spiedSend.calledOnce);
         const args: unknown[] = spiedSend.getCall(0).args;
-        const expectedHeaders = { Authorization: 'Firebase ' + authToken };
+        const expectedHeaders: { [key: string]: string } = {
+          Authorization: 'Firebase ' + authToken
+        };
         expectedHeaders[versionHeaderName] = versionHeaderValue;
         assert.deepEqual(args[4], expectedHeaders);
       },

@@ -37,15 +37,12 @@ const pkgsByName = {
   database: databasePkg
 };
 
-const plugins = [
-  resolveModule(),
-  typescriptPlugin({
-    typescript
-  }),
-  commonjs()
-];
+const plugins = [resolveModule(), commonjs()];
 
-const external = [...Object.keys(pkg.peerDependencies || {}), 'rxjs/operators'];
+const external = [
+  ...Object.keys({ ...pkg.peerDependencies, ...pkg.dependencies }),
+  'rxjs/operators'
+];
 
 /**
  * Global UMD Build
@@ -71,7 +68,12 @@ const componentBuilds = components
             sourcemap: true
           }
         ],
-        plugins,
+        plugins: [
+          ...plugins,
+          typescriptPlugin({
+            typescript
+          })
+        ],
         external
       },
       {
@@ -88,7 +90,18 @@ const componentBuilds = components
             'rxjs/operators': 'rxjs.operators'
           }
         },
-        plugins: [...plugins, uglify()],
+        plugins: [
+          ...plugins,
+          typescriptPlugin({
+            typescript,
+            tsconfigOverride: {
+              compilerOptions: {
+                declaration: false
+              }
+            }
+          }),
+          uglify()
+        ],
         external
       }
     ];

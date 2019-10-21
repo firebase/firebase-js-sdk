@@ -15,29 +15,26 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import * as sinon from 'sinon';
+import { stub, restore, spy } from 'sinon';
 
 import { makeFakeApp } from './testing-utils/make-fake-app';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
-import {
-  manifestCheck,
-  WindowController
-} from '../src/controllers/window-controller';
+import { WindowController } from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
+import { MessageType } from '../src/models/worker-page-message';
 
 const VALID_VAPID_KEY =
   'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';
 
 describe('Firebase Messaging > *WindowController', () => {
-  const sandbox = sinon.sandbox.create();
   const app = makeFakeApp({
     messagingSenderId: '12345'
   });
 
   const cleanup = (): void => {
-    sandbox.restore();
+    restore();
   };
 
   beforeEach(() => {
@@ -48,125 +45,19 @@ describe('Firebase Messaging > *WindowController', () => {
     return cleanup();
   });
 
-  describe('manifestCheck()', () => {
-    it("should resolve when the tag isn't defined", () => {
-      sandbox
-        .stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]')
-        .returns(null);
-
-      return manifestCheck();
-    });
-
-    it('should fetch the manifest if defined and resolve when no gcm_sender_id', () => {
-      sandbox
-        .stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]')
-        .returns({
-          href: 'https://firebase.io/messaging/example'
-        } as any);
-
-      sandbox
-        .stub(window, 'fetch')
-        .withArgs('https://firebase.io/messaging/example')
-        .returns(
-          Promise.resolve({
-            json: () => {
-              return {};
-            }
-          } as any)
-        );
-
-      return manifestCheck();
-    });
-
-    it('should fetch the manifest if defined and resolve with expected gcm_sender_id', () => {
-      sandbox
-        .stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]')
-        .returns({
-          href: 'https://firebase.io/messaging/example'
-        } as any);
-
-      sandbox
-        .stub(window, 'fetch')
-        .withArgs('https://firebase.io/messaging/example')
-        .returns(
-          Promise.resolve({
-            json: () => {
-              return {
-                // eslint-disable-next-line camelcase
-                gcm_sender_id: '103953800507'
-              };
-            }
-          } as any)
-        );
-
-      return manifestCheck();
-    });
-
-    it('should fetch the manifest if defined and reject when using wrong gcm_sender_id', () => {
-      sandbox
-        .stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]')
-        .returns({
-          href: 'https://firebase.io/messaging/example'
-        } as any);
-
-      sandbox
-        .stub(window, 'fetch')
-        .withArgs('https://firebase.io/messaging/example')
-        .returns(
-          Promise.resolve({
-            json: () => {
-              return {
-                // eslint-disable-next-line camelcase
-                gcm_sender_id: 'incorrect-sender-id'
-              };
-            }
-          } as any)
-        );
-
-      return manifestCheck().then(
-        () => {
-          throw new Error('Expected error to be thrown.');
-        },
-        err => {
-          expect(err.code).to.equal('messaging/incorrect-gcm-sender-id');
-        }
-      );
-    });
-
-    it('should fetch the manifest and resolve if the request fails', () => {
-      sandbox
-        .stub(document, 'querySelector')
-        .withArgs('link[rel="manifest"]')
-        .returns({
-          href: 'https://firebase.io/messaging/example'
-        } as any);
-
-      sandbox
-        .stub(window, 'fetch')
-        .withArgs('https://firebase.io/messaging/example')
-        .returns(Promise.reject(new Error('Injected Failure.')));
-
-      return manifestCheck();
-    });
-  });
-
   describe('requestPermission', () => {
     it('should resolve if the permission is already granted', () => {
-      sandbox.stub(Notification as any, 'permission').value('granted');
+      stub(Notification as any, 'permission').value('granted');
 
       const controller = new WindowController(app);
       return controller.requestPermission();
     });
 
     it('should reject if the requestPermission() is denied', () => {
-      sandbox.stub(Notification as any, 'permission').value('denied');
-      sandbox
-        .stub(Notification, 'requestPermission')
-        .returns(Promise.resolve<NotificationPermission>('denied'));
+      stub(Notification as any, 'permission').value('denied');
+      stub(Notification, 'requestPermission').returns(
+        Promise.resolve<NotificationPermission>('denied')
+      );
 
       const controller = new WindowController(app);
       return controller.requestPermission().then(
@@ -180,10 +71,10 @@ describe('Firebase Messaging > *WindowController', () => {
     });
 
     it('should reject if the requestPermission() is default', () => {
-      sandbox.stub(Notification as any, 'permission').value('default');
-      sandbox
-        .stub(Notification, 'requestPermission')
-        .returns(Promise.resolve<NotificationPermission>('default'));
+      stub(Notification as any, 'permission').value('default');
+      stub(Notification, 'requestPermission').returns(
+        Promise.resolve<NotificationPermission>('default')
+      );
 
       const controller = new WindowController(app);
       return controller.requestPermission().then(
@@ -197,10 +88,10 @@ describe('Firebase Messaging > *WindowController', () => {
     });
 
     it('should resolve if the requestPermission() is granted', () => {
-      sandbox.stub(Notification as any, 'permission').value('default');
-      sandbox
-        .stub(Notification, 'requestPermission')
-        .returns(Promise.resolve<NotificationPermission>('granted'));
+      stub(Notification as any, 'permission').value('default');
+      stub(Notification, 'requestPermission').returns(
+        Promise.resolve<NotificationPermission>('granted')
+      );
 
       const controller = new WindowController(app);
       return controller.requestPermission();
@@ -244,7 +135,7 @@ describe('Firebase Messaging > *WindowController', () => {
       const compFunc = (): void => {};
 
       const controller = new WindowController(app);
-      const onMessageStub = sandbox.stub(controller as any, 'onMessage');
+      const onMessageStub = stub(controller as any, 'onMessage');
       controller.onMessage(nextFunc, errFunc, compFunc);
 
       expect(onMessageStub.callCount).to.equal(1);
@@ -261,10 +152,7 @@ describe('Firebase Messaging > *WindowController', () => {
       const compFunc = (): void => {};
 
       const controller = new WindowController(app);
-      const onTokenRefreshStub = sandbox.stub(
-        controller as any,
-        'onTokenRefresh'
-      );
+      const onTokenRefreshStub = stub(controller as any, 'onTokenRefresh');
       controller.onTokenRefresh(nextFunc, errFunc, compFunc);
 
       expect(onTokenRefreshStub.callCount).to.equal(1);
@@ -341,30 +229,30 @@ describe('Firebase Messaging > *WindowController', () => {
 
   describe('setupSWMessageListener_()', () => {
     it('should add listener when supported', () => {
-      const spy = sandbox.spy();
-      sandbox.stub(navigator, 'serviceWorker').value({
-        addEventListener: spy
+      const sinonSpy = spy();
+      stub(navigator, 'serviceWorker').value({
+        addEventListener: sinonSpy
       });
 
       const controller = new WindowController(app);
       controller.setupSWMessageListener_();
 
-      expect(spy.args[0][0]).to.equal('message');
+      expect(sinonSpy.args[0][0]).to.equal('message');
     });
 
     it('should do nothing when non-fcm message is passed in', () => {
-      const spy = sandbox.spy();
-      const onMessageSpy = sandbox.spy();
+      const sinonSpy = spy();
+      const onMessageSpy = spy();
 
-      sandbox.stub(navigator, 'serviceWorker').value({
-        addEventListener: spy
+      stub(navigator, 'serviceWorker').value({
+        addEventListener: sinonSpy
       });
 
       const controller = new WindowController(app);
       controller.onMessage(onMessageSpy, null as any, null as any);
       controller.setupSWMessageListener_();
 
-      const callback = spy.args[0][1];
+      const callback = sinonSpy.args[0][1];
       // New message without data
       callback({});
       expect(onMessageSpy.callCount).to.equal(0);
@@ -374,19 +262,11 @@ describe('Firebase Messaging > *WindowController', () => {
         data: {}
       });
       expect(onMessageSpy.callCount).to.equal(0);
-
-      // Even with FCM data, if the type isn't known - do nothing.
-      callback({
-        data: {
-          'firebase-messaging-msg-type': 'unknown'
-        }
-      });
-      expect(onMessageSpy.callCount).to.equal(0);
     });
 
     it('should not throw when message observer is not defined', () => {
-      const messageCallbackSpy = sandbox.spy();
-      sandbox.stub(navigator, 'serviceWorker').value({
+      const messageCallbackSpy = spy();
+      stub(navigator, 'serviceWorker').value({
         addEventListener: messageCallbackSpy
       });
 
@@ -399,16 +279,17 @@ describe('Firebase Messaging > *WindowController', () => {
 
       callback({
         data: {
-          'firebase-messaging-msg-type': 'push-msg-received'
+          firebaseMessagingType: MessageType.PUSH_MSG_RECEIVED,
+          firebaseMessagingData: {}
         }
       });
     });
 
     it('should call onMessage for push msg received event', async () => {
-      const messageCallbackSpy = sandbox.spy();
-      const onMessageSpy = sandbox.spy();
+      const messageCallbackSpy = spy();
+      const onMessageSpy = spy();
 
-      sandbox.stub(navigator, 'serviceWorker').value({
+      stub(navigator, 'serviceWorker').value({
         addEventListener: messageCallbackSpy
       });
 
@@ -426,7 +307,8 @@ describe('Firebase Messaging > *WindowController', () => {
           // Even with FCM data, if the type isn't known - do nothing.
           callback({
             data: {
-              'firebase-messaging-msg-type': 'push-msg-received'
+              firebaseMessagingType: MessageType.PUSH_MSG_RECEIVED,
+              firebaseMessagingData: { a: 'b' }
             }
           });
 
@@ -435,7 +317,7 @@ describe('Firebase Messaging > *WindowController', () => {
         })
         .then(() => {
           expect(onMessageSpy.callCount).to.equal(1);
-          expect(onMessageSpy.args[0][0]).to.equal(undefined);
+          expect(onMessageSpy.args[0][0]).to.deep.equal({ a: 'b' });
         });
     });
   });

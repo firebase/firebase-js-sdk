@@ -362,6 +362,30 @@ function testAuthErrorWithCredential_toPlainObject() {
   assertObjectEquals(
       errorObject4,
       error4.toPlainObject());
+
+  // AuthErrorWithCredential with credential, email and tenant ID.
+  var credential5 = fireauth.FacebookAuthProvider.credential('ACCESS_TOKEN');
+  var error5 = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        email: 'user@example.com',
+        credential: credential5,
+        tenantId: 'TENANT_ID'
+      },
+      'This credential is already associated with a different user account.');
+  var errorObject5 = {
+    'code': 'auth/credential-already-in-use',
+    'email': 'user@example.com',
+    'message': 'This credential is already associated with a different user ' +
+        'account.',
+    'providerId': 'facebook.com',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'signInMethod': fireauth.FacebookAuthProvider['FACEBOOK_SIGN_IN_METHOD'],
+    'tenantId': 'TENANT_ID'
+  };
+  assertObjectEquals(
+      errorObject5,
+      error5.toPlainObject());
 }
 
 
@@ -471,6 +495,42 @@ function testAuthErrorWithCredential_fromPlainObject() {
   assertObjectEquals(
       error4,
       fireauth.AuthErrorWithCredential.fromPlainObject(errorObject4NoPrefix));
+
+  // AuthErrorWithCredential with credential, email and tenant ID.
+  var credential5 = fireauth.FacebookAuthProvider.credential('ACCESS_TOKEN');
+  var error5 = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        email: 'user@example.com',
+        credential: credential5,
+        tenantId: 'TENANT_ID'
+      },
+      'This credential is already associated with a different user account.');
+  var errorObject5 = {
+    'code': 'auth/credential-already-in-use',
+    'email': 'user@example.com',
+    'message': 'This credential is already associated with a different user ' +
+        'account.',
+    'providerId': 'facebook.com',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'tenantId': 'TENANT_ID'
+  };
+  var errorObject5NoPrefix = {
+    'code': 'credential-already-in-use',
+    'email': 'user@example.com',
+    'message': 'This credential is already associated with a different user ' +
+        'account.',
+    'providerId': 'facebook.com',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'tenantId': 'TENANT_ID'
+  };
+  assertObjectEquals(
+      error5,
+      fireauth.AuthErrorWithCredential.fromPlainObject(errorObject5));
+  // If the error code prefix is missing.
+  assertObjectEquals(
+      error5,
+      fireauth.AuthErrorWithCredential.fromPlainObject(errorObject5NoPrefix));
 }
 
 

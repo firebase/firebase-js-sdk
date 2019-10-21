@@ -3,8 +3,7 @@
   "compilerOptions": {
     "declaration": true,
     "importHelpers": true,
-    "strictNullChecks": true,
-    "noImplicitAny": true,
+    "strict": true,
     "lib": [
       "es5",
       "dom",
@@ -20,7 +19,6 @@
     "moduleResolution": "node",
     "sourceMap": true,
     "target": "es5",
-    "downlevelIteration": true,
     "typeRoots": [
       "../node_modules/@types"
     ]

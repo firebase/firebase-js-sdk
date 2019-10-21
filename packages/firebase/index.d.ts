@@ -715,6 +715,26 @@ declare namespace firebase {
       actionCodeSettings?: firebase.auth.ActionCodeSettings | null
     ): Promise<void>;
     /**
+     * The current user's tenant ID. This is a read-only property, which indicates
+     * the tenant ID used to sign in the current user. This is null if the user is
+     * signed in from the parent project.
+     *
+     * @example
+     * ```javascript
+     * // Set the tenant ID on Auth instance.
+     * firebase.auth().tenantId = ‘TENANT_PROJECT_ID’;
+     *
+     * // All future sign-in request now include tenant ID.
+     * firebase.auth().signInWithEmailAndPassword(email, password)
+     *   .then(function(result) {
+     *     // result.user.tenantId should be ‘TENANT_PROJECT_ID’.
+     *   }).catch(function(error) {
+     *     // Handle error.
+     *   });
+     * ```
+     */
+    tenantId: string | null;
+    /**
      * Returns a JSON-serializable representation of this object.
      *
      * @return A JSON-serializable representation of this object.
@@ -1151,6 +1171,42 @@ declare namespace firebase {
   function performance(
     app?: firebase.app.App
   ): firebase.performance.Performance;
+
+  /**
+   * Gets the {@link firebase.remoteConfig.RemoteConfig `RemoteConfig`} instance.
+   *
+   * @webonly
+   *
+   * @example
+   * ```javascript
+   * // Get the RemoteConfig instance for the default app
+   * const defaultRemoteConfig = firebase.remoteConfig();
+   * ```
+   *
+   * @param app The app to create a Remote Config service for. If not passed, uses the default app.
+   */
+  function remoteConfig(
+    app?: firebase.app.App
+  ): firebase.remoteConfig.RemoteConfig;
+
+  /**
+   * Gets the {@link firebase.analytics.Analytics `Analytics`} service.
+   *
+   * `firebase.analytics()` can be called with no arguments to access the default
+   * app's {@link firebase.analytics.Analytics `Analytics`} service.
+   *
+   * @webonly
+   *
+   * @example
+   * ```javascript
+   * // Get the Analytics service for the default app
+   * const defaultAnalytics = firebase.analytics();
+   * ```
+   *
+   * @param app The app to create an analytics service for.
+   * If not passed, uses the default app.
+   */
+  function analytics(app?: firebase.app.App): firebase.analytics.Analytics;
 }
 
 declare namespace firebase.app {
@@ -1303,6 +1359,33 @@ declare namespace firebase.app {
      * ```
      */
     performance(): firebase.performance.Performance;
+    /**
+     * Gets the {@link firebase.remoteConfig.RemoteConfig `RemoteConfig`} instance.
+     *
+     * @webonly
+     *
+     * @example
+     * ```javascript
+     * const rc = app.remoteConfig();
+     * // The above is shorthand for:
+     * // const rc = firebase.remoteConfig(app);
+     * ```
+     */
+    remoteConfig(): firebase.remoteConfig.RemoteConfig;
+    /**
+     * Gets the {@link firebase.analytics.Analytics `Analytics`} service for the
+     * current app. If the current app is not the default one, throws an error.
+     *
+     * @webonly
+     *
+     * @example
+     * ```javascript
+     * const analytics = app.analytics();
+     * // The above is shorthand for:
+     * // const analytics = firebase.analytics(app);
+     * ```
+     */
+    analytics(): firebase.analytics.Analytics;
   }
 }
 
@@ -1330,7 +1413,7 @@ declare namespace firebase.installations {
      *
      * @return Firebase Installation Authentication Token
      */
-    getToken(): Promise<string>;
+    getToken(forceRefresh?: boolean): Promise<string>;
 
     /**
      * Deletes the Firebase Installation and all associated data.
@@ -1455,6 +1538,175 @@ declare namespace firebase.performance {
 /**
  * @webonly
  */
+declare namespace firebase.remoteConfig {
+  /**
+   * The Firebase Remote Config service interface.
+   *
+   * Do not call this constructor directly. Instead, use
+   * {@link firebase.remoteConfig `firebase.remoteConfig()`}.
+   */
+  export interface RemoteConfig {
+    /**
+     * Defines configuration for the Remote Config SDK.
+     */
+    settings: Settings;
+
+    /**
+     * Object containing default values for conigs.
+     */
+    defaultConfig: { [key: string]: string | number | boolean };
+
+    /**
+     * The Unix timestamp in milliseconds of the last <i>successful</i> fetch, or negative one if
+     * the {@link RemoteConfig} instance either hasn't fetched or initialization
+     * is incomplete.
+     */
+    fetchTimeMillis: number;
+
+    /**
+     * The status of the last fetch <i>attempt</i>.
+     */
+    lastFetchStatus: FetchStatus;
+
+    /**
+     * Makes the last fetched config available to the getters.
+     * Returns a promise which resolves to true if the current call activated the fetched configs.
+     * If the fetched configs were already activated, the promise will resolve to false.
+     */
+    activate(): Promise<boolean>;
+
+    /**
+     * Ensures the last activated config are available to the getters.
+     */
+    ensureInitialized(): Promise<void>;
+
+    /**
+     * Fetches and caches configuration from the Remote Config service.
+     */
+    fetch(): Promise<void>;
+
+    /**
+     * Performs fetch and activate operations, as a convenience.
+     * Returns a promise which resolves to true if the current call activated the fetched configs.
+     * If the fetched configs were already activated, the promise will resolve to false.
+     */
+    fetchAndActivate(): Promise<boolean>;
+
+    /**
+     * Gets all config.
+     */
+    getAll(): { [key: string]: Value };
+
+    /**
+     * Gets the value for the given key as a boolean.
+     *
+     * Convenience method for calling <code>remoteConfig.getValue(key).asBoolean()</code>.
+     */
+    getBoolean(key: string): boolean;
+
+    /**
+     * Gets the value for the given key as a number.
+     *
+     * Convenience method for calling <code>remoteConfig.getValue(key).asNumber()</code>.
+     */
+    getNumber(key: string): number;
+
+    /**
+     * Gets the value for the given key as a String.
+     *
+     * Convenience method for calling <code>remoteConfig.getValue(key).asString()</code>.
+     */
+    getString(key: string): string;
+
+    /**
+     * Gets the {@link Value} for the given key.
+     */
+    getValue(key: string): Value;
+
+    /**
+     * Defines the log level to use.
+     */
+    setLogLevel(logLevel: LogLevel): void;
+  }
+
+  /**
+   * Indicates the source of a value.
+   *
+   * <ul>
+   *   <li>"static" indicates the value was defined by a static constant.</li>
+   *   <li>"default" indicates the value was defined by default config.</li>
+   *   <li>"remote" indicates the value was defined by fetched config.</li>
+   * </ul>
+   */
+  export type ValueSource = 'static' | 'default' | 'remote';
+
+  /**
+   * Wraps a value with metadata and type-safe getters.
+   */
+  export interface Value {
+    /**
+     * Gets the value as a boolean.
+     *
+     * The following values (case insensitive) are interpreted as true:
+     * "1", "true", "t", "yes", "y", "on". Other values are interpreted as false.
+     */
+    asBoolean(): boolean;
+
+    /**
+     * Gets the value as a number. Comparable to calling <code>Number(value) || 0</code>.
+     */
+    asNumber(): number;
+
+    /**
+     * Gets the value as a string.
+     */
+    asString(): string;
+
+    /**
+     * Gets the {@link ValueSource} for the given key.
+     */
+    getSource(): ValueSource;
+  }
+
+  /**
+   * Defines configuration options for the Remote Config SDK.
+   */
+  export interface Settings {
+    /**
+     * Defines the maximum age in milliseconds of an entry in the config cache before
+     * it is considered stale. Defaults to 43200000 (Twelve hours).
+     */
+    minimumFetchIntervalMillis: number;
+
+    /**
+     * Defines the maximum amount of milliseconds to wait for a response when fetching
+     * configuration from the Remote Config server. Defaults to 60000 (One minute).
+     */
+    fetchTimeoutMillis: number;
+  }
+
+  /**
+   * Summarizes the outcome of the last attempt to fetch config from the Firebase Remote Config server.
+   *
+   * <ul>
+   *   <li>"no-fetch-yet" indicates the {@link RemoteConfig} instance has not yet attempted
+   *       to fetch config, or that SDK initialization is incomplete.</li>
+   *   <li>"success" indicates the last attempt succeeded.</li>
+   *   <li>"failure" indicates the last attempt failed.</li>
+   *   <li>"throttle" indicates the last attempt was rate-limited.</li>
+   * </ul>
+   */
+  export type FetchStatus = 'no-fetch-yet' | 'success' | 'failure' | 'throttle';
+
+  /**
+   * Defines levels of Remote Config logging.
+   */
+  export type LogLevel = 'debug' | 'error' | 'silent';
+}
+
+/**
+ * @webonly
+ */
 declare namespace firebase.functions {
   /**
    * An HttpsCallableResult wraps a single result from a function call.
@@ -1569,6 +1821,46 @@ declare namespace firebase.functions {
 }
 
 declare namespace firebase.auth {
+  /**
+   * A utility class to parse email action URLs.
+   */
+  class ActionCodeURL {
+    private constructor();
+    /**
+     * The API key of the email action link.
+     */
+    apiKey: string;
+    /**
+     * The action code of the email action link.
+     */
+    code: string;
+    /**
+     * The continue URL of the email action link. Null if not provided.
+     */
+    continueUrl: string | null;
+    /**
+     * The language code of the email action link. Null if not provided.
+     */
+    languageCode: string | null;
+    /**
+     * The action performed by the email action link. It returns from one
+     * of the types from {@link firebase.auth.ActionCodeInfo}.
+     */
+    operation: firebase.auth.ActionCodeInfo.Operation;
+    /**
+     * Parses the email action link string and returns an ActionCodeURL object
+     * if the link is valid, otherwise returns null.
+     *
+     * @param link The email action link string.
+     * @return The ActionCodeURL object, or null if the link is invalid.
+     */
+    static parseLink(link: string): firebase.auth.ActionCodeURL | null;
+    /**
+     * The tenant ID of the email action link. Null if the email action
+     * is from the parent project.
+     */
+    tenantId: string | null;
+  }
   /**
    * A response from {@link firebase.auth.Auth.checkActionCode}.
    */
@@ -2707,6 +2999,29 @@ declare namespace firebase.auth {
      */
     signOut(): Promise<void>;
     /**
+     * The current Auth instance's tenant ID. This is a readable/writable
+     * property. When you set the tenant ID of an Auth instance, all future
+     * sign-in/sign-up operations will pass this tenant ID and sign in or
+     * sign up users to the specified tenant project.
+     * When set to null, users are signed in to the parent project. By default,
+     * this is set to null.
+     *
+     * @example
+     * ```javascript
+     * // Set the tenant ID on Auth instance.
+     * firebase.auth().tenantId = ‘TENANT_PROJECT_ID’;
+     *
+     * // All future sign-in request now include tenant ID.
+     * firebase.auth().signInWithEmailAndPassword(email, password)
+     *   .then(function(result) {
+     *     // result.user.tenantId should be ‘TENANT_PROJECT_ID’.
+     *   }).catch(function(error) {
+     *     // Handle error.
+     *   });
+     * ```
+     */
+    tenantId: string | null;
+    /**
      * Asynchronously sets the provided user as `currentUser` on the current Auth
      * instance. A new instance copy of the user provided will be made and set as
      * `currentUser`.
@@ -2727,6 +3042,9 @@ declare namespace firebase.auth {
      * <dd>Thrown if the token of the user to be updated is expired.</dd>
      * <dt>auth/null-user</dt>
      * <dd>Thrown if the user to be updated is null.</dd>
+     * <dt>auth/tenant-id-mismatch</dt>
+     * <dd>Thrown if the provided user's tenant ID does not match the
+     *     underlying Auth instance's configured tenant ID</dd>
      * </dl>
      */
     updateCurrentUser(user: firebase.User | null): Promise<void>;
@@ -2943,6 +3261,8 @@ declare namespace firebase.auth {
    * <dt>auth/invalid-user-token</dt>
    * <dd>Thrown if the user's credential is no longer valid. The user must sign in
    *     again.</dd>
+   * <dt>auth/invalid-tenant-id</dt>
+   * <dd>Thrown if the tenant ID provided is invalid.</dd>
    * <dt>auth/network-request-failed</dt>
    * <dd>Thrown if a network error (such as timeout, interrupted connection or
    *     unreachable host) has occurred.</dd>
@@ -2986,6 +3306,73 @@ declare namespace firebase.auth {
   }
 
   /**
+   * The account conflict error.
+   * Refer to {@link firebase.auth.Auth.signInWithPopup} for more information.
+   *
+   * <h4>Common Error Codes</h4>
+   * <dl>
+   * <dt>auth/account-exists-with-different-credential</dt>
+   * <dd>Thrown if there already exists an account with the email address
+   *     asserted by the credential. Resolve this by calling
+   *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail} with the error.email
+   *     and then asking the user to sign in using one of the returned providers.
+   *     Once the user is signed in, the original credential retrieved from the
+   *     error.credential can be linked to the user with
+   *     {@link firebase.User.linkWithCredential} to prevent the user from signing
+   *     in again to the original provider via popup or redirect. If you are using
+   *     redirects for sign in, save the credential in session storage and then
+   *     retrieve on redirect and repopulate the credential using for example
+   *     {@link firebase.auth.GoogleAuthProvider.credential} depending on the
+   *     credential provider id and complete the link.</dd>
+   * <dt>auth/credential-already-in-use</dt>
+   * <dd>Thrown if the account corresponding to the credential already exists
+   *     among your users, or is already linked to a Firebase User.
+   *     For example, this error could be thrown if you are upgrading an anonymous
+   *     user to a Google user by linking a Google credential to it and the Google
+   *     credential used is already associated with an existing Firebase Google
+   *     user.
+   *     The fields <code>error.email</code>, <code>error.phoneNumber</code>, and
+   *     <code>error.credential</code> ({@link firebase.auth.AuthCredential})
+   *     may be provided, depending on the type of credential. You can recover
+   *     from this error by signing in with <code>error.credential</code> directly
+   *     via {@link firebase.auth.Auth.signInWithCredential}.</dd>
+   * <dt>auth/email-already-in-use</dt>
+   * <dd>Thrown if the email corresponding to the credential already exists
+   *     among your users. When thrown while linking a credential to an existing
+   *     user, an <code>error.email</code> and <code>error.credential</code>
+   *     ({@link firebase.auth.AuthCredential}) fields are also provided.
+   *     You have to link the credential to the existing user with that email if
+   *     you wish to continue signing in with that credential. To do so, call
+   *     {@link firebase.auth.Auth.fetchSignInMethodsForEmail}, sign in to
+   *     <code>error.email</code> via one of the providers returned and then
+   *     {@link firebase.User.linkWithCredential} the original credential to that
+   *     newly signed in user.</dd>
+   * </dl>
+   */
+  interface AuthError extends firebase.auth.Error {
+    /**
+     * The {@link firebase.auth.AuthCredential} that can be used to resolve the
+     * error.
+     */
+    credential?: firebase.auth.AuthCredential;
+    /**
+     * The email of the user's account used for sign-in/linking.
+     */
+    email?: string;
+    /**
+     * The phone number of the user's account used for sign-in/linking.
+     */
+    phoneNumber?: string;
+    /**
+     * The tenant ID being used for sign-in/linking. If you use
+     * {@link firebase.auth.signInWithRedirect} to sign in, you have to
+     * set the tenant ID on Auth instanace again as the tenant ID is not
+     * persisted after redirection.
+     */
+    tenantId?: string;
+  }
+
+  /**
    * The error thrown when the user needs to provide a second factor to sign in
    * successfully.
    * The error code for this error is <code>auth/multi-factor-auth-required</code>.
@@ -3013,7 +3400,7 @@ declare namespace firebase.auth {
    *     });
    * ```
    */
-  interface MultiFactorError extends firebase.auth.Error {
+  interface MultiFactorError extends firebase.auth.AuthError {
     /**
      * The multi-factor resolver to complete second factor sign-in.
      */
@@ -3925,6 +4312,565 @@ declare namespace firebase.auth {
   }
 }
 
+/**
+ * @webonly
+ */
+declare namespace firebase.analytics {
+  /**
+   * The Firebase Analytics service interface.
+   *
+   * Do not call this constructor directly. Instead, use
+   * {@link firebase.analytics `firebase.analytics()`}.
+   */
+  export interface Analytics {
+    /**
+     * The {@link firebase.app.App app} associated with the `Analytics` service
+     * instance.
+     *
+     * @example
+     * ```javascript
+     * var app = analytics.app;
+     * ```
+     */
+    app: firebase.app.App;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart',
+      eventParams: {
+        currency?: EventParams['currency'];
+        value?: EventParams['value'];
+        items?: EventParams['items'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'begin_checkout',
+      eventParams: {
+        currency?: EventParams['currency'];
+        coupon?: EventParams['coupon'];
+        value?: EventParams['value'];
+        items?: EventParams['items'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'checkout_progress',
+      eventParams: {
+        currency?: EventParams['currency'];
+        coupon?: EventParams['coupon'];
+        value?: EventParams['value'];
+        items?: EventParams['items'];
+        checkout_step?: EventParams['checkout_step'];
+        checkout_option?: EventParams['checkout_option'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'exception',
+      eventParams: {
+        description?: EventParams['description'];
+        fatal?: EventParams['fatal'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'generate_lead',
+      eventParams: {
+        value?: EventParams['value'];
+        currency?: EventParams['currency'];
+        transaction_id?: EventParams['transaction_id'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'login',
+      eventParams: {
+        method?: EventParams['method'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'purchase',
+      eventParams: {
+        value?: EventParams['value'];
+        currency?: EventParams['currency'];
+        transaction_id: EventParams['transaction_id'];
+        tax?: EventParams['tax'];
+        shipping?: EventParams['shipping'];
+        items?: EventParams['items'];
+        coupon?: EventParams['coupon'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'refund',
+      eventParams: {
+        value?: EventParams['value'];
+        currency?: EventParams['currency'];
+        transaction_id: EventParams['transaction_id'];
+        tax?: EventParams['tax'];
+        shipping?: EventParams['shipping'];
+        items?: EventParams['items'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'screen_view',
+      eventParams: {
+        app_name: string;
+        screen_name: EventParams['screen_name'];
+        app_id?: string;
+        app_version?: string;
+        app_installer_id?: string;
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'search' | 'view_search_results',
+      eventParams: {
+        search_term?: EventParams['search_term'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'select_content',
+      eventParams: {
+        items?: EventParams['items'];
+        promotions?: EventParams['promotions'];
+        content_type?: EventParams['content_type'];
+        content_id?: EventParams['content_id'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'set_checkout_option',
+      eventParams: {
+        checkout_step?: EventParams['checkout_step'];
+        checkout_option?: EventParams['checkout_option'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'share',
+      eventParams: {
+        method?: EventParams['method'];
+        content_type?: EventParams['content_type'];
+        content_id?: EventParams['content_id'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'sign_up',
+      eventParams: {
+        method?: EventParams['method'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'timing_complete',
+      eventParams: {
+        name: string;
+        value: number;
+        event_category?: string;
+        event_label?: string;
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'view_item' | 'view_item_list',
+      eventParams: {
+        items?: EventParams['items'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'view_promotion',
+      eventParams: {
+        promotions?: EventParams['promotions'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent<T extends string>(
+      eventName: CustomEventName<T>,
+      eventParams?: { [key: string]: any },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Use gtag 'config' command to set 'screen_name'.
+     */
+    setCurrentScreen(
+      screenName: string,
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Use gtag 'config' command to set 'user_id'.
+     */
+    setUserId(
+      id: string,
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Use gtag 'config' command to set all params specified.
+     */
+    setUserProperties(
+      properties: firebase.analytics.CustomParams,
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sets whether analytics collection is enabled for this app on this device.
+     * window['ga-disable-analyticsId'] = true;
+     */
+    setAnalyticsCollectionEnabled(enabled: boolean): void;
+  }
+
+  export type CustomEventName<T> = T extends EventNameString ? never : T;
+
+  /**
+   * Additional options that can be passed to Firebase Analytics method
+   * calls such as `logEvent`, `setCurrentScreen`, etc.
+   */
+  export interface AnalyticsCallOptions {
+    /**
+     * If true, this config or event call applies globally to all
+     * analytics properties on the page.
+     */
+    global: boolean;
+  }
+
+  /**
+   * Specifies custom options for your Firebase Analytics instance.
+   * You must set these before initializing `firebase.analytics()`.
+   */
+  export interface SettingsOptions {
+    /** Sets custom name for `gtag` function. */
+    gtagName?: string;
+    /** Sets custom name for `dataLayer` array used by gtag. */
+    dataLayerName?: string;
+  }
+
+  /**
+   * Configures Firebase Analytics to use custom `gtag` or `dataLayer` names.
+   * Intended to be used if `gtag.js` script has been installed on
+   * this page independently of Firebase Analytics, and is using non-default
+   * names for either the `gtag` function or for `dataLayer`.
+   * Must be called before calling `firebase.analytics()` or it won't
+   * have any effect.
+   */
+  export function settings(settings: firebase.analytics.SettingsOptions): void;
+
+  /**
+   * Standard gtag.js control parameters.
+   * For more information, see
+   * {@link https://developers.google.com/gtagjs/reference/parameter
+   * the gtag.js documentation on parameters}.
+   */
+  export interface ControlParams {
+    groups?: string | string[];
+    send_to?: string | string[];
+    event_callback?: () => void;
+    event_timeout?: number;
+  }
+
+  /**
+   * Standard gtag.js event parameters.
+   * For more information, see
+   * {@link https://developers.google.com/gtagjs/reference/parameter
+   * the gtag.js documentation on parameters}.
+   */
+  export interface EventParams {
+    checkout_option?: string;
+    checkout_step?: number;
+    content_id?: string;
+    content_type?: string;
+    coupon?: string;
+    currency?: string;
+    description?: string;
+    fatal?: boolean;
+    items?: Item[];
+    method?: string;
+    number?: string;
+    promotions?: Promotion[];
+    screen_name?: string;
+    search_term?: string;
+    shipping?: Currency;
+    tax?: Currency;
+    transaction_id?: string;
+    value?: number;
+    event_label?: string;
+    event_category: string;
+  }
+
+  /**
+   * Any custom params the user may pass to gtag.js.
+   */
+  export interface CustomParams {
+    [key: string]: any;
+  }
+
+  /**
+   * Type for standard gtag.js event names. `logEvent` also accepts any
+   * custom string and interprets it as a custom event name.
+   */
+  export type EventNameString =
+    | 'add_payment_info'
+    | 'add_to_cart'
+    | 'add_to_wishlist'
+    | 'begin_checkout'
+    | 'checkout_progress'
+    | 'exception'
+    | 'generate_lead'
+    | 'login'
+    | 'page_view'
+    | 'purchase'
+    | 'refund'
+    | 'remove_from_cart'
+    | 'screen_view'
+    | 'search'
+    | 'select_content'
+    | 'set_checkout_option'
+    | 'share'
+    | 'sign_up'
+    | 'timing_complete'
+    | 'view_item'
+    | 'view_item_list'
+    | 'view_promotion'
+    | 'view_search_results';
+
+  /**
+   * Enum of standard gtag.js event names provided for convenient
+   * developer usage. `logEvent` will also accept any custom string
+   * and interpret it as a custom event name.
+   */
+  export enum EventName {
+    ADD_PAYMENT_INFO = 'add_payment_info',
+    ADD_TO_CART = 'add_to_cart',
+    ADD_TO_WISHLIST = 'add_to_wishlist',
+    BEGIN_CHECKOUT = 'begin_checkout',
+    CHECKOUT_PROGRESS = 'checkout_progress',
+    EXCEPTION = 'exception',
+    GENERATE_LEAD = 'generate_lead',
+    LOGIN = 'login',
+    PAGE_VIEW = 'page_view',
+    PURCHASE = 'purchase',
+    REFUND = 'refund',
+    REMOVE_FROM_CART = 'remove_from_cart',
+    SCREEN_VIEW = 'screen_view',
+    SEARCH = 'search',
+    SELECT_CONTENT = 'select_content',
+    SET_CHECKOUT_OPTION = 'set_checkout_option',
+    SHARE = 'share',
+    SIGN_UP = 'sign_up',
+    TIMING_COMPLETE = 'timing_complete',
+    VIEW_ITEM = 'view_item',
+    VIEW_ITEM_LIST = 'view_item_list',
+    VIEW_PROMOTION = 'view_promotion',
+    VIEW_SEARCH_RESULTS = 'view_search_results'
+  }
+
+  export type Currency = string | number;
+
+  export interface Item {
+    brand?: string;
+    category?: string;
+    creative_name?: string;
+    creative_slot?: string;
+    id?: string;
+    location_id?: string;
+    name?: string;
+    price?: Currency;
+    quantity?: number;
+  }
+
+  export interface Promotion {
+    creative_name?: string;
+    creative_slot?: string;
+    id?: string;
+    name?: string;
+  }
+}
+
 declare namespace firebase.auth.Auth {
   type Persistence = string;
   /**
@@ -4093,11 +5039,11 @@ declare namespace firebase.auth.ActionCodeInfo {
    */
   var Operation: {
     /**
-     * The email link sign in email action.
+     * The email link sign-in action.
      */
     EMAIL_SIGNIN: Operation;
     /**
-     * The reset password email action.
+     * The password reset action.
      */
     PASSWORD_RESET: Operation;
     /**
@@ -6763,6 +7709,81 @@ declare namespace firebase.firestore {
      *   disabled.
      */
     disableNetwork(): Promise<void>;
+
+    /**
+     * Waits until all currently pending writes for the active user have been acknowledged by the
+     * backend.
+     *
+     * The returned Promise resolves immediately if there are no outstanding writes. Otherwise, the
+     * Promise waits for all previously issued writes (including those written in a previous app
+     * session), but it does not wait for writes that were added after the method is called. If you
+     * want to wait for additional writes, call `waitForPendingWrites()` again.
+     *
+     * Any outstanding `waitForPendingWrites()` Promises are rejected during user changes.
+     *
+     * @return A Promise which resolves when all currently pending writes have been
+     * acknowledged by the backend.
+     */
+    waitForPendingWrites(): Promise<void>;
+
+    /**
+     * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
+     * event indicates that all listeners affected by a given change have fired,
+     * even if a single server-generated change affects multiple listeners.
+     *
+     * NOTE: The snapshots-in-sync event only indicates that listeners are in sync
+     * with each other, but does not relate to whether those snapshots are in sync
+     * with the server. Use SnapshotMetadata in the individual listeners to
+     * determine if a snapshot is from the cache or the server.
+     *
+     * @param observer A single object containing `next` and `error` callbacks.
+     * @return An unsubscribe function that can be called to cancel the snapshot
+     * listener.
+     */
+    onSnapshotsInSync(observer: {
+      next?: (value: void) => void;
+      error?: (error: Error) => void;
+      complete?: () => void;
+    }): () => void;
+
+    /**
+     * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
+     * event indicates that all listeners affected by a given change have fired,
+     * even if a single server-generated change affects multiple listeners.
+     *
+     * NOTE: The snapshots-in-sync event only indicates that listeners are in sync
+     * with each other, but does not relate to whether those snapshots are in sync
+     * with the server. Use SnapshotMetadata in the individual listeners to
+     * determine if a snapshot is from the cache or the server.
+     *
+     * @param onSync A callback to be called every time all snapshot listeners are
+     * in sync with each other.
+     * @return An unsubscribe function that can be called to cancel the snapshot
+     * listener.
+     */
+    onSnapshotsInSync(onSync: () => void): () => void;
+
+    /**
+     * Terminates this Firestore instance.
+     *
+     * After calling `terminate()` only the `clearPersistence()` method may be used. Any other method
+     * will throw a `FirestoreError`.
+     *
+     * To restart after termination, create a new instance of FirebaseFirestore with
+     * `firebase.firestore()`.
+     *
+     * Termination does not cancel any pending writes, and any promises that are awaiting a response
+     * from the server will not be resolved. If you have persistence enabled, the next time you
+     * start this instance, it will resume sending these writes to the server.
+     *
+     * Note: Under normal circumstances, calling `terminate()` is not required. This
+     * method is useful only when you want to force this instance to release all of its resources or
+     * in combination with `clearPersistence()` to ensure that all local state is destroyed
+     * between test runs.
+     *
+     * @return A promise that is resolved when the instance has been successfully terminated.
+     */
+    terminate(): Promise<void>;
 
     /**
      * @hidden

@@ -20,11 +20,16 @@ import { TokenDetails } from '../interfaces/token-details';
 import { cleanV1 } from './clean-v1-undefined';
 import { DbInterface } from './db-interface';
 import { ErrorCode, errorFactory } from './errors';
+import { FirebaseApp } from '@firebase/app-types';
 
 export class TokenDetailsModel extends DbInterface {
   protected readonly dbName: string = 'fcm_token_details_db';
-  protected readonly dbVersion: number = 3;
+  protected readonly dbVersion: number = 4;
   protected readonly objectStoreName: string = 'fcm_token_object_Store';
+
+  constructor(private readonly app: FirebaseApp) {
+    super();
+  }
 
   protected onDbUpgrade(
     request: IDBOpenDBRequest,
@@ -52,10 +57,13 @@ export class TokenDetailsModel extends DbInterface {
         // Prior to version 2, we were using either 'fcm_token_details_db'
         // or 'undefined' as the database name due to bug in the SDK
         // So remove the old tokens and databases.
-        cleanV1();
+        cleanV1(this.app);
       }
 
       case 2: {
+        // Update from v2 to v4 directly in a single openCursor request.
+        // We need to do this because for some reason, doing a subsequent update on the same data
+        // in the same transaction drops the first update.
         const objectStore = request.transaction!.objectStore(
           this.objectStoreName
         );
@@ -64,7 +72,7 @@ export class TokenDetailsModel extends DbInterface {
           const cursor: IDBCursorWithValue | null = cursorRequest.result;
           if (cursor) {
             const value = cursor.value;
-            const newValue: Partial<TokenDetails> = { ...value };
+            const newValue = { ...value };
 
             if (!value.createTime) {
               newValue.createTime = Date.now();
@@ -80,6 +88,34 @@ export class TokenDetailsModel extends DbInterface {
 
             if (typeof value.auth === 'string') {
               newValue.p256dh = base64ToArrayBuffer(value.p256dh).buffer;
+            }
+
+            if (typeof value.fcmPushSet === 'string') {
+              delete newValue.fcmPushSet;
+            }
+
+            cursor.update(newValue);
+            cursor.continue();
+          }
+        };
+        // Break here as we've already updated to v4.
+        break;
+      }
+
+      case 3: {
+        // Update from V3 to V4.
+        const objectStore = request.transaction!.objectStore(
+          this.objectStoreName
+        );
+        const cursorRequest = objectStore.openCursor();
+        cursorRequest.onsuccess = () => {
+          const cursor: IDBCursorWithValue | null = cursorRequest.result;
+          if (cursor) {
+            const value = cursor.value;
+            const newValue = { ...value };
+
+            if (typeof value.fcmPushSet === 'string') {
+              delete newValue.fcmPushSet;
             }
 
             cursor.update(newValue);
@@ -147,10 +183,6 @@ export class TokenDetailsModel extends DbInterface {
 
     if (!tokenDetails.fcmToken) {
       throw errorFactory.create(ErrorCode.BAD_TOKEN);
-    }
-
-    if (!tokenDetails.fcmPushSet) {
-      throw errorFactory.create(ErrorCode.BAD_PUSH_SET);
     }
 
     validateInputs(tokenDetails);
@@ -234,12 +266,6 @@ function validateInputs(input: Partial<TokenDetails>): void {
       input.fcmSenderId.length === 0
     ) {
       throw errorFactory.create(ErrorCode.BAD_SENDER_ID);
-    }
-  }
-
-  if (input.fcmPushSet) {
-    if (typeof input.fcmPushSet !== 'string' || input.fcmPushSet.length === 0) {
-      throw errorFactory.create(ErrorCode.BAD_PUSH_SET);
     }
   }
 }

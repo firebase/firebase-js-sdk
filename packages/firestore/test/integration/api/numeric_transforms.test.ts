@@ -146,9 +146,11 @@ apiDescribe('Numeric Transforms:', (persistence: boolean) => {
 
       await docRef.firestore.disableNetwork();
 
+      /* eslint-disable @typescript-eslint/no-floating-promises */
       docRef.update('sum', FieldValue.increment(0.1));
       docRef.update('sum', FieldValue.increment(0.01));
       docRef.update('sum', FieldValue.increment(0.001));
+      /* eslint-enable @typescript-eslint/no-floating-promises */
 
       let snap = await accumulator.awaitLocalEvent();
       expect(snap.get('sum')).to.be.closeTo(0.1, DOUBLE_EPSILON);
@@ -161,6 +163,57 @@ apiDescribe('Numeric Transforms:', (persistence: boolean) => {
 
       snap = await accumulator.awaitRemoteEvent();
       expect(snap.get('sum')).to.be.closeTo(0.111, DOUBLE_EPSILON);
+    });
+  });
+
+  it('increment twice in a batch', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: 'overwrite' });
+
+      const batch = docRef.firestore.batch();
+      batch.update(docRef, 'sum', FieldValue.increment(1));
+      batch.update(docRef, 'sum', FieldValue.increment(1));
+      await batch.commit();
+
+      await expectLocalAndRemoteValue(2);
+    });
+  });
+
+  it('increment, delete and increment in a batch', async () => {
+    await withTestSetup(async () => {
+      await writeInitialData({ sum: 'overwrite' });
+
+      const batch = docRef.firestore.batch();
+      batch.update(docRef, 'sum', FieldValue.increment(1));
+      batch.update(docRef, 'sum', FieldValue.delete());
+      batch.update(docRef, 'sum', FieldValue.increment(3));
+      await batch.commit();
+
+      await expectLocalAndRemoteValue(3);
+    });
+  });
+
+  it('increment on top of ServerTimestamp', async () => {
+    // This test stacks two pending transforms (a ServerTimestamp and an Increment transform)
+    // and reproduces the setup that was reported in
+    // https://github.com/firebase/firebase-android-sdk/issues/491
+    // In our original code, a NumericIncrementTransformOperation could cause us to decode the
+    // ServerTimestamp as part of a PatchMutation, which triggered an assertion failure.
+    await withTestSetup(async () => {
+      await docRef.firestore.disableNetwork();
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      docRef.set({ val: FieldValue.serverTimestamp() });
+      let snap = await accumulator.awaitLocalEvent();
+      expect(snap.get('val', { serverTimestamps: 'estimate' })).to.not.be.null;
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      docRef.set({ val: FieldValue.increment(1) });
+      snap = await accumulator.awaitLocalEvent();
+      expect(snap.get('val')).to.equal(1);
+
+      await docRef.firestore.enableNetwork();
+
+      snap = await accumulator.awaitRemoteEvent();
+      expect(snap.get('val')).to.equal(1);
     });
   });
 });

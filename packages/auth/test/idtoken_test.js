@@ -124,6 +124,7 @@ var tokenPhone = 'HEAD.ew0KICAiaXNzIjogImh0dHBzOi8vc2VjdXJldG9rZW4uZ29vZ2xlLm' +
 //     ]
 //   },
 //   "sign_in_provider": "password"
+// }
 var tokenCustomClaim = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5j' +
     'b20vcHJvamVjdElkIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImF1ZCI6InBy' +
     'b2plY3RJZCIsImF1dGhfdGltZSI6MTUyMjcxNTMyNSwic3ViIjoibmVwMnV3TkNLNFBxanZv' +
@@ -131,6 +132,33 @@ var tokenCustomClaim = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5j' +
     'bCI6InRlc3R1c2VyQGdtYWlsLmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJmaXJlYmFz' +
     'ZSI6eyJpZGVudGl0aWVzIjp7ImVtYWlsIjpbInRlc3R1c2VyQGdtYWlsLmNvbSJdfSwic2ln' +
     'bl9pbl9wcm92aWRlciI6InBhc3N3b3JkIn19.SIGNATURE';
+
+
+// "iss": "https://securetoken.google.com/projectId",
+// "name": "John Doe",
+// "aud": "projectId",
+// "auth_time": 1522715325,
+// "sub": "nep2uwNCK4PqjvoKjb0InVJHlGi1",
+// "iat": 1522776807,
+// "exp": 1522780575,
+// "email": "testuser@gmail.com",
+// "email_verified": true,
+// "firebase": {
+//   "identities": {
+//     "email": [
+//       "testuser@gmail.com"
+//     ]
+//   },
+//   "sign_in_provider": "password",
+//   "tenant": "1234567890123"
+// }
+var tokenMultiTenant = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5j' +
+    'b20vcHJvamVjdElkIiwibmFtZSI6IkpvaG4gRG9lIiwiYXVkIjoicHJvamVjdElkIiwiYXV0' +
+    'aF90aW1lIjoxNTIyNzE1MzI1LCJzdWIiOiJuZXAydXdOQ0s0UHFqdm9LamIwSW5WSkhsR2kx' +
+    'IiwiaWF0IjoxNTIyNzc2ODA3LCJleHAiOjE1MjI3ODA1NzUsImVtYWlsIjoidGVzdHVzZXJA' +
+    'Z21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImZpcmViYXNlIjp7ImlkZW50aXRp' +
+    'ZXMiOnsiZW1haWwiOlsidGVzdHVzZXJAZ21haWwuY29tIl19LCJzaWduX2luX3Byb3ZpZGVy' +
+    'IjoicGFzc3dvcmQiLCJ0ZW5hbnQiOiIxMjM0NTY3ODkwMTIzIn19.SIGNATURE';
 
 
 /**
@@ -146,6 +174,7 @@ var tokenCustomClaim = 'HEAD.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5j' +
  * @param {?string} federatedId The expected federated ID.
  * @param {boolean} verified The expected verified status.
  * @param {?string} phoneNumber The expected phone number.
+ * @param {?string} tenantId The expected tenant ID.
  */
 function assertToken(
     token,
@@ -158,7 +187,8 @@ function assertToken(
     localId,
     federatedId,
     verified,
-    phoneNumber) {
+    phoneNumber,
+    tenantId) {
   assertEquals(email, token.getEmail());
   assertEquals(exp, token.getExp());
   assertEquals(providerId, token.getProviderId());
@@ -169,6 +199,7 @@ function assertToken(
   assertEquals(anonymous, token.isAnonymous());
   assertEquals(verified, token.isVerified());
   assertEquals(phoneNumber, token.getPhoneNumber());
+  assertEquals(tenantId, token.getTenantId());
 }
 
 
@@ -190,8 +221,27 @@ function testParse_anonymous() {
       '365',
       null,
       false,
+      null,
       null);
   assertEquals(tokenAnonymous, token.toString());
+}
+
+
+function testParse_tenantId() {
+  var token = fireauth.IdToken.parse(tokenMultiTenant);
+  assertToken(
+      token,
+      'testuser@gmail.com',
+      1522780575,
+      'password',
+      null,
+      null,
+      false,
+      'nep2uwNCK4PqjvoKjb0InVJHlGi1',
+      null,
+      false,
+      null,
+      '1234567890123');
 }
 
 
@@ -208,6 +258,7 @@ function testParse_needPadding() {
       '679',
       'https://www.google.com/accounts/123456789',
       false,
+      null,
       null);
   assertTrue(token.isExpired());
   assertEquals(tokenGmail, token.toString());
@@ -227,6 +278,7 @@ function testParse_noPadding() {
       '274',
       'https://me.yahoo.com/whoamiwhowhowho#4a4ac',
       false,
+      null,
       null);
   assertTrue(token.isExpired());
   assertEquals(tokenYahoo, token.toString());
@@ -247,6 +299,7 @@ function testParse_unexpired() {
       '1458474',
       null,
       true,
+      null,
       null);
   // Check issuer of token.
   assertEquals('https://identitytoolkit.google.com/', token.getIssuer());
@@ -268,7 +321,8 @@ function testParse_phoneAndFirebaseProviderId() {
       '123456',
       null,
       false,
-      '+11234567890');
+      '+11234567890',
+      null);
   assertEquals('https://securetoken.google.com/projectId', token.getIssuer());
   assertEquals(tokenPhone, token.toString());
 }

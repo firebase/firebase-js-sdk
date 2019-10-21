@@ -23,7 +23,10 @@ import { fromRef } from '../fromRef';
 import { switchMap, scan, distinctUntilChanged, map } from 'rxjs/operators';
 import { changeToData } from '../object';
 
-export function stateChanges(query: database.Query, events?: ListenEvent[]) {
+export function stateChanges(
+  query: database.Query,
+  events?: ListenEvent[]
+): Observable<QueryChange> {
   events = validateEventsArray(events);
   const childEvent$ = events.map(event => fromRef(query, event));
   return merge(...childEvent$);
@@ -69,7 +72,7 @@ export function listVal<T>(
   );
 }
 
-function positionFor(changes: QueryChange[], key: string | null) {
+function positionFor(changes: QueryChange[], key: string | null): number {
   const len = changes.length;
   for (let i = 0; i < len; i++) {
     if (changes[i].snapshot.key === key) {
@@ -79,7 +82,7 @@ function positionFor(changes: QueryChange[], key: string | null) {
   return -1;
 }
 
-function positionAfter(changes: QueryChange[], prevKey?: string) {
+function positionAfter(changes: QueryChange[], prevKey?: string): number {
   if (prevKey == null) {
     return 0;
   } else {
@@ -92,7 +95,7 @@ function positionAfter(changes: QueryChange[], prevKey?: string) {
   }
 }
 
-function buildView(current: QueryChange[], change: QueryChange) {
+function buildView(current: QueryChange[], change: QueryChange): QueryChange[] {
   const { snapshot, prevKey, event } = change;
   const { key } = snapshot;
   const currentKeyPosition = positionFor(current, key);
@@ -117,7 +120,7 @@ function buildView(current: QueryChange[], change: QueryChange) {
       if (currentKeyPosition > -1) {
         // check that the previouskey is what we expect, else reorder
         const previous = current[currentKeyPosition - 1];
-        if (((previous && previous.snapshot.key) || null) != prevKey) {
+        if (((previous && previous.snapshot.key) || null) !== prevKey) {
           current = current.filter(x => x.snapshot.key !== snapshot.key);
           current.splice(afterPreviousKeyPosition, 0, change);
         }

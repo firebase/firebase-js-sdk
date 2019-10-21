@@ -276,6 +276,81 @@ export class FirebaseFirestore {
    */
   disableNetwork(): Promise<void>;
 
+  /**
+   * Waits until all currently pending writes for the active user have been acknowledged by the
+   * backend.
+   *
+   * The returned Promise resolves immediately if there are no outstanding writes. Otherwise, the
+   * Promise waits for all previously issued writes (including those written in a previous app
+   * session), but it does not wait for writes that were added after the method is called. If you
+   * want to wait for additional writes, call `waitForPendingWrites()` again.
+   *
+   * Any outstanding `waitForPendingWrites()` Promises are rejected during user changes.
+   *
+   * @return A Promise which resolves when all currently pending writes have been
+   * acknowledged by the backend.
+   */
+  waitForPendingWrites(): Promise<void>;
+
+  /**
+   * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
+   * event indicates that all listeners affected by a given change have fired,
+   * even if a single server-generated change affects multiple listeners.
+   *
+   * NOTE: The snapshots-in-sync event only indicates that listeners are in sync
+   * with each other, but does not relate to whether those snapshots are in sync
+   * with the server. Use SnapshotMetadata in the individual listeners to
+   * determine if a snapshot is from the cache or the server.
+   *
+   * @param observer A single object containing `next` and `error` callbacks.
+   * @return An unsubscribe function that can be called to cancel the snapshot
+   * listener.
+   */
+  onSnapshotsInSync(observer: {
+    next?: (value: void) => void;
+    error?: (error: Error) => void;
+    complete?: () => void;
+  }): () => void;
+
+  /**
+   * Attaches a listener for a snapshots-in-sync event. The snapshots-in-sync
+   * event indicates that all listeners affected by a given change have fired,
+   * even if a single server-generated change affects multiple listeners.
+   *
+   * NOTE: The snapshots-in-sync event only indicates that listeners are in sync
+   * with each other, but does not relate to whether those snapshots are in sync
+   * with the server. Use SnapshotMetadata in the individual listeners to
+   * determine if a snapshot is from the cache or the server.
+   *
+   * @param onSync A callback to be called every time all snapshot listeners are
+   * in sync with each other.
+   * @return An unsubscribe function that can be called to cancel the snapshot
+   * listener.
+   */
+  onSnapshotsInSync(onSync: () => void): () => void;
+
+  /**
+   * Terminates this Firestore instance.
+   *
+   * After calling `terminate()` only the `clearPersistence()` method may be used. Any other method
+   * will throw a `FirestoreError`.
+   *
+   * To restart after termination, create a new instance of FirebaseFirestore with
+   * `firebase.firestore()`.
+   *
+   * Termination does not cancel any pending writes, and any promises that are awaiting a response
+   * from the server will not be resolved. If you have persistence enabled, the next time you
+   * start this instance, it will resume sending these writes to the server.
+   *
+   * Note: Under normal circumstances, calling `terminate()` is not required. This
+   * method is useful only when you want to force this instance to release all of its resources or
+   * in combination with `clearPersistence()` to ensure that all local state is destroyed
+   * between test runs.
+   *
+   * @return A promise that is resolved when the instance has been successfully terminated.
+   */
+  terminate(): Promise<void>;
+
   INTERNAL: { delete: () => Promise<void> };
 }
 

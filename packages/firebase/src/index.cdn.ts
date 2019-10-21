@@ -36,5 +36,7 @@ import '../functions';
 import '../messaging';
 import '../storage';
 import '../performance';
+import '../analytics';
+import '../remote-config';
 
 export default firebase;

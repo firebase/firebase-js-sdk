@@ -413,40 +413,6 @@ describeSpec('Listens:', [], () => {
     );
   });
 
-  specTest('Deleted documents in cache are fixed', [], () => {
-    const allQuery = Query.atPath(path('collection'));
-    const setupQuery = allQuery.addFilter(filter('key', '==', 'a'));
-
-    const docAv1 = doc('collection/a', 1000, { key: 'a' });
-    const docDeleted = deletedDoc('collection/a', 2000);
-
-    return (
-      spec()
-        // Presuppose an initial state where the remote document cache has a
-        // broken synthesized delete at a timestamp later than the true version
-        // of the document. This requires both adding and later removing the
-        // document in order to force the watch change aggregator to propagate
-        // the deletion.
-        .withGCEnabled(false)
-        .userListens(setupQuery)
-        .watchAcksFull(setupQuery, 1000, docAv1)
-        .expectEvents(setupQuery, { added: [docAv1], fromCache: false })
-        .watchSends({ removed: [setupQuery] }, docDeleted)
-        .watchSnapshots(2000, [setupQuery], 'resume-token-2000')
-        .watchSnapshots(2000)
-        .expectEvents(setupQuery, { removed: [docAv1], fromCache: false })
-        .userUnlistens(setupQuery)
-        .watchRemoves(setupQuery)
-
-        // Now when the client listens expect the cached NoDocument to be
-        // discarded because the global snapshot version exceeds what came
-        // before.
-        .userListens(allQuery)
-        .watchAcksFull(allQuery, 3000, docAv1)
-        .expectEvents(allQuery, { added: [docAv1], fromCache: false })
-    );
-  });
-
   specTest('Listens are reestablished after network disconnect', [], () => {
     const expectRequestCount = (requestCounts: {
       [type: string]: number;
@@ -1178,7 +1144,7 @@ describeSpec('Listens:', [], () => {
       .client(1)
       .stealPrimaryLease()
       .expectListen(query, 'resume-token-2000')
-      .watchAcksFull(query, 2000, docC)
+      .watchAcksFull(query, 3000, docC)
       .client(0)
       .expectEvents(query, { added: [docC] });
   });
@@ -1270,4 +1236,160 @@ describeSpec('Listens:', [], () => {
       );
     }
   );
+
+  specTest(
+    'onSnapshotsInSync should not fire for doc changes if there are no listeners',
+    [],
+    () => {
+      return spec()
+        .userAddsSnapshotsInSyncListener()
+        .expectSnapshotsInSyncEvent()
+        .userSets('collection/a', { v: 2 });
+    }
+  );
+
+  specTest(
+    'onSnapshotsInSync fires when called even if there are no local listeners',
+    [],
+    () => {
+      return spec()
+        .userAddsSnapshotsInSyncListener()
+        .expectSnapshotsInSyncEvent()
+        .userAddsSnapshotsInSyncListener()
+        .expectSnapshotsInSyncEvent();
+    }
+  );
+
+  specTest('onSnapshotsInSync fires for metadata changes', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docAv1 = doc('collection/a', 1000, { v: 1 });
+    const docAv2Local = doc(
+      'collection/a',
+      1000,
+      { v: 2 },
+      { hasLocalMutations: true }
+    );
+    const docAv2 = doc('collection/a', 2000, { v: 2 });
+
+    return spec()
+      .userListens(query)
+      .watchAcksFull(query, 1000, docAv1)
+      .expectEvents(query, { added: [docAv1] })
+      .userAddsSnapshotsInSyncListener()
+      .expectSnapshotsInSyncEvent()
+      .userSets('collection/a', { v: 2 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        modified: [docAv2Local]
+      })
+      .expectSnapshotsInSyncEvent()
+      .watchSends({ affects: [query] }, docAv2)
+      .watchSnapshots(2000)
+      .writeAcks('collection/a', 2000)
+      .expectEvents(query, {
+        metadata: [docAv2]
+      })
+      .expectSnapshotsInSyncEvent();
+  });
+
+  specTest(
+    'onSnapshotsInSync fires once for multiple event snapshots',
+    [],
+    () => {
+      const query1 = Query.atPath(path('collection'));
+      const query2 = Query.atPath(path('collection/a'));
+      const docAv1 = doc('collection/a', 1000, { v: 1 });
+      const docAv2Local = doc(
+        'collection/a',
+        1000,
+        { v: 2 },
+        { hasLocalMutations: true }
+      );
+      const docAv2 = doc('collection/a', 2000, { v: 2 });
+
+      return spec()
+        .userListens(query1)
+        .watchAcksFull(query1, 1000, docAv1)
+        .expectEvents(query1, { added: [docAv1] })
+        .userListens(query2)
+        .expectEvents(query2, { fromCache: true, added: [docAv1] })
+        .watchAcksFull(query2, 1000, docAv1)
+        .expectEvents(query2, { fromCache: false })
+        .userAddsSnapshotsInSyncListener()
+        .expectSnapshotsInSyncEvent()
+        .userSets('collection/a', { v: 2 })
+        .expectEvents(query1, {
+          hasPendingWrites: true,
+          modified: [docAv2Local]
+        })
+        .expectEvents(query2, {
+          hasPendingWrites: true,
+          modified: [docAv2Local]
+        })
+        .expectSnapshotsInSyncEvent()
+        .watchSends({ affects: [query1, query2] }, docAv2)
+        .watchSnapshots(2000)
+        .writeAcks('collection/a', 2000)
+        .expectEvents(query1, {
+          metadata: [docAv2]
+        })
+        .expectEvents(query2, {
+          metadata: [docAv2]
+        })
+        .expectSnapshotsInSyncEvent();
+    }
+  );
+
+  specTest('onSnapshotsInSync fires for multiple listeners', [], () => {
+    const query = Query.atPath(path('collection'));
+    const docAv1 = doc('collection/a', 1000, { v: 1 });
+    const docAv2Local = doc(
+      'collection/a',
+      1000,
+      { v: 2 },
+      { hasLocalMutations: true }
+    );
+    const docAv3Local = doc(
+      'collection/a',
+      1000,
+      { v: 3 },
+      { hasLocalMutations: true }
+    );
+    const docAv4Local = doc(
+      'collection/a',
+      1000,
+      { v: 4 },
+      { hasLocalMutations: true }
+    );
+
+    return spec()
+      .userListens(query)
+      .watchAcksFull(query, 1000, docAv1)
+      .expectEvents(query, { added: [docAv1] })
+      .userAddsSnapshotsInSyncListener()
+      .expectSnapshotsInSyncEvent()
+      .userSets('collection/a', { v: 2 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        modified: [docAv2Local]
+      })
+      .expectSnapshotsInSyncEvent()
+      .userAddsSnapshotsInSyncListener()
+      .expectSnapshotsInSyncEvent()
+      .userAddsSnapshotsInSyncListener()
+      .expectSnapshotsInSyncEvent()
+      .userSets('collection/a', { v: 3 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        modified: [docAv3Local]
+      })
+      .expectSnapshotsInSyncEvent(3)
+      .userRemovesSnapshotsInSyncListener()
+      .userSets('collection/a', { v: 4 })
+      .expectEvents(query, {
+        hasPendingWrites: true,
+        modified: [docAv4Local]
+      })
+      .expectSnapshotsInSyncEvent(2);
+  });
 });

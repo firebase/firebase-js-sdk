@@ -88,7 +88,6 @@ describe('Serializer', () => {
   const proto3JsonSerializer = new JsonProtoSerializer(partition, {
     useProto3Json: true
   });
-  const emptyResumeToken = new Uint8Array(0);
   const protos = loadRawProtos();
 
   // tslint:disable:variable-name
@@ -105,14 +104,7 @@ describe('Serializer', () => {
    * variations on Query.
    */
   function wrapQueryData(query: Query): QueryData {
-    return new QueryData(
-      query,
-      1,
-      QueryPurpose.Listen,
-      2,
-      SnapshotVersion.MIN,
-      emptyResumeToken
-    );
+    return new QueryData(query, 1, QueryPurpose.Listen, 2);
   }
 
   describe('converts value', () => {
@@ -161,9 +153,9 @@ describe('Serializer', () => {
         const actualProtobufjsProto: ProtobufJS.Message = ValueMessage.fromObject(
           actualJsonProto
         );
-        expect((actualProtobufjsProto as Indexable)[valueType]).to.deep.equal(
-          protobufJsValue
-        );
+        expect(
+          ((actualProtobufjsProto as unknown) as Indexable)[valueType]
+        ).to.deep.equal(protobufJsValue);
 
         // Convert protobufjs back to JSON.
         const returnJsonProto = ValueMessage.toObject(
@@ -306,6 +298,38 @@ describe('Serializer', () => {
       ).to.deep.equal(
         new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
       );
+    });
+
+    it('converts TimestampValue to string (useProto3Json=true)', () => {
+      expect(
+        proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 916123456))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123456Z' });
+
+      expect(
+        proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 916123000))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916123000Z' });
+
+      expect(
+        proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 916000000))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.916000000Z' });
+
+      expect(
+        proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 916000))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000916000Z' });
+
+      expect(
+        proto3JsonSerializer.toValue(
+          new fieldValue.TimestampValue(new Timestamp(1488872578, 0))
+        )
+      ).to.deep.equal({ timestampValue: '2017-03-07T07:42:58.000000000Z' });
     });
 
     it('converts GeoPointValue', () => {
@@ -508,7 +532,8 @@ describe('Serializer', () => {
   describe('toDocumentMask', () => {
     addEqualityMatcher();
 
-    // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
+    //TODO(b/34988481): Implement correct escaping
+    // eslint-disable-next-line no-restricted-properties
     it.skip('converts a weird path', () => {
       const expected: api.DocumentMask = { fieldPaths: ['foo.`bar.baz\\qux`'] };
       const mask = FieldMask.fromArray([
@@ -522,7 +547,8 @@ describe('Serializer', () => {
   describe('fromDocumentMask', () => {
     addEqualityMatcher();
 
-    // tslint:disable-next-line:ban TODO(b/34988481): Implement correct escaping
+    // TODO(b/34988481): Implement correct escaping
+    // eslint-disable-next-line no-restricted-properties
     it.skip('converts a weird path', () => {
       const expected = FieldMask.fromArray([
         FieldPath.fromServerFormat('foo.bar\\.baz\\\\qux')
@@ -675,7 +701,7 @@ describe('Serializer', () => {
     const d = doc('foo/bar', 42, { a: 5, b: 'b' });
     const proto = {
       name: s.toName(d.key),
-      fields: s.toFields(d.data),
+      fields: s.toFields(d.data()),
       updateTime: s.toVersion(d.version)
     };
     const serialized = s.toDocument(d);
@@ -1196,6 +1222,7 @@ describe('Serializer', () => {
           QueryPurpose.Listen,
           4,
           SnapshotVersion.MIN,
+          SnapshotVersion.MIN,
           new Uint8Array([1, 2, 3])
         )
       );
@@ -1223,7 +1250,8 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('contains all Operators', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, giant hack
+      // giant hack
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       obj.forEach(Operator as any, (name, op) => {
         if (op instanceof Operator) {
           expect(s.toOperatorName(op), 'for name').to.exist;
@@ -1237,7 +1265,8 @@ describe('Serializer', () => {
     addEqualityMatcher();
 
     it('contains all Directions', () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, giant hack
+      // giant hack
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       obj.forEach(Direction as any, (name, dir) => {
         if (dir instanceof Direction) {
           expect(s.toDirection(dir), 'for ' + name).to.exist;

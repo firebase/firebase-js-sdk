@@ -386,7 +386,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         const results1 = events[0];
         expect(toDataArray(results1)).to.deep.equal([initialDoc['foo']]);
       });
-
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       coll.doc('foo').set(modifiedDoc['foo']);
 
       await accum.awaitEvents(2).then(events => {
@@ -494,9 +494,11 @@ apiDescribe('Queries', (persistence: boolean) => {
           }
         }
       );
-
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       coll.firestore.disableNetwork().then(() => {
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         coll.doc().set({ a: 1 });
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
         coll.firestore.enableNetwork();
       });
 
@@ -561,6 +563,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   });
 
   // TODO(in-queries): Enable browser tests once backend support is ready.
+  // eslint-disable-next-line no-restricted-properties
   (isRunningAgainstEmulator() ? it : it.skip)(
     'can use IN filters',
     async () => {
@@ -587,6 +590,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     }
   );
 
+  // eslint-disable-next-line no-restricted-properties,
   (isRunningAgainstEmulator() ? it : it.skip)(
     'can use IN filters by document ID',
     async () => {
@@ -610,6 +614,7 @@ apiDescribe('Queries', (persistence: boolean) => {
   );
 
   // TODO(in-queries): Enable browser tests once backend support is ready.
+  // eslint-disable-next-line no-restricted-properties
   (isRunningAgainstEmulator() ? it : it.skip)(
     'can use array-contains-any filters',
     async () => {
@@ -648,8 +653,8 @@ apiDescribe('Queries', (persistence: boolean) => {
 
     const expectedError =
       'QuerySnapshot.docChanges has been changed from a property into a method';
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, We are testing invalid API usage.
+    // We are testing invalid API usage.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const docChange = querySnap.docChanges as any;
     expect(() => docChange.length).to.throw(expectedError);
     expect(() => {
@@ -812,6 +817,22 @@ apiDescribe('Queries', (persistence: boolean) => {
         await deferred.promise;
         unsubscribe();
       }
+    });
+  });
+
+  it('can use filter with nested field', () => {
+    // Reproduces https://github.com/firebase/firebase-js-sdk/issues/2204
+    const testDocs = {
+      a: {},
+      b: { map: {} },
+      c: { map: { nested: {} } },
+      d: { map: { nested: 'foo' } }
+    };
+
+    return withTestCollection(persistence, testDocs, async coll => {
+      await coll.get(); // Populate the cache
+      const snapshot = await coll.where('map.nested', '==', 'foo').get();
+      expect(toDataArray(snapshot)).to.deep.equal([{ map: { nested: 'foo' } }]);
     });
   });
 });

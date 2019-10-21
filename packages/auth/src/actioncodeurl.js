@@ -16,7 +16,7 @@
  */
 
 /**
- * @fileoverview Defines firebase.auth.ActionCodeUrl class which is the utility
+ * @fileoverview Defines firebase.auth.ActionCodeURL class which is the utility
  * to parse action code URLs.
  */
 
@@ -32,7 +32,7 @@ goog.require('goog.Uri');
 /**
  * The utility class to help parse action code URLs used for out of band email
  * flows such as password reset, email verification, email link sign in, etc.
- * @param {string} actionCodeUrl The action code URL.
+ * @param {string} actionLink The action link string.
  * @constructor
  */
 fireauth.ActionCodeURL = function(actionLink) {
@@ -60,7 +60,9 @@ fireauth.ActionCodeURL = function(actionLink) {
     'continueUrl': uri.getParameterValue(
         fireauth.ActionCodeURL.QueryField.CONTINUE_URL) || null,
     'languageCode': uri.getParameterValue(
-        fireauth.ActionCodeURL.QueryField.LANGUAGE_CODE) || null
+        fireauth.ActionCodeURL.QueryField.LANGUAGE_CODE) || null,
+    'tenantId': uri.getParameterValue(
+        fireauth.ActionCodeURL.QueryField.TENANT_ID) || null
   });
 };
 
@@ -73,7 +75,8 @@ fireauth.ActionCodeURL.QueryField = {
   CODE: 'oobCode',
   CONTINUE_URL: 'continueUrl',
   LANGUAGE_CODE: 'languageCode',
-  MODE: 'mode'
+  MODE: 'mode',
+  TENANT_ID: 'tenantId'
 };
 
 

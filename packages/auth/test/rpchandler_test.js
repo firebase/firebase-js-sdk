@@ -223,6 +223,15 @@ function testGetApiKey() {
 }
 
 
+function testUpdateGetTenantId() {
+  assertNull(rpcHandler.getTenantId());
+  rpcHandler.updateTenantId('123456789012');
+  assertEquals('123456789012', rpcHandler.getTenantId());
+  rpcHandler.updateTenantId(null);
+  assertNull(rpcHandler.getTenantId());
+}
+
+
 function testRpcHandler_XMLHttpRequest_notSupported() {
   stubs.replace(
       fireauth.RpcHandler,
@@ -2421,6 +2430,46 @@ function testFetchSignInMethodsForIdentifier() {
 }
 
 
+function testFetchSignInMethodsForIdentifier_tenantId() {
+  var expectedResponse = ['google.com', 'emailLink'];
+  var serverResponse = {
+    'kind': 'identitytoolkit#CreateAuthUriResponse',
+    'allProviders': [
+      'google.com',
+      "password"
+    ],
+    'signinMethods': [
+       'google.com',
+       'emailLink'
+    ],
+    'registered': true,
+    'sessionId': 'AXT8iKR2x89y2o7zRnroApio_uo'
+  };
+  var identifier = 'user@example.com';
+
+  asyncTestCase.waitForSignals(1);
+  var request = {
+    'identifier': identifier,
+    'continueUri': CURRENT_URL,
+    'tenantId': '123456789012'
+  };
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'createAuthUri?key=apiKey',
+      'POST',
+      goog.json.serialize(request),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.fetchSignInMethodsForIdentifier(identifier)
+      .then(function(response) {
+        assertArrayEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testFetchSignInMethodsForIdentifier_noSignInMethodsReturned() {
   var expectedResponse = [];
   var serverResponse = {
@@ -2505,6 +2554,8 @@ function testFetchSignInMethodsForIdentifier_serverCaughtError() {
       fireauth.authenum.Error.INVALID_EMAIL;
   errorMap[fireauth.RpcHandler.ServerError.MISSING_CONTINUE_URI] =
       fireauth.authenum.Error.INTERNAL_ERROR;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.fetchSignInMethodsForIdentifier(identifier);
@@ -2544,6 +2595,48 @@ function testFetchProvidersForIdentifier() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       serverResponse);
+  rpcHandler.fetchProvidersForIdentifier(identifier)
+      .then(function(response) {
+        assertArrayEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testFetchProvidersForIdentifier_tenantId() {
+  var expectedResponse = [
+    'google.com',
+    'myauthprovider.com'
+  ];
+  var serverResponse = {
+    'kind': 'identitytoolkit#CreateAuthUriResponse',
+    'authUri': 'https://accounts.google.com/o/oauth2/auth?foo=bar',
+    'providerId': 'google.com',
+    'allProviders': [
+      'google.com',
+      'myauthprovider.com'
+    ],
+    'registered': true,
+    'forExistingProvider': true,
+    'sessionId': 'MY_SESSION_ID'
+  };
+  var identifier = 'MY_ID';
+
+  asyncTestCase.waitForSignals(1);
+  var request = {
+    'identifier': identifier,
+    'continueUri': CURRENT_URL,
+    'tenantId': '123456789012'
+  };
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'createAuthUri?key=apiKey',
+      'POST',
+      goog.json.serialize(request),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      serverResponse);
+  rpcHandler.updateTenantId('123456789012');
   rpcHandler.fetchProvidersForIdentifier(identifier)
       .then(function(response) {
         assertArrayEquals(expectedResponse, response);
@@ -2695,6 +2788,7 @@ function testVerifyCustomToken_success() {
 }
 
 
+<<<<<<< HEAD
 function testVerifyCustomToken_multiFactorRequired() {
   var expectedError = new fireauth.AuthError(
       fireauth.authenum.Error.MFA_REQUIRED, null, pendingCredResponse);
@@ -2718,6 +2812,49 @@ function testVerifyCustomToken_multiFactorRequired() {
             error);
         asyncTestCase.signal();
       });
+
+
+function testVerifyCustomToken_success_tenantId() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCusto' +
+      'mToken?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'token': 'CUSTOM_TOKEN',
+        'returnSecureToken': true,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.verifyCustomToken('CUSTOM_TOKEN').then(
+      function(response) {
+        assertEquals('ID_TOKEN', response['idToken']);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testVerifyCustomToken_unsupportedTenantOperation() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
+      'relyingparty/verifyCustomToken?key=apiKey';
+  var requestBody = {
+    'token': 'CUSTOM_TOKEN',
+    'returnSecureToken': true,
+    'tenantId': '123456789012'
+  };
+  rpcHandler.updateTenantId('123456789012');
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.verifyCustomToken('CUSTOM_TOKEN');
+  }, errorMap, expectedUrl, requestBody);
 }
 
 
@@ -2736,6 +2873,8 @@ function testVerifyCustomToken_serverCaughtError() {
       fireauth.authenum.Error.INVALID_CUSTOM_TOKEN;
   errorMap[fireauth.RpcHandler.ServerError.CREDENTIAL_MISMATCH] =
       fireauth.authenum.Error.CREDENTIAL_MISMATCH;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyCustomToken(token);
@@ -3035,6 +3174,31 @@ function testEmailLinkSignIn_error_multiFactorRequired() {
 }
 
 
+function testEmailLinkSignIn_success_tenantId() {
+  var expectedResponse = {'idToken': 'ID_TOKEN'};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/emailLinkSi' +
+      'gnin?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'email': 'user@example.com',
+        'oobCode': 'OTP_CODE',
+        'returnSecureToken': true,
+        'tenantId': 'TENANT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('TENANT_ID');
+  rpcHandler.emailLinkSignIn('user@example.com', 'OTP_CODE')
+      .then(function(response) {
+        assertObjectEquals(expectedResponse, response);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testEmailLinkSignIn_serverCaughtError() {
   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
                     'relyingparty/emailLinkSignin?key=apiKey';
@@ -3052,6 +3216,8 @@ function testEmailLinkSignIn_serverCaughtError() {
       fireauth.authenum.Error.TOO_MANY_ATTEMPTS_TRY_LATER;
   errorMap[fireauth.RpcHandler.ServerError.USER_DISABLED] =
       fireauth.authenum.Error.USER_DISABLED;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.emailLinkSignIn(email, oobCode);
@@ -3165,6 +3331,33 @@ function testVerifyPassword_error_multiFactorRequired() {
 }
 
 
+function testVerifyPassword_success_tenantId() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassw' +
+      'ord?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'email': 'uid123@fake.com',
+        'password': 'mysupersecretpassword',
+        'returnSecureToken': true,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.verifyPassword('uid123@fake.com', 'mysupersecretpassword')
+      .then(function(response) {
+        assertEquals('ID_TOKEN', response['idToken']);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testVerifyPassword_serverCaughtError() {
   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
       'relyingparty/verifyPassword?key=apiKey';
@@ -3184,6 +3377,8 @@ function testVerifyPassword_serverCaughtError() {
       fireauth.authenum.Error.TOO_MANY_ATTEMPTS_TRY_LATER;
   errorMap[fireauth.RpcHandler.ServerError.USER_DISABLED] =
       fireauth.authenum.Error.USER_DISABLED;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyPassword(email, password);
@@ -3274,6 +3469,33 @@ function testCreateAccount_success() {
 }
 
 
+function testCreateAccount_success_tenantId() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'signupNewUser?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'email': 'uid123@fake.com',
+        'password': 'mysupersecretpassword',
+        'returnSecureToken': true,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.createAccount('uid123@fake.com', 'mysupersecretpassword')
+      .then(function(response) {
+        assertEquals('ID_TOKEN', response['idToken']);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testCreateAccount_serverCaughtError() {
   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
       'relyingparty/signupNewUser?key=apiKey';
@@ -3295,6 +3517,8 @@ function testCreateAccount_serverCaughtError() {
       fireauth.authenum.Error.WEAK_PASSWORD;
   errorMap[fireauth.RpcHandler.ServerError.ADMIN_ONLY_OPERATION] =
       fireauth.authenum.Error.ADMIN_ONLY_OPERATION;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.createAccount(email, password);
@@ -3433,6 +3657,48 @@ function testSignInAnonymously_success() {
 }
 
 
+function testSignInAnonymously_success_tenandId() {
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'signupNewUser?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'returnSecureToken': true,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.signInAnonymously()
+      .then(function(response) {
+        assertEquals('ID_TOKEN', response['idToken']);
+        asyncTestCase.signal();
+      });
+}
+
+
+function testSignInAnonymously_unsupportedTenantOperation() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/' +
+      'relyingparty/signupNewUser?key=apiKey';
+  var requestBody = {
+    'returnSecureToken': true,
+    'tenantId': '123456789012'
+  };
+  rpcHandler.updateTenantId('123456789012');
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.signInAnonymously();
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
 function testSignInAnonymously_unknownServerResponse() {
   // Test when server returns unexpected response with no error message.
   asyncTestCase.waitForSignals(1);
@@ -3517,11 +3783,91 @@ function testVerifyAssertion_success() {
   rpcHandler.verifyAssertion({
     'sessionId': 'SESSION_ID',
     'requestUri': 'http://localhost/callback#oauthResponse'
-  }).then(
-      function(response) {
-        assertEquals(expectedResponse, response);
-        asyncTestCase.signal();
-      });
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertion RPC call with the tenant ID being passed in
+ * the request explicitly.
+ */
+function testVerifyAssertion_success_passTenantIdExplicitly() {
+  // Test that if the tenant ID is explicitly passed in the request, the tenant
+  // ID on the RPC handler will be ignored.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        // Tenant ID on RPC handler should be TENANT_ID2, which is overridden by
+        // TENANT_ID1 in the request.
+        'tenantId': 'TENANT_ID1',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('TENANT_ID2');
+  rpcHandler.verifyAssertion({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse',
+    'tenantId': 'TENANT_ID1'
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertion RPC call with no tenant ID passed in the
+ * request.
+ */
+function testVerifyAssertion_success_noTenantIdInRequest() {
+  // Test that if the tenant ID is not passed as part of verifyAssertionRequest
+  // explicitly, the tenant ID on RPC handler should be applied.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        'returnIdpCredential': true,
+        'returnSecureToken': true,
+        'tenantId': 'TENANT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('TENANT_ID');
+  rpcHandler.verifyAssertion({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse'
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
 }
 
 
@@ -4052,6 +4398,8 @@ function testVerifyAssertion_serverCaughtError() {
       fireauth.authenum.Error.USER_CANCELLED;
   errorMap[fireauth.RpcHandler.ServerError.MISSING_OR_INVALID_NONCE] =
       fireauth.authenum.Error.MISSING_OR_INVALID_NONCE;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyAssertion(requestBody);
@@ -4095,6 +4443,58 @@ function testVerifyAssertion_needConfirmationError_oauthResponseAndEmail() {
     'email': 'user@example.com',
     'oauthAccessToken': 'googleAccessToken',
     'providerId': 'google.com'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=googleIdToken&access_token=accessToken&provide' +
+        'r_id=google.com',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=googleIdToken&access_token=accessToken&provider_id' +
+        '=google.com',
+    'requestUri': 'http://localhost'
+  }).thenCatch(
+      function(error) {
+        assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests need confirmation verifyAssertionForIdToken Auth linking error with
+ * OAuth response and tenant ID.
+ */
+function testVerifyAssertion_needConfirmationError_tenantId() {
+  // Test Auth linking error when tenant ID is returned.
+  var credential = fireauth.GoogleAuthProvider.credential(null,
+      'googleAccessToken');
+  // Need confirmation error with tenant ID is returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.NEED_CONFIRMATION,
+      {
+        email: 'user@example.com',
+        credential: credential,
+        tenantId: 'TENANT_ID'
+      });
+  var expectedResponse = {
+    'needConfirmation': true,
+    'idToken': 'PENDING_TOKEN',
+    'email': 'user@example.com',
+    'oauthAccessToken': 'googleAccessToken',
+    'providerId': 'google.com',
+    'tenantId': 'TENANT_ID'
   };
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
@@ -4410,6 +4810,59 @@ function testVerifyAssertion_credAlreadyInUseError_oauthResponseAndEmail() {
 
 /**
  * Tests verifyAssertionForIdToken when FEDERATED_USER_ID_ALREADY_LINKED error
+ * is returned by the server with tenant ID.
+ */
+function testVerifyAssertion_credAlreadyInUseError_tenantId() {
+  // Test Auth linking error when tenant ID is returned.
+  var credential = fireauth.GoogleAuthProvider.credential(null,
+      'googleAccessToken');
+  // Credential already in use error with tenant ID is returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.CREDENTIAL_ALREADY_IN_USE,
+      {
+        email: 'user@example.com',
+        credential: credential,
+        tenantId: 'TENANT_ID'
+      });
+  var expectedResponse = {
+    'kind': 'identitytoolkit#VerifyAssertionResponse',
+    'errorMessage': 'FEDERATED_USER_ID_ALREADY_LINKED',
+    'email': 'user@example.com',
+    'oauthAccessToken': 'googleAccessToken',
+    'oauthExpireIn': 5183999,
+    'providerId': 'google.com',
+    'tenantId': 'TENANT_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'id_token=googleIdToken&access_token=accessToken&provide' +
+        'r_id=google.com',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'id_token=googleIdToken&access_token=accessToken&provider_id' +
+        '=google.com',
+    'requestUri': 'http://localhost'
+  }).thenCatch(
+      function(error) {
+        assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+        fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests verifyAssertionForIdToken when FEDERATED_USER_ID_ALREADY_LINKED error
  * is returned by the server with nonce passed via postBody.
  */
 function testVerifyAssertion_credAlreadyInUseError_nonceIdToken() {
@@ -4589,6 +5042,56 @@ function testVerifyAssertion_emailExistsError_oauthResponseAndEmail() {
     'oauthAccessToken': 'facebookAccessToken',
     'oauthExpireIn': 5183999,
     'providerId': 'facebook.com'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'postBody': 'access_token=accessToken&provider_id=facebook.com',
+        'requestUri': 'http://localhost',
+        'returnIdpCredential': true,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.verifyAssertion({
+    'postBody': 'access_token=accessToken&provider_id=facebook.com',
+    'requestUri': 'http://localhost'
+  }).thenCatch(function(error) {
+    assertTrue(error instanceof fireauth.AuthErrorWithCredential);
+    fireauth.common.testHelper.assertErrorEquals(expectedError, error);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests verifyAssertionForIdToken when EMAIL_EXISTS error is returned by the
+ * server with tenant ID.
+ */
+function testVerifyAssertion_emailExistsError_tenantId() {
+  // Test Auth linking error when tenant ID is returned.
+  var credential = fireauth.FacebookAuthProvider.credential(
+      'facebookAccessToken');
+  // Email exists error returned.
+  var expectedError = new fireauth.AuthErrorWithCredential(
+      fireauth.authenum.Error.EMAIL_EXISTS,
+      {
+        email: 'user@example.com',
+        credential: credential,
+        tenantId: 'TENANT_ID'
+      });
+  var expectedResponse = {
+    'kind': 'identitytoolkit#VerifyAssertionResponse',
+    'errorMessage': 'EMAIL_EXISTS',
+    'email': 'user@example.com',
+    'oauthAccessToken': 'facebookAccessToken',
+    'oauthExpireIn': 5183999,
+    'providerId': 'facebook.com',
+    'tenantId': 'TENANT_ID'
   };
   asyncTestCase.waitForSignals(1);
   assertSendXhrAndRunCallback(
@@ -4803,11 +5306,96 @@ function testVerifyAssertionForExisting_success() {
   rpcHandler.verifyAssertionForExisting({
     'sessionId': 'SESSION_ID',
     'requestUri': 'http://localhost/callback#oauthResponse'
-  }).then(
-      function(response) {
-        assertEquals(expectedResponse, response);
-        asyncTestCase.signal();
-      });
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertionForExisting RPC call with the tenant ID
+ * being passed in the request explicitly.
+ */
+function testVerifyAssertionForExisting_success_passTenantIdExplicitly() {
+  // Test that if the tenant ID is explicitly passed in the request, the tenant
+  // ID on the RPC handler will be ignored.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        // Tenant ID on RPC handler should be TENANT_ID2, which is overridden by
+        // TENANT_ID1 in the request.
+        'tenantId': 'TENANT_ID1',
+        'returnIdpCredential': true,
+        // autoCreate flag should be passed and set to false.
+        'autoCreate': false,
+        'returnSecureToken': true
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  // Update the tenant ID on the RPC handler.
+  rpcHandler.updateTenantId('TENANT_ID2');
+  rpcHandler.verifyAssertionForExisting({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse',
+    'tenantId': 'TENANT_ID1'
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful verifyAssertionForExisting RPC call with no tenant ID passed
+ * in the request.
+ */
+function testVerifyAssertionForExisting_success_noTenantIdInRequest() {
+  // Test that if the tenant ID is not passed as part of verifyAssertionRequest
+  // explicitly, the tenant ID on RPC handler should be applied.
+  var expectedResponse = {
+    'idToken': 'ID_TOKEN',
+    'oauthAccessToken': 'ACCESS_TOKEN',
+    'oauthExpireIn': 3600,
+    'oauthAuthorizationCode': 'AUTHORIZATION_CODE'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAsse' +
+      'rtion?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'sessionId': 'SESSION_ID',
+        'requestUri': 'http://localhost/callback#oauthResponse',
+        'returnIdpCredential': true,
+        // autoCreate flag should be passed and set to false.
+        'autoCreate': false,
+        'returnSecureToken': true,
+        'tenantId': 'TENANT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('TENANT_ID');
+  rpcHandler.verifyAssertionForExisting({
+    'sessionId': 'SESSION_ID',
+    'requestUri': 'http://localhost/callback#oauthResponse'
+  }).then(function(response) {
+    assertEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
 }
 
 
@@ -5281,6 +5869,40 @@ function testSendSignInLinkToEmail_success_customLocale() {
 
 
 /**
+ * Tests successful sendSignInLinkToEmail RPC call with tenant ID.
+ */
+function testSendSignInLinkToEmail_success_tenantId() {
+  var userEmail = 'user@example.com';
+  var additionalRequestData = {
+    'continueUrl': 'https://www.example.com/?state=abc',
+    'canHandleCodeInApp': true,
+  };
+  var expectedResponse = {'email': userEmail};
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType': fireauth.RpcHandler.GetOobCodeRequestType.EMAIL_SIGNIN,
+        'email': userEmail,
+        'continueUrl': 'https://www.example.com/?state=abc',
+        'canHandleCodeInApp': true,
+        'tenantId': 'TENANT_ID'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('TENANT_ID');
+  rpcHandler.sendSignInLinkToEmail('user@example.com', additionalRequestData)
+      .then(function(email) {
+        assertEquals(userEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
  * Tests invalid email sendSignInLinkToEmail error.
  */
 function testSendSignInLinkToEmail_invalidEmailError() {
@@ -5377,6 +5999,8 @@ function testSendSignInLinkToEmail_serverCaughtError() {
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
       fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendSignInLinkToEmail(userEmail, {});
@@ -5449,6 +6073,36 @@ function testSendPasswordResetEmail_success_noActionCodeSettings() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
+  rpcHandler.sendPasswordResetEmail('user@example.com', {})
+      .then(function(email) {
+        assertEquals(userEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests successful sendPasswordResetEmail RPC call with tenant ID.
+ */
+function testSendPasswordResetEmail_success_tenantId() {
+  var userEmail = 'user@example.com';
+  var expectedResponse = {
+    'email': userEmail
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType': fireauth.RpcHandler.GetOobCodeRequestType.PASSWORD_RESET,
+        'email': userEmail,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
   rpcHandler.sendPasswordResetEmail('user@example.com', {})
       .then(function(email) {
         assertEquals(userEmail, email);
@@ -5568,6 +6222,8 @@ function testSendPasswordResetEmail_caughtServerError() {
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
       fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendPasswordResetEmail(userEmail, {});
@@ -5641,6 +6297,37 @@ function testSendEmailVerification_success_noActionCodeSettings() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
+  rpcHandler.sendEmailVerification(idToken, {})
+      .then(function(email) {
+        assertEquals(userEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests successful sendEmailVerification RPC call with tenant ID.
+ */
+function testSendEmailVerification_success_tenantId() {
+  var idToken = 'ID_TOKEN';
+  var userEmail = 'user@example.com';
+  var expectedResponse = {
+    'email': userEmail
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobCon' +
+      'firmationCode?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'requestType': fireauth.RpcHandler.GetOobCodeRequestType.VERIFY_EMAIL,
+        'idToken': idToken,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
   rpcHandler.sendEmailVerification(idToken, {})
       .then(function(email) {
         assertEquals(userEmail, email);
@@ -5736,6 +6423,8 @@ function testSendEmailVerification_caughtServerError() {
       fireauth.authenum.Error.UNAUTHORIZED_DOMAIN;
   errorMap[fireauth.RpcHandler.ServerError.INVALID_DYNAMIC_LINK_DOMAIN] =
       fireauth.authenum.Error.INVALID_DYNAMIC_LINK_DOMAIN;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendEmailVerification(idToken, {});
@@ -5962,6 +6651,38 @@ function testConfirmPasswordReset_success() {
 }
 
 
+/**
+ * Tests successful confirmPasswordReset RPC call with tenant ID.
+ */
+function testConfirmPasswordReset_success_tenantId() {
+  var userEmail = 'user@example.com';
+  var newPassword = 'newPass';
+  var code = 'PASSWORD_RESET_OOB_CODE';
+  var expectedResponse = {
+    'email': userEmail
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPass' +
+      'word?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'oobCode': code,
+        'newPassword': newPassword,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.confirmPasswordReset(code, newPassword).then(
+      function(email) {
+        assertEquals(userEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
 function testConfirmPasswordReset_missingCode() {
   asyncTestCase.waitForSignals(1);
   rpcHandler.confirmPasswordReset('', 'myPassword')
@@ -6021,6 +6742,8 @@ function testConfirmPasswordReset_caughtServerError() {
       fireauth.authenum.Error.INVALID_OOB_CODE;
   errorMap[fireauth.RpcHandler.ServerError.MISSING_OOB_CODE] =
       fireauth.authenum.Error.INTERNAL_ERROR;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.confirmPasswordReset(code, newPassword);
@@ -6049,6 +6772,36 @@ function testCheckActionCode_success() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
+  rpcHandler.checkActionCode(code).then(
+      function(info) {
+        assertObjectEquals(expectedResponse, info);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests successful checkActionCode RPC call with tenant ID.
+ */
+function testCheckActionCode_success_tenantId() {
+  var code = 'PASSWORD_RESET_OOB_CODE';
+  var expectedResponse = {
+    'email': 'user@example.com',
+    'requestType': 'PASSWORD_RESET'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPass' +
+      'word?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'oobCode': code,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
   rpcHandler.checkActionCode(code).then(
       function(info) {
         assertObjectEquals(expectedResponse, info);
@@ -6171,6 +6924,8 @@ function testCheckActionCode_caughtServerError() {
       fireauth.authenum.Error.INVALID_OOB_CODE;
   errorMap[fireauth.RpcHandler.ServerError.MISSING_OOB_CODE] =
       fireauth.authenum.Error.INTERNAL_ERROR;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.checkActionCode(code);
@@ -6178,9 +6933,6 @@ function testCheckActionCode_caughtServerError() {
 }
 
 
-/**
- * Tests successful applyActionCode RPC call.
- */
 function testApplyActionCode_success() {
   var userEmail = 'user@example.com';
   var code = 'EMAIL_VERIFICATION_OOB_CODE';
@@ -6198,6 +6950,36 @@ function testApplyActionCode_success() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
+  rpcHandler.applyActionCode(code).then(
+      function(email) {
+        assertEquals(userEmail, email);
+        asyncTestCase.signal();
+      });
+}
+
+
+/**
+ * Tests successful applyActionCode RPC call with tenant ID.
+ */
+function testApplyActionCode_success_tenantId() {
+  var userEmail = 'user@example.com';
+  var code = 'EMAIL_VERIFICATION_OOB_CODE';
+  var expectedResponse = {
+    'email': userEmail
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'setAccountInfo?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'oobCode': code,
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
   rpcHandler.applyActionCode(code).then(
       function(email) {
         assertEquals(userEmail, email);
@@ -6888,6 +7670,50 @@ function testInvokeRpc_useIdentityPlatformEndpoint() {
 }
 
 
+function testInvokeRpc_requireTenantId() {
+  asyncTestCase.waitForSignals(3);
+  rpcHandler.updateTenantId('123456789012');
+  var request = {
+    'myRequestKey': 'myRequestValue',
+    'myOtherRequestKey': 'myOtherRequestValue'
+  };
+  var response = {
+    'myResponseKey': 'myResponseValue',
+    'myOtherResponseKey': 'myOtherResponseValue'
+  };
+
+  var rpcMethod = {
+    endpoint: 'myEndpoint',
+    requestRequiredFields: ['myRequestKey'],
+    requestValidator: function(actualRequest) {
+      assertObjectEquals(request, actualRequest);
+      asyncTestCase.signal();
+    },
+    responseValidator: function(actualResponse) {
+      assertObjectEquals(response, actualResponse);
+      asyncTestCase.signal();
+    },
+    requireTenantId: true
+  };
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/' +
+      'myEndpoint?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'myRequestKey': 'myRequestValue',
+        'myOtherRequestKey': 'myOtherRequestValue',
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      response);
+  rpcHandler.invokeRpc_(rpcMethod, request).then(function(actualResponse) {
+    assertObjectEquals(response, actualResponse);
+    asyncTestCase.signal();
+  });
+}
+
+
 function testInvokeRpc_httpMethod() {
   asyncTestCase.waitForSignals(1);
   var request = {};
@@ -7074,6 +7900,52 @@ function testGetAuthUri_success() {
 
 
 /**
+ * Tests successful getAuthUri request with tenant ID.
+ */
+function testGetAuthUri_success_tenantId() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  var expectedResponse = {
+    'authUri': 'https://accounts.google.com',
+    'providerId': 'google.com',
+    'registered': true,
+    'forExistingProvider': true,
+    'sessionId': 'SESSION_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuth' +
+      'Uri?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'identifier': 'user@example.com',
+        'providerId': 'google.com',
+        'continueUri': 'http://localhost/widget',
+        'customParameter': expectedCustomParameters,
+        'oauthScope': goog.json.serialize({
+          'google.com': 'scope1,scope2,scope3'
+        }),
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.getAuthUri(
+      'google.com',
+      'http://localhost/widget',
+      expectedCustomParameters,
+      ['scope1', 'scope2', 'scope3'],
+      'user@example.com').then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
  * Tests successful getAuthUri request for a SAML Auth flow.
  */
 function testGetAuthUri_success_saml() {
@@ -7099,6 +7971,48 @@ function testGetAuthUri_success_saml() {
       fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
       delay,
       expectedResponse);
+  rpcHandler.getAuthUri(
+      'saml.provider',
+      'http://localhost/widget',
+      // Custom parameters should be ignored.
+      expectedCustomParameters,
+      // Scopes should be ignored.
+      ['scope1', 'scope2', 'scope3'],
+      null).then(function(response) {
+    assertObjectEquals(expectedResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+/**
+ * Tests successful getAuthUri request with tenant ID for a SAML Auth flow.
+ */
+function testGetAuthUri_success_saml_tenantId() {
+  var expectedCustomParameters = {
+    'hd': 'example.com',
+    'login_hint': 'user@example.com'
+  };
+  var expectedResponse = {
+    'authUri': 'https://www.example.com/samlp/?SAMLRequest=1234567890',
+    'providerId': 'saml.provider',
+    'registered': false,
+    'sessionId': 'SESSION_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuth' +
+      'Uri?key=apiKey',
+      'POST',
+      goog.json.serialize({
+        'providerId': 'saml.provider',
+        'continueUri': 'http://localhost/widget',
+        'tenantId': '123456789012'
+      }),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
   rpcHandler.getAuthUri(
       'saml.provider',
       'http://localhost/widget',
@@ -8210,6 +9124,59 @@ function testSendVerificationCode_success() {
 
 
 /**
+ * Tests successful sendVerificationCode RPC call with tenant ID.
+ */
+function testSendVerificationCode_success_tenantId() {
+  var expectedRequest = {
+    'phoneNumber': '+15551234567',
+    'recaptchaToken': 'RECAPTCHA_TOKEN',
+    'tenantId': '123456789012'
+  };
+  var expectedResponse = {
+    'sessionInfo': 'SESSION_INFO'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/sendVerifi' +
+      'cationCode?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.sendVerificationCode({
+    'phoneNumber': '+15551234567',
+    'recaptchaToken': 'RECAPTCHA_TOKEN'
+  }).then(function(sessionInfo) {
+    assertEquals(expectedResponse['sessionInfo'], sessionInfo);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testSendVerificationCode_unsupportedTenantOperation() {
+  var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/relyin' +
+      'gparty/sendVerificationCode?key=apiKey';
+  var requestBody = {
+    'phoneNumber': '+15551234567',
+    'recaptchaToken': 'RECAPTCHA_TOKEN',
+    'tenantId': '123456789012'
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  rpcHandler.updateTenantId('123456789012');
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.sendVerificationCode({
+      'phoneNumber': '+15551234567',
+      'recaptchaToken': 'RECAPTCHA_TOKEN'
+    });
+  }, errorMap, expectedUrl, requestBody);
+}
+
+
+/**
  * Tests invalid request sendVerificationCode error for a missing phone number.
  */
 function testSendVerificationCode_invalidRequest_missingPhoneNumber() {
@@ -8298,6 +9265,8 @@ function testSendVerificationCode_caughtServerError() {
       fireauth.authenum.Error.QUOTA_EXCEEDED;
   errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
       fireauth.authenum.Error.REJECTED_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.sendVerificationCode(requestBody);
@@ -8379,6 +9348,56 @@ function testVerifyPhoneNumber_success_usingTemporaryProof() {
     assertEquals(tokenResponseWithExpiresIn, response);
     asyncTestCase.signal();
   });
+}
+
+
+/**
+ * Tests successful verifyPhoneNumber RPC call with tenant ID.
+ */
+function testVerifyPhoneNumber_success_tenantId() {
+  var expectedRequest = {
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456',
+    'tenantId': '123456789012'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPhon' +
+      'eNumber?key=apiKey',
+      'POST',
+      goog.json.serialize(expectedRequest),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedStsTokenResponse);
+  rpcHandler.updateTenantId('123456789012');
+  rpcHandler.verifyPhoneNumber({
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456'
+  }).then(function(response) {
+    assertEquals(expectedStsTokenResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testVerifyPhoneNumber_unsupportedTenantOperation() {
+   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/relyin' +
+      'gparty/verifyPhoneNumber?key=apiKey';
+  var requestBody = {
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456',
+    'tenantId': '123456789012'
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  rpcHandler.updateTenantId('123456789012');
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.verifyPhoneNumber({
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    });
+  }, errorMap, expectedUrl, requestBody);
 }
 
 
@@ -8506,6 +9525,8 @@ function testVerifyPhoneNumber_caughtServerError() {
       fireauth.authenum.Error.CODE_EXPIRED;
   errorMap[fireauth.RpcHandler.ServerError.REJECTED_CREDENTIAL] =
       fireauth.authenum.Error.REJECTED_CREDENTIAL;
+  errorMap[fireauth.RpcHandler.ServerError.INVALID_TENANT_ID] =
+      fireauth.authenum.Error.INVALID_TENANT_ID;
 
   assertServerErrorsAreHandled(function() {
     return rpcHandler.verifyPhoneNumber(requestBody);
@@ -8757,6 +9778,58 @@ function testVerifyPhoneNumberForExisting_success_usingTemporaryProof() {
         assertEquals(tokenResponseWithExpiresIn, response);
         asyncTestCase.signal();
       });
+}
+
+
+/**
+ * Tests successful verifyPhoneNumberForExisting RPC call with tenant ID.
+ */
+function testVerifyPhoneNumberForExisting_success_tenantId() {
+  var requestBody = {
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456',
+    'operation': 'REAUTH',
+    'tenantId': 'TENANT_ID'
+  };
+  asyncTestCase.waitForSignals(1);
+  assertSendXhrAndRunCallback(
+      'https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPhon' +
+      'eNumber?key=apiKey',
+      'POST',
+      goog.json.serialize(requestBody),
+      fireauth.RpcHandler.DEFAULT_FIREBASE_HEADERS_,
+      delay,
+      expectedStsTokenResponse);
+  rpcHandler.updateTenantId('TENANT_ID');
+  rpcHandler.verifyPhoneNumberForExisting({
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456'
+  }).then(function(response) {
+    assertEquals(expectedStsTokenResponse, response);
+    asyncTestCase.signal();
+  });
+}
+
+
+function testVerifyPhoneNumberForExisting_unsupportedTenantOperation() {
+   var expectedUrl = 'https://www.googleapis.com/identitytoolkit/v3/relyin' +
+      'gparty/verifyPhoneNumber?key=apiKey';
+  var requestBody = {
+    'sessionInfo': 'SESSION_INFO',
+    'code': '123456',
+    'operation': 'REAUTH',
+    'tenantId': 'TENANT_ID'
+  };
+  var errorMap = {};
+  errorMap[fireauth.RpcHandler.ServerError.UNSUPPORTED_TENANT_OPERATION] =
+      fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION;
+  rpcHandler.updateTenantId('TENANT_ID');
+  assertServerErrorsAreHandled(function() {
+    return rpcHandler.verifyPhoneNumberForExisting({
+      'sessionInfo': 'SESSION_INFO',
+      'code': '123456'
+    });
+  }, errorMap, expectedUrl, requestBody);
 }
 
 

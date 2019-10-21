@@ -57,6 +57,7 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
+import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
@@ -109,6 +110,7 @@ import {
   TEST_PERSISTENCE_PREFIX,
   TEST_SERIALIZER
 } from '../local/persistence_test_helpers';
+import { MULTI_CLIENT_TAG } from './describe_spec';
 
 const ARBITRARY_SEQUENCE_NUMBER = 2;
 
@@ -258,8 +260,8 @@ class MockConnection implements Connection {
         }
       });
       this.writeStream = writeStream;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, Replace 'any' with conditional types.
-      return writeStream as any;
+      // Replace 'any' with conditional types.
+      return writeStream as any; // eslint-disable-line @typescript-eslint/no-explicit-any
     } else {
       assert(rpcName === 'Listen', 'Unexpected rpc name: ' + rpcName);
       if (this.watchStream !== null) {
@@ -292,8 +294,8 @@ class MockConnection implements Connection {
         }
       });
       this.watchStream = watchStream;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, Replace 'any' with conditional types.
-      return this.watchStream as any;
+      // Replace 'any' with conditional types.
+      return this.watchStream as any; // eslint-disable-line @typescript-eslint/no-explicit-any
     }
   }
 }
@@ -357,13 +359,16 @@ class SharedWriteTracker {
 abstract class TestRunner {
   protected queue: AsyncQueue;
 
-  private connection: MockConnection;
-  private eventManager: EventManager;
-  private syncEngine: SyncEngine;
+  // Initialized asynchronously via start().
+  private connection!: MockConnection;
+  private eventManager!: EventManager;
+  private syncEngine!: SyncEngine;
 
   private eventList: QueryEvent[] = [];
   private acknowledgedDocs: string[];
   private rejectedDocs: string[];
+  private snapshotsInSyncListeners: Array<Observer<void>>;
+  private snapshotsInSyncEvents = 0;
 
   private queryListeners = new ObjectMap<Query, QueryListener>(q =>
     q.canonicalId()
@@ -376,11 +381,13 @@ abstract class TestRunner {
 
   private networkEnabled = true;
 
-  private datastore: Datastore;
-  private localStore: LocalStore;
-  private remoteStore: RemoteStore;
-  private persistence: Persistence;
-  protected sharedClientState: SharedClientState;
+  // Initialized asynchronously via start().
+  private datastore!: Datastore;
+  private localStore!: LocalStore;
+  private remoteStore!: RemoteStore;
+  private persistence!: Persistence;
+  protected sharedClientState!: SharedClientState;
+
   private useGarbageCollection: boolean;
   private numClients: number;
   private databaseInfo: DatabaseInfo;
@@ -421,6 +428,7 @@ abstract class TestRunner {
     this.expectedActiveTargets = {};
     this.acknowledgedDocs = [];
     this.rejectedDocs = [];
+    this.snapshotsInSyncListeners = [];
   }
 
   async start(): Promise<void> {
@@ -430,7 +438,10 @@ abstract class TestRunner {
       this.useGarbageCollection
     );
 
-    this.localStore = new LocalStore(this.persistence, this.user);
+    // TODO(index-free): Update to index-free query engine when it becomes default.
+    const queryEngine = new SimpleQueryEngine();
+    this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
+    await this.localStore.start();
 
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
@@ -513,8 +524,9 @@ abstract class TestRunner {
   async run(step: SpecStep): Promise<void> {
     await this.doStep(step);
     await this.queue.drain();
-    this.validateStepExpectations(step.expect!);
-    await this.validateStateExpectations(step.stateExpect!);
+    this.validateExpectedSnapshotEvents(step.expectedSnapshotEvents!);
+    await this.validateExpectedState(step.expectedState!);
+    this.validateSnapshotsInSyncEvents(step.expectedSnapshotsInSyncEvents);
     this.eventList = [];
     this.rejectedDocs = [];
     this.acknowledgedDocs = [];
@@ -531,6 +543,10 @@ abstract class TestRunner {
       return this.doPatch(step.userPatch!);
     } else if ('userDelete' in step) {
       return this.doDelete(step.userDelete!);
+    } else if ('addSnapshotsInSyncListener' in step) {
+      return this.doAddSnapshotsInSyncListener();
+    } else if ('removeSnapshotsInSyncListener' in step) {
+      return this.doRemoveSnapshotsInSyncListener();
     } else if ('watchAck' in step) {
       return this.doWatchAck(step.watchAck!);
     } else if ('watchCurrent' in step) {
@@ -565,8 +581,6 @@ abstract class TestRunner {
       return this.doRestart();
     } else if ('shutdown' in step) {
       return this.doShutdown();
-    } else if ('expectIsShutdown' in step) {
-      return this.doExpectIsShutdown();
     } else if ('applyClientState' in step) {
       // PORTING NOTE: Only used by web multi-tab tests.
       return this.doApplyClientState(step.applyClientState!);
@@ -636,6 +650,28 @@ abstract class TestRunner {
   private doDelete(deleteSpec: SpecUserDelete): Promise<void> {
     const key: string = deleteSpec;
     return this.doMutations([deleteMutation(key)]);
+  }
+
+  private doAddSnapshotsInSyncListener(): Promise<void> {
+    const observer = {
+      next: () => {
+        this.snapshotsInSyncEvents += 1;
+      },
+      error: () => {}
+    };
+    this.snapshotsInSyncListeners.push(observer);
+    this.eventManager.addSnapshotsInSyncListener(observer);
+    return Promise.resolve();
+  }
+
+  private doRemoveSnapshotsInSyncListener(): Promise<void> {
+    const removeObs = this.snapshotsInSyncListeners.pop();
+    if (removeObs) {
+      this.eventManager.removeSnapshotsInSyncListener(removeObs);
+    } else {
+      throw new Error('There must be a listener to unlisten to');
+    }
+    return Promise.resolve();
   }
 
   private doMutations(mutations: Mutation[]): Promise<void> {
@@ -881,11 +917,6 @@ abstract class TestRunner {
     this.started = false;
   }
 
-  /** Asserts that the client is shutdown by  */
-  private async doExpectIsShutdown(): Promise<void> {
-    expect(this.started).to.equal(false);
-  }
-
   private async doClearPersistence(): Promise<void> {
     await clearTestPersistence();
   }
@@ -921,16 +952,18 @@ abstract class TestRunner {
     );
   }
 
-  private validateStepExpectations(stepExpectations: SpecExpectation[]): void {
-    if (stepExpectations) {
+  private validateExpectedSnapshotEvents(
+    expectedEvents: SnapshotEvent[]
+  ): void {
+    if (expectedEvents) {
       expect(this.eventList.length).to.equal(
-        stepExpectations.length,
+        expectedEvents.length,
         'Number of expected and actual events mismatch'
       );
       const actualEventsSorted = this.eventList.sort((a, b) =>
         primitiveComparator(a.query.canonicalId(), b.query.canonicalId())
       );
-      const expectedEventsSorted = stepExpectations.sort((a, b) =>
+      const expectedEventsSorted = expectedEvents.sort((a, b) =>
         primitiveComparator(
           this.parseQuery(a.query).canonicalId(),
           this.parseQuery(b.query).canonicalId()
@@ -949,46 +982,52 @@ abstract class TestRunner {
     }
   }
 
-  private async validateStateExpectations(
-    expectation: StateExpectation
+  private async validateExpectedState(
+    expectedState: StateExpectation
   ): Promise<void> {
-    if (expectation) {
-      if ('numOutstandingWrites' in expectation) {
+    if (expectedState) {
+      if ('numOutstandingWrites' in expectedState) {
         expect(this.remoteStore.outstandingWrites()).to.equal(
-          expectation.numOutstandingWrites
+          expectedState.numOutstandingWrites
         );
       }
-      if ('numActiveClients' in expectation) {
+      if ('numActiveClients' in expectedState) {
         const activeClients = await this.persistence.getActiveClients();
-        expect(activeClients.length).to.equal(expectation.numActiveClients);
+        expect(activeClients.length).to.equal(expectedState.numActiveClients);
       }
-      if ('writeStreamRequestCount' in expectation) {
+      if ('writeStreamRequestCount' in expectedState) {
         expect(this.connection.writeStreamRequestCount).to.equal(
-          expectation.writeStreamRequestCount
+          expectedState.writeStreamRequestCount
         );
       }
-      if ('watchStreamRequestCount' in expectation) {
+      if ('watchStreamRequestCount' in expectedState) {
         expect(this.connection.watchStreamRequestCount).to.equal(
-          expectation.watchStreamRequestCount
+          expectedState.watchStreamRequestCount
         );
       }
-      if ('limboDocs' in expectation) {
-        this.expectedLimboDocs = expectation.limboDocs!.map(key);
+      if ('limboDocs' in expectedState) {
+        this.expectedLimboDocs = expectedState.limboDocs!.map(key);
       }
-      if ('activeTargets' in expectation) {
-        this.expectedActiveTargets = expectation.activeTargets!;
+      if ('activeTargets' in expectedState) {
+        this.expectedActiveTargets = expectedState.activeTargets!;
       }
-      if ('isPrimary' in expectation) {
-        expect(this.isPrimaryClient).to.eq(expectation.isPrimary!, 'isPrimary');
+      if ('isPrimary' in expectedState) {
+        expect(this.isPrimaryClient).to.eq(
+          expectedState.isPrimary!,
+          'isPrimary'
+        );
+      }
+      if ('isShutdown' in expectedState) {
+        expect(this.started).to.equal(!expectedState.isShutdown);
       }
     }
 
-    if (expectation && expectation.userCallbacks) {
+    if (expectedState && expectedState.userCallbacks) {
       expect(this.acknowledgedDocs).to.have.members(
-        expectation.userCallbacks.acknowledgedDocs
+        expectedState.userCallbacks.acknowledgedDocs
       );
       expect(this.rejectedDocs).to.have.members(
-        expectation.userCallbacks.rejectedDocs
+        expectedState.userCallbacks.rejectedDocs
       );
     } else {
       expect(this.acknowledgedDocs).to.be.empty;
@@ -1011,21 +1050,31 @@ abstract class TestRunner {
     }
   }
 
+  private validateSnapshotsInSyncEvents(
+    expectedCount: number | undefined
+  ): void {
+    expect(this.snapshotsInSyncEvents).to.eq(expectedCount || 0);
+    this.snapshotsInSyncEvents = 0;
+  }
+
   private validateLimboDocs(): void {
     let actualLimboDocs = this.syncEngine.currentLimboDocs();
     // Validate that each limbo doc has an expected active target
     actualLimboDocs.forEach((key, targetId) => {
+      const targetIds: number[] = [];
+      obj.forEachNumber(this.expectedActiveTargets, id => targetIds.push(id));
       expect(obj.contains(this.expectedActiveTargets, targetId)).to.equal(
         true,
-        'Found limbo doc without an expected active target'
+        `Found limbo doc, but its target ID ${targetId} was not in the set of ` +
+          `expected active target IDs (${targetIds.join(', ')})`
       );
     });
     for (const expectedLimboDoc of this.expectedLimboDocs) {
-      expect(
-        actualLimboDocs.get(expectedLimboDoc),
+      expect(actualLimboDocs.get(expectedLimboDoc)).to.not.equal(
+        null,
         'Expected doc to be in limbo, but was not: ' +
           expectedLimboDoc.toString()
-      ).to.be.ok;
+      );
       actualLimboDocs = actualLimboDocs.remove(expectedLimboDoc);
     }
     expect(actualLimboDocs.size).to.equal(
@@ -1069,6 +1118,7 @@ abstract class TestRunner {
           QueryPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,
           SnapshotVersion.MIN,
+          SnapshotVersion.MIN,
           expected.resumeToken
         )
       );
@@ -1085,7 +1135,7 @@ abstract class TestRunner {
   }
 
   private validateWatchExpectation(
-    expected: SpecExpectation,
+    expected: SnapshotEvent,
     actual: QueryEvent
   ): void {
     const expectedQuery = this.parseQuery(expected.query);
@@ -1213,15 +1263,16 @@ class IndexedDbTestRunner extends TestRunner {
     gcEnabled: boolean
   ): Promise<Persistence> {
     // TODO(gsoltis): can we or should we disable this test if gc is enabled?
-    return IndexedDbPersistence.createMultiClientIndexedDbPersistence(
-      TEST_PERSISTENCE_PREFIX,
-      this.clientId,
-      this.platform,
-      this.queue,
+    return IndexedDbPersistence.createIndexedDbPersistence({
+      allowTabSynchronization: true,
+      persistenceKey: TEST_PERSISTENCE_PREFIX,
+      clientId: this.clientId,
+      platform: this.platform,
+      queue: this.queue,
       serializer,
-      LruParams.DEFAULT,
-      { sequenceNumberSyncer: this.sharedClientState }
-    );
+      lruParams: LruParams.DEFAULT,
+      sequenceNumberSyncer: this.sharedClientState
+    });
   }
 
   static destroyPersistence(): Promise<void> {
@@ -1236,6 +1287,7 @@ class IndexedDbTestRunner extends TestRunner {
  */
 export async function runSpec(
   name: string,
+  tags: string[],
   usePersistence: boolean,
   config: SpecConfig,
   steps: SpecStep[]
@@ -1279,6 +1331,12 @@ export async function runSpec(
   let count = 0;
   try {
     await sequence(steps, async step => {
+      assert(
+        step.clientIndex === undefined || tags.indexOf(MULTI_CLIENT_TAG) !== -1,
+        "Cannot use 'client()' to initialize a test that is not tagged with " +
+          "'multi-client'. Did you mean to use 'spec()'?"
+      );
+
       ++count;
       lastStep = step;
       return ensureRunner(step.clientIndex || 0).then(runner =>
@@ -1326,6 +1384,10 @@ export interface SpecStep {
   userPatch?: SpecUserPatch;
   /** Perform a user initiated delete */
   userDelete?: SpecUserDelete;
+  /** Listens to a SnapshotsInSync event. */
+  addSnapshotsInSyncListener?: true;
+  /** Unlistens from a SnapshotsInSync event. */
+  removeSnapshotsInSyncListener?: true;
 
   /** Ack for a query in the watch stream */
   watchAck?: SpecWatchAck;
@@ -1382,19 +1444,22 @@ export interface SpecStep {
   /** Shut down the client and close it network connection. */
   shutdown?: true;
 
-  /** Assert that the firestore client is shutdown. */
-  expectIsShutdown?: true;
-
   /**
    * Optional list of expected events.
    * If not provided, the test will fail if the step causes events to be raised.
    */
-  expect?: SpecExpectation[];
+  expectedSnapshotEvents?: SnapshotEvent[];
 
   /**
    * Optional dictionary of expected states.
    */
-  stateExpect?: StateExpectation;
+  expectedState?: StateExpectation;
+
+  /**
+   * Optional expected number of onSnapshotsInSync callbacks to be called.
+   * If not provided, the test will fail if the step causes events to be raised.
+   */
+  expectedSnapshotsInSyncEvents?: number;
 }
 
 /** [<target-id>, <query-path>] */
@@ -1537,7 +1602,7 @@ export interface SpecDocument {
   options?: DocumentOptions;
 }
 
-export interface SpecExpectation {
+export interface SnapshotEvent {
   query: SpecQuery;
   errorCode?: number;
   fromCache?: boolean;
@@ -1563,6 +1628,8 @@ export interface StateExpectation {
    * Whether the instance holds the primary lease. Used in multi-client tests.
    */
   isPrimary?: boolean;
+  /** Whether the client is shutdown. */
+  isShutdown?: boolean;
   /**
    * Current expected active targets. Verified in each step until overwritten.
    */
@@ -1584,11 +1651,15 @@ async function clearCurrentPrimaryLease(): Promise<void> {
     SCHEMA_VERSION,
     new SchemaConverter(TEST_SERIALIZER)
   );
-  await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
-    const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-      DbPrimaryClient.store
-    );
-    return primaryClientStore.delete(DbPrimaryClient.key);
-  });
+  await db.runTransaction(
+    'readwrite-idempotent',
+    [DbPrimaryClient.store],
+    txn => {
+      const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+        DbPrimaryClient.store
+      );
+      return primaryClientStore.delete(DbPrimaryClient.key);
+    }
+  );
   db.close();
 }

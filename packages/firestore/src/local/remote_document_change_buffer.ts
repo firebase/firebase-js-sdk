@@ -15,14 +15,7 @@
  * limitations under the License.
  */
 
-import {
-  DocumentKeySet,
-  DocumentSizeEntries,
-  DocumentSizeEntry,
-  maybeDocumentMap,
-  MaybeDocumentMap,
-  NullableMaybeDocumentMap
-} from '../model/collections';
+import { DocumentKeySet, NullableMaybeDocumentMap } from '../model/collections';
 import { MaybeDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import { assert } from '../util/assert';
@@ -30,6 +23,7 @@ import { ObjectMap } from '../util/obj_map';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
+import { SnapshotVersion } from '../core/snapshot_version';
 
 /**
  * An in-memory buffer of entries to be written to a RemoteDocumentCache.
@@ -46,33 +40,76 @@ import { PersistencePromise } from './persistence_promise';
  * porting this class as part of that implementation work.
  */
 export abstract class RemoteDocumentChangeBuffer {
-  private changes: MaybeDocumentMap | null = maybeDocumentMap();
-  protected documentSizes: ObjectMap<DocumentKey, number> = new ObjectMap(key =>
-    key.toString()
-  );
+  // A mapping of document key to the new cache entry that should be written (or null if any
+  // existing cache entry should be removed).
+  protected changes: ObjectMap<
+    DocumentKey,
+    MaybeDocument | null
+  > = new ObjectMap(key => key.toString());
+
+  // The read time to use for all added documents in this change buffer.
+  private _readTime: SnapshotVersion | undefined;
+
+  private changesApplied = false;
 
   protected abstract getFromCache(
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
-  ): PersistencePromise<DocumentSizeEntry | null>;
+  ): PersistencePromise<MaybeDocument | null>;
 
   protected abstract getAllFromCache(
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
-  ): PersistencePromise<DocumentSizeEntries>;
+  ): PersistencePromise<NullableMaybeDocumentMap>;
 
   protected abstract applyChanges(
     transaction: PersistenceTransaction
   ): PersistencePromise<void>;
 
-  /** Buffers a `RemoteDocumentCache.addEntry()` call. */
-  addEntry(maybeDocument: MaybeDocument): void {
-    const changes = this.assertChanges();
-    this.changes = changes.insert(maybeDocument.key, maybeDocument);
+  protected set readTime(value: SnapshotVersion) {
+    // Right now (for simplicity) we just track a single readTime for all the
+    // added entries since we expect them to all be the same, but we could
+    // rework to store per-entry readTimes if necessary.
+    assert(
+      this._readTime === undefined || this._readTime.isEqual(value),
+      'All changes in a RemoteDocumentChangeBuffer must have the same read time'
+    );
+    this._readTime = value;
   }
 
-  // NOTE: removeEntry() is intentionally omitted. If it needs to be added in
-  // the future it must take byte counting into account.
+  protected get readTime(): SnapshotVersion {
+    assert(
+      this._readTime !== undefined,
+      'Read time is not set. All removeEntry() calls must include a readTime if `trackRemovals` is used.'
+    );
+    return this._readTime!;
+  }
+
+  /**
+   * Buffers a `RemoteDocumentCache.addEntry()` call.
+   *
+   * You can only modify documents that have already been retrieved via
+   * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
+   */
+  addEntry(maybeDocument: MaybeDocument, readTime: SnapshotVersion): void {
+    this.assertNotApplied();
+    this.readTime = readTime;
+    this.changes.set(maybeDocument.key, maybeDocument);
+  }
+
+  /**
+   * Buffers a `RemoteDocumentCache.removeEntry()` call.
+   *
+   * You can only remove documents that have already been retrieved via
+   * `getEntry()/getEntries()` (enforced via IndexedDbs `apply()`).
+   */
+  removeEntry(key: DocumentKey, readTime?: SnapshotVersion): void {
+    this.assertNotApplied();
+    if (readTime) {
+      this.readTime = readTime;
+    }
+    this.changes.set(key, null);
+  }
 
   /**
    * Looks up an entry in the cache. The buffered changes will first be checked,
@@ -89,22 +126,12 @@ export abstract class RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction,
     documentKey: DocumentKey
   ): PersistencePromise<MaybeDocument | null> {
-    const changes = this.assertChanges();
-
-    const bufferedEntry = changes.get(documentKey);
-    if (bufferedEntry) {
+    this.assertNotApplied();
+    const bufferedEntry = this.changes.get(documentKey);
+    if (bufferedEntry !== undefined) {
       return PersistencePromise.resolve<MaybeDocument | null>(bufferedEntry);
     } else {
-      // Record the size of everything we load from the cache so we can compute a delta later.
-      return this.getFromCache(transaction, documentKey).next(getResult => {
-        if (getResult === null) {
-          this.documentSizes.set(documentKey, 0);
-          return null;
-        } else {
-          this.documentSizes.set(documentKey, getResult.size);
-          return getResult.maybeDocument;
-        }
-      });
+      return this.getFromCache(transaction, documentKey);
     }
   }
 
@@ -123,19 +150,7 @@ export abstract class RemoteDocumentChangeBuffer {
     transaction: PersistenceTransaction,
     documentKeys: DocumentKeySet
   ): PersistencePromise<NullableMaybeDocumentMap> {
-    // Record the size of everything we load from the cache so we can compute
-    // a delta later.
-    return this.getAllFromCache(transaction, documentKeys).next(
-      ({ maybeDocuments, sizeMap }) => {
-        // Note: `getAllFromCache` returns two maps instead of a single map from
-        // keys to `DocumentSizeEntry`s. This is to allow returning the
-        // `NullableMaybeDocumentMap` directly, without a conversion.
-        sizeMap.forEach((documentKey, size) => {
-          this.documentSizes.set(documentKey, size);
-        });
-        return maybeDocuments;
-      }
-    );
+    return this.getAllFromCache(transaction, documentKeys);
   }
 
   /**
@@ -143,15 +158,13 @@ export abstract class RemoteDocumentChangeBuffer {
    * the provided transaction.
    */
   apply(transaction: PersistenceTransaction): PersistencePromise<void> {
-    const result = this.applyChanges(transaction);
-    // We should not buffer any more changes.
-    this.changes = null;
-    return result;
+    this.assertNotApplied();
+    this.changesApplied = true;
+    return this.applyChanges(transaction);
   }
 
-  /** Helper to assert this.changes is not null and return it. */
-  protected assertChanges(): MaybeDocumentMap {
-    assert(this.changes !== null, 'Changes have already been applied.');
-    return this.changes!;
+  /** Helper to assert this.changes is not null  */
+  protected assertNotApplied(): void {
+    assert(!this.changesApplied, 'Changes have already been applied.');
   }
 }

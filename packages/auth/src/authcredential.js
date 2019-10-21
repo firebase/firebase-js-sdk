@@ -37,6 +37,7 @@ goog.provide('fireauth.SAMLAuthProvider');
 goog.provide('fireauth.TwitterAuthProvider');
 
 goog.forwardDeclare('fireauth.RpcHandler');
+goog.require('fireauth.ActionCodeInfo');
 goog.require('fireauth.ActionCodeURL');
 goog.require('fireauth.AuthError');
 goog.require('fireauth.DynamicLink');
@@ -987,28 +988,33 @@ fireauth.EmailAuthProvider.credential = function(email, password) {
  * @return {!fireauth.EmailAuthCredential} The Auth credential object.
  */
 fireauth.EmailAuthProvider.credentialWithLink = function(email, emailLink) {
-  var code = fireauth.EmailAuthProvider
-      .getActionCodeFromSignInEmailLink(emailLink);
-  if (!code) {
+  var actionCodeUrl = fireauth.EmailAuthProvider
+      .getActionCodeUrlFromSignInEmailLink(emailLink);
+  if (!actionCodeUrl) {
     throw new fireauth.AuthError(
         fireauth.authenum.Error.ARGUMENT_ERROR, 'Invalid email link!');
   }
-  return new fireauth.EmailAuthCredential(email, code,
+  return new fireauth.EmailAuthCredential(email, actionCodeUrl['code'],
       fireauth.EmailAuthProvider['EMAIL_LINK_SIGN_IN_METHOD']);
 };
 
 
 /**
  * @param {string} emailLink The sign in email link to be validated.
- * @return {?string} Action code if the email link is valid, otherwise null.
+ * @return {?fireauth.ActionCodeURL} The sign in email link action code URL.
+ *     Returns null if the email link is invalid.
  */
-fireauth.EmailAuthProvider.getActionCodeFromSignInEmailLink =
+fireauth.EmailAuthProvider.getActionCodeUrlFromSignInEmailLink =
     function(emailLink) {
   emailLink = fireauth.DynamicLink.parseDeepLink(emailLink);
   var actionCodeUrl = fireauth.ActionCodeURL.parseLink(emailLink);
   if (actionCodeUrl && actionCodeUrl['operation'] ===
       fireauth.ActionCodeInfo.Operation.EMAIL_SIGNIN) {
+<<<<<<< HEAD
     return actionCodeUrl['code'];
+=======
+    return actionCodeUrl;
+>>>>>>> 4ecd58ece02e08132b80ae5e50cfcd831efee762
   }
   return null;
 };

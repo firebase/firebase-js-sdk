@@ -62,6 +62,7 @@ import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
   PersistenceTransaction,
+  PersistenceTransactionMode,
   PrimaryStateListener,
   ReferenceDelegate
 } from './persistence';
@@ -75,8 +76,7 @@ const LOG_TAG = 'IndexedDbPersistence';
 
 /**
  * Oldest acceptable age in milliseconds for client metadata before the client
- * is considered inactive and its associated data (such as the remote document
- * cache changelog) is garbage collected.
+ * is considered inactive and its associated data is garbage collected.
  */
 const MAX_CLIENT_AGE_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -168,9 +168,6 @@ export class IndexedDbTransaction extends PersistenceTransaction {
  * TODO(b/114226234): Remove `synchronizeTabs` section when multi-tab is no
  * longer optional.
  */
-export interface MultiClientParams {
-  sequenceNumberSyncer: SequenceNumberSyncer;
-}
 export class IndexedDbPersistence implements Persistence {
   static getStore<Key extends IDBValidKey, Value>(
     txn: PersistenceTransaction,
@@ -191,43 +188,32 @@ export class IndexedDbPersistence implements Persistence {
    */
   static MAIN_DATABASE = 'main';
 
-  static async createIndexedDbPersistence(
-    persistenceKey: string,
-    clientId: ClientId,
-    platform: Platform,
-    queue: AsyncQueue,
-    serializer: JsonProtoSerializer,
-    lruParams: LruParams
-  ): Promise<IndexedDbPersistence> {
-    const persistence = new IndexedDbPersistence(
-      persistenceKey,
-      clientId,
-      platform,
-      queue,
-      serializer,
-      lruParams
-    );
-    await persistence.start();
-    return persistence;
-  }
+  static async createIndexedDbPersistence(options: {
+    allowTabSynchronization: boolean;
+    persistenceKey: string;
+    clientId: ClientId;
+    platform: Platform;
+    lruParams: LruParams;
+    queue: AsyncQueue;
+    serializer: JsonProtoSerializer;
+    sequenceNumberSyncer: SequenceNumberSyncer;
+  }): Promise<IndexedDbPersistence> {
+    if (!IndexedDbPersistence.isAvailable()) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        UNSUPPORTED_PLATFORM_ERROR_MSG
+      );
+    }
 
-  static async createMultiClientIndexedDbPersistence(
-    persistenceKey: string,
-    clientId: ClientId,
-    platform: Platform,
-    queue: AsyncQueue,
-    serializer: JsonProtoSerializer,
-    lruParams: LruParams,
-    multiClientParams: MultiClientParams
-  ): Promise<IndexedDbPersistence> {
     const persistence = new IndexedDbPersistence(
-      persistenceKey,
-      clientId,
-      platform,
-      queue,
-      serializer,
-      lruParams,
-      multiClientParams
+      options.allowTabSynchronization,
+      options.persistenceKey,
+      options.clientId,
+      options.platform,
+      options.lruParams,
+      options.queue,
+      options.serializer,
+      options.sequenceNumberSyncer
     );
     await persistence.start();
     return persistence;
@@ -236,29 +222,31 @@ export class IndexedDbPersistence implements Persistence {
   private readonly document: Document | null;
   private readonly window: Window;
 
-  private simpleDb: SimpleDb;
+  // Technically these types should be `| undefined` because they are
+  // initialized asynchronously by start(), but that would be more misleading
+  // than useful.
+  private simpleDb!: SimpleDb;
+  private listenSequence!: ListenSequence;
+
   private _started = false;
   private isPrimary = false;
   private networkEnabled = true;
   private dbName: string;
 
   /** Our window.unload handler, if registered. */
-  private windowUnloadHandler: (() => void) | null;
+  private windowUnloadHandler: (() => void) | null = null;
   private inForeground = false;
 
   private serializer: LocalSerializer;
 
   /** Our 'visibilitychange' listener if registered. */
-  private documentVisibilityHandler: ((e?: Event) => void) | null;
+  private documentVisibilityHandler: ((e?: Event) => void) | null = null;
 
   /** The client metadata refresh task. */
-  private clientMetadataRefresher: CancelablePromise<void>;
+  private clientMetadataRefresher: CancelablePromise<void> | null = null;
 
-  /** The last time we garbage collected the Remote Document Changelog. */
+  /** The last time we garbage collected the client metadata object store. */
   private lastGarbageCollectionTime = Number.NEGATIVE_INFINITY;
-
-  /** Whether to allow shared multi-tab access to the persistence layer. */
-  private allowTabSynchronization: boolean;
 
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
@@ -267,32 +255,22 @@ export class IndexedDbPersistence implements Persistence {
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage;
-  private listenSequence: ListenSequence;
   readonly referenceDelegate: IndexedDbLruDelegate;
 
-  // Note that `multiClientParams` must be present to enable multi-client support while multi-tab
-  // is still experimental. When multi-client is switched to always on, `multiClientParams` will
-  // no longer be optional.
   private constructor(
+    private readonly allowTabSynchronization: boolean,
     private readonly persistenceKey: string,
     private readonly clientId: ClientId,
     platform: Platform,
+    lruParams: LruParams,
     private readonly queue: AsyncQueue,
     serializer: JsonProtoSerializer,
-    lruParams: LruParams,
-    private readonly multiClientParams?: MultiClientParams
+    private readonly sequenceNumberSyncer: SequenceNumberSyncer
   ) {
-    if (!IndexedDbPersistence.isAvailable()) {
-      throw new FirestoreError(
-        Code.UNIMPLEMENTED,
-        UNSUPPORTED_PLATFORM_ERROR_MSG
-      );
-    }
     this.referenceDelegate = new IndexedDbLruDelegate(this, lruParams);
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
-    this.allowTabSynchronization = multiClientParams !== undefined;
     this.queryCache = new IndexedDbQueryCache(
       this.referenceDelegate,
       this.serializer
@@ -300,8 +278,7 @@ export class IndexedDbPersistence implements Persistence {
     this.indexManager = new IndexedDbIndexManager();
     this.remoteDocumentCache = new IndexedDbRemoteDocumentCache(
       this.serializer,
-      this.indexManager,
-      /*keepDocumentChangeLog=*/ this.allowTabSynchronization
+      this.indexManager
     );
     if (platform.window && platform.window.localStorage) {
       this.window = platform.window;
@@ -340,25 +317,16 @@ export class IndexedDbPersistence implements Persistence {
 
         this.scheduleClientMetadataAndPrimaryLeaseRefreshes();
 
-        return this.startRemoteDocumentCache();
-      })
-      .then(() => {
         return this.simpleDb.runTransaction(
-          'readonly',
+          'readonly-idempotent',
           [DbTargetGlobal.store],
-          txn => {
-            return getHighestListenSequenceNumber(txn).next(
-              highestListenSequenceNumber => {
-                const sequenceNumberSyncer = this.multiClientParams
-                  ? this.multiClientParams.sequenceNumberSyncer
-                  : undefined;
-                this.listenSequence = new ListenSequence(
-                  highestListenSequenceNumber,
-                  sequenceNumberSyncer
-                );
-              }
-            );
-          }
+          txn => getHighestListenSequenceNumber(txn)
+        );
+      })
+      .then(highestListenSequenceNumber => {
+        this.listenSequence = new ListenSequence(
+          highestListenSequenceNumber,
+          this.sequenceNumberSyncer
         );
       })
       .then(() => {
@@ -368,12 +336,6 @@ export class IndexedDbPersistence implements Persistence {
         this.simpleDb && this.simpleDb.close();
         return Promise.reject(reason);
       });
-  }
-
-  private startRemoteDocumentCache(): Promise<void> {
-    return this.simpleDb.runTransaction('readonly', ALL_STORES, txn =>
-      this.remoteDocumentCache.start(txn)
-    );
   }
 
   setPrimaryStateListener(
@@ -426,8 +388,7 @@ export class IndexedDbPersistence implements Persistence {
             this.clientId,
             Date.now(),
             this.networkEnabled,
-            this.inForeground,
-            this.remoteDocumentCache.lastProcessedDocumentChangeId
+            this.inForeground
           )
         )
         .next(() => {
@@ -490,58 +451,31 @@ export class IndexedDbPersistence implements Persistence {
     ) {
       this.lastGarbageCollectionTime = Date.now();
 
-      let activeClients: DbClientMetadata[];
-      let inactiveClients: DbClientMetadata[] = [];
-
-      await this.runTransaction(
+      const inactiveClients = await this.runTransaction(
         'maybeGarbageCollectMultiClientState',
-        'readwrite-primary',
+        'readwrite-primary-idempotent',
         txn => {
           const metadataStore = IndexedDbPersistence.getStore<
             DbClientMetadataKey,
             DbClientMetadata
           >(txn, DbClientMetadata.store);
 
-          return metadataStore
-            .loadAll()
-            .next(existingClients => {
-              activeClients = this.filterActiveClients(
-                existingClients,
-                MAX_CLIENT_AGE_MS
-              );
-              inactiveClients = existingClients.filter(
-                client => activeClients.indexOf(client) === -1
-              );
-            })
-            .next(() =>
-              // Delete metadata for clients that are no longer considered active.
-              PersistencePromise.forEach(
-                inactiveClients,
-                (inactiveClient: DbClientMetadata) =>
-                  metadataStore.delete(inactiveClient.clientId)
-              )
-            )
-            .next(() => {
-              // Retrieve the minimum change ID from the set of active clients.
+          return metadataStore.loadAll().next(existingClients => {
+            const active = this.filterActiveClients(
+              existingClients,
+              MAX_CLIENT_AGE_MS
+            );
+            const inactive = existingClients.filter(
+              client => active.indexOf(client) === -1
+            );
 
-              // The primary client doesn't read from the document change log,
-              // and hence we exclude it when we determine the minimum
-              // `lastProcessedDocumentChangeId`.
-              activeClients = activeClients.filter(
-                client => client.clientId !== this.clientId
-              );
-
-              if (activeClients.length > 0) {
-                const processedChangeIds = activeClients.map(
-                  client => client.lastProcessedDocumentChangeId || 0
-                );
-                const oldestChangeId = Math.min(...processedChangeIds);
-                return this.remoteDocumentCache.removeDocumentChangesThroughChangeId(
-                  txn,
-                  oldestChangeId
-                );
-              }
-            });
+            // Delete metadata for clients that are no longer considered active.
+            return PersistencePromise.forEach(
+              inactive,
+              (inactiveClient: DbClientMetadata) =>
+                metadataStore.delete(inactiveClient.clientId)
+            ).next(() => inactive);
+          });
         }
       );
 
@@ -692,11 +626,12 @@ export class IndexedDbPersistence implements Persistence {
     this.markClientZombied();
     if (this.clientMetadataRefresher) {
       this.clientMetadataRefresher.cancel();
+      this.clientMetadataRefresher = null;
     }
     this.detachVisibilityHandler();
     this.detachWindowUnloadHook();
     await this.simpleDb.runTransaction(
-      'readwrite',
+      'readwrite-idempotent',
       [DbPrimaryClient.store, DbClientMetadata.store],
       txn => {
         return this.releasePrimaryLeaseIfHeld(txn).next(() =>
@@ -728,7 +663,7 @@ export class IndexedDbPersistence implements Persistence {
 
   getActiveClients(): Promise<ClientId[]> {
     return this.simpleDb.runTransaction(
-      'readonly',
+      'readonly-idempotent',
       [DbClientMetadata.store],
       txn => {
         return clientMetadataStore(txn)
@@ -793,20 +728,39 @@ export class IndexedDbPersistence implements Persistence {
 
   runTransaction<T>(
     action: string,
-    mode: 'readonly' | 'readwrite' | 'readwrite-primary',
+    mode: PersistenceTransactionMode,
     transactionOperation: (
       transaction: PersistenceTransaction
     ) => PersistencePromise<T>
   ): Promise<T> {
     log.debug(LOG_TAG, 'Starting transaction:', action);
 
+    // TODO(schmidt-sebastian): Simplify once all transactions are idempotent.
+    const idempotent = mode.endsWith('idempotent');
+    const readonly = mode.startsWith('readonly');
+    const simpleDbMode = readonly
+      ? idempotent
+        ? 'readonly-idempotent'
+        : 'readonly'
+      : idempotent
+      ? 'readwrite-idempotent'
+      : 'readwrite';
+
+    let persistenceTransaction: PersistenceTransaction;
+
     // Do all transactions as readwrite against all object stores, since we
     // are the only reader/writer.
-    return this.simpleDb.runTransaction(
-      mode === 'readonly' ? 'readonly' : 'readwrite',
-      ALL_STORES,
-      simpleDbTxn => {
-        if (mode === 'readwrite-primary') {
+    return this.simpleDb
+      .runTransaction(simpleDbMode, ALL_STORES, simpleDbTxn => {
+        persistenceTransaction = new IndexedDbTransaction(
+          simpleDbTxn,
+          this.listenSequence.next()
+        );
+
+        if (
+          mode === 'readwrite-primary' ||
+          mode === 'readwrite-primary-idempotent'
+        ) {
           // While we merely verify that we have (or can acquire) the lease
           // immediately, we wait to extend the primary lease until after
           // executing transactionOperation(). This ensures that even if the
@@ -827,12 +781,7 @@ export class IndexedDbPersistence implements Persistence {
                   PRIMARY_LEASE_LOST_ERROR_MSG
                 );
               }
-              return transactionOperation(
-                new IndexedDbTransaction(
-                  simpleDbTxn,
-                  this.listenSequence.next()
-                )
-              );
+              return transactionOperation(persistenceTransaction);
             })
             .next(result => {
               return this.acquireOrExtendPrimaryLease(simpleDbTxn).next(
@@ -841,13 +790,14 @@ export class IndexedDbPersistence implements Persistence {
             });
         } else {
           return this.verifyAllowTabSynchronization(simpleDbTxn).next(() =>
-            transactionOperation(
-              new IndexedDbTransaction(simpleDbTxn, this.listenSequence.next())
-            )
+            transactionOperation(persistenceTransaction)
           );
         }
-      }
-    );
+      })
+      .then(result => {
+        persistenceTransaction.raiseOnCommittedEvent();
+        return result;
+      });
   }
 
   /**
@@ -1131,7 +1081,7 @@ function clientMetadataStore(
 
 /** Provides LRU functionality for IndexedDB persistence. */
 export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
-  private inMemoryPins: ReferenceSet | null;
+  private inMemoryPins: ReferenceSet | null = null;
 
   readonly garbageCollector: LruGarbageCollector;
 
@@ -1230,63 +1180,43 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     upperBound: ListenSequenceNumber
   ): PersistencePromise<number> {
-    let count = 0;
-    let bytesRemoved = 0;
+    const documentCache = this.db.getRemoteDocumentCache();
+    const changeBuffer = documentCache.newChangeBuffer();
+
     const promises: Array<PersistencePromise<void>> = [];
+    let documentCount = 0;
+
     const iteration = this.forEachOrphanedDocument(
       txn,
       (docKey, sequenceNumber) => {
         if (sequenceNumber <= upperBound) {
           const p = this.isPinned(txn, docKey).next(isPinned => {
             if (!isPinned) {
-              count++;
-              return this.removeOrphanedDocument(txn, docKey).next(
-                documentBytes => {
-                  bytesRemoved += documentBytes;
-                }
-              );
+              documentCount++;
+              // Our size accounting requires us to read all documents before
+              // removing them.
+              return changeBuffer.getEntry(txn, docKey).next(() => {
+                changeBuffer.removeEntry(docKey);
+                return documentTargetStore(txn).delete(sentinelKey(docKey));
+              });
             }
           });
           promises.push(p);
         }
       }
     );
-    // Wait for iteration first to make sure we have a chance to add all of the
-    // removal promises to the array.
+
     return iteration
       .next(() => PersistencePromise.waitFor(promises))
-      .next(() =>
-        this.db.getRemoteDocumentCache().updateSize(txn, -bytesRemoved)
-      )
-      .next(() => count);
-  }
-
-  /**
-   * Clears a document from the cache. The document is assumed to be orphaned, so target-document
-   * associations are not queried. We remove it from the remote document cache, as well as remove
-   * its sentinel row.
-   */
-  private removeOrphanedDocument(
-    txn: PersistenceTransaction,
-    docKey: DocumentKey
-  ): PersistencePromise<number> {
-    let totalBytesRemoved = 0;
-    const documentCache = this.db.getRemoteDocumentCache();
-    return PersistencePromise.waitFor([
-      documentTargetStore(txn).delete(sentinelKey(docKey)),
-      documentCache.removeEntry(txn, docKey).next(bytesRemoved => {
-        totalBytesRemoved += bytesRemoved;
-      })
-    ]).next(() => totalBytesRemoved);
+      .next(() => changeBuffer.apply(txn))
+      .next(() => documentCount);
   }
 
   removeTarget(
     txn: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    const updated = queryData.copy({
-      sequenceNumber: txn.currentSequenceNumber
-    });
+    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
     return this.db.getQueryCache().updateQueryData(txn, updated);
   }
 

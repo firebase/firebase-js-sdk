@@ -213,11 +213,11 @@ function testOAuthUrlBuilder() {
     // This entry should be ignored.
     'apiKey': 'OTHER_KEY',
     'apn': 'com.example.android',
-    'sessionId': '1234'
+    'sessionId': 'SESSION_ID1'
   };
   var additionalParams2 = {
     'ibi': 'com.example.ios',
-    'sessionId': '5678'
+    'sessionId': 'SESSION_ID2'
   };
   provider.addScope('scope1');
   provider.addScope('scope2');
@@ -251,43 +251,63 @@ function testOAuthUrlBuilder() {
   // Add eventId.
   assertEquals(
       partialUrl + '&redirectUrl=' + encodeURIComponent(redirectUrl2) +
-      '&eventId=1234',
-      builder.setEventId('1234').toString());
+      '&eventId=EVENT_ID1',
+      builder.setEventId('EVENT_ID1').toString());
   // Modify eventId.
   assertEquals(
       partialUrl + '&redirectUrl=' + encodeURIComponent(redirectUrl2) +
-      '&eventId=5678',
-      builder.setEventId('5678').toString());
+      '&eventId=EVENT_ID2',
+      builder.setEventId('EVENT_ID2').toString());
   // Add version.
   assertEquals(
       partialUrl + '&redirectUrl=' + encodeURIComponent(redirectUrl2) +
-      '&eventId=5678&v=3.4.0',
+      '&eventId=EVENT_ID2&v=3.4.0',
       builder.setVersion('3.4.0').toString());
   // Modify version.
   assertEquals(
       partialUrl + '&redirectUrl=' + encodeURIComponent(redirectUrl2) +
-      '&eventId=5678&v=3.4.1',
+      '&eventId=EVENT_ID2&v=3.4.1',
       builder.setVersion('3.4.1').toString());
   // Add additional parameters.
   assertEquals(
       partialUrl + '&redirectUrl=' + encodeURIComponent(redirectUrl2) +
-      '&eventId=5678&v=3.4.1&apn=' + encodeURIComponent('com.example.android') +
-      '&sessionId=1234',
+      '&eventId=EVENT_ID2&v=3.4.1&apn=' +
+      encodeURIComponent('com.example.android') + '&sessionId=SESSION_ID1',
       builder.setAdditionalParameters(additionalParams).toString());
   // Modify additional parameters.
   assertEquals(
       partialUrl + '&redirectUrl=' + encodeURIComponent(redirectUrl2) +
-      '&eventId=5678&v=3.4.1&ibi=' + encodeURIComponent('com.example.ios') +
-      '&sessionId=5678',
+      '&eventId=EVENT_ID2&v=3.4.1&ibi=' +
+      encodeURIComponent('com.example.ios') + '&sessionId=SESSION_ID2',
       builder.setAdditionalParameters(additionalParams2).toString());
+  // Add tenantId.
+  assertEquals(
+      partialUrl + '&redirectUrl=' + encodeURIComponent(redirectUrl2) +
+      '&eventId=EVENT_ID2&v=3.4.1&ibi=' +
+      encodeURIComponent('com.example.ios') +
+      '&sessionId=SESSION_ID2&tid=TENANT_ID1',
+      builder.setTenantId('TENANT_ID1').toString());
+  // Modify tenantId.
+  assertEquals(
+      partialUrl + '&redirectUrl=' + encodeURIComponent(redirectUrl2) +
+      '&eventId=EVENT_ID2&v=3.4.1&ibi=' +
+      encodeURIComponent('com.example.ios') +
+      '&sessionId=SESSION_ID2&tid=TENANT_ID2',
+      builder.setTenantId('TENANT_ID2').toString());
+  // Delete tenantId.
+  assertEquals(
+      partialUrl + '&redirectUrl=' + encodeURIComponent(redirectUrl2) +
+      '&eventId=EVENT_ID2&v=3.4.1&ibi=' +
+      encodeURIComponent('com.example.ios') + '&sessionId=SESSION_ID2',
+      builder.setTenantId(null).toString());
   // Delete additional parameters.
   assertEquals(
       partialUrl + '&redirectUrl=' + encodeURIComponent(redirectUrl2) +
-      '&eventId=5678&v=3.4.1',
+      '&eventId=EVENT_ID2&v=3.4.1',
       builder.setAdditionalParameters(null).toString());
   // Delete redirect URL.
   assertEquals(
-      partialUrl + '&eventId=5678&v=3.4.1',
+      partialUrl + '&eventId=EVENT_ID2&v=3.4.1',
       builder.setRedirectUrl(null).toString());
   // Delete eventId.
   assertEquals(
@@ -897,6 +917,64 @@ function testIfcHandler_processPopup_notAlreadyRedirected_success() {
 }
 
 
+function testIfcHandler_processPopup_notAlreadyRedirected_tenentId_success() {
+  asyncTestCase.waitForSignals(1);
+  var popupWin = {
+    close: goog.testing.recordFunction()
+  };
+  var onInit = goog.testing.recordFunction();
+  var onError = goog.testing.recordFunction();
+  var tenantId = '123456789012';
+  stubs.replace(
+      fireauth.util,
+      'goTo',
+      goog.testing.recordFunction());
+  // Assume origin is a valid one.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAuthorizedDomains',
+      function() {
+        var uri = goog.Uri.parse(fireauth.util.getCurrentUrl());
+        var domain = uri.getDomain();
+        return goog.Promise.resolve([domain]);
+      });
+  var provider = new fireauth.GoogleAuthProvider();
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+      authDomain,
+      apiKey,
+      appName,
+      'linkViaPopup',
+      provider,
+      null,
+      '1234',
+      version,
+      undefined,
+      // Check expected endpoint ID appended.
+      fireauth.constants.Endpoint.STAGING.id,
+      tenantId);
+  ifcHandler = new fireauth.iframeclient.IfcHandler(
+      authDomain, apiKey, appName, version,
+      fireauth.constants.Endpoint.STAGING.id);
+  // Should succeed.
+  ifcHandler.processPopup(
+      popupWin, 'linkViaPopup', provider, onInit, onError, '1234', false,
+      tenantId).then(function() {
+        // On init should be called as the iframe is initialized.
+        assertEquals(1, onInit.getCallCount());
+        // No error.
+        assertEquals(0, onError.getCallCount());
+        // Popup redirected.
+        assertEquals(
+            expectedUrl,
+            fireauth.util.goTo.getLastCall().getArgument(0));
+        assertEquals(
+            popupWin,
+            fireauth.util.goTo.getLastCall().getArgument(1));
+        asyncTestCase.signal();
+      });
+}
+
+
 function testIfcHandler_processPopup_redirected_iframeCanRunInBG_success() {
   asyncTestCase.waitForSignals(1);
   // Simulate that the app can run in the background but is running in an
@@ -1289,6 +1367,51 @@ function testIfcHandler_processRedirect_success() {
 }
 
 
+function testIfcHandler_processRedirect_tenantId_success() {
+  var provider = new fireauth.GoogleAuthProvider();
+  var tenantId = '123456789012';
+  var expectedUrl = fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+      authDomain,
+      apiKey,
+      appName,
+      'linkViaRedirect',
+      provider,
+      fireauth.util.getCurrentUrl(),
+      '1234',
+      version,
+      undefined,
+      // Check expected endpoint ID appended.
+      fireauth.constants.Endpoint.STAGING.id,
+      tenantId);
+  asyncTestCase.waitForSignals(1);
+  // Assume origin is a valid one.
+  stubs.replace(
+      fireauth.RpcHandler.prototype,
+      'getAuthorizedDomains',
+      function() {
+        var uri = goog.Uri.parse(fireauth.util.getCurrentUrl());
+        var domain = uri.getDomain();
+        return goog.Promise.resolve([domain]);
+      });
+  stubs.replace(
+      fireauth.util,
+      'goTo',
+      goog.testing.recordFunction());
+  ifcHandler = new fireauth.iframeclient.IfcHandler(
+      authDomain, apiKey, appName, version,
+      fireauth.constants.Endpoint.STAGING.id);
+  // Should succeed and redirect.
+  ifcHandler.processRedirect('linkViaRedirect', provider, '1234', tenantId)
+      .then(function() {
+        /** @suppress {missingRequire} */
+        assertEquals(
+            expectedUrl,
+            fireauth.util.goTo.getLastCall().getArgument(0));
+        asyncTestCase.signal();
+      });
+}
+
+
 function testIfcHandler_processRedirect_networkError_then_success() {
   asyncTestCase.waitForSignals(1);
   var expectedError =
@@ -1438,6 +1561,49 @@ function testGetOAuthHelperWidgetUrl_redirectUrlEventIdVersionAndNoScopes() {
 
 
 /**
+ * Tests getOAuthHelperWidgetUrl with redirect URL, event ID, version, tenant ID
+ * and no scopes.
+ */
+function testGetOAuthHelperWidgetUrl_redirectUrlEventIdVersionTenantId() {
+  var authDomain = 'subdomain.firebaseapp.com';
+  var apiKey = 'apiKey1';
+  var appName = 'appName1';
+  var authType = 'signInWithPopup';
+  var providerId = 'facebook.com';
+  var provider = new fireauth.FacebookAuthProvider();
+  var redirectUrl = 'http://www.example.com/redirect?a=b#c';
+  var eventId = '12345678';
+  var version = '3.0.0-rc.1';
+  var endpointId = 's';
+  var tenantId = '123456789012';
+  var expectedWidgetUrl = 'https://subdomain.firebaseapp.com/__/auth/handler' +
+      '?apiKey=' + encodeURIComponent(apiKey) +
+      '&appName=' + encodeURIComponent(appName) +
+      '&authType=' + encodeURIComponent(authType) +
+      '&providerId=' + encodeURIComponent(providerId) +
+      '&redirectUrl=' + encodeURIComponent(redirectUrl) +
+      '&eventId=' + encodeURIComponent(eventId) +
+      '&v=' + encodeURIComponent(version) +
+      '&tid=' + encodeURIComponent(tenantId) +
+      '&eid=' + endpointId;
+  assertEquals(
+      expectedWidgetUrl,
+      fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+          authDomain,
+          apiKey,
+          appName,
+          authType,
+          provider,
+          redirectUrl,
+          eventId,
+          version,
+          null,
+          endpointId,
+          tenantId));
+}
+
+
+/**
  * Tests getOAuthHelperWidgetUrl with injections.
  */
 function testGetOAuthHelperWidgetUrl_injections() {
@@ -1504,6 +1670,49 @@ function testGetOAuthHelperWidgetUrl_redirectUrlEventIdAndScopes() {
           provider,
           redirectUrl,
           eventId));
+}
+
+
+/**
+ * Tests getOAuthHelperWidgetUrl with scope, event ID, redirect URL and tenant
+ * ID.
+ */
+function testGetOAuthHelperWidgetUrl_redirectUrlEventIdTenantIdAndScopes() {
+  var authDomain = 'subdomain.firebaseapp.com';
+  var apiKey = 'apiKey1';
+  var appName = 'appName1';
+  var authType = 'signInWithPopup';
+  var providerId = 'facebook.com';
+  var redirectUrl = 'http://www.example.com/redirect?a=b#c';
+  var provider = new fireauth.FacebookAuthProvider();
+  provider.addScope('scope1');
+  provider.addScope('scope2');
+  provider.addScope('scope3');
+  var eventId = '12345678';
+  var tenantId = '123456789012';
+  var expectedWidgetUrl = 'https://subdomain.firebaseapp.com/__/auth/handler' +
+      '?apiKey=' + encodeURIComponent(apiKey) +
+      '&appName=' + encodeURIComponent(appName) +
+      '&authType=' + encodeURIComponent(authType) +
+      '&providerId=' + encodeURIComponent(providerId) +
+      '&scopes=' + encodeURIComponent('scope1,scope2,scope3') +
+      '&redirectUrl=' + encodeURIComponent(redirectUrl) +
+      '&eventId=' + encodeURIComponent(eventId) +
+      '&tid=' + encodeURIComponent(tenantId);
+  assertEquals(
+      expectedWidgetUrl,
+      fireauth.iframeclient.IfcHandler.getOAuthHelperWidgetUrl(
+          authDomain,
+          apiKey,
+          appName,
+          authType,
+          provider,
+          redirectUrl,
+          eventId,
+          null,
+          null,
+          null,
+          tenantId));
 }
 
 
