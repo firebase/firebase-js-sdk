@@ -2251,7 +2251,6 @@ firebase.auth.Error.prototype.message;
  */
 firebase.auth.AuthError = function() {};
 
-
 /**
  * The {@link firebase.auth.AuthCredential} that can be used to resolve the
  * error.
@@ -2260,7 +2259,6 @@ firebase.auth.AuthError = function() {};
  */
 firebase.auth.AuthError.prototype.credential;
 
-
 /**
  * The email of the user's account used for sign-in/linking.
  *
@@ -2268,14 +2266,12 @@ firebase.auth.AuthError.prototype.credential;
  */
 firebase.auth.AuthError.prototype.email;
 
-
 /**
  * The phone number of the user's account used for sign-in/linking.
  *
  * @type {string|undefined}
  */
 firebase.auth.AuthError.prototype.phoneNumber;
-
 
 /**
  * The tenant ID being used for sign-in/linking. If you use
@@ -2286,7 +2282,6 @@ firebase.auth.AuthError.prototype.phoneNumber;
  * @type {string|undefined}
  */
 firebase.auth.AuthError.prototype.tenantId;
-
 
 /**
  * The error thrown when the user needs to provide a second factor to sign in

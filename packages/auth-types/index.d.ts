@@ -90,7 +90,6 @@ export interface MultiFactorUser {
   unenroll(option: MultiFactorInfo | string): Promise<void>;
 }
 
-
 export class ActionCodeInfo {
   private constructor();
   data: {
