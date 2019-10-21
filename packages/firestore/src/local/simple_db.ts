@@ -801,13 +801,3 @@ function checkForAndReportiOSError(error: DOMException): Error {
   }
   return error;
 }
-
-/** Checks whether an error is a DOMException (e.g. as thrown by IndexedDb). */
-function isDomException(error: Error): boolean {
-  // DOMException is not a global type in Node with persistence, and hence we
-  // check the constructor name if the type in unknown.
-  return (
-    (typeof DOMException !== 'undefined' && error instanceof DOMException) ||
-    error.constructor.name === 'DOMException'
-  );
-}
