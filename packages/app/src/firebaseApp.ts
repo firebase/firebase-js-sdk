@@ -141,7 +141,7 @@ export class FirebaseAppImpl implements FirebaseApp {
     name: string,
     instanceIdentifier: string = DEFAULT_ENTRY_NAME
   ): void {
-    this.container.getProvider(name).clearCache(instanceIdentifier);
+    this.container.getProvider(name).clearInstance(instanceIdentifier);
   }
 
   _addComponent(component: Component): void {
