@@ -154,6 +154,13 @@ export class SimpleDb {
       return true;
     }
 
+    // In some Node environments, `window` is defined, but `window.navigator` is
+    // not. We don't support IndexedDB persistence in Node if the
+    // isMockPersistence() check above returns false.
+    if (window.navigator === undefined) {
+      return false;
+    }
+
     // We extensively use indexed array values and compound keys,
     // which IE and Edge do not support. However, they still have indexedDB
     // defined on the window, so we need to check for them here and make sure
