@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InstantiationMode, InstanceFactory } from './types';
+import { InstantiationMode, InstanceFactory, ComponentType } from './types';
 
 export class Component<T = unknown> {
   multipleInstances: boolean = false;
@@ -51,17 +51,4 @@ export class Component<T = unknown> {
     this.serviceProps = props;
     return this;
   }
-}
-
-/**
- * PUBLIC: A public component provides a set of public APIs to customers. A service namespace will be patched
- * onto `firebase` namespace. Assume the component name is `test`, customers will be able
- * to get the service by calling `firebase.test()` or `app.test()` where `app` is a `FirebaseApp` instance.
- *
- * PRIVATE: A private component provides a set of private APIs that are used internally by other
- * Firebase SDKs. No serivce namespace is created in `firebase` namespace and customers have no way to get them.
- */
-export enum ComponentType {
-  PUBLIC,
-  PRIVATE
 }

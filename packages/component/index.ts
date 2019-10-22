@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 
-export { Component, ComponentType } from './src/component';
+export { Component } from './src/component';
 export { ComponentContainer } from './src/component_container';
 export { Provider } from './src/provider';
+export { ComponentType, InstanceFactory} from './src/types'

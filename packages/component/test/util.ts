@@ -16,8 +16,8 @@
  */
 import { DEFAULT_ENTRY_NAME } from '../src/constants';
 import { FirebaseApp } from '@firebase/app-types';
-import { InstanceFactory, InstantiationMode } from '../src/types';
-import { Component, ComponentType } from '../src/component';
+import { InstanceFactory, InstantiationMode, ComponentType } from '../src/types';
+import { Component } from '../src/component';
 
 export function getFakeApp(appName: string = DEFAULT_ENTRY_NAME): FirebaseApp {
   return {
