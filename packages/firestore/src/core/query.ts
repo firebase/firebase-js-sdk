@@ -30,6 +30,11 @@ import { Code, FirestoreError } from '../util/error';
 import { isNullOrUndefined } from '../util/types';
 import { Target } from './target';
 
+export enum LimitType {
+  First = "F",
+  Last = "L"
+}
+
 /**
  * Query encapsulates all the query attributes we support in the SDK. It can
  * be run against the LocalStore, as well as be converted to a `Target` to
@@ -55,8 +60,10 @@ export class Query {
     readonly explicitOrderBy: OrderBy[] = [],
     readonly filters: Filter[] = [],
     readonly limit: number | null = null,
+    readonly limitType: LimitType = LimitType.First,
     readonly startAt: Bound | null = null,
-    readonly endAt: Bound | null = null
+    readonly endAt: Bound | null = null,
+    readonly isTargetQuery: boolean = false
   ) {
     if (this.startAt) {
       this.assertValidBound(this.startAt);
@@ -133,6 +140,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       newFilters,
       this.limit,
+      this.limitType,
       this.startAt,
       this.endAt
     );
@@ -148,18 +156,33 @@ export class Query {
       newOrderBy,
       this.filters.slice(),
       this.limit,
+      this.limitType,
       this.startAt,
       this.endAt
     );
   }
 
-  withLimit(limit: number | null): Query {
+  withLimitToFirst(limit: number | null): Query {
     return new Query(
       this.path,
       this.collectionGroup,
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       limit,
+      LimitType.First,
+      this.startAt,
+      this.endAt
+    );
+  }
+
+  withLimitToLast(limit: number | null): Query {
+    return new Query(
+      this.path,
+      this.collectionGroup,
+      this.explicitOrderBy.slice(),
+      this.filters.slice(),
+      limit,
+      LimitType.Last,
       this.startAt,
       this.endAt
     );
@@ -172,6 +195,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
+      this.limitType,
       bound,
       this.endAt
     );
@@ -184,6 +208,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
+      this.limitType,
       this.startAt,
       bound
     );
@@ -202,6 +227,7 @@ export class Query {
       this.explicitOrderBy.slice(),
       this.filters.slice(),
       this.limit,
+      this.limitType,
       this.startAt,
       this.endAt
     );
@@ -227,15 +253,15 @@ export class Query {
   // example, use as a dictionary key, but the implementation is subject to
   // collisions. Make it collision-free.
   canonicalId(): string {
-    return this.toTarget().canonicalId();
+    return `${this.toTarget().canonicalId()}|lt:${this.limitType}`;
   }
 
   toString(): string {
-    return `Query(target=${this.toTarget().toString()})`;
+    return `Query(target=${this.toTarget().toString()}; limitType=${this.limitType})`;
   }
 
   isEqual(other: Query): boolean {
-    return this.toTarget().isEqual(other.toTarget());
+    return this.toTarget().isEqual(other.toTarget()) && (this.limitType === other.limitType);
   }
 
   docComparator(d1: Document, d2: Document): number {
@@ -264,8 +290,12 @@ export class Query {
     );
   }
 
-  hasLimit(): boolean {
-    return !isNullOrUndefined(this.limit);
+  hasLimitToFirst(): boolean {
+    return !isNullOrUndefined(this.limit) && this.limitType === LimitType.First;
+  }
+
+  hasLimitToLast(): boolean {
+    return !isNullOrUndefined(this.limit) && this.limitType === LimitType.Last;
   }
 
   getFirstOrderByField(): FieldPath | null {
@@ -304,17 +334,52 @@ export class Query {
     return this.collectionGroup !== null;
   }
 
+  /**
+   * Converts this `Query` instance to it's corresponding `Target`
+   * representation.
+   */
   toTarget(): Target {
     if (!this.target) {
-      this.target = new Target(
-        this.path,
-        this.collectionGroup,
-        this.orderBy,
-        this.filters,
-        this.limit,
-        this.startAt,
-        this.endAt
-      );
+      if (this.limitType === LimitType.First) {
+        this.target = new Target(
+          this.path,
+          this.collectionGroup,
+          this.orderBy,
+          this.filters,
+          this.limit,
+          this.startAt,
+          this.endAt
+        );
+      } else {
+        // Flip the orderBy directions since we want the last results
+        const orderBys = [] as OrderBy[];
+        for (const orderBy of this.orderBy) {
+          const dir =
+            orderBy.dir === Direction.DESCENDING
+              ? Direction.ASCENDING
+              : Direction.DESCENDING;
+          orderBys.push(new OrderBy(orderBy.field, dir));
+        }
+
+        // We need to swap the cursors to match the now-flipped query ordering.
+        const startAt = this.endAt
+          ? new Bound(this.endAt.position, !this.endAt.before)
+          : null;
+        const endAt = this.startAt
+          ? new Bound(this.startAt.position, !this.startAt.before)
+          : null;
+
+        // Now return as a LimitType.First query.
+        this.target = new Target(
+          this.path,
+          this.collectionGroup,
+          orderBys,
+          this.filters,
+          this.limit,
+          startAt,
+          endAt
+        );
+      }
     }
     return this.target!;
   }

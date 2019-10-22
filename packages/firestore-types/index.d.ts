@@ -1092,6 +1092,15 @@ export class Query {
   limit(limit: number): Query;
 
   /**
+   * Creates and returns a new Query where only the last matching documents
+   * are returned as results.
+   *
+   * @param limit The maximum number of items to return.
+   * @return The created Query.
+   */
+  limitToLast(limit: number): Query;
+
+  /**
    * Creates and returns a new Query that starts at the provided document
    * (inclusive). The starting position is relative to the order of the query.
    * The document must contain all of the fields provided in the orderBy of

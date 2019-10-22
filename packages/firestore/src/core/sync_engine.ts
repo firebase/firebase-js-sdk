@@ -217,6 +217,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       viewSnapshot = queryView.view.computeInitialSnapshot();
     } else {
       const queryData = await this.localStore.allocateQuery(query);
+
       const status = this.sharedClientState.addLocalQueryTarget(
         queryData.targetId
       );

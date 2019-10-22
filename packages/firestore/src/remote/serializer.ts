@@ -24,6 +24,7 @@ import {
   Direction,
   FieldFilter,
   Filter,
+  LimitType,
   Operator,
   OrderBy,
   Query
@@ -1134,6 +1135,7 @@ export class JsonProtoSerializer {
       orderBy,
       filterBy,
       limit,
+      LimitType.First,
       startAt,
       endAt
     ).toTarget();

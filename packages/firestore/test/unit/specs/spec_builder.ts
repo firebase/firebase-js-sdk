@@ -876,7 +876,8 @@ export class SpecBuilder {
     if (query.collectionGroup !== null) {
       spec.collectionGroup = query.collectionGroup;
     }
-    if (query.hasLimit()) {
+    // TODO(limitToLast): Plumb through spec tests.
+    if (query.hasLimitToFirst()) {
       spec.limit = query.limit!;
     }
     if (query.filters) {

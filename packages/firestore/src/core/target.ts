@@ -18,7 +18,7 @@
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
-import { Bound, Filter, OrderBy, Query } from './query';
+import { Bound, Filter, OrderBy, Query, LimitType } from './query';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used
@@ -170,6 +170,7 @@ export class Target {
       this.orderBy,
       this.filters,
       this.limit,
+      LimitType.First,
       this.startAt,
       this.endAt
     );

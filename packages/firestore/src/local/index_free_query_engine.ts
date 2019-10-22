@@ -87,7 +87,8 @@ export class IndexFreeQueryEngine implements QueryEngine {
         const previousResults = this.applyQuery(query, documents);
 
         if (
-          query.hasLimit() &&
+          // TODO(wuandy): handle limitToLast as well.
+          query.hasLimitToFirst() &&
           this.needsRefill(
             previousResults,
             remoteKeys,

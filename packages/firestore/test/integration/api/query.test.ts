@@ -61,6 +61,21 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  it('cannot issue limitToLast queries without explicit order-by', () => {
+    const testDocs = {
+      a: { k: 'a' },
+      b: { k: 'b' },
+      c: { k: 'c' }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      await expect(
+        collection.limitToLast(2).get()
+      ).to.be.eventually.rejectedWith(
+        'limitToLast() queries require specifying an orderBy() on at least on document field.'
+      );
+    });
+  });
+
   it('can issue limit queries using descending sort order', () => {
     const testDocs = {
       a: { k: 'a', sort: 0 },
@@ -79,6 +94,56 @@ apiDescribe('Queries', (persistence: boolean) => {
             { k: 'c', sort: 1 }
           ]);
         });
+    });
+  });
+
+  it('can issue limitToLast queries using descending sort order', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, collection => {
+      return collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .get()
+        .then(docs => {
+          expect(toDataArray(docs)).to.deep.equal([
+            { k: 'b', sort: 1 },
+            { k: 'a', sort: 0 }
+          ]);
+        });
+    });
+  });
+
+  it('can listen to limitToLast queries', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const storeEvent = new EventsAccumulator<firestore.QuerySnapshot>();
+      collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeEvent.storeEvent);
+
+      let snapshot = await storeEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'a', sort: 0 }
+      ]);
+
+      await collection.add({ k: 'e', sort: -1 });
+      snapshot = await storeEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'e', sort: -1 }
+      ]);
     });
   });
 
