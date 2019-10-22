@@ -47,7 +47,7 @@ import { LocalSerializer } from './local_serializer';
 import { MutationQueue } from './mutation_queue';
 import { PersistenceTransaction, ReferenceDelegate } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { SimpleDbStore, SimpleDbTransaction } from './simple_db';
+import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 /** A mutation queue for a specific user, backed by IndexedDB. */
 export class IndexedDbMutationQueue implements MutationQueue {
@@ -675,7 +675,7 @@ function convertStreamToken(token: ProtoByteString): string {
   if (token instanceof Uint8Array) {
     // TODO(b/78771403): Convert tokens to strings during deserialization
     assert(
-      process.env.USE_MOCK_PERSISTENCE === 'YES',
+      SimpleDb.isMockPersistence(),
       'Persisting non-string stream tokens is only supported with mock persistence.'
     );
     return token.toString();
