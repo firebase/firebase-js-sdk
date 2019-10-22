@@ -149,19 +149,17 @@ export class SimpleDb {
     if (typeof window === 'undefined' || window.indexedDB == null) {
       return false;
     }
+
+    if (SimpleDb.isMockPersistence()) {
+      return true;
+    }
+
     // We extensively use indexed array values and compound keys,
     // which IE and Edge do not support. However, they still have indexedDB
     // defined on the window, so we need to check for them here and make sure
     // to return that persistence is not enabled for those browsers.
     // For tracking support of this feature, see here:
     // https://developer.microsoft.com/en-us/microsoft-edge/platform/status/indexeddbarraysandmultientrysupport/
-
-    // If we are running in Node using the IndexedDBShim, `window` is defined,
-    // but `window.navigator` is not. In this case, we support IndexedDB and
-    // return `true`.
-    if (window.navigator === undefined && typeof process !== undefined) {
-      return process.env.USE_MOCK_PERSISTENCE === 'YES';
-    }
 
     // Check the UA string to find out the browser.
     const ua = getUA();
@@ -195,6 +193,17 @@ export class SimpleDb {
     } else {
       return true;
     }
+  }
+
+  /**
+   * Returns true if the backing IndexedDB store is the Node IndexedDBShim
+   * (see https://github.com/axemclion/IndexedDBShim).
+   */
+  static isMockPersistence(): boolean {
+    return (
+      typeof process !== 'undefined' &&
+      process.env.USE_MOCK_PERSISTENCE === 'YES'
+    );
   }
 
   /** Helper to get a typed SimpleDbStore from a transaction. */
