@@ -18,8 +18,8 @@
 import { ComponentContainer } from './component_container';
 
 export const enum InstantiationMode {
-  LAZY = "LAZY", // Currently all components are LAZY in JS SDK
-  EAGER = "EAGER"
+  LAZY = 'LAZY', // Currently all components are LAZY in JS SDK
+  EAGER = 'EAGER'
 }
 
 /**
