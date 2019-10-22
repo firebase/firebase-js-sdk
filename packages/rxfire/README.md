@@ -1,7 +1,6 @@
-<p align="center">
-  <h1 align="center">RxFire</h1>
-  <p align="center">Firebase and RxJS for all frameworks</p>
-</p>
+# RxFire
+
+Firebase and RxJS for all frameworks.
 
 ## What is RxFire?
 

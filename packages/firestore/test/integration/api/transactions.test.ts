@@ -763,7 +763,8 @@ apiDescribe('Database transactions', (persistence: boolean) => {
 
     for (const badReturn of badReturns) {
       it(badReturn + ' is rejected', () => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any, Intentionally returning bad type.
+        // Intentionally returning bad type.
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const fn = ((txn: firestore.Transaction) => badReturn) as any;
         return integrationHelpers.withTestDb(persistence, db => {
           return db

@@ -98,7 +98,8 @@ export class WebChannelConnection implements Connection {
     const url = this.makeUrl(rpcName);
 
     return new Promise((resolve: Resolver<Resp>, reject: Rejecter) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any, XhrIo doesn't have TS typings.
+      // XhrIo doesn't have TS typings.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const xhr: any = new XhrIo();
       xhr.listenOnce(EventType.COMPLETE, () => {
         try {
@@ -271,7 +272,8 @@ export class WebChannelConnection implements Connection {
 
     const url = urlParts.join('');
     log.debug(LOG_TAG, 'Creating WebChannel: ' + url + ' ' + request);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, Because listen isn't defined on it.
+    // Use any because listen isn't defined on it.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const channel = webchannelTransport.createWebChannel(url, request) as any;
 
     // WebChannel supports sending the first message with the handshake - saving
@@ -368,7 +370,8 @@ export class WebChannelConnection implements Connection {
           // (and only errors) to be wrapped in an extra array. To be forward
           // compatible with the bug we need to check either condition. The latter
           // can be removed once the fix has been rolled out.
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, msgData.error is not typed.
+          // Use any because msgData.error is not typed.
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const msgDataAsAny: any = msgData;
           const error =
             msgDataAsAny.error || (msgDataAsAny[0] && msgDataAsAny[0].error);

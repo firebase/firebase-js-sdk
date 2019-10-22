@@ -166,7 +166,8 @@ export class PersistencePromise<T> {
   }
 
   static waitFor(
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any, Accept all Promise types in waitFor().
+    // Accept all Promise types in waitFor().
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     all: { forEach: (cb: (el: PersistencePromise<any>) => void) => void }
   ): PersistencePromise<void> {
     return new PersistencePromise<void>((resolve, reject) => {
