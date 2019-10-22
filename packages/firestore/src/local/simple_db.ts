@@ -294,23 +294,26 @@ export class SimpleDb {
         // caller.
         await transaction.completionPromise;
         return transactionFnResult;
-      } catch (e) {
+      } catch (error) {
         // TODO(schmidt-sebastian): We could probably be smarter about this and
         // not retry exceptions that are likely unrecoverable (such as quota
         // exceeded errors).
+        
+        // Note: We cannot use an instanceof check for FirestoreException, since the
+        // exception is wrapped in a generic error by our async/await handling.
         const retryable =
           idempotent &&
-          isDomException(e) &&
+          error.name !== 'FirebaseError' &&
           attemptNumber < TRANSACTION_RETRY_COUNT;
         debug(
           LOG_TAG,
           'Transaction failed with error: %s. Retrying: %s.',
-          e.message,
+          error.message,
           retryable
         );
 
         if (!retryable) {
-          return Promise.reject(e);
+          return Promise.reject(error);
         }
       }
     }
@@ -800,14 +803,4 @@ function checkForAndReportiOSError(error: DOMException): Error {
     }
   }
   return error;
-}
-
-/** Checks whether an error is a DOMException (e.g. as thrown by IndexedDb). */
-function isDomException(error: Error): boolean {
-  // DOMException is not a global type in Node with persistence, and hence we
-  // check the constructor name if the type in unknown.
-  return (
-    (typeof DOMException !== 'undefined' && error instanceof DOMException) ||
-    error.constructor.name === 'DOMException'
-  );
 }
