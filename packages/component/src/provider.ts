@@ -48,8 +48,11 @@ export class Provider<T = unknown> {
     return this.instancesDeferred.get(normalizedIdentifier)!.promise;
   }
 
-  getImmediate(identifier: string | undefined, options: { optional: true }): T | null
-  getImmediate(identifier?: string, options?: {optional: false}): T
+  getImmediate(
+    identifier: string | undefined,
+    options: { optional: true }
+  ): T | null;
+  getImmediate(identifier?: string, options?: { optional: false }): T;
   getImmediate(
     identifier: string = DEFAULT_ENTRY_NAME,
     options?: { optional: boolean }
