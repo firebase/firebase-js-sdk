@@ -890,12 +890,12 @@ describeSpec('Listens:', [], () => {
     'Mirror queries from one secondary client',
     ['multi-client', 'exclusive'],
     () => {
-    const limit = Query.atPath(path('collection'))
-    .addOrderBy(new OrderBy(field('val'), Direction.ASCENDING))
-    .withLimitToFirst(2);
-    const docA = doc('collection/a', 1000, { val: 0 });
-    const docB = doc('collection/b', 1000, { val: 1 });
-    const docC = doc('collection/c', 1000, { val: 2 });
+      const limit = Query.atPath(path('collection'))
+        .addOrderBy(new OrderBy(field('val'), Direction.ASCENDING))
+        .withLimitToFirst(2);
+      const docA = doc('collection/a', 1000, { val: 0 });
+      const docB = doc('collection/b', 1000, { val: 1 });
+      const docC = doc('collection/c', 1000, { val: 2 });
 
       return client(0)
         .becomeVisible()
@@ -906,7 +906,7 @@ describeSpec('Listens:', [], () => {
         .watchAcks(limit)
         .watchSends({ affects: [limit] }, docA, docB)
         .client(1)
-        .expectEvents(limit, {added: [docA, docB] });
+        .expectEvents(limit, { added: [docA, docB] });
     }
   );
 
