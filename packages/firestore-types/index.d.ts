@@ -1036,7 +1036,7 @@ export class DocumentSnapshot<T = DocumentData> {
  * `exists` property will always be true and `data()` will never return
  * 'undefined'.
  */
-export class QueryDocumentSnapshot<T> extends DocumentSnapshot<T> {
+export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {
   private constructor();
 
   /**
@@ -1343,7 +1343,7 @@ export type DocumentChangeType = 'added' | 'removed' | 'modified';
  * A `DocumentChange` represents a change to the documents matching a query.
  * It contains the document affected and the type of change that occurred.
  */
-export interface DocumentChange<T> {
+export interface DocumentChange<T = DocumentData> {
   /** The type of change ('added', 'modified', or 'removed'). */
   readonly type: DocumentChangeType;
 

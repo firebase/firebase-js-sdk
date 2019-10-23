@@ -1528,7 +1528,8 @@ export class DocumentSnapshot<T = firestore.DocumentData>
   }
 }
 
-export class QueryDocumentSnapshot<T> extends DocumentSnapshot<T>
+export class QueryDocumentSnapshot<T = firestore.DocumentData>
+  extends DocumentSnapshot<T>
   implements firestore.QueryDocumentSnapshot<T> {
   data(options?: SnapshotOptions): T {
     const data = super.data(options);
