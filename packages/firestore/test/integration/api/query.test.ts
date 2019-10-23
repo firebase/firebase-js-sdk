@@ -196,6 +196,136 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  it('can unlisten to mirror queries', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const storeLimitEvent = new EventsAccumulator<firestore.QuerySnapshot>();
+      const limitUnlisten = collection
+        .orderBy('sort', 'asc')
+        .limit(2)
+        .onSnapshot(storeLimitEvent.storeEvent);
+
+      const storeLimitToLastEvent = new EventsAccumulator<
+        firestore.QuerySnapshot
+      >();
+      const limitToLastUnlisten = collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeLimitToLastEvent.storeEvent);
+
+      let snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'b', sort: 1 }
+      ]);
+
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'a', sort: 0 }
+      ]);
+
+      limitUnlisten();
+
+      await collection.add({ k: 'e', sort: -1 });
+      await storeLimitEvent.assertNoAdditionalEvents();
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'e', sort: -1 }
+      ]);
+
+      limitToLastUnlisten();
+
+      await collection.add({ k: 'f', sort: -1 });
+      await storeLimitToLastEvent.assertNoAdditionalEvents();
+    });
+  });
+
+  it('can relisten to mirror queries', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const storeLimitEvent = new EventsAccumulator<firestore.QuerySnapshot>();
+      let limitUnlisten = collection
+        .orderBy('sort', 'asc')
+        .limit(2)
+        .onSnapshot(storeLimitEvent.storeEvent);
+
+      const storeLimitToLastEvent = new EventsAccumulator<
+        firestore.QuerySnapshot
+      >();
+      let limitToLastUnlisten = collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeLimitToLastEvent.storeEvent);
+
+      let snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'b', sort: 1 }
+      ]);
+
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'a', sort: 0 }
+      ]);
+
+      // Unlisten then relisten limit query.
+      limitUnlisten();
+      limitUnlisten = collection
+        .orderBy('sort', 'asc')
+        .limit(2)
+        .onSnapshot(storeLimitEvent.storeEvent);
+      snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'b', sort: 1 }
+      ]);
+
+      await collection.add({ k: 'e', sort: -1 });
+      // Verify limit query results.
+      snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'e', sort: -1 },
+        { k: 'a', sort: 0 }
+      ]);
+      // Verify limitToLast query results.
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'e', sort: -1 }
+      ]);
+
+      // Unlisten to both, update a doc, then relisten limitToLast.
+      limitUnlisten();
+      limitToLastUnlisten();
+      await collection.doc('a').update({ k: 'a', sort: -2 });
+      limitToLastUnlisten = collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeLimitToLastEvent.storeEvent);
+
+      await storeLimitEvent.assertNoAdditionalEvents();
+
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'e', sort: -1 },
+        { k: 'a', sort: -2 }
+      ]);
+    });
+  });
+
   it('key order is descending for descending inequality', () => {
     const testDocs = {
       a: {
