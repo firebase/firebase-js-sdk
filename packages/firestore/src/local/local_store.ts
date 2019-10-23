@@ -814,15 +814,13 @@ export class LocalStore {
     );
   }
 
-  // TODO(wuandy): delete this temp method, it's only for change isolation.
-  allocateQuery(query: Query): Promise<QueryData> {
-    return this.allocateTarget(query.toTarget());
-  }
-
   /**
    * Assigns the given query an internal ID so that its results can be pinned so
    * they don't get GC'd. A query must be allocated in the local store before
    * the store can be used to manage its view.
+   *
+   * Allocating an already allocated `Target` will return the existing `QueryData`
+   * for that `Target`.
    */
   allocateTarget(target: Target): Promise<QueryData> {
     return this.persistence
@@ -853,15 +851,13 @@ export class LocalStore {
           });
       })
       .then(queryData => {
-        assert(
-          this.queryDataByTarget.get(queryData.targetId) === null,
-          'Tried to allocate an already allocated query: ' + target
-        );
-        this.queryDataByTarget = this.queryDataByTarget.insert(
-          queryData.targetId,
-          queryData
-        );
-        this.targetIdByTarget.set(target, queryData.targetId);
+        if (this.queryDataByTarget.get(queryData.targetId) === null) {
+          this.queryDataByTarget = this.queryDataByTarget.insert(
+            queryData.targetId,
+            queryData
+          );
+          this.targetIdByTarget.set(target, queryData.targetId);
+        }
         return queryData;
       });
   }
@@ -890,15 +886,17 @@ export class LocalStore {
    * `keepPersistedQueryData` is set to false and Eager GC enabled, the method
    * directly removes the associated query data from the query cache.
    *
-   * Calling `releaseTarget` multiple times with the same Target is an error.
+   * Releasing a non-existing `Target` is a no-op.
    */
   // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
   releaseTarget(
     targetId: number,
     keepPersistedQueryData: boolean
   ): Promise<void> {
-    const queryData = this.queryDataByTarget.get(targetId)!;
-    assert(!!queryData, 'Tried to release nonexistent target: ' + targetId);
+    const queryData = this.queryDataByTarget.get(targetId);
+    if (!queryData) {
+      return Promise.resolve();
+    }
 
     const mode = keepPersistedQueryData
       ? 'readwrite-idempotent'

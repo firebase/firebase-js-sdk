@@ -110,6 +110,9 @@ export interface SharedClientState {
    * Associates a new Query Target ID with the local Firestore client. Returns
    * the new query state for the query (which can be 'current' if the query is
    * already associated with another tab).
+   *
+   * If the target id is already associated with local client, the method simply
+   * returns it's `QueryTargetState`.
    */
   addLocalQueryTarget(targetId: TargetId): QueryTargetState;
 
@@ -492,10 +495,9 @@ export class LocalClientState implements ClientState {
   activeTargetIds = targetIdSet();
 
   addQueryTarget(targetId: TargetId): void {
-    assert(
-      !this.activeTargetIds.has(targetId),
-      `Target with ID '${targetId}' already active.`
-    );
+    if (this.activeTargetIds.has(targetId)) {
+      return;
+    }
     this.activeTargetIds = this.activeTargetIds.add(targetId);
   }
 

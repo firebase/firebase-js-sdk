@@ -71,7 +71,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       await expect(
         collection.limitToLast(2).get()
       ).to.be.eventually.rejectedWith(
-        'limitToLast() queries require specifying an orderBy() on at least on document field.'
+        'limitToLast() queries require specifying an orderBy() on at least one document field.'
       );
     });
   });
@@ -140,6 +140,55 @@ apiDescribe('Queries', (persistence: boolean) => {
 
       await collection.add({ k: 'e', sort: -1 });
       snapshot = await storeEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'e', sort: -1 }
+      ]);
+    });
+  });
+
+  it('can listen to mirror queries', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const storeLimitEvent = new EventsAccumulator<firestore.QuerySnapshot>();
+      collection
+        .orderBy('sort', 'asc')
+        .limit(2)
+        .onSnapshot(storeLimitEvent.storeEvent);
+
+      const storeLimitToLastEvent = new EventsAccumulator<
+        firestore.QuerySnapshot
+      >();
+      collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeLimitToLastEvent.storeEvent);
+
+      let snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'b', sort: 1 }
+      ]);
+
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'a', sort: 0 }
+      ]);
+
+      await collection.add({ k: 'e', sort: -1 });
+      snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'e', sort: -1 },
+        { k: 'a', sort: 0 }
+      ]);
+
+      snapshot = await storeLimitToLastEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
         { k: 'a', sort: 0 },
         { k: 'e', sort: -1 }

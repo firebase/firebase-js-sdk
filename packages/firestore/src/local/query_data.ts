@@ -19,7 +19,6 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
 import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
 import { emptyByteString } from '../platform/platform';
-import { assert } from '../util/assert';
 
 /** An enumeration of the different purposes we have for queries. */
 export enum QueryPurpose {

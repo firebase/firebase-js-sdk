@@ -216,7 +216,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.sharedClientState.addLocalQueryTarget(targetId);
       viewSnapshot = queryView.view.computeInitialSnapshot();
     } else {
-      const queryData = await this.localStore.allocateQuery(query);
+      const queryData = await this.localStore.allocateTarget(query.toTarget());
 
       const status = this.sharedClientState.addLocalQueryTarget(
         queryData.targetId
@@ -306,8 +306,15 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const queryView = this.queryViewsByQuery.get(query)!;
     assert(!!queryView, 'Trying to unlisten on query not found:' + query);
 
-    // TODO(wuandy): Note this does not handle the case where multiple queries
-    // map to one target, and user request to unlisten on of the queries.
+    const queries = this.queriesByTarget[queryView.targetId];
+    if (queries.length > 1) {
+      this.queriesByTarget[queryView.targetId] = queries.filter(
+        q => !q.isEqual(query)
+      );
+      this.queryViewsByQuery.delete(query);
+      return;
+    }
+
     if (this.isPrimary) {
       // We need to remove the local query target first to allow us to verify
       // whether any other client is still interested in this target.

@@ -1058,7 +1058,7 @@ function genericLocalStoreTests(
 
   it('can execute mixed collection queries', async () => {
     const query = Query.atPath(path('foo'));
-    const queryData = await localStore.allocateQuery(query);
+    const queryData = await localStore.allocateTarget(query.toTarget());
     expect(queryData.targetId).to.equal(2);
     await localStore.applyRemoteEvent(
       docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
@@ -1122,7 +1122,7 @@ function genericLocalStoreTests(
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)('persists resume tokens', async () => {
     const query = Query.atPath(path('foo/bar'));
-    const queryData = await localStore.allocateQuery(query);
+    const queryData = await localStore.allocateTarget(query.toTarget());
     const targetId = queryData.targetId;
     const resumeToken = 'abc';
     const watchChange = new WatchTargetChange(
@@ -1145,7 +1145,7 @@ function genericLocalStoreTests(
     );
 
     // Should come back with the same resume token
-    const queryData2 = await localStore.allocateQuery(query);
+    const queryData2 = await localStore.allocateTarget(query.toTarget());
     expect(queryData2.resumeToken).to.deep.equal(resumeToken);
   });
 
@@ -1154,7 +1154,7 @@ function genericLocalStoreTests(
     'does not replace resume token with empty resume token',
     async () => {
       const query = Query.atPath(path('foo/bar'));
-      const queryData = await localStore.allocateQuery(query);
+      const queryData = await localStore.allocateTarget(query.toTarget());
       const targetId = queryData.targetId;
       const resumeToken = 'abc';
 
@@ -1191,7 +1191,7 @@ function genericLocalStoreTests(
       );
 
       // Should come back with the same resume token
-      const queryData2 = await localStore.allocateQuery(query);
+      const queryData2 = await localStore.allocateTarget(query.toTarget());
       expect(queryData2.resumeToken).to.deep.equal(resumeToken);
     }
   );
