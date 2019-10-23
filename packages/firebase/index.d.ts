@@ -3961,8 +3961,8 @@ declare namespace firebase.analytics {
      * ```
      */
     app: firebase.app.App;
-              
-     /**
+
+    /**
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
@@ -3972,10 +3972,10 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'add_payment_info',
-      eventParams?: {},
+      eventParams?: { [key: string]: any },
       options?: firebase.analytics.AnalyticsCallOptions
     ): void;
-    
+
     /**
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
@@ -4090,8 +4090,8 @@ declare namespace firebase.analytics {
       },
       options?: firebase.analytics.AnalyticsCallOptions
     ): void;
-               
-     /**
+
+    /**
      * Sends analytics event with given `eventParams`. This method
      * automatically associates this logged event with this Firebase web
      * app instance on this device.
@@ -4101,7 +4101,12 @@ declare namespace firebase.analytics {
      */
     logEvent(
       eventName: 'page_view',
-      eventParams?: {},
+      eventParams: {
+        page_title?: string;
+        page_location?: string;
+        page_path?: string;
+        [key: string]: any;
+      },
       options?: firebase.analytics.AnalyticsCallOptions
     ): void;
 
