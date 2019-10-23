@@ -1876,7 +1876,7 @@ export class Query implements firestore.Query {
     if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
-        'limitToLast() queries require specifying an orderBy() on at least on document field.'
+        'limitToLast() queries require specifying an orderBy() on at least one document field.'
       );
     }
   }

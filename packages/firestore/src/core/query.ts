@@ -31,8 +31,8 @@ import { isNullOrUndefined } from '../util/types';
 import { Target } from './target';
 
 export enum LimitType {
-  First = "F",
-  Last = "L"
+  First = 'F',
+  Last = 'L'
 }
 
 /**
@@ -257,11 +257,16 @@ export class Query {
   }
 
   toString(): string {
-    return `Query(target=${this.toTarget().toString()}; limitType=${this.limitType})`;
+    return `Query(target=${this.toTarget().toString()}; limitType=${
+      this.limitType
+    })`;
   }
 
   isEqual(other: Query): boolean {
-    return this.toTarget().isEqual(other.toTarget()) && (this.limitType === other.limitType);
+    return (
+      this.toTarget().isEqual(other.toTarget()) &&
+      this.limitType === other.limitType
+    );
   }
 
   docComparator(d1: Document, d2: Document): number {

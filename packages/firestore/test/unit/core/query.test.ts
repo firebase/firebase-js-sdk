@@ -616,4 +616,33 @@ describe('Query', () => {
     query = baseQuery.withEndAt(bound([], true));
     expect(query.matchesAllDocuments()).to.be.false;
   });
+
+  it('can handle conversion to Targets from mirror queries', () => {
+    const limitQuery = Query.atPath(ResourcePath.fromString('collection'))
+      .addOrderBy(orderBy('foo'))
+      .addOrderBy(orderBy('bar', 'desc'))
+      .withStartAt(bound([['foo', 'foo', 'asc']], true))
+      .withLimitToFirst(10);
+    const fromLimit = limitQuery.toTarget();
+
+    const limitToLastQuery = Query.atPath(ResourcePath.fromString('collection'))
+      .addOrderBy(orderBy('foo', 'desc'))
+      .addOrderBy(orderBy('bar', 'asc'))
+      .withEndAt(bound([['foo', 'foo', 'desc']], false))
+      .withLimitToLast(10);
+    const fromLimitToLast = limitToLastQuery.toTarget();
+
+    expect(fromLimit.canonicalId()).to.equal(fromLimitToLast.canonicalId());
+    expect(fromLimit.isEqual(fromLimitToLast)).to.be.true;
+
+    expect(limitQuery.isEqual(fromLimit.toTargetQuery())).to.be.true;
+    expect(limitQuery.canonicalId()).to.equal(
+      fromLimit.toTargetQuery().canonicalId()
+    );
+
+    expect(limitQuery.isEqual(fromLimitToLast.toTargetQuery())).to.be.true;
+    expect(limitQuery.canonicalId()).to.equal(
+      fromLimitToLast.toTargetQuery().canonicalId()
+    );
+  });
 });
