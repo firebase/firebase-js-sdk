@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 
-import { Query, OrderBy, Direction } from '../../../src/core/query';
+import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { deletedDoc, doc, filter, path, field } from '../../util/helpers';
+import { deletedDoc, doc, filter, path } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
@@ -883,30 +883,6 @@ describeSpec('Listens:', [], () => {
         .watchAcksFull(query, 1000)
         .client(1)
         .expectEvents(query, {});
-    }
-  );
-
-  specTest(
-    'Mirror queries from one secondary client',
-    ['multi-client', 'exclusive'],
-    () => {
-      const limit = Query.atPath(path('collection'))
-        .addOrderBy(new OrderBy(field('val'), Direction.ASCENDING))
-        .withLimitToFirst(2);
-      const docA = doc('collection/a', 1000, { val: 0 });
-      const docB = doc('collection/b', 1000, { val: 1 });
-      const docC = doc('collection/c', 1000, { val: 2 });
-
-      return client(0)
-        .becomeVisible()
-        .client(1)
-        .userListens(limit)
-        .client(0)
-        .expectListen(limit)
-        .watchAcks(limit)
-        .watchSends({ affects: [limit] }, docA, docB)
-        .client(1)
-        .expectEvents(limit, { added: [docA, docB] });
     }
   );
 

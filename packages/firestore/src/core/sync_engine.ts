@@ -306,6 +306,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const queryView = this.queryViewsByQuery.get(query)!;
     assert(!!queryView, 'Trying to unlisten on query not found:' + query);
 
+    // If it's not the only query mapped to the target, only clean up
+    // query view and keep the target active.
     const queries = this.queriesByTarget[queryView.targetId];
     if (queries.length > 1) {
       this.queriesByTarget[queryView.targetId] = queries.filter(
@@ -315,6 +317,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       return;
     }
 
+    // No other queries are mapped to the target, clean up the query and the target.
     if (this.isPrimary) {
       // We need to remove the local query target first to allow us to verify
       // whether any other client is still interested in this target.
