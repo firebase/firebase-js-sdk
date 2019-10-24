@@ -107,32 +107,39 @@ fireauth.idp.RESERVED_OAUTH2_PARAMS =
 fireauth.idp.Settings = {
   FACEBOOK: {
     languageParam: 'locale',
-    popupWidth: 500,
+    popupWidth: 700,
     popupHeight: 600,
     providerId: fireauth.idp.ProviderId.FACEBOOK,
-    reservedOAuthParameters: fireauth.idp.RESERVED_OAUTH2_PARAMS
+    reservedOAuthParameters: fireauth.idp.RESERVED_OAUTH2_PARAMS,
   },
   GITHUB: {
     languageParam: null,
     popupWidth: 500,
-    popupHeight: 620,
+    popupHeight: 750,
     providerId: fireauth.idp.ProviderId.GITHUB,
-    reservedOAuthParameters: fireauth.idp.RESERVED_OAUTH2_PARAMS
+    reservedOAuthParameters: fireauth.idp.RESERVED_OAUTH2_PARAMS,
   },
   GOOGLE: {
     languageParam: 'hl',
     popupWidth: 515,
     popupHeight: 680,
     providerId: fireauth.idp.ProviderId.GOOGLE,
-    reservedOAuthParameters: fireauth.idp.RESERVED_OAUTH2_PARAMS
+    reservedOAuthParameters: fireauth.idp.RESERVED_OAUTH2_PARAMS,
   },
   TWITTER: {
     languageParam: 'lang',
     popupWidth: 485,
     popupHeight: 705,
     providerId: fireauth.idp.ProviderId.TWITTER,
-    reservedOAuthParameters: fireauth.idp.RESERVED_OAUTH1_PARAMS
-  }
+    reservedOAuthParameters: fireauth.idp.RESERVED_OAUTH1_PARAMS,
+  },
+  APPLE: {
+    languageParam: 'locale',
+    popupWidth: 600,
+    popupHeight: 600,
+    providerId: 'apple.com',
+    reservedOAuthParameters: [],
+  },
 };
 
 
