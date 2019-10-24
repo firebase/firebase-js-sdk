@@ -307,8 +307,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         { k: 'e', sort: -1 }
       ]);
 
-      // Unlisten to both, update a doc, then relisten limitToLast.
-      limitUnlisten();
+      // Unlisten to limitToLast, update a doc, then relisten limitToLast.
       limitToLastUnlisten();
       await collection.doc('a').update({ k: 'a', sort: -2 });
       limitToLastUnlisten = collection
@@ -316,7 +315,11 @@ apiDescribe('Queries', (persistence: boolean) => {
         .limitToLast(2)
         .onSnapshot(storeLimitToLastEvent.storeEvent);
 
-      await storeLimitEvent.assertNoAdditionalEvents();
+      snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: -2 },
+        { k: 'e', sort: -1 }
+      ]);
 
       snapshot = await storeLimitToLastEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
