@@ -247,7 +247,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  it.only('can relisten to mirror queries', () => {
+  it('can relisten to mirror queries', () => {
     const testDocs = {
       a: { k: 'a', sort: 0 },
       b: { k: 'b', sort: 1 },
