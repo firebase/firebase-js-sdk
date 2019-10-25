@@ -38,8 +38,7 @@ export function extractAppConfig(app: FirebaseApp): AppConfig {
 
   for (const keyName of configKeys) {
     if (!app.options[keyName]) {
-      // Cast required becase FirebaseOptions includes "[name: string]: any;".
-      throw getMissingValueError(keyName as string);
+      throw getMissingValueError(keyName);
     }
   }
 
