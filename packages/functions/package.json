@@ -1,6 +1,6 @@
 {
   "name": "@firebase/functions",
-  "version": "0.4.21",
+  "version": "0.4.22",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.node.cjs.js",
@@ -59,7 +59,7 @@
     "@typescript-eslint/parser": "2.5.0",
     "@typescript-eslint/eslint-plugin": "2.5.0",
     "@typescript-eslint/eslint-plugin-tslint": "2.5.0",
-    "@firebase/messaging": "0.5.2"
+    "@firebase/messaging": "0.5.3"
   },
   "repository": {
     "directory": "packages/functions",
