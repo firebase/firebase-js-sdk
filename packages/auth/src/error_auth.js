@@ -410,7 +410,7 @@ fireauth.AuthError.MESSAGES_[
     fireauth.authenum.Error.UNSUPPORTED_TENANT_OPERATION] =
     'This operation is not supported in a multi-tenant context.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_CANCELLED] =
-    'User did not grant your application the permissions it requested.';
+    'The user did not grant your application the permissions it requested.';
 fireauth.AuthError.MESSAGES_[fireauth.authenum.Error.USER_DELETED] =
     'There is no user record corresponding to this identifier. The user may ' +
     'have been deleted.';
