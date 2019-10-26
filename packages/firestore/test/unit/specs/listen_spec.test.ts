@@ -17,7 +17,7 @@
 
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { deletedDoc, doc, filter, path } from '../../util/helpers';
+import { deletedDoc, doc, filter, path, orderBy } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
@@ -883,6 +883,42 @@ describeSpec('Listens:', [], () => {
         .watchAcksFull(query, 1000)
         .client(1)
         .expectEvents(query, {});
+    }
+  );
+
+  specTest(
+    'Mirror queries from same secondary client',
+    ['multi-client'],
+    () => {
+      const limit = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'asc'))
+        .withLimitToFirst(2);
+      const limitToLast = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'desc'))
+        .withLimitToLast(2);
+      const docA = doc('collection/a', 1000, { val: 0 });
+      const docB = doc('collection/b', 1000, { val: 1 });
+      const docC = doc('collection/c', 2000, { val: 0 });
+
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .userListens(limit)
+        .userListens(limitToLast)
+        .client(0)
+        .expectListen(limit)
+        .expectListen(limitToLast)
+        .watchAcksFull(limit, 1000, docA, docB)
+        .client(1)
+        .expectEvents(limit, { added: [docA, docB] })
+        .expectEvents(limitToLast, { added: [docB, docA] })
+        .userUnlistens(limit)
+        .client(0)
+        .expectUnlisten(limit)
+        .watchSends({ affects: [limitToLast] }, docC)
+        .watchSnapshots(2000)
+        .client(1)
+        .expectEvents(limitToLast, { added: [docC], removed: [docB] });
     }
   );
 
