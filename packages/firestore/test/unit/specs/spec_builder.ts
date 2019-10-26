@@ -561,6 +561,8 @@ export class SpecBuilder {
     }
   }
 
+  // TODO(wuandy): watch* methods should really be dealing with Target, not
+  // Query, make this happen.
   watchAcks(query: Query): this {
     this.nextStep();
     this.currentStep = {

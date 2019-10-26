@@ -923,6 +923,91 @@ describeSpec('Listens:', [], () => {
   );
 
   specTest(
+    'Mirror queries from different secondary client',
+    ['multi-client'],
+    () => {
+      const limit = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'asc'))
+        .withLimitToFirst(2);
+      const limitToLast = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'desc'))
+        .withLimitToLast(2);
+      const docA = doc('collection/a', 1000, { val: 0 });
+      const docB = doc('collection/b', 1000, { val: 1 });
+      const docC = doc('collection/c', 2000, { val: 0 });
+
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .userListens(limit)
+        .client(2)
+        .userListens(limitToLast)
+        .client(0)
+        .expectListen(limit)
+        .expectListen(limitToLast)
+        .watchAcksFull(limit, 1000, docA, docB)
+        .client(1)
+        .expectEvents(limit, { added: [docA, docB] })
+        .client(2)
+        .expectEvents(limitToLast, { added: [docB, docA] })
+        .userUnlistens(limitToLast)
+        .client(0)
+        .expectUnlisten(limitToLast)
+        .watchSends({ affects: [limit] }, docC)
+        .watchSnapshots(2000)
+        .client(1)
+        .expectEvents(limit, { added: [docC], removed: [docB] });
+    }
+  );
+
+  specTest(
+    'Mirror queries from primary and secondary client',
+    ['multi-client'],
+    () => {
+      const limit = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'asc'))
+        .withLimitToFirst(2);
+      const limitToLast = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'desc'))
+        .withLimitToLast(2);
+      const docA = doc('collection/a', 1000, { val: 0 });
+      const docB = doc('collection/b', 1000, { val: 1 });
+      const docC = doc('collection/c', 2000, { val: 0 });
+      const docD = doc('collection/d', 3000, { val: -1 });
+
+      return client(0)
+        .becomeVisible()
+        .userListens(limit)
+        .client(1)
+        .userListens(limitToLast)
+        .client(0)
+        .expectListen(limit)
+        .expectListen(limitToLast)
+        .watchAcksFull(limit, 1000, docA, docB)
+        .expectEvents(limit, { added: [docA, docB] })
+        .client(1)
+        .expectEvents(limitToLast, { added: [docB, docA] })
+        .userUnlistens(limitToLast)
+        .client(0)
+        .expectUnlisten(limitToLast)
+        .watchSends({ affects: [limit] }, docC)
+        .watchSnapshots(2000)
+        .expectEvents(limit, { added: [docC], removed: [docB] })
+        .client(1)
+        .userListens(limitToLast)
+        .expectEvents(limitToLast, { added: [docC, docA] })
+        .client(0)
+        .expectListen(limitToLast)
+        .userUnlistens(limit)
+        .expectUnlisten(limit)
+        .watchSends({ affects: [limitToLast] }, docD)
+        .watchSnapshots(3000)
+        .client(1)
+        .expectEvents(limitToLast, { added: [docD], removed: [docC] });
+    }
+  );
+
+  specTest(
     "Secondary client uses primary client's online state",
     ['multi-client'],
     () => {
