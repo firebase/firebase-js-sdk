@@ -1085,7 +1085,7 @@ export class Query {
   /**
    * Creates and returns a new Query that only returns the first matching
    * documents.
-   * 
+   *
    * @param limit The maximum number of items to return.
    * @return The created Query.
    */
@@ -1094,7 +1094,7 @@ export class Query {
   /**
    * Creates and returns a new Query that only returns the last matching
    * documents.
-   * 
+   *
    * Queries with `limitToLast` must have at least one `orderBy` clause on
    * one of the document fields, or an Exception will throw during execution.
    *
