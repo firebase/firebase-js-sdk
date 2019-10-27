@@ -495,9 +495,6 @@ export class LocalClientState implements ClientState {
   activeTargetIds = targetIdSet();
 
   addQueryTarget(targetId: TargetId): void {
-    if (this.activeTargetIds.has(targetId)) {
-      return;
-    }
     this.activeTargetIds = this.activeTargetIds.add(targetId);
   }
 

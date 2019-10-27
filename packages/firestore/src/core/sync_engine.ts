@@ -49,8 +49,9 @@ import {
 import * as objUtils from '../util/obj';
 import { SortedSet } from '../util/sorted_set';
 import { ListenSequence } from './listen_sequence';
-import { Query } from './query';
+import { Query, LimitType } from './query';
 import { SnapshotVersion } from './snapshot_version';
+import { Target } from './target';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
 import {
@@ -994,7 +995,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         assert(!!target, `Target for id ${targetId} not found`);
         queryData = await this.localStore.allocateTarget(target!);
         await this.initializeViewAndComputeSnapshot(
-          target!.toTargetQuery(),
+          this.targetToQuery(target!),
           targetId,
           /*current=*/ false
         );
@@ -1005,6 +1006,23 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     this.syncEngineListener!.onWatchChange(newViewSnapshots);
     return activeQueries;
+  }
+  /**
+   * Creates a `Query` object from this `Target`. Note the result might be
+   * different from the original `Query` from which we obtained this instance.
+   */
+  // PORTING NOTE: Multi-tab only
+  private targetToQuery(target: Target): Query {
+    return new Query(
+      target.path,
+      target.collectionGroup,
+      target.orderBy,
+      target.filters,
+      target.limit,
+      LimitType.First,
+      target.startAt,
+      target.endAt
+    );
   }
 
   // PORTING NOTE: Multi-tab only
@@ -1072,7 +1090,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       assert(!!target, `Query data for active target ${targetId} not found`);
       const queryData = await this.localStore.allocateTarget(target!);
       await this.initializeViewAndComputeSnapshot(
-        target!.toTargetQuery(),
+        this.targetToQuery(target!),
         queryData.targetId,
         /*current=*/ false
       );

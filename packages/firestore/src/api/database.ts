@@ -71,6 +71,7 @@ import {
   validateOptionalArgType,
   validateOptionalArrayElements,
   validateOptionNames,
+  validatePositiveLimit,
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
@@ -1539,24 +1540,15 @@ export class Query implements firestore.Query {
   limit(n: number): firestore.Query {
     validateExactNumberOfArgs('Query.limit', arguments, 1);
     validateArgType('Query.limit', 'number', 1, n);
-    this.verifyPositiveLimit(n);
+    validatePositiveLimit('limit', n);
     return new Query(this._query.withLimitToFirst(n), this.firestore);
   }
 
   limitToLast(n: number): firestore.Query {
     validateExactNumberOfArgs('Query.limitToLast', arguments, 1);
     validateArgType('Query.limitToLast', 'number', 1, n);
-    this.verifyPositiveLimit(n);
+    validatePositiveLimit('limitToLast', n);
     return new Query(this._query.withLimitToLast(n), this.firestore);
-  }
-
-  private verifyPositiveLimit(n: number): void {
-    if (n <= 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid Query. Query limit (${n}) is invalid. Limit must be positive.`
-      );
-    }
   }
 
   startAt(
@@ -1876,7 +1868,7 @@ export class Query implements firestore.Query {
     if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
       throw new FirestoreError(
         Code.UNIMPLEMENTED,
-        'limitToLast() queries require specifying an orderBy() on at least one document field.'
+        'limitToLast() queries require specifying at least one orderBy() clause'
       );
     }
   }
@@ -1884,9 +1876,9 @@ export class Query implements firestore.Query {
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot> {
     validateBetweenNumberOfArgs('Query.get', arguments, 0, 1);
     validateGetOptions('Query.get', options);
+    this.validateHasExplicitOrderByForLimitToLast(this._query);
     return new Promise(
       (resolve: Resolver<firestore.QuerySnapshot>, reject: Rejecter) => {
-        this.validateHasExplicitOrderByForLimitToLast(this._query);
         if (options && options.source === 'cache') {
           this.firestore
             .ensureClientConfigured()

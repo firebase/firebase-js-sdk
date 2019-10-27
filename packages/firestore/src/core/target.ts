@@ -158,21 +158,4 @@ export class Target {
       this.filters.length === 0
     );
   }
-
-  /**
-   * Creates a `Query` object from this `Target`. Note the result might be
-   * different from the original `Query` from which we obtained this instance.
-   */
-  toTargetQuery(): Query {
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.orderBy,
-      this.filters,
-      this.limit,
-      LimitType.First,
-      this.startAt,
-      this.endAt
-    );
-  }
 }
