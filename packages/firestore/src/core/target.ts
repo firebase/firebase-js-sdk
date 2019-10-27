@@ -18,7 +18,7 @@
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
-import { Bound, Filter, OrderBy, Query, LimitType } from './query';
+import { Bound, Filter, OrderBy } from './query';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used
