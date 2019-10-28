@@ -145,7 +145,7 @@ export class FirebaseAppImpl implements FirebaseApp {
   }
 
   /**
-   * 
+   *
    * @param component the component being added to this app's container
    * @param overwrite When a component with the same name has already been registered,
    * if overwrite is true: overwrite the existing component

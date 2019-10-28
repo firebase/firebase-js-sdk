@@ -21,10 +21,10 @@ import { Component } from './component';
 export class ComponentContainer {
   private providers = new Map<string, Provider>();
 
-  constructor(private name: string) { }
+  constructor(private name: string) {}
 
   /**
-   * 
+   *
    * @param component Component being added
    * @param overwrite When a component with the same name has already been registered,
    * if overwrite is true: overwrite the existing component with the new component and create a new provider with the new component
@@ -37,11 +37,12 @@ export class ComponentContainer {
         throw new Error(
           `Component ${component.name} has already been registered with ${this.name}`
         );
-      } else { // use the new component to replace the existing component
+      } else {
+        // use the new component to replace the existing component
         // delete the existing provider from the container
         this.providers.delete(component.name);
         // create a new provider
-        provider  = this.getProvider(component.name);
+        provider = this.getProvider(component.name);
       }
     }
 

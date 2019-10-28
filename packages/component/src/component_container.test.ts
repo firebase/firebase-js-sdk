@@ -115,6 +115,5 @@ describe('Component Container', () => {
     const newProvider = container.getProvider('fireball');
     expect(oldProvider).to.not.eq(newProvider);
     expect(newProvider.getImmediate()).to.deep.eq({ test: true });
-
   });
 });
