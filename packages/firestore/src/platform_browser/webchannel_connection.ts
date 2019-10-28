@@ -415,6 +415,16 @@ export class WebChannelConnection implements Connection {
   makeUrl(rpcName: string): string {
     const urlRpcName = RPC_NAME_REST_MAPPING[rpcName];
     assert(urlRpcName !== undefined, 'Unknown REST mapping for: ' + rpcName);
-    return `${this.baseUrl}/${RPC_URL_VERSION}/projects/${this.databaseId.projectId}/databases/${this.databaseId.database}/documents:${urlRpcName}`;
+    return `${
+      this.baseUrl
+    }/${
+      RPC_URL_VERSION
+    }/projects/${
+      this.databaseId.projectId
+    }/databases/${
+      this.databaseId.database
+    }/documents:${
+      urlRpcName
+    }`;
   }
 }
