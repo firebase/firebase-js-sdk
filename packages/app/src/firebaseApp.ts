@@ -144,9 +144,16 @@ export class FirebaseAppImpl implements FirebaseApp {
     this.container.getProvider(name).clearInstance(instanceIdentifier);
   }
 
-  _addComponent(component: Component): void {
+  /**
+   * 
+   * @param component the component being added to this app's container
+   * @param overwrite When a component with the same name has already been registered,
+   * if overwrite is true: overwrite the existing component
+   * if overwrite is false: throw an expection
+   */
+  _addComponent(component: Component, overwrite = false): void {
     try {
-      this.container.addComponent(component);
+      this.container.addComponent(component, overwrite);
     } catch (e) {
       logger.debug(
         `Component ${component.name} failed to register with FirebaseApp ${this.name}`,

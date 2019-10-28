@@ -55,7 +55,7 @@ describe('Component Container', () => {
     expect(setComponentStub).has.been.calledWith(component);
   });
 
-  it('throws when registering multiple components with the same name', () => {
+  it('throws when registering multiple components with the same name, when overwrite is false', () => {
     const component1 = getFakeComponent(
       'fireball',
       () => ({}),
@@ -73,5 +73,48 @@ describe('Component Container', () => {
     expect(() => container.addComponent(component2)).to.throw(
       /Component fireball has already been registered with/
     );
+  });
+
+  it('does not throw when registering multiple components with the same name, when overwrite is true', () => {
+    const component1 = getFakeComponent(
+      'fireball',
+      () => ({}),
+      true,
+      InstantiationMode.EAGER
+    );
+    const component2 = getFakeComponent(
+      'fireball',
+      () => ({ test: true }),
+      false,
+      InstantiationMode.LAZY
+    );
+
+    expect(() => container.addComponent(component1)).to.not.throw();
+    expect(() => container.addComponent(component2, true)).to.not.throw();
+  });
+
+  it('registers a component with a name that is already registered and return the provider for the new component', () => {
+    const component1 = getFakeComponent(
+      'fireball',
+      () => ({ test: false }),
+      true,
+      InstantiationMode.EAGER
+    );
+    const component2 = getFakeComponent(
+      'fireball',
+      () => ({ test: true }),
+      false,
+      InstantiationMode.LAZY
+    );
+
+    container.addComponent(component1);
+    const oldProvider = container.getProvider('fireball');
+    expect(oldProvider.getImmediate()).to.deep.eq({ test: false });
+
+    container.addComponent(component2, true);
+    const newProvider = container.getProvider('fireball');
+    expect(oldProvider).to.not.eq(newProvider);
+    expect(newProvider.getImmediate()).to.deep.eq({ test: true });
+
   });
 });
