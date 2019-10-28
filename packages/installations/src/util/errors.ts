@@ -20,8 +20,6 @@ import { SERVICE, SERVICE_NAME } from './constants';
 
 export const enum ErrorCode {
   MISSING_APP_CONFIG_VALUES = 'missing-app-config-values',
-  CREATE_INSTALLATION_FAILED = 'create-installation-failed',
-  GENERATE_TOKEN_FAILED = 'generate-token-failed',
   NOT_REGISTERED = 'not-registered',
   INSTALLATION_NOT_FOUND = 'installation-not-found',
   REQUEST_FAILED = 'request-failed',
@@ -30,10 +28,8 @@ export const enum ErrorCode {
 }
 
 const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
-  [ErrorCode.MISSING_APP_CONFIG_VALUES]: 'Missing App configuration values.',
-  [ErrorCode.CREATE_INSTALLATION_FAILED]:
-    'Could not register Firebase Installation.',
-  [ErrorCode.GENERATE_TOKEN_FAILED]: 'Could not generate Auth Token.',
+  [ErrorCode.MISSING_APP_CONFIG_VALUES]:
+    'Missing App configuration value: "{$valueName}"',
   [ErrorCode.NOT_REGISTERED]: 'Firebase Installation is not registered.',
   [ErrorCode.INSTALLATION_NOT_FOUND]: 'Firebase Installation not found.',
   [ErrorCode.REQUEST_FAILED]:
@@ -44,6 +40,9 @@ const ERROR_DESCRIPTION_MAP: { readonly [key in ErrorCode]: string } = {
 };
 
 interface ErrorParams {
+  [ErrorCode.MISSING_APP_CONFIG_VALUES]: {
+    valueName: string;
+  };
   [ErrorCode.REQUEST_FAILED]: {
     requestName: string;
   } & ServerErrorData;

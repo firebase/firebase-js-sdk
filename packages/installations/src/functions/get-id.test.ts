@@ -20,7 +20,10 @@ import { SinonStub, stub } from 'sinon';
 import * as getInstallationEntryModule from '../helpers/get-installation-entry';
 import * as refreshAuthTokenModule from '../helpers/refresh-auth-token';
 import { AppConfig } from '../interfaces/app-config';
-import { RequestStatus } from '../interfaces/installation-entry';
+import {
+  RequestStatus,
+  RegisteredInstallationEntry
+} from '../interfaces/installation-entry';
 import { getFakeApp } from '../testing/get-fake-app';
 import '../testing/setup';
 import { getId } from './get-id';
@@ -45,7 +48,8 @@ describe('getId', () => {
       installationEntry: {
         fid: FID,
         registrationStatus: RequestStatus.NOT_STARTED
-      }
+      },
+      registrationPromise: Promise.resolve({} as RegisteredInstallationEntry)
     });
 
     const firebaseApp = getFakeApp();
@@ -69,7 +73,12 @@ describe('getId', () => {
     const refreshAuthTokenSpy = stub(
       refreshAuthTokenModule,
       'refreshAuthToken'
-    ).resolves('authToken');
+    ).resolves({
+      token: 'authToken',
+      expiresIn: 123456,
+      requestStatus: RequestStatus.COMPLETED,
+      creationTime: Date.now()
+    });
 
     const firebaseApp = getFakeApp();
     await getId(firebaseApp);
