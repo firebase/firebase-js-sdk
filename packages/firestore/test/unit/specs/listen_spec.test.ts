@@ -918,7 +918,11 @@ describeSpec('Listens:', [], () => {
         .watchSends({ affects: [limitToLast] }, docC)
         .watchSnapshots(2000)
         .client(1)
-        .expectEvents(limitToLast, { added: [docC], removed: [docB] });
+        .expectEvents(limitToLast, { added: [docC], removed: [docB] })
+        .userUnlistens(limitToLast)
+        .client(0)
+        .expectUnlisten(limitToLast)
+        .expectActiveTargets();
     }
   );
 
@@ -975,35 +979,46 @@ describeSpec('Listens:', [], () => {
       const docC = doc('collection/c', 2000, { val: 0 });
       const docD = doc('collection/d', 3000, { val: -1 });
 
-      return client(0)
-        .becomeVisible()
-        .userListens(limit)
-        .client(1)
-        .userListens(limitToLast)
-        .client(0)
-        .expectListen(limit)
-        .expectListen(limitToLast)
-        .watchAcksFull(limit, 1000, docA, docB)
-        .expectEvents(limit, { added: [docA, docB] })
-        .client(1)
-        .expectEvents(limitToLast, { added: [docB, docA] })
-        .userUnlistens(limitToLast)
-        .client(0)
-        .expectUnlisten(limitToLast)
-        .watchSends({ affects: [limit] }, docC)
-        .watchSnapshots(2000)
-        .expectEvents(limit, { added: [docC], removed: [docB] })
-        .client(1)
-        .userListens(limitToLast)
-        .expectEvents(limitToLast, { added: [docC, docA] })
-        .client(0)
-        .expectListen(limitToLast)
-        .userUnlistens(limit)
-        .expectUnlisten(limit)
-        .watchSends({ affects: [limitToLast] }, docD)
-        .watchSnapshots(3000)
-        .client(1)
-        .expectEvents(limitToLast, { added: [docD], removed: [docC] });
+      return (
+        client(0)
+          .becomeVisible()
+          .userListens(limit)
+          .client(1)
+          .userListens(limitToLast)
+          .client(0)
+          .expectListen(limit)
+          .expectListen(limitToLast)
+          .watchAcksFull(limit, 1000, docA, docB)
+          .expectEvents(limit, { added: [docA, docB] })
+          .client(1)
+          .expectEvents(limitToLast, { added: [docB, docA] })
+          // Secondary tab unlistens it's query
+          .userUnlistens(limitToLast)
+          .client(0)
+          .expectUnlisten(limitToLast)
+          .watchSends({ affects: [limit] }, docC)
+          .watchSnapshots(2000)
+          .expectEvents(limit, { added: [docC], removed: [docB] })
+          .client(1)
+          // Secondary tab re-listens the query previously unlistened.
+          .userListens(limitToLast)
+          .expectEvents(limitToLast, { added: [docC, docA] })
+          .client(0)
+          .expectListen(limitToLast)
+          // Primary tab unlistens it's query.
+          .userUnlistens(limit)
+          .expectUnlisten(limit)
+          .watchSends({ affects: [limitToLast] }, docD)
+          .watchSnapshots(3000)
+          .client(1)
+          .expectEvents(limitToLast, { added: [docD], removed: [docC] })
+          // Secondary tab unlisten it's query again, both mirror queries
+          // are unlistened by now.
+          .userUnlistens(limitToLast)
+          .client(0)
+          .expectListen(limitToLast)
+          .expectActiveTargets()
+      );
     }
   );
 

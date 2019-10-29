@@ -16,6 +16,7 @@
  */
 
 import { FieldFilter, Filter, Query } from '../../../src/core/query';
+import { Target } from '../../../src/core/target';
 import { TargetIdGenerator } from '../../../src/core/target_id_generator';
 import { TargetId } from '../../../src/core/types';
 import {
@@ -39,6 +40,7 @@ import { TestSnapshotVersion } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
 import { RpcError } from './spec_rpc_error';
+import { ObjectMap } from '../../../src/util/obj_map';
 import {
   parseQuery,
   runSpec,
@@ -55,9 +57,6 @@ import {
 
 // These types are used in a protected API by SpecBuilder and need to be
 // exported.
-export interface QueryMap {
-  [query: string]: TargetId;
-}
 export interface LimboMap {
   [key: string]: TargetId;
 }
@@ -79,7 +78,7 @@ export interface ActiveTargetMap {
  */
 export class ClientMemoryState {
   activeTargets: ActiveTargetMap = {};
-  queryMapping: QueryMap = {};
+  queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
   limboMapping: LimboMap = {};
 
   limboIdGenerator: TargetIdGenerator = TargetIdGenerator.forSyncEngine();
@@ -90,7 +89,7 @@ export class ClientMemoryState {
 
   /** Reset all internal memory state (as done during a client restart). */
   reset(): void {
-    this.queryMapping = {};
+    this.queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
     this.limboMapping = {};
     this.activeTargets = {};
     this.limboIdGenerator = TargetIdGenerator.forSyncEngine();
@@ -110,38 +109,38 @@ export class ClientMemoryState {
  */
 class CachedTargetIdGenerator {
   // TODO(wuandy): rename this to targetMapping.
-  private queryMapping: QueryMap = {};
+  private queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
   private targetIdGenerator = TargetIdGenerator.forQueryCache();
 
   /**
-   * Returns a cached target ID for the provided query, or a new ID if no
+   * Returns a cached target ID for the provided Target, or a new ID if no
    * target ID has ever been assigned.
    */
-  next(query: Query): TargetId {
-    if (objUtils.contains(this.queryMapping, query.toTarget().canonicalId())) {
-      return this.queryMapping[query.toTarget().canonicalId()];
+  next(target: Target): TargetId {
+    if (this.queryMapping.has(target)) {
+      return this.queryMapping.get(target)!;
     }
     const targetId = this.targetIdGenerator.next();
-    this.queryMapping[query.toTarget().canonicalId()] = targetId;
+    this.queryMapping.set(target, targetId);
     return targetId;
   }
 
-  /** Returns the target ID for a query that is known to exist. */
-  cachedId(query: Query): TargetId {
-    if (!objUtils.contains(this.queryMapping, query.toTarget().canonicalId())) {
-      throw new Error("Target ID doesn't exists for query: " + query);
+  /** Returns the target ID for a target that is known to exist. */
+  cachedId(target: Target): TargetId {
+    if (!this.queryMapping.has(target)) {
+      throw new Error("Target ID doesn't exists for target: " + target);
     }
 
-    return this.queryMapping[query.toTarget().canonicalId()];
+    return this.queryMapping.get(target)!;
   }
 
-  /** Remove the cached target ID for the provided query. */
-  purge(query: Query): void {
-    if (!objUtils.contains(this.queryMapping, query.toTarget().canonicalId())) {
-      throw new Error("Target ID doesn't exists for query: " + query);
+  /** Remove the cached target ID for the provided target. */
+  purge(target: Target): void {
+    if (!this.queryMapping.has(target)) {
+      throw new Error("Target ID doesn't exists for target: " + target);
     }
 
-    delete this.queryMapping[query.toTarget().canonicalId()];
+    this.queryMapping.delete(target);
   }
 }
 /**
@@ -173,7 +172,7 @@ export class SpecBuilder {
     return this.clientState.limboIdGenerator;
   }
 
-  private get queryMapping(): QueryMap {
+  private get queryMapping(): ObjectMap<Target, TargetId> {
     return this.clientState.queryMapping;
   }
 
@@ -219,15 +218,16 @@ export class SpecBuilder {
   userListens(query: Query, resumeToken?: string): this {
     this.nextStep();
 
+    const target = query.toTarget();
     let targetId: TargetId = 0;
-    if (objUtils.contains(this.queryMapping, query.toTarget().canonicalId())) {
-      targetId = this.queryMapping[query.toTarget().canonicalId()];
+    if (this.queryMapping.has(target)) {
+      targetId = this.queryMapping.get(target)!;
     } else {
-      targetId = this.queryIdGenerator.next(query);
+      targetId = this.queryIdGenerator.next(target);
     }
 
-    this.queryMapping[query.toTarget().canonicalId()] = targetId;
-    this.addQueryToActiveTargetsIfNotYet(targetId, query, resumeToken);
+    this.queryMapping.set(target, targetId);
+    this.addQueryToActiveTargets(targetId, query, resumeToken);
     this.currentStep = {
       userListen: [targetId, SpecBuilder.queryToSpec(query)],
       expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
@@ -240,13 +240,13 @@ export class SpecBuilder {
    * stream disconnect.
    */
   restoreListen(query: Query, resumeToken: string): this {
-    const targetId = this.queryMapping[query.toTarget().canonicalId()];
+    const targetId = this.queryMapping.get(query.toTarget());
 
     if (isNullOrUndefined(targetId)) {
       throw new Error("Can't restore an unknown query: " + query);
     }
 
-    this.addQueryToActiveTargetsIfNotYet(targetId, query, resumeToken);
+    this.addQueryToActiveTargets(targetId!, query, resumeToken);
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -258,13 +258,14 @@ export class SpecBuilder {
 
   userUnlistens(query: Query): this {
     this.nextStep();
-    if (!objUtils.contains(this.queryMapping, query.toTarget().canonicalId())) {
+    const target = query.toTarget();
+    if (!this.queryMapping.has(target)) {
       throw new Error('Unlistening to query not listened to: ' + query);
     }
-    const targetId = this.queryMapping[query.toTarget().canonicalId()];
+    const targetId = this.queryMapping.get(target)!;
     if (this.config.useGarbageCollection) {
-      delete this.queryMapping[query.toTarget().canonicalId()];
-      this.queryIdGenerator.purge(query);
+      this.queryMapping.delete(target);
+      this.queryIdGenerator.purge(target);
     }
     this.removeQueryFromActiveTargets(query, targetId);
     this.currentStep = {
@@ -418,11 +419,7 @@ export class SpecBuilder {
     const currentStep = this.currentStep!;
     this.clientState.activeTargets = {};
     targets.forEach(({ query, resumeToken }) => {
-      this.addQueryToActiveTargetsIfNotYet(
-        this.getTargetId(query),
-        query,
-        resumeToken
-      );
+      this.addQueryToActiveTargets(this.getTargetId(query), query, resumeToken);
     });
     currentStep.expectedState = currentStep.expectedState || {};
     currentStep.expectedState.activeTargets = objUtils.shallowCopy(
@@ -452,7 +449,7 @@ export class SpecBuilder {
         this.limboMapping[path] = this.limboIdGenerator.next();
       }
       // Limbo doc queries are currently always without resume token
-      this.addQueryToActiveTargetsIfNotYet(
+      this.addQueryToActiveTargets(
         this.limboMapping[path],
         Query.atPath(key.path),
         ''
@@ -774,10 +771,11 @@ export class SpecBuilder {
   expectListen(query: Query, resumeToken?: string): this {
     this.assertStep('Expectations require previous step');
 
-    const targetId = this.queryIdGenerator.cachedId(query);
-    this.queryMapping[query.toTarget().canonicalId()] = targetId;
+    const target = query.toTarget();
+    const targetId = this.queryIdGenerator.cachedId(target);
+    this.queryMapping.set(target, targetId);
 
-    this.addQueryToActiveTargetsIfNotYet(targetId, query, resumeToken);
+    this.addQueryToActiveTargets(targetId, query, resumeToken);
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
@@ -791,11 +789,12 @@ export class SpecBuilder {
   expectUnlisten(query: Query): this {
     this.assertStep('Expectations require previous step');
 
-    const targetId = this.queryMapping[query.toTarget().canonicalId()];
+    const target = query.toTarget();
+    const targetId = this.queryMapping.get(target)!;
 
     if (this.config.useGarbageCollection) {
-      delete this.queryMapping[query.toTarget().canonicalId()];
-      this.queryIdGenerator.purge(query);
+      this.queryMapping.delete(target);
+      this.queryIdGenerator.purge(target);
     }
 
     this.removeQueryFromActiveTargets(query, targetId);
@@ -933,25 +932,28 @@ export class SpecBuilder {
     }
   }
 
-  private addQueryToActiveTargetsIfNotYet(
+  // Add the specified `Query` under give active targe id. If it is already
+  // added, this is a no-op.
+  private addQueryToActiveTargets(
     targetId: number,
     query: Query,
     resumeToken?: string
   ): void {
     if (this.activeTargets[targetId]) {
-      const specQueriesClone = [...this.activeTargets[targetId].queries];
-      // query is not added to active targets yet.
+      const activeQueries = this.activeTargets[targetId].queries;
       if (
-        !specQueriesClone.some(specQuery =>
-          parseQuery(specQuery).isEqual(query)
-        )
+        !activeQueries.some(specQuery => parseQuery(specQuery).isEqual(query))
       ) {
-        specQueriesClone.push(SpecBuilder.queryToSpec(query));
+        this.activeTargets[targetId] = {
+          queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
+          resumeToken: resumeToken || ''
+        };
+      } else {
+        this.activeTargets[targetId] = {
+          queries: [...activeQueries],
+          resumeToken: resumeToken || ''
+        };
       }
-      this.activeTargets[targetId] = {
-        queries: specQueriesClone,
-        resumeToken: resumeToken || ''
-      };
     } else {
       this.activeTargets[targetId] = {
         queries: [SpecBuilder.queryToSpec(query)],
@@ -961,12 +963,12 @@ export class SpecBuilder {
   }
 
   private removeQueryFromActiveTargets(query: Query, targetId: number): void {
-    const specQueries = this.activeTargets[targetId].queries.filter(
+    const queriesAfterRemoval = this.activeTargets[targetId].queries.filter(
       specQuery => !parseQuery(specQuery).isEqual(query)
     );
-    if (specQueries.length > 0) {
+    if (queriesAfterRemoval.length > 0) {
       this.activeTargets[targetId] = {
-        queries: specQueries,
+        queries: queriesAfterRemoval,
         resumeToken: this.activeTargets[targetId].resumeToken
       };
     } else {
@@ -981,7 +983,7 @@ export class SpecBuilder {
   }
 
   private getTargetId(query: Query): TargetId {
-    const queryTargetId = this.queryMapping[query.toTarget().canonicalId()];
+    const queryTargetId = this.queryMapping.get(query.toTarget());
     const limboTargetId = this.limboMapping[query.path.canonicalString()];
     if (queryTargetId && limboTargetId) {
       // TODO(dimond): add support for query for doc and limbo doc at the same
