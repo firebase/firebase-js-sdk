@@ -53,7 +53,7 @@ export async function initializeGAId(
 
   // It should be the first config command called on this GA-ID
   // Initialize this GA-ID and set FID on it using the gtag config API.
-  gtagCore(GtagCommand.CONFIG, app.options[ANALYTICS_ID_FIELD], {
+  gtagCore(GtagCommand.CONFIG, app.options[ANALYTICS_ID_FIELD]!, {
     [GA_FID_KEY]: fid,
     // guard against developers accidentally setting properties with prefix `firebase_`
     [ORIGIN_KEY]: 'firebase',
