@@ -264,7 +264,7 @@ describe('IndexFreeQueryEngine', () => {
   it('does not use initial results for limit query with document removal', async () => {
     const query = Query.atPath(path('coll'))
       .addFilter(filter('matches', '==', true))
-      .withLimitToFirst(1);
+      .withLimitToLast(1);
 
     // While the backend would never add DocA to the set of remote keys, this
     // allows us to easily simulate what would happen when a document no longer

@@ -62,17 +62,10 @@ apiDescribe('Queries', (persistence: boolean) => {
   });
 
   it('cannot issue limitToLast queries without explicit order-by', () => {
-    const testDocs = {
-      a: { k: 'a' },
-      b: { k: 'b' },
-      c: { k: 'c' }
-    };
-    return withTestCollection(persistence, testDocs, async collection => {
-      await expect(
-        collection.limitToLast(2).get()
-      ).to.be.eventually.rejectedWith(
-        'limitToLast() queries require specifying an orderBy() on at least one document field.'
-      );
+    return withTestCollection(persistence, {}, async collection => {
+      const expectedError =
+        'limitToLast() queries require specifying at least one orderBy() clause';
+      expect(() => collection.limitToLast(2).get()).to.throw(expectedError);
     });
   });
 
@@ -147,6 +140,12 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  // Two queries that mapped to the same target ID are referred to as
+  // "mirror queries". An example for a mirror query is a limitToLast()
+  // query and a limit() query that share the same backend Target ID.
+  // Since limitToLast() queries are sent to the backend with a modified
+  // orderBy() clause, they can map to the same target representation as
+  // limit() query, even if both queries appear separate to the user.
   it('can listen to mirror queries', () => {
     const testDocs = {
       a: { k: 'a', sort: 0 },
@@ -196,7 +195,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  it('can unlisten to mirror queries', () => {
+  it('can unlisten from mirror queries', () => {
     const testDocs = {
       a: { k: 'a', sort: 0 },
       b: { k: 'b', sort: 1 },
@@ -218,23 +217,16 @@ apiDescribe('Queries', (persistence: boolean) => {
         .limitToLast(2)
         .onSnapshot(storeLimitToLastEvent.storeEvent);
 
-      let snapshot = await storeLimitEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'b', sort: 1 }
-      ]);
-
-      snapshot = await storeLimitToLastEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'b', sort: 1 },
-        { k: 'a', sort: 0 }
-      ]);
+      await storeLimitEvent.awaitEvent();
+      await storeLimitToLastEvent.awaitEvent();
 
       limitUnlisten();
 
       await collection.add({ k: 'e', sort: -1 });
       await storeLimitEvent.assertNoAdditionalEvents();
-      snapshot = await storeLimitToLastEvent.awaitEvent();
+      const snapshot = await storeLimitToLastEvent.awaitEvent();
+      // Check the limitToLast query still functions after the mirroring
+      // limit query is un-listened.
       expect(toDataArray(snapshot)).to.deep.equal([
         { k: 'a', sort: 0 },
         { k: 'e', sort: -1 }
@@ -269,17 +261,8 @@ apiDescribe('Queries', (persistence: boolean) => {
         .limitToLast(2)
         .onSnapshot(storeLimitToLastEvent.storeEvent);
 
-      let snapshot = await storeLimitEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'b', sort: 1 }
-      ]);
-
-      snapshot = await storeLimitToLastEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'b', sort: 1 },
-        { k: 'a', sort: 0 }
-      ]);
+      await storeLimitEvent.awaitEvent();
+      await storeLimitToLastEvent.awaitEvent();
 
       // Unlisten then relisten limit query.
       limitUnlisten();
@@ -287,7 +270,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .orderBy('sort', 'asc')
         .limit(2)
         .onSnapshot(storeLimitEvent.storeEvent);
-      snapshot = await storeLimitEvent.awaitEvent();
+      let snapshot = await storeLimitEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
         { k: 'a', sort: 0 },
         { k: 'b', sort: 1 }
@@ -316,6 +299,8 @@ apiDescribe('Queries', (persistence: boolean) => {
         .onSnapshot(storeLimitToLastEvent.storeEvent);
 
       snapshot = await storeLimitEvent.awaitEvent();
+      // Checking limit query is still functioning when the mirroring
+      // limitToLast query is un-listened.
       expect(toDataArray(snapshot)).to.deep.equal([
         { k: 'a', sort: -2 },
         { k: 'e', sort: -1 }

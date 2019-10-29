@@ -170,12 +170,11 @@ export class IndexFreeQueryEngine implements QueryEngine {
     // Limit queries are not eligible for index-free query execution if there is
     // a potential that an older document from cache now sorts before a document
     // that was previously part of the limit. This, however, can only happen if
-    // the document at the edge of the limit when the query was last synchronized
-    // goes out of limit. If a document that is not the limit boundary sorts
-    // differently, the boundary of the limit itself did not change and
-    // documents from cache will continue to be "rejected" by this boundary.
-    // Therefore, we can ignore any modifications that don't affect the last
-    // document.
+    // the document at the edge of the limit goes out of limit.
+    // If a document that is not the limit boundary sorts differently,
+    // the boundary of the limit itself did not change and documents from cache
+    // will continue to be "rejected" by this boundary. Therefore, we can ignore
+    // any modifications that don't affect the last document.
     const docAtLimitEdge =
       limitType === LimitType.First
         ? sortedPreviousResults.last()

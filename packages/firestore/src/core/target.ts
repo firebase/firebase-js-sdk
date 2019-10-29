@@ -18,7 +18,7 @@
 import { DocumentKey } from '../model/document_key';
 import { ResourcePath } from '../model/path';
 import { isNullOrUndefined } from '../util/types';
-import { Bound, Filter, OrderBy, Query, LimitType } from './query';
+import { Bound, Filter, OrderBy } from './query';
 
 /**
  * A Target represents the WatchTarget representation of a Query, which is used
@@ -156,23 +156,6 @@ export class Target {
       DocumentKey.isDocumentKey(this.path) &&
       this.collectionGroup === null &&
       this.filters.length === 0
-    );
-  }
-
-  /**
-   * Creates a `Query` object from this `Target`. Note the result might be
-   * different from the original `Query` from which we obtained this instance.
-   */
-  toTargetQuery(): Query {
-    return new Query(
-      this.path,
-      this.collectionGroup,
-      this.orderBy,
-      this.filters,
-      this.limit,
-      LimitType.First,
-      this.startAt,
-      this.endAt
     );
   }
 }
