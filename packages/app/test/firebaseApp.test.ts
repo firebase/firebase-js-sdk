@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import {
+  FirebaseApp,
+  FirebaseNamespace,
+  FirebaseOptions
+} from '@firebase/app-types';
 import {
   _FirebaseApp,
   _FirebaseNamespace,
@@ -414,9 +418,9 @@ function firebaseAppTests(
     });
 
     it('Can get options of App.', () => {
-      const options = { test: 'option' };
+      const options: FirebaseOptions = { projectId: 'projectId' };
       const app = firebase.initializeApp(options);
-      assert.deepEqual(app.options as any, options as any);
+      assert.deepEqual(app.options, options);
     });
 
     it('Can delete App.', () => {
@@ -473,13 +477,16 @@ function firebaseAppTests(
     });
 
     it('Modifying options object does not change options.', () => {
-      const options = { opt: 'original', nested: { opt: 123 } };
+      const options: FirebaseOptions = {
+        appId: 'original',
+        measurementId: 'someId'
+      };
       firebase.initializeApp(options);
-      options.opt = 'changed';
-      options.nested.opt = 456;
+      options.appId = 'changed';
+      delete options.measurementId;
       assert.deepEqual(firebase.app().options, {
-        opt: 'original',
-        nested: { opt: 123 }
+        appId: 'original',
+        measurementId: 'someId'
       });
     });
 

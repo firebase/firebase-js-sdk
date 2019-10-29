@@ -93,7 +93,7 @@ describe('refreshAuthToken', () => {
     });
 
     it('returns the token from the DB', async () => {
-      const token = await refreshAuthToken(appConfig);
+      const { token } = await refreshAuthToken(appConfig);
       expect(token).to.equal(AUTH_TOKEN);
     });
 
@@ -105,7 +105,7 @@ describe('refreshAuthToken', () => {
     it('works even if the app is offline', async () => {
       stub(navigator, 'onLine').value(false);
 
-      const token = await refreshAuthToken(appConfig);
+      const { token } = await refreshAuthToken(appConfig);
       expect(token).to.equal(AUTH_TOKEN);
     });
   });
@@ -134,14 +134,14 @@ describe('refreshAuthToken', () => {
 
     it('returns a different token after expiration', async () => {
       const token1 = await refreshAuthToken(appConfig);
-      expect(token1).to.equal(DB_AUTH_TOKEN);
+      expect(token1.token).to.equal(DB_AUTH_TOKEN);
 
       // Wait 30 minutes.
       clock.tick('30:00');
 
       const token2 = await refreshAuthToken(appConfig);
-      await expect(token2).to.equal(AUTH_TOKEN);
-      await expect(token2).not.to.equal(DB_AUTH_TOKEN);
+      await expect(token2.token).to.equal(AUTH_TOKEN);
+      await expect(token2.token).not.to.equal(DB_AUTH_TOKEN);
       expect(generateAuthTokenSpy).to.be.calledOnce;
     });
   });
@@ -177,7 +177,7 @@ describe('refreshAuthToken', () => {
     });
 
     it('returns a new token', async () => {
-      const token = await refreshAuthToken(appConfig);
+      const { token } = await refreshAuthToken(appConfig);
       await expect(token).to.equal(AUTH_TOKEN);
       await expect(token).not.to.equal(DB_AUTH_TOKEN);
       expect(generateAuthTokenSpy).to.be.calledOnce;
@@ -190,7 +190,7 @@ describe('refreshAuthToken', () => {
     });
 
     it('saves the new token in the DB', async () => {
-      const token = await refreshAuthToken(appConfig);
+      const { token } = await refreshAuthToken(appConfig);
 
       const installationEntry = (await get(
         appConfig

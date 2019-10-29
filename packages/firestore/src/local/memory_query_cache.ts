@@ -160,7 +160,7 @@ export class MemoryQueryCache implements QueryCache {
     this.queries.forEach((key, queryData) => {
       if (
         queryData.sequenceNumber <= upperBound &&
-        !activeTargetIds[queryData.targetId]
+        activeTargetIds.get(queryData.targetId) === null
       ) {
         this.queries.delete(key);
         removals.push(

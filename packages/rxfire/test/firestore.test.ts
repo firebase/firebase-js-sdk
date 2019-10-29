@@ -165,12 +165,15 @@ describe('RxFire Firestore', () => {
         take(1)
       );
 
+      let previousData: Array<{}>;
+
       addedChanges.subscribe(data => {
         const expectedNames = [
           { name: 'David', type: 'added' },
           { name: 'Shannon', type: 'added' }
         ];
         expect(data).to.eql(expectedNames);
+        previousData = data;
         davidDoc.update({ name: 'David!' });
       });
 
@@ -180,6 +183,7 @@ describe('RxFire Firestore', () => {
           { name: 'Shannon', type: 'added' }
         ];
         expect(data).to.eql(expectedNames);
+        expect(data === previousData).to.eql(false);
         done();
       });
     });

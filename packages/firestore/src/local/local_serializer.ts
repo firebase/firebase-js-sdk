@@ -43,6 +43,7 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { QueryData, QueryPurpose } from './query_data';
+import { SimpleDb } from './simple_db';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -251,7 +252,7 @@ export class LocalSerializer {
     if (queryData.resumeToken instanceof Uint8Array) {
       // TODO(b/78771403): Convert tokens to strings during deserialization
       assert(
-        process.env.USE_MOCK_PERSISTENCE === 'YES',
+        SimpleDb.isMockPersistence(),
         'Persisting non-string stream tokens is only supported with mock persistence .'
       );
       resumeToken = queryData.resumeToken.toString();

@@ -6,15 +6,15 @@
     "test": "karma start --single-run"
   },
   "dependencies": {
-    "firebase": "7.1.0"
+    "firebase": "7.2.2"
   },
   "devDependencies": {
-    "@babel/core": "7.6.2",
-    "@babel/preset-env": "7.6.2",
-    "@types/chai": "4.2.3",
+    "@babel/core": "7.6.4",
+    "@babel/preset-env": "7.6.3",
+    "@types/chai": "4.2.4",
     "@types/mocha": "5.2.7",
     "chai": "4.2.0",
-    "karma": "4.3.0",
+    "karma": "4.4.1",
     "karma-babel-preprocessor": "8.0.1",
     "karma-chrome-launcher": "3.1.0",
     "karma-firefox-launcher": "1.2.0",
@@ -22,8 +22,8 @@
     "karma-sauce-launcher": "1.2.0",
     "karma-spec-reporter": "0.0.32",
     "karma-typescript": "4.1.1",
-    "mocha": "6.2.1",
+    "mocha": "6.2.2",
     "npm-run-all": "4.1.5",
-    "typescript": "3.6.3"
+    "typescript": "3.6.4"
   }
 }

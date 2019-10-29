@@ -3971,6 +3971,20 @@ declare namespace firebase.analytics {
      * the gtag.js reference documentation}.
      */
     logEvent(
+      eventName: 'add_payment_info',
+      eventParams?: { [key: string]: any },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
       eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart',
       eventParams: {
         currency?: EventParams['currency'];
@@ -4072,6 +4086,25 @@ declare namespace firebase.analytics {
       eventName: 'login',
       eventParams: {
         method?: EventParams['method'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'page_view',
+      eventParams: {
+        page_title?: string;
+        page_location?: string;
+        page_path?: string;
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions

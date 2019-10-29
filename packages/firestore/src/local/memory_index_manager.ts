@@ -69,6 +69,13 @@ export class MemoryCollectionParentIndex {
     return added;
   }
 
+  has(collectionPath: ResourcePath): boolean {
+    const collectionId = collectionPath.lastSegment();
+    const parentPath = collectionPath.popLast();
+    const existingParents = this.index[collectionId];
+    return existingParents && existingParents.has(parentPath);
+  }
+
   getEntries(collectionId: string): ResourcePath[] {
     const parentPaths =
       this.index[collectionId] ||

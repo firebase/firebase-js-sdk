@@ -441,6 +441,7 @@ abstract class TestRunner {
     // TODO(index-free): Update to index-free query engine when it becomes default.
     const queryEngine = new SimpleQueryEngine();
     this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
+    await this.localStore.start();
 
     this.connection = new MockConnection(this.queue);
     this.datastore = new Datastore(
@@ -1650,11 +1651,15 @@ async function clearCurrentPrimaryLease(): Promise<void> {
     SCHEMA_VERSION,
     new SchemaConverter(TEST_SERIALIZER)
   );
-  await db.runTransaction('readwrite', [DbPrimaryClient.store], txn => {
-    const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
-      DbPrimaryClient.store
-    );
-    return primaryClientStore.delete(DbPrimaryClient.key);
-  });
+  await db.runTransaction(
+    'readwrite-idempotent',
+    [DbPrimaryClient.store],
+    txn => {
+      const primaryClientStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+        DbPrimaryClient.store
+      );
+      return primaryClientStore.delete(DbPrimaryClient.key);
+    }
+  );
   db.close();
 }

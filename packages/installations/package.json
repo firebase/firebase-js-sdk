@@ -1,6 +1,6 @@
 {
   "name": "@firebase/installations",
-  "version": "0.2.7",
+  "version": "0.3.2",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "esm2017": "dist/index.esm2017.js",
@@ -21,7 +21,7 @@
     "prepare": "yarn build"
   },
   "devDependencies": {
-    "@types/chai": "4.2.3",
+    "@types/chai": "4.2.4",
     "@types/chai-as-promised": "7.1.2",
     "@types/mocha": "5.2.7",
     "@types/sinon": "7.5.0",
@@ -29,8 +29,8 @@
     "chai": "4.2.0",
     "chai-as-promised": "7.1.1",
     "http-server": "0.11.1",
-    "mocha": "6.2.1",
-    "rollup": "1.23.0",
+    "mocha": "6.2.2",
+    "rollup": "1.25.2",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-json": "4.0.0",
     "rollup-plugin-node-resolve": "5.2.0",
@@ -39,11 +39,11 @@
     "sinon": "7.5.0",
     "sinon-chai": "3.3.0",
     "tslint": "5.20.0",
-    "typescript": "3.6.3",
+    "typescript": "3.6.4",
     "eslint": "6.5.1",
-    "@typescript-eslint/parser": "2.3.2",
-    "@typescript-eslint/eslint-plugin": "2.3.2",
-    "@typescript-eslint/eslint-plugin-tslint": "2.3.2",
+    "@typescript-eslint/parser": "2.5.0",
+    "@typescript-eslint/eslint-plugin": "2.5.0",
+    "@typescript-eslint/eslint-plugin-tslint": "2.5.0",
     "eslint-plugin-import": "2.18.2"
   },
   "peerDependencies": {
@@ -51,8 +51,8 @@
     "@firebase/app-types": "0.x"
   },
   "dependencies": {
-    "@firebase/installations-types": "0.1.2",
-    "@firebase/util": "0.2.28",
+    "@firebase/installations-types": "0.2.1",
+    "@firebase/util": "0.2.31",
     "idb": "3.0.2",
     "tslib": "1.10.0"
   }
