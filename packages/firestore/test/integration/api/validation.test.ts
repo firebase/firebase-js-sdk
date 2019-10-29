@@ -797,12 +797,12 @@ apiDescribe('Validation:', (persistence: boolean) => {
     validationIt(persistence, 'with non-positive limit fail', db => {
       const collection = db.collection('test');
       expect(() => collection.limit(0)).to.throw(
-        'Function "limit" created invalid Query. Query limit (0) is invalid. Limit must be ' +
-          'positive.'
+        'Function "limit()" requires its first argument to be a positive number, ' +
+          'but it was: 0.'
       );
       expect(() => collection.limitToLast(-1)).to.throw(
-        'Function "limitToLast" created invalid Query. Query limit (-1) is invalid. Limit must be ' +
-          'positive.'
+        'Function "limitToLast()" requires its first argument to be a positive number, ' +
+          'but it was: -1.'
       );
     });
 

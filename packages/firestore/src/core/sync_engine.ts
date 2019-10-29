@@ -995,7 +995,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         assert(!!target, `Target for id ${targetId} not found`);
         queryData = await this.localStore.allocateTarget(target!);
         await this.initializeViewAndComputeSnapshot(
-          this.targetToQuery(target!),
+          this.synthesizeTargetToQuery(target!),
           targetId,
           /*current=*/ false
         );
@@ -1008,11 +1008,12 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     return activeQueries;
   }
   /**
-   * Creates a `Query` object from this `Target`. Note the result might be
-   * different from the original `Query` from which we obtained this instance.
+   * Creates a `Query` object from this `Target`. There is no way to obtain
+   * the original `Query`, so we synthesize a `Query` from the `Target` object.
+   * The result might be different from the original `Query`,
    */
   // PORTING NOTE: Multi-tab only
-  private targetToQuery(target: Target): Query {
+  private synthesizeTargetToQuery(target: Target): Query {
     return new Query(
       target.path,
       target.collectionGroup,
@@ -1090,7 +1091,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       assert(!!target, `Query data for active target ${targetId} not found`);
       const queryData = await this.localStore.allocateTarget(target!);
       await this.initializeViewAndComputeSnapshot(
-        this.targetToQuery(target!),
+        this.synthesizeTargetToQuery(target!),
         queryData.targetId,
         /*current=*/ false
       );

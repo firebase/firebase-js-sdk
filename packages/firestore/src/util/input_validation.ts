@@ -451,11 +451,17 @@ export function invalidClassError(
   );
 }
 
-export function validatePositiveLimit(functionName: string, n: number): void {
+export function validatePositiveNumber(
+  functionName: string,
+  position: number,
+  n: number
+): void {
   if (n <= 0) {
     throw new FirestoreError(
       Code.INVALID_ARGUMENT,
-      `Function "${functionName}" created invalid Query. Query limit (${n}) is invalid. Limit must be positive.`
+      `Function "${functionName}()" requires its ${ordinal(
+        position
+      )} argument to be a positive number, but it was: ${n}.`
     );
   }
 }

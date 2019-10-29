@@ -71,7 +71,7 @@ import {
   validateOptionalArgType,
   validateOptionalArrayElements,
   validateOptionNames,
-  validatePositiveLimit,
+  validatePositiveNumber,
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
@@ -1540,14 +1540,14 @@ export class Query implements firestore.Query {
   limit(n: number): firestore.Query {
     validateExactNumberOfArgs('Query.limit', arguments, 1);
     validateArgType('Query.limit', 'number', 1, n);
-    validatePositiveLimit('limit', n);
+    validatePositiveNumber('limit', 1, n);
     return new Query(this._query.withLimitToFirst(n), this.firestore);
   }
 
   limitToLast(n: number): firestore.Query {
     validateExactNumberOfArgs('Query.limitToLast', arguments, 1);
     validateArgType('Query.limitToLast', 'number', 1, n);
-    validatePositiveLimit('limitToLast', n);
+    validatePositiveNumber('limitToLast', 1, n);
     return new Query(this._query.withLimitToLast(n), this.firestore);
   }
 

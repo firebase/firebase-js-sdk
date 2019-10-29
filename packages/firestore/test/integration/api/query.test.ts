@@ -140,8 +140,12 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // Mirror queries are `Query`s mapped to the same `Target`, meaning
-  // they are supported by the same backend Query.
+  // Queries that mapped to the same target ID are referred to as
+  // "mirror queries". An example for a mirror query is a limitToLast()
+  // query and a limit() query that share the same backend Target ID.
+  // Since limitToLast() queries are sent to the backend with a modified
+  // orderBy() clause, they can map to the same target representation as
+  // limit() query, even if both queries appear separate to the user.
   it('can listen to mirror queries', () => {
     const testDocs = {
       a: { k: 'a', sort: 0 },
@@ -213,23 +217,14 @@ apiDescribe('Queries', (persistence: boolean) => {
         .limitToLast(2)
         .onSnapshot(storeLimitToLastEvent.storeEvent);
 
-      let snapshot = await storeLimitEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'b', sort: 1 }
-      ]);
-
-      snapshot = await storeLimitToLastEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'b', sort: 1 },
-        { k: 'a', sort: 0 }
-      ]);
+      await storeLimitEvent.awaitEvent();
+      await storeLimitToLastEvent.awaitEvent();
 
       limitUnlisten();
 
       await collection.add({ k: 'e', sort: -1 });
       await storeLimitEvent.assertNoAdditionalEvents();
-      snapshot = await storeLimitToLastEvent.awaitEvent();
+      const snapshot = await storeLimitToLastEvent.awaitEvent();
       // Check the limitToLast query still functions after the mirroring
       // limit query is un-listened.
       expect(toDataArray(snapshot)).to.deep.equal([
@@ -266,17 +261,8 @@ apiDescribe('Queries', (persistence: boolean) => {
         .limitToLast(2)
         .onSnapshot(storeLimitToLastEvent.storeEvent);
 
-      let snapshot = await storeLimitEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'a', sort: 0 },
-        { k: 'b', sort: 1 }
-      ]);
-
-      snapshot = await storeLimitToLastEvent.awaitEvent();
-      expect(toDataArray(snapshot)).to.deep.equal([
-        { k: 'b', sort: 1 },
-        { k: 'a', sort: 0 }
-      ]);
+      await storeLimitEvent.awaitEvent();
+      await storeLimitToLastEvent.awaitEvent();
 
       // Unlisten then relisten limit query.
       limitUnlisten();
@@ -284,7 +270,7 @@ apiDescribe('Queries', (persistence: boolean) => {
         .orderBy('sort', 'asc')
         .limit(2)
         .onSnapshot(storeLimitEvent.storeEvent);
-      snapshot = await storeLimitEvent.awaitEvent();
+      let snapshot = await storeLimitEvent.awaitEvent();
       expect(toDataArray(snapshot)).to.deep.equal([
         { k: 'a', sort: 0 },
         { k: 'b', sort: 1 }
