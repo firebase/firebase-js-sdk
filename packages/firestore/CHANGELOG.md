@@ -1,6 +1,10 @@
 # Unreleased
 - [changed] Improved iOS 13 support by eliminating an additional crash in our
   IndexedDB persistence layer.
+- [feature] Added `in` and `array-contains-any` query operators for use with
+  `.where()`. `in` finds documents where a specified field’s value is IN a
+  specified array. `array-contains-any` finds documents where a specified field
+  is an array and contains ANY element of a specified array.
 
 # 1.6.2
 - [changed] Fixed a crash on iOS 13 that occurred when persistence was enabled
