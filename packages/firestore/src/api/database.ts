@@ -71,6 +71,7 @@ import {
   validateOptionalArgType,
   validateOptionalArrayElements,
   validateOptionNames,
+  validatePositiveNumber,
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
@@ -1542,14 +1543,15 @@ export class Query implements firestore.Query {
   limit(n: number): firestore.Query {
     validateExactNumberOfArgs('Query.limit', arguments, 1);
     validateArgType('Query.limit', 'number', 1, n);
-    if (n <= 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid Query. Query limit (${n}) is invalid. Limit must be ` +
-          'positive.'
-      );
-    }
-    return new Query(this._query.withLimit(n), this.firestore);
+    validatePositiveNumber('Query.limit', 1, n);
+    return new Query(this._query.withLimitToFirst(n), this.firestore);
+  }
+
+  limitToLast(n: number): firestore.Query {
+    validateExactNumberOfArgs('Query.limitToLast', arguments, 1);
+    validateArgType('Query.limitToLast', 'number', 1, n);
+    validatePositiveNumber('Query.limitToLast', 1, n);
+    return new Query(this._query.withLimitToLast(n), this.firestore);
   }
 
   startAt(
@@ -1829,6 +1831,7 @@ export class Query implements firestore.Query {
         complete: args[currArg + 2] as CompleteFn
       };
     }
+    this.validateHasExplicitOrderByForLimitToLast(this._query);
     return this.onSnapshotInternal(options, observer);
   }
 
@@ -1864,9 +1867,19 @@ export class Query implements firestore.Query {
     };
   }
 
+  private validateHasExplicitOrderByForLimitToLast(query: InternalQuery): void {
+    if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        'limitToLast() queries require specifying at least one orderBy() clause'
+      );
+    }
+  }
+
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot> {
     validateBetweenNumberOfArgs('Query.get', arguments, 0, 1);
     validateGetOptions('Query.get', options);
+    this.validateHasExplicitOrderByForLimitToLast(this._query);
     return new Promise(
       (resolve: Resolver<firestore.QuerySnapshot>, reject: Rejecter) => {
         if (options && options.source === 'cache') {

@@ -49,8 +49,9 @@ import {
 import * as objUtils from '../util/obj';
 import { SortedSet } from '../util/sorted_set';
 import { ListenSequence } from './listen_sequence';
-import { Query } from './query';
+import { Query, LimitType } from './query';
 import { SnapshotVersion } from './snapshot_version';
+import { Target } from './target';
 import { TargetIdGenerator } from './target_id_generator';
 import { Transaction } from './transaction';
 import {
@@ -216,7 +217,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       this.sharedClientState.addLocalQueryTarget(targetId);
       viewSnapshot = queryView.view.computeInitialSnapshot();
     } else {
-      const queryData = await this.localStore.allocateQuery(query);
+      const queryData = await this.localStore.allocateTarget(query.toTarget());
+
       const status = this.sharedClientState.addLocalQueryTarget(
         queryData.targetId
       );
@@ -305,8 +307,18 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const queryView = this.queryViewsByQuery.get(query)!;
     assert(!!queryView, 'Trying to unlisten on query not found:' + query);
 
-    // TODO(wuandy): Note this does not handle the case where multiple queries
-    // map to one target, and user request to unlisten on of the queries.
+    // If it's not the only query mapped to the target, only clean up
+    // query view and keep the target active.
+    const queries = this.queriesByTarget[queryView.targetId];
+    if (queries.length > 1) {
+      this.queriesByTarget[queryView.targetId] = queries.filter(
+        q => !q.isEqual(query)
+      );
+      this.queryViewsByQuery.delete(query);
+      return;
+    }
+
+    // No other queries are mapped to the target, clean up the query and the target.
     if (this.isPrimary) {
       // We need to remove the local query target first to allow us to verify
       // whether any other client is still interested in this target.
@@ -983,7 +995,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         assert(!!target, `Target for id ${targetId} not found`);
         queryData = await this.localStore.allocateTarget(target!);
         await this.initializeViewAndComputeSnapshot(
-          target!.toTargetQuery(),
+          this.synthesizeTargetToQuery(target!),
           targetId,
           /*current=*/ false
         );
@@ -994,6 +1006,30 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
 
     this.syncEngineListener!.onWatchChange(newViewSnapshots);
     return activeQueries;
+  }
+
+  /**
+   * Creates a `Query` object from the specified `Target`. There is no way to
+   * obtain the original `Query`, so we synthesize a `Query` from the `Target`
+   * object.
+   *
+   * The synthesized result might be different from the original `Query`, but
+   * since the synthesized `Query` should return the same results as the
+   * original one (only the presentation of results might differ), and this is
+   * only used for multi-tab, the potential difference will not cause issues.
+   */
+  // PORTING NOTE: Multi-tab only
+  private synthesizeTargetToQuery(target: Target): Query {
+    return new Query(
+      target.path,
+      target.collectionGroup,
+      target.orderBy,
+      target.filters,
+      target.limit,
+      LimitType.First,
+      target.startAt,
+      target.endAt
+    );
   }
 
   // PORTING NOTE: Multi-tab only
@@ -1061,7 +1097,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
       assert(!!target, `Query data for active target ${targetId} not found`);
       const queryData = await this.localStore.allocateTarget(target!);
       await this.initializeViewAndComputeSnapshot(
-        target!.toTargetQuery(),
+        this.synthesizeTargetToQuery(target!),
         queryData.targetId,
         /*current=*/ false
       );

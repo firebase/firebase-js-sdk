@@ -8118,13 +8118,25 @@ declare namespace firebase.firestore {
     ): Query;
 
     /**
-     * Creates and returns a new Query where the results are limited to the
-     * specified number of documents.
+     * Creates and returns a new Query that only returns the first matching
+     * documents.
      *
      * @param limit The maximum number of items to return.
      * @return The created Query.
      */
     limit(limit: number): Query;
+
+    /**
+     * Creates and returns a new Query that only returns the last matching
+     * documents.
+     *
+     * You must specify at least one `orderBy` clause for `limitToLast` queries,
+     * otherwise an exception will be thrown thrown during execution.
+     *
+     * @param limit The maximum number of items to return.
+     * @return The created Query.
+     */
+    limitToLast(limit: number): Query;
 
     /**
      * Creates and returns a new Query that starts at the provided document

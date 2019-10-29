@@ -196,7 +196,7 @@ describeSpec('Limbo Documents:', [], () => {
     const fullQuery = Query.atPath(path('collection'));
     const limitQuery = Query.atPath(path('collection'))
       .addFilter(filter('include', '==', true))
-      .withLimit(1);
+      .withLimitToFirst(1);
     const docA = doc('collection/a', 1000, { key: 'a', include: true });
     const docB = doc('collection/b', 1000, { key: 'b', include: true });
     const docBQuery = Query.atPath(docB.key.path);
@@ -266,7 +266,7 @@ describeSpec('Limbo Documents:', [], () => {
       const fullQuery = Query.atPath(path('collection'));
       const limitQuery = Query.atPath(path('collection'))
         .addFilter(filter('include', '==', true))
-        .withLimit(1);
+        .withLimitToFirst(1);
       const docA = doc('collection/a', 1000, { key: 'a', include: true });
       const docB = doc('collection/b', 1000, { key: 'b', include: true });
       const docBQuery = Query.atPath(docB.key.path);
