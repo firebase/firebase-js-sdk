@@ -31,8 +31,8 @@ export const enum InstantiationMode {
  * Firebase SDKs. No serivce namespace is created in `firebase` namespace and customers have no way to get them.
  */
 export enum ComponentType {
-  PUBLIC,
-  PRIVATE
+  PUBLIC = 'PUBLIC',
+  PRIVATE = 'PRIVARE'
 }
 
 /**
