@@ -451,6 +451,21 @@ export function invalidClassError(
   );
 }
 
+export function validatePositiveNumber(
+  functionName: string,
+  position: number,
+  n: number
+): void {
+  if (n <= 0) {
+    throw new FirestoreError(
+      Code.INVALID_ARGUMENT,
+      `Function "${functionName}()" requires its ${ordinal(
+        position
+      )} argument to be a positive number, but it was: ${n}.`
+    );
+  }
+}
+
 /** Converts a number to its english word representation */
 function ordinal(num: number): string {
   switch (num) {

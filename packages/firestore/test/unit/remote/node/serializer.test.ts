@@ -1154,7 +1154,7 @@ describe('Serializer', () => {
 
     it('converts limits', () => {
       const q = Query.atPath(path('docs'))
-        .withLimit(26)
+        .withLimitToFirst(26)
         .toTarget();
       const result = s.toTarget(wrapQueryData(q));
       const expected = {

@@ -120,7 +120,7 @@ describeSpec('Listens:', [], () => {
     [],
     () => {
       const query1 = Query.atPath(path('collection'));
-      const query2 = Query.atPath(path('collection')).withLimit(10);
+      const query2 = Query.atPath(path('collection')).withLimitToFirst(10);
       const docA = doc('collection/a', 1000, { a: true });
       const docB = doc('collection/b', 1000, { b: true });
 
