@@ -1007,10 +1007,16 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     this.syncEngineListener!.onWatchChange(newViewSnapshots);
     return activeQueries;
   }
+
   /**
-   * Creates a `Query` object from this `Target`. There is no way to obtain
-   * the original `Query`, so we synthesize a `Query` from the `Target` object.
-   * The result might be different from the original `Query`,
+   * Creates a `Query` object from the specified `Target`. There is no way to
+   * obtain the original `Query`, so we synthesize a `Query` from the `Target`
+   * object.
+   *
+   * The synthesized result might be different from the original `Query`, but
+   * since the synthesized `Query` should return the same results as the
+   * original one (only the presentation of results might differ), and this is
+   * only used for multi-tab, the potential difference will not cause issues.
    */
   // PORTING NOTE: Multi-tab only
   private synthesizeTargetToQuery(target: Target): Query {

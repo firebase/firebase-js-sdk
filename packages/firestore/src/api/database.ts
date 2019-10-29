@@ -1540,14 +1540,14 @@ export class Query implements firestore.Query {
   limit(n: number): firestore.Query {
     validateExactNumberOfArgs('Query.limit', arguments, 1);
     validateArgType('Query.limit', 'number', 1, n);
-    validatePositiveNumber('limit', 1, n);
+    validatePositiveNumber('Query.limit', 1, n);
     return new Query(this._query.withLimitToFirst(n), this.firestore);
   }
 
   limitToLast(n: number): firestore.Query {
     validateExactNumberOfArgs('Query.limitToLast', arguments, 1);
     validateArgType('Query.limitToLast', 'number', 1, n);
-    validatePositiveNumber('limitToLast', 1, n);
+    validatePositiveNumber('Query.limitToLast', 1, n);
     return new Query(this._query.withLimitToLast(n), this.firestore);
   }
 

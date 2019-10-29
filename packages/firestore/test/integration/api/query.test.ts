@@ -140,7 +140,7 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // Queries that mapped to the same target ID are referred to as
+  // Two queries that mapped to the same target ID are referred to as
   // "mirror queries". An example for a mirror query is a limitToLast()
   // query and a limit() query that share the same backend Target ID.
   // Since limitToLast() queries are sent to the backend with a modified
