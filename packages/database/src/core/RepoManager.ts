@@ -18,8 +18,8 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { safeGet } from '@firebase/util';
 import { Repo } from './Repo';
-import { fatal, FIREBASE_DATABASE_EMULATOR_HOST_VAR } from './util/util';
-import { parseRepoInfo, parseDatabaseURL } from './util/libs/parser';
+import { fatal } from './util/util';
+import { parseRepoInfo } from './util/libs/parser';
 import { validateUrl } from './util/validation';
 import './Repo_transaction';
 import { Database } from '../api/Database';
@@ -27,6 +27,16 @@ import { RepoInfo } from './RepoInfo';
 
 /** @const {string} */
 const DATABASE_URL_OPTION = 'databaseURL';
+
+/**
+ * This variable is also defined in the firebase node.js admin SDK. Before
+ * modifying this definition, consult the definition in:
+ *
+ * https://github.com/firebase/firebase-admin-node
+ *
+ * and make sure the two are consistent.
+ */
+const FIREBASE_DATABASE_EMULATOR_HOST_VAR = 'FIREBASE_DATABASE_EMULATOR_HOST';
 
 let _staticInstance: RepoManager;
 
