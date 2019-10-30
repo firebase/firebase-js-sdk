@@ -135,6 +135,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
 
   /** Tracks the current User. */
   private currentUser: User = User.UNAUTHENTICATED;
+  private receivedInitialUser: boolean = false;
 
   /**
    * Counter used to detect if the token changed while a getToken request was
@@ -151,12 +152,12 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.tokenListener = () => {
       this.tokenCounter++;
       this.currentUser = this.getUser();
+      this.receivedInitialUser = true;
       if (this.changeListener) {
         this.changeListener(this.currentUser);
       }
     };
 
-    this.currentUser = this.getUser();
     this.tokenCounter = 0;
 
     // Will fire at least once where we set this.currentUser
@@ -211,7 +212,9 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.changeListener = changeListener;
 
     // Fire the initial event
-    changeListener(this.currentUser);
+    if (this.receivedInitialUser) {
+      changeListener(this.currentUser);
+    }
   }
 
   removeChangeListener(): void {
@@ -227,6 +230,9 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.changeListener = null;
   }
 
+  // Auth.getUid() can return null even with a user logged in. It is because getUid() is synchronouse, but
+  // the actual code populating Uid is asynchronous. This method should only be called in the AuthTokenListener callback
+  // to guarantee to get the actual user.
   private getUser(): User {
     const currentUid = (this.app as _FirebaseApp).INTERNAL.getUid();
     assert(
