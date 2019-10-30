@@ -380,47 +380,61 @@ export class IndexedDbPersistence implements Persistence {
    * primary lease.
    */
   private updateClientMetadataAndTryBecomePrimary(): Promise<void> {
-    return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
-      const metadataStore = clientMetadataStore(txn);
-      return metadataStore
-        .put(
-          new DbClientMetadata(
-            this.clientId,
-            Date.now(),
-            this.networkEnabled,
-            this.inForeground
+    return this.simpleDb
+      .runTransaction('readwrite-idempotent', ALL_STORES, txn => {
+        const metadataStore = clientMetadataStore(txn);
+        return metadataStore
+          .put(
+            new DbClientMetadata(
+              this.clientId,
+              Date.now(),
+              this.networkEnabled,
+              this.inForeground
+            )
           )
-        )
-        .next(() => {
-          if (this.isPrimary) {
-            return this.verifyPrimaryLease(txn).next(success => {
-              if (!success) {
-                this.isPrimary = false;
-                this.queue.enqueueAndForget(() =>
-                  this.primaryStateListener(false)
-                );
-              }
-            });
-          }
-        })
-        .next(() => this.canActAsPrimary(txn))
-        .next(canActAsPrimary => {
-          const wasPrimary = this.isPrimary;
-          this.isPrimary = canActAsPrimary;
+          .next(() => {
+            if (this.isPrimary) {
+              return this.verifyPrimaryLease(txn).next(success => {
+                if (!success) {
+                  this.isPrimary = false;
+                  this.queue.enqueueAndForget(() =>
+                    this.primaryStateListener(false)
+                  );
+                }
+              });
+            }
+          })
+          .next(() => this.canActAsPrimary(txn))
+          .next(canActAsPrimary => {
+            if (this.isPrimary && !canActAsPrimary) {
+              return this.releasePrimaryLeaseIfHeld(txn).next(() => false);
+            } else if (canActAsPrimary) {
+              return this.acquireOrExtendPrimaryLease(txn).next(() => true);
+            } else {
+              return /* canActAsPrimary= */ false;
+            }
+          });
+      })
+      .catch(e => {
+        if (!this.allowTabSynchronization) {
+          throw e;
+        }
 
-          if (wasPrimary !== this.isPrimary) {
-            this.queue.enqueueAndForget(() =>
-              this.primaryStateListener(this.isPrimary)
-            );
-          }
-
-          if (wasPrimary && !this.isPrimary) {
-            return this.releasePrimaryLeaseIfHeld(txn);
-          } else if (this.isPrimary) {
-            return this.acquireOrExtendPrimaryLease(txn);
-          }
-        });
-    });
+        log.debug(
+          LOG_TAG,
+          'Releasing owner lease after error during lease refresh',
+          e
+        );
+        return /* isPrimary= */ false;
+      })
+      .then(isPrimary => {
+        if (this.isPrimary !== isPrimary) {
+          this.queue.enqueueAndForget(() =>
+            this.primaryStateListener(isPrimary)
+          );
+        }
+        this.isPrimary = isPrimary;
+      });
   }
 
   private verifyPrimaryLease(
@@ -767,8 +781,14 @@ export class IndexedDbPersistence implements Persistence {
           // transactionOperation takes a long time, we'll use a recent
           // leaseTimestampMs in the extended (or newly acquired) lease.
           return this.verifyPrimaryLease(simpleDbTxn)
-            .next(success => {
-              if (!success) {
+            .next(holdsPrimaryLease => {
+              if (holdsPrimaryLease) {
+                return /* holdsPrimaryLease= */ true;
+              }
+              return this.canActAsPrimary(simpleDbTxn);
+            })
+            .next(holdsPrimaryLease => {
+              if (!holdsPrimaryLease) {
                 log.error(
                   `Failed to obtain primary lease for action '${action}'.`
                 );
