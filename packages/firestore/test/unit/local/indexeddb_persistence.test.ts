@@ -1067,7 +1067,7 @@ describe('IndexedDb: canActAsPrimary', () => {
 
       await persistence.runTransaction(
         'regain lease',
-        'readwrite-primary',
+        'readwrite-primary-idempotent',
         () => PersistencePromise.resolve()
       );
 
