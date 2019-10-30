@@ -568,7 +568,8 @@ describeSpec('Limbo Documents:', [], () => {
 
       const docA2 = doc('collection/a', 2000, { val: 5 });
       const docB2 = doc('collection/b', 2000, { val: 6 });
-      const docD2 = doc('collection/d', 2000, { val: 7 });
+
+      const docD = doc('collection/d', 2000, { val: 7 });
 
       return (
         client(0)
@@ -582,12 +583,12 @@ describeSpec('Limbo Documents:', [], () => {
           .expectEvents(limitToLast, { added: [docC, docB, docA] })
           .client(0)
           .watchResets()
-          .watchSends({ affects: [limitToLast] }, docA2, docB2, docD2)
+          .watchSends({ affects: [limitToLast] }, docA2, docB2, docD)
           .watchCurrents(limitToLast, 'resume-token-2000')
           .watchSnapshots(2000)
           .client(1)
           .expectEvents(limitToLast, {
-            added: [docD2],
+            added: [docD],
             removed: [docC],
             modified: [docB2, docA2]
           })
@@ -612,7 +613,8 @@ describeSpec('Limbo Documents:', [], () => {
 
       const docA2 = doc('collection/a', 2000, { val: 11 });
       const docB2 = doc('collection/b', 2000, { val: 12 });
-      const docD2 = doc('collection/d', 2000, { val: 100 });
+
+      const docD = doc('collection/d', 2000, { val: 100 });
 
       return (
         client(0)
@@ -626,7 +628,7 @@ describeSpec('Limbo Documents:', [], () => {
           .expectEvents(limitToLast, { added: [docC, docB, docA] })
           .client(0)
           .watchResets()
-          .watchSends({ affects: [limitToLast] }, docA2, docB2, docD2)
+          .watchSends({ affects: [limitToLast] }, docA2, docB2, docD)
           .watchCurrents(limitToLast, 'resume-token-2000')
           .watchSnapshots(2000)
           // docC dropped out of limit in from backend result, but still

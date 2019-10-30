@@ -992,7 +992,7 @@ describeSpec('Listens:', [], () => {
           .expectEvents(limit, { added: [docA, docB] })
           .client(1)
           .expectEvents(limitToLast, { added: [docB, docA] })
-          // Secondary tab unlistens it's query
+          // Secondary tab unlistens from its query
           .userUnlistens(limitToLast)
           .client(0)
           .expectUnlisten(limitToLast)

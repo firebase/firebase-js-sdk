@@ -448,7 +448,7 @@ export class SpecBuilder {
       if (!objUtils.contains(this.limboMapping, path)) {
         this.limboMapping[path] = this.limboIdGenerator.next();
       }
-      // Limbo doc queries are currently always without resume token
+      // Limbo doc queries are always without resume token
       this.addQueryToActiveTargets(
         this.limboMapping[path],
         Query.atPath(key.path),
@@ -932,8 +932,10 @@ export class SpecBuilder {
     }
   }
 
-  // Add the specified `Query` under give active targe id. If it is already
-  // added, this is a no-op.
+  /**
+   * Add the specified `Query` under give active targe id. If it is already
+   * added, this is a no-op.
+   */
   private addQueryToActiveTargets(
     targetId: number,
     query: Query,
@@ -944,13 +946,14 @@ export class SpecBuilder {
       if (
         !activeQueries.some(specQuery => parseQuery(specQuery).isEqual(query))
       ) {
+        // `query` is not added yet.
         this.activeTargets[targetId] = {
           queries: [SpecBuilder.queryToSpec(query), ...activeQueries],
           resumeToken: resumeToken || ''
         };
       } else {
         this.activeTargets[targetId] = {
-          queries: [...activeQueries],
+          queries: activeQueries,
           resumeToken: resumeToken || ''
         };
       }
