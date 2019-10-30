@@ -933,6 +933,28 @@ describe('IndexedDb: canActAsPrimary', () => {
     simpleDb.close();
   }
 
+  async function getCurrentLeaseOwner(): Promise<ClientId | null> {
+    const simpleDb = await SimpleDb.openOrCreate(
+      INDEXEDDB_TEST_DATABASE_NAME,
+      SCHEMA_VERSION,
+      new SchemaConverter(TEST_SERIALIZER)
+    );
+    const leaseOwner = await simpleDb.runTransaction(
+      'readwrite-idempotent',
+      [DbPrimaryClient.store],
+      txn => {
+        const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
+          DbPrimaryClient.store
+        );
+        return primaryStore
+          .get(DbPrimaryClient.key)
+          .next(owner => (owner ? owner.ownerId : null));
+      }
+    );
+    simpleDb.close();
+    return leaseOwner;
+  }
+
   beforeEach(() => {
     return SimpleDb.delete(INDEXEDDB_TEST_DATABASE_NAME);
   });
@@ -1033,6 +1055,23 @@ describe('IndexedDb: canActAsPrimary', () => {
         isPrimary = primaryState;
       });
       expect(isPrimary).to.be.true;
+    });
+  });
+
+  it('regains lease if available', () => {
+    return withPersistence('clientA', async persistence => {
+      expect(await getCurrentLeaseOwner()).to.not.be.null;
+
+      await clearPrimaryLease();
+      expect(await getCurrentLeaseOwner()).to.be.null;
+
+      await persistence.runTransaction(
+        'regain lease',
+        'readwrite-primary',
+        () => PersistencePromise.resolve()
+      );
+
+      expect(await getCurrentLeaseOwner()).to.not.be.null;
     });
   });
 });
