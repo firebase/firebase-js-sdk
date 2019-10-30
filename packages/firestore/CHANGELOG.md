@@ -1,4 +1,8 @@
 # Unreleased
+- [changed] The client can now recover if certain periodic IndexedDB operations
+  fail.
+
+# 1.6.3
 - [changed] Improved iOS 13 support by eliminating an additional crash in our
   IndexedDB persistence layer.
 
