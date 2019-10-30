@@ -62,8 +62,7 @@ export class Query {
     readonly limit: number | null = null,
     readonly limitType: LimitType = LimitType.First,
     readonly startAt: Bound | null = null,
-    readonly endAt: Bound | null = null,
-    readonly isTargetQuery: boolean = false
+    readonly endAt: Bound | null = null
   ) {
     if (this.startAt) {
       this.assertValidBound(this.startAt);

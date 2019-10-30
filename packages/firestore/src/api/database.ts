@@ -1879,7 +1879,6 @@ export class Query implements firestore.Query {
     this.validateHasExplicitOrderByForLimitToLast(this._query);
     return new Promise(
       (resolve: Resolver<firestore.QuerySnapshot>, reject: Rejecter) => {
-        this.validateHasExplicitOrderByForLimitToLast(this._query);
         if (options && options.source === 'cache') {
           this.firestore
             .ensureClientConfigured()
