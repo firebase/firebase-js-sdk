@@ -940,7 +940,7 @@ describe('IndexedDb: canActAsPrimary', () => {
       new SchemaConverter(TEST_SERIALIZER)
     );
     const leaseOwner = await simpleDb.runTransaction(
-      'readwrite-idempotent',
+      'readonly-idempotent',
       [DbPrimaryClient.store],
       txn => {
         const primaryStore = txn.store<DbPrimaryClientKey, DbPrimaryClient>(
