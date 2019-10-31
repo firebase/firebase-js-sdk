@@ -1016,16 +1016,19 @@ describeSpec('Listens:', [], () => {
           // are unlistened by now.
           .userUnlistens(limitToLast)
           .client(0)
-          // TODO(b/143693491) `expectListen` would also pass, which is wrong.
-          // the subsequent `expectActiveTargets` makes sure the target is
-          // removed, but we still need to fix `spec_test_runner`.
+          // TODO(b/143693491) If we use `expectListen` here, the test would
+          // also pass, which is wrong. The reason is `TestRunner` only check
+          // the expected Queries against the actual target, in the case of
+          // mirror queries, both query will be able to find an actual target.
+          // We need to change `TestRunner` to track actual client queries
+          // being listened to in addition to the targets to fix this.
           .expectUnlisten(limitToLast)
           .expectActiveTargets()
       );
     }
   );
 
-  specTest('Mirror Queries in primary client', [], () => {
+  specTest('Can listen/unlisten to mirror queries.', [], () => {
     const limit = Query.atPath(path('collection'))
       .addOrderBy(orderBy('val', 'asc'))
       .withLimitToFirst(2);
@@ -1045,15 +1048,16 @@ describeSpec('Listens:', [], () => {
         .watchAcksFull(limit, 1000, docA, docB)
         .expectEvents(limit, { added: [docA, docB] })
         .expectEvents(limitToLast, { added: [docB, docA] })
-        // Un-listen to limitToLast
         .userUnlistens(limitToLast)
         .expectUnlisten(limitToLast)
         .watchSends({ affects: [limit] }, docC)
+        .watchCurrents(limit, 'resume-token-2000')
         .watchSnapshots(2000)
         .expectEvents(limit, { added: [docC], removed: [docB] })
-        // Re-listens to limitToLast
         .userListens(limitToLast)
         .expectListen(limitToLast)
+        // Note the result is not from cache because the target is kept
+        // alive since `limit` is still being listened to.
         .expectEvents(limitToLast, { added: [docC, docA] })
         // Backend fails the query.
         .watchRemoves(
