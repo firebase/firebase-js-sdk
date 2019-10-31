@@ -1016,11 +1016,55 @@ describeSpec('Listens:', [], () => {
           // are unlistened by now.
           .userUnlistens(limitToLast)
           .client(0)
-          .expectListen(limitToLast)
+          // TODO(b/143693491) `expectListen` would also pass, which is wrong.
+          // the subsequent `expectActiveTargets` makes sure the target is
+          // removed, but we still need to fix `spec_test_runner`.
+          .expectUnlisten(limitToLast)
           .expectActiveTargets()
       );
     }
   );
+
+  specTest('Mirror Queries in primary client', [], () => {
+    const limit = Query.atPath(path('collection'))
+      .addOrderBy(orderBy('val', 'asc'))
+      .withLimitToFirst(2);
+    const limitToLast = Query.atPath(path('collection'))
+      .addOrderBy(orderBy('val', 'desc'))
+      .withLimitToLast(2);
+    const docA = doc('collection/a', 1000, { val: 0 });
+    const docB = doc('collection/b', 1000, { val: 1 });
+    const docC = doc('collection/c', 2000, { val: 0 });
+
+    return (
+      spec()
+        .userListens(limit)
+        .expectListen(limit)
+        .userListens(limitToLast)
+        .expectListen(limitToLast)
+        .watchAcksFull(limit, 1000, docA, docB)
+        .expectEvents(limit, { added: [docA, docB] })
+        .expectEvents(limitToLast, { added: [docB, docA] })
+        // Un-listen to limitToLast
+        .userUnlistens(limitToLast)
+        .expectUnlisten(limitToLast)
+        .watchSends({ affects: [limit] }, docC)
+        .watchSnapshots(2000)
+        .expectEvents(limit, { added: [docC], removed: [docB] })
+        // Re-listens to limitToLast
+        .userListens(limitToLast)
+        .expectListen(limitToLast)
+        .expectEvents(limitToLast, { added: [docC, docA] })
+        // Backend fails the query.
+        .watchRemoves(
+          limit,
+          new RpcError(Code.RESOURCE_EXHAUSTED, 'Resource exhausted')
+        )
+        .expectEvents(limit, { errorCode: Code.RESOURCE_EXHAUSTED })
+        .expectEvents(limitToLast, { errorCode: Code.RESOURCE_EXHAUSTED })
+        .expectActiveTargets()
+    );
+  });
 
   specTest(
     "Secondary client uses primary client's online state",
