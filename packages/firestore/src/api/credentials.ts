@@ -230,8 +230,9 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     this.changeListener = null;
   }
 
-  // Auth.getUid() can return null even with a user logged in. It is because getUid() is synchronous, but
-  // the actual code populating Uid is asynchronous. This method should only be called in the AuthTokenListener callback
+  // Auth.getUid() can return null even with a user logged in. It is because 
+  // getUid() is synchronous, but the auth code populating Uid is asynchronous. 
+  // This method should only be called in the AuthTokenListener callback
   // to guarantee to get the actual user.
   private getUser(): User {
     const currentUid = (this.app as _FirebaseApp).INTERNAL.getUid();
