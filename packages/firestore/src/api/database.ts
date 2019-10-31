@@ -1443,15 +1443,18 @@ export class Query implements firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateDefined('Query.where', 3, value);
 
-    // TODO(in-queries): Add 'in' and 'array-contains-any' to validation.
-    if (
-      (opStr as unknown) !== 'in' &&
-      (opStr as unknown) !== 'array-contains-any'
-    ) {
-      // Enumerated from the WhereFilterOp type in index.d.ts.
-      const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];
-      validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
-    }
+    // Enumerated from the WhereFilterOp type in index.d.ts.
+    const whereFilterOpEnums = [
+      '<',
+      '<=',
+      '==',
+      '>=',
+      '>',
+      'array-contains',
+      'in',
+      'array-contains-any'
+    ];
+    validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
 
     let fieldValue: FieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
