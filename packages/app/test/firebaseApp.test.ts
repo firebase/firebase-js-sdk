@@ -315,7 +315,7 @@ function firebaseAppTests(
 }
 
 class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) { }
+  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
 
   // TODO(koss): Shouldn't this just be an added method on
   // the service instance?
