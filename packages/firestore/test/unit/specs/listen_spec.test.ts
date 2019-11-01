@@ -1016,11 +1016,59 @@ describeSpec('Listens:', [], () => {
           // are unlistened by now.
           .userUnlistens(limitToLast)
           .client(0)
-          .expectListen(limitToLast)
+          // TODO(b/143693491) If we use `expectListen` here, the test would
+          // also pass, which is wrong. The reason is `TestRunner` only check
+          // the expected Queries against the actual target. In the case of
+          // mirror queries, both queries will be able to find an actual target.
+          // We need to change `TestRunner` to track the actual client queries
+          // in addition to the targets to fix this.
+          .expectUnlisten(limitToLast)
           .expectActiveTargets()
       );
     }
   );
+
+  specTest('Can listen/unlisten to mirror queries.', [], () => {
+    const limit = Query.atPath(path('collection'))
+      .addOrderBy(orderBy('val', 'asc'))
+      .withLimitToFirst(2);
+    const limitToLast = Query.atPath(path('collection'))
+      .addOrderBy(orderBy('val', 'desc'))
+      .withLimitToLast(2);
+    const docA = doc('collection/a', 1000, { val: 0 });
+    const docB = doc('collection/b', 1000, { val: 1 });
+    const docC = doc('collection/c', 2000, { val: 0 });
+
+    return (
+      spec()
+        .userListens(limit)
+        .expectListen(limit)
+        .userListens(limitToLast)
+        .expectListen(limitToLast)
+        .watchAcksFull(limit, 1000, docA, docB)
+        .expectEvents(limit, { added: [docA, docB] })
+        .expectEvents(limitToLast, { added: [docB, docA] })
+        .userUnlistens(limitToLast)
+        .expectUnlisten(limitToLast)
+        .watchSends({ affects: [limit] }, docC)
+        .watchCurrents(limit, 'resume-token-2000')
+        .watchSnapshots(2000)
+        .expectEvents(limit, { added: [docC], removed: [docB] })
+        .userListens(limitToLast)
+        .expectListen(limitToLast)
+        // Note the result is not from cache because the target is kept
+        // alive since `limit` is still being listened to.
+        .expectEvents(limitToLast, { added: [docC, docA] })
+        // Backend fails the query.
+        .watchRemoves(
+          limit,
+          new RpcError(Code.RESOURCE_EXHAUSTED, 'Resource exhausted')
+        )
+        .expectEvents(limit, { errorCode: Code.RESOURCE_EXHAUSTED })
+        .expectEvents(limitToLast, { errorCode: Code.RESOURCE_EXHAUSTED })
+        .expectActiveTargets()
+    );
+  });
 
   specTest(
     "Secondary client uses primary client's online state",
