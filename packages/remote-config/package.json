@@ -30,6 +30,7 @@
     "@firebase/logger": "0.1.28",
     "@firebase/remote-config-types": "0.1.2",
     "@firebase/util": "0.2.31",
+    "@firebase/component": "0.1.0",
     "tslib": "1.10.0"
   },
   "license": "Apache-2.0",
