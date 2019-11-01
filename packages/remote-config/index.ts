@@ -16,8 +16,8 @@
  */
 
 import firebase from '@firebase/app';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
 import '@firebase/installations';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { RemoteConfig as RemoteConfigType } from '@firebase/remote-config-types';
 import { CachingClient } from './src/client/caching_client';
 import { RestClient } from './src/client/rest_client';
@@ -28,6 +28,11 @@ import { ERROR_FACTORY, ErrorCode } from './src/errors';
 import { RetryingClient } from './src/client/retrying_client';
 import { Logger, LogLevel as FirebaseLogLevel } from '@firebase/logger';
 import { name as packageName } from './package.json';
+import {
+  Component,
+  ComponentType,
+  ComponentContainer
+} from '@firebase/component';
 
 // Facilitates debugging by enabling settings changes without rebuilding asset.
 // Note these debug options are not part of a documented, supported API and can change at any time.
@@ -42,71 +47,82 @@ declare global {
 export function registerRemoteConfig(
   firebaseInstance: _FirebaseNamespace
 ): void {
-  firebaseInstance.INTERNAL.registerService(
-    'remoteConfig',
-    (app, _, namespace) => {
-      // Guards against the SDK being used in non-browser environments.
-      if (typeof window === 'undefined') {
-        throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_WINDOW);
-      }
-
-      // Normalizes optional inputs.
-      const { projectId, apiKey, appId } = app.options;
-      if (!projectId) {
-        throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_PROJECT_ID);
-      }
-      if (!apiKey) {
-        throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_API_KEY);
-      }
-      if (!appId) {
-        throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_APP_ID);
-      }
-      namespace = namespace || 'firebase';
-
-      const storage = new Storage(appId, app.name, namespace);
-      const storageCache = new StorageCache(storage);
-
-      const logger = new Logger(packageName);
-
-      // Sets ERROR as the default log level.
-      // See RemoteConfig#setLogLevel for corresponding normalization to ERROR log level.
-      logger.logLevel = FirebaseLogLevel.ERROR;
-
-      const restClient = new RestClient(
-        app.installations(),
-        // Uses the JS SDK version, by which the RC package version can be deduced, if necessary.
-        firebaseInstance.SDK_VERSION,
-        namespace,
-        projectId,
-        apiKey,
-        appId
-      );
-      const retryingClient = new RetryingClient(restClient, storage);
-      const cachingClient = new CachingClient(
-        retryingClient,
-        storage,
-        storageCache,
-        logger
-      );
-
-      const remoteConfigInstance = new RemoteConfig(
-        app,
-        cachingClient,
-        storageCache,
-        storage,
-        logger
-      );
-
-      // Starts warming cache.
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      remoteConfigInstance.ensureInitialized();
-
-      return remoteConfigInstance;
-    },
-    undefined,
-    undefined,
-    true /* allowMultipleInstances */
+  firebaseInstance.INTERNAL.registerComponent(
+    new Component(
+      'remoteConfig',
+      remoteConfigFactory,
+      ComponentType.PUBLIC
+    ).setMultipleInstances(true)
   );
+
+  function remoteConfigFactory(
+    container: ComponentContainer,
+    namespace?: string
+  ): RemoteConfig {
+    /* Dependencies */
+    // getImmediate for FirebaseApp will always succeed
+    const app = container.getProvider('app').getImmediate();
+    // The following call will always succeed because rc has `import '@firebase/installations'`
+    const installations = container.getProvider('installations').getImmediate();
+
+    // Guards against the SDK being used in non-browser environments.
+    if (typeof window === 'undefined') {
+      throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_WINDOW);
+    }
+
+    // Normalizes optional inputs.
+    const { projectId, apiKey, appId } = app.options;
+    if (!projectId) {
+      throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_PROJECT_ID);
+    }
+    if (!apiKey) {
+      throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_API_KEY);
+    }
+    if (!appId) {
+      throw ERROR_FACTORY.create(ErrorCode.REGISTRATION_APP_ID);
+    }
+    namespace = namespace || 'firebase';
+
+    const storage = new Storage(appId, app.name, namespace);
+    const storageCache = new StorageCache(storage);
+
+    const logger = new Logger(packageName);
+
+    // Sets ERROR as the default log level.
+    // See RemoteConfig#setLogLevel for corresponding normalization to ERROR log level.
+    logger.logLevel = FirebaseLogLevel.ERROR;
+
+    const restClient = new RestClient(
+      installations,
+      // Uses the JS SDK version, by which the RC package version can be deduced, if necessary.
+      firebaseInstance.SDK_VERSION,
+      namespace,
+      projectId,
+      apiKey,
+      appId
+    );
+    const retryingClient = new RetryingClient(restClient, storage);
+    const cachingClient = new CachingClient(
+      retryingClient,
+      storage,
+      storageCache,
+      logger
+    );
+
+    const remoteConfigInstance = new RemoteConfig(
+      app,
+      cachingClient,
+      storageCache,
+      storage,
+      logger
+    );
+
+    // Starts warming cache.
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    remoteConfigInstance.ensureInitialized();
+
+    return remoteConfigInstance;
+  }
 }
 
 registerRemoteConfig(firebase as _FirebaseNamespace);
