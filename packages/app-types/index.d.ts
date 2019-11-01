@@ -1,5 +1,3 @@
-import { Provider } from '@firebase/component';
-
 /**
  * @license
  * Copyright 2017 Google Inc.
