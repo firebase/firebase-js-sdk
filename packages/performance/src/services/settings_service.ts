@@ -17,6 +17,7 @@
 
 import { FirebaseApp } from '@firebase/app-types';
 import { ERROR_FACTORY, ErrorCode } from '../utils/errors';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 let settingsServiceInstance: SettingsService | undefined;
 
@@ -45,6 +46,8 @@ export class SettingsService {
   configTimeToLive = 12;
 
   firebaseAppInstance!: FirebaseApp;
+
+  installationsService!: FirebaseInstallations;
 
   getAppId(): string {
     const appId =
