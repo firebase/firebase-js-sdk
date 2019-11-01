@@ -1018,10 +1018,10 @@ describeSpec('Listens:', [], () => {
           .client(0)
           // TODO(b/143693491) If we use `expectListen` here, the test would
           // also pass, which is wrong. The reason is `TestRunner` only check
-          // the expected Queries against the actual target, in the case of
-          // mirror queries, both query will be able to find an actual target.
-          // We need to change `TestRunner` to track actual client queries
-          // being listened to in addition to the targets to fix this.
+          // the expected Queries against the actual target. In the case of
+          // mirror queries, both queries will be able to find an actual target.
+          // We need to change `TestRunner` to track the actual client queries
+          // in addition to the targets to fix this.
           .expectUnlisten(limitToLast)
           .expectActiveTargets()
       );
