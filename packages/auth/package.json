@@ -27,7 +27,7 @@
     "firebase-functions": "3.3.0",
     "firebase-tools": "7.6.1",
     "google-closure-compiler": "20190709.0.0",
-    "google-closure-library": "20190709.0.0",
+    "google-closure-library": "20191027.0.1",
     "gulp": "4.0.2",
     "gulp-sourcemaps": "2.6.5",
     "protractor": "5.4.2"
