@@ -43,7 +43,7 @@
   "devDependencies": {
     "firebase": "7.2.2",
     "rxjs": "6.5.3",
-    "rollup": "1.25.2",
+    "rollup": "1.26.2",
     "rollup-plugin-commonjs": "10.1.0",
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-typescript2": "0.24.3",
@@ -73,10 +73,10 @@
     "tslint": "5.20.0",
     "webpack": "4.41.2",
     "yargs": "14.2.0",
-    "eslint": "6.5.1",
-    "@typescript-eslint/parser": "2.5.0",
-    "@typescript-eslint/eslint-plugin": "2.5.0",
-    "@typescript-eslint/eslint-plugin-tslint": "2.5.0",
+    "eslint": "6.6.0",
+    "@typescript-eslint/parser": "2.6.0",
+    "@typescript-eslint/eslint-plugin": "2.6.0",
+    "@typescript-eslint/eslint-plugin-tslint": "2.6.0",
     "eslint-plugin-import": "2.18.2"
   },
   "typings": "dist/index.d.ts",
