@@ -263,11 +263,13 @@ export class SpecBuilder {
       throw new Error('Unlistening to query not listened to: ' + query);
     }
     const targetId = this.queryMapping.get(target)!;
-    if (this.config.useGarbageCollection) {
+    this.removeQueryFromActiveTargets(query, targetId);
+
+    if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);
       this.queryIdGenerator.purge(target);
     }
-    this.removeQueryFromActiveTargets(query, targetId);
+
     this.currentStep = {
       userUnlisten: [targetId, SpecBuilder.queryToSpec(query)],
       expectedState: { activeTargets: objUtils.shallowCopy(this.activeTargets) }
@@ -792,12 +794,12 @@ export class SpecBuilder {
     const target = query.toTarget();
     const targetId = this.queryMapping.get(target)!;
 
-    if (this.config.useGarbageCollection) {
+    this.removeQueryFromActiveTargets(query, targetId);
+
+    if (this.config.useGarbageCollection && !this.activeTargets[targetId]) {
       this.queryMapping.delete(target);
       this.queryIdGenerator.purge(target);
     }
-
-    this.removeQueryFromActiveTargets(query, targetId);
 
     const currentStep = this.currentStep!;
     currentStep.expectedState = currentStep.expectedState || {};
