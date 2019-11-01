@@ -681,9 +681,9 @@ fireauth.exportlib.exportFunction(
       'serviceProps': namespace,
       'instantiationMode': 'LAZY',
       'type':  'PUBLIC'
-      }
+    };
   
-      const authInteropComponent = { // provides Auth internal APIs
+    const authInteropComponent = { // provides Auth internal APIs
       'name': 'auth-internal',
       'instanceFactory': function(container) {
           var auth = container['getProvider'](fireauth.exportlib.AUTH_TYPE)['getImmediate']();
@@ -699,10 +699,10 @@ fireauth.exportlib.exportFunction(
       'multipleInstances': false,
       'instantiationMode': 'LAZY',
       'type':  'PRIVATE'
-      };
+    };
   
-      firebase.INTERNAL.registerComponent(authComponent);
-      firebase.INTERNAL.registerComponent(authInteropComponent);
+    firebase.INTERNAL.registerComponent(authComponent);
+    firebase.INTERNAL.registerComponent(authInteropComponent);
 
     // Expose User as firebase.User.
     firebase.INTERNAL.extendNamespace({
