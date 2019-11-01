@@ -307,8 +307,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
     const queryView = this.queryViewsByQuery.get(query)!;
     assert(!!queryView, 'Trying to unlisten on query not found:' + query);
 
-    // If it's not the only query mapped to the target, only clean up
-    // query view and keep the target active.
+    // Only clean up the query view and target if this is the only query mapped
+    // to the target.
     const queries = this.queriesByTarget[queryView.targetId];
     if (queries.length > 1) {
       this.queriesByTarget[queryView.targetId] = queries.filter(
@@ -1015,8 +1015,8 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
    *
    * The synthesized result might be different from the original `Query`, but
    * since the synthesized `Query` should return the same results as the
-   * original one (only the presentation of results might differ), and this is
-   * only used for multi-tab, the potential difference will not cause issues.
+   * original one (only the presentation of results might differ), the potential
+   * difference will not cause issues.
    */
   // PORTING NOTE: Multi-tab only
   private synthesizeTargetToQuery(target: Target): Query {

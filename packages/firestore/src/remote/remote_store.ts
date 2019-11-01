@@ -240,7 +240,7 @@ export class RemoteStore implements TargetMetadataProvider {
 
   /**
    * Starts new listen for the given query. Uses resume token if provided. It
-   * is a no-op if the target of given `QueryData` is already being listened.
+   * is a no-op if the target of given `QueryData` is already being listened to.
    */
   listen(queryData: QueryData): void {
     if (objUtils.contains(this.listenTargets, queryData.targetId)) {

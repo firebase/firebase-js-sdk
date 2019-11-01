@@ -1102,7 +1102,7 @@ export class Query {
    * documents.
    *
    * Queries with `limitToLast` must have at least one `orderBy` clause on
-   * one of the document fields, or an Exception will throw during execution.
+   * one of the document fields, or an Exception will be thrown during execution.
    *
    * @param limit The maximum number of items to return.
    * @return The created Query.

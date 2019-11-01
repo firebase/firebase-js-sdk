@@ -8131,7 +8131,7 @@ declare namespace firebase.firestore {
      * documents.
      *
      * You must specify at least one `orderBy` clause for `limitToLast` queries,
-     * otherwise an exception will be thrown thrown during execution.
+     * otherwise an exception will be thrown during execution.
      *
      * @param limit The maximum number of items to return.
      * @return The created Query.

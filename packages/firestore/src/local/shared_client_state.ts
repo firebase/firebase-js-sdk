@@ -112,7 +112,7 @@ export interface SharedClientState {
    * already associated with another tab).
    *
    * If the target id is already associated with local client, the method simply
-   * returns it's `QueryTargetState`.
+   * returns its `QueryTargetState`.
    */
   addLocalQueryTarget(targetId: TargetId): QueryTargetState;
 
