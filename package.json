@@ -51,7 +51,7 @@
     "clone": "2.1.2",
     "coveralls": "3.0.7",
     "dependency-graph": "0.8.0",
-    "firebase-tools": "7.6.1",
+    "firebase-tools": "7.6.2",
     "glob": "7.1.5",
     "husky": "3.0.9",
     "inquirer": "7.0.0",

@@ -19,7 +19,7 @@
     "@firebase/logger": "0.1.28",
     "@firebase/util": "0.2.31",
     "@types/request": "2.48.3",
-    "grpc": "1.24.1",
+    "grpc": "1.24.2",
     "request": "2.88.0"
   },
   "devDependencies": {
@@ -27,7 +27,7 @@
     "chai-as-promised": "7.1.1",
     "mocha": "6.2.2",
     "nyc": "14.1.1",
-    "rollup": "1.25.2",
+    "rollup": "1.26.2",
     "rollup-plugin-copy-assets": "1.1.0",
     "rollup-plugin-replace": "2.2.0",
     "rollup-plugin-typescript2": "0.24.3"
