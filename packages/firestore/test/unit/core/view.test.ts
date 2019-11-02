@@ -174,7 +174,7 @@ describe('View', () => {
 
   it('removes documents for query with limit', () => {
     // shallow ancestor query
-    const query = Query.atPath(path('rooms/eros/messages')).withLimit(2);
+    const query = Query.atPath(path('rooms/eros/messages')).withLimitToFirst(2);
     const view = new View(query, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { text: 'msg1' });
@@ -206,7 +206,7 @@ describe('View', () => {
     // shallow ancestor query
     const query = Query.atPath(path('rooms/eros/messages'))
       .addOrderBy(orderBy('num'))
-      .withLimit(2);
+      .withLimitToFirst(2);
     const view = new View(query, documentKeySet());
 
     const doc1 = doc('rooms/eros/messages/1', 0, { num: 1 });
@@ -344,7 +344,7 @@ describe('View', () => {
   });
 
   it('returns needsRefill on delete limit query', () => {
-    const query = Query.atPath(path('rooms/eros/msgs')).withLimit(2);
+    const query = Query.atPath(path('rooms/eros/msgs')).withLimitToFirst(2);
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const view = new View(query, documentKeySet());
@@ -372,7 +372,7 @@ describe('View', () => {
   it('returns needsRefill on reorder in limit query', () => {
     const query = Query.atPath(path('rooms/eros/msgs'))
       .addOrderBy(orderBy('order'))
-      .withLimit(2);
+      .withLimitToFirst(2);
     const doc1 = doc('rooms/eros/msgs/0', 0, { order: 1 });
     let doc2 = doc('rooms/eros/msgs/1', 0, { order: 2 });
     const doc3 = doc('rooms/eros/msgs/2', 0, { order: 3 });
@@ -405,7 +405,7 @@ describe('View', () => {
   it("doesn't need refill on reorder within limit", () => {
     const query = Query.atPath(path('rooms/eros/msgs'))
       .addOrderBy(orderBy('order'))
-      .withLimit(3);
+      .withLimitToFirst(3);
     let doc1 = doc('rooms/eros/msgs/0', 0, { order: 1 });
     const doc2 = doc('rooms/eros/msgs/1', 0, { order: 2 });
     const doc3 = doc('rooms/eros/msgs/2', 0, { order: 3 });
@@ -434,7 +434,7 @@ describe('View', () => {
   it("doesn't need refill on reorder after limit query", () => {
     const query = Query.atPath(path('rooms/eros/msgs'))
       .addOrderBy(orderBy('order'))
-      .withLimit(3);
+      .withLimitToFirst(3);
     const doc1 = doc('rooms/eros/msgs/0', 0, { order: 1 });
     const doc2 = doc('rooms/eros/msgs/1', 0, { order: 2 });
     const doc3 = doc('rooms/eros/msgs/2', 0, { order: 3 });
@@ -461,7 +461,7 @@ describe('View', () => {
   });
 
   it("doesn't need refill for additions after the limit", () => {
-    const query = Query.atPath(path('rooms/eros/msgs')).withLimit(2);
+    const query = Query.atPath(path('rooms/eros/msgs')).withLimitToFirst(2);
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const view = new View(query, documentKeySet());
@@ -483,7 +483,7 @@ describe('View', () => {
   });
 
   it("doesn't need refill for deletions when not near the limit", () => {
-    const query = Query.atPath(path('rooms/eros/msgs')).withLimit(20);
+    const query = Query.atPath(path('rooms/eros/msgs')).withLimitToFirst(20);
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const view = new View(query, documentKeySet());
@@ -503,7 +503,7 @@ describe('View', () => {
   });
 
   it('handles applying irrelevant docs', () => {
-    const query = Query.atPath(path('rooms/eros/msgs')).withLimit(2);
+    const query = Query.atPath(path('rooms/eros/msgs')).withLimitToFirst(2);
     const doc1 = doc('rooms/eros/msgs/0', 0, {});
     const doc2 = doc('rooms/eros/msgs/1', 0, {});
     const view = new View(query, documentKeySet());

@@ -20,6 +20,7 @@ import { PublicFieldValue } from '../../../src/api/field_value';
 import { Timestamp } from '../../../src/api/timestamp';
 import { User } from '../../../src/auth/user';
 import { Query } from '../../../src/core/query';
+import { Target } from '../../../src/core/target';
 import { TargetId, BatchId } from '../../../src/core/types';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
@@ -199,22 +200,26 @@ class LocalStoreTester {
   }
 
   afterAllocatingQuery(query: Query): LocalStoreTester {
+    return this.afterAllocatingTarget(query.toTarget());
+  }
+
+  afterAllocatingTarget(target: Target): LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.allocateQuery(query).then(result => {
+      return this.localStore.allocateTarget(target).then(result => {
         this.lastTargetId = result.targetId;
       });
     });
     return this;
   }
 
-  afterReleasingQuery(query: Query): LocalStoreTester {
+  afterReleasingTarget(targetId: number): LocalStoreTester {
     this.prepareNextStep();
 
     this.promiseChain = this.promiseChain.then(() => {
-      return this.localStore.releaseQuery(
-        query,
+      return this.localStore.releaseTarget(
+        targetId,
         /*keepPersistedQueryData=*/ false
       );
     });
@@ -546,7 +551,7 @@ function genericLocalStoreTests(
         doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 0, { foo: 'bar' }, { hasLocalMutations: true }))
-      .afterReleasingQuery(query)
+      .afterReleasingTarget(2)
       .afterAcknowledgingMutation({ documentVersion: 3 })
       .toReturnChanged(
         doc('foo/bar', 3, { foo: 'bar' }, { hasCommittedMutations: true })
@@ -704,7 +709,7 @@ function genericLocalStoreTests(
         .toReturnRemoved('foo/bar')
         .toContain(deletedDoc('foo/bar', 0))
         // remove the mutation so only the mutation is pinning the doc
-        .afterReleasingQuery(query)
+        .afterReleasingTarget(2)
         .afterAcknowledgingMutation({ documentVersion: 2 })
         .toReturnRemoved('foo/bar')
         .toNotContainIfEager(
@@ -727,7 +732,7 @@ function genericLocalStoreTests(
         .toReturnRemoved('foo/bar')
         .toContain(deletedDoc('foo/bar', 0))
         // Don't need to keep doc pinned anymore
-        .afterReleasingQuery(query)
+        .afterReleasingTarget(2)
         .afterAcknowledgingMutation({ documentVersion: 2 })
         .toReturnRemoved('foo/bar')
         .toNotContainIfEager(
@@ -773,7 +778,7 @@ function genericLocalStoreTests(
         doc('foo/bar', 1, { foo: 'bar' }, { hasLocalMutations: true })
       )
       .toContain(doc('foo/bar', 1, { foo: 'bar' }, { hasLocalMutations: true }))
-      .afterReleasingQuery(query)
+      .afterReleasingTarget(2)
       .afterAcknowledgingMutation({ documentVersion: 2 }) // delete mutation
       .toReturnChanged(
         doc('foo/bar', 2, { foo: 'bar' }, { hasLocalMutations: true })
@@ -895,9 +900,9 @@ function genericLocalStoreTests(
           .toReturnTargetId(2)
           .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'old' }), [2]))
           .after(patchMutation('foo/bar', { foo: 'bar' }))
-          // Release the query so that our target count goes back to 0 and we are considered
+          // Release the target so that our target count goes back to 0 and we are considered
           // up-to-date.
-          .afterReleasingQuery(query)
+          .afterReleasingTarget(2)
           .after(setMutation('foo/bah', { foo: 'bah' }))
           .after(deleteMutation('foo/baz'))
           .toContain(
@@ -935,9 +940,9 @@ function genericLocalStoreTests(
         .toReturnTargetId(2)
         .after(docAddedRemoteEvent(doc('foo/bar', 1, { foo: 'old' }), [2]))
         .after(patchMutation('foo/bar', { foo: 'bar' }))
-        // Release the query so that our target count goes back to 0 and we are considered
+        // Release the target so that our target count goes back to 0 and we are considered
         // up-to-date.
-        .afterReleasingQuery(query)
+        .afterReleasingTarget(2)
         .after(setMutation('foo/bah', { foo: 'bah' }))
         .after(deleteMutation('foo/baz'))
         .toContain(
@@ -990,7 +995,7 @@ function genericLocalStoreTests(
           removed: ['foo/bar', 'foo/baz']
         })
       )
-      .afterReleasingQuery(query)
+      .afterReleasingTarget(2)
       .toNotContain('foo/bar')
       .toNotContain('foo/baz')
       .finish();
@@ -1053,7 +1058,7 @@ function genericLocalStoreTests(
 
   it('can execute mixed collection queries', async () => {
     const query = Query.atPath(path('foo'));
-    const queryData = await localStore.allocateQuery(query);
+    const queryData = await localStore.allocateTarget(query.toTarget());
     expect(queryData.targetId).to.equal(2);
     await localStore.applyRemoteEvent(
       docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
@@ -1117,7 +1122,7 @@ function genericLocalStoreTests(
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)('persists resume tokens', async () => {
     const query = Query.atPath(path('foo/bar'));
-    const queryData = await localStore.allocateQuery(query);
+    const queryData = await localStore.allocateTarget(query.toTarget());
     const targetId = queryData.targetId;
     const resumeToken = 'abc';
     const watchChange = new WatchTargetChange(
@@ -1134,10 +1139,13 @@ function genericLocalStoreTests(
     await localStore.applyRemoteEvent(remoteEvent);
 
     // Stop listening so that the query should become inactive (but persistent)
-    await localStore.releaseQuery(query, /*keepPersistedQueryData=*/ false);
+    await localStore.releaseTarget(
+      queryData.targetId,
+      /*keepPersistedQueryData=*/ false
+    );
 
     // Should come back with the same resume token
-    const queryData2 = await localStore.allocateQuery(query);
+    const queryData2 = await localStore.allocateTarget(query.toTarget());
     expect(queryData2.resumeToken).to.deep.equal(resumeToken);
   });
 
@@ -1146,7 +1154,7 @@ function genericLocalStoreTests(
     'does not replace resume token with empty resume token',
     async () => {
       const query = Query.atPath(path('foo/bar'));
-      const queryData = await localStore.allocateQuery(query);
+      const queryData = await localStore.allocateTarget(query.toTarget());
       const targetId = queryData.targetId;
       const resumeToken = 'abc';
 
@@ -1177,10 +1185,13 @@ function genericLocalStoreTests(
       await localStore.applyRemoteEvent(remoteEvent2);
 
       // Stop listening so that the query should become inactive (but persistent)
-      await localStore.releaseQuery(query, /*keepPersistedQueryData=*/ false);
+      await localStore.releaseTarget(
+        targetId,
+        /*keepPersistedQueryData=*/ false
+      );
 
       // Should come back with the same resume token
-      const queryData2 = await localStore.allocateQuery(query);
+      const queryData2 = await localStore.allocateTarget(query.toTarget());
       expect(queryData2.resumeToken).to.deep.equal(resumeToken);
     }
   );
@@ -1535,9 +1546,9 @@ function genericLocalStoreTests(
     // is advanced when we compute a limbo-free free view and that the mapping
     // is persisted when we release a query.
 
-    const query = Query.atPath(path('foo'));
+    const target = Query.atPath(path('foo')).toTarget();
 
-    const queryData = await localStore.allocateQuery(query);
+    const queryData = await localStore.allocateTarget(target);
 
     // Advance the query snapshot
     await localStore.applyRemoteEvent(
@@ -1548,7 +1559,7 @@ function genericLocalStoreTests(
     let cachedQueryData = await persistence.runTransaction(
       'getQueryData',
       'readonly-idempotent',
-      txn => localStore.getQueryData(txn, query)
+      txn => localStore.getQueryData(txn, target)
     );
     expect(
       cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.MIN)
@@ -1561,20 +1572,23 @@ function genericLocalStoreTests(
     cachedQueryData = await persistence.runTransaction(
       'getQueryData',
       'readonly-idempotent',
-      txn => localStore.getQueryData(txn, query)
+      txn => localStore.getQueryData(txn, target)
     );
     expect(cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
       .to.be.true;
 
     // The last limbo free snapshot version is persisted even if we release the
     // query.
-    await localStore.releaseQuery(query, /* keepPersistedQueryData= */ false);
+    await localStore.releaseTarget(
+      queryData.targetId,
+      /* keepPersistedQueryData= */ false
+    );
 
     if (!gcIsEager) {
       cachedQueryData = await persistence.runTransaction(
         'getQueryData',
         'readonly-idempotent',
-        txn => localStore.getQueryData(txn, query)
+        txn => localStore.getQueryData(txn, target)
       );
       expect(cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
         .to.be.true;
@@ -1652,7 +1666,7 @@ function genericLocalStoreTests(
             )
           )
           .after(localViewChanges(2, /* fromCache= */ false, {}))
-          .afterReleasingQuery(filteredQuery)
+          .afterReleasingTarget(2)
           // Start another query and add more matching documents to the collection.
           .afterAllocatingQuery(fullQuery)
           .toReturnTargetId(4)
@@ -1666,7 +1680,7 @@ function genericLocalStoreTests(
               []
             )
           )
-          .afterReleasingQuery(fullQuery)
+          .afterReleasingTarget(4)
           // Run the original query again and ensure that both the original
           // matches as well as all new matches are included in the result set.
           .afterAllocatingQuery(filteredQuery)
@@ -1714,7 +1728,7 @@ function genericLocalStoreTests(
             )
           )
           .after(localViewChanges(2, /* fromCache= */ false, {}))
-          .afterReleasingQuery(filteredQuery)
+          .afterReleasingTarget(2)
           // Modify one of the documents to no longer match while the filtered
           // query is inactive.
           .afterAllocatingQuery(fullQuery)
@@ -1729,7 +1743,7 @@ function genericLocalStoreTests(
               []
             )
           )
-          .afterReleasingQuery(fullQuery)
+          .afterReleasingTarget(4)
           // Run the original query again and ensure that both the original
           // matches as well as all new matches are included in the result set.
           .afterAllocatingQuery(filteredQuery)

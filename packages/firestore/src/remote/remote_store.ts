@@ -238,12 +238,15 @@ export class RemoteStore implements TargetMetadataProvider {
     this.onlineStateTracker.set(OnlineState.Unknown);
   }
 
-  /** Starts new listen for the given query. Uses resume token if provided */
+  /**
+   * Starts new listen for the given query. Uses resume token if provided. It
+   * is a no-op if the target of given `QueryData` is already being listened to.
+   */
   listen(queryData: QueryData): void {
-    assert(
-      !objUtils.contains(this.listenTargets, queryData.targetId),
-      'listen called with duplicate targetId!'
-    );
+    if (objUtils.contains(this.listenTargets, queryData.targetId)) {
+      return;
+    }
+
     // Mark this as something the client is currently listening for.
     this.listenTargets[queryData.targetId] = queryData;
 
@@ -255,12 +258,15 @@ export class RemoteStore implements TargetMetadataProvider {
     }
   }
 
-  /** Removes the listen from server */
+  /**
+   * Removes the listen from server. It is a no-op if the given target id is
+   * not being listened to.
+   */
   unlisten(targetId: TargetId): void {
-    assert(
-      objUtils.contains(this.listenTargets, targetId),
-      'unlisten called without assigned target ID!'
-    );
+    if (!objUtils.contains(this.listenTargets, targetId)) {
+      return;
+    }
+
     delete this.listenTargets[targetId];
     if (this.watchStream.isOpen()) {
       this.sendUnwatchRequest(targetId);
@@ -462,7 +468,7 @@ export class RemoteStore implements TargetMetadataProvider {
       // that we flag the first re-listen this way without impacting future
       // listens of this target (that might happen e.g. on reconnect).
       const requestQueryData = new QueryData(
-        queryData.query,
+        queryData.target,
         targetId,
         QueryPurpose.ExistenceFilterMismatch,
         queryData.sequenceNumber
