@@ -175,7 +175,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
           this.auth = auth;
           if (this.tokenListener) {
             // tokenListener can be removed by removeChangeListener()
-            this.auth.addAuthTokenListener(this.tokenListener!);
+            this.auth.addAuthTokenListener(this.tokenListener);
           }
         },
         () => {
