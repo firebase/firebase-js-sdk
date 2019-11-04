@@ -22,7 +22,7 @@ import { DocumentKey } from '../model/document_key';
 
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
+import { TargetData } from './target_data';
 import { Target } from '../core/target';
 
 /**
@@ -60,7 +60,7 @@ export interface TargetCache {
    */
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void>;
 
   /**
@@ -85,9 +85,9 @@ export interface TargetCache {
    *
    * @param targetData A TargetData instance to put in the cache.
    */
-  addQueryData(
+  addTargetData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void>;
 
   /**
@@ -97,9 +97,9 @@ export interface TargetCache {
    * exist in the cache, and it will be replaced.
    * @param {TargetData} targetData The TargetData to be replaced into the cache.
    */
-  updateQueryData(
+  updateTargetData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void>;
 
   /**
@@ -108,16 +108,16 @@ export interface TargetCache {
    *
    * Multi-Tab Note: This operation should only be called by the primary client.
    */
-  removeQueryData(
+  removeTargetData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void>;
 
   /**
    * The number of targets currently in the cache.
    */
   // Visible for testing.
-  getQueryCount(
+  getTargetCount(
     transaction: PersistenceTransaction
   ): PersistencePromise<number>;
 
@@ -128,23 +128,23 @@ export interface TargetCache {
    * @return The cached TargetData entry, or null if the cache has no entry for
    * the target.
    */
-  getQueryData(
+  getTargetData(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<QueryData | null>;
+  ): PersistencePromise<TargetData | null>;
 
   /**
    * Looks up a TargetData entry by target ID.
    *
-   * @param targetId The target ID of the QueryData entry to look up.
+   * @param targetId The target ID of the TargetData entry to look up.
    * @return The cached TargetData entry, or null if the cache has no entry for
-   * the query.
+   * the target.
    */
   // PORTING NOTE: Multi-tab only.
-  getQueryDataForTarget(
+  getTargetDataForTarget(
     txn: PersistenceTransaction,
     targetId: TargetId
-  ): PersistencePromise<QueryData | null>;
+  ): PersistencePromise<TargetData | null>;
 
   /**
    * Adds the given document keys to cached target query results of the given target

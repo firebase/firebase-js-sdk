@@ -36,8 +36,8 @@ import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
-import { MemoryQueryCache } from './memory_target_cache';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
+import { MemoryTargetCache } from './memory_target_cache';
 import { MutationQueue } from './mutation_queue';
 import {
   Persistence,
@@ -47,9 +47,9 @@ import {
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
+import { TargetData } from './target_data';
 
 const LOG_TAG = 'MemoryPersistence';
 
@@ -68,7 +68,7 @@ export class MemoryPersistence implements Persistence {
   private readonly indexManager: MemoryIndexManager;
   private mutationQueues: { [user: string]: MemoryMutationQueue } = {};
   private readonly remoteDocumentCache: MemoryRemoteDocumentCache;
-  private readonly queryCache: MemoryQueryCache;
+  private readonly targetCache: MemoryTargetCache;
   private readonly listenSequence = new ListenSequence(0);
 
   private _started = false;
@@ -105,7 +105,7 @@ export class MemoryPersistence implements Persistence {
   ) {
     this._started = true;
     this.referenceDelegate = referenceDelegateFactory(this);
-    this.queryCache = new MemoryQueryCache(this);
+    this.targetCache = new MemoryTargetCache(this);
     const sizer = (doc: MaybeDocument): number =>
       this.referenceDelegate.documentSize(doc);
     this.indexManager = new MemoryIndexManager();
@@ -160,8 +160,8 @@ export class MemoryPersistence implements Persistence {
     return queue;
   }
 
-  getTargetCache(): MemoryQueryCache {
-    return this.queryCache;
+  getTargetCache(): MemoryTargetCache {
+    return this.targetCache;
   }
 
   getRemoteDocumentCache(): MemoryRemoteDocumentCache {
@@ -257,15 +257,15 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
 
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
     const cache = this.persistence.getTargetCache();
     return cache
-      .getMatchingKeysForTargetId(txn, queryData.targetId)
+      .getMatchingKeysForTargetId(txn, targetData.targetId)
       .next(keys => {
         keys.forEach(key => this.orphanedDocuments.add(key));
       })
-      .next(() => cache.removeQueryData(txn, queryData));
+      .next(() => cache.removeTargetData(txn, targetData));
   }
 
   onTransactionStarted(): void {
@@ -352,7 +352,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void> {
     return this.persistence.getTargetCache().forEachTarget(txn, f);
   }
@@ -440,10 +440,10 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
 
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
-    return this.persistence.getTargetCache().updateQueryData(txn, updated);
+    const updated = targetData.withSequenceNumber(txn.currentSequenceNumber);
+    return this.persistence.getTargetCache().updateTargetData(txn, updated);
   }
 
   addReference(

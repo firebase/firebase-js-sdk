@@ -43,7 +43,7 @@ import {
   ViewChange
 } from '../../src/core/view';
 import { LocalViewChanges } from '../../src/local/local_view_changes';
-import { QueryData, QueryPurpose } from '../../src/local/query_data';
+import { TargetData, QueryPurpose } from '../../src/local/target_data';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -270,14 +270,14 @@ export function bound(
   return new Bound(components, before);
 }
 
-export function queryData(
+export function targetData(
   targetId: TargetId,
   queryPurpose: QueryPurpose,
   path: string
-): QueryData {
+): TargetData {
   // Arbitrary value.
   const sequenceNumber = 0;
-  return new QueryData(
+  return new TargetData(
     query(path)._query.toTarget(),
     targetId,
     queryPurpose,
@@ -292,8 +292,8 @@ export function noChangeEvent(
 ): RemoteEvent {
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
-    getQueryDataForTarget: targetId =>
-      queryData(targetId, QueryPurpose.Listen, 'foo')
+    getTargetDataForTarget: targetId =>
+      targetData(targetId, QueryPurpose.Listen, 'foo')
   });
   aggregator.handleTargetChange(
     new WatchTargetChange(
@@ -320,10 +320,10 @@ export function docAddedRemoteEvent(
 
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
-    getQueryDataForTarget: targetId => {
+    getTargetDataForTarget: targetId => {
       if (allTargets.indexOf(targetId) !== -1) {
         const collectionPath = docs[0].key.path.popLast();
-        return queryData(
+        return targetData(
           targetId,
           QueryPurpose.Listen,
           collectionPath.toString()
@@ -372,12 +372,12 @@ export function docUpdateRemoteEvent(
   );
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => keys(doc),
-    getQueryDataForTarget: targetId => {
+    getTargetDataForTarget: targetId => {
       const purpose =
         limboTargets && limboTargets.indexOf(targetId) !== -1
           ? QueryPurpose.LimboResolution
           : QueryPurpose.Listen;
-      return queryData(targetId, purpose, doc.key.toString());
+      return targetData(targetId, purpose, doc.key.toString());
     }
   });
   aggregator.handleDocumentChange(docChange);

@@ -19,7 +19,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
 import { LocalStore } from '../local/local_store';
-import { QueryData, QueryPurpose } from '../local/query_data';
+import { TargetData, QueryPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import {
   BATCHID_UNKNOWN,
@@ -107,7 +107,7 @@ export class RemoteStore implements TargetMetadataProvider {
    * to the server. The targets removed with unlistens are removed eagerly
    * without waiting for confirmation from the listen stream.
    */
-  private listenTargets: { [targetId: number]: QueryData } = {};
+  private listenTargets: { [targetId: number]: TargetData } = {};
 
   private connectivityMonitor: ConnectivityMonitor;
   private watchStream: PersistentListenStream;
@@ -239,22 +239,22 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   /**
-   * Starts new listen for the given query. Uses resume token if provided. It
-   * is a no-op if the target of given `QueryData` is already being listened to.
+   * Starts new listen for the given target. Uses resume token if provided. It
+   * is a no-op if the target of given `TargetData` is already being listened to.
    */
-  listen(queryData: QueryData): void {
-    if (objUtils.contains(this.listenTargets, queryData.targetId)) {
+  listen(targetData: TargetData): void {
+    if (objUtils.contains(this.listenTargets, targetData.targetId)) {
       return;
     }
 
     // Mark this as something the client is currently listening for.
-    this.listenTargets[queryData.targetId] = queryData;
+    this.listenTargets[targetData.targetId] = targetData;
 
     if (this.shouldStartWatchStream()) {
       // The listen will be sent in onWatchStreamOpen
       this.startWatchStream();
     } else if (this.watchStream.isOpen()) {
-      this.sendWatchRequest(queryData);
+      this.sendWatchRequest(targetData);
     }
   }
 
@@ -284,8 +284,8 @@ export class RemoteStore implements TargetMetadataProvider {
     }
   }
 
-  /** {@link TargetMetadataProvider.getQueryDataForTarget} */
-  getQueryDataForTarget(targetId: TargetId): QueryData | null {
+  /** {@link TargetMetadataProvider.getTargetDataForTarget} */
+  getTargetDataForTarget(targetId: TargetId): TargetData | null {
     return this.listenTargets[targetId] || null;
   }
 
@@ -298,9 +298,9 @@ export class RemoteStore implements TargetMetadataProvider {
    * We need to increment the the expected number of pending responses we're due
    * from watch so we wait for the ack to process any messages from this target.
    */
-  private sendWatchRequest(queryData: QueryData): void {
-    this.watchChangeAggregator!.recordPendingTargetRequest(queryData.targetId);
-    this.watchStream.watch(queryData);
+  private sendWatchRequest(targetData: TargetData): void {
+    this.watchChangeAggregator!.recordPendingTargetRequest(targetData.targetId);
+    this.watchStream.watch(targetData);
   }
 
   /**
@@ -345,8 +345,8 @@ export class RemoteStore implements TargetMetadataProvider {
   }
 
   private async onWatchStreamOpen(): Promise<void> {
-    objUtils.forEachNumber(this.listenTargets, (targetId, queryData) => {
-      this.sendWatchRequest(queryData);
+    objUtils.forEachNumber(this.listenTargets, (targetId, targetData) => {
+      this.sendWatchRequest(targetData);
     });
   }
 
@@ -432,10 +432,10 @@ export class RemoteStore implements TargetMetadataProvider {
     // persistent view of these when applying the completed RemoteEvent.
     objUtils.forEachNumber(remoteEvent.targetChanges, (targetId, change) => {
       if (change.resumeToken.length > 0) {
-        const queryData = this.listenTargets[targetId];
+        const targetData = this.listenTargets[targetId];
         // A watched target might have been removed already.
-        if (queryData) {
-          this.listenTargets[targetId] = queryData.withResumeToken(
+        if (targetData) {
+          this.listenTargets[targetId] = targetData.withResumeToken(
             change.resumeToken,
             snapshotVersion
           );
@@ -446,34 +446,34 @@ export class RemoteStore implements TargetMetadataProvider {
     // Re-establish listens for the targets that have been invalidated by
     // existence filter mismatches.
     remoteEvent.targetMismatches.forEach(targetId => {
-      const queryData = this.listenTargets[targetId];
-      if (!queryData) {
+      const targetData = this.listenTargets[targetId];
+      if (!targetData) {
         // A watched target might have been removed already.
         return;
       }
 
-      // Clear the resume token for the query, since we're in a known mismatch
+      // Clear the resume token for the target, since we're in a known mismatch
       // state.
-      this.listenTargets[targetId] = queryData.withResumeToken(
+      this.listenTargets[targetId] = targetData.withResumeToken(
         emptyByteString(),
-        queryData.snapshotVersion
+        targetData.snapshotVersion
       );
 
       // Cause a hard reset by unwatching and rewatching immediately, but
       // deliberately don't send a resume token so that we get a full update.
       this.sendUnwatchRequest(targetId);
 
-      // Mark the query we send as being on behalf of an existence filter
+      // Mark the target we send as being on behalf of an existence filter
       // mismatch, but don't actually retain that in listenTargets. This ensures
       // that we flag the first re-listen this way without impacting future
       // listens of this target (that might happen e.g. on reconnect).
-      const requestQueryData = new QueryData(
-        queryData.target,
+      const requestTargetData = new TargetData(
+        targetData.target,
         targetId,
         QueryPurpose.ExistenceFilterMismatch,
-        queryData.sequenceNumber
+        targetData.sequenceNumber
       );
-      this.sendWatchRequest(requestQueryData);
+      this.sendWatchRequest(requestTargetData);
     });
 
     // Finally raise remote event

@@ -49,7 +49,6 @@ import { LocalStore } from '../../../src/local/local_store';
 import { LruParams } from '../../../src/local/lru_garbage_collector';
 import { MemoryPersistence } from '../../../src/local/memory_persistence';
 import { Persistence } from '../../../src/local/persistence';
-import { QueryData, QueryPurpose } from '../../../src/local/query_data';
 import {
   ClientId,
   MemorySharedClientState,
@@ -58,6 +57,7 @@ import {
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
+import { TargetData, QueryPurpose } from '../../../src/local/target_data';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
@@ -1137,7 +1137,7 @@ abstract class TestRunner {
       // encode that in the spec tests. For now, hard-code that it's a listen
       // despite the fact that it's not always the right value.
       const expectedTarget = this.serializer.toTarget(
-        new QueryData(
+        new TargetData(
           parseQuery(expected.queries[0]).toTarget(),
           targetId,
           QueryPurpose.Listen,

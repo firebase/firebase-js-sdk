@@ -52,12 +52,12 @@ import { MutationQueue } from './mutation_queue';
 import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
-import { QueryData, QueryPurpose } from './query_data';
 import { QueryEngine } from './query_engine';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
+import { TargetData, QueryPurpose } from './target_data';
 
 const LOG_TAG = 'LocalStore';
 
@@ -165,12 +165,12 @@ export class LocalStore {
   private targetCache: TargetCache;
 
   /**
-   * Maps a targetID to data about its query.
+   * Maps a targetID to data about its target.
    *
    * PORTING NOTE: We are using an immutable data structure on Web to make re-runs
    * of `applyRemoteEvent()` idempotent.
    */
-  private queryDataByTarget = new SortedMap<TargetId, QueryData>(
+  private targetDataByTarget = new SortedMap<TargetId, TargetData>(
     primitiveComparator
   );
 
@@ -507,7 +507,7 @@ export class LocalStore {
    */
   applyRemoteEvent(remoteEvent: RemoteEvent): Promise<MaybeDocumentMap> {
     const remoteVersion = remoteEvent.snapshotVersion;
-    let newQueryDataByTargetMap = this.queryDataByTarget;
+    let newTargetDataByTargetMap = this.targetDataByTarget;
 
     return this.persistence
       .runTransaction(
@@ -518,20 +518,20 @@ export class LocalStore {
             trackRemovals: true // Make sure document removals show up in `getNewDocumentChanges()`
           });
 
-          // Reset newQueryDataByTargetMap in case this transaction gets re-run.
-          newQueryDataByTargetMap = this.queryDataByTarget;
+          // Reset newTargetDataByTargetMap in case this transaction gets re-run.
+          newTargetDataByTargetMap = this.targetDataByTarget;
 
           const promises = [] as Array<PersistencePromise<void>>;
           objUtils.forEachNumber(
             remoteEvent.targetChanges,
             (targetId: TargetId, change: TargetChange) => {
-              const oldQueryData = newQueryDataByTargetMap.get(targetId);
-              if (!oldQueryData) {
+              const oldTargetData = newTargetDataByTargetMap.get(targetId);
+              if (!oldTargetData) {
                 return;
               }
 
-              // Only update the remote keys if the query is still active. This
-              // ensures that we can persist the updated query data along with
+              // Only update the remote keys if the target is still active. This
+              // ensures that we can persist the updated target data along with
               // the updated assignment.
               promises.push(
                 this.targetCache
@@ -548,25 +548,25 @@ export class LocalStore {
               const resumeToken = change.resumeToken;
               // Update the resume token if the change includes one.
               if (resumeToken.length > 0) {
-                const newQueryData = oldQueryData
+                const newTargetData = oldTargetData
                   .withResumeToken(resumeToken, remoteVersion)
                   .withSequenceNumber(txn.currentSequenceNumber);
-                newQueryDataByTargetMap = newQueryDataByTargetMap.insert(
+                newTargetDataByTargetMap = newTargetDataByTargetMap.insert(
                   targetId,
-                  newQueryData
+                  newTargetData
                 );
 
-                // Update the query data if there are target changes (or if
+                // Update the target data if there are target changes (or if
                 // sufficient time has passed since the last update).
                 if (
-                  LocalStore.shouldPersistQueryData(
-                    oldQueryData,
-                    newQueryData,
+                  LocalStore.shouldPersistTargetData(
+                    oldTargetData,
+                    newTargetData,
                     change
                   )
                 ) {
                   promises.push(
-                    this.targetCache.updateQueryData(txn, newQueryData)
+                    this.targetCache.updateTargetData(txn, newTargetData)
                   );
                 }
               }
@@ -674,34 +674,34 @@ export class LocalStore {
         }
       )
       .then(changedDocs => {
-        this.queryDataByTarget = newQueryDataByTargetMap;
+        this.targetDataByTarget = newTargetDataByTargetMap;
         return changedDocs;
       });
   }
 
   /**
-   * Returns true if the newQueryData should be persisted during an update of
-   * an active target. QueryData should always be persisted when a target is
+   * Returns true if the newTargetData should be persisted during an update of
+   * an active target. TargetData should always be persisted when a target is
    * being released and should not call this function.
    *
-   * While the target is active, QueryData updates can be omitted when nothing
+   * While the target is active, TargetData updates can be omitted when nothing
    * about the target has changed except metadata like the resume token or
    * snapshot version. Occasionally it's worth the extra write to prevent these
    * values from getting too stale after a crash, but this doesn't have to be
    * too frequent.
    */
-  private static shouldPersistQueryData(
-    oldQueryData: QueryData,
-    newQueryData: QueryData,
+  private static shouldPersistTargetData(
+    oldTargetData: TargetData,
+    newTargetData: TargetData,
     change: TargetChange
   ): boolean {
     assert(
-      newQueryData.resumeToken.length > 0,
-      'Attempted to persist query data with no resume token'
+      newTargetData.resumeToken.length > 0,
+      'Attempted to persist target data with no resume token'
     );
 
-    // Always persist query data if we don't already have a resume token.
-    if (oldQueryData.resumeToken.length === 0) {
+    // Always persist target data if we don't already have a resume token.
+    if (oldTargetData.resumeToken.length === 0) {
       return true;
     }
 
@@ -711,8 +711,8 @@ export class LocalStore {
     // we may not get time to do anything interesting while the current tab is
     // closing.
     const timeDelta =
-      newQueryData.snapshotVersion.toMicroseconds() -
-      oldQueryData.snapshotVersion.toMicroseconds();
+      newTargetData.snapshotVersion.toMicroseconds() -
+      oldTargetData.snapshotVersion.toMicroseconds();
     if (timeDelta >= this.RESUME_TOKEN_MAX_AGE_MICROS) {
       return true;
     }
@@ -743,20 +743,20 @@ export class LocalStore {
       );
 
       if (!viewChange.fromCache) {
-        const queryData = this.queryDataByTarget.get(targetId);
+        const targetData = this.targetDataByTarget.get(targetId);
         assert(
-          queryData !== null,
+          targetData !== null,
           `Can't set limbo-free snapshot version for unknown target: ${targetId}`
         );
 
         // Advance the last limbo free snapshot version
-        const lastLimboFreeSnapshotVersion = queryData!.snapshotVersion;
-        const updatedQueryData = queryData!.withLastLimboFreeSnapshotVersion(
+        const lastLimboFreeSnapshotVersion = targetData!.snapshotVersion;
+        const updatedTargetData = targetData!.withLastLimboFreeSnapshotVersion(
           lastLimboFreeSnapshotVersion
         );
-        this.queryDataByTarget = this.queryDataByTarget.insert(
+        this.targetDataByTarget = this.targetDataByTarget.insert(
           targetId,
-          updatedQueryData
+          updatedTargetData
         );
       }
     }
@@ -815,50 +815,50 @@ export class LocalStore {
   }
 
   /**
-   * Assigns the given query an internal ID so that its results can be pinned so
-   * they don't get GC'd. A query must be allocated in the local store before
+   * Assigns the given target an internal ID so that its results can be pinned so
+   * they don't get GC'd. A target must be allocated in the local store before
    * the store can be used to manage its view.
    *
-   * Allocating an already allocated `Target` will return the existing `QueryData`
+   * Allocating an already allocated `Target` will return the existing `TargetData`
    * for that `Target`.
    */
-  allocateTarget(target: Target): Promise<QueryData> {
+  allocateTarget(target: Target): Promise<TargetData> {
     return this.persistence
       .runTransaction('Allocate target', 'readwrite-idempotent', txn => {
-        let queryData: QueryData;
+        let targetData: TargetData;
         return this.targetCache
-          .getQueryData(txn, target)
-          .next((cached: QueryData | null) => {
+          .getTargetData(txn, target)
+          .next((cached: TargetData | null) => {
             if (cached) {
-              // This query has been listened to previously, so reuse the
+              // This target has been listened to previously, so reuse the
               // previous targetID.
               // TODO(mcg): freshen last accessed date?
-              queryData = cached;
-              return PersistencePromise.resolve(queryData);
+              targetData = cached;
+              return PersistencePromise.resolve(targetData);
             } else {
               return this.targetCache.allocateTargetId(txn).next(targetId => {
-                queryData = new QueryData(
+                targetData = new TargetData(
                   target,
                   targetId,
                   QueryPurpose.Listen,
                   txn.currentSequenceNumber
                 );
                 return this.targetCache
-                  .addQueryData(txn, queryData)
-                  .next(() => queryData);
+                  .addTargetData(txn, targetData)
+                  .next(() => targetData);
               });
             }
           });
       })
-      .then(queryData => {
-        if (this.queryDataByTarget.get(queryData.targetId) === null) {
-          this.queryDataByTarget = this.queryDataByTarget.insert(
-            queryData.targetId,
-            queryData
+      .then(targetData => {
+        if (this.targetDataByTarget.get(targetData.targetId) === null) {
+          this.targetDataByTarget = this.targetDataByTarget.insert(
+            targetData.targetId,
+            targetData
           );
-          this.targetIdByTarget.set(target, queryData.targetId);
+          this.targetIdByTarget.set(target, targetData.targetId);
         }
-        return queryData;
+        return targetData;
       });
   }
 
@@ -867,44 +867,44 @@ export class LocalStore {
    * have not yet been persisted to the TargetCache.
    */
   // Visible for testing.
-  getQueryData(
+  getTargetData(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<QueryData | null> {
+  ): PersistencePromise<TargetData | null> {
     const targetId = this.targetIdByTarget.get(target);
     if (targetId !== undefined) {
-      return PersistencePromise.resolve<QueryData | null>(
-        this.queryDataByTarget.get(targetId)
+      return PersistencePromise.resolve<TargetData | null>(
+        this.targetDataByTarget.get(targetId)
       );
     } else {
-      return this.targetCache.getQueryData(transaction, target);
+      return this.targetCache.getTargetData(transaction, target);
     }
   }
 
   /**
-   * Unpin all the documents associated with the given query. If
-   * `keepPersistedQueryData` is set to false and Eager GC enabled, the method
-   * directly removes the associated query data from the query cache.
+   * Unpin all the documents associated with the given target. If
+   * `keepPersistedTargetData` is set to false and Eager GC enabled, the method
+   * directly removes the associated target data from the target cache.
    *
    * Releasing a non-existing `Target` is a no-op.
    */
-  // PORTING NOTE: `keepPersistedQueryData` is multi-tab only.
+  // PORTING NOTE: `keepPersistedTargetData` is multi-tab only.
   releaseTarget(
     targetId: number,
-    keepPersistedQueryData: boolean
+    keepPersistedTargetData: boolean
   ): Promise<void> {
-    const queryData = this.queryDataByTarget.get(targetId);
-    if (!queryData) {
+    const targetData = this.targetDataByTarget.get(targetId);
+    if (!targetData) {
       return Promise.resolve();
     }
 
-    const mode = keepPersistedQueryData
+    const mode = keepPersistedTargetData
       ? 'readwrite-idempotent'
       : 'readwrite-primary-idempotent';
     return this.persistence
-      .runTransaction('Release query', mode, txn => {
+      .runTransaction('Release target', mode, txn => {
         // References for documents sent via Watch are automatically removed
-        // when we delete a query's target data from the reference delegate.
+        // when we delete a target's target data from the reference delegate.
         // Since this does not remove references for locally mutated documents,
         // we have to remove the target associations for these documents
         // manually.
@@ -917,19 +917,19 @@ export class LocalStore {
           targetId
         );
 
-        if (!keepPersistedQueryData) {
+        if (!keepPersistedTargetData) {
           return PersistencePromise.forEach(removed, (key: DocumentKey) =>
             this.persistence.referenceDelegate.removeReference(txn, key)
           ).next(() => {
-            this.persistence.referenceDelegate.removeTarget(txn, queryData);
+            this.persistence.referenceDelegate.removeTarget(txn, targetData);
           });
         } else {
           return PersistencePromise.resolve();
         }
       })
       .then(() => {
-        this.queryDataByTarget = this.queryDataByTarget.remove(targetId);
-        this.targetIdByTarget.delete(queryData.target);
+        this.targetDataByTarget = this.targetDataByTarget.remove(targetId);
+        this.targetIdByTarget.delete(targetData.target);
       });
   }
 
@@ -952,13 +952,13 @@ export class LocalStore {
       'Execute query',
       'readonly-idempotent',
       txn => {
-        return this.getQueryData(txn, query.toTarget())
-          .next(queryData => {
-            if (queryData) {
+        return this.getTargetData(txn, query.toTarget())
+          .next(targetData => {
+            if (targetData) {
               lastLimboFreeSnapshotVersion =
-                queryData.lastLimboFreeSnapshotVersion;
+                targetData.lastLimboFreeSnapshotVersion;
               return this.targetCache
-                .getMatchingKeysForTargetId(txn, queryData.targetId)
+                .getMatchingKeysForTargetId(txn, targetData.targetId)
                 .next(result => {
                   remoteKeys = result;
                 });
@@ -1059,24 +1059,24 @@ export class LocalStore {
     return this.persistence.runTransaction(
       'Collect garbage',
       'readwrite-primary-idempotent',
-      txn => garbageCollector.collect(txn, this.queryDataByTarget)
+      txn => garbageCollector.collect(txn, this.targetDataByTarget)
     );
   }
 
   // PORTING NOTE: Multi-tab only.
   getTarget(targetId: TargetId): Promise<Target | null> {
-    const cachedQueryData = this.queryDataByTarget.get(targetId);
+    const cachedTargetData = this.targetDataByTarget.get(targetId);
 
-    if (cachedQueryData) {
-      return Promise.resolve(cachedQueryData.target);
+    if (cachedTargetData) {
+      return Promise.resolve(cachedTargetData.target);
     } else {
       return this.persistence.runTransaction(
-        'Get query data',
+        'Get target data',
         'readonly-idempotent',
         txn => {
           return this.targetCache
-            .getQueryDataForTarget(txn, targetId)
-            .next(queryData => (queryData ? queryData.target : null));
+            .getTargetDataForTarget(txn, targetId)
+            .next(targetData => (targetData ? targetData.target : null));
         }
       );
     }

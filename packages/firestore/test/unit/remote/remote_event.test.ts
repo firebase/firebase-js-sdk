@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
-import { QueryData, QueryPurpose } from '../../../src/local/query_data';
+import { TargetData, QueryPurpose } from '../../../src/local/target_data';
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import { emptyByteString } from '../../../src/platform/platform';
@@ -37,7 +37,7 @@ import {
   doc,
   expectEqual,
   keys,
-  queryData,
+  targetData,
   resumeTokenForSnapshot,
   size,
   updateMapping,
@@ -45,7 +45,7 @@ import {
 } from '../../util/helpers';
 
 interface TargetMap {
-  [targetId: string]: QueryData;
+  [targetId: string]: TargetData;
 }
 interface PendingTargetResponses {
   [targetId: string]: number;
@@ -54,7 +54,7 @@ interface PendingTargetResponses {
 function listens(...targetIds: TargetId[]): TargetMap {
   const targets: TargetMap = {};
   for (const target of targetIds) {
-    targets[target] = queryData(target, QueryPurpose.Listen, 'coll');
+    targets[target] = targetData(target, QueryPurpose.Listen, 'coll');
   }
 
   return targets;
@@ -63,7 +63,7 @@ function listens(...targetIds: TargetId[]): TargetMap {
 function limboListens(...targetIds: TargetId[]): TargetMap {
   const targets: TargetMap = {};
   for (const target of targetIds) {
-    targets[target] = queryData(
+    targets[target] = targetData(
       target,
       QueryPurpose.LimboResolution,
       'coll/limbo'
@@ -113,7 +113,7 @@ describe('RemoteEvent', () => {
 
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => options.existingKeys || documentKeySet(),
-      getQueryDataForTarget: targetId =>
+      getTargetDataForTarget: targetId =>
         options.targets ? options.targets[targetId] : null
     });
 

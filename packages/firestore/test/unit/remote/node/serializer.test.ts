@@ -37,7 +37,7 @@ import {
 } from '../../../../src/core/query';
 import { SnapshotVersion } from '../../../../src/core/snapshot_version';
 import { Target } from '../../../../src/core/target';
-import { QueryData, QueryPurpose } from '../../../../src/local/query_data';
+import { TargetData, QueryPurpose } from '../../../../src/local/target_data';
 import * as fieldValue from '../../../../src/model/field_value';
 import {
   DeleteMutation,
@@ -100,12 +100,12 @@ describe('Serializer', () => {
   // tslint:enable:variable-name
 
   /**
-   * Wraps the given query in QueryData. This is useful because the APIs we're
-   * testing accept QueryData, but for the most part we're just testing
-   * variations on Query.
+   * Wraps the given target in TargetData. This is useful because the APIs we're
+   * testing accept TargetData, but for the most part we're just testing
+   * variations on Target.
    */
-  function wrapQueryData(target: Target): QueryData {
-    return new QueryData(target, 1, QueryPurpose.Listen, 2);
+  function wrapTargetData(target: Target): TargetData {
+    return new TargetData(target, 1, QueryPurpose.Listen, 2);
   }
 
   describe('converts value', () => {
@@ -903,22 +903,22 @@ describe('Serializer', () => {
 
   it('encodes listen request labels', () => {
     const target = Query.atPath(path('collection/key')).toTarget();
-    let queryData = new QueryData(target, 2, QueryPurpose.Listen, 3);
+    let targetData = new TargetData(target, 2, QueryPurpose.Listen, 3);
 
-    let result = s.toListenRequestLabels(queryData);
+    let result = s.toListenRequestLabels(targetData);
     expect(result).to.be.null;
 
-    queryData = new QueryData(target, 2, QueryPurpose.LimboResolution, 3);
-    result = s.toListenRequestLabels(queryData);
+    targetData = new TargetData(target, 2, QueryPurpose.LimboResolution, 3);
+    result = s.toListenRequestLabels(targetData);
     expect(result).to.deep.equal({ 'goog-listen-tags': 'limbo-document' });
 
-    queryData = new QueryData(
+    targetData = new TargetData(
       target,
       2,
       QueryPurpose.ExistenceFilterMismatch,
       3
     );
-    result = s.toListenRequestLabels(queryData);
+    result = s.toListenRequestLabels(targetData);
     expect(result).to.deep.equal({
       'goog-listen-tags': 'existence-filter-mismatch'
     });
@@ -929,7 +929,7 @@ describe('Serializer', () => {
 
     it('converts first-level key queries', () => {
       const q = Query.atPath(path('docs/1')).toTarget();
-      const result = s.toTarget(wrapQueryData(q));
+      const result = s.toTarget(wrapTargetData(q));
       expect(result).to.deep.equal({
         documents: { documents: ['projects/p/databases/d/documents/docs/1'] },
         targetId: 1
@@ -939,7 +939,7 @@ describe('Serializer', () => {
 
     it('converts first-level ancestor queries', () => {
       const q = Query.atPath(path('messages')).toTarget();
-      const result = s.toTarget(wrapQueryData(q));
+      const result = s.toTarget(wrapTargetData(q));
       expect(result).to.deep.equal({
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -962,7 +962,7 @@ describe('Serializer', () => {
       const q = Query.atPath(
         path('rooms/1/messages/10/attachments')
       ).toTarget();
-      const result = s.toTarget(wrapQueryData(q));
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents/rooms/1/messages/10',
@@ -986,7 +986,7 @@ describe('Serializer', () => {
       const q = Query.atPath(path('docs'))
         .addFilter(filter('prop', '<', 42))
         .toTarget();
-      const result = s.toTarget(wrapQueryData(q));
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -1025,7 +1025,7 @@ describe('Serializer', () => {
         .addFilter(filter('null', '==', null))
         .addFilter(filter('tags', 'array-contains', 'pending'))
         .toTarget();
-      const result = s.toTarget(wrapQueryData(q));
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -1093,7 +1093,7 @@ describe('Serializer', () => {
       const q = Query.atPath(path('rooms/1/messages/10/attachments'))
         .addFilter(filter('prop', '<', 42))
         .toTarget();
-      const result = s.toTarget(wrapQueryData(q));
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents/rooms/1/messages/10',
@@ -1128,7 +1128,7 @@ describe('Serializer', () => {
       const q = Query.atPath(path('docs'))
         .addOrderBy(orderBy('prop', 'asc'))
         .toTarget();
-      const result = s.toTarget(wrapQueryData(q));
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -1156,7 +1156,7 @@ describe('Serializer', () => {
       const q = Query.atPath(path('docs'))
         .withLimitToFirst(26)
         .toTarget();
-      const result = s.toTarget(wrapQueryData(q));
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -1192,7 +1192,7 @@ describe('Serializer', () => {
           )
         )
         .toTarget();
-      const result = s.toTarget(wrapQueryData(q));
+      const result = s.toTarget(wrapTargetData(q));
       const expected = {
         query: {
           parent: 'projects/p/databases/d/documents',
@@ -1227,7 +1227,7 @@ describe('Serializer', () => {
     it('converts resume tokens', () => {
       const q = Query.atPath(path('docs')).toTarget();
       const result = s.toTarget(
-        new QueryData(
+        new TargetData(
           q,
           1,
           QueryPurpose.Listen,

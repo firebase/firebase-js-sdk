@@ -32,7 +32,7 @@ import {
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
 import { ProtoByteString, TargetId } from '../core/types';
-import { QueryData, QueryPurpose } from '../local/query_data';
+import { TargetData, QueryPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import * as fieldValue from '../model/field_value';
@@ -366,7 +366,7 @@ export class JsonProtoSerializer {
     // In v1beta1 queries for collections at the root did not have a trailing
     // "/documents". In v1 all resource paths contain "/documents". Preserve the
     // ability to read the v1beta1 form for compatibility with queries persisted
-    // in the local query cache.
+    // in the local target cache.
     if (resourceName.length === 4) {
       return ResourcePath.EMPTY_PATH;
     }
@@ -1142,9 +1142,9 @@ export class JsonProtoSerializer {
   }
 
   toListenRequestLabels(
-    queryData: QueryData
+    targetData: TargetData
   ): api.ApiClientObjectMap<string> | null {
-    const value = this.toLabel(queryData.purpose);
+    const value = this.toLabel(targetData.purpose);
     if (value == null) {
       return null;
     } else {
@@ -1167,9 +1167,9 @@ export class JsonProtoSerializer {
     }
   }
 
-  toTarget(queryData: QueryData): api.Target {
+  toTarget(targetData: TargetData): api.Target {
     let result: api.Target;
-    const target = queryData.target;
+    const target = targetData.target;
 
     if (target.isDocumentQuery()) {
       result = { documents: this.toDocumentsTarget(target) };
@@ -1177,11 +1177,11 @@ export class JsonProtoSerializer {
       result = { query: this.toQueryTarget(target) };
     }
 
-    result.targetId = queryData.targetId;
+    result.targetId = targetData.targetId;
 
-    if (queryData.resumeToken.length > 0) {
+    if (targetData.resumeToken.length > 0) {
       result.resumeToken = this.unsafeCastProtoByteString(
-        queryData.resumeToken
+        targetData.resumeToken
       );
     }
 

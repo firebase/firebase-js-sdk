@@ -23,10 +23,10 @@ import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
 import { TargetCache } from './target_cache';
-import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
+import { TargetData } from './target_data';
 
 /**
  * A base class representing a persistence transaction, encapsulating both the
@@ -109,7 +109,7 @@ export interface ReferenceDelegate {
    */
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void>;
 
   /** Notify the delegate that a document is no longer being mutated by the user. */
