@@ -49,9 +49,7 @@ describe('Provider', () => {
       });
 
       it('returns null if the service is not available with optional flag', () => {
-        expect(provider.getImmediate({ optional: true })).to.equal(
-          null
-        );
+        expect(provider.getImmediate({ optional: true })).to.equal(null);
       });
 
       it('returns the service instance synchronously', () => {
@@ -69,8 +67,12 @@ describe('Provider', () => {
       it('ignores parameter identifier and return the default service', () => {
         provider.setComponent(getFakeComponent('test', () => ({ test: true })));
         const defaultService = provider.getImmediate();
-        expect(provider.getImmediate({identifier: 'spider1'})).to.equal(defaultService);
-        expect(provider.getImmediate({identifier: 'spider2'})).to.equal(defaultService);
+        expect(provider.getImmediate({ identifier: 'spider1' })).to.equal(
+          defaultService
+        );
+        expect(provider.getImmediate({ identifier: 'spider2' })).to.equal(
+          defaultService
+        );
       });
     });
 
@@ -187,13 +189,15 @@ describe('Provider', () => {
   describe('Provider (multipleInstances = true)', () => {
     describe('getImmediate(identifier)', () => {
       it('throws if the service is not available', () => {
-        expect(provider.getImmediate.bind(provider, {identifier: 'guardian'})).to.throw();
+        expect(
+          provider.getImmediate.bind(provider, { identifier: 'guardian' })
+        ).to.throw();
       });
 
       it('returns null if the service is not available with optional flag', () => {
-        expect(provider.getImmediate({ identifier: 'guardian', optional: true })).to.equal(
-          null
-        );
+        expect(
+          provider.getImmediate({ identifier: 'guardian', optional: true })
+        ).to.equal(null);
       });
 
       it('returns different service instances for different identifiers synchronously', () => {
@@ -201,8 +205,8 @@ describe('Provider', () => {
           getFakeComponent('test', () => ({ test: true }), true)
         );
         const defaultService = provider.getImmediate();
-        const service1 = provider.getImmediate({identifier: 'guardian'});
-        const service2 = provider.getImmediate({identifier: 'servant'});
+        const service1 = provider.getImmediate({ identifier: 'guardian' });
+        const service2 = provider.getImmediate({ identifier: 'servant' });
 
         expect(defaultService).to.deep.equal({ test: true });
         expect(service1).to.deep.equal({ test: true });
@@ -296,8 +300,8 @@ describe('Provider', () => {
         provider.setComponent(getFakeComponent('test', getService, true));
 
         // create 2 service instances with different names
-        provider.getImmediate({identifier: 'instance1'});
-        provider.getImmediate({identifier: 'instance2'});
+        provider.getImmediate({ identifier: 'instance1' });
+        provider.getImmediate({ identifier: 'instance2' });
 
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.delete();
@@ -313,7 +317,7 @@ describe('Provider', () => {
         provider.setComponent(getFakeComponent('test', () => ({}), true));
         // create serviec instances with different identifiers
         const defaultInstance = provider.getImmediate();
-        const instance1 = provider.getImmediate({identifier: 'instance1'});
+        const instance1 = provider.getImmediate({ identifier: 'instance1' });
 
         expect((provider as any).instances.size).to.equal(2);
 
@@ -327,7 +331,7 @@ describe('Provider', () => {
         // remove the named instance from cache and create a new instance with the same identifier
         provider.clearInstance('instance1');
         expect((provider as any).instances.size).to.equal(1);
-        const newInstance1 = provider.getImmediate({identifier: 'instance1'});
+        const newInstance1 = provider.getImmediate({ identifier: 'instance1' });
         expect(newInstance1).to.not.eq(instance1);
         expect((provider as any).instances.size).to.equal(2);
       });

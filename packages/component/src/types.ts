@@ -50,4 +50,4 @@ export type InstanceFactory<T = unknown> = (
 
 export interface Dictionary {
   [key: string]: unknown;
-};
+}

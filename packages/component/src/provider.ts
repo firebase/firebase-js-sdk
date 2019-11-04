@@ -32,10 +32,10 @@ export class Provider<T = unknown> {
   constructor(
     private readonly name: string,
     private readonly container: ComponentContainer
-  ) { }
+  ) {}
 
   /**
-   * @param identifier A provider can provide mulitple instances of a service 
+   * @param identifier A provider can provide mulitple instances of a service
    * if this.component.multipleInstances is true.
    */
   get(identifier: string = DEFAULT_ENTRY_NAME): Promise<T> {
@@ -55,33 +55,25 @@ export class Provider<T = unknown> {
     return this.instancesDeferred.get(normalizedIdentifier)!.promise;
   }
 
-/**
- * 
- * @param options.identifier A provider can provide mulitple instances of a service 
+  /**
+   *
+   * @param options.identifier A provider can provide mulitple instances of a service
    * if this.component.multipleInstances is true.
- * @param options.optional If optional is false or not provided, the method throws an error when
- * the service is not immediately available.
- * If optional is true, the method returns null if the service is not immediately available.
- */
-  getImmediate(
-    options: {
-      identifier?: string
-      optional: true
-    }
-  ): T | null;
-  getImmediate(
-    options?: {
-      identifier?: string,
-      optional?: false
-    }): T;
-  getImmediate(
-    options?: {
-      identifier?: string,
-      optional?: boolean
-    }
-  ): T | null {
-
-    const { identifier, optional } = { identifier: DEFAULT_ENTRY_NAME, optional: false, ...options };
+   * @param options.optional If optional is false or not provided, the method throws an error when
+   * the service is not immediately available.
+   * If optional is true, the method returns null if the service is not immediately available.
+   */
+  getImmediate(options: { identifier?: string; optional: true }): T | null;
+  getImmediate(options?: { identifier?: string; optional?: false }): T;
+  getImmediate(options?: {
+    identifier?: string;
+    optional?: boolean;
+  }): T | null {
+    const { identifier, optional } = {
+      identifier: DEFAULT_ENTRY_NAME,
+      optional: false,
+      ...options
+    };
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
 
