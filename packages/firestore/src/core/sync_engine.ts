@@ -19,7 +19,7 @@ import { User } from '../auth/user';
 import { LocalStore } from '../local/local_store';
 import { LocalViewChanges } from '../local/local_view_changes';
 import { ReferenceSet } from '../local/reference_set';
-import { TargetData, QueryPurpose } from '../local/target_data';
+import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -778,7 +778,7 @@ export class SyncEngine implements RemoteSyncer, SharedClientStateSyncer {
         new TargetData(
           query.toTarget(),
           limboTargetId,
-          QueryPurpose.LimboResolution,
+          TargetPurpose.LimboResolution,
           ListenSequence.INVALID
         )
       );

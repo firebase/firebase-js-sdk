@@ -39,7 +39,7 @@ import { PersistencePromise } from '../../../src/local/persistence_promise';
 import { TargetCache } from '../../../src/local/target_cache';
 import { ReferenceSet } from '../../../src/local/reference_set';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
-import { TargetData, QueryPurpose } from '../../../src/local/target_data';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -134,7 +134,7 @@ function genericLruGarbageCollectorTests(
     return new TargetData(
       Query.atPath(path('path' + targetId)).toTarget(),
       targetId,
-      QueryPurpose.Listen,
+      TargetPurpose.Listen,
       sequenceNumber
     );
   }

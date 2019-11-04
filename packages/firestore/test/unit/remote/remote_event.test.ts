@@ -18,7 +18,7 @@
 import { expect } from 'chai';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { TargetId } from '../../../src/core/types';
-import { TargetData, QueryPurpose } from '../../../src/local/target_data';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentKeySet, documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 import { emptyByteString } from '../../../src/platform/platform';
@@ -54,7 +54,7 @@ interface PendingTargetResponses {
 function listens(...targetIds: TargetId[]): TargetMap {
   const targets: TargetMap = {};
   for (const target of targetIds) {
-    targets[target] = targetData(target, QueryPurpose.Listen, 'coll');
+    targets[target] = targetData(target, TargetPurpose.Listen, 'coll');
   }
 
   return targets;
@@ -65,7 +65,7 @@ function limboListens(...targetIds: TargetId[]): TargetMap {
   for (const target of targetIds) {
     targets[target] = targetData(
       target,
-      QueryPurpose.LimboResolution,
+      TargetPurpose.LimboResolution,
       'coll/limbo'
     );
   }

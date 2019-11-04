@@ -32,7 +32,7 @@ import {
 import { SnapshotVersion } from '../core/snapshot_version';
 import { Target } from '../core/target';
 import { ProtoByteString, TargetId } from '../core/types';
-import { TargetData, QueryPurpose } from '../local/target_data';
+import { TargetData, TargetPurpose } from '../local/target_data';
 import { Document, MaybeDocument, NoDocument } from '../model/document';
 import { DocumentKey } from '../model/document_key';
 import * as fieldValue from '../model/field_value';
@@ -1154,13 +1154,13 @@ export class JsonProtoSerializer {
     }
   }
 
-  private toLabel(purpose: QueryPurpose): string | null {
+  private toLabel(purpose: TargetPurpose): string | null {
     switch (purpose) {
-      case QueryPurpose.Listen:
+      case TargetPurpose.Listen:
         return null;
-      case QueryPurpose.ExistenceFilterMismatch:
+      case TargetPurpose.ExistenceFilterMismatch:
         return 'existence-filter-mismatch';
-      case QueryPurpose.LimboResolution:
+      case TargetPurpose.LimboResolution:
         return 'limbo-document';
       default:
         return fail('Unrecognized query purpose: ' + purpose);

@@ -22,7 +22,7 @@ import { TargetId } from '../../../src/core/types';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import { Persistence } from '../../../src/local/persistence';
 import { ReferenceSet } from '../../../src/local/reference_set';
-import { TargetData, QueryPurpose } from '../../../src/local/target_data';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { addEqualityMatcher } from '../../util/equality_matcher';
 import {
   filter,
@@ -70,7 +70,7 @@ describe('IndexedDbTargetCache', () => {
     const targetData = new TargetData(
       target,
       targetId,
-      QueryPurpose.Listen,
+      TargetPurpose.Listen,
       originalSequenceNumber,
       snapshotVersion,
       lastLimboFreeSnapshotVersion
@@ -137,7 +137,7 @@ function genericTargetCacheTests(
     return new TargetData(
       target,
       targetId,
-      QueryPurpose.Listen,
+      TargetPurpose.Listen,
       ++previousSequenceNumber,
       snapshotVersion,
       /* lastLimboFreeSnapshotVersion= */ SnapshotVersion.MIN,
@@ -378,9 +378,9 @@ function genericTargetCacheTests(
   });
 
   it('sets the highest sequence number', async () => {
-    const target1 = new TargetData(QUERY_ROOMS, 1, QueryPurpose.Listen, 10);
+    const target1 = new TargetData(QUERY_ROOMS, 1, TargetPurpose.Listen, 10);
     await cache.addTargetData(target1);
-    const target2 = new TargetData(QUERY_HALLS, 2, QueryPurpose.Listen, 20);
+    const target2 = new TargetData(QUERY_HALLS, 2, TargetPurpose.Listen, 20);
     await cache.addTargetData(target2);
     expect(await cache.getHighestSequenceNumber()).to.equal(20);
 
@@ -388,7 +388,7 @@ function genericTargetCacheTests(
     await cache.removeTargetData(target2);
     expect(await cache.getHighestSequenceNumber()).to.equal(20);
 
-    const target3 = new TargetData(QUERY_GARAGES, 3, QueryPurpose.Listen, 100);
+    const target3 = new TargetData(QUERY_GARAGES, 3, TargetPurpose.Listen, 100);
     await cache.addTargetData(target3);
     expect(await cache.getHighestSequenceNumber()).to.equal(100);
 

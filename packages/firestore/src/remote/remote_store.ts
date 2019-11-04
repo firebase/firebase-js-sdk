@@ -19,7 +19,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { Transaction } from '../core/transaction';
 import { OnlineState, TargetId } from '../core/types';
 import { LocalStore } from '../local/local_store';
-import { TargetData, QueryPurpose } from '../local/target_data';
+import { TargetData, TargetPurpose } from '../local/target_data';
 import { MutationResult } from '../model/mutation';
 import {
   BATCHID_UNKNOWN,
@@ -470,7 +470,7 @@ export class RemoteStore implements TargetMetadataProvider {
       const requestTargetData = new TargetData(
         targetData.target,
         targetId,
-        QueryPurpose.ExistenceFilterMismatch,
+        TargetPurpose.ExistenceFilterMismatch,
         targetData.sequenceNumber
       );
       this.sendWatchRequest(requestTargetData);

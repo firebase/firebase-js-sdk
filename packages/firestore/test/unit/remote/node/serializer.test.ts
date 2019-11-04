@@ -37,7 +37,7 @@ import {
 } from '../../../../src/core/query';
 import { SnapshotVersion } from '../../../../src/core/snapshot_version';
 import { Target } from '../../../../src/core/target';
-import { TargetData, QueryPurpose } from '../../../../src/local/target_data';
+import { TargetData, TargetPurpose } from '../../../../src/local/target_data';
 import * as fieldValue from '../../../../src/model/field_value';
 import {
   DeleteMutation,
@@ -105,7 +105,7 @@ describe('Serializer', () => {
    * variations on Target.
    */
   function wrapTargetData(target: Target): TargetData {
-    return new TargetData(target, 1, QueryPurpose.Listen, 2);
+    return new TargetData(target, 1, TargetPurpose.Listen, 2);
   }
 
   describe('converts value', () => {
@@ -903,19 +903,19 @@ describe('Serializer', () => {
 
   it('encodes listen request labels', () => {
     const target = Query.atPath(path('collection/key')).toTarget();
-    let targetData = new TargetData(target, 2, QueryPurpose.Listen, 3);
+    let targetData = new TargetData(target, 2, TargetPurpose.Listen, 3);
 
     let result = s.toListenRequestLabels(targetData);
     expect(result).to.be.null;
 
-    targetData = new TargetData(target, 2, QueryPurpose.LimboResolution, 3);
+    targetData = new TargetData(target, 2, TargetPurpose.LimboResolution, 3);
     result = s.toListenRequestLabels(targetData);
     expect(result).to.deep.equal({ 'goog-listen-tags': 'limbo-document' });
 
     targetData = new TargetData(
       target,
       2,
-      QueryPurpose.ExistenceFilterMismatch,
+      TargetPurpose.ExistenceFilterMismatch,
       3
     );
     result = s.toListenRequestLabels(targetData);
@@ -1230,7 +1230,7 @@ describe('Serializer', () => {
         new TargetData(
           q,
           1,
-          QueryPurpose.Listen,
+          TargetPurpose.Listen,
           4,
           SnapshotVersion.MIN,
           SnapshotVersion.MIN,

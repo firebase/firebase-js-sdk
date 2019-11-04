@@ -18,7 +18,7 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
 import { ChangeType } from '../core/view_snapshot';
-import { TargetData, QueryPurpose } from '../local/target_data';
+import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -468,7 +468,10 @@ export class WatchChangeAggregator {
 
       targets.forEachWhile(targetId => {
         const targetData = this.targetDataForActiveTarget(targetId);
-        if (targetData && targetData.purpose !== QueryPurpose.LimboResolution) {
+        if (
+          targetData &&
+          targetData.purpose !== TargetPurpose.LimboResolution
+        ) {
           isOnlyLimboTarget = false;
           return false;
         }

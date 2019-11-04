@@ -21,7 +21,7 @@ import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
 import { emptyByteString } from '../platform/platform';
 
 /** An enumeration of the different purposes we have for targets. */
-export enum QueryPurpose {
+export enum TargetPurpose {
   /** A regular, normal query target. */
   Listen,
 
@@ -46,8 +46,8 @@ export class TargetData {
      * LocalStore for user listens and by the SyncEngine for limbo watches.
      */
     readonly targetId: TargetId,
-    /** The purpose of the target query. */
-    readonly purpose: QueryPurpose,
+    /** The purpose of the target. */
+    readonly purpose: TargetPurpose,
     /**
      * The sequence number of the last transaction during which this target data
      * was modified.
@@ -56,7 +56,7 @@ export class TargetData {
     /** The latest snapshot version seen for this target. */
     readonly snapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
     /**
-     * The maximum snapshot version at which the associated target query view
+     * The maximum snapshot version at which the associated view
      * contained no limbo documents.
      */
     readonly lastLimboFreeSnapshotVersion: SnapshotVersion = SnapshotVersion.MIN,

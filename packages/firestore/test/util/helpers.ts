@@ -43,7 +43,7 @@ import {
   ViewChange
 } from '../../src/core/view';
 import { LocalViewChanges } from '../../src/local/local_view_changes';
-import { TargetData, QueryPurpose } from '../../src/local/target_data';
+import { TargetData, TargetPurpose } from '../../src/local/target_data';
 import {
   DocumentKeySet,
   documentKeySet,
@@ -272,7 +272,7 @@ export function bound(
 
 export function targetData(
   targetId: TargetId,
-  queryPurpose: QueryPurpose,
+  queryPurpose: TargetPurpose,
   path: string
 ): TargetData {
   // Arbitrary value.
@@ -293,7 +293,7 @@ export function noChangeEvent(
   const aggregator = new WatchChangeAggregator({
     getRemoteKeysForTarget: () => documentKeySet(),
     getTargetDataForTarget: targetId =>
-      targetData(targetId, QueryPurpose.Listen, 'foo')
+      targetData(targetId, TargetPurpose.Listen, 'foo')
   });
   aggregator.handleTargetChange(
     new WatchTargetChange(
@@ -325,7 +325,7 @@ export function docAddedRemoteEvent(
         const collectionPath = docs[0].key.path.popLast();
         return targetData(
           targetId,
-          QueryPurpose.Listen,
+          TargetPurpose.Listen,
           collectionPath.toString()
         );
       } else {
@@ -375,8 +375,8 @@ export function docUpdateRemoteEvent(
     getTargetDataForTarget: targetId => {
       const purpose =
         limboTargets && limboTargets.indexOf(targetId) !== -1
-          ? QueryPurpose.LimboResolution
-          : QueryPurpose.Listen;
+          ? TargetPurpose.LimboResolution
+          : TargetPurpose.Listen;
       return targetData(targetId, purpose, doc.key.toString());
     }
   });

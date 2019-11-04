@@ -43,7 +43,7 @@ import {
   DbUnknownDocument
 } from './indexeddb_schema';
 import { SimpleDb } from './simple_db';
-import { TargetData, QueryPurpose } from './target_data';
+import { TargetData, TargetPurpose } from './target_data';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -219,7 +219,7 @@ export class LocalSerializer {
     return new TargetData(
       target,
       dbTarget.targetId,
-      QueryPurpose.Listen,
+      TargetPurpose.Listen,
       dbTarget.lastListenSequenceNumber,
       version,
       lastLimboFreeSnapshotVersion,
@@ -230,9 +230,9 @@ export class LocalSerializer {
   /** Encodes TargetData into a DbTarget for storage locally. */
   toDbTarget(targetData: TargetData): DbTarget {
     assert(
-      QueryPurpose.Listen === targetData.purpose,
+      TargetPurpose.Listen === targetData.purpose,
       'Only queries with purpose ' +
-        QueryPurpose.Listen +
+        TargetPurpose.Listen +
         ' may be stored, got ' +
         targetData.purpose
     );

@@ -147,7 +147,7 @@ export interface TargetCache {
   ): PersistencePromise<TargetData | null>;
 
   /**
-   * Adds the given document keys to cached target query results of the given target
+   * Adds the given document keys to cached query results of the given target
    * ID.
    *
    * Multi-Tab Note: This operation should only be called by the primary client.
@@ -159,7 +159,7 @@ export interface TargetCache {
   ): PersistencePromise<void>;
 
   /**
-   * Removes the given document keys from the cached target query results of the
+   * Removes the given document keys from the cached query results of the
    * given target ID.
    *
    * Multi-Tab Note: This operation should only be called by the primary client.
@@ -171,7 +171,7 @@ export interface TargetCache {
   ): PersistencePromise<void>;
 
   /**
-   * Removes all the keys in the target query results of the given target ID.
+   * Removes all the keys in the query results of the given target ID.
    *
    * Multi-Tab Note: This operation should only be called by the primary client.
    */

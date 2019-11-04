@@ -57,7 +57,7 @@ import {
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
 import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
-import { TargetData, QueryPurpose } from '../../../src/local/target_data';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
 import { JsonObject } from '../../../src/model/field_value';
@@ -1140,7 +1140,7 @@ abstract class TestRunner {
         new TargetData(
           parseQuery(expected.queries[0]).toTarget(),
           targetId,
-          QueryPurpose.Listen,
+          TargetPurpose.Listen,
           ARBITRARY_SEQUENCE_NUMBER,
           SnapshotVersion.MIN,
           SnapshotVersion.MIN,

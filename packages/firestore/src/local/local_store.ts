@@ -57,7 +57,7 @@ import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { RemoteDocumentChangeBuffer } from './remote_document_change_buffer';
 import { ClientId } from './shared_client_state';
-import { TargetData, QueryPurpose } from './target_data';
+import { TargetData, TargetPurpose } from './target_data';
 
 const LOG_TAG = 'LocalStore';
 
@@ -161,7 +161,7 @@ export class LocalStore {
    */
   private localViewReferences = new ReferenceSet();
 
-  /** Maps a target to the data about that target query. */
+  /** Maps a target to its `TargetData`. */
   private targetCache: TargetCache;
 
   /**
@@ -840,7 +840,7 @@ export class LocalStore {
                 targetData = new TargetData(
                   target,
                   targetId,
-                  QueryPurpose.Listen,
+                  TargetPurpose.Listen,
                   txn.currentSequenceNumber
                 );
                 return this.targetCache
@@ -904,7 +904,7 @@ export class LocalStore {
     return this.persistence
       .runTransaction('Release target', mode, txn => {
         // References for documents sent via Watch are automatically removed
-        // when we delete a target's target data from the reference delegate.
+        // when we delete a target's data from the reference delegate.
         // Since this does not remove references for locally mutated documents,
         // we have to remove the target associations for these documents
         // manually.
