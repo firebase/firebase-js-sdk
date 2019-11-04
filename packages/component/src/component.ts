@@ -14,7 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InstantiationMode, InstanceFactory, ComponentType, Dictionary } from './types';
+import {
+  InstantiationMode,
+  InstanceFactory,
+  ComponentType,
+  Dictionary
+} from './types';
 
 export class Component<T = unknown> {
   multipleInstances = false;

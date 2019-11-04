@@ -27,7 +27,7 @@ export class ComponentContainer {
    *
    * @param component Component being added
    * @param overwrite When a component with the same name has already been registered,
-   * if overwrite is true: overwrite the existing component with the new component and create a new 
+   * if overwrite is true: overwrite the existing component with the new component and create a new
    * provider with the new component. It can be useful in tests where you want to use different mocks
    * for different tests.
    * if overwrite is false: throw an exception

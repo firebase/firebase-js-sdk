@@ -49,5 +49,5 @@ export type InstanceFactory<T = unknown> = (
 ) => T;
 
 export type Dictionary = {
-  [key: string]: unknown
+  [key: string]: unknown;
 };

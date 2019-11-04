@@ -29,7 +29,10 @@ export class Provider<T = unknown> {
   private readonly instances: Map<string, T> = new Map();
   private readonly instancesDeferred: Map<string, Deferred<T>> = new Map();
 
-  constructor(private readonly name: string, private readonly container: ComponentContainer) {}
+  constructor(
+    private readonly name: string,
+    private readonly container: ComponentContainer
+  ) {}
 
   get(identifier: string = DEFAULT_ENTRY_NAME): Promise<T> {
     // if multipleInstances is not supported, use the default name
