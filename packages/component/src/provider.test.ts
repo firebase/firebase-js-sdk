@@ -302,7 +302,7 @@ describe('Provider', () => {
         // eslint-disable-next-line @typescript-eslint/no-floating-promises
         provider.delete();
 
-        expect(deleteFakes.length).to.eq(2);
+        expect(deleteFakes.length).to.equal(2);
         for (const f of deleteFakes) {
           expect(f).to.have.been.called;
         }

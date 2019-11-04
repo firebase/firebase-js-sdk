@@ -14,16 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InstantiationMode, InstanceFactory, ComponentType } from './types';
+import { InstantiationMode, InstanceFactory, ComponentType, Dictionary } from './types';
 
 export class Component<T = unknown> {
-  multipleInstances: boolean = false;
+  multipleInstances = false;
   /**
    * Properties to be added to the service namespace
    */
-  serviceProps: { [key: string]: unknown } = {};
+  serviceProps: Dictionary = {};
 
-  instantiationMode: InstantiationMode = InstantiationMode.LAZY;
+  instantiationMode = InstantiationMode.LAZY;
 
   /**
    *
@@ -32,9 +32,9 @@ export class Component<T = unknown> {
    * @param type whehter the service provided by the component is public or private
    */
   constructor(
-    public readonly name: string,
-    public readonly instanceFactory: InstanceFactory<T>,
-    public readonly type: ComponentType
+    readonly name: string,
+    readonly instanceFactory: InstanceFactory<T>,
+    readonly type: ComponentType
   ) {}
 
   setInstantiationMode(mode: InstantiationMode): this {
@@ -47,7 +47,7 @@ export class Component<T = unknown> {
     return this;
   }
 
-  setServiceProps(props: { [key: string]: unknown }): this {
+  setServiceProps(props: Dictionary): this {
     this.serviceProps = props;
     return this;
   }

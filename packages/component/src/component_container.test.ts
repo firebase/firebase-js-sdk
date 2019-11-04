@@ -38,7 +38,7 @@ describe('Component Container', () => {
     const provider1 = container.getProvider('ship');
     const provider2 = container.getProvider('ship');
 
-    expect(provider1).to.eq(provider2);
+    expect(provider1).to.equal(provider2);
   });
 
   it('calls setComponent() on provider with the same name when registering a component', () => {

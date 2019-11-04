@@ -26,10 +26,10 @@ import { Component } from './component';
  */
 export class Provider<T = unknown> {
   private component: Component<T> | null = null;
-  private instances: Map<string, T> = new Map();
-  private instancesDeferred: Map<string, Deferred<T>> = new Map();
+  private readonly instances: Map<string, T> = new Map();
+  private readonly instancesDeferred: Map<string, Deferred<T>> = new Map();
 
-  constructor(private name: string, private container: ComponentContainer) {}
+  constructor(private readonly name: string, private readonly container: ComponentContainer) {}
 
   get(identifier: string = DEFAULT_ENTRY_NAME): Promise<T> {
     // if multipleInstances is not supported, use the default name
@@ -114,10 +114,10 @@ export class Provider<T = unknown> {
 
   // app.delete() will call this method on every provider to delete the services
   // TODO: should we mark the provider as deleted?
-  delete(): Promise<unknown[]> {
+  async delete(): Promise<void> {
     const services = Array.from(this.instances.values());
 
-    return Promise.all(
+    await Promise.all(
       services
         .filter(service => 'INTERNAL' in service)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
