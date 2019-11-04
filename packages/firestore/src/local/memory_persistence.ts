@@ -36,7 +36,7 @@ import { ListenSequence } from '../core/listen_sequence';
 import { ListenSequenceNumber } from '../core/types';
 import { MemoryIndexManager } from './memory_index_manager';
 import { MemoryMutationQueue } from './memory_mutation_queue';
-import { MemoryQueryCache } from './memory_query_cache';
+import { MemoryQueryCache } from './memory_target_cache';
 import { MemoryRemoteDocumentCache } from './memory_remote_document_cache';
 import { MutationQueue } from './mutation_queue';
 import {
@@ -160,7 +160,7 @@ export class MemoryPersistence implements Persistence {
     return queue;
   }
 
-  getQueryCache(): MemoryQueryCache {
+  getTargetCache(): MemoryQueryCache {
     return this.queryCache;
   }
 
@@ -259,7 +259,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     txn: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    const cache = this.persistence.getQueryCache();
+    const cache = this.persistence.getTargetCache();
     return cache
       .getMatchingKeysForTargetId(txn, queryData.targetId)
       .next(keys => {
@@ -316,7 +316,7 @@ export class MemoryEagerDelegate implements ReferenceDelegate {
     key: DocumentKey
   ): PersistencePromise<boolean> {
     return PersistencePromise.or([
-      () => this.persistence.getQueryCache().containsKey(txn, key),
+      () => this.persistence.getTargetCache().containsKey(txn, key),
       () => this.persistence.mutationQueuesContainKey(txn, key),
       () => PersistencePromise.resolve(this.inMemoryPins!.containsKey(key))
     ]);
@@ -354,7 +354,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     f: (q: QueryData) => void
   ): PersistencePromise<void> {
-    return this.persistence.getQueryCache().forEachTarget(txn, f);
+    return this.persistence.getTargetCache().forEachTarget(txn, f);
   }
 
   getSequenceNumberCount(
@@ -362,7 +362,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
   ): PersistencePromise<number> {
     const docCountPromise = this.orphanedDocumentCount(txn);
     const targetCountPromise = this.persistence
-      .getQueryCache()
+      .getTargetCache()
       .getTargetCount(txn);
     return targetCountPromise.next(targetCount =>
       docCountPromise.next(docCount => targetCount + docCount)
@@ -408,7 +408,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     activeTargetIds: ActiveTargets
   ): PersistencePromise<number> {
     return this.persistence
-      .getQueryCache()
+      .getTargetCache()
       .removeTargets(txn, upperBound, activeTargetIds);
   }
 
@@ -443,7 +443,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     queryData: QueryData
   ): PersistencePromise<void> {
     const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
-    return this.persistence.getQueryCache().updateQueryData(txn, updated);
+    return this.persistence.getTargetCache().updateQueryData(txn, updated);
   }
 
   addReference(
@@ -496,7 +496,7 @@ export class MemoryLruDelegate implements ReferenceDelegate, LruDelegate {
     return PersistencePromise.or([
       () => this.persistence.mutationQueuesContainKey(txn, key),
       () => PersistencePromise.resolve(this.inMemoryPins!.containsKey(key)),
-      () => this.persistence.getQueryCache().containsKey(txn, key),
+      () => this.persistence.getTargetCache().containsKey(txn, key),
       () => {
         const orphanedAt = this.orphanedSequenceNumbers.get(key);
         return PersistencePromise.resolve(

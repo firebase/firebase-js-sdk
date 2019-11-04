@@ -42,25 +42,25 @@ import { LocalSerializer } from './local_serializer';
 import { ActiveTargets } from './lru_garbage_collector';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
+import { TargetCache } from './target_cache';
 import { QueryData } from './query_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import { Target } from '../core/target';
 
-export class IndexedDbQueryCache implements QueryCache {
+export class IndexedDbQueryCache implements TargetCache {
   constructor(
     private readonly referenceDelegate: IndexedDbLruDelegate,
     private serializer: LocalSerializer
   ) {}
 
-  // PORTING NOTE: We don't cache global metadata for the query cache, since
+  // PORTING NOTE: We don't cache global metadata for the target cache, since
   // some of it (in particular `highestTargetId`) can be modified by secondary
   // tabs. We could perhaps be more granular (and e.g. still cache
   // `lastRemoteSnapshotVersion` in memory) but for simplicity we currently go
   // to IndexedDb whenever we need to read metadata. We can revisit if it turns
   // out to have a meaningful performance impact.
 
-  private targetIdGenerator = TargetIdGenerator.forQueryCache();
+  private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
   allocateTargetId(
     transaction: PersistenceTransaction

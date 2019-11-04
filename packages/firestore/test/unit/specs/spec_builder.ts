@@ -110,7 +110,7 @@ export class ClientMemoryState {
 class CachedTargetIdGenerator {
   // TODO(wuandy): rename this to targetMapping.
   private queryMapping = new ObjectMap<Target, TargetId>(t => t.canonicalId());
-  private targetIdGenerator = TargetIdGenerator.forQueryCache();
+  private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
   /**
    * Returns a cached target ID for the provided Target, or a new ID if no

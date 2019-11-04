@@ -25,7 +25,7 @@ import {
   Persistence,
   PersistenceTransaction
 } from '../../../src/local/persistence';
-import { QueryCache } from '../../../src/local/query_cache';
+import { TargetCache } from '../../../src/local/target_cache';
 import { QueryEngine } from '../../../src/local/query_engine';
 import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { LocalDocumentsView } from '../../../src/local/local_documents_view';
@@ -88,7 +88,7 @@ class TestLocalDocumentsView extends LocalDocumentsView {
 describe('IndexFreeQueryEngine', () => {
   let persistence!: Persistence;
   let remoteDocumentCache!: RemoteDocumentCache;
-  let queryCache!: QueryCache;
+  let targetCache!: TargetCache;
   let queryEngine!: QueryEngine;
   let localDocuments!: TestLocalDocumentsView;
 
@@ -99,7 +99,7 @@ describe('IndexFreeQueryEngine', () => {
       'readwrite',
       txn => {
         const remoteKeys = documentKeySet(...documentKeys);
-        return queryCache.addMatchingKeys(txn, remoteKeys, TEST_TARGET_ID);
+        return targetCache.addMatchingKeys(txn, remoteKeys, TEST_TARGET_ID);
       }
     );
   }
@@ -148,7 +148,7 @@ describe('IndexFreeQueryEngine', () => {
       'runQuery',
       'readonly-idempotent',
       txn => {
-        return queryCache
+        return targetCache
           .getMatchingKeysForTargetId(txn, TEST_TARGET_ID)
           .next(remoteKeys => {
             return queryEngine
@@ -173,7 +173,7 @@ describe('IndexFreeQueryEngine', () => {
 
   beforeEach(async () => {
     persistence = await testMemoryEagerPersistence();
-    queryCache = persistence.getQueryCache();
+    targetCache = persistence.getTargetCache();
     queryEngine = new IndexFreeQueryEngine();
 
     remoteDocumentCache = persistence.getRemoteDocumentCache();

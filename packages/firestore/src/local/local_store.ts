@@ -51,7 +51,7 @@ import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache'
 import { MutationQueue } from './mutation_queue';
 import { Persistence, PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
+import { TargetCache } from './target_cache';
 import { QueryData, QueryPurpose } from './query_data';
 import { QueryEngine } from './query_engine';
 import { ReferenceSet } from './reference_set';
@@ -161,8 +161,8 @@ export class LocalStore {
    */
   private localViewReferences = new ReferenceSet();
 
-  /** Maps a query to the data about that query. */
-  private queryCache: QueryCache;
+  /** Maps a target to the data about that target query. */
+  private targetCache: TargetCache;
 
   /**
    * Maps a targetID to data about its query.
@@ -202,7 +202,7 @@ export class LocalStore {
     );
     this.mutationQueue = persistence.getMutationQueue(initialUser);
     this.remoteDocuments = persistence.getRemoteDocumentCache();
-    this.queryCache = persistence.getQueryCache();
+    this.targetCache = persistence.getTargetCache();
     this.localDocuments = new LocalDocumentsView(
       this.remoteDocuments,
       this.mutationQueue,
@@ -493,7 +493,7 @@ export class LocalStore {
     return this.persistence.runTransaction(
       'Get last remote snapshot version',
       'readonly-idempotent',
-      txn => this.queryCache.getLastRemoteSnapshotVersion(txn)
+      txn => this.targetCache.getLastRemoteSnapshotVersion(txn)
     );
   }
 
@@ -534,10 +534,10 @@ export class LocalStore {
               // ensures that we can persist the updated query data along with
               // the updated assignment.
               promises.push(
-                this.queryCache
+                this.targetCache
                   .removeMatchingKeys(txn, change.removedDocuments, targetId)
                   .next(() => {
-                    return this.queryCache.addMatchingKeys(
+                    return this.targetCache.addMatchingKeys(
                       txn,
                       change.addedDocuments,
                       targetId
@@ -566,7 +566,7 @@ export class LocalStore {
                   )
                 ) {
                   promises.push(
-                    this.queryCache.updateQueryData(txn, newQueryData)
+                    this.targetCache.updateQueryData(txn, newQueryData)
                   );
                 }
               }
@@ -644,7 +644,7 @@ export class LocalStore {
           // trying to resolve the state of a locally cached document that is in
           // limbo.
           if (!remoteVersion.isEqual(SnapshotVersion.MIN)) {
-            const updateRemoteVersion = this.queryCache
+            const updateRemoteVersion = this.targetCache
               .getLastRemoteSnapshotVersion(txn)
               .next(lastRemoteSnapshotVersion => {
                 assert(
@@ -654,7 +654,7 @@ export class LocalStore {
                     ' < ' +
                     lastRemoteSnapshotVersion
                 );
-                return this.queryCache.setTargetsMetadata(
+                return this.targetCache.setTargetsMetadata(
                   txn,
                   txn.currentSequenceNumber,
                   remoteVersion
@@ -826,7 +826,7 @@ export class LocalStore {
     return this.persistence
       .runTransaction('Allocate target', 'readwrite-idempotent', txn => {
         let queryData: QueryData;
-        return this.queryCache
+        return this.targetCache
           .getQueryData(txn, target)
           .next((cached: QueryData | null) => {
             if (cached) {
@@ -836,14 +836,14 @@ export class LocalStore {
               queryData = cached;
               return PersistencePromise.resolve(queryData);
             } else {
-              return this.queryCache.allocateTargetId(txn).next(targetId => {
+              return this.targetCache.allocateTargetId(txn).next(targetId => {
                 queryData = new QueryData(
                   target,
                   targetId,
                   QueryPurpose.Listen,
                   txn.currentSequenceNumber
                 );
-                return this.queryCache
+                return this.targetCache
                   .addQueryData(txn, queryData)
                   .next(() => queryData);
               });
@@ -863,8 +863,8 @@ export class LocalStore {
   }
 
   /**
-   * Returns the QueryData as seen by the LocalStore, including updates that may
-   * have not yet been persisted to the QueryCache.
+   * Returns the TargetData as seen by the LocalStore, including updates that may
+   * have not yet been persisted to the TargetCache.
    */
   // Visible for testing.
   getQueryData(
@@ -877,7 +877,7 @@ export class LocalStore {
         this.queryDataByTarget.get(targetId)
       );
     } else {
-      return this.queryCache.getQueryData(transaction, target);
+      return this.targetCache.getQueryData(transaction, target);
     }
   }
 
@@ -957,7 +957,7 @@ export class LocalStore {
             if (queryData) {
               lastLimboFreeSnapshotVersion =
                 queryData.lastLimboFreeSnapshotVersion;
-              return this.queryCache
+              return this.targetCache
                 .getMatchingKeysForTargetId(txn, queryData.targetId)
                 .next(result => {
                   remoteKeys = result;
@@ -990,7 +990,7 @@ export class LocalStore {
       'Remote document keys',
       'readonly-idempotent',
       txn => {
-        return this.queryCache.getMatchingKeysForTargetId(txn, targetId);
+        return this.targetCache.getMatchingKeysForTargetId(txn, targetId);
       }
     );
   }
@@ -1074,7 +1074,7 @@ export class LocalStore {
         'Get query data',
         'readonly-idempotent',
         txn => {
-          return this.queryCache
+          return this.targetCache
             .getQueryDataForTarget(txn, targetId)
             .next(queryData => (queryData ? queryData.target : null));
         }

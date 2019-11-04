@@ -19,17 +19,17 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target } from '../../../src/core/target';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { Persistence } from '../../../src/local/persistence';
-import { QueryCache } from '../../../src/local/query_cache';
+import { TargetCache } from '../../../src/local/target_cache';
 import { QueryData } from '../../../src/local/query_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 
 /**
- * A wrapper around a QueryCache that automatically creates a
+ * A wrapper around a TargetCache that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
-export class TestQueryCache {
-  constructor(public persistence: Persistence, public cache: QueryCache) {}
+export class TestTargetCache {
+  constructor(public persistence: Persistence, public cache: TargetCache) {}
 
   addQueryData(queryData: QueryData): Promise<void> {
     return this.persistence.runTransaction('addQueryData', 'readwrite', txn => {

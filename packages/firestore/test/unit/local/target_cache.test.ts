@@ -34,16 +34,16 @@ import {
 
 import { Timestamp } from '../../../src/api/timestamp';
 import * as persistenceHelpers from './persistence_test_helpers';
-import { TestQueryCache } from './test_query_cache';
+import { TestTargetCache } from './test_target_cache';
 import { Target } from '../../../src/core/target';
 
-describe('MemoryQueryCache', () => {
-  genericQueryCacheTests(persistenceHelpers.testMemoryEagerPersistence);
+describe('MemoryTargetCache', () => {
+  genericTargetCacheTests(persistenceHelpers.testMemoryEagerPersistence);
 });
 
-describe('IndexedDbQueryCache', () => {
+describe('IndexedDbTargetCache', () => {
   if (!IndexedDbPersistence.isAvailable()) {
-    console.warn('No IndexedDB. Skipping IndexedDbQueryCache tests.');
+    console.warn('No IndexedDB. Skipping IndexedDbTargetCache tests.');
     return;
   }
 
@@ -52,13 +52,13 @@ describe('IndexedDbQueryCache', () => {
     persistencePromise = persistenceHelpers.testIndexedDbPersistence();
   });
 
-  genericQueryCacheTests(() => persistencePromise);
+  genericTargetCacheTests(() => persistencePromise);
 
   it('persists metadata across restarts', async () => {
     const db1 = await persistencePromise;
 
-    const queryCache1 = new TestQueryCache(db1, db1.getQueryCache());
-    expect(await queryCache1.getHighestSequenceNumber()).to.equal(0);
+    const targetCache1 = new TestTargetCache(db1, db1.getTargetCache());
+    expect(await targetCache1.getHighestSequenceNumber()).to.equal(0);
 
     const originalSequenceNumber = 1234;
     const targetId = 5;
@@ -76,9 +76,9 @@ describe('IndexedDbQueryCache', () => {
       lastLimboFreeSnapshotVersion
     );
 
-    await queryCache1.addQueryData(queryData);
+    await targetCache1.addQueryData(queryData);
     // Snapshot version needs to be set separately
-    await queryCache1.setTargetsMetadata(
+    await targetCache1.setTargetsMetadata(
       originalSequenceNumber,
       snapshotVersion
     );
@@ -87,11 +87,11 @@ describe('IndexedDbQueryCache', () => {
     const db2 = await persistenceHelpers.testIndexedDbPersistence({
       dontPurgeData: true
     });
-    const queryCache2 = new TestQueryCache(db2, db2.getQueryCache());
-    expect(await queryCache2.getHighestSequenceNumber()).to.equal(
+    const targetCache2 = new TestTargetCache(db2, db2.getTargetCache());
+    expect(await targetCache2.getHighestSequenceNumber()).to.equal(
       originalSequenceNumber
     );
-    const actualQueryData = await queryCache2.getQueryData(target);
+    const actualQueryData = await targetCache2.getQueryData(target);
 
     if (process.env.USE_MOCK_PERSISTENCE !== 'YES') {
       // TODO(b/140573486): This fails on Node with persistence since the
@@ -99,7 +99,7 @@ describe('IndexedDbQueryCache', () => {
       expect(queryData.isEqual(actualQueryData!)).to.be.true;
     }
 
-    const actualSnapshotVersion = await queryCache2.getLastRemoteSnapshotVersion();
+    const actualSnapshotVersion = await targetCache2.getLastRemoteSnapshotVersion();
     expect(snapshotVersion.isEqual(actualSnapshotVersion)).to.be.true;
     await db2.shutdown();
     await persistenceHelpers.clearTestPersistence();
@@ -109,11 +109,11 @@ describe('IndexedDbQueryCache', () => {
 /**
  * Defines the set of tests to run against both query cache implementations.
  */
-function genericQueryCacheTests(
+function genericTargetCacheTests(
   persistencePromise: () => Promise<Persistence>
 ): void {
   addEqualityMatcher();
-  let cache: TestQueryCache;
+  let cache: TestTargetCache;
 
   const QUERY_ROOMS = Query.atPath(path('rooms')).toTarget();
   const QUERY_HALLS = Query.atPath(path('halls')).toTarget();
@@ -149,7 +149,7 @@ function genericQueryCacheTests(
   beforeEach(async () => {
     persistence = await persistencePromise();
     persistence.referenceDelegate.setInMemoryPins(new ReferenceSet());
-    cache = new TestQueryCache(persistence, persistence.getQueryCache());
+    cache = new TestTargetCache(persistence, persistence.getTargetCache());
   });
 
   afterEach(async () => {
@@ -345,9 +345,9 @@ function genericQueryCacheTests(
     expect(await cache.allocateTargetId()).to.deep.equal(48);
 
     // Verify that the highestTargetId persists restarts.
-    const otherCache = new TestQueryCache(
+    const otherCache = new TestTargetCache(
       persistence,
-      persistence.getQueryCache()
+      persistence.getTargetCache()
     );
     expect(await otherCache.allocateTargetId()).to.deep.equal(50);
   });
@@ -367,9 +367,9 @@ function genericQueryCacheTests(
       })
       .then(async () => {
         // Verify snapshot version persists restarts.
-        const otherCache = new TestQueryCache(
+        const otherCache = new TestTargetCache(
           persistence,
-          persistence.getQueryCache()
+          persistence.getTargetCache()
         );
         expect(await otherCache.getLastRemoteSnapshotVersion()).to.deep.equal(
           version(42)

@@ -27,14 +27,14 @@ import { ActiveTargets } from './lru_garbage_collector';
 import { MemoryPersistence } from './memory_persistence';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
+import { TargetCache } from './target_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { Target } from '../core/target';
 
-export class MemoryQueryCache implements QueryCache {
+export class MemoryQueryCache implements TargetCache {
   /**
-   * Maps a query to the data about that query
+   * Maps a target to the data about that target
    */
   private targets = new ObjectMap<Target, QueryData>(t => t.canonicalId());
 
@@ -52,7 +52,7 @@ export class MemoryQueryCache implements QueryCache {
 
   private targetCount = 0;
 
-  private targetIdGenerator = TargetIdGenerator.forQueryCache();
+  private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
   constructor(private readonly persistence: MemoryPersistence) {}
 
@@ -119,7 +119,7 @@ export class MemoryQueryCache implements QueryCache {
   ): PersistencePromise<void> {
     assert(
       !this.targets.has(queryData.target),
-      'Adding a query that already exists'
+      'Adding a target that already exists'
     );
     this.saveQueryData(queryData);
     this.targetCount += 1;
@@ -130,7 +130,10 @@ export class MemoryQueryCache implements QueryCache {
     transaction: PersistenceTransaction,
     queryData: QueryData
   ): PersistencePromise<void> {
-    assert(this.targets.has(queryData.target), 'Updating a non-existent query');
+    assert(
+      this.targets.has(queryData.target),
+      'Updating a non-existent target'
+    );
     this.saveQueryData(queryData);
     return PersistencePromise.resolve();
   }

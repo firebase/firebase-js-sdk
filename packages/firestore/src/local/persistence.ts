@@ -22,7 +22,7 @@ import { DocumentKey } from '../model/document_key';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
+import { TargetCache } from './target_cache';
 import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
@@ -225,13 +225,13 @@ export interface Persistence {
   getMutationQueue(user: User): MutationQueue;
 
   /**
-   * Returns a QueryCache representing the persisted cache of queries.
+   * Returns a TargetCache representing the persisted cache of targets.
    *
    * Note: The implementation is free to return the same instance every time
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getQueryCache(): QueryCache;
+  getTargetCache(): TargetCache;
 
   /**
    * Returns a RemoteDocumentCache representing the persisted cache of remote

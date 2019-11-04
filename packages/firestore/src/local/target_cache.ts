@@ -26,11 +26,12 @@ import { QueryData } from './query_data';
 import { Target } from '../core/target';
 
 /**
- * Represents cached queries received from the remote backend.
+ * Represents cached targets received from the remote backend.
  *
- * The cache is keyed by Query and entries in the cache are QueryData instances.
+ * The cache is keyed by `Target` and entries in the cache are `TargetData`
+ * instances.
  */
-export interface QueryCache {
+export interface TargetCache {
   /**
    * A global snapshot version representing the last consistent snapshot we
    * received from the backend. This is monotonically increasing and any
@@ -55,7 +56,7 @@ export interface QueryCache {
   ): PersistencePromise<ListenSequenceNumber>;
 
   /**
-   * Call provided function with each `QueryData` that we have cached.
+   * Call provided function with each `TargetData` that we have cached.
    */
   forEachTarget(
     txn: PersistenceTransaction,
@@ -79,10 +80,10 @@ export interface QueryCache {
   /**
    * Adds an entry in the cache.
    *
-   * The cache key is extracted from `queryData.query`. The key must not already
+   * The cache key is extracted from `targetData.target`. The key must not already
    * exist in the cache.
    *
-   * @param queryData A QueryData instance to put in the cache.
+   * @param targetData A TargetData instance to put in the cache.
    */
   addQueryData(
     transaction: PersistenceTransaction,
@@ -92,9 +93,9 @@ export interface QueryCache {
   /**
    * Updates an entry in the cache.
    *
-   * The cache key is extracted from `queryData.query`. The entry must already
+   * The cache key is extracted from `targetData.target`. The entry must already
    * exist in the cache, and it will be replaced.
-   * @param {QueryData} queryData The QueryData to be replaced into the cache.
+   * @param {TargetData} targetData The TargetData to be replaced into the cache.
    */
   updateQueryData(
     transaction: PersistenceTransaction,
@@ -102,8 +103,8 @@ export interface QueryCache {
   ): PersistencePromise<void>;
 
   /**
-   * Removes the cached entry for the given query data. It is an error to remove
-   * a query data that does not exist.
+   * Removes the cached entry for the given target data. It is an error to remove
+   * a target data that does not exist.
    *
    * Multi-Tab Note: This operation should only be called by the primary client.
    */
@@ -121,11 +122,11 @@ export interface QueryCache {
   ): PersistencePromise<number>;
 
   /**
-   * Looks up a QueryData entry by query.
+   * Looks up a TargetData entry by target.
    *
    * @param target The query target corresponding to the entry to look up.
-   * @return The cached QueryData entry, or null if the cache has no entry for
-   * the query.
+   * @return The cached TargetData entry, or null if the cache has no entry for
+   * the target.
    */
   getQueryData(
     transaction: PersistenceTransaction,
@@ -133,10 +134,10 @@ export interface QueryCache {
   ): PersistencePromise<QueryData | null>;
 
   /**
-   * Looks up a QueryData entry by target ID.
+   * Looks up a TargetData entry by target ID.
    *
    * @param targetId The target ID of the QueryData entry to look up.
-   * @return The cached QueryData entry, or null if the cache has no entry for
+   * @return The cached TargetData entry, or null if the cache has no entry for
    * the query.
    */
   // PORTING NOTE: Multi-tab only.
@@ -146,7 +147,7 @@ export interface QueryCache {
   ): PersistencePromise<QueryData | null>;
 
   /**
-   * Adds the given document keys to cached query results of the given target
+   * Adds the given document keys to cached target query results of the given target
    * ID.
    *
    * Multi-Tab Note: This operation should only be called by the primary client.
@@ -158,7 +159,7 @@ export interface QueryCache {
   ): PersistencePromise<void>;
 
   /**
-   * Removes the given document keys from the cached query results of the
+   * Removes the given document keys from the cached target query results of the
    * given target ID.
    *
    * Multi-Tab Note: This operation should only be called by the primary client.
@@ -170,7 +171,7 @@ export interface QueryCache {
   ): PersistencePromise<void>;
 
   /**
-   * Removes all the keys in the query results of the given target ID.
+   * Removes all the keys in the target query results of the given target ID.
    *
    * Multi-Tab Note: This operation should only be called by the primary client.
    */

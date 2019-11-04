@@ -38,7 +38,7 @@ import {
   documentTargetStore,
   getHighestListenSequenceNumber,
   IndexedDbQueryCache
-} from './indexeddb_query_cache';
+} from './indexeddb_target_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
@@ -716,7 +716,7 @@ export class IndexedDbPersistence implements Persistence {
     );
   }
 
-  getQueryCache(): IndexedDbQueryCache {
+  getTargetCache(): IndexedDbQueryCache {
     assert(
       this.started,
       'Cannot initialize QueryCache before persistence is started.'
@@ -1113,7 +1113,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction
   ): PersistencePromise<number> {
     const docCountPromise = this.orphanedDocmentCount(txn);
-    const targetCountPromise = this.db.getQueryCache().getQueryCount(txn);
+    const targetCountPromise = this.db.getTargetCache().getQueryCount(txn);
     return targetCountPromise.next(targetCount =>
       docCountPromise.next(docCount => targetCount + docCount)
     );
@@ -1132,7 +1132,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction,
     f: (q: QueryData) => void
   ): PersistencePromise<void> {
-    return this.db.getQueryCache().forEachTarget(txn, f);
+    return this.db.getTargetCache().forEachTarget(txn, f);
   }
 
   forEachOrphanedDocumentSequenceNumber(
@@ -1168,7 +1168,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     activeTargetIds: ActiveTargets
   ): PersistencePromise<number> {
     return this.db
-      .getQueryCache()
+      .getTargetCache()
       .removeTargets(txn, upperBound, activeTargetIds);
   }
 
@@ -1237,7 +1237,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     queryData: QueryData
   ): PersistencePromise<void> {
     const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
-    return this.db.getQueryCache().updateQueryData(txn, updated);
+    return this.db.getTargetCache().updateQueryData(txn, updated);
   }
 
   updateLimboDocument(
