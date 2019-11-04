@@ -32,8 +32,12 @@ export class Provider<T = unknown> {
   constructor(
     private readonly name: string,
     private readonly container: ComponentContainer
-  ) {}
+  ) { }
 
+  /**
+   * @param identifier A provider can provide mulitple instances of a service 
+   * if this.component.multipleInstances is true.
+   */
   get(identifier: string = DEFAULT_ENTRY_NAME): Promise<T> {
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
@@ -51,22 +55,40 @@ export class Provider<T = unknown> {
     return this.instancesDeferred.get(normalizedIdentifier)!.promise;
   }
 
+/**
+ * 
+ * @param options.identifier A provider can provide mulitple instances of a service 
+   * if this.component.multipleInstances is true.
+ * @param options.optional If optional is false or not provided, the method throws an error when
+ * the service is not immediately available.
+ * If optional is true, the method returns null if the service is not immediately available.
+ */
   getImmediate(
-    identifier: string | undefined,
-    options: { optional: true }
+    options: {
+      identifier?: string
+      optional: true
+    }
   ): T | null;
-  getImmediate(identifier?: string, options?: { optional: false }): T;
   getImmediate(
-    identifier: string = DEFAULT_ENTRY_NAME,
-    options?: { optional: boolean }
+    options?: {
+      identifier?: string,
+      optional?: false
+    }): T;
+  getImmediate(
+    options?: {
+      identifier?: string,
+      optional?: boolean
+    }
   ): T | null {
+
+    const { identifier, optional } = { identifier: DEFAULT_ENTRY_NAME, optional: false, ...options };
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
 
     const instance = this.getOrInitializeService(normalizedIdentifier);
 
     if (!instance) {
-      if (options && options.optional) {
+      if (optional) {
         return null;
       }
       throw Error(`Service ${this.name} is not available`);

@@ -48,6 +48,6 @@ export type InstanceFactory<T = unknown> = (
   instanceIdentifier?: string
 ) => T;
 
-export type Dictionary = {
+export interface Dictionary {
   [key: string]: unknown;
 };

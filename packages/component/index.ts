@@ -18,4 +18,4 @@
 export { Component } from './src/component';
 export { ComponentContainer } from './src/component_container';
 export { Provider } from './src/provider';
-export { ComponentType, InstanceFactory } from './src/types';
+export { ComponentType, InstanceFactory, InstantiationMode } from './src/types';
