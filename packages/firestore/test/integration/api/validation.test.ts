@@ -549,35 +549,43 @@ apiDescribe('Validation:', (persistence: boolean) => {
         expectWriteToFail(
           db,
           { __baz__: 1 },
-          'Document fields cannot begin and end with __ (found in field ' +
+          'Document fields cannot begin and end with "__" (found in field ' +
             '__baz__)'
         ),
         expectWriteToFail(
           db,
           { foo: { __baz__: 1 } },
-          'Document fields cannot begin and end with __ (found in field ' +
+          'Document fields cannot begin and end with "__" (found in field ' +
             'foo.__baz__)'
         ),
         expectWriteToFail(
           db,
           { __baz__: { foo: 1 } },
-          'Document fields cannot begin and end with __ (found in field ' +
+          'Document fields cannot begin and end with "__" (found in field ' +
             '__baz__)'
         ),
 
         expectUpdateToFail(
           db,
           { 'foo.__baz__': 1 },
-          'Document fields cannot begin and end with __ (found in field ' +
+          'Document fields cannot begin and end with "__" (found in field ' +
             'foo.__baz__)'
         ),
         expectUpdateToFail(
           db,
           { '__baz__.foo': 1 },
-          'Document fields cannot begin and end with __ (found in field ' +
+          'Document fields cannot begin and end with "__" (found in field ' +
             '__baz__.foo)'
         )
       ]);
+    });
+
+    validationIt(persistence, 'must not contain empty field names.', db => {
+      return expectSetToFail(
+        db,
+        { '': 'foo' },
+        'Document fields must not be empty (found in field ``)'
+      );
     });
 
     validationIt(
