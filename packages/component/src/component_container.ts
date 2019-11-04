@@ -51,16 +51,16 @@ export class ComponentContainer {
     provider.setComponent(component);
   }
 
-  getProvider<T>(name: string): Provider<T> {
+  getProvider(name: string): Provider {
     if (this.providers.has(name)) {
-      return this.providers.get(name) as Provider<T>;
+      return this.providers.get(name) as Provider;
     }
 
     // create a Provider for a service that hasn't registered with Firebase
     const provider = new Provider(name, this);
     this.providers.set(name, provider);
 
-    return provider as Provider<T>;
+    return provider as Provider;
   }
 
   getProviders(): Provider[] {
