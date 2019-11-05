@@ -29,9 +29,9 @@ import { getFakeComponent } from '../test/util';
 // with a field name present in NameServiceMapping interface.
 declare module './types' {
   interface NameServiceMapping {
-    rocket: {},
-    ship: {},
-    fireball: {}
+    rocket: {};
+    ship: {};
+    fireball: {};
   }
 }
 

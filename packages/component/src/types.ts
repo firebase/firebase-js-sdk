@@ -56,7 +56,6 @@ export interface Dictionary {
  * This interface will be extended by Firebase SDKs to provide service name and service type mapping.
  * It is used by ComponentContainer.getProvider() method to provide a type safe interface.
  */
-export interface NameServiceMapping {
-}
+export interface NameServiceMapping {}
 
 export type Name = keyof NameServiceMapping;

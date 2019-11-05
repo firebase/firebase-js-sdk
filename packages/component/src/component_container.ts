@@ -22,7 +22,7 @@ import { Name, NameServiceMapping } from './types';
 export class ComponentContainer {
   private readonly providers = new Map<string, Provider>();
 
-  constructor(private readonly name: string) { }
+  constructor(private readonly name: string) {}
 
   /**
    *
@@ -55,7 +55,7 @@ export class ComponentContainer {
   /**
    * getProvider provides a type safe interface where it can only be called with a field name
    * present in NameServiceMapping interface.
-   * 
+   *
    * Firebase SDKs providing services should extend NameServiceMapping interface to register
    * themselves.
    */

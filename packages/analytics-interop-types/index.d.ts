@@ -41,6 +41,6 @@ export interface AnalyticsCallOptions {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'analytics-internal': FirebaseAnalyticsInternal
+    'analytics-internal': FirebaseAnalyticsInternal;
   }
 }
