@@ -18,48 +18,49 @@ import { expect } from 'chai';
 import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
-import firebase from '@firebase/app';
-import { Service } from '../../src/api/service';
-
-/* eslint-disable import/no-duplicates */
-import '@firebase/messaging';
-import { isSupported } from '@firebase/messaging';
+import { makeFakeApp, createTestService } from '../utils';
+import { FirebaseMessaging } from '@firebase/messaging-types';
+import {
+  Provider,
+  ComponentContainer,
+  ComponentType,
+  Component
+} from '@firebase/component';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 export const TEST_PROJECT = require('../../../../config/project.json');
 
 describe('Firebase Functions > Call', () => {
-  let app: FirebaseApp;
-  let functions: Service;
-
-  before(() => {
-    const projectId = TEST_PROJECT.projectId;
-    const messagingSenderId = 'messaging-sender-id';
-    const region = 'us-central1';
-    try {
-      app = firebase.app('TEST-APP');
-    } catch (e) {
-      app = firebase.initializeApp(
-        { projectId, messagingSenderId },
-        'TEST-APP'
-      );
-    }
-    functions = new Service(app, region);
+  const app: FirebaseApp = makeFakeApp({
+    projectId: TEST_PROJECT.projectId,
+    messagingSenderId: 'messaging-sender-id'
   });
+  const region = 'us-central1';
 
   // TODO(klimt): Move this to the cross-platform tests and delete this file,
   // once instance id works there.
   it('instance id', async () => {
-    if (!isSupported()) {
-      // Current platform does not support messaging, skip test.
-      return;
-    }
+    // mock firebase messaging
+    const messagingMock: FirebaseMessaging = ({
+      getToken: () => Promise.resolve('iid')
+    } as unknown) as FirebaseMessaging;
+    const messagingProvider = new Provider<FirebaseMessaging>(
+      'messaging',
+      new ComponentContainer('test')
+    );
+    messagingProvider.setComponent(
+      new Component('messaging', () => messagingMock, ComponentType.PRIVATE)
+    );
+
+    const functions = createTestService(
+      app,
+      region,
+      undefined,
+      messagingProvider
+    );
 
     // Stub out the messaging method get an instance id token.
-    const messaging = firebase.messaging(app);
-    const stub = sinon
-      .stub(messaging, 'getToken')
-      .returns(Promise.resolve('iid'));
+    const stub = sinon.stub(messagingMock, 'getToken').callThrough();
 
     const func = functions.httpsCallable('instanceIdTest');
     const result = await func({});

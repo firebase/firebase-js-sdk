@@ -73,6 +73,7 @@
   "dependencies": {
     "@firebase/functions-types": "0.3.10",
     "@firebase/messaging-types": "0.3.4",
+    "@firebase/component": "0.1.0",
     "isomorphic-fetch": "2.2.1",
     "tslib": "1.10.0"
   },
