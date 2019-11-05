@@ -22,7 +22,7 @@ import { Name, NameServiceMapping } from './types';
 export class ComponentContainer {
   private readonly providers = new Map<string, Provider>();
 
-  constructor(private readonly name: string) {}
+  constructor(private readonly name: string) { }
 
   /**
    *
@@ -33,23 +33,25 @@ export class ComponentContainer {
    * for different tests.
    * if overwrite is false: throw an exception
    */
-  addComponent(component: Component, overwrite = false): void {
+  addComponent(component: Component): void {
     let provider = this.getProviderInternal(component.name);
     if (provider.isComponentSet()) {
-      if (!overwrite) {
-        throw new Error(
-          `Component ${component.name} has already been registered with ${this.name}`
-        );
-      } else {
-        // use the new component to replace the existing component
-        // delete the existing provider from the container
-        this.providers.delete(component.name);
-        // create a new provider
-        provider = this.getProviderInternal(component.name);
-      }
+      throw new Error(
+        `Component ${component.name} has already been registered with ${this.name}`
+      );
     }
 
     provider.setComponent(component);
+  }
+
+  addOrOverwriteComponent(component: Component): void {
+    let provider = this.getProviderInternal(component.name);
+    if (provider.isComponentSet()) {
+      // delete the existing provider from the container, so we can register the new component
+      this.providers.delete(component.name);
+    }
+
+    this.addComponent(component);
   }
 
   /**
