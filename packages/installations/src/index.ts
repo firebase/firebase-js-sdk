@@ -22,7 +22,6 @@ import { FirebaseInstallations } from '@firebase/installations-types';
 import { deleteInstallation, getId, getToken } from './functions';
 import { extractAppConfig } from './helpers/extract-app-config';
 import { Provider, Component, ComponentType } from '@firebase/component';
-import { FirebaseApp } from '@firebase/app-types';
 
 export function registerInstallations(instance: _FirebaseNamespace): void {
   const installationsName = 'installations';
@@ -31,7 +30,7 @@ export function registerInstallations(instance: _FirebaseNamespace): void {
     new Component(
       installationsName,
       container => {
-        const app = container.getProvider<FirebaseApp>('app').getImmediate()!;
+        const app = container.getProvider('app').getImmediate();
         // Throws if app isn't configured properly.
         extractAppConfig(app);
 
