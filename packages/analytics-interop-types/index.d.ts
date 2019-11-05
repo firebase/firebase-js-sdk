@@ -40,11 +40,7 @@ export interface AnalyticsCallOptions {
 }
 
 declare module '@firebase/component' {
-  interface ComponentContainer {
-    getProvider(
-      name: 'analytics-internal'
-    ): Provider<FirebaseAnalyticsInternal>;
+  interface NameServiceMapping {
+    'analytics-internal': FirebaseAnalyticsInternal
   }
-
-  interface Provider<T> {}
 }

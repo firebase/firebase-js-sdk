@@ -17,11 +17,12 @@
 
 import { Provider } from './provider';
 import { Component } from './component';
+import { Name, NameServiceMapping } from './types';
 
 export class ComponentContainer {
   private readonly providers = new Map<string, Provider>();
 
-  constructor(private readonly name: string) {}
+  constructor(private readonly name: string) { }
 
   /**
    *
@@ -33,7 +34,7 @@ export class ComponentContainer {
    * if overwrite is false: throw an exception
    */
   addComponent(component: Component, overwrite = false): void {
-    let provider = this.getProvider(component.name);
+    let provider = this.getProviderInternal(component.name);
     if (provider.isComponentSet()) {
       if (!overwrite) {
         throw new Error(
@@ -44,14 +45,29 @@ export class ComponentContainer {
         // delete the existing provider from the container
         this.providers.delete(component.name);
         // create a new provider
-        provider = this.getProvider(component.name);
+        provider = this.getProviderInternal(component.name);
       }
     }
 
     provider.setComponent(component);
   }
 
-  getProvider(name: string): Provider {
+  /**
+   * getProvider provides a type safe interface where it can only be called with a field name
+   * present in NameServiceMapping interface.
+   * 
+   * Firebase SDKs providing services should extend NameServiceMapping interface to register
+   * themselves.
+   */
+  getProvider<T extends Name>(name: T): Provider<NameServiceMapping[T]> {
+    return this.getProviderInternal(name) as Provider<NameServiceMapping[T]>;
+  }
+
+  getProviders(): Provider[] {
+    return Array.from(this.providers.values());
+  }
+
+  private getProviderInternal(name: string): Provider {
     if (this.providers.has(name)) {
       return this.providers.get(name) as Provider;
     }
@@ -61,9 +77,5 @@ export class ComponentContainer {
     this.providers.set(name, provider);
 
     return provider as Provider;
-  }
-
-  getProviders(): Provider[] {
-    return Array.from(this.providers.values());
   }
 }

@@ -24,6 +24,17 @@ import { InstantiationMode } from './types';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { getFakeComponent } from '../test/util';
 
+// extend NameServiceMapping with the service names we are going to use in the tests
+// It is because ComponentContainer.getProvider is strongly typed, and it can only be called
+// with a field name present in NameServiceMapping interface.
+declare module './types' {
+  interface NameServiceMapping {
+    rocket: {},
+    ship: {},
+    fireball: {}
+  }
+}
+
 describe('Component Container', () => {
   let container: ComponentContainer;
   beforeEach(() => {
