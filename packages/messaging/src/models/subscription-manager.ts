@@ -157,9 +157,10 @@ function getEndpoint(app: FirebaseApp): string {
   return `${ENDPOINT}/projects/${app.options.projectId!}/registrations`;
 }
 
-async function getHeaders(
-  { app, installations }: FirebaseInternalServices,
-): Promise<Headers> {
+async function getHeaders({
+  app,
+  installations
+}: FirebaseInternalServices): Promise<Headers> {
   const authToken = await installations.getToken();
 
   return new Headers({

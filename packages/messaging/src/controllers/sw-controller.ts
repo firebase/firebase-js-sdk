@@ -36,7 +36,6 @@ const FCM_MSG = 'FCM_MSG';
 
 export class SwController extends BaseController {
   private bgMessageHandler: BgMessageHandler | null = null;
-  
 
   constructor(services: FirebaseInternalServices) {
     super(services);

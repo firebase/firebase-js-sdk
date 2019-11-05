@@ -51,7 +51,11 @@ describe('Firebase Messaging > new *Controller()', () => {
     ];
     badInputs.forEach(badInput => {
       try {
-        new WindowController({ app: badInput, installations, analyticsProvider });
+        new WindowController({
+          app: badInput,
+          installations,
+          analyticsProvider
+        });
         new SwController({ app: badInput, installations, analyticsProvider });
 
         assert.fail(

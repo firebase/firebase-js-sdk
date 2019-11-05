@@ -23,9 +23,7 @@ import { SubscriptionManager } from '../src/models/subscription-manager';
 
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { fetchMock } from './testing-utils/mock-fetch';
-import {
-  makeFakeFirebaseInternalServices
-} from './testing-utils/make-fake-firebase-services';
+import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { TokenDetails } from '../src/interfaces/token-details';
 import { FirebaseInternalServices } from '../src/interfaces/external-services';
@@ -239,7 +237,10 @@ describe('Firebase Messaging > SubscriptionManager', () => {
   describe('deleteToken', () => {
     it('deletes on valid request', async () => {
       stub(window, 'fetch').returns(fetchMock.jsonOk('{}'));
-      await subscriptionManager.deleteToken(firebaseInternalServices, tokenDetails);
+      await subscriptionManager.deleteToken(
+        firebaseInternalServices,
+        tokenDetails
+      );
     });
 
     it('handles fetch errors', async () => {
@@ -248,7 +249,10 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
 
       try {
-        await subscriptionManager.deleteToken(firebaseInternalServices, tokenDetails);
+        await subscriptionManager.deleteToken(
+          firebaseInternalServices,
+          tokenDetails
+        );
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED);
@@ -259,7 +263,10 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       const stubbedFetch = stub(window, 'fetch');
       stubbedFetch.returns(fetchMock.htmlError(404, 'html-response'));
       try {
-        await subscriptionManager.deleteToken(firebaseInternalServices, tokenDetails);
+        await subscriptionManager.deleteToken(
+          firebaseInternalServices,
+          tokenDetails
+        );
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED);

@@ -27,9 +27,7 @@ export class TokenDetailsModel extends DbInterface {
   protected readonly dbVersion: number = 4;
   protected readonly objectStoreName: string = 'fcm_token_object_Store';
 
-  constructor(
-    private readonly services: FirebaseInternalServices
-  ) {
+  constructor(private readonly services: FirebaseInternalServices) {
     super();
   }
 

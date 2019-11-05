@@ -25,9 +25,7 @@ import { TokenDetailsModel } from '../src/models/token-details-model';
 import { deleteDatabase } from './testing-utils/db-helper';
 import { compareDetails } from './testing-utils/detail-comparator';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
-import {
-  makeFakeFirebaseInternalServices
-} from './testing-utils/make-fake-firebase-services';
+import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { FirebaseInternalServices } from '../src/interfaces/external-services';
 
 const BAD_INPUTS: any[] = ['', [], {}, true, null, 123];
@@ -50,7 +48,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
       swScope: '/example-scope',
       vapidKey: base64ToArrayBuffer(
         'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-        '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+          '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
       ),
       fcmSenderId: '1234567',
       fcmToken: 'qwerty',
@@ -121,7 +119,7 @@ describe('Firebase Messaging > TokenDetailsModel', () => {
         swScope: '/example-scope',
         vapidKey: base64ToArrayBuffer(
           'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
-          '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
+            '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
         ),
         fcmSenderId: '1234567',
         fcmToken: 'qwerty',

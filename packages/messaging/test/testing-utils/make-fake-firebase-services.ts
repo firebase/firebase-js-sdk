@@ -21,12 +21,14 @@ import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { FirebaseInternalServices } from '../../src/interfaces/external-services';
 
-export function makeFakeFirebaseInternalServices(options: FirebaseOptions = {}): FirebaseInternalServices {
-    return {
-      app: makeFakeApp(options),
-      installations: makeFakeInstallations(),
-      analyticsProvider: makeFakeAnalyticsProvider()
-    };
+export function makeFakeFirebaseInternalServices(
+  options: FirebaseOptions = {}
+): FirebaseInternalServices {
+  return {
+    app: makeFakeApp(options),
+    installations: makeFakeInstallations(),
+    analyticsProvider: makeFakeAnalyticsProvider()
+  };
 }
 
 export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
@@ -66,4 +68,3 @@ export function makeFakeAnalyticsProvider(): Provider<
     new ComponentContainer('test')
   );
 }
-

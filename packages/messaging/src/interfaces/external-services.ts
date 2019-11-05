@@ -4,7 +4,7 @@ import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { Provider } from '@firebase/component';
 
 export interface FirebaseInternalServices {
-    app: FirebaseApp,
-    installations: FirebaseInstallations,
-    analyticsProvider: Provider<FirebaseAnalyticsInternal>
+  app: FirebaseApp;
+  installations: FirebaseInstallations;
+  analyticsProvider: Provider<FirebaseAnalyticsInternal>;
 }

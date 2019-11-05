@@ -40,7 +40,7 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
     const installations = container.getProvider('installations').getImmediate();
     const analyticsProvider = container.getProvider('analytics-internal');
 
-    const firebaseServices = { app, installations, analyticsProvider};
+    const firebaseServices = { app, installations, analyticsProvider };
 
     if (!isSupported()) {
       throw errorFactory.create(ErrorCode.UNSUPPORTED_BROWSER);

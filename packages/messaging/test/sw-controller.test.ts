@@ -23,9 +23,7 @@ declare const self: ServiceWorkerGlobalScope;
 import { expect } from 'chai';
 import { stub, restore, spy, SinonSpy } from 'sinon';
 import { FirebaseError } from '@firebase/util';
-import {
-  makeFakeFirebaseInternalServices
-} from './testing-utils/make-fake-firebase-services';
+import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 import { SwController } from '../src/controllers/sw-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';

@@ -26,9 +26,7 @@ import { SubscriptionManager } from '../src/models/subscription-manager';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
-import {
-  makeFakeFirebaseInternalServices
-} from './testing-utils/make-fake-firebase-services';
+import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 import { FirebaseInternalServices } from '../src/interfaces/external-services';
 
@@ -95,9 +93,7 @@ describe('Firebase Messaging > *BaseController', () => {
           }
         });
 
-        const controller = new controllerInTest(
-          firebaseInternalServices
-        );
+        const controller = new controllerInTest(firebaseInternalServices);
         return controller
           .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(
@@ -117,9 +113,7 @@ describe('Firebase Messaging > *BaseController', () => {
           getSubscription: async () => exampleSubscription
         });
 
-        const controller = new controllerInTest(
-          firebaseInternalServices
-        );
+        const controller = new controllerInTest(firebaseInternalServices);
         return controller
           .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(subscription => {
@@ -131,7 +125,7 @@ describe('Firebase Messaging > *BaseController', () => {
         const exampleSubscription = {};
         const reg = makeFakeSWReg();
         stub(reg, 'pushManager').value({
-          getSubscription: async () => { },
+          getSubscription: async () => {},
           subscribe: async (options: PushSubscriptionOptions) => {
             expect(options).to.deep.equal({
               userVisibleOnly: true,
@@ -142,9 +136,7 @@ describe('Firebase Messaging > *BaseController', () => {
           }
         });
 
-        const controller = new controllerInTest(
-          firebaseInternalServices
-        );
+        const controller = new controllerInTest(firebaseInternalServices);
         return controller
           .getPushSubscription(reg, DEFAULT_PUBLIC_VAPID_KEY)
           .then(subscription => {

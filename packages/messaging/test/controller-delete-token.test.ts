@@ -25,9 +25,7 @@ import { SubscriptionManager } from '../src/models/subscription-manager';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 
 import { deleteDatabase } from './testing-utils/db-helper';
-import {
-  makeFakeFirebaseInternalServices
-} from './testing-utils/make-fake-firebase-services';
+import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 import { TokenDetails } from '../src/interfaces/token-details';
@@ -95,9 +93,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
   });
 
   it('should handle no token to delete', () => {
-    messagingService = new WindowController(
-      firebaseInternalServices
-    );
+    messagingService = new WindowController(firebaseInternalServices);
     return messagingService.deleteToken(undefined as any).then(
       () => {
         throw new Error('Expected error to be thrown.');
@@ -120,9 +116,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       async () => {}
     );
 
-    messagingService = new WindowController(
-      firebaseInternalServices
-    );
+    messagingService = new WindowController(firebaseInternalServices);
     return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
   });
 
@@ -143,9 +137,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       async () => {}
     );
 
-    messagingService = new WindowController(
-      firebaseInternalServices
-    );
+    messagingService = new WindowController(firebaseInternalServices);
     return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
       () => {
         throw new Error('Expected this to reject');
@@ -174,9 +166,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         async () => {}
       );
 
-      messagingService = new serviceClass(
-        firebaseInternalServices
-      );
+      messagingService = new serviceClass(firebaseInternalServices);
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
     });
 
@@ -205,9 +195,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         async () => {}
       );
 
-      messagingService = new serviceClass(
-        firebaseInternalServices
-      );
+      messagingService = new serviceClass(firebaseInternalServices);
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
         () => {
           throw new Error('Expected this to reject');
@@ -241,9 +229,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         throw new Error(errorMsg);
       });
 
-      messagingService = new serviceClass(
-        firebaseInternalServices
-      );
+      messagingService = new serviceClass(firebaseInternalServices);
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
         () => {
           throw new Error('Expected this to reject');
@@ -276,9 +262,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         async () => {}
       );
 
-      messagingService = new serviceClass(
-        firebaseInternalServices
-      );
+      messagingService = new serviceClass(firebaseInternalServices);
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
     });
   });

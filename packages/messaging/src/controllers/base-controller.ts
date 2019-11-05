@@ -49,9 +49,7 @@ export abstract class BaseController implements FirebaseMessaging {
   private readonly vapidDetailsModel = new VapidDetailsModel();
   private readonly subscriptionManager = new SubscriptionManager();
 
-  constructor(
-    protected readonly services: FirebaseInternalServices
-  ) {
+  constructor(protected readonly services: FirebaseInternalServices) {
     const { app } = services;
     this.app = app;
     if (
@@ -234,10 +232,7 @@ export abstract class BaseController implements FirebaseMessaging {
    */
   private async deleteTokenFromDB(token: string): Promise<void> {
     const tokenDetails = await this.tokenDetailsModel.deleteToken(token);
-    await this.subscriptionManager.deleteToken(
-      this.services,
-      tokenDetails
-    );
+    await this.subscriptionManager.deleteToken(this.services, tokenDetails);
   }
 
   // Visible for testing

@@ -33,10 +33,7 @@ import { FirebaseInternalServices } from '../interfaces/external-services';
 const OLD_DB_NAME = 'undefined';
 const OLD_OBJECT_STORE_NAME = 'fcm_token_object_Store';
 
-function handleDb(
-  db: IDBDatabase,
-  services: FirebaseInternalServices
-): void {
+function handleDb(db: IDBDatabase, services: FirebaseInternalServices): void {
   if (!db.objectStoreNames.contains(OLD_OBJECT_STORE_NAME)) {
     // We found a database with the name 'undefined', but our expected object
     // store isn't defined.
@@ -72,9 +69,7 @@ function handleDb(
   };
 }
 
-export function cleanV1(
-  services: FirebaseInternalServices
-): void {
+export function cleanV1(services: FirebaseInternalServices): void {
   const request: IDBOpenDBRequest = indexedDB.open(OLD_DB_NAME);
   request.onerror = _event => {
     // NOOP - Nothing we can do.
