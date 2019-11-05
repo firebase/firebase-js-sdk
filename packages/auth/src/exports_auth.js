@@ -674,8 +674,8 @@ fireauth.exportlib.exportFunction(
     const authComponent = { // provides Auth public APIs
       'name': fireauth.exportlib.AUTH_TYPE,
       'instanceFactory': function(container) {
-          var app = container['getProvider']('app')['getImmediate']();
-          return new fireauth.Auth(app);
+        var app = container['getProvider']('app')['getImmediate']();
+        return new fireauth.Auth(app);
       },
       'multipleInstances': false,
       'serviceProps': namespace,
@@ -686,15 +686,15 @@ fireauth.exportlib.exportFunction(
     const authInteropComponent = { // provides Auth internal APIs
       'name': 'auth-internal',
       'instanceFactory': function(container) {
-          var auth = container['getProvider'](fireauth.exportlib.AUTH_TYPE)['getImmediate']();
-          return {
+        var auth = container['getProvider'](fireauth.exportlib.AUTH_TYPE)['getImmediate']();
+        return {
           'getUid': goog.bind(auth.getUid, auth),
           'getToken': goog.bind(auth.getIdTokenInternal, auth),
           'addAuthTokenListener':
-              goog.bind(auth.addAuthTokenListenerInternal, auth),
+            goog.bind(auth.addAuthTokenListenerInternal, auth),
           'removeAuthTokenListener':
-              goog.bind(auth.removeAuthTokenListenerInternal, auth)
-          };
+            goog.bind(auth.removeAuthTokenListenerInternal, auth)
+        };
       },
       'multipleInstances': false,
       'instantiationMode': 'LAZY',
