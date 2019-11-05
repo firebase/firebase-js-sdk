@@ -36,10 +36,10 @@ import {
 } from '../../../src/local/persistence';
 
 import { PersistencePromise } from '../../../src/local/persistence_promise';
-import { QueryCache } from '../../../src/local/query_cache';
-import { QueryData, QueryPurpose } from '../../../src/local/query_data';
+import { TargetCache } from '../../../src/local/target_cache';
 import { ReferenceSet } from '../../../src/local/reference_set';
 import { RemoteDocumentCache } from '../../../src/local/remote_document_cache';
+import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { Document, MaybeDocument } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -96,7 +96,7 @@ function genericLruGarbageCollectorTests(
   });
 
   let persistence: Persistence;
-  let queryCache: QueryCache;
+  let targetCache: TargetCache;
   let garbageCollector: LruGarbageCollector;
   let initialSequenceNumber: ListenSequenceNumber;
   let mutationQueue: MutationQueue;
@@ -114,7 +114,7 @@ function genericLruGarbageCollectorTests(
     }
     lruParams = params;
     persistence = await newPersistence(params, queue);
-    queryCache = persistence.getQueryCache();
+    targetCache = persistence.getTargetCache();
     mutationQueue = persistence.getMutationQueue(new User('user'));
     documentCache = persistence.getRemoteDocumentCache();
     initialSequenceNumber = await persistence.runTransaction(
@@ -129,12 +129,12 @@ function genericLruGarbageCollectorTests(
       .garbageCollector;
   }
 
-  function nextQueryData(sequenceNumber: ListenSequenceNumber): QueryData {
+  function nextTargetData(sequenceNumber: ListenSequenceNumber): TargetData {
     const targetId = ++previousTargetId;
-    return new QueryData(
+    return new TargetData(
       Query.atPath(path('path' + targetId)).toTarget(),
       targetId,
-      QueryPurpose.Listen,
+      TargetPurpose.Listen,
       sequenceNumber
     );
   }
@@ -143,32 +143,32 @@ function genericLruGarbageCollectorTests(
     return DocumentKey.fromPathString('docs/doc_' + ++previousDocNum);
   }
 
-  function emptyQueryDataMap(): SortedMap<TargetId, QueryData> {
-    return new SortedMap<TargetId, QueryData>(primitiveComparator);
+  function emptyTargetDataMap(): SortedMap<TargetId, TargetData> {
+    return new SortedMap<TargetId, TargetData>(primitiveComparator);
   }
 
   function addNextTargetInTransaction(
     txn: PersistenceTransaction
-  ): PersistencePromise<QueryData> {
-    const queryData = nextQueryData(txn.currentSequenceNumber);
-    return queryCache.addQueryData(txn, queryData).next(() => queryData);
+  ): PersistencePromise<TargetData> {
+    const targetData = nextTargetData(txn.currentSequenceNumber);
+    return targetCache.addTargetData(txn, targetData).next(() => targetData);
   }
 
-  function addNextTarget(): Promise<QueryData> {
-    return persistence.runTransaction('add query', 'readwrite', txn => {
+  function addNextTarget(): Promise<TargetData> {
+    return persistence.runTransaction('add target', 'readwrite', txn => {
       return addNextTargetInTransaction(txn);
     });
   }
 
   function updateTargetInTransaction(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
-    return queryCache
-      .updateQueryData(txn, updated)
+    const updated = targetData.withSequenceNumber(txn.currentSequenceNumber);
+    return targetCache
+      .updateTargetData(txn, updated)
       .next(() =>
-        queryCache.setTargetsMetadata(txn, txn.currentSequenceNumber)
+        targetCache.setTargetsMetadata(txn, txn.currentSequenceNumber)
       );
   }
 
@@ -369,7 +369,7 @@ function genericLruGarbageCollectorTests(
 
     it('with mutations in targets', async () => {
       // Add mutated docs, then add one of them to a query target so it doesn't get GC'd.
-      // Expect 3 past the initial value: the mutations not part of a query, and two queries
+      // Expect 3 past the initial value: the mutations not part of a target, and two targets.
       const docInTarget = nextTestDocumentKey();
       await persistence.runTransaction('mark mutations', 'readwrite', txn => {
         // Adding 9 doc keys in a transaction. If we remove one of them, we'll have room for two
@@ -388,9 +388,13 @@ function genericLruGarbageCollectorTests(
         'target with a mutation',
         'readwrite',
         txn => {
-          return addNextTargetInTransaction(txn).next(queryData => {
+          return addNextTargetInTransaction(txn).next(targetData => {
             const keySet = documentKeySet().add(docInTarget);
-            return queryCache.addMatchingKeys(txn, keySet, queryData.targetId);
+            return targetCache.addMatchingKeys(
+              txn,
+              keySet,
+              targetData.targetId
+            );
           });
         }
       );
@@ -400,17 +404,17 @@ function genericLruGarbageCollectorTests(
   });
 
   it('removes targets up through sequence number', async () => {
-    let activeTargetIds: ActiveTargets = emptyQueryDataMap();
+    let activeTargetIds: ActiveTargets = emptyTargetDataMap();
     for (let i = 0; i < 100; i++) {
-      const queryData = await addNextTarget();
+      const targetData = await addNextTarget();
       // Mark odd queries as live so we can test filtering out live queries.
-      const targetId = queryData.targetId;
+      const targetId = targetData.targetId;
       if (targetId % 2 === 1) {
-        activeTargetIds = activeTargetIds.insert(targetId, queryData);
+        activeTargetIds = activeTargetIds.insert(targetId, targetData);
       }
     }
 
-    // GC up through 20th query, which is 20%.
+    // GC up through 20th target, which is 20%.
     // Expect to have GC'd 10 targets, since every other target is live
     const upperBound = 20 + initialSequenceNumber;
     const removed = await removeTargets(upperBound, activeTargetIds);
@@ -420,8 +424,8 @@ function genericLruGarbageCollectorTests(
       'verify remaining targets > 20 or odd',
       'readwrite',
       txn => {
-        return queryCache.forEachTarget(txn, queryData => {
-          const targetId = queryData.targetId;
+        return targetCache.forEachTarget(txn, targetData => {
+          const targetId = targetData.targetId;
           expect(targetId > 20 || targetId % 2 === 1).to.be.true;
         });
       }
@@ -441,7 +445,7 @@ function genericLruGarbageCollectorTests(
       'add a target and add two documents to it',
       'readwrite',
       txn => {
-        return addNextTargetInTransaction(txn).next(queryData => {
+        return addNextTargetInTransaction(txn).next(targetData => {
           let keySet = documentKeySet();
           return cacheADocumentInTransaction(txn)
             .next(docKey1 => {
@@ -455,19 +459,19 @@ function genericLruGarbageCollectorTests(
               mutations.push(mutation(docKey2));
             })
             .next(() =>
-              queryCache.addMatchingKeys(txn, keySet, queryData.targetId)
+              targetCache.addMatchingKeys(txn, keySet, targetData.targetId)
             );
         });
       }
     );
 
-    // Add a second query and register a third document on it
+    // Add a second target and register a third document on it
     await persistence.runTransaction('second target', 'readwrite', txn => {
-      return addNextTargetInTransaction(txn).next(queryData => {
+      return addNextTargetInTransaction(txn).next(targetData => {
         return cacheADocumentInTransaction(txn).next(docKey3 => {
           expectedRetained.add(docKey3);
           const keySet = documentKeySet().add(docKey3);
-          return queryCache.addMatchingKeys(txn, keySet, queryData.targetId);
+          return targetCache.addMatchingKeys(txn, keySet, targetData.targetId);
         });
       });
     });
@@ -584,7 +588,7 @@ function genericLruGarbageCollectorTests(
       'Add oldest target and docs',
       'readwrite',
       txn => {
-        return addNextTargetInTransaction(txn).next(queryData => {
+        return addNextTargetInTransaction(txn).next(targetData => {
           let p = PersistencePromise.resolve();
           let keySet = documentKeySet();
           for (let i = 0; i < 5; i++) {
@@ -597,9 +601,9 @@ function genericLruGarbageCollectorTests(
           }
           return p
             .next(() =>
-              queryCache.addMatchingKeys(txn, keySet, queryData.targetId)
+              targetCache.addMatchingKeys(txn, keySet, targetData.targetId)
             )
-            .next(() => queryData);
+            .next(() => targetData);
         });
       }
     );
@@ -613,7 +617,7 @@ function genericLruGarbageCollectorTests(
       'Add middle target and docs',
       'readwrite',
       txn => {
-        return addNextTargetInTransaction(txn).next(queryData => {
+        return addNextTargetInTransaction(txn).next(targetData => {
           let p = PersistencePromise.resolve();
           let keySet = documentKeySet();
 
@@ -654,9 +658,9 @@ function genericLruGarbageCollectorTests(
 
           return p
             .next(() =>
-              queryCache.addMatchingKeys(txn, keySet, queryData.targetId)
+              targetCache.addMatchingKeys(txn, keySet, targetData.targetId)
             )
-            .next(() => queryData);
+            .next(() => targetData);
         });
       }
     );
@@ -670,7 +674,7 @@ function genericLruGarbageCollectorTests(
       'Add newest target and docs',
       'readwrite',
       txn => {
-        return addNextTargetInTransaction(txn).next(queryData => {
+        return addNextTargetInTransaction(txn).next(targetData => {
           let p = PersistencePromise.resolve();
           let keySet = documentKeySet();
           // These documents are only in this target. They are expected to be removed
@@ -697,9 +701,9 @@ function genericLruGarbageCollectorTests(
 
           return p
             .next(() =>
-              queryCache.addMatchingKeys(txn, keySet, queryData.targetId)
+              targetCache.addMatchingKeys(txn, keySet, targetData.targetId)
             )
-            .next(() => queryData);
+            .next(() => targetData);
         });
       }
     );
@@ -717,7 +721,7 @@ function genericLruGarbageCollectorTests(
             return markDocumentEligibleForGCInTransaction(txn, docKey1);
           })
           .next(() => {
-            return queryCache.addMatchingKeys(
+            return targetCache.addMatchingKeys(
               txn,
               keySet,
               oldestTarget.targetId
@@ -742,7 +746,7 @@ function genericLruGarbageCollectorTests(
       'readwrite',
       txn => {
         return updateTargetInTransaction(txn, middleTarget).next(() =>
-          queryCache.removeMatchingKeys(
+          targetCache.removeMatchingKeys(
             txn,
             middleDocsToRemove,
             middleTarget.targetId
@@ -760,7 +764,7 @@ function genericLruGarbageCollectorTests(
       txn => {
         return updateTargetInTransaction(txn, oldestTarget)
           .next(() => {
-            return queryCache.addMatchingKeys(
+            return targetCache.addMatchingKeys(
               txn,
               newestDocsToAddToOldest,
               oldestTarget.targetId
@@ -811,7 +815,7 @@ function genericLruGarbageCollectorTests(
     );
 
     // Finally, do the garbage collection, up to but not including the removal of middleTarget
-    let activeTargetIds: ActiveTargets = emptyQueryDataMap();
+    let activeTargetIds: ActiveTargets = emptyTargetDataMap();
     activeTargetIds = activeTargetIds.insert(oldestTarget.targetId, {});
 
     const preCollectSize = await persistence.runTransaction(
@@ -904,7 +908,7 @@ function genericLruGarbageCollectorTests(
     const results = await persistence.runTransaction(
       'collect garbage',
       'readwrite-primary',
-      txn => garbageCollector.collect(txn, emptyQueryDataMap())
+      txn => garbageCollector.collect(txn, emptyTargetDataMap())
     );
     expect(results.didRun).to.be.false;
   });
@@ -936,7 +940,7 @@ function genericLruGarbageCollectorTests(
     const results = await persistence.runTransaction(
       'collect garbage',
       'readwrite-primary',
-      txn => garbageCollector.collect(txn, emptyQueryDataMap())
+      txn => garbageCollector.collect(txn, emptyTargetDataMap())
     );
     expect(results.didRun).to.be.false;
   });
@@ -954,13 +958,13 @@ function genericLruGarbageCollectorTests(
         'Add a target and some documents',
         'readwrite-primary',
         txn => {
-          return addNextTargetInTransaction(txn).next(queryData => {
-            const targetId = queryData.targetId;
+          return addNextTargetInTransaction(txn).next(targetData => {
+            const targetId = targetData.targetId;
             const promises: Array<PersistencePromise<void>> = [];
             for (let j = 0; j < 5; j++) {
               promises.push(
                 cacheADocumentInTransaction(txn).next(docKey =>
-                  queryCache.addMatchingKeys(
+                  targetCache.addMatchingKeys(
                     txn,
                     documentKeySet(docKey),
                     targetId
@@ -969,7 +973,7 @@ function genericLruGarbageCollectorTests(
               );
             }
             return PersistencePromise.waitFor(promises).next(() =>
-              updateTargetInTransaction(txn, queryData)
+              updateTargetInTransaction(txn, targetData)
             );
           });
         }
@@ -987,7 +991,7 @@ function genericLruGarbageCollectorTests(
     const results = await persistence.runTransaction(
       'collect garbage',
       'readwrite-primary',
-      txn => garbageCollector.collect(txn, emptyQueryDataMap())
+      txn => garbageCollector.collect(txn, emptyTargetDataMap())
     );
     expect(results.didRun).to.be.true;
     expect(results.targetsRemoved).to.equal(2);
@@ -1016,13 +1020,13 @@ function genericLruGarbageCollectorTests(
         'Add a target and some documents',
         'readwrite-primary',
         txn => {
-          return addNextTargetInTransaction(txn).next(queryData => {
-            const targetId = queryData.targetId;
+          return addNextTargetInTransaction(txn).next(targetData => {
+            const targetId = targetData.targetId;
             const promises: Array<PersistencePromise<void>> = [];
             for (let j = 0; j < 5; j++) {
               promises.push(
                 cacheADocumentInTransaction(txn).next(docKey =>
-                  queryCache.addMatchingKeys(
+                  targetCache.addMatchingKeys(
                     txn,
                     documentKeySet(docKey),
                     targetId
@@ -1031,7 +1035,7 @@ function genericLruGarbageCollectorTests(
               );
             }
             return PersistencePromise.waitFor(promises).next(() =>
-              updateTargetInTransaction(txn, queryData)
+              updateTargetInTransaction(txn, targetData)
             );
           });
         }
@@ -1042,7 +1046,7 @@ function genericLruGarbageCollectorTests(
     const results = await persistence.runTransaction(
       'collect garbage',
       'readwrite-primary',
-      txn => garbageCollector.collect(txn, emptyQueryDataMap())
+      txn => garbageCollector.collect(txn, emptyTargetDataMap())
     );
     expect(results.sequenceNumbersCollected).to.equal(5);
   });

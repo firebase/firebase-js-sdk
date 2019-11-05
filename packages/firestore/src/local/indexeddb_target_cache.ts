@@ -42,25 +42,25 @@ import { LocalSerializer } from './local_serializer';
 import { ActiveTargets } from './lru_garbage_collector';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
-import { QueryData } from './query_data';
+import { TargetCache } from './target_cache';
+import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 import { Target } from '../core/target';
 
-export class IndexedDbQueryCache implements QueryCache {
+export class IndexedDbTargetCache implements TargetCache {
   constructor(
     private readonly referenceDelegate: IndexedDbLruDelegate,
     private serializer: LocalSerializer
   ) {}
 
-  // PORTING NOTE: We don't cache global metadata for the query cache, since
+  // PORTING NOTE: We don't cache global metadata for the target cache, since
   // some of it (in particular `highestTargetId`) can be modified by secondary
   // tabs. We could perhaps be more granular (and e.g. still cache
   // `lastRemoteSnapshotVersion` in memory) but for simplicity we currently go
   // to IndexedDb whenever we need to read metadata. We can revisit if it turns
   // out to have a meaningful performance impact.
 
-  private targetIdGenerator = TargetIdGenerator.forQueryCache();
+  private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
   allocateTargetId(
     transaction: PersistenceTransaction
@@ -113,35 +113,35 @@ export class IndexedDbQueryCache implements QueryCache {
     });
   }
 
-  addQueryData(
+  addTargetData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    return this.saveQueryData(transaction, queryData).next(() => {
+    return this.saveTargetData(transaction, targetData).next(() => {
       return this.retrieveMetadata(transaction).next(metadata => {
         metadata.targetCount += 1;
-        this.updateMetadataFromQueryData(queryData, metadata);
+        this.updateMetadataFromTargetData(targetData, metadata);
         return this.saveMetadata(transaction, metadata);
       });
     });
   }
 
-  updateQueryData(
+  updateTargetData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    return this.saveQueryData(transaction, queryData);
+    return this.saveTargetData(transaction, targetData);
   }
 
-  removeQueryData(
+  removeTargetData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    return this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
-      .next(() => targetsStore(transaction).delete(queryData.targetId))
+    return this.removeMatchingKeysForTargetId(transaction, targetData.targetId)
+      .next(() => targetsStore(transaction).delete(targetData.targetId))
       .next(() => this.retrieveMetadata(transaction))
       .next(metadata => {
-        assert(metadata.targetCount > 0, 'Removing from an empty query cache');
+        assert(metadata.targetCount > 0, 'Removing from an empty target cache');
         metadata.targetCount -= 1;
         return this.saveMetadata(transaction, metadata);
       });
@@ -161,13 +161,13 @@ export class IndexedDbQueryCache implements QueryCache {
     const promises: Array<PersistencePromise<void>> = [];
     return targetsStore(txn)
       .iterate((key, value) => {
-        const queryData = this.serializer.fromDbTarget(value);
+        const targetData = this.serializer.fromDbTarget(value);
         if (
-          queryData.sequenceNumber <= upperBound &&
-          activeTargetIds.get(queryData.targetId) === null
+          targetData.sequenceNumber <= upperBound &&
+          activeTargetIds.get(targetData.targetId) === null
         ) {
           count++;
-          promises.push(this.removeQueryData(txn, queryData));
+          promises.push(this.removeTargetData(txn, targetData));
         }
       })
       .next(() => PersistencePromise.waitFor(promises))
@@ -175,15 +175,15 @@ export class IndexedDbQueryCache implements QueryCache {
   }
 
   /**
-   * Call provided function with each `QueryData` that we have cached.
+   * Call provided function with each `TargetData` that we have cached.
    */
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void> {
     return targetsStore(txn).iterate((key, value) => {
-      const queryData = this.serializer.fromDbTarget(value);
-      f(queryData);
+      const targetData = this.serializer.fromDbTarget(value);
+      f(targetData);
     });
   }
 
@@ -202,36 +202,38 @@ export class IndexedDbQueryCache implements QueryCache {
     return globalTargetStore(transaction).put(DbTargetGlobal.key, metadata);
   }
 
-  private saveQueryData(
+  private saveTargetData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    return targetsStore(transaction).put(this.serializer.toDbTarget(queryData));
+    return targetsStore(transaction).put(
+      this.serializer.toDbTarget(targetData)
+    );
   }
 
   /**
    * In-place updates the provided metadata to account for values in the given
-   * QueryData. Saving is done separately. Returns true if there were any
+   * TargetData. Saving is done separately. Returns true if there were any
    * changes to the metadata.
    */
-  private updateMetadataFromQueryData(
-    queryData: QueryData,
+  private updateMetadataFromTargetData(
+    targetData: TargetData,
     metadata: DbTargetGlobal
   ): boolean {
     let updated = false;
-    if (queryData.targetId > metadata.highestTargetId) {
-      metadata.highestTargetId = queryData.targetId;
+    if (targetData.targetId > metadata.highestTargetId) {
+      metadata.highestTargetId = targetData.targetId;
       updated = true;
     }
 
-    if (queryData.sequenceNumber > metadata.highestListenSequenceNumber) {
-      metadata.highestListenSequenceNumber = queryData.sequenceNumber;
+    if (targetData.sequenceNumber > metadata.highestListenSequenceNumber) {
+      metadata.highestListenSequenceNumber = targetData.sequenceNumber;
       updated = true;
     }
     return updated;
   }
 
-  getQueryCount(
+  getTargetCount(
     transaction: PersistenceTransaction
   ): PersistencePromise<number> {
     return this.retrieveMetadata(transaction).next(
@@ -239,10 +241,10 @@ export class IndexedDbQueryCache implements QueryCache {
     );
   }
 
-  getQueryData(
+  getTargetData(
     transaction: PersistenceTransaction,
     target: Target
-  ): PersistencePromise<QueryData | null> {
+  ): PersistencePromise<TargetData | null> {
     // Iterating by the canonicalId may yield more than one result because
     // canonicalId values are not required to be unique per target. This query
     // depends on the queryTargets index to be efficient.
@@ -251,14 +253,14 @@ export class IndexedDbQueryCache implements QueryCache {
       [canonicalId, Number.NEGATIVE_INFINITY],
       [canonicalId, Number.POSITIVE_INFINITY]
     );
-    let result: QueryData | null = null;
+    let result: TargetData | null = null;
     return targetsStore(transaction)
       .iterate(
         { range, index: DbTarget.queryTargetsIndexName },
         (key, value, control) => {
           const found = this.serializer.fromDbTarget(value);
-          // After finding a potential match, check that the query is
-          // actually equal to the requested query.
+          // After finding a potential match, check that the target is
+          // actually equal to the requested target.
           if (target.isEqual(found.target)) {
             result = found;
             control.done();
@@ -359,7 +361,7 @@ export class IndexedDbQueryCache implements QueryCache {
         },
         ([targetId, path], _, control) => {
           // Having a sentinel row for a document does not count as containing that document;
-          // For the query cache, containing the document means the document is part of some
+          // For the target cache, containing the document means the document is part of some
           // target.
           if (targetId !== 0) {
             count++;
@@ -370,10 +372,10 @@ export class IndexedDbQueryCache implements QueryCache {
       .next(() => count > 0);
   }
 
-  getQueryDataForTarget(
+  getTargetDataForTarget(
     transaction: PersistenceTransaction,
     targetId: TargetId
-  ): PersistencePromise<QueryData | null> {
+  ): PersistencePromise<TargetData | null> {
     return targetsStore(transaction)
       .get(targetId)
       .next(found => {

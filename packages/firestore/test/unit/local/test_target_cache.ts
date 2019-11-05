@@ -19,60 +19,64 @@ import { SnapshotVersion } from '../../../src/core/snapshot_version';
 import { Target } from '../../../src/core/target';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { Persistence } from '../../../src/local/persistence';
-import { QueryCache } from '../../../src/local/query_cache';
-import { QueryData } from '../../../src/local/query_data';
+import { TargetCache } from '../../../src/local/target_cache';
+import { TargetData } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 
 /**
- * A wrapper around a QueryCache that automatically creates a
+ * A wrapper around a TargetCache that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
-export class TestQueryCache {
-  constructor(public persistence: Persistence, public cache: QueryCache) {}
+export class TestTargetCache {
+  constructor(public persistence: Persistence, public cache: TargetCache) {}
 
-  addQueryData(queryData: QueryData): Promise<void> {
-    return this.persistence.runTransaction('addQueryData', 'readwrite', txn => {
-      return this.cache.addQueryData(txn, queryData);
-    });
+  addTargetData(targetData: TargetData): Promise<void> {
+    return this.persistence.runTransaction(
+      'addTargetData',
+      'readwrite',
+      txn => {
+        return this.cache.addTargetData(txn, targetData);
+      }
+    );
   }
 
-  updateQueryData(queryData: QueryData): Promise<void> {
+  updateTargetData(targetData: TargetData): Promise<void> {
     return this.persistence.runTransaction(
-      'updateQueryData',
+      'updateTargetData',
       'readwrite-primary-idempotent',
       txn => {
-        return this.cache.updateQueryData(txn, queryData);
+        return this.cache.updateTargetData(txn, targetData);
       }
     );
   }
 
-  getQueryCount(): Promise<number> {
+  getTargetCount(): Promise<number> {
     return this.persistence.runTransaction(
-      'getQueryCount',
+      'getTargetCount',
       'readonly-idempotent',
       txn => {
-        return this.cache.getQueryCount(txn);
+        return this.cache.getTargetCount(txn);
       }
     );
   }
 
-  removeQueryData(queryData: QueryData): Promise<void> {
+  removeTargetData(targetData: TargetData): Promise<void> {
     return this.persistence.runTransaction(
-      'addQueryData',
+      'addTargetData',
       'readwrite-primary',
       txn => {
-        return this.cache.removeQueryData(txn, queryData);
+        return this.cache.removeTargetData(txn, targetData);
       }
     );
   }
 
-  getQueryData(target: Target): Promise<QueryData | null> {
+  getTargetData(target: Target): Promise<TargetData | null> {
     return this.persistence.runTransaction(
-      'getQueryData',
+      'getTargetData',
       'readonly-idempotent',
       txn => {
-        return this.cache.getQueryData(txn, target);
+        return this.cache.getTargetData(txn, target);
       }
     );
   }

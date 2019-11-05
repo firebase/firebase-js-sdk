@@ -34,11 +34,6 @@ import {
   IndexedDbMutationQueue,
   mutationQueuesContainKey
 } from './indexeddb_mutation_queue';
-import {
-  documentTargetStore,
-  getHighestListenSequenceNumber,
-  IndexedDbQueryCache
-} from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
@@ -51,6 +46,11 @@ import {
   SCHEMA_VERSION,
   SchemaConverter
 } from './indexeddb_schema';
+import {
+  documentTargetStore,
+  getHighestListenSequenceNumber,
+  IndexedDbTargetCache
+} from './indexeddb_target_cache';
 import { LocalSerializer } from './local_serializer';
 import {
   ActiveTargets,
@@ -67,9 +67,9 @@ import {
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
+import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 const LOG_TAG = 'IndexedDbPersistence';
@@ -251,7 +251,7 @@ export class IndexedDbPersistence implements Persistence {
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
-  private readonly queryCache: IndexedDbQueryCache;
+  private readonly targetCache: IndexedDbTargetCache;
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage;
@@ -271,7 +271,7 @@ export class IndexedDbPersistence implements Persistence {
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
-    this.queryCache = new IndexedDbQueryCache(
+    this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
       this.serializer
     );
@@ -716,12 +716,12 @@ export class IndexedDbPersistence implements Persistence {
     );
   }
 
-  getQueryCache(): IndexedDbQueryCache {
+  getTargetCache(): IndexedDbTargetCache {
     assert(
       this.started,
-      'Cannot initialize QueryCache before persistence is started.'
+      'Cannot initialize TargetCache before persistence is started.'
     );
-    return this.queryCache;
+    return this.targetCache;
   }
 
   getRemoteDocumentCache(): IndexedDbRemoteDocumentCache {
@@ -1113,7 +1113,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction
   ): PersistencePromise<number> {
     const docCountPromise = this.orphanedDocmentCount(txn);
-    const targetCountPromise = this.db.getQueryCache().getQueryCount(txn);
+    const targetCountPromise = this.db.getTargetCache().getTargetCount(txn);
     return targetCountPromise.next(targetCount =>
       docCountPromise.next(docCount => targetCount + docCount)
     );
@@ -1130,9 +1130,9 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void> {
-    return this.db.getQueryCache().forEachTarget(txn, f);
+    return this.db.getTargetCache().forEachTarget(txn, f);
   }
 
   forEachOrphanedDocumentSequenceNumber(
@@ -1168,7 +1168,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     activeTargetIds: ActiveTargets
   ): PersistencePromise<number> {
     return this.db
-      .getQueryCache()
+      .getTargetCache()
       .removeTargets(txn, upperBound, activeTargetIds);
   }
 
@@ -1234,10 +1234,10 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
-    return this.db.getQueryCache().updateQueryData(txn, updated);
+    const updated = targetData.withSequenceNumber(txn.currentSequenceNumber);
+    return this.db.getTargetCache().updateTargetData(txn, updated);
   }
 
   updateLimboDocument(

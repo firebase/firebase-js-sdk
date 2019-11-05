@@ -42,8 +42,8 @@ import {
   DbTimestampKey,
   DbUnknownDocument
 } from './indexeddb_schema';
-import { QueryData, QueryPurpose } from './query_data';
 import { SimpleDb } from './simple_db';
+import { TargetData, TargetPurpose } from './target_data';
 
 /** Serializer for values stored in the LocalStore. */
 export class LocalSerializer {
@@ -200,8 +200,8 @@ export class LocalSerializer {
     return keys;
   }
 
-  /** Decodes a DbTarget into QueryData */
-  fromDbTarget(dbTarget: DbTarget): QueryData {
+  /** Decodes a DbTarget into TargetData */
+  fromDbTarget(dbTarget: DbTarget): TargetData {
     const version = this.fromDbTimestamp(dbTarget.readTime);
     const lastLimboFreeSnapshotVersion =
       dbTarget.lastLimboFreeSnapshotVersion !== undefined
@@ -216,10 +216,10 @@ export class LocalSerializer {
     } else {
       target = this.remoteSerializer.fromQueryTarget(dbTarget.query);
     }
-    return new QueryData(
+    return new TargetData(
       target,
       dbTarget.targetId,
-      QueryPurpose.Listen,
+      TargetPurpose.Listen,
       dbTarget.lastListenSequenceNumber,
       version,
       lastLimboFreeSnapshotVersion,
@@ -227,46 +227,46 @@ export class LocalSerializer {
     );
   }
 
-  /** Encodes QueryData into a DbTarget for storage locally. */
-  toDbTarget(queryData: QueryData): DbTarget {
+  /** Encodes TargetData into a DbTarget for storage locally. */
+  toDbTarget(targetData: TargetData): DbTarget {
     assert(
-      QueryPurpose.Listen === queryData.purpose,
+      TargetPurpose.Listen === targetData.purpose,
       'Only queries with purpose ' +
-        QueryPurpose.Listen +
+        TargetPurpose.Listen +
         ' may be stored, got ' +
-        queryData.purpose
+        targetData.purpose
     );
-    const dbTimestamp = this.toDbTimestamp(queryData.snapshotVersion);
+    const dbTimestamp = this.toDbTimestamp(targetData.snapshotVersion);
     const dbLastLimboFreeTimestamp = this.toDbTimestamp(
-      queryData.lastLimboFreeSnapshotVersion
+      targetData.lastLimboFreeSnapshotVersion
     );
     let queryProto: DbQuery;
-    if (queryData.target.isDocumentQuery()) {
-      queryProto = this.remoteSerializer.toDocumentsTarget(queryData.target);
+    if (targetData.target.isDocumentQuery()) {
+      queryProto = this.remoteSerializer.toDocumentsTarget(targetData.target);
     } else {
-      queryProto = this.remoteSerializer.toQueryTarget(queryData.target);
+      queryProto = this.remoteSerializer.toQueryTarget(targetData.target);
     }
 
     let resumeToken: string;
 
-    if (queryData.resumeToken instanceof Uint8Array) {
+    if (targetData.resumeToken instanceof Uint8Array) {
       // TODO(b/78771403): Convert tokens to strings during deserialization
       assert(
         SimpleDb.isMockPersistence(),
         'Persisting non-string stream tokens is only supported with mock persistence .'
       );
-      resumeToken = queryData.resumeToken.toString();
+      resumeToken = targetData.resumeToken.toString();
     } else {
-      resumeToken = queryData.resumeToken;
+      resumeToken = targetData.resumeToken;
     }
 
     // lastListenSequenceNumber is always 0 until we do real GC.
     return new DbTarget(
-      queryData.targetId,
-      queryData.target.canonicalId(),
+      targetData.targetId,
+      targetData.target.canonicalId(),
       dbTimestamp,
       resumeToken,
-      queryData.sequenceNumber,
+      targetData.sequenceNumber,
       dbLastLimboFreeTimestamp,
       queryProto
     );

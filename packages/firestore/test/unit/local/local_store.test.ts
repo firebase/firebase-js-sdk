@@ -220,7 +220,7 @@ class LocalStoreTester {
     this.promiseChain = this.promiseChain.then(() => {
       return this.localStore.releaseTarget(
         targetId,
-        /*keepPersistedQueryData=*/ false
+        /*keepPersistedTargetData=*/ false
       );
     });
     return this;
@@ -1058,8 +1058,8 @@ function genericLocalStoreTests(
 
   it('can execute mixed collection queries', async () => {
     const query = Query.atPath(path('foo'));
-    const queryData = await localStore.allocateTarget(query.toTarget());
-    expect(queryData.targetId).to.equal(2);
+    const targetData = await localStore.allocateTarget(query.toTarget());
+    expect(targetData.targetId).to.equal(2);
     await localStore.applyRemoteEvent(
       docAddedRemoteEvent(doc('foo/baz', 10, { a: 'b' }), [2], [])
     );
@@ -1122,8 +1122,8 @@ function genericLocalStoreTests(
   // eslint-disable-next-line no-restricted-properties
   (gcIsEager ? it.skip : it)('persists resume tokens', async () => {
     const query = Query.atPath(path('foo/bar'));
-    const queryData = await localStore.allocateTarget(query.toTarget());
-    const targetId = queryData.targetId;
+    const targetData = await localStore.allocateTarget(query.toTarget());
+    const targetId = targetData.targetId;
     const resumeToken = 'abc';
     const watchChange = new WatchTargetChange(
       WatchTargetChangeState.Current,
@@ -1132,7 +1132,7 @@ function genericLocalStoreTests(
     );
     const aggregator = new WatchChangeAggregator({
       getRemoteKeysForTarget: () => documentKeySet(),
-      getQueryDataForTarget: () => queryData
+      getTargetDataForTarget: () => targetData
     });
     aggregator.handleTargetChange(watchChange);
     const remoteEvent = aggregator.createRemoteEvent(version(1000));
@@ -1140,13 +1140,13 @@ function genericLocalStoreTests(
 
     // Stop listening so that the query should become inactive (but persistent)
     await localStore.releaseTarget(
-      queryData.targetId,
-      /*keepPersistedQueryData=*/ false
+      targetData.targetId,
+      /*keepPersistedTargetData=*/ false
     );
 
     // Should come back with the same resume token
-    const queryData2 = await localStore.allocateTarget(query.toTarget());
-    expect(queryData2.resumeToken).to.deep.equal(resumeToken);
+    const targetData2 = await localStore.allocateTarget(query.toTarget());
+    expect(targetData2.resumeToken).to.deep.equal(resumeToken);
   });
 
   // eslint-disable-next-line no-restricted-properties
@@ -1154,8 +1154,8 @@ function genericLocalStoreTests(
     'does not replace resume token with empty resume token',
     async () => {
       const query = Query.atPath(path('foo/bar'));
-      const queryData = await localStore.allocateTarget(query.toTarget());
-      const targetId = queryData.targetId;
+      const targetData = await localStore.allocateTarget(query.toTarget());
+      const targetId = targetData.targetId;
       const resumeToken = 'abc';
 
       const watchChange1 = new WatchTargetChange(
@@ -1165,7 +1165,7 @@ function genericLocalStoreTests(
       );
       const aggregator1 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getQueryDataForTarget: () => queryData
+        getTargetDataForTarget: () => targetData
       });
       aggregator1.handleTargetChange(watchChange1);
       const remoteEvent1 = aggregator1.createRemoteEvent(version(1000));
@@ -1178,7 +1178,7 @@ function genericLocalStoreTests(
       );
       const aggregator2 = new WatchChangeAggregator({
         getRemoteKeysForTarget: () => documentKeySet(),
-        getQueryDataForTarget: () => queryData
+        getTargetDataForTarget: () => targetData
       });
       aggregator2.handleTargetChange(watchChange2);
       const remoteEvent2 = aggregator2.createRemoteEvent(version(2000));
@@ -1187,12 +1187,12 @@ function genericLocalStoreTests(
       // Stop listening so that the query should become inactive (but persistent)
       await localStore.releaseTarget(
         targetId,
-        /*keepPersistedQueryData=*/ false
+        /*keepPersistedTargetData=*/ false
       );
 
       // Should come back with the same resume token
-      const queryData2 = await localStore.allocateTarget(query.toTarget());
-      expect(queryData2.resumeToken).to.deep.equal(resumeToken);
+      const targetData2 = await localStore.allocateTarget(query.toTarget());
+      expect(targetData2.resumeToken).to.deep.equal(resumeToken);
     }
   );
 
@@ -1542,56 +1542,59 @@ function genericLocalStoreTests(
   );
 
   it('last limbo free snapshot is advanced during view processing', async () => {
-    // This test verifies that the `lastLimboFreeSnapshot` version for QueryData
+    // This test verifies that the `lastLimboFreeSnapshot` version for TargetData
     // is advanced when we compute a limbo-free free view and that the mapping
     // is persisted when we release a query.
 
     const target = Query.atPath(path('foo')).toTarget();
 
-    const queryData = await localStore.allocateTarget(target);
+    const targetData = await localStore.allocateTarget(target);
 
     // Advance the query snapshot
     await localStore.applyRemoteEvent(
-      noChangeEvent(queryData.targetId, 10, 'resumeToken')
+      noChangeEvent(targetData.targetId, 10, 'resumeToken')
     );
 
     // At this point, we have not yet confirmed that the query is limbo free.
-    let cachedQueryData = await persistence.runTransaction(
-      'getQueryData',
+    let cachedTargetData = await persistence.runTransaction(
+      'getTargetData',
       'readonly-idempotent',
-      txn => localStore.getQueryData(txn, target)
+      txn => localStore.getTargetData(txn, target)
     );
     expect(
-      cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(SnapshotVersion.MIN)
+      cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(
+        SnapshotVersion.MIN
+      )
     ).to.be.true;
 
     // Mark the view synced, which updates the last limbo free snapshot version.
     await localStore.notifyLocalViewChanges([
       localViewChanges(2, /* fromCache= */ false, {})
     ]);
-    cachedQueryData = await persistence.runTransaction(
-      'getQueryData',
+    cachedTargetData = await persistence.runTransaction(
+      'getTargetData',
       'readonly-idempotent',
-      txn => localStore.getQueryData(txn, target)
+      txn => localStore.getTargetData(txn, target)
     );
-    expect(cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
+    expect(cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
       .to.be.true;
 
     // The last limbo free snapshot version is persisted even if we release the
     // query.
     await localStore.releaseTarget(
-      queryData.targetId,
-      /* keepPersistedQueryData= */ false
+      targetData.targetId,
+      /* keepPersistedTargetData= */ false
     );
 
     if (!gcIsEager) {
-      cachedQueryData = await persistence.runTransaction(
-        'getQueryData',
+      cachedTargetData = await persistence.runTransaction(
+        'getTargetData',
         'readonly-idempotent',
-        txn => localStore.getQueryData(txn, target)
+        txn => localStore.getTargetData(txn, target)
       );
-      expect(cachedQueryData!.lastLimboFreeSnapshotVersion.isEqual(version(10)))
-        .to.be.true;
+      expect(
+        cachedTargetData!.lastLimboFreeSnapshotVersion.isEqual(version(10))
+      ).to.be.true;
     }
   });
 
