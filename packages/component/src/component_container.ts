@@ -22,7 +22,7 @@ import { Name, NameServiceMapping } from './types';
 export class ComponentContainer {
   private readonly providers = new Map<string, Provider>();
 
-  constructor(private readonly name: string) { }
+  constructor(private readonly name: string) {}
 
   /**
    *
