@@ -18,7 +18,7 @@
 import { SnapshotVersion } from '../core/snapshot_version';
 import { ProtoByteString, TargetId } from '../core/types';
 import { ChangeType } from '../core/view_snapshot';
-import { QueryData, QueryPurpose } from '../local/query_data';
+import { TargetData, TargetPurpose } from '../local/target_data';
 import {
   documentKeySet,
   DocumentKeySet,
@@ -89,9 +89,9 @@ export class WatchTargetChange {
     /** The target IDs that were added/removed/set. */
     public targetIds: TargetId[],
     /**
-     * An opaque, server-assigned token that allows watching a query to be
+     * An opaque, server-assigned token that allows watching a target to be
      * resumed after disconnecting without retransmitting all the data that
-     * matches the query. The resume token essentially identifies a point in
+     * matches the target. The resume token essentially identifies a point in
      * time from which the server should resume sending results.
      */
     public resumeToken: ProtoByteString = emptyByteString(),
@@ -248,10 +248,10 @@ export interface TargetMetadataProvider {
   getRemoteKeysForTarget(targetId: TargetId): DocumentKeySet;
 
   /**
-   * Returns the QueryData for an active target ID or 'null' if this query
+   * Returns the TargetData for an active target ID or 'null' if this target
    * has become inactive
    */
-  getQueryDataForTarget(targetId: TargetId): QueryData | null;
+  getTargetDataForTarget(targetId: TargetId): TargetData | null;
 }
 
 const LOG_TAG = 'WatchChangeAggregator';
@@ -381,10 +381,10 @@ export class WatchChangeAggregator {
     const targetId = watchChange.targetId;
     const expectedCount = watchChange.existenceFilter.count;
 
-    const queryData = this.queryDataForActiveTarget(targetId);
-    if (queryData) {
-      const query = queryData.query;
-      if (query.isDocumentQuery()) {
+    const targetData = this.targetDataForActiveTarget(targetId);
+    if (targetData) {
+      const target = targetData.target;
+      if (target.isDocumentQuery()) {
         if (expectedCount === 0) {
           // The existence filter told us the document does not exist. We deduce
           // that this document does not exist and apply a deleted document to
@@ -392,7 +392,7 @@ export class WatchChangeAggregator {
           // another query that will raise this document as part of a snapshot
           // until it is resolved, essentially exposing inconsistency between
           // queries.
-          const key = new DocumentKey(query.path);
+          const key = new DocumentKey(target.path);
           this.removeDocumentFromTarget(
             targetId,
             key,
@@ -424,19 +424,19 @@ export class WatchChangeAggregator {
     const targetChanges: { [targetId: number]: TargetChange } = {};
 
     objUtils.forEachNumber(this.targetStates, (targetId, targetState) => {
-      const queryData = this.queryDataForActiveTarget(targetId);
-      if (queryData) {
-        if (targetState.current && queryData.query.isDocumentQuery()) {
+      const targetData = this.targetDataForActiveTarget(targetId);
+      if (targetData) {
+        if (targetState.current && targetData.target.isDocumentQuery()) {
           // Document queries for document that don't exist can produce an empty
           // result set. To update our local cache, we synthesize a document
           // delete if we have not previously received the document. This
           // resolves the limbo state of the document, removing it from
           // limboDocumentRefs.
           //
-          // TODO(dimond): Ideally we would have an explicit lookup query
+          // TODO(dimond): Ideally we would have an explicit lookup target
           // instead resulting in an explicit delete message and we could
           // remove this special logic.
-          const key = new DocumentKey(queryData.query.path);
+          const key = new DocumentKey(targetData.target.path);
           if (
             this.pendingDocumentUpdates.get(key) === null &&
             !this.targetContainsDocument(targetId, key)
@@ -459,7 +459,7 @@ export class WatchChangeAggregator {
     let resolvedLimboDocuments = documentKeySet();
 
     // We extract the set of limbo-only document updates as the GC logic
-    // special-cases documents that do not appear in the query cache.
+    // special-cases documents that do not appear in the target cache.
     //
     // TODO(gsoltis): Expand on this comment once GC is available in the JS
     // client.
@@ -467,8 +467,11 @@ export class WatchChangeAggregator {
       let isOnlyLimboTarget = true;
 
       targets.forEachWhile(targetId => {
-        const queryData = this.queryDataForActiveTarget(targetId);
-        if (queryData && queryData.purpose !== QueryPurpose.LimboResolution) {
+        const targetData = this.targetDataForActiveTarget(targetId);
+        if (
+          targetData &&
+          targetData.purpose !== TargetPurpose.LimboResolution
+        ) {
           isOnlyLimboTarget = false;
           return false;
         }
@@ -616,11 +619,11 @@ export class WatchChangeAggregator {
 
   /**
    * Verifies that the user is still interested in this target (by calling
-   * `getQueryDataForTarget()`) and that we are not waiting for pending ADDs
+   * `getTargetDataForTarget()`) and that we are not waiting for pending ADDs
    * from watch.
    */
   protected isActiveTarget(targetId: TargetId): boolean {
-    const targetActive = this.queryDataForActiveTarget(targetId) !== null;
+    const targetActive = this.targetDataForActiveTarget(targetId) !== null;
     if (!targetActive) {
       debug(LOG_TAG, 'Detected inactive target', targetId);
     }
@@ -628,14 +631,14 @@ export class WatchChangeAggregator {
   }
 
   /**
-   * Returns the QueryData for an active target (i.e. a target that the user
+   * Returns the TargetData for an active target (i.e. a target that the user
    * is still interested in that has no outstanding target change requests).
    */
-  protected queryDataForActiveTarget(targetId: TargetId): QueryData | null {
+  protected targetDataForActiveTarget(targetId: TargetId): TargetData | null {
     const targetState = this.targetStates[targetId];
     return targetState && targetState.isPending
       ? null
-      : this.metadataProvider.getQueryDataForTarget(targetId);
+      : this.metadataProvider.getTargetDataForTarget(targetId);
   }
 
   /**

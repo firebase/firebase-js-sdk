@@ -1037,11 +1037,17 @@ export type OrderByDirection = 'desc' | 'asc';
 
 /**
  * Filter conditions in a `Query.where()` clause are specified using the
- * strings '<', '<=', '==', '>=', '>', and 'array-contains'.
+ * strings '<', '<=', '==', '>=', '>', 'array-contains', 'in', and 'array-contains-any'.
  */
-// TODO(in-queries): Add 'array-contains-any' and 'in' once backend support
-// lands.
-export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>' | 'array-contains';
+export type WhereFilterOp =
+  | '<'
+  | '<='
+  | '=='
+  | '>='
+  | '>'
+  | 'array-contains'
+  | 'in'
+  | 'array-contains-any';
 
 /**
  * A `Query` refers to a Query which you can read or listen to. You can also
@@ -1083,13 +1089,25 @@ export class Query {
   ): Query;
 
   /**
-   * Creates and returns a new Query that's additionally limited to only
-   * return up to the specified number of documents.
+   * Creates and returns a new Query that only returns the first matching
+   * documents.
    *
    * @param limit The maximum number of items to return.
    * @return The created Query.
    */
   limit(limit: number): Query;
+
+  /**
+   * Creates and returns a new Query that only returns the last matching
+   * documents.
+   *
+   * Queries with `limitToLast` must have at least one `orderBy` clause on
+   * one of the document fields, or an Exception will be thrown during execution.
+   *
+   * @param limit The maximum number of items to return.
+   * @return The created Query.
+   */
+  limitToLast(limit: number): Query;
 
   /**
    * Creates and returns a new Query that starts at the provided document

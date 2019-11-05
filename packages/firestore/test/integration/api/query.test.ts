@@ -26,8 +26,6 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  arrayContainsAnyOp,
-  inOp,
   isRunningAgainstEmulator,
   toChangesArray,
   toDataArray,
@@ -61,6 +59,14 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
+  it('cannot issue limitToLast queries without explicit order-by', () => {
+    return withTestCollection(persistence, {}, async collection => {
+      const expectedError =
+        'limitToLast() queries require specifying at least one orderBy() clause';
+      expect(() => collection.limitToLast(2).get()).to.throw(expectedError);
+    });
+  });
+
   it('can issue limit queries using descending sort order', () => {
     const testDocs = {
       a: { k: 'a', sort: 0 },
@@ -79,6 +85,230 @@ apiDescribe('Queries', (persistence: boolean) => {
             { k: 'c', sort: 1 }
           ]);
         });
+    });
+  });
+
+  it('can issue limitToLast queries using descending sort order', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, collection => {
+      return collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .get()
+        .then(docs => {
+          expect(toDataArray(docs)).to.deep.equal([
+            { k: 'b', sort: 1 },
+            { k: 'a', sort: 0 }
+          ]);
+        });
+    });
+  });
+
+  it('can listen to limitToLast queries', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const storeEvent = new EventsAccumulator<firestore.QuerySnapshot>();
+      collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeEvent.storeEvent);
+
+      let snapshot = await storeEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'a', sort: 0 }
+      ]);
+
+      await collection.add({ k: 'e', sort: -1 });
+      snapshot = await storeEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'e', sort: -1 }
+      ]);
+    });
+  });
+
+  // Two queries that mapped to the same target ID are referred to as
+  // "mirror queries". An example for a mirror query is a limitToLast()
+  // query and a limit() query that share the same backend Target ID.
+  // Since limitToLast() queries are sent to the backend with a modified
+  // orderBy() clause, they can map to the same target representation as
+  // limit() query, even if both queries appear separate to the user.
+  it('can listen to mirror queries', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const storeLimitEvent = new EventsAccumulator<firestore.QuerySnapshot>();
+      collection
+        .orderBy('sort', 'asc')
+        .limit(2)
+        .onSnapshot(storeLimitEvent.storeEvent);
+
+      const storeLimitToLastEvent = new EventsAccumulator<
+        firestore.QuerySnapshot
+      >();
+      collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeLimitToLastEvent.storeEvent);
+
+      let snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'b', sort: 1 }
+      ]);
+
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'b', sort: 1 },
+        { k: 'a', sort: 0 }
+      ]);
+
+      await collection.add({ k: 'e', sort: -1 });
+      snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'e', sort: -1 },
+        { k: 'a', sort: 0 }
+      ]);
+
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'e', sort: -1 }
+      ]);
+    });
+  });
+
+  it('can unlisten from mirror queries', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const storeLimitEvent = new EventsAccumulator<firestore.QuerySnapshot>();
+      const limitUnlisten = collection
+        .orderBy('sort', 'asc')
+        .limit(2)
+        .onSnapshot(storeLimitEvent.storeEvent);
+
+      const storeLimitToLastEvent = new EventsAccumulator<
+        firestore.QuerySnapshot
+      >();
+      const limitToLastUnlisten = collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeLimitToLastEvent.storeEvent);
+
+      await storeLimitEvent.awaitEvent();
+      await storeLimitToLastEvent.awaitEvent();
+
+      limitUnlisten();
+
+      await collection.add({ k: 'e', sort: -1 });
+      await storeLimitEvent.assertNoAdditionalEvents();
+      const snapshot = await storeLimitToLastEvent.awaitEvent();
+      // Check the limitToLast query still functions after the mirroring
+      // limit query is un-listened.
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'e', sort: -1 }
+      ]);
+
+      limitToLastUnlisten();
+
+      await collection.add({ k: 'f', sort: -1 });
+      await storeLimitToLastEvent.assertNoAdditionalEvents();
+    });
+  });
+
+  it('can relisten to mirror queries', () => {
+    const testDocs = {
+      a: { k: 'a', sort: 0 },
+      b: { k: 'b', sort: 1 },
+      c: { k: 'c', sort: 1 },
+      d: { k: 'd', sort: 2 }
+    };
+    return withTestCollection(persistence, testDocs, async collection => {
+      const storeLimitEvent = new EventsAccumulator<firestore.QuerySnapshot>();
+      let limitUnlisten = collection
+        .orderBy('sort', 'asc')
+        .limit(2)
+        .onSnapshot(storeLimitEvent.storeEvent);
+
+      const storeLimitToLastEvent = new EventsAccumulator<
+        firestore.QuerySnapshot
+      >();
+      let limitToLastUnlisten = collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeLimitToLastEvent.storeEvent);
+
+      await storeLimitEvent.awaitEvent();
+      await storeLimitToLastEvent.awaitEvent();
+
+      // Unlisten then relisten limit query.
+      limitUnlisten();
+      limitUnlisten = collection
+        .orderBy('sort', 'asc')
+        .limit(2)
+        .onSnapshot(storeLimitEvent.storeEvent);
+      let snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'b', sort: 1 }
+      ]);
+
+      await collection.add({ k: 'e', sort: -1 });
+      // Verify limit query results.
+      snapshot = await storeLimitEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'e', sort: -1 },
+        { k: 'a', sort: 0 }
+      ]);
+      // Verify limitToLast query results.
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: 0 },
+        { k: 'e', sort: -1 }
+      ]);
+
+      // Unlisten to limitToLast, update a doc, then relisten limitToLast.
+      limitToLastUnlisten();
+      await collection.doc('a').update({ k: 'a', sort: -2 });
+      limitToLastUnlisten = collection
+        .orderBy('sort', 'desc')
+        .limitToLast(2)
+        .onSnapshot(storeLimitToLastEvent.storeEvent);
+
+      snapshot = await storeLimitEvent.awaitEvent();
+      // Checking limit query is still functioning when the mirroring
+      // limitToLast query is un-listened.
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'a', sort: -2 },
+        { k: 'e', sort: -1 }
+      ]);
+
+      snapshot = await storeLimitToLastEvent.awaitEvent();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { k: 'e', sort: -1 },
+        { k: 'a', sort: -2 }
+      ]);
     });
   });
 
@@ -562,33 +792,28 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // TODO(in-queries): Enable browser tests once backend support is ready.
-  // eslint-disable-next-line no-restricted-properties
-  (isRunningAgainstEmulator() ? it : it.skip)(
-    'can use IN filters',
-    async () => {
-      const testDocs = {
-        a: { zip: 98101 },
-        b: { zip: 91102 },
-        c: { zip: 98103 },
-        d: { zip: [98101] },
-        e: { zip: ['98101', { zip: 98101 }] },
-        f: { zip: { code: 500 } }
-      };
+  it('can use IN filters', async () => {
+    const testDocs = {
+      a: { zip: 98101 },
+      b: { zip: 91102 },
+      c: { zip: 98103 },
+      d: { zip: [98101] },
+      e: { zip: ['98101', { zip: 98101 }] },
+      f: { zip: { code: 500 } }
+    };
 
-      await withTestCollection(persistence, testDocs, async coll => {
-        const snapshot = await coll.where('zip', inOp, [98101, 98103]).get();
-        expect(toDataArray(snapshot)).to.deep.equal([
-          { zip: 98101 },
-          { zip: 98103 }
-        ]);
+    await withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await coll.where('zip', 'in', [98101, 98103]).get();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { zip: 98101 },
+        { zip: 98103 }
+      ]);
 
-        // With objects.
-        const snapshot2 = await coll.where('zip', inOp, [{ code: 500 }]).get();
-        expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
-      });
-    }
-  );
+      // With objects.
+      const snapshot2 = await coll.where('zip', 'in', [{ code: 500 }]).get();
+      expect(toDataArray(snapshot2)).to.deep.equal([{ zip: { code: 500 } }]);
+    });
+  });
 
   // eslint-disable-next-line no-restricted-properties,
   (isRunningAgainstEmulator() ? it : it.skip)(
@@ -602,7 +827,7 @@ apiDescribe('Queries', (persistence: boolean) => {
       };
       await withTestCollection(persistence, testDocs, async coll => {
         const snapshot = await coll
-          .where(FieldPath.documentId(), inOp, ['aa', 'ab'])
+          .where(FieldPath.documentId(), 'in', ['aa', 'ab'])
           .get();
 
         expect(toDataArray(snapshot)).to.deep.equal([
@@ -613,40 +838,35 @@ apiDescribe('Queries', (persistence: boolean) => {
     }
   );
 
-  // TODO(in-queries): Enable browser tests once backend support is ready.
-  // eslint-disable-next-line no-restricted-properties
-  (isRunningAgainstEmulator() ? it : it.skip)(
-    'can use array-contains-any filters',
-    async () => {
-      const testDocs = {
-        a: { array: [42] },
-        b: { array: ['a', 42, 'c'] },
-        c: { array: [41.999, '42', { a: [42] }] },
-        d: { array: [42], array2: ['bingo'] },
-        e: { array: [43] },
-        f: { array: [{ a: 42 }] },
-        g: { array: 42 }
-      };
+  it('can use array-contains-any filters', async () => {
+    const testDocs = {
+      a: { array: [42] },
+      b: { array: ['a', 42, 'c'] },
+      c: { array: [41.999, '42', { a: [42] }] },
+      d: { array: [42], array2: ['bingo'] },
+      e: { array: [43] },
+      f: { array: [{ a: 42 }] },
+      g: { array: 42 }
+    };
 
-      await withTestCollection(persistence, testDocs, async coll => {
-        const snapshot = await coll
-          .where('array', arrayContainsAnyOp, [42, 43])
-          .get();
-        expect(toDataArray(snapshot)).to.deep.equal([
-          { array: [42] },
-          { array: ['a', 42, 'c'] },
-          { array: [42], array2: ['bingo'] },
-          { array: [43] }
-        ]);
+    await withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await coll
+        .where('array', 'array-contains-any', [42, 43])
+        .get();
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { array: [42] },
+        { array: ['a', 42, 'c'] },
+        { array: [42], array2: ['bingo'] },
+        { array: [43] }
+      ]);
 
-        // With objects.
-        const snapshot2 = await coll
-          .where('array', arrayContainsAnyOp, [{ a: 42 }])
-          .get();
-        expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
-      });
-    }
-  );
+      // With objects.
+      const snapshot2 = await coll
+        .where('array', 'array-contains-any', [{ a: 42 }])
+        .get();
+      expect(toDataArray(snapshot2)).to.deep.equal([{ array: [{ a: 42 }] }]);
+    });
+  });
 
   it('throws custom error when using docChanges as property', () => {
     const querySnap = querySnapshot('foo/bar', {}, {}, keys(), false, false);

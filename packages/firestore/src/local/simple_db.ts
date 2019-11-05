@@ -25,6 +25,19 @@ import { PersistencePromise } from './persistence_promise';
 
 const LOG_TAG = 'SimpleDb';
 
+/**
+ * The maximum number of retry attempts for an IndexedDb transaction that fails
+ * with a DOMException.
+ */
+const TRANSACTION_RETRY_COUNT = 3;
+
+// The different modes supported by `SimpleDb.runTransaction()`
+type SimpleDbTransactionMode =
+  | 'readonly'
+  | 'readwrite'
+  | 'readonly-idempotent'
+  | 'readwrite-idempotent';
+
 export interface SimpleDbSchemaConverter {
   createOrUpgrade(
     db: IDBDatabase,
@@ -136,19 +149,24 @@ export class SimpleDb {
     if (typeof window === 'undefined' || window.indexedDB == null) {
       return false;
     }
+
+    if (SimpleDb.isMockPersistence()) {
+      return true;
+    }
+
+    // In some Node environments, `window` is defined, but `window.navigator` is
+    // not. We don't support IndexedDB persistence in Node if the
+    // isMockPersistence() check above returns false.
+    if (window.navigator === undefined) {
+      return false;
+    }
+
     // We extensively use indexed array values and compound keys,
     // which IE and Edge do not support. However, they still have indexedDB
     // defined on the window, so we need to check for them here and make sure
     // to return that persistence is not enabled for those browsers.
     // For tracking support of this feature, see here:
     // https://developer.microsoft.com/en-us/microsoft-edge/platform/status/indexeddbarraysandmultientrysupport/
-
-    // If we are running in Node using the IndexedDBShim, `window` is defined,
-    // but `window.navigator` is not. In this case, we support IndexedDB and
-    // return `true`.
-    if (window.navigator === undefined) {
-      return process.env.USE_MOCK_PERSISTENCE === 'YES';
-    }
 
     // Check the UA string to find out the browser.
     const ua = getUA();
@@ -182,6 +200,17 @@ export class SimpleDb {
     } else {
       return true;
     }
+  }
+
+  /**
+   * Returns true if the backing IndexedDB store is the Node IndexedDBShim
+   * (see https://github.com/axemclion/IndexedDBShim).
+   */
+  static isMockPersistence(): boolean {
+    return (
+      typeof process !== 'undefined' &&
+      process.env.USE_MOCK_PERSISTENCE === 'YES'
+    );
   }
 
   /** Helper to get a typed SimpleDbStore from a transaction. */
@@ -242,32 +271,68 @@ export class SimpleDb {
     };
   }
 
-  runTransaction<T>(
-    mode: 'readonly' | 'readwrite',
+  async runTransaction<T>(
+    mode: SimpleDbTransactionMode,
     objectStores: string[],
     transactionFn: (transaction: SimpleDbTransaction) => PersistencePromise<T>
   ): Promise<T> {
-    const transaction = SimpleDbTransaction.open(this.db, mode, objectStores);
-    const transactionFnResult = transactionFn(transaction)
-      .catch(error => {
-        // Abort the transaction if there was an error.
-        transaction.abort(error);
-        // We cannot actually recover, and calling `abort()` will cause the transaction's
-        // completion promise to be rejected. This in turn means that we won't use
-        // `transactionFnResult` below. We return a rejection here so that we don't add the
-        // possibility of returning `void` to the type of `transactionFnResult`.
-        return PersistencePromise.reject<T>(error);
-      })
-      .toPromise();
+    const readonly = mode.startsWith('readonly');
+    const idempotent = mode.endsWith('idempotent');
+    let attemptNumber = 0;
 
-    // As noted above, errors are propagated by aborting the transaction. So
-    // we swallow any error here to avoid the browser logging it as unhandled.
-    transactionFnResult.catch(() => {});
+    while (true) {
+      ++attemptNumber;
 
-    // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
-    // fire), but still return the original transactionFnResult back to the
-    // caller.
-    return transaction.completionPromise.then(() => transactionFnResult);
+      const transaction = SimpleDbTransaction.open(
+        this.db,
+        readonly ? 'readonly' : 'readwrite',
+        objectStores
+      );
+      try {
+        const transactionFnResult = transactionFn(transaction)
+          .catch(error => {
+            // Abort the transaction if there was an error.
+            transaction.abort(error);
+            // We cannot actually recover, and calling `abort()` will cause the transaction's
+            // completion promise to be rejected. This in turn means that we won't use
+            // `transactionFnResult` below. We return a rejection here so that we don't add the
+            // possibility of returning `void` to the type of `transactionFnResult`.
+            return PersistencePromise.reject<T>(error);
+          })
+          .toPromise();
+
+        // As noted above, errors are propagated by aborting the transaction. So
+        // we swallow any error here to avoid the browser logging it as unhandled.
+        transactionFnResult.catch(() => {});
+
+        // Wait for the transaction to complete (i.e. IndexedDb's onsuccess event to
+        // fire), but still return the original transactionFnResult back to the
+        // caller.
+        await transaction.completionPromise;
+        return transactionFnResult;
+      } catch (error) {
+        // TODO(schmidt-sebastian): We could probably be smarter about this and
+        // not retry exceptions that are likely unrecoverable (such as quota
+        // exceeded errors).
+
+        // Note: We cannot use an instanceof check for FirestoreException, since the
+        // exception is wrapped in a generic error by our async/await handling.
+        const retryable =
+          idempotent &&
+          error.name !== 'FirebaseError' &&
+          attemptNumber < TRANSACTION_RETRY_COUNT;
+        debug(
+          LOG_TAG,
+          'Transaction failed with error: %s. Retrying: %s.',
+          error.message,
+          retryable
+        );
+
+        if (!retryable) {
+          return Promise.reject(error);
+        }
+      }
+    }
   }
 
   close(): void {

@@ -16,18 +16,19 @@
  */
 
 import { ListenSequence } from '../core/listen_sequence';
-import { ListenSequenceNumber } from '../core/types';
+import { ListenSequenceNumber, TargetId } from '../core/types';
 import { assert } from '../util/assert';
 import { AsyncQueue, TimerId } from '../util/async_queue';
 import * as log from '../util/log';
 import { primitiveComparator } from '../util/misc';
 import { CancelablePromise } from '../util/promise';
+import { SortedMap } from '../util/sorted_map';
 import { SortedSet } from '../util/sorted_set';
 import { ignoreIfPrimaryLeaseLoss } from './indexeddb_persistence';
 import { LocalStore } from './local_store';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
+import { TargetData } from './target_data';
 
 /**
  * Persistence layers intending to use LRU Garbage collection should have reference delegates that
@@ -37,10 +38,10 @@ import { QueryData } from './query_data';
 export interface LruDelegate {
   readonly garbageCollector: LruGarbageCollector;
 
-  /** Enumerates all the targets in the QueryCache. */
+  /** Enumerates all the targets in the TargetCache. */
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (target: QueryData) => void
+    f: (target: TargetData) => void
   ): PersistencePromise<void>;
 
   getSequenceNumberCount(
@@ -83,12 +84,10 @@ export interface LruDelegate {
 }
 
 /**
- * Describes an object whose keys are active target ids. We do not care about the type of the
+ * Describes a map whose keys are active target ids. We do not care about the type of the
  * values.
  */
-export interface ActiveTargets {
-  [id: number]: unknown;
-}
+export type ActiveTargets = SortedMap<TargetId, unknown>;
 
 // The type and comparator for the items contained in the SortedSet used in
 // place of a priority queue for the RollingSequenceNumberBuffer.

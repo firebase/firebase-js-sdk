@@ -15,64 +15,76 @@
  * limitations under the License.
  */
 
-import { Query } from '../../../src/core/query';
 import { SnapshotVersion } from '../../../src/core/snapshot_version';
+import { Target } from '../../../src/core/target';
 import { ListenSequenceNumber, TargetId } from '../../../src/core/types';
 import { Persistence } from '../../../src/local/persistence';
-import { QueryCache } from '../../../src/local/query_cache';
-import { QueryData } from '../../../src/local/query_data';
+import { TargetCache } from '../../../src/local/target_cache';
+import { TargetData } from '../../../src/local/target_data';
 import { documentKeySet } from '../../../src/model/collections';
 import { DocumentKey } from '../../../src/model/document_key';
 
 /**
- * A wrapper around a QueryCache that automatically creates a
+ * A wrapper around a TargetCache that automatically creates a
  * transaction around every operation to reduce test boilerplate.
  */
-export class TestQueryCache {
-  constructor(public persistence: Persistence, public cache: QueryCache) {}
+export class TestTargetCache {
+  constructor(public persistence: Persistence, public cache: TargetCache) {}
 
-  addQueryData(queryData: QueryData): Promise<void> {
-    return this.persistence.runTransaction('addQueryData', 'readwrite', txn => {
-      return this.cache.addQueryData(txn, queryData);
-    });
-  }
-
-  updateQueryData(queryData: QueryData): Promise<void> {
+  addTargetData(targetData: TargetData): Promise<void> {
     return this.persistence.runTransaction(
-      'updateQueryData',
-      'readwrite-primary',
+      'addTargetData',
+      'readwrite',
       txn => {
-        return this.cache.updateQueryData(txn, queryData);
+        return this.cache.addTargetData(txn, targetData);
       }
     );
   }
 
-  getQueryCount(): Promise<number> {
-    return this.persistence.runTransaction('getQueryCount', 'readonly', txn => {
-      return this.cache.getQueryCount(txn);
-    });
-  }
-
-  removeQueryData(queryData: QueryData): Promise<void> {
+  updateTargetData(targetData: TargetData): Promise<void> {
     return this.persistence.runTransaction(
-      'addQueryData',
-      'readwrite-primary',
+      'updateTargetData',
+      'readwrite-primary-idempotent',
       txn => {
-        return this.cache.removeQueryData(txn, queryData);
+        return this.cache.updateTargetData(txn, targetData);
       }
     );
   }
 
-  getQueryData(query: Query): Promise<QueryData | null> {
-    return this.persistence.runTransaction('getQueryData', 'readonly', txn => {
-      return this.cache.getQueryData(txn, query);
-    });
+  getTargetCount(): Promise<number> {
+    return this.persistence.runTransaction(
+      'getTargetCount',
+      'readonly-idempotent',
+      txn => {
+        return this.cache.getTargetCount(txn);
+      }
+    );
+  }
+
+  removeTargetData(targetData: TargetData): Promise<void> {
+    return this.persistence.runTransaction(
+      'addTargetData',
+      'readwrite-primary',
+      txn => {
+        return this.cache.removeTargetData(txn, targetData);
+      }
+    );
+  }
+
+  getTargetData(target: Target): Promise<TargetData | null> {
+    return this.persistence.runTransaction(
+      'getTargetData',
+      'readonly-idempotent',
+      txn => {
+        return this.cache.getTargetData(txn, target);
+      }
+    );
   }
 
   getLastRemoteSnapshotVersion(): Promise<SnapshotVersion> {
     return this.persistence.runTransaction(
       'getLastRemoteSnapshotVersion',
-      'readonly',
+      'readonly-idempotent',
       txn => {
         return this.cache.getLastRemoteSnapshotVersion(txn);
       }
@@ -82,7 +94,7 @@ export class TestQueryCache {
   getHighestSequenceNumber(): Promise<ListenSequenceNumber> {
     return this.persistence.runTransaction(
       'getHighestSequenceNumber',
-      'readonly',
+      'readonly-idempotent',
       txn => {
         return this.cache.getHighestSequenceNumber(txn);
       }
@@ -129,9 +141,13 @@ export class TestQueryCache {
 
   getMatchingKeysForTargetId(targetId: TargetId): Promise<DocumentKey[]> {
     return this.persistence
-      .runTransaction('getMatchingKeysForTargetId', 'readonly', txn => {
-        return this.cache.getMatchingKeysForTargetId(txn, targetId);
-      })
+      .runTransaction(
+        'getMatchingKeysForTargetId',
+        'readonly-idempotent',
+        txn => {
+          return this.cache.getMatchingKeysForTargetId(txn, targetId);
+        }
+      )
       .then(keySet => {
         const result: DocumentKey[] = [];
         keySet.forEach(key => result.push(key));
@@ -150,9 +166,13 @@ export class TestQueryCache {
   }
 
   containsKey(key: DocumentKey): Promise<boolean> {
-    return this.persistence.runTransaction('containsKey', 'readonly', txn => {
-      return this.cache.containsKey(txn, key);
-    });
+    return this.persistence.runTransaction(
+      'containsKey',
+      'readonly-idempotent',
+      txn => {
+        return this.cache.containsKey(txn, key);
+      }
+    );
   }
 
   setTargetsMetadata(
@@ -161,7 +181,7 @@ export class TestQueryCache {
   ): Promise<void> {
     return this.persistence.runTransaction(
       'setTargetsMetadata',
-      'readwrite-primary',
+      'readwrite-primary-idempotent',
       txn =>
         this.cache.setTargetsMetadata(
           txn,

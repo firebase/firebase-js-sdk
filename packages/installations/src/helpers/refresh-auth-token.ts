@@ -39,7 +39,7 @@ import { remove, set, update } from './idb-manager';
 export async function refreshAuthToken(
   appConfig: AppConfig,
   forceRefresh = false
-): Promise<string> {
+): Promise<CompletedAuthToken> {
   let tokenPromise: Promise<CompletedAuthToken> | undefined;
   const entry = await update(appConfig, oldEntry => {
     if (!isEntryRegistered(oldEntry)) {
@@ -52,7 +52,7 @@ export async function refreshAuthToken(
       return oldEntry;
     } else if (oldAuthToken.requestStatus === RequestStatus.IN_PROGRESS) {
       // There already is a token request in progress.
-      tokenPromise = waitUntilAuthTokenRequest(appConfig);
+      tokenPromise = waitUntilAuthTokenRequest(appConfig, forceRefresh);
       return oldEntry;
     } else {
       // No token or token expired.
@@ -66,17 +66,18 @@ export async function refreshAuthToken(
     }
   });
 
-  const authToken: CompletedAuthToken = tokenPromise
+  const authToken = tokenPromise
     ? await tokenPromise
     : (entry.authToken as CompletedAuthToken);
-  return authToken.token;
+  return authToken;
 }
 
 /**
  * Call only if FID is registered and Auth Token request is in progress.
  */
 async function waitUntilAuthTokenRequest(
-  appConfig: AppConfig
+  appConfig: AppConfig,
+  forceRefresh: boolean
 ): Promise<CompletedAuthToken> {
   // Unfortunately, there is no way of reliably observing when a value in
   // IndexedDB changes (yet, see https://github.com/WICG/indexed-db-observers),
@@ -92,7 +93,8 @@ async function waitUntilAuthTokenRequest(
 
   const authToken = entry.authToken;
   if (authToken.requestStatus === RequestStatus.NOT_STARTED) {
-    throw ERROR_FACTORY.create(ErrorCode.GENERATE_TOKEN_FAILED);
+    // The request timed out or failed in a different call. Try again.
+    return refreshAuthToken(appConfig, forceRefresh);
   } else {
     return authToken;
   }
