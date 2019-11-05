@@ -22,6 +22,8 @@ import '../../index';
 import { Reference } from '../../src/api/Reference';
 import { Query } from '../../src/api/Query';
 import { ConnectionTarget } from '../../src/api/test_access';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
+import { Component, ComponentType } from '@firebase/component';
 
 export const TEST_PROJECT = require('../../../../config/project.json');
 
@@ -50,30 +52,21 @@ console.log(`USE_EMULATOR: ${USE_EMULATOR}. DATABASE_URL: ${DATABASE_URL}.`);
 
 let numDatabases = 0;
 
-/**
- * Fake Firebase App Authentication functions for testing.
- * @param {!FirebaseApp} app
- * @return {!FirebaseApp}
- */
-export function patchFakeAuthFunctions(app) {
-  const token_ = null;
-
-  app['INTERNAL'] = app['INTERNAL'] || {};
-
-  app['INTERNAL']['getToken'] = function(forceRefresh) {
-    return Promise.resolve(token_);
-  };
-
-  app['INTERNAL']['addAuthTokenListener'] = function(listener) {};
-
-  app['INTERNAL']['removeAuthTokenListener'] = function(listener) {};
-
-  return app;
-}
+// mock authentication functions for testing
+(firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+  new Component(
+    'auth-internal',
+    () => ({
+      getToken: () => Promise.resolve(null),
+      addAuthTokenListener: () => {},
+      removeAuthTokenListener: () => {}
+    }),
+    ComponentType.PRIVATE
+  )
+);
 
 export function createTestApp() {
   const app = firebase.initializeApp({ databaseURL: DATABASE_URL });
-  patchFakeAuthFunctions(app);
   return app;
 }
 
@@ -94,7 +87,6 @@ export function getRootNode(i = 0, ref?: string) {
     app = firebase.app('TEST-' + i);
   } catch (e) {
     app = firebase.initializeApp({ databaseURL: DATABASE_URL }, 'TEST-' + i);
-    patchFakeAuthFunctions(app);
   }
   db = app.database();
   return db.ref(ref);
@@ -148,59 +140,6 @@ export function shuffle(arr, randFn = Math.random) {
   }
 }
 
-export function testAuthTokenProvider(app) {
-  let token_ = null;
-  let nextToken_ = null;
-  let hasNextToken_ = false;
-  const listeners_ = [];
-
-  app['INTERNAL'] = app['INTERNAL'] || {};
-
-  app['INTERNAL']['getToken'] = function(forceRefresh) {
-    if (forceRefresh && hasNextToken_) {
-      token_ = nextToken_;
-      hasNextToken_ = false;
-    }
-    return Promise.resolve({ accessToken: token_ });
-  };
-
-  app['INTERNAL']['addAuthTokenListener'] = function(listener) {
-    const token = token_;
-    listeners_.push(listener);
-    const async = Promise.resolve();
-    async.then(function() {
-      listener(token);
-    });
-  };
-
-  app['INTERNAL']['removeAuthTokenListener'] = function(listener) {
-    throw Error('removeAuthTokenListener not supported in testing');
-  };
-
-  return {
-    setToken: function(token) {
-      token_ = token;
-      const async = Promise.resolve();
-      for (let i = 0; i < listeners_.length; i++) {
-        async.then(
-          (function(idx) {
-            return function() {
-              listeners_[idx](token);
-            };
-          })(i)
-        );
-      }
-
-      // Any future thens are guaranteed to be resolved after the listeners have been notified
-      return async;
-    },
-    setNextToken: function(token) {
-      nextToken_ = token;
-      hasNextToken_ = true;
-    }
-  };
-}
-
 let freshRepoId = 1;
 const activeFreshApps = [];
 
@@ -209,7 +148,6 @@ export function getFreshRepo(path) {
     { databaseURL: DATABASE_URL },
     'ISOLATED_REPO_' + freshRepoId++
   );
-  patchFakeAuthFunctions(app);
   activeFreshApps.push(app);
   return (app as any).database().ref(path);
 }

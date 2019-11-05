@@ -44,6 +44,8 @@ import { EventRegistration } from './view/EventRegistration';
 import { StatsCollection } from './stats/StatsCollection';
 import { Event } from './view/Event';
 import { Node } from './snap/Node';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
 
 const INTERRUPT_REASON = 'repo_interrupt';
 
@@ -79,9 +81,10 @@ export class Repo {
   constructor(
     public repoInfo_: RepoInfo,
     forceRestClient: boolean,
-    public app: FirebaseApp
+    public app: FirebaseApp,
+    authProvider: Provider<FirebaseAuthInternal>
   ) {
-    const authTokenProvider = new AuthTokenProvider(app);
+    const authTokenProvider = new AuthTokenProvider(app, authProvider);
 
     this.stats_ = StatsManager.getCollection(repoInfo_);
 
