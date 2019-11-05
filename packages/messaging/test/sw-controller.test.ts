@@ -22,28 +22,22 @@ declare const self: ServiceWorkerGlobalScope;
 
 import { expect } from 'chai';
 import { stub, restore, spy, SinonSpy } from 'sinon';
-
-import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseError } from '@firebase/util';
-
 import {
-  makeFakeApp,
-  makeFakeInstallations
-} from './testing-utils/make-fake-app';
+  makeFakeFirebaseInternalServices
+} from './testing-utils/make-fake-firebase-services';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
-
 import { SwController } from '../src/controllers/sw-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseInternalServices } from '../src/interfaces/external-services';
 
 const VALID_VAPID_KEY =
   'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';
 
 describe('Firebase Messaging > *SwController', () => {
-  let app: FirebaseApp;
-  let installations: FirebaseInstallations;
+  let firebaseInternalServices: FirebaseInternalServices;
 
   beforeEach(() => {
     // When trying to stub self.clients self.registration, Sinon complains that
@@ -60,10 +54,9 @@ describe('Firebase Messaging > *SwController', () => {
     (self as any).registration =
       'This is a placeholder for sinon to overwrite.';
 
-    app = makeFakeApp({
+    firebaseInternalServices = makeFakeFirebaseInternalServices({
       messagingSenderId: '12345'
     });
-    installations = makeFakeInstallations();
   });
 
   afterEach(() => {
@@ -75,7 +68,7 @@ describe('Firebase Messaging > *SwController', () => {
 
   describe('onPush', () => {
     it('should handle a push event with no data', async () => {
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const waitUntilSpy = spy();
       swController.onPush({
         waitUntil: waitUntilSpy,
@@ -86,7 +79,7 @@ describe('Firebase Messaging > *SwController', () => {
     });
 
     it('should handle a push event where .json() throws', async () => {
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const waitUntilSpy = spy();
       swController.onPush({
         waitUntil: waitUntilSpy,
@@ -108,7 +101,7 @@ describe('Firebase Messaging > *SwController', () => {
         async () => true
       );
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
@@ -130,7 +123,7 @@ describe('Firebase Messaging > *SwController', () => {
         async () => true
       );
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
@@ -154,7 +147,7 @@ describe('Firebase Messaging > *SwController', () => {
         async () => true
       );
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       swController.setBackgroundMessageHandler((() => {}) as any);
       swController.onPush({
         waitUntil: waitUntilSpy,
@@ -177,7 +170,7 @@ describe('Firebase Messaging > *SwController', () => {
       );
       const showNotificationStub = spy(registration, 'showNotification');
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
@@ -215,7 +208,7 @@ describe('Firebase Messaging > *SwController', () => {
         icon: '/images/test-icon.png'
       };
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
@@ -283,7 +276,7 @@ describe('Firebase Messaging > *SwController', () => {
         ]
       };
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
@@ -317,7 +310,7 @@ describe('Firebase Messaging > *SwController', () => {
 
       const payloadData = {};
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       swController.setBackgroundMessageHandler(bgMessageHandlerSpy);
       swController.onPush({
         waitUntil: waitUntilSpy,
@@ -339,7 +332,7 @@ describe('Firebase Messaging > *SwController', () => {
         async () => false
       );
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       swController.onPush({
         waitUntil: waitUntilSpy,
         data: {
@@ -355,7 +348,7 @@ describe('Firebase Messaging > *SwController', () => {
 
   describe('setBackgroundMessageHandler', () => {
     it('should throw on a non-function input', () => {
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       let thrownError: FirebaseError | undefined;
       try {
         swController.setBackgroundMessageHandler('' as any);
@@ -384,7 +377,7 @@ describe('Firebase Messaging > *SwController', () => {
       };
       stub(self, 'clients').value(clients);
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const result = await swController.hasVisibleClients_();
       expect(result).to.equal(false);
     });
@@ -415,7 +408,7 @@ describe('Firebase Messaging > *SwController', () => {
       };
       stub(self, 'clients').value(clients);
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const result = await swController.hasVisibleClients_();
       expect(result).to.equal(false);
     });
@@ -450,7 +443,7 @@ describe('Firebase Messaging > *SwController', () => {
       };
       stub(self, 'clients').value(clients);
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const result = await swController.hasVisibleClients_();
       expect(result).to.equal(true);
     });
@@ -473,7 +466,7 @@ describe('Firebase Messaging > *SwController', () => {
       };
       stub(self, 'clients').value(clients);
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const result = await swController.hasVisibleClients_();
       expect(result).to.equal(false);
     });
@@ -493,7 +486,7 @@ describe('Firebase Messaging > *SwController', () => {
       };
       stub(self, 'clients').value(clients);
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const result = await swController.getWindowClient_('/test-url');
       expect(result).to.equal(null);
     });
@@ -521,7 +514,7 @@ describe('Firebase Messaging > *SwController', () => {
       };
       stub(self, 'clients').value(clients);
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const result = await swController.getWindowClient_('/test-url');
       expect(result).to.equal(null);
     });
@@ -553,7 +546,7 @@ describe('Firebase Messaging > *SwController', () => {
       };
       stub(self, 'clients').value(clients);
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const result = await swController.getWindowClient_(matchingClient.url);
       expect(result).to.equal(matchingClient);
     });
@@ -566,7 +559,7 @@ describe('Firebase Messaging > *SwController', () => {
         waitUntil: waitUntilSpy,
         stopImmediatePropagation: spy()
       };
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
 
       swController.onNotificationClick(event);
 
@@ -580,7 +573,7 @@ describe('Firebase Messaging > *SwController', () => {
         waitUntil: waitUntilSpy,
         stopImmediatePropagation: spy()
       };
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
 
       swController.onNotificationClick(event);
 
@@ -596,7 +589,7 @@ describe('Firebase Messaging > *SwController', () => {
         waitUntil: waitUntilSpy,
         stopImmediatePropagation: spy()
       };
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
 
       swController.onNotificationClick(event);
 
@@ -618,7 +611,7 @@ describe('Firebase Messaging > *SwController', () => {
         stopImmediatePropagation: spy(),
         action: 'action1'
       };
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
 
       swController.onNotificationClick(event);
 
@@ -637,7 +630,7 @@ describe('Firebase Messaging > *SwController', () => {
         waitUntil: waitUntilSpy,
         stopImmediatePropagation: spy()
       };
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
 
       swController.onNotificationClick(event);
 
@@ -659,7 +652,7 @@ describe('Firebase Messaging > *SwController', () => {
         waitUntil: waitUntilSpy,
         stopImmediatePropagation: spy()
       };
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
 
       swController.onNotificationClick(event);
       await event.waitUntil.getCall(0).args[0];
@@ -718,7 +711,7 @@ describe('Firebase Messaging > *SwController', () => {
           };
           stub(self, 'clients').value(clients);
 
-          const swController = new SwController(app, installations);
+          const swController = new SwController(firebaseInternalServices);
 
           stub(swController, 'getWindowClient_').callsFake(async () => null);
 
@@ -745,7 +738,7 @@ describe('Firebase Messaging > *SwController', () => {
           };
           stub(self, 'clients').value(clients);
 
-          const swController = new SwController(app, installations);
+          const swController = new SwController(firebaseInternalServices);
 
           stub(swController, 'getWindowClient_').callsFake(async () => null);
           const attemptToMessageClientStub = stub(
@@ -788,7 +781,7 @@ describe('Firebase Messaging > *SwController', () => {
           };
           stub(self, 'clients').value(clients);
 
-          const swController = new SwController(app, installations);
+          const swController = new SwController(firebaseInternalServices);
 
           stub(swController, 'getWindowClient_').callsFake(
             async () => fakeWindowClient as WindowClient
@@ -824,14 +817,14 @@ describe('Firebase Messaging > *SwController', () => {
 
   describe('getNotificationData_', () => {
     it('should return nothing for no payload', () => {
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       expect(swController.getNotificationData_(undefined as any)).to.equal(
         undefined
       );
     });
 
     it('adds message payload to data.FCM_MSG without replacing user defined data', () => {
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const msgPayload = {
         notification: {
           title: 'Hello World',
@@ -858,7 +851,7 @@ describe('Firebase Messaging > *SwController', () => {
 
   describe('attemptToMessageClient_', () => {
     it('should reject when no window client provided', () => {
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       return swController.attemptToMessageClient_(null as any, {} as any).then(
         () => {
           throw new Error('Expected error to be thrown');
@@ -875,7 +868,7 @@ describe('Firebase Messaging > *SwController', () => {
       const client: any = {
         postMessage: spy()
       };
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       await swController.attemptToMessageClient_(client, msg);
       expect(client.postMessage.callCount).to.equal(1);
       expect(client.postMessage.getCall(0).args[0]).to.equal(msg);
@@ -890,7 +883,7 @@ describe('Firebase Messaging > *SwController', () => {
       };
       stub(self, 'clients').value(clients);
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
 
       const payload = {};
 
@@ -910,7 +903,7 @@ describe('Firebase Messaging > *SwController', () => {
       };
       stub(self, 'clients').value(clients);
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       const attemptToMessageClientStub = stub(
         swController,
         'attemptToMessageClient_'
@@ -949,7 +942,7 @@ describe('Firebase Messaging > *SwController', () => {
       const onPushStub = stub(SwController.prototype, 'onPush');
       const pushEvent = new Event('push');
 
-      new SwController(app, installations);
+      new SwController(firebaseInternalServices);
       expect(listeners['push']).to.exist;
 
       listeners['push'](pushEvent);
@@ -966,7 +959,7 @@ describe('Firebase Messaging > *SwController', () => {
       const onSubChangeStub = stub(SwController.prototype, 'onSubChange');
       const pushEvent = new Event('pushsubscriptionchange');
 
-      new SwController(app, installations);
+      new SwController(firebaseInternalServices);
       expect(listeners['pushsubscriptionchange']).to.exist;
 
       listeners['pushsubscriptionchange'](pushEvent);
@@ -992,7 +985,7 @@ describe('Firebase Messaging > *SwController', () => {
       );
       const pushEvent = new Event('notificationclick');
 
-      new SwController(app, installations);
+      new SwController(firebaseInternalServices);
       expect(listeners['notificationclick']).to.exist;
 
       listeners['notificationclick'](pushEvent);
@@ -1019,7 +1012,7 @@ describe('Firebase Messaging > *SwController', () => {
         waitUntil: waitUntilSpy
       };
 
-      const swController = new SwController(app, installations);
+      const swController = new SwController(firebaseInternalServices);
       swController.onSubChange(event);
 
       let error: FirebaseError | undefined;
@@ -1038,7 +1031,7 @@ describe('Firebase Messaging > *SwController', () => {
     it('should return the default key by default', async () => {
       const registration = makeFakeSWReg();
       stub(self, 'registration').value(registration);
-      const controller = new SwController(app, installations);
+      const controller = new SwController(firebaseInternalServices);
       stub(VapidDetailsModel.prototype, 'getVapidFromSWScope').callsFake(
         async () => undefined
       );
@@ -1049,7 +1042,7 @@ describe('Firebase Messaging > *SwController', () => {
     it('should return the default key', async () => {
       const registration = makeFakeSWReg();
       stub(self, 'registration').value(registration);
-      const controller = new SwController(app, installations);
+      const controller = new SwController(firebaseInternalServices);
       stub(VapidDetailsModel.prototype, 'getVapidFromSWScope').callsFake(
         async () => DEFAULT_PUBLIC_VAPID_KEY
       );
@@ -1060,7 +1053,7 @@ describe('Firebase Messaging > *SwController', () => {
     it('should return the custom key if set', async () => {
       const registration = makeFakeSWReg();
       stub(self, 'registration').value(registration);
-      const controller = new SwController(app, installations);
+      const controller = new SwController(firebaseInternalServices);
       const vapidKeyInUse = base64ToArrayBuffer(VALID_VAPID_KEY);
       stub(VapidDetailsModel.prototype, 'getVapidFromSWScope').callsFake(
         async () => vapidKeyInUse

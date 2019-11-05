@@ -16,30 +16,21 @@
  */
 import { expect } from 'chai';
 import { stub, restore, spy } from 'sinon';
-
 import {
-  makeFakeApp,
-  makeFakeInstallations
-} from './testing-utils/make-fake-app';
+  makeFakeFirebaseInternalServices
+} from './testing-utils/make-fake-firebase-services';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
-
 import { WindowController } from '../src/controllers/window-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { MessageType } from '../src/models/worker-page-message';
 
-import { makeFakeAnalyticsProvider } from './testing-utils/make-fake-providers';
 
 const VALID_VAPID_KEY =
   'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';
 
 describe('Firebase Messaging > *WindowController', () => {
-  const app = makeFakeApp({
-    messagingSenderId: '12345'
-  });
-  const installations = makeFakeInstallations();
-
-  const analyticsProvider = makeFakeAnalyticsProvider();
+  const fakeFirebaseServices = makeFakeFirebaseInternalServices({messagingSenderId: '12345'});
 
   const cleanup = (): void => {
     restore();
@@ -58,9 +49,7 @@ describe('Firebase Messaging > *WindowController', () => {
       stub(Notification as any, 'permission').value('granted');
 
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       return controller.requestPermission();
     });
@@ -72,9 +61,7 @@ describe('Firebase Messaging > *WindowController', () => {
       );
 
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       return controller.requestPermission().then(
         () => {
@@ -93,9 +80,7 @@ describe('Firebase Messaging > *WindowController', () => {
       );
 
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       return controller.requestPermission().then(
         () => {
@@ -114,9 +99,7 @@ describe('Firebase Messaging > *WindowController', () => {
       );
 
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       return controller.requestPermission();
     });
@@ -125,9 +108,7 @@ describe('Firebase Messaging > *WindowController', () => {
   describe('useServiceWorker()', () => {
     it(`should throw on invalid input`, () => {
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       let thrownError;
       try {
@@ -142,9 +123,7 @@ describe('Firebase Messaging > *WindowController', () => {
     it(`should only be callable once`, () => {
       const registration = makeFakeSWReg();
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       controller.useServiceWorker(registration);
 
@@ -167,9 +146,7 @@ describe('Firebase Messaging > *WindowController', () => {
       const compFunc = (): void => {};
 
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       const onMessageStub = stub(controller as any, 'onMessage');
       controller.onMessage(nextFunc, errFunc, compFunc);
@@ -188,9 +165,7 @@ describe('Firebase Messaging > *WindowController', () => {
       const compFunc = (): void => {};
 
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       const onTokenRefreshStub = stub(controller as any, 'onTokenRefresh');
       controller.onTokenRefresh(nextFunc, errFunc, compFunc);
@@ -205,9 +180,7 @@ describe('Firebase Messaging > *WindowController', () => {
   describe('usePublicVapidKey()', () => {
     it('should throw an error when passing in an invalid value', () => {
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
 
       let thrownError;
@@ -222,9 +195,7 @@ describe('Firebase Messaging > *WindowController', () => {
 
     it('should throw an error when called twice', () => {
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       controller.usePublicVapidKey(VALID_VAPID_KEY);
 
@@ -242,9 +213,7 @@ describe('Firebase Messaging > *WindowController', () => {
 
     it('should throw when decrypting to invalid value', () => {
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
 
       let thrownError;
@@ -265,9 +234,7 @@ describe('Firebase Messaging > *WindowController', () => {
   describe('getPublicVapidKey_()', () => {
     it('should return the default key by default', () => {
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       return controller.getPublicVapidKey_().then(pubKey => {
         expect(pubKey).to.equal(DEFAULT_PUBLIC_VAPID_KEY);
@@ -276,9 +243,7 @@ describe('Firebase Messaging > *WindowController', () => {
 
     it('should return the custom key if set', () => {
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       controller.usePublicVapidKey(VALID_VAPID_KEY);
       return controller.getPublicVapidKey_().then(pubKey => {
@@ -295,9 +260,7 @@ describe('Firebase Messaging > *WindowController', () => {
       });
 
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       controller.setupSWMessageListener_();
 
@@ -313,9 +276,7 @@ describe('Firebase Messaging > *WindowController', () => {
       });
 
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       controller.onMessage(onMessageSpy, null as any, null as any);
       controller.setupSWMessageListener_();
@@ -339,9 +300,7 @@ describe('Firebase Messaging > *WindowController', () => {
       });
 
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       controller.setupSWMessageListener_();
       const callback = messageCallbackSpy.args[0][1];
@@ -366,9 +325,7 @@ describe('Firebase Messaging > *WindowController', () => {
       });
 
       const controller = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
 
       // The API for the observables means it's async and so we kind have to
@@ -416,9 +373,7 @@ describe('Firebase Messaging > *WindowController', () => {
       const fakeReg = makeFakeSWReg('installing', swValue);
 
       const messagingService = new WindowController(
-        app,
-        installations,
-        analyticsProvider
+        fakeFirebaseServices
       );
       const waitPromise = messagingService.waitForRegistrationToActivate_(
         fakeReg

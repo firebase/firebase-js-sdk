@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import {
   CompleteFn,
@@ -39,9 +38,7 @@ import {
 } from '../models/fcm-details';
 import { InternalMessage, MessageType } from '../models/worker-page-message';
 import { BaseController } from './base-controller';
-import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
-import { Provider } from '@firebase/component';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseInternalServices } from '../interfaces/external-services';
 
 export class WindowController extends BaseController {
   private registrationToUse: ServiceWorkerRegistration | null = null;
@@ -66,12 +63,8 @@ export class WindowController extends BaseController {
   /**
    * A service that provides a MessagingService instance.
    */
-  constructor(
-    app: FirebaseApp,
-    installations: FirebaseInstallations,
-    readonly analyticsProvider: Provider<FirebaseAnalyticsInternal>
-  ) {
-    super(app, installations);
+  constructor(services: FirebaseInternalServices) {
+    super(services);
 
     this.setupSWMessageListener_();
   }
@@ -315,7 +308,7 @@ export class WindowController extends BaseController {
           // This message has a campaign id, meaning it was sent using the FN Console.
           // Analytics is enabled on this message, so we should log it.
           const eventType = getEventType(firebaseMessagingType);
-          this.analyticsProvider.get().then(
+          this.services.analyticsProvider.get().then(
             analytics => {
               analytics.logEvent(
                 eventType,

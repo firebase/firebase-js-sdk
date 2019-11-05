@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { FirebaseApp } from '@firebase/app-types';
 import { assert } from 'chai';
 import { stub, restore } from 'sinon';
 
@@ -27,24 +26,18 @@ import { TokenDetailsModel } from '../src/models/token-details-model';
 
 import { deleteDatabase } from './testing-utils/db-helper';
 import {
-  makeFakeApp,
-  makeFakeInstallations
-} from './testing-utils/make-fake-app';
+  makeFakeFirebaseInternalServices
+} from './testing-utils/make-fake-firebase-services';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 import { TokenDetails } from '../src/interfaces/token-details';
-import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
-import { Provider } from '@firebase/component';
-import { makeFakeAnalyticsProvider } from './testing-utils/make-fake-providers';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseInternalServices } from '../src/interfaces/external-services';
 
 let FAKE_SUBSCRIPTION: PushSubscription;
 let EXAMPLE_TOKEN_SAVE: TokenDetails;
 
 describe('Firebase Messaging > *Controller.deleteToken()', () => {
-  let app: FirebaseApp;
-  let installations: FirebaseInstallations;
-  let analyticsProvider: Provider<FirebaseAnalyticsInternal>;
+  let firebaseInternalServices: FirebaseInternalServices;
   let messagingService: WindowController | SwController;
 
   function configureRegistrationMocks(
@@ -86,11 +79,9 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
   });
 
   beforeEach(() => {
-    app = makeFakeApp({
+    firebaseInternalServices = makeFakeFirebaseInternalServices({
       messagingSenderId: EXAMPLE_TOKEN_SAVE.fcmSenderId
     });
-    installations = makeFakeInstallations();
-    analyticsProvider = makeFakeAnalyticsProvider();
   });
 
   afterEach(async () => {
@@ -105,9 +96,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
 
   it('should handle no token to delete', () => {
     messagingService = new WindowController(
-      app,
-      installations,
-      analyticsProvider
+      firebaseInternalServices
     );
     return messagingService.deleteToken(undefined as any).then(
       () => {
@@ -132,9 +121,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
     );
 
     messagingService = new WindowController(
-      app,
-      installations,
-      analyticsProvider
+      firebaseInternalServices
     );
     return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
   });
@@ -157,9 +144,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
     );
 
     messagingService = new WindowController(
-      app,
-      installations,
-      analyticsProvider
+      firebaseInternalServices
     );
     return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
       () => {
@@ -190,9 +175,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       );
 
       messagingService = new serviceClass(
-        app,
-        installations,
-        analyticsProvider
+        firebaseInternalServices
       );
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
     });
@@ -223,9 +206,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       );
 
       messagingService = new serviceClass(
-        app,
-        installations,
-        analyticsProvider
+        firebaseInternalServices
       );
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
         () => {
@@ -261,9 +242,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       });
 
       messagingService = new serviceClass(
-        app,
-        installations,
-        analyticsProvider
+        firebaseInternalServices
       );
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
         () => {
@@ -298,9 +277,7 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       );
 
       messagingService = new serviceClass(
-        app,
-        installations,
-        analyticsProvider
+        firebaseInternalServices
       );
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
     });

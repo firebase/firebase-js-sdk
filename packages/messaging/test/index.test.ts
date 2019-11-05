@@ -32,7 +32,7 @@ import { WindowController } from '../src/controllers/window-controller';
 import {
   makeFakeApp,
   makeFakeInstallations
-} from './testing-utils/make-fake-app';
+} from './testing-utils/make-fake-firebase-services';
 import {
   InstanceFactory,
   ComponentContainer,

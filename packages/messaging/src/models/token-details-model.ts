@@ -20,8 +20,7 @@ import { TokenDetails } from '../interfaces/token-details';
 import { cleanV1 } from './clean-v1-undefined';
 import { DbInterface } from './db-interface';
 import { ErrorCode, errorFactory } from './errors';
-import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseInternalServices } from '../interfaces/external-services';
 
 export class TokenDetailsModel extends DbInterface {
   protected readonly dbName: string = 'fcm_token_details_db';
@@ -29,8 +28,7 @@ export class TokenDetailsModel extends DbInterface {
   protected readonly objectStoreName: string = 'fcm_token_object_Store';
 
   constructor(
-    private readonly app: FirebaseApp,
-    private readonly installations: FirebaseInstallations
+    private readonly services: FirebaseInternalServices
   ) {
     super();
   }
@@ -61,7 +59,7 @@ export class TokenDetailsModel extends DbInterface {
         // Prior to version 2, we were using either 'fcm_token_details_db'
         // or 'undefined' as the database name due to bug in the SDK
         // So remove the old tokens and databases.
-        cleanV1(this.app, this.installations);
+        cleanV1(this.services);
       }
 
       case 2: {

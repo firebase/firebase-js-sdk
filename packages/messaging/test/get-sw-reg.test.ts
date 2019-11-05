@@ -22,19 +22,15 @@ import { WindowController } from '../src/controllers/window-controller';
 import { ErrorCode } from '../src/models/errors';
 
 import {
-  makeFakeApp,
-  makeFakeInstallations
-} from './testing-utils/make-fake-app';
+  makeFakeFirebaseInternalServices
+} from './testing-utils/make-fake-firebase-services';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
-import { makeFakeAnalyticsProvider } from './testing-utils/make-fake-providers';
 
 const EXAMPLE_SENDER_ID = '1234567890';
 
-const app = makeFakeApp({
+const firebaseInternalServices = makeFakeFirebaseInternalServices({
   messagingSenderId: EXAMPLE_SENDER_ID
 });
-const installations = makeFakeInstallations();
-const analyticsProvider = makeFakeAnalyticsProvider();
 
 describe('Firebase Messaging > *Controller.getSWReg_()', () => {
   const mockWindowRegistration = (
@@ -69,9 +65,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     mockWindowRegistration(activatedRegistration);
 
     const messagingService = new WindowController(
-      app,
-      installations,
-      analyticsProvider
+      firebaseInternalServices
     );
     return messagingService
       .getSWRegistration_()
@@ -93,9 +87,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     mockWindowRegistration(fakeReg);
 
     const messagingService = new WindowController(
-      app,
-      installations,
-      analyticsProvider
+      firebaseInternalServices
     );
     return messagingService.getSWRegistration_().then(
       () => {
@@ -111,7 +103,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     const fakeReg = makeFakeSWReg();
     (self as any).registration = fakeReg;
 
-    const messagingService = new SwController(app, installations);
+    const messagingService = new SwController(firebaseInternalServices);
     return messagingService
       .getSWRegistration_()
       .then(registration => {
@@ -134,9 +126,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     });
 
     const messagingService = new WindowController(
-      app,
-      installations,
-      analyticsProvider
+      firebaseInternalServices
     );
     return messagingService.getSWRegistration_().then(
       () => {
@@ -159,9 +149,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     mockWindowRegistration(redundantRegistration);
 
     const messagingService = new WindowController(
-      app,
-      installations,
-      analyticsProvider
+      firebaseInternalServices
     );
     return messagingService.getSWRegistration_().then(
       () => {
@@ -189,9 +177,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     mockWindowRegistration(slowRedundantRegistration);
 
     const messagingService = new WindowController(
-      app,
-      installations,
-      analyticsProvider
+      firebaseInternalServices
     );
     return messagingService.getSWRegistration_().then(
       () => {
@@ -219,9 +205,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     mockWindowRegistration(slowRedundantRegistration);
 
     const messagingService = new WindowController(
-      app,
-      installations,
-      analyticsProvider
+      firebaseInternalServices
     );
     return messagingService.getSWRegistration_().then(
       () => {

@@ -21,7 +21,7 @@ import { ErrorCode, errorFactory } from './errors';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 import { FirebaseApp } from '@firebase/app-types';
 import { TokenDetails } from '../interfaces/token-details';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseInternalServices } from '../interfaces/external-services';
 
 interface ApiResponse {
   token?: string;
@@ -39,12 +39,11 @@ interface TokenRequestBody {
 
 export class SubscriptionManager {
   async getToken(
-    app: FirebaseApp,
-    installations: FirebaseInstallations,
+    services: FirebaseInternalServices,
     subscription: PushSubscription,
     vapidKey: Uint8Array
   ): Promise<string> {
-    const headers = await getHeaders(app, installations);
+    const headers = await getHeaders(services);
     const body = getBody(subscription, vapidKey);
 
     const subscribeOptions = {
@@ -55,7 +54,7 @@ export class SubscriptionManager {
 
     let responseData: ApiResponse;
     try {
-      const response = await fetch(getEndpoint(app), subscribeOptions);
+      const response = await fetch(getEndpoint(services.app), subscribeOptions);
       responseData = await response.json();
     } catch (err) {
       throw errorFactory.create(ErrorCode.TOKEN_SUBSCRIBE_FAILED, {
@@ -82,12 +81,11 @@ export class SubscriptionManager {
    */
   async updateToken(
     tokenDetails: TokenDetails,
-    app: FirebaseApp,
-    installations: FirebaseInstallations,
+    services: FirebaseInternalServices,
     subscription: PushSubscription,
     vapidKey: Uint8Array
   ): Promise<string> {
-    const headers = await getHeaders(app, installations);
+    const headers = await getHeaders(services);
     const body = getBody(subscription, vapidKey);
 
     const updateOptions = {
@@ -99,7 +97,7 @@ export class SubscriptionManager {
     let responseData: ApiResponse;
     try {
       const response = await fetch(
-        `${getEndpoint(app)}/${tokenDetails.fcmToken}`,
+        `${getEndpoint(services.app)}/${tokenDetails.fcmToken}`,
         updateOptions
       );
       responseData = await response.json();
@@ -124,12 +122,11 @@ export class SubscriptionManager {
   }
 
   async deleteToken(
-    app: FirebaseApp,
-    installations: FirebaseInstallations,
+    services: FirebaseInternalServices,
     tokenDetails: TokenDetails
   ): Promise<void> {
     // TODO: Add FIS header
-    const headers = await getHeaders(app, installations);
+    const headers = await getHeaders(services);
 
     const unsubscribeOptions = {
       method: 'DELETE',
@@ -138,7 +135,7 @@ export class SubscriptionManager {
 
     try {
       const response = await fetch(
-        `${getEndpoint(app)}/${tokenDetails.fcmToken}`,
+        `${getEndpoint(services.app)}/${tokenDetails.fcmToken}`,
         unsubscribeOptions
       );
       const responseData: ApiResponse = await response.json();
@@ -161,8 +158,7 @@ function getEndpoint(app: FirebaseApp): string {
 }
 
 async function getHeaders(
-  app: FirebaseApp,
-  installations: FirebaseInstallations
+  { app, installations }: FirebaseInternalServices,
 ): Promise<Headers> {
   const authToken = await installations.getToken();
 

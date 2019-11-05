@@ -23,14 +23,12 @@ import { SubscriptionManager } from '../src/models/subscription-manager';
 
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { fetchMock } from './testing-utils/mock-fetch';
-import { FirebaseApp } from '@firebase/app-types';
 import {
-  makeFakeApp,
-  makeFakeInstallations
-} from './testing-utils/make-fake-app';
+  makeFakeFirebaseInternalServices
+} from './testing-utils/make-fake-firebase-services';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { TokenDetails } from '../src/interfaces/token-details';
-import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseInternalServices } from '../src/interfaces/external-services';
 
 // prettier-ignore
 const appPubKey = new Uint8Array([
@@ -43,15 +41,13 @@ function getDefaultPublicKey(): Uint8Array {
 }
 
 describe('Firebase Messaging > SubscriptionManager', () => {
-  let app: FirebaseApp;
-  let installations: FirebaseInstallations;
+  let firebaseInternalServices: FirebaseInternalServices;
   let subscription: PushSubscription;
   let tokenDetails: TokenDetails;
   let subscriptionManager: SubscriptionManager;
 
   beforeEach(() => {
-    app = makeFakeApp();
-    installations = makeFakeInstallations();
+    firebaseInternalServices = makeFakeFirebaseInternalServices();
     subscription = makeFakeSubscription();
     tokenDetails = {
       swScope: '/example-scope',
@@ -59,7 +55,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
         'BNJxw7sCGkGLOUP2cawBaBXRuWZ3lw_PmQMgreLVVvX_b' +
           '4emEWVURkCF8fUTHEFe2xrEgTt5ilh5xD94v0pFe_I'
       ),
-      fcmSenderId: app.options.messagingSenderId!,
+      fcmSenderId: firebaseInternalServices.app.options.messagingSenderId!,
       fcmToken: 'qwerty',
       endpoint: subscription.endpoint,
       auth: subscription.getKey('auth')!,
@@ -82,8 +78,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
         fetchMock.jsonOk(JSON.stringify(mockResponse))
       );
       const token = await subscriptionManager.getToken(
-        app,
-        installations,
+        firebaseInternalServices,
         subscription,
         appPubKey
       );
@@ -99,8 +94,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
         fetchMock.jsonOk(JSON.stringify(mockResponse))
       );
       const token = await subscriptionManager.getToken(
-        app,
-        installations,
+        firebaseInternalServices,
         subscription,
         getDefaultPublicKey()
       );
@@ -115,8 +109,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
       try {
         await subscriptionManager.getToken(
-          app,
-          installations,
+          firebaseInternalServices,
           subscription,
           appPubKey
         );
@@ -130,8 +123,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       stub(window, 'fetch').returns(fetchMock.htmlError(400, 'html-response'));
       try {
         await subscriptionManager.getToken(
-          app,
-          installations,
+          firebaseInternalServices,
           subscription,
           appPubKey
         );
@@ -148,8 +140,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       );
       try {
         await subscriptionManager.getToken(
-          app,
-          installations,
+          firebaseInternalServices,
           subscription,
           appPubKey
         );
@@ -170,8 +161,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       );
       const res = await subscriptionManager.updateToken(
         tokenDetails,
-        app,
-        installations,
+        firebaseInternalServices,
         subscription,
         appPubKey
       );
@@ -186,8 +176,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       );
       const res = await subscriptionManager.updateToken(
         tokenDetails,
-        app,
-        installations,
+        firebaseInternalServices,
         subscription,
         getDefaultPublicKey()
       );
@@ -205,8 +194,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       try {
         await subscriptionManager.updateToken(
           tokenDetails,
-          app,
-          installations,
+          firebaseInternalServices,
           subscription,
           appPubKey
         );
@@ -221,8 +209,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       try {
         await subscriptionManager.updateToken(
           tokenDetails,
-          app,
-          installations,
+          firebaseInternalServices,
           subscription,
           appPubKey
         );
@@ -238,8 +225,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       try {
         await subscriptionManager.updateToken(
           tokenDetails,
-          app,
-          installations,
+          firebaseInternalServices,
           subscription,
           appPubKey
         );
@@ -253,7 +239,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
   describe('deleteToken', () => {
     it('deletes on valid request', async () => {
       stub(window, 'fetch').returns(fetchMock.jsonOk('{}'));
-      await subscriptionManager.deleteToken(app, installations, tokenDetails);
+      await subscriptionManager.deleteToken(firebaseInternalServices, tokenDetails);
     });
 
     it('handles fetch errors', async () => {
@@ -262,7 +248,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       stub(window, 'fetch').returns(fetchMock.jsonError(400, errorMsg));
 
       try {
-        await subscriptionManager.deleteToken(app, installations, tokenDetails);
+        await subscriptionManager.deleteToken(firebaseInternalServices, tokenDetails);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED);
@@ -273,7 +259,7 @@ describe('Firebase Messaging > SubscriptionManager', () => {
       const stubbedFetch = stub(window, 'fetch');
       stubbedFetch.returns(fetchMock.htmlError(404, 'html-response'));
       try {
-        await subscriptionManager.deleteToken(app, installations, tokenDetails);
+        await subscriptionManager.deleteToken(firebaseInternalServices, tokenDetails);
         throw new Error('Expected error to be thrown.');
       } catch (e) {
         expect(e.code).to.include(ErrorCode.TOKEN_UNSUBSCRIBE_FAILED);

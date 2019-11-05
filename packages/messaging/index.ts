@@ -40,16 +40,18 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
     const installations = container.getProvider('installations').getImmediate();
     const analyticsProvider = container.getProvider('analytics-internal');
 
+    const firebaseServices = { app, installations, analyticsProvider};
+
     if (!isSupported()) {
       throw errorFactory.create(ErrorCode.UNSUPPORTED_BROWSER);
     }
 
     if (self && 'ServiceWorkerGlobalScope' in self) {
       // Running in ServiceWorker context
-      return new SwController(app, installations);
+      return new SwController(firebaseServices);
     } else {
       // Assume we are in the window context.
-      return new WindowController(app, installations, analyticsProvider);
+      return new WindowController(firebaseServices);
     }
   };
 
