@@ -163,7 +163,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
 
     this.tokenCounter = 0;
 
-    this.auth = authProvider.getImmediate(undefined, { optional: true });
+    this.auth = authProvider.getImmediate({ optional: true });
 
     if (this.auth) {
       this.auth.addAuthTokenListener(this.tokenListener!);
