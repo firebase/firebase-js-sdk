@@ -18,18 +18,13 @@
 import { expect } from 'chai';
 import { forceRestClient } from '../../src/api/test_access';
 
-import {
-  getRandomNode,
-  testAuthTokenProvider,
-  getFreshRepoFromReference
-} from '../helpers/util';
+import { getRandomNode, getFreshRepoFromReference } from '../helpers/util';
 
 // Some sanity checks for the ReadonlyRestClient crawler support.
 describe('Crawler Support', function() {
   let initialData;
   let normalRef;
   let restRef;
-  let tokenProvider;
 
   beforeEach(function(done) {
     normalRef = getRandomNode();
@@ -38,13 +33,7 @@ describe('Crawler Support', function() {
     restRef = getFreshRepoFromReference(normalRef);
     forceRestClient(false);
 
-    tokenProvider = testAuthTokenProvider(restRef.database.app);
-
     setInitialData(done);
-  });
-
-  afterEach(function() {
-    tokenProvider.setToken(null);
   });
 
   function setInitialData(done) {
