@@ -57,7 +57,7 @@ describe('Component Container', () => {
     const setComponentStub = stub(provider, 'setComponent').callThrough();
     const component = getFakeComponent(
       'fireball',
-      () => ({test: 1}),
+      () => ({ test: 1 }),
       true,
       InstantiationMode.EAGER
     );

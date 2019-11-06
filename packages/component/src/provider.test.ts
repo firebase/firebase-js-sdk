@@ -22,13 +22,13 @@ import { FirebaseService } from '@firebase/app-types/private';
 import { Provider } from './provider';
 import { getFakeApp, getFakeComponent } from '../test/util';
 import '../test/setup';
-import { InstantiationMode, } from './types';
+import { InstantiationMode } from './types';
 
 // define the types for the fake services we use in the tests
 declare module './types' {
   interface NameServiceMapping {
     test: {};
-    badtest: {}
+    badtest: {};
   }
 }
 

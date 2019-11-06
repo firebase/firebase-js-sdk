@@ -25,7 +25,7 @@ import { Name } from './types';
 export class ComponentContainer<T extends Name = Name> {
   private readonly providers = new Map<string, Provider<T>>();
 
-  constructor(private readonly name: string) { }
+  constructor(private readonly name: string) {}
 
   /**
    *

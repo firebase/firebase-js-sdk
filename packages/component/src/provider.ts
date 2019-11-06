@@ -33,7 +33,7 @@ export class Provider<T extends Name, U = NameServiceMapping[T]> {
   constructor(
     private readonly name: T,
     private readonly container: ComponentContainer
-  ) { }
+  ) {}
 
   /**
    * @param identifier A provider can provide mulitple instances of a service
@@ -64,8 +64,14 @@ export class Provider<T extends Name, U = NameServiceMapping[T]> {
    * the service is not immediately available.
    * If optional is true, the method returns null if the service is not immediately available.
    */
-  getImmediate(options: { identifier?: string; optional: true }): NameServiceMapping[T] | null;
-  getImmediate(options?: { identifier?: string; optional?: false }): NameServiceMapping[T];
+  getImmediate(options: {
+    identifier?: string;
+    optional: true;
+  }): NameServiceMapping[T] | null;
+  getImmediate(options?: {
+    identifier?: string;
+    optional?: false;
+  }): NameServiceMapping[T];
   getImmediate(options?: {
     identifier?: string;
     optional?: boolean;
