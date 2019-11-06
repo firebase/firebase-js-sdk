@@ -17,8 +17,6 @@
 import { assert, expect } from 'chai';
 import { stub, restore, useFakeTimers } from 'sinon';
 
-import { FirebaseApp } from '@firebase/app-types';
-
 import { BaseController } from '../src/controllers/base-controller';
 import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
@@ -31,9 +29,10 @@ import { SubscriptionManager } from '../src/models/subscription-manager';
 import { TokenDetailsModel } from '../src/models/token-details-model';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
-import { makeFakeApp } from './testing-utils/make-fake-app';
+import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
+import { FirebaseInternalServices } from '../src/interfaces/internal-services';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 
@@ -73,7 +72,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
   let EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID: TokenDetails;
   let EXAMPLE_EXPIRED_TOKEN_DETAILS: TokenDetails;
 
-  let app: FirebaseApp;
+  let firebaseInternalServices: FirebaseInternalServices;
 
   beforeEach(() => {
     now = Date.now();
@@ -124,7 +123,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       createTime: expiredDate
     };
 
-    app = makeFakeApp({
+    firebaseInternalServices = makeFakeFirebaseInternalServices({
       messagingSenderId: EXAMPLE_SENDER_ID
     });
   });
@@ -142,7 +141,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       Promise.reject('No Service Worker')
     );
 
-    const messagingService = new WindowController(app);
+    const messagingService = new WindowController(firebaseInternalServices);
     try {
       await messagingService.getToken();
       throw new Error('Expected getToken to throw ');
@@ -166,7 +165,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
     notificationStub.onCall(3).returns('default');
 
     return servicesToTest.reduce(async (chain, serviceClass) => {
-      const serviceInstance = new serviceClass(app);
+      const serviceInstance = new serviceClass(firebaseInternalServices);
       stub(serviceClass.prototype, 'getPublicVapidKey_').callsFake(() =>
         Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY)
       );
@@ -213,7 +212,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           'getTokenDetailsFromSWScope'
         ).callsFake(() => Promise.resolve(details));
 
-        const serviceInstance = new serviceClass(app);
+        const serviceInstance = new serviceClass(firebaseInternalServices);
         const token = await serviceInstance.getToken();
         assert.equal(details.fcmToken, token);
       });
@@ -239,7 +238,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         () => Promise.resolve(EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID)
       );
 
-      const serviceInstance = new serviceClass(app);
+      const serviceInstance = new serviceClass(firebaseInternalServices);
       const token = await serviceInstance.getToken();
       assert.equal(EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID.fcmToken, token);
     });
@@ -279,7 +278,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         async () => {}
       );
 
-      const serviceInstance = new serviceClass(app);
+      const serviceInstance = new serviceClass(firebaseInternalServices);
       const token = await serviceInstance.getToken();
       assert.equal(EXAMPLE_FCM_TOKEN, token);
     });
@@ -332,7 +331,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           'saveTokenDetails'
         ).callsFake(async () => {});
 
-        const serviceInstance = new serviceClass(app);
+        const serviceInstance = new serviceClass(firebaseInternalServices);
         const token = await serviceInstance.getToken();
 
         assert.equal('example-token', token);
@@ -423,7 +422,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           'getTokenDetailsFromSWScope'
         ).callsFake(() => Promise.resolve(details));
 
-        const serviceInstance = new serviceClass(app);
+        const serviceInstance = new serviceClass(firebaseInternalServices);
         const token = await serviceInstance.getToken();
         // make sure we call getToken and retrieve the new token.
         assert.equal('new-token', token);
@@ -472,7 +471,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         Promise.resolve(subscription)
       );
 
-      const serviceInstance = new serviceClass(app);
+      const serviceInstance = new serviceClass(firebaseInternalServices);
       const defaultVAPIDToken = await serviceInstance.getToken();
       assert.equal(
         defaultVAPIDToken,
@@ -559,7 +558,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         async () => {}
       );
 
-      const serviceInstance = new serviceClass(app);
+      const serviceInstance = new serviceClass(firebaseInternalServices);
       try {
         await serviceInstance.getToken();
         throw new Error('Expected error to be thrown.');

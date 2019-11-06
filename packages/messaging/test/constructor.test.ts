@@ -22,9 +22,15 @@ import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { ErrorCode } from '../src/models/errors';
 
-import { makeFakeApp } from './testing-utils/make-fake-app';
+import {
+  makeFakeApp,
+  makeFakeInstallations,
+  makeFakeAnalyticsProvider
+} from './testing-utils/make-fake-firebase-services';
 
 describe('Firebase Messaging > new *Controller()', () => {
+  const analyticsProvider = makeFakeAnalyticsProvider();
+  const installations = makeFakeInstallations();
   it('should handle bad input', () => {
     const badInputs = [
       makeFakeApp({
@@ -45,8 +51,12 @@ describe('Firebase Messaging > new *Controller()', () => {
     ];
     badInputs.forEach(badInput => {
       try {
-        new WindowController(badInput);
-        new SwController(badInput);
+        new WindowController({
+          app: badInput,
+          installations,
+          analyticsProvider
+        });
+        new SwController({ app: badInput, installations, analyticsProvider });
 
         assert.fail(
           `Bad Input should have thrown: ${JSON.stringify(badInput)}`
@@ -60,7 +70,7 @@ describe('Firebase Messaging > new *Controller()', () => {
 
   it('should be able to handle good input', () => {
     const app = makeFakeApp();
-    new WindowController(app);
-    new SwController(app);
+    new WindowController({ app, installations, analyticsProvider });
+    new SwController({ app, installations, analyticsProvider });
   });
 });
