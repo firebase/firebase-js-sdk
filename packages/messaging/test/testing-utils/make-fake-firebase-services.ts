@@ -16,6 +16,20 @@
  */
 
 import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
+import { FirebaseInstallations } from '@firebase/installations-types';
+import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
+import { Provider, ComponentContainer } from '@firebase/component';
+import { FirebaseInternalServices } from '../../src/interfaces/internal-services';
+
+export function makeFakeFirebaseInternalServices(
+  options: FirebaseOptions = {}
+): FirebaseInternalServices {
+  return {
+    app: makeFakeApp(options),
+    installations: makeFakeInstallations(),
+    analyticsProvider: makeFakeAnalyticsProvider()
+  };
+}
 
 export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
   options = {
@@ -34,12 +48,23 @@ export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
     automaticDataCollectionEnabled: true,
     delete: async () => {},
     messaging: null as any,
-    installations() {
-      return {
-        getId: () => Promise.resolve('FID'),
-        getToken: () => Promise.resolve('authToken'),
-        delete: () => Promise.resolve()
-      };
-    }
+    installations: null as any
   };
+}
+
+export function makeFakeInstallations(): FirebaseInstallations {
+  return {
+    getId: () => Promise.resolve('FID'),
+    getToken: () => Promise.resolve('authToken'),
+    delete: () => Promise.resolve()
+  };
+}
+
+export function makeFakeAnalyticsProvider(): Provider<
+  FirebaseAnalyticsInternal
+> {
+  return new Provider<FirebaseAnalyticsInternal>(
+    'analytics-interop',
+    new ComponentContainer('test')
+  );
 }
