@@ -16,31 +16,34 @@
  */
 
 import firebase from '@firebase/app';
-import {
-  _FirebaseNamespace,
-  FirebaseServiceFactory
-} from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
 import { deleteInstallation, getId, getToken } from './functions';
 import { extractAppConfig } from './helpers/extract-app-config';
+import { Provider, Component, ComponentType } from '@firebase/component';
 
 export function registerInstallations(instance: _FirebaseNamespace): void {
   const installationsName = 'installations';
 
-  const factoryMethod: FirebaseServiceFactory = app => {
-    // Throws if app isn't configured properly.
-    extractAppConfig(app);
+  instance.INTERNAL.registerComponent(
+    new Component(
+      installationsName,
+      container => {
+        const app = container.getProvider('app').getImmediate();
+        // Throws if app isn't configured properly.
+        extractAppConfig(app);
 
-    return {
-      app,
-      getId: () => getId(app),
-      getToken: (forceRefresh?: boolean) => getToken(app, forceRefresh),
-      delete: () => deleteInstallation(app)
-    };
-  };
-
-  instance.INTERNAL.registerService(installationsName, factoryMethod);
+        return {
+          app,
+          getId: () => getId(app),
+          getToken: (forceRefresh?: boolean) => getToken(app, forceRefresh),
+          delete: () => deleteInstallation(app)
+        };
+      },
+      ComponentType.PUBLIC
+    )
+  );
 }
 
 registerInstallations(firebase as _FirebaseNamespace);
@@ -54,5 +57,11 @@ declare module '@firebase/app-types' {
   }
   interface FirebaseApp {
     installations(): FirebaseInstallations;
+  }
+}
+
+declare module '@firebase/component' {
+  interface ComponentContainer {
+    getProvider(name: 'installations'): Provider<FirebaseInstallations>;
   }
 }
