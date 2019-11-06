@@ -62,10 +62,6 @@ export async function initializeGAId(
   });
 }
 
-export function hasDataLayer(dataLayerName: string): boolean {
-  return Array.isArray(window[dataLayerName]);
-}
-
 export function insertScriptTag(dataLayerName: string): void {
   const script = document.createElement('script');
   // We are not providing an analyticsId in the URL because it would trigger a `page_view`
@@ -81,9 +77,8 @@ export function insertScriptTag(dataLayerName: string): void {
 export function getOrCreateDataLayer(dataLayerName: string): DataLayer {
   // Check for existing dataLayer and create if needed.
   let dataLayer: DataLayer = [];
-  if (hasDataLayer(dataLayerName)) {
+  if (Array.isArray(window[dataLayerName])) {
     dataLayer = window[dataLayerName] as DataLayer;
-    console.log('returning existing datalayer', dataLayer.toString());
   } else {
     dataLayer = window[dataLayerName] = [];
   }

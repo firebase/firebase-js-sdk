@@ -21,7 +21,7 @@ import '../testing/setup';
 import { DataLayer, Gtag } from '@firebase/analytics-types';
 import {
   initializeGAId,
-  hasDataLayer,
+  getOrCreateDataLayer,
   insertScriptTag,
   wrapOrCreateGtag,
   findGtagScriptOnPage
@@ -45,13 +45,14 @@ describe('FirebaseAnalytics methods', () => {
     });
   });
 
-  it('hasDataLayer is able to correctly identify an existing data layer', () => {
-    expect(hasDataLayer('dataLayer')).to.be.false;
-    window['dataLayer'] = [];
-    expect(hasDataLayer('dataLayer')).to.be.true;
-    window['dataLayer'] = 'hello';
-    expect(hasDataLayer('dataLayer')).to.be.false;
+  it('getOrCreateDataLayer is able to create a new data layer if none exists', () => {
     delete window['dataLayer'];
+    expect(getOrCreateDataLayer('dataLayer')).to.deep.equal([]);
+  });
+
+  it('getOrCreateDataLayer is able to correctly identify an existing data layer', () => {
+    delete window['dataLayer'];
+    expect(getOrCreateDataLayer('dataLayer')).to.deep.equal([]);
   });
 
   it('insertScriptIfNeeded inserts script tag', () => {
