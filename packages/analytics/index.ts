@@ -91,6 +91,6 @@ declare module '@firebase/app-types' {
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'analytics': FirebaseAnalytics
+    'analytics': FirebaseAnalytics;
   }
 }

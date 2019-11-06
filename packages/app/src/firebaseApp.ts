@@ -123,10 +123,14 @@ export class FirebaseAppImpl implements FirebaseApp {
     this.checkDestroyed_();
 
     // getImmediate will always succeed because _getService is only called for registered components.
-    return this.container
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .getProvider(name as any)
-      .getImmediate({ identifier: instanceIdentifier }) as unknown as FirebaseService;
+    return (
+      (this.container
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .getProvider(name as any)
+        .getImmediate({
+          identifier: instanceIdentifier
+        }) as unknown) as FirebaseService
+    );
   }
   /**
    * Remove a service instance from the cache, so we will create a new instance for this service

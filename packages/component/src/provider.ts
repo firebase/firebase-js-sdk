@@ -26,7 +26,6 @@ import { Component } from './component';
  * U is an alias for the type of the instance
  */
 export class Provider<T extends Name = Name, U = NameServiceMapping[T]> {
-  
   private component: Component<T> | null = null;
   private readonly instances: Map<string, U> = new Map();
   private readonly instancesDeferred: Map<string, Deferred<U>> = new Map();
@@ -65,14 +64,8 @@ export class Provider<T extends Name = Name, U = NameServiceMapping[T]> {
    * the service is not immediately available.
    * If optional is true, the method returns null if the service is not immediately available.
    */
-  getImmediate(options: {
-    identifier?: string;
-    optional: true;
-  }): U | null;
-  getImmediate(options?: {
-    identifier?: string;
-    optional?: false;
-  }): U;
+  getImmediate(options: { identifier?: string; optional: true }): U | null;
+  getImmediate(options?: { identifier?: string; optional?: false }): U;
   getImmediate(options?: {
     identifier?: string;
     optional?: boolean;

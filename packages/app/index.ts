@@ -43,7 +43,7 @@ const initializeApp = firebaseNamespace.initializeApp;
 // TODO: This disable can be removed and the 'ignoreRestArgs' option added to
 // the no-explicit-any rule when ESlint releases it.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-firebaseNamespace.initializeApp = function (...args: any) {
+firebaseNamespace.initializeApp = function(...args: any) {
   // Environment check before initializing app
   // Do the check in initializeApp, so people have a chance to disable it by setting logLevel
   // in @firebase/logger
@@ -72,6 +72,6 @@ export default firebase;
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'app': FirebaseApp
+    'app': FirebaseApp;
   }
 }

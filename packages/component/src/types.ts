@@ -57,7 +57,7 @@ export interface Dictionary {
  * It is used as a generic constraint to ensure type safety.
  */
 export interface NameServiceMapping {
-  'app': string
+  'app': string;
 }
 
 export type Name = keyof NameServiceMapping;

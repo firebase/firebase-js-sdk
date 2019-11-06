@@ -41,6 +41,6 @@ export default firebase;
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'app': FirebaseApp
+    'app': FirebaseApp;
   }
 }
