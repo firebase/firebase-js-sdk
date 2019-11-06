@@ -33,6 +33,7 @@ import { ErrorCode, errorFactory } from '../models/errors';
 import { SubscriptionManager } from '../models/subscription-manager';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
+import { FirebaseInternalServices } from '../interfaces/internal-services';
 
 export type BgMessageHandler = (
   payload: MessagePayload
@@ -43,11 +44,14 @@ export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export abstract class BaseController implements FirebaseMessaging {
   INTERNAL: FirebaseServiceInternals;
+  readonly app: FirebaseApp;
   private readonly tokenDetailsModel: TokenDetailsModel;
   private readonly vapidDetailsModel = new VapidDetailsModel();
   private readonly subscriptionManager = new SubscriptionManager();
 
-  constructor(readonly app: FirebaseApp) {
+  constructor(protected readonly services: FirebaseInternalServices) {
+    const { app } = services;
+    this.app = app;
     if (
       !app.options.messagingSenderId ||
       typeof app.options.messagingSenderId !== 'string'
@@ -59,7 +63,7 @@ export abstract class BaseController implements FirebaseMessaging {
       delete: () => this.delete()
     };
 
-    this.tokenDetailsModel = new TokenDetailsModel(app);
+    this.tokenDetailsModel = new TokenDetailsModel(services);
   }
 
   async getToken(): Promise<string | null> {
@@ -147,7 +151,7 @@ export abstract class BaseController implements FirebaseMessaging {
     try {
       const updatedToken = await this.subscriptionManager.updateToken(
         tokenDetails,
-        this.app,
+        this.services,
         pushSubscription,
         publicVapidKey
       );
@@ -155,7 +159,7 @@ export abstract class BaseController implements FirebaseMessaging {
       const allDetails: TokenDetails = {
         swScope: swReg.scope,
         vapidKey: publicVapidKey,
-        fcmSenderId: this.app.options.messagingSenderId!,
+        fcmSenderId: this.services.app.options.messagingSenderId!,
         fcmToken: updatedToken,
         createTime: Date.now(),
         endpoint: pushSubscription.endpoint,
@@ -181,7 +185,7 @@ export abstract class BaseController implements FirebaseMessaging {
     publicVapidKey: Uint8Array
   ): Promise<string> {
     const newToken = await this.subscriptionManager.getToken(
-      this.app,
+      this.services,
       pushSubscription,
       publicVapidKey
     );
@@ -228,7 +232,7 @@ export abstract class BaseController implements FirebaseMessaging {
    */
   private async deleteTokenFromDB(token: string): Promise<void> {
     const tokenDetails = await this.tokenDetailsModel.deleteToken(token);
-    await this.subscriptionManager.deleteToken(this.app, tokenDetails);
+    await this.subscriptionManager.deleteToken(this.services, tokenDetails);
   }
 
   // Visible for testing

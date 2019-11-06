@@ -21,12 +21,12 @@ import { SwController } from '../src/controllers/sw-controller';
 import { WindowController } from '../src/controllers/window-controller';
 import { ErrorCode } from '../src/models/errors';
 
-import { makeFakeApp } from './testing-utils/make-fake-app';
+import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 
 const EXAMPLE_SENDER_ID = '1234567890';
 
-const app = makeFakeApp({
+const firebaseInternalServices = makeFakeFirebaseInternalServices({
   messagingSenderId: EXAMPLE_SENDER_ID
 });
 
@@ -62,7 +62,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
 
     mockWindowRegistration(activatedRegistration);
 
-    const messagingService = new WindowController(app);
+    const messagingService = new WindowController(firebaseInternalServices);
     return messagingService
       .getSWRegistration_()
       .then(registration => {
@@ -82,7 +82,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     const fakeReg = makeFakeSWReg();
     mockWindowRegistration(fakeReg);
 
-    const messagingService = new WindowController(app);
+    const messagingService = new WindowController(firebaseInternalServices);
     return messagingService.getSWRegistration_().then(
       () => {
         throw new Error('Expected this error to throw due to no SW.');
@@ -97,7 +97,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     const fakeReg = makeFakeSWReg();
     (self as any).registration = fakeReg;
 
-    const messagingService = new SwController(app);
+    const messagingService = new SwController(firebaseInternalServices);
     return messagingService
       .getSWRegistration_()
       .then(registration => {
@@ -119,7 +119,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
       throw new Error(errorMsg);
     });
 
-    const messagingService = new WindowController(app);
+    const messagingService = new WindowController(firebaseInternalServices);
     return messagingService.getSWRegistration_().then(
       () => {
         throw new Error('Expect getSWRegistration_ to reject.');
@@ -140,7 +140,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     });
     mockWindowRegistration(redundantRegistration);
 
-    const messagingService = new WindowController(app);
+    const messagingService = new WindowController(firebaseInternalServices);
     return messagingService.getSWRegistration_().then(
       () => {
         throw new Error('Should throw error due to redundant SW');
@@ -166,7 +166,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     const slowRedundantRegistration = makeFakeSWReg('installing', swValue);
     mockWindowRegistration(slowRedundantRegistration);
 
-    const messagingService = new WindowController(app);
+    const messagingService = new WindowController(firebaseInternalServices);
     return messagingService.getSWRegistration_().then(
       () => {
         throw new Error('Should throw error due to redundant SW');
@@ -192,7 +192,7 @@ describe('Firebase Messaging > *Controller.getSWReg_()', () => {
     const slowRedundantRegistration = makeFakeSWReg('waiting', swValue);
     mockWindowRegistration(slowRedundantRegistration);
 
-    const messagingService = new WindowController(app);
+    const messagingService = new WindowController(firebaseInternalServices);
     return messagingService.getSWRegistration_().then(
       () => {
         throw new Error('Should throw error due to redundant SW');
