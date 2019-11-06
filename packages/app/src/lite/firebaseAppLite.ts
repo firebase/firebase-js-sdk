@@ -134,8 +134,9 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
 
     // getImmediate will always succeed because _getService is only called for registered components.
     return this.container
-      .getProvider(name)
-      .getImmediate(instanceIdentifier) as FirebaseService;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .getProvider(name as any)
+      .getImmediate({identifier: instanceIdentifier}) as unknown as FirebaseService;
   }
 
   /**

@@ -315,7 +315,7 @@ function firebaseAppTests(
 }
 
 class TestService implements FirebaseService {
-  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) {}
+  constructor(private app_: FirebaseApp, public instanceIdentifier?: string) { }
 
   // TODO(koss): Shouldn't this just be an added method on
   // the service instance?
@@ -336,8 +336,9 @@ function createTestComponent(
   type = ComponentType.PUBLIC
 ): Component {
   const component = new Component(
-    name,
-    container => new TestService(container.getProvider('app').getImmediate()!),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    name as any,
+    container => new TestService(container.getProvider('app').getImmediate() as FirebaseApp),
     type
   );
   component.setMultipleInstances(multiInstances);

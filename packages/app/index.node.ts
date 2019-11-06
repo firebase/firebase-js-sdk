@@ -18,7 +18,6 @@
 import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { firebase as _firebase } from './src/firebaseNamespace';
-import { Provider } from '@firebase/component';
 // Node specific packages.
 // @ts-ignore
 import Storage from 'dom-storage';
@@ -41,7 +40,7 @@ export const firebase = _firebase as FirebaseNamespace;
 export default firebase;
 
 declare module '@firebase/component' {
-  interface ComponentContainer {
-    getProvider(name: 'app'): Provider<FirebaseApp>;
+  interface NameServiceMapping {
+    'app': FirebaseApp
   }
 }

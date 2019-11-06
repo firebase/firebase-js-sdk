@@ -124,8 +124,9 @@ export class FirebaseAppImpl implements FirebaseApp {
 
     // getImmediate will always succeed because _getService is only called for registered components.
     return this.container
-      .getProvider(name)
-      .getImmediate(instanceIdentifier) as FirebaseService;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .getProvider(name as any)
+      .getImmediate({ identifier: instanceIdentifier }) as unknown as FirebaseService;
   }
   /**
    * Remove a service instance from the cache, so we will create a new instance for this service
@@ -141,25 +142,26 @@ export class FirebaseAppImpl implements FirebaseApp {
     name: string,
     instanceIdentifier: string = DEFAULT_ENTRY_NAME
   ): void {
-    this.container.getProvider(name).clearInstance(instanceIdentifier);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    this.container.getProvider(name as any).clearInstance(instanceIdentifier);
   }
 
   /**
-   *
    * @param component the component being added to this app's container
-   * @param overwrite When a component with the same name has already been registered,
-   * if overwrite is true: overwrite the existing component
-   * if overwrite is false: throw an expection
    */
-  _addComponent(component: Component, overwrite = false): void {
+  _addComponent(component: Component): void {
     try {
-      this.container.addComponent(component, overwrite);
+      this.container.addComponent(component);
     } catch (e) {
       logger.debug(
         `Component ${component.name} failed to register with FirebaseApp ${this.name}`,
         e
       );
     }
+  }
+
+  _addOrOverwriteComponent(component: Component): void {
+    this.container.addOrOverwriteComponent(component);
   }
 
   /**

@@ -16,6 +16,7 @@
  */
 import firebase from '@firebase/app';
 import { FirebaseAnalytics } from '@firebase/analytics-types';
+import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { factory, settings, resetGlobalVars } from './src/factory';
 import { EventName } from './src/constants';
@@ -39,7 +40,7 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
       ANALYTICS_TYPE,
       container => {
         // getImmediate for FirebaseApp will always succeed
-        const app = container.getProvider('app').getImmediate()!;
+        const app = container.getProvider('app').getImmediate();
         return factory(app);
       },
       ComponentType.PUBLIC
@@ -59,7 +60,7 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
             .getImmediate();
           return {
             logEvent: analytics.logEvent
-          };
+          } as FirebaseAnalyticsInternal;
         } catch (e) {
           throw ERROR_FACTORY.create(
             AnalyticsError.INTEROP_COMPONENT_REG_FAILED,
@@ -89,9 +90,7 @@ declare module '@firebase/app-types' {
 }
 
 declare module '@firebase/component' {
-  interface ComponentContainer {
-    getProvider(name: typeof ANALYTICS_TYPE): Provider<FirebaseAnalytics>;
+  interface NameServiceMapping {
+    'analytics': FirebaseAnalytics
   }
-
-  interface Provider<T> {}
 }

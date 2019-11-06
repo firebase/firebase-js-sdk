@@ -40,7 +40,8 @@ export function createFirebaseNamespaceLite(): FirebaseNamespace {
    * only allow performance SDK to register.
    */
   function registerComponentForLite(
-    component: Component
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    component: Component<any>
   ): FirebaseServiceNamespace<FirebaseService> | null {
     // only allow performance to register with firebase lite
     if (

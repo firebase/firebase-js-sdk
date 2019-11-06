@@ -18,7 +18,6 @@
 import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { firebase as _firebase } from './src/firebaseNamespace';
-import { Provider } from '@firebase/component';
 /**
  * To avoid having to include the @types/react-native package, which breaks
  * some of our tests because of duplicate symbols, we are using require syntax
@@ -41,7 +40,7 @@ export const firebase = _firebase as FirebaseNamespace;
 export default firebase;
 
 declare module '@firebase/component' {
-  interface ComponentContainer {
-    getProvider(name: 'app'): Provider<FirebaseApp>;
+  interface NameServiceMapping {
+    'app': FirebaseApp
   }
 }

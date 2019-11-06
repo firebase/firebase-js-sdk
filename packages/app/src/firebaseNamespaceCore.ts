@@ -47,7 +47,8 @@ export function createFirebaseNamespaceCore(
   firebaseAppImpl: typeof FirebaseAppImpl | typeof FirebaseAppLiteImpl
 ): FirebaseNamespace {
   const apps: { [name: string]: FirebaseApp } = {};
-  const components = new Map<string, Component>();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const components = new Map<string, Component<any>>();
 
   // A namespace is a plain JavaScript Object.
   const namespace: FirebaseNamespace = {

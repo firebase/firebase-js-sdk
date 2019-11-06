@@ -18,7 +18,6 @@
 import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
 import { firebase as firebaseNamespace } from './src/firebaseNamespace';
 import { isNode, isBrowser } from '@firebase/util';
-import { Provider } from '@firebase/component';
 import { logger } from './src/logger';
 
 // Firebase Lite detection
@@ -44,7 +43,7 @@ const initializeApp = firebaseNamespace.initializeApp;
 // TODO: This disable can be removed and the 'ignoreRestArgs' option added to
 // the no-explicit-any rule when ESlint releases it.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-firebaseNamespace.initializeApp = function(...args: any) {
+firebaseNamespace.initializeApp = function (...args: any) {
   // Environment check before initializing app
   // Do the check in initializeApp, so people have a chance to disable it by setting logLevel
   // in @firebase/logger
@@ -72,7 +71,7 @@ export const firebase = firebaseNamespace;
 export default firebase;
 
 declare module '@firebase/component' {
-  interface ComponentContainer {
-    getProvider(name: 'app'): Provider<FirebaseApp>;
+  interface NameServiceMapping {
+    'app': FirebaseApp
   }
 }
