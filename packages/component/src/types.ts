@@ -43,10 +43,10 @@ export const enum ComponentType {
  * NOTE: The container only provides {@link Provider} rather than the actual instances of dependencies.
  * It is useful for lazily loaded dependencies and optional dependencies.
  */
-export type InstanceFactory<T = unknown> = (
+export type InstanceFactory<T extends Name> = (
   container: ComponentContainer,
   instanceIdentifier?: string
-) => T;
+) => NameServiceMapping[T];
 
 export interface Dictionary {
   [key: string]: unknown;
@@ -54,8 +54,10 @@ export interface Dictionary {
 
 /**
  * This interface will be extended by Firebase SDKs to provide service name and service type mapping.
- * It is used by ComponentContainer.getProvider() method to provide a type safe interface.
+ * It is used as a generic constraint to ensure type safety.
  */
-export interface NameServiceMapping {}
+export interface NameServiceMapping {
+}
 
 export type Name = keyof NameServiceMapping;
+export type Service = NameServiceMapping[Name];

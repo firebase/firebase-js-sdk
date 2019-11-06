@@ -18,10 +18,14 @@ import {
   InstantiationMode,
   InstanceFactory,
   ComponentType,
-  Dictionary
+  Dictionary,
+  Name
 } from './types';
 
-export class Component<T = unknown> {
+/**
+ * Component for service name T, e.g. `auth`, `auth-internal`
+ */
+export class Component<T extends Name> {
   multipleInstances = false;
   /**
    * Properties to be added to the service namespace
@@ -37,7 +41,7 @@ export class Component<T = unknown> {
    * @param type whehter the service provided by the component is public or private
    */
   constructor(
-    readonly name: string,
+    readonly name: T,
     readonly instanceFactory: InstanceFactory<T>,
     readonly type: ComponentType
   ) {}

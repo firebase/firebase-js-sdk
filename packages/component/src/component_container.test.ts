@@ -57,7 +57,7 @@ describe('Component Container', () => {
     const setComponentStub = stub(provider, 'setComponent').callThrough();
     const component = getFakeComponent(
       'fireball',
-      () => ({}),
+      () => ({test: 1}),
       true,
       InstantiationMode.EAGER
     );
@@ -101,7 +101,7 @@ describe('Component Container', () => {
     );
 
     expect(() => container.addComponent(component1)).to.not.throw();
-    expect(() => container.addComponent(component2, true)).to.not.throw();
+    expect(() => container.addOrOverwriteComponent(component2)).to.not.throw();
   });
 
   it('registers a component with a name that is already registered and return the provider for the new component', () => {
@@ -122,7 +122,7 @@ describe('Component Container', () => {
     const oldProvider = container.getProvider('fireball');
     expect(oldProvider.getImmediate()).to.deep.eq({ test: false });
 
-    container.addComponent(component2, true);
+    container.addOrOverwriteComponent(component2);
     const newProvider = container.getProvider('fireball');
     expect(oldProvider).to.not.eq(newProvider);
     expect(newProvider.getImmediate()).to.deep.eq({ test: true });

@@ -18,32 +18,33 @@
 import { Deferred } from '@firebase/util';
 import { ComponentContainer } from './component_container';
 import { DEFAULT_ENTRY_NAME } from './constants';
-import { InstantiationMode } from './types';
+import { InstantiationMode, Name, NameServiceMapping } from './types';
 import { Component } from './component';
 
 /**
- * Provider for instance of type T, e.g. Auth, RC
+ * Provider for instance for service name T, e.g. 'auth', 'auth-internal'
+ * U is an alias for the type of the instance
  */
-export class Provider<T = unknown> {
+export class Provider<T extends Name, U = NameServiceMapping[T]> {
   private component: Component<T> | null = null;
-  private readonly instances: Map<string, T> = new Map();
-  private readonly instancesDeferred: Map<string, Deferred<T>> = new Map();
+  private readonly instances: Map<string, U> = new Map();
+  private readonly instancesDeferred: Map<string, Deferred<U>> = new Map();
 
   constructor(
-    private readonly name: string,
+    private readonly name: T,
     private readonly container: ComponentContainer
-  ) {}
+  ) { }
 
   /**
    * @param identifier A provider can provide mulitple instances of a service
    * if this.component.multipleInstances is true.
    */
-  get(identifier: string = DEFAULT_ENTRY_NAME): Promise<T> {
+  get(identifier: string = DEFAULT_ENTRY_NAME): Promise<U> {
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
 
     if (!this.instancesDeferred.has(normalizedIdentifier)) {
-      const deferred = new Deferred<T>();
+      const deferred = new Deferred<U>();
       this.instancesDeferred.set(normalizedIdentifier, deferred);
       // If the service instance is available, resolve the promise with it immediately
       const instance = this.getOrInitializeService(normalizedIdentifier);
@@ -63,12 +64,12 @@ export class Provider<T = unknown> {
    * the service is not immediately available.
    * If optional is true, the method returns null if the service is not immediately available.
    */
-  getImmediate(options: { identifier?: string; optional: true }): T | null;
-  getImmediate(options?: { identifier?: string; optional?: false }): T;
+  getImmediate(options: { identifier?: string; optional: true }): NameServiceMapping[T] | null;
+  getImmediate(options?: { identifier?: string; optional?: false }): NameServiceMapping[T];
   getImmediate(options?: {
     identifier?: string;
     optional?: boolean;
-  }): T | null {
+  }): NameServiceMapping[T] | null {
     const { identifier, optional } = {
       identifier: DEFAULT_ENTRY_NAME,
       optional: false,
@@ -146,13 +147,13 @@ export class Provider<T = unknown> {
     return this.component != null;
   }
 
-  private getOrInitializeService(identifier: string): T | null {
+  private getOrInitializeService(identifier: string): U | null {
     let instance = this.instances.get(identifier);
     if (!instance && this.component) {
       instance = this.component.instanceFactory(
         this.container,
         normalizeIdentifierForFactory(identifier)
-      );
+      ) as U;
       this.instances.set(identifier, instance);
     }
 
@@ -173,6 +174,6 @@ function normalizeIdentifierForFactory(identifier: string): string | undefined {
   return identifier === DEFAULT_ENTRY_NAME ? undefined : identifier;
 }
 
-function isComponentEager(component: Component): boolean {
+function isComponentEager(component: Component<Name>): boolean {
   return component.instantiationMode === InstantiationMode.EAGER;
 }

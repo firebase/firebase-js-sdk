@@ -19,7 +19,8 @@ import { FirebaseApp } from '@firebase/app-types';
 import {
   InstanceFactory,
   InstantiationMode,
-  ComponentType
+  ComponentType,
+  Name
 } from '../src/types';
 import { Component } from '../src/component';
 
@@ -40,12 +41,12 @@ export function getFakeApp(appName: string = DEFAULT_ENTRY_NAME): FirebaseApp {
   };
 }
 
-export function getFakeComponent(
-  name: string,
-  factory: InstanceFactory,
+export function getFakeComponent<T extends Name>(
+  name: T,
+  factory: InstanceFactory<T>,
   multipleInstance: boolean = false,
   instantiationMode = InstantiationMode.LAZY
-): Component {
+): Component<T> {
   return new Component(name, factory, ComponentType.PUBLIC)
     .setMultipleInstances(multipleInstance)
     .setInstantiationMode(instantiationMode);

@@ -17,12 +17,15 @@
 
 import { Provider } from './provider';
 import { Component } from './component';
-import { Name, NameServiceMapping } from './types';
+import { Name } from './types';
 
-export class ComponentContainer {
-  private readonly providers = new Map<string, Provider>();
+/**
+ * ComponentContainer that provides Providers for service name T, e.g. `auth`, `auth-internal`
+ */
+export class ComponentContainer<T extends Name = Name> {
+  private readonly providers = new Map<string, Provider<T>>();
 
-  constructor(private readonly name: string) {}
+  constructor(private readonly name: string) { }
 
   /**
    *
@@ -33,8 +36,8 @@ export class ComponentContainer {
    * for different tests.
    * if overwrite is false: throw an exception
    */
-  addComponent(component: Component): void {
-    let provider = this.getProviderInternal(component.name);
+  addComponent(component: Component<T>): void {
+    const provider = this.getProvider(component.name);
     if (provider.isComponentSet()) {
       throw new Error(
         `Component ${component.name} has already been registered with ${this.name}`
@@ -44,8 +47,8 @@ export class ComponentContainer {
     provider.setComponent(component);
   }
 
-  addOrOverwriteComponent(component: Component): void {
-    let provider = this.getProviderInternal(component.name);
+  addOrOverwriteComponent(component: Component<T>): void {
+    const provider = this.getProvider(component.name);
     if (provider.isComponentSet()) {
       // delete the existing provider from the container, so we can register the new component
       this.providers.delete(component.name);
@@ -61,23 +64,19 @@ export class ComponentContainer {
    * Firebase SDKs providing services should extend NameServiceMapping interface to register
    * themselves.
    */
-  getProvider<T extends Name>(name: T): Provider<NameServiceMapping[T]> {
-    return this.getProviderInternal(name) as Provider<NameServiceMapping[T]>;
-  }
-
-  getProviders(): Provider[] {
-    return Array.from(this.providers.values());
-  }
-
-  private getProviderInternal(name: string): Provider {
+  getProvider(name: T): Provider<T> {
     if (this.providers.has(name)) {
-      return this.providers.get(name) as Provider;
+      return this.providers.get(name) as Provider<T>;
     }
 
     // create a Provider for a service that hasn't registered with Firebase
-    const provider = new Provider(name, this);
+    const provider = new Provider<T>(name, this);
     this.providers.set(name, provider);
 
-    return provider as Provider;
+    return provider as Provider<T>;
+  }
+
+  getProviders(): Array<Provider<T>> {
+    return Array.from(this.providers.values());
   }
 }

@@ -22,10 +22,18 @@ import { FirebaseService } from '@firebase/app-types/private';
 import { Provider } from './provider';
 import { getFakeApp, getFakeComponent } from '../test/util';
 import '../test/setup';
-import { InstantiationMode } from './types';
+import { InstantiationMode, } from './types';
+
+// define the types for the fake services we use in the tests
+declare module './types' {
+  interface NameServiceMapping {
+    test: {};
+    badtest: {}
+  }
+}
 
 describe('Provider', () => {
-  let provider: Provider<unknown>;
+  let provider: Provider<'test'>;
 
   beforeEach(() => {
     provider = new Provider('test', new ComponentContainer('test-container'));
@@ -33,7 +41,8 @@ describe('Provider', () => {
 
   it('throws if setComponent() is called with a component with a different name than the provider name', () => {
     expect(() =>
-      provider.setComponent(getFakeComponent('not a test', () => ({})))
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      provider.setComponent(getFakeComponent('badtest', () => ({})) as any)
     ).to.throw(/^Mismatching Component/);
     expect(() =>
       provider.setComponent(getFakeComponent('test', () => ({})))
