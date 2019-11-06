@@ -21,7 +21,7 @@ import { ErrorCode, errorFactory } from './errors';
 import { DEFAULT_PUBLIC_VAPID_KEY, ENDPOINT } from './fcm-details';
 import { FirebaseApp } from '@firebase/app-types';
 import { TokenDetails } from '../interfaces/token-details';
-import { FirebaseInternalServices } from '../interfaces/external-services';
+import { FirebaseInternalServices } from '../interfaces/internal-services';
 
 interface ApiResponse {
   token?: string;

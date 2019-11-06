@@ -28,7 +28,7 @@ import { VapidDetailsModel } from '../src/models/vapid-details-model';
 
 import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
-import { FirebaseInternalServices } from '../src/interfaces/external-services';
+import { FirebaseInternalServices } from '../src/interfaces/internal-services';
 
 const controllersToTest = [WindowController, SwController];
 

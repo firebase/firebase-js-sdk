@@ -30,6 +30,7 @@ import {
   ComponentType,
   ComponentContainer
 } from '@firebase/component';
+import { FirebaseInternalServices } from './src/interfaces/internal-services';
 
 export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
@@ -40,7 +41,11 @@ export function registerMessaging(instance: _FirebaseNamespace): void {
     const installations = container.getProvider('installations').getImmediate();
     const analyticsProvider = container.getProvider('analytics-internal');
 
-    const firebaseServices = { app, installations, analyticsProvider };
+    const firebaseServices: FirebaseInternalServices = {
+      app,
+      installations,
+      analyticsProvider
+    };
 
     if (!isSupported()) {
       throw errorFactory.create(ErrorCode.UNSUPPORTED_BROWSER);

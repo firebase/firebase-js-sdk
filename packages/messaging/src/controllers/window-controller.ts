@@ -38,7 +38,7 @@ import {
 } from '../models/fcm-details';
 import { InternalMessage, MessageType } from '../models/worker-page-message';
 import { BaseController } from './base-controller';
-import { FirebaseInternalServices } from '../interfaces/external-services';
+import { FirebaseInternalServices } from '../interfaces/internal-services';
 
 export class WindowController extends BaseController {
   private registrationToUse: ServiceWorkerRegistration | null = null;

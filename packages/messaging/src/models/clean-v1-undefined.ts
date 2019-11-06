@@ -28,7 +28,7 @@
  */
 
 import { SubscriptionManager } from './subscription-manager';
-import { FirebaseInternalServices } from '../interfaces/external-services';
+import { FirebaseInternalServices } from '../interfaces/internal-services';
 
 const OLD_DB_NAME = 'undefined';
 const OLD_OBJECT_STORE_NAME = 'fcm_token_object_Store';

@@ -19,7 +19,7 @@ import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { Provider, ComponentContainer } from '@firebase/component';
-import { FirebaseInternalServices } from '../../src/interfaces/external-services';
+import { FirebaseInternalServices } from '../../src/interfaces/internal-services';
 
 export function makeFakeFirebaseInternalServices(
   options: FirebaseOptions = {}

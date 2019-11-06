@@ -20,7 +20,7 @@ import { TokenDetails } from '../interfaces/token-details';
 import { cleanV1 } from './clean-v1-undefined';
 import { DbInterface } from './db-interface';
 import { ErrorCode, errorFactory } from './errors';
-import { FirebaseInternalServices } from '../interfaces/external-services';
+import { FirebaseInternalServices } from '../interfaces/internal-services';
 
 export class TokenDetailsModel extends DbInterface {
   protected readonly dbName: string = 'fcm_token_details_db';

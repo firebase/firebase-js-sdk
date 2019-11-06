@@ -26,7 +26,7 @@ import { deleteDatabase } from './testing-utils/db-helper';
 import { compareDetails } from './testing-utils/detail-comparator';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
-import { FirebaseInternalServices } from '../src/interfaces/external-services';
+import { FirebaseInternalServices } from '../src/interfaces/internal-services';
 
 const BAD_INPUTS: any[] = ['', [], {}, true, null, 123];
 

@@ -27,7 +27,7 @@ import {
 } from '../models/fcm-details';
 import { InternalMessage, MessageType } from '../models/worker-page-message';
 import { BaseController, BgMessageHandler } from './base-controller';
-import { FirebaseInternalServices } from '../interfaces/external-services';
+import { FirebaseInternalServices } from '../interfaces/internal-services';
 
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;

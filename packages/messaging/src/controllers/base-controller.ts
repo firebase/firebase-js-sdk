@@ -33,7 +33,7 @@ import { ErrorCode, errorFactory } from '../models/errors';
 import { SubscriptionManager } from '../models/subscription-manager';
 import { TokenDetailsModel } from '../models/token-details-model';
 import { VapidDetailsModel } from '../models/vapid-details-model';
-import { FirebaseInternalServices } from '../interfaces/external-services';
+import { FirebaseInternalServices } from '../interfaces/internal-services';
 
 export type BgMessageHandler = (
   payload: MessagePayload
@@ -44,7 +44,7 @@ export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export abstract class BaseController implements FirebaseMessaging {
   INTERNAL: FirebaseServiceInternals;
-  readonly app!: FirebaseApp;
+  readonly app: FirebaseApp;
   private readonly tokenDetailsModel: TokenDetailsModel;
   private readonly vapidDetailsModel = new VapidDetailsModel();
   private readonly subscriptionManager = new SubscriptionManager();

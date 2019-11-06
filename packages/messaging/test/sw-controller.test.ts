@@ -29,7 +29,7 @@ import { SwController } from '../src/controllers/sw-controller';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { DEFAULT_PUBLIC_VAPID_KEY } from '../src/models/fcm-details';
 import { VapidDetailsModel } from '../src/models/vapid-details-model';
-import { FirebaseInternalServices } from '../src/interfaces/external-services';
+import { FirebaseInternalServices } from '../src/interfaces/internal-services';
 
 const VALID_VAPID_KEY =
   'BJzVfWqLoALJdgV20MYy6lrj0OfhmE16PI1qLIIYx2ZZL3FoQWJJL8L0rf7rS7tqd92j_3xN3fmejKK5Eb7yMYw';

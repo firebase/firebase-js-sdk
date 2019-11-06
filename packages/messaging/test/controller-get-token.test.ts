@@ -32,7 +32,7 @@ import { VapidDetailsModel } from '../src/models/vapid-details-model';
 import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
-import { FirebaseInternalServices } from '../src/interfaces/external-services';
+import { FirebaseInternalServices } from '../src/interfaces/internal-services';
 
 const ONE_DAY = 24 * 60 * 60 * 1000;
 

@@ -26,7 +26,7 @@ import { fetchMock } from './testing-utils/mock-fetch';
 import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-firebase-services';
 import { base64ToArrayBuffer } from '../src/helpers/base64-to-array-buffer';
 import { TokenDetails } from '../src/interfaces/token-details';
-import { FirebaseInternalServices } from '../src/interfaces/external-services';
+import { FirebaseInternalServices } from '../src/interfaces/internal-services';
 
 // prettier-ignore
 const appPubKey = new Uint8Array([

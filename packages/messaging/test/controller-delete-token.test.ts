@@ -29,7 +29,7 @@ import { makeFakeFirebaseInternalServices } from './testing-utils/make-fake-fire
 import { makeFakeSubscription } from './testing-utils/make-fake-subscription';
 import { makeFakeSWReg } from './testing-utils/make-fake-sw-reg';
 import { TokenDetails } from '../src/interfaces/token-details';
-import { FirebaseInternalServices } from '../src/interfaces/external-services';
+import { FirebaseInternalServices } from '../src/interfaces/internal-services';
 
 let FAKE_SUBSCRIPTION: PushSubscription;
 let EXAMPLE_TOKEN_SAVE: TokenDetails;
