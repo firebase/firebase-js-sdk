@@ -16,9 +16,6 @@
  */
 
 import './sw-types';
-
-import { FirebaseApp } from '@firebase/app-types';
-
 import {
   MessagePayload,
   NotificationDetails
@@ -30,6 +27,7 @@ import {
 } from '../models/fcm-details';
 import { InternalMessage, MessageType } from '../models/worker-page-message';
 import { BaseController, BgMessageHandler } from './base-controller';
+import { FirebaseInternalServices } from '../interfaces/internal-services';
 
 // Let TS know that this is a service worker
 declare const self: ServiceWorkerGlobalScope;
@@ -39,8 +37,8 @@ const FCM_MSG = 'FCM_MSG';
 export class SwController extends BaseController {
   private bgMessageHandler: BgMessageHandler | null = null;
 
-  constructor(app: FirebaseApp) {
-    super(app);
+  constructor(services: FirebaseInternalServices) {
+    super(services);
 
     self.addEventListener('push', e => {
       this.onPush(e);
