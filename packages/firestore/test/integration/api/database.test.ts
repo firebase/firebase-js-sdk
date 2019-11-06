@@ -61,7 +61,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('can set and get a document with generics', () => {
+  it.only('can set and get a document with generics', () => {
     class Post {
       constructor(readonly title: string, readonly author: string) {}
       byline(): string {
@@ -85,6 +85,52 @@ apiDescribe('Database', (persistence: boolean) => {
       const post = postData.data();
       expect(post).to.not.equal(undefined);
       expect(post!.byline()).to.equal('happy, by author');
+    });
+  });
+
+  it.only('works with collection parents', () => {
+    class Post {
+      constructor(readonly title: string, readonly author: string) {}
+      byline(): string {
+        return this.title + ', by ' + this.author;
+      }
+    }
+
+    class User {
+      constructor(readonly name: string, readonly age: number) {}
+      intro(): string {
+        return "name: " + this.name + ", age: " + this.age;
+      }
+    }
+
+    return withTestDb(persistence, async db => {
+      const docRef = db
+        .collection<Post>('posts', {
+          toFirestore(post: Post): firestore.DocumentData {
+            return { title: post.title, author: post.author };
+          },
+          fromFirestore(data: firestore.DocumentData): Post {
+            return new Post(data.title, data.author);
+          }
+        })
+        .doc();
+      await docRef.set(new Post('title', 'author'));
+      const usersColl = docRef.collection("likes");
+      await usersColl.doc().set({name: 'bobby', age: 31});
+
+      const typedUserColl = db.collection<User>(usersColl.path, {
+        toFirestore(user: User): firestore.DocumentData {
+          return { name: user.name, age: user.age };
+        },
+        fromFirestore(data: firestore.DocumentData, documentId: string): User {
+          return new User(data.name, data.age);
+        }
+      });
+      
+      const userSnapshot = await typedUserColl.where('age', '>', 'bobby').get();
+
+      expect(userSnapshot.size).to.equal(1);
+      expect(userSnapshot.docs[0].data().intro()).to.equal("name: bobby, age: 31");
     });
   });
 

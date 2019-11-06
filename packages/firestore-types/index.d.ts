@@ -132,7 +132,7 @@ export interface DocumentDataConverter<T> {
   // Converts a model object of type T into plain Firestore DocumentData.
   toFirestore(modelObject: T): DocumentData;
   // Converts firestore data into a model object of type T.
-  fromFirestore(data: DocumentData): T;
+  fromFirestore(data: DocumentData, documentId: string): T;
 }
 
 /**

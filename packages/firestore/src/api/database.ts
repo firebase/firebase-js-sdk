@@ -650,7 +650,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     const pathString: string = args[0] as string;
     const converter = this.converterFromArgs<T>('Firestore.doc', 1, ...args);
     this.ensureClientConfigured();
-    return DocumentReference.forPath<T>(
+    return DocumentReference.forPath<T>( 
       ResourcePath.fromString(pathString),
       this,
       converter
@@ -1052,7 +1052,10 @@ export class DocumentReference<T = firestore.DocumentData>
     return new CollectionReference(
       this._key.path.popLast(),
       this.firestore,
-      this._converter
+      {
+        toFirestore: value => value,
+        fromFirestore: data => data as T
+      }
     );
   }
 
@@ -1078,7 +1081,10 @@ export class DocumentReference<T = firestore.DocumentData>
     return new CollectionReference(
       this._key.path.child(path),
       this.firestore,
-      this._converter
+      {
+        toFirestore: value => value,
+        fromFirestore: data => data as T
+      }
     );
   }
   // TODO(chenbrian): Add collection<R>
@@ -1421,7 +1427,7 @@ export class DocumentSnapshot<T = firestore.DocumentData>
           this._firestore._areTimestampsInSnapshotsEnabled()
         )
       );
-      return this._converter.fromFirestore(documentData);
+      return this._converter.fromFirestore(documentData, this._key.path.lastSegment());
     }
   }
 
