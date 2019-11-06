@@ -25,7 +25,7 @@ import {
 /**
  * Component for service name T, e.g. `auth`, `auth-internal`
  */
-export class Component<T extends Name> {
+export class Component<T extends Name = Name> {
   multipleInstances = false;
   /**
    * Properties to be added to the service namespace

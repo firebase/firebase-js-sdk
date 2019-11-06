@@ -22,8 +22,8 @@ import { Name } from './types';
 /**
  * ComponentContainer that provides Providers for service name T, e.g. `auth`, `auth-internal`
  */
-export class ComponentContainer<T extends Name = Name> {
-  private readonly providers = new Map<string, Provider<T>>();
+export class ComponentContainer {
+  private readonly providers = new Map<string, Provider>();
 
   constructor(private readonly name: string) {}
 
@@ -36,7 +36,7 @@ export class ComponentContainer<T extends Name = Name> {
    * for different tests.
    * if overwrite is false: throw an exception
    */
-  addComponent(component: Component<T>): void {
+  addComponent<T extends Name>(component: Component<T>): void {
     const provider = this.getProvider(component.name);
     if (provider.isComponentSet()) {
       throw new Error(
@@ -47,7 +47,7 @@ export class ComponentContainer<T extends Name = Name> {
     provider.setComponent(component);
   }
 
-  addOrOverwriteComponent(component: Component<T>): void {
+  addOrOverwriteComponent<T extends Name>(component: Component<T>): void {
     const provider = this.getProvider(component.name);
     if (provider.isComponentSet()) {
       // delete the existing provider from the container, so we can register the new component
@@ -64,7 +64,7 @@ export class ComponentContainer<T extends Name = Name> {
    * Firebase SDKs providing services should extend NameServiceMapping interface to register
    * themselves.
    */
-  getProvider(name: T): Provider<T> {
+  getProvider<T extends Name>(name: T): Provider<T> {
     if (this.providers.has(name)) {
       return this.providers.get(name) as Provider<T>;
     }
@@ -76,7 +76,7 @@ export class ComponentContainer<T extends Name = Name> {
     return provider as Provider<T>;
   }
 
-  getProviders(): Array<Provider<T>> {
+  getProviders(): Provider[] {
     return Array.from(this.providers.values());
   }
 }

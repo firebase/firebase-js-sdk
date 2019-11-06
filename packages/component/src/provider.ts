@@ -25,7 +25,8 @@ import { Component } from './component';
  * Provider for instance for service name T, e.g. 'auth', 'auth-internal'
  * U is an alias for the type of the instance
  */
-export class Provider<T extends Name, U = NameServiceMapping[T]> {
+export class Provider<T extends Name = Name, U = NameServiceMapping[T]> {
+  
   private component: Component<T> | null = null;
   private readonly instances: Map<string, U> = new Map();
   private readonly instancesDeferred: Map<string, Deferred<U>> = new Map();
@@ -67,15 +68,15 @@ export class Provider<T extends Name, U = NameServiceMapping[T]> {
   getImmediate(options: {
     identifier?: string;
     optional: true;
-  }): NameServiceMapping[T] | null;
+  }): U | null;
   getImmediate(options?: {
     identifier?: string;
     optional?: false;
-  }): NameServiceMapping[T];
+  }): U;
   getImmediate(options?: {
     identifier?: string;
     optional?: boolean;
-  }): NameServiceMapping[T] | null {
+  }): U | null {
     const { identifier, optional } = {
       identifier: DEFAULT_ENTRY_NAME,
       optional: false,
