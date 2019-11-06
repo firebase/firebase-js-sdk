@@ -27,7 +27,8 @@ import {
   GtagCommand,
   ANALYTICS_ID_FIELD,
   GA_FID_KEY,
-  ORIGIN_KEY
+  ORIGIN_KEY,
+  GTAG_URL
 } from './constants';
 import '@firebase/installations';
 
@@ -69,7 +70,7 @@ export function insertScriptTag(dataLayerName: string): void {
   const script = document.createElement('script');
   // We are not providing an analyticsId in the URL because it would trigger a `page_view`
   // without fid. We will initialize ga-id using gtag (config) command together with fid.
-  script.src = `https://www.googletagmanager.com/gtag/js?l=${dataLayerName}`;
+  script.src = `${GTAG_URL}?l=${dataLayerName}`;
   script.async = true;
   document.head.appendChild(script);
 }
@@ -82,6 +83,7 @@ export function getOrCreateDataLayer(dataLayerName: string): DataLayer {
   let dataLayer: DataLayer = [];
   if (hasDataLayer(dataLayerName)) {
     dataLayer = window[dataLayerName] as DataLayer;
+    console.log('returning existing datalayer', dataLayer.toString());
   } else {
     dataLayer = window[dataLayerName] = [];
   }
@@ -205,4 +207,17 @@ export function wrapOrCreateGtag(
     gtagCore,
     wrappedGtag: window[gtagFunctionName] as Gtag
   };
+}
+
+/**
+ * Returns first script tag in DOM matching our gtag url pattern.
+ */
+export function findGtagScriptOnPage(): HTMLScriptElement | null {
+  const scriptTags = window.document.getElementsByTagName('script');
+  for (const tag of Object.values(scriptTags)) {
+    if (tag.src && tag.src.includes(GTAG_URL)) {
+      return tag;
+    }
+  }
+  return null;
 }

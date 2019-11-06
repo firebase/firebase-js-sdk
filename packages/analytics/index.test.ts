@@ -27,10 +27,8 @@ import {
 import { getFakeApp } from './testing/get-fake-app';
 import { FirebaseApp } from '@firebase/app-types';
 import { GtagCommand, EventName } from './src/constants';
-import {
-  findGtagScriptOnPage,
-  removeGtagScript
-} from './testing/gtag-script-util';
+import { findGtagScriptOnPage } from './src/helpers';
+import { removeGtagScript } from './testing/gtag-script-util';
 
 let analyticsInstance: FirebaseAnalytics = {} as FirebaseAnalytics;
 const analyticsId = 'abcd-efgh';

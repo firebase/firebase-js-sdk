@@ -33,7 +33,6 @@ declare global {
  * Type constant for Firebase Analytics.
  */
 const ANALYTICS_TYPE = 'analytics';
-
 export function registerAnalytics(instance: _FirebaseNamespace): void {
   instance.INTERNAL.registerService(
     ANALYTICS_TYPE,

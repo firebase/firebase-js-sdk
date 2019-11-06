@@ -23,11 +23,11 @@ import {
   initializeGAId,
   hasDataLayer,
   insertScriptTag,
-  wrapOrCreateGtag
+  wrapOrCreateGtag,
+  findGtagScriptOnPage
 } from './helpers';
 import { getFakeApp } from '../testing/get-fake-app';
 import { GtagCommand } from './constants';
-import { findGtagScriptOnPage } from '../testing/gtag-script-util';
 import { Deferred } from '@firebase/util';
 
 const mockAnalyticsId = 'abcd-efgh-ijkl';

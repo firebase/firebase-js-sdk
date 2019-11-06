@@ -14,24 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-export function findGtagScriptOnPage(): HTMLScriptElement | null {
-  const scriptTags = window.document.getElementsByTagName('script');
-  for (const tag of Object.values(scriptTags)) {
-    if (tag.src) {
-      if (tag.src.includes('googletagmanager')) {
-        return tag;
-      }
-    }
-  }
-  return null;
-}
+import { GTAG_URL } from '../src/constants';
 
 export function removeGtagScript(): void {
   const scriptTags = window.document.getElementsByTagName('script');
   for (const tag of Object.values(scriptTags)) {
     if (tag.src) {
-      if (tag.src.includes('googletagmanager') && tag.parentElement) {
+      if (tag.src.includes(GTAG_URL) && tag.parentElement) {
         tag.parentElement!.removeChild(tag);
       }
     }
