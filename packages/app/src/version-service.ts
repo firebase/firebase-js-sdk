@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2018 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,6 @@
  * limitations under the License.
  */
 
-import firebase from '@firebase/app';
-import { _FirebaseNamespace } from '@firebase/app-types/private';
-
-(firebase as _FirebaseNamespace).registerVersion(
-  'fire-js-all-app',
-  firebase.SDK_VERSION
-);
-
-export default firebase;
+export class VersionService {
+  constructor(readonly library: string, readonly version: string) {}
+}

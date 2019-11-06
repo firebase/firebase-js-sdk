@@ -16,3 +16,23 @@
  */
 
 export const DEFAULT_ENTRY_NAME = '[DEFAULT]';
+
+export const PLATFORM_LOG_STRING = {
+  'app': 'fire-core',
+  'analytics': 'fire-analytics',
+  'auth': 'fire-auth',
+  'database': 'fire-rtdb',
+  'functions': 'fire-fn',
+  'messaging': 'fire-fcm',
+  'performance': 'fire-perf',
+  'remote-config': 'fire-rc',
+  'storage': 'fire-gcs',
+  'firestore': 'fire-fst',
+  'fire-js': 'fire-js', // Platform identifier for JS SDK.
+  'fire-js-all-app': 'fire-js-all-app', // firebase/app import
+  'fire-js-all': 'fire-js-all', // 'firebase' import
+  'fire-js-all-node': 'fire-js-all-node',
+  'fire-js-all-rn': 'fire-js-all-rn',
+  'fire-js-all-lite': 'fire-js-all-lite',
+  'fire-js-all-cdn': 'fire-js-all-cdn'
+} as const;

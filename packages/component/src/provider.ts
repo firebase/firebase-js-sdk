@@ -100,7 +100,6 @@ export class Provider<T extends Name> {
         }
         throw Error(`Service ${this.name} is not available`);
       }
-
       return instance;
     } catch (e) {
       if (optional) {
@@ -109,6 +108,10 @@ export class Provider<T extends Name> {
         throw e;
       }
     }
+  }
+
+  getComponent(): Component<T> | null {
+    return this.component;
   }
 
   setComponent(component: Component<T>): void {

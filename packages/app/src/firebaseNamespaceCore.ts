@@ -34,7 +34,8 @@ import { FirebaseAppLiteImpl } from './lite/firebaseAppLite';
 import { DEFAULT_ENTRY_NAME } from './constants';
 import { version } from '../../firebase/package.json';
 import { logger } from './logger';
-import { Component, ComponentType } from '@firebase/component';
+import { Component, ComponentType, Name } from '@firebase/component';
+import { VersionService } from './version-service';
 
 /**
  * Because auth can't share code with other components, we attach the utility functions
@@ -59,6 +60,7 @@ export function createFirebaseNamespaceCore(
     initializeApp,
     // @ts-ignore
     app,
+    registerVersion,
     // @ts-ignore
     apps: null,
     SDK_VERSION: version,
@@ -232,6 +234,22 @@ export function createFirebaseNamespaceCore(
       ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (namespace as any)[componentName]
       : null;
+  }
+
+  function registerVersion(library: string, version: string): void {
+    if (library.match(/\s|\//)) {
+      logger.warn(
+        `Could not register ${library}: it contains illegal characters.`
+      );
+      return;
+    }
+    registerComponent(
+      new Component(
+        `${library}-version` as Name,
+        () => new VersionService(library, version),
+        ComponentType.VERSION
+      )
+    );
   }
 
   // Map the requested service to a registered service name
