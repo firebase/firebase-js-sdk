@@ -341,7 +341,7 @@ function createTestComponent(
     container =>
       new TestService(container
         .getProvider('app')
-        .getImmediate() as FirebaseApp),
+        .getImmediate()),
     type
   );
   component.setMultipleInstances(multiInstances);
