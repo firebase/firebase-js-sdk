@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseNamespace } from '@firebase/app-types';
+import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { PublicBlob } from '../api/blob';
 import {
@@ -36,6 +36,7 @@ import { PublicFieldValue } from '../api/field_value';
 import { GeoPoint } from '../api/geo_point';
 import { Timestamp } from '../api/timestamp';
 import { shallowCopy } from '../util/obj';
+import { Component, ComponentType } from '@firebase/component';
 
 const firestoreNamespace = {
   Firestore: PublicFirestore,
@@ -60,10 +61,15 @@ const firestoreNamespace = {
  * Configures Firestore as part of the Firebase SDK by calling registerService.
  */
 export function configureForFirebase(firebase: FirebaseNamespace): void {
-  (firebase as _FirebaseNamespace).INTERNAL.registerService(
-    'firestore',
-    (app: FirebaseApp) => new Firestore(app),
-    shallowCopy(firestoreNamespace)
+  (firebase as _FirebaseNamespace).INTERNAL.registerComponent(
+    new Component(
+      'firestore',
+      container => {
+        const app = container.getProvider('app').getImmediate()!;
+        return new Firestore(app, container.getProvider('auth-internal'));
+      },
+      ComponentType.PUBLIC
+    ).setServiceProps(shallowCopy(firestoreNamespace))
   );
 }
 
