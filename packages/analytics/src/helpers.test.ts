@@ -249,27 +249,6 @@ describe('FirebaseAnalytics methods', () => {
       existingGtagStub.reset();
     });
 
-    // it('wrapped window.gtag function waits for initialization promises before sending events', async () => {
-    //   const deferred = new Deferred<void>();
-    //   wrapOrCreateGtag(
-    //     { [mockAnalyticsId]: deferred.promise },
-    //     'dataLayer',
-    //     'gtag'
-    //   );
-    //   (window['gtag'] as Gtag)(GtagCommand.EVENT, 'purchase', {
-    //     'transaction_id': 'abcd123'
-    //   });
-    //   await Promise.resolve(); // Clear async event stack but not pending FID promise.
-    //   expect(existingGtagStub).to.not.be.called;
-    //   deferred.resolve(); // Resolves gaid initialization promise.
-    //   await Promise.resolve(); // wait for the next cycle
-    //   expect(existingGtagStub).to.be.calledWith(
-    //     GtagCommand.EVENT,
-    //     'purchase',
-    //     { 'transaction_id': 'abcd123' }
-    //   );
-    // });
-
     it('new window.gtag function waits for all initialization promises before sending group events', async () => {
       const deferred = new Deferred<void>();
       const deferred2 = new Deferred<void>();
