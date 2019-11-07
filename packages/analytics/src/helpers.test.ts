@@ -51,7 +51,7 @@ describe('FirebaseAnalytics methods', () => {
   });
 
   it('getOrCreateDataLayer is able to correctly identify an existing data layer', () => {
-    const existingDataLayer = window['dataLayer'] = [];
+    const existingDataLayer = (window['dataLayer'] = []);
     expect(getOrCreateDataLayer('dataLayer')).to.equal(existingDataLayer);
   });
 
