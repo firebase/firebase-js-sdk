@@ -81,7 +81,7 @@ export class TargetIdGenerator {
     this.nextId = targetId;
   }
 
-  static forQueryCache(): TargetIdGenerator {
+  static forTargetCache(): TargetIdGenerator {
     // We seed the query cache generator to return '2' as its first ID, as there
     // is no differentiation in the protocol layer between an unset number and
     // the number '0'. If we were to sent a target with target ID '0', the

@@ -22,10 +22,7 @@ import { safeGet } from '@firebase/util';
 import { querystring } from '@firebase/util';
 import { ServerActions } from './ServerActions';
 import { RepoInfo } from './RepoInfo';
-import {
-  FirebaseAuthTokenProvider,
-  AuthTokenProvider
-} from './AuthTokenProvider';
+import { AuthTokenProvider } from './AuthTokenProvider';
 import { Query } from '../api/Query';
 
 /**

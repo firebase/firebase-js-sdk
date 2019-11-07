@@ -24,7 +24,7 @@ import { SnapshotVersion } from '../core/snapshot_version';
 import { BATCHID_UNKNOWN } from '../model/mutation_batch';
 import { decode, encode, EncodedResourcePath } from './encoded_resource_path';
 import { removeMutationBatch } from './indexeddb_mutation_queue';
-import { getHighestListenSequenceNumber } from './indexeddb_query_cache';
+import { getHighestListenSequenceNumber } from './indexeddb_target_cache';
 import { dbDocumentSize } from './indexeddb_remote_document_cache';
 import { LocalSerializer } from './local_serializer';
 import { MemoryCollectionParentIndex } from './memory_index_manager';

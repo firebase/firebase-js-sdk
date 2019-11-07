@@ -107,11 +107,11 @@ export function factory(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   extendApp: (props: { [prop: string]: any }) => void
 ): FirebaseAnalytics {
-  if (!app.options[ANALYTICS_ID_FIELD]) {
+  const analyticsId = app.options[ANALYTICS_ID_FIELD];
+  if (!analyticsId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);
   }
 
-  const analyticsId: string = app.options[ANALYTICS_ID_FIELD];
   if (initializedIdPromisesMap[analyticsId] != null) {
     throw ERROR_FACTORY.create(AnalyticsError.ALREADY_EXISTS, {
       id: analyticsId
@@ -159,7 +159,7 @@ export function factory(
     setUserProperties: (properties, options) =>
       setUserProperties(wrappedGtagFunction, analyticsId, properties, options),
     setAnalyticsCollectionEnabled: enabled =>
-      setAnalyticsCollectionEnabled(app.options[ANALYTICS_ID_FIELD], enabled)
+      setAnalyticsCollectionEnabled(analyticsId, enabled)
   };
 
   extendApp({

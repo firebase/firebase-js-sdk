@@ -17,7 +17,7 @@
 
 import { Query } from '../../../src/core/query';
 import { Code } from '../../../src/util/error';
-import { deletedDoc, doc, filter, path } from '../../util/helpers';
+import { deletedDoc, doc, filter, path, orderBy } from '../../util/helpers';
 
 import { TimerId } from '../../../src/util/async_queue';
 import { describeSpec, specTest } from './describe_spec';
@@ -120,7 +120,7 @@ describeSpec('Listens:', [], () => {
     [],
     () => {
       const query1 = Query.atPath(path('collection'));
-      const query2 = Query.atPath(path('collection')).withLimit(10);
+      const query2 = Query.atPath(path('collection')).withLimitToFirst(10);
       const docA = doc('collection/a', 1000, { a: true });
       const docB = doc('collection/b', 1000, { b: true });
 
@@ -885,6 +885,190 @@ describeSpec('Listens:', [], () => {
         .expectEvents(query, {});
     }
   );
+
+  specTest(
+    'Mirror queries from same secondary client',
+    ['multi-client'],
+    () => {
+      const limit = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'asc'))
+        .withLimitToFirst(2);
+      const limitToLast = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'desc'))
+        .withLimitToLast(2);
+      const docA = doc('collection/a', 1000, { val: 0 });
+      const docB = doc('collection/b', 1000, { val: 1 });
+      const docC = doc('collection/c', 2000, { val: 0 });
+
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .userListens(limit)
+        .userListens(limitToLast)
+        .client(0)
+        .expectListen(limit)
+        .expectListen(limitToLast)
+        .watchAcksFull(limit, 1000, docA, docB)
+        .client(1)
+        .expectEvents(limit, { added: [docA, docB] })
+        .expectEvents(limitToLast, { added: [docB, docA] })
+        .userUnlistens(limit)
+        .client(0)
+        .expectUnlisten(limit)
+        .watchSends({ affects: [limitToLast] }, docC)
+        .watchSnapshots(2000)
+        .client(1)
+        .expectEvents(limitToLast, { added: [docC], removed: [docB] })
+        .userUnlistens(limitToLast)
+        .client(0)
+        .expectUnlisten(limitToLast)
+        .expectActiveTargets();
+    }
+  );
+
+  specTest(
+    'Mirror queries from different secondary client',
+    ['multi-client'],
+    () => {
+      const limit = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'asc'))
+        .withLimitToFirst(2);
+      const limitToLast = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'desc'))
+        .withLimitToLast(2);
+      const docA = doc('collection/a', 1000, { val: 0 });
+      const docB = doc('collection/b', 1000, { val: 1 });
+      const docC = doc('collection/c', 2000, { val: 0 });
+
+      return client(0)
+        .becomeVisible()
+        .client(1)
+        .userListens(limit)
+        .client(2)
+        .userListens(limitToLast)
+        .client(0)
+        .expectListen(limit)
+        .expectListen(limitToLast)
+        .watchAcksFull(limit, 1000, docA, docB)
+        .client(1)
+        .expectEvents(limit, { added: [docA, docB] })
+        .client(2)
+        .expectEvents(limitToLast, { added: [docB, docA] })
+        .userUnlistens(limitToLast)
+        .client(0)
+        .expectUnlisten(limitToLast)
+        .watchSends({ affects: [limit] }, docC)
+        .watchSnapshots(2000)
+        .client(1)
+        .expectEvents(limit, { added: [docC], removed: [docB] });
+    }
+  );
+
+  specTest(
+    'Mirror queries from primary and secondary client',
+    ['multi-client'],
+    () => {
+      const limit = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'asc'))
+        .withLimitToFirst(2);
+      const limitToLast = Query.atPath(path('collection'))
+        .addOrderBy(orderBy('val', 'desc'))
+        .withLimitToLast(2);
+      const docA = doc('collection/a', 1000, { val: 0 });
+      const docB = doc('collection/b', 1000, { val: 1 });
+      const docC = doc('collection/c', 2000, { val: 0 });
+      const docD = doc('collection/d', 3000, { val: -1 });
+
+      return (
+        client(0)
+          .becomeVisible()
+          .userListens(limit)
+          .client(1)
+          .userListens(limitToLast)
+          .client(0)
+          .expectListen(limit)
+          .expectListen(limitToLast)
+          .watchAcksFull(limit, 1000, docA, docB)
+          .expectEvents(limit, { added: [docA, docB] })
+          .client(1)
+          .expectEvents(limitToLast, { added: [docB, docA] })
+          // Secondary tab unlistens from its query
+          .userUnlistens(limitToLast)
+          .client(0)
+          .expectUnlisten(limitToLast)
+          .watchSends({ affects: [limit] }, docC)
+          .watchSnapshots(2000)
+          .expectEvents(limit, { added: [docC], removed: [docB] })
+          .client(1)
+          // Secondary tab re-listens the query previously unlistened.
+          .userListens(limitToLast)
+          .expectEvents(limitToLast, { added: [docC, docA] })
+          .client(0)
+          .expectListen(limitToLast)
+          // Primary tab unlistens it's query.
+          .userUnlistens(limit)
+          .expectUnlisten(limit)
+          .watchSends({ affects: [limitToLast] }, docD)
+          .watchSnapshots(3000)
+          .client(1)
+          .expectEvents(limitToLast, { added: [docD], removed: [docC] })
+          // Secondary tab unlisten it's query again, both mirror queries
+          // are unlistened by now.
+          .userUnlistens(limitToLast)
+          .client(0)
+          // TODO(b/143693491) If we use `expectListen` here, the test would
+          // also pass, which is wrong. The reason is `TestRunner` only check
+          // the expected Queries against the actual target. In the case of
+          // mirror queries, both queries will be able to find an actual target.
+          // We need to change `TestRunner` to track the actual client queries
+          // in addition to the targets to fix this.
+          .expectUnlisten(limitToLast)
+          .expectActiveTargets()
+      );
+    }
+  );
+
+  specTest('Can listen/unlisten to mirror queries.', [], () => {
+    const limit = Query.atPath(path('collection'))
+      .addOrderBy(orderBy('val', 'asc'))
+      .withLimitToFirst(2);
+    const limitToLast = Query.atPath(path('collection'))
+      .addOrderBy(orderBy('val', 'desc'))
+      .withLimitToLast(2);
+    const docA = doc('collection/a', 1000, { val: 0 });
+    const docB = doc('collection/b', 1000, { val: 1 });
+    const docC = doc('collection/c', 2000, { val: 0 });
+
+    return (
+      spec()
+        .userListens(limit)
+        .expectListen(limit)
+        .userListens(limitToLast)
+        .expectListen(limitToLast)
+        .watchAcksFull(limit, 1000, docA, docB)
+        .expectEvents(limit, { added: [docA, docB] })
+        .expectEvents(limitToLast, { added: [docB, docA] })
+        .userUnlistens(limitToLast)
+        .expectUnlisten(limitToLast)
+        .watchSends({ affects: [limit] }, docC)
+        .watchCurrents(limit, 'resume-token-2000')
+        .watchSnapshots(2000)
+        .expectEvents(limit, { added: [docC], removed: [docB] })
+        .userListens(limitToLast)
+        .expectListen(limitToLast)
+        // Note the result is not from cache because the target is kept
+        // alive since `limit` is still being listened to.
+        .expectEvents(limitToLast, { added: [docC, docA] })
+        // Backend fails the query.
+        .watchRemoves(
+          limit,
+          new RpcError(Code.RESOURCE_EXHAUSTED, 'Resource exhausted')
+        )
+        .expectEvents(limit, { errorCode: Code.RESOURCE_EXHAUSTED })
+        .expectEvents(limitToLast, { errorCode: Code.RESOURCE_EXHAUSTED })
+        .expectActiveTargets()
+    );
+  });
 
   specTest(
     "Secondary client uses primary client's online state",

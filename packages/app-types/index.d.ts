@@ -23,7 +23,7 @@ export type FirebaseOptions = {
   storageBucket?: string;
   messagingSenderId?: string;
   appId?: string;
-  [name: string]: any;
+  measurementId?: string;
 };
 
 export interface FirebaseAppConfig {

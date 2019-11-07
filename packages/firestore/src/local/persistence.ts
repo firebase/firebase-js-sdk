@@ -22,11 +22,11 @@ import { DocumentKey } from '../model/document_key';
 import { IndexManager } from './index_manager';
 import { MutationQueue } from './mutation_queue';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
-import { QueryData } from './query_data';
+import { TargetCache } from './target_cache';
 import { ReferenceSet } from './reference_set';
 import { RemoteDocumentCache } from './remote_document_cache';
 import { ClientId } from './shared_client_state';
+import { TargetData } from './target_data';
 
 /**
  * A base class representing a persistence transaction, encapsulating both the
@@ -109,7 +109,7 @@ export interface ReferenceDelegate {
    */
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void>;
 
   /** Notify the delegate that a document is no longer being mutated by the user. */
@@ -225,13 +225,13 @@ export interface Persistence {
   getMutationQueue(user: User): MutationQueue;
 
   /**
-   * Returns a QueryCache representing the persisted cache of queries.
+   * Returns a TargetCache representing the persisted cache of targets.
    *
    * Note: The implementation is free to return the same instance every time
    * this is called. In particular, the memory-backed implementation does this
    * to emulate the persisted implementation to the extent possible.
    */
-  getQueryCache(): QueryCache;
+  getTargetCache(): TargetCache;
 
   /**
    * Returns a RemoteDocumentCache representing the persisted cache of remote

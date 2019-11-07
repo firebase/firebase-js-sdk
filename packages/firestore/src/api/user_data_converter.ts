@@ -270,8 +270,11 @@ class ParseContext {
   }
 
   private validatePathSegment(segment: string): void {
+    if (segment.length === 0) {
+      throw this.createError('Document fields must not be empty');
+    }
     if (isWrite(this.dataSource) && RESERVED_FIELD_REGEX.test(segment)) {
-      throw this.createError('Document fields cannot begin and end with __');
+      throw this.createError('Document fields cannot begin and end with "__"');
     }
   }
 }

@@ -26,7 +26,7 @@ import { requestMaker } from './requestmaker';
 import { RequestMap } from './requestmap';
 import * as type from './type';
 import { XhrIoPool } from './xhriopool';
-import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import {
   _FirebaseApp,
   FirebaseAuthTokenData
@@ -74,9 +74,7 @@ export class AuthWrapper {
     this.requestMap_ = new RequestMap();
   }
 
-  private static extractBucket_(config: {
-    [prop: string]: string;
-  }): string | null {
+  private static extractBucket_(config: FirebaseOptions): string | null {
     const bucketString = config[constants.CONFIG_STORAGE_BUCKET_KEY] || null;
     if (bucketString == null) {
       return null;

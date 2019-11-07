@@ -29,8 +29,6 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  arrayContainsAnyOp,
-  inOp,
   withTestCollection,
   withTestDb,
   withTestDbs,
@@ -685,7 +683,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('inequality and IN on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>=', 32).where('y', inOp, [1, 2])
+          coll.where('x', '>=', 32).where('y', 'in', [1, 2])
         ).not.to.throw();
       });
     });
@@ -693,7 +691,7 @@ apiDescribe('Database', (persistence: boolean) => {
     it('inequality and array-contains-any on different fields works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.where('x', '>=', 32).where('y', arrayContainsAnyOp, [1, 2])
+          coll.where('x', '>=', 32).where('y', 'array-contains-any', [1, 2])
         ).not.to.throw();
       });
     });
@@ -738,14 +736,14 @@ apiDescribe('Database', (persistence: boolean) => {
 
     it('IN different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
-        expect(() => coll.orderBy('x').where('y', inOp, [1, 2])).not.to.throw();
+        expect(() => coll.orderBy('x').where('y', 'in', [1, 2])).not.to.throw();
       });
     });
 
     it('array-contains-any different than orderBy works', () => {
       return withTestCollection(persistence, {}, async coll => {
         expect(() =>
-          coll.orderBy('x').where('y', arrayContainsAnyOp, [1, 2])
+          coll.orderBy('x').where('y', 'array-contains-any', [1, 2])
         ).not.to.throw();
       });
     });
