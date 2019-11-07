@@ -36,7 +36,7 @@ export class Provider<T extends Name> {
   constructor(
     private readonly name: T,
     private readonly container: ComponentContainer
-  ) { }
+  ) {}
 
   /**
    * @param identifier A provider can provide mulitple instances of a service
@@ -102,7 +102,7 @@ export class Provider<T extends Name> {
       }
       return instance;
     } catch (e) {
-      if(optional) {
+      if (optional) {
         return null;
       } else {
         throw e;
@@ -127,7 +127,7 @@ export class Provider<T extends Name> {
       try {
         this.getOrInitializeService(DEFAULT_ENTRY_NAME);
       } catch (e) {
-        // when the instance factory for an eager Component throws an exception during the eager 
+        // when the instance factory for an eager Component throws an exception during the eager
         // initialization, it should not cause an fatal error.
         // TODO: Investigate if we need to make it configurable, because some component may want to cause
         // a fatal error in this case?
@@ -153,7 +153,6 @@ export class Provider<T extends Name> {
         // when the instance factory throws an exception, it should not cause
         // an fatal error. We just leave the promise unresolved.
       }
-
     }
   }
 
