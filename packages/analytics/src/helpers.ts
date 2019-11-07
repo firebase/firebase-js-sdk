@@ -80,7 +80,7 @@ export function getOrCreateDataLayer(dataLayerName: string): DataLayer {
   if (Array.isArray(window[dataLayerName])) {
     dataLayer = window[dataLayerName] as DataLayer;
   } else {
-    dataLayer = window[dataLayerName] = [];
+    window[dataLayerName] = dataLayer;
   }
   return dataLayer;
 }
