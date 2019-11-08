@@ -474,8 +474,10 @@ export class SyncTree {
   }
 
   /**
-   * Returns a complete cache, if we have one, of the data at a particular path. The location must have a listener above
-   * it, but as this is only used by transaction code, that should always be the case anyways.
+   * Returns a complete cache, if we have one, of the data at a particular path. If the location does not have a
+   * listener above it, we will get a false "null". This shouldn't be a problem because transactions will always
+   * have a listener above, and atomic operations would correctly show a jitter of <increment value> ->
+   *     <incremented total> as the write is applied locally and then acknowledged at the server.
    *
    * Note: this method will *include* hidden writes from transaction with applyLocally set to false.
    *
@@ -485,7 +487,7 @@ export class SyncTree {
   calcCompleteEventCache(
     path: Path,
     writeIdsToExclude?: number[]
-  ): Node | null {
+  ): Node {
     const includeHiddenSets = true;
     const writeTree = this.pendingWriteTree_;
     const serverCache = this.syncPointTree_.findOnPath(path, function(
