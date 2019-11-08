@@ -134,7 +134,11 @@ enum UserDataSource {
    * Indicates the source is a where clause, cursor bound, arrayUnion()
    * element, etc. Of note, isWrite(source) will return false.
    */
-  Argument
+  Argument,
+  /**
+   * Indicates that the source is an Argument that allows for nested arrays.
+   */
+  ArrayArgument
 }
 
 function isWrite(dataSource: UserDataSource): boolean {
@@ -144,6 +148,7 @@ function isWrite(dataSource: UserDataSource): boolean {
     case UserDataSource.Update:
       return true;
     case UserDataSource.Argument:
+    case UserDataSource.ArrayArgument:
       return false;
     default:
       throw fail(`Unexpected case for UserDataSource: ${dataSource}`);
@@ -478,10 +483,16 @@ export class UserDataConverter {
   /**
    * Parse a "query value" (e.g. value in a where filter or a value in a cursor
    * bound).
+   *
+   * @param allowArrays Whether the dataContext should allow nested arrays.
    */
-  parseQueryValue(methodName: string, input: unknown): FieldValue {
+  parseQueryValue(
+    methodName: string,
+    input: unknown,
+    allowArrays = false
+  ): FieldValue {
     const context = new ParseContext(
-      UserDataSource.Argument,
+      allowArrays ? UserDataSource.ArrayArgument : UserDataSource.Argument,
       methodName,
       FieldPath.EMPTY_PATH
     );
@@ -538,7 +549,10 @@ export class UserDataConverter {
         // message.
         // Nested arrays are allowed when making IN queries, so we make the
         // exception here.
-        if (context.arrayElement && context.methodName !== 'Query.where') {
+        if (
+          context.arrayElement &&
+          context.dataSource !== UserDataSource.ArrayArgument
+        ) {
           throw context.createError('Nested arrays are not supported');
         }
         return this.parseArray(input as unknown[], context);
