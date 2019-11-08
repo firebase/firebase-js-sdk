@@ -536,7 +536,9 @@ export class UserDataConverter {
       if (input instanceof Array) {
         // TODO(b/34871131): Include the path containing the array in the error
         // message.
-        if (context.arrayElement) {
+        // Nested arrays are allowed when making IN queries, so we make the
+        // exception here.
+        if (context.arrayElement && context.methodName !== 'Query.where') {
           throw context.createError('Nested arrays are not supported');
         }
         return this.parseArray(input as unknown[], context);
