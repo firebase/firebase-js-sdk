@@ -21,6 +21,8 @@ export const ANALYTICS_ID_FIELD = 'measurementId';
 export const GA_FID_KEY = 'firebase_id';
 export const ORIGIN_KEY = 'origin';
 
+export const GTAG_URL = 'https://www.googletagmanager.com/gtag/js';
+
 export enum GtagCommand {
   EVENT = 'event',
   SET = 'set',
