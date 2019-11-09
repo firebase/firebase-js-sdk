@@ -136,7 +136,8 @@ enum UserDataSource {
    */
   Argument,
   /**
-   * Indicates that the source is an Argument that allows for nested arrays.
+   * Indicates that the source is an Argument that may directly contain nested
+   * arrays (e.g. the operand of an `in` query).
    */
   ArrayArgument
 }
@@ -484,7 +485,8 @@ export class UserDataConverter {
    * Parse a "query value" (e.g. value in a where filter or a value in a cursor
    * bound).
    *
-   * @param allowArrays Whether the dataContext should allow nested arrays.
+   * @param allowArrays Whether the query value is an array that may directly
+   * contain additional arrays (e.g. the operand of an `in` query).
    */
   parseQueryValue(
     methodName: string,
@@ -547,8 +549,10 @@ export class UserDataConverter {
       if (input instanceof Array) {
         // TODO(b/34871131): Include the path containing the array in the error
         // message.
-        // Nested arrays are allowed when making IN queries, so we make the
-        // exception here.
+        // In the case of IN queries, the parsed data is an array (representing
+        // the set of values to be included for the IN query) that may directly
+        // contain additional arrays (each representing an individual field
+        // value), so we disable this validation.
         if (
           context.arrayElement &&
           context.dataSource !== UserDataSource.ArrayArgument
