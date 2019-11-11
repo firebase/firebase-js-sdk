@@ -22,5 +22,6 @@ export {
   ComponentType,
   InstanceFactory,
   InstantiationMode,
-  NameServiceMapping
+  NameServiceMapping,
+  Name
 } from './src/types';

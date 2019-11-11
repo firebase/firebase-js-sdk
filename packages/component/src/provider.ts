@@ -23,12 +23,12 @@ import { Component } from './component';
 
 /**
  * Provider for instance for service name T, e.g. 'auth', 'auth-internal'
- * U is an alias for the type of the instance
+ * NameServiceMapping[T] is an alias for the type of the instance
  */
-export class Provider<T extends Name = Name, U = NameServiceMapping[T]> {
+export class Provider<T extends Name> {
   private component: Component<T> | null = null;
-  private readonly instances: Map<string, U> = new Map();
-  private readonly instancesDeferred: Map<string, Deferred<U>> = new Map();
+  private readonly instances: Map<string, NameServiceMapping[T]> = new Map();
+  private readonly instancesDeferred: Map<string, Deferred<NameServiceMapping[T]>> = new Map();
 
   constructor(
     private readonly name: T,
@@ -39,12 +39,12 @@ export class Provider<T extends Name = Name, U = NameServiceMapping[T]> {
    * @param identifier A provider can provide mulitple instances of a service
    * if this.component.multipleInstances is true.
    */
-  get(identifier: string = DEFAULT_ENTRY_NAME): Promise<U> {
+  get(identifier: string = DEFAULT_ENTRY_NAME): Promise<NameServiceMapping[T]> {
     // if multipleInstances is not supported, use the default name
     const normalizedIdentifier = this.normalizeInstanceIdentifier(identifier);
 
     if (!this.instancesDeferred.has(normalizedIdentifier)) {
-      const deferred = new Deferred<U>();
+      const deferred = new Deferred<NameServiceMapping[T]>();
       this.instancesDeferred.set(normalizedIdentifier, deferred);
       // If the service instance is available, resolve the promise with it immediately
       const instance = this.getOrInitializeService(normalizedIdentifier);
@@ -64,12 +64,12 @@ export class Provider<T extends Name = Name, U = NameServiceMapping[T]> {
    * the service is not immediately available.
    * If optional is true, the method returns null if the service is not immediately available.
    */
-  getImmediate(options: { identifier?: string; optional: true }): U | null;
-  getImmediate(options?: { identifier?: string; optional?: false }): U;
+  getImmediate(options: { identifier?: string; optional: true }): NameServiceMapping[T] | null;
+  getImmediate(options?: { identifier?: string; optional?: false }): NameServiceMapping[T];
   getImmediate(options?: {
     identifier?: string;
     optional?: boolean;
-  }): U | null {
+  }): NameServiceMapping[T] | null {
     const { identifier, optional } = {
       identifier: DEFAULT_ENTRY_NAME,
       optional: false,
@@ -147,13 +147,13 @@ export class Provider<T extends Name = Name, U = NameServiceMapping[T]> {
     return this.component != null;
   }
 
-  private getOrInitializeService(identifier: string): U | null {
+  private getOrInitializeService(identifier: string): NameServiceMapping[T] | null {
     let instance = this.instances.get(identifier);
     if (!instance && this.component) {
       instance = this.component.instanceFactory(
         this.container,
         normalizeIdentifierForFactory(identifier)
-      ) as U;
+      ) as NameServiceMapping[T];
       this.instances.set(identifier, instance);
     }
 

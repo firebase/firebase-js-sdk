@@ -60,7 +60,7 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
             .getImmediate();
           return {
             logEvent: analytics.logEvent
-          } as FirebaseAnalyticsInternal;
+          };
         } catch (e) {
           throw ERROR_FACTORY.create(
             AnalyticsError.INTEROP_COMPONENT_REG_FAILED,
@@ -86,11 +86,5 @@ declare module '@firebase/app-types' {
   }
   interface FirebaseApp {
     analytics(): FirebaseAnalytics;
-  }
-}
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'analytics': FirebaseAnalytics;
   }
 }

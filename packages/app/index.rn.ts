@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { FirebaseNamespace, FirebaseApp } from '@firebase/app-types';
+import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { firebase as _firebase } from './src/firebaseNamespace';
 /**
@@ -38,9 +38,3 @@ export const firebase = _firebase as FirebaseNamespace;
 
 // eslint-disable-next-line import/no-default-export
 export default firebase;
-
-declare module '@firebase/component' {
-  interface NameServiceMapping {
-    'app': FirebaseApp;
-  }
-}

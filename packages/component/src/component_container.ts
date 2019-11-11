@@ -23,7 +23,7 @@ import { Name } from './types';
  * ComponentContainer that provides Providers for service name T, e.g. `auth`, `auth-internal`
  */
 export class ComponentContainer {
-  private readonly providers = new Map<string, Provider>();
+  private readonly providers = new Map<string, Provider<Name>>();
 
   constructor(private readonly name: string) {}
 
@@ -76,7 +76,7 @@ export class ComponentContainer {
     return provider as Provider<T>;
   }
 
-  getProviders(): Provider[] {
+  getProviders(): Array<Provider<Name>> {
     return Array.from(this.providers.values());
   }
 }

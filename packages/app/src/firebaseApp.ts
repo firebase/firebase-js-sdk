@@ -29,7 +29,8 @@ import { deepCopy } from '@firebase/util';
 import {
   ComponentContainer,
   Component,
-  ComponentType
+  ComponentType,
+  Name
 } from '@firebase/component';
 import { AppError, ERROR_FACTORY } from './errors';
 import { DEFAULT_ENTRY_NAME } from './constants';
@@ -125,8 +126,7 @@ export class FirebaseAppImpl implements FirebaseApp {
     // getImmediate will always succeed because _getService is only called for registered components.
     return (
       (this.container
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .getProvider(name as any)
+        .getProvider(name as Name)
         .getImmediate({
           identifier: instanceIdentifier
         }) as unknown) as FirebaseService
