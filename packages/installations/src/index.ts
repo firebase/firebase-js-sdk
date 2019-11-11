@@ -21,7 +21,7 @@ import { FirebaseInstallations } from '@firebase/installations-types';
 
 import { deleteInstallation, getId, getToken } from './functions';
 import { extractAppConfig } from './helpers/extract-app-config';
-import { Provider, Component, ComponentType } from '@firebase/component';
+import { Component, ComponentType } from '@firebase/component';
 
 export function registerInstallations(instance: _FirebaseNamespace): void {
   const installationsName = 'installations';
@@ -57,11 +57,5 @@ declare module '@firebase/app-types' {
   }
   interface FirebaseApp {
     installations(): FirebaseInstallations;
-  }
-}
-
-declare module '@firebase/component' {
-  interface ComponentContainer {
-    getProvider(name: 'installations'): Provider<FirebaseInstallations>;
   }
 }
