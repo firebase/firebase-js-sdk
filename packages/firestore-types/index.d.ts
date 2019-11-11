@@ -1559,3 +1559,9 @@ export interface FirestoreError {
   name: string;
   stack?: string;
 }
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'firestore': FirebaseFirestore;
+  }
+}
