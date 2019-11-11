@@ -59,7 +59,8 @@ let numDatabases = 0;
     () => ({
       getToken: () => Promise.resolve(null),
       addAuthTokenListener: () => {},
-      removeAuthTokenListener: () => {}
+      removeAuthTokenListener: () => {},
+      getUid: () => null
     }),
     ComponentType.PRIVATE
   )
