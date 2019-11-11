@@ -159,7 +159,7 @@ fireauth.AuthEventManager.instantiateOAuthSignInHandler =
   // to instantiate this synchronously without waiting for checkIfCordova to
   // resolve. If it is determined that the Cordova was falsely detected, it will
   // be caught via actionable public popup and redirect methods.
-  return fireauth.util.isAndroidOrIosFileEnvironment() ?
+  return fireauth.util.isAndroidOrIosCordovaScheme() ?
       new fireauth.CordovaHandler(
           authDomain, apiKey, appName, version, undefined, undefined,
           opt_endpointId) :
