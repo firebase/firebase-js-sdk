@@ -20,7 +20,7 @@ import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { factory, settings, resetGlobalVars } from './src/factory';
 import { EventName } from './src/constants';
-import { Component, ComponentType } from '@firebase/component';
+import { Component, ComponentType, ComponentContainer } from '@firebase/component';
 import { ERROR_FACTORY, AnalyticsError } from './src/errors';
 
 declare global {
@@ -53,24 +53,26 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
   instance.INTERNAL.registerComponent(
     new Component(
       'analytics-internal',
-      container => {
-        try {
-          const analytics = container
-            .getProvider(ANALYTICS_TYPE)
-            .getImmediate();
-          return {
-            logEvent: analytics.logEvent
-          };
-        } catch (e) {
-          throw ERROR_FACTORY.create(
-            AnalyticsError.INTEROP_COMPONENT_REG_FAILED,
-            { reason: e }
-          );
-        }
-      },
+      internalFactory,
       ComponentType.PRIVATE
     )
   );
+
+  function internalFactory(container: ComponentContainer): FirebaseAnalyticsInternal {
+    try {
+      const analytics = container
+        .getProvider(ANALYTICS_TYPE)
+        .getImmediate();
+      return {
+        logEvent: analytics.logEvent
+      };
+    } catch (e) {
+      throw ERROR_FACTORY.create(
+        AnalyticsError.INTEROP_COMPONENT_REG_FAILED,
+        { reason: e }
+      );
+    }
+  }
 }
 
 export { factory, settings, resetGlobalVars };
