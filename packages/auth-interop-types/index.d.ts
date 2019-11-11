@@ -26,10 +26,10 @@ export interface FirebaseAuthInternal {
   removeAuthTokenListener(fn: (token: string | null) => void): void;
 }
 
-declare module '@firebase/component' {
-  interface ComponentContainer {
-    getProvider(name: 'auth-internal'): Provider<FirebaseAuthInternal>;
-  }
+export type FirebaseAuthInternalName = 'auth-internal';
 
-  interface Provider<T> {}
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'auth-internal': FirebaseAuthInternal;
+  }
 }

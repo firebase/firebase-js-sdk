@@ -386,3 +386,9 @@ declare module '@firebase/app-types' {
     auth?(): FirebaseAuth;
   }
 }
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'auth': FirebaseAuth;
+  }
+}
