@@ -31,7 +31,8 @@ import { DEFAULT_ENTRY_NAME } from '../constants';
 import {
   ComponentContainer,
   Component,
-  ComponentType
+  ComponentType,
+  Name
 } from '@firebase/component';
 
 interface ServicesCache {
@@ -134,12 +135,11 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
 
     // getImmediate will always succeed because _getService is only called for registered components.
     return (
-      (this.container
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .getProvider(name as any)
+      this.container
+        .getProvider(name as Name)
         .getImmediate({
           identifier: instanceIdentifier
-        }) as unknown) as FirebaseService
+        }) as unknown as FirebaseService
     );
   }
 
