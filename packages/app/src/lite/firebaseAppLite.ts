@@ -134,13 +134,9 @@ export class FirebaseAppLiteImpl implements FirebaseApp {
     this.checkDestroyed_();
 
     // getImmediate will always succeed because _getService is only called for registered components.
-    return (
-      this.container
-        .getProvider(name as Name)
-        .getImmediate({
-          identifier: instanceIdentifier
-        }) as unknown as FirebaseService
-    );
+    return (this.container.getProvider(name as Name).getImmediate({
+      identifier: instanceIdentifier
+    }) as unknown) as FirebaseService;
   }
 
   /**
