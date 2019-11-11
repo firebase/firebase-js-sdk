@@ -28,7 +28,10 @@ import { Component } from './component';
 export class Provider<T extends Name> {
   private component: Component<T> | null = null;
   private readonly instances: Map<string, NameServiceMapping[T]> = new Map();
-  private readonly instancesDeferred: Map<string, Deferred<NameServiceMapping[T]>> = new Map();
+  private readonly instancesDeferred: Map<
+    string,
+    Deferred<NameServiceMapping[T]>
+  > = new Map();
 
   constructor(
     private readonly name: T,
@@ -64,8 +67,14 @@ export class Provider<T extends Name> {
    * the service is not immediately available.
    * If optional is true, the method returns null if the service is not immediately available.
    */
-  getImmediate(options: { identifier?: string; optional: true }): NameServiceMapping[T] | null;
-  getImmediate(options?: { identifier?: string; optional?: false }): NameServiceMapping[T];
+  getImmediate(options: {
+    identifier?: string;
+    optional: true;
+  }): NameServiceMapping[T] | null;
+  getImmediate(options?: {
+    identifier?: string;
+    optional?: false;
+  }): NameServiceMapping[T];
   getImmediate(options?: {
     identifier?: string;
     optional?: boolean;
@@ -147,7 +156,9 @@ export class Provider<T extends Name> {
     return this.component != null;
   }
 
-  private getOrInitializeService(identifier: string): NameServiceMapping[T] | null {
+  private getOrInitializeService(
+    identifier: string
+  ): NameServiceMapping[T] | null {
     let instance = this.instances.get(identifier);
     if (!instance && this.component) {
       instance = this.component.instanceFactory(

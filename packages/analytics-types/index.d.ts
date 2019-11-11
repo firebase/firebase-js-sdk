@@ -202,7 +202,6 @@ export interface Promotion {
   name?: string;
 }
 
-
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'analytics': FirebaseAnalytics;
