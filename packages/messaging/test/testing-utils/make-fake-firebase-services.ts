@@ -17,7 +17,7 @@
 
 import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
-import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
+import { FirebaseAnalyticsInternalName } from '@firebase/analytics-interop-types';
 import { Provider, ComponentContainer } from '@firebase/component';
 import { FirebaseInternalServices } from '../../src/interfaces/internal-services';
 
@@ -61,10 +61,10 @@ export function makeFakeInstallations(): FirebaseInstallations {
 }
 
 export function makeFakeAnalyticsProvider(): Provider<
-  FirebaseAnalyticsInternal
+  FirebaseAnalyticsInternalName
 > {
-  return new Provider<FirebaseAnalyticsInternal>(
-    'analytics-interop',
+  return new Provider<FirebaseAnalyticsInternalName>(
+    'analytics-internal',
     new ComponentContainer('test')
   );
 }
