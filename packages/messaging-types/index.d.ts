@@ -50,10 +50,10 @@ export class FirebaseMessaging {
   usePublicVapidKey(b64PublicKey: string): void;
 }
 
-declare module '@firebase/component' {
-  interface ComponentContainer {
-    getProvider(name: 'messaging'): Provider<FirebaseMessaging>;
-  }
+export type FirebaseMessagingName = 'messaging';
 
-  interface Provider {}
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'messaging': FirebaseMessaging
+  }
 }

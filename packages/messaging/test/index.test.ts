@@ -19,10 +19,7 @@ import { expect } from 'chai';
 import { stub, restore, SinonStub } from 'sinon';
 
 import { FirebaseApp } from '@firebase/app-types';
-import {
-  _FirebaseNamespace,
-  FirebaseService
-} from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 
 import { registerMessaging } from '../index';
 import { ErrorCode } from '../src/models/errors';
@@ -39,6 +36,7 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
+import { FirebaseMessagingName } from '@firebase/messaging-types';
 
 describe('Firebase Messaging > registerMessaging', () => {
   let registerComponent: SinonStub;
@@ -62,7 +60,7 @@ describe('Firebase Messaging > registerMessaging', () => {
   });
 
   describe('factoryMethod', () => {
-    let factoryMethod: InstanceFactory<FirebaseService>;
+    let factoryMethod: InstanceFactory<FirebaseMessagingName>;
     let fakeApp: FirebaseApp;
     let fakeContainer: ComponentContainer;
 
