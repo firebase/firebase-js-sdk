@@ -47,7 +47,7 @@ export const FIRESTORE = new Firestore(
     projectId: 'projectid',
     database: 'database'
   },
-  new Provider('auth-interop', new ComponentContainer('default'))
+  new Provider('auth-internal', new ComponentContainer('default'))
 );
 
 export function firestore(): Firestore {

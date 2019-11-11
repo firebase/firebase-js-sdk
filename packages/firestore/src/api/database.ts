@@ -105,7 +105,7 @@ import {
   fieldPathFromArgument,
   UserDataConverter
 } from './user_data_converter';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
 // settings() defaults:
@@ -312,7 +312,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   constructor(
     databaseIdOrApp: FirestoreDatabase | FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternal>
+    authProvider: Provider<FirebaseAuthInternalName>
   ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
