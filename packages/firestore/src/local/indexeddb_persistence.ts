@@ -386,7 +386,9 @@ export class IndexedDbPersistence implements Persistence {
    * primary state listener if the client either newly obtained or released its
    * primary lease.
    */
-  private updateClientMetadataAndTryBecomePrimary(force = false): Promise<void> {
+  private updateClientMetadataAndTryBecomePrimary(
+    force = false
+  ): Promise<void> {
     return this.simpleDb
       .runTransaction('readwrite-idempotent', ALL_STORES, txn => {
         const metadataStore = clientMetadataStore(txn);
