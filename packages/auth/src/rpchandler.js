@@ -2556,7 +2556,7 @@ fireauth.RpcHandler.getErrorCodeDetails = function(serverMessage) {
   // The Auth error message should be [error detail here].
   // No space should be contained in the error code, otherwise no detailed error
   // message returned.
-  var matches = serverMessage.match(/^[^\s]+\s*:\s*(.*)$/);
+  var matches = serverMessage.match(/^[^\s]+\s*:\s*([\s\S]*)$/);
   if (matches && matches.length > 1) {
     return matches[1];
   }
