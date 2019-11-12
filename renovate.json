@@ -7,13 +7,11 @@
   },
   "packageRules": [
     {
-      "packagePatterns": [
-        "^((?!^typescript$).)*$"
-      ],
       "minor": {
         "groupName": "all non-major dependencies",
         "groupSlug": "all-minor-patch"
-      }
+      },
+      "excludePackageNames": ["typescript"]
     }
   ],
   "ignoreDeps": [

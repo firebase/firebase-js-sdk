@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
 import { TargetIdGenerator } from '../core/target_id_generator';
 import { ListenSequenceNumber, TargetId } from '../core/types';
@@ -28,15 +27,16 @@ import { ActiveTargets } from './lru_garbage_collector';
 import { MemoryPersistence } from './memory_persistence';
 import { PersistenceTransaction } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryCache } from './query_cache';
-import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
+import { TargetCache } from './target_cache';
+import { TargetData } from './target_data';
+import { Target } from '../core/target';
 
-export class MemoryQueryCache implements QueryCache {
+export class MemoryTargetCache implements TargetCache {
   /**
-   * Maps a query to the data about that query
+   * Maps a target to the data about that target
    */
-  private queries = new ObjectMap<Query, QueryData>(q => q.canonicalId());
+  private targets = new ObjectMap<Target, TargetData>(t => t.canonicalId());
 
   /** The last received snapshot version. */
   private lastRemoteSnapshotVersion = SnapshotVersion.MIN;
@@ -52,19 +52,15 @@ export class MemoryQueryCache implements QueryCache {
 
   private targetCount = 0;
 
-  private targetIdGenerator = TargetIdGenerator.forQueryCache();
+  private targetIdGenerator = TargetIdGenerator.forTargetCache();
 
   constructor(private readonly persistence: MemoryPersistence) {}
 
-  getTargetCount(txn: PersistenceTransaction): PersistencePromise<number> {
-    return PersistencePromise.resolve(this.targetCount);
-  }
-
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void> {
-    this.queries.forEach((_, queryData) => f(queryData));
+    this.targets.forEach((_, targetData) => f(targetData));
     return PersistencePromise.resolve();
   }
 
@@ -102,50 +98,53 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.resolve();
   }
 
-  private saveQueryData(queryData: QueryData): void {
-    this.queries.set(queryData.query, queryData);
-    const targetId = queryData.targetId;
+  private saveTargetData(targetData: TargetData): void {
+    this.targets.set(targetData.target, targetData);
+    const targetId = targetData.targetId;
     if (targetId > this.highestTargetId) {
       this.highestTargetId = targetId;
     }
-    if (queryData.sequenceNumber > this.highestSequenceNumber) {
-      this.highestSequenceNumber = queryData.sequenceNumber;
+    if (targetData.sequenceNumber > this.highestSequenceNumber) {
+      this.highestSequenceNumber = targetData.sequenceNumber;
     }
   }
 
-  addQueryData(
+  addTargetData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
     assert(
-      !this.queries.has(queryData.query),
-      'Adding a query that already exists'
+      !this.targets.has(targetData.target),
+      'Adding a target that already exists'
     );
-    this.saveQueryData(queryData);
+    this.saveTargetData(targetData);
     this.targetCount += 1;
     return PersistencePromise.resolve();
   }
 
-  updateQueryData(
+  updateTargetData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    assert(this.queries.has(queryData.query), 'Updating a non-existent query');
-    this.saveQueryData(queryData);
+    assert(
+      this.targets.has(targetData.target),
+      'Updating a non-existent target'
+    );
+    this.saveTargetData(targetData);
     return PersistencePromise.resolve();
   }
 
-  removeQueryData(
+  removeTargetData(
     transaction: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
     assert(this.targetCount > 0, 'Removing a target from an empty cache');
     assert(
-      this.queries.has(queryData.query),
+      this.targets.has(targetData.target),
       'Removing a non-existent target from the cache'
     );
-    this.queries.delete(queryData.query);
-    this.references.removeReferencesForId(queryData.targetId);
+    this.targets.delete(targetData.target);
+    this.references.removeReferencesForId(targetData.targetId);
     this.targetCount -= 1;
     return PersistencePromise.resolve();
   }
@@ -157,14 +156,14 @@ export class MemoryQueryCache implements QueryCache {
   ): PersistencePromise<number> {
     let count = 0;
     const removals: Array<PersistencePromise<void>> = [];
-    this.queries.forEach((key, queryData) => {
+    this.targets.forEach((key, targetData) => {
       if (
-        queryData.sequenceNumber <= upperBound &&
-        activeTargetIds.get(queryData.targetId) === null
+        targetData.sequenceNumber <= upperBound &&
+        activeTargetIds.get(targetData.targetId) === null
       ) {
-        this.queries.delete(key);
+        this.targets.delete(key);
         removals.push(
-          this.removeMatchingKeysForTargetId(transaction, queryData.targetId)
+          this.removeMatchingKeysForTargetId(transaction, targetData.targetId)
         );
         count++;
       }
@@ -172,21 +171,21 @@ export class MemoryQueryCache implements QueryCache {
     return PersistencePromise.waitFor(removals).next(() => count);
   }
 
-  getQueryCount(
+  getTargetCount(
     transaction: PersistenceTransaction
   ): PersistencePromise<number> {
     return PersistencePromise.resolve(this.targetCount);
   }
 
-  getQueryData(
+  getTargetData(
     transaction: PersistenceTransaction,
-    query: Query
-  ): PersistencePromise<QueryData | null> {
-    const queryData = this.queries.get(query) || null;
-    return PersistencePromise.resolve(queryData);
+    target: Target
+  ): PersistencePromise<TargetData | null> {
+    const targetData = this.targets.get(target) || null;
+    return PersistencePromise.resolve(targetData);
   }
 
-  getQueryDataForTarget(
+  getTargetDataForTarget(
     transaction: PersistenceTransaction,
     targetId: TargetId
   ): never {

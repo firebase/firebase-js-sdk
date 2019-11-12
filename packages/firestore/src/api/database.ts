@@ -71,6 +71,7 @@ import {
   validateOptionalArgType,
   validateOptionalArrayElements,
   validateOptionNames,
+  validatePositiveNumber,
   validateStringEnum,
   valueDescription
 } from '../util/input_validation';
@@ -1448,15 +1449,18 @@ export class Query implements firestore.Query {
     validateExactNumberOfArgs('Query.where', arguments, 3);
     validateDefined('Query.where', 3, value);
 
-    // TODO(in-queries): Add 'in' and 'array-contains-any' to validation.
-    if (
-      (opStr as unknown) !== 'in' &&
-      (opStr as unknown) !== 'array-contains-any'
-    ) {
-      // Enumerated from the WhereFilterOp type in index.d.ts.
-      const whereFilterOpEnums = ['<', '<=', '==', '>=', '>', 'array-contains'];
-      validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
-    }
+    // Enumerated from the WhereFilterOp type in index.d.ts.
+    const whereFilterOpEnums = [
+      '<',
+      '<=',
+      '==',
+      '>=',
+      '>',
+      'array-contains',
+      'in',
+      'array-contains-any'
+    ];
+    validateStringEnum('Query.where', whereFilterOpEnums, 2, opStr);
 
     let fieldValue: FieldValue;
     const fieldPath = fieldPathFromArgument('Query.where', field);
@@ -1490,7 +1494,9 @@ export class Query implements firestore.Query {
       }
       fieldValue = this.firestore._dataConverter.parseQueryValue(
         'Query.where',
-        value
+        value,
+        // We only allow nested arrays for IN queries.
+        /** allowArrays = */ operator === Operator.IN ? true : false
       );
     }
     const filter = FieldFilter.create(fieldPath, operator, fieldValue);
@@ -1544,14 +1550,15 @@ export class Query implements firestore.Query {
   limit(n: number): firestore.Query {
     validateExactNumberOfArgs('Query.limit', arguments, 1);
     validateArgType('Query.limit', 'number', 1, n);
-    if (n <= 0) {
-      throw new FirestoreError(
-        Code.INVALID_ARGUMENT,
-        `Invalid Query. Query limit (${n}) is invalid. Limit must be ` +
-          'positive.'
-      );
-    }
-    return new Query(this._query.withLimit(n), this.firestore);
+    validatePositiveNumber('Query.limit', 1, n);
+    return new Query(this._query.withLimitToFirst(n), this.firestore);
+  }
+
+  limitToLast(n: number): firestore.Query {
+    validateExactNumberOfArgs('Query.limitToLast', arguments, 1);
+    validateArgType('Query.limitToLast', 'number', 1, n);
+    validatePositiveNumber('Query.limitToLast', 1, n);
+    return new Query(this._query.withLimitToLast(n), this.firestore);
   }
 
   startAt(
@@ -1831,6 +1838,7 @@ export class Query implements firestore.Query {
         complete: args[currArg + 2] as CompleteFn
       };
     }
+    this.validateHasExplicitOrderByForLimitToLast(this._query);
     return this.onSnapshotInternal(options, observer);
   }
 
@@ -1866,9 +1874,19 @@ export class Query implements firestore.Query {
     };
   }
 
+  private validateHasExplicitOrderByForLimitToLast(query: InternalQuery): void {
+    if (query.hasLimitToLast() && query.explicitOrderBy.length === 0) {
+      throw new FirestoreError(
+        Code.UNIMPLEMENTED,
+        'limitToLast() queries require specifying at least one orderBy() clause'
+      );
+    }
+  }
+
   get(options?: firestore.GetOptions): Promise<firestore.QuerySnapshot> {
     validateBetweenNumberOfArgs('Query.get', arguments, 0, 1);
     validateGetOptions('Query.get', options);
+    this.validateHasExplicitOrderByForLimitToLast(this._query);
     return new Promise(
       (resolve: Resolver<firestore.QuerySnapshot>, reject: Rejecter) => {
         if (options && options.source === 'cache') {

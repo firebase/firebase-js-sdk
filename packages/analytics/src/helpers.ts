@@ -27,7 +27,8 @@ import {
   GtagCommand,
   ANALYTICS_ID_FIELD,
   GA_FID_KEY,
-  ORIGIN_KEY
+  ORIGIN_KEY,
+  GTAG_URL
 } from './constants';
 import '@firebase/installations';
 
@@ -53,7 +54,7 @@ export async function initializeGAId(
 
   // It should be the first config command called on this GA-ID
   // Initialize this GA-ID and set FID on it using the gtag config API.
-  gtagCore(GtagCommand.CONFIG, app.options[ANALYTICS_ID_FIELD], {
+  gtagCore(GtagCommand.CONFIG, app.options[ANALYTICS_ID_FIELD]!, {
     [GA_FID_KEY]: fid,
     // guard against developers accidentally setting properties with prefix `firebase_`
     [ORIGIN_KEY]: 'firebase',
@@ -61,15 +62,11 @@ export async function initializeGAId(
   });
 }
 
-export function hasDataLayer(dataLayerName: string): boolean {
-  return Array.isArray(window[dataLayerName]);
-}
-
 export function insertScriptTag(dataLayerName: string): void {
   const script = document.createElement('script');
   // We are not providing an analyticsId in the URL because it would trigger a `page_view`
   // without fid. We will initialize ga-id using gtag (config) command together with fid.
-  script.src = `https://www.googletagmanager.com/gtag/js?l=${dataLayerName}`;
+  script.src = `${GTAG_URL}?l=${dataLayerName}`;
   script.async = true;
   document.head.appendChild(script);
 }
@@ -80,10 +77,10 @@ export function insertScriptTag(dataLayerName: string): void {
 export function getOrCreateDataLayer(dataLayerName: string): DataLayer {
   // Check for existing dataLayer and create if needed.
   let dataLayer: DataLayer = [];
-  if (hasDataLayer(dataLayerName)) {
+  if (Array.isArray(window[dataLayerName])) {
     dataLayer = window[dataLayerName] as DataLayer;
   } else {
-    dataLayer = window[dataLayerName] = [];
+    window[dataLayerName] = dataLayer;
   }
   return dataLayer;
 }
@@ -205,4 +202,17 @@ export function wrapOrCreateGtag(
     gtagCore,
     wrappedGtag: window[gtagFunctionName] as Gtag
   };
+}
+
+/**
+ * Returns first script tag in DOM matching our gtag url pattern.
+ */
+export function findGtagScriptOnPage(): HTMLScriptElement | null {
+  const scriptTags = window.document.getElementsByTagName('script');
+  for (const tag of Object.values(scriptTags)) {
+    if (tag.src && tag.src.includes(GTAG_URL)) {
+      return tag;
+    }
+  }
+  return null;
 }

@@ -134,7 +134,12 @@ enum UserDataSource {
    * Indicates the source is a where clause, cursor bound, arrayUnion()
    * element, etc. Of note, isWrite(source) will return false.
    */
-  Argument
+  Argument,
+  /**
+   * Indicates that the source is an Argument that may directly contain nested
+   * arrays (e.g. the operand of an `in` query).
+   */
+  ArrayArgument
 }
 
 function isWrite(dataSource: UserDataSource): boolean {
@@ -144,6 +149,7 @@ function isWrite(dataSource: UserDataSource): boolean {
     case UserDataSource.Update:
       return true;
     case UserDataSource.Argument:
+    case UserDataSource.ArrayArgument:
       return false;
     default:
       throw fail(`Unexpected case for UserDataSource: ${dataSource}`);
@@ -270,8 +276,11 @@ class ParseContext {
   }
 
   private validatePathSegment(segment: string): void {
+    if (segment.length === 0) {
+      throw this.createError('Document fields must not be empty');
+    }
     if (isWrite(this.dataSource) && RESERVED_FIELD_REGEX.test(segment)) {
-      throw this.createError('Document fields cannot begin and end with __');
+      throw this.createError('Document fields cannot begin and end with "__"');
     }
   }
 }
@@ -475,10 +484,17 @@ export class UserDataConverter {
   /**
    * Parse a "query value" (e.g. value in a where filter or a value in a cursor
    * bound).
+   *
+   * @param allowArrays Whether the query value is an array that may directly
+   * contain additional arrays (e.g. the operand of an `in` query).
    */
-  parseQueryValue(methodName: string, input: unknown): FieldValue {
+  parseQueryValue(
+    methodName: string,
+    input: unknown,
+    allowArrays = false
+  ): FieldValue {
     const context = new ParseContext(
-      UserDataSource.Argument,
+      allowArrays ? UserDataSource.ArrayArgument : UserDataSource.Argument,
       methodName,
       FieldPath.EMPTY_PATH
     );
@@ -533,7 +549,14 @@ export class UserDataConverter {
       if (input instanceof Array) {
         // TODO(b/34871131): Include the path containing the array in the error
         // message.
-        if (context.arrayElement) {
+        // In the case of IN queries, the parsed data is an array (representing
+        // the set of values to be included for the IN query) that may directly
+        // contain additional arrays (each representing an individual field
+        // value), so we disable this validation.
+        if (
+          context.arrayElement &&
+          context.dataSource !== UserDataSource.ArrayArgument
+        ) {
           throw context.createError('Nested arrays are not supported');
         }
         return this.parseArray(input as unknown[], context);

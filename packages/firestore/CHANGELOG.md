@@ -1,4 +1,14 @@
 # Unreleased
+- [changed] The client can now recover if certain periodic IndexedDB operations
+  fail.
+- [feature] Added `in` and `array-contains-any` query operators for use with
+  `.where()`. `in` finds documents where a specified field’s value is IN a
+  specified array. `array-contains-any` finds documents where a specified field
+  is an array and contains ANY element of a specified array.
+- [feature] Added `Query.limitToLast(n: number)` , which returns the last 
+  `n` documents as the result.
+
+# 1.6.3
 - [changed] Improved iOS 13 support by eliminating an additional crash in our
   IndexedDB persistence layer.
 

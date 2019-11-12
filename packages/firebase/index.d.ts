@@ -3971,6 +3971,20 @@ declare namespace firebase.analytics {
      * the gtag.js reference documentation}.
      */
     logEvent(
+      eventName: 'add_payment_info',
+      eventParams?: { [key: string]: any },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
       eventName: 'add_to_cart' | 'add_to_wishlist' | 'remove_from_cart',
       eventParams: {
         currency?: EventParams['currency'];
@@ -4072,6 +4086,25 @@ declare namespace firebase.analytics {
       eventName: 'login',
       eventParams: {
         method?: EventParams['method'];
+        [key: string]: any;
+      },
+      options?: firebase.analytics.AnalyticsCallOptions
+    ): void;
+
+    /**
+     * Sends analytics event with given `eventParams`. This method
+     * automatically associates this logged event with this Firebase web
+     * app instance on this device.
+     * List of official event parameters can be found in
+     * {@link https://developers.google.com/gtagjs/reference/event
+     * the gtag.js reference documentation}.
+     */
+    logEvent(
+      eventName: 'page_view',
+      eventParams: {
+        page_title?: string;
+        page_location?: string;
+        page_path?: string;
         [key: string]: any;
       },
       options?: firebase.analytics.AnalyticsCallOptions
@@ -8038,11 +8071,17 @@ declare namespace firebase.firestore {
 
   /**
    * Filter conditions in a `Query.where()` clause are specified using the
-   * strings '<', '<=', '==', '>=', '>', and 'array-contains'.
+   * strings '<', '<=', '==', '>=', '>', 'array-contains', 'in', and 'array-contains-any'.
    */
-  // TODO(in-queries): Add 'array-contains-any' and 'in' once backend support
-  // lands.
-  export type WhereFilterOp = '<' | '<=' | '==' | '>=' | '>' | 'array-contains';
+  export type WhereFilterOp =
+    | '<'
+    | '<='
+    | '=='
+    | '>='
+    | '>'
+    | 'array-contains'
+    | 'in'
+    | 'array-contains-any';
 
   /**
    * A `Query` refers to a Query which you can read or listen to. You can also
@@ -8088,13 +8127,25 @@ declare namespace firebase.firestore {
     ): Query;
 
     /**
-     * Creates and returns a new Query where the results are limited to the
-     * specified number of documents.
+     * Creates and returns a new Query that only returns the first matching
+     * documents.
      *
      * @param limit The maximum number of items to return.
      * @return The created Query.
      */
     limit(limit: number): Query;
+
+    /**
+     * Creates and returns a new Query that only returns the last matching
+     * documents.
+     *
+     * You must specify at least one `orderBy` clause for `limitToLast` queries,
+     * otherwise an exception will be thrown during execution.
+     *
+     * @param limit The maximum number of items to return.
+     * @return The created Query.
+     */
+    limitToLast(limit: number): Query;
 
     /**
      * Creates and returns a new Query that starts at the provided document

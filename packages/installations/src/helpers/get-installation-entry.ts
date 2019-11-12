@@ -31,6 +31,7 @@ import { remove, set, update } from './idb-manager';
 
 export interface InstallationEntryWithRegistrationPromise {
   installationEntry: InstallationEntry;
+  /** Exist iff the installationEntry is not registered. */
   registrationPromise?: Promise<RegisteredInstallationEntry>;
 }
 
@@ -82,6 +83,9 @@ function updateOrCreateInstallationEntry(
 /**
  * If the Firebase Installation is not registered yet, this will trigger the
  * registration and return an InProgressInstallationEntry.
+ *
+ * If registrationPromise does not exist, the installationEntry is guaranteed
+ * to be registered.
  */
 function triggerRegistrationIfNecessary(
   appConfig: AppConfig,
@@ -149,7 +153,7 @@ async function registerInstallation(
   }
 }
 
-/** Call if FID registration is pending. */
+/** Call if FID registration is pending in another request. */
 async function waitUntilFidRegistration(
   appConfig: AppConfig
 ): Promise<RegisteredInstallationEntry> {
@@ -166,7 +170,18 @@ async function waitUntilFidRegistration(
   }
 
   if (entry.registrationStatus === RequestStatus.NOT_STARTED) {
-    throw ERROR_FACTORY.create(ErrorCode.CREATE_INSTALLATION_FAILED);
+    // The request timed out or failed in a different call. Try again.
+    const {
+      installationEntry,
+      registrationPromise
+    } = await getInstallationEntry(appConfig);
+
+    if (registrationPromise) {
+      return registrationPromise;
+    } else {
+      // if there is no registrationPromise, entry is registered.
+      return installationEntry as RegisteredInstallationEntry;
+    }
   }
 
   return entry;

@@ -15,64 +15,64 @@
  * limitations under the License.
  */
 
-import { Query } from '../core/query';
 import { SnapshotVersion } from '../core/snapshot_version';
+import { Target } from '../core/target';
 import { ListenSequenceNumber, ProtoByteString, TargetId } from '../core/types';
 import { emptyByteString } from '../platform/platform';
 
-/** An enumeration of the different purposes we have for queries. */
-export enum QueryPurpose {
-  /** A regular, normal query. */
+/** An enumeration of the different purposes we have for targets. */
+export enum TargetPurpose {
+  /** A regular, normal query target. */
   Listen,
 
   /**
-   * The query was used to refill a query after an existence filter mismatch.
+   * The query target was used to refill a query after an existence filter mismatch.
    */
   ExistenceFilterMismatch,
 
-  /** The query was used to resolve a limbo document. */
+  /** The query target was used to resolve a limbo document. */
   LimboResolution
 }
 
 /**
- * An immutable set of metadata that the local store tracks for each query.
+ * An immutable set of metadata that the local store tracks for each target.
  */
-export class QueryData {
+export class TargetData {
   constructor(
-    /** The query being listened to. */
-    readonly query: Query,
+    /** The target being listened to. */
+    readonly target: Target,
     /**
-     * The target ID to which the query corresponds; Assigned by the
+     * The target ID to which the target corresponds; Assigned by the
      * LocalStore for user listens and by the SyncEngine for limbo watches.
      */
     readonly targetId: TargetId,
-    /** The purpose of the query. */
-    readonly purpose: QueryPurpose,
+    /** The purpose of the target. */
+    readonly purpose: TargetPurpose,
     /**
-     * The sequence number of the last transaction during which this query data
+     * The sequence number of the last transaction during which this target data
      * was modified.
      */
     readonly sequenceNumber: ListenSequenceNumber,
     /** The latest snapshot version seen for this target. */
     readonly snapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
     /**
-     * The maximum snapshot version at which the associated query view
+     * The maximum snapshot version at which the associated view
      * contained no limbo documents.
      */
     readonly lastLimboFreeSnapshotVersion: SnapshotVersion = SnapshotVersion.MIN,
     /**
-     * An opaque, server-assigned token that allows watching a query to be
+     * An opaque, server-assigned token that allows watching a target to be
      * resumed after disconnecting without retransmitting all the data that
-     * matches the query. The resume token essentially identifies a point in
+     * matches the target. The resume token essentially identifies a point in
      * time from which the server should resume sending results.
      */
     readonly resumeToken: ProtoByteString = emptyByteString()
   ) {}
 
-  /** Creates a new query data instance with an updated sequence number. */
-  withSequenceNumber(sequenceNumber: number): QueryData {
-    return new QueryData(
-      this.query,
+  /** Creates a new target data instance with an updated sequence number. */
+  withSequenceNumber(sequenceNumber: number): TargetData {
+    return new TargetData(
+      this.target,
       this.targetId,
       this.purpose,
       sequenceNumber,
@@ -83,15 +83,15 @@ export class QueryData {
   }
 
   /**
-   * Creates a new query data instance with an updated resume token and
+   * Creates a new target data instance with an updated resume token and
    * snapshot version.
    */
   withResumeToken(
     resumeToken: ProtoByteString,
     snapshotVersion: SnapshotVersion
-  ): QueryData {
-    return new QueryData(
-      this.query,
+  ): TargetData {
+    return new TargetData(
+      this.target,
       this.targetId,
       this.purpose,
       this.sequenceNumber,
@@ -102,14 +102,14 @@ export class QueryData {
   }
 
   /**
-   * Creates a new query data instance with an updated last limbo free
+   * Creates a new target data instance with an updated last limbo free
    * snapshot version number.
    */
   withLastLimboFreeSnapshotVersion(
     lastLimboFreeSnapshotVersion: SnapshotVersion
-  ): QueryData {
-    return new QueryData(
-      this.query,
+  ): TargetData {
+    return new TargetData(
+      this.target,
       this.targetId,
       this.purpose,
       this.sequenceNumber,
@@ -119,7 +119,7 @@ export class QueryData {
     );
   }
 
-  isEqual(other: QueryData): boolean {
+  isEqual(other: TargetData): boolean {
     return (
       this.targetId === other.targetId &&
       this.purpose === other.purpose &&
@@ -129,7 +129,7 @@ export class QueryData {
         other.lastLimboFreeSnapshotVersion
       ) &&
       this.resumeToken === other.resumeToken &&
-      this.query.isEqual(other.query)
+      this.target.isEqual(other.target)
     );
   }
 }

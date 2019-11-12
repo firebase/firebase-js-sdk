@@ -34,11 +34,6 @@ import {
   IndexedDbMutationQueue,
   mutationQueuesContainKey
 } from './indexeddb_mutation_queue';
-import {
-  documentTargetStore,
-  getHighestListenSequenceNumber,
-  IndexedDbQueryCache
-} from './indexeddb_query_cache';
 import { IndexedDbRemoteDocumentCache } from './indexeddb_remote_document_cache';
 import {
   ALL_STORES,
@@ -51,6 +46,11 @@ import {
   SCHEMA_VERSION,
   SchemaConverter
 } from './indexeddb_schema';
+import {
+  documentTargetStore,
+  getHighestListenSequenceNumber,
+  IndexedDbTargetCache
+} from './indexeddb_target_cache';
 import { LocalSerializer } from './local_serializer';
 import {
   ActiveTargets,
@@ -67,9 +67,9 @@ import {
   ReferenceDelegate
 } from './persistence';
 import { PersistencePromise } from './persistence_promise';
-import { QueryData } from './query_data';
 import { ReferenceSet } from './reference_set';
 import { ClientId } from './shared_client_state';
+import { TargetData } from './target_data';
 import { SimpleDb, SimpleDbStore, SimpleDbTransaction } from './simple_db';
 
 const LOG_TAG = 'IndexedDbPersistence';
@@ -253,7 +253,7 @@ export class IndexedDbPersistence implements Persistence {
   /** A listener to notify on primary state changes. */
   private primaryStateListener: PrimaryStateListener = _ => Promise.resolve();
 
-  private readonly queryCache: IndexedDbQueryCache;
+  private readonly targetCache: IndexedDbTargetCache;
   private readonly indexManager: IndexedDbIndexManager;
   private readonly remoteDocumentCache: IndexedDbRemoteDocumentCache;
   private readonly webStorage: Storage | null;
@@ -274,7 +274,7 @@ export class IndexedDbPersistence implements Persistence {
     this.dbName = persistenceKey + IndexedDbPersistence.MAIN_DATABASE;
     this.serializer = new LocalSerializer(serializer);
     this.document = platform.document;
-    this.queryCache = new IndexedDbQueryCache(
+    this.targetCache = new IndexedDbTargetCache(
       this.referenceDelegate,
       this.serializer
     );
@@ -386,50 +386,62 @@ export class IndexedDbPersistence implements Persistence {
    * primary state listener if the client either newly obtained or released its
    * primary lease.
    */
-  private updateClientMetadataAndTryBecomePrimary(
-    force = false
-  ): Promise<void> {
-    return this.simpleDb.runTransaction('readwrite', ALL_STORES, txn => {
-      const metadataStore = clientMetadataStore(txn);
-      return metadataStore
-        .put(
-          new DbClientMetadata(
-            this.clientId,
-            Date.now(),
-            this.networkEnabled,
-            this.inForeground
+  private updateClientMetadataAndTryBecomePrimary(force = false): Promise<void> {
+    return this.simpleDb
+      .runTransaction('readwrite-idempotent', ALL_STORES, txn => {
+        const metadataStore = clientMetadataStore(txn);
+        return metadataStore
+          .put(
+            new DbClientMetadata(
+              this.clientId,
+              Date.now(),
+              this.networkEnabled,
+              this.inForeground
+            )
           )
-        )
-        .next(() => {
-          if (this.isPrimary) {
-            return this.verifyPrimaryLease(txn).next(success => {
-              if (!success) {
-                this.isPrimary = false;
-                this.queue.enqueueAndForget(() =>
-                  this.primaryStateListener(false)
-                );
-              }
-            });
-          }
-        })
-        .next(() => (force ? true : this.canActAsPrimary(txn)))
-        .next(canActAsPrimary => {
-          const wasPrimary = this.isPrimary;
-          this.isPrimary = canActAsPrimary;
+          .next(() => {
+            if (this.isPrimary) {
+              return this.verifyPrimaryLease(txn).next(success => {
+                if (!success) {
+                  this.isPrimary = false;
+                  this.queue.enqueueAndForget(() =>
+                    this.primaryStateListener(false)
+                  );
+                }
+              });
+            }
+          })
+          .next(() => (force ? true : this.canActAsPrimary(txn)))
+          .next(canActAsPrimary => {
+            if (this.isPrimary && !canActAsPrimary) {
+              return this.releasePrimaryLeaseIfHeld(txn).next(() => false);
+            } else if (canActAsPrimary) {
+              return this.acquireOrExtendPrimaryLease(txn).next(() => true);
+            } else {
+              return /* canActAsPrimary= */ false;
+            }
+          });
+      })
+      .catch(e => {
+        if (!this.allowTabSynchronization) {
+          throw e;
+        }
 
-          if (wasPrimary !== this.isPrimary) {
-            this.queue.enqueueAndForget(() =>
-              this.primaryStateListener(this.isPrimary)
-            );
-          }
-
-          if (wasPrimary && !this.isPrimary) {
-            return this.releasePrimaryLeaseIfHeld(txn);
-          } else if (this.isPrimary) {
-            return this.acquireOrExtendPrimaryLease(txn);
-          }
-        });
-    });
+        log.debug(
+          LOG_TAG,
+          'Releasing owner lease after error during lease refresh',
+          e
+        );
+        return /* isPrimary= */ false;
+      })
+      .then(isPrimary => {
+        if (this.isPrimary !== isPrimary) {
+          this.queue.enqueueAndForget(() =>
+            this.primaryStateListener(isPrimary)
+          );
+        }
+        this.isPrimary = isPrimary;
+      });
   }
 
   private verifyPrimaryLease(
@@ -716,12 +728,12 @@ export class IndexedDbPersistence implements Persistence {
     );
   }
 
-  getQueryCache(): IndexedDbQueryCache {
+  getTargetCache(): IndexedDbTargetCache {
     assert(
       this.started,
-      'Cannot initialize QueryCache before persistence is started.'
+      'Cannot initialize TargetCache before persistence is started.'
     );
-    return this.queryCache;
+    return this.targetCache;
   }
 
   getRemoteDocumentCache(): IndexedDbRemoteDocumentCache {
@@ -781,8 +793,14 @@ export class IndexedDbPersistence implements Persistence {
           // transactionOperation takes a long time, we'll use a recent
           // leaseTimestampMs in the extended (or newly acquired) lease.
           return this.verifyPrimaryLease(simpleDbTxn)
-            .next(success => {
-              if (!success) {
+            .next(holdsPrimaryLease => {
+              if (holdsPrimaryLease) {
+                return /* holdsPrimaryLease= */ true;
+              }
+              return this.canActAsPrimary(simpleDbTxn);
+            })
+            .next(holdsPrimaryLease => {
+              if (!holdsPrimaryLease) {
                 log.error(
                   `Failed to obtain primary lease for action '${action}'.`
                 );
@@ -1122,7 +1140,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     txn: PersistenceTransaction
   ): PersistencePromise<number> {
     const docCountPromise = this.orphanedDocmentCount(txn);
-    const targetCountPromise = this.db.getQueryCache().getQueryCount(txn);
+    const targetCountPromise = this.db.getTargetCache().getTargetCount(txn);
     return targetCountPromise.next(targetCount =>
       docCountPromise.next(docCount => targetCount + docCount)
     );
@@ -1139,9 +1157,9 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
   forEachTarget(
     txn: PersistenceTransaction,
-    f: (q: QueryData) => void
+    f: (q: TargetData) => void
   ): PersistencePromise<void> {
-    return this.db.getQueryCache().forEachTarget(txn, f);
+    return this.db.getTargetCache().forEachTarget(txn, f);
   }
 
   forEachOrphanedDocumentSequenceNumber(
@@ -1177,7 +1195,7 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
     activeTargetIds: ActiveTargets
   ): PersistencePromise<number> {
     return this.db
-      .getQueryCache()
+      .getTargetCache()
       .removeTargets(txn, upperBound, activeTargetIds);
   }
 
@@ -1243,10 +1261,10 @@ export class IndexedDbLruDelegate implements ReferenceDelegate, LruDelegate {
 
   removeTarget(
     txn: PersistenceTransaction,
-    queryData: QueryData
+    targetData: TargetData
   ): PersistencePromise<void> {
-    const updated = queryData.withSequenceNumber(txn.currentSequenceNumber);
-    return this.db.getQueryCache().updateQueryData(txn, updated);
+    const updated = targetData.withSequenceNumber(txn.currentSequenceNumber);
+    return this.db.getTargetCache().updateTargetData(txn, updated);
   }
 
   updateLimboDocument(
