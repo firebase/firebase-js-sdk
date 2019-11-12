@@ -150,7 +150,7 @@ apiDescribe('Database', (persistence: boolean) => {
       const oldBobbyRef = await usersColl.doc();
       await oldBobbyRef.set({ name: 'oldbobby', age: 99 });
       await usersColl.doc().set({ name: 'oldbobby2', age: 999 });
-      const untypedSnapshot = await youngBobbyRef.get();
+      const untypedSnapshot = await oldBobbyRef.get();
       const userQuery = typedUserColl
         .where('age', '>', 30)
         .orderBy('age')

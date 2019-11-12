@@ -1664,7 +1664,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   }
 
   startAt(
-    docOrField: unknown | firestore.DocumentSnapshot<T>,
+    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
     ...fields: unknown[]
   ): firestore.Query<T> {
     validateAtLeastNumberOfArgs('Query.startAt', arguments, 1);
@@ -1682,7 +1682,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   }
 
   startAfter(
-    docOrField: unknown | firestore.DocumentSnapshot<T>,
+    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
     ...fields: unknown[]
   ): firestore.Query<T> {
     validateAtLeastNumberOfArgs('Query.startAfter', arguments, 1);
@@ -1700,7 +1700,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   }
 
   endBefore(
-    docOrField: unknown | firestore.DocumentSnapshot<T>,
+    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
     ...fields: unknown[]
   ): firestore.Query<T> {
     validateAtLeastNumberOfArgs('Query.endBefore', arguments, 1);
@@ -1718,7 +1718,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
   }
 
   endAt(
-    docOrField: unknown | firestore.DocumentSnapshot<T>,
+    docOrField: unknown | firestore.DocumentSnapshot<unknown>,
     ...fields: unknown[]
   ): firestore.Query<T> {
     validateAtLeastNumberOfArgs('Query.endAt', arguments, 1);
