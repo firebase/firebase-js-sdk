@@ -887,9 +887,7 @@ export class DocumentReference<T = DocumentData> {
     onCompletion?: () => void
   ): () => void;
 
-  withConverter<U>(
-    converter: FirestoreDataConverter<U>
-  ): DocumentReference<U>;
+  withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
 /**
