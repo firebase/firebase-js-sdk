@@ -59,7 +59,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it.only('can set and get a document with generics', () => {
+  it('can set and get a document with generics', () => {
     class Post {
       constructor(readonly title: string, readonly author: string) {}
       byline(): string {
@@ -69,15 +69,17 @@ apiDescribe('Database', (persistence: boolean) => {
 
     return withTestDb(persistence, async db => {
       const docRef = db
-        .collection<Post>('posts', {
+        .collection('posts')
+        .doc()
+        .withConverter({
           toFirestore(post: Post): firestore.DocumentData {
             return { title: post.title, author: post.author };
           },
-          fromFirestore(data: firestore.DocumentData): Post {
+          fromFirestore(snapshot: firestore.DocumentSnapshot): Post {
+            const data = snapshot.data()!;
             return new Post(data.title, data.author);
           }
-        })
-        .doc();
+        });
       await docRef.set(new Post('happy', 'author'));
       const postData = await docRef.get();
       const post = postData.data();
@@ -86,7 +88,7 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it.only('works with collection parents', () => {
+  it('works with collection parents', () => {
     class Post {
       constructor(readonly title: string, readonly author: string) {}
       byline(): string {
@@ -97,38 +99,64 @@ apiDescribe('Database', (persistence: boolean) => {
     class User {
       constructor(readonly name: string, readonly age: number) {}
       intro(): string {
-        return "name: " + this.name + ", age: " + this.age;
+        return 'name: ' + this.name + ', age: ' + this.age;
       }
     }
 
     return withTestDb(persistence, async db => {
       const docRef = db
-        .collection<Post>('posts', {
+        .collection('posts')
+        .doc()
+        .withConverter({
           toFirestore(post: Post): firestore.DocumentData {
             return { title: post.title, author: post.author };
           },
-          fromFirestore(data: firestore.DocumentData): Post {
+          fromFirestore(snapshot: firestore.DocumentSnapshot): Post {
+            const data = snapshot.data()!;
             return new Post(data.title, data.author);
           }
-        })
-        .doc();
+        });
       await docRef.set(new Post('title', 'author'));
-      const usersColl = docRef.collection("likes");
-      await usersColl.doc().set({name: 'bobby', age: 31});
+      const usersColl = docRef.collection('likes');
+      const youngBobbyRef = usersColl.doc();
+      await youngBobbyRef
+        .withConverter({
+          toFirestore(user: User): firestore.DocumentData {
+            return { name: user.name, age: user.age };
+          },
+          fromFirestore(snapshot: firestore.DocumentSnapshot): User {
+            const data = snapshot.data()!;
+            return new User(data.name, data.age);
+          }
+        })
+        .set(new User('bobby', 31));
 
-      const typedUserColl = db.collection<User>(usersColl.path, {
+      const typedUserColl = db.collection(usersColl.path).withConverter({
         toFirestore(user: User): firestore.DocumentData {
           return { name: user.name, age: user.age };
         },
-        fromFirestore(data: firestore.DocumentData, documentId: string): User {
+        fromFirestore(snapshot: firestore.DocumentSnapshot): User {
+          const data = snapshot.data()!;
           return new User(data.name, data.age);
         }
       });
-      
-      const userSnapshot = await typedUserColl.where('age', '>', 'bobby').get();
 
+      const userSnapshot = await typedUserColl.where('age', '>', 30).get();
       expect(userSnapshot.size).to.equal(1);
-      expect(userSnapshot.docs[0].data().intro()).to.equal("name: bobby, age: 31");
+      expect(userSnapshot.docs[0].data().intro()).to.equal(
+        'name: bobby, age: 31'
+      );
+
+      const oldBobbyRef = await usersColl.doc();
+      await oldBobbyRef.set({ name: 'oldbobby', age: 99 });
+      await usersColl.doc().set({ name: 'oldbobby2', age: 999 });
+      const untypedSnapshot = await youngBobbyRef.get();
+      const userQuery = typedUserColl
+        .where('age', '>', 30)
+        .orderBy('age')
+        .startAt(untypedSnapshot);
+      const snapshot = await userQuery.get();
+      expect(snapshot.size).to.equal(2);
     });
   });
 

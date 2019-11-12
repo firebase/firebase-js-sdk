@@ -776,9 +776,9 @@ export function expectFirestoreError(err: Error): void {
 
 export function defaultDocumentDataConverter<
   T
->(): firestore.DocumentDataConverter<T> {
+>(): firestore.FirestoreDataConverter<T> {
   return {
     toFirestore: value => value,
-    fromFirestore: data => data as T
+    fromFirestore: snapshot => snapshot.data()! as T
   };
 }

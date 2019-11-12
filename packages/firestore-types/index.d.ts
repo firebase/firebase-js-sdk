@@ -128,11 +128,11 @@ export type LogLevel = 'debug' | 'error' | 'silent';
 
 export function setLogLevel(logLevel: LogLevel): void;
 
-export interface DocumentDataConverter<T> {
+export interface FirestoreDataConverter<T> {
   // Converts a model object of type T into plain Firestore DocumentData.
   toFirestore(modelObject: T): DocumentData;
-  // Converts firestore data into a model object of type T.
-  fromFirestore(data: DocumentData, documentId: string): T;
+  // Converts a Firestore DocumentSnapshot into a model object of type T.
+  fromFirestore(snapshot: DocumentSnapshot, options: SnapshotOptions): T;
 }
 
 /**
@@ -180,10 +180,6 @@ export class FirebaseFirestore {
    * @return The `CollectionReference` instance.
    */
   collection(collectionPath: string): CollectionReference<DocumentData>;
-  collection<T>(
-    collectionPath: string,
-    converter: DocumentDataConverter<T>
-  ): CollectionReference<T>;
 
   /**
    * Gets a `DocumentReference` instance that refers to the document at the
@@ -193,10 +189,6 @@ export class FirebaseFirestore {
    * @return The `DocumentReference` instance.
    */
   doc(documentPath: string): DocumentReference<DocumentData>;
-  doc<T>(
-    documentPath: string,
-    converter: DocumentDataConverter<T>
-  ): DocumentReference<T>;
 
   /**
    * Creates and returns a new Query that includes all documents in the
@@ -209,10 +201,6 @@ export class FirebaseFirestore {
    * @return The created Query.
    */
   collectionGroup(collectionId: string): Query<DocumentData>;
-  collectionGroup<T>(
-    collectionId: string,
-    converter: DocumentDataConverter<T>
-  ): Query<T>;
 
   /**
    * Executes the given updateFunction and then attempts to commit the
@@ -782,10 +770,6 @@ export class DocumentReference<T = DocumentData> {
    * @return The `CollectionReference` instance.
    */
   collection(collectionPath: string): CollectionReference<DocumentData>;
-  collection<R>(
-    collectionPath: string,
-    converter: DocumentDataConverter<R>
-  ): CollectionReference<R>;
 
   /**
    * Returns true if this `DocumentReference` is equal to the provided one.
@@ -902,6 +886,10 @@ export class DocumentReference<T = DocumentData> {
     onError?: (error: Error) => void,
     onCompletion?: () => void
   ): () => void;
+
+  withConverter<U>(
+    converter: FirestoreDataConverter<U>
+  ): DocumentReference<U>;
 }
 
 /**
@@ -1150,7 +1138,7 @@ export class Query<T = DocumentData> {
    * @param snapshot The snapshot of the document to start at.
    * @return The created Query.
    */
-  startAt(snapshot: DocumentSnapshot<T>): Query<T>;
+  startAt(snapshot: DocumentSnapshot<unknown>): Query<T>;
 
   /**
    * Creates and returns a new Query that starts at the provided fields
@@ -1401,7 +1389,6 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * A reference to the containing Document if this is a subcollection, else
    * null.
    */
-  // TODO(mikelehen): Need to provide a generic version that takes a FirestoreConverter?
   readonly parent: DocumentReference<DocumentData> | null;
 
   /**
@@ -1437,6 +1424,10 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    * @return true if this `CollectionReference` is equal to the provided one.
    */
   isEqual(other: CollectionReference<T>): boolean;
+
+  withConverter<U>(
+    converter: FirestoreDataConverter<U>
+  ): CollectionReference<U>;
 }
 
 /**
