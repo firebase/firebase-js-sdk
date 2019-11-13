@@ -50,24 +50,38 @@ describe('Provider', () => {
   });
 
   it('does not throw if instance factory throws when calling getImmediate() with optional flag', () => {
-    provider.setComponent(getFakeComponent('test', () => { throw Error('something went wrong!'); }));
+    provider.setComponent(
+      getFakeComponent('test', () => {
+        throw Error('something went wrong!');
+      })
+    );
     expect(() => provider.getImmediate({ optional: true })).to.not.throw();
   });
 
   it('throws if instance factory throws when calling getImmediate() without optional flag', () => {
-    provider.setComponent(getFakeComponent('test', () => { throw Error('something went wrong!'); }));
+    provider.setComponent(
+      getFakeComponent('test', () => {
+        throw Error('something went wrong!');
+      })
+    );
     expect(() => provider.getImmediate()).to.throw();
   });
 
   it('does not throw if instance factory throws when calling get()', () => {
-    provider.setComponent(getFakeComponent('test', () => { throw Error('something went wrong!'); }));
+    provider.setComponent(
+      getFakeComponent('test', () => {
+        throw Error('something went wrong!');
+      })
+    );
     expect(() => provider.get()).to.not.throw();
   });
 
   it('does not throw if instance factory throws when registering an eager component', () => {
     const eagerComponent = getFakeComponent(
       'test',
-      () => { throw Error('something went wrong!'); },
+      () => {
+        throw Error('something went wrong!');
+      },
       false,
       InstantiationMode.EAGER
     );
@@ -79,7 +93,9 @@ describe('Provider', () => {
     // create a pending promise
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
     provider.get();
-    const component = getFakeComponent('test', () => { throw Error('something went wrong!'); });
+    const component = getFakeComponent('test', () => {
+      throw Error('something went wrong!');
+    });
     expect(() => provider.setComponent(component)).to.not.throw();
   });
 
