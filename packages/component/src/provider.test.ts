@@ -49,6 +49,40 @@ describe('Provider', () => {
     ).to.not.throw();
   });
 
+  it('does not throw if instance factory throws when calling getImmediate() with optional flag', () => {
+    provider.setComponent(getFakeComponent('test', () => { throw Error('something went wrong!'); }));
+    expect(() => provider.getImmediate({ optional: true })).to.not.throw();
+  });
+
+  it('throws if instance factory throws when calling getImmediate() without optional flag', () => {
+    provider.setComponent(getFakeComponent('test', () => { throw Error('something went wrong!'); }));
+    expect(() => provider.getImmediate()).to.throw();
+  });
+
+  it('does not throw if instance factory throws when calling get()', () => {
+    provider.setComponent(getFakeComponent('test', () => { throw Error('something went wrong!'); }));
+    expect(() => provider.get()).to.not.throw();
+  });
+
+  it('does not throw if instance factory throws when registering an eager component', () => {
+    const eagerComponent = getFakeComponent(
+      'test',
+      () => { throw Error('something went wrong!'); },
+      false,
+      InstantiationMode.EAGER
+    );
+
+    expect(() => provider.setComponent(eagerComponent)).to.not.throw();
+  });
+
+  it('does not throw if instance factory throws when registering a component with a pending promise', () => {
+    // create a pending promise
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    provider.get();
+    const component = getFakeComponent('test', () => { throw Error('something went wrong!'); });
+    expect(() => provider.setComponent(component)).to.not.throw();
+  });
+
   describe('Provider (multipleInstances = false)', () => {
     describe('getImmediate()', () => {
       it('throws if the service is not available', () => {
