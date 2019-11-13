@@ -68,6 +68,8 @@ toc:
     path: /docs/reference/js/firebase.auth.IDTokenResult
   - title: "OAuthCredential"
     path: /docs/reference/js/firebase.auth.OAuthCredential
+  - title: "OAuthCredentialOptions"
+    path: /docs/reference/js/firebase.auth.OAuthCredentialOptions
   - title: "OAuthProvider"
     path: /docs/reference/js/firebase.auth.OAuthProvider
   - title: "PhoneAuthProvider"
