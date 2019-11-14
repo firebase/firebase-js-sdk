@@ -54,6 +54,6 @@ export type FirebaseMessagingName = 'messaging';
 
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'messaging': FirebaseMessaging
+    'messaging': FirebaseMessaging;
   }
 }

@@ -15,8 +15,14 @@
  * limitations under the License.
  */
 import { _FirebaseApp } from '@firebase/app-types/private';
-import { FirebaseMessaging, FirebaseMessagingName } from '@firebase/messaging-types';
-import { FirebaseAuthInternal, FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import {
+  FirebaseMessaging,
+  FirebaseMessagingName
+} from '@firebase/messaging-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
 /**

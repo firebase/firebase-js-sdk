@@ -19,7 +19,10 @@ import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { makeFakeApp, createTestService } from '../utils';
-import { FirebaseMessaging, FirebaseMessagingName } from '@firebase/messaging-types';
+import {
+  FirebaseMessaging,
+  FirebaseMessagingName
+} from '@firebase/messaging-types';
 import {
   Provider,
   ComponentContainer,

@@ -16,7 +16,10 @@
  */
 
 import { FirebaseAuthTokenData } from '@firebase/app-types/private';
-import { FirebaseAuthInternal, FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { log, warn } from './util/util';
 import { FirebaseApp } from '@firebase/app-types';

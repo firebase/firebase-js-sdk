@@ -17,9 +17,7 @@
 
 import firebase from '@firebase/app';
 import '@firebase/installations';
-import {
-  _FirebaseNamespace
-} from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { FirebaseMessaging } from '@firebase/messaging-types';
 import { SwController } from './src/controllers/sw-controller';
 import { WindowController } from './src/controllers/window-controller';

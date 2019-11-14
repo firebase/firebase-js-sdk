@@ -127,9 +127,8 @@ export class FirebaseStorage {
   setMaxUploadRetryTime(time: number): void;
 }
 
-
 declare module '@firebase/component' {
   interface NameServiceMapping {
-    'storage': FirebaseStorage
+    'storage': FirebaseStorage;
   }
 }
