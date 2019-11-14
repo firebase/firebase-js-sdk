@@ -48,7 +48,7 @@
     "rollup-plugin-node-resolve": "5.2.0",
     "rollup-plugin-typescript2": "0.25.2",
     "rollup-plugin-uglify": "6.0.3",
-    "typescript": "3.6.4",
+    "typescript": "3.7.2",
     "@types/chai": "4.2.4",
     "@types/chai-as-promised": "7.1.2",
     "@types/mocha": "5.2.7",

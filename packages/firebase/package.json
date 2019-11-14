@@ -63,7 +63,7 @@
     "rollup-plugin-typescript2": "0.25.2",
     "rollup-plugin-uglify": "6.0.3",
     "rollup-plugin-terser": "5.1.2",
-    "typescript": "3.6.4"
+    "typescript": "3.7.2"
   },
   "typings": "index.d.ts",
   "components": [
