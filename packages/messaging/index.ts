@@ -17,10 +17,7 @@
 
 import firebase from '@firebase/app';
 import '@firebase/installations';
-import {
-  _FirebaseNamespace,
-  FirebaseService
-} from '@firebase/app-types/private';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { FirebaseMessaging } from '@firebase/messaging-types';
 import { SwController } from './src/controllers/sw-controller';
 import { WindowController } from './src/controllers/window-controller';
@@ -35,7 +32,7 @@ import { FirebaseInternalServices } from './src/interfaces/internal-services';
 export function registerMessaging(instance: _FirebaseNamespace): void {
   const messagingName = 'messaging';
 
-  const factoryMethod = (container: ComponentContainer): FirebaseService => {
+  const factoryMethod = (container: ComponentContainer): FirebaseMessaging => {
     /* Dependencies */
     const app = container.getProvider('app').getImmediate();
     const installations = container.getProvider('installations').getImmediate();

@@ -23,7 +23,7 @@ import * as RequestExports from './implementation/request';
 import { XhrIoPool } from './implementation/xhriopool';
 import { Reference } from './reference';
 import { Provider } from '@firebase/component';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 
 /**
  * A service that provides firebaseStorage.Reference instances.
@@ -39,7 +39,7 @@ export class Service {
 
   constructor(
     app: FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternal>,
+    authProvider: Provider<FirebaseAuthInternalName>,
     pool: XhrIoPool,
     url?: string
   ) {

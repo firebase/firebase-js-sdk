@@ -39,6 +39,8 @@ export interface AnalyticsCallOptions {
   global: boolean;
 }
 
+export type FirebaseAnalyticsInternalName = 'analytics-internal';
+
 declare module '@firebase/component' {
   interface NameServiceMapping {
     'analytics-internal': FirebaseAnalyticsInternal;

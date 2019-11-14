@@ -38,3 +38,11 @@ export interface FirebaseInstallations {
    */
   delete(): Promise<void>;
 }
+
+export type FirebaseInstallationsName = 'installations';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'installations': FirebaseInstallations;
+  }
+}

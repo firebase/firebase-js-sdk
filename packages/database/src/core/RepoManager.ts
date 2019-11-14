@@ -24,7 +24,7 @@ import { validateUrl } from './util/validation';
 import './Repo_transaction';
 import { Database } from '../api/Database';
 import { RepoInfo } from './RepoInfo';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
 /** @const {string} */
@@ -93,7 +93,7 @@ export class RepoManager {
    */
   databaseFromApp(
     app: FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternal>,
+    authProvider: Provider<FirebaseAuthInternalName>,
     url?: string
   ): Database {
     let dbUrl: string | undefined = url || app.options[DATABASE_URL_OPTION];
@@ -159,7 +159,7 @@ export class RepoManager {
   createRepo(
     repoInfo: RepoInfo,
     app: FirebaseApp,
-    authProvider: Provider<FirebaseAuthInternal>
+    authProvider: Provider<FirebaseAuthInternalName>
   ): Repo {
     let appRepos = safeGet(this.repos_, app.name);
 

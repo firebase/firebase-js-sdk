@@ -16,7 +16,10 @@
  */
 
 import { FirebaseAuthTokenData } from '@firebase/app-types/private';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 import { log, warn } from './util/util';
 import { FirebaseApp } from '@firebase/app-types';
@@ -28,7 +31,7 @@ export class AuthTokenProvider {
   private auth_: FirebaseAuthInternal | null = null;
   constructor(
     private app_: FirebaseApp,
-    private authProvider_: Provider<FirebaseAuthInternal>
+    private authProvider_: Provider<FirebaseAuthInternalName>
   ) {
     this.auth_ = authProvider_.getImmediate({ optional: true });
     if (!this.auth_) {

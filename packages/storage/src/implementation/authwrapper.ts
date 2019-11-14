@@ -32,7 +32,7 @@ import {
   FirebaseAuthTokenData
 } from '@firebase/app-types/private';
 import { Provider } from '@firebase/component';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 
 /**
  * @param app If null, getAuthToken always resolves with null.
@@ -42,7 +42,7 @@ import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
  */
 export class AuthWrapper {
   private app_: FirebaseApp | null;
-  private authProvider_: Provider<FirebaseAuthInternal>;
+  private authProvider_: Provider<FirebaseAuthInternalName>;
   private bucket_: string | null = null;
 
   private storageRefMaker_: (p1: AuthWrapper, p2: Location) => Reference;
@@ -56,7 +56,7 @@ export class AuthWrapper {
 
   constructor(
     app: FirebaseApp | null,
-    authProvider: Provider<FirebaseAuthInternal>,
+    authProvider: Provider<FirebaseAuthInternalName>,
     maker: (p1: AuthWrapper, p2: Location) => Reference,
     requestMaker: requestMaker,
     service: Service,

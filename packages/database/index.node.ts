@@ -36,7 +36,7 @@ import {
   Provider,
   ComponentContainer
 } from '@firebase/component';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
 
 setWebSocketImpl(Client);
 
@@ -64,7 +64,7 @@ export function initStandalone(app: FirebaseApp, url: string, version: string) {
    * ComponentContainer('database-admin') is just a placeholder that doesn't perform
    * any actual function.
    */
-  const authProvider = new Provider<FirebaseAuthInternal>(
+  const authProvider = new Provider<FirebaseAuthInternalName>(
     'auth-internal',
     new ComponentContainer('database-admin')
   );

@@ -19,7 +19,10 @@ import * as sinon from 'sinon';
 import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { makeFakeApp, createTestService } from '../utils';
-import { FirebaseMessaging } from '@firebase/messaging-types';
+import {
+  FirebaseMessaging,
+  FirebaseMessagingName
+} from '@firebase/messaging-types';
 import {
   Provider,
   ComponentContainer,
@@ -44,7 +47,7 @@ describe('Firebase Functions > Call', () => {
     const messagingMock: FirebaseMessaging = ({
       getToken: () => Promise.resolve('iid')
     } as unknown) as FirebaseMessaging;
-    const messagingProvider = new Provider<FirebaseMessaging>(
+    const messagingProvider = new Provider<FirebaseMessagingName>(
       'messaging',
       new ComponentContainer('test')
     );
