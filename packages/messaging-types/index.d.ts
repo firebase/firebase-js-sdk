@@ -55,5 +55,5 @@ declare module '@firebase/component' {
     getProvider(name: 'messaging'): Provider<FirebaseMessaging>;
   }
 
-  interface Provider { }
+  interface Provider {}
 }
