@@ -1582,7 +1582,9 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
       }
       fieldValue = this.firestore._dataConverter.parseQueryValue(
         'Query.where',
-        value
+        value,
+        // We only allow nested arrays for IN queries.
+        /** allowArrays = */ operator === Operator.IN ? true : false
       );
     }
     const filter = FieldFilter.create(fieldPath, operator, fieldValue);

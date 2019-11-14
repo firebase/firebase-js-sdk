@@ -26,7 +26,6 @@ import { EventsAccumulator } from '../util/events_accumulator';
 import firebase from '../util/firebase_export';
 import {
   apiDescribe,
-  isRunningAgainstEmulator,
   toChangesArray,
   toDataArray,
   withTestCollection,
@@ -799,14 +798,18 @@ apiDescribe('Queries', (persistence: boolean) => {
       c: { zip: 98103 },
       d: { zip: [98101] },
       e: { zip: ['98101', { zip: 98101 }] },
-      f: { zip: { code: 500 } }
+      f: { zip: { code: 500 } },
+      g: { zip: [98101, 98102] }
     };
 
     await withTestCollection(persistence, testDocs, async coll => {
-      const snapshot = await coll.where('zip', 'in', [98101, 98103]).get();
+      const snapshot = await coll
+        .where('zip', 'in', [98101, 98103, [98101, 98102]])
+        .get();
       expect(toDataArray(snapshot)).to.deep.equal([
         { zip: 98101 },
-        { zip: 98103 }
+        { zip: 98103 },
+        { zip: [98101, 98102] }
       ]);
 
       // With objects.
@@ -815,28 +818,24 @@ apiDescribe('Queries', (persistence: boolean) => {
     });
   });
 
-  // eslint-disable-next-line no-restricted-properties,
-  (isRunningAgainstEmulator() ? it : it.skip)(
-    'can use IN filters by document ID',
-    async () => {
-      const testDocs = {
-        aa: { key: 'aa' },
-        ab: { key: 'ab' },
-        ba: { key: 'ba' },
-        bb: { key: 'bb' }
-      };
-      await withTestCollection(persistence, testDocs, async coll => {
-        const snapshot = await coll
-          .where(FieldPath.documentId(), 'in', ['aa', 'ab'])
-          .get();
+  it('can use IN filters by document ID', async () => {
+    const testDocs = {
+      aa: { key: 'aa' },
+      ab: { key: 'ab' },
+      ba: { key: 'ba' },
+      bb: { key: 'bb' }
+    };
+    await withTestCollection(persistence, testDocs, async coll => {
+      const snapshot = await coll
+        .where(FieldPath.documentId(), 'in', ['aa', 'ab'])
+        .get();
 
-        expect(toDataArray(snapshot)).to.deep.equal([
-          { key: 'aa' },
-          { key: 'ab' }
-        ]);
-      });
-    }
-  );
+      expect(toDataArray(snapshot)).to.deep.equal([
+        { key: 'aa' },
+        { key: 'ab' }
+      ]);
+    });
+  });
 
   it('can use array-contains-any filters', async () => {
     const testDocs = {

@@ -34,7 +34,7 @@ import {
   insertScriptTag,
   getOrCreateDataLayer,
   wrapOrCreateGtag,
-  hasDataLayer
+  findGtagScriptOnPage
 } from './helpers';
 import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
@@ -122,9 +122,8 @@ export function factory(
     // Steps here should only be done once per page: creation or wrapping
     // of dataLayer and global gtag function.
 
-    // Presence of previously existing dataLayer used to detect if user has
-    // already put the gtag snippet on this page.
-    if (!hasDataLayer(dataLayerName)) {
+    // Detect if user has already put the gtag <script> tag on this page.
+    if (!findGtagScriptOnPage()) {
       insertScriptTag(dataLayerName);
     }
     getOrCreateDataLayer(dataLayerName);

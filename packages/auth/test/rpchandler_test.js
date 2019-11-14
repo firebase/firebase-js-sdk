@@ -2658,6 +2658,11 @@ function testGetErrorCodeDetails() {
       'blabla:bla:::bla: something:',
       fireauth.RpcHandler.getErrorCodeDetails('OPERATION_NOT_ALLOWED: blabl' +
           'a:bla:::bla: something:'));
+  // Error message that contains new line.
+  assertEquals(
+      'Provider Id\nis not enabled in configuration.',
+      fireauth.RpcHandler.getErrorCodeDetails('OPERATION_NOT_ALLOWED : Provi' +
+          'der Id\nis not enabled in configuration.'));
 }
 
 

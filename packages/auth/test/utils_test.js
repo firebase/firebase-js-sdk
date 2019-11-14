@@ -935,7 +935,7 @@ function testIsPopupRedirectSupported_webStorageNotSupported() {
 }
 
 
-function testIsPopupRedirectSupported_isAndroidOrIosFileEnvironment() {
+function testIsPopupRedirectSupported_isAndroidOrIosCordovaScheme() {
   fireauth.util.isCordovaEnabled = false;
   assertTrue(fireauth.util.isPopupRedirectSupported());
   // Web storage supported.
@@ -946,8 +946,8 @@ function testIsPopupRedirectSupported_isAndroidOrIosFileEnvironment() {
   stubs.replace(fireauth.util, 'getCurrentScheme', function() {
     return 'file:';
   });
-  // iOS or Android file environment.
-  stubs.replace(fireauth.util, 'isAndroidOrIosFileEnvironment', function() {
+  // iOS or Android Cordova environment.
+  stubs.replace(fireauth.util, 'isAndroidOrIosCordovaScheme', function() {
     return true;
   });
   assertTrue(fireauth.util.isPopupRedirectSupported());
@@ -984,8 +984,8 @@ function testIsPopupRedirectSupported_unsupportedFileEnvironment() {
   stubs.replace(fireauth.util, 'getCurrentScheme', function() {
     return 'file:';
   });
-  // Neither iOS, nor Android file environment.
-  stubs.replace(fireauth.util, 'isAndroidOrIosFileEnvironment', function() {
+  // Neither iOS, nor Android Cordova environment.
+  stubs.replace(fireauth.util, 'isAndroidOrIosCordovaScheme', function() {
     return false;
   });
   assertFalse(fireauth.util.isPopupRedirectSupported());
@@ -1003,8 +1003,8 @@ function testIsPopupRedirectSupported_unsupportedNativeEnvironment() {
   stubs.replace(fireauth.util, 'getCurrentScheme', function() {
     return 'https:';
   });
-  // Neither iOS, nor Android file environment.
-  stubs.replace(fireauth.util, 'isAndroidOrIosFileEnvironment', function() {
+  // Neither iOS, nor Android Cordova environment.
+  stubs.replace(fireauth.util, 'isAndroidOrIosCordovaScheme', function() {
     return false;
   });
   // Native environment.
@@ -1025,8 +1025,8 @@ function testIsPopupRedirectSupported_workerEnvironment() {
   stubs.replace(fireauth.util, 'getCurrentScheme', function() {
     return 'https:';
   });
-  // Neither iOS, nor Android file environment.
-  stubs.replace(fireauth.util, 'isAndroidOrIosFileEnvironment', function() {
+  // Neither iOS, nor Android Cordova environment.
+  stubs.replace(fireauth.util, 'isAndroidOrIosCordovaScheme', function() {
     return false;
   });
   // Non-native environment environment.
@@ -1106,7 +1106,7 @@ function testIsAndroid() {
 }
 
 
-function testIsAndroidOrIosFileEnvironment() {
+function testIsAndroidOrIosCodovaEnvironment() {
   // Test https environment.
   stubs.replace(
       fireauth.util,
@@ -1115,8 +1115,8 @@ function testIsAndroidOrIosFileEnvironment() {
         return 'https:';
       });
   // Non file environment.
-  assertFalse(fireauth.util.isAndroidOrIosFileEnvironment(iOS8iPhoneUA));
-  // Test https environment.
+  assertFalse(fireauth.util.isAndroidOrIosCordovaScheme(iOS8iPhoneUA));
+  // Test file environment.
   stubs.replace(
       fireauth.util,
       'getCurrentScheme',
@@ -1124,11 +1124,24 @@ function testIsAndroidOrIosFileEnvironment() {
         return 'file:';
       });
   // iOS file environment.
-  assertTrue(fireauth.util.isAndroidOrIosFileEnvironment(iOS8iPhoneUA));
+  assertTrue(fireauth.util.isAndroidOrIosCordovaScheme(iOS8iPhoneUA));
   // Android file environment.
-  assertTrue(fireauth.util.isAndroidOrIosFileEnvironment(androidUA));
+  assertTrue(fireauth.util.isAndroidOrIosCordovaScheme(androidUA));
   // Desktop file environment.
-  assertFalse(fireauth.util.isAndroidOrIosFileEnvironment(firefoxUA));
+  assertFalse(fireauth.util.isAndroidOrIosCordovaScheme(firefoxUA));
+  // Test ionic environment.
+  stubs.replace(
+      fireauth.util,
+      'getCurrentScheme',
+      function() {
+        return 'ionic:';
+      });
+  // iOS ionic environment.
+  assertTrue(fireauth.util.isAndroidOrIosCordovaScheme(iOS8iPhoneUA));
+  // Android ionic environment.
+  assertTrue(fireauth.util.isAndroidOrIosCordovaScheme(androidUA));
+  // Desktop ionic environment.
+  assertFalse(fireauth.util.isAndroidOrIosCordovaScheme(firefoxUA));
 }
 
 
@@ -1165,7 +1178,7 @@ function testCheckIfCordova_incorrectFileEnvironment() {
   return installAndRunTest('checkIfCordova_incorrectFileEnv', function() {
     stubs.replace(
         fireauth.util,
-        'isAndroidOrIosFileEnvironment',
+        'isAndroidOrIosCordovaScheme',
         function() {
           return false;
         });
@@ -1184,7 +1197,7 @@ function testCheckIfCordova_deviceReadyTimeout() {
   return installAndRunTest('checkIfCordova_deviceReadyTimeout', function() {
     stubs.replace(
         fireauth.util,
-        'isAndroidOrIosFileEnvironment',
+        'isAndroidOrIosCordovaScheme',
         function() {
           return true;
         });
@@ -1203,7 +1216,7 @@ function testCheckIfCordova_success() {
   return installAndRunTest('checkIfCordova_success', function() {
     stubs.replace(
         fireauth.util,
-        'isAndroidOrIosFileEnvironment',
+        'isAndroidOrIosCordovaScheme',
         function() {
           return true;
         });

@@ -539,7 +539,7 @@ fireauth.util.checkIfCordova = function(opt_userAgent, opt_timeout) {
   // Errors generated are internal and should be converted if needed to
   // developer facing Firebase errors.
   // Only supported in Android/iOS environment.
-  if (fireauth.util.isAndroidOrIosFileEnvironment(opt_userAgent)) {
+  if (fireauth.util.isAndroidOrIosCordovaScheme(opt_userAgent)) {
     return fireauth.util.onDomReady().then(function() {
       return new goog.Promise(function(resolve, reject) {
         var doc = goog.global.document;
@@ -561,12 +561,13 @@ fireauth.util.checkIfCordova = function(opt_userAgent, opt_timeout) {
 
 /**
  * @param {?string=} opt_userAgent The optional user agent.
- * @return {boolean} Whether the app is rendered in a mobile iOS or Android file
- *     environment.
+ * @return {boolean} Whether the app is rendered in a mobile iOS or Android
+ *     Cordova environment.
  */
-fireauth.util.isAndroidOrIosFileEnvironment = function(opt_userAgent) {
+fireauth.util.isAndroidOrIosCordovaScheme = function(opt_userAgent) {
   var ua = opt_userAgent || fireauth.util.getUserAgentString();
-  return !!(fireauth.util.getCurrentScheme() === 'file:' &&
+  return !!((fireauth.util.getCurrentScheme() === 'file:' ||
+             fireauth.util.getCurrentScheme() === 'ionic:') &&
             ua.toLowerCase().match(/iphone|ipad|ipod|android/));
 };
 
@@ -992,7 +993,7 @@ fireauth.util.isPopupRedirectSupported = function() {
   // origin can be securely whitelisted.
   return (fireauth.util.isHttpOrHttps() ||
           fireauth.util.isChromeExtension() ||
-          fireauth.util.isAndroidOrIosFileEnvironment()) &&
+          fireauth.util.isAndroidOrIosCordovaScheme()) &&
          // React Native with remote debugging reports its location.protocol as
          // http.
          !fireauth.util.isNativeEnvironment() &&
