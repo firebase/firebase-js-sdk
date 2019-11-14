@@ -605,14 +605,10 @@ export class LocalStore {
                   (doc.version.compareTo(existingDoc.version) === 0 &&
                     existingDoc.hasPendingWrites)
                 ) {
-                  // TODO(index-free): Make this an assert when we enable
-                  // Index-Free queries
-                  if (SnapshotVersion.MIN.isEqual(remoteVersion)) {
-                    log.error(
-                      LOG_TAG,
-                      'Cannot add a document when the remote version is zero'
-                    );
-                  }
+                  assert(
+                    !SnapshotVersion.MIN.isEqual(remoteVersion),
+                    'Cannot add a document when the remote version is zero'
+                  );
                   documentBuffer.addEntry(doc, remoteVersion);
                   changedDocs = changedDocs.insert(key, doc);
                 } else {

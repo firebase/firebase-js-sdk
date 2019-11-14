@@ -38,6 +38,7 @@ import {
   DocumentViewChange,
   ViewSnapshot
 } from '../../../src/core/view_snapshot';
+import { IndexFreeQueryEngine } from '../../../src/local/index_free_query_engine';
 import { IndexedDbPersistence } from '../../../src/local/indexeddb_persistence';
 import {
   DbPrimaryClient,
@@ -56,7 +57,6 @@ import {
   WebStorageSharedClientState
 } from '../../../src/local/shared_client_state';
 import { SimpleDb } from '../../../src/local/simple_db';
-import { SimpleQueryEngine } from '../../../src/local/simple_query_engine';
 import { TargetData, TargetPurpose } from '../../../src/local/target_data';
 import { DocumentOptions } from '../../../src/model/document';
 import { DocumentKey } from '../../../src/model/document_key';
@@ -463,8 +463,7 @@ abstract class TestRunner {
       this.useGarbageCollection
     );
 
-    // TODO(index-free): Update to index-free query engine when it becomes default.
-    const queryEngine = new SimpleQueryEngine();
+    const queryEngine = new IndexFreeQueryEngine();
     this.localStore = new LocalStore(this.persistence, queryEngine, this.user);
     await this.localStore.start();
 

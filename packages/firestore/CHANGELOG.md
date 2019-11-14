@@ -1,4 +1,11 @@
-# Unreleased
+# Unreleased (1.8.0)
+- [changed] Improved the performance of repeatedly executed queries when
+  persistence is enabled. Recently executed queries should see dramatic
+  improvements. This benefit is reduced if changes accumulate while the query
+  is inactive. Queries that use the `limit()` API may not always benefit,
+  depending on the accumulated changes.
+
+# 1.7.0
 - [changed] The client can now recover if certain periodic IndexedDB operations
   fail.
 - [feature] Added `in` and `array-contains-any` query operators for use with
