@@ -86,15 +86,6 @@ describe('Firebase Performance > attribute_utils', () => {
       expect(getVisibilityState()).to.be.eql(VisibilityState.HIDDEN);
     });
 
-    it('returns prerender when document is prerender', () => {
-      stub(Api, 'getInstance').returns(({
-        document: {
-          visibilityState: 'prerender'
-        }
-      } as unknown) as Api);
-      expect(getVisibilityState()).to.be.eql(VisibilityState.PRERENDER);
-    });
-
     it('returns unknown when document is unknown', () => {
       stub(Api, 'getInstance').returns(({
         document: {
