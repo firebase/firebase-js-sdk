@@ -39,12 +39,12 @@ const customDataLayerName = 'customDataLayer';
 describe('FirebaseAnalytics instance tests', () => {
   it('Throws if no analyticsId in config', () => {
     const app = getFakeApp();
-    expect(() => analyticsFactory(app, () => {})).to.throw('field is empty');
+    expect(() => analyticsFactory(app)).to.throw('field is empty');
   });
   it('Throws if creating an instance with already-used analytics ID', () => {
     const app = getFakeApp(analyticsId);
     resetGlobalVars(false, { [analyticsId]: Promise.resolve() });
-    expect(() => analyticsFactory(app, () => {})).to.throw('already exists');
+    expect(() => analyticsFactory(app)).to.throw('already exists');
   });
   describe('Standard app, page already has user gtag script', () => {
     let app: FirebaseApp = {} as FirebaseApp;
@@ -53,7 +53,7 @@ describe('FirebaseAnalytics instance tests', () => {
       app = getFakeApp(analyticsId);
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
-      analyticsInstance = analyticsFactory(app, () => {});
+      analyticsInstance = analyticsFactory(app);
     });
     after(() => {
       delete window['gtag'];
@@ -119,7 +119,7 @@ describe('FirebaseAnalytics instance tests', () => {
         dataLayerName: customDataLayerName,
         gtagName: customGtagName
       });
-      analyticsInstance = analyticsFactory(app, () => {});
+      analyticsInstance = analyticsFactory(app);
     });
     after(() => {
       delete window[customGtagName];
@@ -162,7 +162,7 @@ describe('FirebaseAnalytics instance tests', () => {
     before(() => {
       resetGlobalVars();
       const app = getFakeApp(analyticsId);
-      analyticsInstance = analyticsFactory(app, () => {});
+      analyticsInstance = analyticsFactory(app);
     });
     after(() => {
       delete window['gtag'];

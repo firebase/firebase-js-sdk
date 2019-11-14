@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import {
   FirebaseAnalytics,
   Gtag,
@@ -38,6 +37,7 @@ import {
 } from './helpers';
 import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
+import { FirebaseApp } from '@firebase/app-types';
 
 /**
  * Maps gaId to FID fetch promises.
@@ -102,11 +102,7 @@ export function settings(options: SettingsOptions): void {
   }
 }
 
-export function factory(
-  app: FirebaseApp,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  extendApp: (props: { [prop: string]: any }) => void
-): FirebaseAnalytics {
+export function factory(app: FirebaseApp): FirebaseAnalytics {
   const analyticsId = app.options[ANALYTICS_ID_FIELD];
   if (!analyticsId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);
@@ -160,14 +156,6 @@ export function factory(
     setAnalyticsCollectionEnabled: enabled =>
       setAnalyticsCollectionEnabled(analyticsId, enabled)
   };
-
-  extendApp({
-    INTERNAL: {
-      analytics: {
-        logEvent: analyticsInstance.logEvent
-      }
-    }
-  });
 
   return analyticsInstance;
 }

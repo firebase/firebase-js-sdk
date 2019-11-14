@@ -16,7 +16,7 @@
  */
 
 import { FirebaseNamespace } from '@firebase/app-types';
-import { createFirebaseNamespace } from './src/firebaseNamespace';
+import { firebase as firebaseNamespace } from './src/firebaseNamespace';
 import { isNode, isBrowser } from '@firebase/util';
 import { logger } from './src/logger';
 
@@ -38,7 +38,6 @@ if (isBrowser() && (self as any).firebase !== undefined) {
   }
 }
 
-const firebaseNamespace = createFirebaseNamespace();
 const initializeApp = firebaseNamespace.initializeApp;
 
 // TODO: This disable can be removed and the 'ignoreRestArgs' option added to
