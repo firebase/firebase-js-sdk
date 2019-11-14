@@ -28,8 +28,7 @@ const enum ServiceWorkerStatus {
 export enum VisibilityState {
   UNKNOWN = 0,
   VISIBLE = 1,
-  HIDDEN = 2,
-  UNLOADED = 4
+  HIDDEN = 2
 }
 
 const enum EffectiveConnectionType {
