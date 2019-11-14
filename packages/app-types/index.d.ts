@@ -101,3 +101,9 @@ export interface FirebaseNamespace {
   // The current SDK version.
   SDK_VERSION: string;
 }
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'app': FirebaseApp;
+  }
+}

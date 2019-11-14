@@ -17,8 +17,7 @@
 
 import { FirebaseNamespace } from '@firebase/app-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
-import { createFirebaseNamespace } from './src/firebaseNamespace';
-
+import { firebase as _firebase } from './src/firebaseNamespace';
 /**
  * To avoid having to include the @types/react-native package, which breaks
  * some of our tests because of duplicate symbols, we are using require syntax
@@ -27,9 +26,7 @@ import { createFirebaseNamespace } from './src/firebaseNamespace';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { AsyncStorage } = require('react-native');
 
-const _firebase = createFirebaseNamespace() as _FirebaseNamespace;
-
-_firebase.INTERNAL.extendNamespace({
+(_firebase as _FirebaseNamespace).INTERNAL.extendNamespace({
   INTERNAL: {
     reactNative: {
       AsyncStorage

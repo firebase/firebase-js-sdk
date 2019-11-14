@@ -21,7 +21,7 @@
     "test": "run-p lint test:browser test:node",
     "test:browser": "karma start --single-run",
     "test:browser:debug": "karma start --browsers Chrome --auto-watch",
-    "test:node": "TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
+    "test:node": "TS_NODE_FILES=true TS_NODE_CACHE=NO TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\"}' nyc --reporter lcovonly -- mocha test/**/*.test.* --opts ../../config/mocha.node.opts",
     "prepare": "yarn build"
   },
   "license": "Apache-2.0",
@@ -29,6 +29,7 @@
     "@firebase/app-types": "0.4.7",
     "@firebase/util": "0.2.31",
     "@firebase/logger": "0.1.28",
+    "@firebase/component": "0.1.0",
     "tslib": "1.10.0",
     "dom-storage": "2.1.0",
     "xmlhttprequest": "1.8.0"
@@ -56,6 +57,7 @@
     "rollup-plugin-typescript2": "0.25.2",
     "rollup-plugin-json": "4.0.0",
     "sinon": "7.5.0",
+    "sinon-chai": "3.3.0",
     "source-map-loader": "0.2.4",
     "ts-loader": "6.2.1",
     "ts-node": "8.4.1",
