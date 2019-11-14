@@ -17,8 +17,8 @@
 
 import { FirebaseOptions, FirebaseApp } from '@firebase/app-types';
 import { Provider, ComponentContainer } from '@firebase/component';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
-import { FirebaseMessaging } from '@firebase/messaging-types';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { FirebaseMessagingName } from '@firebase/messaging-types';
 import { Service } from '../src/api/service';
 
 export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
@@ -43,11 +43,11 @@ export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
 export function createTestService(
   app: FirebaseApp,
   region?: string,
-  authProvider = new Provider<FirebaseAuthInternal>(
+  authProvider = new Provider<FirebaseAuthInternalName>(
     'auth-internal',
     new ComponentContainer('test')
   ),
-  messagingProvider = new Provider<FirebaseMessaging>(
+  messagingProvider = new Provider<FirebaseMessagingName>(
     'messaging',
     new ComponentContainer('test')
   )

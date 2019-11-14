@@ -15,8 +15,14 @@
  * limitations under the License.
  */
 import { _FirebaseApp } from '@firebase/app-types/private';
-import { FirebaseMessaging } from '@firebase/messaging-types';
-import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import {
+  FirebaseMessaging,
+  FirebaseMessagingName
+} from '@firebase/messaging-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
 /**
@@ -34,8 +40,8 @@ export class ContextProvider {
   private auth: FirebaseAuthInternal | null = null;
   private messaging: FirebaseMessaging | null = null;
   constructor(
-    authProvider: Provider<FirebaseAuthInternal>,
-    messagingProvider: Provider<FirebaseMessaging>
+    authProvider: Provider<FirebaseAuthInternalName>,
+    messagingProvider: Provider<FirebaseMessagingName>
   ) {
     this.auth = authProvider.getImmediate({ optional: true });
     this.messaging = messagingProvider.getImmediate({
