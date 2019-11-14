@@ -19,7 +19,10 @@ import { _FirebaseApp } from '@firebase/app-types/private';
 import { User } from '../auth/user';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
-import { FirebaseAuthInternal, FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
 import { Provider } from '@firebase/component';
 
 // TODO(mikelehen): This should be split into multiple files and probably

@@ -25,7 +25,10 @@ import {
   Component,
   ComponentType
 } from '@firebase/component';
-import { FirebaseAuthInternal, FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
 import { makeFakeApp, createTestService } from './utils';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports

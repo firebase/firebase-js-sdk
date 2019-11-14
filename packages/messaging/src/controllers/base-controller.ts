@@ -16,7 +16,10 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { FirebaseServiceInternals, FirebaseService } from '@firebase/app-types/private';
+import {
+  FirebaseServiceInternals,
+  FirebaseService
+} from '@firebase/app-types/private';
 import { FirebaseMessaging } from '@firebase/messaging-types';
 import {
   CompleteFn,
@@ -42,7 +45,8 @@ export type BgMessageHandler = (
 // Token should be refreshed once a week.
 export const TOKEN_EXPIRATION_MILLIS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
-export abstract class BaseController implements FirebaseMessaging, FirebaseService {
+export abstract class BaseController
+  implements FirebaseMessaging, FirebaseService {
   INTERNAL: FirebaseServiceInternals;
   readonly app: FirebaseApp;
   private readonly tokenDetailsModel: TokenDetailsModel;
