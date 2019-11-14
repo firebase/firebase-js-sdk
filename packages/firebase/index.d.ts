@@ -3615,23 +3615,27 @@ declare namespace firebase.auth {
     addScope(scope: string): firebase.auth.AuthProvider;
     /**
      * Creates a Firebase credential from a generic OAuth provider's access token or
-     * ID token.
+     * ID token. The raw nonce is required when an ID token with a nonce field is
+     * provided. The SHA-256 hash of the raw nonce must match the nonce field in
+     * the ID token.
      *
      * @example
      * ```javascript
      * // `googleUser` from the onsuccess Google Sign In callback.
      * // Initialize a generate OAuth provider with a `google.com` providerId.
      * var provider = new firebase.auth.OAuthProvider('google.com');
-     * var credential = provider.credential(
-     *     googleUser.getAuthResponse().id_token);
+     * var credential = provider.credential({
+     *   idToken: googleUser.getAuthResponse().id_token,
+     * });
      * firebase.auth().signInWithCredential(credential)
      * ```
      *
-     * @param idToken The OAuth ID token if OIDC compliant.
+     * @param optionsOrIdToken Either the options object containing
+     *     the ID token, access token and raw nonce or the ID token string.
      * @param accessToken The OAuth access token.
      */
     credential(
-      idToken?: string,
+      optionsOrIdToken: firebase.auth.OAuthCredentialOptions | string | null,
       accessToken?: string
     ): firebase.auth.OAuthCredential;
     /**
@@ -3692,6 +3696,28 @@ declare namespace firebase.auth {
     claims: {
       [key: string]: any;
     };
+  }
+
+  /**
+   * Defines the options for initializing an
+   * {@link firebase.auth.OAuthCredential}. For ID tokens with nonce claim,
+   * the raw nonce has to also be provided.
+   */
+  interface OAuthCredentialOptions {
+    /**
+     * The OAuth ID token used to initialize the OAuthCredential.
+     */
+    idToken?: string;
+    /**
+     * The OAuth access token used to initialize the OAuthCredential.
+     */
+    accessToken?: string;
+    /**
+     * The raw nonce associated with the ID token. It is required when an ID token
+     * with a nonce field is provided. The SHA-256 hash of the raw nonce must match
+     * the nonce field in the ID token.
+     */
+    rawNonce?: string;
   }
 
   /**
