@@ -46,7 +46,7 @@
     "integration/*"
   ],
   "devDependencies": {
-    "chalk": "2.4.2",
+    "chalk": "3.0.0",
     "child-process-promise": "2.2.1",
     "clone": "2.1.2",
     "coveralls": "3.0.7",
