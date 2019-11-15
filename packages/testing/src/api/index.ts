@@ -141,9 +141,8 @@ function initializeApp(
       ComponentType.PRIVATE
     );
 
-    ((app as unknown) as _FirebaseApp)._addComponent(
-      mockAuthComponent,
-      /* overwrite */ true
+    ((app as unknown) as _FirebaseApp)._addOrOverwriteComponent(
+      mockAuthComponent
     );
   }
   if (databaseName) {
