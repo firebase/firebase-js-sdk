@@ -484,10 +484,7 @@ export class SyncTree {
    * @param path The path to the data we want
    * @param writeIdsToExclude A specific set to be excluded
    */
-  calcCompleteEventCache(
-    path: Path,
-    writeIdsToExclude?: number[]
-  ): Node {
+  calcCompleteEventCache(path: Path, writeIdsToExclude?: number[]): Node {
     const includeHiddenSets = true;
     const writeTree = this.pendingWriteTree_;
     const serverCache = this.syncPointTree_.findOnPath(path, function(
