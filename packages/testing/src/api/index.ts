@@ -131,16 +131,20 @@ function initializeApp(
   if (accessToken) {
     const mockAuthComponent = new Component(
       'auth-internal',
-      () => ({
-        getToken: () => Promise.resolve({ accessToken: accessToken }),
-        getUid: () => null,
-        addAuthTokenListener: () => { },
-        removeAuthTokenListener: () => { }
-      }) as FirebaseAuthInternal,
+      () =>
+        ({
+          getToken: () => Promise.resolve({ accessToken: accessToken }),
+          getUid: () => null,
+          addAuthTokenListener: () => {},
+          removeAuthTokenListener: () => {}
+        } as FirebaseAuthInternal),
       ComponentType.PRIVATE
     );
 
-    (app as unknown as _FirebaseApp)._addComponent(mockAuthComponent,/* overwrite */ true);
+    ((app as unknown) as _FirebaseApp)._addComponent(
+      mockAuthComponent,
+      /* overwrite */ true
+    );
   }
   if (databaseName) {
     // Toggle network connectivity to force a reauthentication attempt.
