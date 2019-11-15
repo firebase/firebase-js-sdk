@@ -83,7 +83,8 @@ export interface FirebaseAppInternals {
 
 export interface _FirebaseApp extends FirebaseApp {
   container: ComponentContainer;
-  _addComponent(component: Component, overwrite?: boolean): void;
+  _addComponent(component: Component): void;
+  _addOrOverwriteComponent(component: Component): void;
   _removeServiceInstance(name: string, instanceIdentifier?: string): void;
 }
 export interface _FirebaseNamespace extends FirebaseNamespace {
