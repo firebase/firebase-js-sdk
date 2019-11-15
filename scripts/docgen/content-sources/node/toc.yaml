@@ -130,3 +130,17 @@ toc:
     path: /docs/reference/node/firebase.firestore.Transaction
   - title: "WriteBatch"
     path: /docs/reference/node/firebase.firestore.WriteBatch
+
+- title: "firebase.functions"
+  path: /docs/reference/node/firebase.functions
+  section:
+  - title: "Functions"
+    path: /docs/reference/node/firebase.functions.Functions
+  - title: "HttpsCallable"
+    path: /docs/reference/node/firebase.functions.HttpsCallable
+  - title: "HttpsCallableOptions"
+    path: /docs/reference/node/firebase.functions.HttpsCallableOptions
+  - title: "HttpsCallableResult"
+    path: /docs/reference/node/firebase.functions.HttpsCallableResult
+  - title: "HttpsError"
+    path: /docs/reference/node/firebase.functions.HttpsError

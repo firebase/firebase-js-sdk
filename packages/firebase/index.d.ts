@@ -1070,9 +1070,6 @@ declare namespace firebase {
 
   function firestore(app?: firebase.app.App): firebase.firestore.Firestore;
 
-  /**
-   * @webonly
-   */
   function functions(app?: firebase.app.App): firebase.functions.Functions;
 
   /**
@@ -1268,9 +1265,6 @@ declare namespace firebase.app {
      */
     storage(url?: string): firebase.storage.Storage;
     firestore(): firebase.firestore.Firestore;
-    /**
-     * @webonly
-     */
     functions(region?: string): firebase.functions.Functions;
     /**
      * Gets the {@link firebase.performance.Performance `Performance`} service for the
@@ -1631,9 +1625,6 @@ declare namespace firebase.remoteConfig {
   export type LogLevel = 'debug' | 'error' | 'silent';
 }
 
-/**
- * @webonly
- */
 declare namespace firebase.functions {
   /**
    * An HttpsCallableResult wraps a single result from a function call.
