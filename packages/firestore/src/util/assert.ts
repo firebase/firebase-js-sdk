@@ -43,7 +43,7 @@ export function fail(failure: string): never {
  * Fails if the given assertion condition is false, throwing an Error with the
  * given message if it did.
  */
-export function assert(assertion: boolean, message: string): void {
+export function assert(assertion: boolean, message: string): asserts assertion {
   if (!assertion) {
     fail(message);
   }

@@ -698,7 +698,7 @@ export class PersistentWriteStream extends PersistentStream<
       !!responseProto.streamToken,
       'Got a write response without a stream token'
     );
-    this.lastStreamToken = responseProto.streamToken!;
+    this.lastStreamToken = responseProto.streamToken;
 
     if (!this.handshakeComplete_) {
       // The first response is always the handshake response

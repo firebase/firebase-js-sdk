@@ -523,13 +523,12 @@ export class FieldFilter extends Filter {
           value instanceof ArrayValue,
           'Comparing on key with IN, but filter value not an ArrayValue'
         );
-        assert(
-          (value as ArrayValue).internalValue.every(elem => {
+        assert(value.internalValue.every(elem => {
             return elem instanceof RefValue;
           }),
           'Comparing on key with IN, but an array value was not a RefValue'
         );
-        return new KeyFieldInFilter(field, value as ArrayValue);
+        return new KeyFieldInFilter(field, value);
       } else {
         assert(
           value instanceof RefValue,
@@ -539,7 +538,7 @@ export class FieldFilter extends Filter {
           op !== Operator.ARRAY_CONTAINS && op !== Operator.ARRAY_CONTAINS_ANY,
           `'${op.toString()}' queries don't make sense on document keys.`
         );
-        return new KeyFieldFilter(field, op, value as RefValue);
+        return new KeyFieldFilter(field, op, value);
       }
     } else if (value.isEqual(NullValue.INSTANCE)) {
       if (op !== Operator.EQUAL) {
@@ -564,13 +563,13 @@ export class FieldFilter extends Filter {
         value instanceof ArrayValue,
         'IN filter has invalid value: ' + value.toString()
       );
-      return new InFilter(field, value as ArrayValue);
+      return new InFilter(field, value);
     } else if (op === Operator.ARRAY_CONTAINS_ANY) {
       assert(
         value instanceof ArrayValue,
         'ARRAY_CONTAINS_ANY filter has invalid value: ' + value.toString()
       );
-      return new ArrayContainsAnyFilter(field, value as ArrayValue);
+      return new ArrayContainsAnyFilter(field, value);
     } else {
       return new FieldFilter(field, op, value);
     }
@@ -765,7 +764,7 @@ export class Bound {
           'Bound has a non-key value where the key path is being used.'
         );
         comparison = DocumentKey.comparator(
-          (component as RefValue).key,
+          component.key,
           doc.key
         );
       } else {
@@ -774,7 +773,7 @@ export class Bound {
           docValue !== null,
           'Field should exist since document matched the orderBy already.'
         );
-        comparison = component.compareTo(docValue!);
+        comparison = component.compareTo(docValue);
       }
       if (orderByComponent.dir === Direction.DESCENDING) {
         comparison = comparison * -1;

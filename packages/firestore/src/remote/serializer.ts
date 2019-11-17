@@ -257,9 +257,9 @@ export class JsonProtoSerializer {
     let nanos = 0;
     const fraction = ISO_REG_EXP.exec(utc);
     assert(!!fraction, 'invalid timestamp: ' + utc);
-    if (fraction![1]) {
+    if (fraction[1]) {
       // Pad the fraction out to 9 digits (nanos).
-      let nanoStr = fraction![1];
+      let nanoStr = fraction[1];
       nanoStr = (nanoStr + '000000000').substr(0, 9);
       nanos = Number(nanoStr);
     }
@@ -595,11 +595,11 @@ export class JsonProtoSerializer {
       !!doc.found,
       'Tried to deserialize a found document from a missing document.'
     );
-    assertPresent(doc.found!.name, 'doc.found.name');
-    assertPresent(doc.found!.updateTime, 'doc.found.updateTime');
-    const key = this.fromName(doc.found!.name!);
-    const version = this.fromVersion(doc.found!.updateTime!);
-    return new Document(key, version, {}, undefined, doc.found!, v =>
+    assertPresent(doc.found.name, 'doc.found.name');
+    assertPresent(doc.found.updateTime, 'doc.found.updateTime');
+    const key = this.fromName(doc.found.name!);
+    const version = this.fromVersion(doc.found.updateTime!);
+    return new Document(key, version, {}, undefined, doc.found, v =>
       this.fromValue(v)
     );
   }
@@ -613,8 +613,8 @@ export class JsonProtoSerializer {
       !!result.readTime,
       'Tried to deserialize a missing document without a read time.'
     );
-    const key = this.fromName(result.missing!);
-    const version = this.fromVersion(result.readTime!);
+    const key = this.fromName(result.missing);
+    const version = this.fromVersion(result.readTime);
     return new NoDocument(key, version);
   }
 
@@ -950,7 +950,7 @@ export class JsonProtoSerializer {
         commitTime !== undefined,
         'Received a write result without a commit time'
       );
-      return protos.map(proto => this.fromWriteResult(proto, commitTime!));
+      return protos.map(proto => this.fromWriteResult(proto, commitTime));
     } else {
       return [];
     }

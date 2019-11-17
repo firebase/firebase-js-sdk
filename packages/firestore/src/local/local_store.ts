@@ -432,8 +432,8 @@ export class LocalStore {
           .lookupMutationBatch(txn, batchId)
           .next((batch: MutationBatch | null) => {
             assert(batch !== null, 'Attempt to reject nonexistent batch!');
-            affectedKeys = batch!.keys();
-            return this.mutationQueue.removeMutationBatch(txn, batch!);
+            affectedKeys = batch.keys();
+            return this.mutationQueue.removeMutationBatch(txn, batch);
           })
           .next(() => {
             return this.mutationQueue.performConsistencyCheck(txn);
@@ -746,8 +746,8 @@ export class LocalStore {
         );
 
         // Advance the last limbo free snapshot version
-        const lastLimboFreeSnapshotVersion = targetData!.snapshotVersion;
-        const updatedTargetData = targetData!.withLastLimboFreeSnapshotVersion(
+        const lastLimboFreeSnapshotVersion = targetData.snapshotVersion;
+        const updatedTargetData = targetData.withLastLimboFreeSnapshotVersion(
           lastLimboFreeSnapshotVersion
         );
         this.targetDataByTarget = this.targetDataByTarget.insert(

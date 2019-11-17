@@ -504,7 +504,7 @@ export class UserDataConverter {
       context.fieldTransforms.length === 0,
       'Field transforms should have been disallowed.'
     );
-    return parsed!;
+    return parsed;
   }
 
   /** Sends data through this.preConverter, handling any thrown errors. */

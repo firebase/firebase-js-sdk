@@ -1429,7 +1429,7 @@ export class QueryDocumentSnapshot extends DocumentSnapshot
       typeof data === 'object',
       'Document in a QueryDocumentSnapshot should exist'
     );
-    return data as firestore.DocumentData;
+    return data;
   }
 }
 
