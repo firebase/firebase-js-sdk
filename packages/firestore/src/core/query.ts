@@ -523,7 +523,8 @@ export class FieldFilter extends Filter {
           value instanceof ArrayValue,
           'Comparing on key with IN, but filter value not an ArrayValue'
         );
-        assert(value.internalValue.every(elem => {
+        assert(
+          value.internalValue.every(elem => {
             return elem instanceof RefValue;
           }),
           'Comparing on key with IN, but an array value was not a RefValue'
@@ -763,10 +764,7 @@ export class Bound {
           component instanceof RefValue,
           'Bound has a non-key value where the key path is being used.'
         );
-        comparison = DocumentKey.comparator(
-          component.key,
-          doc.key
-        );
+        comparison = DocumentKey.comparator(component.key, doc.key);
       } else {
         const docValue = doc.field(orderByComponent.field);
         assert(

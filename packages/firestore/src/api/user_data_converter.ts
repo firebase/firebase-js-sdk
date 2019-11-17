@@ -451,9 +451,10 @@ export class UserDataConverter {
 
     for (let i = 0; i < moreFieldsAndValues.length; i += 2) {
       keys.push(
-        fieldPathFromArgument(methodName, moreFieldsAndValues[i] as
-          | string
-          | ExternalFieldPath)
+        fieldPathFromArgument(
+          methodName,
+          moreFieldsAndValues[i] as string | ExternalFieldPath
+        )
       );
       values.push(moreFieldsAndValues[i + 1]);
     }

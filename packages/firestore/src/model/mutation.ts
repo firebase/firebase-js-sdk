@@ -655,7 +655,7 @@ export class TransformMutation extends Mutation {
       'Unknown MaybeDocument type ' + maybeDoc
     );
     assert(
-        maybeDoc.key.isEqual(this.key),
+      maybeDoc.key.isEqual(this.key),
       'Can only transform a document with the same key'
     );
     return maybeDoc;

@@ -213,7 +213,10 @@ describe('SimpleDb', () => {
         return store.put(dummyUser).next(() => {
           throw new Error('Generated error');
         });
-      }).then(() => {}, error => Promise.reject(error))
+      }).then(
+        () => {},
+        error => Promise.reject(error)
+      )
     ).to.eventually.be.rejectedWith('Generated error');
 
     await runTransaction(store => {
