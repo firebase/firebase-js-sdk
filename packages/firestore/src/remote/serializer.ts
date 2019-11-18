@@ -94,7 +94,7 @@ const OPERATORS = (() => {
 // A RegExp matching ISO 8601 UTC timestamps with optional fraction.
 const ISO_REG_EXP = new RegExp(/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.(\d+))?Z$/);
 
-function assertPresent(value: unknown, description: string): void {
+function assertPresent(value: unknown, description: string): asserts value {
   assert(!typeUtils.isNullOrUndefined(value), description + ' is missing');
 }
 
@@ -490,7 +490,7 @@ export class JsonProtoSerializer {
     } else if ('arrayValue' in obj) {
       // "values" is not present if the array is empty
       assertPresent(obj.arrayValue, 'arrayValue');
-      const values = obj.arrayValue!.values || [];
+      const values = obj.arrayValue.values || [];
       return new fieldValue.ArrayValue(values.map(v => this.fromValue(v)));
     } else if ('timestampValue' in obj) {
       assertPresent(obj.timestampValue, 'timestampValue');
@@ -499,16 +499,16 @@ export class JsonProtoSerializer {
       );
     } else if ('geoPointValue' in obj) {
       assertPresent(obj.geoPointValue, 'geoPointValue');
-      const latitude = obj.geoPointValue!.latitude || 0;
-      const longitude = obj.geoPointValue!.longitude || 0;
+      const latitude = obj.geoPointValue.latitude || 0;
+      const longitude = obj.geoPointValue.longitude || 0;
       return new fieldValue.GeoPointValue(new GeoPoint(latitude, longitude));
     } else if ('bytesValue' in obj) {
       assertPresent(obj.bytesValue, 'bytesValue');
-      const blob = this.fromBlob(obj.bytesValue!);
+      const blob = this.fromBlob(obj.bytesValue);
       return new fieldValue.BlobValue(blob);
     } else if ('referenceValue' in obj) {
       assertPresent(obj.referenceValue, 'referenceValue');
-      const resourceName = this.fromResourceName(obj.referenceValue!);
+      const resourceName = this.fromResourceName(obj.referenceValue);
       const dbId = new DatabaseId(resourceName.get(1), resourceName.get(3));
       const key = new DocumentKey(
         this.extractLocalPathFromResourceName(resourceName)
@@ -597,8 +597,8 @@ export class JsonProtoSerializer {
     );
     assertPresent(doc.found.name, 'doc.found.name');
     assertPresent(doc.found.updateTime, 'doc.found.updateTime');
-    const key = this.fromName(doc.found.name!);
-    const version = this.fromVersion(doc.found.updateTime!);
+    const key = this.fromName(doc.found.name);
+    const version = this.fromVersion(doc.found.updateTime);
     return new Document(key, version, {}, undefined, doc.found, v =>
       this.fromValue(v)
     );
@@ -714,11 +714,11 @@ export class JsonProtoSerializer {
       // proto3 default value is unset in JSON (undefined), so use 'NO_CHANGE'
       // if unset
       const state = this.fromWatchTargetChangeState(
-        change.targetChange!.targetChangeType || 'NO_CHANGE'
+        change.targetChange.targetChangeType || 'NO_CHANGE'
       );
-      const targetIds: TargetId[] = change.targetChange!.targetIds || [];
+      const targetIds: TargetId[] = change.targetChange.targetIds || [];
       const resumeToken =
-        change.targetChange!.resumeToken || this.emptyByteString();
+        change.targetChange.resumeToken || this.emptyByteString();
       const causeProto = change.targetChange!.cause;
       const cause = causeProto && this.fromRpcStatus(causeProto);
       watchChange = new WatchTargetChange(
@@ -729,18 +729,15 @@ export class JsonProtoSerializer {
       );
     } else if ('documentChange' in change) {
       assertPresent(change.documentChange, 'documentChange');
-      assertPresent(change.documentChange!.document, 'documentChange.name');
+      const entityChange = change.documentChange;
+      assertPresent(entityChange.document, 'documentChange.name');
+      assertPresent(entityChange.document.name, 'documentChange.document.name');
       assertPresent(
-        change.documentChange!.document!.name,
-        'documentChange.document.name'
-      );
-      assertPresent(
-        change.documentChange!.document!.updateTime,
+        entityChange.document.updateTime,
         'documentChange.document.updateTime'
       );
-      const entityChange = change.documentChange!;
-      const key = this.fromName(entityChange.document!.name!);
-      const version = this.fromVersion(entityChange.document!.updateTime!);
+      const key = this.fromName(entityChange.document.name);
+      const version = this.fromVersion(entityChange.document.updateTime);
       const doc = new Document(
         key,
         version,
@@ -759,9 +756,9 @@ export class JsonProtoSerializer {
       );
     } else if ('documentDelete' in change) {
       assertPresent(change.documentDelete, 'documentDelete');
-      assertPresent(change.documentDelete!.document, 'documentDelete.document');
-      const docDelete = change.documentDelete!;
-      const key = this.fromName(docDelete.document!);
+      const docDelete = change.documentDelete;
+      assertPresent(docDelete.document, 'documentDelete.document');
+      const key = this.fromName(docDelete.document);
       const version = docDelete.readTime
         ? this.fromVersion(docDelete.readTime)
         : SnapshotVersion.forDeletedDoc();
@@ -770,19 +767,19 @@ export class JsonProtoSerializer {
       watchChange = new DocumentWatchChange([], removedTargetIds, doc.key, doc);
     } else if ('documentRemove' in change) {
       assertPresent(change.documentRemove, 'documentRemove');
-      assertPresent(change.documentRemove!.document, 'documentRemove');
-      const docRemove = change.documentRemove!;
-      const key = this.fromName(docRemove.document!);
+      const docRemove = change.documentRemove;
+      assertPresent(docRemove.document, 'documentRemove');
+      const key = this.fromName(docRemove.document);
       const removedTargetIds = docRemove.removedTargetIds || [];
       watchChange = new DocumentWatchChange([], removedTargetIds, key, null);
     } else if ('filter' in change) {
       // TODO(dimond): implement existence filter parsing with strategy.
       assertPresent(change.filter, 'filter');
-      assertPresent(change.filter!.targetId, 'filter.targetId');
       const filter = change.filter;
-      const count = filter!.count || 0;
+      assertPresent(filter.targetId, 'filter.targetId');
+      const count = filter.count || 0;
       const existenceFilter = new ExistenceFilter(count);
-      const targetId = filter!.targetId!;
+      const targetId = filter.targetId;
       watchChange = new ExistenceFilterChange(targetId, existenceFilter);
     } else {
       return fail('Unknown change type ' + JSON.stringify(change));
@@ -865,7 +862,7 @@ export class JsonProtoSerializer {
 
     if (proto.update) {
       assertPresent(proto.update.name, 'name');
-      const key = this.fromName(proto.update.name!);
+      const key = this.fromName(proto.update.name);
       const value = this.fromFields(proto.update.fields || {});
       if (proto.updateMask) {
         const fieldMask = this.fromDocumentMask(proto.updateMask);
