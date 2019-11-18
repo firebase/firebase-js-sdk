@@ -779,6 +779,6 @@ export function defaultDocumentDataConverter<
 >(): firestore.FirestoreDataConverter<T> {
   return {
     toFirestore: value => value,
-    fromFirestore: snapshot => snapshot.data()! as T
+    fromFirestore: (snapshot, options) => snapshot.data(options)! as T
   };
 }

@@ -1277,6 +1277,10 @@ export class Query<T = DocumentData> {
     onError?: (error: Error) => void,
     onCompletion?: () => void
   ): () => void;
+
+  withConverter<U>(
+    converter: FirestoreDataConverter<U>
+  ): Query<U>;
 }
 
 /**

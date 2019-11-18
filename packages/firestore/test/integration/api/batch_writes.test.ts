@@ -355,4 +355,43 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
         });
     });
   });
+
+  // PORTING NOTE: These tests are for generics support and apply only to web.
+  apiDescribe('Generics support', (persistence: boolean) => {
+    class Post {
+      constructor(readonly title: string, readonly author: string) {}
+      byline(): string {
+        return this.title + ', by ' + this.author;
+      }
+    }
+
+    it('can set and get a document with write batch', () => {
+      return integrationHelpers.withTestDb(persistence, db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter({
+            toFirestore(post: Post): firestore.DocumentData {
+              return { title: post.title, author: post.author };
+            },
+            fromFirestore(
+              snapshot: firestore.DocumentSnapshot,
+              options: firestore.SnapshotOptions
+            ): Post {
+              const data = snapshot.data(options)!;
+              return new Post(data.title, data.author);
+            }
+          });
+        return docRef.firestore
+          .batch()
+          .set(docRef, new Post('post', 'author'))
+          .commit()
+          .then(() => docRef.get())
+          .then(snapshot => {
+            expect(snapshot.exists).to.equal(true);
+            expect(snapshot.data()!.byline()).to.deep.equal('post, by author');
+          });
+      });
+    });
+  });
 });

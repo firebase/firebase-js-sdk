@@ -1,5 +1,3 @@
-import { JsonObject } from '../model/field_value';
-
 /**
  * @license
  * Copyright 2017 Google Inc.
@@ -81,29 +79,4 @@ export function safeIsNaN(value: unknown): boolean {
   } else {
     return typeof value === 'number' && isNaN(value);
   }
-}
-
-/**
- * Returns whether a value is a DocumentDataConverter.
- */
-export function isDocumentDataConverter(value: unknown): boolean {
-  return implementsAllMethods(value, ['toFirestore', 'fromFirestore']);
-}
-
-/**
- * Returns true if obj is an object and contains all the specified
- * methods.
- */
-function implementsAllMethods(obj: unknown, methods: string[]): boolean {
-  if (typeof obj !== 'object' || obj === null) {
-    return false;
-  }
-
-  const object = obj as JsonObject<unknown>;
-  for (const method of methods) {
-    if (!(method in object) || !(typeof object[method] === 'function')) {
-      return false;
-    }
-  }
-  return true;
 }

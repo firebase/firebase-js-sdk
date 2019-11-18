@@ -59,107 +59,6 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  it('can set and get a document with generics', () => {
-    class Post {
-      constructor(readonly title: string, readonly author: string) {}
-      byline(): string {
-        return this.title + ', by ' + this.author;
-      }
-    }
-
-    return withTestDb(persistence, async db => {
-      const docRef = db
-        .collection('posts')
-        .doc()
-        .withConverter({
-          toFirestore(post: Post): firestore.DocumentData {
-            return { title: post.title, author: post.author };
-          },
-          fromFirestore(snapshot: firestore.DocumentSnapshot): Post {
-            const data = snapshot.data()!;
-            return new Post(data.title, data.author);
-          }
-        });
-      await docRef.set(new Post('happy', 'author'));
-      const postData = await docRef.get();
-      const post = postData.data();
-      expect(post).to.not.equal(undefined);
-      expect(post!.byline()).to.equal('happy, by author');
-    });
-  });
-
-  it('works with collection parents', () => {
-    class Post {
-      constructor(readonly title: string, readonly author: string) {}
-      byline(): string {
-        return this.title + ', by ' + this.author;
-      }
-    }
-
-    class User {
-      constructor(readonly name: string, readonly age: number) {}
-      intro(): string {
-        return 'name: ' + this.name + ', age: ' + this.age;
-      }
-    }
-
-    return withTestDb(persistence, async db => {
-      const docRef = db
-        .collection('posts')
-        .doc()
-        .withConverter({
-          toFirestore(post: Post): firestore.DocumentData {
-            return { title: post.title, author: post.author };
-          },
-          fromFirestore(snapshot: firestore.DocumentSnapshot): Post {
-            const data = snapshot.data()!;
-            return new Post(data.title, data.author);
-          }
-        });
-      await docRef.set(new Post('title', 'author'));
-      const usersColl = docRef.collection('likes');
-      const youngBobbyRef = usersColl.doc();
-      await youngBobbyRef
-        .withConverter({
-          toFirestore(user: User): firestore.DocumentData {
-            return { name: user.name, age: user.age };
-          },
-          fromFirestore(snapshot: firestore.DocumentSnapshot): User {
-            const data = snapshot.data()!;
-            return new User(data.name, data.age);
-          }
-        })
-        .set(new User('bobby', 31));
-
-      const typedUserColl = db.collection(usersColl.path).withConverter({
-        toFirestore(user: User): firestore.DocumentData {
-          return { name: user.name, age: user.age };
-        },
-        fromFirestore(snapshot: firestore.DocumentSnapshot): User {
-          const data = snapshot.data()!;
-          return new User(data.name, data.age);
-        }
-      });
-
-      const userSnapshot = await typedUserColl.where('age', '>', 30).get();
-      expect(userSnapshot.size).to.equal(1);
-      expect(userSnapshot.docs[0].data().intro()).to.equal(
-        'name: bobby, age: 31'
-      );
-
-      const oldBobbyRef = await usersColl.doc();
-      await oldBobbyRef.set({ name: 'oldbobby', age: 99 });
-      await usersColl.doc().set({ name: 'oldbobby2', age: 999 });
-      const untypedSnapshot = await oldBobbyRef.get();
-      const userQuery = typedUserColl
-        .where('age', '>', 30)
-        .orderBy('age')
-        .startAt(untypedSnapshot);
-      const snapshot = await userQuery.get();
-      expect(snapshot.size).to.equal(2);
-    });
-  });
-
   it('doc() will auto generate an ID', () => {
     return withTestDb(persistence, async db => {
       const ref = db.collection('foo').doc();
@@ -1330,6 +1229,117 @@ apiDescribe('Database', (persistence: boolean) => {
       // `awaitsPendingWrites` is created when there is no pending writes, it will resolve
       // immediately even if we are offline.
       await firestore.waitForPendingWrites();
+    });
+  });
+
+  // PORTING NOTE: These tests are for generics support and apply only to web.
+  apiDescribe('Generics support', (persistence: boolean) => {
+    class Post {
+      constructor(readonly title: string, readonly author: string) {}
+      byline(): string {
+        return this.title + ', by ' + this.author;
+      }
+    }
+
+    it('can set and get a document', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db
+          .collection('posts')
+          .doc()
+          .withConverter({
+            toFirestore(post: Post): firestore.DocumentData {
+              return { title: post.title, author: post.author };
+            },
+            fromFirestore(
+              snapshot: firestore.DocumentSnapshot,
+              options: firestore.SnapshotOptions
+            ): Post {
+              const data = snapshot.data(options)!;
+              return new Post(data.title, data.author);
+            }
+          });
+
+        await docRef.set(new Post('post', 'author'));
+        const postData = await docRef.get();
+        const post = postData.data();
+        expect(post).to.not.equal(undefined);
+        expect(post!.byline()).to.equal('post, by author');
+      });
+    });
+
+    it('can set and get from a collection', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db
+          .collection('posts')
+          .withConverter({
+            toFirestore(post: Post): firestore.DocumentData {
+              return { title: post.title, author: post.author };
+            },
+            fromFirestore(
+              snapshot: firestore.DocumentSnapshot,
+              options: firestore.SnapshotOptions
+            ): Post {
+              const data = snapshot.data(options)!;
+              return new Post(data.title, data.author);
+            }
+          })
+          .doc();
+
+        await docRef.set(new Post('post', 'author'));
+        const postData = await docRef.get();
+        const post = postData.data();
+        expect(post).to.not.equal(undefined);
+        expect(post!.byline()).to.equal('post, by author');
+      });
+    });
+
+    it('can get from collectionGroup', () => {
+      return withTestDb(persistence, async db => {
+        await db
+          .doc('postings/post1')
+          .set({ title: 'post1', author: 'author1' });
+        await db
+          .doc('postings/post2')
+          .set({ title: 'post2', author: 'author2' });
+        const posts = await db
+          .collectionGroup('postings')
+          .withConverter({
+            toFirestore(post: Post): firestore.DocumentData {
+              return { title: post.title, author: post.author };
+            },
+            fromFirestore(snapshot: firestore.DocumentSnapshot): Post {
+              const data = snapshot.data()!;
+              return new Post(data.title, data.author);
+            }
+          })
+          .get();
+        expect(posts.size).to.equal(2);
+        expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
+      });
+    });
+
+    it('calls DocumentSnapshot.data() with specified SnapshotOptions', () => {
+      return withTestDb(persistence, async db => {
+        const docRef = db.doc('some/doc').withConverter({
+          toFirestore(post: Post): firestore.DocumentData {
+            return { title: post.title, author: post.author };
+          },
+          fromFirestore(
+            snapshot: firestore.DocumentSnapshot,
+            options: firestore.SnapshotOptions
+          ): Post {
+            // Check that options were passed in properly.
+            expect(options).to.deep.equal({ serverTimestamps: 'estimate' });
+
+            const data = snapshot.data(options)!;
+            return new Post(data.title, data.author);
+          }
+        });
+
+        await docRef.set(new Post('post', 'author'));
+        const postData = await docRef.get();
+        postData.data({ serverTimestamps: 'estimate' });
+      });
     });
   });
 });

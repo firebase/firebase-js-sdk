@@ -83,7 +83,6 @@ import { AutoId } from '../util/misc';
 import * as objUtils from '../util/obj';
 import { Rejecter, Resolver } from '../util/promise';
 import { Deferred } from './../util/promise';
-import { isDocumentDataConverter } from '../util/types';
 import { FieldPath as ExternalFieldPath } from './field_path';
 
 import {
@@ -589,40 +588,14 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
     }
   };
 
-  /**
-   * Returns the converter located at the argument index, or the default
-   * converter.
-   */
-  private converterFromArgs<T>(
-    functionName: string,
-    index: number,
-    ...args: unknown[]
-  ): firestore.FirestoreDataConverter<T> {
-    if (args.length === index + 1) {
-      if (!isDocumentDataConverter(args[index])) {
-        throw new FirestoreError(
-          Code.INVALID_ARGUMENT,
-          `Function ${functionName}() requires type ` +
-            `'Firestore.DocumentDataConverter' at index ${index}.`
-        );
-      } else {
-        return args[index] as firestore.FirestoreDataConverter<T>;
-      }
-    } else {
-      return {
-        toFirestore: value => value,
-        fromFirestore: snapshot => snapshot.data() as T
-      };
-    }
-  }
-
   collection(pathString: string): firestore.CollectionReference {
     validateExactNumberOfArgs('Firestore.collection', arguments, 1);
     validateArgType('Firestore.collection', 'non-empty string', 1, pathString);
     this.ensureClientConfigured();
     return new CollectionReference(ResourcePath.fromString(pathString), this, {
       toFirestore: value => value,
-      fromFirestore: snapshot => snapshot.data()! as firestore.DocumentData
+      fromFirestore: (snapshot, options) =>
+        snapshot.data(options)! as firestore.DocumentData
     });
   }
 
@@ -635,7 +608,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this,
       {
         toFirestore: (value: firestore.DocumentData) => value,
-        fromFirestore: snapshot => snapshot.data()! as firestore.DocumentData
+        fromFirestore: (snapshot, options) =>
+          snapshot.data(options)! as firestore.DocumentData
       }
     );
   }
@@ -661,7 +635,8 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this,
       {
         toFirestore: value => value,
-        fromFirestore: snapshot => snapshot.data()! as firestore.DocumentData
+        fromFirestore: (snapshot, options) =>
+          snapshot.data(options)! as firestore.DocumentData
       }
     );
   }
@@ -788,14 +763,20 @@ export class Transaction implements firestore.Transaction {
       this._firestore
     );
     options = validateSetOptions('Transaction.set', options);
+    const convertedValue = (documentRef as DocumentReference<
+      T
+    >)._converter.toFirestore(value);
     const parsed =
       options.merge || options.mergeFields
         ? this._firestore._dataConverter.parseMergeData(
             'Transaction.set',
-            value,
+            convertedValue,
             options.mergeFields
           )
-        : this._firestore._dataConverter.parseSetData('Transaction.set', value);
+        : this._firestore._dataConverter.parseSetData(
+            'Transaction.set',
+            convertedValue
+          );
     this._transaction.set(ref._key, parsed);
     return this;
   }
@@ -872,7 +853,7 @@ export class WriteBatch implements firestore.WriteBatch {
 
   set<T>(
     documentRef: firestore.DocumentReference<T>,
-    value: firestore.DocumentData,
+    value: T,
     options?: firestore.SetOptions
   ): WriteBatch {
     validateBetweenNumberOfArgs('WriteBatch.set', arguments, 2, 3);
@@ -883,14 +864,20 @@ export class WriteBatch implements firestore.WriteBatch {
       this._firestore
     );
     options = validateSetOptions('WriteBatch.set', options);
+    const convertedValue = (documentRef as DocumentReference<
+      T
+    >)._converter.toFirestore(value);
     const parsed =
       options.merge || options.mergeFields
         ? this._firestore._dataConverter.parseMergeData(
             'WriteBatch.set',
-            value,
+            convertedValue,
             options.mergeFields
           )
-        : this._firestore._dataConverter.parseSetData('WriteBatch.set', value);
+        : this._firestore._dataConverter.parseSetData(
+            'WriteBatch.set',
+            convertedValue
+          );
     this._mutations = this._mutations.concat(
       parsed.toMutations(ref._key, Precondition.NONE)
     );
