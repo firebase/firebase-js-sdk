@@ -29,7 +29,7 @@
     "@firebase/app-types": "0.x"
   },
   "devDependencies": {
-    "@types/chai": "4.2.4",
+    "@types/chai": "4.2.5",
     "@types/mocha": "5.2.7",
     "@types/sinon": "7.5.0",
     "chai": "4.2.0",
@@ -43,7 +43,7 @@
     "karma-spec-reporter": "0.0.32",
     "karma-webpack": "4.0.2",
     "npm-run-all": "4.1.5",
-    "rollup": "1.26.3",
+    "rollup": "1.27.2",
     "rollup-plugin-typescript2": "0.25.2",
     "sinon": "7.5.0",
     "source-map-loader": "0.2.4",
@@ -51,9 +51,9 @@
     "typescript": "3.7.2",
     "webpack": "4.41.2",
     "eslint": "6.6.0",
-    "@typescript-eslint/parser": "2.6.1",
-    "@typescript-eslint/eslint-plugin": "2.6.1",
-    "@typescript-eslint/eslint-plugin-tslint": "2.6.1"
+    "@typescript-eslint/parser": "2.7.0",
+    "@typescript-eslint/eslint-plugin": "2.7.0",
+    "@typescript-eslint/eslint-plugin-tslint": "2.7.0"
   },
   "repository": {
     "directory": "packages/storage",
