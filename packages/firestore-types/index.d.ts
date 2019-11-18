@@ -1278,9 +1278,7 @@ export class Query<T = DocumentData> {
     onCompletion?: () => void
   ): () => void;
 
-  withConverter<U>(
-    converter: FirestoreDataConverter<U>
-  ): Query<U>;
+  withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
 /**
