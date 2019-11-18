@@ -6890,7 +6890,7 @@ declare namespace firebase.storage {
         | null
         | ((a: UploadTaskSnapshot) => any),
       error?: ((a: Error) => any) | null,
-      complete?: (firebase.Unsubscribe) | null
+      complete?: firebase.Unsubscribe | null
     ): Function;
     /**
      * Pauses a running task. Has no effect on a paused or failed task.

@@ -92,9 +92,11 @@ describe('Testing Module Tests', function() {
       /databaseName not specified/
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await expect((firebase as any).loadDatabaseRules.bind(null, {
-      databaseName: 'foo'
-    }) as Promise<void>).to.throw(/must provide rules/);
+    await expect(
+      (firebase as any).loadDatabaseRules.bind(null, {
+        databaseName: 'foo'
+      }) as Promise<void>
+    ).to.throw(/must provide rules/);
     await expect(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (firebase as any).loadDatabaseRules.bind(null, { rules: '{}' })
