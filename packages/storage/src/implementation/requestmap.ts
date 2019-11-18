@@ -36,9 +36,10 @@ export class RequestMap {
     this.id++;
     this.map.set(id, request);
 
-    request
-      .getPromise()
-      .then(() => this.map.delete(id), () => this.map.delete(id));
+    request.getPromise().then(
+      () => this.map.delete(id),
+      () => this.map.delete(id)
+    );
   }
 
   /**

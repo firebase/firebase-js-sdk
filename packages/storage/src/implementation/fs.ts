@@ -21,7 +21,7 @@
  */
 import * as type from './type';
 
-function getBlobBuilder(): (typeof IBlobBuilder) | undefined {
+function getBlobBuilder(): typeof IBlobBuilder | undefined {
   if (typeof BlobBuilder !== 'undefined') {
     return BlobBuilder;
   } else if (typeof WebKitBlobBuilder !== 'undefined') {

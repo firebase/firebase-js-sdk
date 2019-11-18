@@ -175,13 +175,10 @@ export class RemoteConfig implements RemoteConfigType {
     return getAllKeys(
       this._storageCache.getActiveConfig(),
       this.defaultConfig
-    ).reduce(
-      (allConfigs, key) => {
-        allConfigs[key] = this.getValue(key);
-        return allConfigs;
-      },
-      {} as { [key: string]: ValueType }
-    );
+    ).reduce((allConfigs, key) => {
+      allConfigs[key] = this.getValue(key);
+      return allConfigs;
+    }, {} as { [key: string]: ValueType });
   }
 
   getBoolean(key: string): boolean {
