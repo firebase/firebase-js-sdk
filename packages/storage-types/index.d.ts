@@ -95,7 +95,7 @@ export interface UploadTask {
       | null
       | ((a: UploadTaskSnapshot) => any),
     error?: ((a: Error) => any) | null,
-    complete?: (Unsubscribe) | null
+    complete?: Unsubscribe | null
   ): Function;
   pause(): boolean;
   resume(): boolean;

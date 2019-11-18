@@ -112,9 +112,10 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       return EXAMPLE_TOKEN_SAVE;
     });
 
-    stub(SubscriptionManager.prototype, 'deleteToken').callsFake(
-      async () => {}
-    );
+    stub(
+      SubscriptionManager.prototype,
+      'deleteToken'
+    ).callsFake(async () => {});
 
     messagingService = new WindowController(app);
     return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
@@ -133,9 +134,10 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
       return EXAMPLE_TOKEN_SAVE;
     });
 
-    stub(SubscriptionManager.prototype, 'deleteToken').callsFake(
-      async () => {}
-    );
+    stub(
+      SubscriptionManager.prototype,
+      'deleteToken'
+    ).callsFake(async () => {});
 
     messagingService = new WindowController(app);
     return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
@@ -162,9 +164,10 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         }
       );
 
-      stub(SubscriptionManager.prototype, 'deleteToken').callsFake(
-        async () => {}
-      );
+      stub(
+        SubscriptionManager.prototype,
+        'deleteToken'
+      ).callsFake(async () => {});
 
       messagingService = new serviceClass(app);
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
@@ -191,9 +194,10 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         }
       );
 
-      stub(SubscriptionManager.prototype, 'deleteToken').callsFake(
-        async () => {}
-      );
+      stub(
+        SubscriptionManager.prototype,
+        'deleteToken'
+      ).callsFake(async () => {});
 
       messagingService = new serviceClass(app);
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken).then(
@@ -258,9 +262,10 @@ describe('Firebase Messaging > *Controller.deleteToken()', () => {
         }
       );
 
-      stub(SubscriptionManager.prototype, 'deleteToken').callsFake(
-        async () => {}
-      );
+      stub(
+        SubscriptionManager.prototype,
+        'deleteToken'
+      ).callsFake(async () => {});
 
       messagingService = new serviceClass(app);
       return messagingService.deleteToken(EXAMPLE_TOKEN_SAVE.fcmToken);
