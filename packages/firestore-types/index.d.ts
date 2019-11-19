@@ -91,13 +91,13 @@ export class GeoPoint {
 }
 
 export class Timestamp {
+  constructor(seconds: number, nanoseconds: number);
+  
   static now(): Timestamp;
   
   static fromDate(date: Date): Timestamp;
   
   static fromMillis(milliseconds: number): Timestamp;
-
-  constructor(seconds: number, nanoseconds: number);
 
   readonly seconds: number;
   readonly nanoseconds: number;
