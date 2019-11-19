@@ -34,21 +34,8 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/chai": "4.2.5",
-    "@types/mocha": "5.2.7",
-    "@types/sinon": "7.5.0",
-    "@typescript-eslint/eslint-plugin": "2.7.0",
-    "@typescript-eslint/eslint-plugin-tslint": "2.7.0",
-    "@typescript-eslint/parser": "2.7.0",
-    "chai": "4.2.0",
-    "chai-as-promised": "7.1.1",
-    "eslint": "6.6.0",
-    "eslint-plugin-import": "2.18.2",
-    "mocha": "6.2.2",
     "rollup": "1.27.2",
     "rollup-plugin-typescript2": "0.25.2",
-    "sinon": "7.5.0",
-    "sinon-chai": "3.3.0",
     "typescript": "3.7.2"
   },
   "repository": {
