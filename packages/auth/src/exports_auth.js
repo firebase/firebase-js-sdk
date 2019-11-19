@@ -670,8 +670,9 @@ fireauth.exportlib.exportFunction(
     fireauth.exportlib.exportFunction(namespace,
         'ActionCodeURL', fireauth.ActionCodeURL, []);
 
-    // Create auth components to register with firebase
-    const authComponent = { // provides Auth public APIs
+    // Create auth components to register with firebase.
+    // Provides Auth public APIs.
+    const authComponent = { 
       'name': fireauth.exportlib.AUTH_TYPE,
       'instanceFactory': function(container) {
         var app = container['getProvider']('app')['getImmediate']();
@@ -683,7 +684,8 @@ fireauth.exportlib.exportFunction(
       'type':  'PUBLIC'
     };
   
-    const authInteropComponent = { // provides Auth internal APIs
+    // Provides Auth internal APIs.
+    const authInteropComponent = { 
       'name': 'auth-internal',
       'instanceFactory': function(container) {
         var auth = container['getProvider'](fireauth.exportlib.AUTH_TYPE)['getImmediate']();
