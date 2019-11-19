@@ -886,7 +886,13 @@ export class DocumentReference<T = DocumentData> {
     onError?: (error: Error) => void,
     onCompletion?: () => void
   ): () => void;
-
+  
+  /**
+   * Converts a DocumentReference into a DocumentReference<U>.
+   *
+   * @param converter Converts objects to and from Firestore
+   * @return A DocumentReference<U> that uses the provided converter
+   */
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -1278,6 +1284,12 @@ export class Query<T = DocumentData> {
     onCompletion?: () => void
   ): () => void;
 
+  /**
+   * Converts a Query into a Query<U>.
+   *
+   * @param converter Converts objects to and from Firestore
+   * @return A Query<U> that uses the provided converter
+   */
   withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
 }
 
@@ -1425,6 +1437,12 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
    */
   isEqual(other: CollectionReference<T>): boolean;
 
+  /**
+   * Converts a CollectionReference into a CollectionReference<U>.
+   *
+   * @param converter Converts objects to and from Firestore
+   * @return A CollectionReference<U> that uses the provided converter
+   */
   withConverter<U>(
     converter: FirestoreDataConverter<U>
   ): CollectionReference<U>;
