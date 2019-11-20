@@ -120,6 +120,8 @@ module.exports = {
         "import/no-extraneous-dependencies": [
             "error",
             {
+                // Check dependencies from both local package.json
+                // and from root package.json.
                 "packageDir": [
                     path.join(__dirname, '../'),
                     './'
