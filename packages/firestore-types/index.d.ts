@@ -49,40 +49,40 @@ export interface FirestoreDataConverter<T> {
 
 export class FirebaseFirestore {
   private constructor();
-  
+
   settings(settings: Settings): void;
-  
+
   enablePersistence(settings?: PersistenceSettings): Promise<void>;
-  
+
   collection(collectionPath: string): CollectionReference<DocumentData>;
-  
+
   doc(documentPath: string): DocumentReference<DocumentData>;
-  
+
   collectionGroup(collectionId: string): Query<DocumentData>;
-  
+
   runTransaction<T>(
     updateFunction: (transaction: Transaction) => Promise<T>
   ): Promise<T>;
-  
+
   batch(): WriteBatch;
-  
+
   app: any;
-  
+
   clearPersistence(): Promise<void>;
-  
+
   enableNetwork(): Promise<void>;
-  
+
   disableNetwork(): Promise<void>;
-  
+
   waitForPendingWrites(): Promise<void>;
-  
+
   onSnapshotsInSync(observer: {
     next?: (value: void) => void;
     error?: (error: Error) => void;
     complete?: () => void;
   }): () => void;
   onSnapshotsInSync(onSync: () => void): () => void;
-  
+
   terminate(): Promise<void>;
 
   INTERNAL: { delete: () => Promise<void> };
@@ -93,26 +93,26 @@ export class GeoPoint {
 
   readonly latitude: number;
   readonly longitude: number;
-  
+
   isEqual(other: GeoPoint): boolean;
 }
 
 export class Timestamp {
   constructor(seconds: number, nanoseconds: number);
-  
+
   static now(): Timestamp;
-  
+
   static fromDate(date: Date): Timestamp;
-  
+
   static fromMillis(milliseconds: number): Timestamp;
 
   readonly seconds: number;
   readonly nanoseconds: number;
 
   toDate(): Date;
-  
+
   toMillis(): number;
-  
+
   isEqual(other: Timestamp): boolean;
 }
 
@@ -126,7 +126,7 @@ export class Blob {
   public toBase64(): string;
 
   public toUint8Array(): Uint8Array;
-  
+
   isEqual(other: Blob): boolean;
 }
 
@@ -151,7 +151,6 @@ export class Transaction {
     value: any,
     ...moreFieldsAndValues: any[]
   ): Transaction;
-
 
   delete(documentRef: DocumentReference<unknown>): Transaction;
 }
@@ -192,7 +191,6 @@ export interface GetOptions {
 }
 
 export class DocumentReference<T = DocumentData> {
-
   private constructor();
 
   readonly id: string;
@@ -241,7 +239,7 @@ export class DocumentReference<T = DocumentData> {
     onError?: (error: Error) => void,
     onCompletion?: () => void
   ): () => void;
-  
+
   withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
 }
 
@@ -392,7 +390,7 @@ export interface DocumentChange<T = DocumentData> {
 
 export class CollectionReference<T = DocumentData> extends Query<T> {
   private constructor();
-  
+
   readonly id: string;
   readonly parent: DocumentReference<DocumentData> | null;
   readonly path: string;
@@ -410,25 +408,25 @@ export class CollectionReference<T = DocumentData> extends Query<T> {
 
 export class FieldValue {
   private constructor();
-  
+
   static serverTimestamp(): FieldValue;
-  
+
   static delete(): FieldValue;
-  
+
   static arrayUnion(...elements: any[]): FieldValue;
-  
+
   static arrayRemove(...elements: any[]): FieldValue;
-  
+
   static increment(n: number): FieldValue;
-  
+
   isEqual(other: FieldValue): boolean;
 }
 
 export class FieldPath {
   constructor(...fieldNames: string[]);
-  
+
   static documentId(): FieldPath;
-  
+
   isEqual(other: FieldPath): boolean;
 }
 

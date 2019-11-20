@@ -7391,7 +7391,7 @@ declare namespace firebase.firestore {
      *     from 0 to 999,999,999 inclusive.
      */
     constructor(seconds: number, nanoseconds: number);
-    
+
     /**
      * Creates a new timestamp with the current date, with millisecond precision.
      *
@@ -7617,7 +7617,10 @@ declare namespace firebase.firestore {
      * within the document.
      * @return This `WriteBatch` instance. Used for chaining method calls.
      */
-    update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
+    update(
+      documentRef: DocumentReference<unknown>,
+      data: UpdateData
+    ): WriteBatch;
 
     /**
      * Updates fields in the document referred to by this `DocumentReference`.
@@ -7927,7 +7930,9 @@ declare namespace firebase.firestore {
      * @param converter Converts objects to and from Firestore
      * @return A DocumentReference<U> that uses the provided converter
      */
-    withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+    withConverter<U>(
+      converter: FirestoreDataConverter<U>
+    ): DocumentReference<U>;
   }
 
   /**
@@ -8070,7 +8075,9 @@ declare namespace firebase.firestore {
    * `exists` property will always be true and `data()` will never return
    * 'undefined'.
    */
-  export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {
+  export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
+    T
+  > {
     private constructor();
 
     /**
