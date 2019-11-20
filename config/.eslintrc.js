@@ -1,4 +1,6 @@
-{
+const path = require('path');
+
+module.exports = {
     "env": {
         "browser": true,
         "es6": true,
@@ -118,6 +120,10 @@
         "import/no-extraneous-dependencies": [
             "error",
             {
+                "packageDir": [
+                    path.join(__dirname, '../'),
+                    './'
+                ],
                 "devDependencies": [
                     "**/*.test.ts",
                     "**/test/**/*.ts",
