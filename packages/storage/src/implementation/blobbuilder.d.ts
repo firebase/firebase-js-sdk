@@ -19,8 +19,8 @@ declare class IBlobBuilder {
   getBlob(): Blob;
 }
 
-declare const BlobBuilder: undefined | (typeof IBlobBuilder);
-declare const WebKitBlobBuilder: undefined | (typeof IBlobBuilder);
+declare const BlobBuilder: undefined | typeof IBlobBuilder;
+declare const WebKitBlobBuilder: undefined | typeof IBlobBuilder;
 
 interface Blob {
   webkitSlice: typeof Blob.prototype.slice;

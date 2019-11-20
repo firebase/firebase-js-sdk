@@ -33,7 +33,10 @@ import {
 
 describe('Bound', () => {
   function makeBound(values: unknown[], before: boolean): Bound {
-    return new Bound(values.map(el => wrap(el)), before);
+    return new Bound(
+      values.map(el => wrap(el)),
+      before
+    );
   }
 
   it('implements isEqual', () => {

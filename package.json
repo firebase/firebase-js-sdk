@@ -46,14 +46,14 @@
     "integration/*"
   ],
   "devDependencies": {
-    "chalk": "2.4.2",
+    "chalk": "3.0.0",
     "child-process-promise": "2.2.1",
     "clone": "2.1.2",
     "coveralls": "3.0.7",
     "dependency-graph": "0.8.0",
     "firebase-tools": "7.7.0",
     "glob": "7.1.6",
-    "husky": "3.0.9",
+    "husky": "3.1.0",
     "inquirer": "7.0.0",
     "istanbul-instrumenter-loader": "3.0.1",
     "js-yaml": "3.13.1",
@@ -64,14 +64,14 @@
     "mkdirp": "0.5.1",
     "mz": "2.7.0",
     "npm-run-path": "4.0.0",
-    "ora": "4.0.2",
-    "prettier": "1.18.2",
+    "ora": "4.0.3",
+    "prettier": "1.19.1",
     "semver": "6.3.0",
     "simple-git": "1.126.0",
-    "typedoc": "0.15.0",
-    "ts-node": "8.4.1",
-    "typescript": "3.6.4",
-    "yargs": "14.2.0",
+    "typedoc": "0.15.2",
+    "ts-node": "8.5.2",
+    "typescript": "3.7.2",
+    "yargs": "14.2.1",
     "babel-loader": "8.0.6"
   }
 }

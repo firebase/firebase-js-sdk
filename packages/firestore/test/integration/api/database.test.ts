@@ -133,12 +133,10 @@ apiDescribe('Database', (persistence: boolean) => {
       await writerRef
         .get({ source: 'cache' })
         .then(doc => expect(doc.exists).to.be.true);
-      await readerRef
-        .get({ source: 'cache' })
-        .then(
-          () => fail('Expected cache miss'),
-          err => expect(err.code).to.be.equal(Code.UNAVAILABLE)
-        );
+      await readerRef.get({ source: 'cache' }).then(
+        () => fail('Expected cache miss'),
+        err => expect(err.code).to.be.equal(Code.UNAVAILABLE)
+      );
       await writerRef
         .get()
         .then(doc => expect(doc.data()).to.deep.equal({ a: 'a', b: 'b' }));

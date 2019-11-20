@@ -7,6 +7,24 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "RTDB Unit Tests (Node)",
+      "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
+      "cwd": "${workspaceRoot}/packages/database",
+      "args": [
+        "test/{,!(browser)/**/}*.test.ts",
+        "--file", "index.node.ts",
+        "--opts", "../../config/mocha.node.opts"
+      ],
+      "env": {
+        "TS_NODE_CACHE": "NO",
+        "TS_NODE_COMPILER_OPTIONS" : "{\"module\":\"commonjs\"}"
+      },
+      "sourceMaps": true,
+      "protocol": "inspector"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Firestore Unit Tests (Node)",
       "program": "${workspaceRoot}/packages/firestore/node_modules/.bin/_mocha",
       "cwd": "${workspaceRoot}/packages/firestore",

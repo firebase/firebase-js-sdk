@@ -1641,7 +1641,7 @@ export class Query<T = firestore.DocumentData> implements firestore.Query<T> {
     );
   }
 
-  limitToLast(n: number): firestore.Query {
+  limitToLast(n: number): firestore.Query<T> {
     validateExactNumberOfArgs('Query.limitToLast', arguments, 1);
     validateArgType('Query.limitToLast', 'number', 1, n);
     validatePositiveNumber('Query.limitToLast', 1, n);

@@ -104,9 +104,11 @@ describe('RxFire Database', () => {
   });
 
   describe('fromRef', () => {
-    const items = [{ name: 'one' }, { name: 'two' }, { name: 'three' }].map(
-      item => ({ key: rando(), ...item })
-    );
+    const items = [
+      { name: 'one' },
+      { name: 'two' },
+      { name: 'three' }
+    ].map(item => ({ key: rando(), ...item }));
     const itemsObj = batch(items);
 
     /**
@@ -276,9 +278,11 @@ describe('RxFire Database', () => {
   });
 
   describe('list', () => {
-    const items = [{ name: 'zero' }, { name: 'one' }, { name: 'two' }].map(
-      (item, i) => ({ key: `${i}`, ...item })
-    );
+    const items = [
+      { name: 'zero' },
+      { name: 'one' },
+      { name: 'two' }
+    ].map((item, i) => ({ key: `${i}`, ...item }));
 
     const itemsObj = batch(items);
 
@@ -312,10 +316,7 @@ describe('RxFire Database', () => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added]);
         obs
-          .pipe(
-            skip(1),
-            take(1)
-          )
+          .pipe(skip(1), take(1))
           .subscribe(changes => {
             const data = changes.map(change => change.snapshot.val());
             expect(data[3]).to.eql({ name: 'anotha one' });
@@ -354,10 +355,7 @@ describe('RxFire Database', () => {
         const aref = ref(rando());
         const obs = list(aref.orderByChild('name'), [ListenEvent.added]);
         obs
-          .pipe(
-            skip(1),
-            take(1)
-          )
+          .pipe(skip(1), take(1))
           .subscribe(changes => {
             const names = changes.map(change => change.snapshot.val().name);
             expect(names[0]).to.eql('anotha one');
@@ -379,10 +377,7 @@ describe('RxFire Database', () => {
           ListenEvent.added
         ]);
         obs
-          .pipe(
-            skip(1),
-            take(1)
-          )
+          .pipe(skip(1), take(1))
           .subscribe(changes => {
             const names = changes.map(change => change.snapshot.val().name);
             expect(names[0]).to.eql('zero');
@@ -402,10 +397,7 @@ describe('RxFire Database', () => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added, ListenEvent.removed]);
         const _sub = obs
-          .pipe(
-            skip(1),
-            take(1)
-          )
+          .pipe(skip(1), take(1))
           .subscribe(changes => {
             const data = changes.map(change => change.snapshot.val());
             expect(data.length).to.eql(items.length - 1);
@@ -425,10 +417,7 @@ describe('RxFire Database', () => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added, ListenEvent.changed]);
         const _sub = obs
-          .pipe(
-            skip(1),
-            take(1)
-          )
+          .pipe(skip(1), take(1))
           .subscribe(changes => {
             const data = changes.map(change => change.snapshot.val());
             expect(data[1].name).to.eql('lol');
@@ -448,10 +437,7 @@ describe('RxFire Database', () => {
         const aref = ref(rando());
         const obs = list(aref, [ListenEvent.added, ListenEvent.moved]);
         const _sub = obs
-          .pipe(
-            skip(1),
-            take(1)
-          )
+          .pipe(skip(1), take(1))
           .subscribe(changes => {
             const data = changes.map(change => change.snapshot.val());
             // We moved the first item to the last item, so we check that
@@ -614,9 +600,11 @@ describe('RxFire Database', () => {
   });
 
   describe('auditTrail', () => {
-    const items = [{ name: 'zero' }, { name: 'one' }, { name: 'two' }].map(
-      (item, i) => ({ key: `${i}`, ...item })
-    );
+    const items = [
+      { name: 'zero' },
+      { name: 'one' },
+      { name: 'two' }
+    ].map((item, i) => ({ key: `${i}`, ...item }));
 
     const itemsObj = batch(items);
 
@@ -650,9 +638,11 @@ describe('RxFire Database', () => {
   });
 
   describe('Data Mapping Functions', () => {
-    const items = [{ name: 'one' }, { name: 'two' }, { name: 'three' }].map(
-      item => ({ key: rando(), ...item })
-    );
+    const items = [
+      { name: 'one' },
+      { name: 'two' },
+      { name: 'three' }
+    ].map(item => ({ key: rando(), ...item }));
     const itemsObj = batch(items);
 
     /**
