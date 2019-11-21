@@ -1,6 +1,6 @@
 {
   "name": "@firebase/polyfill",
-  "version": "0.3.28",
+  "version": "0.3.29",
   "description": "",
   "author": "Firebase <firebase-support@google.com> (https://firebase.google.com/)",
   "main": "dist/index.cjs.js",
