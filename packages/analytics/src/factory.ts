@@ -27,7 +27,6 @@ import {
   setUserProperties,
   setAnalyticsCollectionEnabled
 } from './functions';
-import '@firebase/installations';
 import {
   initializeGAId,
   insertScriptTag,
@@ -38,6 +37,7 @@ import {
 import { ANALYTICS_ID_FIELD } from './constants';
 import { AnalyticsError, ERROR_FACTORY } from './errors';
 import { FirebaseApp } from '@firebase/app-types';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 /**
  * Maps gaId to FID fetch promises.
@@ -102,7 +102,7 @@ export function settings(options: SettingsOptions): void {
   }
 }
 
-export function factory(app: FirebaseApp): FirebaseAnalytics {
+export function factory(app: FirebaseApp, installations: FirebaseInstallations): FirebaseAnalytics {
   const analyticsId = app.options[ANALYTICS_ID_FIELD];
   if (!analyticsId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);
@@ -135,7 +135,7 @@ export function factory(app: FirebaseApp): FirebaseAnalytics {
     globalInitDone = true;
   }
   // Async but non-blocking.
-  initializedIdPromisesMap[analyticsId] = initializeGAId(app, gtagCoreFunction);
+  initializedIdPromisesMap[analyticsId] = initializeGAId(app, installations, gtagCoreFunction);
 
   const analyticsInstance: FirebaseAnalytics = {
     app,

@@ -24,7 +24,7 @@ import {
   factory as analyticsFactory,
   resetGlobalVars
 } from './index';
-import { getFakeApp } from './testing/get-fake-app';
+import { getFakeApp, getFakeInstallations } from './testing/get-fake-firebase-services';
 import { FirebaseApp } from '@firebase/app-types';
 import { GtagCommand, EventName } from './src/constants';
 import { findGtagScriptOnPage } from './src/helpers';
@@ -39,21 +39,25 @@ const customDataLayerName = 'customDataLayer';
 describe('FirebaseAnalytics instance tests', () => {
   it('Throws if no analyticsId in config', () => {
     const app = getFakeApp();
-    expect(() => analyticsFactory(app)).to.throw('field is empty');
+    const installations = getFakeInstallations();
+    expect(() => analyticsFactory(app, installations)).to.throw('field is empty');
   });
   it('Throws if creating an instance with already-used analytics ID', () => {
     const app = getFakeApp(analyticsId);
+    const installations = getFakeInstallations();
     resetGlobalVars(false, { [analyticsId]: Promise.resolve() });
-    expect(() => analyticsFactory(app)).to.throw('already exists');
+    expect(() => analyticsFactory(app, installations)).to.throw('already exists');
   });
   describe('Standard app, page already has user gtag script', () => {
     let app: FirebaseApp = {} as FirebaseApp;
     before(() => {
       resetGlobalVars();
       app = getFakeApp(analyticsId);
+      const installations = getFakeInstallations();
+
       window['gtag'] = gtagStub;
       window['dataLayer'] = [];
-      analyticsInstance = analyticsFactory(app);
+      analyticsInstance = analyticsFactory(app, installations);
     });
     after(() => {
       delete window['gtag'];
@@ -113,13 +117,14 @@ describe('FirebaseAnalytics instance tests', () => {
     before(() => {
       resetGlobalVars();
       const app = getFakeApp(analyticsId);
+      const installations = getFakeInstallations();
       window[customGtagName] = gtagStub;
       window[customDataLayerName] = [];
       analyticsSettings({
         dataLayerName: customDataLayerName,
         gtagName: customGtagName
       });
-      analyticsInstance = analyticsFactory(app);
+      analyticsInstance = analyticsFactory(app, installations);
     });
     after(() => {
       delete window[customGtagName];
@@ -162,7 +167,8 @@ describe('FirebaseAnalytics instance tests', () => {
     before(() => {
       resetGlobalVars();
       const app = getFakeApp(analyticsId);
-      analyticsInstance = analyticsFactory(app);
+      const installations = getFakeInstallations();
+      analyticsInstance = analyticsFactory(app, installations);
     });
     after(() => {
       delete window['gtag'];

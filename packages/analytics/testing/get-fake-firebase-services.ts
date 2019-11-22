@@ -16,11 +16,10 @@
  */
 
 import { FirebaseApp } from '@firebase/app-types';
-import { stub } from 'sinon';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 export function getFakeApp(
-  measurementId?: string,
-  fid: string = 'fid-1234'
+  measurementId?: string
 ): FirebaseApp {
   return {
     name: 'appName',
@@ -35,9 +34,18 @@ export function getFakeApp(
       measurementId
     },
     automaticDataCollectionEnabled: true,
-    delete: async () => {},
-    installations: stub().returns({ getId: () => Promise.resolve(fid) }),
+    delete: async () => { },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    installations: null as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     analytics: null as any
+  };
+}
+
+export function getFakeInstallations(fid: string = 'fid-1234'): FirebaseInstallations {
+  return {
+    getId: () => Promise.resolve(fid),
+    getToken: () => Promise.resolve('authToken'),
+    delete: () => Promise.resolve()
   };
 }

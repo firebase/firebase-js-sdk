@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import firebase from '@firebase/app';
+import '@firebase/installations';
 import { FirebaseAnalytics } from '@firebase/analytics-types';
 import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
 import { _FirebaseNamespace } from '@firebase/app-types/private';
@@ -44,7 +45,9 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
       container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        return factory(app);
+        const installations = container.getProvider('installations').getImmediate();
+
+        return factory(app, installations);
       },
       ComponentType.PUBLIC
     ).setServiceProps({
