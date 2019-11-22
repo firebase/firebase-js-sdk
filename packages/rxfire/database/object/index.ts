@@ -44,8 +44,15 @@ export function objectVal<T>(
 }
 
 export function changeToData(change: QueryChange, keyField?: string): {} {
+  const val = change.snapshot.val();
+
+  // val can be a primitive type
+  if (typeof val !== 'object') {
+    return val;
+  }
+
   return {
-    ...change.snapshot.val(),
+    ...val,
     ...(keyField ? { [keyField]: change.snapshot.key } : null)
   };
 }
