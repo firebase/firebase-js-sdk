@@ -129,7 +129,7 @@ const componentBuilds = pkg.components
               );
             }`
         },
-        plugins: [...plugins],
+        plugins: [...plugins, uglify()],
         external: ['@firebase/app']
       }
     ];
