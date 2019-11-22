@@ -26,7 +26,10 @@ import {
   wrapOrCreateGtag,
   findGtagScriptOnPage
 } from './helpers';
-import { getFakeApp, getFakeInstallations } from '../testing/get-fake-firebase-services';
+import {
+  getFakeApp,
+  getFakeInstallations
+} from '../testing/get-fake-firebase-services';
 import { GtagCommand } from './constants';
 import { Deferred } from '@firebase/util';
 

@@ -45,7 +45,9 @@ export function registerAnalytics(instance: _FirebaseNamespace): void {
       container => {
         // getImmediate for FirebaseApp will always succeed
         const app = container.getProvider('app').getImmediate();
-        const installations = container.getProvider('installations').getImmediate();
+        const installations = container
+          .getProvider('installations')
+          .getImmediate();
 
         return factory(app, installations);
       },

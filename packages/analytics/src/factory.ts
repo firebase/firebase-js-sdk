@@ -102,7 +102,10 @@ export function settings(options: SettingsOptions): void {
   }
 }
 
-export function factory(app: FirebaseApp, installations: FirebaseInstallations): FirebaseAnalytics {
+export function factory(
+  app: FirebaseApp,
+  installations: FirebaseInstallations
+): FirebaseAnalytics {
   const analyticsId = app.options[ANALYTICS_ID_FIELD];
   if (!analyticsId) {
     throw ERROR_FACTORY.create(AnalyticsError.NO_GA_ID);
@@ -135,7 +138,11 @@ export function factory(app: FirebaseApp, installations: FirebaseInstallations):
     globalInitDone = true;
   }
   // Async but non-blocking.
-  initializedIdPromisesMap[analyticsId] = initializeGAId(app, installations, gtagCoreFunction);
+  initializedIdPromisesMap[analyticsId] = initializeGAId(
+    app,
+    installations,
+    gtagCoreFunction
+  );
 
   const analyticsInstance: FirebaseAnalytics = {
     app,

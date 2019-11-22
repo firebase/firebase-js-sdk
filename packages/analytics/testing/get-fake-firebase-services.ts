@@ -18,9 +18,7 @@
 import { FirebaseApp } from '@firebase/app-types';
 import { FirebaseInstallations } from '@firebase/installations-types';
 
-export function getFakeApp(
-  measurementId?: string
-): FirebaseApp {
+export function getFakeApp(measurementId?: string): FirebaseApp {
   return {
     name: 'appName',
     options: {
@@ -34,7 +32,7 @@ export function getFakeApp(
       measurementId
     },
     automaticDataCollectionEnabled: true,
-    delete: async () => { },
+    delete: async () => {},
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     installations: null as any,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,7 +40,9 @@ export function getFakeApp(
   };
 }
 
-export function getFakeInstallations(fid: string = 'fid-1234'): FirebaseInstallations {
+export function getFakeInstallations(
+  fid: string = 'fid-1234'
+): FirebaseInstallations {
   return {
     getId: () => Promise.resolve(fid),
     getToken: () => Promise.resolve('authToken'),

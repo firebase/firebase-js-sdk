@@ -24,7 +24,10 @@ import {
   factory as analyticsFactory,
   resetGlobalVars
 } from './index';
-import { getFakeApp, getFakeInstallations } from './testing/get-fake-firebase-services';
+import {
+  getFakeApp,
+  getFakeInstallations
+} from './testing/get-fake-firebase-services';
 import { FirebaseApp } from '@firebase/app-types';
 import { GtagCommand, EventName } from './src/constants';
 import { findGtagScriptOnPage } from './src/helpers';
@@ -40,13 +43,17 @@ describe('FirebaseAnalytics instance tests', () => {
   it('Throws if no analyticsId in config', () => {
     const app = getFakeApp();
     const installations = getFakeInstallations();
-    expect(() => analyticsFactory(app, installations)).to.throw('field is empty');
+    expect(() => analyticsFactory(app, installations)).to.throw(
+      'field is empty'
+    );
   });
   it('Throws if creating an instance with already-used analytics ID', () => {
     const app = getFakeApp(analyticsId);
     const installations = getFakeInstallations();
     resetGlobalVars(false, { [analyticsId]: Promise.resolve() });
-    expect(() => analyticsFactory(app, installations)).to.throw('already exists');
+    expect(() => analyticsFactory(app, installations)).to.throw(
+      'already exists'
+    );
   });
   describe('Standard app, page already has user gtag script', () => {
     let app: FirebaseApp = {} as FirebaseApp;
