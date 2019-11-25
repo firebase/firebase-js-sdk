@@ -54,7 +54,10 @@ describe('RestClient', () => {
   });
 
   describe('fetch', () => {
-    let fetchStub: sinon.SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
+    let fetchStub: sinon.SinonStub<
+      [RequestInfo, RequestInit?],
+      Promise<Response>
+    >;
 
     beforeEach(() => {
       fetchStub = sinon

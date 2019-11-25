@@ -234,10 +234,9 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         () => 'granted'
       );
 
-      stub(
-        TokenDetailsModel.prototype,
-        'getTokenDetailsFromSWScope'
-      ).callsFake(async () => EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID);
+      stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope').callsFake(
+        async () => EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID
+      );
 
       const serviceInstance = new serviceClass(firebaseInternalServices);
       const token = await serviceInstance.getToken();
@@ -255,10 +254,9 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         () => 'granted'
       );
 
-      stub(
-        TokenDetailsModel.prototype,
-        'getTokenDetailsFromSWScope'
-      ).callsFake(async () => EXAMPLE_EXPIRED_TOKEN_DETAILS);
+      stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope').callsFake(
+        async () => EXAMPLE_EXPIRED_TOKEN_DETAILS
+      );
 
       stub(serviceClass.prototype, 'getPublicVapidKey_').callsFake(() =>
         Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY)
@@ -469,10 +467,9 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         'saveVapidDetails'
       ).callsFake(async () => {});
 
-      stub(
-        TokenDetailsModel.prototype,
-        'getTokenDetailsFromSWScope'
-      ).callsFake(async () => EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID);
+      stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope').callsFake(
+        async () => EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID
+      );
 
       stub(serviceClass.prototype, 'getPushSubscription').callsFake(() =>
         Promise.resolve(subscription)
@@ -532,10 +529,9 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         () => 'granted'
       );
 
-      stub(
-        TokenDetailsModel.prototype,
-        'getTokenDetailsFromSWScope'
-      ).callsFake(async () => EXAMPLE_EXPIRED_TOKEN_DETAILS);
+      stub(TokenDetailsModel.prototype, 'getTokenDetailsFromSWScope').callsFake(
+        async () => EXAMPLE_EXPIRED_TOKEN_DETAILS
+      );
 
       stub(serviceClass.prototype, 'getPushSubscription').callsFake(() =>
         Promise.resolve(subscription)
