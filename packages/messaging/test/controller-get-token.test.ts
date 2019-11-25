@@ -199,8 +199,8 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
           details = EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID;
         }
 
-        stub(serviceClass.prototype, 'getPublicVapidKey_').callsFake(() =>
-          Promise.resolve(vapidKeyToUse)
+        stub(serviceClass.prototype, 'getPublicVapidKey_').callsFake(
+          async () => vapidKeyToUse
         );
 
         stub(BaseController.prototype, 'getNotificationPermission_').callsFake(
@@ -210,7 +210,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         stub(
           TokenDetailsModel.prototype,
           'getTokenDetailsFromSWScope'
-        ).callsFake(() => Promise.resolve(details));
+        ).callsFake(async () => details);
 
         const serviceInstance = new serviceClass(firebaseInternalServices);
         const token = await serviceInstance.getToken();
@@ -237,7 +237,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       stub(
         TokenDetailsModel.prototype,
         'getTokenDetailsFromSWScope'
-      ).callsFake(() => Promise.resolve(EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID));
+      ).callsFake(async () => EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID);
 
       const serviceInstance = new serviceClass(firebaseInternalServices);
       const token = await serviceInstance.getToken();
@@ -258,7 +258,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       stub(
         TokenDetailsModel.prototype,
         'getTokenDetailsFromSWScope'
-      ).callsFake(() => Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS));
+      ).callsFake(async () => EXAMPLE_EXPIRED_TOKEN_DETAILS);
 
       stub(serviceClass.prototype, 'getPublicVapidKey_').callsFake(() =>
         Promise.resolve(DEFAULT_PUBLIC_VAPID_KEY)
@@ -328,7 +328,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         stub(
           TokenDetailsModel.prototype,
           'getTokenDetailsFromSWScope'
-        ).callsFake(() => Promise.resolve(undefined));
+        ).callsFake(async () => undefined);
 
         const saveTokenDetailsStub = stub(
           TokenDetailsModel.prototype,
@@ -425,7 +425,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
         stub(
           TokenDetailsModel.prototype,
           'getTokenDetailsFromSWScope'
-        ).callsFake(() => Promise.resolve(details));
+        ).callsFake(async () => details);
 
         const serviceInstance = new serviceClass(firebaseInternalServices);
         const token = await serviceInstance.getToken();
@@ -472,7 +472,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       stub(
         TokenDetailsModel.prototype,
         'getTokenDetailsFromSWScope'
-      ).callsFake(() => Promise.resolve(EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID));
+      ).callsFake(async () => EXAMPLE_TOKEN_DETAILS_DEFAULT_VAPID);
 
       stub(serviceClass.prototype, 'getPushSubscription').callsFake(() =>
         Promise.resolve(subscription)
@@ -488,7 +488,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       const GET_TOKEN_RESPONSE = EXAMPLE_TOKEN_DETAILS_CUSTOM_VAPID.fcmToken;
 
       // now update the VAPID key.
-      getPublicVapidKeyStub.callsFake(() => Promise.resolve(CUSTOM_VAPID_KEY));
+      getPublicVapidKeyStub.callsFake(async () => CUSTOM_VAPID_KEY);
 
       const saveTokenDetailsStub = stub(
         TokenDetailsModel.prototype,
@@ -535,7 +535,7 @@ describe('Firebase Messaging > *Controller.getToken()', () => {
       stub(
         TokenDetailsModel.prototype,
         'getTokenDetailsFromSWScope'
-      ).callsFake(() => Promise.resolve(EXAMPLE_EXPIRED_TOKEN_DETAILS));
+      ).callsFake(async () => EXAMPLE_EXPIRED_TOKEN_DETAILS);
 
       stub(serviceClass.prototype, 'getPushSubscription').callsFake(() =>
         Promise.resolve(subscription)

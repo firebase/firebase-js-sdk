@@ -280,7 +280,7 @@ export class WindowController extends BaseController {
   setupSWMessageListener_(): void {
     navigator.serviceWorker.addEventListener(
       'message',
-      event => {
+      async event => {
         if (
           !event.data ||
           !event.data.firebaseMessagingType ||
@@ -308,23 +308,17 @@ export class WindowController extends BaseController {
           // This message has a campaign id, meaning it was sent using the FN Console.
           // Analytics is enabled on this message, so we should log it.
           const eventType = getEventType(firebaseMessagingType);
-          this.services.analyticsProvider.get().then(
-            analytics => {
-              analytics.logEvent(
-                eventType,
-                /* eslint-disable camelcase */
-                {
-                  message_name: data[FN_CAMPAIGN_NAME],
-                  message_id: data[FN_CAMPAIGN_ID],
-                  message_time: data[FN_CAMPAIGN_TIME],
-                  message_device_time: Math.floor(Date.now() / 1000)
-                }
-                /* eslint-enable camelcase */
-              );
-            },
-            () => {
-              /* it will never reject */
+          const analytics = await this.services.analyticsProvider.get();
+          analytics.logEvent(
+            eventType,
+            /* eslint-disable camelcase */
+            {
+              message_name: data[FN_CAMPAIGN_NAME],
+              message_id: data[FN_CAMPAIGN_ID],
+              message_time: data[FN_CAMPAIGN_TIME],
+              message_device_time: Math.floor(Date.now() / 1000)
             }
+            /* eslint-enable camelcase */
           );
         }
       },

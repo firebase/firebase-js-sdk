@@ -44,8 +44,8 @@ export function getFakeInstallations(
   fid: string = 'fid-1234'
 ): FirebaseInstallations {
   return {
-    getId: () => Promise.resolve(fid),
-    getToken: () => Promise.resolve('authToken'),
-    delete: () => Promise.resolve()
+    getId: async () => fid,
+    getToken: async () => 'authToken',
+    delete: async () => undefined
   };
 }

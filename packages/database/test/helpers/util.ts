@@ -57,7 +57,7 @@ let numDatabases = 0;
   new Component(
     'auth-internal',
     () => ({
-      getToken: () => Promise.resolve(null),
+      getToken: async () => null,
       addAuthTokenListener: () => {},
       removeAuthTokenListener: () => {},
       getUid: () => null

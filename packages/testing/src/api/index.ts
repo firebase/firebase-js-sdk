@@ -133,7 +133,7 @@ function initializeApp(
       'auth-internal',
       () =>
         ({
-          getToken: () => Promise.resolve({ accessToken: accessToken }),
+          getToken: async () => ({ accessToken: accessToken }),
           getUid: () => null,
           addAuthTokenListener: () => {},
           removeAuthTokenListener: () => {}

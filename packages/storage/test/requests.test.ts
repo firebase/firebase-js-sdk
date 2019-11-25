@@ -60,7 +60,7 @@ describe('Firebase Storage > Requests', () => {
       [CONFIG_STORAGE_BUCKET_KEY]: 'fredzqm-staging'
     },
     automaticDataCollectionEnabled: false,
-    delete: () => Promise.resolve()
+    delete: async () => undefined
   };
 
   const authWrapper = new AuthWrapper(

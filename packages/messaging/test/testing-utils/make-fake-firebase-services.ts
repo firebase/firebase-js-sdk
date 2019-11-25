@@ -54,9 +54,9 @@ export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
 
 export function makeFakeInstallations(): FirebaseInstallations {
   return {
-    getId: () => Promise.resolve('FID'),
-    getToken: () => Promise.resolve('authToken'),
-    delete: () => Promise.resolve()
+    getId: async () => 'FID',
+    getToken: async () => 'authToken',
+    delete: async () => undefined
   };
 }
 

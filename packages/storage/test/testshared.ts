@@ -63,7 +63,7 @@ export function makeFakeAuthProvider(
     new Component(
       'auth-internal',
       () => ({
-        getToken: () => Promise.resolve(token)
+        getToken: async () => token
       }),
       ComponentType.PRIVATE
     )

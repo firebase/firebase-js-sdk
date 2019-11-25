@@ -101,7 +101,7 @@ describe('Firebase Functions > Call', () => {
   it('token', async () => {
     // mock auth-internal service
     const authMock: FirebaseAuthInternal = ({
-      getToken: () => Promise.resolve({ accessToken: 'token' })
+      getToken: async () => ({ accessToken: 'token' })
     } as unknown) as FirebaseAuthInternal;
     const authProvider = new Provider<FirebaseAuthInternalName>(
       'auth-internal',

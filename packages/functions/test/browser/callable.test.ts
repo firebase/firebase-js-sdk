@@ -45,7 +45,7 @@ describe('Firebase Functions > Call', () => {
   it('instance id', async () => {
     // mock firebase messaging
     const messagingMock: FirebaseMessaging = ({
-      getToken: () => Promise.resolve('iid')
+      getToken: async () => 'iid'
     } as unknown) as FirebaseMessaging;
     const messagingProvider = new Provider<FirebaseMessagingName>(
       'messaging',

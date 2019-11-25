@@ -175,9 +175,9 @@ describe('IndexedDbRemoteDocumentCache', () => {
     );
   });
 
-  genericRemoteDocumentCacheTests(() => Promise.resolve(cache));
+  genericRemoteDocumentCacheTests(async () => cache);
 
-  lruRemoteDocumentCacheTests(() => Promise.resolve(cache));
+  lruRemoteDocumentCacheTests(async () => cache);
 });
 
 function eagerRemoteDocumentCacheTests(

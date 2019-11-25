@@ -54,7 +54,7 @@ describe('RestClient', () => {
   });
 
   describe('fetch', () => {
-    let fetchStub: sinon.SinonStub;
+    let fetchStub: sinon.SinonStub<[RequestInfo, RequestInit?], Promise<Response>>;
 
     beforeEach(() => {
       fetchStub = sinon
@@ -185,7 +185,7 @@ describe('RestClient', () => {
         Promise.resolve({
           status: 200,
           headers: new Headers({ ETag: 'etag' }),
-          json: () => Promise.resolve({ state: 'INSTANCE_STATE_UNSPECIFIED' })
+          json: async () => ({ state: 'INSTANCE_STATE_UNSPECIFIED' })
         } as Response)
       );
 
@@ -205,7 +205,7 @@ describe('RestClient', () => {
         Promise.resolve({
           status: 200,
           headers: new Headers({ ETag: 'etag' }),
-          json: () => Promise.resolve({ state: 'NO_CHANGE' })
+          json: async () => ({ state: 'NO_CHANGE' })
         } as Response)
       );
 
@@ -224,7 +224,7 @@ describe('RestClient', () => {
           Promise.resolve({
             status: 200,
             headers: new Headers({ ETag: 'etag' }),
-            json: () => Promise.resolve({ state })
+            json: async () => ({ state })
           } as Response)
         );
 
