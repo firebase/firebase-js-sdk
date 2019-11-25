@@ -57,7 +57,7 @@ export class Provider<T extends Name> {
         }
       } catch (e) {
         // when the instance factory throws an exception during get(), it should not cause
-        // an fatal error. We just return the unresolved promise in this case.
+        // a fatal error. We just return the unresolved promise in this case.
       }
     }
 
@@ -129,7 +129,7 @@ export class Provider<T extends Name> {
         this.getOrInitializeService(DEFAULT_ENTRY_NAME);
       } catch (e) {
         // when the instance factory for an eager Component throws an exception during the eager
-        // initialization, it should not cause an fatal error.
+        // initialization, it should not cause a fatal error.
         // TODO: Investigate if we need to make it configurable, because some component may want to cause
         // a fatal error in this case?
       }
@@ -152,7 +152,7 @@ export class Provider<T extends Name> {
         instanceDeferred.resolve(instance);
       } catch (e) {
         // when the instance factory throws an exception, it should not cause
-        // an fatal error. We just leave the promise unresolved.
+        // a fatal error. We just leave the promise unresolved.
       }
     }
   }
