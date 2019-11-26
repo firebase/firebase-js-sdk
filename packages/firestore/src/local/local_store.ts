@@ -890,9 +890,7 @@ export class LocalStore {
     keepPersistedTargetData: boolean
   ): Promise<void> {
     const targetData = this.targetDataByTarget.get(targetId);
-    if (!targetData) {
-      return Promise.resolve();
-    }
+    assert(targetData !== null, `Tried to release nonexistent target: ${targetId}`);
 
     const mode = keepPersistedTargetData
       ? 'readwrite-idempotent'
@@ -917,7 +915,7 @@ export class LocalStore {
           return PersistencePromise.forEach(removed, (key: DocumentKey) =>
             this.persistence.referenceDelegate.removeReference(txn, key)
           ).next(() => {
-            this.persistence.referenceDelegate.removeTarget(txn, targetData);
+            this.persistence.referenceDelegate.removeTarget(txn, targetData!);
           });
         } else {
           return PersistencePromise.resolve();
@@ -925,7 +923,7 @@ export class LocalStore {
       })
       .then(() => {
         this.targetDataByTarget = this.targetDataByTarget.remove(targetId);
-        this.targetIdByTarget.delete(targetData.target);
+        this.targetIdByTarget.delete(targetData!.target);
       });
   }
 

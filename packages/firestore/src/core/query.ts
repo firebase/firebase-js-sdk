@@ -48,7 +48,7 @@ export class Query {
   private memoizedOrderBy: OrderBy[] | null = null;
 
   // The corresponding `Target` of this `Query` instance.
-  private memorizedTarget: Target | null = null;
+  private memoizedTarget: Target | null = null;
 
   /**
    * Initializes a Query with a path and optional additional query constraints.
@@ -343,9 +343,9 @@ export class Query {
    * representation.
    */
   toTarget(): Target {
-    if (!this.memorizedTarget) {
+    if (!this.memoizedTarget) {
       if (this.limitType === LimitType.First) {
-        this.memorizedTarget = new Target(
+        this.memoizedTarget = new Target(
           this.path,
           this.collectionGroup,
           this.orderBy,
@@ -374,7 +374,7 @@ export class Query {
           : null;
 
         // Now return as a LimitType.First query.
-        this.memorizedTarget = new Target(
+        this.memoizedTarget = new Target(
           this.path,
           this.collectionGroup,
           orderBys,
@@ -385,7 +385,7 @@ export class Query {
         );
       }
     }
-    return this.memorizedTarget!;
+    return this.memoizedTarget!;
   }
 
   private matchesPathAndCollectionGroup(doc: Document): boolean {
