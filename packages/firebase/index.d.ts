@@ -7086,10 +7086,10 @@ declare namespace firebase.firestore {
    *   </ul>
    */
   export function setLogLevel(logLevel: LogLevel): void;
-  
+
   /**
    * Converter used by `withConverter()` to transform user objects into
-   * Firestore data. 
+   * Firestore data.
    *
    * Using the converter allows you to specify generic type arguments when
    * storing and retrieving objects from Firestore.
@@ -7108,7 +7108,7 @@ declare namespace firebase.firestore {
    *     return {title: post.title, author: post.author};
    *   },
    *   fromFirestore(snapshot: DocumentSnapshot, options: SnapshotOptions): Post
-   *     {const data = snapshot.data(options)!; 
+   *     {const data = snapshot.data(options)!;
    *     return new Post(data.title, data.author);
    *   }
    * };
@@ -7119,7 +7119,7 @@ declare namespace firebase.firestore {
    *   .doc().get();
    * const post = postSnap.data();
    * if (post !== undefined) {
-   *   post.title; // string 
+   *   post.title; // string
    *   post.byline(); // Should be defined
    *   post.someNonExistentProperty; // TS error
    * }
@@ -7132,14 +7132,14 @@ declare namespace firebase.firestore {
      * Firestore database).
      */
     toFirestore(modelObject: T): DocumentData;
-    
+
     /**
      * Called by the Firestore SDK to convert Firestore data into an object of
      * type T. You can access your data by calling:
      *
      * snapshot.data(options)
      *
-     * @param snapshot A DocumentSnapshot containing your data and metadata. 
+     * @param snapshot A DocumentSnapshot containing your data and metadata.
      * @param options The SnapshotOptions from the intial call to data().
      */
     fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
@@ -8438,10 +8438,7 @@ declare namespace firebase.firestore {
      * @param converter Converts objects to and from Firestore
      * @return A Query<U> that uses the provided converter
      */
-    withConverter<U>(
-      converter: FirestoreDataConverter<U>
-    ): Query<U>;
-
+    withConverter<U>(converter: FirestoreDataConverter<U>): Query<U>;
   }
 
   /**
@@ -8594,7 +8591,7 @@ declare namespace firebase.firestore {
      * set(), get(), etc. on the underlying DocumentReference instance, it will
      * use the provided converter to convert data to/from type U (your custom
      * model object type).
-     * 
+     *
      * @param converter Converts objects to and from Firestore
      * @return A CollectionReference<U> that uses the provided converter
      */

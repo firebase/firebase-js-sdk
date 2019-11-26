@@ -42,7 +42,7 @@ export function setLogLevel(logLevel: LogLevel): void;
 
 export interface FirestoreDataConverter<T> {
   toFirestore(modelObject: T): DocumentData;
-  
+
   fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
 }
 
