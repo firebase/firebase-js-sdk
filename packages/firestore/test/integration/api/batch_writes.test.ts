@@ -356,8 +356,9 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
     });
   });
 
-  // PORTING NOTE: These tests are for generics support and apply only to web.
-  apiDescribe('Generics support', (persistence: boolean) => {
+  // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
+  // only to web.
+  apiDescribe('withConverter() support', (persistence: boolean) => {
     class Post {
       constructor(readonly title: string, readonly author: string) {}
       byline(): string {
@@ -365,7 +366,7 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
       }
     }
 
-    it('can set and get a document with write batch', () => {
+    it('for Writebatch.set<T>()', () => {
       return integrationHelpers.withTestDb(persistence, db => {
         const docRef = db
           .collection('posts')
@@ -375,10 +376,10 @@ apiDescribe('Database batch writes', (persistence: boolean) => {
               return { title: post.title, author: post.author };
             },
             fromFirestore(
-              snapshot: firestore.DocumentSnapshot,
+              snapshot: firestore.QueryDocumentSnapshot,
               options: firestore.SnapshotOptions
             ): Post {
-              const data = snapshot.data(options)!;
+              const data = snapshot.data(options);
               return new Post(data.title, data.author);
             }
           });

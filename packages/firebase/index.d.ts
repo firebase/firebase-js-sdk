@@ -7086,12 +7086,32 @@ declare namespace firebase.firestore {
    *   </ul>
    */
   export function setLogLevel(logLevel: LogLevel): void;
-
+  
+  /**
+   * Converter used by `withConverter()` to transform user objects into
+   * Firestore data. 
+   *
+   * Using the converter allows you to specify generic type arguments when
+   * storing and retrieving objects from Firestore.
+   */
   export interface FirestoreDataConverter<T> {
-    // Converts a model object of type T into plain Firestore DocumentData.
+    /**
+     * Called by the Firestore SDK to convert a custom model object of type T
+     * into a plain Javacsript object (suitable for writing directly to the
+     * Firestore database).
+     */
     toFirestore(modelObject: T): DocumentData;
-    // Converts a Firestore DocumentSnapshot into a model object of type T.
-    fromFirestore(snapshot: DocumentSnapshot, options: SnapshotOptions): T;
+    
+    /**
+     * Called by the Firestore SDK to convert Firestore data into an object of
+     * type T. You can access your data by calling:
+     *
+     * snapshot.data(options)
+     *
+     * @param snapshot A DocumentSnapshot containing your data and metadata. 
+     * @param options The SnapshotOptions from the intial call to data().
+     */
+    fromFirestore(snapshot: QueryDocumentSnapshot, options: SnapshotOptions): T;
   }
 
   /**
@@ -7140,7 +7160,7 @@ declare namespace firebase.firestore {
      * @param collectionPath A slash-separated path to a collection.
      * @return The `CollectionReference` instance.
      */
-    collection(collectionPath: string): CollectionReference;
+    collection(collectionPath: string): CollectionReference<DocumentData>;
 
     /**
      * Gets a `DocumentReference` instance that refers to the document at the
@@ -7149,7 +7169,7 @@ declare namespace firebase.firestore {
      * @param documentPath A slash-separated path to a document.
      * @return The `DocumentReference` instance.
      */
-    doc(documentPath: string): DocumentReference;
+    doc(documentPath: string): DocumentReference<DocumentData>;
 
     /**
      * Creates and returns a new Query that includes all documents in the
@@ -7161,7 +7181,7 @@ declare namespace firebase.firestore {
      * will be included. Cannot contain a slash.
      * @return The created Query.
      */
-    collectionGroup(collectionId: string): Query;
+    collectionGroup(collectionId: string): Query<DocumentData>;
 
     /**
      * Executes the given `updateFunction` and then attempts to commit the changes
@@ -7391,7 +7411,7 @@ declare namespace firebase.firestore {
      *     from 0 to 999,999,999 inclusive.
      */
     constructor(seconds: number, nanoseconds: number);
-    
+
     /**
      * Creates a new timestamp with the current date, with millisecond precision.
      *
@@ -7617,7 +7637,10 @@ declare namespace firebase.firestore {
      * within the document.
      * @return This `WriteBatch` instance. Used for chaining method calls.
      */
-    update(documentRef: DocumentReference<unknown>, data: UpdateData): WriteBatch;
+    update(
+      documentRef: DocumentReference<unknown>,
+      data: UpdateData
+    ): WriteBatch;
 
     /**
      * Updates fields in the document referred to by this `DocumentReference`.
@@ -7922,12 +7945,18 @@ declare namespace firebase.firestore {
     ): () => void;
 
     /**
-     * Converts a DocumentReference into a DocumentReference<U>.
+     * Applies a custom data converter to this DocumentReference, allowing you
+     * to use your own custom model objects with Firestore. When you call
+     * set(), get(), etc. on the returned DocumentReference instance, it will
+     * use the provided converter to convert data to/from type U (your custom
+     * model object type).
      *
      * @param converter Converts objects to and from Firestore
      * @return A DocumentReference<U> that uses the provided converter
      */
-    withConverter<U>(converter: FirestoreDataConverter<U>): DocumentReference<U>;
+    withConverter<U>(
+      converter: FirestoreDataConverter<U>
+    ): DocumentReference<U>;
   }
 
   /**
@@ -8070,7 +8099,9 @@ declare namespace firebase.firestore {
    * `exists` property will always be true and `data()` will never return
    * 'undefined'.
    */
-  export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<T> {
+  export class QueryDocumentSnapshot<T = DocumentData> extends DocumentSnapshot<
+    T
+  > {
     private constructor();
 
     /**
@@ -8296,7 +8327,7 @@ declare namespace firebase.firestore {
      * the snapshot listener.
      */
     onSnapshot(observer: {
-      next?: (snapshot: QuerySnapshot) => void;
+      next?: (snapshot: QuerySnapshot<T>) => void;
       error?: (error: Error) => void;
       complete?: () => void;
     }): () => void;
@@ -8317,7 +8348,7 @@ declare namespace firebase.firestore {
     onSnapshot(
       options: SnapshotListenOptions,
       observer: {
-        next?: (snapshot: QuerySnapshot) => void;
+        next?: (snapshot: QuerySnapshot<T>) => void;
         error?: (error: Error) => void;
         complete?: () => void;
       }
@@ -8339,7 +8370,7 @@ declare namespace firebase.firestore {
      * the snapshot listener.
      */
     onSnapshot(
-      onNext: (snapshot: QuerySnapshot) => void,
+      onNext: (snapshot: QuerySnapshot<T>) => void,
       onError?: (error: Error) => void,
       onCompletion?: () => void
     ): () => void;
@@ -8362,10 +8393,24 @@ declare namespace firebase.firestore {
      */
     onSnapshot(
       options: SnapshotListenOptions,
-      onNext: (snapshot: QuerySnapshot) => void,
+      onNext: (snapshot: QuerySnapshot<T>) => void,
       onError?: (error: Error) => void,
       onCompletion?: () => void
     ): () => void;
+
+    /**
+     * Applies a custom data converter to this Query, allowing you to use your
+     * own custom model objects with Firestore. When you call data() on the
+     * underlying QueryDocumentSnapshot, it will use the provided converter to
+     * convert data to/from type U (your custom model object type).
+     *
+     * @param converter Converts objects to and from Firestore
+     * @return A Query<U> that uses the provided converter
+     */
+    withConverter<U>(
+      converter: FirestoreDataConverter<U>
+    ): Query<U>;
+
   }
 
   /**
@@ -8426,7 +8471,7 @@ declare namespace firebase.firestore {
      * @param other The `QuerySnapshot` to compare against.
      * @return true if this `QuerySnapshot` is equal to the provided one.
      */
-    isEqual(other: QuerySnapshot): boolean;
+    isEqual(other: QuerySnapshot<T>): boolean;
   }
 
   /**
@@ -8443,7 +8488,7 @@ declare namespace firebase.firestore {
     readonly type: DocumentChangeType;
 
     /** The document affected by this change. */
-    readonly doc: QueryDocumentSnapshot;
+    readonly doc: QueryDocumentSnapshot<T>;
 
     /**
      * The index of the changed document in the result set immediately prior to
@@ -8502,7 +8547,7 @@ declare namespace firebase.firestore {
      * @return A Promise resolved with a `DocumentReference` pointing to the
      * newly created document after it has been written to the backend.
      */
-    add(data: DocumentData): Promise<DocumentReference<T>>;
+    add(data: T): Promise<DocumentReference<T>>;
 
     /**
      * Returns true if this `CollectionReference` is equal to the provided one.
@@ -8513,8 +8558,12 @@ declare namespace firebase.firestore {
     isEqual(other: CollectionReference<T>): boolean;
 
     /**
-     * Converts a CollectionReference into a CollectionReference<U>.
-     *
+     * Applies a custom data converter to this CollectionReference, allowing you
+     * to use your own custom model objects with Firestore. When you call
+     * set(), get(), etc. on the underlying DocumentReference instance, it will
+     * use the provided converter to convert data to/from type U (your custom
+     * model object type).
+     * 
      * @param converter Converts objects to and from Firestore
      * @return A CollectionReference<U> that uses the provided converter
      */

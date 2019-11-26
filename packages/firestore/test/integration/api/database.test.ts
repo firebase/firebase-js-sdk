@@ -448,7 +448,7 @@ apiDescribe('Database', (persistence: boolean) => {
         .update({ owner: 'abc' })
         .then(
           () => Promise.reject('update should have failed.'),
-          (err: firestore.FirestoreError) => {
+          err => {
             expect(err.message).to.exist;
             // TODO: Change this to just match "no document to update" once the
             // backend response is consistent.
@@ -858,7 +858,7 @@ apiDescribe('Database', (persistence: boolean) => {
         () => {
           throw new Error('Promise resolved even though error was expected.');
         },
-        (err: firestore.FirestoreError) => {
+        err => {
           expect(err.name).to.exist;
           expect(err.message).to.exist;
         }
@@ -872,7 +872,7 @@ apiDescribe('Database', (persistence: boolean) => {
           () => {
             throw new Error('Promise resolved even though error was expected.');
           },
-          (err: firestore.FirestoreError) => {
+          err => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
           }
@@ -882,7 +882,7 @@ apiDescribe('Database', (persistence: boolean) => {
           () => {
             throw new Error('Promise resolved even though error was expected.');
           },
-          (err: firestore.FirestoreError) => {
+          err => {
             expect(err.name).to.exist;
             expect(err.message).to.exist;
           }
@@ -1230,8 +1230,9 @@ apiDescribe('Database', (persistence: boolean) => {
     });
   });
 
-  // PORTING NOTE: These tests are for generics support and apply only to web.
-  apiDescribe('Generics support', (persistence: boolean) => {
+  // PORTING NOTE: These tests are for FirestoreDataConverter support and apply
+  // only to web.
+  apiDescribe('withConverter() support', (persistence: boolean) => {
     class Post {
       constructor(readonly title: string, readonly author: string) {}
       byline(): string {
@@ -1239,23 +1240,25 @@ apiDescribe('Database', (persistence: boolean) => {
       }
     }
 
-    it('can set and get a document', () => {
+    const postConverter = {
+      toFirestore(post: Post): firestore.DocumentData {
+        return { title: post.title, author: post.author };
+      },
+      fromFirestore(
+        snapshot: firestore.QueryDocumentSnapshot,
+        options: firestore.SnapshotOptions
+      ): Post {
+        const data = snapshot.data(options);
+        return new Post(data.title, data.author);
+      }
+    };
+
+    it('for DocumentReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
         const docRef = db
           .collection('posts')
           .doc()
-          .withConverter({
-            toFirestore(post: Post): firestore.DocumentData {
-              return { title: post.title, author: post.author };
-            },
-            fromFirestore(
-              snapshot: firestore.DocumentSnapshot,
-              options: firestore.SnapshotOptions
-            ): Post {
-              const data = snapshot.data(options)!;
-              return new Post(data.title, data.author);
-            }
-          });
+          .withConverter(postConverter);
 
         await docRef.set(new Post('post', 'author'));
         const postData = await docRef.get();
@@ -1265,22 +1268,11 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
-    it('can set and get from a collection', () => {
+    it('for CollectionReference.withConverter()', () => {
       return withTestDb(persistence, async db => {
         const docRef = db
           .collection('posts')
-          .withConverter({
-            toFirestore(post: Post): firestore.DocumentData {
-              return { title: post.title, author: post.author };
-            },
-            fromFirestore(
-              snapshot: firestore.DocumentSnapshot,
-              options: firestore.SnapshotOptions
-            ): Post {
-              const data = snapshot.data(options)!;
-              return new Post(data.title, data.author);
-            }
-          })
+          .withConverter(postConverter)
           .doc();
 
         await docRef.set(new Post('post', 'author'));
@@ -1291,7 +1283,7 @@ apiDescribe('Database', (persistence: boolean) => {
       });
     });
 
-    it('can get from collectionGroup', () => {
+    it('for Query.withConverter()', () => {
       return withTestDb(persistence, async db => {
         await db
           .doc('postings/post1')
@@ -1301,15 +1293,7 @@ apiDescribe('Database', (persistence: boolean) => {
           .set({ title: 'post2', author: 'author2' });
         const posts = await db
           .collectionGroup('postings')
-          .withConverter({
-            toFirestore(post: Post): firestore.DocumentData {
-              return { title: post.title, author: post.author };
-            },
-            fromFirestore(snapshot: firestore.DocumentSnapshot): Post {
-              const data = snapshot.data()!;
-              return new Post(data.title, data.author);
-            }
-          })
+          .withConverter(postConverter)
           .get();
         expect(posts.size).to.equal(2);
         expect(posts.docs[0].data()!.byline()).to.equal('post1, by author1');
@@ -1323,13 +1307,13 @@ apiDescribe('Database', (persistence: boolean) => {
             return { title: post.title, author: post.author };
           },
           fromFirestore(
-            snapshot: firestore.DocumentSnapshot,
+            snapshot: firestore.QueryDocumentSnapshot,
             options: firestore.SnapshotOptions
           ): Post {
             // Check that options were passed in properly.
             expect(options).to.deep.equal({ serverTimestamps: 'estimate' });
 
-            const data = snapshot.data(options)!;
+            const data = snapshot.data(options);
             return new Post(data.title, data.author);
           }
         });
