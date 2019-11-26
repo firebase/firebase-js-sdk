@@ -22,18 +22,27 @@ import * as type from '../src/implementation/type';
 import { Headers, XhrIo } from '../src/implementation/xhrio';
 import { XhrIoPool } from '../src/implementation/xhriopool';
 import { SendHook, StringHeaders, TestingXhrIo } from './xhrio';
+import { FirebaseAuthInternal } from '@firebase/auth-interop-types';
+import {
+  Provider,
+  ComponentContainer,
+  Component,
+  ComponentType
+} from '@firebase/component';
 
 export const authToken = 'totally-legit-auth-token';
 export const bucket = 'mybucket';
-export const fakeApp = makeFakeApp({ accessToken: authToken });
-export const fakeAppNoAuth = makeFakeApp(null);
+export const fakeApp = makeFakeApp();
+export const fakeAuthProvider = makeFakeAuthProvider({
+  accessToken: authToken
+});
+export const emptyAuthProvider = new Provider<FirebaseAuthInternal>(
+  'auth-internal',
+  new ComponentContainer('storage-container')
+);
 
-export function makeFakeApp(token: {} | null, bucketArg?: string): FirebaseApp {
+export function makeFakeApp(bucketArg?: string): FirebaseApp {
   const app: any = {};
-  app.INTERNAL = {};
-  app.INTERNAL.getToken = function() {
-    return Promise.resolve(token);
-  };
   app.options = {};
   if (type.isDef(bucketArg)) {
     app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucketArg;
@@ -41,6 +50,26 @@ export function makeFakeApp(token: {} | null, bucketArg?: string): FirebaseApp {
     app.options[constants.CONFIG_STORAGE_BUCKET_KEY] = bucket;
   }
   return app as FirebaseApp;
+}
+
+export function makeFakeAuthProvider(
+  token: {} | null
+): Provider<FirebaseAuthInternal> {
+  const provider = new Provider(
+    'auth-internal',
+    new ComponentContainer('storage-container')
+  );
+  provider.setComponent(
+    new Component(
+      'auth-internal',
+      () => ({
+        getToken: async () => token
+      }),
+      ComponentType.PRIVATE
+    )
+  );
+
+  return provider as Provider<FirebaseAuthInternal>;
 }
 
 export function makePool(sendHook: SendHook | null): XhrIoPool {

@@ -20,21 +20,9 @@
  */
 
 /**
- * @param {string} name Service name
- * @param {!firebase.ServiceFactory} createService
- * @param {Object=} serviceProperties
- * @param {(function(string, !firebase.app.App): void)=} appHook
- * @param {boolean=} allowMultipleInstances Whether the service registered
- *   supports multiple instances on the same app.
- * @return {firebase.ServiceNamespace}
+ * @param {!firebase.FirebaseComponent}
  */
-firebase.INTERNAL.registerService = function(
-  name,
-  createService,
-  serviceProperties,
-  appHook,
-  allowMultipleInstances
-) {};
+firebase.INTERNAL.registerComponent = function(component) {};
 
 /** @param {!Object} props */
 firebase.INTERNAL.extendNamespace = function(props) {};

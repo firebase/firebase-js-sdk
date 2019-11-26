@@ -15,13 +15,18 @@
  * limitations under the License.
  */
 import firebase from '@firebase/app';
+import '@firebase/installations';
 import { FirebaseAnalytics } from '@firebase/analytics-types';
-import {
-  FirebaseServiceFactory,
-  _FirebaseNamespace
-} from '@firebase/app-types/private';
+import { FirebaseAnalyticsInternal } from '@firebase/analytics-interop-types';
+import { _FirebaseNamespace } from '@firebase/app-types/private';
 import { factory, settings, resetGlobalVars } from './src/factory';
 import { EventName } from './src/constants';
+import {
+  Component,
+  ComponentType,
+  ComponentContainer
+} from '@firebase/component';
+import { ERROR_FACTORY, AnalyticsError } from './src/errors';
 
 declare global {
   interface Window {
@@ -34,18 +39,43 @@ declare global {
  */
 const ANALYTICS_TYPE = 'analytics';
 export function registerAnalytics(instance: _FirebaseNamespace): void {
-  instance.INTERNAL.registerService(
-    ANALYTICS_TYPE,
-    factory as FirebaseServiceFactory,
-    {
+  instance.INTERNAL.registerComponent(
+    new Component(
+      ANALYTICS_TYPE,
+      container => {
+        // getImmediate for FirebaseApp will always succeed
+        const app = container.getProvider('app').getImmediate();
+        const installations = container
+          .getProvider('installations')
+          .getImmediate();
+
+        return factory(app, installations);
+      },
+      ComponentType.PUBLIC
+    ).setServiceProps({
       settings,
       EventName
-    },
-    // We don't need to wait on any AppHooks.
-    undefined,
-    // Allow multiple analytics instances per app.
-    false
+    })
   );
+
+  instance.INTERNAL.registerComponent(
+    new Component('analytics-internal', internalFactory, ComponentType.PRIVATE)
+  );
+
+  function internalFactory(
+    container: ComponentContainer
+  ): FirebaseAnalyticsInternal {
+    try {
+      const analytics = container.getProvider(ANALYTICS_TYPE).getImmediate();
+      return {
+        logEvent: analytics.logEvent
+      };
+    } catch (e) {
+      throw ERROR_FACTORY.create(AnalyticsError.INTEROP_COMPONENT_REG_FAILED, {
+        reason: e
+      });
+    }
+  }
 }
 
 export { factory, settings, resetGlobalVars };

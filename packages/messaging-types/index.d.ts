@@ -49,3 +49,11 @@ export class FirebaseMessaging {
   useServiceWorker(registration: ServiceWorkerRegistration): void;
   usePublicVapidKey(b64PublicKey: string): void;
 }
+
+export type FirebaseMessagingName = 'messaging';
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'messaging': FirebaseMessaging;
+  }
+}

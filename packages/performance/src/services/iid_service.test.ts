@@ -24,18 +24,21 @@ import {
   getAuthenticationToken,
   getAuthTokenPromise
 } from './iid_service';
-import { FirebaseApp } from '@firebase/app-types';
 import '../../test/setup';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 describe('Firebase Perofmrance > iid_service', () => {
   const IID = 'fid';
   const AUTH_TOKEN = 'authToken';
-  const getId = stub().resolves(IID);
-  const getToken = stub().resolves(AUTH_TOKEN);
 
-  SettingsService.prototype.firebaseAppInstance = ({
-    installations: () => ({ getId, getToken })
-  } as unknown) as FirebaseApp;
+  before(() => {
+    const getId = stub().resolves(IID);
+    const getToken = stub().resolves(AUTH_TOKEN);
+    SettingsService.prototype.installationsService = ({
+      getId,
+      getToken
+    } as unknown) as FirebaseInstallations;
+  });
 
   describe('getIidPromise', () => {
     it('provides iid', async () => {

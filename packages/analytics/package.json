@@ -26,6 +26,7 @@
     "@firebase/analytics-types": "0.2.3",
     "@firebase/installations": "0.3.6",
     "@firebase/util": "0.2.34",
+    "@firebase/component": "0.1.0",
     "tslib": "1.10.0"
   },
   "license": "Apache-2.0",

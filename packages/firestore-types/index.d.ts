@@ -42,40 +42,40 @@ export function setLogLevel(logLevel: LogLevel): void;
 
 export class FirebaseFirestore {
   private constructor();
-  
+
   settings(settings: Settings): void;
-  
+
   enablePersistence(settings?: PersistenceSettings): Promise<void>;
-  
+
   collection(collectionPath: string): CollectionReference;
-  
+
   doc(documentPath: string): DocumentReference;
-  
+
   collectionGroup(collectionId: string): Query;
-  
+
   runTransaction<T>(
     updateFunction: (transaction: Transaction) => Promise<T>
   ): Promise<T>;
-  
+
   batch(): WriteBatch;
-  
+
   app: any;
-  
+
   clearPersistence(): Promise<void>;
-  
+
   enableNetwork(): Promise<void>;
-  
+
   disableNetwork(): Promise<void>;
-  
+
   waitForPendingWrites(): Promise<void>;
-  
+
   onSnapshotsInSync(observer: {
     next?: (value: void) => void;
     error?: (error: Error) => void;
     complete?: () => void;
   }): () => void;
   onSnapshotsInSync(onSync: () => void): () => void;
-  
+
   terminate(): Promise<void>;
 
   INTERNAL: { delete: () => Promise<void> };
@@ -86,26 +86,26 @@ export class GeoPoint {
 
   readonly latitude: number;
   readonly longitude: number;
-  
+
   isEqual(other: GeoPoint): boolean;
 }
 
 export class Timestamp {
   constructor(seconds: number, nanoseconds: number);
-  
+
   static now(): Timestamp;
-  
+
   static fromDate(date: Date): Timestamp;
-  
+
   static fromMillis(milliseconds: number): Timestamp;
 
   readonly seconds: number;
   readonly nanoseconds: number;
 
   toDate(): Date;
-  
+
   toMillis(): number;
-  
+
   isEqual(other: Timestamp): boolean;
 }
 
@@ -119,7 +119,7 @@ export class Blob {
   public toBase64(): string;
 
   public toUint8Array(): Uint8Array;
-  
+
   isEqual(other: Blob): boolean;
 }
 
@@ -133,7 +133,7 @@ export class Transaction {
     data: DocumentData,
     options?: SetOptions
   ): Transaction;
-  
+
   update(documentRef: DocumentReference, data: UpdateData): Transaction;
   update(
     documentRef: DocumentReference,
@@ -142,7 +142,6 @@ export class Transaction {
     ...moreFieldsAndValues: any[]
   ): Transaction;
 
- 
   delete(documentRef: DocumentReference): Transaction;
 }
 
@@ -162,9 +161,9 @@ export class WriteBatch {
     value: any,
     ...moreFieldsAndValues: any[]
   ): WriteBatch;
- 
+
   delete(documentRef: DocumentReference): WriteBatch;
- 
+
   commit(): Promise<void>;
 }
 
@@ -294,13 +293,12 @@ export class Query {
 
   startAt(snapshot: DocumentSnapshot): Query;
   startAt(...fieldValues: any[]): Query;
-  
+
   startAfter(snapshot: DocumentSnapshot): Query;
   startAfter(...fieldValues: any[]): Query;
 
   endBefore(snapshot: DocumentSnapshot): Query;
   endBefore(...fieldValues: any[]): Query;
-
 
   endAt(snapshot: DocumentSnapshot): Query;
   endAt(...fieldValues: any[]): Query;
@@ -365,39 +363,39 @@ export interface DocumentChange {
 
 export class CollectionReference extends Query {
   private constructor();
-  
+
   readonly id: string;
   readonly parent: DocumentReference | null;
   readonly path: string;
-  
+
   doc(documentPath?: string): DocumentReference;
-  
+
   add(data: DocumentData): Promise<DocumentReference>;
-  
+
   isEqual(other: CollectionReference): boolean;
 }
 
 export class FieldValue {
   private constructor();
-  
+
   static serverTimestamp(): FieldValue;
-  
+
   static delete(): FieldValue;
-  
+
   static arrayUnion(...elements: any[]): FieldValue;
-  
+
   static arrayRemove(...elements: any[]): FieldValue;
-  
+
   static increment(n: number): FieldValue;
-  
+
   isEqual(other: FieldValue): boolean;
 }
 
 export class FieldPath {
   constructor(...fieldNames: string[]);
-  
+
   static documentId(): FieldPath;
-  
+
   isEqual(other: FieldPath): boolean;
 }
 
@@ -424,4 +422,10 @@ export interface FirestoreError {
   message: string;
   name: string;
   stack?: string;
+}
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'firestore': FirebaseFirestore;
+  }
 }

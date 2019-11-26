@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 
-import { FirebaseApp } from '@firebase/app-types';
 import { _FirebaseApp } from '@firebase/app-types/private';
 import { User } from '../auth/user';
 import { assert } from '../util/assert';
 import { Code, FirestoreError } from '../util/error';
+import {
+  FirebaseAuthInternal,
+  FirebaseAuthInternalName
+} from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
 
 // TODO(mikelehen): This should be split into multiple files and probably
 // moved to an auth/ folder to match other platforms.
@@ -148,7 +152,9 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
 
   private forceRefresh = false;
 
-  constructor(private readonly app: FirebaseApp) {
+  private auth: FirebaseAuthInternal | null;
+
+  constructor(authProvider: Provider<FirebaseAuthInternalName>) {
     this.tokenListener = () => {
       this.tokenCounter++;
       this.currentUser = this.getUser();
@@ -160,10 +166,26 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
 
     this.tokenCounter = 0;
 
-    // Will fire at least once where we set this.currentUser
-    (this.app as _FirebaseApp).INTERNAL.addAuthTokenListener(
-      this.tokenListener
-    );
+    this.auth = authProvider.getImmediate({ optional: true });
+
+    if (this.auth) {
+      this.auth.addAuthTokenListener(this.tokenListener!);
+    } else {
+      // if auth is not available, invoke tokenListener once with null token
+      this.tokenListener(null);
+      authProvider.get().then(
+        auth => {
+          this.auth = auth;
+          if (this.tokenListener) {
+            // tokenListener can be removed by removeChangeListener()
+            this.auth.addAuthTokenListener(this.tokenListener);
+          }
+        },
+        () => {
+          /* this.authProvider.get() never rejects */
+        }
+      );
+    }
   }
 
   getToken(): Promise<Token | null> {
@@ -178,29 +200,32 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
     const initialTokenCounter = this.tokenCounter;
     const forceRefresh = this.forceRefresh;
     this.forceRefresh = false;
-    return (this.app as _FirebaseApp).INTERNAL.getToken(forceRefresh).then(
-      tokenData => {
-        // Cancel the request since the token changed while the request was
-        // outstanding so the response is potentially for a previous user (which
-        // user, we can't be sure).
-        if (this.tokenCounter !== initialTokenCounter) {
-          throw new FirestoreError(
-            Code.ABORTED,
-            'getToken aborted due to token change.'
+
+    if (!this.auth) {
+      return Promise.resolve(null);
+    }
+
+    return this.auth.getToken(forceRefresh).then(tokenData => {
+      // Cancel the request since the token changed while the request was
+      // outstanding so the response is potentially for a previous user (which
+      // user, we can't be sure).
+      if (this.tokenCounter !== initialTokenCounter) {
+        throw new FirestoreError(
+          Code.ABORTED,
+          'getToken aborted due to token change.'
+        );
+      } else {
+        if (tokenData) {
+          assert(
+            typeof tokenData.accessToken === 'string',
+            'Invalid tokenData returned from getToken():' + tokenData
           );
+          return new OAuthToken(tokenData.accessToken, this.currentUser);
         } else {
-          if (tokenData) {
-            assert(
-              typeof tokenData.accessToken === 'string',
-              'Invalid tokenData returned from getToken():' + tokenData
-            );
-            return new OAuthToken(tokenData.accessToken, this.currentUser);
-          } else {
-            return null;
-          }
+          return null;
         }
       }
-    );
+    });
   }
 
   invalidateToken(): void {
@@ -223,9 +248,10 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
       this.changeListener !== null,
       'removeChangeListener() called when no listener registered'
     );
-    (this.app as _FirebaseApp).INTERNAL.removeAuthTokenListener(
-      this.tokenListener!
-    );
+
+    if (this.auth) {
+      this.auth.removeAuthTokenListener(this.tokenListener!);
+    }
     this.tokenListener = null;
     this.changeListener = null;
   }
@@ -235,7 +261,7 @@ export class FirebaseCredentialsProvider implements CredentialsProvider {
   // This method should only be called in the AuthTokenListener callback
   // to guarantee to get the actual user.
   private getUser(): User {
-    const currentUid = (this.app as _FirebaseApp).INTERNAL.getUid();
+    const currentUid = this.auth && this.auth.getUid();
     assert(
       currentUid === null || typeof currentUid === 'string',
       'Received invalid UID: ' + currentUid

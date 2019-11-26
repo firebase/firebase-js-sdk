@@ -24,6 +24,8 @@ import { validateUrl } from './util/validation';
 import './Repo_transaction';
 import { Database } from '../api/Database';
 import { RepoInfo } from './RepoInfo';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
 
 /** @const {string} */
 const DATABASE_URL_OPTION = 'databaseURL';
@@ -89,7 +91,11 @@ export class RepoManager {
    * @param {!FirebaseApp} app
    * @return {!Database}
    */
-  databaseFromApp(app: FirebaseApp, url?: string): Database {
+  databaseFromApp(
+    app: FirebaseApp,
+    authProvider: Provider<FirebaseAuthInternalName>,
+    url?: string
+  ): Database {
     let dbUrl: string | undefined = url || app.options[DATABASE_URL_OPTION];
     if (dbUrl === undefined) {
       fatal(
@@ -120,7 +126,7 @@ export class RepoManager {
       );
     }
 
-    const repo = this.createRepo(repoInfo, app);
+    const repo = this.createRepo(repoInfo, app, authProvider);
 
     return repo.database;
   }
@@ -150,7 +156,11 @@ export class RepoManager {
    * @param {!FirebaseApp} app
    * @return {!Repo} The Repo object for the specified server / repoName.
    */
-  createRepo(repoInfo: RepoInfo, app: FirebaseApp): Repo {
+  createRepo(
+    repoInfo: RepoInfo,
+    app: FirebaseApp,
+    authProvider: Provider<FirebaseAuthInternalName>
+  ): Repo {
     let appRepos = safeGet(this.repos_, app.name);
 
     if (!appRepos) {
@@ -164,7 +174,7 @@ export class RepoManager {
         'Database initialized multiple times. Please make sure the format of the database URL matches with each database() call.'
       );
     }
-    repo = new Repo(repoInfo, this.useRestClient_, app);
+    repo = new Repo(repoInfo, this.useRestClient_, app, authProvider);
     appRepos[repoInfo.toURLString()] = repo;
 
     return repo;

@@ -29,6 +29,7 @@
     "@firebase/installations": "0.3.6",
     "@firebase/messaging-types": "0.3.5",
     "@firebase/util": "0.2.34",
+    "@firebase/component": "0.1.0",
     "tslib": "1.10.0"
   },
   "devDependencies": {

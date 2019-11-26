@@ -105,6 +105,8 @@ import {
   fieldPathFromArgument,
   UserDataConverter
 } from './user_data_converter';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { Provider } from '@firebase/component';
 
 // settings() defaults:
 const DEFAULT_HOST = 'firestore.googleapis.com';
@@ -308,7 +310,10 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
 
   readonly _dataConverter: UserDataConverter;
 
-  constructor(databaseIdOrApp: FirestoreDatabase | FirebaseApp) {
+  constructor(
+    databaseIdOrApp: FirestoreDatabase | FirebaseApp,
+    authProvider: Provider<FirebaseAuthInternalName>
+  ) {
     if (typeof (databaseIdOrApp as FirebaseApp).options === 'object') {
       // This is very likely a Firebase app object
       // TODO(b/34177605): Can we somehow use instanceof?
@@ -316,7 +321,7 @@ export class Firestore implements firestore.FirebaseFirestore, FirebaseService {
       this._firebaseApp = app;
       this._databaseId = Firestore.databaseIdFromApp(app);
       this._persistenceKey = app.name;
-      this._credentials = new FirebaseCredentialsProvider(app);
+      this._credentials = new FirebaseCredentialsProvider(authProvider);
     } else {
       const external = databaseIdOrApp as FirestoreDatabase;
       if (!external.projectId) {

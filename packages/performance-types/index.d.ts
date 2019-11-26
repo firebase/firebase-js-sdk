@@ -109,3 +109,9 @@ export interface PerformanceTrace {
    */
   getAttributes(): { [key: string]: string };
 }
+
+declare module '@firebase/component' {
+  interface NameServiceMapping {
+    'performance': FirebasePerformance;
+  }
+}

@@ -1,6 +1,6 @@
 /**
  * @license
- * Copyright 2017 Google Inc.
+ * Copyright 2019 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,11 @@
  * limitations under the License.
  */
 
-import { FirebaseApp, FirebaseOptions } from '@firebase/app-types';
+import { FirebaseOptions, FirebaseApp } from '@firebase/app-types';
+import { Provider, ComponentContainer } from '@firebase/component';
+import { FirebaseAuthInternalName } from '@firebase/auth-interop-types';
+import { FirebaseMessagingName } from '@firebase/messaging-types';
+import { Service } from '../src/api/service';
 
 export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
   options = {
@@ -32,14 +36,28 @@ export function makeFakeApp(options: FirebaseOptions = {}): FirebaseApp {
     name: 'appName',
     options,
     automaticDataCollectionEnabled: true,
-    delete: async () => {},
-    messaging: null as any,
-    installations() {
-      return {
-        getId: () => Promise.resolve('FID'),
-        getToken: () => Promise.resolve('authToken'),
-        delete: () => Promise.resolve()
-      };
-    }
+    delete: async () => {}
   };
+}
+
+export function createTestService(
+  app: FirebaseApp,
+  region?: string,
+  authProvider = new Provider<FirebaseAuthInternalName>(
+    'auth-internal',
+    new ComponentContainer('test')
+  ),
+  messagingProvider = new Provider<FirebaseMessagingName>(
+    'messaging',
+    new ComponentContainer('test')
+  )
+): Service {
+  const functions = new Service(app, authProvider, messagingProvider, region);
+  const useEmulator = !!process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN;
+  if (useEmulator) {
+    functions.useFunctionsEmulator(
+      process.env.FIREBASE_FUNCTIONS_EMULATOR_ORIGIN!
+    );
+  }
+  return functions;
 }

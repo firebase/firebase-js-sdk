@@ -30,7 +30,7 @@ import {
   ORIGIN_KEY,
   GTAG_URL
 } from './constants';
-import '@firebase/installations';
+import { FirebaseInstallations } from '@firebase/installations-types';
 
 /**
  * Initialize the analytics instance in gtag.js by calling config command with fid.
@@ -42,9 +42,10 @@ import '@firebase/installations';
  */
 export async function initializeGAId(
   app: FirebaseApp,
+  installations: FirebaseInstallations,
   gtagCore: Gtag
 ): Promise<void> {
-  const fid = await app.installations().getId();
+  const fid = await installations.getId();
 
   // This command initializes gtag.js and only needs to be called once for the entire web app,
   // but since it is idempotent, we can call it multiple times.
